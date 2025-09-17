@@ -80,7 +80,7 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
   }
   const onEditAction = () => {
     setText(!text ? PROJECT_README_DEFAULT : text);
-    analytics.onProjectDetailEditReadMeClicked(getAnalyticsUserInfo(userInfo), project?.id, "project-details");
+    analytics.onProjectDetailEditReadMeClicked(getAnalyticsUserInfo(userInfo), project?.id, 'project-details');
     setIsEditorVisible(true);
   };
 
@@ -92,12 +92,12 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
 
   const onSaveAction = async () => {
     triggerLoader(true);
-        analytics.onProjectDetailReadMeEditSaveBtnClicked(getAnalyticsUserInfo(userInfo), project?.id);
+    analytics.onProjectDetailReadMeEditSaveBtnClicked(getAnalyticsUserInfo(userInfo), project?.id);
     try {
       const res = await updateProject(
         project?.id,
         { ...project, readMe: text === PROJECT_README_DEFAULT ? '' : text },
-        authToken
+        authToken,
       );
       if (res.status === 200 || res.status === 201) {
         window.location.reload();
@@ -150,10 +150,18 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
             )}
           </div>
         )}
-        <div className="addDetails__preview">{!isEditorVisible && initialReadme && <MdPreview className="addDetails__preview__editor" modelValue={text} />}</div>
+        <div className="addDetails__preview">
+          {!isEditorVisible && initialReadme && <MdPreview className="addDetails__preview__editor" modelValue={text} />}
+        </div>
         {isEditorVisible && (
           <div className="editDetails__preview">
-            <MdEditor className="editDetails__preview__editor" modelValue={text} onChange={setText} language={'en-US'} toolbarsExclude={['catalog', 'github', 'save', 'htmlPreview']} />
+            <MdEditor
+              className="editDetails__preview__editor"
+              modelValue={text}
+              onChange={setText}
+              language={'en-US'}
+              toolbarsExclude={['catalog', 'github', 'save', 'htmlPreview']}
+            />
           </div>
         )}
       </div>
@@ -214,7 +222,7 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
           color: #156ff7;
           cursor: pointer;
         }
-          
+
         .addDetails__preview :global(.md-editor-preview),
         .editDetails__preview :global(.md-editor-preview) {
           word-break: normal;

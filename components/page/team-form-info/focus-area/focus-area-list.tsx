@@ -18,10 +18,12 @@ const FocusAreasList = (props: IFocusAreasList) => {
   const rawData = props.rawData ?? [];
   // const analytics = useAppAnalytics();
   const formattedRawData = getFormattedFocusArea(rawData);
-  const selectedFocusAreas = getSelectedItems(formattedRawData, selectedItems)?.sort((firstItem: ISelectedAreas, secondItem: ISelectedAreas) => firstItem.index - secondItem.index);
+  const selectedFocusAreas = getSelectedItems(formattedRawData, selectedItems)?.sort(
+    (firstItem: ISelectedAreas, secondItem: ISelectedAreas) => firstItem.index - secondItem.index,
+  );
 
   function findParents(data: any[], childUid: string) {
-    const parents:any = [];
+    const parents: any = [];
     const findParentsRecursive = (item: any, childUid: string, currentParents = []) => {
       if (!item || !item.children) return;
       if (item.uid === childUid) {
@@ -42,7 +44,7 @@ const FocusAreasList = (props: IFocusAreasList) => {
   }
 
   function getSelectedItems(rawData: any[], selectedValues: any[]): ISelectedAreas[] {
-    const selectedParents:any = {};
+    const selectedParents: any = {};
     try {
       selectedValues.forEach((selectedValue) => {
         const parents = findParents(rawData, selectedValue.uid);
@@ -100,7 +102,6 @@ const FocusAreasList = (props: IFocusAreasList) => {
   }
 
   function onEditClicked() {
-   
     /*  analytics.captureEvent(APP_ANALYTICS_EVENTS.FOCUS_AREA_EDIT_BTN_CLICKED, {
       from,
       user,
@@ -124,11 +125,14 @@ const FocusAreasList = (props: IFocusAreasList) => {
           )}
         </div>
         {selectedItems?.length === 0 && (
-          <button onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault()
-            onOpen('Select')
-          }} className="fl__selectbtn">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onOpen('Select');
+            }}
+            className="fl__selectbtn"
+          >
             Select Focus Area(s)
           </button>
         )}
@@ -261,7 +265,7 @@ const FocusAreasList = (props: IFocusAreasList) => {
             font-size: 14px;
             font-weight: 600;
             color: #156ff7;
-            cursor:pointer;
+            cursor: pointer;
           }
         `}
       </style>

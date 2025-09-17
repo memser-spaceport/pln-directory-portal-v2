@@ -21,7 +21,19 @@ interface IProfileSocialLink {
 }
 
 export function ProfileSocialLink(props: IProfileSocialLink) {
-  const { suffix, isPreview, profile, type, logo, height, width, handle, preferred = false, callback, className } = props;
+  const {
+    suffix,
+    isPreview,
+    profile,
+    type,
+    logo,
+    height,
+    width,
+    handle,
+    preferred = false,
+    callback,
+    className,
+  } = props;
 
   const href = getSocialLinkUrl(profile, type, handle);
 
@@ -51,7 +63,9 @@ export function ProfileSocialLink(props: IProfileSocialLink) {
               })}
             >
               {logo && <Image loading="lazy" src={logo} alt={type} height={height} width={width} />}
-              <p className={`profile-social-link__link ${isPreview ? 'profile-social-link__link-preview' : ''}`}>{profile ? profile : handle}</p>
+              <p className={`profile-social-link__link ${isPreview ? 'profile-social-link__link-preview' : ''}`}>
+                {profile ? profile : handle}
+              </p>
             </a>
             {suffix}
           </div>

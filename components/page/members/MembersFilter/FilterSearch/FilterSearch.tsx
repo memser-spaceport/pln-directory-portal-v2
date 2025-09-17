@@ -78,7 +78,13 @@ export function FilterSearch({ label, placeholder, debounceMs = 700 }: Props) {
           {/*    <SearchIcon />*/}
           {/*  </div>*/}
           {/*)}*/}
-          <input type="text" value={inputValue} onChange={handleInputChange} placeholder={placeholder} className={styles.input} />
+          <input
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            placeholder={placeholder}
+            className={styles.input}
+          />
           {hasValue && (
             <button type="button" onClick={handleClear} className={styles.clearButton} aria-label="Clear search">
               <CloseIcon />

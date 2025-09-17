@@ -1,4 +1,11 @@
-import { IMember, IMemberListOptions, IMemberPreferences, IMemberResponse, IMembersSearchParams, ITeamMemberRole } from '@/types/members.types';
+import {
+  IMember,
+  IMemberListOptions,
+  IMemberPreferences,
+  IMemberResponse,
+  IMembersSearchParams,
+  ITeamMemberRole,
+} from '@/types/members.types';
 import { getParsedValue, getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from './constants';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
@@ -6,7 +13,12 @@ import { validatePariticipantsEmail } from '@/services/participants-request.serv
 import { validateLocation } from '@/services/location.service';
 import Cookies from 'js-cookie';
 
-export const getFormattedFilters = (searchParams: IMembersSearchParams, rawFilters: any, availableFilters: any, isLoggedIn: boolean) => {
+export const getFormattedFilters = (
+  searchParams: IMembersSearchParams,
+  rawFilters: any,
+  availableFilters: any,
+  isLoggedIn: boolean,
+) => {
   const restricedKeys = ['region', 'country', 'metroArea'];
   const formattedFilters: any = {
     memberRoles: [],
@@ -31,7 +43,9 @@ export const getFormattedFilters = (searchParams: IMembersSearchParams, rawFilte
       const isRestricted = !isLoggedIn && restricedKeys.includes(key);
       return {
         value: value,
-        selected: searchParams[key as keyof IMembersSearchParams] ? searchParams[key as keyof IMembersSearchParams]?.split('|')?.includes(value) : false,
+        selected: searchParams[key as keyof IMembersSearchParams]
+          ? searchParams[key as keyof IMembersSearchParams]?.split('|')?.includes(value)
+          : false,
         disabled: !isAvailable ? true : isRestricted, //isLoggedIn ? formattedAvailableFilters[key as keyof typeof formattedAvailableFilters].includes(value) ? false : true : restricedKeys.includes(key)
       };
     });
@@ -51,7 +65,9 @@ export const parseMemberDetails = (members: IMemberResponse[], teamId: string, i
     if (teamId) {
       parsedMember = {
         ...member,
-        teamMemberRoles: member.teamMemberRoles?.filter((teamMemberRole: ITeamMemberRole) => teamMemberRole.team?.uid === teamId),
+        teamMemberRoles: member.teamMemberRoles?.filter(
+          (teamMemberRole: ITeamMemberRole) => teamMemberRole.team?.uid === teamId,
+        ),
       };
     }
     const teams =
@@ -248,9 +264,15 @@ export const getUniqueFilters = (members: IMemberResponse[]) => {
         member?.skills?.map((skill: { title: string }) => skill.title),
       );
 
-      const region = getUniqueFilterValues(values?.region, member?.location?.continent ? [member?.location?.continent] : []);
+      const region = getUniqueFilterValues(
+        values?.region,
+        member?.location?.continent ? [member?.location?.continent] : [],
+      );
 
-      const country = getUniqueFilterValues(values?.country, member?.location?.country ? [member?.location?.country] : []);
+      const country = getUniqueFilterValues(
+        values?.country,
+        member?.location?.country ? [member?.location?.country] : [],
+      );
 
       const metroArea = getUniqueFilterValues(values.metroArea, member?.location?.city ? [member?.location?.city] : []);
 
@@ -269,7 +291,12 @@ export const getUniqueFilters = (members: IMemberResponse[]) => {
   return filtersValues;
 };
 
-export function getTagsFromValues(allValues: string[], availableValues: string[], queryValues: string | string[] = [], isUserLoggedIn: boolean) {
+export function getTagsFromValues(
+  allValues: string[],
+  availableValues: string[],
+  queryValues: string | string[] = [],
+  isUserLoggedIn: boolean,
+) {
   const queryValuesArr = Array.isArray(queryValues) ? queryValues : queryValues.split(URL_QUERY_VALUE_SEPARATOR);
   return allValues?.map((value) => {
     const selected = isUserLoggedIn ? queryValuesArr.includes(value) : false;
@@ -297,9 +324,24 @@ export const parseMemberFilters = (filtersValues: any, query: any, isUserLoggedI
 
   const formattedData = {
     skills: getTagsFromValues(parsedValuesByFilter.skills, parsedAvailableValuesByFilter.skills, query?.skills, true),
-    region: getTagsFromValues(parsedValuesByFilter.region, parsedAvailableValuesByFilter.region, query?.region, isUserLoggedIn),
-    country: getTagsFromValues(parsedValuesByFilter.country, parsedAvailableValuesByFilter.country, query?.country, isUserLoggedIn),
-    metroArea: getTagsFromValues(parsedValuesByFilter.metroArea, parsedAvailableValuesByFilter.metroArea, query?.metroArea, isUserLoggedIn),
+    region: getTagsFromValues(
+      parsedValuesByFilter.region,
+      parsedAvailableValuesByFilter.region,
+      query?.region,
+      isUserLoggedIn,
+    ),
+    country: getTagsFromValues(
+      parsedValuesByFilter.country,
+      parsedAvailableValuesByFilter.country,
+      query?.country,
+      isUserLoggedIn,
+    ),
+    metroArea: getTagsFromValues(
+      parsedValuesByFilter.metroArea,
+      parsedAvailableValuesByFilter.metroArea,
+      query?.metroArea,
+      isUserLoggedIn,
+    ),
     memberRoles: getRoleTagsFromValues(roleValues, query.memberRoles),
   };
 
@@ -411,7 +453,9 @@ export function apiObjsToMemberObj(obj: any) {
         startDate: c.startDate,
         description: c.description,
         currentProject: c.currentProject,
-        ...(c.currentProject === false && { endDate: new Date(Date.UTC(endDateYear, endDateMonth + 1, 0)).toISOString() }),
+        ...(c.currentProject === false && {
+          endDate: new Date(Date.UTC(endDateYear, endDateMonth + 1, 0)).toISOString(),
+        }),
       };
     }),
     skills: obj.skillsInfo.skills.map((sk: any) => {
@@ -727,7 +771,9 @@ export const parseMemberDetailsForTeams = (members: IMemberResponse[], teamId: s
     if (teamId) {
       parsedMember = {
         ...member,
-        teamMemberRoles: member.teamMemberRoles?.filter((teamMemberRole: ITeamMemberRole) => teamMemberRole.team?.uid === teamId),
+        teamMemberRoles: member.teamMemberRoles?.filter(
+          (teamMemberRole: ITeamMemberRole) => teamMemberRole.team?.uid === teamId,
+        ),
       };
     }
 
@@ -772,5 +818,11 @@ export function updateMemberInfoCookie(url: string) {
 }
 
 export function isMemberAvailableToConnect(member: any) {
-  return !!member?.officeHours && (member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null || member?.ohStatus === 'BROKEN');
+  return (
+    !!member?.officeHours &&
+    (member.ohStatus === 'OK' ||
+      member?.ohStatus === 'NOT_FOUND' ||
+      member?.ohStatus === null ||
+      member?.ohStatus === 'BROKEN')
+  );
 }

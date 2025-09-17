@@ -30,7 +30,11 @@ const IrlSpeakerTag = ({ speakerEvents, onSpeakerEventClick }: IrlSpeakerTag) =>
                   };
 
               return (
-                <Element key={index} {...elementProps} className={`gtr__guestName__li__info__spkr__list__item ${speakerEvents?.length !== index + 1 ? 'border-bottom' : ''}`}>
+                <Element
+                  key={index}
+                  {...elementProps}
+                  className={`gtr__guestName__li__info__spkr__list__item ${speakerEvents?.length !== index + 1 ? 'border-bottom' : ''}`}
+                >
                   {displayName}
                   {isLinkAvailable && <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />}
                 </Element>

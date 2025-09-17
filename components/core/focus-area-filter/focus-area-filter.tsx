@@ -11,7 +11,7 @@ import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { ITeamsSearchParams } from '@/types/teams.types';
 
 interface IFocusAreaFilter {
-  uniqueKey: "teamAncestorFocusAreas" | "projectAncestorFocusAreas";
+  uniqueKey: 'teamAncestorFocusAreas' | 'projectAncestorFocusAreas';
   title: string;
   selectedItems: IFocusArea[];
   focusAreaRawData: IFocusArea[];
@@ -118,7 +118,7 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
         updatedTitles = updatedSelectedItems.map((item) => item.title);
       }
       if (searchParams?.page) {
-        searchParams.page = "1";
+        searchParams.page = '1';
       }
       updateQueryParams('focusAreas', updatedTitles.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
     } catch (error) {
@@ -141,8 +141,13 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
       <div className="faf">
         <div className="faf__ttls">
           <h2 className="faf__ttls__ttl">{title}</h2>
-          <button className='faf__ttls__ttl__btn' onClick={onHelpActiveClick}>
-            <Image height={16} width={16} src={isHelpActive ? '/icons/help-active.svg' : '/icons/help-inactive.svg'} alt="help" />
+          <button className="faf__ttls__ttl__btn" onClick={onHelpActiveClick}>
+            <Image
+              height={16}
+              width={16}
+              src={isHelpActive ? '/icons/help-active.svg' : '/icons/help-inactive.svg'}
+              alt="help"
+            />
           </button>
         </div>
         <div className="faf__fa">
@@ -188,7 +193,8 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
           }
 
           .faf__ttls__ttl__btn {
-          height: 16px;}
+            height: 16px;
+          }
 
           .faf__fa {
             display: flex;

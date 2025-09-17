@@ -96,7 +96,11 @@ const AdminEmailUpdate: React.FC<EmailUpdateProps> = ({ email }) => {
               name="email"
               hidden
               type="email"
-              value={newEmailRef.current?.value === confirmEmailRef.current?.value && newEmailRef.current?.value ? newEmailRef.current?.value : ''}
+              value={
+                newEmailRef.current?.value === confirmEmailRef.current?.value && newEmailRef.current?.value
+                  ? newEmailRef.current?.value
+                  : ''
+              }
             />
           </div>
         )}
@@ -137,11 +141,11 @@ const AdminEmailUpdate: React.FC<EmailUpdateProps> = ({ email }) => {
             flex-direction: column;
             gap: 4px;
           }
-            .eu__emails__error {
-              color: #ff0000;
-              font-size: 12px;
-              line-height: 12px;
-            }
+          .eu__emails__error {
+            color: #ff0000;
+            font-size: 12px;
+            line-height: 12px;
+          }
           .eu__emails__input {
             border: 1px solid lightgrey;
             height: 40px;

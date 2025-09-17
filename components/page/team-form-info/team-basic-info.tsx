@@ -106,19 +106,51 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           <div className="teaminfo__form__team">
             <div>
               <label htmlFor="team-image-upload" className="teaminfo__form__team__profile">
-                {!profileImage && !savedImage && <img width="32" height="32" alt="upload team image" src="/icons/camera.svg" />}
+                {!profileImage && !savedImage && (
+                  <img width="32" height="32" alt="upload team image" src="/icons/camera.svg" />
+                )}
                 {!profileImage && !savedImage && <span className="teaminfo__form__team__profile__text">Add Image</span>}
-                {(profileImage || savedImage) && <img className="teaminfo__form__team__profile__preview" src={formImage} alt="team profile" width="95" height="95" />}
+                {(profileImage || savedImage) && (
+                  <img
+                    className="teaminfo__form__team__profile__preview"
+                    src={formImage}
+                    alt="team profile"
+                    width="95"
+                    height="95"
+                  />
+                )}
                 {(profileImage || savedImage) && (
                   <span className="teaminfo__form__team__profile__actions">
-                    <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                    <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
+                    <img
+                      width="32"
+                      height="32"
+                      title="Change profile image"
+                      alt="change image"
+                      src="/icons/recycle.svg"
+                    />
+                    <img
+                      onClick={onDeleteImage}
+                      width="32"
+                      height="32"
+                      title="Delete profile image"
+                      alt="delete image"
+                      src="/icons/trash.svg"
+                    />
                   </span>
                 )}
               </label>
 
               <input readOnly id="team-info-basic-image" value={formImage} hidden name="imageFile" />
-              <input data-testid="team-image-upload" onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name="teamProfile" hidden type="file" accept="image/png, image/jpeg" />
+              <input
+                data-testid="team-image-upload"
+                onChange={onImageUpload}
+                id="team-image-upload"
+                ref={uploadImageRef}
+                name="teamProfile"
+                hidden
+                type="file"
+                accept="image/png, image/jpeg"
+              />
             </div>
             <div className="teaminfo__form__name">
               <label htmlFor="register-team-name" className="tf__label">
@@ -144,11 +176,16 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             </div>
           </div>
           <p className="info">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a squared image in PNG or JPEG format with file size less than 4MB.</span>
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+            <span className="info__text">
+              Please upload a squared image in PNG or JPEG format with file size less than 4MB.
+            </span>
           </p>
           <div className="teaminfo__form__plnFriend__toggle">
             <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
-            <p className="teaminfo__form__plnFriend__toggle__label">Is your organization, company, or team friends of PL?</p>
+            <p className="teaminfo__form__plnFriend__toggle__label">
+              Is your organization, company, or team friends of PL?
+            </p>
             <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
           </div>
         </div>
@@ -164,7 +201,8 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             placeholder="Enter your short elevator pitch here"
           />
           <p className="info">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">One to two sentences is perfect! Use clear language and minimal jargon.</span>
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+            <span className="info__text">One to two sentences is perfect! Use clear language and minimal jargon.</span>
           </p>
         </div>
         <div className="teaminfo__form__item">
@@ -181,7 +219,9 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           /> */}
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="info__text">Please explain what your team does in a bit more detail. 4-5 sentences will be great!</span>
+            <span className="info__text">
+              Please explain what your team does in a bit more detail. 4-5 sentences will be great!
+            </span>
           </p>
         </div>
         <div className="teaminfo__form__item">
@@ -196,7 +236,10 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           />
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="info__text">If your team offers group office hours or open meetings that are open to the public, please share the link so PLN members can join and learn more.</span>
+            <span className="info__text">
+              If your team offers group office hours or open meetings that are open to the public, please share the link
+              so PLN members can join and learn more.
+            </span>
           </p>
         </div>
 

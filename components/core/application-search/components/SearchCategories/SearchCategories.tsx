@@ -126,19 +126,47 @@ const SearchIconColor = () => (
       fill="url(#paint3_linear_4516_36760)"
     />
     <defs>
-      <linearGradient id="paint0_linear_4516_36760" x1="15" y1="15" x2="0.591867" y2="11.3041" gradientUnits="userSpaceOnUse">
+      <linearGradient
+        id="paint0_linear_4516_36760"
+        x1="15"
+        y1="15"
+        x2="0.591867"
+        y2="11.3041"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#45D8FF" />
         <stop offset="0.891573" stopColor="#005BEA" />
       </linearGradient>
-      <linearGradient id="paint1_linear_4516_36760" x1="15" y1="15" x2="0.591867" y2="11.3041" gradientUnits="userSpaceOnUse">
+      <linearGradient
+        id="paint1_linear_4516_36760"
+        x1="15"
+        y1="15"
+        x2="0.591867"
+        y2="11.3041"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#45D8FF" />
         <stop offset="0.891573" stopColor="#005BEA" />
       </linearGradient>
-      <linearGradient id="paint2_linear_4516_36760" x1="15" y1="15" x2="0.591867" y2="11.3041" gradientUnits="userSpaceOnUse">
+      <linearGradient
+        id="paint2_linear_4516_36760"
+        x1="15"
+        y1="15"
+        x2="0.591867"
+        y2="11.3041"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#45D8FF" />
         <stop offset="0.891573" stopColor="#005BEA" />
       </linearGradient>
-      <linearGradient id="paint3_linear_4516_36760" x1="15" y1="15" x2="0.591867" y2="11.3041" gradientUnits="userSpaceOnUse">
+      <linearGradient
+        id="paint3_linear_4516_36760"
+        x1="15"
+        y1="15"
+        x2="0.591867"
+        y2="11.3041"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#45D8FF" />
         <stop offset="0.891573" stopColor="#005BEA" />
       </linearGradient>

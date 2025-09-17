@@ -4,7 +4,12 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import Modal from '@/components/core/modal';
 import { IUserInfo } from '@/types/shared.types';
 import { IFormatedTeamProject, ITeam } from '@/types/teams.types';
-import { getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import {
+  getAnalyticsProjectInfo,
+  getAnalyticsTeamInfo,
+  getAnalyticsUserInfo,
+  triggerLoader,
+} from '@/utils/common.utils';
 import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
 import { useRef } from 'react';
 import AllProjects from './all-projects';
@@ -46,19 +51,26 @@ const Projects = (props: IProjects) => {
   };
 
   const onProjectCardClicked = (project: any) => {
-    analytics.onTeamDetailProjectClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), getAnalyticsProjectInfo(project));
+    analytics.onTeamDetailProjectClicked(
+      getAnalyticsTeamInfo(team),
+      getAnalyticsUserInfo(userInfo),
+      getAnalyticsProjectInfo(project),
+    );
   };
 
-  
   const onAddProjectClicked = () => {
-    analytics.onTeamDetailAddProjectClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team))
-    router.push("/projects/add")
-  }
+    analytics.onTeamDetailAddProjectClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team));
+    router.push('/projects/add');
+  };
 
   const onEditProjectClicked = (project: any) => {
-    analytics.onTeamDetailProjectEditClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team), getAnalyticsProjectInfo(project))
-    router.push(`/projects/update/${project.uid}`)
-  }
+    analytics.onTeamDetailProjectEditClicked(
+      getAnalyticsUserInfo(userInfo),
+      getAnalyticsTeamInfo(team),
+      getAnalyticsProjectInfo(project),
+    );
+    router.push(`/projects/update/${project.uid}`);
+  };
 
   return (
     <>
@@ -70,15 +82,13 @@ const Projects = (props: IProjects) => {
               <div className="projects-container__header__eidt-access">
                 <button className="projects-container__header__eidt-access__edit-btn" onClick={onAddProjectClicked}>
                   <Image loading="lazy" alt="edit" src="/icons/add-blue.svg" height={16} width={16} />
-                  <p className='projects-container__header__eidt-access__edit-btn__cnt'>Add Project</p>
+                  <p className="projects-container__header__eidt-access__edit-btn__cnt">Add Project</p>
                 </button>
               </div>
             )}
             {projects?.length > 3 && (
               <button className="project-container__header__seeall-btn" onClick={onSeeAllClickHandler}>
-                <p className='project-container__header__seeall-btn__cnt'> 
-                See All
-                </p>
+                <p className="project-container__header__seeall-btn__cnt">See All</p>
               </button>
             )}
           </div>
@@ -88,8 +98,17 @@ const Projects = (props: IProjects) => {
         {projects?.length !== 0 && (
           <div className="projects-container__projects-web">
             {projects?.slice(0, 3).map((project: IFormatedTeamProject, index: number) => (
-              <div key={`${project} + ${index}`} className={`${index < projects?.length - 1 ? 'projects-container__projects__project__border-set' : ''}`}>
-                <TeamProjectCard onEditClicked={onEditProjectClicked} onCardClicked={onProjectCardClicked} url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`} hasProjectsEditAccess={hasProjectsEditAccess} project={project} />
+              <div
+                key={`${project} + ${index}`}
+                className={`${index < projects?.length - 1 ? 'projects-container__projects__project__border-set' : ''}`}
+              >
+                <TeamProjectCard
+                  onEditClicked={onEditProjectClicked}
+                  onCardClicked={onProjectCardClicked}
+                  url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`}
+                  hasProjectsEditAccess={hasProjectsEditAccess}
+                  project={project}
+                />
               </div>
             ))}
           </div>
@@ -112,16 +131,21 @@ const Projects = (props: IProjects) => {
         )}
 
         <Modal modalRef={allProjectsRef} onClose={onClosePopupClicked}>
-          <AllProjects onEditClicked={onEditProjectClicked}  onCardClicked={onProjectCardClicked} hasProjectsEditAccess={hasProjectsEditAccess} projects={projects} />
+          <AllProjects
+            onEditClicked={onEditProjectClicked}
+            onCardClicked={onProjectCardClicked}
+            hasProjectsEditAccess={hasProjectsEditAccess}
+            projects={projects}
+          />
         </Modal>
       </div>
 
       <style jsx>
         {`
-
-        button {
-        border: none;
-        outline: none;}
+          button {
+            border: none;
+            outline: none;
+          }
           .projects-container {
             padding: 16px;
             display: flex;
@@ -130,7 +154,9 @@ const Projects = (props: IProjects) => {
             width: 100%;
             background: #fff;
             border-radius: 8px;
-            box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+            box-shadow:
+              0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+              0px 0px 1px 0px rgba(15, 23, 42, 0.12);
           }
 
           .projects-container__empty__projects {
@@ -138,7 +164,9 @@ const Projects = (props: IProjects) => {
             background: #fff;
             padding: 16px;
             border-radius: 12px;
-            box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+            box-shadow:
+              0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+              0px 0px 1px 0px rgba(15, 23, 42, 0.12);
           }
 
           .project-container__header__seeall-btn {
@@ -179,7 +207,7 @@ const Projects = (props: IProjects) => {
             display: flex;
             gap: 20px;
             align-items: center;
-            padding : 0 12px 0 0;
+            padding: 0 12px 0 0;
           }
 
           .projects-container__header__title {
@@ -208,19 +236,22 @@ const Projects = (props: IProjects) => {
             overflow: auto;
             background: #fff;
             border: 1px solid #e2e8f0;
-            box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+            box-shadow:
+              0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+              0px 0px 1px 0px rgba(15, 23, 42, 0.12);
           }
 
           .projects-container__header__eidt-access__edit-btn__cnt {
-          font-size: 14px;
-          font-weight: 500;
-          line-height: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 24px;
           }
 
           .project-container__header__seeall-btn__cnt {
-          font-size: 14px;
-          font-weight: 500;
-          line-height: 24px;}
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 24px;
+          }
 
           .projects-container__projects__project__border-set {
             border-bottom: 1px solid #e2e8f0;
@@ -239,7 +270,9 @@ const Projects = (props: IProjects) => {
               background: #fff;
               overflow: auto;
               border: 1px solid #e2e8f0;
-              box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+              box-shadow:
+                0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+                0px 0px 1px 0px rgba(15, 23, 42, 0.12);
             }
 
             .projects-container__projects-mob {

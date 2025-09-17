@@ -23,7 +23,11 @@ export function VerifyEmailModal({ content, handleModalClose, dialogRef }: IVeri
                 <h6 className="verifyEmail__cn__box__info__hdr__ttl" data-testid="modal-title">
                   {title}
                 </h6>
-                <button onClick={handleModalClose} className="verifyEmail__cn__box__info__hdr__clsBtn" data-testid="close-button">
+                <button
+                  onClick={handleModalClose}
+                  className="verifyEmail__cn__box__info__hdr__clsBtn"
+                  data-testid="close-button"
+                >
                   <img width={22} height={22} src="/icons/close.svg" alt="close" />
                 </button>
               </div>
@@ -39,7 +43,11 @@ export function VerifyEmailModal({ content, handleModalClose, dialogRef }: IVeri
                 </p>
               )}
               <div className="verifyEmail__cn__box__info__actions">
-                <button onClick={handleModalClose} className="verifyEmail__cn__box__info__actions__cls__btn" data-testid="close-action-button">
+                <button
+                  onClick={handleModalClose}
+                  className="verifyEmail__cn__box__info__actions__cls__btn"
+                  data-testid="close-action-button"
+                >
                   Close
                 </button>
               </div>

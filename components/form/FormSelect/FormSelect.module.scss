@@ -11,7 +11,9 @@
 
 .label {
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -32,19 +34,19 @@
   gap: 8px;
   align-self: stretch;
   border-radius: 8px;
-  border: 1px solid rgba(203, 213, 225, 0.50);
-  background: #FFF;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  background: #fff;
   outline: none;
 
   @include mixins.placeholder {
-    color: #CBD5E1;
+    color: #cbd5e1;
   }
 
   &:focus {
     border-radius: 8px;
-    border: 1px solid rgba(66, 125, 255, 0.50);
-    background: #FFF;
-    box-shadow: 0 0 0 4px rgba(21, 111, 247, 0.10);
+    border: 1px solid rgba(66, 125, 255, 0.5);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(21, 111, 247, 0.1);
   }
 
   &.error {
@@ -55,22 +57,26 @@
 .errorMsg {
   font-size: 10px;
   color: var(--action-border-error-focus);
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 200% */
 }
 
 .fieldDescription {
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 10px;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 200% */
-  color: #878B94;
+  color: #878b94;
 
   &[data-focused] {
-    color: #A0BEFF;
+    color: #a0beff;
   }
 }
 
@@ -112,7 +118,7 @@
   align-items: center;
   gap: 8px;
 
-  color: #0F172A;
+  color: #0f172a;
   font-size: 16px;
   font-style: normal;
   font-weight: 500;
@@ -128,8 +134,8 @@
   gap: 8px;
   flex-shrink: 0;
   align-self: stretch;
-  border-bottom: 1px solid var(--Border-border-light, #E2E8F0);
-  background: #FFF;
+  border-bottom: 1px solid var(--Border-border-light, #e2e8f0);
+  background: #fff;
   position: relative;
 }
 
@@ -141,8 +147,8 @@
 
 .mobileSearchInput {
   border-radius: 8px;
-  border: 1px solid #C5CED9;
-  background: #FFF;
+  border: 1px solid #c5ced9;
+  background: #fff;
   display: flex;
   height: 40px;
   padding: 8px 48px 8px 12px;
@@ -177,7 +183,7 @@
   align-self: stretch;
   border-radius: 4px;
 
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;

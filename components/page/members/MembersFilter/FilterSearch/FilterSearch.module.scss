@@ -5,7 +5,7 @@
 }
 
 .inputLabel {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -20,7 +20,7 @@
 .inputContainer {
   display: flex;
   align-items: center;
-  border: 1px solid #C5CED9;
+  border: 1px solid #c5ced9;
   border-radius: 8px;
   background: white;
   min-height: 40px;
@@ -28,11 +28,11 @@
   position: relative;
 
   &:hover {
-    border-color: #5E718D;
+    border-color: #5e718d;
   }
 
   &:focus-within {
-    border-color: #5E718D;
+    border-color: #5e718d;
     box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12) !important;
   }
 }
@@ -42,7 +42,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 12px;
-  color: #64748B;
+  color: #64748b;
   flex-shrink: 0;
 
   svg {
@@ -58,11 +58,11 @@
   background: transparent;
   padding: 8px 12px;
   font-size: 14px;
-  color: #0A0C11;
+  color: #0a0c11;
   line-height: 20px;
 
   &::placeholder {
-    color: #AFBACA;
+    color: #afbaca;
     font-weight: 400;
     font-size: 14px;
   }
@@ -78,7 +78,7 @@
   justify-content: center;
   background: none;
   border: none;
-  color: #64748B;
+  color: #64748b;
   cursor: pointer;
   padding: 8px;
   border-radius: 4px;

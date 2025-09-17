@@ -8,7 +8,7 @@
   grid-gap: 8px;
   align-self: stretch;
   border-radius: 16px;
-  background: #FFF;
+  background: #fff;
 
   overflow: auto;
   max-height: calc(100dvh - 56px);
@@ -44,10 +44,9 @@
   }
 }
 
-
 .separator {
   width: 100%;
   height: 1px;
-  background: #E2E8F0;
+  background: #e2e8f0;
   margin-block: 8px;
 }

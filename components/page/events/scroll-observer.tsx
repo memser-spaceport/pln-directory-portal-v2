@@ -18,7 +18,7 @@ export default function ScrollObserver() {
 
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
 
       setTimeout(() => {
@@ -47,7 +47,7 @@ export default function ScrollObserver() {
       (entries) => {
         if (isScrolling) return;
 
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const element = entry.target as HTMLElement;
             const id = element.id;
@@ -58,15 +58,15 @@ export default function ScrollObserver() {
           }
         });
       },
-      { threshold: 0.5 }
+      { threshold: 0.5 },
     );
 
     const eventsContainer = document.getElementById('events-container');
-    const sections = eventsContainer 
+    const sections = eventsContainer
       ? eventsContainer.querySelectorAll('[id]')
       : document.querySelectorAll('[id]:not([data-exclude-from-url])');
 
-    sections.forEach(section => observer.observe(section));
+    sections.forEach((section) => observer.observe(section));
 
     return () => {
       observer.disconnect();
@@ -76,4 +76,4 @@ export default function ScrollObserver() {
   }, [isScrolling]);
 
   return null;
-} 
+}

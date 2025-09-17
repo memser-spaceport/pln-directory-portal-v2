@@ -42,7 +42,14 @@ const AllMembers = (props: IAllMembers) => {
         <h2 className="all-membes__title">Members ({members?.length})</h2>
         <div className="all-members__search-bar">
           <SearchIcon />
-          <input value={searchValue} className="all-members__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
+          <input
+            value={searchValue}
+            className="all-members__search-bar__input"
+            placeholder="Search"
+            name="name"
+            autoComplete="off"
+            onChange={onInputChangeHandler}
+          />
         </div>
 
         <div className="cm__body__search__divider" />
@@ -53,7 +60,12 @@ const AllMembers = (props: IAllMembers) => {
             return (
               <Fragment key={`${member} + ${index}`}>
                 <div className={`${index < allMembers?.length ? 'all-members__border-set' : ''}`}>
-                  <TeamDetailsMembersCard onCardClick={callback} url={`${PAGE_ROUTES.MEMBERS}/${member?.id}`} member={member} team={team} />
+                  <TeamDetailsMembersCard
+                    onCardClick={callback}
+                    url={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
+                    member={member}
+                    team={team}
+                  />
                 </div>
               </Fragment>
             );
@@ -220,9 +232,22 @@ const SearchIcon = () => (
       />
     </g>
     <defs>
-      <filter id="filter0_d_6121_8588" x="-1" y="-1" width="24" height="24" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+      <filter
+        id="filter0_d_6121_8588"
+        x="-1"
+        y="-1"
+        width="24"
+        height="24"
+        filterUnits="userSpaceOnUse"
+        colorInterpolationFilters="sRGB"
+      >
         <feFlood floodOpacity="0" result="BackgroundImageFix" />
-        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+        <feColorMatrix
+          in="SourceAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          result="hardAlpha"
+        />
         <feOffset dy="1" />
         <feGaussianBlur stdDeviation="1" />
         <feComposite in2="hardAlpha" operator="out" />

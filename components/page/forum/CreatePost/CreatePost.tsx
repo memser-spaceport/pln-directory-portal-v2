@@ -31,7 +31,17 @@ export type CreatePostForm = {
   content: string;
 };
 
-export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: boolean; initialData?: CreatePostForm; pid?: number; userInfo?: IUserInfo }) => {
+export const CreatePost = ({
+  isEdit,
+  initialData,
+  pid,
+  userInfo,
+}: {
+  isEdit?: boolean;
+  initialData?: CreatePostForm;
+  pid?: number;
+  userInfo?: IUserInfo;
+}) => {
   const analytics = useForumAnalytics();
   const router = useRouter();
   const params = useParams();
@@ -113,7 +123,9 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
           toast.success('Your post has been updated');
           reset(data);
           setTimeout(() => {
-            router.push(`/forum/topics/${params.categoryId}/${params.topicId}${fromCategory ? `?from=${fromCategory}` : ''}`);
+            router.push(
+              `/forum/topics/${params.categoryId}/${params.topicId}${fromCategory ? `?from=${fromCategory}` : ''}`,
+            );
           }, 500);
         }
       } else {
@@ -192,8 +204,22 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
                 paddingBottom: keyboardHeight + 20,
               }}
             >
-              {isAdmin && <FormSelect name="user" placeholder="Select user" label="Select post author" options={membersOptions} disabled={isEdit} />}
-              <FormSelect name="topic" placeholder="Select topic" label="Select topic" options={topicsOptions} disabled={isEdit} />
+              {isAdmin && (
+                <FormSelect
+                  name="user"
+                  placeholder="Select user"
+                  label="Select post author"
+                  options={membersOptions}
+                  disabled={isEdit}
+                />
+              )}
+              <FormSelect
+                name="topic"
+                placeholder="Select topic"
+                label="Select topic"
+                options={topicsOptions}
+                disabled={isEdit}
+              />
               <FormField name="title" placeholder="Enter the title" label="Title" max={255} />
               <FormEditor name="content" placeholder="Write your post" label="Post" className={s.editor} />
             </div>

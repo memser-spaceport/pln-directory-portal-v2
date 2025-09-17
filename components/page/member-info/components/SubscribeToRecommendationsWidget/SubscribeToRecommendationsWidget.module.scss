@@ -5,9 +5,11 @@
   flex-direction: column;
   border-radius: 16px;
   width: 100%;
-  background: #156FF7;
+  background: #156ff7;
   overflow: hidden;
-  box-shadow: 0px 0px 1px 0px rgba(15, 23, 42, 0.12), 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04);
 
   @include media.tablet-landscape {
     max-width: 328px;
@@ -18,7 +20,7 @@
 .top {
   position: relative;
   //background-color: red;
-  background: #156FF7;
+  background: #156ff7;
   background-size: contain;
   flex: 1;
   display: flex;
@@ -29,7 +31,7 @@
 }
 
 .mainTitle {
-  color: #FFF;
+  color: #fff;
   text-align: center;
   font-size: 28px;
   font-style: normal;
@@ -60,8 +62,8 @@
 
 .primaryBtn {
   border-radius: 8px;
-  border: 1px solid var(--Neutral-Slate-300, #CBD5E1);
-  background: var(--Button-surface-brand-button, #156FF7);
+  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
+  background: var(--Button-surface-brand-button, #156ff7);
 
   /* Button Shadow */
   box-shadow: 0px 1px 1px 0px rgba(15, 23, 42, 0.08);
@@ -74,8 +76,10 @@
   gap: 8px;
   align-self: stretch;
 
-  color: var(--Text-text-lightest, #FFF);
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: var(--Text-text-lightest, #fff);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
 
   /* Body 2/Medium */
   font-size: 14px;
@@ -104,7 +108,7 @@
   gap: 8px;
   align-self: stretch;
   border-radius: 8px;
-  background: var(--Neutral-White, #FFF);
+  background: var(--Neutral-White, #fff);
 }
 
 .controls {

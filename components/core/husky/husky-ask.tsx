@@ -10,8 +10,18 @@ function HuskyAsk(props: any) {
   const [suggestionTopicSelected, setSuggestionTopic] = useState('teams');
   const suggestionTopics = [
     { name: 'TEAMS', key: 'teams', activeIcon: '/icons/users-blue.svg', inActiveIcon: '/icons/users-grey.svg' },
-    { name: 'PROJECTS', key: 'projects', activeIcon: '/icons/projects-blue.svg', inActiveIcon: '/icons/projects-grey.svg' },
-    { name: 'IRL GATHERINGS', key: 'irls', activeIcon: '/icons/calendar-blue.svg', inActiveIcon: '/icons/calendar-grey.svg' },
+    {
+      name: 'PROJECTS',
+      key: 'projects',
+      activeIcon: '/icons/projects-blue.svg',
+      inActiveIcon: '/icons/projects-grey.svg',
+    },
+    {
+      name: 'IRL GATHERINGS',
+      key: 'irls',
+      activeIcon: '/icons/calendar-blue.svg',
+      inActiveIcon: '/icons/calendar-grey.svg',
+    },
   ];
 
   const { trackPromptTypeSelection, trackPromptSelection } = useHuskyAnalytics();
@@ -34,16 +44,28 @@ function HuskyAsk(props: any) {
         <div className="huskyask__upload">
           <div className="huskyask__upload__info">
             <img className="huskyask__upload__info__icon" src="/icons/husky-add.svg" />
-            <p className="huskyask__upload__info__text">Want Husky to be able to fetch results for your teams, projects and members too?</p>
+            <p className="huskyask__upload__info__text">
+              Want Husky to be able to fetch results for your teams, projects and members too?
+            </p>
           </div>
-          <a  href='https://airtable.com/appgb6O7eF6mBEl8t/pagkXZKMaDujXVdio/form' target='_blank' className="huskyask__upload__btn">Upload data</a>
+          <a
+            href="https://airtable.com/appgb6O7eF6mBEl8t/pagkXZKMaDujXVdio/form"
+            target="_blank"
+            className="huskyask__upload__btn"
+          >
+            Upload data
+          </a>
         </div>
         <p className="huskyask__info">
-          Husky&apos;s fetching capacities is currently limited to the data from the following teams, projects and events today. You may not get appropriate responses if anything beyond this scope is
-          requested.
+          Husky&apos;s fetching capacities is currently limited to the data from the following teams, projects and
+          events today. You may not get appropriate responses if anything beyond this scope is requested.
         </p>
         <div className="huskyask__st__tab">
-          <BarTabs activeItem={suggestionTopicSelected} onTabSelected={(v) => onTabSelectionChanged(v)} items={suggestionTopics} />
+          <BarTabs
+            activeItem={suggestionTopicSelected}
+            onTabSelected={(v) => onTabSelectionChanged(v)}
+            items={suggestionTopics}
+          />
         </div>
         <HuskyAskPrompts suggestionTopicSelected={suggestionTopicSelected} onPromptItemClicked={onPromptItemClicked} />
         {/* <div className="huskyask__sp">
@@ -82,7 +104,6 @@ function HuskyAsk(props: any) {
             line-height: 18px;
             font-weight: 400;
             margin-top: -13px;
-            
           }
           .huskyask__upload__info {
             display: flex;
@@ -91,7 +112,7 @@ function HuskyAsk(props: any) {
             align-items: center;
             flex: 1;
           }
-            .huskyask__upload__info__icon {
+          .huskyask__upload__info__icon {
             width: 16px;
             height: 16px;
           }

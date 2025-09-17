@@ -26,7 +26,13 @@ async function Page({ searchParams }: { searchParams: Record<string, string> }) 
         <MembersToolbar searchParams={searchParams} totalTeams={totalMembers} userInfo={parsedUserDetails} />
       </div>
       <div className={styles.members__right__membersList} style={{ flex: 1 }}>
-        <MemberInfiniteList isUserLoggedIn={isLoggedIn} members={members} totalItems={totalMembers} userInfo={parsedUserDetails} searchParams={searchParams} />
+        <MemberInfiniteList
+          isUserLoggedIn={isLoggedIn}
+          members={members}
+          totalItems={totalMembers}
+          userInfo={parsedUserDetails}
+          searchParams={searchParams}
+        />
       </div>
     </div>
   );

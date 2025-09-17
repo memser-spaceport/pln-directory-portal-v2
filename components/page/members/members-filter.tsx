@@ -67,13 +67,22 @@ const MembersFilter = (props: IMembersFilter) => {
             </FilterSection>
           )}
 
-          <FilterSection title="Office Hours" titleIcon={<CalendarIcon />} description="OH are short 1:1 calls to connect about topics of interest or help others with your expertise.">
+          <FilterSection
+            title="Office Hours"
+            titleIcon={<CalendarIcon />}
+            description="OH are short 1:1 calls to connect about topics of interest or help others with your expertise."
+          >
             <FiltersPanelToggle label="Only Show Members with Office Hours" paramKey="hasOfficeHours" />
             <FilterMultiSelect label="Search topics" placeholder="E.g. AI, Staking..." paramKey="topics" backLabel="Filters" useDataHook={useGetTopics} />
           </FilterSection>
 
           <FilterSection title="Roles">
-            <FilterMultiSelect label="Search roles" placeholder="E.g. Founder, VP Marketing..." paramKey="roles" backLabel="Filters" />
+            <FilterMultiSelect
+              label="Search roles"
+              placeholder="E.g. Founder, VP Marketing..."
+              paramKey="roles"
+              backLabel="Filters"
+            />
           </FilterSection>
 
           <FilterSection title="Investors">

@@ -5,9 +5,11 @@
   padding: 4px 0 4px 12px;
   gap: 8px;
 
-  color: var(--Icon-icon-link, #156FF7);
+  color: var(--Icon-icon-link, #156ff7);
   text-align: center;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
 
   font-size: 14px;
   font-style: normal;

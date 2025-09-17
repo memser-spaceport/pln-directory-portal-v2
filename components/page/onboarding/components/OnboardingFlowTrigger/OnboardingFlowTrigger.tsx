@@ -30,13 +30,26 @@ export const OnboardingFlowTrigger = ({ isLoggedIn, userInfo }: Props) => {
     }
   }, [isLoggedIn, router, isOnboardingLoginFlow]);
 
-  if (!isLoggedIn || !isOnboardingLoginFlow || !memberData?.memberInfo || memberData?.memberInfo?.accessLevel !== 'L4') {
+  if (
+    !isLoggedIn ||
+    !isOnboardingLoginFlow ||
+    !memberData?.memberInfo ||
+    memberData?.memberInfo?.accessLevel !== 'L4'
+  ) {
     return null;
   }
 
   return (
     <AnimatePresence>
-      <motion.div className="modal" initial="hidden" animate="visible" exit="exit" variants={fade} transition={{ duration: 0.7 }} style={{ zIndex: 10, position: 'fixed', inset: 0 }}>
+      <motion.div
+        className="modal"
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        variants={fade}
+        transition={{ duration: 0.7 }}
+        style={{ zIndex: 10, position: 'fixed', inset: 0 }}
+      >
         <OnboardingWizard userInfo={userInfo} isLoggedIn={isLoggedIn} memberData={memberData} />
       </motion.div>
     </AnimatePresence>

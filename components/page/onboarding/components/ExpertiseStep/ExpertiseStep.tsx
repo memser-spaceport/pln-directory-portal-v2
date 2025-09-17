@@ -38,7 +38,8 @@ export const ExpertiseStep = ({ userInfo }: Props) => {
     <div className={s.root}>
       <div className={s.title}>What are your top 3 areas of expertise?</div>
       <div className={s.subtitle}>
-        Share your calendar link to enable easy scheduling with team members — you&apos;ll also gain access to book their available office hours.{' '}
+        Share your calendar link to enable easy scheduling with team members — you&apos;ll also gain access to book
+        their available office hours.{' '}
         <a href={LEARN_MORE_URL} target="blank">
           Learn More <Image loading="lazy" alt="learn more" src="/icons/learn-more.svg" height={16} width={16} />
         </a>

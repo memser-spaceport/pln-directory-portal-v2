@@ -37,7 +37,11 @@ export const AskDetails = () => {
           {disabled ? (
             <p className={s.content} dangerouslySetInnerHTML={{ __html: description }} />
           ) : (
-            <RichTextEditor value={description} onChange={(v) => setValue('description', v, { shouldValidate: true })} errorMessage={(errors['description']?.message as string) ?? ''} />
+            <RichTextEditor
+              value={description}
+              onChange={(v) => setValue('description', v, { shouldValidate: true })}
+              errorMessage={(errors['description']?.message as string) ?? ''}
+            />
           )}
 
           <HiddenField value={description.trim()} defaultValue={description} name={`description`} />

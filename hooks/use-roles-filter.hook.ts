@@ -4,7 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import useUpdateQueryParams from './useUpdateQueryParams';
 
-export function useRolesFilter(filterRoles: any[], searchParams:any) {
+export function useRolesFilter(filterRoles: any[], searchParams: any) {
   const router = useRouter();
   const pathname = usePathname();
   const [roles, setRoles] = useState(filterRoles);
@@ -26,14 +26,16 @@ export function useRolesFilter(filterRoles: any[], searchParams:any) {
       } else if (!selectedRole?.default && [...roles].indexOf(selectedRole) === -1) {
         updatedRoles = [...roles, { ...selectedRole, selected: true }];
       } else {
-        updatedRoles = roles.map((item) => (item.role === selectedRole.role ? { ...item, selected: !item.selected } : item));
+        updatedRoles = roles.map((item) =>
+          item.role === selectedRole.role ? { ...item, selected: !item.selected } : item,
+        );
       }
 
       const selectedRoles = updatedRoles.filter((role) => role.selected).map((item) => item.role);
 
       updateQueryParams(ROLE_FILTER_QUERY_NAME, selectedRoles.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
     },
-    [query, router, pathname, roles, setRoles, filterRoles]
+    [query, router, pathname, roles, setRoles, filterRoles],
   );
 
   const unSelectAllRole = useCallback(() => {
@@ -54,9 +56,9 @@ export function useRolesFilter(filterRoles: any[], searchParams:any) {
       const updatedRoles = [...new Set([...roles, ...selectedRoles])];
       const newroles = updatedRoles?.filter((role) => role.selected).map((item) => item.role);
 
-    updateQueryParams(ROLE_FILTER_QUERY_NAME, newroles.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
+      updateQueryParams(ROLE_FILTER_QUERY_NAME, newroles.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
     },
-    [query, pathname, roles, setRoles]
+    [query, pathname, roles, setRoles],
   );
 
   return [roles, toggleRole, selectAllRole, unSelectAllRole] as const;

@@ -18,14 +18,18 @@ const TableLoader = () => {
           width: 24px;
           height: 24px;
           border: 3px solid rgba(0, 0, 0, 0.1);
-          border-top: 3px solid #156FF7;
+          border-top: 3px solid #156ff7;
           border-radius: 50%;
           animation: spin 1s linear infinite;
           margin-right: 10px;
         }
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </div>

@@ -31,7 +31,11 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
         </div>
         <div className="root__irlLocation">
           <div className="root__location">
-            <img src={locationUrl ? locationUrl : '/images/irl/defaultFlag.svg'} alt="flag" style={{ width: '20px', height: '20px' }} />
+            <img
+              src={locationUrl ? locationUrl : '/images/irl/defaultFlag.svg'}
+              alt="flag"
+              style={{ width: '20px', height: '20px' }}
+            />
             <div className="root__location__name">{locationName}</div>
           </div>
           <div className="root__event__cntr">

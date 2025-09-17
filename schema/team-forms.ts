@@ -18,7 +18,7 @@ export const basicInfoSchema = z.object({
   longDescription: z
     .string({ errorMap: () => ({ message: 'Please add a Long Description' }) })
     .trim()
-    .min(1)
+    .min(1),
 });
 
 const industryTag = z.object({
@@ -35,7 +35,7 @@ export const projectDetailsSchema = z.object({
   fundingStage: fundingStage.refine((obj) => obj.title && obj.uid, {
     message: 'Please add Funding Stage',
   }),
-  industryTags: z.array(industryTag).nonempty({ message: 'Please add Industry Tags' })
+  industryTags: z.array(industryTag).nonempty({ message: 'Please add Industry Tags' }),
 });
 
 export const socialSchema = z.object({

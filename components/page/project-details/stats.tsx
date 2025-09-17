@@ -24,7 +24,12 @@ const ProjectStats = (props: IProjectStats) => {
             <StatsCard statsName="Repos" count={stats?.repositoryCount ?? 0} icon="/icons/repos.svg" />
           </div>
           <div className="stats__container__card">
-            <StatsCard statsName="Contributors" count={stats?.contributorCount ?? 0} icon="/icons/contributors.svg" newContributors={stats?.newContributorCount6Months ?? 0} />
+            <StatsCard
+              statsName="Contributors"
+              count={stats?.contributorCount ?? 0}
+              icon="/icons/contributors.svg"
+              newContributors={stats?.newContributorCount6Months ?? 0}
+            />
           </div>
         </div>
       </div>
@@ -56,11 +61,11 @@ const ProjectStats = (props: IProjectStats) => {
         }
 
         @media (min-width: 1024px) {
-        .stats__container__card {
-          width: 206.75px;
-          height: 88px;
-        }
+          .stats__container__card {
+            width: 206.75px;
+            height: 88px;
           }
+        }
       `}</style>
     </>
   );

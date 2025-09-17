@@ -36,7 +36,7 @@ const TagContainer = (props: ITagContainer) => {
 
   const title = props?.toggleTitle;
   const isActive = props?.IsToggleActive ?? false;
-  const onIsActiveToggle = props?.onIsActiveToggle ?? (() => { });
+  const onIsActiveToggle = props?.onIsActiveToggle ?? (() => {});
 
   //   const analytics = useCommonAnalytics();
 
@@ -70,7 +70,11 @@ const TagContainer = (props: ITagContainer) => {
 
   return (
     <>
-      <div className="tags-container" onMouseEnter={() => onMouseEnter(`tags-container__access-container${label}`)} onMouseLeave={() => onMouseLeave(`tags-container__access-container${label}`)}>
+      <div
+        className="tags-container"
+        onMouseEnter={() => onMouseEnter(`tags-container__access-container${label}`)}
+        onMouseLeave={() => onMouseLeave(`tags-container__access-container${label}`)}
+      >
         <div className="tags-container__access-container" id={`tags-container__access-container${label}`}>
           <div className="tags-container__access-container__content">
             <img loading="lazy" alt="lock" src="/icons/lock.svg" />
@@ -80,38 +84,51 @@ const TagContainer = (props: ITagContainer) => {
             to access
           </div>
         </div>
-        <h2 className="tags-container__title">{label}
-          {props?.info &&
+        <h2 className="tags-container__title">
+          {label}
+          {props?.info && (
             <Tooltip
               asChild
               trigger={
-                <Image alt='left' height={16} width={16} src='/icons/info.svg' style={{ marginLeft: "5px", top: "2px", position: "relative" }} />
+                <Image
+                  alt="left"
+                  height={16}
+                  width={16}
+                  src="/icons/info.svg"
+                  style={{ marginLeft: '5px', top: '2px', position: 'relative' }}
+                />
               }
               content={props?.info}
             />
-          }
+          )}
         </h2>
 
-        {title && 
+        {title && (
           <>
-            <div className='tags-container__toggleCntr'>
-              <div className="tags-container__toggleCntr__title">
-                {title}
-              </div>
+            <div className="tags-container__toggleCntr">
+              <div className="tags-container__toggleCntr__title">{title}</div>
               <div className="tags-container__toggleCntr__toggle">
                 <Toggle height="16px" width="28px" callback={onIsActiveToggle} isChecked={isActive} />
               </div>
             </div>
             <div className="tags-container-filter__bl"></div>
           </>
-        }
+        )}
 
         <div className="tags-container__tags">
           {isShowMore && (
             <>
               {items?.map((item: IFilterSelectedItem, index: number) => (
                 <div key={`${item} + ${index}`}>
-                  <Tag callback={onTagClickHandler} from={label} disabled={item?.disabled} selected={item?.selected} keyValue={keyValue} value={item?.value} variant="secondary" />
+                  <Tag
+                    callback={onTagClickHandler}
+                    from={label}
+                    disabled={item?.disabled}
+                    selected={item?.selected}
+                    keyValue={keyValue}
+                    value={item?.value}
+                    variant="secondary"
+                  />
                 </div>
               ))}
             </>
@@ -121,7 +138,15 @@ const TagContainer = (props: ITagContainer) => {
             <>
               {items?.slice(0, initialCount)?.map((item: IFilterSelectedItem, index: number) => (
                 <div key={`${item} + ${index}`}>
-                  <Tag callback={onTagClickHandler} from={label} disabled={item?.disabled} selected={item?.selected} keyValue={keyValue} value={item?.value} variant="secondary" />
+                  <Tag
+                    callback={onTagClickHandler}
+                    from={label}
+                    disabled={item?.disabled}
+                    selected={item?.selected}
+                    keyValue={keyValue}
+                    value={item?.value}
+                    variant="secondary"
+                  />
                 </div>
               ))}
             </>
@@ -132,11 +157,17 @@ const TagContainer = (props: ITagContainer) => {
           <div className="tags-container__show-more">
             <button className="tags-container__show-more__btn" onClick={onShoreMoreAndLessClickHandler}>
               {!isShowMore ? 'Show more' : 'Show less'}
-              {!isShowMore ? <img loading="lazy" src="/icons/filter-dropdown.svg" height={16} width={16} /> : <img loading="lazy" src="/icons/arrow-up.svg" height={12} width={12} />}
+              {!isShowMore ? (
+                <img loading="lazy" src="/icons/filter-dropdown.svg" height={16} width={16} />
+              ) : (
+                <img loading="lazy" src="/icons/arrow-up.svg" height={12} width={12} />
+              )}
             </button>
-            {(remainingItemsCount !== 0 && !isShowMore) && <Tag variant="primary" value={remainingItemsCount.toString()} />}
+            {remainingItemsCount !== 0 && !isShowMore && (
+              <Tag variant="primary" value={remainingItemsCount.toString()} />
+            )}
           </div>
-          // && remainingItemsCount >= 0 
+          // && remainingItemsCount >= 0
         )}
       </div>
       <style jsx>
@@ -185,7 +216,7 @@ const TagContainer = (props: ITagContainer) => {
             font-size: 14px;
             font-weight: 600;
             line-height: 20px;
-            display: ${props?.info ? "flex" : "unset"};
+            display: ${props?.info ? 'flex' : 'unset'};
           }
 
           .tags-container__tags {
@@ -235,7 +266,7 @@ const TagContainer = (props: ITagContainer) => {
           .tags-container-filter__bl {
             width: 100%;
             height: 1px;
-            border-top: 1px solid #E2E8F0;
+            border-top: 1px solid #e2e8f0;
           }
         `}
       </style>

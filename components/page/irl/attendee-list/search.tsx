@@ -1,13 +1,19 @@
 const Search = (props: any) => {
   const onChange = props?.onChange;
   const placeholder = props?.placeholder;
-  const searchRef = props?.searchRef
-  const onKeyDown = props?.onKeyDown
+  const searchRef = props?.searchRef;
+  const onKeyDown = props?.onKeyDown;
 
   return (
     <>
       <div className="search">
-        <input ref={searchRef} onChange={onChange} className="search__input" placeholder={placeholder} onKeyDown={onKeyDown} />
+        <input
+          ref={searchRef}
+          onChange={onChange}
+          className="search__input"
+          placeholder={placeholder}
+          onKeyDown={onKeyDown}
+        />
         <button type="button" className="search__btn">
           <img src="/icons/search.svg" alt="search" width={16} height={16} />
         </button>
@@ -18,8 +24,8 @@ const Search = (props: any) => {
           background-color: #ffffff;
           display: flex;
           border-radius: 4px;
-          border: 0.5px solid #156FF7;
-          box-shadow: 0px 0px 4px 0px #0F172A33;
+          border: 0.5px solid #156ff7;
+          box-shadow: 0px 0px 4px 0px #0f172a33;
         }
 
         .search__input {
@@ -29,7 +35,7 @@ const Search = (props: any) => {
           font-size: 14px;
           font-weight: 500;
           line-height: 24px;
-          border:none;
+          border: none;
         }
 
         .search__input:focus {
@@ -50,7 +56,7 @@ const Search = (props: any) => {
           align-items: center;
           justify-content: center;
           cursor: unset;
-          background:transparent;
+          background: transparent;
         }
       `}</style>
     </>

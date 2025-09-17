@@ -22,7 +22,10 @@ const ProjectAddCard = (props: any) => {
   return (
     <>
       <Link href="/projects/add" prefetch={false} legacyBehavior>
-        <a onClick={onAddClick} className={`projectcard  ${viewType === VIEW_TYPE_OPTIONS.LIST ? 'projectcard--list' : ''}`}>
+        <a
+          onClick={onAddClick}
+          className={`projectcard  ${viewType === VIEW_TYPE_OPTIONS.LIST ? 'projectcard--list' : ''}`}
+        >
           <img src="/icons/add.svg" alt="add" />
           <p className="projectcard__add">Add Project</p>
           <p className="projectcard__text">List your project here</p>

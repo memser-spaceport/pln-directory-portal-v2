@@ -18,7 +18,7 @@
     //        0 0 1px 0 rgba(255, 130, 14, 0.12),
     //        0 4px 4px 0 rgba(255, 130, 14, 0.04);
     //padding-top: 48px;
-    border: 1px solid #FDE68A;
+    border: 1px solid #fde68a;
   }
 }
 
@@ -59,7 +59,7 @@
 .bottom {
   display: flex;
   align-items: center;
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid #e2e8f0;
   width: 100%;
   z-index: 1;
   padding-top: 12px;
@@ -69,7 +69,7 @@
 
 .social {
   border-radius: 12px;
-  background: #F8FAFC;
+  background: #f8fafc;
   flex-wrap: wrap;
 }
 
@@ -82,7 +82,8 @@
   align-items: center;
   flex-direction: column;
 
-  .bg1, .bg2 {
+  .bg1,
+  .bg2 {
     position: absolute;
     inset: 0;
   }
@@ -90,17 +91,19 @@
   .bg1 {
     z-index: 0;
     border-radius: 12px;
-    border: 2px solid rgba(21, 111, 247, 0.20);
+    border: 2px solid rgba(21, 111, 247, 0.2);
     background: rgba(255, 255, 255, 0.01);
     backdrop-filter: blur(4px);
   }
 
   .bg2 {
     border-radius: 12px;
-    border: 2px solid rgba(21, 111, 247, 0.20);
+    border: 2px solid rgba(21, 111, 247, 0.2);
     background: url('/images/members/contact-details-overlay.png');
     background-blend-mode: soft-light, normal;
-    box-shadow: 4px 4px 26px 0 rgba(255, 255, 255, 0.25) inset, 0 40px 80px 0 rgba(0, 0, 0, 0.10);
+    box-shadow:
+      4px 4px 26px 0 rgba(255, 255, 255, 0.25) inset,
+      0 40px 80px 0 rgba(0, 0, 0, 0.1);
     opacity: 0.1;
   }
 
@@ -114,12 +117,14 @@
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
-    border: 0.5px solid #CBD5E1;
-    background: #156FF7;
+    border: 0.5px solid #cbd5e1;
+    background: #156ff7;
     white-space: nowrap;
 
-    color: #FFF;
-    font-feature-settings: 'liga' off, 'clig' off;
+    color: #fff;
+    font-feature-settings:
+      'liga' off,
+      'clig' off;
     font-size: 14px;
     font-style: normal;
     font-weight: 500;
@@ -140,7 +145,7 @@
     }
 
     &.mobileOnly {
-     display: flex;
+      display: flex;
       width: 100%;
 
       @include media.tablet-portrait {
@@ -160,7 +165,7 @@
 
 .divider {
   height: 24px;
-  background: #E2E8F0;
+  background: #e2e8f0;
   width: 1px;
   margin-inline: 8px;
   display: none;
@@ -178,7 +183,7 @@
 
 .missingDataHeader {
   border-radius: 0;
-  background: #EEBD6C;
+  background: #eebd6c;
   display: flex;
   padding: 8px 16px;
   justify-content: center;
@@ -186,7 +191,7 @@
   align-self: stretch;
   gap: 8px;
 
-  color: #0F172A;
+  color: #0f172a;
   font-size: 12px;
   font-style: normal;
   font-weight: 400;

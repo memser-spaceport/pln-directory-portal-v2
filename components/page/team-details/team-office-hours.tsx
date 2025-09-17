@@ -31,9 +31,9 @@ const TeamOfficeHours = (props: any) => {
   };
 
   const onScheduleMeeting = (event: any) => {
-    if(!isLoggedInMemberPartOfTeam){
+    if (!isLoggedInMemberPartOfTeam) {
       teamAnalytics.onScheduleMeetingClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team));
-    }else{
+    } else {
       event.preventDefault();
     }
   };
@@ -47,7 +47,12 @@ const TeamOfficeHours = (props: any) => {
       <div className="office-hours">
         <div className="office-hours__left">
           <div className="office-hours__left__calendar">
-            <img loading="lazy" alt="calendar" className="office-hours__left__calendar__icon" src="/icons/calendar.svg" />
+            <img
+              loading="lazy"
+              alt="calendar"
+              className="office-hours__left__calendar__icon"
+              src="/icons/calendar.svg"
+            />
           </div>
           {!isLoggedIn ? (
             <p className="office-hours__left__msg">
@@ -69,10 +74,14 @@ const TeamOfficeHours = (props: any) => {
               asChild
               trigger={
                 <a href={officeHours} target="blank" onClick={onScheduleMeeting}>
-                  <button className={`office-hours__right__meeting ${isLoggedInMemberPartOfTeam? 'disabled cursor-default': ''}`}>Schedule Meeting</button>
+                  <button
+                    className={`office-hours__right__meeting ${isLoggedInMemberPartOfTeam ? 'disabled cursor-default' : ''}`}
+                  >
+                    Schedule Meeting
+                  </button>
                 </a>
               }
-              content={isLoggedInMemberPartOfTeam?'You cannot schedule meeting with your own team!':''}
+              content={isLoggedInMemberPartOfTeam ? 'You cannot schedule meeting with your own team!' : ''}
             />
           )}
 

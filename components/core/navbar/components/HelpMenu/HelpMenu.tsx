@@ -27,7 +27,10 @@ export const HelpMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
           <Menu.Positioner className={s.Positioner} align="end" sideOffset={10}>
             <Menu.Popup className={s.Popup}>
               <Link target="_blank" href={process.env.PROTOSPHERE_URL ?? ''}>
-                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('ProtoSphere', getAnalyticsUserInfo(userInfo))}>
+                <Menu.Item
+                  className={s.Item}
+                  onClick={() => analytics.onNavGetHelpItemClicked('ProtoSphere', getAnalyticsUserInfo(userInfo))}
+                >
                   <MessageIcon /> ProtoSphere{' '}
                   <span className={s.itemSub}>
                     Forum <LinkIcon />
@@ -39,7 +42,10 @@ export const HelpMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
                 <Menu.Separator className={s.Separator} />
               </div>
               <Link target="_blank" href={process.env.GET_SUPPORT_URL ?? ''}>
-                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('Get Support', getAnalyticsUserInfo(userInfo))}>
+                <Menu.Item
+                  className={s.Item}
+                  onClick={() => analytics.onNavGetHelpItemClicked('Get Support', getAnalyticsUserInfo(userInfo))}
+                >
                   <HelpIcon /> Get Support{' '}
                   <span className={s.itemSub}>
                     <LinkIcon />
@@ -47,7 +53,10 @@ export const HelpMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
                 </Menu.Item>
               </Link>
               <Link href="/changelog">
-                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('Changelog', getAnalyticsUserInfo(userInfo))}>
+                <Menu.Item
+                  className={s.Item}
+                  onClick={() => analytics.onNavGetHelpItemClicked('Changelog', getAnalyticsUserInfo(userInfo))}
+                >
                   <ChangeLogIcon /> Changelog
                 </Menu.Item>
               </Link>

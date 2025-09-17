@@ -26,7 +26,10 @@ const TeamAddCard = (props: any) => {
     <>
       <div className={`${viewType === VIEW_TYPE_OPTIONS.LIST ? 'team-card--div' : ''}`}>
         <Link href={PAGE_ROUTES.ADD_TEAM} prefetch={false} legacyBehavior>
-          <a onClick={onAddClick} className={`team-card  ${viewType === VIEW_TYPE_OPTIONS.LIST ? 'team-card--list' : ''}`}>
+          <a
+            onClick={onAddClick}
+            className={`team-card  ${viewType === VIEW_TYPE_OPTIONS.LIST ? 'team-card--list' : ''}`}
+          >
             <img src="/icons/add.svg" alt="add" />
             <p className="team-card__add">Add Team</p>
             <p className="team-card__text">List your team here</p>

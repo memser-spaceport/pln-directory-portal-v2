@@ -1,5 +1,11 @@
 export const getTeamsFormOptions = async () => {
-  const [membershipSourcesResponse, fundingTagsresponse, industryTagsResponse, technologiesResponse, focusAreaResponse] = await Promise.all([
+  const [
+    membershipSourcesResponse,
+    fundingTagsresponse,
+    industryTagsResponse,
+    technologiesResponse,
+    focusAreaResponse,
+  ] = await Promise.all([
     fetch(`${process.env.DIRECTORY_API_URL}/v1/membership-sources`, { method: 'GET' }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/funding-stages?pagination=false`, { method: 'GET' }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/industry-tags?pagination=false`, { method: 'GET' }),
@@ -13,7 +19,13 @@ export const getTeamsFormOptions = async () => {
   const technologies = await technologiesResponse.json();
   const focusAreas = await focusAreaResponse.json();
 
-  if (!membershipSourcesResponse.ok || !fundingTagsresponse.ok || !industryTagsResponse.ok || !technologiesResponse.ok || !focusAreaResponse.ok) {
+  if (
+    !membershipSourcesResponse.ok ||
+    !fundingTagsresponse.ok ||
+    !industryTagsResponse.ok ||
+    !technologiesResponse.ok ||
+    !focusAreaResponse.ok
+  ) {
     return { isError: true };
   }
 
@@ -24,16 +36,26 @@ export const getTeamsFormOptions = async () => {
     }))
     .sort((a: any, b: any) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
-  const formattedFundingStages = fundingTags.map((tag: any) => ({ id: tag?.uid, name: tag?.title })).sort((a: any, b: any) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+  const formattedFundingStages = fundingTags
+    .map((tag: any) => ({ id: tag?.uid, name: tag?.title }))
+    .sort((a: any, b: any) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
   const formattedMembershipResources = membershipSources?.map((source: any) => ({
     id: source?.uid,
     name: source?.title,
   }));
 
-  const formattedIndustryTags = industryTags.map((tag: any) => ({ id: tag?.uid, name: tag?.title })).sort((a: any, b: any) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+  const formattedIndustryTags = industryTags
+    .map((tag: any) => ({ id: tag?.uid, name: tag?.title }))
+    .sort((a: any, b: any) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
   const formattedFocusAreas = focusAreas.filter((data: any) => !data.parentUid);
-  return { technologies: formattedTechnologies, focusAreas: formattedFocusAreas, fundingStage: formattedFundingStages, membershipSources: formattedMembershipResources, industryTags: formattedIndustryTags };
+  return {
+    technologies: formattedTechnologies,
+    focusAreas: formattedFocusAreas,
+    fundingStage: formattedFundingStages,
+    membershipSources: formattedMembershipResources,
+    industryTags: formattedIndustryTags,
+  };
 };
 
 export const saveRegistrationImage = async (payload: any) => {

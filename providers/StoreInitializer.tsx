@@ -18,4 +18,4 @@ export default function StoreInitializer({ userInfo }: StoreInitializerProps) {
   }, [userInfo, actions]);
 
   return null;
-} 
+}

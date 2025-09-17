@@ -3,7 +3,21 @@ import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from '.
 import { URL_QUERY_VALUE_SEPARATOR } from './constants';
 
 export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
-  const { sort, tags, membershipSources, fundingStage, searchBy, technology, includeFriends, focusAreas, officeHoursOnly, isRecent, isHost, isSponsor, asks } = queryParams;
+  const {
+    sort,
+    tags,
+    membershipSources,
+    fundingStage,
+    searchBy,
+    technology,
+    includeFriends,
+    focusAreas,
+    officeHoursOnly,
+    isRecent,
+    isHost,
+    isSponsor,
+    asks,
+  } = queryParams;
   const sortFromQuery = getSortFromQuery(sort?.toString());
   const sortField = sortFromQuery.field.toLowerCase() + ',default';
 
@@ -24,21 +38,45 @@ export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
   };
 }
 
-export function processFilters(searchParams: ITeamsSearchParams, formattedValuesByFilter: any, formattedAvailableValuesByFilter: any, focusAreaData: any) {
+export function processFilters(
+  searchParams: ITeamsSearchParams,
+  formattedValuesByFilter: any,
+  formattedAvailableValuesByFilter: any,
+  focusAreaData: any,
+) {
   const focusAreaQuery = searchParams?.focusAreas;
   const focusAreaFilters = focusAreaQuery?.split(URL_QUERY_VALUE_SEPARATOR) || [];
-  const selectedFocusAreas = focusAreaFilters.length > 0 ? focusAreaData?.filter((focusArea: any) => focusAreaFilters.includes(focusArea.title)) : [];
+  const selectedFocusAreas =
+    focusAreaFilters.length > 0
+      ? focusAreaData?.filter((focusArea: any) => focusAreaFilters.includes(focusArea.title))
+      : [];
 
   return {
     tags: getTagsFromValues(formattedValuesByFilter?.tags, formattedAvailableValuesByFilter?.tags, searchParams?.tags),
-    membershipSources: getTagsFromValues(formattedValuesByFilter?.membershipSources, formattedAvailableValuesByFilter?.membershipSources, searchParams?.membershipSources),
-    fundingStage: getTagsFromValues(formattedValuesByFilter?.fundingStage, formattedAvailableValuesByFilter?.fundingStage, searchParams?.fundingStage),
-    technology: getTagsFromValues(formattedValuesByFilter?.technology, formattedAvailableValuesByFilter?.technology, searchParams?.technology),
+    membershipSources: getTagsFromValues(
+      formattedValuesByFilter?.membershipSources,
+      formattedAvailableValuesByFilter?.membershipSources,
+      searchParams?.membershipSources,
+    ),
+    fundingStage: getTagsFromValues(
+      formattedValuesByFilter?.fundingStage,
+      formattedAvailableValuesByFilter?.fundingStage,
+      searchParams?.fundingStage,
+    ),
+    technology: getTagsFromValues(
+      formattedValuesByFilter?.technology,
+      formattedAvailableValuesByFilter?.technology,
+      searchParams?.technology,
+    ),
     focusAreas: {
       rawData: focusAreaData,
       selectedFocusAreas,
     },
-    asks: getTagsFromValues(formattedValuesByFilter?.askTags, formattedAvailableValuesByFilter?.askTags, searchParams?.asks),
+    asks: getTagsFromValues(
+      formattedValuesByFilter?.askTags,
+      formattedAvailableValuesByFilter?.askTags,
+      searchParams?.asks,
+    ),
   };
 }
 

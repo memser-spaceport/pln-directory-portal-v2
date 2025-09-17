@@ -79,7 +79,13 @@ async function Page({ params }: { params: ITeamDetailParams }) {
           <div className={styles?.teamDetail__container__contact}>
             <ContactInfo team={team} userInfo={userInfo} />
             {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && (
-              <TeamOfficeHours isLoggedIn={isLoggedIn} team={team} userInfo={userInfo} officeHoursFlag={officeHoursFlag} isLoggedInMemberPartOfTeam={isLoggedInMemberPartOfTeam} />
+              <TeamOfficeHours
+                isLoggedIn={isLoggedIn}
+                team={team}
+                userInfo={userInfo}
+                officeHoursFlag={officeHoursFlag}
+                isLoggedInMemberPartOfTeam={isLoggedInMemberPartOfTeam}
+              />
             )}
           </div>
           {/* Funding */}
@@ -107,7 +113,13 @@ async function Page({ params }: { params: ITeamDetailParams }) {
 
           {/* Projects */}
           <div className={styles?.teamDetail__container__projects}>
-            <Projects isLoggedIn={isLoggedIn} projects={teamProjectList} team={team} userInfo={userInfo} hasProjectsEditAccess={hasProjectsEditAccess} />
+            <Projects
+              isLoggedIn={isLoggedIn}
+              projects={teamProjectList}
+              team={team}
+              userInfo={userInfo}
+              hasProjectsEditAccess={hasProjectsEditAccess}
+            />
           </div>
         </div>
       </div>
@@ -164,7 +176,9 @@ async function getPageData(teamId: string) {
     }
 
     const [teamResponse, teamMembersResponse, focusAreaResponse] = await Promise.all([
-      getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks' }),
+      getTeam(teamId, {
+        with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks',
+      }),
       getMembers(
         {
           'teamMemberRoles.team.uid': teamId,
@@ -211,7 +225,9 @@ async function getPageData(teamId: string) {
     }
 
     members = teamMembersResponse?.data?.formattedData?.sort(sortMemberByRole);
-    hasEditAsksAccess = members.some((member: any) => member.id === userInfo.uid) || (Array.isArray(userInfo?.roles) ? userInfo?.roles?.includes(ADMIN_ROLE) : false);
+    hasEditAsksAccess =
+      members.some((member: any) => member.id === userInfo.uid) ||
+      (Array.isArray(userInfo?.roles) ? userInfo?.roles?.includes(ADMIN_ROLE) : false);
     focusAreas = focusAreaResponse.data;
     focusAreas = focusAreas.filter((data: IFocusArea) => !data.parentUid);
     const maintainingProjects = team?.maintainingProjects?.map((project: any) => {
@@ -244,7 +260,18 @@ async function getPageData(teamId: string) {
     if (hasProjectsEditAccess) {
       team.logoUid = team.logoUid;
     }
-    return { team, members, focusAreas, isLoggedIn, userInfo, teamProjectList, hasProjectsEditAccess, officeHoursFlag, hasEditAsksAccess, isLoggedInMemberPartOfTeam };
+    return {
+      team,
+      members,
+      focusAreas,
+      isLoggedIn,
+      userInfo,
+      teamProjectList,
+      hasProjectsEditAccess,
+      officeHoursFlag,
+      hasEditAsksAccess,
+      isLoggedInMemberPartOfTeam,
+    };
   } catch (error: any) {
     console.error(error);
     isNotFound = true;
@@ -256,9 +283,14 @@ type IGenerateMetadata = {
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
 };
-export async function generateMetadata({ params, searchParams }: IGenerateMetadata, parent: ResolvingMetadata): Promise<Metadata> {
+export async function generateMetadata(
+  { params, searchParams }: IGenerateMetadata,
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
   const teamId = params.id;
-  const teamResonse = await getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member' });
+  const teamResonse = await getTeam(teamId, {
+    with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member',
+  });
   if (teamResonse?.error) {
     return {
       title: 'Protocol Labs Directory',

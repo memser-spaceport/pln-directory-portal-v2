@@ -4,7 +4,6 @@ import KPIs from '@/components/page/project-details/kpis';
 import '@testing-library/jest-dom';
 
 describe('KPIs Component', () => {
-
   const kpis = [
     { key: 'Revenue', value: '$1000' },
     { key: 'Users', value: '150' },

@@ -47,7 +47,13 @@ export const useTeamAnalytics = () => {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_CLEAR_ALL_FILTERS_APPLIED, params);
   }
 
-  function onFocusAreaFilterClicked(params: { page: string; name: string; value: string; user: IAnalyticsUserInfo | null; nameAndValue: string }) {
+  function onFocusAreaFilterClicked(params: {
+    page: string;
+    name: string;
+    value: string;
+    user: IAnalyticsUserInfo | null;
+    nameAndValue: string;
+  }) {
     captureEvent(TEAMS_ANALYTICS_EVENTS.FILTERS_APPLIED, params);
   }
 
@@ -164,7 +170,12 @@ export const useTeamAnalytics = () => {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_SHOW_MORE_TECHNOLOGY_CLICKED, params);
   }
 
-  function onTeamDetailContactClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null, type: string, value: string) {
+  function onTeamDetailContactClicked(
+    team: IAnalyticsTeamInfo | null,
+    user: IAnalyticsUserInfo | null,
+    type: string,
+    value: string,
+  ) {
     const params = {
       ...team,
       user,
@@ -183,7 +194,11 @@ export const useTeamAnalytics = () => {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_SEE_ALL_PROJECTS_CLICKED, params);
   }
 
-  function onTeamDetailProjectClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null, project: IAnalyticsProjectInfo | null) {
+  function onTeamDetailProjectClicked(
+    team: IAnalyticsTeamInfo | null,
+    user: IAnalyticsUserInfo | null,
+    project: IAnalyticsProjectInfo | null,
+  ) {
     const params = {
       ...team,
       user,
@@ -200,7 +215,11 @@ export const useTeamAnalytics = () => {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_SEE_ALL_MEMBERS_CLICKED, params);
   }
 
-  function onTeamDetailMemberClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
+  function onTeamDetailMemberClicked(
+    team: IAnalyticsTeamInfo | null,
+    user: IAnalyticsUserInfo | null,
+    member: IAnalyticsMemberInfo | null,
+  ) {
     const params = {
       ...team,
       user,
@@ -229,7 +248,11 @@ export const useTeamAnalytics = () => {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ADD_PROJECT_CLICKED, params);
   }
 
-  function onTeamDetailProjectEditClicked(user: IAnalyticsUserInfo | null, team: IAnalyticsTeamInfo | null, project: IAnalyticsProjectInfo | null) {
+  function onTeamDetailProjectEditClicked(
+    user: IAnalyticsUserInfo | null,
+    team: IAnalyticsTeamInfo | null,
+    project: IAnalyticsProjectInfo | null,
+  ) {
     const params = {
       user,
       ...team,

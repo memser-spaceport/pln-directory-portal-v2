@@ -50,11 +50,21 @@ const TeamList = (props: any) => {
   return (
     <div className="team-list">
       <div className="team-list__titlesec">
-        <h1 className="team-list__titlesec__title">Teams</h1> <div className="team-list__title__count">({totalTeams})</div>
+        <h1 className="team-list__titlesec__title">Teams</h1>{' '}
+        <div className="team-list__title__count">({totalTeams})</div>
       </div>
-      <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage} style={{ overflow: 'unset' }}>
+      <InfiniteScroll
+        scrollableTarget="body"
+        loader={null}
+        hasMore={hasNextPage}
+        dataLength={data.length}
+        next={fetchNextPage}
+        style={{ overflow: 'unset' }}
+      >
         <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid' : 'team-list__list'}`}>
-          {userInfo && accessLevel === 'advanced' && data?.length > 0 && <TeamAddCard userInfo={userInfo} viewType={viewType} />}
+          {userInfo && accessLevel === 'advanced' && data?.length > 0 && (
+            <TeamAddCard userInfo={userInfo} viewType={viewType} />
+          )}
           {data?.map((team: ITeam, index: number) => (
             <div
               key={`teamitem-${team.id}-${index}`}

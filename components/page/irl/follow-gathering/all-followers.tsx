@@ -45,7 +45,9 @@ const AllFollowers = (props: IAllFollowers) => {
   const onInputchangeHandler = (event: any) => {
     const searchTerm = event?.target.value.toLowerCase();
     setSearchTerm(event.target.value);
-    const filteredMembers = followersList?.filter((member: IMember) => member?.name?.toLowerCase()?.includes(searchTerm));
+    const filteredMembers = followersList?.filter((member: IMember) =>
+      member?.name?.toLowerCase()?.includes(searchTerm),
+    );
     setFilteredFollowers(filteredMembers);
   };
 
@@ -69,7 +71,13 @@ const AllFollowers = (props: IAllFollowers) => {
               <div className="cm__body__search__icon">
                 <SearchIcon />
               </div>
-              <input value={searchTerm} type="search" className="cm__body__search__input" placeholder="Search" onChange={onInputchangeHandler} />
+              <input
+                value={searchTerm}
+                type="search"
+                className="cm__body__search__input"
+                placeholder="Search"
+                onChange={onInputchangeHandler}
+              />
             </div>
           </div>
           <div className="cm__body__search__divider" />
@@ -81,17 +89,41 @@ const AllFollowers = (props: IAllFollowers) => {
               const isAvailableToConnect = isMemberAvailableToConnect(member);
 
               return (
-                <div key={'follower' + follower?.uid} className={`follower__wrpr ${index !== filteredFollowers.length - 1 ? 'borderb' : ''}`}>
-                  <a href={`${process.env.APPLICATION_BASE_URL}/members/${follower.memberUid}`} target="_blank" onClick={() => onFollowerClickHandler(follower)}>
+                <div
+                  key={'follower' + follower?.uid}
+                  className={`follower__wrpr ${index !== filteredFollowers.length - 1 ? 'borderb' : ''}`}
+                >
+                  <a
+                    href={`${process.env.APPLICATION_BASE_URL}/members/${follower.memberUid}`}
+                    target="_blank"
+                    onClick={() => onFollowerClickHandler(follower)}
+                  >
                     <div className="follower">
                       <div className="follower__info">
                         <div className="follower__info__imgWrpr">
-                          <Image alt="profile" width={40} height={40} layout="intrinsic" loading="eager" priority={true} className="follower__info__img" src={follower.logo || defaultAvatar} />
+                          <Image
+                            alt="profile"
+                            width={40}
+                            height={40}
+                            layout="intrinsic"
+                            loading="eager"
+                            priority={true}
+                            className="follower__info__img"
+                            src={follower.logo || defaultAvatar}
+                          />
                           {follower?.teamLead && (
                             <>
                               <Tooltip
                                 asChild
-                                trigger={<img src="/icons/badge/team-lead.svg" className="follower__info__teamlead" alt="team lead image" width={16} height={16} />}
+                                trigger={
+                                  <img
+                                    src="/icons/badge/team-lead.svg"
+                                    className="follower__info__teamlead"
+                                    alt="team lead image"
+                                    width={16}
+                                    height={16}
+                                  />
+                                }
                                 content="Team Lead"
                               />
                             </>
@@ -360,9 +392,22 @@ const SearchIcon = () => (
       />
     </g>
     <defs>
-      <filter id="filter0_d_6121_8588" x="-1" y="-1" width="24" height="24" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+      <filter
+        id="filter0_d_6121_8588"
+        x="-1"
+        y="-1"
+        width="24"
+        height="24"
+        filterUnits="userSpaceOnUse"
+        colorInterpolationFilters="sRGB"
+      >
         <feFlood floodOpacity="0" result="BackgroundImageFix" />
-        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+        <feColorMatrix
+          in="SourceAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          result="hardAlpha"
+        />
         <feOffset dy="1" />
         <feGaussianBlur stdDeviation="1" />
         <feComposite in2="hardAlpha" operator="out" />

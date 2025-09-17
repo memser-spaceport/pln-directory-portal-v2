@@ -10,8 +10,10 @@
   gap: 1rem;
   width: 100%;
 
-  color: #0F172A;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #0f172a;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -26,7 +28,7 @@
     letter-spacing: -0.2px;
 
     > a {
-      color: #156FF7;
+      color: #156ff7;
     }
   }
 
@@ -55,11 +57,11 @@
   }
 
   &[data-checked] {
-    background-color: #156FF7;
+    background-color: #156ff7;
   }
 
   &:focus-visible {
-    outline: 2px solid #156FF7;
+    outline: 2px solid #156ff7;
     outline-offset: 2px;
   }
 }
@@ -91,8 +93,10 @@
   align-items: center;
   border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
-  background: var(--action-background-base-white, #FFF);
-  box-shadow: 0px -2px 8px 0px var(--transparent-dark-2, rgba(14, 15, 17, 0.02)) inset, 0px 1px 2px 0px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+  background: var(--action-background-base-white, #fff);
+  box-shadow:
+    0px -2px 8px 0px var(--transparent-dark-2, rgba(14, 15, 17, 0.02)) inset,
+    0px 1px 2px 0px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
   color: var(--action-foreground-neutral-normal, #455468);
   font-size: 14px;
   font-style: normal;
@@ -112,9 +116,12 @@
   gap: var(--spacing-zero, 0px);
   border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  background: var(--action-background-brand-normal, #1B4DFF);
-  box-shadow: 0px 1px 3px 0px var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
-  color: var(--action-foreground-base-inverted_white, #FFF);
+  background: var(--action-background-brand-normal, #1b4dff);
+  box-shadow:
+    0px 1px 3px 0px var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  color: var(--action-foreground-base-inverted_white, #fff);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;

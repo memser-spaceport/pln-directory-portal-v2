@@ -32,32 +32,30 @@ describe('MemberExperienceDescription Component', () => {
     expect(screen.queryByText('Show More')).not.toBeInTheDocument();
   });
 
- 
-
   it('shows the full description after clicking "Show More"', async () => {
     render(<MemberExperienceDescription {...defaultProps} />);
-    
+
     // Use a regular expression to search for "Show More" text
-    const showMoreButton = screen.getByText(/Show More/i);  // More flexible search
-  
+    const showMoreButton = screen.getByText(/Show More/i); // More flexible search
+
     // Ensure that "Show More" is present before clicking
     expect(showMoreButton).toBeInTheDocument();
-  
+
     // Simulate a click on the "Show More" button
     fireEvent.click(showMoreButton);
-  
+
     // Check if the full description is displayed after clicking
     const fullDesc = screen.getByText(/timely and efficient manner/i); // Match any part of the full description
     expect(fullDesc).toBeInTheDocument();
   });
-  
+
   it('reverts to truncated description after clicking "Show Less"', () => {
     render(<MemberExperienceDescription {...defaultProps} />);
-  
+
     // Use querySelector to get the "Show More" button
     const showMoreButton = screen.queryByText(/Show More/i);
     expect(showMoreButton).toBeInTheDocument();
-  
+
     // Click the "Show More" button to expand the description
     if (showMoreButton) {
       fireEvent.click(showMoreButton);
@@ -74,7 +72,6 @@ describe('MemberExperienceDescription Component', () => {
     const revertedShowMoreButton = screen.queryByText(/Show More/i);
     expect(revertedShowMoreButton).toBeInTheDocument();
   });
-
 
   it('renders nothing when desc prop is blank or empty', () => {
     // Blank description

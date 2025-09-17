@@ -88,5 +88,4 @@ describe('FocusAreaDisplay Component', () => {
     expect(screen.getByText('Parent 1')).toBeInTheDocument();
     expect(screen.getByText('Parent 2')).toBeInTheDocument();
   });
-
 });

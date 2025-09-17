@@ -73,7 +73,11 @@ export const BioInput = ({ generateBio, onAiContentGenerated }: Props) => {
         </button>
       </div>
 
-      <RichTextEditor value={bio} onChange={(txt) => setValue('bio', txt, { shouldValidate: true, shouldDirty: true })} className={s.editor} />
+      <RichTextEditor
+        value={bio}
+        onChange={(txt) => setValue('bio', txt, { shouldValidate: true, shouldDirty: true })}
+        className={s.editor}
+      />
     </div>
   );
 };

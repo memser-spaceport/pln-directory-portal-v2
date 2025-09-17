@@ -106,17 +106,51 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
         </ul>
         <div className="memberinfo__form">
           <div className="memberinfo__form__user">
-            <label htmlFor="member-image-upload" className="memberinfo__form__user__profile" data-testid="profile-image-upload">
+            <label
+              htmlFor="member-image-upload"
+              className="memberinfo__form__user__profile"
+              data-testid="profile-image-upload"
+            >
               <div className="memberinfo__form__user__profile_avatar">
-                <Image className="memberinfo__form__user__profile__preview" src={isShowDefaultImage ? defaultAvatarImage : formImage} data-testid="profile-image-preview" alt="user profile" fill />
+                <Image
+                  className="memberinfo__form__user__profile__preview"
+                  src={isShowDefaultImage ? defaultAvatarImage : formImage}
+                  data-testid="profile-image-preview"
+                  alt="user profile"
+                  fill
+                />
               </div>
               <span className="memberinfo__form__user__profile__actions">
-                <Image width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                {(profileImage || savedImage) && <Image onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />}
+                <Image
+                  width="32"
+                  height="32"
+                  title="Change profile image"
+                  alt="change image"
+                  src="/icons/recycle.svg"
+                />
+                {(profileImage || savedImage) && (
+                  <Image
+                    onClick={onDeleteImage}
+                    width="32"
+                    height="32"
+                    title="Delete profile image"
+                    alt="delete image"
+                    src="/icons/trash.svg"
+                  />
+                )}
               </span>
             </label>
             <input type="text" readOnly value={formImage} id="member-info-basic-image" hidden name="imageFile" />
-            <input data-testid="member-image-upload" onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
+            <input
+              data-testid="member-image-upload"
+              onChange={onImageUpload}
+              id="member-image-upload"
+              name="memberProfile"
+              ref={uploadImageRef}
+              hidden
+              type="file"
+              accept="image/png, image/jpeg"
+            />
             <div className="memberinfo__form__item">
               <TextField
                 pattern="^[a-zA-Z\s]*$"
@@ -138,16 +172,39 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             </div>} */}
           </div>
           <p className="info">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+            <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
           </p>
           {isAdminEdit && (
-            <div className={`memberinfo__form__plnFriend__toggle ${props?.isVerifiedFlag === 'true' ? ' ' : 'unverified-bg'}`}>
-              <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
+            <div
+              className={`memberinfo__form__plnFriend__toggle ${props?.isVerifiedFlag === 'true' ? ' ' : 'unverified-bg'}`}
+            >
+              <input
+                type="checkbox"
+                readOnly
+                checked={isPlnFriend}
+                id="member-info-pln-friend"
+                hidden
+                name="plnFriend"
+              />
               <p className="memberinfo__form__plnFriend__toggle__label">Are you friends of PL?</p>
               {props?.isVerifiedFlag == 'true' ? (
-                <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
+                <Toggle
+                  id="pl-friend"
+                  height="16px"
+                  width="28px"
+                  isChecked={isPlnFriend}
+                  callback={onTogglePlnFriend}
+                />
               ) : (
-                <Toggle id="pl-friend" height="16px" width="28px" isChecked={true} callback={onTogglePlnFriend} disabled={true} />
+                <Toggle
+                  id="pl-friend"
+                  height="16px"
+                  width="28px"
+                  isChecked={true}
+                  callback={onTogglePlnFriend}
+                  disabled={true}
+                />
               )}
             </div>
           )}
@@ -203,7 +260,9 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             />
             <p className="info">
               <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-              <span className="info__text">Please share location details to receive invitations for the network events happening in your area.</span>
+              <span className="info__text">
+                Please share location details to receive invitations for the network events happening in your area.
+              </span>
             </p>
           </div>
 
@@ -218,7 +277,15 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
                 placeholder="Enter state or province"
                 data-testid="member-state-input"
               />
-              <TextField defaultValue={initialValues.country} id="register-member-country" label="Country" name="country" type="text" placeholder="Enter country" data-testid="member-country-input" />
+              <TextField
+                defaultValue={initialValues.country}
+                id="register-member-country"
+                label="Country"
+                name="country"
+                type="text"
+                placeholder="Enter country"
+                data-testid="member-country-input"
+              />
             </div>
           </div>
         </div>

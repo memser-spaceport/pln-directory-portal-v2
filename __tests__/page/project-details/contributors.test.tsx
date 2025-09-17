@@ -10,16 +10,16 @@ jest.mock('@/analytics/project.analytics', () => ({
 describe('Contributors', () => {
   const mockAnalytics = {
     onProjectDetailContributorClicked: jest.fn(),
-    onProjDetailSeeAllContributorsClicked: jest.fn()
+    onProjDetailSeeAllContributorsClicked: jest.fn(),
     // onDiscoverCarouselActionsClicked: jest.fn(),
   };
- 
+
   const contributors = [
     { uid: '1', name: 'Contributor 1', logo: '/path/to/logo1.png' },
     { uid: '2', name: 'Contributor 2', logo: '/path/to/logo2.png' },
   ];
-  const user = { id: 'user1', name: 'User 1' ,email:'user1@gmail.com',roles:['admin']};
-  const project :any = { id: 'project1', name: 'Project 1' };
+  const user = { id: 'user1', name: 'User 1', email: 'user1@gmail.com', roles: ['admin'] };
+  const project: any = { id: 'project1', name: 'Project 1' };
 
   it('should render the contributors title correctly', () => {
     render(<Contributors contributors={contributors} user={user} project={project} />);
@@ -59,7 +59,7 @@ describe('Contributors', () => {
     render(<Contributors contributors={contributors} user={user} project={project} />);
     const contributorElement = screen.getByTitle('Contributor 1');
     fireEvent.click(contributorElement);
-  
+
     expect(mockAnalytics.onProjectDetailContributorClicked).toHaveBeenCalled();
     expect(openMock).toHaveBeenCalledWith('/members/1', '_blank');
   });
@@ -102,9 +102,7 @@ describe('Contributors', () => {
       { uid: '24', name: 'Contributor 24', logo: '/path/to/logo24.png' },
       { uid: '25', name: 'Contributor 25', logo: '/path/to/logo25.png' },
     ];
-    render(
-      <Contributors contributors={contributorsList} user={user} project={project} />
-    );
+    render(<Contributors contributors={contributorsList} user={user} project={project} />);
     expect(screen.getByText('+5')).toBeInTheDocument();
   });
 
@@ -137,22 +135,16 @@ describe('Contributors', () => {
       { uid: '25', name: 'Contributor 25', logo: '/path/to/logo25.png' },
     ];
     (useProjectAnalytics as jest.Mock).mockReturnValue(mockAnalytics);
-    render(
-      <Contributors contributors={contributorsList} user={user} project={project} />
-    );
+    render(<Contributors contributors={contributorsList} user={user} project={project} />);
     const moreContributorsButton = screen.getByText('+5');
     fireEvent.click(moreContributorsButton);
-    
+
     expect(mockAnalytics.onProjectDetailContributorClicked).toHaveBeenCalled();
   });
 
   it('should not thrown error when there are no contributors', () => {
     const contributorsListEmpty: any[] = [];
-    render(
-      <Contributors contributors={contributorsListEmpty} user={user} project={project} />
-    );
+    render(<Contributors contributors={contributorsListEmpty} user={user} project={project} />);
     expect(screen.queryAllByTitle('Contributor 1').length).toBe(0);
   });
-
-
 });

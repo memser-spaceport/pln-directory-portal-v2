@@ -10,8 +10,8 @@
   color: var(--Neutral-White);
   transform-origin: var(--transform-origin);
   transition:
-          transform 150ms,
-          opacity 150ms;
+    transform 150ms,
+    opacity 150ms;
 
   &[data-starting-style],
   &[data-ending-style] {
@@ -25,8 +25,8 @@
 
   outline: 1px solid var(--color-gray-200);
   box-shadow:
-          0 10px 15px -3px var(--color-gray-200),
-          0 4px 6px -4px var(--color-gray-200);
+    0 10px 15px -3px var(--color-gray-200),
+    0 4px 6px -4px var(--color-gray-200);
 }
 
 .Arrow {

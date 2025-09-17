@@ -68,7 +68,10 @@ export const ProfileBioInput = ({ generateBio }: Props) => {
         </button>
       </div>
 
-      <RichTextEditor value={bio} onChange={(txt) => setValue('bio', txt, { shouldValidate: true, shouldDirty: true })} />
+      <RichTextEditor
+        value={bio}
+        onChange={(txt) => setValue('bio', txt, { shouldValidate: true, shouldDirty: true })}
+      />
     </div>
   );
 };

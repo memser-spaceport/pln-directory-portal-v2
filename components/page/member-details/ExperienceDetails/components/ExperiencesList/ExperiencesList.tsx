@@ -50,7 +50,8 @@ export const ExperiencesList = ({ isEditable, onAdd, onEdit, member }: Props) =>
                 </div>
                 <div className={s.row}>
                   <div className={s.secondaryLabel}>
-                    {format(new Date(item.startDate), 'MMMM yyyy')} - {item.isCurrent ? 'Present' : format(new Date(item.endDate), 'MMMM yyyy')}
+                    {format(new Date(item.startDate), 'MMMM yyyy')} -{' '}
+                    {item.isCurrent ? 'Present' : format(new Date(item.endDate), 'MMMM yyyy')}
                   </div>
                 </div>
               </div>

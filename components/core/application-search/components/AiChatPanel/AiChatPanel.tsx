@@ -35,7 +35,17 @@ interface Props {
   authToken: string;
 }
 
-export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThread, initialPrompt, className, mobileView = false, authToken: authorizationToken }: Props) => {
+export const AiChatPanel = ({
+  isLoggedIn = false,
+  id,
+  from,
+  userInfo,
+  isOwnThread,
+  initialPrompt,
+  className,
+  mobileView = false,
+  authToken: authorizationToken,
+}: Props) => {
   const [feedbackQandA, setFeedbackQandA] = useState({ question: '', answer: '' });
   // const [initialMessages, setInitialMessages] = useState<any>([]);
   const [type, setType] = useState<string>('');
@@ -189,7 +199,14 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
 
   // handle all chat submission
   const handleChatSubmission = useCallback(
-    async ({ question, type }: { question: string; type: 'prompt' | 'followup' | 'user-input'; previousContext?: { question: string; answer: string } | null }) => {
+    async ({
+      question,
+      type,
+    }: {
+      question: string;
+      type: 'prompt' | 'followup' | 'user-input';
+      previousContext?: { question: string; answer: string } | null;
+    }) => {
       try {
         const { userInfo, authToken } = await getUserCredentials(isLoggedIn);
         const hasRefreshToken = checkRefreshToken();
@@ -244,11 +261,18 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
           return;
         }
 
-        if (isLoggedIn && ((hasRefreshToken && messagesRef.current.length === 0) || (hasRefreshToken && fromRef.current === 'blog' && messagesRef.current.length === 1))) {
+        if (
+          isLoggedIn &&
+          ((hasRefreshToken && messagesRef.current.length === 0) ||
+            (hasRefreshToken && fromRef.current === 'blog' && messagesRef.current.length === 1))
+        ) {
           const threadResponse = await createHuskyThread(authToken, threadId); // create new thread
 
           if (threadResponse) {
-            const [titleResponse] = await Promise.all([createThreadTitle(authToken, threadId, question), submitChat(submitParams)]); //create thread title
+            const [titleResponse] = await Promise.all([
+              createThreadTitle(authToken, threadId, question),
+              submitChat(submitParams),
+            ]); //create thread title
 
             if (titleResponse) {
               document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
@@ -271,7 +295,10 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
   );
 
   // handle husky input submission
-  const onHuskyInput = useCallback((query: string) => handleChatSubmission({ question: query, type: 'user-input' }), []);
+  const onHuskyInput = useCallback(
+    (query: string) => handleChatSubmission({ question: query, type: 'user-input' }),
+    [],
+  );
 
   // handle submit by clicking the send button
   const submitForm = useCallback(() => {
@@ -387,7 +414,14 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
             }}
           />
           <form className={s.chatInputWrapper}>
-            {limitReached && <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} from="husky-chat" />}
+            {limitReached && (
+              <HuskyLimitStrip
+                mode="chat"
+                count={DAILY_CHAT_LIMIT - getChatCount()}
+                type={limitReached}
+                from="husky-chat"
+              />
+            )}
             <ChatInput
               ref={textareaRef}
               placeholder="Go ahead, ask anything!"
@@ -423,7 +457,14 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
             <EmptyChatView />
           )}
           <form className={s.chatInputWrapper}>
-            {limitReached && <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} from="husky-chat" />}
+            {limitReached && (
+              <HuskyLimitStrip
+                mode="chat"
+                count={DAILY_CHAT_LIMIT - getChatCount()}
+                type={limitReached}
+                from="husky-chat"
+              />
+            )}
             <ChatInput
               ref={textareaRef}
               placeholder="Go ahead, ask anything!"
@@ -440,7 +481,11 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
           <dialog onClose={onCloseFeedback} ref={feedbackPopupRef} className="feedback-popup">
             {feedbackQandA.answer && feedbackQandA.question && (
               <>
-                <ChatFeedback question={feedbackQandA.question} answer={feedbackQandA.answer} onClose={onCloseFeedback} />
+                <ChatFeedback
+                  question={feedbackQandA.question}
+                  answer={feedbackQandA.answer}
+                  onClose={onCloseFeedback}
+                />
                 <RegisterFormLoader />
               </>
             )}

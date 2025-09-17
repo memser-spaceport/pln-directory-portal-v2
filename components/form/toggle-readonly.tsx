@@ -5,16 +5,15 @@ interface ToggleReadonlyProps {
   checked?: boolean;
 }
 
-const ToggleReadonly: FC<ToggleReadonlyProps> = ({ checked = false}) => {
-
+const ToggleReadonly: FC<ToggleReadonlyProps> = ({ checked = false }) => {
   return (
     <>
-      <label className="custom-toggle" style={{pointerEvents: 'none'}}>
-        <input readOnly type="checkbox" style={{pointerEvents: 'none'}} checked={checked} />
+      <label className="custom-toggle" style={{ pointerEvents: 'none' }}>
+        <input readOnly type="checkbox" style={{ pointerEvents: 'none' }} checked={checked} />
         <span className="slider" />
       </label>
       <style jsx>
-        {` 
+        {`
           .custom-toggle {
             position: relative;
             display: inline-block;

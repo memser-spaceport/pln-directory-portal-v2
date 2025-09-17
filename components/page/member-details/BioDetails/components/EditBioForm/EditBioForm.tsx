@@ -37,7 +37,7 @@ export const EditBioForm = ({ onClose, member, userInfo, generateBio }: Props) =
   const router = useRouter();
   const originalAiContentRef = useRef<string | null>(null);
   const initialBioRef = useRef<string>(member.bio || '');
-  
+
   const methods = useForm<FormData>({
     defaultValues: {
       bio: member.bio || '',
@@ -54,7 +54,7 @@ export const EditBioForm = ({ onClose, member, userInfo, generateBio }: Props) =
     // Store the original content as-is for now
     // We'll capture the RichTextEditor's processed version after it renders
     originalAiContentRef.current = originalContent;
-    
+
     // Use a small delay to capture the processed content after RichTextEditor normalizes it
     setTimeout(() => {
       const currentBio = watch('bio');
@@ -80,14 +80,14 @@ export const EditBioForm = ({ onClose, member, userInfo, generateBio }: Props) =
         return currentBio.replace(originalDisclaimer, '');
       }
     }
-    
+
     // Case 2: Editing existing AI-generated bio (no new generation in this session)
     else if (hasOriginalDisclaimer) {
       if (currentBio !== initialBioRef.current) {
         return currentBio.replace(originalDisclaimer, '');
       }
     }
-    
+
     return currentBio;
   };
 

@@ -35,11 +35,11 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
 
     if (rawFilterValues?.isError || availableFilters?.isError || memberRoles?.isError) {
       return { isError: true, error: rawFilterValues?.error || availableFilters?.error || memberRoles?.error };
-    } 
+    }
 
     filters = getFormattedFilters(searchParams, rawFilterValues, availableFilters, isLoggedIn);
     filters.memberRoles = getRoleTagsFromValues(memberRoles, searchParams.memberRoles);
-    
+
     return { isError, filters, isLoggedIn };
   } catch (error) {
     console.error(error);

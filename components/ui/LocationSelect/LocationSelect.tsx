@@ -42,14 +42,23 @@ const LocationSelectContext = createContext<ILocationSelect>({
   resolvedState: '',
 });
 
-export const LocationSelect: React.FC<LocationSelectProps> = ({ onSelect, resolvedCountry, resolvedState, resolvedCity }) => {
+export const LocationSelect: React.FC<LocationSelectProps> = ({
+  onSelect,
+  resolvedCountry,
+  resolvedState,
+  resolvedCity,
+}) => {
   const [input, setInput] = useState('');
   const debouncedQuery = useDebounce(input, 300);
 
   const fetchPredictions = async (input: string): Promise<PlaceOption[]> => {
     if (!input) return [];
 
-    const res = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/locations/autocomplete?query=${input}`, {}, true);
+    const res = await customFetch(
+      `${process.env.DIRECTORY_API_URL}/v1/locations/autocomplete?query=${input}`,
+      {},
+      true,
+    );
 
     if (!res?.ok) {
       return [];

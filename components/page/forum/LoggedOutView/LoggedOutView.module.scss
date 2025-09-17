@@ -45,8 +45,10 @@
   width: 270px;
   padding: var(--spacing-lg, 20px);
   gap: var(--spacing-xl, 24px);
-  background: var(--background-base-white, #FFF);
-  box-shadow: 0 10px 20px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06)), 0px 20px 65px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  background: var(--background-base-white, #fff);
+  box-shadow:
+    0 10px 20px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06)),
+    0px 20px 65px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 }
 
 .root {
@@ -67,8 +69,8 @@
   display: flex;
   flex-direction: row;
   gap: 12px;
-  background: var(--Surface-surface-light, #FFF);
-  box-shadow: 0 1px 4px 0 #E2E8F0;
+  background: var(--Surface-surface-light, #fff);
+  box-shadow: 0 1px 4px 0 #e2e8f0;
   width: 100%;
 
   > div {
@@ -102,14 +104,14 @@
 
   border-radius: var(--corner-radius-xl, 12px);
   border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
-  background: var(--background-base-white, #FFF);
+  background: var(--background-base-white, #fff);
 
   /* Shadow/xs */
   box-shadow: 0px 1px 2px 0px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 }
 
 .title {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 16px;
   font-style: normal;
   font-weight: 500;
@@ -119,7 +121,7 @@
 
 .desc {
   overflow: hidden;
-  color: var(--foreground-neutral-tertiary, #8897AE);
+  color: var(--foreground-neutral-tertiary, #8897ae);
   text-overflow: ellipsis;
   font-size: 14px;
   font-style: normal;
@@ -170,7 +172,7 @@
 }
 
 .name {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 12px;
   font-style: normal;
   font-weight: 600;
@@ -190,7 +192,7 @@
 }
 
 .time {
-  color: var(--foreground-neutral-tertiary, #8897AE);
+  color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 12px;
   font-style: normal;
   font-weight: 400;
@@ -203,11 +205,11 @@
   padding: 10px;
   align-items: flex-start;
   border-radius: var(--corner-radius-Full-round, 9999px);
-  background: var(--background-brand-soft-surface, #F2F5FF);
+  background: var(--background-brand-soft-surface, #f2f5ff);
 }
 
 .primary {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   text-align: center;
   font-size: 20px;
   font-style: normal;
@@ -233,14 +235,17 @@
   align-items: center;
   gap: var(--spacing-zero, 0px);
   flex: 1 0 0;
-  color: var(--action-foreground-base-inverted_white, #FFF);
+  color: var(--action-foreground-base-inverted_white, #fff);
 
   border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  background: var(--action-background-brand-normal, #1B4DFF);
+  background: var(--action-background-brand-normal, #1b4dff);
 
   /* Button/primay/fill */
-  box-shadow: 0px 1px 3px 0px var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  box-shadow:
+    0px 1px 3px 0px var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
 
   font-size: 14px;
   font-style: normal;
@@ -262,7 +267,7 @@
 }
 
 .secBtn {
-  color: var(--action-foreground-brand-normal, #1B4DFF);
+  color: var(--action-foreground-brand-normal, #1b4dff);
   font-size: 12px;
   font-style: normal;
   font-weight: 500;

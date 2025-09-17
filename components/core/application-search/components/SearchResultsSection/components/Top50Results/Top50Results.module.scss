@@ -1,6 +1,8 @@
 .groupTitle {
-  color: #64748B;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #64748b;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -21,7 +23,7 @@
   margin: 0 auto;
 
   cursor: pointer;
-  color: var(--action-foreground-brand-normal, #1B4DFF);
+  color: var(--action-foreground-brand-normal, #1b4dff);
 
   &:focus {
     outline: auto;

@@ -34,7 +34,9 @@ const TagContainer = (props: ITagContainer) => {
     return item?.selected && index > 9;
   });
 
-  const [totalItems, setTotalItems] = useState(isShowMore ? items?.slice(0, items?.length) : items?.slice(0, initialCount));
+  const [totalItems, setTotalItems] = useState(
+    isShowMore ? items?.slice(0, items?.length) : items?.slice(0, initialCount),
+  );
   const showMoreOrLessCount = items?.length - totalItems?.length;
 
   const onShoreMoreAndLessClickHandler = () => {
@@ -72,7 +74,11 @@ const TagContainer = (props: ITagContainer) => {
 
   return (
     <>
-      <div className="tags-container" onMouseEnter={() => onMouseEnter(`tags-container__access-container${label}`)} onMouseLeave={() => onMouseLeave(`tags-container__access-container${label}`)}>
+      <div
+        className="tags-container"
+        onMouseEnter={() => onMouseEnter(`tags-container__access-container${label}`)}
+        onMouseLeave={() => onMouseLeave(`tags-container__access-container${label}`)}
+      >
         <div className="tags-container__access-container" id={`tags-container__access-container${label}`}>
           <div className="tags-container__access-container__content">
             <img loading="lazy" alt="lock" src="/icons/lock.svg" />
@@ -92,7 +98,14 @@ const TagContainer = (props: ITagContainer) => {
         <div className="tags-container__tags">
           {totalItems?.map((item: IFilterSelectedItem, index: number) => (
             <div key={`${item} + ${index}`}>
-              <Tag callback={onTagClickHandler} disabled={item?.disabled} selected={item?.selected} keyValue={keyValue} value={item?.value} variant="secondary" />
+              <Tag
+                callback={onTagClickHandler}
+                disabled={item?.disabled}
+                selected={item?.selected}
+                keyValue={keyValue}
+                value={item?.value}
+                variant="secondary"
+              />
             </div>
           ))}
         </div>

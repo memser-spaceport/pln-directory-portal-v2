@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 /**
  * AddDropdown component renders a button that toggles a dropdown menu.
  * The dropdown menu allows users to select options related to team management.
- * 
+ *
  * @param {Object} props - Component properties.
  * @param {boolean} props.maintainerTeam - Indicates if the maintainer team option should be shown.
  * @param {Function} props.onOpenPopup - Callback function to handle option selection.

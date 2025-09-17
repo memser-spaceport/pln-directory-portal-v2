@@ -306,10 +306,15 @@ function HuskyCodeBlock(props: any) {
             </span>
           </CopyText>
         </div>
-        <SyntaxHighlighter customStyle={{borderTopLeftRadius: 0, borderTopRightRadius: 0}} lineProps={{style: {wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}}
-wrapLines={true}  language={language} style={a11yDark}>
-              {codeText}
-          </SyntaxHighlighter>
+        <SyntaxHighlighter
+          customStyle={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
+          lineProps={{ style: { wordBreak: 'break-all', whiteSpace: 'pre-wrap' } }}
+          wrapLines={true}
+          language={language}
+          style={a11yDark}
+        >
+          {codeText}
+        </SyntaxHighlighter>
       </div>
       <style jsx>
         {`
@@ -336,13 +341,12 @@ wrapLines={true}  language={language} style={a11yDark}>
             max-width: 100%;
             font-size: 10px;
             font-weight: 400;
-            color: #B4B4B4;
-           
+            color: #b4b4b4;
           }
-            .codeBlock__header__copy__icon {
-             width: 13px;
-             height: 13px;
-            }
+          .codeBlock__header__copy__icon {
+            width: 13px;
+            height: 13px;
+          }
           .codeBlock__content {
           }
         `}
@@ -351,4 +355,4 @@ wrapLines={true}  language={language} style={a11yDark}>
   );
 }
 
-export default HuskyCodeBlock
+export default HuskyCodeBlock;

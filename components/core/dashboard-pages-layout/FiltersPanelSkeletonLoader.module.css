@@ -1,39 +1,39 @@
 .root {
-    background: #fff;
-    flex: 1;
-    width: 300px;
+  background: #fff;
+  flex: 1;
+  width: 300px;
 
-    display: none;
-    position: fixed;
-    border-right: 1px solid #e2e8f0;
-    z-index: 3;
-    height: 100%;
+  display: none;
+  position: fixed;
+  border-right: 1px solid #e2e8f0;
+  z-index: 3;
+  height: 100%;
 }
 
 .title {
-    padding: 20px 34px;
+  padding: 20px 34px;
 }
 
 .content {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 20px 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 34px;
 }
 
 .tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .tag {
-    border-radius: 24px;
-    overflow: hidden;
+  border-radius: 24px;
+  overflow: hidden;
 }
 
 @media (min-width: 1024px) {
-    .root {
-        display: block;
-    }
+  .root {
+    display: block;
+  }
 }

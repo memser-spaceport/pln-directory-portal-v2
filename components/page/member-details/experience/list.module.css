@@ -29,10 +29,9 @@
   padding: 16px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0px 2px 2px 0px #0F172A0A;
+  box-shadow: 0px 2px 2px 0px #0f172a0a;
 
-  box-shadow: 0px 0px 2px 0px #0F172A29;
-
+  box-shadow: 0px 0px 2px 0px #0f172a29;
 }
 
 .memberDetail__experience__item__detail {
@@ -141,7 +140,7 @@
 }
 
 .memberDetail__experience__item__detail__description__text a {
-  color: #156FF7;
+  color: #156ff7;
   text-decoration: none;
 }
 
@@ -149,6 +148,6 @@
   font-weight: 400;
   font-size: 12px;
   line-height: 16px;
-  color: #156FF7;
+  color: #156ff7;
   cursor: pointer;
 }

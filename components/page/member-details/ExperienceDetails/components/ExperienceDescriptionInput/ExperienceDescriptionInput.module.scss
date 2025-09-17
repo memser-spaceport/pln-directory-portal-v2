@@ -12,7 +12,9 @@
 
 .label {
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -20,9 +22,11 @@
 }
 
 .genButton {
-  color: #156FF7;
+  color: #156ff7;
   text-align: right;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;

@@ -12,7 +12,9 @@
 
 .label {
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -20,9 +22,11 @@
 }
 
 .genButton {
-  color: #156FF7;
+  color: #156ff7;
   text-align: right;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -43,29 +47,41 @@
   height: 14px;
   border-radius: 50%;
   position: relative;
-  animation: rotate 2s linear infinite
+  animation: rotate 2s linear infinite;
 }
 
 .loader::before {
-  content: "";
+  content: '';
   box-sizing: border-box;
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 2px solid #156FF7;
+  border: 2px solid #156ff7;
   animation: prixClipFix 2s linear forwards infinite;
 }
 
 @keyframes rotate {
-  100% {transform: rotate(360deg)}
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes prixClipFix {
-  0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
-  25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
-  50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
-  75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
-  100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+  0% {
+    clip-path: polygon(50% 50%, 0 0, 0 0, 0 0, 0 0, 0 0);
+  }
+  25% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 0, 100% 0, 100% 0);
+  }
+  50% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 100% 100%, 100% 100%);
+  }
+  75% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 100%);
+  }
+  100% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 0);
+  }
 }
 
 @keyframes pulse {
@@ -78,15 +94,14 @@
   }
 }
 
-
 .editor {
   :global(.ql-toolbar) {
-    border-color: rgba(203, 213, 225, 0.50);
+    border-color: rgba(203, 213, 225, 0.5);
     border-radius: 8px 8px 0 0;
   }
 
   :global(.ql-container) {
-    border-color: rgba(203, 213, 225, 0.50);
+    border-color: rgba(203, 213, 225, 0.5);
     border-radius: 0 0 8px 8px;
   }
 }

@@ -12,14 +12,21 @@ export const ProfileCollaborateInput = () => {
   return (
     <div className={s.root}>
       <label className={s.Label}>
-        <Checkbox.Root className={s.Checkbox} checked={openToCollaborate} onCheckedChange={(val) => setValue('openToCollaborate', val, { shouldValidate: true, shouldDirty: true })}>
+        <Checkbox.Root
+          className={s.Checkbox}
+          checked={openToCollaborate}
+          onCheckedChange={(val) => setValue('openToCollaborate', val, { shouldValidate: true, shouldDirty: true })}
+        >
           <Checkbox.Indicator className={s.Indicator}>
             <CheckIcon className={s.Icon} />
           </Checkbox.Indicator>
         </Checkbox.Root>
         <div className={s.labelWrapper}>
           <div className={s.primary}>Are you open to collaborate?</div>
-          <div className={s.hint}>Enabling this implies you are open to collaborate on shared ideas & projects with other members. This is one way to join forces & reach a common goal.</div>
+          <div className={s.hint}>
+            Enabling this implies you are open to collaborate on shared ideas & projects with other members. This is one
+            way to join forces & reach a common goal.
+          </div>
         </div>
       </label>
     </div>

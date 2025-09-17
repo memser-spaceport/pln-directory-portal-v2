@@ -15,7 +15,6 @@ export const RaisingFunds = () => {
 
       <style jsx>
         {`
-
           .raising-funds_web {
             display: none;
           }
@@ -30,7 +29,8 @@ export const RaisingFunds = () => {
             }
 
             .raising-funds_mob {
-            display: none;}
+              display: none;
+            }
 
             .raising-funds_web {
               background: #f1f5f9;

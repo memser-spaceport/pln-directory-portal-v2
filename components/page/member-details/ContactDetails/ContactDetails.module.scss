@@ -4,7 +4,9 @@
   min-height: 20px;
   background: var(--Neutral-White);
   border-radius: 8px;
-  box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
   padding: 0;
 
   display: flex;
@@ -24,8 +26,10 @@
       position: relative;
       inset: unset;
       z-index: unset;
-      background: linear-gradient(0deg, rgba(21, 111, 247, 0.20) 0%, rgba(21, 111, 247, 0.20) 100%), #FFF;
-      box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+      background: linear-gradient(0deg, rgba(21, 111, 247, 0.2) 0%, rgba(21, 111, 247, 0.2) 100%), #fff;
+      box-shadow:
+        0 0 1px 0 rgba(15, 23, 42, 0.12),
+        0 4px 4px 0 rgba(15, 23, 42, 0.04);
     }
   }
 }

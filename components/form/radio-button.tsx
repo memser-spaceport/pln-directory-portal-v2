@@ -14,7 +14,14 @@ const RadioButton: React.FC<RadioButtonProps> = ({ name, options, selectedValue,
       <div className="custom-radio-group">
         {options.map((option) => (
           <label key={option.value} className="custom-radio-button">
-            <input disabled={disabled} type="radio" name={name} value={option.value} checked={selectedValue === option.value} onChange={() => onChange(option.value)} />
+            <input
+              disabled={disabled}
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={selectedValue === option.value}
+              onChange={() => onChange(option.value)}
+            />
             <span className="custom-radio-inner"></span>
             {option.label}
           </label>

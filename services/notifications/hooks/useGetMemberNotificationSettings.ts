@@ -31,7 +31,11 @@ async function fetcher(uid: string, itemType: string = 'POST_COMMENT', contextId
   return (await response.json()) as MemberNotificationSettings;
 }
 
-export function useGetMemberNotificationSettings(uid: string, itemType: string = 'POST_COMMENT', contextId: number = 0) {
+export function useGetMemberNotificationSettings(
+  uid: string,
+  itemType: string = 'POST_COMMENT',
+  contextId: number = 0,
+) {
   return useQuery({
     queryKey: [NotificationsQueryKeys.GET_MEMBER_NOTIFICATIONS_SETTINGS, uid, itemType, contextId],
     queryFn: () => fetcher(uid, itemType, contextId),

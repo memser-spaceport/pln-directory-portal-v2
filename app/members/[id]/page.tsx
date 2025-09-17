@@ -45,7 +45,15 @@ const MemberDetails = ({ params }: { params: any }) => {
     isLoading,
   } = useQuery({
     queryKey: [MembersQueryKeys.GET_MEMBER, memberId, isLoggedIn, userInfo.uid],
-    queryFn: () => getMember(memberId, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, userInfo, !isAdmin && !isOwner, true),
+    queryFn: () =>
+      getMember(
+        memberId,
+        { with: 'image,skills,location,teamMemberRoles.team' },
+        isLoggedIn,
+        userInfo,
+        !isAdmin && !isOwner,
+        true,
+      ),
     enabled: !!memberId,
     select: (data) => data?.data?.formattedData,
   });

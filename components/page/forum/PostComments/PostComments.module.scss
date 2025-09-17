@@ -31,7 +31,7 @@
 }
 
 .title {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 20px;
   font-style: normal;
   font-weight: 600;
@@ -83,7 +83,7 @@
 }
 
 .name {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 14px;
   font-style: normal;
   font-weight: 600;
@@ -91,7 +91,7 @@
   letter-spacing: -0.2px;
 
   &:hover {
-    color: var(--action-foreground-brand-hover, #0060FF);
+    color: var(--action-foreground-brand-hover, #0060ff);
   }
 }
 
@@ -107,7 +107,7 @@
 }
 
 .time {
-  color: var(--foreground-neutral-tertiary, #8897AE);
+  color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
@@ -152,7 +152,7 @@
 }
 
 .postContent {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
@@ -161,7 +161,8 @@
   margin-top: 16px;
   margin-bottom: 12px;
 
-  ul, ol {
+  ul,
+  ol {
     padding: revert;
   }
 
@@ -170,7 +171,7 @@
   }
 
   a {
-    color: var(--action-foreground-brand-inverted_normal, #1B4DFF) !important;
+    color: var(--action-foreground-brand-inverted_normal, #1b4dff) !important;
     text-decoration: underline !important;
     cursor: pointer !important;
     transition: color 0.2s ease !important;
@@ -179,29 +180,29 @@
     z-index: 1 !important;
 
     &:hover {
-      color: var(--action-foreground-brand-hover, #0060FF) !important;
+      color: var(--action-foreground-brand-hover, #0060ff) !important;
       text-decoration: underline !important;
     }
 
     &:visited {
-      color: var(--action-foreground-brand-inverted_normal, #1B4DFF) !important;
+      color: var(--action-foreground-brand-inverted_normal, #1b4dff) !important;
     }
   }
 }
 
 .autoLink {
-  color: var(--action-foreground-brand-inverted_normal, #1B4DFF) !important;
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff) !important;
   text-decoration: none !important;
   cursor: pointer !important;
   transition: color 0.2s ease !important;
 
   &:hover {
-    color: var(--action-foreground-brand-hover, #0060FF) !important;
+    color: var(--action-foreground-brand-hover, #0060ff) !important;
     text-decoration: underline !important;
   }
 
   &:visited {
-    color: var(--action-foreground-brand-inverted_normal, #1B4DFF) !important;
+    color: var(--action-foreground-brand-inverted_normal, #1b4dff) !important;
   }
 }
 
@@ -215,7 +216,7 @@
     display: flex;
     gap: 4px;
 
-    color: var(--foreground-neutral-tertiary, #8897AE);
+    color: var(--foreground-neutral-tertiary, #8897ae);
     font-size: 12px;
     font-style: normal;
     font-weight: 400;
@@ -239,7 +240,7 @@
   gap: var(--spacing-5xs, 2px);
 
   border-radius: var(--corner-radius-zero, 0px);
-  color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -258,7 +259,7 @@
   gap: 24px;
 
   .itemRoot {
-    border-left: 1px solid #E2E8F0;
+    border-left: 1px solid #e2e8f0;
     padding-left: 24px;
   }
 }

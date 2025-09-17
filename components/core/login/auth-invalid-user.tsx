@@ -22,7 +22,8 @@ function AuthInvalidUser() {
       setContent({
         title: 'Email Verification',
         errorMessage: 'Email not available',
-        description: 'Your email is either invalid or not available in our directory. Please try again with valid email.',
+        description:
+          'Your email is either invalid or not available in our directory. Please try again with valid email.',
       });
     }, 500);
   };
@@ -45,12 +46,18 @@ function AuthInvalidUser() {
               'The email you provided is already used or linked to another account. If this is your email id, then login with the email id and connect this social account in profile settings page. After that you can use any of your linked accounts for subsequent logins.',
           });
         } else if (e.detail === 'unexpected_error') {
-          setContent({ title: 'Something went wrong', errorMessage: 'We are unable to authenticate you at the moment due to technical issues. Please try again later', description: '' });
+          setContent({
+            title: 'Something went wrong',
+            errorMessage:
+              'We are unable to authenticate you at the moment due to technical issues. Please try again later',
+            description: '',
+          });
         } else if (e.detail === 'rejected_access_level') {
           setContent({
             title: 'Access rejected',
             errorMessage: 'Your application to join the Protocol Labs network was not approved.',
-            description: 'Your application to join the Protocol Labs network was not approved. You may reapply in the future.',
+            description:
+              'Your application to join the Protocol Labs network was not approved. You may reapply in the future.',
           });
         }
         // } else if (e.detail === 'email-changed') {

@@ -102,9 +102,7 @@ const ChatFeedback = (props: HuskyFeedbackProps) => {
               <h6 className="feedback__body__cmnt__ttl">Comment (Optional)</h6>
               <div className="feedback__body__cmnt__textarea">
                 <TextArea
-                  onChange={(e) =>
-                    setRatingInfo((prev) => ({ ...prev, comment: e.target.value }))
-                  }
+                  onChange={(e) => setRatingInfo((prev) => ({ ...prev, comment: e.target.value }))}
                   maxLength={1000}
                   placeholder="Enter comments if you have any"
                   isMandatory={false}
@@ -119,7 +117,12 @@ const ChatFeedback = (props: HuskyFeedbackProps) => {
             <button type="button" onClick={onClose} className="feeback__ftr__cancelBtn" data-testid="cancel-button">
               Cancel
             </button>
-            <button onClick={onFeedbackSubmit} type="button" className="feeback__ftr__submitBtn" data-testid="submit-button">
+            <button
+              onClick={onFeedbackSubmit}
+              type="button"
+              className="feeback__ftr__submitBtn"
+              data-testid="submit-button"
+            >
               Submit
             </button>
           </div>
@@ -130,7 +133,12 @@ const ChatFeedback = (props: HuskyFeedbackProps) => {
           <h3>Thanks for your response</h3>
           <p>Your feedback has been saved successfully</p>
           <div className="feeback__ftr">
-            <button onClick={onClose} type="button" className="feeback__ftr__submitBtn" data-testid="close-success-button">
+            <button
+              onClick={onClose}
+              type="button"
+              className="feeback__ftr__submitBtn"
+              data-testid="close-success-button"
+            >
               Close
             </button>
           </div>
@@ -140,7 +148,12 @@ const ChatFeedback = (props: HuskyFeedbackProps) => {
         <div className="feedback" data-testid="feedback-error">
           <p>Something went wrong. Please try again later</p>
           <div className="feeback__ftr">
-            <button onClick={onClose} type="button" className="feeback__ftr__submitBtn" data-testid="close-error-button">
+            <button
+              onClick={onClose}
+              type="button"
+              className="feeback__ftr__submitBtn"
+              data-testid="close-error-button"
+            >
               Close
             </button>
           </div>

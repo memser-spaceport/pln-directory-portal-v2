@@ -7,10 +7,12 @@
   gap: 12px;
 
   border-radius: 12px;
-  background: #FFF;
+  background: #fff;
 
   /* Card Shadow */
-  box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
 }
 
 .header {
@@ -38,8 +40,10 @@
   align-self: stretch;
   border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
-  background: var(--action-background-base-white, #FFF);
-  box-shadow: 0 -2px 8px 0 var(--transparent-dark-2, rgba(14, 15, 17, 0.02)) inset, 0 1px 2px 0 var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+  background: var(--action-background-base-white, #fff);
+  box-shadow:
+    0 -2px 8px 0 var(--transparent-dark-2, rgba(14, 15, 17, 0.02)) inset,
+    0 1px 2px 0 var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
 
   color: var(--action-foreground-neutral-normal, #455468);
   font-size: 14px;

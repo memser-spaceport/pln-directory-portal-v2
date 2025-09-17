@@ -1,13 +1,12 @@
-
-import { useTeamAnalytics } from "@/analytics/teams.analytics";
-import Modal from "@/components/core/modal";
-import { Tooltip } from "@/components/core/tooltip/tooltip";
-import { IUserInfo } from "@/types/shared.types";
-import { ITeam } from "@/types/teams.types";
-import { getAnalyticsTeamInfo, getAnalyticsUserInfo } from "@/utils/common.utils";
-import { TECHNOLOGIES } from "@/utils/constants";
-import Image from "next/image";
-import { Fragment, useRef, useState } from "react";
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
+import Modal from '@/components/core/modal';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { IUserInfo } from '@/types/shared.types';
+import { ITeam } from '@/types/teams.types';
+import { getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { TECHNOLOGIES } from '@/utils/constants';
+import Image from 'next/image';
+import { Fragment, useRef, useState } from 'react';
 
 interface ITechnologies {
   technologies: { name: string; url: string | undefined }[];
@@ -25,8 +24,8 @@ const Technologies = (props: ITechnologies) => {
 
   const onTechnologiesCountClickHandler = () => {
     analytics.onTeamDetailShowMoreTechnologiesClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
-    if(allTechnologiesRef?.current) {
-    allTechnologiesRef.current.showModal();
+    if (allTechnologiesRef?.current) {
+      allTechnologiesRef.current.showModal();
     }
   };
 
@@ -48,7 +47,12 @@ const Technologies = (props: ITechnologies) => {
                     asChild
                     trigger={
                       <div className="technology-container__technologies__technology">
-                        <img loading="lazy" alt="technology-container" className="technology-container__technologies__technology__logo" src={technology?.url}></img>
+                        <img
+                          loading="lazy"
+                          alt="technology-container"
+                          className="technology-container__technologies__technology__logo"
+                          src={technology?.url}
+                        ></img>
                       </div>
                     }
                     content={technology?.name}
@@ -56,23 +60,28 @@ const Technologies = (props: ITechnologies) => {
                 )}
               </Fragment>
             ))}
-            {technologies?.length > 3 && <button className="technology-container__technologies__count" onClick={onTechnologiesCountClickHandler}>{`+${technologies?.length - 3}`}</button>}
+            {technologies?.length > 3 && (
+              <button
+                className="technology-container__technologies__count"
+                onClick={onTechnologiesCountClickHandler}
+              >{`+${technologies?.length - 3}`}</button>
+            )}
           </div>
         </div>
       )}
-        <Modal onClose={onClose} modalRef={allTechnologiesRef}>
-          <div className="technologies-popup">
-            <h2 className="technologies-popup__title">Technologies</h2>
-            {technologies?.map((Technology, index: number) => (
-              <div key={`${Technology} + ${index + 1}`} className="technologies-popup__technology">
-                <div className="technologies-popup__technology__logo-container">
-                  <Image loading="lazy" alt="technology" src={Technology?.url ?? ""} height={24} width={24} />
-                </div>
-                <p className="technologies-popup__technology__name">{Technology?.name}</p>
+      <Modal onClose={onClose} modalRef={allTechnologiesRef}>
+        <div className="technologies-popup">
+          <h2 className="technologies-popup__title">Technologies</h2>
+          {technologies?.map((Technology, index: number) => (
+            <div key={`${Technology} + ${index + 1}`} className="technologies-popup__technology">
+              <div className="technologies-popup__technology__logo-container">
+                <Image loading="lazy" alt="technology" src={Technology?.url ?? ''} height={24} width={24} />
               </div>
-            ))}
-          </div>
-        </Modal>
+              <p className="technologies-popup__technology__name">{Technology?.name}</p>
+            </div>
+          ))}
+        </div>
+      </Modal>
       <style jsx>
         {`
           .technology-container {
@@ -81,7 +90,7 @@ const Technologies = (props: ITechnologies) => {
             height: 40px;
             align-items: center;
             padding-top: 12px;
-            border-top: 1px solid #e2e8f0; 
+            border-top: 1px solid #e2e8f0;
           }
 
           .technology-container__title {
@@ -98,7 +107,9 @@ const Technologies = (props: ITechnologies) => {
             align-items: center;
             justify-content: center;
             display: flex;
-            box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+            box-shadow:
+              0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+              0px 0px 1px 0px rgba(15, 23, 42, 0.12);
           }
 
           .technology-container__technologies {
@@ -120,7 +131,9 @@ const Technologies = (props: ITechnologies) => {
             align-items: center;
             justify-content: center;
             display: flex;
-            box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+            box-shadow:
+              0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+              0px 0px 1px 0px rgba(15, 23, 42, 0.12);
             color: #156ff7;
             font-size: 16px;
             font-weight: 400;
@@ -162,7 +175,9 @@ const Technologies = (props: ITechnologies) => {
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 1px 2px 0px rgba(15, 23, 42, 0.12);
+            box-shadow:
+              0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+              0px 1px 2px 0px rgba(15, 23, 42, 0.12);
           }
 
           .technologies-popup__technology__name {

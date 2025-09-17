@@ -21,7 +21,12 @@ interface Props {
   canSubmit: boolean;
 }
 
-export const SubmitAskDialog: FC<Props> = ({ toggleVariant = 'primary', toggleTitle = 'Submit Asks', team, canSubmit }) => {
+export const SubmitAskDialog: FC<Props> = ({
+  toggleVariant = 'primary',
+  toggleTitle = 'Submit Asks',
+  team,
+  canSubmit,
+}) => {
   const [open, toggleOpen] = useState(false);
 
   const methods = useForm<SubmitAskForm>({
@@ -83,7 +88,9 @@ export const SubmitAskDialog: FC<Props> = ({ toggleVariant = 'primary', toggleTi
               <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
             </button>
             <h2>Your Asks</h2>
-            <p className={s.description}>Share short updates or requests for help, such as hiring needs, fundraising, or partnership opportunities.</p>
+            <p className={s.description}>
+              Share short updates or requests for help, such as hiring needs, fundraising, or partnership opportunities.
+            </p>
             <FormProvider {...methods}>
               <form noValidate onSubmit={handleSubmit(onSubmit)} className={s.form}>
                 <AskDetails />
@@ -91,7 +98,12 @@ export const SubmitAskDialog: FC<Props> = ({ toggleVariant = 'primary', toggleTi
                   <button type="button" className={s.secondaryButton} onClick={onCancel}>
                     Cancel
                   </button>
-                  <button type="submit" className={s.primaryButton} disabled={isSubmitting} data-testid="submit-ask-button">
+                  <button
+                    type="submit"
+                    className={s.primaryButton}
+                    disabled={isSubmitting}
+                    data-testid="submit-ask-button"
+                  >
                     Submit
                   </button>
                 </div>

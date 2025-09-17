@@ -45,7 +45,15 @@ export const Signup = () => {
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div className="modal" initial="hidden" animate="visible" exit="exit" variants={fade} transition={{ duration: 0.5 }} style={{ zIndex: 10, position: 'absolute' }}>
+          <motion.div
+            className="modal"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={fade}
+            transition={{ duration: 0.5 }}
+            style={{ zIndex: 10, position: 'absolute' }}
+          >
             <SignupWizard onClose={handleClose} />
           </motion.div>
         )}

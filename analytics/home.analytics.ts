@@ -71,7 +71,10 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_IRL_CARD_CLICKED, params);
   }
 
-  function onFocusAreaTeamsClicked(user: IAnalyticsUserInfo | null | undefined, focusedArea: IAnalyticsFocusArea | null) {
+  function onFocusAreaTeamsClicked(
+    user: IAnalyticsUserInfo | null | undefined,
+    focusedArea: IAnalyticsFocusArea | null,
+  ) {
     const params = {
       user,
       focusedArea,
@@ -79,7 +82,10 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FOCUS_AREA_TEAMS_CLICKED, params);
   }
 
-  function onFocusAreaProjectsClicked(user: IAnalyticsUserInfo | null | undefined, focusedArea: IAnalyticsFocusArea | null) {
+  function onFocusAreaProjectsClicked(
+    user: IAnalyticsUserInfo | null | undefined,
+    focusedArea: IAnalyticsFocusArea | null,
+  ) {
     const params = {
       user,
       focusedArea,

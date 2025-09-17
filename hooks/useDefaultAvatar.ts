@@ -11,7 +11,7 @@ export function getDefaultAvatar(seed: string | undefined) {
     seed,
   });
 
-  return  avatar.toDataUri();
+  return avatar.toDataUri();
 }
 
 export function useDefaultAvatar(seed: string | undefined) {

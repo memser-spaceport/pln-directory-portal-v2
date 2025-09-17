@@ -9,7 +9,7 @@
   gap: var(--spacing-3xs, 6px);
   //align-self: stretch;
   border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  background: #FFF;
+  background: #fff;
 
   position: sticky;
   bottom: 0;
@@ -55,8 +55,10 @@
 }
 
 .title {
-  color: #0F172A;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #0f172a;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -65,8 +67,8 @@
 
 .secondaryButton {
   border-radius: 8px;
-  border: 1px solid var(--Border-border-dark, #CBD5E1);
-  background: var(--Surface-surface-light, #FFF);
+  border: 1px solid var(--Border-border-dark, #cbd5e1);
+  background: var(--Surface-surface-light, #fff);
   box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
 
   display: flex;
@@ -77,8 +79,10 @@
   gap: 8px;
   flex: 1 0 0;
 
-  color: var(--Text-text-dark, #0F172A);
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: var(--Text-text-dark, #0f172a);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -87,8 +91,8 @@
 
 .primaryButton {
   border-radius: 8px;
-  border: 1px solid var(--Neutral-Slate-300, #CBD5E1);
-  background: var(--Button-surface-brand-button, #156FF7);
+  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
+  background: var(--Button-surface-brand-button, #156ff7);
   box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
 
   display: flex;
@@ -99,8 +103,10 @@
   gap: 8px;
   flex: 1 0 0;
 
-  color: var(--Text-text-lightest, #FFF);
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: var(--Text-text-lightest, #fff);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;

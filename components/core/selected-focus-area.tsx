@@ -26,7 +26,9 @@ const SelectedFocusAreas: React.FC<SelectedFocusAreasProps> = ({ focusAreas, sel
             display: flex;
             flex-direction: column;
             gap: 8px;
-            box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+            box-shadow:
+              0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+              0px 0px 1px 0px rgba(15, 23, 42, 0.12);
           }
 
           .focus__title {

@@ -10,28 +10,64 @@ function MemberPrivacyReadOnly(props: any) {
       title: 'Contact details',
       items: [
         { name: 'email', title: 'Show Email', info: 'Enabling this will display your email to all logged in members' },
-        { name: 'github', title: 'Show GitHub', info: 'Enabling this will display your GitHub handle to all logged in members' },
-        { name: 'telegram', title: 'Show Telegram', info: 'Enabling this will display your Telegram handle to all logged in members' },
-        { name: 'linkedin', title: 'Show LinkedIn Profile', info: 'Enabling this will display your LinkedIn Profile link to all logged in members' },
-        { name: 'discord', title: 'Show Discord', info: 'Enabling this will display your Discord handle link to all logged in members' },
-        { name: 'twitter', title: 'Show Twitter', info: 'Enabling this will display your Twitter Handle to all logged in members' },
+        {
+          name: 'github',
+          title: 'Show GitHub',
+          info: 'Enabling this will display your GitHub handle to all logged in members',
+        },
+        {
+          name: 'telegram',
+          title: 'Show Telegram',
+          info: 'Enabling this will display your Telegram handle to all logged in members',
+        },
+        {
+          name: 'linkedin',
+          title: 'Show LinkedIn Profile',
+          info: 'Enabling this will display your LinkedIn Profile link to all logged in members',
+        },
+        {
+          name: 'discord',
+          title: 'Show Discord',
+          info: 'Enabling this will display your Discord handle link to all logged in members',
+        },
+        {
+          name: 'twitter',
+          title: 'Show Twitter',
+          info: 'Enabling this will display your Twitter Handle to all logged in members',
+        },
       ],
     },
-    { title: 'Profile', items: [{ name: 'githubProjects', title: 'Show my GitHub Projects', info: 'Control visibility of your GitHub projects' }] },
-    { title: 'Newsletter', items: [{ name: 'newsLetter', title: 'Subscribe to PL Newsletter', info: 'Get new letter straight to your inbox' }] },
+    {
+      title: 'Profile',
+      items: [
+        {
+          name: 'githubProjects',
+          title: 'Show my GitHub Projects',
+          info: 'Control visibility of your GitHub projects',
+        },
+      ],
+    },
+    {
+      title: 'Newsletter',
+      items: [
+        { name: 'newsLetter', title: 'Subscribe to PL Newsletter', info: 'Get new letter straight to your inbox' },
+      ],
+    },
   ];
 
-  
   return (
     <>
-      <div  className="pf">
+      <div className="pf">
         {preferenceFormItems.map((prefForm: any, index: number) => (
           <div className="pf__cn" key={`pref-form-${index}`}>
             <h2 className="pf__title">{prefForm.title}</h2>
             <div className="pf__fields">
               {prefForm.items.map((pref: any) => (
-                <div className={`pf__fields__item ${!settings[pref.name] ? 'pf__fields__item--disabled' : ''}`} key={`pref-${pref.name}`}>
-                  <div className='hide'>
+                <div
+                  className={`pf__fields__item ${!settings[pref.name] ? 'pf__fields__item--disabled' : ''}`}
+                  key={`pref-${pref.name}`}
+                >
+                  <div className="hide">
                     <ToggleReadonly checked={memberSettings[pref.name] ?? true} />
                   </div>
                   <div className="pf__field__item__cn">
@@ -46,18 +82,17 @@ function MemberPrivacyReadOnly(props: any) {
       </div>
       <style jsx>
         {`
-         .hide {
-          pointer-events: none;
-          cursor: none;
-         }
-          
+          .hide {
+            pointer-events: none;
+            cursor: none;
+          }
+
           .pf {
             width: 100%;
-           
           }
           .pf__cn {
             padding: 24px 20px;
-          
+
             margin-bottom: 16px;
             border-radius: 8px;
           }

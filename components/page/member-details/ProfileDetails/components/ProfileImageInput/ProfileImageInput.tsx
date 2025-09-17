@@ -66,7 +66,12 @@ export const ProfileImageInput = ({ member }: Props) => {
   return (
     <div className={s.dropzone} {...getRootProps()}>
       <input {...getInputProps()} />
-      <Image src={imagePreview || member?.profile || defaultAvatarImage} alt="Preview" className={s.imagePreview} fill />
+      <Image
+        src={imagePreview || member?.profile || defaultAvatarImage}
+        alt="Preview"
+        className={s.imagePreview}
+        fill
+      />
       <div className={s.dropzoneHint}>
         <EditIcon />
       </div>

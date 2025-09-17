@@ -1,4 +1,4 @@
-@use "styles/media.scss";
+@use 'styles/media.scss';
 
 .root {
   display: flex;
@@ -11,8 +11,8 @@
   position: relative;
   gap: 16px;
 
-  border-left: 1px solid var(--Border-border-dark, #CBD5E1);
-  background: var(--Surface-surface-light, #FFF);
+  border-left: 1px solid var(--Border-border-dark, #cbd5e1);
+  background: var(--Surface-surface-light, #fff);
 
   @include media.tablet-landscape {
     padding: 40px 40px 24px;
@@ -20,7 +20,7 @@
 }
 
 .title {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 20px;
   font-style: normal;
   font-weight: 500;

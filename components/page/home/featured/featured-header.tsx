@@ -74,7 +74,7 @@ const FeaturedHeader = ({ userInfo, onClick, activeFilter }: FeaturedHeaderProps
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-top: 1px solid #E3E3E3;
+          border-top: 1px solid #e3e3e3;
           padding-top: 24px;
         }
 
@@ -147,11 +147,11 @@ const FeaturedHeader = ({ userInfo, onClick, activeFilter }: FeaturedHeaderProps
             display: flex;
           }
         }
-        
+
         @media (max-width: 768px) {
           .featured__ttl__cn {
             flex-wrap: wrap;
-          }          
+          }
         }
       `}</style>
     </>

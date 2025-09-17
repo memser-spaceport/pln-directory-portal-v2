@@ -24,7 +24,10 @@ export const getAllLocations = async () => {
     return a.priority - b.priority;
   });
 
-  const filteredResult = result.filter((item: { pastEvents: IPastEvents[]; upcomingEvents: IUpcomingEvents[] }) => item.pastEvents.length > 0 || item.upcomingEvents.length > 0);
+  const filteredResult = result.filter(
+    (item: { pastEvents: IPastEvents[]; upcomingEvents: IUpcomingEvents[] }) =>
+      item.pastEvents.length > 0 || item.upcomingEvents.length > 0,
+  );
 
   filteredResult.forEach((location: any) => {
     if (location.events && location.events.length > 0) {
@@ -54,7 +57,14 @@ const fetchGuests = async (url: string, authToken: string) => {
   return await response.json();
 };
 
-export const getGuestsByLocation = async (location: string, searchParams: any, authToken: string, currentEventNames: string[], currentPage = 1, limit = 10) => {
+export const getGuestsByLocation = async (
+  location: string,
+  searchParams: any,
+  authToken: string,
+  currentEventNames: string[],
+  currentPage = 1,
+  limit = 10,
+) => {
   const urlParams = new URLSearchParams() as any;
 
   // Loop through the searchParams object
@@ -186,11 +196,14 @@ export const getTopicsByLocation = async (locationId: string, type: string) => {
 };
 
 export const getTopicsAndReasonForUser = async (locationId: string, userId: string, authToken: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${userId}/topics`, {
-    cache: 'no-store',
-    method: 'GET',
-    headers: getHeader(authToken),
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${userId}/topics`,
+    {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(authToken),
+    },
+  );
 
   if (!response.ok) {
     return { isError: true };
@@ -200,11 +213,14 @@ export const getTopicsAndReasonForUser = async (locationId: string, userId: stri
 };
 
 export const getGuestDetail = async (guestId: string, locationId: string, authToken: string, type: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestId}?type=${type}`, {
-    cache: 'no-store',
-    method: 'GET',
-    headers: getHeader(authToken),
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestId}?type=${type}`,
+    {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(authToken),
+    },
+  );
 
   if (!response.ok) {
     return [];

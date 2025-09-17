@@ -34,33 +34,48 @@ const FocusAreaHeader = ({
           </div>
           <div className="lfa__descsec">
             <p className="lfa__descsec__desc">
-              <a href={protocolVisionUrl} target="_blank" className="lfa__hdr__desc__link" onClick={onProtocolVisionUrlClick}>
+              <a
+                href={protocolVisionUrl}
+                target="_blank"
+                className="lfa__hdr__desc__link"
+                onClick={onProtocolVisionUrlClick}
+              >
                 {' '}
                 Protocol Labs’ vision{' '}
               </a>{' '}
-              for the future is built on four core focus areas that aim to harness humanity’s potential for good, navigate potential pitfalls, and ensure a future where technology empowers humanity.
+              for the future is built on four core focus areas that aim to harness humanity’s potential for good,
+              navigate potential pitfalls, and ensure a future where technology empowers humanity.
             </p>
           </div>
         </div>
-        {(!prevBtnDisabled || !nextBtnDisabled) && 
-        <div className="lfa__hdr__actions">
-          <button
-            className={`lfa__hdr__actions__left ${prevBtnDisabled ? 'disabled' : ''}`}
-            onClick={() => {
-              onPrevButtonClick();
-            }}
-          >
-            <img className="lfa__hdr__actions__left__img" src={prevBtnDisabled ? '/icons/left-arrow-circle-disabled.svg' : '/icons/left-arrow-circle.svg'} alt="left arrow" />
-          </button>
-          <button
-            className={`lfa__hdr__actions__right ${nextBtnDisabled ? 'disabled' : ''}`}
-            onClick={() => {
-              onNextButtonClick();
-            }}
-          >
-            <img className="lfa__hdr__actions__right__img" src={nextBtnDisabled ? '/icons/right-arrow-circle-disabled.svg' : '/icons/right-arrow-circle.svg'} alt="right arrow" />
-          </button>
-        </div>}
+        {(!prevBtnDisabled || !nextBtnDisabled) && (
+          <div className="lfa__hdr__actions">
+            <button
+              className={`lfa__hdr__actions__left ${prevBtnDisabled ? 'disabled' : ''}`}
+              onClick={() => {
+                onPrevButtonClick();
+              }}
+            >
+              <img
+                className="lfa__hdr__actions__left__img"
+                src={prevBtnDisabled ? '/icons/left-arrow-circle-disabled.svg' : '/icons/left-arrow-circle.svg'}
+                alt="left arrow"
+              />
+            </button>
+            <button
+              className={`lfa__hdr__actions__right ${nextBtnDisabled ? 'disabled' : ''}`}
+              onClick={() => {
+                onNextButtonClick();
+              }}
+            >
+              <img
+                className="lfa__hdr__actions__right__img"
+                src={nextBtnDisabled ? '/icons/right-arrow-circle-disabled.svg' : '/icons/right-arrow-circle.svg'}
+                alt="right arrow"
+              />
+            </button>
+          </div>
+        )}
       </div>
       <style jsx>{`
         .lfa__hdr {

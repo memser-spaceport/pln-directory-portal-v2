@@ -22,7 +22,12 @@ export const FormSwitch = ({ name, label, variant = 'primary' }: Props) => {
       })}
     >
       {label}
-      <Switch.Root defaultChecked className={s.Switch} checked={val} onCheckedChange={() => setValue(name, !val, { shouldValidate: true, shouldDirty: true })}>
+      <Switch.Root
+        defaultChecked
+        className={s.Switch}
+        checked={val}
+        onCheckedChange={() => setValue(name, !val, { shouldValidate: true, shouldDirty: true })}
+      >
         <Switch.Thumb className={s.Thumb}>
           <div className={s.dot} />
         </Switch.Thumb>

@@ -18,8 +18,12 @@ interface Props {
 
 export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) => {
   const allContributions = (member?.projectContributions ?? []).filter((item) => !item.project.isDeleted);
-  const presentContributions = [...allContributions].filter((v) => v.endDate === null).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-  const pastContributions = [...allContributions].filter((v) => v.endDate !== null).sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
+  const presentContributions = [...allContributions]
+    .filter((v) => v.endDate === null)
+    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  const pastContributions = [...allContributions]
+    .filter((v) => v.endDate !== null)
+    .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
   const data = [...presentContributions, ...pastContributions];
 
   return (
@@ -32,7 +36,13 @@ export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) 
         <ul className={s.list}>
           {data?.map((item) => (
             <li key={item.uid} className={s.expItem}>
-              <Image src={item.project.logo?.url ?? '/icons/default-project.svg'} alt={item.project.name} width={40} height={40} className={s.logo} />
+              <Image
+                src={item.project.logo?.url ?? '/icons/default-project.svg'}
+                alt={item.project.name}
+                width={40}
+                height={40}
+                className={s.logo}
+              />
               <div className={s.details}>
                 <div className={s.row}>
                   <div className={s.primaryLabel}>{item.project.name}</div>
@@ -53,7 +63,9 @@ export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) 
       )}
       {!data?.length && (
         <div className={s.emptyData}>
-          <span className={s.label}>{isEditable ? 'Add project experience & contribution details.' : 'Not provided'}</span>
+          <span className={s.label}>
+            {isEditable ? 'Add project experience & contribution details.' : 'Not provided'}
+          </span>
           {/*<button className={s.connectButton}>*/}
           {/*  <AddIcon />*/}
           {/*  Add Project*/}

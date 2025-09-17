@@ -426,7 +426,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
 
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_ADD_CLICKED: 'inline-profile-editor-contribution-details-add-clicked',
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contribution-details-edit-clicked',
-  INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_DELETE_CLICKED: 'inline-profile-editor-contribution-details-delete-clicked',
+  INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_DELETE_CLICKED:
+    'inline-profile-editor-contribution-details-delete-clicked',
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_SAVE_CLICKED: 'inline-profile-editor-contribution-details-save-clicked',
 
   MEMBERS_FILTERS_CHANGE: 'members-filters-change',
@@ -576,7 +577,8 @@ export const GITHUB_URL_REGEX = /github\.com\/([^/]+)/;
 export const TELEGRAM_URL_REGEX = /t\.me\/([^/]+)/;
 export const EMAIL_REGEX = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})$/;
 
-export const LEARN_MORE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
+export const LEARN_MORE_URL =
+  'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 const DEFAULT_PRIVACY_VISIBILITY = true;
 
 export const PRIVACY_CONSTANTS = {
@@ -621,7 +623,8 @@ export const EVENT_TYPE = {
   PUBLIC: 'PUBLIC',
 };
 
-export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
+export const OH_GUIDELINE_URL =
+  'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
   {
@@ -1180,7 +1183,8 @@ export const tagColors = [
   { name: 'Fixed', color: '#4871D9' },
 ];
 
-export const SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
+export const SOCIAL_IMAGE_URL =
+  'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
 
 export const OFFICE_HOURS_STEPS = {
   MEETING_INITIATED: {
@@ -1208,7 +1212,12 @@ export const TROUBLES_INFO = {
   },
 };
 
-export const NOT_SCHEDULED_OPTIONS = ['Link is broken', 'I plan to schedule soon', 'Preferred slot is not available', 'Other'];
+export const NOT_SCHEDULED_OPTIONS = [
+  'Link is broken',
+  'I plan to schedule soon',
+  'Preferred slot is not available',
+  'Other',
+];
 
 export const DIDNTHAPPENEDOPTIONS = [
   {
@@ -1232,7 +1241,11 @@ export const DIDNTHAPPENEDOPTIONS = [
   },
 ];
 
-export const TECHNICALISSUESOPTIONS = [{ name: 'Noise or disturbance during the call' }, { name: 'Network issue' }, { name: 'Other' }];
+export const TECHNICALISSUESOPTIONS = [
+  { name: 'Noise or disturbance during the call' },
+  { name: 'Network issue' },
+  { name: 'Other' },
+];
 
 export const NOTIFICATION_TYPES = {
   meetingInitiated: {
@@ -1291,7 +1304,8 @@ export const NOTIFICATION_REFETCH_TIME = 300000;
 
 export const HOME_PAGE_LINKS = {
   FEATURED_REQUEST_URL: 'https://airtable.com/appgb6O7eF6mBEl8t/pagZ15qnE9hcxpuP0/form',
-  FOCUSAREA_PROTOCOL_LABS_VISION_URL: 'https://protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/',
+  FOCUSAREA_PROTOCOL_LABS_VISION_URL:
+    'https://protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/',
 };
 
 export const ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS = ['DIRECTORYADMIN'];
@@ -1412,7 +1426,20 @@ export const IRL_ATTENDEE_FORM_ERRORS = {
   SELECT_GATHERING: 'At least one Gathering should be selected',
 };
 
-export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+export const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
 
 export const IRL_SUBMIT_FORM_LINK = 'https://eventsmanagement.labweek.io/';
 
@@ -1514,7 +1541,8 @@ export const EVENTS_OPTIONS = [
 
 export const IRL_EVENTS_DEFAULT_IMAGE = 'https://plabs-assets.s3.us-west-1.amazonaws.com/Default+IRL+event-logo.svg';
 
-export const EVENTS_SUBSCRIPTION_URL = 'https://plnnews.substack.com/subscribe?utm_source=menu&simple=true&next=https%3A%2F%2Fplnnews.substack.com%2F';
+export const EVENTS_SUBSCRIPTION_URL =
+  'https://plnnews.substack.com/subscribe?utm_source=menu&simple=true&next=https%3A%2F%2Fplnnews.substack.com%2F';
 
 export const EVENTS_TEAM_UID = 'cleeky1re000202tx3kex3knn';
 

@@ -39,10 +39,19 @@ function ManageTeamsSettings(props: any) {
   const [activeTab, setActiveTab] = useState({ name: 'basic', label: 'BASIC' });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
-  const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], focusAreas: [], isError: false });
+  const [allData, setAllData] = useState({
+    technologies: [],
+    fundingStage: [],
+    membershipSources: [],
+    industryTags: [],
+    focusAreas: [],
+    isError: false,
+  });
   const [teamMembers, setTeamMembers] = useState(structuredClone(membersDetail));
 
-  const [allMembers, setAllMembers] = useState(() => (props?.allMembers || []).filter((member: any) => !membersDetail.some((m: any) => m.id === member.uid)));
+  const [allMembers, setAllMembers] = useState(() =>
+    (props?.allMembers || []).filter((member: any) => !membersDetail.some((m: any) => m.id === member.uid)),
+  );
 
   const [errors, setErrors] = useState({ basicErrors: [], socialErrors: [], projectErrors: [] });
   const tabsWithError = {
@@ -217,7 +226,11 @@ function ManageTeamsSettings(props: any) {
         if (imgEle) {
           imgEle.value = image.url;
         }
-      } else if (selectedTeam?.logo?.uid && selectedTeam?.logo?.url && formattedInputValues.imageFile === selectedTeam?.logo?.url) {
+      } else if (
+        selectedTeam?.logo?.uid &&
+        selectedTeam?.logo?.url &&
+        formattedInputValues.imageFile === selectedTeam?.logo?.url
+      ) {
         formattedInputValues.logoUid = selectedTeam?.logo?.uid;
         formattedInputValues.logoUrl = selectedTeam?.logo?.url;
       }
@@ -392,7 +405,11 @@ function ManageTeamsSettings(props: any) {
   }, [initialValues]);
 
   useEffect(() => {
-    setAllMembers((props?.allMembers || []).filter((member: any) => !teamMembers.some((teamMember: any) => teamMember.id === member.uid)));
+    setAllMembers(
+      (props?.allMembers || []).filter(
+        (member: any) => !teamMembers.some((teamMember: any) => teamMember.id === member.uid),
+      ),
+    );
   }, [teamMembers]);
 
   const isAlertInfo = isAlertInfoDismissed ? false : Boolean(numberOfChanges) ? true : false;
@@ -421,7 +438,12 @@ function ManageTeamsSettings(props: any) {
 
           <div className="ms__tab">
             <div className="ms__tab__desktop">
-              <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps} />
+              <Tabs
+                errorInfo={tabsWithError}
+                activeTab={activeTab.name}
+                onTabClick={(v) => handleTabClick(v)}
+                tabs={steps}
+              />
             </div>
             <div className="ms__tab__mobile">
               <SingleSelect
@@ -438,7 +460,14 @@ function ManageTeamsSettings(props: any) {
         </div>
         <div className="ms__content">
           <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-            <TeamBasicInfo isEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent} userInfo={userInfo} />
+            <TeamBasicInfo
+              isEdit={true}
+              errors={errors.basicErrors}
+              initialValues={initialValues.basicInfo}
+              longDesc={content}
+              setLongDesc={setContent}
+              userInfo={userInfo}
+            />
           </div>
           <div className={`${activeTab.name !== 'team details' ? 'hidden' : ''}`}>
             <TeamProjectsInfo

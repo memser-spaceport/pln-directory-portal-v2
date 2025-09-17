@@ -8,7 +8,14 @@ import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemb
 import { useMemo } from 'react';
 
 interface SettingsMenuProps {
-  activeItem?: 'profile' | 'privacy' | 'manage members' | 'manage teams' | 'recommendations' | 'connected accounts' | 'email preferences';
+  activeItem?:
+    | 'profile'
+    | 'privacy'
+    | 'manage members'
+    | 'manage teams'
+    | 'recommendations'
+    | 'connected accounts'
+    | 'email preferences';
   isAdmin?: boolean;
   isTeamLead?: boolean;
   userInfo: IUserInfo;
@@ -21,20 +28,44 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
   const { data: notificationSettings } = useMemberNotificationsSettings(userInfo.uid);
   const preferences = useMemo(() => {
     const options = [
-      { name: 'connected accounts', url: '/settings/accounts', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
-      { name: 'email preferences', url: '/settings/email', icon: '/icons/email.svg', activeIcon: '/icons/email-blue.svg' },
+      {
+        name: 'connected accounts',
+        url: '/settings/accounts',
+        icon: '/icons/profile.svg',
+        activeIcon: '/icons/profile-blue.svg',
+      },
+      {
+        name: 'email preferences',
+        url: '/settings/email',
+        icon: '/icons/email.svg',
+        activeIcon: '/icons/email-blue.svg',
+      },
     ];
 
     if (notificationSettings?.recommendationsEnabled) {
-      options.push({ name: 'recommendations', url: '/settings/recommendations', icon: '/icons/recommendations.svg', activeIcon: '/icons/recommendations-blue.svg' });
+      options.push({
+        name: 'recommendations',
+        url: '/settings/recommendations',
+        icon: '/icons/recommendations.svg',
+        activeIcon: '/icons/recommendations-blue.svg',
+      });
     }
 
     return options;
   }, [notificationSettings?.recommendationsEnabled]);
 
-  const teamAdminSettings = [{ name: 'manage teams', url: '/settings/teams', icon: '/icons/team.svg', activeIcon: '/icons/teams-blue.svg' }];
+  const teamAdminSettings = [
+    { name: 'manage teams', url: '/settings/teams', icon: '/icons/team.svg', activeIcon: '/icons/teams-blue.svg' },
+  ];
 
-  const appAdminSettings = [{ name: 'manage members', url: '/settings/members', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' }];
+  const appAdminSettings = [
+    {
+      name: 'manage members',
+      url: '/settings/members',
+      icon: '/icons/profile.svg',
+      activeIcon: '/icons/profile-blue.svg',
+    },
+  ];
 
   const onItemClicked = (url: string, name: string) => {
     if (window.innerWidth < 1024 || pathname.includes('recommendations')) {
@@ -61,7 +92,13 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
                 {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
                 {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}
                 <p className="sm__group__list__item__text">{pref.name}</p>
-                <img className="sm__group__list__item__arrow" width="12" height="12" alt="arrow right" src="/icons/arrow-right.svg" />
+                <img
+                  className="sm__group__list__item__arrow"
+                  width="12"
+                  height="12"
+                  alt="arrow right"
+                  src="/icons/arrow-right.svg"
+                />
               </div>
             ))}
           </div>
@@ -80,7 +117,13 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
                     {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
                     {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}
                     <p className="sm__group__list__item__text">{pref.name}</p>
-                    <img className="sm__group__list__item__arrow" width="12" height="12" alt="arrow right" src="/icons/arrow-right.svg" />
+                    <img
+                      className="sm__group__list__item__arrow"
+                      width="12"
+                      height="12"
+                      alt="arrow right"
+                      src="/icons/arrow-right.svg"
+                    />
                   </div>
                 ))}
               {(isTeamLead || isAdmin) &&
@@ -93,7 +136,13 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
                     {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
                     {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}
                     <p className="sm__group__list__item__text">{pref.name}</p>
-                    <img className="sm__group__list__item__arrow" width="12" height="12" alt="arrow right" src="/icons/arrow-right.svg" />
+                    <img
+                      className="sm__group__list__item__arrow"
+                      width="12"
+                      height="12"
+                      alt="arrow right"
+                      src="/icons/arrow-right.svg"
+                    />
                   </div>
                 ))}
             </div>

@@ -29,10 +29,8 @@ describe('VerifyEmailModal', () => {
     expect(screen.getByTestId('error-message')).toBeInTheDocument();
   });
 
-
   test('renders modal with correct styles', () => {
     const modal = screen.getByTestId('verify-email-modal');
     expect(modal).toHaveClass('verifyEmail');
   });
 });
-

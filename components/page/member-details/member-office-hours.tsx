@@ -28,12 +28,12 @@ const MemberOfficeHours = (props: any) => {
   const onAddOH = () => {
     memberAnalytics.onAddOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
     router.push('/settings/profile');
-  }
+  };
 
   const onEditOH = () => {
     memberAnalytics.onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
     router.push('/settings/profile');
-  }
+  };
 
   const onScheduleMeeting = async () => {
     const isLoggedInUser = userInfo?.uid === member?.id;
@@ -53,7 +53,7 @@ const MemberOfficeHours = (props: any) => {
           toast.error(TOAST_MESSAGES.SELF_INTERACTION_FORBIDDEN);
         }
 
-        if(response?.error?.data?.message?.includes('Interaction with same user within 30 minutes is forbidden')) {
+        if (response?.error?.data?.message?.includes('Interaction with same user within 30 minutes is forbidden')) {
           toast.error(TOAST_MESSAGES.INTERACTION_RESTRICTED);
         }
         return;
@@ -62,12 +62,14 @@ const MemberOfficeHours = (props: any) => {
       setTimeout(() => {
         window.open(officeHours, '_blank');
       });
-      const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), "PENDING,CLOSED");
+      const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), 'PENDING,CLOSED');
       if (!allFollowups?.error) {
         const result = allFollowups?.data ?? [];
         if (result.length > 0) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, { detail: { notification: result[0] } }));
-          document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: false} }));
+          document.dispatchEvent(
+            new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }),
+          );
           router.refresh();
         }
       }
@@ -87,7 +89,12 @@ const MemberOfficeHours = (props: any) => {
       <div className="office-hours">
         <div className="office-hours__left">
           <div className="office-hours__left__calendar">
-            <img loading="lazy" alt="calendar" className="office-hours__left__calendar__icon" src="/icons/calendar.svg" />
+            <img
+              loading="lazy"
+              alt="calendar"
+              className="office-hours__left__calendar__icon"
+              src="/icons/calendar.svg"
+            />
           </div>
           {!isLoggedIn ? (
             <span suppressHydrationWarning className="office-hours__left__msg">
@@ -106,8 +113,16 @@ const MemberOfficeHours = (props: any) => {
           </a>
           {isLoggedIn && officeHours && (
             <div>
-              {!isLoggedInUser && <button className="office-hours__right__meeting" onClick={onScheduleMeeting}>Schedule Meeting</button>}
-              {isLoggedInUser && <button className="office-hours__right__meeting" onClick={onEditOH}>Edit Office Hours</button>}
+              {!isLoggedInUser && (
+                <button className="office-hours__right__meeting" onClick={onScheduleMeeting}>
+                  Schedule Meeting
+                </button>
+              )}
+              {isLoggedInUser && (
+                <button className="office-hours__right__meeting" onClick={onEditOH}>
+                  Edit Office Hours
+                </button>
+              )}
             </div>
           )}
 
@@ -118,13 +133,11 @@ const MemberOfficeHours = (props: any) => {
                   Not Available
                 </button>
               )}
-              {
-                isLoggedInUser && (
-                  <button className="office-hours__right__meeting" onClick={onAddOH}>
+              {isLoggedInUser && (
+                <button className="office-hours__right__meeting" onClick={onAddOH}>
                   Add Office Hours
                 </button>
-                )
-              }
+              )}
             </>
           )}
 

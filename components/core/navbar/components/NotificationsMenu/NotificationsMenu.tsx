@@ -54,7 +54,11 @@ export const NotificationsMenu = ({ notifications, open, onClose, userInfo, isMo
               All notifications <div className={s.notificationsCount}>{notifications?.length}</div>
             </div>
             {notifications?.map((notification: any, index: number) => (
-              <Menu.Item key={notification.uid} className={s.Item} onClick={() => onNotificationClickHandler(notification)}>
+              <Menu.Item
+                key={notification.uid}
+                className={s.Item}
+                onClick={() => onNotificationClickHandler(notification)}
+              >
                 <NotificationCard notification={notification} />
               </Menu.Item>
             ))}

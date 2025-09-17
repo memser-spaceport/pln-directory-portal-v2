@@ -130,7 +130,11 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
             </div>
           </div>
 
-          <div className="header__details__notification">{isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEditProfileClick} incomplete={showIncomplete} />}</div>
+          <div className="header__details__notification">
+            {isLoggedIn && (isAdmin || isOwner) && (
+              <EditButton onClick={onEditProfileClick} incomplete={showIncomplete} />
+            )}
+          </div>
         </div>
 
         <div className="header__tags">
@@ -439,7 +443,14 @@ const VerifiedIcon = () => (
       fill="url(#paint0_linear_2837_12031)"
     />
     <defs>
-      <linearGradient id="paint0_linear_2837_12031" x1="-1.32246" y1="11.9999" x2="21.4421" y2="4.36907" gradientUnits="userSpaceOnUse">
+      <linearGradient
+        id="paint0_linear_2837_12031"
+        x1="-1.32246"
+        y1="11.9999"
+        x2="21.4421"
+        y2="4.36907"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stop-color="#427DFF" />
         <stop offset="1" stop-color="#44D5BB" />
       </linearGradient>
@@ -456,9 +467,22 @@ const LinkIcon = () => (
       />
     </g>
     <defs>
-      <filter id="filter0_d_6093_44054" x="-2" y="-1" width="22" height="22" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+      <filter
+        id="filter0_d_6093_44054"
+        x="-2"
+        y="-1"
+        width="22"
+        height="22"
+        filterUnits="userSpaceOnUse"
+        colorInterpolationFilters="sRGB"
+      >
         <feFlood floodOpacity="0" result="BackgroundImageFix" />
-        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+        <feColorMatrix
+          in="SourceAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          result="hardAlpha"
+        />
         <feOffset dy="1" />
         <feGaussianBlur stdDeviation="1" />
         <feComposite in2="hardAlpha" operator="out" />

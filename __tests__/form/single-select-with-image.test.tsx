@@ -25,7 +25,7 @@ describe('SingleSelectWithImage Component', () => {
         displayKey="name"
         defaultIcon="default.png"
         id="single-select"
-      />
+      />,
     );
     expect(getByPlaceholderText('Select')).toBeInTheDocument();
   });
@@ -41,7 +41,7 @@ describe('SingleSelectWithImage Component', () => {
         defaultIcon="default.png"
         label="Select an option"
         id="single-select"
-      />
+      />,
     );
     expect(getByText('Select an option')).toBeInTheDocument();
   });
@@ -56,7 +56,7 @@ describe('SingleSelectWithImage Component', () => {
         displayKey="name"
         defaultIcon="default.png"
         id="single-select"
-      />
+      />,
     );
     fireEvent.click(getByPlaceholderText('Select'));
     expect(getByText('Option 1')).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe('SingleSelectWithImage Component', () => {
         displayKey="name"
         defaultIcon="default.png"
         id="single-select"
-      />
+      />,
     );
     fireEvent.click(getByPlaceholderText('Select'));
     fireEvent.click(getByText('Option 1'));
@@ -90,7 +90,7 @@ describe('SingleSelectWithImage Component', () => {
         displayKey="name"
         defaultIcon="default.png"
         id="single-select"
-      />
+      />,
     );
     fireEvent.click(getByPlaceholderText('Select'));
     expect(getByText('No results found')).toBeInTheDocument();
@@ -106,7 +106,7 @@ describe('SingleSelectWithImage Component', () => {
         displayKey="name"
         defaultIcon="default.png"
         id="single-select"
-      />
+      />,
     );
     expect(getByPlaceholderText('Select').value).toBe('Option 1');
   });

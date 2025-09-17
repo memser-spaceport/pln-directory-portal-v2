@@ -81,7 +81,11 @@ export default function ProjectKpisInfo(props: IProjectContributorsInfo) {
             <div className="kpiContainer__kpi__header">
               <h2 className="kpiContainer__kpi__header__title">KPI {index + 1}</h2>
               {index !== 0 && (
-                <button className="kpiContainer__kpi__header__delete" onClick={() => onDeleteKpi(kpi?.id)} type="button">
+                <button
+                  className="kpiContainer__kpi__header__delete"
+                  onClick={() => onDeleteKpi(kpi?.id)}
+                  type="button"
+                >
                   <Image src="/icons/delete-brown.svg" alt="delete team role" width="12" height="12" />
                 </button>
               )}

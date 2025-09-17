@@ -26,7 +26,17 @@ const filterAndSort = (option: { value: string; label: string }, input: string) 
   return option.label.toLowerCase().includes(input.toLowerCase());
 };
 
-export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacement = 'bottom', selectLabel, warning, placeholder }: Props) => {
+export const MatchesSelector = ({
+  icon,
+  title,
+  hint,
+  options,
+  name,
+  menuPlacement = 'bottom',
+  selectLabel,
+  warning,
+  placeholder,
+}: Props) => {
   const [inputValue, setInputValue] = useState('');
   const { setValue, watch, getValues } = useFormContext();
   const values = getValues();
@@ -34,7 +44,9 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
   const [open, toggleOpen] = useToggle(val?.length > 0);
 
   // Sort filtered options by label dynamically
-  const sortedOptions = [...options].filter((option) => filterAndSort(option, inputValue)).sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase()));
+  const sortedOptions = [...options]
+    .filter((option) => filterAndSort(option, inputValue))
+    .sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase()));
 
   return (
     <Collapsible.Root className={s.Collapsible} open={open} onOpenChange={toggleOpen}>
@@ -181,7 +193,17 @@ const PlusIcon = () => (
   </svg>
 );
 
-const Badge = ({ label, onDelete, isColorful, disabled }: { label: string; onDelete: () => void; isColorful: boolean; disabled: boolean }) => {
+const Badge = ({
+  label,
+  onDelete,
+  isColorful,
+  disabled,
+}: {
+  label: string;
+  onDelete: () => void;
+  isColorful: boolean;
+  disabled: boolean;
+}) => {
   return (
     <div
       className={clsx(s.badge, {

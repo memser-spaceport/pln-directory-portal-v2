@@ -243,13 +243,36 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
                 {/* Member profile image upload */}
                 <div className="signup__user__cn">
                   <label htmlFor="member-image-upload" className="signup__user__cn__profile">
-                    {!profileImage && !savedImage && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
+                    {!profileImage && !savedImage && (
+                      <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />
+                    )}
                     {!profileImage && !savedImage && <span className="signup__user__cn__profile__text">Add Image</span>}
-                    {(profileImage || savedImage) && <img className="signup__user__cn__profile__preview" src={formImage} alt="member profile" width="95" height="95" />}
+                    {(profileImage || savedImage) && (
+                      <img
+                        className="signup__user__cn__profile__preview"
+                        src={formImage}
+                        alt="member profile"
+                        width="95"
+                        height="95"
+                      />
+                    )}
                     {(profileImage || savedImage) && (
                       <span className="signup__user__cn__profile__actions">
-                        <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                        <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
+                        <img
+                          width="32"
+                          height="32"
+                          title="Change profile image"
+                          alt="change image"
+                          src="/icons/recycle.svg"
+                        />
+                        <img
+                          onClick={onDeleteImage}
+                          width="32"
+                          height="32"
+                          title="Delete profile image"
+                          alt="delete image"
+                          src="/icons/trash.svg"
+                        />
                       </span>
                     )}
                   </label>
@@ -287,13 +310,25 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
               {/* Image validation error */}
               {errors?.profile && <div className="signup__form__error">{errors.profile}</div>}
               <p className="info">
-                <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB.</span>
+                <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+                <span className="info__text">
+                  Please upload a image in PNG or JPEG format with file size less than 4MB.
+                </span>
               </p>
             </div>
 
             {/* Member Email */}
             <div className="signup__form__item">
-              <TextField defaultValue={''} isMandatory={true} id="signup-email" label="Email*" name="email" type="email" placeholder="Enter your email address" data-testid="member-email-input" />
+              <TextField
+                defaultValue={''}
+                isMandatory={true}
+                id="signup-email"
+                label="Email*"
+                name="email"
+                type="email"
+                placeholder="Enter your email address"
+                data-testid="member-email-input"
+              />
               {errors?.email && <div className="signup__form__error">{errors.email}</div>}
             </div>
 
@@ -313,7 +348,8 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
                 placeHolder="Enter a name of your team or project"
               />
               <p className="info">
-                <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Type atleast 3 characters to see suggestions.</span>
+                <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+                <span className="info__text">Type atleast 3 characters to see suggestions.</span>
               </p>
             </div>
 
@@ -363,8 +399,9 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
               <p className="info">
                 <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
                 <span className="info__text">
-                  You also allow Protocol Labs and companies within the network to contact you for events and opportunities within the network. Your information may only be shared with verified
-                  network members and will not be available to any individuals or entities outside the network.
+                  You also allow Protocol Labs and companies within the network to contact you for events and
+                  opportunities within the network. Your information may only be shared with verified network members
+                  and will not be available to any individuals or entities outside the network.
                 </span>
               </p>
             </div>

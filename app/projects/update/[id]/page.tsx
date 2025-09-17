@@ -39,7 +39,11 @@ async function getPageData(projectId: string) {
       return { isError: true, project, isLoggedIn, userInfo };
     }
     const result: any = projectResponse.data.formattedData;
-    project = { ...result, contributions: result?.contributors, maintainingTeam: { ...result?.maintainingTeam, logo: result?.maintainingTeam?.logo?.url } };
+    project = {
+      ...result,
+      contributions: result?.contributors,
+      maintainingTeam: { ...result?.maintainingTeam, logo: result?.maintainingTeam?.logo?.url },
+    };
 
     return {
       isError,

@@ -24,8 +24,8 @@
     gap: 8px;
 
     border-radius: 40px;
-    border: 1px solid var(--Neutral-Slate-300, #CBD5E1);
-    background: var(--Neutral-White, #FFF);
+    border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
+    background: var(--Neutral-White, #fff);
 
     box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
     text-align: center;
@@ -40,9 +40,9 @@
     &:hover {
       border-color: transparent;
       box-shadow:
-              0 4px 4px 0 rgba(15, 23, 42, 0.04),
-              0 0 1px 0 rgba(15, 23, 42, 0.12),
-              0 0 0 2px rgba(21, 111, 247, 0.25);
+        0 4px 4px 0 rgba(15, 23, 42, 0.04),
+        0 0 1px 0 rgba(15, 23, 42, 0.12),
+        0 0 0 2px rgba(21, 111, 247, 0.25);
       filter: brightness(120%);
     }
   }

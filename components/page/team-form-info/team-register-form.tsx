@@ -26,9 +26,19 @@ interface ITeamRegisterForm {
 
 function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
   // const onCloseForm = props.onCloseForm;
-  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: TEAM_FORM_STEPS, defaultStep: TEAM_FORM_STEPS[0], uniqueKey: STEP_INDICATOR_KEY });
+  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({
+    steps: TEAM_FORM_STEPS,
+    defaultStep: TEAM_FORM_STEPS[0],
+    uniqueKey: STEP_INDICATOR_KEY,
+  });
   const formRef = useRef<HTMLFormElement>(null);
-  const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], isError: false });
+  const [allData, setAllData] = useState({
+    technologies: [],
+    fundingStage: [],
+    membershipSources: [],
+    industryTags: [],
+    isError: false,
+  });
   const [basicErrors, setBasicErrors] = useState<string[]>([]);
   const [projectDetailsErrors, setProjectDetailsErrors] = useState<string[]>([]);
   const [socialErrors, setSocialErrors] = useState<string[]>([]);
@@ -226,7 +236,13 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
         <form className="trf" onSubmit={onFormSubmit} ref={formRef} noValidate>
           <div ref={formContainerRef} className="trf__form">
             <div className={currentStep !== TEAM_FORM_STEPS[0] ? 'hidden' : 'form'}>
-              <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent} userInfo={userInfo} />
+              <TeamBasicInfo
+                errors={basicErrors}
+                initialValues={initialValues.basicInfo}
+                longDesc={content}
+                setLongDesc={setContent}
+                userInfo={userInfo}
+              />
             </div>
             <div className={currentStep !== TEAM_FORM_STEPS[1] ? 'hidden' : 'form'}>
               <TeamProjectsInfo
@@ -242,7 +258,12 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
               <TeamSocialInfo errors={socialErrors} />
             </div>
           </div>
-          <RegisterActions currentStep={currentStep} onNextClicked={onNextClicked} onBackClicked={onBackClicked} onCloseForm={onCloseForm} />
+          <RegisterActions
+            currentStep={currentStep}
+            onNextClicked={onNextClicked}
+            onBackClicked={onBackClicked}
+            onCloseForm={onCloseForm}
+          />
         </form>
       }
 

@@ -11,8 +11,8 @@ $text-color: #475569;
   display: flex;
   align-items: center;
 
-  background: var(--Surface-surface-light, #FFF);
-  box-shadow: 0 1px 4px 0 #E2E8F0;
+  background: var(--Surface-surface-light, #fff);
+  box-shadow: 0 1px 4px 0 #e2e8f0;
 
   @include media.tablet-landscape {
     padding: 16px 24px;
@@ -63,7 +63,9 @@ $text-color: #475569;
   text-decoration: none;
 
   color: var(--Text-text-menu, #475569);
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -165,8 +167,10 @@ $text-color: #475569;
 
   border-radius: var(--corner-radius-xl, 12px);
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  background: var(--background-base-white, #FFF);
-  box-shadow: 0 10px 20px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06)), 0px 20px 65px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  background: var(--background-base-white, #fff);
+  box-shadow:
+    0 10px 20px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06)),
+    0px 20px 65px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 
   @media (min-width: 500px) {
     min-width: 333px;
@@ -191,8 +195,8 @@ $text-color: #475569;
 
 .Content {
   transition:
-          opacity calc(var(--duration) * 0.5) ease,
-          transform var(--duration) var(--easing);
+    opacity calc(var(--duration) * 0.5) ease,
+    transform var(--duration) var(--easing);
   //padding: 1.5rem;
   //width: calc(100vw - 40px);
   //height: 100%;
@@ -353,7 +357,7 @@ $text-color: #475569;
   height: 40px;
   justify-content: center;
   border-radius: 100px;
-  background: var(--background-neutral-subtle, #F0F3F9);
+  background: var(--background-neutral-subtle, #f0f3f9);
 
   @include media.tablet-landscape {
     height: unset;

@@ -46,7 +46,7 @@ const AddTeamMemberPopUp = (props: any) => {
 
   const onSignupAMemberClick = () => {
     analytics.trackSignupAMemberClick();
-  }
+  };
 
   const handleNewMemberTeamLeadToggle = (memberUid: string) => {
     const updatedMembers = selectedMembers.map((member: any) =>
@@ -58,7 +58,7 @@ const AddTeamMemberPopUp = (props: any) => {
               teamLead: !member.teams.teamLead, // Toggle teamLead value
             },
           }
-        : member
+        : member,
     );
     setSelectedMembers(updatedMembers);
   };
@@ -74,8 +74,8 @@ const AddTeamMemberPopUp = (props: any) => {
                 role: newRole, // Update the role
               },
             }
-          : member
-      )
+          : member,
+      ),
     );
   };
 
@@ -144,8 +144,14 @@ const AddTeamMemberPopUp = (props: any) => {
               </div>
 
               <div className="cpc__header__info__sign-up">
-                <a href={PAGE_ROUTES.SIGNUP}  className="cpc__header__info__sign-up__link" target='_blank'>
-                  <p>User not listed here? <span  className="cpc__header__info__sign-up__link__action" onClick={onSignupAMemberClick}>Sign them up</span> first to add them to your team</p>
+                <a href={PAGE_ROUTES.SIGNUP} className="cpc__header__info__sign-up__link" target="_blank">
+                  <p>
+                    User not listed here?{' '}
+                    <span className="cpc__header__info__sign-up__link__action" onClick={onSignupAMemberClick}>
+                      Sign them up
+                    </span>{' '}
+                    first to add them to your team
+                  </p>
                 </a>
               </div>
             </div>
@@ -158,14 +164,34 @@ const AddTeamMemberPopUp = (props: any) => {
                     return (
                       <Fragment key={member.uid}>
                         <div className="cpt__cnt__cptr">
-                          <input type="checkbox" className="cpt__cnt__cptr__chbox" checked={selectedMembers.some((m: any) => m.id === member.uid)} onChange={() => onCheckBoxChange(member)} />
+                          <input
+                            type="checkbox"
+                            className="cpt__cnt__cptr__chbox"
+                            checked={selectedMembers.some((m: any) => m.id === member.uid)}
+                            onChange={() => onCheckBoxChange(member)}
+                          />
                           <div className="cpt__cnt__cptr__pflctr">
-                            <img loading="lazy" className="cpt__cnt__cptr__profile" alt="profile" src={member?.profile || getDefaultAvatar(member?.name)} width={40} height={40} />
+                            <img
+                              loading="lazy"
+                              className="cpt__cnt__cptr__profile"
+                              alt="profile"
+                              src={member?.profile || getDefaultAvatar(member?.name)}
+                              width={40}
+                              height={40}
+                            />
                             {member?.teamMemberRoles?.some((role: any) => role.teamLead) && (
                               <Tooltip
                                 side="top"
                                 asChild
-                                trigger={<img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={14} width={14} />}
+                                trigger={
+                                  <img
+                                    alt="lead"
+                                    className="cpt__cnt__cptr__pflctr__lead"
+                                    src="/icons/badge/team-lead.svg"
+                                    height={14}
+                                    width={14}
+                                  />
+                                }
                                 content={'Team Lead'}
                               />
                             )}
@@ -177,7 +203,11 @@ const AddTeamMemberPopUp = (props: any) => {
                               {member.teamMemberRoles?.length > 1 && (
                                 <Tooltip
                                   asChild
-                                  trigger={<div className="cpt__cnt__cptr__roles__count">+{member.teamMemberRoles?.length - 1}</div>}
+                                  trigger={
+                                    <div className="cpt__cnt__cptr__roles__count">
+                                      +{member.teamMemberRoles?.length - 1}
+                                    </div>
+                                  }
                                   content={member.teamMemberRoles
                                     ?.slice(1)
                                     .map((role: any) => role.role)
@@ -194,11 +224,16 @@ const AddTeamMemberPopUp = (props: any) => {
                 <div className="cpc__cnt__nrf">No Members available.</div>
               )}
 
-              {allMembers.filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase())).length === 0 && <div className="cpc__cnt__nrf">No matching members found.</div>}
+              {allMembers.filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase()))
+                .length === 0 && <div className="cpc__cnt__nrf">No matching members found.</div>}
             </div>
           </div>
           <div className="cpc__add">
-            <button className={`cpc__add__btn ${selectedMembers.length === 0 && 'disabled-bg'}`} type="button" onClick={handleNextPage}>
+            <button
+              className={`cpc__add__btn ${selectedMembers.length === 0 && 'disabled-bg'}`}
+              type="button"
+              onClick={handleNextPage}
+            >
               Next
             </button>
           </div>
@@ -285,9 +320,9 @@ const AddTeamMemberPopUp = (props: any) => {
             display: flex;
           }
 
-          .cpc__header__info__sign-up__link__action{
+          .cpc__header__info__sign-up__link__action {
             color: #156ff7;
-            }
+          }
 
           .cpc__header__flts__searchc__input {
             width: 100%;

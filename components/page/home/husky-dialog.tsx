@@ -48,7 +48,17 @@ function HuskyDialog(props: any) {
           <img className="hd__head__logo" src="/images/husky-logo.svg" />
           <img onClick={onDialogClose} className="hd__head__close" src="/icons/close.svg" />
         </div>
-        <div className="hd__content">{isOpen && <HuskyAi initialChats={initialChats} onClose={onDialogClose} isLoggedIn={isLoggedIn} huskySource={huskySource} searchText={searchText} />}</div>
+        <div className="hd__content">
+          {isOpen && (
+            <HuskyAi
+              initialChats={initialChats}
+              onClose={onDialogClose}
+              isLoggedIn={isLoggedIn}
+              huskySource={huskySource}
+              searchText={searchText}
+            />
+          )}
+        </div>
       </dialog>
       <style jsx>
         {`

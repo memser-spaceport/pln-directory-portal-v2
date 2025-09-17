@@ -42,7 +42,9 @@ function HuskyChatAnswer({ mode, answer, sources, question }: HuskyChatAnswerPro
             options={{
               overrides: {
                 a: { component: anchorWrapper },
-                p: { props: { style: { marginBottom: '6px', lineHeight: '22px', fontSize: '14px', maxWidth: '100%' } } },
+                p: {
+                  props: { style: { marginBottom: '6px', lineHeight: '22px', fontSize: '14px', maxWidth: '100%' } },
+                },
                 h1: { props: { style: { marginTop: '14px', marginBottom: '14px', fontSize: '22px' } } },
                 h2: { props: { style: { marginTop: '12px', marginBottom: '12px', fontSize: '20px' } } },
                 h3: { props: { style: { marginTop: '10px', marginBottom: '10px', fontSize: '18px' } } },

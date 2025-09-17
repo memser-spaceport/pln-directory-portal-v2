@@ -6,17 +6,16 @@ interface ITopicsDescriptionProps {
 }
 
 const TopicsDescription = (props: ITopicsDescriptionProps) => {
-  const initialValue = props?.initialValue ?? "";
-  const [reason, setReason] = useState("");
+  const initialValue = props?.initialValue ?? '';
+  const [reason, setReason] = useState('');
 
   const onReasonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setReason(e.target.value);
   };
 
-
   useEffect(() => {
     setReason(initialValue);
-  }, [initialValue])
+  }, [initialValue]);
 
   return (
     <>
@@ -26,7 +25,14 @@ const TopicsDescription = (props: ITopicsDescriptionProps) => {
         </div>
 
         <div className="desccnt__reasoncnt">
-          <TextArea onChange={onReasonChange} defaultValue={reason} name={'reason'} id={''} placeholder="Enter details here" maxLength={250} />
+          <TextArea
+            onChange={onReasonChange}
+            defaultValue={reason}
+            name={'reason'}
+            id={''}
+            placeholder="Enter details here"
+            maxLength={250}
+          />
         </div>
 
         <div className="desccnt__desccnt">

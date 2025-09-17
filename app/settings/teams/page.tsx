@@ -32,7 +32,8 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
       {
         'teamMemberRoles.team.uid': selectedTeamId ?? teams[0].id,
         isVerified: 'all',
-        select: 'uid,name,isVerified,image.url,teamMemberRoles.team.uid,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
+        select:
+          'uid,name,isVerified,image.url,teamMemberRoles.team.uid,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
         pagination: false,
       },
       selectedTeamId ?? teams[0].id,
@@ -75,7 +76,12 @@ export default async function ManageTeams(props: any) {
     redirect(PAGE_ROUTES.HOME);
   }
 
-  const { teams, isError, selectedTeam, membersDetail, allMembers } = await getPageData(selectedTeamId, leadingTeams, isTeamLead, isAdmin);
+  const { teams, isError, selectedTeam, membersDetail, allMembers } = await getPageData(
+    selectedTeamId,
+    leadingTeams,
+    isTeamLead,
+    isAdmin,
+  );
   if (isError) {
     return 'Error';
   }
@@ -102,7 +108,13 @@ export default async function ManageTeams(props: any) {
             <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage teams" userInfo={userInfo} />
           </aside>
           <div className={styles.ps__main__content}>
-            <ManageTeamsSettings selectedTeam={selectedTeam} membersDetail={membersDetail} teams={teams} userInfo={userInfo} allMembers={allMembers} />
+            <ManageTeamsSettings
+              selectedTeam={selectedTeam}
+              membersDetail={membersDetail}
+              teams={teams}
+              userInfo={userInfo}
+              allMembers={allMembers}
+            />
           </div>
         </div>
       </div>

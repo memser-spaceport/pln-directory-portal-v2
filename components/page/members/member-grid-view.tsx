@@ -41,11 +41,28 @@ const MemberGridView = (props: IMemberGridView) => {
         <div className={s.top}>
           <div className={s.avatarWrapper}>
             <div className={`${isBorder ? 'gradiant-border-rounded' : ''} ${s.outerRing}`}>
-              <Image alt="profile" loading="eager" height={72} width={72} layout="intrinsic" priority={true} className={s.avatar} src={profileUrl} />
+              <Image
+                alt="profile"
+                loading="eager"
+                height={72}
+                width={72}
+                layout="intrinsic"
+                priority={true}
+                className={s.avatar}
+                src={profileUrl}
+              />
               {isTeamLead && (
                 <Tooltip
                   asChild
-                  trigger={<img loading="lazy" className="member-grid__profile-container__outer-section__inner-circle__lead" height={20} width={20} src="/icons/badge/team-lead.svg" />}
+                  trigger={
+                    <img
+                      loading="lazy"
+                      className="member-grid__profile-container__outer-section__inner-circle__lead"
+                      height={20}
+                      width={20}
+                      src="/icons/badge/team-lead.svg"
+                    />
+                  }
                   content={'Team Lead'}
                 />
               )}
@@ -73,7 +90,10 @@ const MemberGridView = (props: IMemberGridView) => {
                     <Tooltip
                       asChild
                       trigger={
-                        <button onClick={(e) => e.preventDefault()} className="member-grid__details__member-details__team-name-container__tems-count">
+                        <button
+                          onClick={(e) => e.preventDefault()}
+                          className="member-grid__details__member-details__team-name-container__tems-count"
+                        >
                           +{(member?.teams?.length - 1).toString()}
                         </button>
                       }
@@ -138,7 +158,8 @@ const MemberGridView = (props: IMemberGridView) => {
             .gradiant-border-rounded {
               border: double 1px transparent;
               border-radius: 50%;
-              background-image: linear-gradient(rgb(248 250 252), rgb(248 250 252)), linear-gradient(to right, #427dff, #44d5bb);
+              background-image:
+                linear-gradient(rgb(248 250 252), rgb(248 250 252)), linear-gradient(to right, #427dff, #44d5bb);
               background-origin: border-box;
               background-clip: content-box, border-box;
             }

@@ -57,7 +57,7 @@ describe('Discover Component', () => {
       viewCount: 120,
       shareCount: 45,
       answerSourceLinks: ['Source 1', 'Source 2'],
-    }
+    },
   ];
 
   const formattedData = [
@@ -159,5 +159,4 @@ describe('Discover Component', () => {
     const rightButton = screen.getByTestId('next-button');
     expect(rightButton).toHaveClass('disabled');
   });
-  
 });

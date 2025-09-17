@@ -1,6 +1,8 @@
 import { getHeader } from '@/utils/common.utils';
 
-export const getRecommendationRoles = async (): Promise<string[] | { isError: boolean; error: { status: number; statusText: string } }> => {
+export const getRecommendationRoles = async (): Promise<
+  string[] | { isError: boolean; error: { status: number; statusText: string } }
+> => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/recommendations/settings/roles`, {
     cache: 'force-cache',
     method: 'GET',

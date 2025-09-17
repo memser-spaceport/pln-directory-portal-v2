@@ -1,27 +1,32 @@
-"use client";
-import { PAGE_ROUTES } from "@/utils/constants";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+'use client';
+import { PAGE_ROUTES } from '@/utils/constants';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const Error = () => {
-  
   const router = useRouter();
-    
+
   useEffect(() => {
-      router.refresh();
-  }, [])
+    router.refresh();
+  }, []);
 
   return (
     <>
       <div className="error-container">
         <div className="error-container__content">
           <div className="error-container__content__notfoundcontainer">
-            <img  loading="lazy" className="error-container__content__notfound-img" alt="error" src="/icons/notfound.svg" />
+            <img
+              loading="lazy"
+              className="error-container__content__notfound-img"
+              alt="error"
+              src="/icons/notfound.svg"
+            />
           </div>
           <div className="error-container__content__message">
             <h2 className="error-container__content__message__title">Oh snap! Something went wrong!</h2>
             <p className="error-container__content__message__desc">
-              The page you&apos;re looking for doesn&apos;t exists or has been removed. Please try searching on the&nbsp;
+              The page you&apos;re looking for doesn&apos;t exists or has been removed. Please try searching on
+              the&nbsp;
               <a href={PAGE_ROUTES.TEAMS} className="error-container__content__message__desc__link">
                 teams
               </a>
@@ -36,10 +41,12 @@ const Error = () => {
               &nbsp;or&nbsp;
               <a href={PAGE_ROUTES.EVENTS} className="error-container__content__message__desc__link">
                 events
-              </a>{" "}
+              </a>{' '}
               pages.
             </p>
-            <a href={PAGE_ROUTES.HOME} className="error-container__content__message__back-to-home">Back to Home </a>
+            <a href={PAGE_ROUTES.HOME} className="error-container__content__message__back-to-home">
+              Back to Home{' '}
+            </a>
           </div>
         </div>
       </div>

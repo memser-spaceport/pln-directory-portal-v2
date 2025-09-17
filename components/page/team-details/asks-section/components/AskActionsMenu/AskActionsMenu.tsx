@@ -54,7 +54,14 @@ export const AskActionsMenu: FC<Props> = ({ team, ask, deleteOnly }) => {
           aria-expanded={isOpen}
           type="button"
         >
-          <Image loading="lazy" className={s.menuIcon} alt="asks menu icon" src={'/icons/menu-dots-vertical.svg'} height={20} width={20} />
+          <Image
+            loading="lazy"
+            className={s.menuIcon}
+            alt="asks menu icon"
+            src={'/icons/menu-dots-vertical.svg'}
+            height={20}
+            width={20}
+          />
         </button>
         <div
           className={clsx(s.dropdown, {
@@ -106,9 +113,24 @@ export const AskActionsMenu: FC<Props> = ({ team, ask, deleteOnly }) => {
           </button>
         </div>
       </div>
-      <UpdateAskStatusDialog team={team} ask={ask} isOpen={dialogsState.status} onClose={() => setDialogsState((prevState) => ({ ...prevState, status: false }))} />
-      <EditAskDialog team={team} ask={ask} isOpen={dialogsState.edit} onClose={() => setDialogsState((prevState) => ({ ...prevState, edit: false }))} />
-      <DeleteAskDialog team={team} ask={ask} isOpen={dialogsState.delete} onClose={() => setDialogsState((prevState) => ({ ...prevState, delete: false }))} />
+      <UpdateAskStatusDialog
+        team={team}
+        ask={ask}
+        isOpen={dialogsState.status}
+        onClose={() => setDialogsState((prevState) => ({ ...prevState, status: false }))}
+      />
+      <EditAskDialog
+        team={team}
+        ask={ask}
+        isOpen={dialogsState.edit}
+        onClose={() => setDialogsState((prevState) => ({ ...prevState, edit: false }))}
+      />
+      <DeleteAskDialog
+        team={team}
+        ask={ask}
+        isOpen={dialogsState.delete}
+        onClose={() => setDialogsState((prevState) => ({ ...prevState, delete: false }))}
+      />
     </>
   );
 };

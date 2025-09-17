@@ -1,4 +1,4 @@
-@use "styles/mixins";
+@use 'styles/mixins';
 @use 'styles/media';
 
 $padding-inline: 16px;
@@ -11,8 +11,10 @@ $padding-inline: 16px;
   padding: 8px 16px;
 
   .label {
-    color: #64748B;
-    font-feature-settings: 'liga' off, 'clig' off;
+    color: #64748b;
+    font-feature-settings:
+      'liga' off,
+      'clig' off;
     font-size: 12px;
     font-style: normal;
     font-weight: 500;
@@ -33,13 +35,15 @@ $padding-inline: 16px;
     text-align: left;
     padding: 8px;
     border-radius: 8px;
-    background: #F8FAFC;
+    background: #f8fafc;
     cursor: pointer;
   }
 
   .searchItemText {
     color: #475569;
-    font-feature-settings: 'liga' off, 'clig' off;
+    font-feature-settings:
+      'liga' off,
+      'clig' off;
     font-size: 14px;
     font-style: normal;
     font-weight: 400;
@@ -62,5 +66,5 @@ $padding-inline: 16px;
   width: 100%;
   //margin-inline: -$padding-inline;
   margin-block: 8px;
-  background: #E2E8F0;
+  background: #e2e8f0;
 }

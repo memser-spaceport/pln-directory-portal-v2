@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import HiddenField from '@/components/form/hidden-field';
 import MultiSelect from '@/components/form/multi-select';
 import SingleSelect from '@/components/form/single-select';
@@ -40,8 +40,10 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
   const [selectedProtocols, setSelectedProtocols] = useState<IProtocolOptions[]>([]);
   const [selectedMembershipSources, setSelectedMembershipSources] = useState<IMembershipSourceOptions[]>([]);
   const [selectedIndustryTags, setSelectedIndustryTags] = useState<IIndustryTagsOptions[]>([]);
-  const [selectedFundingStage, setSelectedFundingStage] = useState<IFundingStage | null>({...initialValues.fundingStage});
-  const [selectedFocusAreas, setSelectedFocusAreas] = useState<any[]>([])
+  const [selectedFundingStage, setSelectedFundingStage] = useState<IFundingStage | null>({
+    ...initialValues.fundingStage,
+  });
+  const [selectedFocusAreas, setSelectedFocusAreas] = useState<any[]>([]);
 
   const [isFocusAreaModalOpen, setIsFocusAreaModalOpen] = useState(false);
 
@@ -59,39 +61,39 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
   };
 
   const onFocusAreaChanged = (items: any[]) => {
-    setSelectedFocusAreas([...items])
-  }
-  const onEditFocusArea =() => {
-    setIsFocusAreaModalOpen(true)
+    setSelectedFocusAreas([...items]);
+  };
+  const onEditFocusArea = () => {
+    setIsFocusAreaModalOpen(true);
     if (focusAreaDialogRef.current) {
-      focusAreaDialogRef.current.showModal()
+      focusAreaDialogRef.current.showModal();
     }
-  }
+  };
 
   const onFocusAreaClose = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
     setIsFocusAreaModalOpen(false);
     if (focusAreaDialogRef.current) {
-       focusAreaDialogRef.current.close();
+      focusAreaDialogRef.current.close();
     }
-  }
+  };
   const onTeamSelectionChanged = (item: any) => {
     setSelectedFundingStage(item);
   };
 
   useEffect(() => {
-    setSelectedProtocols([...initialValues.technologies])
-    setSelectedMembershipSources([...initialValues.membershipSources])
-    setSelectedIndustryTags([...initialValues.industryTags])
-    setSelectedFundingStage({...initialValues.fundingStage})
-    setSelectedFocusAreas([...initialValues?.teamFocusAreas ?? []])
+    setSelectedProtocols([...initialValues.technologies]);
+    setSelectedMembershipSources([...initialValues.membershipSources]);
+    setSelectedIndustryTags([...initialValues.industryTags]);
+    setSelectedFundingStage({ ...initialValues.fundingStage });
+    setSelectedFocusAreas([...(initialValues?.teamFocusAreas ?? [])]);
     function resetHandler() {
       setSelectedProtocols(structuredClone(initialValues.technologies));
       setSelectedMembershipSources(structuredClone(initialValues.membershipSources));
       setSelectedIndustryTags(structuredClone(initialValues.industryTags));
       setSelectedFundingStage(structuredClone(initialValues.fundingStage));
-      setSelectedFocusAreas([...initialValues?.teamFocusAreas ?? []]);
+      setSelectedFocusAreas([...(initialValues?.teamFocusAreas ?? [])]);
     }
     document.addEventListener('reset-team-register-form', resetHandler);
     return function () {
@@ -102,9 +104,9 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
   return (
     <>
       <div className="teamProject__form">
-      {errors.length > 0 && (
+        {errors.length > 0 && (
           <ul className="teamProject__form__errs">
-            {errors.map((error:string, index: number) => {
+            {errors.map((error: string, index: number) => {
               return (
                 <li className="teamProject__form__errs__err" key={`team-err-${index}`}>
                   {error}
@@ -135,7 +137,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
             {selectedProtocols.map((protocol, index) => (
               <div key={`team-technologies-${protocol.id}-${index}`}>
                 <HiddenField value={protocol.name} defaultValue={protocol.name} name={`technology${index}-title`} />
-                <HiddenField value={protocol.id}  defaultValue={protocol.id} name={`technology${index}-uid`} />
+                <HiddenField value={protocol.id} defaultValue={protocol.id} name={`technology${index}-uid`} />
               </div>
             ))}
           </div>
@@ -153,8 +155,16 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
             arrowImgUrl="/icons/arrow-down.svg"
             label="Funding Stage*"
           />
-          <HiddenField value={selectedFundingStage?.id} defaultValue={selectedFundingStage?.id ?? ''} name="fundingStage-uid" />
-          <HiddenField value={selectedFundingStage?.name} defaultValue={selectedFundingStage?.name ?? ''} name="fundingStage-title" />
+          <HiddenField
+            value={selectedFundingStage?.id}
+            defaultValue={selectedFundingStage?.id ?? ''}
+            name="fundingStage-uid"
+          />
+          <HiddenField
+            value={selectedFundingStage?.name}
+            defaultValue={selectedFundingStage?.name ?? ''}
+            name="fundingStage-title"
+          />
         </div>
         <div className="teamProject__form__item">
           <MultiSelect
@@ -195,33 +205,53 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
           />
           <div className="info">
             <img src="/icons/info.svg" />
-            <p>Add industries that you had worked in. This will make it easier for people to find & connect based on shared professional interests.</p>
+            <p>
+              Add industries that you had worked in. This will make it easier for people to find & connect based on
+              shared professional interests.
+            </p>
           </div>
           <div className="hidden">
             {selectedIndustryTags.map((tag, index) => (
               <div key={`team-industryTags-${tag.id}-${index}`}>
-                <HiddenField value={tag.name} defaultValue={tag.name}   name={`industryTag${index}-title`} />
-                <HiddenField value={tag.id} defaultValue={tag.id}   name={`industryTag${index}-uid`} />
+                <HiddenField value={tag.name} defaultValue={tag.name} name={`industryTag${index}-title`} />
+                <HiddenField value={tag.id} defaultValue={tag.id} name={`industryTag${index}-uid`} />
               </div>
             ))}
           </div>
         </div>
-        {showFocusArea && <div className="teamProject__form__item">
-            <FocusAreasList onOpen={onEditFocusArea} selectedItems={[...selectedFocusAreas]} rawData={[...focusAreas]}/>
+        {showFocusArea && (
+          <div className="teamProject__form__item">
+            <FocusAreasList
+              onOpen={onEditFocusArea}
+              selectedItems={[...selectedFocusAreas]}
+              rawData={[...focusAreas]}
+            />
             <div className="info">
-            <img src="/icons/info.svg" />
-            <p>Protocol Labs&apos;s vision for the future is built on core focus areas that aim to harness humanity&apos;s potential for good, navigate potential pitfalls, and ensure a future where technology empowers humanity.</p>
-          </div>
+              <img src="/icons/info.svg" />
+              <p>
+                Protocol Labs&apos;s vision for the future is built on core focus areas that aim to harness
+                humanity&apos;s potential for good, navigate potential pitfalls, and ensure a future where technology
+                empowers humanity.
+              </p>
+            </div>
             {selectedFocusAreas.map((area, index) => (
               <div key={`team-teamFocusAreas-${area.uid}-${index}`}>
-                <HiddenField value={area.title} defaultValue={area.title}   name={`teamFocusAreas${index}-title`} />
-                <HiddenField value={area.uid} defaultValue={area.uid}   name={`teamFocusAreas${index}-uid`} />
+                <HiddenField value={area.title} defaultValue={area.title} name={`teamFocusAreas${index}-title`} />
+                <HiddenField value={area.uid} defaultValue={area.uid} name={`teamFocusAreas${index}-uid`} />
               </div>
             ))}
-        </div>}
+          </div>
+        )}
       </div>
       <Modal onClose={onFocusAreaClose} modalRef={focusAreaDialogRef}>
-         {isFocusAreaModalOpen && <FocusAreasPopup handleFoucsAreaSave={onFocusAreaChanged}  onClose={onFocusAreaClose} selectedItems={selectedFocusAreas} focusAreas={[...focusAreas]}/>}
+        {isFocusAreaModalOpen && (
+          <FocusAreasPopup
+            handleFoucsAreaSave={onFocusAreaChanged}
+            onClose={onFocusAreaClose}
+            selectedItems={selectedFocusAreas}
+            focusAreas={[...focusAreas]}
+          />
+        )}
       </Modal>
       <style jsx>{`
         .teamProject__form {
@@ -255,8 +285,8 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
         }
         .hidden {
           visibility: hidden;
-          height:0;
-          width:0;
+          height: 0;
+          width: 0;
         }
       `}</style>
     </>

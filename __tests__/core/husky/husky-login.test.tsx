@@ -19,7 +19,7 @@ describe('HuskyLogin Component', () => {
 
   test('renders correctly', () => {
     render(<HuskyLogin onLoginBoxClose={mockOnLoginBoxClose} onLoginClick={mockOnLoginClick} />);
-    
+
     // Check if the title and description are rendered
     expect(screen.getByText(/Login to continue using Husky/i)).toBeInTheDocument();
     expect(screen.getByText(/Husky is purpose built to improve your speed & quality of learning/i)).toBeInTheDocument();
@@ -27,19 +27,18 @@ describe('HuskyLogin Component', () => {
 
   test('calls onLoginBoxClose when dismiss button is clicked', () => {
     render(<HuskyLogin onLoginBoxClose={mockOnLoginBoxClose} onLoginClick={mockOnLoginClick} />);
-    
+
     fireEvent.click(screen.getByTestId('dismiss-button'));
     expect(mockOnLoginBoxClose).toHaveBeenCalledTimes(1);
   });
 
   test('calls trackHuskyLogin and onLoginClick when login button is clicked', () => {
     render(<HuskyLogin onLoginBoxClose={mockOnLoginBoxClose} onLoginClick={mockOnLoginClick} />);
-    
+
     const { trackHuskyLogin } = useHuskyAnalytics();
     fireEvent.click(screen.getByTestId('login-button'));
-    
+
     expect(trackHuskyLogin).toHaveBeenCalledTimes(1);
     expect(mockOnLoginClick).toHaveBeenCalledTimes(1);
   });
 });
-

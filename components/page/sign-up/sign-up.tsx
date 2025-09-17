@@ -29,7 +29,7 @@ const SignUp = ({ skillsInfo }: any) => {
     const utmCampaign = searchParams.get('utm_campaign');
     const utmSource = searchParams.get('utm_source');
     const utmMedium = searchParams.get('utm_medium');
-    
+
     if (utmMedium && Cookies.get('utm_medium') !== utmMedium) {
       Cookies.set('utm_medium', utmMedium, { expires: 7 });
     }
@@ -42,7 +42,7 @@ const SignUp = ({ skillsInfo }: any) => {
       Cookies.set('utm_source', utmSource, { expires: 7 });
     }
 
-    if(Cookies.get('authToken')){
+    if (Cookies.get('authToken')) {
       router.push('/');
     }
   }, []);

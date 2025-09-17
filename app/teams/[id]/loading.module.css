@@ -31,7 +31,9 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+  box-shadow:
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12);
 }
 
 .teamDetail__container__details__profilecontainer {
@@ -158,7 +160,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+  box-shadow:
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12);
 }
 
 .teamDetail__container__contact__title {
@@ -183,7 +187,7 @@
 }
 
 .teamDetail__container__contacts__ohours {
-  background: #F8FAFC;
+  background: #f8fafc;
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -205,14 +209,14 @@
   width: 28px;
   border-radius: 4px;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  background-color: #e2e8f0; 
+  background-color: #e2e8f0;
 }
 
 .teamDetail__container__contacts__ohours__left__title {
   height: 28px;
   width: 113px;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  background-color: #e2e8f0; 
+  background-color: #e2e8f0;
 }
 
 .teamDetail__container__contacts__ohour__right {
@@ -233,7 +237,9 @@
   display: flex;
   border-radius: 4px;
   background-color: #fff;
-  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+  box-shadow:
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12);
   flex-direction: column;
   gap: 8px;
 }
@@ -259,7 +265,7 @@
   display: flex;
   height: inherit;
   border-radius: 8px 0px 0px 8px;
-  border-right: 1px solid  #E2E8F0;
+  border-right: 1px solid #e2e8f0;
   width: 30%;
   align-items: center;
   justify-content: center;
@@ -274,11 +280,10 @@
 
 .teamDetail__container__fundingc__right {
   padding: 8px 12px;
-
 }
 
 .teamDetail__container__fundingc__right__tags {
-  display: flex; 
+  display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
@@ -311,7 +316,9 @@
     padding: 20px;
     background-color: #fff;
     border-radius: 8px;
-    box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+    box-shadow:
+      0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+      0px 0px 1px 0px rgba(15, 23, 42, 0.12);
   }
 
   .teamDetail__container__details__profilecontainer__profile {

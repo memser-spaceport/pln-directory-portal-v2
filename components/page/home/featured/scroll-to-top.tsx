@@ -38,7 +38,7 @@ const ScrollToTop = (props: IScrollToTop) => {
       },
       {
         threshold: 0,
-      }
+      },
     );
 
     observer.observe(target);

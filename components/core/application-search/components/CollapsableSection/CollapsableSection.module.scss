@@ -8,11 +8,13 @@
 
   padding: 8px;
   border-radius: 8px;
-  background: #F8FAFC;
+  background: #f8fafc;
 
   text-transform: capitalize;
-  color: var(--Neutral-Slate-500, #64748B);
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: var(--Neutral-Slate-500, #64748b);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;

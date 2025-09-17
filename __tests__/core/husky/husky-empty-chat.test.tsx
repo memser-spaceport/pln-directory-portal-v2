@@ -3,11 +3,14 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import HuskyEmptyChat from '@/components/core/husky/husky-empty-chat';
 
 jest.mock('@/services/discovery.service', () => ({
-  getChatQuestions: () => Promise.resolve({
-    data: [{
-      question: 'Summary of discussions from the LabWeek Field Building sessions?'
-    }]
-  })
+  getChatQuestions: () =>
+    Promise.resolve({
+      data: [
+        {
+          question: 'Summary of discussions from the LabWeek Field Building sessions?',
+        },
+      ],
+    }),
 }));
 
 describe('HuskyEmptyChat Component', () => {
@@ -18,12 +21,15 @@ describe('HuskyEmptyChat Component', () => {
   beforeEach(() => {
     mockOnPromptClicked.mockClear();
 
-    render(<HuskyEmptyChat
-      isHidden={false}
-      onPromptClicked={mockOnPromptClicked}
-      checkIsLimitReached={checkIsLimitReached}
-      setLimitReached={setLimitReached}
-      limitReached={false} />);
+    render(
+      <HuskyEmptyChat
+        isHidden={false}
+        onPromptClicked={mockOnPromptClicked}
+        checkIsLimitReached={checkIsLimitReached}
+        setLimitReached={setLimitReached}
+        limitReached={false}
+      />,
+    );
   });
 
   test('renders correctly', () => {
@@ -43,10 +49,13 @@ describe('HuskyEmptyChat Component', () => {
     const input = screen.getByTestId('prompt-input');
     fireEvent.focus(input);
 
-    await waitFor(() => {
-      const explorationPrompt = screen.getByTestId('prompt-0');
-      expect(explorationPrompt).toBeInTheDocument();
-    }, { timeout: 1000 });
+    await waitFor(
+      () => {
+        const explorationPrompt = screen.getByTestId('prompt-0');
+        expect(explorationPrompt).toBeInTheDocument();
+      },
+      { timeout: 1000 },
+    );
   });
 
   test('handles key down event for submission', async () => {
@@ -58,4 +67,3 @@ describe('HuskyEmptyChat Component', () => {
     expect(mockOnPromptClicked).toHaveBeenCalledTimes(1);
   });
 });
-

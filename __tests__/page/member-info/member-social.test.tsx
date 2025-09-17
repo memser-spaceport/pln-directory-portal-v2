@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import MemberSocialInfo from '@/components/page/member-info/member-social-info';
 import '@testing-library/jest-dom';
 
-
 describe('MemberSocialInfo', () => {
   const initialValues = {
     linkedinHandler: 'https://linkedin.com/in/johndoe',
@@ -30,8 +29,18 @@ describe('MemberSocialInfo', () => {
   it('should render info texts correctly', () => {
     render(<MemberSocialInfo initialValues={initialValues} errors={[]} />);
 
-    expect(screen.getByText(/This will help us tag you with permissions to access the best Discord channels for you./i)).toBeInTheDocument();
-    expect(screen.getByText(/Drop your calendar link here so others can get in touch with you at a time that is convenient./i)).toBeInTheDocument();
-    expect(screen.getByText(/Let us know what else you would like to share and wish others would share to make it easier to locate and contact each other!/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/This will help us tag you with permissions to access the best Discord channels for you./i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Drop your calendar link here so others can get in touch with you at a time that is convenient./i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Let us know what else you would like to share and wish others would share to make it easier to locate and contact each other!/i,
+      ),
+    ).toBeInTheDocument();
   });
 });

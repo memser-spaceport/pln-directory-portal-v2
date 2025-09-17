@@ -23,7 +23,6 @@ describe('HiddenField Component', () => {
   it('handles empty defaultValue', () => {
     render(<HiddenField defaultValue="" name="hiddenField" />);
     const input = screen.getByTestId('hidden-field');
-    expect(input).toHaveAttribute('value', ""); // Should handle empty defaultValue
+    expect(input).toHaveAttribute('value', ''); // Should handle empty defaultValue
   });
 });
-

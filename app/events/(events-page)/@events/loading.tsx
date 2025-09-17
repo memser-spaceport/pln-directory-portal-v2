@@ -1,6 +1,6 @@
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css'
+import 'react-loading-skeleton/dist/skeleton.css';
 
 import s from './loading.module.css';
 
@@ -13,7 +13,9 @@ const Loading = () => {
         <Skeleton count={1} height={40} width={160} />
       </div>
       <div className={s.grid}>
-        {CARDS.map((_, index: number) => <Skeleton key={index} count={1} width="100%" />)}
+        {CARDS.map((_, index: number) => (
+          <Skeleton key={index} count={1} width="100%" />
+        ))}
       </div>
     </div>
   );

@@ -15,7 +15,14 @@ interface Props {
   isValidatingField?: boolean;
 }
 
-export const OfficeHoursFormField = ({ name, label, placeholder, description, validationCache, isValidatingField }: Props) => {
+export const OfficeHoursFormField = ({
+  name,
+  label,
+  placeholder,
+  description,
+  validationCache,
+  isValidatingField,
+}: Props) => {
   const {
     register,
     watch,
@@ -87,7 +94,14 @@ export const OfficeHoursFormField = ({ name, label, placeholder, description, va
 const LoaderIcon = () => <div className={s.loader} />;
 
 const CheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={s.checkIcon}>
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={s.checkIcon}
+  >
     <path
       d="M14.3535 4.85354L6.35354 12.8535C6.3071 12.9 6.25196 12.9369 6.19126 12.9621C6.13056 12.9872 6.0655 13.0002 5.99979 13.0002C5.93408 13.0002 5.86902 12.9872 5.80832 12.9621C5.74762 12.9369 5.69248 12.9 5.64604 12.8535L2.14604 9.35354C2.05222 9.25972 1.99951 9.13247 1.99951 8.99979C1.99951 8.86711 2.05222 8.73986 2.14604 8.64604C2.23986 8.55222 2.36711 8.49951 2.49979 8.49951C2.63247 8.49951 2.75972 8.55222 2.85354 8.64604L5.99979 11.7929L13.646 4.14604C13.7399 4.05222 13.8671 3.99951 13.9998 3.99951C14.1325 3.99951 14.2597 4.05222 14.3535 4.14604C14.4474 4.23986 14.5001 4.36711 14.5001 4.49979C14.5001 4.63247 14.4474 4.75972 14.3535 4.85354Z"
       fill="#11A75C"

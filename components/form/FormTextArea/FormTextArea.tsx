@@ -16,7 +16,17 @@ interface Props extends PropsWithChildren {
   rows?: number;
 }
 
-export const FormTextArea = ({ name, placeholder, label, description, disabled, children, isRequired, rows = 3, ...rest }: Props) => {
+export const FormTextArea = ({
+  name,
+  placeholder,
+  label,
+  description,
+  disabled,
+  children,
+  isRequired,
+  rows = 3,
+  ...rest
+}: Props) => {
   const {
     register,
     formState: { errors },

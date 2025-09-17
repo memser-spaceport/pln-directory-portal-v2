@@ -1,10 +1,9 @@
-"use client"
+'use client';
 
-import { getFormattedDateString, formatHtml } from "@/utils/irl.utils"
-import clip from "text-clipper";
+import { getFormattedDateString, formatHtml } from '@/utils/irl.utils';
+import clip from 'text-clipper';
 
 export default function CurrentEventCard(props: any) {
- 
   const name = props.eventData.name;
   const description = props.eventData.description;
   const bannerUrl = props.eventData.bannerUrl;
@@ -15,15 +14,11 @@ export default function CurrentEventCard(props: any) {
 
   const sanitizedDesc = formatHtml(description || '');
   const clippedDesc = clip(sanitizedDesc, 80, { html: false, maxLines: 2 });
-  
+
   return (
     <div className="current-event-card">
       <div className="event-header-image">
-        <img
-          src={`${bannerUrl}`}
-          alt={`${name} event`}
-          className="event-image"
-        />
+        <img src={`${bannerUrl}`} alt={`${name} event`} className="event-image" />
       </div>
 
       <div className="event-body-container">
@@ -31,7 +26,7 @@ export default function CurrentEventCard(props: any) {
           <h2 className="event-title">{name.length > 40 ? `${name.substring(0, 40)}...` : name}</h2>
           <div className="event-description">{clippedDesc}</div>
         </div>
-        
+
         <div className="event-footer">
           <div className="date-info">
             <span className="calendar-icon">
@@ -45,14 +40,16 @@ export default function CurrentEventCard(props: any) {
               <span>{attendees} Attending</span>
             </div>
           )}
-        </div>      
+        </div>
       </div>
       <style jsx>{`
         .current-event-card {
           width: 289px;
           height: 290px;
           border-radius: 12px;
-          box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
+          box-shadow:
+            0px 4px 4px 0px #0f172a0a,
+            0px 0px 1px 0px #0f172a1f;
           background-color: white;
           display: flex;
           flex-direction: column;
@@ -129,7 +126,8 @@ export default function CurrentEventCard(props: any) {
           width: 100%;
         }
 
-        .date-info, .attending-info {
+        .date-info,
+        .attending-info {
           font-size: 11.5px;
           font-weight: 500;
           line-height: 12px;
@@ -142,13 +140,14 @@ export default function CurrentEventCard(props: any) {
         }
 
         .date-info {
-          border: 1px solid #CBD5E1;
+          border: 1px solid #cbd5e1;
           padding: 4px;
           border-radius: 8px;
           gap: 5px;
         }
 
-        .calendar-icon, .thumbs-icon {
+        .calendar-icon,
+        .thumbs-icon {
           display: flex;
           align-items: center;
         }
@@ -261,6 +260,5 @@ export default function CurrentEventCard(props: any) {
         }
       `}</style>
     </div>
-  )
+  );
 }
-

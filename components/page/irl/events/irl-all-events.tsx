@@ -23,8 +23,15 @@ interface EventDetailsProps {
   onDeleteEvent: (gathering: any) => void;
 }
 
-const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, handleDataNotFound, userInfo, onDeleteEvent }: EventDetailsProps) => {
-
+const IrlAllEvents = ({
+  eventDetails,
+  isLoggedIn,
+  isUpcoming,
+  searchParams,
+  handleDataNotFound,
+  userInfo,
+  onDeleteEvent,
+}: EventDetailsProps) => {
   let eventsToShow = eventDetails.events || [];
   const [isExpanded, setExpanded] = useState(false);
   const [itemsToShow, setItemsToShow] = useState(4);
@@ -79,7 +86,13 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
               <div className="root__irl__table__header">
                 <div className="root__irl__table-row__header">
                   <div className="root__irl__table-col__headerName">
-                    <SearchGatherings searchParams={searchParams} type={"all"} eventsToShow={eventsToShow} setExpanded={setExpanded} setItemsToShow={setItemsToShow} />
+                    <SearchGatherings
+                      searchParams={searchParams}
+                      type={'all'}
+                      eventsToShow={eventsToShow}
+                      setExpanded={setExpanded}
+                      setItemsToShow={setItemsToShow}
+                    />
                   </div>
                   <div className="root__irl__table-col__headerDesc">Description</div>
                 </div>
@@ -122,7 +135,15 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
                 <div className="root__irl__mobileView__showMore__cntr" onClick={toggleDescription}>
                   {isExpanded ? ' Show Less' : ' Show More'}
                   <div className="root__irl__mobileView__icon">
-                    {!isExpanded ? <img src="/icons/arrow-blue-down.svg" alt="down-arrow" /> : <img src="/icons/up-arrow-chevron.svg" alt="up-arrow" className="root__irl__mobileView__icon__up" />}
+                    {!isExpanded ? (
+                      <img src="/icons/arrow-blue-down.svg" alt="down-arrow" />
+                    ) : (
+                      <img
+                        src="/icons/up-arrow-chevron.svg"
+                        alt="up-arrow"
+                        className="root__irl__mobileView__icon__up"
+                      />
+                    )}
                   </div>
                 </div>
               )}
@@ -132,12 +153,11 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
               <div>
                 <img src="/icons/no-calender.svg" alt="calendar" />
               </div>
-              <div>No results found for the applied input
-                  {' '}<span
-                      className="root__irl__table__no-data__errorMsg"
-                      onClick={handleDataNotFound}>
-                      Reset to default
-                  </span>
+              <div>
+                No results found for the applied input{' '}
+                <span className="root__irl__table__no-data__errorMsg" onClick={handleDataNotFound}>
+                  Reset to default
+                </span>
               </div>
             </div>
           )}
@@ -224,7 +244,7 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
         }
 
         .root__irl__table-col__headerName,
-        .root__irl__table-col__headerDesc  {
+        .root__irl__table-col__headerDesc {
           padding: 10px;
         }
 
@@ -310,8 +330,8 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
         }
 
         .root__irl__table__no-data__errorMsg {
-            cursor: pointer;
-            color: #156FF7;
+          cursor: pointer;
+          color: #156ff7;
         }
 
         @media screen and (min-width: 360px) {
@@ -371,7 +391,7 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
           }
         }
 
-         @media (min-width: 1440px) {
+        @media (min-width: 1440px) {
           .root__irl__table-col__headerName {
             width: 299px;
           }
@@ -408,7 +428,7 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
 
           .root__irl__table-col__headerDesc,
           .root__irl__table-col__contentDesc {
-            width: 1681px; 
+            width: 1681px;
           }
 
           .root__irl__table__no-data {

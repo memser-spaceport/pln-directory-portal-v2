@@ -167,7 +167,7 @@ describe('getVisibleSocialHandles function', () => {
       officeHours: 'some-office-hours',
     };
 
-    const expectedResult: string[] = [ 'email', 'github', 'discord', 'twitter', 'linkedin', 'telegram', 'officeHours' ];
+    const expectedResult: string[] = ['email', 'github', 'discord', 'twitter', 'linkedin', 'telegram', 'officeHours'];
 
     const handles = getVisibleSocialHandles(member);
     expect(handles).toEqual(expectedResult);
@@ -184,7 +184,7 @@ describe('getVisibleSocialHandles function', () => {
       officeHours: null,
     };
 
-    const expectedResult: string[] = [  ];
+    const expectedResult: string[] = [];
 
     const handles = getVisibleSocialHandles(member);
     expect(handles).toEqual(expectedResult);

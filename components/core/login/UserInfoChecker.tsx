@@ -49,9 +49,12 @@ export const UserInfoChecker = ({ userInfo }: { userInfo: IUserInfo }) => {
         const _userInfo = JSON.parse(userInfoCookie);
 
         if (_userInfo.uid === member?.memberInfo.uid) {
-          setUserInfoCookie(JSON.stringify({ ..._userInfo, name: member.memberInfo.name, profileImageUrl: member.memberInfo.imageUrl }), {
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
+          setUserInfoCookie(
+            JSON.stringify({ ..._userInfo, name: member.memberInfo.name, profileImageUrl: member.memberInfo.imageUrl }),
+            {
+              domain: process.env.COOKIE_DOMAIN || '',
+            },
+          );
           router.refresh();
         }
       } catch (e) {

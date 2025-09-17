@@ -22,8 +22,11 @@ $padding-inline: 16px;
   overflow: auto;
 
   border-radius: 8px;
-  background: #FFF;
-  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.16), 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+  background: #fff;
+  box-shadow:
+    0 1px 2px 0 rgba(15, 23, 42, 0.16),
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
 
   //padding: 12px $padding-inline;
 }
@@ -33,7 +36,7 @@ $padding-inline: 16px;
   width: calc(100% + $padding-inline * 2);
   margin-inline: -$padding-inline;
   margin-block: 8px;
-  background: #E2E8F0;
+  background: #e2e8f0;
 }
 
 .modal {

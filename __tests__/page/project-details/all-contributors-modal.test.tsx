@@ -17,7 +17,13 @@ describe('AllContributorsModal', () => {
   });
 
   it('should render the modal with contributors list', () => {
-    render(<AllContributorsModal onClose={onCloseMock} contributorsList={contributorsList} onContributorClickHandler={onContributorClickHandlerMock} />);
+    render(
+      <AllContributorsModal
+        onClose={onCloseMock}
+        contributorsList={contributorsList}
+        onContributorClickHandler={onContributorClickHandlerMock}
+      />,
+    );
 
     expect(screen.getByText('Contributors (2)')).toBeInTheDocument();
     expect(screen.getByText('Contributor 1')).toBeInTheDocument();
@@ -25,7 +31,13 @@ describe('AllContributorsModal', () => {
   });
 
   it('should call onClose when modal is closed', () => {
-    render(<AllContributorsModal onClose={onCloseMock} contributorsList={contributorsList} onContributorClickHandler={onContributorClickHandlerMock} />);
+    render(
+      <AllContributorsModal
+        onClose={onCloseMock}
+        contributorsList={contributorsList}
+        onContributorClickHandler={onContributorClickHandlerMock}
+      />,
+    );
 
     const closeButton = screen.getByAltText('close');
     fireEvent.click(closeButton);
@@ -34,7 +46,13 @@ describe('AllContributorsModal', () => {
   });
 
   it('should filter contributors list based on search term', () => {
-    render(<AllContributorsModal onClose={onCloseMock} contributorsList={contributorsList} onContributorClickHandler={onContributorClickHandlerMock} />);
+    render(
+      <AllContributorsModal
+        onClose={onCloseMock}
+        contributorsList={contributorsList}
+        onContributorClickHandler={onContributorClickHandlerMock}
+      />,
+    );
 
     const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'Contributor 1' } });
@@ -44,7 +62,13 @@ describe('AllContributorsModal', () => {
   });
 
   it('should call onContributorClickHandler when a contributor is clicked', () => {
-    render(<AllContributorsModal onClose={onCloseMock} contributorsList={contributorsList} onContributorClickHandler={onContributorClickHandlerMock} />);
+    render(
+      <AllContributorsModal
+        onClose={onCloseMock}
+        contributorsList={contributorsList}
+        onContributorClickHandler={onContributorClickHandlerMock}
+      />,
+    );
 
     const contributor = screen.getByText('Contributor 1');
     fireEvent.click(contributor);
@@ -57,7 +81,13 @@ describe('AllContributorsModal', () => {
       { id: 1, name: 'Contributor 1', logo: '', teamLead: true },
       { id: 2, name: 'Contributor 2', logo: '/path/to/logo2.png', teamLead: false },
     ];
-    const { container } = render(<AllContributorsModal onClose={onCloseMock} contributorsList={contributorsList} onContributorClickHandler={onContributorClickHandlerMock} />);
+    const { container } = render(
+      <AllContributorsModal
+        onClose={onCloseMock}
+        contributorsList={contributorsList}
+        onContributorClickHandler={onContributorClickHandlerMock}
+      />,
+    );
     const targetImage = container.querySelector('img[src="/icons/default_profile.svg"]');
     expect(targetImage).toBeInTheDocument();
   });
@@ -65,7 +95,13 @@ describe('AllContributorsModal', () => {
   it('should trigger custom event when modal is opened', async () => {
     HTMLDialogElement.prototype.showModal = jest.fn();
     HTMLDialogElement.prototype.close = jest.fn();
-    render(<AllContributorsModal onClose={onCloseMock} contributorsList={contributorsList} onContributorClickHandler={onContributorClickHandlerMock} />);
+    render(
+      <AllContributorsModal
+        onClose={onCloseMock}
+        contributorsList={contributorsList}
+        onContributorClickHandler={onContributorClickHandlerMock}
+      />,
+    );
 
     const showModalEvent = new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: true });
     await act(async () => {
@@ -77,7 +113,13 @@ describe('AllContributorsModal', () => {
   it('should trigger custom event when modal is closed', async () => {
     HTMLDialogElement.prototype.showModal = jest.fn();
     HTMLDialogElement.prototype.close = jest.fn();
-    render(<AllContributorsModal onClose={onCloseMock} contributorsList={contributorsList} onContributorClickHandler={onContributorClickHandlerMock} />);
+    render(
+      <AllContributorsModal
+        onClose={onCloseMock}
+        contributorsList={contributorsList}
+        onContributorClickHandler={onContributorClickHandlerMock}
+      />,
+    );
 
     const closeModalEvent = new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: false });
     await act(async () => {

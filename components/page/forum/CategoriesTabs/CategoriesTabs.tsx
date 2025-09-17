@@ -66,7 +66,12 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
           <Tabs.List className={s.List}>
             {tabs.map((item) => (
               // @ts-ignore
-              <Tabs.Tab className={s.Tab} value={item.value} key={item.value} ref={(el) => (tabRefs.current[item.value] = el)}>
+              <Tabs.Tab
+                className={s.Tab}
+                value={item.value}
+                key={item.value}
+                ref={(el) => (tabRefs.current[item.value] = el)}
+              >
                 {item.label}
               </Tabs.Tab>
             ))}
@@ -122,9 +127,22 @@ const LinkIcon = () => (
       />
     </g>
     <defs>
-      <filter id="filter0_d_4226_25993" x="-1" y="-1" width="22" height="22" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <filter
+        id="filter0_d_4226_25993"
+        x="-1"
+        y="-1"
+        width="22"
+        height="22"
+        filterUnits="userSpaceOnUse"
+        color-interpolation-filters="sRGB"
+      >
         <feFlood flood-opacity="0" result="BackgroundImageFix" />
-        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+        <feColorMatrix
+          in="SourceAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          result="hardAlpha"
+        />
         <feOffset dy="1" />
         <feGaussianBlur stdDeviation="1" />
         <feComposite in2="hardAlpha" operator="out" />

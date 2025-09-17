@@ -58,12 +58,27 @@ const AddTeamMemberDetail = (props: any) => {
                     <div className="cpt__cnt__cptr">
                       <div className="cpt__cnt__cptr__img">
                         <div className="cpt__cnt__cptr__pflctr">
-                          <img loading="lazy" className="cpt__cnt__cptr__profile" alt="profile" src={member?.profile || getDefaultAvatar(member?.name)} width={40} height={40} />
+                          <img
+                            loading="lazy"
+                            className="cpt__cnt__cptr__profile"
+                            alt="profile"
+                            src={member?.profile || getDefaultAvatar(member?.name)}
+                            width={40}
+                            height={40}
+                          />
                           {member?.teams?.teamLead && (
                             <Tooltip
                               side="top"
                               asChild
-                              trigger={<img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={14} width={14} />}
+                              trigger={
+                                <img
+                                  alt="lead"
+                                  className="cpt__cnt__cptr__pflctr__lead"
+                                  src="/icons/badge/team-lead.svg"
+                                  height={14}
+                                  width={14}
+                                />
+                              }
                               content={'Team Lead'}
                             />
                           )}
@@ -74,7 +89,12 @@ const AddTeamMemberDetail = (props: any) => {
                             <div className="cpt__cnt__cptr__team__lead__toggle">
                               <p className="cpt__cnt__cptr__team__lead__toggle__label">Team Lead</p>
                               <div className="cpt__cnt__cptr__team__lead__toggle__wrapper">
-                                <Toggle height="16px" width="28px" callback={() => handleTeamLeadClick(member.id)} isChecked={member?.teams?.teamLead} />
+                                <Toggle
+                                  height="16px"
+                                  width="28px"
+                                  callback={() => handleTeamLeadClick(member.id)}
+                                  isChecked={member?.teams?.teamLead}
+                                />
                               </div>
                             </div>
                           ) : (
@@ -85,7 +105,13 @@ const AddTeamMemberDetail = (props: any) => {
                                 <div className="cpt__cnt__cptr__team__lead__toggle">
                                   <p className="cpt__cnt__cptr__team__lead__toggle__label">Team Lead</p>
                                   <div className="cpt__cnt__cptr__team__lead__toggle__wrapper">
-                                    <Toggle height="16px" width="28px" callback={() => handleTeamLeadClick(member.id)} isChecked={false} disabled={true} />
+                                    <Toggle
+                                      height="16px"
+                                      width="28px"
+                                      callback={() => handleTeamLeadClick(member.id)}
+                                      isChecked={false}
+                                      disabled={true}
+                                    />
                                   </div>
                                 </div>
                               }
@@ -95,7 +121,12 @@ const AddTeamMemberDetail = (props: any) => {
                         </div>
                       </div>
                       <div>
-                        <input type="text" value={member.teams.role} onChange={(e) => onRoleUpdate(member.id, e.target.value)} className="cpt__cnt__cptr__input__box " />
+                        <input
+                          type="text"
+                          value={member.teams.role}
+                          onChange={(e) => onRoleUpdate(member.id, e.target.value)}
+                          className="cpt__cnt__cptr__input__box "
+                        />
                       </div>
                     </div>
                   </Fragment>
@@ -104,16 +135,20 @@ const AddTeamMemberDetail = (props: any) => {
           ) : (
             <div className="cpc__cnt__nrf">No Members available.</div>
           )}
-          {selectedMembers.length > 0 && selectedMembers.filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase())).length === 0 && (
-            <div className="cpc__cnt__nrf">No matching members found.</div>
-          )}
+          {selectedMembers.length > 0 &&
+            selectedMembers.filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase()))
+              .length === 0 && <div className="cpc__cnt__nrf">No matching members found.</div>}
         </div>
       </div>
       <div className="cpc__add">
         <button type="button" className="cpc__back__btn" onClick={handleBackClick}>
           Back
         </button>
-        <button className={`cpc__add__btn ${selectedMembers.length === 0 && 'disabled-bg'}`} type="button" onClick={handleAddMember}>
+        <button
+          className={`cpc__add__btn ${selectedMembers.length === 0 && 'disabled-bg'}`}
+          type="button"
+          onClick={handleAddMember}
+        >
           Add
         </button>
       </div>

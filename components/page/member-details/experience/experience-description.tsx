@@ -11,7 +11,7 @@ export default function ExperienceDescription({ description = '' }: { descriptio
 
   useEffect(() => {
     if (description && typeof window !== 'undefined') {
-      const clean = DOMPurify.sanitize(description,{
+      const clean = DOMPurify.sanitize(description, {
         ALLOWED_ATTR: ['href', 'target', 'rel'],
         ADD_ATTR: ['target', 'rel'],
         ADD_TAGS: ['a'], // only if you're limiting tags
@@ -31,20 +31,21 @@ export default function ExperienceDescription({ description = '' }: { descriptio
     <div className={styles.memberDetail__experience__item__detail__description}>
       {sanitized && (
         <p
-          dangerouslySetInnerHTML={{ __html: isClipped ? sanitized : DOMPurify.sanitize(description,{
-            ALLOWED_ATTR: ['href', 'target', 'rel'],
-            ADD_ATTR: ['target', 'rel'],
-            ADD_TAGS: ['a']
-          }) }}
+          dangerouslySetInnerHTML={{
+            __html: isClipped
+              ? sanitized
+              : DOMPurify.sanitize(description, {
+                  ALLOWED_ATTR: ['href', 'target', 'rel'],
+                  ADD_ATTR: ['target', 'rel'],
+                  ADD_TAGS: ['a'],
+                }),
+          }}
           className={styles.memberDetail__experience__item__detail__description__text}
         />
       )}
 
       {isClipped && (
-        <span
-          onClick={handleToggle}
-          className={styles.memberDetail__experience__item__detail__description__text__more}
-        >
+        <span onClick={handleToggle} className={styles.memberDetail__experience__item__detail__description__text__more}>
           Show more
         </span>
       )}

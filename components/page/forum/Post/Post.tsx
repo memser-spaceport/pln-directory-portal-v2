@@ -17,7 +17,11 @@ import PostPageLoader from '@/components/page/forum/Post/PostPageLoader';
 import { LikesButton } from '@/components/page/forum/LikesButton';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
-import { useCommentNotificationEmailLinkEventCapture, useCommentNotificationEmailReplyEventCapture, useDigestEmailLinkEventCapture } from '@/components/page/forum/hooks';
+import {
+  useCommentNotificationEmailLinkEventCapture,
+  useCommentNotificationEmailReplyEventCapture,
+  useDigestEmailLinkEventCapture,
+} from '@/components/page/forum/hooks';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { decode } from 'he';
 import { BackButton } from '@/components/ui/BackButton';
@@ -92,7 +96,11 @@ export const Post = () => {
         comments: data.postcount - 1,
       },
       isEditable: data.posts[0]?.user?.memberUid === userInfo?.uid || userInfo?.roles?.includes(ADMIN_ROLE),
-      isAvailableToConnect: data.posts[0]?.user?.officeHours && (data.posts[0]?.user?.ohStatus === 'OK' || data.posts[0]?.user?.ohStatus === 'NOT_FOUND' || data.posts[0]?.user?.ohStatus === null),
+      isAvailableToConnect:
+        data.posts[0]?.user?.officeHours &&
+        (data.posts[0]?.user?.ohStatus === 'OK' ||
+          data.posts[0]?.user?.ohStatus === 'NOT_FOUND' ||
+          data.posts[0]?.user?.ohStatus === null),
     };
   }, [data, userInfo]);
 
@@ -213,7 +221,13 @@ export const Post = () => {
           <div className={s.subItem}>
             <ViewIcon /> {post.meta.views} Views
           </div>
-          <LikesButton tid={post.tid} pid={post?.pid} likes={post.meta.likes} isLiked={post.upvoted} timestamp={post.timestamp} />
+          <LikesButton
+            tid={post.tid}
+            pid={post?.pid}
+            likes={post.meta.likes}
+            isLiked={post.upvoted}
+            timestamp={post.timestamp}
+          />
           <div className={s.subItem}>
             <CommentIcon /> {post.meta.comments} Comments
           </div>
@@ -222,7 +236,12 @@ export const Post = () => {
         <div className={s.footer}>
           <Link href={`/members/${post.memberUid}`} onClick={(e) => e.stopPropagation()}>
             <Avatar.Root className={s.Avatar}>
-              <Avatar.Image src={post.image || getDefaultAvatar(post.author)} width="40" height="40" className={s.Image} />
+              <Avatar.Image
+                src={post.image || getDefaultAvatar(post.author)}
+                width="40"
+                height="40"
+                className={s.Image}
+              />
               <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
             </Avatar.Root>
           </Link>
@@ -250,7 +269,9 @@ export const Post = () => {
                   const isEmail = decoratedHref.startsWith('mailto:') || decoratedText.includes('@');
 
                   // Check if this URL is an image URL that should be excluded from linking
-                  const isImageUrl = imageUrls.some((imageUrl) => decoratedHref.includes(imageUrl) || decoratedText.includes(imageUrl));
+                  const isImageUrl = imageUrls.some(
+                    (imageUrl) => decoratedHref.includes(imageUrl) || decoratedText.includes(imageUrl),
+                  );
 
                   // If it's an image URL, return the text without making it a link
                   if (isImageUrl) {
@@ -293,7 +314,14 @@ export const Post = () => {
       </div>
 
       <div className={s.root}>
-        <PostComments comments={data?.posts?.slice(1)} tid={post.tid} mainPid={post.pid} onReply={(pid) => setReplyToPid(pid)} userInfo={userInfo} timestamp={post.timestamp} />
+        <PostComments
+          comments={data?.posts?.slice(1)}
+          tid={post.tid}
+          mainPid={post.pid}
+          onReply={(pid) => setReplyToPid(pid)}
+          userInfo={userInfo}
+          timestamp={post.timestamp}
+        />
       </div>
 
       <ScrollToTopButton />

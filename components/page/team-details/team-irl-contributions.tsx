@@ -149,14 +149,19 @@ const TeamIrlContributions = (props: ITeamMembers) => {
                             }}
                           >
                             <div className="root__irlCrbts__col__event__cnt__title">{details?.name}</div>
-                            <div className="root__irlCrbts__col__event__cnt__date">{getFormattedDateString(details?.startDate, details?.location?.timeZone)}</div>
+                            <div className="root__irlCrbts__col__event__cnt__date">
+                              {getFormattedDateString(details?.startDate, details?.location?.timeZone)}
+                            </div>
                           </div>
                         }
                       />
                     );
                   })}
                   {additionalCount > 0 && (
-                    <div className="root__irlCrbts__col__event__cnts additional-count" onClick={() => onClickHandler(role)}>
+                    <div
+                      className="root__irlCrbts__col__event__cnts additional-count"
+                      onClick={() => onClickHandler(role)}
+                    >
                       +{additionalCount}
                     </div>
                   )}
@@ -278,7 +283,11 @@ const TeamIrlContributions = (props: ITeamMembers) => {
 
           .active {
             position: relative;
-            background: linear-gradient(71.47deg, rgba(66, 125, 255, 0.2) 8.43%, rgba(68, 213, 187, 0.2) 87.45%) !important;
+            background: linear-gradient(
+              71.47deg,
+              rgba(66, 125, 255, 0.2) 8.43%,
+              rgba(68, 213, 187, 0.2) 87.45%
+            ) !important;
             border: none !important;
           }
           .active::before {

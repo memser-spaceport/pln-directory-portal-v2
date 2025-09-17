@@ -127,11 +127,17 @@ const MembersToolbar = (props: IMembersToolbar) => {
                 onChange={(e) => onInputChange(e)}
                 className="toolbar__left__search-container__searchfrm__input"
                 placeholder="Search by Member Name, Team, or Project"
-                onFocus={(e) => e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)}
+                onFocus={(e) =>
+                  e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)
+                }
               />
               <div className="toolbar__left__search-container__searchfrm__optns">
                 {searchInput && (
-                  <button type="button" onClick={onClearSearchClicked} className="toolbar__left__search-container__searchfrm__optns__clrbtn">
+                  <button
+                    type="button"
+                    onClick={onClearSearchClicked}
+                    className="toolbar__left__search-container__searchfrm__optns__clrbtn"
+                  >
                     <Image loading="lazy" alt="close" src="/icons/close-gray.svg" height={16} width={16} />
                   </button>
                 )}
@@ -146,15 +152,27 @@ const MembersToolbar = (props: IMembersToolbar) => {
         <div className="toolbar__right">
           <div className="toolbar__right__mobile">
             <button className="toolbar__right__mobile__sort-by" onClick={() => onSortClickHandler('mobile')}>
-              {sortBy === SORT_OPTIONS.ASCENDING && <img loading="lazy" alt="sort" src="/icons/ascending-gray.svg" height={20} width={20} />}
-              {sortBy === SORT_OPTIONS.DESCENDING && <img loading="lazy" alt="sort" src="/icons/descending-gray.svg" height={20} width={20} />}
+              {sortBy === SORT_OPTIONS.ASCENDING && (
+                <img loading="lazy" alt="sort" src="/icons/ascending-gray.svg" height={20} width={20} />
+              )}
+              {sortBy === SORT_OPTIONS.DESCENDING && (
+                <img loading="lazy" alt="sort" src="/icons/descending-gray.svg" height={20} width={20} />
+              )}
             </button>
           </div>
           <div className="toolbar__right__web">
             <p className="toolbar__right__web__sort-by-text">Sort by:</p>
             <button ref={sortByRef} className="toolbar__right__web__sort-by" onClick={() => onSortClickHandler('web')}>
-              <img loading="lazy" alt="sort" src={sortBy === SORT_OPTIONS.ASCENDING ? '/icons/ascending-gray.svg' : '/icons/descending-gray.svg'} height={20} width={20} />
-              <p className="toolbar__right__web__sord-by__name">{sortBy === SORT_OPTIONS.ASCENDING ? 'Ascending' : 'Descending'}</p>
+              <img
+                loading="lazy"
+                alt="sort"
+                src={sortBy === SORT_OPTIONS.ASCENDING ? '/icons/ascending-gray.svg' : '/icons/descending-gray.svg'}
+                height={20}
+                width={20}
+              />
+              <p className="toolbar__right__web__sord-by__name">
+                {sortBy === SORT_OPTIONS.ASCENDING ? 'Ascending' : 'Descending'}
+              </p>
               <img loading="lazy" alt="dropdown" src="/icons/dropdown-gray.svg" />
             </button>
             {isSortBy && (

@@ -14,7 +14,20 @@ import { getFollowUps } from '@/services/office-hours.service';
 import { usePostHog } from 'posthog-js/react';
 
 function PrivyModals() {
-  const { getAccessToken, linkEmail, linkGithub, linkGoogle, linkWallet, login, logout, ready, unlinkEmail, updateEmail, user, PRIVY_CUSTOM_EVENTS } = usePrivyWrapper();
+  const {
+    getAccessToken,
+    linkEmail,
+    linkGithub,
+    linkGoogle,
+    linkWallet,
+    login,
+    logout,
+    ready,
+    unlinkEmail,
+    updateEmail,
+    user,
+    PRIVY_CUSTOM_EVENTS,
+  } = usePrivyWrapper();
   const analytics = useAuthAnalytics();
   const postHogProps = usePostHog();
   const [linkAccountKey, setLinkAccountKey] = useState('');
@@ -57,7 +70,9 @@ function PrivyModals() {
       setLinkAccountKey('');
       toast.success(TOAST_MESSAGES.LOGIN_MSG);
       Cookies.set('showNotificationPopup', JSON.stringify(true));
-      document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
+      document.dispatchEvent(
+        new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }),
+      );
     };
 
     showSuccessMessage();
@@ -228,7 +243,9 @@ function PrivyModals() {
           await initDirectoryLogin();
         } else {
           triggerLoader(true);
-          document.dispatchEvent(new CustomEvent('directory-update-email', { detail: { newEmail: linkedAccount.address } }));
+          document.dispatchEvent(
+            new CustomEvent('directory-update-email', { detail: { newEmail: linkedAccount.address } }),
+          );
         }
       } else if (linkMethod === 'github') {
         document.dispatchEvent(new CustomEvent('new-auth-accounts', { detail: authLinkedAccounts }));
@@ -255,7 +272,11 @@ function PrivyModals() {
 
       if (!userInfo && !accessToken && !refreshToken) {
         analytics.onAccountLinkError({ type: 'loggedout', error: e?.detail?.error });
-        if (e?.detail?.error === 'linked_to_another_user' || e?.detail?.error === 'exited_link_flow' || e?.detail?.error === 'invalid_credentials') {
+        if (
+          e?.detail?.error === 'linked_to_another_user' ||
+          e?.detail?.error === 'exited_link_flow' ||
+          e?.detail?.error === 'invalid_credentials'
+        ) {
           try {
             await deleteUser(e?.detail?.error);
           } catch (err) {

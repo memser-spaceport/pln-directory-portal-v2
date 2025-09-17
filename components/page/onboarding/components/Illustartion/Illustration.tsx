@@ -13,7 +13,14 @@ const Illustration = () => {
       }}
     >
       <AppLogo />
-      <Image className={s.heroImage} width={428} height={375} alt="Illustration" loading="lazy" src="/images/onboarding/Illustration.svg" />
+      <Image
+        className={s.heroImage}
+        width={428}
+        height={375}
+        alt="Illustration"
+        loading="lazy"
+        src="/images/onboarding/Illustration.svg"
+      />
       <ul className={s.list}>
         <li className={s.item}>
           <div className={s.primary}>Browse 2,000+ MEMBERS</div>

@@ -28,7 +28,7 @@ export const getDiscoverData = async () => {
       followupQuestions: res.relatedQuestions.map((v: any) => v.content),
       viewCount: formatNumber(res.viewCount),
       shareCount: formatNumber(res.shareCount),
-      slug: res.slug
+      slug: res.slug,
     };
   });
 
@@ -47,7 +47,7 @@ export const incrementHuskyViewCount = async (slug: string) => {
     });
   } catch (e) {}
 };
-  
+
 export const incrementHuskyShareCount = async (slug: string) => {
   try {
     await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions/${slug}`, {
@@ -175,9 +175,9 @@ export const getChatQuestions = async () => {
       answer: res.answer,
       answerSourceLinks: res.answerSources,
       followupQuestions: res.relatedQuestions.map((v: any) => v.content),
-      icon: '/icons/send-black.svg'
+      icon: '/icons/send-black.svg',
     };
   });
- 
+
   return { data: formattedResult };
 };

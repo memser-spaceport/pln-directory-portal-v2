@@ -15,9 +15,9 @@
   align-items: center;
   gap: 8px;
   border-radius: var(--corner-radius-Full-round, 9999px);
-  border: 1px solid var(--border-brand-subtle, #AEBFFF);
-  background: #F2F5FF;
-  color: var(--foreground-brand-primary, #1B4DFF);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  background: #f2f5ff;
+  color: var(--foreground-brand-primary, #1b4dff);
   font-size: 10px;
   font-style: normal;
   font-weight: 400;
@@ -26,7 +26,7 @@
 }
 
 .secondary {
-  color: var(--action-foreground-brand-normal, #1B4DFF);
+  color: var(--action-foreground-brand-normal, #1b4dff);
   font-size: 10px;
   font-style: normal;
   font-weight: 400;
@@ -35,7 +35,7 @@
 }
 
 .tertiary {
-  color: var(--action-foreground-brand-normal, #1B4DFF);
+  color: var(--action-foreground-brand-normal, #1b4dff);
   font-size: 12px;
   font-style: normal;
   font-weight: 400;

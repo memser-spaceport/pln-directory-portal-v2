@@ -4,7 +4,7 @@ import { useState } from 'react';
 interface CopyTextProps {
   textToCopy: string;
   children: any;
-  onCopyCallback?: (answer: string) => Promise<void>
+  onCopyCallback?: (answer: string) => Promise<void>;
 }
 const CopyText = ({ textToCopy, children, onCopyCallback }: CopyTextProps) => {
   const [copied, setCopied] = useState(false);
@@ -12,7 +12,7 @@ const CopyText = ({ textToCopy, children, onCopyCallback }: CopyTextProps) => {
     // Copy text to clipboard
     await navigator.clipboard.writeText(textToCopy);
     setCopied(true);
-    if(onCopyCallback) {
+    if (onCopyCallback) {
       await onCopyCallback(textToCopy);
     }
     // Hide the message after 3 seconds
@@ -32,7 +32,7 @@ const CopyText = ({ textToCopy, children, onCopyCallback }: CopyTextProps) => {
           position: relative;
           cursor: pointer;
           height: auto;
-          width:auto;
+          width: auto;
         }
         .cn__copied {
           position: absolute;

@@ -47,39 +47,39 @@ const HuskyFeedback = (props: HuskyFeedbackProps) => {
   const onFeedbackSubmit = async () => {
     try {
       const { newAuthToken, newUserInfo: userInfo } = await getUserCredentialsInfo();
-        trackFeedbackStatus('initiated', ratingInfo.rating.toString(), question);
+      trackFeedbackStatus('initiated', ratingInfo.rating.toString(), question);
 
-        let payload = {
-          rating: ratingInfo.rating,
-          comment: ratingInfo.comment,
-          prompt: question,
-          response: answer,
-        } as any;
+      let payload = {
+        rating: ratingInfo.rating,
+        comment: ratingInfo.comment,
+        prompt: question,
+        response: answer,
+      } as any;
 
-        if (userInfo) {
-          const memberInfo = await getMemberInfo(userInfo.uid);
-          const memberDetails = memberInfo.data;
-          payload = {
-            ...payload,
-            name: memberDetails.name,
-            email: memberDetails.email,
-            team: memberDetails.teamMemberRoles[0]?.teamTitle ?? '',
-            directoryId: memberDetails.uid,
-          };
-        }
+      if (userInfo) {
+        const memberInfo = await getMemberInfo(userInfo.uid);
+        const memberDetails = memberInfo.data;
+        payload = {
+          ...payload,
+          name: memberDetails.name,
+          email: memberDetails.email,
+          team: memberDetails.teamMemberRoles[0]?.teamTitle ?? '',
+          directoryId: memberDetails.uid,
+        };
+      }
 
-        setLoadingStatus(true);
-        const response = await saveFeedback(newAuthToken, payload);
-        setLoadingStatus(false);
-        if (response.isSaved) {
-          trackFeedbackStatus('success', ratingInfo.rating.toString(), question);
-          setStep('success');
-        } else {
-          trackFeedbackStatus('error', ratingInfo.rating.toString(), question);
-          setStep('error');
-        }
+      setLoadingStatus(true);
+      const response = await saveFeedback(newAuthToken, payload);
+      setLoadingStatus(false);
+      if (response.isSaved) {
+        trackFeedbackStatus('success', ratingInfo.rating.toString(), question);
+        setStep('success');
+      } else {
+        trackFeedbackStatus('error', ratingInfo.rating.toString(), question);
+        setStep('error');
+      }
     } catch (error) {
-      console.log("errr while send", error)
+      console.log('errr while send', error);
       trackFeedbackStatus('error', ratingInfo.rating.toString(), question);
       setStep('error');
     }
@@ -102,7 +102,7 @@ const HuskyFeedback = (props: HuskyFeedbackProps) => {
                     className={`feedback__body__ratingCn__rating ${ratingInfo?.rating === index + 1 ? 'selected' : ''} `}
                     style={{ backgroundColor: rating.backgroundColor }}
                     key={`${rating.value}+${index}`}
-                    data-testid={`rating-button-${index + 1}`} 
+                    data-testid={`rating-button-${index + 1}`}
                   >
                     {rating.value}
                   </button>
@@ -138,28 +138,43 @@ const HuskyFeedback = (props: HuskyFeedbackProps) => {
             <button type="button" onClick={onClose} className="feeback__ftr__cancelBtn" data-testid="cancel-button">
               Cancel
             </button>
-            <button onClick={onFeedbackSubmit} type="button" className="feeback__ftr__submitBtn" data-testid="submit-button">
+            <button
+              onClick={onFeedbackSubmit}
+              type="button"
+              className="feeback__ftr__submitBtn"
+              data-testid="submit-button"
+            >
               Submit
             </button>
           </div>
         </div>
       )}
       {step === 'success' && (
-        <div className='feedback' data-testid="feedback-success">
+        <div className="feedback" data-testid="feedback-success">
           <h3>Thanks for your response</h3>
           <p>Your feedback has been saved successfully</p>
           <div className="feeback__ftr">
-            <button onClick={onClose} type="button" className="feeback__ftr__submitBtn" data-testid="close-success-button">
+            <button
+              onClick={onClose}
+              type="button"
+              className="feeback__ftr__submitBtn"
+              data-testid="close-success-button"
+            >
               Close
             </button>
           </div>
         </div>
       )}
       {step === 'error' && (
-        <div className='feedback' data-testid="feedback-error">
+        <div className="feedback" data-testid="feedback-error">
           <p>Something went wrong. Please try again later</p>
           <div className="feeback__ftr">
-            <button onClick={onClose} type="button" className="feeback__ftr__submitBtn" data-testid="close-error-button">
+            <button
+              onClick={onClose}
+              type="button"
+              className="feeback__ftr__submitBtn"
+              data-testid="close-error-button"
+            >
               Close
             </button>
           </div>

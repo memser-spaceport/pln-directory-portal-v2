@@ -69,7 +69,15 @@ export function ForumResultItem(props: Props) {
           <ul className={s.matches}>
             {item.matches
               .filter((match) => {
-                return !['name', 'topicUrl', 'topicSlug', 'topicTitle', 'replies.content', 'rootPost.author.name', 'replies.author.name'].includes(match.field);
+                return ![
+                  'name',
+                  'topicUrl',
+                  'topicSlug',
+                  'topicTitle',
+                  'replies.content',
+                  'rootPost.author.name',
+                  'replies.author.name',
+                ].includes(match.field);
               })
               .map((match) => {
                 return (
@@ -83,7 +91,12 @@ export function ForumResultItem(props: Props) {
                 );
               })}
             <li className={s.postDetails}>
-              Posted by {rootPostAuthorMatches?.length ? <span className={s.text}>{parse(rootPostAuthorMatches[0].content)}</span> : <span className={s.text}>{item.source.rootPost.author.name}</span>}{' '}
+              Posted by{' '}
+              {rootPostAuthorMatches?.length ? (
+                <span className={s.text}>{parse(rootPostAuthorMatches[0].content)}</span>
+              ) : (
+                <span className={s.text}>{item.source.rootPost.author.name}</span>
+              )}{' '}
               &bull; {formatDistanceToNow(new Date(item.source.rootPost.timestamp), { addSuffix: true })}
             </li>
           </ul>
@@ -119,7 +132,8 @@ export function ForumResultItem(props: Props) {
                   <div className={s.text}>{parse(match.content)}</div>
                 </div>
                 <div className={s.postDetails}>
-                  Commented by {comm.author.name} &bull; {formatDistanceToNow(new Date(comm.timestamp), { addSuffix: true })}
+                  Commented by {comm.author.name} &bull;{' '}
+                  {formatDistanceToNow(new Date(comm.timestamp), { addSuffix: true })}
                 </div>
               </div>
             </div>

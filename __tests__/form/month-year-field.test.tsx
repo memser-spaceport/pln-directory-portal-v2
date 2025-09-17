@@ -37,6 +37,4 @@ describe('MonthYearField Component', () => {
     fireEvent.click(screen.getByTestId('year-dropdown'));
     expect(screen.getByText((new Date().getFullYear() - 1).toString())).toBeInTheDocument(); // Check if current year is displayed
   });
-
 });
-

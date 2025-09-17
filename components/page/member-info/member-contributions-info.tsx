@@ -25,7 +25,7 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
   const [expandedId, setExpandedId] = useState(-1);
   const analytics = useSettingsAnalytics();
   const userInfo = getUserInfo();
- 
+
   const defaultValues = {
     projectUid: getUniqueId(),
     projectName: '',
@@ -96,8 +96,10 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
       setContributionInfos((old: any) => {
         const newV = structuredClone(old);
         newV[index][key] = value;
-        if(key === 'currentProject' && value === false) {
-          newV[index]['endDate'] =  new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth() + 1, 0)).toISOString();
+        if (key === 'currentProject' && value === false) {
+          newV[index]['endDate'] = new Date(
+            Date.UTC(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+          ).toISOString();
         } else if (key === 'currentProject' && value === true) {
           newV[index]['endDate'] = null;
         }
@@ -134,7 +136,9 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
         )}
         {contributionInfos.length > 0 && (
           <div className="pc__list">
-            {Object.keys(errors).length > 0 && <p className="error">There are fields that require your attention. Please review the fields below.</p>}
+            {Object.keys(errors).length > 0 && (
+              <p className="error">There are fields that require your attention. Please review the fields below.</p>
+            )}
             <AddContribution disableAdd={contributionInfos.length >= 20} onAddContribution={onAddContribution} />
             {contributionInfos.map((contributionInfo: any, index: number) => (
               <div className="pc__list__item" key={`member-skills-team-info-${contributionInfo.projectUid}-${index}`}>
@@ -173,7 +177,7 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
                       displayKey="projectName"
                       id={`member-contribution-project-${index}`}
                       onChange={(item) => onProjectSelectionChanged(index, item)}
-                      defaultImage='/icons/project-default.svg'
+                      defaultImage="/icons/project-default.svg"
                     />
                   </div>
                   <div className="pc__list__item__form__item">
@@ -186,21 +190,50 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
                       label="Role*"
                       id={`member-contribution-role-${index}`}
                       name={`contributionInfo${index}-role`}
-                    /> 
+                    />
                   </div>
                   <div className="pc__list__item__form__item">
-                    <MonthYearPicker onDateChange={(value: string) => onProjectDetailsChanged(index, value, 'startDate')} id={`member-contribution-startDate-${contributionInfo.projectUid}-${index}`} dayValue='start' name={`contributionInfo${index}-startDate`} label="start" minYear={1970} maxYear={new Date().getFullYear()}  initialDate={contributionInfo.startDate ?? defaultValues.startDate} />
-                    <MonthYearPicker onDateChange={(value: string) => onProjectDetailsChanged(index, value, 'endDate')}  id={`member-contribution-endDate-${contributionInfo.projectUid}-${index}`} dayValue='end'  name={`contributionInfo${index}-endDate`} label="end" minYear={1970} maxYear={new Date().getFullYear()} initialDate={(!contributionInfo.endDate && !contributionInfo.currentProject) ? defaultValues.endDate : contributionInfo.endDate}   />
+                    <MonthYearPicker
+                      onDateChange={(value: string) => onProjectDetailsChanged(index, value, 'startDate')}
+                      id={`member-contribution-startDate-${contributionInfo.projectUid}-${index}`}
+                      dayValue="start"
+                      name={`contributionInfo${index}-startDate`}
+                      label="start"
+                      minYear={1970}
+                      maxYear={new Date().getFullYear()}
+                      initialDate={contributionInfo.startDate ?? defaultValues.startDate}
+                    />
+                    <MonthYearPicker
+                      onDateChange={(value: string) => onProjectDetailsChanged(index, value, 'endDate')}
+                      id={`member-contribution-endDate-${contributionInfo.projectUid}-${index}`}
+                      dayValue="end"
+                      name={`contributionInfo${index}-endDate`}
+                      label="end"
+                      minYear={1970}
+                      maxYear={new Date().getFullYear()}
+                      initialDate={
+                        !contributionInfo.endDate && !contributionInfo.currentProject
+                          ? defaultValues.endDate
+                          : contributionInfo.endDate
+                      }
+                    />
                   </div>
                   <div className="pc__list__item__form__item">
                     <div className="editor">
-                      <TextAreaEditor value={contributionInfo.description} name={`contributionInfo${index}-description`} label="Description" placeholder="Enter project contribution.." />
+                      <TextAreaEditor
+                        value={contributionInfo.description}
+                        name={`contributionInfo${index}-description`}
+                        label="Description"
+                        placeholder="Enter project contribution.."
+                      />
                     </div>
                   </div>
                 </div>
               </div>
             ))}
-            {expandedId !== -1 && <AddContribution disableAdd={contributionInfos.length >= 20} onAddContribution={onAddContribution} />}
+            {expandedId !== -1 && (
+              <AddContribution disableAdd={contributionInfos.length >= 20} onAddContribution={onAddContribution} />
+            )}
           </div>
         )}
       </div>

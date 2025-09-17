@@ -10,11 +10,11 @@
   width: 100%;
   padding: var(--spacing-2xs, 8px) var(--spacing-md, 16px);
   gap: 10px;
-  background: var(--background-base-white, #FFF);
+  background: var(--background-base-white, #fff);
   box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 
   h1 {
-    color: #0F172A;
+    color: #0f172a;
     font-size: 18px;
     font-style: normal;
     font-weight: 500;
@@ -28,7 +28,7 @@
     padding: 12px 0 0 0;
 
     h1 {
-      color: var(--Text-text-dark, #0F172A);
+      color: var(--Text-text-dark, #0f172a);
       font-size: 28px;
       font-style: normal;
       font-weight: 700;
@@ -42,7 +42,7 @@
   white-space: nowrap;
   align-items: center;
   gap: 8px;
-  color: var(--Text-text-dark, #0F172A);
+  color: var(--Text-text-dark, #0f172a);
   font-size: 12px;
   font-style: normal;
   font-weight: 400;
@@ -50,7 +50,7 @@
   letter-spacing: -0.2px;
 
   @include media.tablet-landscape {
-    color: var(--Text-text-dark, #0F172A);
+    color: var(--Text-text-dark, #0f172a);
 
     font-size: 15px;
     font-style: normal;
@@ -60,7 +60,7 @@
 }
 
 .control {
-  color: var(--Text-text-dark, #0F172A);
+  color: var(--Text-text-dark, #0f172a);
   font-size: 14px !important;
   font-style: normal;
   font-weight: 400 !important;

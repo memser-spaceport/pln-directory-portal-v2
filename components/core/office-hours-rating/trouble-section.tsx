@@ -19,14 +19,12 @@ interface ITroubleSection {
   onMultiSelectClicked: () => void;
 }
 
-
-
 const TroubleSection = (props: ITroubleSection) => {
   const onTroubleOptionClickHandler = props.onTroubleOptionClickHandler;
   const troubles = props?.troubles ?? [];
   const setErrors = props?.setErrors;
   const currentFollowup = props?.currentFollowup;
-  const onMultiSelectClicked = props?.onMultiSelectClicked
+  const onMultiSelectClicked = props?.onMultiSelectClicked;
 
   const [selectedDidntHappenedOption, setSelectedDidntHappenedOption] = useState('');
   const [selectedTechnicalIssues, setSelectedTechnicalIssues] = useState<string[]>([]);
@@ -46,15 +44,14 @@ const TroubleSection = (props: ITroubleSection) => {
     setSelectedTechnicalIssues([...selectedTechnicalIssues, issue.name]);
   };
 
-
   const reset = () => {
-    setSelectedDidntHappenedOption("");
+    setSelectedDidntHappenedOption('');
     setSelectedTechnicalIssues([]);
-  }
+  };
 
   useEffect(() => {
     reset();
-  }, [currentFollowup])
+  }, [currentFollowup]);
 
   return (
     <>
@@ -65,8 +62,8 @@ const TroubleSection = (props: ITroubleSection) => {
           <span className="trblesec__titlctr__ttl">Did you experience any issues with the meeting?</span>
         </div>
 
-     {/* Technial issue */}
-     <div className="trblesec__techisue">
+        {/* Technial issue */}
+        <div className="trblesec__techisue">
           <div className="trblesec__techisue__optn">
             <div className="trblesec__techisue__chckbox">
               {troubles?.includes(TROUBLES_INFO.technicalIssues.name) && (
@@ -83,7 +80,11 @@ const TroubleSection = (props: ITroubleSection) => {
               )}
 
               {!troubles?.includes(TROUBLES_INFO.technicalIssues.name) && (
-                <button type="button" onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.technicalIssues.name)} className="trblesec__techisue__optn__chckbox__notsltdbtn"></button>
+                <button
+                  type="button"
+                  onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.technicalIssues.name)}
+                  className="trblesec__techisue__optn__chckbox__notsltdbtn"
+                ></button>
               )}
             </div>
             <div className="trblesec__techisue__optn__cnt">Faced technical issues</div>
@@ -91,20 +92,37 @@ const TroubleSection = (props: ITroubleSection) => {
 
           {troubles?.includes(TROUBLES_INFO.technicalIssues.name) && (
             <div className="trblesec__techisue__ddown">
-              <OfficeHoursMultiSelect side="top" onMultiSelectedClick={onMultiSelectClicked} displayKey="name" items={TECHNICALISSUESOPTIONS} selectedItems={selectedTechnicalIssues} onItemSelect={onTechnicalIssueClickHandler} />
+              <OfficeHoursMultiSelect
+                side="top"
+                onMultiSelectedClick={onMultiSelectClicked}
+                displayKey="name"
+                items={TECHNICALISSUESOPTIONS}
+                selectedItems={selectedTechnicalIssues}
+                onItemSelect={onTechnicalIssueClickHandler}
+              />
             </div>
           )}
 
           {selectedTechnicalIssues.includes('Other') && (
             <div className="trblesec__didnthpn__ddown__othrctr">
               <div className="trblesec__didnthpn__ddown__othrctr__ttl">Specify other reason(s)*</div>{' '}
-              <TextArea isMandatory={true} maxLength={1000} name={'technnicalIssueReason'} id={'reason'} placeholder="Enter Details Here" />
+              <TextArea
+                isMandatory={true}
+                maxLength={1000}
+                name={'technnicalIssueReason'}
+                id={'reason'}
+                placeholder="Enter Details Here"
+              />
             </div>
           )}
 
           {selectedTechnicalIssues?.map((technicalIssue: string, index: number) => (
             <Fragment key={`${technicalIssue}-${index}`}>
-              <HiddenField value={technicalIssue ?? ''} defaultValue={technicalIssue ?? ''} name={`technicalIssue-${index}`} />
+              <HiddenField
+                value={technicalIssue ?? ''}
+                defaultValue={technicalIssue ?? ''}
+                name={`technicalIssue-${index}`}
+              />
             </Fragment>
           ))}
         </div>
@@ -126,7 +144,11 @@ const TroubleSection = (props: ITroubleSection) => {
               )}
 
               {!troubles?.includes(TROUBLES_INFO.didntHappened.name) && (
-                <button type="button" onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.didntHappened.name)} className="trblesec__didnthpn__optn__chckbox__notsltdbtn"></button>
+                <button
+                  type="button"
+                  onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.didntHappened.name)}
+                  className="trblesec__didnthpn__optn__chckbox__notsltdbtn"
+                ></button>
               )}
             </div>
             <div className="trblesec__didnthpn__optn__cnt">Meeting didn’t happen</div>
@@ -135,7 +157,7 @@ const TroubleSection = (props: ITroubleSection) => {
           {troubles?.includes(TROUBLES_INFO.didntHappened.name) && (
             <div className="trblesec__didnthpn__ddown">
               <SingleSelect
-              onSingleSelectClicked={onMultiSelectClicked}
+                onSingleSelectClicked={onMultiSelectClicked}
                 displayKey="name"
                 arrowImgUrl="/icons/arrow-down.svg"
                 id="didnthappendReason"
@@ -148,22 +170,38 @@ const TroubleSection = (props: ITroubleSection) => {
 
               {selectedDidntHappenedOption === 'Got rescheduled' && (
                 <div>
-                  <TextField  isMandatory={true} defaultValue={''} id="register-member-startDate" label="" name="scheduledAt" type="date" placeholder="Select Date" />
+                  <TextField
+                    isMandatory={true}
+                    defaultValue={''}
+                    id="register-member-startDate"
+                    label=""
+                    name="scheduledAt"
+                    type="date"
+                    placeholder="Select Date"
+                  />
                 </div>
               )}
 
               {selectedDidntHappenedOption === 'Other' && (
                 <div className="trblesec__didnthpn__ddown__othrctr">
                   <div className="trblesec__didnthpn__ddown__othrctr__ttl">Specify other reason(s)*</div>{' '}
-                  <TextArea isMandatory={true} maxLength={1000} name={'didntHappenedReason'} id={'reason'} placeholder="Enter Details Here" />
+                  <TextArea
+                    isMandatory={true}
+                    maxLength={1000}
+                    name={'didntHappenedReason'}
+                    id={'reason'}
+                    placeholder="Enter Details Here"
+                  />
                 </div>
               )}
             </div>
           )}
-          <HiddenField value={selectedDidntHappenedOption} defaultValue={selectedDidntHappenedOption} name={`didntHappenedOption`} />
+          <HiddenField
+            value={selectedDidntHappenedOption}
+            defaultValue={selectedDidntHappenedOption}
+            name={`didntHappenedOption`}
+          />
         </div>
-
-   
       </div>
 
       <style jsx>

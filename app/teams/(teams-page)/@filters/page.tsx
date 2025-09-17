@@ -2,7 +2,12 @@ import { getTeamListFilters } from '@/services/teams.service';
 import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
 import { DEFAULT_ASK_TAGS } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { getTeamsListOptions, getTeamsOptionsFromQuery, parseFocusAreasParams, processFilters } from '@/utils/team.utils';
+import {
+  getTeamsListOptions,
+  getTeamsOptionsFromQuery,
+  parseFocusAreasParams,
+  processFilters,
+} from '@/utils/team.utils';
 import Error from '../../../../components/core/error';
 import FilterWrapper from '../../../../components/page/teams/filter-wrapper';
 import { getFocusAreas } from '@/services/common.service';
@@ -16,9 +21,7 @@ async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
     return <Error />;
   }
 
-  return (
-    <FilterWrapper searchParams={searchParams} filterValues={filtersValues} userInfo={userInfo} />
-  );
+  return <FilterWrapper searchParams={searchParams} filterValues={filtersValues} userInfo={userInfo} />;
 }
 
 export default Page;
@@ -34,15 +37,14 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
     const [teamListFiltersResponse, teamListFiltersForOptionsResponse, focusAreaResponse] = await Promise.all([
       getTeamListFilters({}),
       getTeamListFilters(listOptions),
-      getFocusAreas("Team", parseFocusAreasParams(searchParams)),
+      getFocusAreas('Team', parseFocusAreasParams(searchParams)),
     ]);
 
     if (teamListFiltersResponse?.data?.askTags) {
       teamListFiltersResponse.data.askTags = [
         ...(teamListFiltersResponse?.data?.askTags || []),
         ...DEFAULT_ASK_TAGS.filter(
-          (defaultTag) =>
-            !(teamListFiltersResponse?.data?.askTags || []).includes(defaultTag)
+          (defaultTag) => !(teamListFiltersResponse?.data?.askTags || []).includes(defaultTag),
         ),
       ];
     }
@@ -52,8 +54,13 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
       return { isError };
     }
 
-    filtersValues = processFilters(searchParams, teamListFiltersResponse?.data, teamListFiltersForOptionsResponse?.data, focusAreaResponse?.data);
-    
+    filtersValues = processFilters(
+      searchParams,
+      teamListFiltersResponse?.data,
+      teamListFiltersForOptionsResponse?.data,
+      focusAreaResponse?.data,
+    );
+
     if (searchParams?.asks === 'all') {
       filtersValues.asks.forEach((ask) => {
         if (!ask.disabled) {

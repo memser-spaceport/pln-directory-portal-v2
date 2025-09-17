@@ -4,7 +4,9 @@
   min-height: 20px;
   background: var(--Neutral-White);
   border-radius: 8px;
-  box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
   padding: 16px;
   position: relative;
 
@@ -29,19 +31,21 @@
       position: relative;
       inset: unset;
       z-index: unset;
-      background: linear-gradient(0deg, rgba(21, 111, 247, 0.20) 0%, rgba(21, 111, 247, 0.20) 100%), #FFF;
-      box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+      background: linear-gradient(0deg, rgba(21, 111, 247, 0.2) 0%, rgba(21, 111, 247, 0.2) 100%), #fff;
+      box-shadow:
+        0 0 1px 0 rgba(15, 23, 42, 0.12),
+        0 4px 4px 0 rgba(15, 23, 42, 0.04);
     }
   }
 
   &.missingData {
     border-radius: 8px;
-    border: 1px solid #FDE68A;
+    border: 1px solid #fde68a;
   }
 
   .missingDataHeader {
     border-radius: 0;
-    background: #EEBD6C;
+    background: #eebd6c;
     display: flex;
     padding: 8px 16px;
     justify-content: center;
@@ -49,7 +53,7 @@
     align-self: stretch;
     gap: 8px;
 
-    color: #0F172A;
+    color: #0f172a;
     font-size: 12px;
     font-style: normal;
     font-weight: 400;
@@ -88,7 +92,7 @@
   border-radius: var(--corner-radius-Full-round, 9999px);
   background: var(--transparent-brand-4, rgba(27, 77, 255, 0.04));
 
-  color: var(--foreground-brand-secondary_inverted, #4174FF);
+  color: var(--foreground-brand-secondary_inverted, #4174ff);
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -103,7 +107,7 @@
 }
 
 .role {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 14px;
   font-style: normal;
   font-weight: 400;

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from "react";
-import { ButtonHTMLAttributes } from "react";
-import Image from "next/image";
+import { useState } from 'react';
+import { ButtonHTMLAttributes } from 'react';
+import Image from 'next/image';
 
 interface ShadowButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   buttonColor?: string;
@@ -19,16 +19,16 @@ interface ShadowButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export default function ShadowButton({
-  buttonColor = "#156FF7",
-  shadowColor = "#3DFEB1",
-  buttonWidth = "100%",
-  buttonHeight = "100%",
+  buttonColor = '#156FF7',
+  shadowColor = '#3DFEB1',
+  buttonWidth = '100%',
+  buttonHeight = '100%',
   iconSrc,
-  iconAlt = "button icon",
+  iconAlt = 'button icon',
   iconWidth = 20,
   iconHeight = 20,
   iconPosition = 'left',
-  textColor = "white",
+  textColor = 'white',
   children,
   ...props
 }: ShadowButtonProps) {
@@ -91,7 +91,7 @@ export default function ShadowButton({
           line-height: 24px;
           color: ${textColor};
           white-space: nowrap;
-          transform: ${isHovering ? "translate(2.5px, 3px)" : "translate(0, 0)"};
+          transform: ${isHovering ? 'translate(2.5px, 3px)' : 'translate(0, 0)'};
         }
       `}</style>
       <style jsx global>{`
@@ -99,15 +99,15 @@ export default function ShadowButton({
           display: flex;
           align-items: center;
         }
-        
+
         .icon-container.left {
           margin-right: 8px;
         }
-        
+
         .icon-container.right {
           margin-left: 8px;
         }
-        
+
         .text-content {
           display: flex;
           align-items: center;
@@ -115,4 +115,4 @@ export default function ShadowButton({
       `}</style>
     </div>
   );
-} 
+}

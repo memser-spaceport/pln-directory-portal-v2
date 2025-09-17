@@ -25,7 +25,16 @@ const ProjectListView = (props: any) => {
       <>
         <div className="projectlist">
           <div className="projectlistt__profile">
-            <Image alt="profile" height={72} width={72} layout="intrinsic" loading="eager" priority={true} className="projectlist__profile__img" src={profile} />
+            <Image
+              alt="profile"
+              height={72}
+              width={72}
+              layout="intrinsic"
+              loading="eager"
+              priority={true}
+              className="projectlist__profile__img"
+              src={profile}
+            />
           </div>
           <div className="projectlist__details">
             <div className="projectlist__details__cn">
@@ -35,7 +44,13 @@ const ProjectListView = (props: any) => {
                   <Tooltip
                     side="top"
                     asChild
-                    trigger={<img className="projectlist__details__cn__name__fund" alt="Raising funds" src="/icons/raising-fund-indicator.svg" />}
+                    trigger={
+                      <img
+                        className="projectlist__details__cn__name__fund"
+                        alt="Raising funds"
+                        src="/icons/raising-fund-indicator.svg"
+                      />
+                    }
                     content={'Raising Funds'}
                   />
                 )}
@@ -48,34 +63,44 @@ const ProjectListView = (props: any) => {
               <div className="projectlist__details__right__container__tags">
                 {tags.slice(0, tagsCountToShow).map((tag: Option, index: number) => (
                   <Fragment key={tag.label}>
-                  <Tooltip
-                    asChild
-                    trigger={
-                      <div key={index} className="projectlist__details__right__container__tags__tag">
-                    <span className="projectlist__details__right__container__tags__tag__text">{tag.label}</span>
-                  </div>
-                    }
-                    content={tag?.label}
-                  />
-                </Fragment>
-                  
+                    <Tooltip
+                      asChild
+                      trigger={
+                        <div key={index} className="projectlist__details__right__container__tags__tag">
+                          <span className="projectlist__details__right__container__tags__tag__text">{tag.label}</span>
+                        </div>
+                      }
+                      content={tag?.label}
+                    />
+                  </Fragment>
                 ))}
                 {tags.length > tagsCountToShow && (
                   <Tooltip
                     asChild
                     trigger={
                       <div className="projectlist__details__right__container__tags__tag">
-                    <span className="projectlist__details__right__container__tags__tag__text">+{tags.length - tagsCountToShow}</span>
-                  </div>
+                        <span className="projectlist__details__right__container__tags__tag__text">
+                          +{tags.length - tagsCountToShow}
+                        </span>
+                      </div>
                     }
-                    content={getRemainingTags(tags,tagsCountToShow)}
+                    content={getRemainingTags(tags, tagsCountToShow)}
                   />
                 )}
               </div>
-              <div className='projectlist__details__maintainer'>
-              <p className="projectlist__details__maintainer__cn__title">Maintainer</p>
-              <Image alt="maintainer" height={20} width={20} layout="intrinsic" loading="eager" priority={true} className="projectlist__details__maintainer__img" src={maintainerLogo} />
-              <p className="projectlist__details__maintainer__cn__name">{maintainerName}</p>
+              <div className="projectlist__details__maintainer">
+                <p className="projectlist__details__maintainer__cn__title">Maintainer</p>
+                <Image
+                  alt="maintainer"
+                  height={20}
+                  width={20}
+                  layout="intrinsic"
+                  loading="eager"
+                  priority={true}
+                  className="projectlist__details__maintainer__img"
+                  src={maintainerLogo}
+                />
+                <p className="projectlist__details__maintainer__cn__name">{maintainerName}</p>
               </div>
             </div>
 
@@ -100,7 +125,9 @@ const ProjectListView = (props: any) => {
               gap: 8px;
               height: 158px;
               border: 1px solid #fff;
-              box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+              box-shadow:
+                0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+                0px 0px 1px 0px rgba(15, 23, 42, 0.12);
             }
 
             .projectlist:hover {
@@ -216,11 +243,11 @@ const ProjectListView = (props: any) => {
               gap: 16px;
               flex-direction: column;
             }
-            
+
             @media (min-width: 768px) {
-            .projectlist__details {
-              flex-direction: row;
-          }
+              .projectlist__details {
+                flex-direction: row;
+              }
               .projectlist {
                 height: 112px;
               }
@@ -253,7 +280,7 @@ const ProjectListView = (props: any) => {
                 color: #94a3b8;
                 text-align: left;
               }
-          }
+            }
 
             @media (min-width: 1024px) {
               .projectlist__details {
@@ -299,9 +326,6 @@ const ProjectListView = (props: any) => {
               }
               .projectlist__maintainer {
               }
-
-
-              
 
               .projectlist__details {
                 display: flex;

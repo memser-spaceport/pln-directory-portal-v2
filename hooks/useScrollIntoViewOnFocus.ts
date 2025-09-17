@@ -7,7 +7,12 @@ type Options = {
   mobileOnly?: boolean; // ✅ new option
 };
 
-export function useScrollIntoViewOnFocus<T extends HTMLElement>({ id, behavior = 'smooth', block = 'center', mobileOnly = true }: Options = {}) {
+export function useScrollIntoViewOnFocus<T extends HTMLElement>({
+  id,
+  behavior = 'smooth',
+  block = 'center',
+  mobileOnly = true,
+}: Options = {}) {
   const ref = useRef<T | null>(null);
 
   useEffect(() => {

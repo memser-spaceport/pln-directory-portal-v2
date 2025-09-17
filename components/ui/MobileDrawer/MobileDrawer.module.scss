@@ -26,7 +26,7 @@
 .handle {
   width: 36px;
   height: 4px;
-  background: #CBD5E1;
+  background: #cbd5e1;
   border-radius: 2px;
   margin: 12px auto 8px;
   flex-shrink: 0;
@@ -37,14 +37,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
 }
 
 .title {
   font-size: 18px;
   font-weight: 600;
-  color: #0F172A;
+  color: #0f172a;
   margin: 0;
 }
 
@@ -53,7 +53,7 @@
   border: none;
   padding: 4px;
   cursor: pointer;
-  color: #64748B;
+  color: #64748b;
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -62,8 +62,8 @@
 }
 
 .closeButton:hover {
-  background: #F1F5F9;
-  color: #0F172A;
+  background: #f1f5f9;
+  color: #0f172a;
 }
 
 .content {
@@ -101,7 +101,7 @@
     max-height: 80vh;
     margin-bottom: 5vh;
   }
-  
+
   .overlay {
     align-items: center;
     padding: 20px;

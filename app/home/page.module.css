@@ -17,7 +17,7 @@
   position: sticky;
   top: 8px;
   z-index: 4;
-  background: linear-gradient(71.47deg, #E0EAF9 8.43%,  #E0F2F3 87.45%);
+  background: linear-gradient(71.47deg, #e0eaf9 8.43%, #e0f2f3 87.45%);
 }
 
 @media (min-width: 1024px) {

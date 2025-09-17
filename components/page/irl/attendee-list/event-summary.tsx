@@ -18,7 +18,12 @@ const EventSummary: React.FC<EventSummaryProps> = ({
     <>
       <div className="eventSummaryContainer">
         <div className="eventsContainer">
-          <Tooltip asChild align="start" content={<div className="eventName">{visibleEvents.join(', ')}</div>} trigger={<div className="eventsList">{visibleEvents.join(', ')}</div>}></Tooltip>
+          <Tooltip
+            asChild
+            align="start"
+            content={<div className="eventName">{visibleEvents.join(', ')}</div>}
+            trigger={<div className="eventsList">{visibleEvents.join(', ')}</div>}
+          ></Tooltip>
           {hiddenEventCount > 0 && (
             <Tooltip
               asChild

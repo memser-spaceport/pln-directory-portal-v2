@@ -85,10 +85,19 @@ export const AsksSection: FC<Props> = ({ team, canEdit }) => {
             setActiveTab(item as View);
           }}
         >
-          {activeTab === 'Open Asks' && <SubmitAskDialog canSubmit={canEdit} toggleVariant="secondary" team={team} openAsksCount={groupedData.open.length} />}
+          {activeTab === 'Open Asks' && (
+            <SubmitAskDialog
+              canSubmit={canEdit}
+              toggleVariant="secondary"
+              team={team}
+              openAsksCount={groupedData.open.length}
+            />
+          )}
         </Tabs>
       </div>
-      {activeTab === 'Open Asks' && !tabData.length && <NoDataView canSubmit={canEdit} team={team} openAsksCount={groupedData.open.length} />}
+      {activeTab === 'Open Asks' && !tabData.length && (
+        <NoDataView canSubmit={canEdit} team={team} openAsksCount={groupedData.open.length} />
+      )}
       {tabData.map((item) => {
         return <TeamAsksItem key={item.uid} data={item} canEdit={canEdit} team={team} />;
       })}

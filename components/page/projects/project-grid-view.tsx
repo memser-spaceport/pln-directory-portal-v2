@@ -36,13 +36,13 @@ const ProjectGridView = (props: any) => {
   }, []);
 
   //methods
-  const handleIconClick = (e:any) => {
+  const handleIconClick = (e: any) => {
     e.preventDefault();
     e.stopPropagation();
-  }
+  };
 
   const getTagLength = () => {
-    switch(tags.length) {
+    switch (tags.length) {
       case 1:
         return '214px';
       case 2:
@@ -50,18 +50,34 @@ const ProjectGridView = (props: any) => {
       default:
         return '69px';
     }
-  }
+  };
 
   return (
     <>
       <div className="projectgrid">
         <div className="projectgrid__profile">
-          <Image alt="profile" loading="eager" height={72} width={72} layout="intrinsic" priority={true} className="projectgrid__profile__img" src={profile} />
+          <Image
+            alt="profile"
+            loading="eager"
+            height={72}
+            width={72}
+            layout="intrinsic"
+            priority={true}
+            className="projectgrid__profile__img"
+            src={profile}
+          />
           {lookingForFunding && (
             <Tooltip
               side="top"
               asChild
-              trigger={<img className="projectgrid__profile__fund" onClick={handleIconClick} alt="profile" src="/icons/raising-fund-indicator.svg" />}
+              trigger={
+                <img
+                  className="projectgrid__profile__fund"
+                  onClick={handleIconClick}
+                  alt="profile"
+                  src="/icons/raising-fund-indicator.svg"
+                />
+              }
               content={'Raising Funds'}
             />
           )}
@@ -72,7 +88,16 @@ const ProjectGridView = (props: any) => {
             <p className="projectgrid__detail__cn__desc">{description}</p>
             <div className="projectgrid__maintainer">
               <p className="projectgrid__maintainer__cn__title">Maintainer - </p>
-              <Image alt="maintainer" loading="eager" height={14} width={14} layout="intrinsic" priority={true} className="projectgrid__maintainer__img" src={maintainerLogo} />
+              <Image
+                alt="maintainer"
+                loading="eager"
+                height={14}
+                width={14}
+                layout="intrinsic"
+                priority={true}
+                className="projectgrid__maintainer__img"
+                src={maintainerLogo}
+              />
               <p className="projectgrid__maintainer__cn__name">{maintainerName}</p>
             </div>
           </div>
@@ -99,7 +124,7 @@ const ProjectGridView = (props: any) => {
                     <span className="projectgrid__tags__tag__text">+{tags.length - tagsCountToShow}</span>
                   </div>
                 }
-                content={getRemainingTags(tags,tagsCountToShow)}
+                content={getRemainingTags(tags, tagsCountToShow)}
               />
             )}
             {/* <Image alt='maintainer' loading='eager' height={36} width={36} layout='intrinsic' priority={true} className="projectgrid__maintainer__img" src={maintainerLogo} />
@@ -118,7 +143,9 @@ const ProjectGridView = (props: any) => {
             background-color: #fff;
             border-radius: 12px;
             border: 1px solid #e2e8f0;
-            box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+            box-shadow:
+              0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+              0px 0px 1px 0px rgba(15, 23, 42, 0.12);
           }
 
           .projectgrid:hover {

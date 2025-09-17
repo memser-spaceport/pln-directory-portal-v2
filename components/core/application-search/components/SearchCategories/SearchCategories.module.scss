@@ -1,5 +1,5 @@
-@use "styles/media";
-@use "styles/mixins";
+@use 'styles/media';
+@use 'styles/mixins';
 
 .root {
   display: flex;
@@ -10,7 +10,7 @@
   gap: 10px;
   align-self: stretch;
 
-  background: #FFF;
+  background: #fff;
   //box-shadow: 0 1px 4px 0 #E2E8F0;
 
   overflow-x: auto;
@@ -50,9 +50,9 @@
     gap: var(--spacing-5xs, 2px);
 
     border-radius: var(--corner-radius-Full-round, 9999px);
-    background: var(--background-brand-default, #1B4DFF);
+    background: var(--background-brand-default, #1b4dff);
 
-    color: var(--foreground-light-primary_inverted, #FFF);
+    color: var(--foreground-light-primary_inverted, #fff);
     font-size: 12px;
     font-style: normal;
     font-weight: 500;
@@ -61,7 +61,7 @@
   }
 
   &:hover {
-    border-color: var(--background-brand-default, #1B4DFFAA);
+    border-color: var(--background-brand-default, #1b4dffaa);
   }
 }
 
@@ -88,14 +88,14 @@
 
   min-width: 50px;
 
-  &.active  {
+  &.active {
     border-width: 0;
     border-color: transparent;
     border-radius: var(--corner-radius-Full-round, 9999px);
-    background: var(--Gradients-2-Color-17, linear-gradient(285deg, #45D8FF 0%, #005BEA 82.52%));
+    background: var(--Gradients-2-Color-17, linear-gradient(285deg, #45d8ff 0%, #005bea 82.52%));
     height: 22px;
 
-    color: var(--foreground-light-primary_inverted, #FFF);
+    color: var(--foreground-light-primary_inverted, #fff);
     font-size: 12px;
     font-style: normal;
     font-weight: 500;

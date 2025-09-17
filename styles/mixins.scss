@@ -20,12 +20,7 @@
   }
 }
 
-@mixin typography(
-  $font-size,
-  $line-height,
-  $font-family: var(--font-family-primary),
-  $font-weight: normal
-) {
+@mixin typography($font-size, $line-height, $font-family: var(--font-family-primary), $font-weight: normal) {
   font-family: $font-family;
   font-size: $font-size;
   font-weight: $font-weight;

@@ -22,11 +22,7 @@ describe('FeaturedHeader Component', () => {
   });
 
   it('renders the FeaturedHeader component', () => {
-    render(<FeaturedHeader 
-      userInfo={mockUserInfo}
-      onClick={() => {}}
-      activeFilter=""
-    />);
+    render(<FeaturedHeader userInfo={mockUserInfo} onClick={() => {}} activeFilter="" />);
     // Check for the "All" filter button instead of "Featured"
     expect(screen.getByText('All')).toBeInTheDocument();
     // Check for other filter options to verify the component rendered correctly
@@ -38,26 +34,18 @@ describe('FeaturedHeader Component', () => {
 
   it('calls onClick and analytics when a filter button is clicked', () => {
     const mockOnClick = jest.fn();
-    render(<FeaturedHeader 
-      userInfo={mockUserInfo}
-      onClick={mockOnClick}
-      activeFilter=""
-    />);
-    
+    render(<FeaturedHeader userInfo={mockUserInfo} onClick={mockOnClick} activeFilter="" />);
+
     const teamFilterButton = screen.getByText('Teams');
     fireEvent.click(teamFilterButton);
-    
+
     expect(mockOnClick).toHaveBeenCalledWith('team');
     expect(mockAnalytics.onFeaturedFilterClicked).toHaveBeenCalledWith('team');
   });
 
   it('applies active class to the selected filter', () => {
-    render(<FeaturedHeader 
-      userInfo={mockUserInfo}
-      onClick={() => {}}
-      activeFilter="team"
-    />);
-    
+    render(<FeaturedHeader userInfo={mockUserInfo} onClick={() => {}} activeFilter="team" />);
+
     const teamFilterButton = screen.getByText('Teams');
     expect(teamFilterButton.className).toContain('active');
   });

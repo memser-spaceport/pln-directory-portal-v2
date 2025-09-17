@@ -97,7 +97,15 @@ const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled
       })}
       id={id}
     >
-      <ReactQuill ref={quillRef} theme="snow" value={value} onChange={onChange} className={clsx(s.editor, className)} readOnly={disabled} modules={modules} />
+      <ReactQuill
+        ref={quillRef}
+        theme="snow"
+        value={value}
+        onChange={onChange}
+        className={clsx(s.editor, className)}
+        readOnly={disabled}
+        modules={modules}
+      />
       {errorMessage && <div className={s.error}>{errorMessage}</div>}
     </div>
   );

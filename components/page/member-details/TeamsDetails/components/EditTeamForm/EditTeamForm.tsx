@@ -126,7 +126,17 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
         <div className={s.body}>
           {previewData ? (
             <div className={s.expItem}>
-              {previewData?.logo ? <Image src={previewData.logo ?? '/icons/default-project.svg'} alt={previewData.name ?? ''} width={40} height={40} className={s.logo} /> : <ExpIcon />}
+              {previewData?.logo ? (
+                <Image
+                  src={previewData.logo ?? '/icons/default-project.svg'}
+                  alt={previewData.name ?? ''}
+                  width={40}
+                  height={40}
+                  className={s.logo}
+                />
+              ) : (
+                <ExpIcon />
+              )}
               <div className={s.details}>
                 <div className={s.row}>
                   <div className={s.primaryLabel}>{previewData.name}</div>
@@ -139,13 +149,33 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
           ) : (
             formValues?.name?.value && (
               <div className={s.expItem}>
-                <Skeleton inline width={40} height={40} style={{ minWidth: 40, display: 'block', background: '#f3f3f3' }} borderRadius={8} />
+                <Skeleton
+                  inline
+                  width={40}
+                  height={40}
+                  style={{ minWidth: 40, display: 'block', background: '#f3f3f3' }}
+                  borderRadius={8}
+                />
                 <div className={s.details}>
                   <div className={s.row}>
-                    <Skeleton count={1} inline width={90} height={20} style={{ display: 'block', background: '#f3f3f3' }} borderRadius={4} />
+                    <Skeleton
+                      count={1}
+                      inline
+                      width={90}
+                      height={20}
+                      style={{ display: 'block', background: '#f3f3f3' }}
+                      borderRadius={4}
+                    />
                   </div>
                   <div className={s.row}>
-                    <Skeleton count={1} inline width={60} height={14} style={{ minWidth: 90, background: '#f3f3f3', display: 'block' }} borderRadius={4} />
+                    <Skeleton
+                      count={1}
+                      inline
+                      width={60}
+                      height={14}
+                      style={{ minWidth: 90, background: '#f3f3f3', display: 'block' }}
+                      borderRadius={4}
+                    />
                   </div>
                 </div>
               </div>

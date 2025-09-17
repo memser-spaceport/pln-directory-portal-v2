@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   padding-bottom: 40px;
-  background-color: #F1F5F9;
+  background-color: #f1f5f9;
   min-height: calc(100vh - 80px);
   max-width: 900px;
   width: 100%;
@@ -12,15 +12,13 @@
 .teamDetail__breadcrumb {
   /* display: none; */
   height: 48px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
   width: 100%;
   position: sticky;
   top: var(--app-header-height);
   z-index: 1;
   background-color: #fff;
-
 }
-
 
 .teamDetail__container {
   display: flex;
@@ -80,9 +78,7 @@
     z-index: 3;
   }
 
-
   .teamDetail__container__contact {
     border-radius: 8px;
   }
-
 }

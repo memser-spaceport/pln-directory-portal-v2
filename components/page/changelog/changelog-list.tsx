@@ -43,7 +43,10 @@ const ChangelogList = () => {
                   <h2 className="change-log-title" aria-label={changeLog.title}>
                     {changeLog.title}
                   </h2>
-                  <div className="change-log-short-content" dangerouslySetInnerHTML={{ __html: changeLog.shortContent }}></div>
+                  <div
+                    className="change-log-short-content"
+                    dangerouslySetInnerHTML={{ __html: changeLog.shortContent }}
+                  ></div>
                 </div>
               </div>
             );

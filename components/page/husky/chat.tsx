@@ -36,7 +36,17 @@ interface ChatProps {
   };
 }
 
-const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, setInitialMessages, from, setType, isOwnThread, threadOwner }) => {
+const Chat: React.FC<ChatProps> = ({
+  id,
+  isLoggedIn,
+  userInfo,
+  initialMessages,
+  setInitialMessages,
+  from,
+  setType,
+  isOwnThread,
+  threadOwner,
+}) => {
   const [feedbackQandA, setFeedbackQandA] = useState({ question: '', answer: '' });
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest'>(); // daily limit
   const feedbackPopupRef = useRef<HTMLDialogElement>(null);
@@ -73,7 +83,7 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
             name: z.string(),
             directoryLink: z.string(),
             type: z.string(),
-          })
+          }),
         )
         .optional(),
     }),
@@ -164,7 +174,14 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
 
   // handle all chat submission
   const handleChatSubmission = useCallback(
-    async ({ question, type }: { question: string; type: 'prompt' | 'followup' | 'user-input'; previousContext?: { question: string; answer: string } | null }) => {
+    async ({
+      question,
+      type,
+    }: {
+      question: string;
+      type: 'prompt' | 'followup' | 'user-input';
+      previousContext?: { question: string; answer: string } | null;
+    }) => {
       try {
         const { userInfo, authToken } = await getUserCredentials(isLoggedIn);
         const hasRefreshToken = checkRefreshToken();
@@ -219,10 +236,16 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
           return;
         }
 
-        if ((hasRefreshToken && messagesRef.current.length === 0) || (hasRefreshToken && fromRef.current === 'blog' && messagesRef.current.length === 1)) {
+        if (
+          (hasRefreshToken && messagesRef.current.length === 0) ||
+          (hasRefreshToken && fromRef.current === 'blog' && messagesRef.current.length === 1)
+        ) {
           const threadResponse = await createHuskyThread(authToken, threadId); // create new thread
           if (threadResponse) {
-            const [titleResponse] = await Promise.all([createThreadTitle(authToken, threadId, question), submitChat(submitParams)]); //create thread title
+            const [titleResponse] = await Promise.all([
+              createThreadTitle(authToken, threadId, question),
+              submitChat(submitParams),
+            ]); //create thread title
             if (titleResponse) {
               document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
             }
@@ -238,7 +261,21 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
         analytics.trackAiResponse('error', type, false, question);
       }
     },
-    [messages, id, from, isLoggedIn, userInfo, initialMessages, chatError, chatObject, chatIsLoading, checkAndSetThreadId, addMessage, submitChat, analytics],
+    [
+      messages,
+      id,
+      from,
+      isLoggedIn,
+      userInfo,
+      initialMessages,
+      chatError,
+      chatObject,
+      chatIsLoading,
+      checkAndSetThreadId,
+      addMessage,
+      submitChat,
+      analytics,
+    ],
   );
 
   // handle husky input submission
@@ -385,7 +422,11 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
     return (
       <>
         <div className="chat__home">
-          <ChatHome onSubmit={onHuskyInput} setMessages={setInitialMessages ?? (() => {})} setType={setType ?? (() => {})} />
+          <ChatHome
+            onSubmit={onHuskyInput}
+            setMessages={setInitialMessages ?? (() => {})}
+            setType={setType ?? (() => {})}
+          />
         </div>
         <style jsx>{`
           .chat__home {
@@ -413,7 +454,12 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
             <div className="chat__header">
               <div className="chat__header-info">
                 <span className="chat__header-info-text">Shared conversation from</span>
-                <img title={threadOwner?.name} className="chat__header-info-avatar" src={threadOwner?.image || '/icons/default_profile.svg'} alt="user" />
+                <img
+                  title={threadOwner?.name}
+                  className="chat__header-info-avatar"
+                  src={threadOwner?.image || '/icons/default_profile.svg'}
+                  alt="user"
+                />
               </div>
             </div>
           )}
@@ -438,7 +484,9 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
                   <div className="chat__new-conversation-icon">
                     <img src="/icons/husky/husky-face-trans.svg" alt="Husky icon" />
                   </div>
-                  <div className="chat__new-conversation-text">Click &ldquo;Continue Conversation&ldquo; to start a new chat instance with this conversation</div>
+                  <div className="chat__new-conversation-text">
+                    Click &ldquo;Continue Conversation&ldquo; to start a new chat instance with this conversation
+                  </div>
                 </div>
                 <button className="chat__new-conversation-button" onClick={handleContinueConversation}>
                   Continue Conversation
@@ -448,7 +496,14 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
           ) : (
             <div data-state={isLoggedIn ? state : ''} className="chat__form-wrapper">
               <form className="chat__form">
-                {limitReached && <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} from="husky-chat" />}
+                {limitReached && (
+                  <HuskyLimitStrip
+                    mode="chat"
+                    count={DAILY_CHAT_LIMIT - getChatCount()}
+                    type={limitReached}
+                    from="husky-chat"
+                  />
+                )}
                 <ChatInput
                   ref={textareaRef}
                   placeholder="Go ahead, ask anything!"
@@ -468,7 +523,11 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
           <dialog onClose={onCloseFeedback} ref={feedbackPopupRef} className="feedback-popup">
             {feedbackQandA.answer && feedbackQandA.question && (
               <>
-                <ChatFeedback question={feedbackQandA.question} answer={feedbackQandA.answer} onClose={onCloseFeedback} />
+                <ChatFeedback
+                  question={feedbackQandA.question}
+                  answer={feedbackQandA.answer}
+                  onClose={onCloseFeedback}
+                />
                 <RegisterFormLoader />
               </>
             )}

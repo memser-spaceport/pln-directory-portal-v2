@@ -6,7 +6,7 @@ interface ICustomCheckbox {
   value: string;
   disabled?: boolean;
   onSelect: any;
-  initialValue: any
+  initialValue: any;
 }
 
 const CustomCheckbox = (props: ICustomCheckbox) => {
@@ -17,7 +17,7 @@ const CustomCheckbox = (props: ICustomCheckbox) => {
   const onSelect = props?.onSelect;
 
   const onisCheckedClicked = () => {
-      onSelect();
+    onSelect();
     setIsChecked(!ischecked);
   };
 
@@ -27,7 +27,12 @@ const CustomCheckbox = (props: ICustomCheckbox) => {
 
   return (
     <>
-      <button type="button" disabled={disabled} className={`chbox ${ischecked ? (disabled ? 'checked--disable' : 'checked') : (disabled ? 'unchecked--disable' : 'unchecked')}`}  onClick={onisCheckedClicked}>
+      <button
+        type="button"
+        disabled={disabled}
+        className={`chbox ${ischecked ? (disabled ? 'checked--disable' : 'checked') : disabled ? 'unchecked--disable' : 'unchecked'}`}
+        onClick={onisCheckedClicked}
+      >
         {ischecked && <img src="/icons/right-white.svg" alt="checkbox" />}
         {(ischecked || disabled) && <HiddenField name={name} value={value} defaultValue={value} />}
       </button>
@@ -69,8 +74,6 @@ const CustomCheckbox = (props: ICustomCheckbox) => {
           .checked {
             background-color: #156ff7;
           }
-
-
         `}
       </style>
     </>

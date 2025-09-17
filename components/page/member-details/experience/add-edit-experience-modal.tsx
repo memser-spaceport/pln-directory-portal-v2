@@ -148,12 +148,22 @@ export default function AddEditExperienceModal({ member, userInfo }: { member: a
       <form className="add-edit-experience__modal" action={handleSubmit} autoComplete="off" noValidate ref={formRef}>
         {experienceRef.current?.uid && <input type="hidden" name="experience-uid" value={experienceRef.current.uid} />}
         <input type="hidden" name="actionType" value={formActionType} />
-        {experienceRef.current?.memberId && <input type="hidden" name="memberId" value={experienceRef.current.memberId} />}
+        {experienceRef.current?.memberId && (
+          <input type="hidden" name="memberId" value={experienceRef.current.memberId} />
+        )}
         <div className="add-edit-experience__modal__header">
           <h2>{isEdit ? 'Edit' : 'Add'} Experience</h2>
         </div>
         <div className="add-edit-experience__modal__body">
-          <TextField label="Role*" defaultValue={experienceRef.current?.title || ''} type="text" name="experience-title" required={true} id="experience-title" placeholder="Enter role" />
+          <TextField
+            label="Role*"
+            defaultValue={experienceRef.current?.title || ''}
+            type="text"
+            name="experience-title"
+            required={true}
+            id="experience-title"
+            placeholder="Enter role"
+          />
           {errors.title && <span className="error-text">{errors.title}</span>}
 
           <TextField
@@ -169,8 +179,15 @@ export default function AddEditExperienceModal({ member, userInfo }: { member: a
 
           <div className="add-edit-experience__modal__description">
             <label className="add-edit-experience__modal__description__label">Impact or Work Description</label>
-            <RichTextEditor value={experienceRef.current?.description || ''} onChange={(value: string) => updateExperience('description', value)} />
-            <HiddenField value={experienceRef.current?.description || ''} defaultValue={experienceRef.current?.description || ''} name={`description`} />
+            <RichTextEditor
+              value={experienceRef.current?.description || ''}
+              onChange={(value: string) => updateExperience('description', value)}
+            />
+            <HiddenField
+              value={experienceRef.current?.description || ''}
+              defaultValue={experienceRef.current?.description || ''}
+              name={`description`}
+            />
           </div>
           {errors.description && <p className="error-text">{errors.description}</p>}
 
@@ -185,7 +202,9 @@ export default function AddEditExperienceModal({ member, userInfo }: { member: a
               minYear={1970}
               sort="desc"
               maxYear={new Date().getFullYear()}
-              initialDate={experienceRef.current?.startDate ? new Date(experienceRef.current?.startDate).toISOString() : undefined}
+              initialDate={
+                experienceRef.current?.startDate ? new Date(experienceRef.current?.startDate).toISOString() : undefined
+              }
             />
             <MonthYearPicker
               onDateChange={(value: string) => updateExperience('endDate', value)}
@@ -197,7 +216,13 @@ export default function AddEditExperienceModal({ member, userInfo }: { member: a
               minYear={1970}
               sort="desc"
               maxYear={new Date().getFullYear()}
-              initialDate={experienceRef?.current?.isCurrent ? undefined : experienceRef?.current?.endDate ? new Date(experienceRef.current?.endDate).toISOString() : undefined}
+              initialDate={
+                experienceRef?.current?.isCurrent
+                  ? undefined
+                  : experienceRef?.current?.endDate
+                    ? new Date(experienceRef.current?.endDate).toISOString()
+                    : undefined
+              }
             />
             <div className="add-edit-experience__modal__dates__current">
               <span>Present</span>
@@ -217,7 +242,14 @@ export default function AddEditExperienceModal({ member, userInfo }: { member: a
           </div>
           {errors.startDate && <p className="error-text">{errors.startDate}</p>}
           {errors.endDate && <p className="error-text">{errors.endDate}</p>}
-          <TextField label="Location" defaultValue={experienceRef.current?.location || ''} type="text" placeholder="Enter location" name="experience-location" id="experience-location" />
+          <TextField
+            label="Location"
+            defaultValue={experienceRef.current?.location || ''}
+            type="text"
+            placeholder="Enter location"
+            name="experience-location"
+            id="experience-location"
+          />
           {errors.location && <p className="error-text">{errors.location}</p>}
         </div>
         <div className="add-edit-experience__modal__footer">
@@ -229,7 +261,12 @@ export default function AddEditExperienceModal({ member, userInfo }: { member: a
           <button type="button" className="cancel-btn" onClick={closeModal}>
             Cancel
           </button>
-          <button type="button" className="save-btn" style={{ background: '#156ff7', color: '#fff' }} onClick={handleSave}>
+          <button
+            type="button"
+            className="save-btn"
+            style={{ background: '#156ff7', color: '#fff' }}
+            onClick={handleSave}
+          >
             Save
           </button>
         </div>

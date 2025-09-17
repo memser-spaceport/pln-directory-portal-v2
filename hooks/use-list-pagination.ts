@@ -20,7 +20,7 @@ const useListPagination = (props: any) => {
         root: document.body,
         rootMargin: '0px 0px 4000px 0px',
         threshold: 0,
-      }
+      },
     );
 
     if (observerTarget.current) {

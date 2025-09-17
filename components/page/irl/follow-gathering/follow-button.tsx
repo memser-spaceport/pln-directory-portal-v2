@@ -55,7 +55,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
               isActive: true,
             }),
           },
-          true
+          true,
         );
 
         if (response?.ok) {
@@ -66,7 +66,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
             document.dispatchEvent(
               new CustomEvent(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, {
                 detail: followersResponse.data,
-              })
+              }),
             );
           }
         }
@@ -99,7 +99,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
             Authorization: `Bearer ${authToken}`,
           },
         },
-        true
+        true,
       );
       if (response?.ok) {
         toast.success(`Successfully unfollowed ${eventLocationSummary.name}`);
@@ -109,7 +109,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
           document.dispatchEvent(
             new CustomEvent(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, {
               detail: followersResponse.data,
-            })
+            }),
           );
         }
       }
@@ -124,7 +124,10 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
     <>
       <div className="followRoot">
         {followProperties?.isFollowing ? (
-          <button className="followRoot__followingBtn" onClick={() => handleClickUnFollowPopUp(eventLocationSummary.uid)}>
+          <button
+            className="followRoot__followingBtn"
+            onClick={() => handleClickUnFollowPopUp(eventLocationSummary.uid)}
+          >
             <img src="/icons/bell-green.svg" alt="follow" />
             Following
           </button>
@@ -138,7 +141,10 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
       <Modal modalRef={dialogRef} onClose={onCloseModal}>
         <div className="popup__cnt">
           <div className="popup__cnt__header"> Wait! You&apos;re about to miss out…</div>
-          <div className="popup__cnt__body">You&apos;ll stop receiving updates about exciting events happening in {eventLocationSummary.name}. Stay connected to never miss out!</div>
+          <div className="popup__cnt__body">
+            You&apos;ll stop receiving updates about exciting events happening in {eventLocationSummary.name}. Stay
+            connected to never miss out!
+          </div>
 
           <div className="popup__footer">
             <button onClick={onCloseModal} className="popup__footer__cancel">
@@ -159,7 +165,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
       <style jsx>
         {`
           .followRoot__followBtn {
-            padding: ${expand ? "9px 15.5px" : "9px 40px"};
+            padding: ${expand ? '9px 15.5px' : '9px 40px'};
             min-width: 103px;
             border: 1px solid #cbd5e1;
             background: #fff;
@@ -175,7 +181,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
           }
 
           .followRoot__followingBtn {
-            padding: ${expand ? "9px 7px" : "9px 35px"}; 
+            padding: ${expand ? '9px 7px' : '9px 35px'};
             border: 1px solid #cbd5e1;
             background: #ffffff;
             border-radius: 8px;
@@ -265,7 +271,8 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
           }
 
           @media (min-width: 768px) {
-            .followRoot__followBtn, .followRoot__followingBtn {
+            .followRoot__followBtn,
+            .followRoot__followingBtn {
               padding: 10px 16px !important;
             }
           }

@@ -37,7 +37,18 @@ const schema = yup.object().shape({
   emailMe: yup.boolean(),
 });
 
-export const CommentsInputDesktop = ({ tid, toPid, itemUid, replyToName, onCancel, isReply, initialFocused, isEdit, initialContent, timestamp }: Props) => {
+export const CommentsInputDesktop = ({
+  tid,
+  toPid,
+  itemUid,
+  replyToName,
+  onCancel,
+  isReply,
+  initialFocused,
+  isEdit,
+  initialContent,
+  timestamp,
+}: Props) => {
   const analytics = useForumAnalytics();
   const ref = useRef<HTMLFormElement | null>(null);
   const { userInfo } = getCookiesFromClient();
@@ -154,7 +165,12 @@ export const CommentsInputDesktop = ({ tid, toPid, itemUid, replyToName, onCance
       <form className={s.root} noValidate onSubmit={handleSubmit(onSubmit)} ref={ref}>
         {focused ? (
           <>
-            <FormEditor autoFocus name="comment" placeholder="Comment" label={replyToName ? `Replying to ${replyToName}` : ''} />
+            <FormEditor
+              autoFocus
+              name="comment"
+              placeholder="Comment"
+              label={replyToName ? `Replying to ${replyToName}` : ''}
+            />
             <label className={s.Label}>
               <div className={s.primary}>Email me when someone comments on this post.</div>
               <Checkbox.Root

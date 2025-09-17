@@ -21,16 +21,14 @@ export function useLocalStorageParam<T>(key: string, initialValue: T) {
         window.localStorage.setItem(key, JSON.stringify(value));
       }
     },
-    [key]
+    [key],
   );
 
   // Sync the state with localStorage if it changes elsewhere
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === key) {
-        setStoredValue(
-          event.newValue ? (JSON.parse(event.newValue) as T) : initialValue
-        );
+        setStoredValue(event.newValue ? (JSON.parse(event.newValue) as T) : initialValue);
       }
     };
 

@@ -17,7 +17,7 @@ const MemberSkillList = (props: any) => {
                 asChild
                 trigger={
                   <div>
-                    <Tag value={skill?.title} variant={isListView ? "": "primary"} tagsLength={skills?.length} />
+                    <Tag value={skill?.title} variant={isListView ? '' : 'primary'} tagsLength={skills?.length} />
                   </div>
                 }
                 content={skill?.title}
@@ -37,7 +37,8 @@ const MemberSkillList = (props: any) => {
               <div>
                 {skills?.slice(noOfSkillsToShow, skills?.length).map((skill: any, index: number) => (
                   <div key={`${skill} + ${skill} + ${index}`}>
-                    {skill?.title}{index !== skills?.slice(noOfSkillsToShow, skills?.length - 1)?.length ? ',' : ''}
+                    {skill?.title}
+                    {index !== skills?.slice(noOfSkillsToShow, skills?.length - 1)?.length ? ',' : ''}
                   </div>
                 ))}
               </div>

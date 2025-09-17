@@ -185,7 +185,14 @@ const AttendeeDetails = (props: IAttendeeForm) => {
   const updateMemberDetails = async (updateAll: boolean) => {
     try {
       triggerLoader(true);
-      const memberResult = await getMember(selectedMember.uid ?? '', { with: 'image,skills,location,teamMemberRoles.team' }, true, selectedMember, false, true);
+      const memberResult = await getMember(
+        selectedMember.uid ?? '',
+        { with: 'image,skills,location,teamMemberRoles.team' },
+        true,
+        selectedMember,
+        false,
+        true,
+      );
       const memberPreferencesResponse = await getMemberPreferences(selectedMember.uid ?? '', authToken);
       if (memberPreferencesResponse.isError) {
         return { isError: true };
@@ -194,8 +201,14 @@ const AttendeeDetails = (props: IAttendeeForm) => {
       if (!memberResult.error) {
         const memberData = memberResult?.data?.formattedData;
         setIsVerifiedMember(memberData?.isVerified);
-        document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: memberData?.telegramHandle, showTelegram } }));
-        document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_OFFICE_HOURS, { detail: { officeHours: memberData?.officeHours } }));
+        document.dispatchEvent(
+          new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, {
+            detail: { telegramHandle: memberData?.telegramHandle, showTelegram },
+          }),
+        );
+        document.dispatchEvent(
+          new CustomEvent(EVENTS.UPDATE_OFFICE_HOURS, { detail: { officeHours: memberData?.officeHours } }),
+        );
         if (updateAll) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
           const teams = memberData?.teams?.map((team: any) => {
@@ -235,7 +248,9 @@ const AttendeeDetails = (props: IAttendeeForm) => {
               onClear={onResetMember}
               showClear={mode === IAM_GOING_POPUP_MODES.ADMINADD}
               closeImgUrl="/icons/close.svg"
-              isError={!selectedMember?.uid && errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER)}
+              isError={
+                !selectedMember?.uid && errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER)
+              }
             />
           </div>
         </div>

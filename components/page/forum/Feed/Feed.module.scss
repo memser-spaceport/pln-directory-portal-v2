@@ -24,14 +24,17 @@
   justify-content: center;
   align-items: center;
   gap: var(--spacing-zero, 0px);
-  background: var(--action-background-brand-normal, #1B4DFF);
+  background: var(--action-background-brand-normal, #1b4dff);
 
   border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  background: var(--action-background-brand-normal, #1B4DFF);
-  box-shadow: 0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  background: var(--action-background-brand-normal, #1b4dff);
+  box-shadow:
+    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
 
-  color: var(--action-foreground-base-inverted_white, #FFF);
+  color: var(--action-foreground-base-inverted_white, #fff);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;

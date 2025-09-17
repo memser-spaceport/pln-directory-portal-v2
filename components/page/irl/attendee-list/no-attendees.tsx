@@ -22,7 +22,11 @@ const NoAttendees = (props: INoAttendees) => {
     if (!isLoggedIn) {
       onLogin();
     } else {
-      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: {member: userInfo}, mode: IAM_GOING_POPUP_MODES.ADD } }));
+      document.dispatchEvent(
+        new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
+          detail: { isOpen: true, formdata: { member: userInfo }, mode: IAM_GOING_POPUP_MODES.ADD },
+        }),
+      );
     }
   };
 

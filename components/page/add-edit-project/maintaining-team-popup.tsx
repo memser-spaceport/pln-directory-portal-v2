@@ -30,8 +30,11 @@ export function MaintainingTeamPopup(props: any) {
   useEffect(() => {
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     getAllTeams();
-    document.addEventListener(EVENTS.PROJECT_ADD_MODAL_CLOSE_EVENT, () => {setStep('Teams'); reset()});
-    }, []);
+    document.addEventListener(EVENTS.PROJECT_ADD_MODAL_CLOSE_EVENT, () => {
+      setStep('Teams');
+      reset();
+    });
+  }, []);
 
   const getAllTeams = async () => {
     try {
@@ -113,7 +116,12 @@ export function MaintainingTeamPopup(props: any) {
               </div>
               <div className="mtc__search">
                 <img height={15} width={15} src="/icons/search-gray.svg"></img>
-                <input ref={searchInputRef} onChange={onSearchChangeHandler} className="mtc__search__input" placeholder="Search"></input>
+                <input
+                  ref={searchInputRef}
+                  onChange={onSearchChangeHandler}
+                  className="mtc__search__input"
+                  placeholder="Search"
+                ></input>
               </div>
             </div>
 
@@ -127,7 +135,12 @@ export function MaintainingTeamPopup(props: any) {
                       <div className="mtc__teamCtr" key={`${team}+${index}`}>
                         <div className="mtc__teamCtr__team">
                           <div className="mtc__teamCtr__team__profileSec">
-                            <img className="mtc__teamCtr__team__profileSec__profile" height={40} width={40} src={team?.logo ? team?.logo : '/icons/team-default-profile.svg'} />
+                            <img
+                              className="mtc__teamCtr__team__profileSec__profile"
+                              height={40}
+                              width={40}
+                              src={team?.logo ? team?.logo : '/icons/team-default-profile.svg'}
+                            />
                             <div>
                               <h3 className="mtc__teamCtr__team__profileSec__name">{team?.name}</h3>
                             </div>
@@ -141,7 +154,11 @@ export function MaintainingTeamPopup(props: any) {
                               </div>
                             )}
                             {!isSelected && (
-                              <button type="button" className="mtc__teamCtr__opt__select" onClick={() => onSelectTeamHandler(team)}>
+                              <button
+                                type="button"
+                                className="mtc__teamCtr__opt__select"
+                                onClick={() => onSelectTeamHandler(team)}
+                              >
                                 Select
                               </button>
                             )}

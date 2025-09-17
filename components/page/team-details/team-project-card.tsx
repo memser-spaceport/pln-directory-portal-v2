@@ -38,19 +38,42 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
 
   return (
     <>
-      <a target='_blank' onClick={() => callback(project)} href={url} className={`${project?.isDeleted ? 'deleted' : ''} team-project-card`} title={`${project?.isDeleted ? 'Project does not exist' : ''}`}>
+      <a
+        target="_blank"
+        onClick={() => callback(project)}
+        href={url}
+        className={`${project?.isDeleted ? 'deleted' : ''} team-project-card`}
+        title={`${project?.isDeleted ? 'Project does not exist' : ''}`}
+      >
         <div className="team-project-card__profilec">
-          <img loading="lazy" alt="team-logo" className="team-project-card__profilec__profile-logo" src={logo} height={40} width={40} />
+          <img
+            loading="lazy"
+            alt="team-logo"
+            className="team-project-card__profilec__profile-logo"
+            src={logo}
+            height={40}
+            width={40}
+          />
           <div className="team-project-card__profilec__name-and-tagline">
             <div className="team-project-card__profilec__name-and-tagline__name-and-raising-funds">
-              <Tooltip asChild trigger={<h2 className="team-project-card__profilec__name-and-tagline__name">{name}</h2>} content={name} />
+              <Tooltip
+                asChild
+                trigger={<h2 className="team-project-card__profilec__name-and-tagline__name">{name}</h2>}
+                content={name}
+              />
               {project?.isMaintainingProject && (
                 <Tooltip
                   side="top"
                   asChild
                   trigger={
                     <div className="team-project-card__profilec__name-and-tagline__name-and-raising-funds__mtr">
-                      <Image src="/icons/badge/maintainer.svg" alt="maintainer image" width={20} height={20} className="rounded" />{' '}
+                      <Image
+                        src="/icons/badge/maintainer.svg"
+                        alt="maintainer image"
+                        width={20}
+                        height={20}
+                        className="rounded"
+                      />{' '}
                     </div>
                   }
                   content={'Maintainer'}
@@ -77,7 +100,11 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
                 </div>
               )}
             </div>
-            <Tooltip asChild trigger={<p className="team-project-card__profilec__name-and-tagline__tagline">{tagLine}</p>} content={tagLine} />
+            <Tooltip
+              asChild
+              trigger={<p className="team-project-card__profilec__name-and-tagline__tagline">{tagLine}</p>}
+              content={tagLine}
+            />
           </div>
         </div>
         <div className="team-project-card__goto">

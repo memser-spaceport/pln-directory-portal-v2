@@ -21,7 +21,10 @@ const getPageData = async (selectedMemberId: string, authToken: string, isVerifi
   }
 
   const members = dpResult?.data ?? [];
-  const [memberResult, preferenceResult] = await Promise.all([getMemberInfo(selectedMemberId ?? members[0].id), getMemberPreferences(selectedMemberId ?? members[0].id, authToken)]);
+  const [memberResult, preferenceResult] = await Promise.all([
+    getMemberInfo(selectedMemberId ?? members[0].id),
+    getMemberPreferences(selectedMemberId ?? members[0].id, authToken),
+  ]);
   if (memberResult.isError || preferenceResult.isError) {
     return {
       isError: true,
@@ -59,7 +62,11 @@ export default async function ManageMembers(props: any) {
   if (!isAdmin) {
     redirect(PAGE_ROUTES.HOME);
   }
-  const { members, isError, selectedMember, preferences, selectedVerifiedFlag } = await getPageData(selectedMemberId, authToken, isVerified);
+  const { members, isError, selectedMember, preferences, selectedVerifiedFlag } = await getPageData(
+    selectedMemberId,
+    authToken,
+    isVerified,
+  );
   if (preferences.memberPreferences) {
     preferences.memberPreferences.newsLetter = selectedMember?.isSubscribedToNewsletter;
   }

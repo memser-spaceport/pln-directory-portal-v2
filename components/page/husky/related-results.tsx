@@ -27,13 +27,27 @@ function RelatedResults({ actions }: RelatedResultsProps) {
         </div>
         <div className="related-results__cn">
           {actions.map((action: any, index: number) => (
-            <a target="_blank" href={action.directoryLink} onClick={() => onActionCardClicked(action)} className="related-results__cn__item" key={index}>
+            <a
+              target="_blank"
+              href={action.directoryLink}
+              onClick={() => onActionCardClicked(action)}
+              className="related-results__cn__item"
+              key={index}
+            >
               <div className="related-results__cn__item__wrpr">
                 <div className="actions__cn__item__name__iconWrpr">
-                  {action.type?.toLowerCase() === 'member' && <img className="actions__cn__item__name__icon" src="/icons/husky/husky-member.svg" alt="icon" />}
-                  {action.type?.toLowerCase() === 'team' && <img className="actions__cn__item__name__icon" src="/icons/husky/husky-team.svg" alt="icon" />}
-                  {action.type?.toLowerCase() === 'project' && <img className="actions__cn__item__name__icon" src="/icons/husky/husky-project.svg" alt="icon" />}
-                  {action.type?.toLowerCase() === 'event' && <img className="actions__cn__item__name__icon" src="/icons/husky/husky-event.svg" alt="icon" />}
+                  {action.type?.toLowerCase() === 'member' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/husky/husky-member.svg" alt="icon" />
+                  )}
+                  {action.type?.toLowerCase() === 'team' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/husky/husky-team.svg" alt="icon" />
+                  )}
+                  {action.type?.toLowerCase() === 'project' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/husky/husky-project.svg" alt="icon" />
+                  )}
+                  {action.type?.toLowerCase() === 'event' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/husky/husky-event.svg" alt="icon" />
+                  )}
                 </div>
                 <div className="related-results__cn__item__content">
                   <p className="related-results__cn__item__name">

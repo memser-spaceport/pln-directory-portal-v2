@@ -59,7 +59,12 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   };
 
   const callback = (type: string, url: string) => {
-    memberAnalytics.onSocialProfileLinkClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member), type, url);
+    memberAnalytics.onSocialProfileLinkClicked(
+      getAnalyticsUserInfo(userInfo),
+      getAnalyticsMemberInfo(member),
+      type,
+      url,
+    );
   };
 
   return (
@@ -118,25 +123,24 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
             <div className={s.bg2} />
             <div className={s.top}>
               <div className={s.content}>
-                {visibleHandles
-                  ?.map((item, i, arr) => {
-                    return (
-                      <Fragment key={item}>
-                        <ProfileSocialLink
-                          key={item}
-                          profile=""
-                          height={24}
-                          width={24}
-                          callback={callback}
-                          type={item}
-                          handle={consistentRandomString(`${member.name}__${item}`)}
-                          logo={getLogoByProvider(item)}
-                          isPreview
-                        />
-                        {i === arr.length - 1 ? null : <div className={s.divider} />}
-                      </Fragment>
-                    );
-                  })}
+                {visibleHandles?.map((item, i, arr) => {
+                  return (
+                    <Fragment key={item}>
+                      <ProfileSocialLink
+                        key={item}
+                        profile=""
+                        height={24}
+                        width={24}
+                        callback={callback}
+                        type={item}
+                        handle={consistentRandomString(`${member.name}__${item}`)}
+                        logo={getLogoByProvider(item)}
+                        isPreview
+                      />
+                      {i === arr.length - 1 ? null : <div className={s.divider} />}
+                    </Fragment>
+                  );
+                })}
               </div>
               <div className={clsx(s.control, s.tablet)}>
                 {!isLoggedIn && (

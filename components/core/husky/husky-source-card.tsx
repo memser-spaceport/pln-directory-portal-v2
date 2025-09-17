@@ -1,6 +1,6 @@
 'use client';
 
-import { useHuskyAnalytics } from "@/analytics/husky.analytics";
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
 interface HuskySourceCardProps {
   sources: SourceProps[];
@@ -12,15 +12,20 @@ interface SourceProps {
   link: string;
 }
 function HuskySourceCard({ sources }: HuskySourceCardProps) {
-  const { trackHuskySourceLinkClicked } = useHuskyAnalytics()
+  const { trackHuskySourceLinkClicked } = useHuskyAnalytics();
   return (
     <>
       <div className="sources">
         <h3 className="sources__title">Sources</h3>
         {sources.map((source: any, index: number) => (
-          <a target="_blank" href={source} onClick={() => trackHuskySourceLinkClicked(source.link)} key={`husky-chat${index}`} className="sources__item">
+          <a
+            target="_blank"
+            href={source}
+            onClick={() => trackHuskySourceLinkClicked(source.link)}
+            key={`husky-chat${index}`}
+            className="sources__item"
+          >
             <div className="sources__item__head">
-             
               <p className="sources__item__head__title">{source}</p>
             </div>
             {/* <div className="sources__item__body">{source.description}</div> */}

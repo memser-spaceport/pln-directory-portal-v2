@@ -12,28 +12,35 @@ interface CustomToggleProps {
   onChange?: (event: any) => void;
 }
 
-const CustomToggle: FC<CustomToggleProps> = ({ id, name, checked, disabled = false, defaultChecked = false, onChange = () => {} }) => {
+const CustomToggle: FC<CustomToggleProps> = ({
+  id,
+  name,
+  checked,
+  disabled = false,
+  defaultChecked = false,
+  onChange = () => {},
+}) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  
+
   useEffect(() => {
     // Update the input's checked state when the checked prop changes
-    if((checked === true || checked === false) && inputRef.current ) {
+    if ((checked === true || checked === false) && inputRef.current) {
       inputRef.current.checked = checked;
     }
-  }, [checked])
+  }, [checked]);
 
   return (
     <>
-      <label className="custom-toggle" style={{'pointerEvents': `${disabled ? 'none': 'auto'}`}} htmlFor={id}>
-        <input 
-          ref={inputRef} 
-          type="checkbox" 
-          id={id} 
-          name={name} 
+      <label className="custom-toggle" style={{ pointerEvents: `${disabled ? 'none' : 'auto'}` }} htmlFor={id}>
+        <input
+          ref={inputRef}
+          type="checkbox"
+          id={id}
+          name={name}
           data-testid={`${name}-toggle`}
-          style={{'pointerEvents': `${disabled ? 'none': 'auto'}`}} 
-          {...((defaultChecked === true || defaultChecked === false)) && {defaultChecked: defaultChecked}} 
-          onClick={onChange} 
+          style={{ pointerEvents: `${disabled ? 'none' : 'auto'}` }}
+          {...((defaultChecked === true || defaultChecked === false) && { defaultChecked: defaultChecked })}
+          onClick={onChange}
         />
         <span className="slider" />
       </label>

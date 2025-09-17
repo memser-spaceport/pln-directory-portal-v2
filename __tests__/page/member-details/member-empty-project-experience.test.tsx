@@ -74,12 +74,12 @@ describe('MemberEmptyProjectExperience Component', () => {
       ...defaultProps,
       userInfo: { uid: '2', roles: [] }, // Not owner and not admin
     };
-  
+
     render(<MemberEmptyProjectExperience {...newProps} />);
-  
+
     // Ensure the "Click here" link is not present
     expect(screen.queryByText('Click here')).not.toBeInTheDocument();
-  
+
     // Ensure the "No project added yet" message is displayed
     expect(screen.getByText('No project added yet.')).toBeInTheDocument();
   });

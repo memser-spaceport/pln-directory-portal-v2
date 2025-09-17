@@ -1,5 +1,14 @@
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE, EMAIL_REGEX, EVENTS, GITHUB_URL_REGEX, LINKEDIN_URL_REGEX, SORT_OPTIONS, TELEGRAM_URL_REGEX, TWITTER_URL_REGEX } from './constants';
+import {
+  ADMIN_ROLE,
+  EMAIL_REGEX,
+  EVENTS,
+  GITHUB_URL_REGEX,
+  LINKEDIN_URL_REGEX,
+  SORT_OPTIONS,
+  TELEGRAM_URL_REGEX,
+  TWITTER_URL_REGEX,
+} from './constants';
 import { ITeam } from '@/types/teams.types';
 import Cookies from 'js-cookie';
 export const triggerLoader = (status: boolean) => {
@@ -247,7 +256,10 @@ export function getSocialLinkUrl(linkContent: string, type: string, url?: string
     twitter: `https://twitter.com/${linkContent}`,
     github: `https://github.com/${linkContent}`,
     telegram: `https://t.me/${linkContent}`,
-    linkedin: type === 'linkedin' && linkContent !== url ? url : `https://www.linkedin.com/search/results/all/?keywords=${linkContent}`,
+    linkedin:
+      type === 'linkedin' && linkContent !== url
+        ? url
+        : `https://www.linkedin.com/search/results/all/?keywords=${linkContent}`,
     discord: 'https://discord.com/app',
   };
   return socialUrls[type] || linkContent;
@@ -265,17 +277,29 @@ export const getProfileFromURL = (handle: string, type: string) => {
 
   const match = regex && handle?.match(regex);
 
-  return match && match[1] ? decodeURIComponent(match[1]).replace(/^@/, '') : type === 'telegram' || type === 'twitter' ? handle?.replace(/^@/, '') : handle;
+  return match && match[1]
+    ? decodeURIComponent(match[1]).replace(/^@/, '')
+    : type === 'telegram' || type === 'twitter'
+      ? handle?.replace(/^@/, '')
+      : handle;
 };
 
-export const sortMemberByRole = (firstMember: { teamLead: number; name: string }, secondMember: { teamLead: number; name: any }) => {
+export const sortMemberByRole = (
+  firstMember: { teamLead: number; name: string },
+  secondMember: { teamLead: number; name: any },
+) => {
   if (secondMember.teamLead - firstMember.teamLead !== 0) {
     return secondMember.teamLead - firstMember.teamLead;
   }
   return firstMember.name.localeCompare(secondMember.name);
 };
 
-export const hasProjectEditAccess = (userInfo: IUserInfo, selectedProject: any, isUserLoggedIn: boolean, teams: any) => {
+export const hasProjectEditAccess = (
+  userInfo: IUserInfo,
+  selectedProject: any,
+  isUserLoggedIn: boolean,
+  teams: any,
+) => {
   try {
     if (!isUserLoggedIn) {
       return false;

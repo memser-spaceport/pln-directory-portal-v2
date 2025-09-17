@@ -36,21 +36,33 @@ const UserConfirmation = (props: IUserConfirmation) => {
         response: FEEDBACK_RESPONSE_TYPES.positive.name,
       };
       const result = await createFeedBack(userInfo?.uid ?? '', currentFollowUp?.uid ?? '', authToken ?? '', feedback);
-      analytics.onOfficeHoursFeedbackSubmitted(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowUp), feedback);
+      analytics.onOfficeHoursFeedbackSubmitted(
+        getAnalyticsUserInfo(userInfo),
+        getAnalyticsNotificationInfo(currentFollowUp),
+        feedback,
+      );
 
       if (result?.error) {
         console.error(result.error);
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-        analytics.onOfficeHoursFeedbackFailed(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowUp), feedback);
+        analytics.onOfficeHoursFeedbackFailed(
+          getAnalyticsUserInfo(userInfo),
+          getAnalyticsNotificationInfo(currentFollowUp),
+          feedback,
+        );
         if (result?.error?.data?.message?.includes('There is no follow-up')) {
           toast.success(TOAST_MESSAGES.FEEDBACK__ALREADY__RECORDED);
         } else {
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
         }
       }
-      
+
       if (result?.data) {
-        analytics.onOfficeHoursFeedbackSuccess(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowUp), feedback);
+        analytics.onOfficeHoursFeedbackSuccess(
+          getAnalyticsUserInfo(userInfo),
+          getAnalyticsNotificationInfo(currentFollowUp),
+          feedback,
+        );
         toast.success(TOAST_MESSAGES.FEEDBACK_INITIATED_SUCCESS);
       }
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
@@ -146,7 +158,8 @@ const UserConfirmation = (props: IUserConfirmation) => {
           }
 
           .usercfr__titlesec {
-          padding-top: 10px;}
+            padding-top: 10px;
+          }
 
           .usercfr__titlesec__title {
             font-size: 16px;

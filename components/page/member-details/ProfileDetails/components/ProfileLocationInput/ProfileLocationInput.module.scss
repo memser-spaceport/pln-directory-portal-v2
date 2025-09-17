@@ -16,7 +16,9 @@
 
 .label {
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -44,7 +46,7 @@
 }
 
 .hint {
-  color: var(--foreground-neutral-tertiary, #8897AE);
+  color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 12px;
   font-style: normal;
   font-weight: 400;

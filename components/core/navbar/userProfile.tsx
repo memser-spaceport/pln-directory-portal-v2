@@ -54,31 +54,42 @@ export default function UserProfile(props: Readonly<IProfile>) {
   return (
     <div className="profile">
       <div className="profile__profileimgsection">
-        <div  className="profile__profileimgsection__img-wrapper" >
+        <div className="profile__profileimgsection__img-wrapper">
           <Image
             loading="lazy"
             src={profileImage ?? defaultAvatarImage}
             alt="profile"
             height={40}
             width={40}
-            className="profile__profileimagesection__img" />
+            className="profile__profileimagesection__img"
+          />
         </div>
         <button ref={profileMenuRef} className="profile__profileimgsection__dropdownbtn" onClick={onDrodownClick}>
           <Image height={20} width={20} loading="lazy" src="/icons/dropdown.svg" alt="dropdown" />
         </button>
         {isDropdown && (
           <div className="profile__profileimagesection__ddown">
-            <button className="profile__profileimagesection__ddown__settings" onClick={() => onAccountOptionsClickHandler('settings')}>
+            <button
+              className="profile__profileimagesection__ddown__settings"
+              onClick={() => onAccountOptionsClickHandler('settings')}
+            >
               <Image height={16} width={16} loading="lazy" alt="settings" src="/icons/settings.svg" />
               Account Settings
             </button>
             <div className="profile__profileimagesection__ddown__bl"> </div>
             <div onClick={onLogoutHandler} className="profile__profieimagesection__ddown__louts">
-              <button className="profile__profieimagesection__ddown__louts__loutbtn" onClickCapture={() => onAccountOptionsClickHandler('logout')}>
+              <button
+                className="profile__profieimagesection__ddown__louts__loutbtn"
+                onClickCapture={() => onAccountOptionsClickHandler('logout')}
+              >
                 <Image height={16} width={16} loading="lazy" alt="logout" src="/icons/logout.svg" />
                 Logout
               </button>
-              <Tooltip asChild trigger={<p className="profile__profieimagesection__ddown__louts__uname">{userInfo?.name}</p>} content={userInfo?.name} />
+              <Tooltip
+                asChild
+                trigger={<p className="profile__profieimagesection__ddown__louts__uname">{userInfo?.name}</p>}
+                content={userInfo?.name}
+              />
             </div>
           </div>
         )}
@@ -111,14 +122,14 @@ export default function UserProfile(props: Readonly<IProfile>) {
             align-items: center;
             justify-content: center;
           }
-          
+
           .profile__profileimgsection__img-wrapper {
-              border: 1px solid #e2e8f0;
-              border-radius: 50%;
-              background-color: #e2e8f0;
-              overflow: hidden;
-              height: 40px;
-              width: 40px;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            background-color: #e2e8f0;
+            overflow: hidden;
+            height: 40px;
+            width: 40px;
           }
 
           .profile__profileimagesection__img {

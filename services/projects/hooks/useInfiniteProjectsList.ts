@@ -13,7 +13,11 @@ async function infiniteFetcher(searchParams: ProjectsListQueryParams['searchPara
   const selectOpitons = getProjectSelectOptions(filterFromQuery);
 
   const projectsResponse = await getAllProjects(
-    { ...selectOpitons, isDeleted: false, select: 'uid,name,tagline,logo.url,description,lookingForFunding,maintainingTeam.name,maintainingTeam.logo.url' },
+    {
+      ...selectOpitons,
+      isDeleted: false,
+      select: 'uid,name,tagline,logo.url,description,lookingForFunding,maintainingTeam.name,maintainingTeam.logo.url',
+    },
     page,
     ITEMS_PER_PAGE,
   );
@@ -36,7 +40,18 @@ export function useInfiniteProjectsList(
 ) {
   const queryClient = useQueryClient();
 
-  const { isRefetching, data, error, isError, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, status, refetch } = useInfiniteQuery({
+  const {
+    isRefetching,
+    data,
+    error,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isLoading,
+    isFetchingNextPage,
+    status,
+    refetch,
+  } = useInfiniteQuery({
     queryKey: [ProjectsQueryKeys.GET_PROJECTS_LIST, queryParams.searchParams],
     initialPageParam: 1,
     queryFn: async ({ pageParam = 1 }) => {

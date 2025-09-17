@@ -7,7 +7,7 @@ $padding-inline: 16px;
   @include mixins.hide-scrollbar;
   position: relative;
   flex: 1;
-  height:  100%;
+  height: 100%;
   background: #fff;
   z-index: 1;
   display: flex;
@@ -26,7 +26,7 @@ $padding-inline: 16px;
   margin-inline: $padding-inline;
   height: 1px;
   width: calc(100% - $padding-inline * 2);
-  background: #E2E8F0;
+  background: #e2e8f0;
 
   &.mt1 {
     margin-top: 16px;
@@ -41,7 +41,7 @@ $padding-inline: 16px;
 }
 
 .title {
-  color: var(--Neutral-Slate-900, #0F172A);
+  color: var(--Neutral-Slate-900, #0f172a);
   font-size: 18px;
   font-style: normal;
   font-weight: 600;

@@ -112,7 +112,17 @@ export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, plac
   );
 };
 
-const Badge = ({ label, onDelete, isColorful, disabled }: { label: string; onDelete: () => void; isColorful: boolean; disabled?: boolean }) => {
+const Badge = ({
+  label,
+  onDelete,
+  isColorful,
+  disabled,
+}: {
+  label: string;
+  onDelete: () => void;
+  isColorful: boolean;
+  disabled?: boolean;
+}) => {
   return (
     <div
       className={clsx(s.badge, {

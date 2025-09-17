@@ -1,7 +1,8 @@
 import { ZodError, z } from 'zod';
 export const basicInfoSchema = z.object({
   name: z
-    .string({ errorMap: () => ({ message: 'Please provide valid name' }) }).regex(/^[a-zA-Z\s]*$/)
+    .string({ errorMap: () => ({ message: 'Please provide valid name' }) })
+    .regex(/^[a-zA-Z\s]*$/)
     .trim()
     .min(2)
     .max(64),
@@ -28,10 +29,8 @@ const skill = z.object({
 });
 
 const teamsAndRoles = z.object({
-  teamUid: z
-    .string(),
-  teamTitle: z
-    .string({ errorMap: () => ({ message: 'Please provide valid values for team(s)/role(s)' })}).min(1)
+  teamUid: z.string(),
+  teamTitle: z.string({ errorMap: () => ({ message: 'Please provide valid values for team(s)/role(s)' }) }).min(1),
 });
 
 const projectInfo = z.object({
@@ -56,6 +55,6 @@ export const TeamAndSkillsInfoSchema = z.object({
     z.union([
       z.array(teamsAndRoles).min(1, { message: 'Please provide valid values for team(s)/role(s)' }),
       z.undefined(),
-    ])
+    ]),
   ),
 });

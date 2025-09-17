@@ -1,7 +1,12 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
-import { getAnalyticsUserInfo, getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo } from '@/utils/common.utils';
+import {
+  getAnalyticsUserInfo,
+  getAnalyticsMemberInfo,
+  getAnalyticsProjectInfo,
+  getAnalyticsTeamInfo,
+} from '@/utils/common.utils';
 import Featured from '@/components/page/home/featured/featured';
 
 // Mocking dependencies
@@ -23,20 +28,20 @@ describe('Featured Component', () => {
     name: 'Team 1',
     isNew: true,
     logo: 'team url',
-    shortDescription: 'lorem ipsum lorem ipsum'
+    shortDescription: 'lorem ipsum lorem ipsum',
   };
 
   // Mock data for getAnalyticsProjectInfo result
   const mockProjectInfo = {
     id: '4',
-    name: 'Project 1'
+    name: 'Project 1',
   };
 
   // Mock data for getAnalyticsMemberInfo result
   const mockMemberInfo = {
     name: 'John Doe',
     teams: ['Team A', 'Team B', 'Team C'],
-    openToWork: true
+    openToWork: true,
   };
 
   beforeEach(() => {
@@ -77,18 +82,25 @@ describe('Featured Component', () => {
       openToWork: true,
       category: 'member',
     },
-    { category: 'team', id: '3', name: 'Team 1', isNew: true, logo: 'team url', shortDescription: 'lorem ipsum lorem ipsum' },
+    {
+      category: 'team',
+      id: '3',
+      name: 'Team 1',
+      isNew: true,
+      logo: 'team url',
+      shortDescription: 'lorem ipsum lorem ipsum',
+    },
     { category: 'project', id: '4', name: 'Project 1' },
   ];
 
   it('renders the Featured component', () => {
     render(<Featured featuredData={featuredData} isLoggedIn={true} userInfo={mockUserInfo} />);
-    
+
     // Check for filter buttons instead of "Featured" text
     expect(screen.getByText('All')).toBeInTheDocument();
     expect(screen.getByText('Teams')).toBeInTheDocument();
     expect(screen.getByText('Projects')).toBeInTheDocument();
-    
+
     // Also verify some content is rendered
     expect(screen.getByText('Aleph Ciudad')).toBeInTheDocument();
     expect(screen.getByText('John Doe')).toBeInTheDocument();

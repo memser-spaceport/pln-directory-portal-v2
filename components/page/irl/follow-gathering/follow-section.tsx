@@ -1,6 +1,11 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useState, useEffect, useRef } from 'react';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, EVENTS_SUBMIT_FORM_TYPES, IAM_GOING_POPUP_MODES } from '@/utils/constants';
+import {
+  ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS,
+  EVENTS,
+  EVENTS_SUBMIT_FORM_TYPES,
+  IAM_GOING_POPUP_MODES,
+} from '@/utils/constants';
 import AllFollowers from './all-followers';
 import Image from 'next/image';
 import FollowButton from './follow-button';
@@ -41,13 +46,16 @@ const FollowSection = (props: IFollowSectionProps) => {
   const locationEvents = props?.locationEvents;
   const pastEvents = locationEvents?.pastEvents;
   const upcomingEvents = locationEvents?.upcomingEvents;
-  const inPastEvents = type ? type === 'past' : pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0;
+  const inPastEvents = type
+    ? type === 'past'
+    : pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0;
   const inPastEventsAndHaveEvents = inPastEvents && pastEvents && pastEvents.length > 0;
   const onLogin = props.onLogin;
   const isUserLoggedIn = props?.isLoggedIn;
   const isAdminInAllEvents = props?.isAdminInAllEvents;
   const roles = userInfo?.roles ?? [];
-  const canUserAddAttendees = isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const canUserAddAttendees =
+    isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const topicsAndReason = props?.topicsAndReason;
   const accessLevel = getAccessLevel(userInfo, isUserLoggedIn);
 
@@ -88,7 +96,11 @@ const FollowSection = (props: IFollowSectionProps) => {
 
   const onAddMemberClick = () => {
     analytics.trackGuestListAddNewMemberBtnClicked(location);
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD } }));
+    document.dispatchEvent(
+      new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
+        detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD },
+      }),
+    );
   };
 
   const onIAmGoingClick = (from?: string) => {
@@ -145,14 +157,21 @@ const FollowSection = (props: IFollowSectionProps) => {
         return { ...team, uid: team?.id };
       }),
       memberUid: updatedUser?.memberUid,
-      additionalInfo: { checkInDate: updatedUser?.additionalInfo?.checkInDate || '', checkOutDate: updatedUser?.additionalInfo?.checkOutDate ?? '' },
+      additionalInfo: {
+        checkInDate: updatedUser?.additionalInfo?.checkInDate || '',
+        checkOutDate: updatedUser?.additionalInfo?.checkOutDate ?? '',
+      },
       topics: updatedUser?.topics,
       reason: updatedUser?.reason,
       topicsAndReason: topicsAndReason,
       telegramId: updatedUser?.telegramId,
       officeHours: updatedUser?.officeHours ?? '',
     };
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
+    document.dispatchEvent(
+      new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
+        detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT },
+      }),
+    );
   };
 
   useClickedOutside({
@@ -186,10 +205,17 @@ const FollowSection = (props: IFollowSectionProps) => {
 
   return (
     <>
-      <AllFollowers location={eventLocationSummary.name} onClose={onFollowersCloseClicHandler} followersList={followProperties.followers} onFollowerClickHandler={onFollowerClickHandler} />
+      <AllFollowers
+        location={eventLocationSummary.name}
+        onClose={onFollowersCloseClicHandler}
+        followersList={followProperties.followers}
+        onFollowerClickHandler={onFollowerClickHandler}
+      />
       <div className={`root__irl__follwcnt ${isShrunk ? 'showCntr' : ''}`} id="actionCn">
         <div className={`root__irl__follwcnt__cnt ${!isShrunk ? 'hideCnt' : 'showCnt'}`}>
-          <div className="root__irl__follcnt__update__web">Planning to attend? Enroll yourselves & follow to get event updates & reminders.</div>
+          <div className="root__irl__follcnt__update__web">
+            Planning to attend? Enroll yourselves & follow to get event updates & reminders.
+          </div>
           <div className={`root__irl__follwcnt__imgsec ${!isShrunk ? 'hideCnt-mob' : 'showCnt'}`}>
             <div onClick={onFollowersClickHandler} className="root__irl__follwcnt__imgsec__images">
               {followProperties.followers?.slice(0, 3).map((follower: any, index: number) => {
@@ -215,14 +241,24 @@ const FollowSection = (props: IFollowSectionProps) => {
               </span>
               following gatherings at
               <span className="root__irl__follwcnt__imgsec__desccnt__desc__cnt__location">
-                <img src={eventLocationSummary?.flag || '/images/irl/defaultFlag.svg'} alt="flag" style={{ width: '17px', height: '17px' }} /> {eventLocationSummary.name}{' '}
+                <img
+                  src={eventLocationSummary?.flag || '/images/irl/defaultFlag.svg'}
+                  alt="flag"
+                  style={{ width: '17px', height: '17px' }}
+                />{' '}
+                {eventLocationSummary.name}{' '}
               </span>
             </div>
           </div>
         </div>
 
         <div className="toolbar__actionCn">
-          <FollowButton eventLocationSummary={location} userInfo={userInfo} followProperties={followProperties} expand={canUserAddAttendees} />
+          <FollowButton
+            eventLocationSummary={location}
+            userInfo={userInfo}
+            followProperties={followProperties}
+            expand={canUserAddAttendees}
+          />
 
           {canUserAddAttendees && accessLevel === 'advanced' && (
             <div className="toolbar__actionCn__add">
@@ -251,28 +287,33 @@ const FollowSection = (props: IFollowSectionProps) => {
             </button>
           )}
 
-          {isUserGoing && isUserLoggedIn && (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) && accessLevel === 'advanced' && (
-            <div className="toolbar__actionCn__edit__wrpr">
-              <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
-                <img src="/icons/edit-white.svg" alt="arrow" width={18} height={18} />
-                Response
-                <img src="/icons/down-arrow-white.svg" alt="arrow" width={18} height={18} />
-              </button>
-              {isEdit && (
-                <div className="toolbar__actionCn__edit__list">
-                  <button className="toolbar__actionCn__edit__list__item" onClick={onEditDetailsClicked}>
-                    Edit Details
-                  </button>
-                  <button onClick={onRemoveFromGatherings} className="toolbar__actionCn__edit__list__item">
-                    Remove from Gathering(s)
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+          {isUserGoing &&
+            isUserLoggedIn &&
+            (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) &&
+            accessLevel === 'advanced' && (
+              <div className="toolbar__actionCn__edit__wrpr">
+                <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
+                  <img src="/icons/edit-white.svg" alt="arrow" width={18} height={18} />
+                  Response
+                  <img src="/icons/down-arrow-white.svg" alt="arrow" width={18} height={18} />
+                </button>
+                {isEdit && (
+                  <div className="toolbar__actionCn__edit__list">
+                    <button className="toolbar__actionCn__edit__list__item" onClick={onEditDetailsClicked}>
+                      Edit Details
+                    </button>
+                    <button onClick={onRemoveFromGatherings} className="toolbar__actionCn__edit__list__item">
+                      Remove from Gathering(s)
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
         </div>
 
-        <div className={`root__irl__follcnt__update__mob ${!isShrunk ? 'hideCnt' : 'showCnt'}`}>Planning to attend? Enroll yourselves & follow to get event updates & reminders.</div>
+        <div className={`root__irl__follcnt__update__mob ${!isShrunk ? 'hideCnt' : 'showCnt'}`}>
+          Planning to attend? Enroll yourselves & follow to get event updates & reminders.
+        </div>
       </div>
       <PresenceRequestSuccess />
       <style jsx>

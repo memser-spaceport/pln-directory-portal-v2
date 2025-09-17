@@ -10,10 +10,17 @@ const Loading = () => {
             <div className={styles?.teamDetail__container__details__profilecontainer__profile}>
               <div className={styles?.teamDetail__container__details__profilecontainer__profile__image}></div>
               <div className={styles?.teamDetail__container__details__profilecontainer__profile__nameAndTag}>
-                <div className={styles?.teamDetail__container__details__profilecontainer__profile__nameAndTag__name}></div>
+                <div
+                  className={styles?.teamDetail__container__details__profilecontainer__profile__nameAndTag__name}
+                ></div>
                 <div className={styles.teamDetail__container__details__profilecontainer__profile__nameAndTag__tags}>
                   {Array.from({ length: 3 })?.map((teamTag, index) => (
-                    <div key={`${teamTag} + ${index}`} className={styles.teamDetail__container__details__profilecontainer__profile__nameAndTag__tags__tag}>
+                    <div
+                      key={`${teamTag} + ${index}`}
+                      className={
+                        styles.teamDetail__container__details__profilecontainer__profile__nameAndTag__tags__tag
+                      }
+                    >
                       {' '}
                     </div>
                   ))}
@@ -35,9 +42,18 @@ const Loading = () => {
           {/* Technologies */}
           <div className={styles.teamDetail__Container__details__technologies}>
             <div className={styles.teamDetail__Container__details__technologies__title}></div>
-            <div className={styles.teamDetail__Container__details__technologies__teamDetail__Container__details__technologiesc}>
+            <div
+              className={
+                styles.teamDetail__Container__details__technologies__teamDetail__Container__details__technologiesc
+              }
+            >
               {Array.from({ length: 3 })?.map((teamTechnology, index) => (
-                <div key={`${teamTechnology} + ${index}`} className={styles.teamDetail__Container__details__technologies__teamDetail__Container__details__technologiesc__technology}>
+                <div
+                  key={`${teamTechnology} + ${index}`}
+                  className={
+                    styles.teamDetail__Container__details__technologies__teamDetail__Container__details__technologiesc__technology
+                  }
+                >
                   {' '}
                 </div>
               ))}
@@ -50,18 +66,18 @@ const Loading = () => {
           <div className={styles?.teamDetail__container__contact__wrapper}>
             <div className={styles?.teamDetail__container__contact__allContacts}>
               {Array.from({ length: 3 })?.map((teamContacts, index) => (
-                <div key={`${teamContacts} + ${index}`} className={styles.teamDetail__container__contact__allContacts__contact}>
+                <div
+                  key={`${teamContacts} + ${index}`}
+                  className={styles.teamDetail__container__contact__allContacts__contact}
+                >
                   {' '}
                 </div>
               ))}
             </div>
             <div className={styles?.teamDetail__container__contacts__ohours}>
               <div className={styles?.teamDetail__container__contacts__ohours__left}>
-                <div className={styles?.teamDetail__container__contacts__ohour__left__cldr}>
-                </div>
-                <div className={styles?.teamDetail__container__contacts__ohours__left__title}>
-
-                </div>
+                <div className={styles?.teamDetail__container__contacts__ohour__left__cldr}></div>
+                <div className={styles?.teamDetail__container__contacts__ohours__left__title}></div>
               </div>
               <div className={styles?.teamDetail__container__contacts__ohour__right}>
                 <div className={styles?.teamDetail__container__contacts__ohour__right__scmeeting}></div>
@@ -80,8 +96,10 @@ const Loading = () => {
             <div className={styles?.teamDetail__container__fundingc__right}>
               <div className={styles?.teamDetail__container__fundingc__right__tags}>
                 {Array.from({ length: 3 })?.map((series, index) => (
-                  <div key={`${series} + ${index}`} className={styles.teamDetail__container__fundingc__right__tags__tag}>
-                  </div>
+                  <div
+                    key={`${series} + ${index}`}
+                    className={styles.teamDetail__container__fundingc__right__tags__tag}
+                  ></div>
                 ))}
               </div>
             </div>

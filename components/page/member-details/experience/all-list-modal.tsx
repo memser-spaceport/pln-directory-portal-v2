@@ -5,12 +5,11 @@ import { useRef, useEffect } from 'react';
 import { useState } from 'react';
 import { EVENTS } from '@/utils/constants';
 
-export default function AllListModal({member,userInfo}: {member: any,userInfo: any}) {
+export default function AllListModal({ member, userInfo }: { member: any; userInfo: any }) {
   const [isSeeAll, setIsSeeAll] = useState(false);
   const modalRef = useRef<HTMLDialogElement>(null);
   const [experiences, setExperiences] = useState<any[]>([]);
   const [isEditable, setIsEditable] = useState(false);
-  
 
   useEffect(() => {
     if (isSeeAll) {
@@ -23,14 +22,14 @@ export default function AllListModal({member,userInfo}: {member: any,userInfo: a
 
   const closeModal = () => {
     setIsSeeAll(false);
-  }
+  };
 
   useEffect(() => {
     const handler = (e: any) => {
       setIsSeeAll(true);
       setExperiences(e.detail.experiences);
       setIsEditable(e.detail.isEditable);
-      modalRef.current?.showModal()
+      modalRef.current?.showModal();
     };
     document.addEventListener(EVENTS.TRIGGER_SEE_ALL_EXPERIENCE_MODAL, handler);
     return () => document.removeEventListener(EVENTS.TRIGGER_SEE_ALL_EXPERIENCE_MODAL, handler);
@@ -38,18 +37,21 @@ export default function AllListModal({member,userInfo}: {member: any,userInfo: a
   return (
     <>
       <div className="all-list-modal">
-        <Modal
-          onClose={closeModal}
-          modalRef={modalRef}
-        >
+        <Modal onClose={closeModal} modalRef={modalRef}>
           <div className="member-detail__experience__modal">
             <div className="member-detail__experience__modal__header">
               <h2 className="member-detail__experience__modal__header__title">Experience ({experiences.length})</h2>
             </div>
             <div className="member-detail__experience__modal__list">
               {experiences.map((experience: any, index: number) => (
-                <div key={index+'-experience-modal-list-item'}>
-                  <MemberDetailsExperienceDetail experience={experience} isEditable={isEditable} closeModal={closeModal} member={member} userInfo={userInfo}/>
+                <div key={index + '-experience-modal-list-item'}>
+                  <MemberDetailsExperienceDetail
+                    experience={experience}
+                    isEditable={isEditable}
+                    closeModal={closeModal}
+                    member={member}
+                    userInfo={userInfo}
+                  />
                 </div>
               ))}
             </div>

@@ -27,11 +27,23 @@ export default function AddEditProjectContainer(props: any): JSX.Element {
     <>
       <div className="add-edit-project">
         <div className="add-edit-project__indicator--mobile">
-          <FormStepIndicatorMob steps={PROJECT_FORM_STEPS} defaultStep={PROJECT_FORM_STEPS[0]} uniqueKey={'add-project'} title="Add Project" subTitle="Share your project details" />
+          <FormStepIndicatorMob
+            steps={PROJECT_FORM_STEPS}
+            defaultStep={PROJECT_FORM_STEPS[0]}
+            uniqueKey={'add-project'}
+            title="Add Project"
+            subTitle="Share your project details"
+          />
         </div>
 
         <div className="add-edit-project__indicator--web">
-          <FormStepIndicatorWeb steps={PROJECT_FORM_STEPS} defaultStep={PROJECT_FORM_STEPS[0]} uniqueKey={'add-project'} title="Add Project" subTitle="Share your project details" />
+          <FormStepIndicatorWeb
+            steps={PROJECT_FORM_STEPS}
+            defaultStep={PROJECT_FORM_STEPS[0]}
+            uniqueKey={'add-project'}
+            title="Add Project"
+            subTitle="Share your project details"
+          />
         </div>
 
         <div className="add-edit-project__form-container">

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, getByTestId , screen} from '@testing-library/react';
+import { render, fireEvent, getByTestId, screen } from '@testing-library/react';
 import MultiSelect from '../../components/form/multi-select';
 import '@testing-library/jest-dom'; // Updated import statement
 
@@ -27,8 +27,8 @@ describe('MultiSelect Component', () => {
         onRemove={mockOnRemove}
         uniqueKey="id"
         displayKey="name"
-        closeImgUrl='/icons/close.svg'
-      />
+        closeImgUrl="/icons/close.svg"
+      />,
     );
     expect(getByText('Select options...')).toBeInTheDocument();
   });
@@ -42,8 +42,8 @@ describe('MultiSelect Component', () => {
         onRemove={mockOnRemove}
         uniqueKey="id"
         displayKey="name"
-        closeImgUrl='/icons/close.svg'
-      />
+        closeImgUrl="/icons/close.svg"
+      />,
     );
     expect(getByText('Option 1')).toBeInTheDocument();
   });
@@ -57,8 +57,8 @@ describe('MultiSelect Component', () => {
         onRemove={mockOnRemove}
         uniqueKey="id"
         displayKey="name"
-        closeImgUrl='/icons/close.svg'
-      />
+        closeImgUrl="/icons/close.svg"
+      />,
     );
 
     fireEvent.click(getByText('Select options...'));
@@ -72,12 +72,12 @@ describe('MultiSelect Component', () => {
       <MultiSelect
         options={mockOptions}
         selectedOptions={[mockOptions[0]]}
-        displayKey='name'
-        uniqueKey='id'
+        displayKey="name"
+        uniqueKey="id"
         onRemove={mockOnRemove}
         onAdd={mockOnAdd}
-        closeImgUrl='/icons/close.svg'
-      />
+        closeImgUrl="/icons/close.svg"
+      />,
     );
 
     // Check if the selected options wrapper is present
@@ -95,7 +95,7 @@ describe('MultiSelect Component', () => {
     // Simulate clicking the close icon for the first option
     // {{ edit_1 }} - Ensure you have the correct selector for the close icon
     const closeIcon = getByTestId('form-ms-close-icon-1'); // Adjust this selector as needed
-    const itemToRemove = mockOptions[0]
+    const itemToRemove = mockOptions[0];
     fireEvent.pointerDown(closeIcon);
 
     // Check if mockOnRemove was called with the correct argument
@@ -111,8 +111,8 @@ describe('MultiSelect Component', () => {
         onRemove={mockOnRemove}
         uniqueKey="id"
         displayKey="name"
-        closeImgUrl='/icons/close.svg'
-      />
+        closeImgUrl="/icons/close.svg"
+      />,
     );
 
     const selectedOptionsWrapper = getByTestId('form-msselected-options');

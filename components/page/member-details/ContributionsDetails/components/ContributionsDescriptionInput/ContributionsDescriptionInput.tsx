@@ -13,7 +13,11 @@ export const ContributionsDescriptionInput = () => {
       <div className={s.header}>
         <span className={s.label}>Description</span>
       </div>
-      <RichTextEditor id="contr-description" value={description} onChange={(txt) => setValue('description', txt, { shouldValidate: true, shouldDirty: true })} />
+      <RichTextEditor
+        id="contr-description"
+        value={description}
+        onChange={(txt) => setValue('description', txt, { shouldValidate: true, shouldDirty: true })}
+      />
     </div>
   );
 };

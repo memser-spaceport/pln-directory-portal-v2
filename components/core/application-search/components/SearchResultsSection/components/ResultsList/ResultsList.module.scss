@@ -6,8 +6,10 @@
 }
 
 .label {
-  color: #64748B;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #64748b;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -18,5 +20,5 @@
   height: 1px;
   width: calc(100%);
   margin-block: 8px;
-  background: #E2E8F0;
+  background: #e2e8f0;
 }

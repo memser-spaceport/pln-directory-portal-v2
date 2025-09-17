@@ -4,7 +4,9 @@
 .root {
   min-height: 20px;
   background: var(--Neutral-White);
-  box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
   position: relative;
   padding: 64px 16px 16px 16px;
   display: flex;
@@ -16,11 +18,11 @@
   }
 
   border-radius: 8px;
-  border: 1px solid #FDE68A;
+  border: 1px solid #fde68a;
 
   .missingDataHeader {
     border-radius: 0;
-    background: #FDE68A;
+    background: #fde68a;
     display: flex;
     padding: 8px 16px;
     justify-content: center;
@@ -28,7 +30,7 @@
     align-self: stretch;
     gap: 8px;
 
-    color: #0F172A;
+    color: #0f172a;
     font-size: 12px;
     font-style: normal;
     font-weight: 400;
@@ -44,13 +46,14 @@
   }
 }
 
-
 .label {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #0F172A;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #0f172a;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
 
   /* Body 2/Medium */
   font-size: 14px;
@@ -68,7 +71,7 @@
   gap: 16px;
   align-self: stretch;
   border-radius: 12px;
-  background: var(--Neutral-Slate-50, #F8FAFC);
+  background: var(--Neutral-Slate-50, #f8fafc);
 
   color: var(--Neutral-Slate-600, #475569);
   font-size: 12px;
@@ -80,7 +83,7 @@
   &.missingData {
     border-radius: 12px;
     border: 1px solid rgba(238, 189, 108, 0.25);
-    background: #FFF;
+    background: #fff;
   }
 }
 
@@ -110,12 +113,15 @@
 
   border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
-  background: var(--action-background-warning-normal, #F59E0B);
+  background: var(--action-background-warning-normal, #f59e0b);
 
   /* Button/regular/fill */
-  box-shadow: 0px 1px 3px 0px var(--transparent-dark-8, rgba(14, 15, 17, 0.08)) inset, 0px 4px 6px 0px var(--transparent-dark-4, rgba(14, 15, 17, 0.04)) inset, 0px 1px 5px 0px var(--transparent-dark-16, rgba(14, 15, 17, 0.16));
+  box-shadow:
+    0px 1px 3px 0px var(--transparent-dark-8, rgba(14, 15, 17, 0.08)) inset,
+    0px 4px 6px 0px var(--transparent-dark-4, rgba(14, 15, 17, 0.04)) inset,
+    0px 1px 5px 0px var(--transparent-dark-16, rgba(14, 15, 17, 0.16));
 
-  color: #FFF;
+  color: #fff;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -180,7 +186,7 @@
 }
 
 .backBtn {
-  color: var(--action-foreground-base-inverted_white, #FFF);
+  color: var(--action-foreground-base-inverted_white, #fff);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -189,7 +195,7 @@
 
   border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  background: var(--action-background-brand-normal, #1B4DFF);
+  background: var(--action-background-brand-normal, #1b4dff);
 
   display: flex;
   width: 180px;
@@ -197,11 +203,14 @@
   justify-content: center;
   align-items: center;
   gap: var(--spacing-zero, 0px);
-  box-shadow: 0px 1px 3px 0px var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  box-shadow:
+    0px 1px 3px 0px var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
 }
 
 .title {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   text-align: center;
   font-size: 20px;
   font-style: normal;

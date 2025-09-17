@@ -15,7 +15,11 @@ async function fetcher(uid: string | undefined) {
     return null;
   }
 
-  const response = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/notification/settings/${uid}/forum`, {}, true);
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/notification/settings/${uid}/forum`,
+    {},
+    true,
+  );
 
   if (!response?.ok) {
     throw new Error('Failed to fetch forum digest settings');

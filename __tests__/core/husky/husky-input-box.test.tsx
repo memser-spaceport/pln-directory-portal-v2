@@ -20,7 +20,7 @@ describe('HuskyInputBox', () => {
         onSourceSelected={mockOnSourceSelected}
         isAnswerLoading={false}
         selectedSource="none"
-      />
+      />,
     );
   });
 
@@ -38,20 +38,19 @@ describe('HuskyInputBox', () => {
     expect(input.innerText).toBe('');
   });
 
-    // Test source selection
-    // source selection is currently not used
-    it.skip('calls onSourceSelected when a source is clicked', () => {
-        const sourceMenu = screen.getByTestId('husky-input-source-menu');
-        fireEvent.click(sourceMenu);
-        const sourceButton = screen.getByTestId('input-source-1');
-        fireEvent.click(sourceButton);
-        
-        expect(mockTrackSourceChange).toHaveBeenCalledWith('twitter');
-        expect(mockOnSourceSelected).toHaveBeenCalledWith('twitter');
-      });
+  // Test source selection
+  // source selection is currently not used
+  it.skip('calls onSourceSelected when a source is clicked', () => {
+    const sourceMenu = screen.getByTestId('husky-input-source-menu');
+    fireEvent.click(sourceMenu);
+    const sourceButton = screen.getByTestId('input-source-1');
+    fireEvent.click(sourceButton);
 
+    expect(mockTrackSourceChange).toHaveBeenCalledWith('twitter');
+    expect(mockOnSourceSelected).toHaveBeenCalledWith('twitter');
+  });
 
-/*  
+  /*  
 
 
 
@@ -83,4 +82,3 @@ describe('HuskyInputBox', () => {
 
   // Additional tests can be added here for edge cases
 });
-

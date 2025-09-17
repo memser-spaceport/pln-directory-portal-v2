@@ -100,7 +100,7 @@ const LocationCard = (props: any) => {
               isActive: true,
             }),
           },
-          true
+          true,
         );
 
         if (response?.ok) {
@@ -137,7 +137,7 @@ const LocationCard = (props: any) => {
             Authorization: `Bearer ${authToken}`,
           },
         },
-        true
+        true,
       );
       if (response?.ok) {
         await getFeaturedData();
@@ -177,7 +177,13 @@ const LocationCard = (props: any) => {
           <div className="LocationCard__content__eventCntr__events ">
             <div className="Location__content__eventCntr__events__cntr">
               {visibleEvents?.map((event: any, index: number) => (
-                <Tooltip key={index} asChild align="start" trigger={<div className="eventsList">{event.name}</div>} content={<div className="eventName">{event.name}</div>} />
+                <Tooltip
+                  key={index}
+                  asChild
+                  align="start"
+                  trigger={<div className="eventsList">{event.name}</div>}
+                  content={<div className="eventName">{event.name}</div>}
+                />
               ))}
               {hiddenEventCount > 0 && (
                 <Tooltip
@@ -225,7 +231,9 @@ const LocationCard = (props: any) => {
                       <span className="followRoot__followingBtn">
                         <div className="root__irl__follwcnt__imgsec__images">
                           {[
-                            ...props.followers?.map((item: { member: any }) => item.member?.image?.url).filter((url: string | undefined) => !!url),
+                            ...props.followers
+                              ?.map((item: { member: any }) => item.member?.image?.url)
+                              .filter((url: string | undefined) => !!url),
                             ...Array(props?.followers?.length).fill('/icons/default_profile.svg'),
                           ]
                             .slice(0, Math.min(3, props?.followers?.length))
@@ -282,7 +290,9 @@ const LocationCard = (props: any) => {
                               <span className="followRoot__followBtn_cntr">
                                 <div className="root__irl__follwcnt__imgsec__images">
                                   {[
-                                    ...props.followers?.map((item: { member: any }) => item.member?.image?.url).filter((url: string | undefined) => !!url),
+                                    ...props.followers
+                                      ?.map((item: { member: any }) => item.member?.image?.url)
+                                      .filter((url: string | undefined) => !!url),
                                     ...Array(props?.followers?.length).fill('/icons/default_profile.svg'),
                                   ]
                                     .slice(0, Math.min(3, props?.followers?.length))
@@ -360,7 +370,10 @@ const LocationCard = (props: any) => {
           }}
         >
           <div className="popup__cnt__header"> Wait! You&apos;re about to miss out…</div>
-          <div className="popup__cnt__body">You&apos;ll stop receiving updates about exciting events happening in {eventLocationSummary.name}. Stay connected to never miss out!</div>
+          <div className="popup__cnt__body">
+            You&apos;ll stop receiving updates about exciting events happening in {eventLocationSummary.name}. Stay
+            connected to never miss out!
+          </div>
 
           <div className="popup__footer">
             <button onClick={onCloseModal} className="popup__footer__cancel">
@@ -384,7 +397,9 @@ const LocationCard = (props: any) => {
           width: 100%;
           height: 290px;
           border-radius: 12px;
-          box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
+          box-shadow:
+            0px 4px 4px 0px #0f172a0a,
+            0px 0px 1px 0px #0f172a1f;
           background-color: white;
           display: flex;
           flex-direction: column;
@@ -474,7 +489,9 @@ const LocationCard = (props: any) => {
           border-radius: 8px;
           border: 2px solid transparent;
           background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
-          -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+          -webkit-mask:
+            linear-gradient(#fff 0 0) padding-box,
+            linear-gradient(#fff 0 0);
           -webkit-mask-composite: destination-out;
           mask-composite: exclude;
         }

@@ -28,7 +28,6 @@
     flex-shrink: 1;
     flex-basis: 0;
   }
-;
 }
 
 .list {
@@ -51,11 +50,11 @@
   flex-direction: column;
   gap: 8px;
   padding-inline: 8px;
-  border-left: 8px solid rgba(255, 255, 255, 0.80);
+  border-left: 8px solid rgba(255, 255, 255, 0.8);
 }
 
 .primary {
-  color: #FFF;
+  color: #fff;
   font-size: clamp(18px, 5vw, 24px); // 24px;
   font-style: normal;
   font-weight: 900;
@@ -68,7 +67,7 @@
 }
 
 .secondary {
-  color: rgba(255, 255, 255, 0.80);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;

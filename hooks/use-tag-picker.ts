@@ -12,7 +12,7 @@ const useTagsPicker = (props: any) => {
   const onInputChange = (e: any) => {
     const searchText = e.target?.value ?? '';
     setInputValue(searchText);
-    if(searchText===''){
+    if (searchText === '') {
       setError('');
     }
     let newDefaultTags = defaultTags;
@@ -24,7 +24,7 @@ const useTagsPicker = (props: any) => {
 
   const findExactMatch = (tag: string) => {
     const tagLower = tag.toLowerCase();
-    return defaultTags.find((item:string) => item.toLowerCase() === tagLower) || null;
+    return defaultTags.find((item: string) => item.toLowerCase() === tagLower) || null;
   };
 
   const isValueExist = (tag: string) => {

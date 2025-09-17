@@ -56,7 +56,10 @@ export const useHuskyAnalytics = () => {
         const loggedInUserUid = userInfo?.uid;
         const loggedInUserEmail = userInfo?.email;
         const loggedInUserName = userInfo?.name;
-        postHogProps.capture(eventName, { ...allParams, ...(loggedInUserEmail && { loggedInUserUid, loggedInUserEmail, loggedInUserName }) });
+        postHogProps.capture(eventName, {
+          ...allParams,
+          ...(loggedInUserEmail && { loggedInUserUid, loggedInUserEmail, loggedInUserName }),
+        });
       }
     } catch (e) {
       console.error(e);
@@ -253,6 +256,6 @@ export const useHuskyAnalytics = () => {
     trackDeleteThread,
     trackMobileDeleteThread,
     trackThreadDeleteConfirmationStatus,
-    trackThreadDuplicateStatus
+    trackThreadDuplicateStatus,
   };
 };

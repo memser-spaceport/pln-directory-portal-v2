@@ -1,10 +1,10 @@
-"use client";
-import { SyntheticEvent } from "react";
+'use client';
+import { SyntheticEvent } from 'react';
 
 export interface IButton {
   variant: string;
   value: string;
-  type: "submit" | "reset" | "button" | undefined;
+  type: 'submit' | 'reset' | 'button' | undefined;
   callBack?: () => void;
   isDisabled?: boolean;
 }
@@ -18,12 +18,7 @@ const ModalButton = (props: IButton) => {
 
   return (
     <>
-      <button
-        disabled={isDisabled}
-        type={type}
-        className={className}
-        onClick={callBack}
-      >
+      <button disabled={isDisabled} type={type} className={className} onClick={callBack}>
         {value}
       </button>
       <style jsx>

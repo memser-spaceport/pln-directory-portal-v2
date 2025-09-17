@@ -3,7 +3,9 @@
 
 .Label {
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -22,11 +24,7 @@
   &.secondary {
     .Switch {
       outline: rgb(255 255 255 / 15%) solid 1px;
-      background-image: linear-gradient(
-                      to right,
-                      #3D4A5C 35%,
-                      var(--Neutral-Slate-200) 65%
-      );
+      background-image: linear-gradient(to right, #3d4a5c 35%, var(--Neutral-Slate-200) 65%);
     }
   }
 }
@@ -66,11 +64,7 @@
   }
 
   outline-color: rgb(255 255 255 / 15%);
-  background-image: linear-gradient(
-                  to right,
-                  #156FF7 35%,
-                  var(--Neutral-Slate-200) 65%
-  );
+  background-image: linear-gradient(to right, #156ff7 35%, var(--Neutral-Slate-200) 65%);
 
   &:focus-visible {
     &::before {
@@ -113,7 +107,7 @@
     }
 
     .dot {
-      background-color: #1B4DFF;
+      background-color: #1b4dff;
     }
   }
 }

@@ -23,7 +23,9 @@ export const EditAskDialog: FC<Props> = ({ team, ask, onClose, isOpen }) => {
               <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
             </button>
             <h2>Edit your Asks</h2>
-            <p className={s.description}>Share short updates or requests for help, such as hiring needs, fundraising, or partnership opportunities.</p>
+            <p className={s.description}>
+              Share short updates or requests for help, such as hiring needs, fundraising, or partnership opportunities.
+            </p>
             <UpdateForm team={team} ask={ask} onClose={onClose} />
           </div>
         </div>

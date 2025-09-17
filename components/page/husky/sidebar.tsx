@@ -31,156 +31,158 @@ const useSidebar = () => {
   return context;
 };
 
-const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<'div'> & {}>(({ className, children, ...props }, ref) => {
-  const { isMobile, state, openMobile } = useSidebar();
+const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<'div'> & {}>(
+  ({ className, children, ...props }, ref) => {
+    const { isMobile, state, openMobile } = useSidebar();
 
-  if (isMobile && openMobile) {
-    return (
-      <div className="sidebar-mobile-backdrop">
-        <div
-          data-sidebar="sidebar"
-          data-mobile="true"
-          className="sidebar sidebar--mobile"
-          style={{ '--sidebar-width': SIDEBAR_WIDTH_MOBILE } as React.CSSProperties}
-          data-state={openMobile ? 'expanded' : 'collapsed'}
-        >
-          <div className="sidebar__content">{children}</div>
-        </div>
+    if (isMobile && openMobile) {
+      return (
+        <div className="sidebar-mobile-backdrop">
+          <div
+            data-sidebar="sidebar"
+            data-mobile="true"
+            className="sidebar sidebar--mobile"
+            style={{ '--sidebar-width': SIDEBAR_WIDTH_MOBILE } as React.CSSProperties}
+            data-state={openMobile ? 'expanded' : 'collapsed'}
+          >
+            <div className="sidebar__content">{children}</div>
+          </div>
 
-        <style jsx>{`
-          .sidebar--mobile {
-            width: var(--sidebar-width);
-            background-color: #ffffff;
-            padding: 0;
-            color: var(--sidebar-foreground, #333);
-            height: calc(100svh - 82px);
-            transform: translateX(-100%);
-          }
-
-          .sidebar-mobile-backdrop {
-            position: fixed;
-            right: 0;
-            z-index: 3;
-            top: 0;
-            background-color: rgb(0, 0, 0, 0.4);
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: 100%;
-            top: var(--app-header-height);
-          }
-
-          .sidebar__content {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-          }
-
-          @keyframes slideIn {
-            from {
+          <style jsx>{`
+            .sidebar--mobile {
+              width: var(--sidebar-width);
+              background-color: #ffffff;
+              padding: 0;
+              color: var(--sidebar-foreground, #333);
+              height: calc(100svh - 82px);
               transform: translateX(-100%);
             }
-            to {
-              transform: translateX(0);
+
+            .sidebar-mobile-backdrop {
+              position: fixed;
+              right: 0;
+              z-index: 3;
+              top: 0;
+              background-color: rgb(0, 0, 0, 0.4);
+              display: flex;
+              flex-direction: column;
+              width: 100%;
+              height: 100%;
+              top: var(--app-header-height);
             }
-          }
 
-          @keyframes slideOut {
-            from {
-              transform: translateX(0);
+            .sidebar__content {
+              height: 100%;
+              display: flex;
+              flex-direction: column;
             }
-            to {
-              transform: translateX(-100%);
+
+            @keyframes slideIn {
+              from {
+                transform: translateX(-100%);
+              }
+              to {
+                transform: translateX(0);
+              }
             }
-          }
 
-          .sidebar--mobile[data-state='expanded'] {
-            animation: slideIn 0.3s ease-in-out forwards;
-          }
+            @keyframes slideOut {
+              from {
+                transform: translateX(0);
+              }
+              to {
+                transform: translateX(-100%);
+              }
+            }
 
-          .sidebar--mobile[data-state='collapsed'] {
-            animation: slideOut 0.3s ease-in-out forwards;
-          }
-        `}</style>
-      </div>
-    );
-  }
+            .sidebar--mobile[data-state='expanded'] {
+              animation: slideIn 0.3s ease-in-out forwards;
+            }
 
-  if (!isMobile) {
-    return (
-      <div ref={ref} className={`hidden block sidebar-wrapper`} data-state={state} {...props}>
-        <div className="sidebar-gap"></div>
-        <div className="sidebar-content">
-          <div className="sidebar">{children}</div>
+            .sidebar--mobile[data-state='collapsed'] {
+              animation: slideOut 0.3s ease-in-out forwards;
+            }
+          `}</style>
         </div>
+      );
+    }
 
-        <style jsx>{`
-          .hidden {
-            display: none;
-          }
+    if (!isMobile) {
+      return (
+        <div ref={ref} className={`hidden block sidebar-wrapper`} data-state={state} {...props}>
+          <div className="sidebar-gap"></div>
+          <div className="sidebar-content">
+            <div className="sidebar">{children}</div>
+          </div>
 
-          .sidebar-gap {
-            height: 100%;
-            width: var(--sidebar-width);
-            transition: width 0.2s linear;
-            animation-timing-function: linear;
-            animation-duration: 0.2s;
-            transition-timing-function: linear;
-            transition-duration: 0.2s;
-            position: relative;
-          }
-
-          .sidebar-content {
-            position: fixed;
-            bottom: 0;
-            z-index: 4;
-            height: calc(100vh - 82px);
-            width: var(--sidebar-width, 250px);
-            transition:
-              left 0.2s ease-in-out,
-              right 0.2s ease-in-out,
-              width 0.2s linear;
-            display: flex;
-          }
-
-          .sidebar {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-            background-color: #ffffff;
-            color: var(--sidebar-foreground, #333);
-            transition: width 0.3s ease;
-          }
-
-          .sidebar-wrapper {
-            box-shadow: 1px 0px 4px 0px #0000002e;
-          }
-
-          .sidebar-wrapper[data-state='collapsed'] .sidebar-gap {
-            width: var(--sidebar-width-icon);
-          }
-
-          .sidebar-wrapper[data-state='collapsed'] .sidebar-content {
-            width: var(--sidebar-width-icon);
-          }
-
-          @media (min-width: 768px) {
-            .block {
-              display: block;
+          <style jsx>{`
+            .hidden {
+              display: none;
             }
 
-            .flex {
+            .sidebar-gap {
+              height: 100%;
+              width: var(--sidebar-width);
+              transition: width 0.2s linear;
+              animation-timing-function: linear;
+              animation-duration: 0.2s;
+              transition-timing-function: linear;
+              transition-duration: 0.2s;
+              position: relative;
+            }
+
+            .sidebar-content {
+              position: fixed;
+              bottom: 0;
+              z-index: 4;
+              height: calc(100vh - 82px);
+              width: var(--sidebar-width, 250px);
+              transition:
+                left 0.2s ease-in-out,
+                right 0.2s ease-in-out,
+                width 0.2s linear;
               display: flex;
             }
-          }
-        `}</style>
-      </div>
-    );
-  }
 
-  return null;
-});
+            .sidebar {
+              display: flex;
+              flex-direction: column;
+              height: 100%;
+              width: 100%;
+              background-color: #ffffff;
+              color: var(--sidebar-foreground, #333);
+              transition: width 0.3s ease;
+            }
+
+            .sidebar-wrapper {
+              box-shadow: 1px 0px 4px 0px #0000002e;
+            }
+
+            .sidebar-wrapper[data-state='collapsed'] .sidebar-gap {
+              width: var(--sidebar-width-icon);
+            }
+
+            .sidebar-wrapper[data-state='collapsed'] .sidebar-content {
+              width: var(--sidebar-width-icon);
+            }
+
+            @media (min-width: 768px) {
+              .block {
+                display: block;
+              }
+
+              .flex {
+                display: flex;
+              }
+            }
+          `}</style>
+        </div>
+      );
+    }
+
+    return null;
+  },
+);
 Sidebar.displayName = 'Sidebar';
 
 const SidebarProvider = React.forwardRef<

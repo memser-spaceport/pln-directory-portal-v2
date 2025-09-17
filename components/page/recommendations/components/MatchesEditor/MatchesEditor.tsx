@@ -28,7 +28,16 @@ interface Props {
   placeholder?: string;
 }
 
-export const MatchesEditor = ({ icon, title, hint, selectLabel, warning, name, isColorfulBadges = true, placeholder = 'Add keyword' }: Props) => {
+export const MatchesEditor = ({
+  icon,
+  title,
+  hint,
+  selectLabel,
+  warning,
+  name,
+  isColorfulBadges = true,
+  placeholder = 'Add keyword',
+}: Props) => {
   const [inputText, setInputText] = useState('');
   const { setValue, getValues } = useFormContext();
   const values = getValues();
@@ -149,7 +158,17 @@ const PlusIcon = () => (
   </svg>
 );
 
-const Badge = ({ label, onDelete, isColorful, disabled }: { label: string; onDelete: () => void; isColorful: boolean; disabled?: boolean }) => {
+const Badge = ({
+  label,
+  onDelete,
+  isColorful,
+  disabled,
+}: {
+  label: string;
+  onDelete: () => void;
+  isColorful: boolean;
+  disabled?: boolean;
+}) => {
   return (
     <div
       className={clsx(s.badge, {

@@ -102,7 +102,10 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
       const { data, isError, errorMessage, errorData } = await updateMemberBio(member.id, payload, authToken);
       triggerLoader(false);
       if (isError) {
-        if (errorData?.message && errorData?.message === 'Email already exists. Please try again with different email') {
+        if (
+          errorData?.message &&
+          errorData?.message === 'Email already exists. Please try again with different email'
+        ) {
           toast.error('Email already exists. Please try again with different email');
         } else {
           toast.error('Member updated failed. Something went wrong, please try again later');

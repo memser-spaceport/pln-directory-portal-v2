@@ -1,9 +1,23 @@
 import React, { FormEvent, use, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { toast } from '@/components/core/ToastContainer';
-import { IIrlAttendeeFormErrors, IIrlEvent, IIrlGathering, IIrlGuest, IIrlLocation, IIrlParticipationEvent } from '@/types/irl.types';
+import {
+  IIrlAttendeeFormErrors,
+  IIrlEvent,
+  IIrlGathering,
+  IIrlGuest,
+  IIrlLocation,
+  IIrlParticipationEvent,
+} from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, EVENTS_SUBMIT_FORM_TYPES, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS, TOAST_MESSAGES } from '@/utils/constants';
+import {
+  ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS,
+  EVENTS,
+  EVENTS_SUBMIT_FORM_TYPES,
+  IAM_GOING_POPUP_MODES,
+  IRL_ATTENDEE_FORM_ERRORS,
+  TOAST_MESSAGES,
+} from '@/utils/constants';
 import { canUserPerformEditAction, mergeGuestEvents } from '@/utils/irl.utils';
 import { isLink } from '@/utils/third-party.helper';
 import AttendeeDetails from './attendee-details';
@@ -16,7 +30,13 @@ import Topics from './topics';
 import TopicsDescription from './topics-description';
 import { createEventGuest, editEventGuest, markMyPresence } from '@/services/irl.service';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { getAnalyticsLocationInfo, getAnalyticsUserInfo, getTelegramUsername, removeAtSymbol, triggerLoader } from '@/utils/common.utils';
+import {
+  getAnalyticsLocationInfo,
+  getAnalyticsUserInfo,
+  getTelegramUsername,
+  removeAtSymbol,
+  triggerLoader,
+} from '@/utils/common.utils';
 import { useSearchParams } from 'next/navigation';
 import AttendeeOptions from './attendee-options';
 
@@ -41,7 +61,14 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
   const mode = props?.mode;
   const selectedLocation = props?.selectedLocation;
   const loggedInUser = props?.userInfo;
-  const userInfo = mode === IAM_GOING_POPUP_MODES.ADMINADD ? null : { name: props?.formData?.member?.name, uid: props?.formData?.member?.uid, roles: props?.formData?.member?.roles };
+  const userInfo =
+    mode === IAM_GOING_POPUP_MODES.ADMINADD
+      ? null
+      : {
+          name: props?.formData?.member?.name,
+          uid: props?.formData?.member?.uid,
+          roles: props?.formData?.member?.roles,
+        };
   const defaultTags = props?.defaultTags;
   const allGuests = props?.allGuests;
   const onClose = props?.onClose;
@@ -98,9 +125,17 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     e.preventDefault();
     try {
       if (type === 'Save') {
-        analytics.irlGuestDetailEditBtnClick(getAnalyticsUserInfo(props?.userInfo), getAnalyticsLocationInfo(selectedLocation), 'clicked');
+        analytics.irlGuestDetailEditBtnClick(
+          getAnalyticsUserInfo(props?.userInfo),
+          getAnalyticsLocationInfo(selectedLocation),
+          'clicked',
+        );
       }
-      analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(props?.userInfo), getAnalyticsLocationInfo(selectedLocation), 'clicked');
+      analytics.irlGuestDetailSaveBtnClick(
+        getAnalyticsUserInfo(props?.userInfo),
+        getAnalyticsLocationInfo(selectedLocation),
+        'clicked',
+      );
 
       if (!attendeeFormRef.current) {
         return;
@@ -131,7 +166,12 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       triggerLoader(true);
 
       if ((mode === IAM_GOING_POPUP_MODES.ADMINADD || mode === IAM_GOING_POPUP_MODES.ADD) && !isUpdate) {
-        analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_initiated', formattedData);
+        analytics.irlGuestDetailSaveBtnClick(
+          getAnalyticsUserInfo(userInfo),
+          getAnalyticsLocationInfo(selectedLocation),
+          'api_initiated',
+          formattedData,
+        );
         let result;
         if (from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) {
           formattedData['memberName'] = userInfo?.name;
@@ -151,7 +191,12 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         if (from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) {
           document.dispatchEvent(new Event(EVENTS.MARK_MY_PRESENCE_SUBMIT_SUCCESS_POPUP));
         } else {
-          analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_success', formattedData);
+          analytics.irlGuestDetailSaveBtnClick(
+            getAnalyticsUserInfo(userInfo),
+            getAnalyticsLocationInfo(selectedLocation),
+            'api_success',
+            formattedData,
+          );
           if (isAllowedToManageGuests) {
             toast.success(TOAST_MESSAGES.ATTENDEE_ADDED_SUCCESSFULLY);
           } else {
@@ -159,16 +204,31 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           }
         }
       } else if (mode === IAM_GOING_POPUP_MODES.EDIT || isUpdate) {
-        analytics.irlGuestDetailEditBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_initiated', formattedData);
+        analytics.irlGuestDetailEditBtnClick(
+          getAnalyticsUserInfo(userInfo),
+          getAnalyticsLocationInfo(selectedLocation),
+          'api_initiated',
+          formattedData,
+        );
         const eventType = searchParams?.type === 'past' ? 'past' : 'upcoming';
-        const result = await editEventGuest(selectedLocation.uid, formInitialValues?.memberUid, formattedData, eventType);
+        const result = await editEventGuest(
+          selectedLocation.uid,
+          formInitialValues?.memberUid,
+          formattedData,
+          eventType,
+        );
         if (result?.error) {
           triggerLoader(false);
           onClose();
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
           return;
         }
-        analytics.irlGuestDetailEditBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_success', formattedData);
+        analytics.irlGuestDetailEditBtnClick(
+          getAnalyticsUserInfo(userInfo),
+          getAnalyticsLocationInfo(selectedLocation),
+          'api_success',
+          formattedData,
+        );
         await getEventDetails();
         onClose();
         if (isAllowedToManageGuests) {
@@ -180,7 +240,11 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     } catch (error) {
       triggerLoader(false);
       console.error(error);
-      analytics.irlGuestDetailSaveError(getAnalyticsUserInfo(props?.userInfo), getAnalyticsLocationInfo(selectedLocation), type);
+      analytics.irlGuestDetailSaveError(
+        getAnalyticsUserInfo(props?.userInfo),
+        getAnalyticsLocationInfo(selectedLocation),
+        type,
+      );
     }
   };
 
@@ -217,7 +281,9 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             events[eventIndex]['speakerSubEvents'] = [];
             events[eventIndex]['sponsorSubEvents'] = [];
             if (from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) {
-              events[eventIndex]['eventName'] = props?.allGatherings?.find((gathering: IIrlEvent) => gathering?.uid === formValues[key])?.name;
+              events[eventIndex]['eventName'] = props?.allGatherings?.find(
+                (gathering: IIrlEvent) => gathering?.uid === formValues[key],
+              )?.name;
             }
           }
         }
@@ -247,7 +313,9 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         events = structuredClone([...events]).filter((g) => g);
         const eventIndex = [...events].findIndex((event) => event.uid === eventUid);
         if (eventIndex !== -1) {
-          const hostSubEventIndex = events[eventIndex].hostSubEvents.findIndex((subEvent: any) => subEvent.uid === subEventId);
+          const hostSubEventIndex = events[eventIndex].hostSubEvents.findIndex(
+            (subEvent: any) => subEvent.uid === subEventId,
+          );
           if (hostSubEventIndex !== -1) {
             events[eventIndex].hostSubEvents[hostSubEventIndex][subEventKey] = formValues[key].trim();
           } else {
@@ -263,7 +331,9 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         events = structuredClone([...events]).filter((g) => g);
         const eventIndex = [...events].findIndex((event) => event.uid === eventUid);
         if (eventIndex !== -1) {
-          const speakerSubEventIndex = events[eventIndex].speakerSubEvents.findIndex((subEvent: any) => subEvent.uid === subEventId);
+          const speakerSubEventIndex = events[eventIndex].speakerSubEvents.findIndex(
+            (subEvent: any) => subEvent.uid === subEventId,
+          );
           if (speakerSubEventIndex !== -1) {
             events[eventIndex].speakerSubEvents[speakerSubEventIndex][subEventKey] = formValues[key].trim();
           } else {
@@ -279,7 +349,9 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         events = structuredClone([...events]).filter((g) => g);
         const eventIndex = [...events].findIndex((event) => event.uid === eventUid);
         if (eventIndex !== -1) {
-          const sponsorSubEventIndex = events[eventIndex].sponsorSubEvents.findIndex((subEvent: any) => subEvent.uid === subEventId);
+          const sponsorSubEventIndex = events[eventIndex].sponsorSubEvents.findIndex(
+            (subEvent: any) => subEvent.uid === subEventId,
+          );
           if (sponsorSubEventIndex !== -1) {
             events[eventIndex].sponsorSubEvents[sponsorSubEventIndex][subEventKey] = formValues[key].trim();
           } else {
@@ -302,7 +374,13 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       }
     }
 
-    result = { ...result, events: [...events].filter((g) => g), additionalInfo, topics, locationName: selectedLocation?.name };
+    result = {
+      ...result,
+      events: [...events].filter((g) => g),
+      additionalInfo,
+      topics,
+      locationName: selectedLocation?.name,
+    };
 
     return result;
   }
@@ -323,7 +401,10 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
   }, []);
 
   const onCloseClickHandler = () => {
-    analytics.irlAddAttendeePopupCloseClicked(getAnalyticsUserInfo(props?.userInfo), getAnalyticsLocationInfo(selectedLocation));
+    analytics.irlAddAttendeePopupCloseClicked(
+      getAnalyticsUserInfo(props?.userInfo),
+      getAnalyticsLocationInfo(selectedLocation),
+    );
     onClose();
   };
 
@@ -331,16 +412,32 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     let isError = false;
     if (!formattedData?.memberUid) {
       isError = true;
-      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER])) }));
+      setErrors((prev: IIrlAttendeeFormErrors) => ({
+        ...prev,
+        gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER])),
+      }));
     } else {
-      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER) }));
+      setErrors((prev: IIrlAttendeeFormErrors) => ({
+        ...prev,
+        gatheringErrors: prev.gatheringErrors.filter(
+          (error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER,
+        ),
+      }));
     }
 
     const canSkipGateringsValidation =
-      formInitialValues && formInitialValues?.events?.length != 0 && eventType === 'past' && from != EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE && mode !== IAM_GOING_POPUP_MODES.ADMINADD;
+      formInitialValues &&
+      formInitialValues?.events?.length != 0 &&
+      eventType === 'past' &&
+      from != EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE &&
+      mode !== IAM_GOING_POPUP_MODES.ADMINADD;
     if (formattedData.events.length === 0 && !canSkipGateringsValidation) {
       isError = true;
-      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, participationError: [], gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])) }));
+      setErrors((prev: IIrlAttendeeFormErrors) => ({
+        ...prev,
+        participationError: [],
+        gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])),
+      }));
     } else {
       let participationErrors: string[] = [];
       formattedData?.events?.map((event: any) => {
@@ -367,23 +464,34 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       });
       setErrors((prev: IIrlAttendeeFormErrors) => ({
         ...prev,
-        gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING),
+        gatheringErrors: prev.gatheringErrors.filter(
+          (error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING,
+        ),
         participationErrors: Array.from(new Set([...participationErrors])),
       }));
     }
 
     if (formattedData.additionalInfo.checkInDate && !formattedData.additionalInfo.checkOutDate) {
       isError = true;
-      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.CHECKOUT_DATE_REQUIRED])) }));
+      setErrors((prev: IIrlAttendeeFormErrors) => ({
+        ...prev,
+        dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.CHECKOUT_DATE_REQUIRED])),
+      }));
     } else if (formattedData.additionalInfo.checkOutDate && !formattedData.additionalInfo.checkInDate) {
       isError = true;
-      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED])) }));
+      setErrors((prev: IIrlAttendeeFormErrors) => ({
+        ...prev,
+        dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED])),
+      }));
     } else if (formattedData.additionalInfo.checkInDate && formattedData.additionalInfo.checkOutDate) {
       const checkInDate = new Date(formattedData.additionalInfo.checkInDate);
       const checkOutDate = new Date(formattedData.additionalInfo.checkOutDate);
       if (checkInDate > checkOutDate) {
         isError = true;
-        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE])) }));
+        setErrors((prev: IIrlAttendeeFormErrors) => ({
+          ...prev,
+          dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE])),
+        }));
       } else {
         setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: [] }));
       }
@@ -396,12 +504,21 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
   return (
     <div className="attndformcnt">
       {/* <RegisterFormLoader /> */}
-      <form noValidate onSubmit={(e) => onFormSubmitHandler(e, IAM_GOING_POPUP_MODES.EDIT ? 'Edit' : 'Save')} ref={attendeeFormRef} className="atndform">
+      <form
+        noValidate
+        onSubmit={(e) => onFormSubmitHandler(e, IAM_GOING_POPUP_MODES.EDIT ? 'Edit' : 'Save')}
+        ref={attendeeFormRef}
+        className="atndform"
+      >
         {/* <button type="button" className="modal__cn__closebtn" onClick={onCloseClickHandler}>
           <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
         </button> */}
         <div className="atndform__bdy" ref={formBodyRef}>
-          <h2 className="atndform__bdy__ttl">{from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE ? 'Request to claim your attendance' : 'Enter Attendee Details'}</h2>
+          <h2 className="atndform__bdy__ttl">
+            {from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE
+              ? 'Request to claim your attendance'
+              : 'Enter Attendee Details'}
+          </h2>
           <AttendeeFormErrors errors={errors} />
           <div>
             <AttendeeDetails
@@ -439,25 +556,43 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
                 <ArrivalAndDepatureDate initialValues={formInitialValues} allGatherings={gatherings} errors={errors} />
               </div>
               <div>
-                <Topics defaultTags={defaultTags} selectedItems={formInitialValues?.topicsAndReason ? (formInitialValues?.topicsAndReason?.topics ?? []) : []} />
+                <Topics
+                  defaultTags={defaultTags}
+                  selectedItems={
+                    formInitialValues?.topicsAndReason ? (formInitialValues?.topicsAndReason?.topics ?? []) : []
+                  }
+                />
               </div>
               <div>
-                <TopicsDescription initialValue={formInitialValues?.topicsAndReason ? formInitialValues?.topicsAndReason?.reason : ''} />
+                <TopicsDescription
+                  initialValue={formInitialValues?.topicsAndReason ? formInitialValues?.topicsAndReason?.reason : ''}
+                />
               </div>
               <div className="interest-note">
                 <div className="interest-note__icon">
                   <Image src="/icons/info-blue.svg" alt="info" width={16} height={16} />
                 </div>
                 <p className="interest-note__text">
-                  Modifications to these fields (Select topics of interest and Describe your interests) will affect all events at this location, including past events
+                  Modifications to these fields (Select topics of interest and Describe your interests) will affect all
+                  events at this location, including past events
                 </p>
               </div>
 
               <div id="telegram-section">
-                <TelegramHandle location={selectedLocation} userInfo={props?.userInfo} initialValues={formInitialValues} scrollTo={scrollTo} />
+                <TelegramHandle
+                  location={selectedLocation}
+                  userInfo={props?.userInfo}
+                  initialValues={formInitialValues}
+                  scrollTo={scrollTo}
+                />
               </div>
               <div id="officehours-section">
-                <OfficeHours location={selectedLocation} userInfo={props?.userInfo} initialValues={formInitialValues} scrollTo={scrollTo} />
+                <OfficeHours
+                  location={selectedLocation}
+                  userInfo={props?.userInfo}
+                  initialValues={formInitialValues}
+                  scrollTo={scrollTo}
+                />
               </div>
             </div>
           )}

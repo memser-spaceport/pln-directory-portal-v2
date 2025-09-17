@@ -1,35 +1,42 @@
-"use client";
-import { PAGE_ROUTES } from "@/utils/constants";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+'use client';
+import { PAGE_ROUTES } from '@/utils/constants';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const IrlErrorPage = () => {
+  const router = useRouter();
 
-    const router = useRouter();
-    
-    useEffect(() => {
-        router.refresh();
-    }, [])
+  useEffect(() => {
+    router.refresh();
+  }, []);
 
-    return (
-        <>
-            <div className="error-container">
-                <div className="error-container__content">
-                    <div className="error-container__content__notfoundcontainer">
-                        <img loading="lazy" className="error-container__content__notfound-img" alt="error" src="/icons/irl-not-found.svg" />
-                    </div>
-                    <div className="error-container__content__message">
-                        <h2 className="error-container__content__message__title">Oops, you&apos;ve wandered off the map!!</h2>
-                        <p className="error-container__content__message__desc">
-                            Looks like you&apos;re trying to explore a location not in our listings. Click the button below to take you where the action is!
-                        </p>
-                        <a href={PAGE_ROUTES.IRL} className="error-container__content__message__back-to-home">Back to IRL Gatherings</a>
-                    </div>
-                </div>
-            </div>
+  return (
+    <>
+      <div className="error-container">
+        <div className="error-container__content">
+          <div className="error-container__content__notfoundcontainer">
+            <img
+              loading="lazy"
+              className="error-container__content__notfound-img"
+              alt="error"
+              src="/icons/irl-not-found.svg"
+            />
+          </div>
+          <div className="error-container__content__message">
+            <h2 className="error-container__content__message__title">Oops, you&apos;ve wandered off the map!!</h2>
+            <p className="error-container__content__message__desc">
+              Looks like you&apos;re trying to explore a location not in our listings. Click the button below to take
+              you where the action is!
+            </p>
+            <a href={PAGE_ROUTES.IRL} className="error-container__content__message__back-to-home">
+              Back to IRL Gatherings
+            </a>
+          </div>
+        </div>
+      </div>
 
-            <style jsx>
-                {`
+      <style jsx>
+        {`
             .error-container {
                 position: fixed;
                 top: 40px;
@@ -131,9 +138,9 @@ const IrlErrorPage = () => {
                 }
             }
             .`}
-            </style>
-        </>
-    );
+      </style>
+    </>
+  );
 };
 
 export default IrlErrorPage;

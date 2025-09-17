@@ -19,7 +19,14 @@ export function useRecommendationLinkAnalyticsReport(member: IMember) {
   useEffect(() => {
     if (!reportRef.current && utmSource === 'recommendations' && member) {
       reportRef.current = true;
-      analytics.onOpenProfileByRecommendationEmailLink(utmSource, utmMedium, utmCode, member.name, targetId, targetEmail);
+      analytics.onOpenProfileByRecommendationEmailLink(
+        utmSource,
+        utmMedium,
+        utmCode,
+        member.name,
+        targetId,
+        targetEmail,
+      );
 
       router.replace(pathname);
     }

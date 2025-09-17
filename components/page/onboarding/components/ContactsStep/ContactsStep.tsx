@@ -26,7 +26,8 @@ export const ContactsStep = ({ userInfo }: Props) => {
     <motion.div className={s.root} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div className={s.title}>How others can connect with you</div>
       <div className={s.subtitle}>
-        Share your calendar link to enable easy scheduling with team members — you&apos;ll also gain access to book their available office hours.{' '}
+        Share your calendar link to enable easy scheduling with team members — you&apos;ll also gain access to book
+        their available office hours.{' '}
         <a href={LEARN_MORE_URL} target="blank">
           Learn More <Image loading="lazy" alt="learn more" src="/icons/learn-more.svg" height={16} width={16} />
         </a>
@@ -46,7 +47,9 @@ export const ContactsStep = ({ userInfo }: Props) => {
             {errors.officeHours?.message}
           </Field.Error>
         ) : (
-          <Field.Description className={s.fieldDescription}>We recommend using a Calendly or Google Calendar link.</Field.Description>
+          <Field.Description className={s.fieldDescription}>
+            We recommend using a Calendly or Google Calendar link.
+          </Field.Description>
         )}
       </Field.Root>
 
@@ -64,7 +67,9 @@ export const ContactsStep = ({ userInfo }: Props) => {
             {errors.telegram?.message}
           </Field.Error>
         ) : (
-          <Field.Description className={s.fieldDescription}>Copy @username in your Telegram profile settings</Field.Description>
+          <Field.Description className={s.fieldDescription}>
+            Copy @username in your Telegram profile settings
+          </Field.Description>
         )}
       </Field.Root>
     </motion.div>

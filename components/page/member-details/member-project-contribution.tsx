@@ -22,11 +22,16 @@ const MemberProjectContribution = (props: IMemberProjectExperience) => {
   const member = props?.member;
   const userInfo = props?.userInfo;
   const allContributions: any = member?.projectContributions ?? [];
-  const presentContributions = [...allContributions].filter((v) => v.endDate === null).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-  const pastContributions = [...allContributions].filter((v) => v.endDate !== null).sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
+  const presentContributions = [...allContributions]
+    .filter((v) => v.endDate === null)
+    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  const pastContributions = [...allContributions]
+    .filter((v) => v.endDate !== null)
+    .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
   const contributions = [...presentContributions, ...pastContributions];
   const isOwner = userInfo?.uid == member?.id;
-  const isAdmin = userInfo?.uid === member?.id || (userInfo?.roles?.length > 0 && userInfo?.roles?.includes(ADMIN_ROLE));
+  const isAdmin =
+    userInfo?.uid === member?.id || (userInfo?.roles?.length > 0 && userInfo?.roles?.includes(ADMIN_ROLE));
 
   // const analytics = useMemberDetailAnalytics();
   const modalRef = useRef<HTMLDialogElement>(null);
@@ -60,7 +65,9 @@ const MemberProjectContribution = (props: IMemberProjectExperience) => {
     <>
       <div className="member-project-experience">
         <div className="member-project-experience__header">
-          <h2 className="member-project-experience__title">Project Contributions {contributions && Array.isArray(contributions) ? `(${contributions?.length})` : ''}</h2>
+          <h2 className="member-project-experience__title">
+            Project Contributions {contributions && Array.isArray(contributions) ? `(${contributions?.length})` : ''}
+          </h2>
           <div className="member-project-experience__header__options">
             {(isOwner || isAdmin) && (
               <button onClick={onEditOrAdd} className="member-project-experience__header__edit-btn">
@@ -86,7 +93,9 @@ const MemberProjectContribution = (props: IMemberProjectExperience) => {
               return (
                 <Fragment key={`${experience}+${index}`}>
                   {index < 3 && (
-                    <div className={`member-project-experience__repo-container__repo ${contributions.length - 1 !== index && 'member-project-experience__repo-container__repo__border-set'}`}>
+                    <div
+                      className={`member-project-experience__repo-container__repo ${contributions.length - 1 !== index && 'member-project-experience__repo-container__repo__border-set'}`}
+                    >
                       <MemberProjectExperienceCard experience={experience} />
                     </div>
                   )}
@@ -139,7 +148,9 @@ const MemberProjectContribution = (props: IMemberProjectExperience) => {
 
           .member-project-experience__repo-container {
             border-radius: 12px;
-            box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
+            box-shadow:
+              0px 4px 4px 0px #0f172a0a,
+              0px 0px 1px 0px #0f172a1f;
             border: 1px solid #e2e8f0;
           }
 

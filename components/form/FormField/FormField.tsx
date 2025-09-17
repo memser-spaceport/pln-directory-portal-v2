@@ -17,7 +17,17 @@ interface Props extends PropsWithChildren {
   max?: number;
 }
 
-export const FormField = ({ name, placeholder, label, description, disabled, children, isRequired, max, ...rest }: Props) => {
+export const FormField = ({
+  name,
+  placeholder,
+  label,
+  description,
+  disabled,
+  children,
+  isRequired,
+  max,
+  ...rest
+}: Props) => {
   const {
     register,
     formState: { errors },
@@ -46,7 +56,14 @@ export const FormField = ({ name, placeholder, label, description, disabled, chi
         })}
       >
         <div className={s.inputContent}>
-          <Field.Control {...register(name)} disabled={disabled} placeholder={placeholder} className={s.inputElement} id={name} {...rest} />
+          <Field.Control
+            {...register(name)}
+            disabled={disabled}
+            placeholder={placeholder}
+            className={s.inputElement}
+            id={name}
+            {...rest}
+          />
         </div>
         {children}
       </div>

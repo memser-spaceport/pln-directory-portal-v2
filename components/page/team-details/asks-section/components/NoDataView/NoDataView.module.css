@@ -1,27 +1,27 @@
 .root {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-top: 4px;
-    gap: 22px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 4px;
+  gap: 22px;
 }
 
 .text {
-    color: #64748b;
-    font-size: 15px;
-    font-weight: 400;
-    line-height: 24px;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 24px;
 }
 
 .submitButton {
-    padding: 10px 24px;
-    color: #ffffff;
-    height: fit-content;
-    white-space: nowrap;
-    font-weight: 500;
-    font-size: 14px;
-    line-height: 20px;
-    border-radius: 8px;
-    background: #156ff7;
-    width: fit-content;
+  padding: 10px 24px;
+  color: #ffffff;
+  height: fit-content;
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  border-radius: 8px;
+  background: #156ff7;
+  width: fit-content;
 }

@@ -23,7 +23,7 @@
 }
 
 .title {
-  color: #0F172A;
+  color: #0f172a;
   text-align: left;
   font-size: clamp(14px, 5vw, 32px);
   font-style: normal;
@@ -40,7 +40,9 @@
   overflow: hidden;
   color: #475569;
   text-align: left;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   text-overflow: ellipsis;
   font-size: clamp(10px, 3vw, 14px);
   font-style: normal;
@@ -66,12 +68,14 @@
   align-items: center;
   gap: 8px;
   border-radius: 8px;
-  border: 1px solid var(--Neutral-Slate-300, #CBD5E1);
-  background: var(--Button-surface-brand-button, #156FF7);
+  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
+  background: var(--Button-surface-brand-button, #156ff7);
   box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
 
-  color: var(--Text-text-lightest, #FFF);
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: var(--Text-text-lightest, #fff);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -81,7 +85,7 @@
 }
 
 .dropzoneHint {
-  color: #1F2937;
+  color: #1f2937;
   font-size: 16px;
   font-style: normal;
   font-weight: 500;
@@ -89,7 +93,7 @@
   letter-spacing: 0.08px;
 
   span {
-    color: #156FF7;
+    color: #156ff7;
   }
 }
 
@@ -104,13 +108,13 @@
   width: 100%;
 
   border-radius: 12px;
-  border: 1px dashed #CBD5E1;
-  background: #FFF;
-  box-shadow: 0 0 0 2px #F1F5F9;
+  border: 1px dashed #cbd5e1;
+  background: #fff;
+  box-shadow: 0 0 0 2px #f1f5f9;
 }
 
 .uploadRulesHint {
-  color: #CBD5E1;
+  color: #cbd5e1;
   text-align: center;
   font-size: 14px;
   font-style: normal;
@@ -127,12 +131,13 @@
   width: 100%;
   max-width: 328px;
   margin-top: 24px;
-
 }
 
 .label {
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -147,15 +152,15 @@
   gap: 8px;
   align-self: stretch;
   border-radius: 8px;
-  border: 1px solid rgba(203, 213, 225, 0.50);
-  background: #FFF;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  background: #fff;
   outline: none;
 
   &:focus {
     border-radius: 8px;
-    border: 1px solid rgba(66, 125, 255, 0.50);
-    background: #FFF;
-    box-shadow: 0 0 0 4px rgba(21, 111, 247, 0.10);
+    border: 1px solid rgba(66, 125, 255, 0.5);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(21, 111, 247, 0.1);
   }
 
   &.error {
@@ -166,7 +171,9 @@
 .errorMsg {
   font-size: 10px;
   color: var(--action-border-error-focus);
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 200% */
@@ -174,13 +181,15 @@
 
 .fieldDescription {
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 10px;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 200% */
 
   &[data-focused] {
-    color: #A0BEFF;
+    color: #a0beff;
   }
 }

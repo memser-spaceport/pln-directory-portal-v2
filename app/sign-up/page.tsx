@@ -40,7 +40,10 @@ export default async function Page() {
 
   return (
     <>
-      <Script src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`} strategy="lazyOnload"></Script>
+      <Script
+        src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`}
+        strategy="lazyOnload"
+      ></Script>
       <SignupWizard />
     </>
   );

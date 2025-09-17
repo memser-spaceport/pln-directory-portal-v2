@@ -17,12 +17,24 @@ const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
       <div className="root__irlhusky">
         <div className="root__irlhusky__text">
           Got questions about gatherings? Chat with
-          <a href={PAGE_ROUTES.HUSKY} target="_blank" rel="noopener noreferrer" className="root__irlhusky__text--highlighted" onClick={onChatWithHusky}>
+          <a
+            href={PAGE_ROUTES.HUSKY}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="root__irlhusky__text--highlighted"
+            onClick={onChatWithHusky}
+          >
             Husky AI
           </a>
           for quick answers
         </div>
-        <a href={PAGE_ROUTES.HUSKY} target="_blank" rel="noopener noreferrer" className="root__irlhusky__btn" onClick={onChatWithHusky}>
+        <a
+          href={PAGE_ROUTES.HUSKY}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="root__irlhusky__btn"
+          onClick={onChatWithHusky}
+        >
           <img src="/icons/irl/irl-husky.svg" alt="husky" />
           <div className="root__irlhusky__btn__text">Launch Husky</div>
           <img src="/icons/irl/arrow-white.svg" alt="arrow" />
@@ -48,7 +60,9 @@ const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
           border-radius: 8px;
           border: 1.5px solid transparent;
           background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
-          -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+          -webkit-mask:
+            linear-gradient(#fff 0 0) padding-box,
+            linear-gradient(#fff 0 0);
           -webkit-mask-composite: destination-out;
           mask-composite: exclude;
         }

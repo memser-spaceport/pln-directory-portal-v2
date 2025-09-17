@@ -1,9 +1,7 @@
 .husky {
-    width: 100%;
-    min-height: inherit;
-    display: flex;
-    flex-direction: column;
-    background-color: #F4FAFF;
-    
-  }
-  
+  width: 100%;
+  min-height: inherit;
+  display: flex;
+  flex-direction: column;
+  background-color: #f4faff;
+}

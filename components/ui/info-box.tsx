@@ -1,10 +1,9 @@
-
 interface InfoBoxProps {
-    info: string,
-    moreInfo?: string,
-    imgUrl?: string
+  info: string;
+  moreInfo?: string;
+  imgUrl?: string;
 }
-function InfoBox({info, imgUrl, moreInfo}: InfoBoxProps) {
+function InfoBox({ info, imgUrl, moreInfo }: InfoBoxProps) {
   return (
     <>
       <div className="infobox">
@@ -27,12 +26,12 @@ function InfoBox({info, imgUrl, moreInfo}: InfoBoxProps) {
             padding: 0 8px;
             gap: 8px;
           }
-           
+
           .infobox__moreinfo {
-           color: #64748B;
-           padding-left: 8px;
-           border-left: 1px solid lightgrey;
-           font-size: 12px;
+            color: #64748b;
+            padding-left: 8px;
+            border-left: 1px solid lightgrey;
+            font-size: 12px;
           }
         `}
       </style>
@@ -40,5 +39,4 @@ function InfoBox({info, imgUrl, moreInfo}: InfoBoxProps) {
   );
 }
 
-
-export default InfoBox
+export default InfoBox;

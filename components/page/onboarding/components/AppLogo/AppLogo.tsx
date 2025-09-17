@@ -6,7 +6,14 @@ interface Props {
 
 export const AppLogo = ({ className }: Props) => {
   return (
-    <svg width="141" height="32" viewBox="0 0 141 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <svg
+      width="141"
+      height="32"
+      viewBox="0 0 141 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
       <g clipPath="url(#clip0_1947_48789)">
         <path
           fillRule="evenodd"

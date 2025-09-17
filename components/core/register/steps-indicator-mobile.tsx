@@ -16,7 +16,9 @@ function StepsIndicatorMobile(props: any) {
           <div className="mri__stepsm__cn">
             <div className="mri__stepsd__item__icon">
               <img className="mri__stepsd__item__icon__img" src={activeIcon} alt="step icon" width="24" height="24" />
-              {currentStepIndex <= currentStepIndex + 1 && <p className="mri__stepsd__item__icon__text">{currentStepIndex + 1}</p>}
+              {currentStepIndex <= currentStepIndex + 1 && (
+                <p className="mri__stepsd__item__icon__text">{currentStepIndex + 1}</p>
+              )}
             </div>
             <p className="mri__stepsm__stepname">{currentStep}</p>
           </div>
@@ -57,7 +59,7 @@ function StepsIndicatorMobile(props: any) {
           .mri__stepsm__cn {
             display: flex;
             gap: 10px;
-            align-items:center;
+            align-items: center;
           }
 
           .mri__stepsd__item__icon {

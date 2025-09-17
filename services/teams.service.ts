@@ -6,7 +6,11 @@ const teamsAPI = `${process.env.DIRECTORY_API_URL}/v1/teams`;
 
 // get all teams filters
 export const getTeamListFilters = async (options: any) => {
-  const queries = { ...options, pagination: false, select: 'industryTags.title,membershipSources.title,fundingStage.title,technologies.title' } as any;
+  const queries = {
+    ...options,
+    pagination: false,
+    select: 'industryTags.title,membershipSources.title,fundingStage.title,technologies.title',
+  } as any;
 
   const requestOptions: RequestInit = {
     method: 'GET',
@@ -38,14 +42,24 @@ export const getTeamListFilters = async (options: any) => {
 };
 
 export const getAllTeams = async (authToken: string, queryParams: any, currentPage: number, limit: number) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(authToken), cache: 'force-cache', next: { tags: ['team-list'] } };
-  const response = await fetch(`${teamsAPI}?page=${currentPage}&limit=${limit}&${new URLSearchParams(queryParams)}`, requestOPtions);
+  const requestOPtions: RequestInit = {
+    method: 'GET',
+    headers: getHeader(authToken),
+    cache: 'force-cache',
+    next: { tags: ['team-list'] },
+  };
+  const response = await fetch(
+    `${teamsAPI}?page=${currentPage}&limit=${limit}&${new URLSearchParams(queryParams)}`,
+    requestOPtions,
+  );
   const result = await response.json();
   if (!response?.ok) {
     return { error: { statusText: response?.statusText } };
   }
   const formattedData = result?.teams?.map((team: ITeamResponse) => {
-    const memberIds = team?.teamMemberRoles?.length ? [...new Set(team?.teamMemberRoles.map((teamMemberRole: ITeamMemberRole) => teamMemberRole.member?.uid || ''))] : [];
+    const memberIds = team?.teamMemberRoles?.length
+      ? [...new Set(team?.teamMemberRoles.map((teamMemberRole: ITeamMemberRole) => teamMemberRole.member?.uid || ''))]
+      : [];
     return {
       id: team?.uid,
       name: team?.name,
@@ -63,7 +77,12 @@ export const getAllTeams = async (authToken: string, queryParams: any, currentPa
 };
 
 export const getTeamUIDByAirtableId = async (id: string) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'force-cache', next: { tags: ['team-airtable'] } };
+  const requestOPtions: RequestInit = {
+    method: 'GET',
+    headers: getHeader(''),
+    cache: 'force-cache',
+    next: { tags: ['team-airtable'] },
+  };
   const query = { airtableRecId: id, select: 'uid' };
   const response = await fetch(`${teamsAPI}?${new URLSearchParams(query)}`, requestOPtions);
   const result = await response?.json();
@@ -98,8 +117,16 @@ export const updateTeam = async (payload: any, authToken: string, teamUid: strin
   };
 };
 
-export const getTeam = async (id: string, options: string | string[][] | Record<string, string> | URLSearchParams | undefined) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'default', next: { tags: ['team-detail'] } };
+export const getTeam = async (
+  id: string,
+  options: string | string[][] | Record<string, string> | URLSearchParams | undefined,
+) => {
+  const requestOPtions: RequestInit = {
+    method: 'GET',
+    headers: getHeader(''),
+    cache: 'default',
+    next: { tags: ['team-detail'] },
+  };
   const response = await fetch(`${teamsAPI}/${id}?${new URLSearchParams(options)}`, requestOPtions);
   const result = await response?.json();
   if (!response?.ok) {
@@ -132,9 +159,12 @@ export const getTeam = async (id: string, options: string | string[][] | Record<
 };
 
 export const getTeamsForProject = async () => {
-  const response = await fetch(`${teamsAPI}?select=uid,name,shortDescription,logo.url&&pagination=false&&with=teamMemberRoles`, {
-    cache: 'no-store',
-  });
+  const response = await fetch(
+    `${teamsAPI}?select=uid,name,shortDescription,logo.url&&pagination=false&&with=teamMemberRoles`,
+    {
+      cache: 'no-store',
+    },
+  );
 
   if (!response.ok) {
     return { isError: true, message: response?.status };

@@ -1,32 +1,30 @@
-"use client"
+'use client';
 
-import ShadowButton from "@/components/ui/ShadowButton"
-import { getAnalyticsUserInfo } from "@/utils/common.utils"
-import { PAGE_ROUTES } from "@/utils/constants"
-import Link from "next/link"
-import { useEventsAnalytics } from "@/analytics/events.analytics"
+import ShadowButton from '@/components/ui/ShadowButton';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import { PAGE_ROUTES } from '@/utils/constants';
+import Link from 'next/link';
+import { useEventsAnalytics } from '@/analytics/events.analytics';
 
 export default function HuskyBanner(props: any) {
   const analytics = useEventsAnalytics();
 
   return (
-    <div 
-      className="husky-banner"
-    >
-        <div className="image-container">
-          <img 
-            src="/images/events/banner-bg-husky-web.jpg" 
-            alt="Husky Banner Web" 
-            className="web-image"
-            style={{ objectFit: "cover", width: "100%", height: "100%" }}
-          />
-          <img 
-            src="/images/events/banner-bg-husky-mob.jpg" 
-            alt="Husky Banner Mobile" 
-            className="mobile-image"
-            style={{ objectFit: "cover", width: "100%", height: "100%" }}
-          />
-        </div>
+    <div className="husky-banner">
+      <div className="image-container">
+        <img
+          src="/images/events/banner-bg-husky-web.jpg"
+          alt="Husky Banner Web"
+          className="web-image"
+          style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+        />
+        <img
+          src="/images/events/banner-bg-husky-mob.jpg"
+          alt="Husky Banner Mobile"
+          className="mobile-image"
+          style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+        />
+      </div>
 
       <div className="content-container">
         <h2 className="banner-title">Have questions about events or contributors?</h2>
@@ -44,7 +42,7 @@ export default function HuskyBanner(props: any) {
               buttonWidth="172px"
               textColor="#156FF7"
             >
-                Ask Husky
+              Ask Husky
             </ShadowButton>
           </a>
         </div>
@@ -70,7 +68,8 @@ export default function HuskyBanner(props: any) {
           overflow: hidden;
         }
 
-        .web-image, .mobile-image {
+        .web-image,
+        .mobile-image {
           position: absolute;
           top: 0;
           left: 0;
@@ -115,7 +114,7 @@ export default function HuskyBanner(props: any) {
         .banner-title {
           font-size: 1.25rem;
           font-weight: 500;
-          color: #FFFFFF;
+          color: #ffffff;
         }
 
         .button-container {
@@ -128,7 +127,7 @@ export default function HuskyBanner(props: any) {
           left: 5px;
           width: 100%;
           height: 100%;
-          background-color: #156FF7;
+          background-color: #156ff7;
           border-radius: 0.5rem;
         }
 
@@ -154,24 +153,24 @@ export default function HuskyBanner(props: any) {
         }
 
         @media (min-width: 360px) {
-          .web-image{
+          .web-image {
             display: none;
           }
-          
+
           .mobile-image {
             display: block;
           }
         }
 
         @media (min-width: 1024px) {
-          .mobile-image{
+          .mobile-image {
             display: none;
           }
-          .web-image{
+          .web-image {
             display: block;
           }
         }
       `}</style>
     </div>
-  )
-} 
+  );
+}

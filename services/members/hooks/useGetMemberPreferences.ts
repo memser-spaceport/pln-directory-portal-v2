@@ -47,7 +47,7 @@ async function fetcher(uid: string | undefined): Promise<MemberPreferencesRespon
   }
 
   const rawPreferences = await response.json();
-  
+
   const preferenceSettings = {
     email: rawPreferences?.email ?? false,
     github: rawPreferences?.github ?? false,
@@ -58,7 +58,7 @@ async function fetcher(uid: string | undefined): Promise<MemberPreferencesRespon
     githubProjects: rawPreferences?.github ?? false,
     newsLetter: true,
   };
-  
+
   const memberPreferences = {
     email: rawPreferences?.showEmail,
     github: rawPreferences?.showGithubHandle,

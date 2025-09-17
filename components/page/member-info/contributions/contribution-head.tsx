@@ -26,14 +26,34 @@ function ContributionHead(props: ContributionHeadProps) {
     <>
       <div className={`cb ${isError ? 'cb--error' : ''}`}>
         <div className="cb__actions">
-          {contributionIndex === expandedId && <img className="img-icon" onClick={() => onToggleExpansion(contributionIndex)} src="/icons/arrow-down-blue.svg" />}
-          {contributionIndex !== expandedId && <img className="img-icon" onClick={() => onToggleExpansion(contributionIndex)} src="/icons/arrow-up-blue.svg" />}
-          <img onClick={() => onDeleteContribution(contributionIndex)} className="img-icon" src="/icons/delete-icon.svg" />
+          {contributionIndex === expandedId && (
+            <img
+              className="img-icon"
+              onClick={() => onToggleExpansion(contributionIndex)}
+              src="/icons/arrow-down-blue.svg"
+            />
+          )}
+          {contributionIndex !== expandedId && (
+            <img
+              className="img-icon"
+              onClick={() => onToggleExpansion(contributionIndex)}
+              src="/icons/arrow-up-blue.svg"
+            />
+          )}
+          <img
+            onClick={() => onDeleteContribution(contributionIndex)}
+            className="img-icon"
+            src="/icons/delete-icon.svg"
+          />
         </div>
         {contribution?.projectName.trim() === '' && <h2 className="cb__name">{`Project ${contributionIndex + 1}`}</h2>}
-        {contribution?.projectName.trim() !== '' && <h2 className="cb__name">{`${contribution?.projectName.trim()}`}</h2>}
+        {contribution?.projectName.trim() !== '' && (
+          <h2 className="cb__name">{`${contribution?.projectName.trim()}`}</h2>
+        )}
         <div className="cb__projects">
-          <div title={`${contribution.currentProject === false && currentProjectsCount === 5 ? 'Max 5 projects can be set as current' : 'On/Off'} `}>
+          <div
+            title={`${contribution.currentProject === false && currentProjectsCount === 5 ? 'Max 5 projects can be set as current' : 'On/Off'} `}
+          >
             {/* <Toggle onChange={onProjectStatusChanged} disabled={contribution.currentProject === false && currentProjectsCount === 5} checked={contribution.currentProject} name={`contributionInfo${contributionIndex}-currentProject`} id={`member-register-contribution-currentproject-${contributionIndex}`}/> */}
             <CustomToggle
               name={`contributionInfo${contributionIndex}-currentProject`}

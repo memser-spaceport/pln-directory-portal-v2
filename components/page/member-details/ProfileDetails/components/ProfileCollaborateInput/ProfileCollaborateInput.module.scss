@@ -9,8 +9,10 @@
   align-items: flex-start;
   gap: 1rem;
 
-  color: #0F172A;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #0f172a;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -37,11 +39,11 @@
   }
 
   &[data-checked] {
-    background-color: #156FF7;
+    background-color: #156ff7;
   }
 
   &:focus-visible {
-    outline: 2px solid #156FF7;
+    outline: 2px solid #156ff7;
     outline-offset: 2px;
   }
 }

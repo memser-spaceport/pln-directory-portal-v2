@@ -30,13 +30,12 @@
 }
 
 .title {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
+  color: var(--Text-text-dark, #0F172A);
   font-size: 24px;
-  line-height: 32px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 34px; /* 141.667% */
   letter-spacing: -0.4px;
-  color: #0f172a;
-  margin: 0;
 
   @include media.mobile-only {
     font-size: 20px;

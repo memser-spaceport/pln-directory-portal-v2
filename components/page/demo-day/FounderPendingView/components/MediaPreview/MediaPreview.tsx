@@ -28,7 +28,13 @@ interface MediaPreviewProps {
 
 const ExpandIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M13 7L20 0M20 0H14M20 0V6M7 13L0 20M0 20H6M0 20V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M13 7L20 0M20 0H14M20 0V6M7 13L0 20M0 20H6M0 20V14"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
@@ -47,7 +53,15 @@ const DeleteIcon = () => (
   </svg>
 );
 
-export const MediaPreview = ({ url, type, title, metadata, showMetadata = true, onDelete, showDeleteButton = true }: MediaPreviewProps) => {
+export const MediaPreview = ({
+  url,
+  type,
+  title,
+  metadata,
+  showMetadata = true,
+  onDelete,
+  showDeleteButton = true,
+}: MediaPreviewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
@@ -176,12 +190,6 @@ export const MediaPreview = ({ url, type, title, metadata, showMetadata = true, 
       return (
         <div className={s.imagePreviewContainer}>
           <img src={url} alt="Preview" className={s.previewMedia} />
-          <div className={s.imageOverlay}>
-            <div className={s.imageLabel}>
-              <ImageIcon />
-              <span>IMAGE</span>
-            </div>
-          </div>
         </div>
       );
     }
@@ -217,7 +225,7 @@ export const MediaPreview = ({ url, type, title, metadata, showMetadata = true, 
           <div className={s.mediaContainer}>{renderModalContent()}</div>
         </div>
       </div>,
-      portalContainer
+      portalContainer,
     );
   };
 

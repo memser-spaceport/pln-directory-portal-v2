@@ -4,6 +4,8 @@ import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/co
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import Link from 'next/link';
 import { format } from 'date-fns-tz';
+import { TeamsList } from '@/components/page/demo-day/ActiveView/components/TeamsList';
+import { PITCH_DECK_URL, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
 
 export const Content = () => {
   const { data } = useGetDemoDayState();
@@ -32,16 +34,11 @@ export const Content = () => {
             </Link>
           </div>
 
-          <ProfileContent
-            pitchDeckUrl={
-              'https://pl-events-service.s3.us-west-1.amazonaws.com/uploads/none/none/slide/9e581647b9e8e4363fa8fe5c84385bc2718b2859.pdf?AWSAccessKeyId=AKIAQGFDYLGEJQNXPQHT&Expires=1758016807&Signature=5itRtZQIty%2FtSZT61YY4b5tBNsA%3D'
-            }
-            videoUrl={
-              'https://pl-events-service.s3.us-west-1.amazonaws.com/uploads/none/none/video/aa123a09916a91b56e6c13aeae6340abe1350434.mp4?AWSAccessKeyId=AKIAQGFDYLGEJQNXPQHT&Expires=1758017055&Signature=A2QvHhfuCU3CawaH%2BhJIazdxcEM%3D'
-            }
-          />
+          <ProfileContent pitchDeckUrl={PITCH_DECK_URL} videoUrl={PITCH_VIDEO_URL} />
         </div>
       </div>
+
+      <TeamsList />
     </div>
   );
 };

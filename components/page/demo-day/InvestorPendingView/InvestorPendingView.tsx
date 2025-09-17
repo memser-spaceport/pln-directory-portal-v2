@@ -7,6 +7,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { TeamFundraisingCard } from './components/TeamFundraisingCard';
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
+import { PITCH_DECK_URL, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
 
 interface ButtonProps {
   children: React.ReactNode;
@@ -92,18 +93,14 @@ export const InvestorPendingView = () => {
             {/* Headline section */}
             <div className={s.headline}>
               <h1 className={s.title}>{data?.title || 'PL Demo Day'}</h1>
-              <p className={s.description}>{data?.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'}</p>
+              <p className={s.description}>
+                {data?.description ||
+                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'}
+              </p>
             </div>
           </div>
 
-          <ProfileContent
-            pitchDeckUrl={
-              'https://pl-events-service.s3.us-west-1.amazonaws.com/uploads/none/none/slide/9e581647b9e8e4363fa8fe5c84385bc2718b2859.pdf?AWSAccessKeyId=AKIAQGFDYLGEJQNXPQHT&Expires=1758016807&Signature=5itRtZQIty%2FtSZT61YY4b5tBNsA%3D'
-            }
-            videoUrl={
-              'https://pl-events-service.s3.us-west-1.amazonaws.com/uploads/none/none/video/aa123a09916a91b56e6c13aeae6340abe1350434.mp4?AWSAccessKeyId=AKIAQGFDYLGEJQNXPQHT&Expires=1758017055&Signature=A2QvHhfuCU3CawaH%2BhJIazdxcEM%3D'
-            }
-          />
+          <ProfileContent pitchDeckUrl={PITCH_DECK_URL} videoUrl={PITCH_VIDEO_URL} />
 
           {/* Call to action section */}
           <div className={s.ctaSection}>

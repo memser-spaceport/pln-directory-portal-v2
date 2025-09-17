@@ -28,6 +28,16 @@
   }
 }
 
+.title {
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .footer {
   position: absolute;
   bottom: 0;

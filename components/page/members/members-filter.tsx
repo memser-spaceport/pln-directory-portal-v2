@@ -16,6 +16,9 @@ import s from './MembersFilter/MembersFilter.module.scss';
 import { useGetTopics } from '@/services/members/hooks/useGetTopics';
 import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
 import { useGetMembersFilterCount } from '@/components/page/members/hooks/useGetMembersFilterCount';
+import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
+import { FilterRange } from '@/components/page/members/MembersFilter/FilterRange';
+import { FilterTagInput } from '@/components/form/FilterTagInput';
 
 export interface IMembersFilter {
   filterValues: any | undefined;
@@ -73,7 +76,13 @@ const MembersFilter = (props: IMembersFilter) => {
             description="OH are short 1:1 calls to connect about topics of interest or help others with your expertise."
           >
             <FiltersPanelToggle label="Only Show Members with Office Hours" paramKey="hasOfficeHours" />
-            <FilterMultiSelect label="Search topics" placeholder="E.g. AI, Staking..." paramKey="topics" backLabel="Filters" useDataHook={useGetTopics} />
+            <FilterMultiSelect
+              label="Search topics"
+              placeholder="E.g. AI, Staking..."
+              paramKey="topics"
+              backLabel="Filters"
+              useDataHook={useGetTopics}
+            />
           </FilterSection>
 
           <FilterSection title="Roles">

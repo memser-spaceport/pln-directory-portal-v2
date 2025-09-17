@@ -4,20 +4,19 @@ import { FounderPendingView } from '@/components/page/demo-day/FounderPendingVie
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect } from 'react';
-import { FounderActiveView } from '@/components/page/demo-day/FounderActiveView';
 import { InvestorPendingView } from '@/components/page/demo-day/InvestorPendingView';
-import { InvestorActiveView } from '@/components/page/demo-day/InvestorActiveView';
+import { ActiveView } from '@/components/page/demo-day/ActiveView';
 
 const FOUNDER_VIEWS: Record<string, ReactNode> = {
   upcoming: <FounderPendingView />,
-  active: <FounderActiveView />,
+  active: <ActiveView />,
   // completed: <FounderCompletedView />,
   // archived: <FounderArchivedView />,
 };
 
 const INVESTOR_VIEWS: Record<string, ReactNode> = {
   upcoming: <InvestorPendingView />,
-  active: <InvestorActiveView />,
+  active: <ActiveView />,
   // completed: <FounderCompletedView />,
   // archived: <FounderArchivedView />,
 };

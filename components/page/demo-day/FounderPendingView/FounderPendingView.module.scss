@@ -8,12 +8,13 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
 }
 
 .eventHeader {
   position: relative;
   width: 100%;
-  height: 100%;
+  //height: 100%;
   overflow: hidden;
   display: flex;
   align-items: flex-start;
@@ -222,6 +223,25 @@
   @include media.mobile-only {
     font-size: 14px;
     line-height: 20px;
+  }
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px; /* 150% */
+  letter-spacing: -0.3px;
+
+  span, a {
+    display: flex;
+    align-items: center;
+    gap: 2px;
   }
 }
 

@@ -54,7 +54,10 @@ export const FounderPendingView = () => {
           {/* Headline section */}
           <div className={s.headline}>
             <h1 className={s.title}>{data?.title || 'PL Demo Day'}</h1>
-            <p className={s.description}>{data?.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'}</p>
+            <p className={s.description}>
+              {data?.description ||
+                'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'}
+            </p>
           </div>
 
           <ProfileContent
@@ -67,9 +70,7 @@ export const FounderPendingView = () => {
           />
         </div>
       </div>
-
       <Alert />
-
       <ProfileSection />
     </div>
   );

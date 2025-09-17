@@ -43,7 +43,6 @@ export const NotificationsMenu = ({ notifications, open, onClose, userInfo, isMo
 
   return (
     <Menu.Root modal={isMobileView} open={open} onOpenChange={onClose}>
-      <Menu.Trigger className={s.Button} />
       <Menu.Portal>
         <Menu.Positioner className={s.Positioner} align="end" sideOffset={10}>
           <Menu.Popup

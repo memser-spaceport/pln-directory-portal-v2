@@ -15,44 +15,7 @@ import { FilterSection } from '@/components/page/members/MembersFilter/FilterSec
 import s from './MembersFilter/MembersFilter.module.scss';
 import { useGetTopics } from '@/services/members/hooks/useGetTopics';
 import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
-import { FilterTagInput } from '@/components/form/FilterTagInput';
-import { FilterRange } from '@/components/page/members/MembersFilter/FilterRange';
-import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
-
-/**
- * Counts the number of applied filters in the members filter component
- * @param params - URLSearchParams from useFilterStore
- * @returns number of active filters
- */
-const getMembersFilterCount = (params: URLSearchParams): number => {
-  let count = 0;
-
-  // List of filter parameters used in members filter
-  // Update this array when adding new filter components
-  let filterParams = [
-    'search', // Search for a member
-    'includeFriends', // FiltersPanelToggle - Include Friends of Protocol Labs
-    'hasOfficeHours', // FiltersPanelToggle - Only Show Members with Office Hours
-    'topics', // FilterMultiSelect - Add topic
-    'roles', // FilterMultiSelect - Add roles
-    'searchRoles', // RolesSearchFilter - Search Roles
-  ];
-
-  if (!params.get('hasOfficeHours')) {
-    filterParams = filterParams.filter((param) => param !== 'topics');
-  }
-
-  filterParams.forEach((param) => {
-    const value = params.get(param);
-    // Check if parameter exists and has a meaningful value
-    // Exclude 'false' values as they represent disabled toggles
-    if (value && value.trim() !== '' && value !== 'false') {
-      count += 1;
-    }
-  });
-
-  return count;
-};
+import { useGetMembersFilterCount } from '@/components/page/members/hooks/useGetMembersFilterCount';
 
 export interface IMembersFilter {
   filterValues: any | undefined;
@@ -67,7 +30,7 @@ const MembersFilter = (props: IMembersFilter) => {
   const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const analytics = useMemberAnalytics();
   const { params, clearParams } = useFilterStore();
-  const apliedFiltersCount = getMembersFilterCount(params);
+  const apliedFiltersCount = useGetMembersFilterCount();
 
   const onCloseClickHandler = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.SHOW_MEMBERS_FILTER, { detail: false }));
@@ -177,6 +140,7 @@ const MembersFilter = (props: IMembersFilter) => {
             font-weight: 600;
             line-height: 20px;
           }
+
           .team-filter__header {
             display: flex;
             padding: 20px 34px;
@@ -234,6 +198,7 @@ const MembersFilter = (props: IMembersFilter) => {
           .team-fitlter__header__clear-all-btn {
             display: none;
           }
+
           .team-filter__bl {
             width: 100%;
             height: 1px;
@@ -314,6 +279,7 @@ const MembersFilter = (props: IMembersFilter) => {
               font-weight: 400;
               line-height: 20px;
             }
+
             .team-filter__body {
               margin-bottom: 50px;
               width: 100%;

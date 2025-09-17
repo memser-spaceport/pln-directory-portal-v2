@@ -131,20 +131,20 @@ const MemberDetails = ({ params }: { params: any }) => {
       <div className={styles?.memberDetail}>
         <div
           className={clsx(styles.container, {
-            [styles.singleColumn]: isAvailableToConnect || !isLoggedIn,
+            [styles.singleColumn]: isAvailableToConnect || !isLoggedIn || isOwner,
           })}
         >
           <div className={styles.content}>
             <BackButton to={`/members`} />
             <div
               className={clsx(styles?.memberDetail__container, {
-                [styles.centered]: isAvailableToConnect,
+                [styles.centered]: isAvailableToConnect || isOwner,
               })}
             >
               {renderPageContent()}
             </div>
           </div>
-          {!isAvailableToConnect && isLoggedIn && accessLevel === 'advanced' && (
+          {!isAvailableToConnect && isLoggedIn && accessLevel === 'advanced' && !isOwner && (
             <div className={styles.desktopOnly}>
               <div style={{ visibility: 'hidden' }}>
                 <BackButton to={`/members`} />

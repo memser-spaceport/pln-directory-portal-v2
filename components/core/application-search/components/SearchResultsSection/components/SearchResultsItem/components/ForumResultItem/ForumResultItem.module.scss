@@ -1,0 +1,25 @@
+.viewMore {
+  color: var(--action-foreground-brand-normal, #1B4DFF);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+
+  width: 100%;
+
+  gap: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarContainer {
+  position: relative;
+}
+
+.arrow {
+  position: absolute;
+}
+
+
+
+

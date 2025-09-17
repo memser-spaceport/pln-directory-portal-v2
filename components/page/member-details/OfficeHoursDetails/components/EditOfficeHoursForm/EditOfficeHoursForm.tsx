@@ -19,7 +19,7 @@ import { normalizeOfficeHoursUrl } from '@/utils/common.utils';
 
 import s from './EditOfficeHoursForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 interface Props {
   onClose: () => void;

@@ -3,7 +3,7 @@ import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
 import { useRouter } from 'next/navigation';
 import { decodeToken } from '@/utils/auth.utils';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { User } from '@privy-io/react-auth';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';

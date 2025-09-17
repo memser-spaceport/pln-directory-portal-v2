@@ -21,15 +21,20 @@
 
   @include media.tablet-landscape {
     width: 428px;
-    height: 375px;
+    max-height: 375px;
     display: block;
-  };
+
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+  }
+;
 }
 
 .list {
   list-style: none;
   padding: 12px 0 0 0;
-  margin: auto  0 0 0;
+  margin: auto 0 0 0;
   gap: clamp(12px, 4vw, 24px); // 24px;
   display: none;
   flex-direction: column;

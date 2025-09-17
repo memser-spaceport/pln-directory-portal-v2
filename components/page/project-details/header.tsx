@@ -7,7 +7,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { DEFAULT_PROJECT_TAGS, EVENTS } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import DeleteConfirmationModal from './delete-confirmation-modal';
 import { useEffect } from 'react';
 

@@ -42,3 +42,6 @@ nextjs-rules.mdc
 
 # ide
 .idea
+
+*storybook.log
+storybook-static

@@ -9,7 +9,7 @@ import { getMemberInfoFormValues, apiObjsToMemberObj, formInputsToMemberObj, utc
 import SingleSelect from '@/components/form/single-select';
 import { useRouter } from 'next/navigation';
 import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { updateMember } from '@/services/members.service';
 import Cookies from 'js-cookie';
 import { validateLocation } from '@/services/location.service';

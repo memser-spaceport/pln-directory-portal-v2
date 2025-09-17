@@ -1,13 +1,16 @@
+import { clsx } from 'clsx';
 import React, { useState } from 'react';
+import { useSwipeable } from 'react-swipeable';
+
 import { Menu } from '@base-ui-components/react/menu';
 import { Dialog } from '@base-ui-components/react/dialog';
 
-import s from './MembersMobileFilters.module.scss';
-import { clsx } from 'clsx';
 import { VIEW_TYPE_OPTIONS, SORT_OPTIONS, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { useFilterStore } from '@/services/members/store';
 import MembersFilter from '@/components/page/members/members-filter';
-import { useSwipeable } from 'react-swipeable';
+import { useGetMembersFilterCount } from '@/components/page/members/hooks/useGetMembersFilterCount';
+
+import s from './MembersMobileFilters.module.scss';
 
 interface MembersMobileFiltersProps {
   filterValues?: any;
@@ -29,10 +32,10 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
   const appliedSearchRoles = params.get('searchRoles')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
   const hasOfficeHours = params.get('hasOfficeHours') === 'true';
   const includeFriends = params.get('includeFriends') === 'true';
-  const search = !!params.get('q');
+  const search = !!params.get('search');
 
   // Calculate filter count
-  const filterCount = [hasOfficeHours && appliedTopics.length > 0, appliedRoles.length > 0, appliedSearchRoles.length > 0, hasOfficeHours, includeFriends, search].filter(Boolean).length;
+  const filterCount = useGetMembersFilterCount();
 
   // Handler functions
   const handleViewChange = (newView: string) => {

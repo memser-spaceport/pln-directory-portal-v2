@@ -7,7 +7,7 @@ import { EVENTS } from '@/utils/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo } from '@/utils/common.utils';
 import { Tooltip } from '../../core/tooltip/tooltip';

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { customFetch } from '@/utils/fetch-wrapper';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { ITeam, ITeamAsk } from '@/types/teams.types';
 import { getAnalyticsTeamInfo } from '@/utils/common.utils';

@@ -127,17 +127,15 @@ function Navbar(props: Readonly<INavbar>) {
         <div className={s.right}>
           <NotificationsMenu isMobileView notifications={notifications} open={showNotifications} onClose={() => setShowNotifications(false)} userInfo={userInfo} />
           <ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
+          <a target="_blank" href={process.env.GET_SUPPORT_URL ?? ''} className={s.IconTrigger}>
+            <HelpIcon />
+          </a>
           {isLoggedIn && <AccountMenu userInfo={userInfo} authToken={authToken} isLoggedIn profileFilledPercent={profileStatus?.completeness} />}
           {!isLoggedIn && (
-            <>
-              <a target="_blank" href={process.env.GET_SUPPORT_URL ?? ''} className={s.IconTrigger}>
-                <HelpIcon />
-              </a>
-              <div className={s.signInWrapper}>
-                <Signup />
-                <LoginBtn />
-              </div>
-            </>
+            <div className={s.signInWrapper}>
+              <Signup />
+              <LoginBtn />
+            </div>
           )}
         </div>
       </NavigationMenu.List>

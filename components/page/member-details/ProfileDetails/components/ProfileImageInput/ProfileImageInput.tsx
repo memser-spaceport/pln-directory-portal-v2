@@ -7,7 +7,7 @@ import Image from 'next/image';
 
 import s from './ProfileImageInput.module.scss';
 import { IMember } from '@/types/members.types';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 interface Props {
   member: Partial<IMember>;

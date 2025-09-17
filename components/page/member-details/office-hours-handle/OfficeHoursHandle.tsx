@@ -2,7 +2,7 @@ import React from 'react';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, triggerLoader, normalizeOfficeHoursUrl } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { EVENTS, LEARN_MORE_URL, TOAST_MESSAGES } from '@/utils/constants';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { IUserInfo } from '@/types/shared.types';

@@ -5,7 +5,7 @@ import { getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/com
 import Image from 'next/image';
 import { useState } from 'react';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 

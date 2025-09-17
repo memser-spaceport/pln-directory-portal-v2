@@ -12,7 +12,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import s from './OneClickVerification.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useCookie } from 'react-use';
 import { getAccessLevel } from '@/utils/auth.utils';
 

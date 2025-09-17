@@ -172,6 +172,18 @@
   width: 100%;
   height: 100%;
   background: #f8fafc;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px; // Adjust height as needed
+    background: linear-gradient(to top, rgba(248, 250, 252, 1) 0%, rgba(248, 250, 252, 0) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
 }
 
 .imageOverlay {

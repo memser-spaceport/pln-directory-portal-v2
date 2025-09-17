@@ -44,7 +44,7 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
     );
   }, [data]);
 
-  const tabRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const tabRefs = useRef<Record<string, Element | null>>({});
 
   useEffect(() => {
     if (!value || !isMobile) {
@@ -70,7 +70,9 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
                 className={s.Tab}
                 value={item.value}
                 key={item.value}
-                ref={(el) => (tabRefs.current[item.value] = el)}
+                ref={(el) => {
+                  tabRefs.current[item.value] = el;
+                }}
               >
                 {item.label}
               </Tabs.Tab>

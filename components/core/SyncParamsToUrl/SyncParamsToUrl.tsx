@@ -7,7 +7,19 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useDebounce } from 'react-use';
 
 // Whitelist of parameters that should be tracked and synced
-const TRACKED_PARAMS = ['topics', 'roles', 'hasOfficeHours', 'sort', 'search', 'isInvestor', 'investmentFocus', 'minTypicalCheckSize', 'maxTypicalCheckSize'] as const;
+const TRACKED_PARAMS = [
+  'topics',
+  'roles',
+  'hasOfficeHours',
+  'sort',
+  'search',
+  'isInvestor',
+  'investmentFocus',
+  'minTypicalCheckSize',
+  'maxTypicalCheckSize',
+  'stage',
+  'industry',
+] as const;
 
 // Helper function to filter URLSearchParams to only include tracked parameters
 const filterTrackedParams = (params: URLSearchParams): URLSearchParams => {
@@ -23,7 +35,7 @@ const filterTrackedParams = (params: URLSearchParams): URLSearchParams => {
   return filtered;
 };
 
-export function SyncParamsToUrl() {
+export function SyncParamsToUrl({ debounceTime = 700 }: { debounceTime?: number }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { params, _clearImmediate } = useFilterStore();
@@ -46,7 +58,11 @@ export function SyncParamsToUrl() {
       // 1. (Not the initial load OR allowDuringInitialLoad), AND
       // 2. Tracked parameters are actually different, AND
       // 3. (We haven't already synced these exact params OR this is a forced clear)
-      if ((!isInitialLoad.current || allowDuringInitialLoad) && areParamsDifferent && (lastSyncedParams.current !== newParamsString || forceClear)) {
+      if (
+        (!isInitialLoad.current || allowDuringInitialLoad) &&
+        areParamsDifferent &&
+        (lastSyncedParams.current !== newParamsString || forceClear)
+      ) {
         // Start with current URL params to preserve non-tracked parameters
         const finalParams = new URLSearchParams(searchParams.toString());
 
@@ -85,7 +101,7 @@ export function SyncParamsToUrl() {
         updateUrl();
       }
     },
-    700,
+    debounceTime,
     [params],
   );
 

@@ -1,4 +1,6 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useFilterStore } from '@/services/members/store';
+import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import s from './FilterList.module.scss';
 
 const SearchIcon = () => (
@@ -34,8 +36,7 @@ export interface FilterOption {
 
 interface FilterListProps {
   options: FilterOption[];
-  selectedOptions: string[];
-  onSelectionChange: (selectedIds: string[]) => void;
+  paramName: string;
   placeholder?: string;
   emptyMessage?: string;
   initialDisplayCount?: number;
@@ -43,14 +44,31 @@ interface FilterListProps {
 
 export const FilterList: React.FC<FilterListProps> = ({
   options,
-  selectedOptions,
-  onSelectionChange,
+  paramName,
   placeholder = 'Search options...',
   emptyMessage = 'No options found',
   initialDisplayCount = 5,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const { params, setParam } = useFilterStore();
+
+  // Get selected options from URL parameters
+  const selectedOptions = useMemo(() => {
+    const paramValue = params.get(paramName);
+    if (!paramValue) return [];
+    return paramValue.split(URL_QUERY_VALUE_SEPARATOR);
+  }, [params, paramName]);
+
+  // Update URL parameters when selection changes
+  const updateSelection = useCallback((newSelection: string[]) => {
+    if (newSelection.length > 0) {
+      const values = newSelection.join(URL_QUERY_VALUE_SEPARATOR);
+      setParam(paramName, values);
+    } else {
+      setParam(paramName, undefined);
+    }
+  }, [paramName, setParam]);
 
   // Filter options based on search term
   const filteredOptions = useMemo(() => {
@@ -108,7 +126,7 @@ export const FilterList: React.FC<FilterListProps> = ({
       newSelection = [...selectedOptions, optionId];
     }
 
-    onSelectionChange(newSelection);
+    updateSelection(newSelection);
   };
 
   const hasSearchValue = searchTerm.trim().length > 0;
@@ -144,37 +162,50 @@ export const FilterList: React.FC<FilterListProps> = ({
         {filteredOptions.length === 0 ? (
           <div className={s.emptyState}>{hasSearchValue ? `No results for "${searchTerm}"` : emptyMessage}</div>
         ) : (
-          filteredOptions.map((option) => {
-            const isSelected = selectedOptions.includes(option.id);
+          <>
+            {displayedOptions.map((option) => {
+              const isSelected = selectedOptions.includes(option.id);
 
-            return (
-              <label key={option.id} className={s.optionItem}>
-                <div className={s.optionContent}>
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => handleOptionToggle(option.id)}
-                    className={s.checkbox}
-                  />
-                  <div className={s.checkboxCustom}>
-                    {isSelected && (
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          d="M10 3L4.5 8.5L2 6"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    )}
+              return (
+                <label key={option.id} className={s.optionItem}>
+                  <div className={s.optionContent}>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleOptionToggle(option.id)}
+                      className={s.checkbox}
+                    />
+                    <div className={s.checkboxCustom}>
+                      {isSelected && (
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path
+                            d="M10 3L4.5 8.5L2 6"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <span className={s.optionName}>{option.name}</span>
+                    <span className={s.optionCount}>({option.count})</span>
                   </div>
-                  <span className={s.optionName}>{option.name}</span>
-                  <span className={s.optionCount}>{option.count}</span>
-                </div>
-              </label>
-            );
-          })
+                </label>
+              );
+            })}
+
+            {/* Show All / Show Less Button */}
+            {hasMoreOptions && !isSearching && (
+              <button
+                type="button"
+                onClick={handleToggleShowAll}
+                className={s.toggleButton}
+              >
+                {showAll ? 'Show less' : `Show all (${filteredOptions.length})`}
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

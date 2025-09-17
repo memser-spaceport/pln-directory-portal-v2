@@ -8,7 +8,7 @@ import { Content } from './components/Content';
 export const ActiveView = () => {
   return (
     <FiltersHydrator>
-      <SyncParamsToUrl />
+      <SyncParamsToUrl debounceTime={0} />
       <DashboardPagesLayout filters={<Filters />} content={<Content />} />
     </FiltersHydrator>
   );

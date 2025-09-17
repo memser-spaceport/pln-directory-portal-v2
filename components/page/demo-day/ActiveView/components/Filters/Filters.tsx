@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useGetMembersFilterCount } from '@/components/page/members/hooks/useGetMembersFilterCount';
 import s from '@/components/page/members/MembersFilter/MembersFilter.module.scss';
 import FilterCount from '@/components/ui/filter-count';
@@ -38,10 +38,6 @@ export const Filters = () => {
   const appliedFiltersCount = useGetMembersFilterCount();
   const { clearParams } = useFilterStore();
 
-  // State for filter selections
-  const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
-  const [selectedStages, setSelectedStages] = useState<string[]>([]);
-
   return (
     <div className={s.root}>
       <div className={s.header}>
@@ -63,8 +59,7 @@ export const Filters = () => {
         <FilterSection title="Industry">
           <FilterList
             options={INDUSTRY_OPTIONS}
-            selectedOptions={selectedIndustries}
-            onSelectionChange={setSelectedIndustries}
+            paramName="industry"
             placeholder="Search industries..."
             emptyMessage="No industries found"
           />
@@ -73,8 +68,7 @@ export const Filters = () => {
         <FilterSection title="Stage">
           <FilterList
             options={STAGE_OPTIONS}
-            selectedOptions={selectedStages}
-            onSelectionChange={setSelectedStages}
+            paramName="stage"
             placeholder="Search stages..."
             emptyMessage="No stages found"
           />

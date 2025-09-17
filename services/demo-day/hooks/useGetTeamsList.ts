@@ -1,77 +1,28 @@
 import { useQuery } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
+import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 
 export type TeamProfile = {
-  uid: string;
-  teamUid: string;
+  createdAt: string;
+  demoDayUid: string;
+  lastModifiedBy: string;
+  onePagerUpload: UploadInfo;
+  onePagerUploadUid: string;
+  status: string;
   team: {
-    uid: string;
+    fundingStage: { uid: 'uid-series-b'; title: 'Series B' };
+    industryTags: { uid: 'uid-education'; title: 'Education' }[];
+    logo: { uid: 'cmfo0qukn0007p166rz8vu3rm'; url: string };
     name: string;
     shortDescription: string;
-    industryTags: {
-      uid: string;
-      title: string;
-    }[];
-    fundingStage: {
-      uid: string;
-      title: string;
-    };
-    logo: { uid: string; url: string } | null;
+    uid: string;
   };
-  onePagerUploadUid: string | null;
-  onePagerUpload: {
-    bucket: null;
-    checksum: string;
-    cid: null;
-    createdAt: string;
-    filename: string;
-    key: string;
-    kind: string;
-    meta: null;
-    mimetype: string;
-    scopeType: string;
-    scopeUid: string | null;
-    size: number;
-    status: string;
-    storage: string;
-    uid: string;
-    updatedAt: string;
-    uploaderUid: string | null;
-    url: string;
-    freshUrl: string;
-  } | null;
-  videoUploadUid: string | null;
-  videoUpload: {
-    bucket: null;
-    checksum: string;
-    cid: null;
-    createdAt: string;
-    filename: string;
-    key: string;
-    kind: string;
-    meta: null;
-    mimetype: string;
-    scopeType: string;
-    scopeUid: string | null;
-    size: number;
-    status: string;
-    storage: string;
-    uid: string;
-    updatedAt: string;
-    uploaderUid: string | null;
-    url: string;
-    freshUrl: string;
-  } | null;
-  founders?: {
-    email: string;
-    image: { uid: string; url: string } | null;
-    name: string;
-    officeHours: null;
-    role: string;
-    skills: { uid: string; title: string }[];
-    uid: string;
-  }[];
+  teamUid: string;
+  uid: string;
+  updatedAt: string;
+  videoUpload: UploadInfo;
+  videoUploadUid: string;
 };
 
 export type TeamsListResponse = TeamProfile[];

@@ -11,7 +11,10 @@ type DemoDayState = {
   date: string;
   title: string;
   description: string;
-  status: 'upcoming' | 'active' | 'completed' | 'archived';
+  status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
+
+  investorsCount: 1;
+  teamsCount: 1;
 };
 
 async function fetcher(memberUid?: string) {

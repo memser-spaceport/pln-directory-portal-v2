@@ -3,16 +3,12 @@ import { clsx } from 'clsx';
 import { Menu } from '@base-ui-components/react/menu';
 import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
 import s from './TeamsList.module.scss';
+import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader';
+import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 
 const ChevronDownIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M4 6L8 10L12 6"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -69,7 +65,7 @@ export const TeamsList: React.FC = () => {
     return sorted;
   }, [teams, sortBy]);
 
-  const selectedSortOption = SORT_OPTIONS.find(option => option.value === sortBy);
+  const selectedSortOption = SORT_OPTIONS.find((option) => option.value === sortBy);
   const teamsCount = teams?.length || 0;
 
   const handleSortChange = (value: string) => {
@@ -108,7 +104,7 @@ export const TeamsList: React.FC = () => {
           <h2 className={s.title}>Teams List</h2>
           <span className={s.counter}>({teamsCount})</span>
         </div>
-        
+
         <div className={s.headerRight}>
           <Menu.Root modal={false}>
             <Menu.Trigger className={s.sortButton}>
@@ -138,49 +134,22 @@ export const TeamsList: React.FC = () => {
       </div>
 
       <div className={s.teamsList}>
-        {sortedTeams.map((team) => (
-          <div key={team.uid} className={s.teamCard}>
-            <div className={s.teamInfo}>
-              <div className={s.teamHeader}>
-                {team.team.logo && (
-                  <img 
-                    src={team.team.logo.url} 
-                    alt={`${team.team.name} logo`}
-                    className={s.teamLogo}
-                  />
-                )}
-                <div className={s.teamDetails}>
-                  <h3 className={s.teamName}>{team.team.name}</h3>
-                  <p className={s.teamDescription}>{team.team.shortDescription}</p>
-                </div>
-              </div>
-              
-              <div className={s.teamMeta}>
-                <span className={s.fundingStage}>{team.team.fundingStage.title}</span>
-                <div className={s.tags}>
-                  {team.team.industryTags.slice(0, 3).map((tag) => (
-                    <span key={tag.uid} className={s.tag}>
-                      {tag.title}
-                    </span>
-                  ))}
-                  {team.team.industryTags.length > 3 && (
-                    <span className={s.tag}>+{team.team.industryTags.length - 3}</span>
-                  )}
-                </div>
-              </div>
+        {sortedTeams.map((item) => (
+          <>
+            <div className={s.profileCard}>
+              <ProfileHeader
+                image={item.team.logo.url || '/images/demo-day/profile-placeholder.svg'}
+                name={item.team?.name || 'Team Name'}
+                description={item?.team?.shortDescription || '-'}
+                fundingStage={item?.team.fundingStage.title || '-'}
+                tags={item?.team.industryTags.map((tag) => tag.title) || []}
+              />
+              <ProfileContent pitchDeckUrl={item?.onePagerUpload?.url} videoUrl={item?.videoUpload?.url} />
+              <div className={s.profileDivider} />
             </div>
-            
-            <div className={s.teamActions}>
-              {team.onePagerUpload && (
-                <span className={s.materialBadge}>Pitch Deck</span>
-              )}
-              {team.videoUpload && (
-                <span className={s.materialBadge}>Video</span>
-              )}
-            </div>
-          </div>
+          </>
         ))}
-        
+
         {sortedTeams.length === 0 && (
           <div className={s.emptyState}>
             <p>No teams found.</p>

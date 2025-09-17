@@ -27,10 +27,13 @@ export const Content = () => {
               <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, HH:mm') : ''}
             </span>
             &nbsp;&bull;&nbsp;
-            <span>123 Teams</span>
+            <span>
+              {data?.teamsCount} Team{(data?.teamsCount ?? 0) > 1 ? 's' : ''}
+            </span>
             &nbsp;&bull;&nbsp;
             <Link href={`/members?isInvestor=true`}>
-              245 Investors <LinkIcon />
+              {data?.investorsCount} Investor{(data?.investorsCount ?? 0) > 1 ? 's' : ''}
+              <LinkIcon />
             </Link>
           </div>
 

@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import { Menu } from '@base-ui-components/react/menu';
 import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
+import { TeamProfileCard } from './components/TeamProfileCard';
 import s from './TeamsList.module.scss';
-import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader';
-import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 
 const ChevronDownIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -134,20 +133,8 @@ export const TeamsList: React.FC = () => {
       </div>
 
       <div className={s.teamsList}>
-        {sortedTeams.map((item) => (
-          <>
-            <div className={s.profileCard}>
-              <ProfileHeader
-                image={item.team.logo.url || '/images/demo-day/profile-placeholder.svg'}
-                name={item.team?.name || 'Team Name'}
-                description={item?.team?.shortDescription || '-'}
-                fundingStage={item?.team.fundingStage.title || '-'}
-                tags={item?.team.industryTags.map((tag) => tag.title) || []}
-              />
-              <ProfileContent pitchDeckUrl={item?.onePagerUpload?.url} videoUrl={item?.videoUpload?.url} />
-              <div className={s.profileDivider} />
-            </div>
-          </>
+        {sortedTeams.map((team) => (
+          <TeamProfileCard key={team.uid} team={team} />
         ))}
 
         {sortedTeams.length === 0 && (

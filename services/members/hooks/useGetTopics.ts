@@ -15,7 +15,11 @@ async function fetcher(input: string, hasOfficeHours?: boolean) {
     params.append('hasOfficeHours', 'true');
   }
 
-  const res = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/members/autocomplete/topics?${params.toString()}`, {}, false);
+  const res = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/members/autocomplete/topics?${params.toString()}`,
+    {},
+    false,
+  );
 
   if (!res?.ok) {
     throw new Error('Failed to fetch topics');

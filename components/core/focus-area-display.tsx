@@ -14,7 +14,7 @@ interface ISelectedArea {
 }
 
 const findParents = (data: IFocusArea[], childUid: string) => {
-  const parents:any = [];
+  const parents: any = [];
   const findParentsRecursive = (item: IFocusArea, childUid: string, currentParents = []) => {
     if (!item || !item.children) return;
     if (item.uid === childUid) {
@@ -23,7 +23,7 @@ const findParents = (data: IFocusArea[], childUid: string) => {
     }
     const updatedParents = [...currentParents, item];
     if (item.children) {
-      item.children.forEach((child:any) => {
+      item.children.forEach((child: any) => {
         findParentsRecursive(child, childUid, updatedParents as any);
       });
     }
@@ -34,7 +34,7 @@ const findParents = (data: IFocusArea[], childUid: string) => {
   return parents;
 };
 
-const findItemIndex = (nodes:any, item: IFocusArea):any => {
+const findItemIndex = (nodes: any, item: IFocusArea): any => {
   for (const node of nodes) {
     if (node.uid === item.uid) {
       return node.index;
@@ -51,10 +51,10 @@ const findItemIndex = (nodes:any, item: IFocusArea):any => {
 
 const getFormattedFocusArea = (focusArea: IFocusArea[]) => {
   let index = 1;
-  const traverse = (node:any) => {
+  const traverse = (node: any) => {
     node.index = index++;
     if (node.children && node.children.length > 0) {
-      node.children.forEach((child:any) => {
+      node.children.forEach((child: any) => {
         traverse(child);
       });
     }
@@ -65,13 +65,17 @@ const getFormattedFocusArea = (focusArea: IFocusArea[]) => {
   return focusArea;
 };
 
-const getSelectedItems = (rawData: IFocusArea[], formattedRawData: IFocusArea[], selectedValues: IFocusArea[]): ISelectedArea[] => {
-  const selectedParents:any = {};
+const getSelectedItems = (
+  rawData: IFocusArea[],
+  formattedRawData: IFocusArea[],
+  selectedValues: IFocusArea[],
+): ISelectedArea[] => {
+  const selectedParents: any = {};
   try {
     selectedValues.forEach((selectedValue) => {
       const parents = findParents(rawData, selectedValue.uid);
       const newParents = parents.length > 0 ? parents : [selectedValue];
-      const path = newParents.map((parent:any) => parent.title).join(' > ');
+      const path = newParents.map((parent: any) => parent.title).join(' > ');
       if (!selectedParents[path]) {
         selectedParents[path] = {
           title: selectedValue.title,
@@ -97,7 +101,9 @@ const FocusAreaDisplay = (props: IFocusAreasList) => {
   //variables
   const formattedRawData = useMemo(() => getFormattedFocusArea(rawData), [rawData]);
   const selectedFocusArea = useMemo(() => {
-    return getSelectedItems(rawData, formattedRawData, selectedItems)?.sort((firstItem: ISelectedArea, secondItem: ISelectedArea) => firstItem.index - secondItem.index);
+    return getSelectedItems(rawData, formattedRawData, selectedItems)?.sort(
+      (firstItem: ISelectedArea, secondItem: ISelectedArea) => firstItem.index - secondItem.index,
+    );
   }, [rawData, formattedRawData, selectedItems]);
 
   return (

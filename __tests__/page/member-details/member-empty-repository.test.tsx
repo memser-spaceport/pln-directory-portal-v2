@@ -59,8 +59,13 @@ describe('MemberEmptyProject Component', () => {
 
     render(<MemberEmptyProject {...newProps} />);
 
-    expect(screen.getByText('GitHub handle is missing for the user. If you have the required information, please update')).toBeInTheDocument();
-    expect(screen.getByText('here')).toHaveAttribute('href', `${PAGE_ROUTES.SETTINGS}/members?id=${newProps.member.id}`);
+    expect(
+      screen.getByText('GitHub handle is missing for the user. If you have the required information, please update'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('here')).toHaveAttribute(
+      'href',
+      `${PAGE_ROUTES.SETTINGS}/members?id=${newProps.member.id}`,
+    );
   });
 
   it('renders "No repositories to display" for owner with GitHub handle', () => {

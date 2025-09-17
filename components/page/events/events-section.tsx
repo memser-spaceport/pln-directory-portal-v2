@@ -1,63 +1,59 @@
-"use client"
+'use client';
 
-import { useEffect, useRef, useState } from "react"
-import useEmblaCarousel from "embla-carousel-react"
-import LocationCard from "../home/featured/location-card"
-import { getAnalyticsLocationCardInfo, getAnalyticsUserInfo, getParsedValue } from "@/utils/common.utils"
-import { useRouter } from "next/navigation"
+import { useEffect, useRef, useState } from 'react';
+import useEmblaCarousel from 'embla-carousel-react';
+import LocationCard from '../home/featured/location-card';
+import { getAnalyticsLocationCardInfo, getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
+import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
-import CurrentEventCard from "./current-events-card"
-import { getAggregatedEventsData } from "@/services/events.service"
-import { useEventsAnalytics } from "@/analytics/events.analytics";
-import { PAGE_ROUTES } from "@/utils/constants";
-import { isPastDate } from "@/utils/irl.utils"
-import { formatFeaturedData } from "@/utils/home.utils"
+import CurrentEventCard from './current-events-card';
+import { getAggregatedEventsData } from '@/services/events.service';
+import { useEventsAnalytics } from '@/analytics/events.analytics';
+import { PAGE_ROUTES } from '@/utils/constants';
+import { isPastDate } from '@/utils/irl.utils';
+import { formatFeaturedData } from '@/utils/home.utils';
 
 interface EventsSectionProps {
   eventLocations: any;
-  userInfo?: any
-  isLoggedIn?: boolean
-  getFeaturedDataa?: any
-  onEventClicked?: (item: any) => void
-  onIrlLocationClicked?: (item: any) => void
+  userInfo?: any;
+  isLoggedIn?: boolean;
+  getFeaturedDataa?: any;
+  onEventClicked?: (item: any) => void;
+  onIrlLocationClicked?: (item: any) => void;
 }
 
 /**
  * Main component for displaying the events section with carousel
  * Uses Embla Carousel for desktop and simple overflow scrolling for mobile
  */
-export default function EventsSection({ 
-  eventLocations,
-  userInfo,
-}: EventsSectionProps) {
-
-  const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", containScroll: "trimSnaps" })
-  const [canScrollPrev, setCanScrollPrev] = useState(false)
+export default function EventsSection({ eventLocations, userInfo }: EventsSectionProps) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start', containScroll: 'trimSnaps' });
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(true);
   const [featuredData, setfeaturedData] = useState(eventLocations ?? []);
 
   // Update scroll buttons state
   useEffect(() => {
-    if (!emblaApi) return
+    if (!emblaApi) return;
 
     const onSelect = () => {
-      setCanScrollPrev(emblaApi.canScrollPrev())
-      setCanScrollNext(emblaApi.canScrollNext())
-    }
+      setCanScrollPrev(emblaApi.canScrollPrev());
+      setCanScrollNext(emblaApi.canScrollNext());
+    };
 
-    emblaApi.on("select", onSelect)
-    emblaApi.on("reInit", onSelect)
-    onSelect()
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
+    onSelect();
 
     return () => {
-      emblaApi.off("select", onSelect)
-      emblaApi.off("reInit", onSelect)
-    }
-  }, [emblaApi])
+      emblaApi.off('select', onSelect);
+      emblaApi.off('reInit', onSelect);
+    };
+  }, [emblaApi]);
 
-  const scrollPrev = () => emblaApi?.scrollPrev()
-  const scrollNext = () => emblaApi?.scrollNext()
-  
+  const scrollPrev = () => emblaApi?.scrollPrev();
+  const scrollNext = () => emblaApi?.scrollNext();
+
   const router = useRouter();
   const analytics = useEventsAnalytics();
 
@@ -91,15 +87,11 @@ export default function EventsSection({
    */
   const renderCardByCategory = (item: any) => {
     const category = item?.category;
-    
+
     switch (category) {
       case 'event':
         return (
-          <a 
-            target="_blank" 
-            href={getEventLocation(item)} 
-            onClick={() => onEventClicked(item)}
-          >
+          <a target="_blank" href={getEventLocation(item)} onClick={() => onEventClicked(item)}>
             <CurrentEventCard eventData={item} />
           </a>
         );
@@ -128,17 +120,23 @@ export default function EventsSection({
 
         <div className="navigation-buttons">
           <button
-            onClick={() => {scrollPrev(); analytics.onCarouselLeftClicked();}}
+            onClick={() => {
+              scrollPrev();
+              analytics.onCarouselLeftClicked();
+            }}
             disabled={!canScrollPrev}
-            className={`nav-button ${!canScrollPrev ? "disabled" : ""}`}
+            className={`nav-button ${!canScrollPrev ? 'disabled' : ''}`}
             aria-label="Previous"
           >
             <img src="/icons/arrow-left-blue.svg" alt="Previous" width={20} height={20} />
           </button>
           <button
-            onClick={() => {scrollNext(); analytics.onCarouselRightClicked();}}
+            onClick={() => {
+              scrollNext();
+              analytics.onCarouselRightClicked();
+            }}
             disabled={!canScrollNext}
-            className={`nav-button ${!canScrollNext ? "disabled" : ""}`}
+            className={`nav-button ${!canScrollNext ? 'disabled' : ''}`}
             aria-label="Next"
           >
             <img src="/icons/arrow-right-blue.svg" alt="Next" width={20} height={20} />
@@ -146,13 +144,13 @@ export default function EventsSection({
         </div>
       </div>
 
-      {featuredData.length === 0 && 
+      {featuredData.length === 0 && (
         <div className="no-events-container">
           <div className="no-events-text">
             <p>No events found</p>
           </div>
         </div>
-      }
+      )}
       <div className="mobile-container">
         <div className="mobile-scroll-container">
           {featuredData.map((location: any) => (
@@ -181,7 +179,7 @@ export default function EventsSection({
           width: 100%;
         }
 
-         .no-events-container {
+        .no-events-container {
           display: flex;
           justify-content: center;
           align-items: center;
@@ -193,7 +191,7 @@ export default function EventsSection({
         }
 
         .no-events-text p {
-          color: #6B7280; /* Tailwind's text-gray-500 */
+          color: #6b7280; /* Tailwind's text-gray-500 */
         }
 
         .header {
@@ -280,11 +278,11 @@ export default function EventsSection({
           .events-section {
             padding: 1rem 0;
           }
-          
+
           .header {
             padding: 0 1rem;
           }
-          
+
           .navigation-buttons {
             display: none;
           }
@@ -302,28 +300,28 @@ export default function EventsSection({
           .header {
             padding: 0 20px;
           }
-          
+
           .navigation-buttons {
             display: flex;
             gap: 0.5rem;
           }
-          
+
           .mobile-container {
             display: none;
           }
-          
+
           .desktop-container {
             display: block;
             overflow: hidden;
             width: 100%;
             margin: 0px 20px;
           }
-          
+
           .carousel-viewport {
             overflow: hidden;
             width: 98%;
           }
-          
+
           .carousel-container-inner {
             display: flex;
             backface-visibility: hidden;
@@ -339,6 +337,5 @@ export default function EventsSection({
         }
       `}</style>
     </div>
-  )
+  );
 }
-

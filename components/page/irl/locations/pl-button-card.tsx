@@ -8,7 +8,13 @@ const PlEventCard = () => {
       <div className="pl-event-card__text">View All Events</div>
 
       <div className="pl-event-card__bottom-image" aria-hidden="true">
-        <img src="/images/view-event-card-bottom.png" alt="" width={150} height={100} className="pl-event-card__image" />
+        <img
+          src="/images/view-event-card-bottom.png"
+          alt=""
+          width={150}
+          height={100}
+          className="pl-event-card__image"
+        />
       </div>
 
       <style jsx>{`
@@ -86,7 +92,7 @@ const PlEventCard = () => {
           .pl-event-card__bottom-image {
             height: 100px;
           }
-            
+
           .pl-event-card__text {
             margin-top: 15px;
           }

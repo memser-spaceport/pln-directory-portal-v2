@@ -16,7 +16,7 @@ export const useProjectAnalytics = () => {
         const loggedInUserUid = userInfo?.uid;
         const loggedInUserEmail = userInfo?.email;
         const loggedInUserName = userInfo?.name;
-        postHogProps.capture(eventName, { ...allParams, loggedInUserUid, loggedInUserEmail, loggedInUserName});
+        postHogProps.capture(eventName, { ...allParams, loggedInUserUid, loggedInUserEmail, loggedInUserName });
       }
     } catch (e) {
       console.error(e);
@@ -26,7 +26,7 @@ export const useProjectAnalytics = () => {
   function onProjectAddInitiated(user: IAnalyticsUserInfo | null, project: any) {
     const params = {
       user,
-      project
+      project,
     };
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_ADD_INITIATED, params);
   }
@@ -69,11 +69,10 @@ export const useProjectAnalytics = () => {
     const params = {
       user,
       project,
-      projectId
+      projectId,
     };
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_EDIT_FAILED, params);
   }
-
 
   function onProjectDeleteBtnClicked(user: IAnalyticsUserInfo | null, projectId: string) {
     const params = {
@@ -136,7 +135,7 @@ export const useProjectAnalytics = () => {
     const params = {
       user,
       projectId,
-      from
+      from,
     };
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_EDIT_CLICKED, params);
   }
@@ -165,7 +164,11 @@ export const useProjectAnalytics = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_SAVE_FAILED, params);
   }
 
-  function onProjectDetailMaintainerTeamClicked(user: IAnalyticsUserInfo | null, projectId: string, team: IAnalyticsTeamInfo | null) {
+  function onProjectDetailMaintainerTeamClicked(
+    user: IAnalyticsUserInfo | null,
+    projectId: string,
+    team: IAnalyticsTeamInfo | null,
+  ) {
     const params = {
       user,
       projectId,
@@ -174,11 +177,15 @@ export const useProjectAnalytics = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_MAINTAINER_TEAM_CLICKED, params);
   }
 
-  function onProjectDetailContributingTeamClicked(user: IAnalyticsUserInfo | null, projectId: string, team: IAnalyticsTeamInfo | null) {
+  function onProjectDetailContributingTeamClicked(
+    user: IAnalyticsUserInfo | null,
+    projectId: string,
+    team: IAnalyticsTeamInfo | null,
+  ) {
     const params = {
       user,
       projectId,
-      ...team
+      ...team,
     };
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_CONTRIBUTING_TEAM_CLICKED, params);
   }
@@ -191,7 +198,10 @@ export const useProjectAnalytics = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_SEEALL_CLICKED, params);
   }
 
-  function onProjDetailSeeAllContributorsClicked(user: IAnalyticsUserInfo | null, project: IAnalyticsProjectInfo | null) {
+  function onProjDetailSeeAllContributorsClicked(
+    user: IAnalyticsUserInfo | null,
+    project: IAnalyticsProjectInfo | null,
+  ) {
     const params = {
       user,
       project,
@@ -199,7 +209,11 @@ export const useProjectAnalytics = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_SEE_ALL_CONTRIBUTORS_CLICKED, params);
   }
 
-  function onProjectDetailContributorClicked(user: IAnalyticsUserInfo | null, project: IAnalyticsProjectInfo | null, member: IAnalyticsMemberInfo | null) {
+  function onProjectDetailContributorClicked(
+    user: IAnalyticsUserInfo | null,
+    project: IAnalyticsProjectInfo | null,
+    member: IAnalyticsMemberInfo | null,
+  ) {
     const params = {
       user,
       project,
@@ -265,23 +279,23 @@ export const useProjectAnalytics = () => {
 
   function onProjectShowFilterResultClicked(user: IAnalyticsUserInfo | null) {
     const params = {
-      user
-    }
+      user,
+    };
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_VIEW_FILTER_RESULT_CLICKED, params);
   }
 
   function onProjectFilterCloseClicked(user: IAnalyticsUserInfo | null) {
     const params = {
-      user
-    }
-    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_FILTER_PANEL_CLOSE_CLICKED, params)
+      user,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_FILTER_PANEL_CLOSE_CLICKED, params);
   }
 
   function onProjectAddCancelClicked() {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_ADD_CANCEL);
   }
 
-  function onProjectEditCancelClicked(projectId: string) { 
+  function onProjectEditCancelClicked(projectId: string) {
     const params = {
       projectId,
     };
@@ -290,14 +304,14 @@ export const useProjectAnalytics = () => {
 
   const onProjectAddSaveClicked = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_ADD_SAVE_CLICKED);
-  }
+  };
 
   const onProjectEditSaveClicked = (projectId: string) => {
     const params = {
       projectId,
     };
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_EDIT_SAVE_CLICKED, params);
-  }
+  };
 
   function onProjectDetailDescShowMoreClicked(user: IAnalyticsUserInfo | null, projectId: string) {
     const params = {
@@ -347,7 +361,7 @@ export const useProjectAnalytics = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_DESC_EDIT_SAVE_CLICKED, params);
   }
 
-  function recordDescSave(type: string, user: IAnalyticsUserInfo | null, payload?: any){
+  function recordDescSave(type: string, user: IAnalyticsUserInfo | null, payload?: any) {
     const params = {
       type,
       user,
@@ -398,6 +412,6 @@ export const useProjectAnalytics = () => {
     onProjectDetailDescEditCancelClicked,
     onProjectDetailDescEditClicked,
     onProjectDetailDescEditSaveClicked,
-    recordDescSave
+    recordDescSave,
   };
 };

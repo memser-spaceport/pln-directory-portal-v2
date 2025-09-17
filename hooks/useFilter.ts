@@ -8,4 +8,4 @@ export function useFilter<T extends string>(defaultFilter: T) {
   };
 
   return { activeFilter, onFilterClick, setActiveFilter };
-} 
+}

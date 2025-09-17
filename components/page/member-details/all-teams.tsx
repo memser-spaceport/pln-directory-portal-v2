@@ -55,7 +55,14 @@ const AllTeams = (props: IAllTeams) => {
         </div>
         <div className="all-teams__search-bar">
           <img loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
-          <input value={searchTerm} className="all-teams__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
+          <input
+            value={searchTerm}
+            className="all-teams__search-bar__input"
+            placeholder="Search"
+            name="name"
+            autoComplete="off"
+            onChange={onInputChangeHandler}
+          />
         </div>
 
         <div className="all-teams__container">
@@ -63,7 +70,9 @@ const AllTeams = (props: IAllTeams) => {
             const teamDetails = teams.find((memberTeam: any) => memberTeam.id === team.id);
             return (
               <Fragment key={`${team} + ${index}`}>
-                <div className={`all-teams__container__repo ${allTeams?.length - 1 !== index ? 'all-teams__border-set' : ''}`}>
+                <div
+                  className={`all-teams__container__repo ${allTeams?.length - 1 !== index ? 'all-teams__border-set' : ''}`}
+                >
                   <MemberDetailsTeamCard
                     member={member}
                     userInfo={userInfo}

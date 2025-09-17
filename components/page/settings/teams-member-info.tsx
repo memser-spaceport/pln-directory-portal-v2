@@ -68,7 +68,11 @@ const TeamsMemberInfo = (props: any) => {
           .map((member: any, index: number) => {
             return (
               <Fragment key={index}>
-                <TeamMemberCard member={member} handleTeamLeadToggle={handleTeamLeadToggle} handleRemoveMember={handleRemoveMember} />
+                <TeamMemberCard
+                  member={member}
+                  handleTeamLeadToggle={handleTeamLeadToggle}
+                  handleRemoveMember={handleRemoveMember}
+                />
               </Fragment>
             );
           })
@@ -98,9 +102,9 @@ const TeamsMemberInfo = (props: any) => {
         )}
       </Modal>
 
-      {teamMembers.length > 0 && teamMembers.filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase())).length === 0 && (
-        <div className="ms__content__nmf">No matching members found.</div>
-      )}
+      {teamMembers.length > 0 &&
+        teamMembers.filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase()))
+          .length === 0 && <div className="ms__content__nmf">No matching members found.</div>}
 
       <style jsx>
         {`

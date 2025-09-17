@@ -19,7 +19,20 @@ interface Props {
   onImplictFlush?: () => void;
 }
 
-export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, placeholder, type, onlyNumbers, flushIcon, onImplictFlush, onFocus, onClick, ...rest }) => {
+export const DebouncedInput: FC<Props> = ({
+  value,
+  onChange,
+  onBlur,
+  disabled,
+  placeholder,
+  type,
+  onlyNumbers,
+  flushIcon,
+  onImplictFlush,
+  onFocus,
+  onClick,
+  ...rest
+}) => {
   const [localValue, setLocalValue] = useState(value);
 
   const debouncedChange = useMemo(
@@ -95,7 +108,14 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
             onChange('');
           }}
         >
-          <Image src="/icons/close-gray.svg" alt="Search" width={20} height={20} style={{ pointerEvents: 'none' }} id="application-search-clear-icon" />
+          <Image
+            src="/icons/close-gray.svg"
+            alt="Search"
+            width={20}
+            height={20}
+            style={{ pointerEvents: 'none' }}
+            id="application-search-clear-icon"
+          />
         </button>
       )}
       {flushIcon && (

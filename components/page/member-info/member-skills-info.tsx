@@ -28,7 +28,13 @@ interface MemberSkillsInfoProps {
   isEdit?: boolean;
 }
 
-function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions = [], errors = [], isEdit = false }: MemberSkillsInfoProps) {
+function MemberSkillsInfo({
+  initialValues = {},
+  teamsOptions = [],
+  skillsOptions = [],
+  errors = [],
+  isEdit = false,
+}: MemberSkillsInfoProps) {
   const [teamsinfo, setTeamsInfo] = useState<TeamAndRoleOptions[]>(initialValues?.teamsAndRoles ?? []);
   const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>(initialValues?.skills ?? []);
 
@@ -148,7 +154,11 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
                     onChange={(item) => onTeamSelectionChanged(index, item)}
                     arrowImgUrl="/icons/arrow-down.svg"
                   />
-                  <HiddenField value={teaminfo.teamUid} defaultValue={teaminfo.teamUid} name={`teamInfo${index}-teamUid`} />
+                  <HiddenField
+                    value={teaminfo.teamUid}
+                    defaultValue={teaminfo.teamUid}
+                    name={`teamInfo${index}-teamUid`}
+                  />
                 </div>
                 <div className="msf__tr__content__cn__role">
                   <TextField
@@ -218,12 +228,19 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
           <div className="msf__ps__ow">
             <div className="msf__ps__ow__head">
               <label> Are you open to collaborate?</label>
-              <CustomToggle defaultChecked={initialValues?.openToWork ?? false} name="openToWork" id="members-opentowork-form-item" />
+              <CustomToggle
+                defaultChecked={initialValues?.openToWork ?? false}
+                name="openToWork"
+                id="members-opentowork-form-item"
+              />
             </div>
 
             <p className="info">
               <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-              <span className="">Enabling this implies you are open to collaborate on shared ideas & projects with other members. This is one way to join forces & reach a common goal.</span>
+              <span className="">
+                Enabling this implies you are open to collaborate on shared ideas & projects with other members. This is
+                one way to join forces & reach a common goal.
+              </span>
             </p>
           </div>
         )}

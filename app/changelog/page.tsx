@@ -1,5 +1,5 @@
 import ChangelogList from '@/components/page/changelog/changelog-list';
-import styles from './page.module.css'
+import styles from './page.module.css';
 import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 

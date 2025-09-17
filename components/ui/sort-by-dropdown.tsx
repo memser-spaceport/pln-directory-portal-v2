@@ -1,10 +1,10 @@
-import { SORT_ICONS } from "@/utils/constants";
+import { SORT_ICONS } from '@/utils/constants';
 
 interface ISortByDrodown {
   selectedItem: string;
-  callback: (type: string) => void
+  callback: (type: string) => void;
 }
-const SortByDropdown = (props:ISortByDrodown ) => {
+const SortByDropdown = (props: ISortByDrodown) => {
   const selectedItem = props?.selectedItem;
   const callback = props?.callback;
 
@@ -13,8 +13,16 @@ const SortByDropdown = (props:ISortByDrodown ) => {
       <div className="dropdown">
         {SORT_ICONS?.map((option: any, index: number) => (
           <div className="dropdown__option__container" key={`${option} + ${index}`}>
-            <button className={`dropdown__option__container__option ${option.name === selectedItem ? "dropdown__option__container__option__selected" : ""}`} onClick={() => callback(option?.name)}>
-              <img loading="lazy" src={option?.name === selectedItem ? option?.selectedIcon : option?.deselectIcon} height={20} width={20} />
+            <button
+              className={`dropdown__option__container__option ${option.name === selectedItem ? 'dropdown__option__container__option__selected' : ''}`}
+              onClick={() => callback(option?.name)}
+            >
+              <img
+                loading="lazy"
+                src={option?.name === selectedItem ? option?.selectedIcon : option?.deselectIcon}
+                height={20}
+                width={20}
+              />
               {option?.label}
             </button>
           </div>
@@ -44,7 +52,7 @@ const SortByDropdown = (props:ISortByDrodown ) => {
             font-size: 15px;
             font-weight: 400;
             line-height: 24px;
-            width: 100%; 
+            width: 100%;
           }
 
           .dropdown__option__container__option__selected {

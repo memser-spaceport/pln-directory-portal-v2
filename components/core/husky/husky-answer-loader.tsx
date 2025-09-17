@@ -19,7 +19,9 @@ function HuskyAnswerLoader() {
                 <img className="husky-loader__info__text__icon" src="/icons/husky-bone.svg" />
                 Fetching your response...
               </span>
-              <p>This may take a moment. Please verify sources for accuracy, as responses may sometimes be inaccurate.</p>
+              <p>
+                This may take a moment. Please verify sources for accuracy, as responses may sometimes be inaccurate.
+              </p>
             </div>
           </div>
         </div>
@@ -60,7 +62,9 @@ function HuskyAnswerLoader() {
             padding: 16px;
             background: #dbeafe;
             color: #1e3a8a;
-            box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
+            box-shadow:
+              0px 4px 4px 0px #0f172a0a,
+              0px 0px 1px 0px #0f172a1f;
             border-radius: 8px;
             font-size: 16px;
             font-weight: 500;
@@ -75,7 +79,9 @@ function HuskyAnswerLoader() {
             padding: 16px;
             background: #dbeafe;
             color: #1e3a8a;
-            box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
+            box-shadow:
+              0px 4px 4px 0px #0f172a0a,
+              0px 0px 1px 0px #0f172a1f;
             border-radius: 8px;
             font-size: 16px;
             font-weight: 400;
@@ -92,7 +98,7 @@ function HuskyAnswerLoader() {
             align-items: center;
             gap: 8px;
             font-weight: 600;
-             font-size: 16px;
+            font-size: 16px;
           }
 
           .husky-loader__info__text__icon {
@@ -106,7 +112,7 @@ function HuskyAnswerLoader() {
             top: 40px;
             // left: 50%;
             // right: 0;
-            transformX: translateX(-50%);
+            transformx: translateX(-50%);
             display: flex;
             justify-content: center;
           }

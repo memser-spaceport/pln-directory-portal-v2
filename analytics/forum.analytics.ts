@@ -90,11 +90,19 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_CANCEL, {});
   }
 
-  function onPostCommentNotificationSettingsClicked(params: { tid?: string | number; toPid?: string | number; value: boolean }) {
+  function onPostCommentNotificationSettingsClicked(params: {
+    tid?: string | number;
+    toPid?: string | number;
+    value: boolean;
+  }) {
     captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_NOTIFICATION_SETTINGS_CLICKED, params);
   }
 
-  function onPostCommentReplyClicked(params: { tid?: string | number; pid?: string | number; timeSincePostCreation: number }) {
+  function onPostCommentReplyClicked(params: {
+    tid?: string | number;
+    pid?: string | number;
+    timeSincePostCreation: number;
+  }) {
     const transformedParams = {
       ...params,
       timeSincePostCreation: formatTimeSincePostCreation(params.timeSincePostCreation),

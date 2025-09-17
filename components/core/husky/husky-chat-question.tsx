@@ -12,7 +12,15 @@ interface HuskyChatQuestion {
   sources: any[];
   mode: 'chat' | 'blog';
 }
-function HuskyChatQuestion({ question, shareCount, viewCount, sources, onShareClicked, blogId, mode }: HuskyChatQuestion) {
+function HuskyChatQuestion({
+  question,
+  shareCount,
+  viewCount,
+  sources,
+  onShareClicked,
+  blogId,
+  mode,
+}: HuskyChatQuestion) {
   return (
     <>
       <div className="chat__ques">
@@ -29,7 +37,10 @@ function HuskyChatQuestion({ question, shareCount, viewCount, sources, onShareCl
                 </PopoverDp.Wrapper>
               )}
               {shareCount && (
-                <CopyText onCopyCallback={onShareClicked} textToCopy={`${window.location.protocol}//${window.location.host}?showmodal=husky&discoverid=${blogId}`}>
+                <CopyText
+                  onCopyCallback={onShareClicked}
+                  textToCopy={`${window.location.protocol}//${window.location.host}?showmodal=husky&discoverid=${blogId}`}
+                >
                   <InfoBox info="Share" imgUrl="/icons/share-blue.svg" moreInfo={`${shareCount}`} />
                 </CopyText>
               )}

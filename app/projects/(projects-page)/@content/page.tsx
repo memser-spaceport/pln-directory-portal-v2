@@ -21,7 +21,13 @@ export default async function Page({ searchParams }: any) {
         <ProjectsToolbar searchParams={searchParams} totalProjects={totalProjects} userInfo={userInfo} />
       </div>
       <div className={styles.project__cn__list}>
-        <ProjectlistWrapper searchParams={searchParams} totalProjects={totalProjects} projects={projects} userInfo={userInfo} isLoggedIn={isLoggedIn}/>
+        <ProjectlistWrapper
+          searchParams={searchParams}
+          totalProjects={totalProjects}
+          projects={projects}
+          userInfo={userInfo}
+          isLoggedIn={isLoggedIn}
+        />
         {totalProjects === 0 && <EmptyResult isLoggedIn={isLoggedIn} />}
       </div>
     </div>
@@ -30,14 +36,21 @@ export default async function Page({ searchParams }: any) {
 
 const getPageData = async (searchParams: any) => {
   let isError = false;
-  
+
   try {
     const { userInfo, isLoggedIn } = getCookiesFromHeaders();
     const filterFromQuery = getProjectsFiltersFromQuery(searchParams);
     const selectOptions = getProjectSelectOptions(filterFromQuery);
-    const projectsResponse = await getAllProjects({...selectOptions, isDeleted: false,
-      select: "uid,name,tagline,tags,logo.url,description,lookingForFunding,maintainingTeam.name,maintainingTeam.logo.url"
-    }, 1, INITIAL_ITEMS_PER_PAGE);
+    const projectsResponse = await getAllProjects(
+      {
+        ...selectOptions,
+        isDeleted: false,
+        select:
+          'uid,name,tagline,tags,logo.url,description,lookingForFunding,maintainingTeam.name,maintainingTeam.logo.url',
+      },
+      1,
+      INITIAL_ITEMS_PER_PAGE,
+    );
 
     if (projectsResponse?.error) {
       isError = true;

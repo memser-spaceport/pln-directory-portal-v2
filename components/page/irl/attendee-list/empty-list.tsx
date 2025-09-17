@@ -35,7 +35,11 @@ const EmptyList = (props: IEmptyList) => {
           <div key={`${itemIndex}-event-list`} className="empList__item">
             <div className="empList__item__team">
               <Link passHref legacyBehavior href={`/teams/${item.teamUid}`}>
-                <a target="_blank" className="empList__item__team__li text-clamp" onClick={() => onTeamClick(item?.teamUid, item?.teamName)}>
+                <a
+                  target="_blank"
+                  className="empList__item__team__li text-clamp"
+                  onClick={() => onTeamClick(item?.teamUid, item?.teamName)}
+                >
                   <span className="empList__item__team__liWrpr">
                     <div className="empList__item__team__li__imgWrpr">
                       <img src={item.teamLogo || '/icons/team-default-profile.svg'} height={32} width={32} />

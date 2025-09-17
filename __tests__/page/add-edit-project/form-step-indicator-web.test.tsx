@@ -11,7 +11,6 @@ jest.mock('@/hooks/useStepsIndicator', () => ({
 }));
 
 describe('FormStepIndicatorWeb', () => {
-
   it('renders the component with the correct step and information', () => {
     // Mock useStepsIndicator hook return value
     (useStepsIndicator as jest.Mock).mockReturnValue({
@@ -19,7 +18,9 @@ describe('FormStepIndicatorWeb', () => {
     });
 
     // Render the component
-    render(<FormStepIndicatorWeb steps={PROJECT_FORM_STEPS} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />);
+    render(
+      <FormStepIndicatorWeb steps={PROJECT_FORM_STEPS} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />,
+    );
 
     // Test that the title contains the current step
     expect(screen.getByText(PROJECT_FORM_STEPS[0])).toBeInTheDocument();
@@ -41,7 +42,9 @@ describe('FormStepIndicatorWeb', () => {
     });
 
     // Render the component again
-    render(<FormStepIndicatorWeb steps={PROJECT_FORM_STEPS} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />);
+    render(
+      <FormStepIndicatorWeb steps={PROJECT_FORM_STEPS} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />,
+    );
 
     // Test that the title updates with the current step
     expect(screen.getByTestId('formstep-title').textContent?.includes(PROJECT_FORM_STEPS[1])).toBeTruthy();
@@ -55,7 +58,9 @@ describe('FormStepIndicatorWeb', () => {
       currentStep: 'KPIs',
     });
 
-    render(<FormStepIndicatorWeb steps={PROJECT_FORM_STEPS} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />);
+    render(
+      <FormStepIndicatorWeb steps={PROJECT_FORM_STEPS} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />,
+    );
 
     // Ensure all steps are rendered
     PROJECT_FORM_STEPS.forEach((step, index) => {

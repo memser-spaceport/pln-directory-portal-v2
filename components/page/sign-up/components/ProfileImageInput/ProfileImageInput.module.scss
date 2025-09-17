@@ -9,7 +9,7 @@
   height: 72px;
   overflow: hidden;
 
-  background: #E8F1FE;
+  background: #e8f1fe;
 }
 
 .dropzoneHint {
@@ -20,8 +20,10 @@
   z-index: 1;
   background: transparent;
 
-  color: #A0BEFF;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #a0beff;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 10px;
   font-style: normal;
   font-weight: 500;

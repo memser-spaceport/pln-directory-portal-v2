@@ -19,7 +19,9 @@
 
 .Label {
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -50,11 +52,7 @@
   transition-duration: 125ms;
 
   outline: rgb(255 255 255 / 15%) solid 1px;
-  background-image: linear-gradient(
-                  to right,
-                  #156FF7 35%,
-                  var(--Neutral-Slate-200) 65%
-  );
+  background-image: linear-gradient(to right, #156ff7 35%, var(--Neutral-Slate-200) 65%);
 
   &[data-checked] {
     box-shadow: none;
@@ -78,7 +76,7 @@
       inset: 0;
       position: absolute;
       border-radius: inherit;
-      outline: 2px solid #156FF7;
+      outline: 2px solid #156ff7;
       outline-offset: 2px;
     }
   }
@@ -91,9 +89,9 @@
   background-color: white;
   transition: translate 150ms ease;
   box-shadow:
-          0 0 1px 1px rgb(0 0 0 / 25%),
-          0 1px 1px rgb(0 0 0 / 25%),
-          1px 2px 4px -1px rgb(0 0 0 / 25%);
+    0 0 1px 1px rgb(0 0 0 / 25%),
+    0 1px 1px rgb(0 0 0 / 25%),
+    1px 2px 4px -1px rgb(0 0 0 / 25%);
 
   &[data-checked] {
     translate: 1rem 0;

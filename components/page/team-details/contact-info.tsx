@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { IUserInfo } from "@/types/shared.types";
-import { ITeam } from "@/types/teams.types";
-import ContactMethod from "./contact-method";
-import { ProfileSocialLink } from "./profile-social-link";
-import { getAnalyticsTeamInfo, getAnalyticsUserInfo, getProfileFromURL } from "@/utils/common.utils";
-import { useTeamAnalytics } from "@/analytics/teams.analytics";
+import { IUserInfo } from '@/types/shared.types';
+import { ITeam } from '@/types/teams.types';
+import ContactMethod from './contact-method';
+import { ProfileSocialLink } from './profile-social-link';
+import { getAnalyticsTeamInfo, getAnalyticsUserInfo, getProfileFromURL } from '@/utils/common.utils';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 
 interface IContactInfo {
   team: ITeam | undefined;
@@ -14,7 +14,7 @@ interface IContactInfo {
 const ContactInfo = (props: IContactInfo) => {
   const team = props?.team;
   const userInfo = props?.userInfo;
-  const website =  team?.website;
+  const website = team?.website;
   const twitter = team?.twitter;
   const contactMethod = team?.contactMethod;
   const linkedinHandle = team?.linkedinHandle;
@@ -23,7 +23,7 @@ const ContactInfo = (props: IContactInfo) => {
 
   const callback = (type: string, url: string) => {
     analytics.onTeamDetailContactClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), type, url);
-  }
+  };
 
   return (
     <>
@@ -37,12 +37,40 @@ const ContactInfo = (props: IContactInfo) => {
             </div>
           )}
           {/* Website */}
-          {website && <ProfileSocialLink callback={callback} profile={getProfileFromURL(website, "website")} type="website" handle={website} logo={"/icons/contact/website-contact-logo.svg"} height={14} width={14} />}
+          {website && (
+            <ProfileSocialLink
+              callback={callback}
+              profile={getProfileFromURL(website, 'website')}
+              type="website"
+              handle={website}
+              logo={'/icons/contact/website-contact-logo.svg'}
+              height={14}
+              width={14}
+            />
+          )}
           {/* Twitter */}
-          {twitter && <ProfileSocialLink callback={callback} profile={getProfileFromURL(twitter, "twitter")} handle={twitter} type="twitter" logo={"/icons/contact/twitter-contact-logo.svg"} height={14} width={14} />}
+          {twitter && (
+            <ProfileSocialLink
+              callback={callback}
+              profile={getProfileFromURL(twitter, 'twitter')}
+              handle={twitter}
+              type="twitter"
+              logo={'/icons/contact/twitter-contact-logo.svg'}
+              height={14}
+              width={14}
+            />
+          )}
           {/* Linked-In */}
           {linkedinHandle && (
-            <ProfileSocialLink callback={callback} profile={getProfileFromURL(linkedinHandle, "linkedin")}  handle={linkedinHandle} type="linkedin" logo={"/icons/contact/linkedIn-contact-logo.svg"} height={14} width={14} />
+            <ProfileSocialLink
+              callback={callback}
+              profile={getProfileFromURL(linkedinHandle, 'linkedin')}
+              handle={linkedinHandle}
+              type="linkedin"
+              logo={'/icons/contact/linkedIn-contact-logo.svg'}
+              height={14}
+              width={14}
+            />
           )}
         </div>
       </div>

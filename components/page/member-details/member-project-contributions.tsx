@@ -18,7 +18,9 @@ const MemberProjectContributions = (props: IAllProjectExperience) => {
 
   useEffect(() => {
     if (searchTerm) {
-      const filteredContributions = allContributions?.filter((contribution: any) => contribution?.project?.name?.toLowerCase()?.includes(searchTerm));
+      const filteredContributions = allContributions?.filter((contribution: any) =>
+        contribution?.project?.name?.toLowerCase()?.includes(searchTerm),
+      );
       setAllContributions(filteredContributions);
     } else {
       setAllContributions(contributions);
@@ -41,18 +43,27 @@ const MemberProjectContributions = (props: IAllProjectExperience) => {
       <div className="project-contributions">
         <div className="project-contributions__hdr">
           <h2 className="project-contributions__title">Project Contributions</h2>
-          <span className='project-contributions__hdr__count'>({contributionsLength})</span>
+          <span className="project-contributions__hdr__count">({contributionsLength})</span>
         </div>
         <div className="project-contributions__search-bar">
           <img loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
-          <input value={searchTerm} className="project-contributions__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
+          <input
+            value={searchTerm}
+            className="project-contributions__search-bar__input"
+            placeholder="Search"
+            name="name"
+            autoComplete="off"
+            onChange={onInputChangeHandler}
+          />
         </div>
 
         <div className="project-contributions__container">
           {allContributions?.map((repo: any, index: number) => {
             return (
               <Fragment key={`${repo} + ${index}`}>
-                <div className={`project-contributions__container__repo ${allContributions?.length - 1 !== index ? 'project-contributions__border-set' : ''}`}>
+                <div
+                  className={`project-contributions__container__repo ${allContributions?.length - 1 !== index ? 'project-contributions__border-set' : ''}`}
+                >
                   <MemberProjectExperienceCard experience={repo} />
                 </div>
               </Fragment>
@@ -84,13 +95,13 @@ const MemberProjectContributions = (props: IAllProjectExperience) => {
           }
 
           .project-contributions__hdr__count {
-          margin-top:1px;
+            margin-top: 1px;
           }
 
           .project-contributions__hdr {
             display: flex;
             gap: 4px;
-            align-items:center;
+            align-items: center;
           }
 
           .project-contributions__title {

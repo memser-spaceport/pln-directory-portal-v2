@@ -50,11 +50,21 @@ const ProjectlistWrapper = (props: any) => {
     <>
       <div className="project-list">
         <div className="project-list__titlesec">
-          <h1 className="project-list__titlesec__title">Projects</h1> <div className="project-list__title__count">({totalProjects})</div>
+          <h1 className="project-list__titlesec__title">Projects</h1>{' '}
+          <div className="project-list__title__count">({totalProjects})</div>
         </div>
-        <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage} style={{ overflow: 'unset' }}>
+        <InfiniteScroll
+          scrollableTarget="body"
+          loader={null}
+          hasMore={hasNextPage}
+          dataLength={data.length}
+          next={fetchNextPage}
+          style={{ overflow: 'unset' }}
+        >
           <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid' : 'project-list__list'}`}>
-            {isLoggedIn && accessLevel === 'advanced' && totalProjects > 0 && <ProjectAddCard userInfo={userInfo} viewType={viewType} />}
+            {isLoggedIn && accessLevel === 'advanced' && totalProjects > 0 && (
+              <ProjectAddCard userInfo={userInfo} viewType={viewType} />
+            )}
             {data?.map((project: any, index: number) => (
               <Link
                 href={`/projects/${project.id}`}

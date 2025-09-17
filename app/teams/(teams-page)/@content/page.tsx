@@ -24,7 +24,9 @@ async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
         <TeamsToolbar totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />
       </div>
       <div className={styles.team__right__teamslist}>
-        {teams?.length >= 0 && <TeamList teams={teams} totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />}
+        {teams?.length >= 0 && (
+          <TeamList teams={teams} totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />
+        )}
         {teams?.length === 0 && <EmptyResult />}
       </div>
     </div>
@@ -59,4 +61,3 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
     return { isError };
   }
 };
-

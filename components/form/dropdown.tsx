@@ -33,7 +33,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   label = '',
   id,
   onDropdownClicked,
-  count
+  count,
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
@@ -104,12 +104,26 @@ const Dropdown: React.FC<DropdownProps> = ({
             {count !== undefined && <span className="select__count">{count}</span>}
           </div>
 
-          {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
+          {arrowImgUrl && (
+            <img
+              onClick={onSearchFocus}
+              className="select__arrowimg"
+              src={arrowImgUrl}
+              width="10"
+              height="7"
+              alt="arrow down"
+            />
+          )}
           {showOptions && (
             <ul className="select__options">
               {filteredOptions?.map((option) => (
-                <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
-                  {option[displayKey]} {option.count && <span className="select__options__item__count">({option.count})</span>}
+                <li
+                  key={option[uniqueKey]}
+                  onClick={() => handleOptionClick(option)}
+                  className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}
+                >
+                  {option[displayKey]}{' '}
+                  {option.count && <span className="select__options__item__count">({option.count})</span>}
                 </li>
               ))}
               {filteredOptions.length === 0 && <p className="select__options__noresults">No results found</p>}

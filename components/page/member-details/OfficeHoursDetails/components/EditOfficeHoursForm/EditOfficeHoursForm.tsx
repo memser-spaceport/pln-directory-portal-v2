@@ -57,7 +57,9 @@ function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T &
 export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
   const { mutateAsync: validateOfficeHours } = useValidateOfficeHours();
-  const [validationCache, setValidationCache] = React.useState<Map<string, { isValid: boolean; error?: string }>>(new Map());
+  const [validationCache, setValidationCache] = React.useState<Map<string, { isValid: boolean; error?: string }>>(
+    new Map(),
+  );
   const [isValidatingOfficeHours, setIsValidatingOfficeHours] = React.useState(false);
   const { onSubmitUpdatedOfficeHours } = useMemberAnalytics();
 
@@ -70,7 +72,9 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
           const isValid = result?.status === 'OK';
           const error = isValid ? undefined : result?.error || 'Please enter a valid URL for your scheduling link.';
 
-          setValidationCache((prev) => new Map(prev).set(link, { isValid, error }).set(link.replace('https://', ''), { isValid, error }));
+          setValidationCache((prev) =>
+            new Map(prev).set(link, { isValid, error }).set(link.replace('https://', ''), { isValid, error }),
+          );
           return { isValid, error };
         } catch (error) {
           const errorMessage = 'Unable to validate the office hours link. Please check the URL and try again.';
@@ -220,10 +224,20 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
             />
           </div>
           <div className={s.row}>
-            <FormTagsInput selectLabel="I am interested in:" name="officeHoursInterestedIn" warning={false} placeholder="Add keywords (e.g. Web3, AI, Neurotech, etc.)" />
+            <FormTagsInput
+              selectLabel="I am interested in:"
+              name="officeHoursInterestedIn"
+              warning={false}
+              placeholder="Add keywords (e.g. Web3, AI, Neurotech, etc.)"
+            />
           </div>
           <div className={s.row}>
-            <FormTagsInput selectLabel="I can help with:" name="officeHoursCanHelpWith" warning={false} placeholder="Add keywords (e.g. Early-stage Startups, Product Design, etc.)" />
+            <FormTagsInput
+              selectLabel="I can help with:"
+              name="officeHoursCanHelpWith"
+              warning={false}
+              placeholder="Add keywords (e.g. Early-stage Startups, Product Design, etc.)"
+            />
           </div>
         </div>
         <EditOfficeHoursMobileControls />

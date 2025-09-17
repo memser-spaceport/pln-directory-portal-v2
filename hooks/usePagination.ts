@@ -27,8 +27,8 @@ const usePagination = ({ items, observerTarget }: IUsePagination) => {
 
   useEffect(() => {
     const observer = new IntersectionObserver(observerCallback, {
-      root: null, 
-      rootMargin: '-500px 0px 0px 0px', 
+      root: null,
+      rootMargin: '-500px 0px 0px 0px',
       threshold: 0.01,
     });
 

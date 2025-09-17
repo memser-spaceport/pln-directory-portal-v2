@@ -16,7 +16,7 @@ const usePagination = (props: any) => {
           setPagination((prev) => ({ ...prev, page: prev.page + 1 }));
         }
       },
-      { threshold: 0.1, }
+      { threshold: 0.1 },
     );
 
     if (observerTarget.current) {

@@ -64,9 +64,24 @@ export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
       <div ref={paneRef} className={`autocomplete ${required ? 'autocomplete--required' : ''}`}>
         <div onClick={onPaneClick} className="autocomplete__box">
           <div className="autocomplete__img__wrpr">
-            <img width={24} height={24} className="autocomplete__img" src={selectedOption?.logo || iconUrl} alt="logo" />
+            <img
+              width={24}
+              height={24}
+              className="autocomplete__img"
+              src={selectedOption?.logo || iconUrl}
+              alt="logo"
+            />
           </div>
-          <input placeholder={placeholder} ref={inputRef} value={searchText} className="autocomplete__input" onChange={onTextInputChange} onBlur={onInputBlur} type="text" tabIndex={-1} />
+          <input
+            placeholder={placeholder}
+            ref={inputRef}
+            value={searchText}
+            className="autocomplete__input"
+            onChange={onTextInputChange}
+            onBlur={onInputBlur}
+            type="text"
+            tabIndex={-1}
+          />
           {isClear && (
             <button className="autocomplete__img__wrpr__clrbtn" onClick={onClear}>
               <img src="/icons/close-gray.svg" />
@@ -90,12 +105,20 @@ export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
                   }}
                   key={res.value}
                 >
-                  <img width={24} height={24} className="autocomplete__optns__lst__logo" src={res?.logo || iconUrl} alt="logo" />
+                  <img
+                    width={24}
+                    height={24}
+                    className="autocomplete__optns__lst__logo"
+                    src={res?.logo || iconUrl}
+                    alt="logo"
+                  />
                   <p className="autocomplete__optns__lst__label">{res.label}</p>
                 </button>
               ))
             ) : (
-              <p className="autocomplete__optns__na">{isProcessing ? <span>Searching</span> : <>No options available</>}</p>
+              <p className="autocomplete__optns__na">
+                {isProcessing ? <span>Searching</span> : <>No options available</>}
+              </p>
             )}
           </div>
         )}

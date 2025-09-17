@@ -72,7 +72,16 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
 
   // const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours;
 
-  if (!userInfo || userInfo.uid !== id || !data || data.subscribed || data.exampleSent || !data.recommendationsEnabled || !data.showInvitationDialog || accessLevel !== 'advanced') {
+  if (
+    !userInfo ||
+    userInfo.uid !== id ||
+    !data ||
+    data.subscribed ||
+    data.exampleSent ||
+    !data.recommendationsEnabled ||
+    !data.showInvitationDialog ||
+    accessLevel !== 'advanced'
+  ) {
     return null;
   }
 
@@ -90,7 +99,9 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
               <div className={s.mainTitle}>CONNECT WITH the RIGHT PEOPLE</div>
             </div>
             <div className={s.content}>
-              <p className={s.desc}>Receive 2x/month email suggestions to meet high-signal peers in the Protocol Labs network.</p>
+              <p className={s.desc}>
+                Receive 2x/month email suggestions to meet high-signal peers in the Protocol Labs network.
+              </p>
               <div className={s.controls}>
                 <button className={s.primaryBtn} onClick={handleSubscribe} disabled={isPending}>
                   Opt-in for email
@@ -106,7 +117,9 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
         {view === 'confirmation' && (
           <div className={s.content}>
             <OptedIn />
-            <p className={s.desc}>Make sure your profile is as complete as possible to increase the quality of matches.</p>
+            <p className={s.desc}>
+              Make sure your profile is as complete as possible to increase the quality of matches.
+            </p>
             <div className={s.controls}>
               <button
                 className={s.primaryBtn}

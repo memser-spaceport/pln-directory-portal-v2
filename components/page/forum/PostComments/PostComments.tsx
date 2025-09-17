@@ -74,7 +74,17 @@ export const PostComments = ({ comments, tid, mainPid, onReply, userInfo, timest
   );
 };
 
-const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment; isReply?: boolean; onReply?: (pid: number) => void; userInfo: IUserInfo }) => {
+const CommentItem = ({
+  item,
+  isReply,
+  onReply,
+  userInfo,
+}: {
+  item: NestedComment;
+  isReply?: boolean;
+  onReply?: (pid: number) => void;
+  userInfo: IUserInfo;
+}) => {
   const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
@@ -82,7 +92,9 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
   const searchParams = useSearchParams();
   const isMobile = useMedia('(max-width: 960px)', false);
   const analytics = useForumAnalytics();
-  const isAvailableToConnect = item.user?.officeHours && (item.user?.ohStatus === 'OK' || item.user?.ohStatus === 'NOT_FOUND' || item.user?.ohStatus === null);
+  const isAvailableToConnect =
+    item.user?.officeHours &&
+    (item.user?.ohStatus === 'OK' || item.user?.ohStatus === 'NOT_FOUND' || item.user?.ohStatus === null);
 
   const scrollIntoView = useCallback(() => {
     if (ref.current) {
@@ -110,7 +122,12 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
         <div className={s.footer}>
           <Link href={`/members/${item.user.memberUid}`} onClick={(e) => e.stopPropagation()}>
             <Avatar.Root className={s.Avatar}>
-              <Avatar.Image src={item.user?.picture || getDefaultAvatar(item.user?.username)} width="32" height="32" className={s.Image} />
+              <Avatar.Image
+                src={item.user?.picture || getDefaultAvatar(item.user?.username)}
+                width="32"
+                height="32"
+                className={s.Image}
+              />
               <Avatar.Fallback className={s.Fallback}>A</Avatar.Fallback>
             </Avatar.Root>
           </Link>
@@ -119,11 +136,15 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
               <Link href={`/members/${item.user.memberUid}`} className={s.name} onClick={(e) => e.stopPropagation()}>
                 {item.user.displayname}
               </Link>
-              <div className={s.position}>· {item.user.teamRole && item.user.teamName ? `${item.user.teamRole} @${item.user.teamName}` : ''}</div>
+              <div className={s.position}>
+                · {item.user.teamRole && item.user.teamName ? `${item.user.teamRole} @${item.user.teamName}` : ''}
+              </div>
               <div className={s.time}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
             </div>
             {isAvailableToConnect && <OhBadge variant="tertiary" />}
-            <div className={clsx(s.time, s.mob)}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
+            <div className={clsx(s.time, s.mob)}>
+              {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+            </div>
           </div>
           {(userInfo.uid === item.user.memberUid || userInfo.roles?.includes(ADMIN_ROLE)) && (
             <div className={s.menuWrapper}>
@@ -173,7 +194,13 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
           </div>
         )}
         <div className={s.sub}>
-          <LikesButton tid={item.tid} pid={item.pid} likes={item.votes} isLiked={item.upvoted} timestamp={item.timestamp} />
+          <LikesButton
+            tid={item.tid}
+            pid={item.pid}
+            likes={item.votes}
+            isLiked={item.upvoted}
+            timestamp={item.timestamp}
+          />
           {!isReply && (
             <>
               <div className={s.subItem}>
@@ -183,7 +210,11 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
                 <button
                   className={s.replyBtn}
                   onClick={() => {
-                    analytics.onPostCommentReplyClicked({ tid: item.tid, pid: item.pid, timeSincePostCreation: Date.now() - item.timestamp });
+                    analytics.onPostCommentReplyClicked({
+                      tid: item.tid,
+                      pid: item.pid,
+                      timeSincePostCreation: Date.now() - item.timestamp,
+                    });
                     if (onReply) {
                       onReply(item.pid);
                       scrollIntoView();

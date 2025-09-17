@@ -22,7 +22,17 @@ interface Props {
   backLabel?: string;
 }
 
-export const FormSelect = ({ name, placeholder, label, description, options, disabled, isRequired, notFoundContent, backLabel }: Props) => {
+export const FormSelect = ({
+  name,
+  placeholder,
+  label,
+  description,
+  options,
+  disabled,
+  isRequired,
+  notFoundContent,
+  backLabel,
+}: Props) => {
   const {
     watch,
     formState: { errors },
@@ -81,7 +91,13 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
             </button>
           </div>
           <div className={s.mobileSearchWrapper}>
-            <Input autoFocus className={s.mobileSearchInput} placeholder={placeholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <Input
+              autoFocus
+              className={s.mobileSearchInput}
+              placeholder={placeholder}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
             <SearchIcon />
           </div>
           <div className={s.mobileOptions}>{renderMobileOptions()}</div>
@@ -236,7 +252,14 @@ const CloseIcon = () => (
 );
 
 const SearchIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className={s.searchIcon}>
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 20 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={s.searchIcon}
+  >
     <g clipPath="url(#clip0_3455_13280)">
       <path
         fillRule="evenodd"

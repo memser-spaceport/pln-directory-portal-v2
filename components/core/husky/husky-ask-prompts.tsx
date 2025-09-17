@@ -72,20 +72,20 @@ function HuskyAskPrompts({ suggestionTopicSelected, onPromptItemClicked }: Husky
         <div className="hap__sgs">
           <div className="hap__sgs__search">
             <img alt="search icon" className="hap__sgs__search__icon" src="/icons/search-blue.svg" />
-            <input 
-              ref={searchInputRef} 
-              onChange={(e) => onFilterSearch(e.target.value)} 
-              placeholder="Search by name" 
-              className="hap__cn__search__input" 
-              type="search" 
+            <input
+              ref={searchInputRef}
+              onChange={(e) => onFilterSearch(e.target.value)}
+              placeholder="Search by name"
+              className="hap__cn__search__input"
+              type="search"
               data-testid="search-input"
             />
           </div>
           <div className="hap__sgs__list" data-testid="prompt-list">
             {filteredPrompts.map((v: any) => (
-              <div 
-                onClick={() => setSelectedPromptInfo(v)} 
-                className={`hap__sgs__list__item ${v?.name === selectedPromptInfo?.name ? 'hap__sgs__list__item--active' : ''}`} 
+              <div
+                onClick={() => setSelectedPromptInfo(v)}
+                className={`hap__sgs__list__item ${v?.name === selectedPromptInfo?.name ? 'hap__sgs__list__item--active' : ''}`}
                 key={v.name}
                 data-testid={`prompt-item-${v.name}`}
               >
@@ -122,9 +122,9 @@ function HuskyAskPrompts({ suggestionTopicSelected, onPromptItemClicked }: Husky
           {selectedPromptInfo?.relatedQuestions.length > 0 ? (
             <div className="hap__prompts__list" data-testid="related-questions-list">
               {selectedPromptInfo.relatedQuestions.map((question: string) => (
-                <div 
-                  onClick={() => onPromptItemClicked(question)} 
-                  className="hap__prompts__list__item" 
+                <div
+                  onClick={() => onPromptItemClicked(question)}
+                  className="hap__prompts__list__item"
                   key={question}
                   data-testid={`related-question-${question}`}
                 >

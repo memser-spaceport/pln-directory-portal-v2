@@ -38,12 +38,12 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Memoize selected option IDs for filtering
-  const selectedOptionIds = useMemo(() => selectedOptions.map(option => option[uniqueKey]), [selectedOptions]);
+  const selectedOptionIds = useMemo(() => selectedOptions.map((option) => option[uniqueKey]), [selectedOptions]);
 
   // Memoize available options to prevent unnecessary recalculations
-  const availableOptions = useMemo(() => 
-    options.filter(option => !selectedOptionIds.includes(option[uniqueKey])),
-    [options, selectedOptionIds]
+  const availableOptions = useMemo(
+    () => options.filter((option) => !selectedOptionIds.includes(option[uniqueKey])),
+    [options, selectedOptionIds],
   );
 
   // Handle adding an option
@@ -60,7 +60,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 
   // Toggle the visibility of options
   const toggleOptionsVisibility = () => {
-    setIsOptionsVisible(prev => !prev);
+    setIsOptionsVisible((prev) => !prev);
   };
 
   useEffect(() => {
@@ -82,38 +82,52 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
       <div className="multi-select" data-testid="form-ms">
         {label && <label className="multi-select__label">{label}</label>}
         <div className="multi-select__content" ref={containerRef}>
-           {/* Wrapper for selected options */}
-          <div className={`multi-select__selected-options ${selectedOptions.length === 0 && isMandatory ? 'multi-select__selected-options--error' : ''}`} onClick={toggleOptionsVisibility} data-testid="form-msselected-options">
-            <div className="multi-select__selected-options-wrapper"> 
-              {selectedOptions.length === 0 && <span className="multi-select__placeholder">{placeholder}</span>} 
-              {selectedOptions.map(option => (
+          {/* Wrapper for selected options */}
+          <div
+            className={`multi-select__selected-options ${selectedOptions.length === 0 && isMandatory ? 'multi-select__selected-options--error' : ''}`}
+            onClick={toggleOptionsVisibility}
+            data-testid="form-msselected-options"
+          >
+            <div className="multi-select__selected-options-wrapper">
+              {selectedOptions.length === 0 && <span className="multi-select__placeholder">{placeholder}</span>}
+              {selectedOptions.map((option) => (
                 <div key={option[uniqueKey]} className="multi-select__selected-option">
-                  {option[displayKey]} 
-                  <img width="16" height="16" alt="Remove option" data-testid={`form-ms-close-icon-${option[uniqueKey]}`} src={closeImgUrl} className="multi-select__remove-option" onPointerDown={(e) => handleRemoveOption(e, option)} /> 
+                  {option[displayKey]}
+                  <img
+                    width="16"
+                    height="16"
+                    alt="Remove option"
+                    data-testid={`form-ms-close-icon-${option[uniqueKey]}`}
+                    src={closeImgUrl}
+                    className="multi-select__remove-option"
+                    onPointerDown={(e) => handleRemoveOption(e, option)}
+                  />
                 </div>
               ))}
             </div>
-            {arrowImgUrl && <img className="multi-select__arrow-img" src={arrowImgUrl} width="10" height="7" alt="Toggle options" />}
+            {arrowImgUrl && (
+              <img className="multi-select__arrow-img" src={arrowImgUrl} width="10" height="7" alt="Toggle options" />
+            )}
           </div>
 
           {/* Dropdown options list */}
-          {isOptionsVisible && 
+          {isOptionsVisible && (
             <ul className="multi-select__options" data-testid="form-ms-options-list">
               {availableOptions.map((option: any) => (
                 <li
                   key={option[uniqueKey]}
-                  onClick={() => handleOptionClick(option)} 
-                  className={`multi-select__option ${selectedOptions.some(selectedOption => selectedOption[uniqueKey] === option[uniqueKey]) ? 'multi-select__option--selected' : ''}`}
+                  onClick={() => handleOptionClick(option)}
+                  className={`multi-select__option ${selectedOptions.some((selectedOption) => selectedOption[uniqueKey] === option[uniqueKey]) ? 'multi-select__option--selected' : ''}`}
                 >
                   {option[displayKey]}
                 </li>
               ))}
               {availableOptions.length === 0 && <p className="multi-select__no-results">No data available</p>}
             </ul>
-          }
+          )}
         </div>
       </div>
-      
+
       {/* Styles for the multi-select component */}
       <style jsx>
         {`

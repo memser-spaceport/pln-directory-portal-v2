@@ -53,7 +53,13 @@ export type TopicResponse = {
     events: [];
     index: number;
     pid: number;
-    replies: { hasMore: boolean; hasSingleImmediateReply: boolean; users: []; text: '[[topic:one-reply-to-this-post]]'; count: 0 };
+    replies: {
+      hasMore: boolean;
+      hasSingleImmediateReply: boolean;
+      users: [];
+      text: '[[topic:one-reply-to-this-post]]';
+      count: 0;
+    };
     selfPost: boolean;
     sourceContent: null;
     tid: number;

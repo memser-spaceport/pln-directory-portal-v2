@@ -25,7 +25,9 @@ describe('normalizeOfficeHoursUrl', () => {
   });
 
   it('should handle URLs with paths and query parameters', () => {
-    expect(normalizeOfficeHoursUrl('calendly.com/username?param=value')).toBe('https://calendly.com/username?param=value');
+    expect(normalizeOfficeHoursUrl('calendly.com/username?param=value')).toBe(
+      'https://calendly.com/username?param=value',
+    );
   });
 
   it('should be case insensitive for protocol detection', () => {

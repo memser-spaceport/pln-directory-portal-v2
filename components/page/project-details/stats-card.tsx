@@ -19,13 +19,18 @@ const StatsCard = (props: IStatsCard) => {
     <>
       <div className="statsCard">
         <p className="statsCard__count">
-          {count} {statsName === 'Contributors' && newContributors > 0 && <span className="statsCard__count__new">{`(${newContributors} New)`}</span>}
+          {count}{' '}
+          {statsName === 'Contributors' && newContributors > 0 && (
+            <span className="statsCard__count__new">{`(${newContributors} New)`}</span>
+          )}
         </p>
         <div className="statsCard__cn">
           <Image className="statsCard__cn__img" src={icon} alt="icon" height={16} width={16} />
           <span className="statsCard__cn__name">{statsName}</span>
         </div>
-        {(statsName === 'Contributors' && newContributors > 0) && <span className="statsCard__duration">Last 6 months</span>}
+        {statsName === 'Contributors' && newContributors > 0 && (
+          <span className="statsCard__duration">Last 6 months</span>
+        )}
       </div>
       <style jsx>{`
         .statsCard {
@@ -36,7 +41,7 @@ const StatsCard = (props: IStatsCard) => {
           justify-content: center;
           align-items: center;
           border-radius: 4px;
-          border: 1px solid #E2E8F0;
+          border: 1px solid #e2e8f0;
         }
 
         .statsCard__count {
@@ -54,10 +59,10 @@ const StatsCard = (props: IStatsCard) => {
           font-size: 10px;
           font-weight: 600;
           line-height: 18px;
-          color: #30C593;
+          color: #30c593;
         }
 
-        .statsCard__cn{
+        .statsCard__cn {
           display: flex;
           align-items: center;
           justify-content: center;
@@ -68,16 +73,16 @@ const StatsCard = (props: IStatsCard) => {
           font-size: 13px;
           font-weight: 400;
           line-height: 18px;
-          color: #64748B;
+          color: #64748b;
         }
 
-        .statsCard__duration{
+        .statsCard__duration {
           padding: 4px;
           font-size: 10px;
           font-weight: 400;
           line-height: 18px;
-          color: #0F172A;
-          background-color: #F1F5F9;
+          color: #0f172a;
+          background-color: #f1f5f9;
           padding-left: 4px;
           padding-right: 4px;
         }

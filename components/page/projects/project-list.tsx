@@ -25,7 +25,8 @@ const ProjectList = (props: any) => {
   return (
     <div className="project-list">
       <div className="project-list__titlesec">
-        <h1 className="project-list__titlesec__title">Projects</h1> <div className="project-list__title__count">({totalProjects})</div>
+        <h1 className="project-list__titlesec__title">Projects</h1>{' '}
+        <div className="project-list__title__count">({totalProjects})</div>
       </div>
       <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid' : 'project-list__list'}`}>
         {isLoggedIn && totalProjects > 0 && <ProjectAddCard userInfo={userInfo} viewType={viewType} />}

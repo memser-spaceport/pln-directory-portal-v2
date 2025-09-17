@@ -1,9 +1,8 @@
-"use client";
+'use client';
 
-import { useProjectAnalytics } from "@/analytics/project.analytics";
-import { IUserInfo } from "@/types/shared.types";
-import { getAnalyticsUserInfo } from "@/utils/common.utils";
-
+import { useProjectAnalytics } from '@/analytics/project.analytics';
+import { IUserInfo } from '@/types/shared.types';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
 interface IHyperlinks {
   project: any;
@@ -44,21 +43,9 @@ const Hyperlinks = (props: IHyperlinks) => {
               onClick={() => onLinkClick(link?.url)}
               title={link?.url}
             >
-              <img
-                width={20}
-                height={20}
-                src="/icons/hyper-link.svg"
-                alt="icon"
-              />
-              <span className="hyperLinks__container__link__name">
-                {link?.name}
-              </span>
-              <img
-                width={10}
-                height={10}
-                src="/icons/arrow-blue.svg"
-                alt="arrow icon"
-              />
+              <img width={20} height={20} src="/icons/hyper-link.svg" alt="icon" />
+              <span className="hyperLinks__container__link__name">{link?.name}</span>
+              <img width={10} height={10} src="/icons/arrow-blue.svg" alt="arrow icon" />
             </a>
           ))}
         </div>

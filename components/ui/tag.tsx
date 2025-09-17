@@ -47,7 +47,13 @@ export function Tag(props: Readonly<TagProps>) {
 
   return (
     <>
-      <button tabIndex={-1} data-testid={`ui-tag-${value}`} className={`tag ${getTagStyle()}  ${tagsLength < 3 ? 'tag-md' : ''}`} onClick={callback && onTagClickHandler} disabled={disabled}>
+      <button
+        tabIndex={-1}
+        data-testid={`ui-tag-${value}`}
+        className={`tag ${getTagStyle()}  ${tagsLength < 3 ? 'tag-md' : ''}`}
+        onClick={callback && onTagClickHandler}
+        disabled={disabled}
+      >
         {value}
       </button>
       <style jsx>

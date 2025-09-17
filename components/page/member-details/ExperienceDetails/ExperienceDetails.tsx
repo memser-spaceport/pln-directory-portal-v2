@@ -58,7 +58,9 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
           }}
         />
       )}
-      {view === 'edit' && <EditExperienceForm onClose={() => setView('view')} member={member} initialData={selectedItem} />}
+      {view === 'edit' && (
+        <EditExperienceForm onClose={() => setView('view')} member={member} initialData={selectedItem} />
+      )}
       {view === 'add' && <EditExperienceForm onClose={() => setView('view')} member={member} />}
     </div>
   );

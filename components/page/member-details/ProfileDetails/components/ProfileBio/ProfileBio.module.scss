@@ -1,12 +1,13 @@
 @use 'styles/media';
 
 .root {
-
 }
 
 .label {
-  color: var(--Neutral-Slate-500, #64748B);
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: var(--Neutral-Slate-500, #64748b);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -21,7 +22,7 @@
   gap: 16px;
   align-self: stretch;
   border-radius: 12px;
-  background: var(--Neutral-Slate-50, #F8FAFC);
+  background: var(--Neutral-Slate-50, #f8fafc);
 
   color: var(--Neutral-Slate-600, #475569);
   font-size: 12px;
@@ -33,7 +34,7 @@
   &.missingData {
     border-radius: 12px;
     border: 1px solid rgba(238, 189, 108, 0.25);
-    background: #FFF;
+    background: #fff;
   }
 
   ul {
@@ -67,14 +68,16 @@
   gap: 8px;
 
   border-radius: 8px;
-  border: 1px solid var(--Neutral-Slate-300, #CBD5E1);
-  background: var(--Button-surface-brand-button, #156FF7);
+  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
+  background: var(--Button-surface-brand-button, #156ff7);
 
   /* Button Shadow */
   box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
 
-  color: var(--Text-text-lightest, #FFF);
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: var(--Text-text-lightest, #fff);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
 
   font-size: 14px;
   font-style: normal;

@@ -42,7 +42,12 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
         </div>
         <div className={styles.privacy__main}>
           <aside className={styles.privacy__main__aside}>
-            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="email preferences" userInfo={userInfo} />
+            <SettingsMenu
+              isTeamLead={isTeamLead}
+              isAdmin={isAdmin}
+              activeItem="email preferences"
+              userInfo={userInfo}
+            />
           </aside>
           <div className={styles.privacy__main__content}>
             <EmailPreferencesForm

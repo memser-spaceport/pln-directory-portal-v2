@@ -151,13 +151,22 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id, onSe
               <div className="suggestions__input__selected__item">
                 <Image
                   loading="lazy"
-                  src={selectedSuggestion.logoURL ? selectedSuggestion.logoURL : selectedSuggestion.group === GROUP_TYPES.TEAM ? '/icons/team-default-profile.svg' : '/icons/default-project.svg'}
+                  src={
+                    selectedSuggestion.logoURL
+                      ? selectedSuggestion.logoURL
+                      : selectedSuggestion.group === GROUP_TYPES.TEAM
+                        ? '/icons/team-default-profile.svg'
+                        : '/icons/default-project.svg'
+                  }
                   alt={selectedSuggestion.name}
                   width={20}
                   height={20}
                 />
                 <div>{selectedSuggestion.name}</div>
-                <span style={{ color: `${clrObj.color}`, background: `${clrObj.bgColor}` }} className="suggestions__input__selected__group">
+                <span
+                  style={{ color: `${clrObj.color}`, background: `${clrObj.bgColor}` }}
+                  className="suggestions__input__selected__group"
+                >
                   {selectedSuggestion.group}
                 </span>
               </div>
@@ -171,9 +180,22 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id, onSe
           {isAddMode && (
             <>
               <div>
-                <Image loading="lazy" src={addNew?.iconURL ?? '/icons/sign-up/share-with-bg.svg'} alt="add" width={20} height={20} />
+                <Image
+                  loading="lazy"
+                  src={addNew?.iconURL ?? '/icons/sign-up/share-with-bg.svg'}
+                  alt="add"
+                  width={20}
+                  height={20}
+                />
               </div>
-              <input type="text" value={inputValue} onChange={handleAddInputChange} className="suggestions__input__field" placeholder={placeHolderText} name="add" />
+              <input
+                type="text"
+                value={inputValue}
+                onChange={handleAddInputChange}
+                className="suggestions__input__field"
+                placeholder={placeHolderText}
+                name="add"
+              />
               <div className="suggestions__input__close" onClick={onCloseClick}>
                 <Image loading="lazy" src="/icons/close.svg" alt="add" width={16} height={16} />
               </div>
@@ -200,10 +222,22 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id, onSe
         </div>
 
         {/* dropdown to show suggestions */}
-        {enableDropdown && <SuggestionDropdown suggestions={filteredSuggestions} addNew={addNew} enableAddMode={enableAddMode} onSelect={onSuggestionSelect} setDropdownStatus={setDropdownStatus} />}
+        {enableDropdown && (
+          <SuggestionDropdown
+            suggestions={filteredSuggestions}
+            addNew={addNew}
+            enableAddMode={enableAddMode}
+            onSelect={onSuggestionSelect}
+            setDropdownStatus={setDropdownStatus}
+          />
+        )}
 
         {/* hidden form field */}
-        <input type="hidden" value={selectedSuggestion ? JSON.stringify(selectedSuggestion) : inputValue} name={'selected-team-or-project'} />
+        <input
+          type="hidden"
+          value={selectedSuggestion ? JSON.stringify(selectedSuggestion) : inputValue}
+          name={'selected-team-or-project'}
+        />
       </div>
       <style jsx>
         {`

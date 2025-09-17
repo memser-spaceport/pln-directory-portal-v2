@@ -25,7 +25,7 @@ jobs:
           elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
             DEPLOY_HOOK=${{ secrets.VERCEL_MAIN_DEPLOY_HOOK }}
           fi
-          
+
           # Export variables for the next steps
           echo "DEPLOY_HOOK=$DEPLOY_HOOK" >> $GITHUB_ENV
           echo "USERS_WITH_VERCEL_ACCESS=$USERS_WITH_VERCEL_ACCESS" >> $GITHUB_ENV
@@ -36,10 +36,10 @@ jobs:
           # Convert the user list to lowercase and split by comma
           LOWERCASE_USERS=$(echo "$USERS_WITH_VERCEL_ACCESS" | tr '[:upper:]' '[:lower:]')
           IFS=',' read -r -a USER_ARRAY <<< "$LOWERCASE_USERS"
-          
+
           # Convert the current GitHub actor to lowercase
           LOWERCASE_ACTOR=$(echo "${GITHUB_ACTOR}" | tr '[:upper:]' '[:lower:]')
-          
+
           # Check if the current user is in the list
           if [[ " ${USER_ARRAY[@]} " =~ " ${LOWERCASE_ACTOR} " ]]; then
             echo "User ${LOWERCASE_ACTOR} has Vercel access. Skipping deployment."
@@ -50,6 +50,6 @@ jobs:
           fi
 
       - name: Trigger Vercel deployment hook
-        if: env.should_trigger == 'true'  # Only trigger if the user is not in the list
+        if: env.should_trigger == 'true' # Only trigger if the user is not in the list
         run: |
           curl -X POST $DEPLOY_HOOK

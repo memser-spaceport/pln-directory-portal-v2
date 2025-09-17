@@ -17,12 +17,8 @@ const MonthYearRangeField: React.FC<MonthYearRangeFieldProps> = ({
   const startYear = currentYear - 50;
 
   // State for start and end dates
-  const [startDate, setStartDate] = useState<Date>(
-    userStartDate || new Date(startYear, currentMonth)
-  );
-  const [endDate, setEndDate] = useState<Date>(
-    userEndDate || new Date()
-  );
+  const [startDate, setStartDate] = useState<Date>(userStartDate || new Date(startYear, currentMonth));
+  const [endDate, setEndDate] = useState<Date>(userEndDate || new Date());
 
   // Update state if user-provided props change
   useEffect(() => {

@@ -1,6 +1,6 @@
-import Modal from "@/components/core/modal";
-import { EVENTS } from "@/utils/constants";
-import { useEffect, useRef } from "react";
+import Modal from '@/components/core/modal';
+import { EVENTS } from '@/utils/constants';
+import { useEffect, useRef } from 'react';
 
 const PresenceRequestSuccess = () => {
   const modalRef = useRef<HTMLDialogElement>(null);
@@ -25,19 +25,12 @@ const PresenceRequestSuccess = () => {
   return (
     <Modal onClose={onClose} modalRef={modalRef}>
       <div className="success-modal">
-        <h2 className="success-modal__title">
-          Request Submitted
-        </h2>
-        <p className="success-modal__message">
-          Your request has been submitted! An admin will review it soon.
-        </p>
+        <h2 className="success-modal__title">Request Submitted</h2>
+        <p className="success-modal__message">Your request has been submitted! An admin will review it soon.</p>
         <div>
-        <button 
-          onClick={onClose}
-          className="success-modal__button"
-        >
-          Close
-        </button>
+          <button onClick={onClose} className="success-modal__button">
+            Close
+          </button>
         </div>
       </div>
       <style jsx>{`
@@ -54,11 +47,11 @@ const PresenceRequestSuccess = () => {
         }
 
         .success-modal__title {
-            font-weight: 700;
-            font-size: 24px;
-            line-height: 32px;
-            letter-spacing: 0%;
-            padding-block: 10px;
+          font-weight: 700;
+          font-size: 24px;
+          line-height: 32px;
+          letter-spacing: 0%;
+          padding-block: 10px;
         }
 
         .success-modal__message {
@@ -69,7 +62,7 @@ const PresenceRequestSuccess = () => {
         }
 
         .success-modal__button {
-          background: #0066FF;
+          background: #0066ff;
           color: white;
           border: none;
           padding: 6px 16px;
@@ -82,7 +75,7 @@ const PresenceRequestSuccess = () => {
         }
 
         .success-modal__button:hover {
-          background: #0052CC;
+          background: #0052cc;
         }
       `}</style>
     </Modal>

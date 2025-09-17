@@ -1,6 +1,6 @@
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css'
+import 'react-loading-skeleton/dist/skeleton.css';
 import s from './ContentPanelSkeletonLoader.module.css';
 import { INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
 
@@ -20,7 +20,9 @@ export const ContentPanelSkeletonLoader = () => {
         </div>
       </div>
       <div className={s.grid}>
-        {CARDS.map((_, index: number) => <Skeleton key={index} count={1} width="100%" />)}
+        {CARDS.map((_, index: number) => (
+          <Skeleton key={index} count={1} width="100%" />
+        ))}
       </div>
     </div>
   );

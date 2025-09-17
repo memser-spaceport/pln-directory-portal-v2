@@ -96,7 +96,17 @@ export const ChatHistory = ({ onSelect, isLoggedIn }: Props) => {
         {orderedKeys.map((key) =>
           groupedChats[key as keyof typeof groupedChats]?.length > 0 ? (
             <React.Fragment key={key}>
-              <div className={s.label}>{key === 'lastWeek' ? 'Last 7 days' : key === 'lastMonth' ? 'Last 30 days' : key === 'today' ? 'Today' : key === 'yesterday' ? 'Yesterday' : key}</div>
+              <div className={s.label}>
+                {key === 'lastWeek'
+                  ? 'Last 7 days'
+                  : key === 'lastMonth'
+                    ? 'Last 30 days'
+                    : key === 'today'
+                      ? 'Today'
+                      : key === 'yesterday'
+                        ? 'Yesterday'
+                        : key}
+              </div>
               {groupedChats[key as keyof typeof groupedChats]
                 .sort((a: IThread, b: IThread) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Sort by createdAt (newest first)
                 .filter((item) => item.title.toLowerCase().includes(searchTerm))
@@ -133,7 +143,12 @@ export const ChatHistory = ({ onSelect, isLoggedIn }: Props) => {
       </div>
       <div className={s.inputWrapper} style={{ display: 'none' }}>
         <div className={s.leftIcon}>🧠</div>
-        <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={s.input} placeholder="Search in History" />
+        <input
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className={s.input}
+          placeholder="Search in History"
+        />
         <button className={s.actionButton}>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path
@@ -180,8 +195,16 @@ const NothingFound = () => {
         fillOpacity="0.25"
       />
       <path d="M161.303 86.1426H106.19L72.5098 121.864H191.038L161.303 86.1426Z" fill="#156FF7" />
-      <path d="M83.7363 71.8535L106.19 86.1422L72.5096 121.864L46.9941 102.472L83.7363 71.8535Z" fill="#156FF7" fillOpacity="0.75" />
-      <path d="M183.756 71.8535L161.303 86.1422L191.038 121.864L220.498 102.472L183.756 71.8535Z" fill="#156FF7" fillOpacity="0.75" />
+      <path
+        d="M83.7363 71.8535L106.19 86.1422L72.5096 121.864L46.9941 102.472L83.7363 71.8535Z"
+        fill="#156FF7"
+        fillOpacity="0.75"
+      />
+      <path
+        d="M183.756 71.8535L161.303 86.1422L191.038 121.864L220.498 102.472L183.756 71.8535Z"
+        fill="#156FF7"
+        fillOpacity="0.75"
+      />
       <path
         d="M120.669 72.5844C121.303 72.284 121.796 71.7503 122.045 71.0949C122.295 70.4395 122.281 69.7131 122.007 69.0675L111.906 45.2495C111.763 44.9122 111.553 44.6072 111.289 44.353C111.026 44.0988 110.713 43.9006 110.37 43.7703C110.028 43.6401 109.663 43.5804 109.296 43.5949C108.93 43.6094 108.571 43.6979 108.24 43.8549L106.294 44.7776C105.963 44.9346 105.667 45.1569 105.424 45.4312C105.181 45.7055 104.996 46.0261 104.88 46.3738C104.764 46.7214 104.719 47.0889 104.749 47.4541C104.779 47.8193 104.882 48.1748 105.053 48.4991L117.1 71.3941C117.426 72.0147 117.98 72.4851 118.645 72.7069C119.31 72.9287 120.036 72.8848 120.669 72.5844Z"
         fill="#156FF7"

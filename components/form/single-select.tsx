@@ -102,11 +102,24 @@ const SingleSelect: React.FC<SingleSelectProps> = ({
             placeholder={placeholder}
             readOnly
           />
-          {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
+          {arrowImgUrl && (
+            <img
+              onClick={onSearchFocus}
+              className="select__arrowimg"
+              src={arrowImgUrl}
+              width="10"
+              height="7"
+              alt="arrow down"
+            />
+          )}
           {showOptions && (
             <ul className="select__options">
               {filteredOptions?.map((option) => (
-                <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
+                <li
+                  key={option[uniqueKey]}
+                  onClick={() => handleOptionClick(option)}
+                  className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}
+                >
                   {option[displayKey]}
                 </li>
               ))}

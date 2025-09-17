@@ -1,5 +1,11 @@
 import React from 'react';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, triggerLoader, normalizeOfficeHoursUrl } from '@/utils/common.utils';
+import {
+  getAnalyticsMemberInfo,
+  getAnalyticsUserInfo,
+  getParsedValue,
+  triggerLoader,
+  normalizeOfficeHoursUrl,
+} from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
 import { toast } from '@/components/core/ToastContainer';
@@ -60,7 +66,9 @@ export const OfficeHoursHandle = ({ userInfo, member, isLoggedIn }: Props) => {
         const result = allFollowups?.data ?? [];
         if (result.length > 0) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, { detail: { notification: result[0] } }));
-          document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
+          document.dispatchEvent(
+            new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }),
+          );
           router.refresh();
         }
       }
@@ -78,7 +86,13 @@ export const OfficeHoursHandle = ({ userInfo, member, isLoggedIn }: Props) => {
   return (
     <div className={s.root}>
       <span className={s.handle}>
-        <Image loading="lazy" src="/icons/contact/meet-contact-logo.svg" alt="Office hours logo" height={24} width={24} />
+        <Image
+          loading="lazy"
+          src="/icons/contact/meet-contact-logo.svg"
+          alt="Office hours logo"
+          height={24}
+          width={24}
+        />
         <span
           className={clsx(s.label, {
             [s.forceVisible]: isLoggedIn,

@@ -24,22 +24,56 @@ function MemberPrivacyForm(props: any) {
       title: 'Contact details',
       items: [
         { name: 'email', title: 'Show Email', info: 'Enabling this will display your email to all logged in members' },
-        { name: 'github', title: 'Show GitHub', info: 'Enabling this will display your GitHub handle to all logged in members' },
-        { name: 'telegram', title: 'Show Telegram', info: 'Enabling this will display your Telegram handle to all logged in members' },
-        { name: 'linkedin', title: 'Show LinkedIn Profile', info: 'Enabling this will display your LinkedIn Profile link to all logged in members' },
-        { name: 'discord', title: 'Show Discord', info: 'Enabling this will display your Discord handle link to all logged in members' },
-        { name: 'twitter', title: 'Show Twitter', info: 'Enabling this will display your Twitter Handle to all logged in members' },
+        {
+          name: 'github',
+          title: 'Show GitHub',
+          info: 'Enabling this will display your GitHub handle to all logged in members',
+        },
+        {
+          name: 'telegram',
+          title: 'Show Telegram',
+          info: 'Enabling this will display your Telegram handle to all logged in members',
+        },
+        {
+          name: 'linkedin',
+          title: 'Show LinkedIn Profile',
+          info: 'Enabling this will display your LinkedIn Profile link to all logged in members',
+        },
+        {
+          name: 'discord',
+          title: 'Show Discord',
+          info: 'Enabling this will display your Discord handle link to all logged in members',
+        },
+        {
+          name: 'twitter',
+          title: 'Show Twitter',
+          info: 'Enabling this will display your Twitter Handle to all logged in members',
+        },
       ],
     },
-    { title: 'Profile', items: [{ name: 'githubProjects', title: 'Show my GitHub Projects', info: 'Control visibility of your GitHub projects' }] },
-    { title: 'Newsletter', items: [{ name: 'newsLetter', title: 'Subscribe to PL Newsletter', info: 'Get new letter straight to your inbox' }] },
+    {
+      title: 'Profile',
+      items: [
+        {
+          name: 'githubProjects',
+          title: 'Show my GitHub Projects',
+          info: 'Control visibility of your GitHub projects',
+        },
+      ],
+    },
+    {
+      title: 'Newsletter',
+      items: [
+        { name: 'newsLetter', title: 'Subscribe to PL Newsletter', info: 'Get new letter straight to your inbox' },
+      ],
+    },
   ];
 
   const onFormChange = () => {
     if (!formRef.current) {
       return false;
     }
-    const keys = Object.keys(preferences.preferenceSettings );
+    const keys = Object.keys(preferences.preferenceSettings);
     const formData = new FormData(formRef.current);
     const formValues = Object.fromEntries(formData);
     let formattedFormValues: any = {};
@@ -100,7 +134,6 @@ function MemberPrivacyForm(props: any) {
       // delete unused fields
       delete payload.githubHandle;
       delete payload.newsLetter;
-     
 
       const authToken: any = Cookies.get('authToken');
       if (!authToken) {
@@ -120,13 +153,13 @@ function MemberPrivacyForm(props: any) {
       const memberUpdateResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${uid}`, {
         method: 'PATCH',
         body: JSON.stringify({
-          isSubscribedToNewsletter: isSubscribedToNewsletter
+          isSubscribedToNewsletter: isSubscribedToNewsletter,
         }),
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${JSON.parse(authToken)}`,
         },
-      })
+      });
 
       triggerLoader(false);
       if (apiResult.ok || memberUpdateResult.ok) {
@@ -151,7 +184,9 @@ function MemberPrivacyForm(props: any) {
     const currentValue = !e.target.checked;
     const itemName = e.target.name;
     if (itemName === 'github' && currentValue === true) {
-      const proceed = confirm('Hiding GitHub handle will automatically disable visibility of your projects. Do you wish to proceed?');
+      const proceed = confirm(
+        'Hiding GitHub handle will automatically disable visibility of your projects. Do you wish to proceed?',
+      );
       if (!proceed) {
         e.target.checked = !e.target.checked;
       } else {
@@ -169,7 +204,7 @@ function MemberPrivacyForm(props: any) {
   };
 
   useEffect(() => {
-    triggerLoader(false)
+    triggerLoader(false);
     function handleNavigate(e: any) {
       const url = e.detail.url;
       let proceed = true;
@@ -180,7 +215,7 @@ function MemberPrivacyForm(props: any) {
       if (!proceed) {
         return;
       }
-      triggerLoader(true)
+      triggerLoader(true);
       router.push(url);
       router.refresh();
     }
@@ -197,13 +232,30 @@ function MemberPrivacyForm(props: any) {
           <div className="pf__cn" key={`pref-form-${index}`}>
             <h2 className="pf__title">
               <span>{prefForm.title}</span>
-              {index === 0 && <span><Tooltip asChild trigger={<img className='pf__title__img' src='/icons/info.svg'/>} content="Privacy settings only enabled for available contact details."/></span>}
+              {index === 0 && (
+                <span>
+                  <Tooltip
+                    asChild
+                    trigger={<img className="pf__title__img" src="/icons/info.svg" />}
+                    content="Privacy settings only enabled for available contact details."
+                  />
+                </span>
+              )}
             </h2>
             <div className="pf__fields">
               {prefForm.items.map((pref: any) => (
-                <div className={`pf__fields__item ${!settings[pref.name] ? 'pf__fields__item--disabled' : ''}`} key={`pref-${pref.name}`}>
+                <div
+                  className={`pf__fields__item ${!settings[pref.name] ? 'pf__fields__item--disabled' : ''}`}
+                  key={`pref-${pref.name}`}
+                >
                   <div>
-                    <CustomToggle disabled={!settings[pref.name]} onChange={onItemChange} name={pref.name} id={`privacy-${pref.name}`} defaultChecked={memberSettings[pref.name] ?? true} />
+                    <CustomToggle
+                      disabled={!settings[pref.name]}
+                      onChange={onItemChange}
+                      name={pref.name}
+                      id={`privacy-${pref.name}`}
+                      defaultChecked={memberSettings[pref.name] ?? true}
+                    />
                   </div>
                   <div className="pf__field__item__cn">
                     <label className="pf__field__item__cn__label">{pref.title}</label>
@@ -271,7 +323,7 @@ function MemberPrivacyForm(props: any) {
             padding: 24px 20px;
 
             margin-bottom: 16px;
-         
+
             border-top: 1px solid #cbd5e1;
           }
           .pf__title {
@@ -282,7 +334,9 @@ function MemberPrivacyForm(props: any) {
             align-items: flex-start;
             gap: 4px;
           }
-            .pf__title__img {margin-top: 1px;}
+          .pf__title__img {
+            margin-top: 1px;
+          }
           .pf__fields {
             padding: 18px 0;
           }

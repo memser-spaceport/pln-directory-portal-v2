@@ -1,17 +1,27 @@
 import { IMemberListOptions } from '@/types/members.types';
 import { getHeader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PRIVACY_CONSTANTS } from '@/utils/constants';
-import { hidePreferences, parseMemberDetails, getUniqueFilters, handleHostAndSpeaker, parseMemberDetailsForTeams, getVisibleSocialHandles } from '@/utils/member.utils';
+import {
+  hidePreferences,
+  parseMemberDetails,
+  getUniqueFilters,
+  handleHostAndSpeaker,
+  parseMemberDetailsForTeams,
+  getVisibleSocialHandles,
+} from '@/utils/member.utils';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
   handleHostAndSpeaker(options);
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/filters${options ? '?' : ''}${options ? new URLSearchParams(options as any) : ''}`, {
-    cache: 'force-cache',
-    method: 'GET',
-    next: { tags: ['member-filters'] },
-    headers: getHeader(authToken ?? ''),
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/members/filters${options ? '?' : ''}${options ? new URLSearchParams(options as any) : ''}`,
+    {
+      cache: 'force-cache',
+      method: 'GET',
+      next: { tags: ['member-filters'] },
+      headers: getHeader(authToken ?? ''),
+    },
+  );
 
   if (!response.ok) {
     return { isError: true, error: { status: response.status, statusText: response.statusText } };
@@ -20,14 +30,23 @@ export const getFilterValuesForQuery = async (options?: IMemberListOptions | nul
   return result;
 };
 
-export const getMembers = async (options: IMemberListOptions, teamId: string, currentPage: number, limit: number, isLoggedIn: boolean) => {
+export const getMembers = async (
+  options: IMemberListOptions,
+  teamId: string,
+  currentPage: number,
+  limit: number,
+  isLoggedIn: boolean,
+) => {
   handleHostAndSpeaker(options);
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}&${new URLSearchParams(options as any)}`, {
-    method: 'GET',
-    // cache: 'force-cache',
-    next: { tags: ['member-list'] },
-    headers: getHeader(''),
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}&${new URLSearchParams(options as any)}`,
+    {
+      method: 'GET',
+      // cache: 'force-cache',
+      next: { tags: ['member-list'] },
+      headers: getHeader(''),
+    },
+  );
 
   if (!response?.ok) {
     return { error: { status: response?.status, statusText: response?.statusText } };
@@ -40,7 +59,10 @@ export const getMembers = async (options: IMemberListOptions, teamId: string, cu
 
 export const getMembersFilters = async (options: IMemberListOptions, isUserLoggedIn: boolean) => {
   handleHostAndSpeaker(options);
-  const [valuesByFilter, availableValuesByFilter] = await Promise.all([getMembersFiltersValues({ plnFriend: false }, isUserLoggedIn), getMembersFiltersValues(options, isUserLoggedIn)]);
+  const [valuesByFilter, availableValuesByFilter] = await Promise.all([
+    getMembersFiltersValues({ plnFriend: false }, isUserLoggedIn),
+    getMembersFiltersValues(options, isUserLoggedIn),
+  ]);
 
   if (valuesByFilter?.error || availableValuesByFilter?.error) {
     return { error: {} };
@@ -65,9 +87,17 @@ const getMembersFiltersValues = async (options: IMemberListOptions = {}, isUserL
 };
 
 export const getMemberUidByAirtableId = async (id: string) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'force-cache', next: { tags: ['member-airtable'] } };
+  const requestOPtions: RequestInit = {
+    method: 'GET',
+    headers: getHeader(''),
+    cache: 'force-cache',
+    next: { tags: ['member-airtable'] },
+  };
   const query = { airtableRecId: id, select: 'uid' };
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?${new URLSearchParams(query)}`, requestOPtions);
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/members?${new URLSearchParams(query)}`,
+    requestOPtions,
+  );
   const result = await response?.json();
   if (!response?.ok) {
     return { error: { statusText: response?.statusText } };
@@ -76,7 +106,13 @@ export const getMemberUidByAirtableId = async (id: string) => {
 };
 
 export const getMemberRepositories = async (id: string, options = {}) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'force-cache', next: { tags: ['member-repositories'] }, ...options };
+  const requestOPtions: RequestInit = {
+    method: 'GET',
+    headers: getHeader(''),
+    cache: 'force-cache',
+    next: { tags: ['member-repositories'] },
+    ...options,
+  };
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${id}/git-projects`, requestOPtions);
   if (!response?.ok) {
     return { error: { status: response?.status, statusText: response?.statusText } };
@@ -85,7 +121,14 @@ export const getMemberRepositories = async (id: string, options = {}) => {
   return result;
 };
 
-export const getMember = async (id: string, query: any, isLoggedIn?: boolean, userInfo?: any, isHidePref: boolean = true, fetchNew?: boolean) => {
+export const getMember = async (
+  id: string,
+  query: any,
+  isLoggedIn?: boolean,
+  userInfo?: any,
+  isHidePref: boolean = true,
+  fetchNew?: boolean,
+) => {
   const requestOPtions: RequestInit = { method: 'GET', headers: getHeader('') };
   if (fetchNew) {
     requestOPtions.cache = 'no-store';
@@ -93,7 +136,10 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     requestOPtions.cache = 'force-cache';
     requestOPtions.next = { tags: ['member-detail'] };
   }
-  const memberResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${id}?${new URLSearchParams(query)}`, requestOPtions);
+  const memberResponse = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/members/${id}?${new URLSearchParams(query)}`,
+    requestOPtions,
+  );
   // let memberRepository;
   let member;
 
@@ -106,7 +152,11 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
   const teamAndRoles: { teamTitle: any; role: any; teamUid: any }[] = [];
   const teams =
     result.teamMemberRoles?.map((teamMemberRole: any) => {
-      teamAndRoles.push({ teamTitle: teamMemberRole.team?.name, role: teamMemberRole.role, teamUid: teamMemberRole.team?.uid });
+      teamAndRoles.push({
+        teamTitle: teamMemberRole.team?.name,
+        role: teamMemberRole.role,
+        teamUid: teamMemberRole.team?.uid,
+      });
       return {
         id: teamMemberRole.team?.uid || '',
         name: teamMemberRole.team?.name || '',
@@ -199,19 +249,25 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
 };
 
 export const findRoleByName = async (params: any) => {
-  const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/roles?${new URLSearchParams(params.params as any)}`, params);
+  const result = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/members/roles?${new URLSearchParams(params.params as any)}`,
+    params,
+  );
   const response = await result.json();
   return response;
 };
 
 export const getMemberRoles = async (options: IMemberListOptions) => {
   handleHostAndSpeaker(options);
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/roles?${new URLSearchParams(options as any)}`, {
-    cache: 'force-cache',
-    method: 'GET',
-    headers: getHeader(''),
-    next: { tags: ['members-roles'] },
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/members/roles?${new URLSearchParams(options as any)}`,
+    {
+      cache: 'force-cache',
+      method: 'GET',
+      headers: getHeader(''),
+      next: { tags: ['members-roles'] },
+    },
+  );
 
   if (!response.ok) {
     return { isError: true, error: { status: response.status, statusText: response.statusText } };
@@ -270,10 +326,13 @@ export const getMembersForProjectForm = async (teamId = null) => {
 };
 
 export const getMembersForAttendeeForm = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,isVerified&pagination=false&orderBy=name,asc&isVerified=all`, {
-    method: 'GET',
-    cache: 'no-store',
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,isVerified&pagination=false&orderBy=name,asc&isVerified=all`,
+    {
+      method: 'GET',
+      cache: 'no-store',
+    },
+  );
 
   if (!response.ok) {
     return { isError: true, message: response.statusText };
@@ -376,11 +435,14 @@ export const updateUserDirectoryEmail = async (payload: any, uid: string, header
 };
 
 export const getMembersInfoForDp = async (isVerifiedFlag: string = 'all') => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?pagination=false&isVerified=${isVerifiedFlag}&select=uid,name,image`, {
-    cache: 'no-store',
-    method: 'GET',
-    headers: getHeader(''),
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/members?pagination=false&isVerified=${isVerifiedFlag}&select=uid,name,image`,
+    {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(''),
+    },
+  );
   if (!response?.ok) {
     return { error: { status: response?.status, statusText: response?.statusText } };
   }
@@ -475,11 +537,14 @@ export const getMemberRolesForTeam = async (options: IMemberListOptions, teamId:
 
 // Fetches member role information for adding a new member to the team
 export const getMembersWithRoles = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,teamMemberRoles,isVerified,&&pagination=false&orderBy=name,asc&isVerified=all`, {
-    cache: 'no-store',
-    method: 'GET',
-    headers: getHeader(''),
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,teamMemberRoles,isVerified,&&pagination=false&orderBy=name,asc&isVerified=all`,
+    {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(''),
+    },
+  );
   if (!response?.ok) {
     return { error: { status: response?.status, statusText: response?.statusText } };
   }

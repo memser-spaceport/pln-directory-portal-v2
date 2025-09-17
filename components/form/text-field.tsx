@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 
-interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement>  {
+interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
   onClear?: () => void;
   placeholder?: string;
@@ -12,24 +12,44 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement>  {
   id: string;
   defaultValue?: string;
   value?: string;
-  hide?:boolean;
-  maxLength?:number;
+  hide?: boolean;
+  maxLength?: number;
   isError?: boolean;
   readOnly?: boolean;
 }
 
-const TextField: React.FC<TextFieldProps> = ({ label, id, hide = false, name, value = '', defaultValue = '', onChange, isMandatory, placeholder, type, maxLength, isDelete, isError=false, readOnly=false, ...rest }) => {
+const TextField: React.FC<TextFieldProps> = ({
+  label,
+  id,
+  hide = false,
+  name,
+  value = '',
+  defaultValue = '',
+  onChange,
+  isMandatory,
+  placeholder,
+  type,
+  maxLength,
+  isDelete,
+  isError = false,
+  readOnly = false,
+  ...rest
+}) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const onTextChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if(onChange) {
-        onChange(e)
+    if (onChange) {
+      onChange(e);
     }
-  }
+  };
 
   return (
     <>
-      <div className={`tf ${hide ? 'hidden': ''}`}>
-        {label && <label htmlFor={id} className={`tf__label ${hide ? 'hidden': ''}`}>{label}</label>}
+      <div className={`tf ${hide ? 'hidden' : ''}`}>
+        {label && (
+          <label htmlFor={id} className={`tf__label ${hide ? 'hidden' : ''}`}>
+            {label}
+          </label>
+        )}
         <input
           ref={inputRef}
           name={name}
@@ -48,13 +68,12 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, hide = false, name, va
       </div>
       <style jsx>
         {`
-          
           .tf {
             display: flex;
             flex-direction: column;
             width: 100%;
           }
-          
+
           .tf__label {
             font-weight: 600;
             font-size: 14px;
@@ -65,12 +84,12 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, hide = false, name, va
             padding: 8px 12px;
             border: 1px solid lightgrey;
             border-radius: 8px;
-            min-height:40px;
+            min-height: 40px;
             font-size: 14px;
             padding-right: ${isDelete ? '35px' : ''};
             border: ${isError ? '1px solid red' : ''};
-            background-color: ${readOnly ? '#F1F5F9': ""};
-            cursor: ${readOnly ? 'not-allowed': ""};
+            background-color: ${readOnly ? '#F1F5F9' : ''};
+            cursor: ${readOnly ? 'not-allowed' : ''};
           }
           .tf__input:invalid {
             border: 1px solid red;
@@ -80,14 +99,14 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, hide = false, name, va
           .tf__input:focus {
             outline: none;
           }
-            ::placeholder {
-              color: #aab0b8;
-            }
-               .hidden {
+          ::placeholder {
+            color: #aab0b8;
+          }
+          .hidden {
             visibility: hidden;
             height: 0;
-            width:0;
-           }
+            width: 0;
+          }
         `}
       </style>
     </>

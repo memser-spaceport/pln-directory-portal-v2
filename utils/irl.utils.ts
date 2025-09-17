@@ -10,7 +10,11 @@ export const isPastDate = (date: any) => {
   return inputDate.getTime() < currentDate.getTime();
 };
 
-export function formatIrlEventDate(startDateStr: string | Date, endDateStr: string | Date, timeZone = 'America/Los_Angeles') {
+export function formatIrlEventDate(
+  startDateStr: string | Date,
+  endDateStr: string | Date,
+  timeZone = 'America/Los_Angeles',
+) {
   const startDate = toZonedTime(startDateStr, timeZone);
   const endDate = toZonedTime(endDateStr, timeZone);
 
@@ -189,26 +193,27 @@ export const getAttendingStartAndEndDate = (events: any) => {
   if (events.length === 0) {
     return { checkInDate: null, checkOutDate: null };
   }
-  
+
   const checkInDate = events.reduce(
-    (earliest: string | number | Date, event: { checkInDate: string | number | Date; }) => (!earliest || new Date(event.checkInDate) < new Date(earliest) ? event.checkInDate : earliest),
-    events[0].checkInDate
+    (earliest: string | number | Date, event: { checkInDate: string | number | Date }) =>
+      !earliest || new Date(event.checkInDate) < new Date(earliest) ? event.checkInDate : earliest,
+    events[0].checkInDate,
   );
-  
+
   const checkOutDate = events.reduce(
-    (latest: string | number | Date, event: { checkOutDate: string | number | Date; }) => (!latest || new Date(event.checkOutDate) > new Date(latest) ? event.checkOutDate : latest),
-    events[0].checkOutDate
+    (latest: string | number | Date, event: { checkOutDate: string | number | Date }) =>
+      !latest || new Date(event.checkOutDate) > new Date(latest) ? event.checkOutDate : latest,
+    events[0].checkOutDate,
   );
-  
+
   return { checkInDate, checkOutDate };
-  
 };
 
 export function sortEvents(events: any[], type: 'past' | 'upcoming' | 'all' = 'all'): any[] {
   if (!events || events.length === 0) return [];
 
   const currentDate = new Date().toISOString().split('T')[0];
-  
+
   return [...events].sort((eventA, eventB) => {
     // First: Sort by priority (null priorities go to the end)
     if ((eventA.priority !== null || eventB.priority !== null) && eventA.priority !== eventB.priority) {
@@ -239,30 +244,30 @@ export function sortEvents(events: any[], type: 'past' | 'upcoming' | 'all' = 'a
       // For past events: sort by end date (most recent first)
       return eventBEndDate.localeCompare(eventAEndDate);
     }
-    
+
     if (type === 'upcoming') {
       // Ongoing events come first
       if (isEventAOngoing && !isEventBOngoing) return -1;
       if (!isEventAOngoing && isEventBOngoing) return 1;
-      
+
       // Then sort by start date (earliest first)
       return eventAStartDate.localeCompare(eventBStartDate);
     }
-    
+
     // For 'all' type: upcoming first, then past
     if (!isEventAPast && isEventBPast) return -1;
     if (isEventAPast && !isEventBPast) return 1;
-    
+
     // If both are upcoming
     if (!isEventAPast && !isEventBPast) {
       // Ongoing events come first
       if (isEventAOngoing && !isEventBOngoing) return -1;
       if (!isEventAOngoing && isEventBOngoing) return 1;
-      
+
       // Then sort by start date (earliest first)
       return eventAStartDate.localeCompare(eventBStartDate);
     }
-    
+
     // If both are past, sort by end date (most recent first)
     return eventBEndDate.localeCompare(eventAEndDate);
   });
@@ -339,7 +344,9 @@ export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
   // Handle attending names if present
   if (attending) {
     const attendingNames = attending.split(URL_QUERY_VALUE_SEPARATOR).map((name: string) => name.trim());
-    const matchingUIDs = currentEvents.filter((event: any) => attendingNames.includes(event.name)).map((event: any) => event.uid);
+    const matchingUIDs = currentEvents
+      .filter((event: any) => attendingNames.includes(event.name))
+      .map((event: any) => event.uid);
 
     // Push matching UIDs into the 'filteredEvents[]' array
     matchingUIDs.forEach((uid) => {
@@ -393,7 +400,12 @@ export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
   return result;
 };
 
-export const getFilteredEventsForUser = (loggedInUserEvents: any, currentEvents: any, isLoggedIn: boolean, userInfo: IUserInfo) => {
+export const getFilteredEventsForUser = (
+  loggedInUserEvents: any,
+  currentEvents: any,
+  isLoggedIn: boolean,
+  userInfo: IUserInfo,
+) => {
   const uniqueEventsMap = new Map();
 
   // Determine if the user has the admin role
@@ -401,7 +413,11 @@ export const getFilteredEventsForUser = (loggedInUserEvents: any, currentEvents:
   const publicEvents = currentEvents.filter((event: any) => event.type !== 'INVITE_ONLY');
 
   // Combine events based on the user's login and role status
-  const eventsToConsider = isLoggedIn ? (isAdmin ? currentEvents : [...loggedInUserEvents, ...publicEvents]) : publicEvents;
+  const eventsToConsider = isLoggedIn
+    ? isAdmin
+      ? currentEvents
+      : [...loggedInUserEvents, ...publicEvents]
+    : publicEvents;
 
   eventsToConsider.forEach((event: any) => {
     if (!uniqueEventsMap.has(event.uid)) {
@@ -409,7 +425,9 @@ export const getFilteredEventsForUser = (loggedInUserEvents: any, currentEvents:
     }
   });
 
-  const filteredEvents = Array.from(uniqueEventsMap.values())?.filter((event) => event.eventGuests && event.eventGuests?.length > 0);
+  const filteredEvents = Array.from(uniqueEventsMap.values())?.filter(
+    (event) => event.eventGuests && event.eventGuests?.length > 0,
+  );
 
   // Convert the map values to an array for the final unique events list
   return filteredEvents;
@@ -417,7 +435,9 @@ export const getFilteredEventsForUser = (loggedInUserEvents: any, currentEvents:
 
 export const transformGuestDetail = (result: any, gatherings: any) => {
   const detail = result[0] || {};
-  const gatheringsToShow = result?.filter((gathering: any) => gatherings?.some((guest: any) => guest?.slugURL === gathering.event?.slugURL));
+  const gatheringsToShow = result?.filter((gathering: any) =>
+    gatherings?.some((guest: any) => guest?.slugURL === gathering.event?.slugURL),
+  );
   return {
     memberUid: detail?.memberUid,
     memberName: detail?.member?.name,
@@ -458,9 +478,15 @@ export const transformGuestDetail = (result: any, gatherings: any) => {
   };
 };
 export function checkAdminInAllEvents(searchType: any, upcomingEvents: any, pastEvents: any) {
-  if (searchType === 'upcoming' || (upcomingEvents && upcomingEvents.length > 0 && pastEvents && pastEvents.length === 0)) {
+  if (
+    searchType === 'upcoming' ||
+    (upcomingEvents && upcomingEvents.length > 0 && pastEvents && pastEvents.length === 0)
+  ) {
     return true;
-  } else if (searchType === 'past' || (pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0)) {
+  } else if (
+    searchType === 'past' ||
+    (pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0)
+  ) {
     return true;
   }
   return false;
@@ -537,7 +563,7 @@ export function parseDateString(dateString: string): CalendarDate {
 export function getEventDates(event: any): EventDuration {
   return {
     startDate: parseDateString(event.startDate),
-    endDate: parseDateString(event.endDate)
+    endDate: parseDateString(event.endDate),
   };
 }
 

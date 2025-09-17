@@ -1,7 +1,6 @@
-
-import { MEMBER_ANALYTICS_EVENTS } from "@/utils/constants";
-import { getUserInfo } from "@/utils/third-party.helper";
-import { usePostHog } from "posthog-js/react";
+import { MEMBER_ANALYTICS_EVENTS } from '@/utils/constants';
+import { getUserInfo } from '@/utils/third-party.helper';
+import { usePostHog } from 'posthog-js/react';
 
 export const useModalAnalytics = () => {
   const postHogProps = usePostHog();
@@ -48,7 +47,6 @@ export const useModalAnalytics = () => {
   return {
     onAddExperienceClicked,
     onSeeAllExperienceClicked,
-    onEditExperienceClicked
+    onEditExperienceClicked,
   };
 };
-

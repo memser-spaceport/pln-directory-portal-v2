@@ -33,11 +33,21 @@ const Filter = (props: ITeamFilterWeb) => {
   const searchParams = props?.searchParams;
 
   const selectedItems: any = {
-    tags: filterValues?.tags.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
-    membershipSources: filterValues?.membershipSources?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
-    fundingStage: filterValues?.fundingStage?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
-    technology: filterValues?.technology?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
-    asks: filterValues?.asks?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
+    tags: filterValues?.tags
+      .filter((item: IFilterSelectedItem) => item?.selected)
+      .map((item: IFilterSelectedItem) => item.value),
+    membershipSources: filterValues?.membershipSources
+      ?.filter((item: IFilterSelectedItem) => item?.selected)
+      .map((item: IFilterSelectedItem) => item.value),
+    fundingStage: filterValues?.fundingStage
+      ?.filter((item: IFilterSelectedItem) => item?.selected)
+      .map((item: IFilterSelectedItem) => item.value),
+    technology: filterValues?.technology
+      ?.filter((item: IFilterSelectedItem) => item?.selected)
+      .map((item: IFilterSelectedItem) => item.value),
+    asks: filterValues?.asks
+      ?.filter((item: IFilterSelectedItem) => item?.selected)
+      .map((item: IFilterSelectedItem) => item.value),
   };
 
   const router = useRouter();
@@ -156,7 +166,20 @@ const Filter = (props: ITeamFilterWeb) => {
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
       analytics.onClearAllFiltersClicked(getAnalyticsUserInfo(userInfo));
-      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly', 'isRecent', 'isHost', 'isSponsor', 'asks', 'searchBy'];
+      const clearQuery = [
+        'tags',
+        'membershipSources',
+        'fundingStage',
+        'technology',
+        'includeFriends',
+        'focusAreas',
+        'officeHoursOnly',
+        'isRecent',
+        'isHost',
+        'isSponsor',
+        'asks',
+        'searchBy',
+      ];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           current.delete(query);
@@ -275,7 +298,9 @@ const Filter = (props: ITeamFilterWeb) => {
                 Asks
                 <Tooltip
                   asChild
-                  trigger={<Image alt="left" height={16} width={16} src="/icons/info.svg" style={{ marginLeft: '5px' }} />}
+                  trigger={
+                    <Image alt="left" height={16} width={16} src="/icons/info.svg" style={{ marginLeft: '5px' }} />
+                  }
                   content={
                     'Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project.'
                   }
@@ -288,7 +313,15 @@ const Filter = (props: ITeamFilterWeb) => {
           {/* Border line */}
           <div className="team-filter__bl"></div>
 
-          <TagContainer page={PAGE_ROUTES.TEAMS} label="Tags" name="tags" items={filterValues?.tags ?? []} onTagClickHandler={onTagClickHandler} initialCount={10} userInfo={userInfo} />
+          <TagContainer
+            page={PAGE_ROUTES.TEAMS}
+            label="Tags"
+            name="tags"
+            items={filterValues?.tags ?? []}
+            onTagClickHandler={onTagClickHandler}
+            initialCount={10}
+            userInfo={userInfo}
+          />
           <div className="team-filter__bl"></div>
           <TagContainer
             page={PAGE_ROUTES.TEAMS}

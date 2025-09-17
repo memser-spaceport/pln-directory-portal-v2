@@ -33,7 +33,9 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
   const queryClient = useQueryClient();
   const [showFullSearch, setShowFullSearch] = useState(false);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
-  const [activeCategory, setActiveCategory] = React.useState<'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null>('top');
+  const [activeCategory, setActiveCategory] = React.useState<
+    'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null
+  >('top');
 
   const handleFullSearchClose = useCallback(() => {
     setInitialAiPrompt('');
@@ -53,7 +55,10 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
         return;
       }
 
-      if ((e.target as HTMLElement).classList.contains('search-suggestion') || (e.target as HTMLElement).classList.contains('chat-recent-search')) {
+      if (
+        (e.target as HTMLElement).classList.contains('search-suggestion') ||
+        (e.target as HTMLElement).classList.contains('chat-recent-search')
+      ) {
         return;
       }
 
@@ -76,7 +81,10 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
         return;
       }
 
-      if ((e.target as HTMLElement).classList.contains('search-suggestion') || (e.target as HTMLElement).classList.contains('chat-recent-search')) {
+      if (
+        (e.target as HTMLElement).classList.contains('search-suggestion') ||
+        (e.target as HTMLElement).classList.contains('chat-recent-search')
+      ) {
         return;
       }
 
@@ -138,7 +146,14 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
       return <ContentLoader />;
     }
 
-    if (!data || (!data.events?.length && !data.teams?.length && !data.members?.length && !data.projects?.length && !data.forumThreads?.length)) {
+    if (
+      !data ||
+      (!data.events?.length &&
+        !data.teams?.length &&
+        !data.members?.length &&
+        !data.projects?.length &&
+        !data.forumThreads?.length)
+    ) {
       return (
         <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
@@ -151,14 +166,24 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
       <div style={{ padding: '8px 16px' }}>
         {/*<TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />*/}
         <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-        {!!data.top?.length && (activeCategory === 'top' || activeCategory === null) && <SearchResultsSection groupItems items={data.top} query={searchTerm} onSelect={handleFullSearchClose} />}
-        {!!data.members?.length && (activeCategory === 'members' || activeCategory === null) && <SearchResultsSection items={data.members} query={searchTerm} onSelect={handleFullSearchClose} />}
-        {!!data.teams?.length && (activeCategory === 'teams' || activeCategory === null) && <SearchResultsSection items={data.teams} query={searchTerm} onSelect={handleFullSearchClose} />}
-        {!!data.projects?.length && (activeCategory === 'projects' || activeCategory === null) && <SearchResultsSection items={data.projects} query={searchTerm} onSelect={handleFullSearchClose} />}
+        {!!data.top?.length && (activeCategory === 'top' || activeCategory === null) && (
+          <SearchResultsSection groupItems items={data.top} query={searchTerm} onSelect={handleFullSearchClose} />
+        )}
+        {!!data.members?.length && (activeCategory === 'members' || activeCategory === null) && (
+          <SearchResultsSection items={data.members} query={searchTerm} onSelect={handleFullSearchClose} />
+        )}
+        {!!data.teams?.length && (activeCategory === 'teams' || activeCategory === null) && (
+          <SearchResultsSection items={data.teams} query={searchTerm} onSelect={handleFullSearchClose} />
+        )}
+        {!!data.projects?.length && (activeCategory === 'projects' || activeCategory === null) && (
+          <SearchResultsSection items={data.projects} query={searchTerm} onSelect={handleFullSearchClose} />
+        )}
         {!!data.forumThreads?.length && (activeCategory === 'forumThreads' || activeCategory === null) && (
           <SearchResultsSection items={data.forumThreads} query={searchTerm} onSelect={handleFullSearchClose} />
         )}
-        {!!data.events?.length && (activeCategory === 'events' || activeCategory === null) && <SearchResultsSection items={data.events} query={searchTerm} onSelect={handleFullSearchClose} />}
+        {!!data.events?.length && (activeCategory === 'events' || activeCategory === null) && (
+          <SearchResultsSection items={data.events} query={searchTerm} onSelect={handleFullSearchClose} />
+        )}
       </div>
     );
   }
@@ -172,8 +197,19 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
               <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
             </button>
             <div className={s.wrapper}>
-              <FullSearchPanel initialSearchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} onClose={handleFullSearchClose} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-              <AiChatPanel initialPrompt={initialAiPrompt} isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
+              <FullSearchPanel
+                initialSearchTerm={searchTerm}
+                onTryAiSearch={handleTryAiSearch}
+                onClose={handleFullSearchClose}
+                activeCategory={activeCategory}
+                setActiveCategory={setActiveCategory}
+              />
+              <AiChatPanel
+                initialPrompt={initialAiPrompt}
+                isLoggedIn={isLoggedIn}
+                userInfo={userInfo}
+                authToken={authToken}
+              />
             </div>
           </div>
         </div>

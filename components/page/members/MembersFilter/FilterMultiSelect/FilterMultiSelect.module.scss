@@ -3,7 +3,7 @@
 }
 
 .inputContainer {
-  border: 1px solid rgba(203, 213, 225, 0.50);
+  border: 1px solid rgba(203, 213, 225, 0.5);
   border-radius: 8px;
   padding: 8px;
   min-height: 50px;
@@ -15,12 +15,12 @@
 }
 
 .inputContainer:hover {
-  border-color: #5E718D;
+  border-color: #5e718d;
   box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
 }
 
 .inputContainer:focus-within {
-  border-color: #5E718D;
+  border-color: #5e718d;
   box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
 }
 
@@ -49,7 +49,7 @@
 
   border-radius: var(--corner-radius-sm, 6px);
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  background: var(--background-base-white, #FFF) !important;
+  background: var(--background-base-white, #fff) !important;
   box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 
   color: var(--foreground-neutral-secondary, #455468);
@@ -68,13 +68,15 @@
   -webkit-tap-highlight-color: transparent !important;
 
   /* Prevent any focus or selection states */
-  &:focus, &:active, &:hover {
+  &:focus,
+  &:active,
+  &:hover {
     outline: none !important;
     -webkit-tap-highlight-color: transparent !important;
   }
 
   &:hover {
-    border-color: #5E718D !important;
+    border-color: #5e718d !important;
     background: #e2e8f0 !important;
   }
 
@@ -101,7 +103,7 @@
 .tagRemove {
   background: none !important;
   border: none !important;
-  color: #64748B !important;
+  color: #64748b !important;
   cursor: pointer !important;
   font-size: 16px !important;
   line-height: 1 !important;
@@ -138,7 +140,6 @@
     background: rgba(239, 68, 68, 0.2) !important;
   }
 
-
   /* iOS Safari specific - ensure button is immediately responsive */
   @media (pointer: coarse) {
     &:hover {
@@ -153,7 +154,7 @@
   }
 
   &:focus {
-    outline: 2px solid #1B4DFF !important;
+    outline: 2px solid #1b4dff !important;
     outline-offset: 1px !important;
   }
 
@@ -181,13 +182,13 @@
 }
 
 .searchInput::placeholder {
-  color: #AFBACA;
+  color: #afbaca;
 }
 
 .loading {
   padding: 12px;
   text-align: center;
-  color: #64748B;
+  color: #64748b;
   font-size: 14px;
 }
 
@@ -217,7 +218,7 @@
   padding: 4px 0;
 }
 
-.roleCheckbox input[type="checkbox"] {
+.roleCheckbox input[type='checkbox'] {
   width: 16px;
   height: 16px;
   margin-right: 8px;
@@ -241,13 +242,13 @@
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 12px;
-  color: #64748B;
+  color: #64748b;
 }
 
 .noResults {
   padding: 12px;
   text-align: center;
-  color: #64748B;
+  color: #64748b;
   font-size: 14px;
   background: #f8fafc;
   border-radius: 8px;
@@ -310,7 +311,7 @@
 .clearAllButton {
   background: none;
   border: none;
-  color: #1B4DFF;
+  color: #1b4dff;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -377,7 +378,7 @@
   width: 100%;
   padding: 16px 16px 12px;
 
-  color: #0F172A;
+  color: #0f172a;
   font-size: 16px;
   font-style: normal;
   font-weight: 500;
@@ -393,8 +394,8 @@
   gap: 8px;
   flex-shrink: 0;
   align-self: stretch;
-  border-bottom: 1px solid var(--Border-border-light, #E2E8F0);
-  background: #FFF;
+  border-bottom: 1px solid var(--Border-border-light, #e2e8f0);
+  background: #fff;
   position: relative;
 }
 
@@ -408,8 +409,8 @@
 
 .mobileSearchInput {
   border-radius: 8px;
-  border: 1px solid #C5CED9;
-  background: #FFF;
+  border: 1px solid #c5ced9;
+  background: #fff;
   display: flex;
   height: 40px;
   padding: 8px 48px 8px 12px;
@@ -445,7 +446,7 @@
   position: relative;
   cursor: pointer;
 
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -516,13 +517,14 @@
   background: white !important;
   gap: 8px !important;
 
-  &:hover, &.focused {
+  &:hover,
+  &.focused {
     background: #f8fafc !important;
   }
 
   &.active {
     background: #f1f5f9 !important;
-    border-left: 3px solid #1B4DFF !important;
+    border-left: 3px solid #1b4dff !important;
   }
 }
 
@@ -542,7 +544,7 @@
 }
 
 .optionDesc {
-  color: #64748B !important;
+  color: #64748b !important;
   font-size: 12px !important;
   font-weight: 400 !important;
   line-height: 18px !important;
@@ -571,7 +573,7 @@
 .customControl {
   display: flex !important;
   align-items: center !important;
-  border: 1px solid #C5CED9 !important;
+  border: 1px solid #c5ced9 !important;
   border-radius: 8px !important;
   background: white !important;
   min-height: 40px !important;
@@ -579,7 +581,7 @@
   transition: all 0.2s ease !important;
 
   &:hover {
-    border-color: #5E718D !important;
+    border-color: #5e718d !important;
   }
 
   &:focus-within {
@@ -596,7 +598,7 @@
   align-items: center !important;
   justify-content: center !important;
   padding: 0 2px 0 4px !important;
-  color: #64748B !important;
+  color: #64748b !important;
   flex-shrink: 0 !important;
 
   svg {

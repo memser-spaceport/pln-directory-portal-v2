@@ -83,11 +83,17 @@ const Description = (props: IDescription) => {
         setDesc(getContent(description));
         triggerLoader(false);
         toast.success('Description updated successfully.');
-        analytics.recordDescSave('save-success', getAnalyticsUserInfo(props?.user), { ...project, description: description });
+        analytics.recordDescSave('save-success', getAnalyticsUserInfo(props?.user), {
+          ...project,
+          description: description,
+        });
       }
     } catch (er) {
       triggerLoader(false);
-      analytics.recordDescSave('save-error', getAnalyticsUserInfo(props?.user), { ...project, description: description });
+      analytics.recordDescSave('save-error', getAnalyticsUserInfo(props?.user), {
+        ...project,
+        description: description,
+      });
       toast.error('Something went wrong. Please try again later.');
     } finally {
       triggerLoader(false);

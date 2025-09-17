@@ -103,7 +103,7 @@ export const useCommonAnalytics = () => {
   function onSubmitATeamBtnClicked() {
     captureEvent(COMMON_ANALYTICS_EVENTS.SUBMIT_A_TEAM_BTN_CLICKED);
   }
-  
+
   return {
     onNavItemClicked,
     onNavGetHelpItemClicked,

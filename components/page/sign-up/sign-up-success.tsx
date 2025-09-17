@@ -50,7 +50,10 @@ const SignUpSuccess = () => {
         </div>
         <div className={clsx('sign-up-success__cn__info', s.content)}>
           <div className="sign-up-success__cn__info__title">Profile Under Review</div>
-          <div className={clsx('sign-up-success__cn__info__text', s.text)}>Thank you for signing up! Your profile is currently under review. You’ll receive an email as soon as it’s approved.</div>
+          <div className={clsx('sign-up-success__cn__info__text', s.text)}>
+            Thank you for signing up! Your profile is currently under review. You’ll receive an email as soon as it’s
+            approved.
+          </div>
           <div>
             <button className="sign-up-success__cn__info__action" onClick={onBackToHomeClick}>
               Back to Home

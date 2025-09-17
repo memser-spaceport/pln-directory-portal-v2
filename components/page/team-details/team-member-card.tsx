@@ -39,7 +39,14 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
                     asChild
                     trigger={
                       <div>
-                        <img alt="lead" loading="lazy" className="team-members-card__profile-details__profile-container__lead" height={16} width={16} src="/icons/badge/team-lead.svg" />
+                        <img
+                          alt="lead"
+                          loading="lazy"
+                          className="team-members-card__profile-details__profile-container__lead"
+                          height={16}
+                          width={16}
+                          src="/icons/badge/team-lead.svg"
+                        />
                       </div>
                     }
                     content={'Team Lead'}
@@ -59,8 +66,18 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
                 />
               </div>
               <div className="team-members-card__profile-details__profile__name-role">
-                <Tooltip asChild trigger={<h2 className="team-members-card__profile-details__profile__name-role__name">{memberName}</h2>} content={memberName} />
-                <Tooltip asChild trigger={<p className="team-members-card__profile-details__profile__name-role__role">{role}</p>} content={role} />
+                <Tooltip
+                  asChild
+                  trigger={
+                    <h2 className="team-members-card__profile-details__profile__name-role__name">{memberName}</h2>
+                  }
+                  content={memberName}
+                />
+                <Tooltip
+                  asChild
+                  trigger={<p className="team-members-card__profile-details__profile__name-role__role">{role}</p>}
+                  content={role}
+                />
                 {isAvailableToConnect && <OhBadge variant="secondary" />}
               </div>
             </div>

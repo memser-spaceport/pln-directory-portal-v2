@@ -74,7 +74,9 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
     });
 
     if (hasSame) {
-      toast.error('Project contribution with selected parameters already exists. Please try again with different parameters.');
+      toast.error(
+        'Project contribution with selected parameters already exists. Please try again with different parameters.',
+      );
       return;
     }
 
@@ -183,7 +185,13 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
   );
 };
 
-function formatPayload(memberInfo: any, formData: TEditContributionsForm, isNew?: boolean, uid?: string, isDelete?: boolean) {
+function formatPayload(
+  memberInfo: any,
+  formData: TEditContributionsForm,
+  isNew?: boolean,
+  uid?: string,
+  isDelete?: boolean,
+) {
   let projectContributions;
 
   if (isNew) {

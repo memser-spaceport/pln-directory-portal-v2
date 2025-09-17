@@ -52,8 +52,15 @@ function HuskyChat({
                       mode={mode}
                     />
                     {chat.answer && (
-                      <div className={`huskychat__threads__item__ansWrpr ${mode === 'blog' ? 'huskychat__threads__item__ansWrpr--blog' : ''}`}>
-                        <HuskyChatAnswer question={chat?.question} mode={mode} answer={chat?.answer} sources={chat?.answerSourceLinks} />
+                      <div
+                        className={`huskychat__threads__item__ansWrpr ${mode === 'blog' ? 'huskychat__threads__item__ansWrpr--blog' : ''}`}
+                      >
+                        <HuskyChatAnswer
+                          question={chat?.question}
+                          mode={mode}
+                          answer={chat?.answer}
+                          sources={chat?.answerSourceLinks}
+                        />
 
                         {chat?.followupQuestions?.length > 0 && (
                           <HuskyChatSuggestions

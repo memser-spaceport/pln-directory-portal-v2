@@ -2,7 +2,7 @@
   display: flex;
   gap: 4px;
 
-  color: var(--foreground-neutral-tertiary, #8897AE);
+  color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 12px;
   font-style: normal;
   font-weight: 400;
@@ -16,6 +16,6 @@
   }
 
   &.liked {
-    color: #156FF7;
+    color: #156ff7;
   }
 }

@@ -1,7 +1,6 @@
 # Directory Frontend
 
-This is the frontend for the Directory application, uses  [Next.js](https://nextjs.org/) framework and is bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
+This is the frontend for the Directory application, uses [Next.js](https://nextjs.org/) framework and is bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Next.js Version
 
@@ -20,6 +19,7 @@ The folder structure of this project is organized as follows:
 
 - **app/**: Contains the main application files, including pages and layout components.
 - **components/**: Contains reusable components categorized into:
+
   - **ui/**: Pure components that are reusable and do not manage state.
   - **core/**: Components used across multiple pages, such as navigation bars and footers.
   - **form/**: Components specifically designed for form handling and input.
@@ -31,19 +31,17 @@ The folder structure of this project is organized as follows:
 - **public/**: Contains static assets such as images, fonts, and other resources.
 - **\_\_tests\_\_/**: Contains test files for the application. And its maintains the same folder structure as components.
 
-
 # Steps to run directory frontend service locally
 
 ### Dependent services:
 
-| Name                      | Type     | Purpose                                                           | Mandatory |
-|---------------------------|----------|-------------------------------------------------------------------|-----------|
-| [Privy](https://www.privy.io/)                    | External | The hybrid auth solution provider for users to login               | Yes       |
-| [PostHog](https://posthog.com/)                  | External | For analytics purpose                                             | No        |
-| [Directory Backend](https://github.com/memser-spaceport/pln-directory-portal)        | Internal | For communicating to the directory database through REST API       | Yes       |
-| Husky (sandbox mode)       | Internal | To leverage the AI assist feature                                 | No        |
-| PL Auth service (sandbox mode) | Internal | To manage user auth requests and issue tokens, works in OAuth 2.0 standard | Yes       |
-
+| Name                                                                          | Type     | Purpose                                                                    | Mandatory |
+| ----------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------- | --------- |
+| [Privy](https://www.privy.io/)                                                | External | The hybrid auth solution provider for users to login                       | Yes       |
+| [PostHog](https://posthog.com/)                                               | External | For analytics purpose                                                      | No        |
+| [Directory Backend](https://github.com/memser-spaceport/pln-directory-portal) | Internal | For communicating to the directory database through REST API               | Yes       |
+| Husky (sandbox mode)                                                          | Internal | To leverage the AI assist feature                                          | No        |
+| PL Auth service (sandbox mode)                                                | Internal | To manage user auth requests and issue tokens, works in OAuth 2.0 standard | Yes       |
 
 ### Step 1: Install dependencies
 
@@ -60,11 +58,12 @@ Use the below command to create .env using .env.example
 ```dotenv
 cp .env.example .env
 ```
+
 ### Step 3: Setup env variables
 
 Set the env variables based on the instructions provided in the .env.example file.
 
-For *local development* use the test values mentioned in the comments for each env variable.
+For _local development_ use the test values mentioned in the comments for each env variable.
 
 ### Step 4: Run the Directory Frontend
 
@@ -76,7 +75,6 @@ npm run dev
 
 Application will be running on [http://localhost:4200](http://localhost:4200)
 
-
 ## Running Tests
 
 To run the tests, use the following command:
@@ -84,7 +82,6 @@ To run the tests, use the following command:
 ```bash
 npm run test
 ```
-
 
 # Steps to run directory admin frontend service locally
 

@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
-import ShadowButton from "@/components/ui/ShadowButton"
-import { PAGE_ROUTES } from "@/utils/constants"
-import { useEventsAnalytics } from "@/analytics/events.analytics"
+import ShadowButton from '@/components/ui/ShadowButton';
+import { PAGE_ROUTES } from '@/utils/constants';
+import { useEventsAnalytics } from '@/analytics/events.analytics';
 import Image from 'next/image';
 
 export default function EventsBanner(props: any) {
@@ -12,32 +12,34 @@ export default function EventsBanner(props: any) {
     <section className="banner">
       <div className="banner-image-container">
         <Image
-          src="/images/events/events-banner.svg" 
-          alt="Events Banner" 
-          className="banner-image" 
+          src="/images/events/events-banner.svg"
+          alt="Events Banner"
+          className="banner-image"
           loading="eager"
           fill
           objectFit="cover"
         />
       </div>
-      
+
       <div className="content-container">
         <div className="text-content">
           <div className="text-content-title">Welcome to Protocol Labs Events</div>
-          <div className="text-content-description">Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem</div>
+          <div className="text-content-description">
+            Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem
+          </div>
         </div>
         <div className="buttons-container">
           <a href={PAGE_ROUTES.IRL} onClick={() => onViewAllGatheringsClicked()}>
-            <ShadowButton
-              buttonColor="#156FF7"
-              shadowColor="#3DFEB1"
-              buttonHeight="48px"
-              buttonWidth="172px"
-            >
+            <ShadowButton buttonColor="#156FF7" shadowColor="#3DFEB1" buttonHeight="48px" buttonWidth="172px">
               View Gatherings
             </ShadowButton>
           </a>
-          <a href={`${process.env.PL_EVENTS_BASE_URL}/program`} target="_blank" className="button-link" onClick={() => onViewAllEventsClicked()}>
+          <a
+            href={`${process.env.PL_EVENTS_BASE_URL}/program`}
+            target="_blank"
+            className="button-link"
+            onClick={() => onViewAllEventsClicked()}
+          >
             <ShadowButton
               buttonColor="#3DFEB1"
               shadowColor="#156FF7"
@@ -49,7 +51,7 @@ export default function EventsBanner(props: any) {
               buttonHeight="48px"
               buttonWidth="172px"
               textColor="#0F172A"
-            > 
+            >
               View all Events
             </ShadowButton>
           </a>
@@ -67,7 +69,7 @@ export default function EventsBanner(props: any) {
           padding: 2rem 1rem;
           overflow: hidden;
         }
-        
+
         .banner-image-container {
           position: absolute;
           top: 0;
@@ -76,7 +78,7 @@ export default function EventsBanner(props: any) {
           height: 100%;
           z-index: 0;
         }
-        
+
         .banner-image {
           width: 100%;
           height: 100%;
@@ -104,17 +106,17 @@ export default function EventsBanner(props: any) {
         }
 
         .content-container::before {
-          content: "";
+          content: '';
           position: absolute;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
-          border-radius: 16px; 
+          border-radius: 16px;
           border: 1px solid transparent;
-          background: linear-gradient(180deg, #70ECFF 0%, #5EE3B5 100%) border-box;
+          background: linear-gradient(180deg, #70ecff 0%, #5ee3b5 100%) border-box;
           -webkit-mask:
-            linear-gradient(#fff 0 0) padding-box, 
+            linear-gradient(#fff 0 0) padding-box,
             linear-gradient(#fff 0 0);
           -webkit-mask-composite: destination-out;
           mask-composite: exclude;
@@ -191,5 +193,5 @@ export default function EventsBanner(props: any) {
         }
       `}</style>
     </section>
-  )
+  );
 }

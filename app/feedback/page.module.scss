@@ -13,7 +13,7 @@
 }
 
 .title {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   text-align: center;
   font-size: clamp(24px, 5vw, 40px);
   font-style: normal;
@@ -55,10 +55,12 @@
   gap: var(--spacing-5xs, 2px);
 
   border-radius: var(--corner-radius-xl, 12px);
-  border: 1px solid var(--action-foreground-brand-normal, #1B4DFF);
-  background: var(--action-background-base-white, #FFF);
-  box-shadow: 0 2px 8px 0 var(--transparent-brand-4, rgba(27, 77, 255, 0.04)) inset, 0px 1px 4px 0px var(--transparent-brand-24, rgba(27, 77, 255, 0.24));
-  color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
+  border: 1px solid var(--action-foreground-brand-normal, #1b4dff);
+  background: var(--action-background-base-white, #fff);
+  box-shadow:
+    0 2px 8px 0 var(--transparent-brand-4, rgba(27, 77, 255, 0.04)) inset,
+    0px 1px 4px 0px var(--transparent-brand-24, rgba(27, 77, 255, 0.24));
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
 
   font-size: 18px;
   font-style: normal;
@@ -80,9 +82,12 @@
   gap: var(--spacing-5xs, 2px);
   border-radius: var(--corner-radius-xl, 12px);
   border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  background: var(--action-background-brand-normal, #1B4DFF);
-  box-shadow: 0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
-  color: var(--action-foreground-base-inverted_white, #FFF);
+  background: var(--action-background-brand-normal, #1b4dff);
+  box-shadow:
+    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  color: var(--action-foreground-base-inverted_white, #fff);
   font-size: 18px;
   font-style: normal;
   font-weight: 500;

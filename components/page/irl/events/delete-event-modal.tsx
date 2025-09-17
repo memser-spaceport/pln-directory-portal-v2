@@ -11,12 +11,12 @@ interface DeleteEventModalProps {
   isDeleting?: boolean;
 }
 
-export const DeleteEventModal: FC<DeleteEventModalProps> = ({ 
-  isOpen, 
-  eventName, 
-  onClose, 
-  onConfirm, 
-  isDeleting = false 
+export const DeleteEventModal: FC<DeleteEventModalProps> = ({
+  isOpen,
+  eventName,
+  onClose,
+  onConfirm,
+  isDeleting = false,
 }) => {
   if (!isOpen) return null;
 
@@ -28,33 +28,21 @@ export const DeleteEventModal: FC<DeleteEventModalProps> = ({
             <button type="button" className="closeButton" onClick={onClose} disabled={isDeleting}>
               <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
             </button>
-            
-            <h2 className="title">
-              Are you sure do you want to delete this Event?
-            </h2>
-          
+
+            <h2 className="title">Are you sure do you want to delete this Event?</h2>
+
             <div className="dialogControls">
-              <button 
-                type="button" 
-                className="secondaryButton" 
-                onClick={onClose}
-                disabled={isDeleting}
-              >
+              <button type="button" className="secondaryButton" onClick={onClose} disabled={isDeleting}>
                 Cancel
               </button>
-              <button 
-                type="button" 
-                className="errorButton" 
-                onClick={onConfirm}
-                disabled={isDeleting}
-              >
+              <button type="button" className="errorButton" onClick={onConfirm} disabled={isDeleting}>
                 {isDeleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
         </div>
       )}
-      
+
       <style jsx>{`
         /* Mobile-first design (default styles) */
         .modal {
@@ -172,24 +160,24 @@ export const DeleteEventModal: FC<DeleteEventModalProps> = ({
           .modal {
             padding: 20px;
           }
-          
+
           .modalContent {
             padding: 24px;
             max-width: 480px;
           }
-          
+
           .title {
             font-size: 18px;
             line-height: 24px;
             margin-bottom: 24px;
           }
-          
+
           .dialogControls {
             flex-direction: row;
             justify-content: flex-end;
             gap: 12px;
           }
-          
+
           .secondaryButton,
           .errorButton {
             width: auto;
@@ -207,4 +195,4 @@ export const DeleteEventModal: FC<DeleteEventModalProps> = ({
   );
 };
 
-export default DeleteEventModal; 
+export default DeleteEventModal;

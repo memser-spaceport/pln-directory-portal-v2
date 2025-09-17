@@ -48,7 +48,7 @@ const Husky = () => {
         root: null, // Default is the viewport
         threshold: 0, // Trigger as soon as the element exits the viewport
         rootMargin: getRootMargin(),
-      }
+      },
     );
 
     observer.observe(element);
@@ -66,7 +66,12 @@ const Husky = () => {
           <h3 className="husky__hdr__title">Explore Protocol Labs with Husky, an LLM-powered chatbot</h3>
         </div>
         <div className="husky_input">
-          <HuskyEmptyChat isHidden={isShrunk} checkIsLimitReached={checkIsLimitReached} limitReached={limitReached} setLimitReached={setLimitReached} />
+          <HuskyEmptyChat
+            isHidden={isShrunk}
+            checkIsLimitReached={checkIsLimitReached}
+            limitReached={limitReached}
+            setLimitReached={setLimitReached}
+          />
         </div>
       </div>
       <style jsx>{`
@@ -106,7 +111,9 @@ const Husky = () => {
             background-size: 240px 235px;
             padding: 80px 0px 35px 0px;
             gap: 36px;
-            transition: padding 0.3s ease, gap 0.3s ease;
+            transition:
+              padding 0.3s ease,
+              gap 0.3s ease;
           }
 
           .husky--shrunk {

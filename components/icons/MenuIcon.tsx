@@ -17,4 +17,4 @@ export const MenuIcon = (props?: SVGProps<SVGSVGElement>) => {
       />
     </svg>
   );
-}
+};

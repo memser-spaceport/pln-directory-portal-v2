@@ -121,7 +121,9 @@ export const SignupWizard = ({ onClose }: Props) => {
       // toast.success('Thank you for signing up! Your profile is currently under review. You’ll receive an email as soon as it’s approved.');
 
       // todo - use case C
-      router.replace(`${window.location.origin}/members/${res.data.uid}?prefillEmail=${encodeURIComponent(payload.email)}&returnTo=members-${res.data.uid}#login`);
+      router.replace(
+        `${window.location.origin}/members/${res.data.uid}?prefillEmail=${encodeURIComponent(payload.email)}&returnTo=members-${res.data.uid}#login`,
+      );
 
       setTimeout(() => {
         if (onClose) {
@@ -190,7 +192,11 @@ export const SignupWizard = ({ onClose }: Props) => {
                 </div>
                 <div className={s.col}>
                   <label className={s.Label}>
-                    <Checkbox.Root className={s.Checkbox} checked={subscribe} onCheckedChange={(val) => setValue('subscribe', val, { shouldValidate: true })}>
+                    <Checkbox.Root
+                      className={s.Checkbox}
+                      checked={subscribe}
+                      onCheckedChange={(val) => setValue('subscribe', val, { shouldValidate: true })}
+                    >
                       <Checkbox.Indicator className={s.Indicator}>
                         <CheckIcon className={s.Icon} />
                       </Checkbox.Indicator>
@@ -198,7 +204,11 @@ export const SignupWizard = ({ onClose }: Props) => {
                     <div className={s.primary}>Subscribe to PL Newsletter</div>
                   </label>
                   <label className={s.Label}>
-                    <Checkbox.Root className={s.Checkbox} checked={agreed} onCheckedChange={(val) => setValue('agreed', val as true, { shouldValidate: true })}>
+                    <Checkbox.Root
+                      className={s.Checkbox}
+                      checked={agreed}
+                      onCheckedChange={(val) => setValue('agreed', val as true, { shouldValidate: true })}
+                    >
                       <Checkbox.Indicator className={s.Indicator}>
                         <CheckIcon className={s.Icon} />
                       </Checkbox.Indicator>
@@ -213,11 +223,16 @@ export const SignupWizard = ({ onClose }: Props) => {
                 </div>
 
                 <p className={s.hint}>
-                  You also allow Protocol Labs and companies within the network to contact you for events and opportunities within the network. Your information may only be shared with verified
-                  network members and will not be available to any individuals or entities outside the network.
+                  You also allow Protocol Labs and companies within the network to contact you for events and
+                  opportunities within the network. Your information may only be shared with verified network members
+                  and will not be available to any individuals or entities outside the network.
                 </p>
 
-                <button type="submit" className={s.actionButton} disabled={isSubmitting || !agreed || (submitCount > 0 && !isValid)}>
+                <button
+                  type="submit"
+                  className={s.actionButton}
+                  disabled={isSubmitting || !agreed || (submitCount > 0 && !isValid)}
+                >
                   {isSubmitting ? (
                     <>
                       <LoaderIcon /> <span>Creating profile</span>
@@ -231,7 +246,10 @@ export const SignupWizard = ({ onClose }: Props) => {
           </FormProvider>
         </div>
       </div>
-      <Script src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`} strategy="lazyOnload"></Script>
+      <Script
+        src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`}
+        strategy="lazyOnload"
+      ></Script>
     </>
   );
 };

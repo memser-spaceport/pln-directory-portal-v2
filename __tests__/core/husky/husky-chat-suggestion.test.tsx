@@ -4,7 +4,6 @@ import HuskyChatSuggestions from '../../../components/core/husky/husky-chat-sugg
 import '@testing-library/jest-dom';
 
 describe('HuskyChatSuggestions', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -28,9 +27,15 @@ describe('HuskyChatSuggestions', () => {
     // Properly mock the async function
     const mockFollowupClicked = jest.fn().mockResolvedValue(undefined); // Mocking a resolved promise
 
-    render(<HuskyChatSuggestions followupQuestions={['Question 1']} onFollowupClicked={mockFollowupClicked} isAnswerLoading={false} />);
+    render(
+      <HuskyChatSuggestions
+        followupQuestions={['Question 1']}
+        onFollowupClicked={mockFollowupClicked}
+        isAnswerLoading={false}
+      />,
+    );
     fireEvent.click(screen.getByTestId('follow-up-question-0'));
-    
+
     // Check if the mock function was called with the correct argument
     expect(mockFollowupClicked).toHaveBeenCalledWith('Question 1');
   });
@@ -38,11 +43,16 @@ describe('HuskyChatSuggestions', () => {
   it('does not call onFollowupClicked when answer is loading', () => {
     const mockFollowupClicked = jest.fn(); // Mock function
 
-    render(<HuskyChatSuggestions followupQuestions={['Question 1']} onFollowupClicked={mockFollowupClicked} isAnswerLoading={true} />);
+    render(
+      <HuskyChatSuggestions
+        followupQuestions={['Question 1']}
+        onFollowupClicked={mockFollowupClicked}
+        isAnswerLoading={true}
+      />,
+    );
     fireEvent.click(screen.getByTestId('follow-up-question-0'));
-    
+
     // Ensure the mock function was not called
     expect(mockFollowupClicked).not.toHaveBeenCalled();
   });
-
 });

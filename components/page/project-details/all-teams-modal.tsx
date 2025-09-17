@@ -52,21 +52,38 @@ const AllTeamsModal = (props: IAllTeamsModal) => {
     <>
       <Modal modalRef={allTeamsModalRef} onClose={onModalCloseClickHandler}>
         <div className="tm">
-          <div className="tm__hdr">Teams ({(project?.contributingTeams ? project.contributingTeams.length : 0) + 1})</div>
+          <div className="tm__hdr">
+            Teams ({(project?.contributingTeams ? project.contributingTeams.length : 0) + 1})
+          </div>
           <div>
             <div className="tm__body__search">
               <div className="tm__body__search__icon">
                 <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
               </div>
-              <input value={searchTerm} type="search" className="tm__body__search__input" placeholder="Search" onChange={(event) => setSearchTerm(event.currentTarget.value)} />
+              <input
+                value={searchTerm}
+                type="search"
+                className="tm__body__search__input"
+                placeholder="Search"
+                onChange={(event) => setSearchTerm(event.currentTarget.value)}
+              />
             </div>
           </div>
           <div className="tm__body__teams">
-            {((searchTerm && project.maintainingTeam?.name.toLowerCase().includes(searchTerm.toLowerCase())) || !searchTerm) && (
-              <div className="tm__body__teams__mainTeam__wrpr" onClick={() => onMaintainerTeamClicked(project?.maintainingTeam)}>
+            {((searchTerm && project.maintainingTeam?.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+              !searchTerm) && (
+              <div
+                className="tm__body__teams__mainTeam__wrpr"
+                onClick={() => onMaintainerTeamClicked(project?.maintainingTeam)}
+              >
                 <div className="tm__body__teams__mainTeam">
                   <div className="tm__body__teams__mainTeam__info">
-                    <img width={40} className="tm__body__teams__cteam__info__profile" height={40} src={project?.maintainingTeam?.logo?.url || '/icons/team-default-profile.svg'} />
+                    <img
+                      width={40}
+                      className="tm__body__teams__cteam__info__profile"
+                      height={40}
+                      src={project?.maintainingTeam?.logo?.url || '/icons/team-default-profile.svg'}
+                    />
                     <div className="tm__body__teams__mainTeam__info__name">{project?.maintainingTeam.name}</div>
                   </div>
                   <div className="tm__body__teams__mainTeam__nav">
@@ -85,7 +102,13 @@ const AllTeamsModal = (props: IAllTeamsModal) => {
                 <div className="tm__body__teams__cteam__wrpr">
                   <div className="tm__body__teams__cteam">
                     <div className="tm__body__teams__cteam__info">
-                      <img width={40} className="tm__body__teams__cteam__info__profile" height={40} src={cteam?.logo?.url || '/icons/team-default-profile.svg'} alt="team logo" />
+                      <img
+                        width={40}
+                        className="tm__body__teams__cteam__info__profile"
+                        height={40}
+                        src={cteam?.logo?.url || '/icons/team-default-profile.svg'}
+                        alt="team logo"
+                      />
                       <div className="tm__body__teams__cteam__info__name">{cteam?.name}</div>
                     </div>
                     <div className="tm__body__teams__cteam__nav">
@@ -96,7 +119,10 @@ const AllTeamsModal = (props: IAllTeamsModal) => {
               </div>
             ))}
 
-            {contributingTeams?.length === 0 && !project?.maintainingTeam?.name.toLowerCase().includes(searchTerm.toLowerCase()) && <div className="tm__body__teams__notFound">No Teams found.</div>}
+            {contributingTeams?.length === 0 &&
+              !project?.maintainingTeam?.name.toLowerCase().includes(searchTerm.toLowerCase()) && (
+                <div className="tm__body__teams__notFound">No Teams found.</div>
+              )}
           </div>
         </div>
       </Modal>

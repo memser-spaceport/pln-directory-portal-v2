@@ -21,28 +21,28 @@ interface IrlEventsTableViewProps {
   resources?: any;
 }
 
-const IrlEventsTableView = ({ 
-  index, 
-  gathering, 
-  handleClick, 
-  isLastContent, 
-  handleElementClick, 
-  isEventSelected, 
-  eventType, 
+const IrlEventsTableView = ({
+  index,
+  gathering,
+  handleClick,
+  isLastContent,
+  handleElementClick,
+  isEventSelected,
+  eventType,
   isLoggedIn,
   userInfo,
-  onDeleteEvent
+  onDeleteEvent,
 }: IrlEventsTableViewProps) => {
   const handleRowClick = (gathering: any) => {
     if (eventType && handleElementClick) {
       handleElementClick(gathering);
     }
   };
-  
+
   const website = gathering?.resources?.find((resource: any) => resource?.name?.toLowerCase() === 'website');
 
   const accessLevel = getAccessLevel(userInfo as IUserInfo, isLoggedIn);
-  
+
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onDeleteEvent) {
@@ -51,7 +51,7 @@ const IrlEventsTableView = ({
   };
 
   return (
-    <>  
+    <>
       <div
         id={gathering?.uid}
         key={index}
@@ -63,18 +63,33 @@ const IrlEventsTableView = ({
             <div className="root__irl__table-col-header">
               <div className="root__irl__table-col__contentName__top">
                 <div className="root__irl__table-col__contentName__top__left">
-                  <img src={gathering?.logo?.url || IRL_EVENTS_DEFAULT_IMAGE} style={{ height: '20px', width: '20px' }} alt="logo" />
-                {website && (
-                  <a onClick={(e) => e.stopPropagation()} className="root__irl__table-col__contentName__top__website" target="_blank" href={website?.link}>
-                    {gathering?.name}
-                    <img className="root__irl__table-col__contentName__top__website__icon" alt="redirect" src="/icons/arrow-blue.svg" height={10} width={10} />
-                  </a>
-                )}
-                {!website && <div className="root__irl__table-col__contentName__top__title">{gathering.name}</div>}
+                  <img
+                    src={gathering?.logo?.url || IRL_EVENTS_DEFAULT_IMAGE}
+                    style={{ height: '20px', width: '20px' }}
+                    alt="logo"
+                  />
+                  {website && (
+                    <a
+                      onClick={(e) => e.stopPropagation()}
+                      className="root__irl__table-col__contentName__top__website"
+                      target="_blank"
+                      href={website?.link}
+                    >
+                      {gathering?.name}
+                      <img
+                        className="root__irl__table-col__contentName__top__website__icon"
+                        alt="redirect"
+                        src="/icons/arrow-blue.svg"
+                        height={10}
+                        width={10}
+                      />
+                    </a>
+                  )}
+                  {!website && <div className="root__irl__table-col__contentName__top__title">{gathering.name}</div>}
                 </div>
                 {accessLevel === 'advanced' && (
-                  <button 
-                    className="root__irl__table-col__contentName__top__delete" 
+                  <button
+                    className="root__irl__table-col__contentName__top__delete"
                     onClick={handleDeleteClick}
                     title="Delete Event"
                   >
@@ -85,7 +100,11 @@ const IrlEventsTableView = ({
               <div className="root__irl__table-col__contentName__bottom">
                 <div
                   className="root__irl__table-col__contentName__bottom__date"
-                  style={gathering.eventGuests?.length > 0 ? { paddingRight: '10px', marginRight: '10px', borderRight: '1px solid #cbd5e1' } : {}}
+                  style={
+                    gathering.eventGuests?.length > 0
+                      ? { paddingRight: '10px', marginRight: '10px', borderRight: '1px solid #cbd5e1' }
+                      : {}
+                  }
                 >
                   {getFormattedDateString(gathering?.startDate, gathering?.endDate, true)}
                 </div>
@@ -111,14 +130,18 @@ const IrlEventsTableView = ({
                       })}
                     </span>
                     <span className="">
-                      {gathering.eventGuests?.length > 0 ? gathering.eventGuests?.length : ''} {gathering?.eventGuests.length > 1 ? 'Attendees' : 'Attendee'}
+                      {gathering.eventGuests?.length > 0 ? gathering.eventGuests?.length : ''}{' '}
+                      {gathering?.eventGuests.length > 1 ? 'Attendees' : 'Attendee'}
                     </span>
                   </div>
                 )}
               </div>
               <div className="root__irl__table-col__contentName__resSection">
                 {gathering?.resources?.length > 0 && (
-                  <div className="root__irl__table-col__contentRes__viewCnt" onClick={(event) => gathering?.resources?.length > 0 && handleClick(gathering?.resources, event)}>
+                  <div
+                    className="root__irl__table-col__contentRes__viewCnt"
+                    onClick={(event) => gathering?.resources?.length > 0 && handleClick(gathering?.resources, event)}
+                  >
                     <div style={{ display: 'flex' }}>
                       <img src="/images/irl/elements.svg" alt="view" />
                     </div>
@@ -144,7 +167,10 @@ const IrlEventsTableView = ({
             )}
           </div>
         </div>
-        <div className="root__irl__table-col__contentDesc" dangerouslySetInnerHTML={{ __html: gathering?.description }}></div>
+        <div
+          className="root__irl__table-col__contentDesc"
+          dangerouslySetInnerHTML={{ __html: gathering?.description }}
+        ></div>
       </div>
       <style jsx>{`
         .root__irl__table-header {

@@ -45,7 +45,11 @@ const AttendeeList = (props: IAttendeeList) => {
   const searchParams = props?.searchParams;
   const currentEventNames = props?.currentEventNames;
   const locationEvents = props?.locationEvents;
-  const isAdminInAllEvents = checkAdminInAllEvents(searchParams?.type, locationEvents?.upcomingEvents, locationEvents?.pastEvents);
+  const isAdminInAllEvents = checkAdminInAllEvents(
+    searchParams?.type,
+    locationEvents?.upcomingEvents,
+    locationEvents?.pastEvents,
+  );
 
   const defaultTopics = IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
@@ -71,7 +75,7 @@ const AttendeeList = (props: IAttendeeList) => {
     setSelectedGuests([]);
     setShowFloatingBar(false);
   }, []);
- 
+
   const onCloseDeleteModal = () => {
     deleteRef.current?.close();
     setDeleteModalOpen((prev) => ({ ...prev, isOpen: false }));
@@ -97,17 +101,33 @@ const AttendeeList = (props: IAttendeeList) => {
     setPagination({ page: 1, limit: 10 });
 
     const [eventInfo, currentGuestResponse, topics, loggedInUserEvents]: any = await Promise.all([
-      await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken, currentEventNames),
+      await getGuestsByLocation(
+        location?.uid,
+        parseSearchParams(searchParams, eventDetails?.events),
+        authToken,
+        currentEventNames,
+      ),
       await getGuestsByLocation(location?.uid, { type: eventType }, authToken, currentEventNames, 1, 1),
       await getTopicsByLocation(location?.uid, eventType),
       await getGuestEvents(location?.uid, authToken),
     ]);
-    const currentGuest = currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests[0] : null;
+    const currentGuest =
+      currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests[0] : null;
     eventInfo.isUserGoing = currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid;
     eventInfo.topics = topics;
-    eventInfo.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, eventDetails?.events, isLoggedIn, userInfo);
+    eventInfo.eventsForFilter = getFilteredEventsForUser(
+      loggedInUserEvents,
+      eventDetails?.events,
+      isLoggedIn,
+      userInfo,
+    );
 
-    setUpdatedEventDetails((prev) => ({ ...eventInfo, events: prev.events, currentGuest, totalGuests: eventInfo.totalGuests }));
+    setUpdatedEventDetails((prev) => ({
+      ...eventInfo,
+      events: prev.events,
+      currentGuest,
+      totalGuests: eventInfo.totalGuests,
+    }));
     triggerLoader(false);
     router.refresh();
   };
@@ -155,9 +175,20 @@ const AttendeeList = (props: IAttendeeList) => {
       setIsAttendeeLoading(true);
       const getEventDetails = async () => {
         const authToken = getParsedValue(Cookies.get('authToken'));
-        const eventInfo: any = await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken, currentEventNames, currentPage, limit);
+        const eventInfo: any = await getGuestsByLocation(
+          location?.uid,
+          parseSearchParams(searchParams, eventDetails?.events),
+          authToken,
+          currentEventNames,
+          currentPage,
+          limit,
+        );
         if (eventInfo.totalGuests > 0) {
-          setUpdatedEventDetails((prev) => ({ ...prev, guests: [...prev.guests, ...eventInfo.guests], totalGuests: eventInfo.totalGuests }));
+          setUpdatedEventDetails((prev) => ({
+            ...prev,
+            guests: [...prev.guests, ...eventInfo.guests],
+            totalGuests: eventInfo.totalGuests,
+          }));
         }
         setIsAttendeeLoading(false);
       };
@@ -199,7 +230,17 @@ const AttendeeList = (props: IAttendeeList) => {
       )}
       <div className="attendeeList">
         <div className="attendeeList__toolbar">
-          <Toolbar locationEvents={locationEvents} isAdminInAllEvents={isAdminInAllEvents} location={location} onLogin={onLogin} filteredListLength={updatedEventDetails.totalGuests} eventDetails={updatedEventDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} followers={props.followers}/>
+          <Toolbar
+            locationEvents={locationEvents}
+            isAdminInAllEvents={isAdminInAllEvents}
+            location={location}
+            onLogin={onLogin}
+            filteredListLength={updatedEventDetails.totalGuests}
+            eventDetails={updatedEventDetails}
+            userInfo={userInfo}
+            isLoggedIn={isLoggedIn}
+            followers={props.followers}
+          />
         </div>
         <div className="attendeeList__table">
           {/* {eventDetails?.guests?.length > 0 && ( */}
@@ -231,7 +272,13 @@ const AttendeeList = (props: IAttendeeList) => {
       {/* FLOATING BAR */}
       {showFloaingBar && (
         <div className="irl__floating-bar">
-          <FloatingBar location={location} eventDetails={updatedEventDetails} selectedGuests={selectedGuests} onClose={onCloseFloatingBar} searchParams={searchParams} />
+          <FloatingBar
+            location={location}
+            eventDetails={updatedEventDetails}
+            selectedGuests={selectedGuests}
+            onClose={onCloseFloatingBar}
+            searchParams={searchParams}
+          />
         </div>
       )}
 

@@ -1,4 +1,4 @@
-@use "styles/mixins";
+@use 'styles/mixins';
 @use 'styles/media';
 
 $padding-inline: 16px;
@@ -16,7 +16,7 @@ $padding-inline: 16px;
   width: calc(100% + $padding-inline * 2);
   margin-inline: -$padding-inline;
   margin-block: 8px;
-  background: #E2E8F0;
+  background: #e2e8f0;
 }
 
 .btn {
@@ -24,14 +24,16 @@ $padding-inline: 16px;
   gap: 8px;
 
   border-radius: 8px;
-  border: 1px solid #427DFF;
-  background: #FFF;
-  box-shadow: 0 0 0 2px rgba(21, 111, 247, 0.25), 0 1px 1px 0 rgba(15, 23, 42, 0.08);
+  border: 1px solid #427dff;
+  background: #fff;
+  box-shadow:
+    0 0 0 2px rgba(21, 111, 247, 0.25),
+    0 1px 1px 0 rgba(15, 23, 42, 0.08);
   padding: 10px 8px;
   height: 40px;
   width: 100%;
 
-  color: #0F172A;
+  color: #0f172a;
 
   &:disabled {
     opacity: 0.5;
@@ -45,11 +47,11 @@ $padding-inline: 16px;
   gap: 8px;
 
   border-radius: 8px;
-  background: #FFF;
+  background: #fff;
   padding: 10px 8px;
   height: 40px;
   width: 100%;
-  color: #427DFF;
+  color: #427dff;
 
   &:disabled {
     opacity: 0.5;
@@ -67,8 +69,10 @@ $padding-inline: 16px;
 }
 
 .label {
-  color: var(--Neutral-Slate-500, #64748B);
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: var(--Neutral-Slate-500, #64748b);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -86,16 +90,17 @@ $padding-inline: 16px;
   align-self: stretch;
   flex-wrap: wrap;
   border-radius: 8px;
-  background: #F8FAFC;
+  background: #f8fafc;
   cursor: pointer;
 
   overflow: hidden;
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   text-overflow: ellipsis;
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
   line-height: 20px; /* 142.857% */
 }
-

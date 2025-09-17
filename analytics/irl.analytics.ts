@@ -29,10 +29,12 @@ export const useIrlAnalytics = () => {
     IRL_FLOATING_BAR_OPEN: 'irl-floating-bar-open',
     IRL_ADMIN_REMOVE_ATTENDEES_POPUP_OPEN: 'irl-admin-remove-attendees-popup-open',
     IRL_SELF_REMOVE_ATTENDEE_POPUP_BTN_CLICKED: 'irl-self-remove-attendee-popup-btn-clicked',
-    IRL_SELF_REMOVE_ATTENDEE_POPUP_CONFIRM_REMOVAL_BTN_CLICKED: 'irl-self-remove-attendee-popup-confirm-removal-btn-clicked',
+    IRL_SELF_REMOVE_ATTENDEE_POPUP_CONFIRM_REMOVAL_BTN_CLICKED:
+      'irl-self-remove-attendee-popup-confirm-removal-btn-clicked',
     IRL_SELF_REMOVAL_GATHERINGS_SUCCESS: 'irl-self-removal-gatherings-success',
     IRL_SELF_REMOVAL_GATHERINGS_FAILED: 'irl-self-removal-gatherings-failed',
-    IRL_ADMIN_REMOVE_ATTENDEES_POPUP_CONFIRM_REMOVAL_BTN_CLICKED: 'irl-admin-remove-attendees-popup-confirm-removal-btn-clicked',
+    IRL_ADMIN_REMOVE_ATTENDEES_POPUP_CONFIRM_REMOVAL_BTN_CLICKED:
+      'irl-admin-remove-attendees-popup-confirm-removal-btn-clicked',
     IRL_ADMIN_REMOVE_ATTENDEES_SUCCESS: 'irl-admin-remove-attendees-success',
     IRL_ADMIN_REMOVE_ATTENDEES_FAILED: 'irl-admin-remove-attendees-failed',
     IRL_FLOATING_BAR_EDIT_BTN_CLICKED: 'irl-floating-bar-edit-btn-clicked',
@@ -667,6 +669,6 @@ export const useIrlAnalytics = () => {
     trackViewPLEventsClick,
     trackEventDeleteClicked,
     trackEventDeleteConfirmed,
-    trackEventDeleteCancelled
+    trackEventDeleteCancelled,
   };
 };

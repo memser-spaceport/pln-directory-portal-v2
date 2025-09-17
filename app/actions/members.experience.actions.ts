@@ -29,12 +29,11 @@ const validate = (formattedData: any) => {
   // Start date validation
   if (!formattedData?.startDate) errs.startDate = 'Please provide the start date';
   const startDate = new Date(formattedData?.startDate);
-  if(startDate > new Date()) errs.startDate = 'Start date must be in the past';
-
+  if (startDate > new Date()) errs.startDate = 'Start date must be in the past';
 
   if (!formattedData?.isCurrent && !formattedData?.endDate) errs.endDate = 'Please provide the end date';
-  
-  if(!formattedData.isCurrent) {
+
+  if (!formattedData.isCurrent) {
     const endDate = new Date(formattedData?.endDate);
     if (endDate < startDate) errs.endDate = 'End date must be greater than start date';
   } else {
@@ -43,14 +42,15 @@ const validate = (formattedData: any) => {
 
   // Location validation
   if (formattedData?.location?.trim()?.length > 100) errs.location = 'Location must be less than 100 characters';
-  if (formattedData?.location?.trim()?.length > 0 && !locationRegex.test(formattedData?.location?.trim())) errs.location = 'Location contains invalid characters.';
+  if (formattedData?.location?.trim()?.length > 0 && !locationRegex.test(formattedData?.location?.trim()))
+    errs.location = 'Location contains invalid characters.';
 
   return errs;
 };
 
 const transformObject = (object: any) => {
   const formattedData = Object.fromEntries(object);
-  
+
   const experienceData = {
     title: formattedData?.['experience-title'],
     company: formattedData?.['experience-company'],
@@ -91,7 +91,12 @@ const deleteMemberExperience = async (experienceId: string, authToken: string) =
     if (response.status === 404) {
       return { success: false, message: 'Experience not found!', errorCode: 'experience-not-found', errors: {} };
     } else {
-      return { success: false, message: 'Experience deletion failed!', errorCode: 'delete-experience-error', errors: {} };
+      return {
+        success: false,
+        message: 'Experience deletion failed!',
+        errorCode: 'delete-experience-error',
+        errors: {},
+      };
     }
   }
 };

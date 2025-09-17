@@ -9,7 +9,12 @@ import TeamDetailsMembersCard from './team-member-card';
 import AllMembers from './all-members';
 import Modal from '@/components/core/modal';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import { getAnalyticsMemberInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import {
+  getAnalyticsMemberInfo,
+  getAnalyticsTeamInfo,
+  getAnalyticsUserInfo,
+  triggerLoader,
+} from '@/utils/common.utils';
 
 interface ITeamMembers {
   members: IMember[] | undefined;
@@ -29,20 +34,24 @@ const TeamMembers = (props: ITeamMembers) => {
 
   const onClose = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.TEAM_DETAIL_ALL_MEMBERS_CLOSE, { detail: '' }));
-    if(allMembersRef?.current) {
+    if (allMembersRef?.current) {
       allMembersRef.current.close();
     }
   };
 
   const onSeeAllClickHandler = () => {
-    if(allMembersRef?.current) {
+    if (allMembersRef?.current) {
       allMembersRef?.current?.showModal();
     }
-      analytics.onTeamDetailSeeAllMemberClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
+    analytics.onTeamDetailSeeAllMemberClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
   };
 
   const onMemberClickHandler = (member: IMember) => {
-    analytics.onTeamDetailMemberClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member))
+    analytics.onTeamDetailMemberClicked(
+      getAnalyticsTeamInfo(team),
+      getAnalyticsUserInfo(userInfo),
+      getAnalyticsMemberInfo(member),
+    );
   };
 
   return (
@@ -65,7 +74,12 @@ const TeamMembers = (props: ITeamMembers) => {
             return (
               <Fragment key={`${member} + ${index}`}>
                 <div className={`${index < members.length - 1 ? 'team-members__members__member__border-set' : ''}`}>
-                  <TeamDetailsMembersCard onCardClick={onMemberClickHandler} url={`${PAGE_ROUTES.MEMBERS}/${member?.id}`} member={member} team={team} />
+                  <TeamDetailsMembersCard
+                    onCardClick={onMemberClickHandler}
+                    url={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
+                    member={member}
+                    team={team}
+                  />
                 </div>
               </Fragment>
             );
@@ -73,12 +87,12 @@ const TeamMembers = (props: ITeamMembers) => {
         </div>
         {!members?.length && <p className="team-members__empty">No members added yet</p>}
       </div>
-      
-        <div className="all-member-container">
-          <Modal modalRef={allMembersRef} onClose={onClose}>
-            <AllMembers onCardClick={onMemberClickHandler} members={members} teamId={teamId} />
-          </Modal>
-        </div>
+
+      <div className="all-member-container">
+        <Modal modalRef={allMembersRef} onClose={onClose}>
+          <AllMembers onCardClick={onMemberClickHandler} members={members} teamId={teamId} />
+        </Modal>
+      </div>
 
       <style jsx>
         {`
@@ -89,7 +103,9 @@ const TeamMembers = (props: ITeamMembers) => {
             display: flex;
             flex-direction: column;
             gap: 8px;
-            box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+            box-shadow:
+              0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+              0px 0px 1px 0px rgba(15, 23, 42, 0.12);
           }
 
           .team-members__header {
@@ -117,7 +133,9 @@ const TeamMembers = (props: ITeamMembers) => {
           .team-members__members__mob {
             border-radius: 8px;
             background: #fff;
-            box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+            box-shadow:
+              0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+              0px 0px 1px 0px rgba(15, 23, 42, 0.12);
           }
 
           .team-members__empty {
@@ -131,7 +149,9 @@ const TeamMembers = (props: ITeamMembers) => {
             background: #fff;
             padding: 16px;
             border-radius: 12px;
-            box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+            box-shadow:
+              0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+              0px 0px 1px 0px rgba(15, 23, 42, 0.12);
           }
 
           .team-members__members__member__border-set {
@@ -157,7 +177,9 @@ const TeamMembers = (props: ITeamMembers) => {
               border-radius: 8px;
               max-height: 300px;
               background: #fff;
-              box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+              box-shadow:
+                0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+                0px 0px 1px 0px rgba(15, 23, 42, 0.12);
             }
           }
           .member-modal {

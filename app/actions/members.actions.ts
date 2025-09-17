@@ -3,12 +3,15 @@
 import { getHeader } from '@/utils/common.utils';
 
 export const getMemberListForQuery = async (query: string, currentPage: number, limit: number, authToken?: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members-search?page=${currentPage}&limit=${limit}&${query}`, {
-    // cache: 'no-store',
-    method: 'GET',
-    next: { tags: ['member-list'] },
-    headers: getHeader(authToken ?? ''),
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/members-search?page=${currentPage}&limit=${limit}&${query}`,
+    {
+      // cache: 'no-store',
+      method: 'GET',
+      next: { tags: ['member-list'] },
+      headers: getHeader(authToken ?? ''),
+    },
+  );
 
   if (!response.ok) {
     return { isError: true, error: { status: response.status, statusText: response.statusText } };

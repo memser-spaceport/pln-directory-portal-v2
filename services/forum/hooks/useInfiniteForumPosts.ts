@@ -52,7 +52,18 @@ async function infiniteFetcher(queryParams: QueryParams, page: number) {
 }
 
 export function useInfiniteForumPosts(queryParams: QueryParams) {
-  const { isRefetching, data, error, isError, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, status, refetch } = useInfiniteQuery({
+  const {
+    isRefetching,
+    data,
+    error,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isLoading,
+    isFetchingNextPage,
+    status,
+    refetch,
+  } = useInfiniteQuery({
     queryKey: [ForumQueryKeys.GET_INFINITE_FORUM_POSTS, queryParams.cid, queryParams.categoryTopicSort],
     initialPageParam: queryParams.cid === '0' ? 1 : 0,
     queryFn: async ({ pageParam = queryParams.cid === '0' ? 1 : 0 }) => {

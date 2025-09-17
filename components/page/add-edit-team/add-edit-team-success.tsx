@@ -58,7 +58,9 @@ const AddEditTeamSuccess = () => {
         </div>
         <div className="team-submit-success__cn__info">
           <div className="team-submit-success__cn__info__title">Team Under Review</div>
-          <div className="team-submit-success__cn__info__text">Our team will review your request and get back to you shortly</div>
+          <div className="team-submit-success__cn__info__text">
+            Our team will review your request and get back to you shortly
+          </div>
           <div className="team-submit-success__cn__info__action">
             <button className="team-submit-success__cn__info__action__submit" onClick={onSubmitAnotherTeamClick}>
               Submit another Team

@@ -22,7 +22,7 @@ describe('ContributorsPopup', () => {
 
   it('renders correctly', () => {
     render(<ContributorsPopup {...defaultProps} />);
-    
+
     // Check if the header and buttons are present
     expect(screen.getByText('Select Contributors')).toBeInTheDocument();
     expect(screen.getByText('Save')).toBeInTheDocument();
@@ -86,13 +86,12 @@ describe('ContributorsPopup', () => {
     expect(defaultProps.onSkipAndSaveClicked).toHaveBeenCalled();
   });
 
-//   it('filters contributors based on team selection', () => {
-//     render(<ContributorsPopup {...defaultProps} />);
+  //   it('filters contributors based on team selection', () => {
+  //     render(<ContributorsPopup {...defaultProps} />);
 
-//     const teamDropdown = screen.getByPlaceholderText('All Team');
-//     fireEvent.change(teamDropdown, { target: { value: 'Team Alpha' } });
+  //     const teamDropdown = screen.getByPlaceholderText('All Team');
+  //     fireEvent.change(teamDropdown, { target: { value: 'Team Alpha' } });
 
-//     expect(defaultProps.getAllContributors).toHaveBeenCalledWith('1');
-//   });
-
+  //     expect(defaultProps.getAllContributors).toHaveBeenCalledWith('1');
+  //   });
 });

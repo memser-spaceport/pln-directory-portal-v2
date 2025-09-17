@@ -4,7 +4,7 @@ import FocusArea from './focus-area';
 
 interface IFocusAreas {
   focusAreas: any[];
-  onClose: (e?:any) => void;
+  onClose: (e?: any) => void;
   selectedItems: any[];
   handleFoucsAreaSave: (items: any[]) => void;
 }
@@ -97,7 +97,9 @@ const FocusAreas = (props: IFocusAreas) => {
   const getDesc = (item: any) => {
     try {
       const childrens = findChildrens(item);
-      const matchedChildren = childrens.filter((child: any) => selectedItems.some((selectedItem) => selectedItem.uid === child.uid));
+      const matchedChildren = childrens.filter((child: any) =>
+        selectedItems.some((selectedItem) => selectedItem.uid === child.uid),
+      );
       const formattedText = matchedChildren
         .map((child: any) => {
           return child?.title;
@@ -171,41 +173,39 @@ const FocusAreas = (props: IFocusAreas) => {
             flex-direction: column;
             gap: 20px;
           }
-            .fas__cn__action {
+          .fas__cn__action {
             display: flex;
             height: 40px;
             align-items: center;
             justify-content: flex-end;
-           
-            }
-            .fas__cn__action__items {
-             display: flex;
-             gap: 8px;
-           
-            }
-             .fas__cn__action__items__close {
-             display: flex;
-             height: 40px;
-             align-items: center;
-             border-radius: 60px;
-             border: 1px solid #CBD5E1;
-             padding: 10px 24px;
-             font-size: 14px;
-             font-weight: 500;
-             color: #0F172A;
-             background:transparent;
-             }
-              .fas__cn__action__items__save {
-             display: flex;
-             height: 40px;
-             align-items: center;
-             border-radius: 60px;
-             border: 1px solid #CBD5E1;
-             padding: 10px 24px;
-             font-size: 14px;
-             font-weight: 500;
-             color: #fff;
-             }
+          }
+          .fas__cn__action__items {
+            display: flex;
+            gap: 8px;
+          }
+          .fas__cn__action__items__close {
+            display: flex;
+            height: 40px;
+            align-items: center;
+            border-radius: 60px;
+            border: 1px solid #cbd5e1;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #0f172a;
+            background: transparent;
+          }
+          .fas__cn__action__items__save {
+            display: flex;
+            height: 40px;
+            align-items: center;
+            border-radius: 60px;
+            border: 1px solid #cbd5e1;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+          }
           .fas__cn__list {
             display: flex;
             flex-direction: column;
@@ -217,8 +217,8 @@ const FocusAreas = (props: IFocusAreas) => {
           }
 
           .fas__cn__list__item {
-           border-radius: 4px;
-           border: 1px solid #CBD5E1;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
           }
 
           .fas__cn__head {

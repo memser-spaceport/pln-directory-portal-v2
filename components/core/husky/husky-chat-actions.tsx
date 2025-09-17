@@ -19,13 +19,27 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
         </h3>
         <div className="chat-actions__cn ">
           {actions.map((action: any, index: number) => (
-            <a target="_blank" href={action.directoryLink} onClick={() => onActionCardClicked(action)} className="chat-actions__cn__item" key={index}>
+            <a
+              target="_blank"
+              href={action.directoryLink}
+              onClick={() => onActionCardClicked(action)}
+              className="chat-actions__cn__item"
+              key={index}
+            >
               <div className="chat-actions__cn__item__wrpr">
                 <div className="actions__cn__item__name__iconWrpr">
-                  {action.type?.toLowerCase() === 'member' && <img className="actions__cn__item__name__icon" src="/icons/default_profile.svg" alt="icon" />}
-                  {action.type?.toLowerCase() === 'team' && <img className="actions__cn__item__name__icon" src="/icons/team-default-profile.svg" alt="icon" />}
-                  {action.type?.toLowerCase() === 'project' && <img className="actions__cn__item__name__icon" src="/icons/default-project.svg" alt="icon" />}
-                  {action.type?.toLowerCase() === 'event' && <img className="actions__cn__item__name__icon" src="/icons/irl-event-default-logo.svg" alt="icon" />}
+                  {action.type?.toLowerCase() === 'member' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/default_profile.svg" alt="icon" />
+                  )}
+                  {action.type?.toLowerCase() === 'team' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/team-default-profile.svg" alt="icon" />
+                  )}
+                  {action.type?.toLowerCase() === 'project' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/default-project.svg" alt="icon" />
+                  )}
+                  {action.type?.toLowerCase() === 'event' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/irl-event-default-logo.svg" alt="icon" />
+                  )}
                 </div>
                 <div className="">
                   <p className="chat-actions__cn__item__name">

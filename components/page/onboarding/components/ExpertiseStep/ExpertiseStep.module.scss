@@ -12,7 +12,7 @@
 }
 
 .title {
-  color: #0F172A;
+  color: #0f172a;
   text-align: center;
   font-size: 32px;
   font-style: normal;
@@ -25,7 +25,9 @@
   overflow: hidden;
   color: #475569;
   text-align: center;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   text-overflow: ellipsis;
   font-size: 14px;
   font-style: normal;
@@ -50,8 +52,8 @@
 .badge {
   position: relative;
   border-radius: 8px;
-  border: 1px solid #CBD5E1;
-  background: #FFF;
+  border: 1px solid #cbd5e1;
+  background: #fff;
 
   display: flex;
   height: 50px;
@@ -61,7 +63,9 @@
   gap: 8px;
 
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -71,7 +75,7 @@
 .badgeActive {
   position: relative;
   border-radius: 8px;
-  background: #427DFF;
+  background: #427dff;
   border: 1px solid transparent;
   box-shadow: 0 0 4px 4px rgba(21, 111, 247, 0.25);
   display: flex;
@@ -81,8 +85,10 @@
   align-items: center;
   gap: 8px;
 
-  color: #FFF;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #fff;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -93,19 +99,14 @@
   @include mixins.centralize;
   width: 24px;
   height: 24px; /* height = width * sqrt(3)/2 for a perfect hexagon */
-  background-color: #00D37B;
-  clip-path: polygon(
-                  50% 0%,
-                  93.3% 25%,
-                  93.3% 75%,
-                  50% 100%,
-                  6.7% 75%,
-                  6.7% 25%
-  );
+  background-color: #00d37b;
+  clip-path: polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%);
 
-  color: #FFF;
+  color: #fff;
   text-align: center;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 600;
@@ -117,7 +118,7 @@
 }
 
 .counter {
-  color: #A0BEFF;
+  color: #a0beff;
   text-align: center;
   font-size: 14px;
   font-style: normal;

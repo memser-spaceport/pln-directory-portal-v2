@@ -25,11 +25,11 @@
   gap: 6px;
   font-size: 12px;
   font-weight: 500;
-  
+
   &.valid {
     color: #059669;
   }
-  
+
   &.invalid {
     color: #dc2626;
   }
@@ -57,43 +57,43 @@
   color: #111827;
   background: #fff;
   transition: all 0.2s ease;
-  
+
   &:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
-  
+
   &:hover:not(:focus) {
     border-color: #9ca3af;
   }
-  
+
   &.validating {
     border-color: #6b7280;
     background: #f9fafb;
   }
-  
+
   &.valid {
     border-color: #059669;
-    
+
     &:focus {
       border-color: #059669;
       box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
     }
   }
-  
+
   &.error {
-    border-color: #FF3838;
-    color: #FF3838;
-    
+    border-color: #ff3838;
+    color: #ff3838;
+
     &:focus {
-      border-color: #FF3838;
+      border-color: #ff3838;
       box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
     }
   }
-  
+
   &::placeholder {
-    color: #AFBACA;
+    color: #afbaca;
     font-size: 14px;
   }
 }
@@ -108,7 +108,7 @@
 }
 
 .errorMessage {
-  color: var(--foreground-error-secondary, #FF3838);
+  color: var(--foreground-error-secondary, #ff3838);
   font-size: 12px;
   font-style: normal;
   font-weight: 400;
@@ -117,7 +117,7 @@
 }
 
 .successMessage {
-  color: var(--action-foreground-success-active, #0A9952);
+  color: var(--action-foreground-success-active, #0a9952);
   font-size: 12px;
   font-style: normal;
   font-weight: 400;
@@ -134,7 +134,7 @@
 }
 
 .loader::before {
-  content: "";
+  content: '';
   box-sizing: border-box;
   position: absolute;
   inset: 0;

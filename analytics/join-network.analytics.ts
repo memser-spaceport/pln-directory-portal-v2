@@ -24,19 +24,19 @@ export const useJoinNetworkAnalytics = () => {
   function recordMemberJoinNetworkNextClick(currentStep: string, type: string) {
     const params = {
       itemName: currentStep,
-      type
+      type,
     };
     captureEvent(JOIN_NETWORK_ANALYTICS_EVENTS.MEMBER_JOIN_NETWORK_NEXT_CLICK, params);
   }
 
   function recordMemberJoinNetworkBackClick(currentStep: string) {
     const params = {
-      currentStep
+      currentStep,
     };
     captureEvent(JOIN_NETWORK_ANALYTICS_EVENTS.MEMBER_JOIN_NETWORK_BACK_CLICK, params);
   }
 
-  function recordMemberJoinNetworkSave(type: string, payload?: any){
+  function recordMemberJoinNetworkSave(type: string, payload?: any) {
     const params = {
       type,
       ...payload,
@@ -47,19 +47,19 @@ export const useJoinNetworkAnalytics = () => {
   function recordTeamJoinNetworkNextClick(currentStep: string, type: string) {
     const params = {
       name: currentStep,
-      type
+      type,
     };
     captureEvent(JOIN_NETWORK_ANALYTICS_EVENTS.TEAM_JOIN_NETWORK_NEXT_CLICK, params);
   }
 
   function recordTeamJoinNetworkBackClick(currentStep: string) {
     const params = {
-      currentStep
+      currentStep,
     };
     captureEvent(JOIN_NETWORK_ANALYTICS_EVENTS.TEAM_JOIN_NETWORK_BACK_CLICK, params);
   }
 
-  function recordTeamJoinNetworkSave(type: string, payload?: any){
+  function recordTeamJoinNetworkSave(type: string, payload?: any) {
     const params = {
       type,
       ...payload,
@@ -67,14 +67,14 @@ export const useJoinNetworkAnalytics = () => {
     captureEvent(JOIN_NETWORK_ANALYTICS_EVENTS.TEAM_JOIN_NETWORK_SAVE, params);
   }
 
-  function recordTeamSubmitSuccessHomeClick(){
+  function recordTeamSubmitSuccessHomeClick() {
     captureEvent(JOIN_NETWORK_ANALYTICS_EVENTS.TEAM_JOIN_NETWORK_SAVE_SUCCESS_HOME_CLICK);
   }
 
-  function recordTeamSubmitSuccessAnotherTeamClick(){
+  function recordTeamSubmitSuccessAnotherTeamClick() {
     captureEvent(JOIN_NETWORK_ANALYTICS_EVENTS.TEAM_JOIN_NETWORK_SAVE_SUCCESS_SUBMIT_ANOTHER_TEAM_CLICK);
   }
-  
+
   return {
     recordMemberJoinNetworkNextClick,
     recordMemberJoinNetworkBackClick,
@@ -83,6 +83,6 @@ export const useJoinNetworkAnalytics = () => {
     recordTeamJoinNetworkBackClick,
     recordTeamJoinNetworkSave,
     recordTeamSubmitSuccessAnotherTeamClick,
-    recordTeamSubmitSuccessHomeClick
+    recordTeamSubmitSuccessHomeClick,
   };
 };

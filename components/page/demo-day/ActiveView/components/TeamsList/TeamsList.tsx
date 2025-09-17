@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { clsx } from 'clsx';
 import { Menu } from '@base-ui-components/react/menu';
 import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
+import { useFilterStore } from '@/services/members/store';
+import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { TeamProfileCard } from './components/TeamProfileCard';
 import s from './TeamsList.module.scss';
 
@@ -39,11 +41,60 @@ const SORT_OPTIONS: SortOption[] = [
 export const TeamsList: React.FC = () => {
   const { data: teams, isLoading, error } = useGetTeamsList();
   const [sortBy, setSortBy] = useState<string>('name-asc');
+  const { params } = useFilterStore();
 
-  const sortedTeams = React.useMemo(() => {
+  // Get filter parameters from URL
+  const searchTerm = params.get('search') || '';
+  const selectedIndustries = useMemo(() => {
+    const industryParam = params.get('industry');
+    return industryParam ? industryParam.split(URL_QUERY_VALUE_SEPARATOR) : [];
+  }, [params]);
+
+  const selectedStages = useMemo(() => {
+    const stageParam = params.get('stage');
+    return stageParam ? stageParam.split(URL_QUERY_VALUE_SEPARATOR) : [];
+  }, [params]);
+
+  // Filter and sort teams based on current filter parameters
+  const filteredAndSortedTeams = useMemo(() => {
     if (!teams) return [];
 
-    const sorted = [...teams].sort((a, b) => {
+    // Apply filters
+    let filtered = teams.filter((team) => {
+      // Search filter - check team name and description
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const matchesName = team.team.name.toLowerCase().includes(searchLower);
+        const matchesDescription = team.team.shortDescription?.toLowerCase().includes(searchLower);
+        if (!matchesName && !matchesDescription) {
+          return false;
+        }
+      }
+
+      // Industry filter
+      if (selectedIndustries.length > 0) {
+        const teamIndustryUids = team.team.industryTags.map(tag => tag.uid);
+        const hasMatchingIndustry = selectedIndustries.some(industryUid =>
+          teamIndustryUids.includes(industryUid)
+        );
+        if (!hasMatchingIndustry) {
+          return false;
+        }
+      }
+
+      // Stage filter
+      if (selectedStages.length > 0) {
+        const teamStageUid = team.team.fundingStage.uid;
+        if (!selectedStages.includes(teamStageUid)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'name-asc':
           return a.team.name.localeCompare(b.team.name);
@@ -62,10 +113,11 @@ export const TeamsList: React.FC = () => {
     });
 
     return sorted;
-  }, [teams, sortBy]);
+  }, [teams, sortBy, searchTerm, selectedIndustries, selectedStages]);
 
   const selectedSortOption = SORT_OPTIONS.find((option) => option.value === sortBy);
-  const teamsCount = teams?.length || 0;
+  const totalTeamsCount = teams?.length || 0;
+  const filteredTeamsCount = filteredAndSortedTeams.length;
 
   const handleSortChange = (value: string) => {
     setSortBy(value);
@@ -101,7 +153,9 @@ export const TeamsList: React.FC = () => {
       <div className={s.header}>
         <div className={s.headerLeft}>
           <h2 className={s.title}>Teams List</h2>
-          <span className={s.counter}>({teamsCount})</span>
+          <span className={s.counter}>
+            ({filteredTeamsCount}{totalTeamsCount !== filteredTeamsCount ? ` of ${totalTeamsCount}` : ''})
+          </span>
         </div>
 
         <div className={s.headerRight}>
@@ -133,11 +187,18 @@ export const TeamsList: React.FC = () => {
       </div>
 
       <div className={s.teamsList}>
-        {sortedTeams.map((team) => (
+        {filteredAndSortedTeams.map((team) => (
           <TeamProfileCard key={team.uid} team={team} />
         ))}
 
-        {sortedTeams.length === 0 && (
+        {filteredAndSortedTeams.length === 0 && totalTeamsCount > 0 && (
+          <div className={s.emptyState}>
+            <p>No teams match the current filters.</p>
+            <p>Try adjusting your search or filter criteria.</p>
+          </div>
+        )}
+
+        {totalTeamsCount === 0 && (
           <div className={s.emptyState}>
             <p>No teams found.</p>
           </div>

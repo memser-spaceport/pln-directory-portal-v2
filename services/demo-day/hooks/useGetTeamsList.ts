@@ -11,8 +11,8 @@ export type TeamProfile = {
   onePagerUploadUid: string;
   status: string;
   team: {
-    fundingStage: { uid: 'uid-series-b'; title: 'Series B' };
-    industryTags: { uid: 'uid-education'; title: 'Education' }[];
+    fundingStage: { uid: string; title: string };
+    industryTags: { uid: string; title: string }[];
     logo: { uid: 'cmfo0qukn0007p166rz8vu3rm'; url: string };
     name: string;
     shortDescription: string;

@@ -37,11 +37,9 @@ export const Filters = () => {
 
       {/* Body */}
       <div className={s.body}>
-        {isAdmin && (
-          <FilterSection title="Team Search">
-            <FilterSearch placeholder="Search for a team" />
-          </FilterSection>
-        )}
+        <FilterSection title="Team Search">
+          <FilterSearch placeholder="Search for a team" />
+        </FilterSection>
 
         <FilterSection title="Industry">
           <div>local filter here</div>

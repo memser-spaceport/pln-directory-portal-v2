@@ -29,7 +29,7 @@ export const Content = () => {
             &nbsp;&bull;&nbsp;
             <span>123 Teams</span>
             &nbsp;&bull;&nbsp;
-            <Link href={`/members?investor=true`}>
+            <Link href={`/members?isInvestor=true`}>
               245 Investors <LinkIcon />
             </Link>
           </div>

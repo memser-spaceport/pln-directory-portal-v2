@@ -34,20 +34,22 @@ export const Newsletter = ({ userInfo }: { userInfo: IUserInfo }) => {
     <div className={s.root}>
       <div className={s.header}>Newsletter</div>
       <div className={s.content}>
-        <label className={clsx(s.Label, s.toggle)}>
-          Subscribe to PL Newsletter
-          <Switch.Root
-            defaultChecked
-            className={s.Switch}
-            checked={data?.memberInfo.isSubscribedToNewsletter}
-            onCheckedChange={handleChange}
-          >
-            <Switch.Thumb className={s.Thumb}>
-              <div className={s.dot} />
-            </Switch.Thumb>
-          </Switch.Root>
-        </label>
-        <div className={s.desc}>Get new letter straight to your inbox</div>
+        <div className={s.toggleSection}>
+          <label className={clsx(s.Label, s.toggle)}>
+            Subscribe to PL Newsletter
+            <Switch.Root
+              defaultChecked
+              className={s.Switch}
+              checked={data?.memberInfo.isSubscribedToNewsletter}
+              onCheckedChange={handleChange}
+            >
+              <Switch.Thumb className={s.Thumb}>
+                <div className={s.dot} />
+              </Switch.Thumb>
+            </Switch.Root>
+          </label>
+          <div className={s.desc}>Get new letter straight to your inbox</div>
+        </div>
       </div>
     </div>
   );

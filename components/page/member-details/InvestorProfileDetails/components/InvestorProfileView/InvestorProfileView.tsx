@@ -16,10 +16,12 @@ interface Props {
   onEdit?: () => void;
   typicalCheckSize: string | undefined;
   investmentFocusAreas: string[] | undefined;
+  investToStartups: { label: string; value: string }[] | undefined;
+  investInVcFunds: { label: string; value: string }[] | undefined;
   secRulesAccepted: boolean | undefined;
 }
 
-export const InvestorProfileView = ({ typicalCheckSize, investmentFocusAreas, secRulesAccepted, isLoggedIn, isEditable, showIncomplete, onEdit }: Props) => {
+export const InvestorProfileView = ({ typicalCheckSize, investmentFocusAreas, investToStartups, investInVcFunds, secRulesAccepted, isLoggedIn, isEditable, showIncomplete, onEdit }: Props) => {
   return (
     <>
       {showIncomplete && (
@@ -72,6 +74,54 @@ export const InvestorProfileView = ({ typicalCheckSize, investmentFocusAreas, se
                       investmentFocusAreas?.map((item: string) => (
                         <div key={item} className={s.badge}>
                           {item}
+                        </div>
+                      ))
+                    ) : (
+                      <button
+                        type="button"
+                        className={s.addKeywordsBadge}
+                        onClick={() => {
+                          onEdit?.();
+                        }}
+                      >
+                        <AddIcon /> Add
+                      </button>
+                    )}
+                  </span>
+                </div>
+              )}
+              {(!!investToStartups?.length || isEditable) && (
+                <div className={s.keywordsWrapper}>
+                  <span className={s.keywordsLabel}>Investment Stages in Startups:</span>
+                  <span className={s.badgesWrapper}>
+                    {investToStartups?.length && secRulesAccepted ? (
+                      investToStartups?.map((item: { label: string; value: string }) => (
+                        <div key={item.value} className={s.badge}>
+                          {item.label}
+                        </div>
+                      ))
+                    ) : (
+                      <button
+                        type="button"
+                        className={s.addKeywordsBadge}
+                        onClick={() => {
+                          onEdit?.();
+                        }}
+                      >
+                        <AddIcon /> Add
+                      </button>
+                    )}
+                  </span>
+                </div>
+              )}
+              {(!!investInVcFunds?.length || isEditable) && (
+                <div className={s.keywordsWrapper}>
+                  <span className={s.keywordsLabel}>Investment Types in VC Funds:</span>
+                  <span className={s.badgesWrapper}>
+                    {investInVcFunds?.length && secRulesAccepted ? (
+                      investInVcFunds?.map((item: { label: string; value: string }) => (
+                        <div key={item.value} className={s.badge}>
+                          {item.label}
                         </div>
                       ))
                     ) : (

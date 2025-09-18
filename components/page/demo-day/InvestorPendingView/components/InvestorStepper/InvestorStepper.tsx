@@ -1,5 +1,6 @@
 import React from 'react';
 import s from './InvestorStepper.module.scss';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 interface StepperProps {
   currentStep: number;
@@ -17,6 +18,25 @@ export const InvestorStepper: React.FC<StepperProps> = ({
   currentStep,
   onFillProfile,
 }) => {
+  const { data } = useGetDemoDayState();
+
+  // Format the date for Step 3 description
+  const formatEventDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const time = date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    const day = date.getDate();
+
+    return `${time} UTC, ${month} ${day}`;
+  };
+
+  const eventDateFormatted = data?.date
+    ? formatEventDate(data.date)
+    : '12:00 UTC, Oct 25';
   const steps: StepData[] = [
     {
       id: 1,
@@ -33,7 +53,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({
     {
       id: 3,
       title: 'Step 3',
-      description: 'Demo Day access — You can now access Demo Day.',
+      description: `Demo Day access — Opens at ${eventDateFormatted}.`,
       status: currentStep > 3 ? 'completed' : currentStep === 3 ? 'current' : 'pending',
     },
   ];

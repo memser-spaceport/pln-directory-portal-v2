@@ -7,6 +7,8 @@ interface InvestorProfilePayload {
   investorProfile: {
     investmentFocus: string[];
     typicalCheckSize: number;
+    investToStartups?: { label: string; value: string }[];
+    investInVcFunds?: { label: string; value: string }[];
     secRulesAccepted: boolean;
   };
 }

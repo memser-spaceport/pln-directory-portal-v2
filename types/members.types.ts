@@ -158,6 +158,8 @@ export interface IMember {
   visibleHandles?: string[];
   linkedinProfile: ILinkedinProfile;
   investorProfile?: {
+    investToStartups: { label: string; value: string }[];
+    investInVcFunds: { label: string; value: string }[];
     typicalCheckSize: string;
     investmentFocus: string[];
     secRulesAccepted: boolean;

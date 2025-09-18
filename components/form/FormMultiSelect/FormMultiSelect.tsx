@@ -66,6 +66,7 @@ export const FormMultiSelect = ({ name, placeholder, label, description, options
         isClearable={false}
         placeholder={placeholder}
         inputId={name}
+        isDisabled={disabled}
         // @ts-ignore
         value={val}
         onChange={(val) => {

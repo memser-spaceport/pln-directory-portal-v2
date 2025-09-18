@@ -1,0 +1,253 @@
+@use 'styles/media';
+
+.stepperCard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e8edff;
+  background: #fff;
+  width: 100%;
+
+  @include media.mobile-only {
+    padding: 16px;
+    gap: 16px;
+  }
+}
+
+.titleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  text-align: center;
+  color: #455468;
+}
+
+.title {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.4px;
+  margin: 0;
+  width: 100%;
+
+  @include media.mobile-only {
+    font-size: 16px;
+    line-height: 22px;
+  }
+}
+
+.subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  margin: 0;
+  width: 100%;
+
+  @include media.mobile-only {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
+
+.verticalStepper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: flex-start;
+  max-width: 345px;
+  margin: 0 auto;
+}
+
+.stepContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  position: relative;
+
+  @include media.mobile-only {
+    gap: 12px;
+  }
+}
+
+.stepIndicatorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.stepIndicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.stepDot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 0.5px solid rgba(27, 56, 96, 0.12);
+  box-shadow: 0px 1px 3px 0px rgba(14, 15, 17, 0.12), 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+  transition: all 0.2s ease;
+}
+
+.stepIndicator.completed .stepDot,
+.stepIndicator.current .stepDot {
+  border: 3px solid #1b4dff;
+  box-shadow: 0px 4px 6px -1px rgba(14, 15, 17, 0.12), 0px 2px 4px -1px rgba(14, 15, 17, 0.06);
+}
+
+.stepConnector {
+  width: 2px;
+  height: 40px;
+  background: #f0f3f9;
+  margin-top: 4px;
+  transition: background-color 0.3s ease;
+
+  &.completed {
+    background: #1b4dff;
+  }
+
+  @include media.mobile-only {
+    height: 32px;
+  }
+}
+
+.stepContent {
+  flex: 1;
+  padding-top: 0;
+
+  &:not(:last-child) {
+    padding-bottom: 24px;
+
+    @include media.mobile-only {
+      padding-bottom: 20px;
+    }
+  }
+
+}
+
+.stepTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #455468;
+  margin: -1px 0 4px 0;
+  letter-spacing: -0.2px;
+
+  @include media.mobile-only {
+    font-size: 13px;
+    line-height: 18px;
+    margin: 0 0 4px 0;
+  }
+}
+
+.stepDescription {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  color: #8897ae;
+  margin: 0;
+  letter-spacing: -0.2px;
+
+  @include media.mobile-only {
+    font-size: 11px;
+    line-height: 15px;
+  }
+}
+
+// Step status styles
+.stepContainer.completed {
+  .stepTitle {
+    color: #455468;
+  }
+
+  .stepDescription {
+    color: #8897ae;
+  }
+}
+
+.stepContainer.current {
+  .stepTitle {
+    color: #1b4dff;
+    font-weight: 600;
+  }
+
+  .stepDescription {
+    color: #455468;
+  }
+}
+
+.stepContainer.pending {
+  .stepTitle {
+    color: #8897ae;
+  }
+
+  .stepDescription {
+    color: #c1c9d2;
+  }
+}
+
+.primaryButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  background: #1b4dff;
+  box-shadow: 
+    0px 1px 3px 0px inset rgba(255, 255, 255, 0.32),
+    0px 4px 6px 0px inset rgba(255, 255, 255, 0.06),
+    0px 1px 5px 0px rgba(27, 77, 255, 0.16);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  max-width: 220px;
+
+  &:hover {
+    background: #1a45e6;
+    transform: translateY(-1px);
+  }
+
+  &:focus {
+    outline: 2px solid #156ff7;
+    outline-offset: 2px;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @include media.mobile-only {
+    padding: 10px 16px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+}

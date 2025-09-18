@@ -5,23 +5,7 @@ import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
-import { TeamFundraisingCard } from './components/TeamFundraisingCard';
-import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
-import { PITCH_DECK_URL, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
-
-interface ButtonProps {
-  children: React.ReactNode;
-  onClick?: () => void;
-  className?: string;
-}
-
-const PrimaryButton = ({ children, onClick, className }: ButtonProps) => {
-  return (
-    <button className={`${s.primaryButton} ${className || ''}`} onClick={onClick}>
-      {children}
-    </button>
-  );
-};
+import { InvestorStepper } from './components/InvestorStepper';
 
 export const InvestorPendingView = () => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -90,15 +74,7 @@ export const InvestorPendingView = () => {
             </div>
           </div>
 
-          <ProfileContent pitchDeckUrl={PITCH_DECK_URL} videoUrl={PITCH_VIDEO_URL} />
-
-          {/* Call to action section */}
-          <div className={s.ctaSection}>
-            <p className={s.ctaText}>Complete your investor profile to join Demo Day</p>
-            <PrimaryButton onClick={handleFillProfile} className={s.ctaButton}>
-              Fill in Your Investor Profile
-            </PrimaryButton>
-          </div>
+          <InvestorStepper currentStep={2} eventDate={eventDate} onFillProfile={handleFillProfile} />
         </div>
       </div>
     </div>

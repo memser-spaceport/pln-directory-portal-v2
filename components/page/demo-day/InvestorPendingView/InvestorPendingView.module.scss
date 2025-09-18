@@ -195,73 +195,7 @@
   }
 }
 
-.ctaSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-}
 
-.ctaText {
-  color: var(--foreground-neutral-secondary, #455468);
-  text-align: center;
-  font-size: 18px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 24px; /* 133.333% */
-  letter-spacing: -0.4px;
-  margin: 0;
-  max-width: 900px;
-
-  @include media.mobile-only {
-    font-size: 14px;
-    line-height: 22px;
-    max-width: 100%;
-  }
-}
-
-.primaryButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 17px 20px;
-  gap: 2px;
-  background: #1b4dff;
-  border: 1px solid rgba(14, 15, 17, 0.12);
-  border-radius: 12px;
-  box-shadow:
-    0px 1px 3px 0px rgba(14, 15, 17, 0.12),
-    0px 1px 2px 0px rgba(14, 15, 17, 0.06),
-    0px 1px 5px 0px rgba(27, 77, 255, 0.16),
-    0px 1px 3px 0px inset rgba(255, 255, 255, 0.32),
-    0px 4px 6px 0px inset rgba(255, 255, 255, 0.06);
-
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 24px;
-  letter-spacing: -0.4px;
-  color: white;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: #1a47e6;
-  }
-
-  @include media.mobile-only {
-    padding: 14px 16px;
-    font-size: 16px;
-    width: 100%;
-    max-width: 320px;
-  }
-}
-
-.ctaButton {
-  // Additional styles specific to the CTA button if needed
-}
 
 .videoPreview {
   width: 100%;

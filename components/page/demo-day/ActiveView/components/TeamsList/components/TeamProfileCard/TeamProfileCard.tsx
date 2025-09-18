@@ -7,11 +7,16 @@ import s from './TeamProfileCard.module.scss';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
+  onClick?: (team: TeamProfile) => void;
 }
 
-export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team }) => {
+export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick }) => {
+  const handleCardClick = () => {
+    onClick?.(team);
+  };
+
   return (
-    <div className={s.profileCard}>
+    <div className={s.profileCard} onClick={handleCardClick}>
       <ProfileHeader
         image={team.team.logo?.url || '/images/demo-day/profile-placeholder.svg'}
         name={team.team?.name || 'Team Name'}

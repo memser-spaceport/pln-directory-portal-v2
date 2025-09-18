@@ -73,47 +73,7 @@ async function fetcher() {
 
   const data: FundraisingProfile = await response.json();
 
-  const videoResponse = await customFetch(
-    `${process.env.DIRECTORY_API_URL}/v1/uploads/${data.videoUploadUid}`,
-    {
-      method: 'GET',
-    },
-    true,
-  );
-
-  if (videoResponse?.ok) {
-    data.videoUpload = await videoResponse.json();
-    if (data.videoUpload?.freshUrl) {
-      data.videoUpload.url = data.videoUpload?.freshUrl;
-    }
-  }
-
-  const slideResponse = await customFetch(
-    `${process.env.DIRECTORY_API_URL}/v1/uploads/${data.onePagerUploadUid}`,
-    {
-      method: 'GET',
-    },
-    true,
-  );
-
-  if (slideResponse?.ok) {
-    data.onePagerUpload = await slideResponse.json();
-    if (data.onePagerUpload?.freshUrl) {
-      data.onePagerUpload.url = data.onePagerUpload.freshUrl;
-    }
-  }
-
   return data;
-
-  // return {
-  //   image: '/images/demo-day/profile-placeholder.svg',
-  //   name: 'Randamu',
-  //   shortDescription: 'Randamu increases fairness in our world by harnessing entropy.',
-  //   tags: ['VR/AR', 'Frontier Tech', 'Service Providers', 'Enterprise Solutions'],
-  //   fundingStage: 'seed',
-  //   pitchDeckUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', // Sample PDF
-  //   videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', // Sample video
-  // };
 }
 
 export function useGetFundraisingProfile() {

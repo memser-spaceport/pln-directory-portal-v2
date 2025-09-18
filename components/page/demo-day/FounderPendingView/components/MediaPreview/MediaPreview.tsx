@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { ImageIcon } from '@/components/page/demo-day/icons/DemoDayIcons';
 import { useDeleteOnePager } from '@/services/demo-day/hooks/useDeleteOnePager';
 import { useDeleteVideo } from '@/services/demo-day/hooks/useDeleteVideo';
 import { ConfirmDialog } from '../ConfirmDialog';
@@ -117,15 +116,18 @@ export const MediaPreview = ({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isModalOpen]);
 
-  const openModal = () => {
+  const openModal = (e?: MouseEvent<HTMLDivElement>) => {
+    e?.stopPropagation();
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
+  const closeModal = (e?: MouseEvent<HTMLDivElement | HTMLButtonElement>) => {
+    e?.stopPropagation();
     setIsModalOpen(false);
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = (e?: MouseEvent<HTMLDivElement>) => {
+    e?.stopPropagation();
     setShowDeleteDialog(true);
   };
 

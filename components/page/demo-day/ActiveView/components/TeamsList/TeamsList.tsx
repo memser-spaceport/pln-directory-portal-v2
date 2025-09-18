@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { clsx } from 'clsx';
 import { Menu } from '@base-ui-components/react/menu';
-import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
+import { useGetTeamsList, TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { useFilterStore } from '@/services/members/store';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { TeamProfileCard } from './components/TeamProfileCard';
+import { TeamDetailsDrawer } from './components/TeamDetailsDrawer';
 import s from './TeamsList.module.scss';
 
 const ChevronDownIcon = () => (
@@ -41,6 +42,9 @@ const SORT_OPTIONS: SortOption[] = [
 export const TeamsList: React.FC = () => {
   const { data: teams, isLoading, error } = useGetTeamsList();
   const [sortBy, setSortBy] = useState<string>('name-asc');
+  const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const scrollPositionRef = useRef<number>(0);
   const { params } = useFilterStore();
 
   // Get filter parameters from URL
@@ -123,6 +127,18 @@ export const TeamsList: React.FC = () => {
     setSortBy(value);
   };
 
+  const handleTeamClick = (team: TeamProfile) => {
+    // Store current scroll position before opening drawer
+    scrollPositionRef.current = window.scrollY;
+    setSelectedTeam(team);
+    setIsDrawerOpen(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false);
+    setSelectedTeam(null);
+  };
+
   if (isLoading) {
     return (
       <div className={s.container}>
@@ -188,7 +204,7 @@ export const TeamsList: React.FC = () => {
 
       <div className={s.teamsList}>
         {filteredAndSortedTeams.map((team) => (
-          <TeamProfileCard key={team.uid} team={team} />
+          <TeamProfileCard key={team.uid} team={team} onClick={handleTeamClick} />
         ))}
 
         {filteredAndSortedTeams.length === 0 && totalTeamsCount > 0 && (
@@ -204,6 +220,14 @@ export const TeamsList: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Team Details Drawer */}
+      <TeamDetailsDrawer
+        isOpen={isDrawerOpen}
+        onClose={handleCloseDrawer}
+        team={selectedTeam}
+        scrollPosition={scrollPositionRef.current}
+      />
     </div>
   );
 };

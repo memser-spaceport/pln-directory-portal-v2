@@ -7,6 +7,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useMember } from '@/services/members/hooks/useMember';
 import { InvestorStepper } from './components/InvestorStepper';
+import { CountdownComponent } from '@/components/common/Countdown';
 
 export const InvestorPendingView = () => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -51,29 +52,7 @@ export const InvestorPendingView = () => {
     router.push(`/members/${userInfo.uid}`);
   };
 
-  // Format the date from the API data
-  const formatEventDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const time = date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-    const day = date.getDate();
-    const month = date.toLocaleDateString('en-US', { month: 'short' });
-    const year = date.getFullYear();
 
-    return { time, day, month, year };
-  };
-
-  const eventDate = data?.date
-    ? formatEventDate(data.date)
-    : {
-        time: '19:00',
-        day: '25',
-        month: 'Oct',
-        year: '2025',
-      };
 
   return (
     <div className={s.root}>
@@ -81,18 +60,9 @@ export const InvestorPendingView = () => {
         {/* Main content */}
         <div className={s.content}>
           <div className={s.mainContent}>
-            {/* Date and time section */}
-            <div className={s.dateSection}>
-              <div className={s.dateContainer}>
-                <span className={s.dateLabel}>Date:</span>
-                <span className={s.timeValue}>{eventDate.time}</span>
-                <div className={s.divider} />
-                <span className={s.dateValue}>{eventDate.day}</span>
-                <div className={s.divider} />
-                <span className={s.dateValue}>{eventDate.month}</span>
-                <div className={s.divider} />
-                <span className={s.dateValue}>{eventDate.year}</span>
-              </div>
+            {/* Countdown section */}
+            <div className={s.countdownSection}>
+              <CountdownComponent targetDate={data?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />
             </div>
 
             {/* Headline section */}
@@ -105,7 +75,7 @@ export const InvestorPendingView = () => {
             </div>
           </div>
 
-          <InvestorStepper currentStep={currentStep} eventDate={eventDate} onFillProfile={handleFillProfile} />
+          <InvestorStepper currentStep={currentStep} onFillProfile={handleFillProfile} />
         </div>
       </div>
     </div>

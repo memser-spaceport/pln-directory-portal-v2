@@ -3,12 +3,6 @@ import s from './InvestorStepper.module.scss';
 
 interface StepperProps {
   currentStep: number;
-  eventDate?: {
-    time: string;
-    day: string | number;
-    month: string;
-    year: string | number;
-  };
   onFillProfile?: () => void;
 }
 
@@ -21,7 +15,6 @@ interface StepData {
 
 export const InvestorStepper: React.FC<StepperProps> = ({
   currentStep,
-  eventDate = { time: '19:00', day: '25', month: 'Oct', year: '2025' },
   onFillProfile,
 }) => {
   const steps: StepData[] = [
@@ -40,7 +33,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({
     {
       id: 3,
       title: 'Step 3',
-      description: `Demo Day access — Opens at ${eventDate.time} UTC, ${eventDate.month} ${eventDate.day}.`,
+      description: 'Demo Day access — You can now access Demo Day.',
       status: currentStep > 3 ? 'completed' : currentStep === 3 ? 'current' : 'pending',
     },
   ];

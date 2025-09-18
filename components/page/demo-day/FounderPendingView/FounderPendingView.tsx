@@ -6,50 +6,20 @@ import { ProfileSection } from './components/ProfileSection';
 import { TeamFundraisingCard } from '@/components/page/demo-day/InvestorPendingView/components/TeamFundraisingCard';
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 import { PITCH_DECK_URL, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
+import { CountdownComponent } from '@/components/common/Countdown';
 
 export const FounderPendingView = () => {
   const { data } = useGetDemoDayState();
 
-  // Format the date from the API data
-  const formatEventDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const time = date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-    const day = date.getDate();
-    const month = date.toLocaleDateString('en-US', { month: 'short' });
-    const year = date.getFullYear();
 
-    return { time, day, month, year };
-  };
-
-  const eventDate = data?.date
-    ? formatEventDate(data.date)
-    : {
-        time: '19:00',
-        day: '25',
-        month: 'Oct',
-        year: '2025',
-      };
 
   return (
     <div className={s.root}>
       <div className={s.eventHeader}>
         <div className={s.content}>
-          {/* Date and time section */}
-          <div className={s.dateSection}>
-            <div className={s.dateContainer}>
-              <span className={s.dateLabel}>Date:</span>
-              <span className={s.timeValue}>{eventDate.time}</span>
-              <div className={s.divider} />
-              <span className={s.dateValue}>{eventDate.day}</span>
-              <div className={s.divider} />
-              <span className={s.dateValue}>{eventDate.month}</span>
-              <div className={s.divider} />
-              <span className={s.dateValue}>{eventDate.year}</span>
-            </div>
+          {/* Countdown section */}
+          <div className={s.countdownSection}>
+            <CountdownComponent targetDate={data?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />
           </div>
 
           {/* Headline section */}

@@ -83,15 +83,15 @@
 .mainContent {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 40px;
   align-items: center;
 }
 
-.dateSection {
+.countdownSection {
   width: 100%;
-  max-width: 360px;
-  height: 34px;
-  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .dateContainer {

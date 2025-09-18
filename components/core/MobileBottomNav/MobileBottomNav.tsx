@@ -66,9 +66,22 @@ const DemoDayIcon = () => (
       />
     </g>
     <defs>
-      <filter id="filter0_d_7389_22217" x="-1" y="0" width="22" height="22" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+      <filter
+        id="filter0_d_7389_22217"
+        x="-1"
+        y="0"
+        width="22"
+        height="22"
+        filterUnits="userSpaceOnUse"
+        colorInterpolationFilters="sRGB"
+      >
         <feFlood floodOpacity="0" result="BackgroundImageFix" />
-        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+        <feColorMatrix
+          in="SourceAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          result="hardAlpha"
+        />
         <feOffset dy="1" />
         <feGaussianBlur stdDeviation="1" />
         <feComposite in2="hardAlpha" operator="out" />
@@ -106,8 +119,13 @@ export function MobileBottomNav() {
         <NavigationMenu.List className={styles.list}>
           {navItems
             .filter((item) => {
-              if (item.href === '/demo-day') {
-                return demoDayState && demoDayState.access !== 'NONE';
+              if (
+                item.href === '/demo-day' &&
+                (!demoDayState ||
+                  (demoDayState.access === 'none' && demoDayState.status === 'NONE') ||
+                  (demoDayState.access === 'none' && demoDayState.status === 'COMPLETED'))
+              ) {
+                return false;
               }
 
               return true;

@@ -120,7 +120,9 @@ function Navbar(props: Readonly<INavbar>) {
             <ForumIcon /> Forum
           </Link>
         </NavigationMenu.Item>
-        {demoDayState && demoDayState.access !== 'NONE' && (
+        {!demoDayState ||
+        (demoDayState.access === 'none' && demoDayState.status === 'NONE') ||
+        (demoDayState.access === 'none' && demoDayState.status === 'COMPLETED') ? null : (
           <NavigationMenu.Item>
             <Link className={s.Trigger} href="/demo-day" onClick={() => onNavItemClickHandler('/demo-day', 'Demo Day')}>
               <DemoDayIcon /> Demo Day
@@ -293,9 +295,22 @@ const DemoDayIcon = () => (
       />
     </g>
     <defs>
-      <filter id="filter0_d_7389_22217" x="-1" y="0" width="22" height="22" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+      <filter
+        id="filter0_d_7389_22217"
+        x="-1"
+        y="0"
+        width="22"
+        height="22"
+        filterUnits="userSpaceOnUse"
+        colorInterpolationFilters="sRGB"
+      >
         <feFlood floodOpacity="0" result="BackgroundImageFix" />
-        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+        <feColorMatrix
+          in="SourceAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          result="hardAlpha"
+        />
         <feOffset dy="1" />
         <feGaussianBlur stdDeviation="1" />
         <feComposite in2="hardAlpha" operator="out" />

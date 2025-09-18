@@ -36,16 +36,6 @@ export const InvestorPendingView = () => {
     router.push(`/members/${userInfo.uid}`);
   };
 
-  const handlePitchDeckClick = () => {
-    // TODO: Open pitch deck modal or navigate to pitch deck page
-    console.log('Pitch deck clicked');
-  };
-
-  const handleVideoClick = () => {
-    // TODO: Open video modal or navigate to video page
-    console.log('Video clicked');
-  };
-
   // Format the date from the API data
   const formatEventDate = (dateString: string) => {
     const date = new Date(dateString);

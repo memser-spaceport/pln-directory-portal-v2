@@ -1,16 +1,47 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import s from './InvestorPendingView.module.scss';
 import { useRouter } from 'next/navigation';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
+import { useMember } from '@/services/members/hooks/useMember';
 import { InvestorStepper } from './components/InvestorStepper';
 
 export const InvestorPendingView = () => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const router = useRouter();
   const { data } = useGetDemoDayState();
+  const { data: memberData } = useMember(userInfo?.uid);
+
+  // Function to check if investor profile is complete
+  const isInvestorProfileComplete = useMemo(() => {
+    if (!memberData?.memberInfo?.investorProfile) {
+      return false;
+    }
+
+    const { investorProfile } = memberData.memberInfo;
+
+    // Check if all required fields are populated
+    const hasInvestmentFocus = investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0;
+    const hasTypicalCheckSize = investorProfile.typicalCheckSize && investorProfile.typicalCheckSize > 0;
+    const hasSecRulesAccepted = investorProfile.secRulesAccepted === true;
+
+    return hasInvestmentFocus && hasTypicalCheckSize && hasSecRulesAccepted;
+  }, [memberData]);
+
+  // Determine current step based on profile completion
+  const currentStep = useMemo(() => {
+    // Step 1: Invitation accepted (default - user is on the page)
+    // Step 2: Complete investor profile (if profile is not complete)
+    // Step 3: Demo Day access (if profile is complete)
+
+    if (isInvestorProfileComplete) {
+      return 3; // Profile complete, ready for Demo Day
+    } else {
+      return 2; // Need to complete profile
+    }
+  }, [isInvestorProfileComplete]);
 
   const handleFillProfile = () => {
     if (!userInfo) {
@@ -74,7 +105,7 @@ export const InvestorPendingView = () => {
             </div>
           </div>
 
-          <InvestorStepper currentStep={2} eventDate={eventDate} onFillProfile={handleFillProfile} />
+          <InvestorStepper currentStep={currentStep} eventDate={eventDate} onFillProfile={handleFillProfile} />
         </div>
       </div>
     </div>

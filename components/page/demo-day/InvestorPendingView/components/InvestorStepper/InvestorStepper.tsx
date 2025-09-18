@@ -2,7 +2,7 @@ import React from 'react';
 import s from './InvestorStepper.module.scss';
 
 interface StepperProps {
-  currentStep?: number;
+  currentStep: number;
   eventDate?: {
     time: string;
     day: string | number;
@@ -20,7 +20,7 @@ interface StepData {
 }
 
 export const InvestorStepper: React.FC<StepperProps> = ({
-  currentStep = 2,
+  currentStep,
   eventDate = { time: '19:00', day: '25', month: 'Oct', year: '2025' },
   onFillProfile,
 }) => {

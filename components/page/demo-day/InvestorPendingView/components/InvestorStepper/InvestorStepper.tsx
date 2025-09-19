@@ -14,10 +14,7 @@ interface StepData {
   status: 'completed' | 'current' | 'pending';
 }
 
-export const InvestorStepper: React.FC<StepperProps> = ({
-  currentStep,
-  onFillProfile,
-}) => {
+export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillProfile }) => {
   const { data } = useGetDemoDayState();
 
   // Format the date for Step 3 description
@@ -34,9 +31,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({
     return `${time} UTC, ${month} ${day}`;
   };
 
-  const eventDateFormatted = data?.date
-    ? formatEventDate(data.date)
-    : '12:00 UTC, Oct 25';
+  const eventDateFormatted = data?.date ? formatEventDate(data.date) : '12:00 UTC, Oct 25';
   const steps: StepData[] = [
     {
       id: 1,
@@ -69,15 +64,13 @@ export const InvestorStepper: React.FC<StepperProps> = ({
       {/* Vertical Stepper */}
       <div className={s.verticalStepper}>
         {steps.map((step, index) => (
-          <div key={step.id} className={`${s.stepContainer} ${s[step.status]}`}>
+          <div key={step.id} className={`${s.stepContainer}`}>
             {/* Step Indicator and Connector */}
             <div className={s.stepIndicatorContainer}>
-              <div className={`${s.stepIndicator} ${s[step.status]}`}>
+              <div className={`${s.stepIndicator}`}>
                 <div className={s.stepDot} />
               </div>
-              {index < steps.length - 1 && (
-                <div className={`${s.stepConnector} ${index < currentStep - 1 ? s.completed : ''}`} />
-              )}
+              {index < steps.length - 1 && <div className={`${s.stepConnector}`} />}
             </div>
 
             {/* Step Content */}

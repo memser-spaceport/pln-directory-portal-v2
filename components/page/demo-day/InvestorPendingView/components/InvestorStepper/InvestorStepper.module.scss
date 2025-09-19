@@ -7,9 +7,6 @@
   align-items: center;
   justify-content: flex-start;
   padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #e8edff;
-  background: #fff;
   width: 100%;
 
   @include media.mobile-only {
@@ -30,13 +27,13 @@
 }
 
 .title {
-  font-family: 'Inter', sans-serif;
-  font-size: 18px;
+  color: var(--foreground-neutral-primary, #0A0C11);
+  text-align: center;
+  font-size: 24px;
+  font-style: normal;
   font-weight: 600;
-  line-height: 24px;
+  line-height: 34px; /* 141.667% */
   letter-spacing: -0.4px;
-  margin: 0;
-  width: 100%;
 
   @include media.mobile-only {
     font-size: 16px;
@@ -45,13 +42,13 @@
 }
 
 .subtitle {
-  font-family: 'Inter', sans-serif;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
   font-size: 16px;
+  font-style: normal;
   font-weight: 400;
-  line-height: 24px;
+  line-height: 24px; /* 150% */
   letter-spacing: -0.3px;
-  margin: 0;
-  width: 100%;
 
   @include media.mobile-only {
     font-size: 14px;
@@ -65,7 +62,7 @@
   width: 100%;
   align-items: flex-start;
   max-width: 345px;
-  margin: 0 auto;
+  margin: 12px auto 0;
 }
 
 .stepContainer {
@@ -134,6 +131,7 @@
 .stepContent {
   flex: 1;
   padding-top: 0;
+  margin-top: -8px;
 
   &:not(:last-child) {
     padding-bottom: 24px;
@@ -146,12 +144,11 @@
 }
 
 .stepTitle {
-  font-family: 'Inter', sans-serif;
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
+  font-style: normal;
   font-weight: 500;
-  line-height: 20px;
-  color: #455468;
-  margin: -1px 0 4px 0;
+  line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
 
   @include media.mobile-only {

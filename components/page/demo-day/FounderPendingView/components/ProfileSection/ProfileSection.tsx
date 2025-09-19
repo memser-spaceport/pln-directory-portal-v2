@@ -7,6 +7,8 @@ import { ProfileHeader } from './components/ProfileHeader';
 import { ProfileContent } from './components/ProfileContent';
 import { ProfileActions } from './components/ProfileActions';
 import { ErrorState } from './components/ErrorState';
+import Image from 'next/image';
+import { EditButton } from '@/components/page/member-details/components/EditButton';
 
 export const ProfileSection = () => {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -44,6 +46,12 @@ export const ProfileSection = () => {
     <>
       <div className={s.profileSection}>
         <div className={s.profileCard}>
+          <div className={s.editButtonContainer}>
+            <button className={s.drawerEditButton} onClick={handleEditProfile}>
+              <EditIcon />
+              <span>Edit</span>
+            </button>
+          </div>
           {/* Header */}
           <ProfileHeader
             image={data?.team?.logo?.url || '/images/demo-day/profile-placeholder.svg'}
@@ -60,12 +68,37 @@ export const ProfileSection = () => {
           <div className={s.profileDivider} />
 
           {/* Action Area */}
-          <ProfileActions onEditProfile={handleEditProfile} />
+          {/*<ProfileActions onEditProfile={handleEditProfile} />*/}
+
+          <div className={s.actions}>
+            <button className={s.secondaryButton}>
+              <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
+            </button>
+            <button className={s.secondaryButton}>🤝 Connect with Company</button>
+            <button className={s.primaryButton}>💰 Invest in Company</button>
+          </div>
         </div>
       </div>
 
       {/* Edit Profile Drawer */}
-      <EditProfileDrawer isOpen={isDrawerOpen} onClose={handleCloseDrawer} scrollPosition={scrollPositionRef.current} data={data} />
+      <EditProfileDrawer
+        isOpen={isDrawerOpen}
+        onClose={handleCloseDrawer}
+        scrollPosition={scrollPositionRef.current}
+        data={data}
+      />
     </>
   );
 };
+
+const EditIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M8.25 3H3a1.5 1.5 0 0 0-1.5 1.5v10.5A1.5 1.5 0 0 0 3 16.5h10.5a1.5 1.5 0 0 0 1.5-1.5V9.75M6.75 11.25h2.25L16.5 3.75a1.5 1.5 0 0 0-2.25-2.25L6.75 9v2.25Z"
+      stroke="#1B4DFF"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);

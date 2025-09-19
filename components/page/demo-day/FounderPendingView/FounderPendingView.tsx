@@ -11,8 +11,6 @@ import { CountdownComponent } from '@/components/common/Countdown';
 export const FounderPendingView = () => {
   const { data } = useGetDemoDayState();
 
-
-
   return (
     <div className={s.root}>
       <div className={s.eventHeader}>
@@ -31,7 +29,7 @@ export const FounderPendingView = () => {
             </p>
           </div>
 
-          <ProfileContent pitchDeckUrl={PITCH_DECK_URL} videoUrl={PITCH_VIDEO_URL} />
+          {/*<ProfileContent pitchDeckUrl={PITCH_DECK_URL} videoUrl={PITCH_VIDEO_URL} />*/}
         </div>
       </div>
       <Alert />

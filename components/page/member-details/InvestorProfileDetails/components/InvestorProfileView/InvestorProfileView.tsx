@@ -78,7 +78,7 @@ export const InvestorProfileView = ({
               )}
               {(!!investmentFocusAreas?.length || isEditable) && (
                 <div className={s.keywordsWrapper}>
-                  <span className={s.keywordsLabel}>Investment Focus Area:</span>
+                  <span className={s.keywordsLabel}>Investment Focus:</span>
                   <span className={s.badgesWrapper}>
                     {investmentFocusAreas?.length && secRulesAccepted ? (
                       investmentFocusAreas?.map((item: string) => (
@@ -102,7 +102,7 @@ export const InvestorProfileView = ({
               )}
               {(!!investInStartupStages?.length || isEditable) && (
                 <div className={s.keywordsWrapper}>
-                  <span className={s.keywordsLabel}>Investment Stages in Startups:</span>
+                  <span className={s.keywordsLabel}>Startup Stages:</span>
                   <span className={s.badgesWrapper}>
                     {investInStartupStages?.length && secRulesAccepted ? (
                       investInStartupStages?.map((item: string) => (
@@ -124,7 +124,7 @@ export const InvestorProfileView = ({
                   </span>
                 </div>
               )}
-              {(!!investInFundTypes?.length || isEditable) && (
+              {isEditable && (
                 <div className={s.keywordsWrapper}>
                   <span className={s.keywordsLabel}>Investment Types in VC Funds:</span>
                   <span className={s.badgesWrapper}>

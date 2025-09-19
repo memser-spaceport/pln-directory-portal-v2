@@ -26,19 +26,21 @@ interface Props {
 }
 
 const schema = yup.object().shape({
-  typicalCheckSize: yup.string().when('secRulesAccepted', {
-    is: true,
+  typicalCheckSize: yup.string().when(['secRulesAccepted', 'investThroughFund'], {
+    is: (secRulesAccepted: boolean, investThroughFund: boolean) => secRulesAccepted && !investThroughFund,
     then: () => yup.string().required('Required'),
+    otherwise: () => yup.string().optional(),
   }),
   investmentFocusAreas: yup
     .array()
     .of(yup.string().required())
-    .when('secRulesAccepted', {
-      is: true,
+    .when(['secRulesAccepted', 'investThroughFund'], {
+      is: (secRulesAccepted: boolean, investThroughFund: boolean) => secRulesAccepted && !investThroughFund,
       then: () => yup.array().of(yup.string().required()).min(1, 'Required'),
+      otherwise: () => yup.array().of(yup.string().required()).optional(),
     })
     .defined(),
-  investToStartups: yup
+  investInStartupStages: yup
     .array()
     .of(
       yup.object().shape({
@@ -47,7 +49,7 @@ const schema = yup.object().shape({
       }),
     )
     .defined(),
-  investInVcFunds: yup
+  investInFundTypes: yup
     .array()
     .of(
       yup.object().shape({
@@ -57,11 +59,14 @@ const schema = yup.object().shape({
     )
     .defined(),
   secRulesAccepted: yup.boolean().required('Required'),
+  investThroughFund: yup.boolean().required(),
 });
 
 export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
   const updateInvestorProfileMutation = useUpdateInvestorProfile();
+
+  console.log(member.investorProfile);
 
   const investInVcFundsOptions = [
     { label: 'Early stage', value: 'early-stage' },
@@ -92,9 +97,11 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     defaultValues: {
       typicalCheckSize: formatNumberToCurrency(member.investorProfile?.typicalCheckSize) || '',
       investmentFocusAreas: member.investorProfile?.investmentFocus || [],
-      investToStartups: member.investorProfile?.investToStartups || [],
-      investInVcFunds: member.investorProfile?.investInVcFunds || [],
+      investInStartupStages:
+        member.investorProfile?.investInStartupStages.map((item) => ({ label: item, value: item })) || [],
+      investInFundTypes: member.investorProfile?.investInFundTypes.map((item) => ({ label: item, value: item })) || [],
       secRulesAccepted: member.investorProfile?.secRulesAccepted ?? false,
+      investThroughFund: member.investorProfile?.investThroughFund ?? false,
     },
     // @ts-ignore
     resolver: yupResolver(schema),
@@ -110,6 +117,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     formState: { errors, isValid },
   } = methods;
   const secRulesAccepted = watch('secRulesAccepted');
+  const investThroughFund = watch('investThroughFund');
 
   const { data } = useTeamsFormOptions();
 
@@ -127,12 +135,15 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         value: val.name,
         label: val.name,
       })),
-      fundingStageOptions: data.fundingStage
-        .filter((val: { id: any; name: any }) => val.name !== 'Not Applicable')
-        .map((val: { id: any; name: any }) => ({
-          value: val.name,
-          label: val.name,
-        })),
+      fundingStageOptions: [
+        ...data.fundingStage
+          .filter((val: { id: any; name: any }) => val.name !== 'Not Applicable')
+          .map((val: { id: any; name: any }) => ({
+            value: val.name,
+            label: val.name,
+          })),
+        { value: 'Series D and later', label: 'Series D and later' },
+      ],
       teamTechnologiesOptions: data.technologies.map((val: { id: any; name: any }) => ({
         value: val.name,
         label: val.name,
@@ -165,9 +176,10 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         investorProfile: {
           investmentFocus: formData.investmentFocusAreas,
           typicalCheckSize: typicalCheckSizeNumber,
-          investToStartups: formData.investToStartups,
-          investInVcFunds: formData.investInVcFunds,
+          investInStartupStages: formData.investInStartupStages.map((item) => item.label),
+          investInFundTypes: formData.investInFundTypes.map((item) => item.label),
           secRulesAccepted: formData.secRulesAccepted,
+          investThroughFund: formData.investThroughFund,
         },
       };
 
@@ -230,23 +242,58 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
             </label>
           </div>
           <div className={s.row}>
+            <label className={s.Label}>
+              <Checkbox.Root
+                className={s.Checkbox}
+                checked={investThroughFund}
+                onCheckedChange={(v: boolean) => {
+                  setValue('investThroughFund', v, { shouldValidate: true, shouldDirty: true });
+                  trigger();
+                }}
+              >
+                <Checkbox.Indicator className={s.Indicator}>
+                  <CheckIcon className={s.Icon} />
+                </Checkbox.Indicator>
+              </Checkbox.Root>
+              <div className={s.col}>
+                <div className={s.primary}>
+                  I invest through a venture fund.{' '}
+                  {member.mainTeam ? (
+                    <Link target="_blank" href="/teams/add" className={s.link}>
+                      Submit your fund team <ExternalLinkIcon />
+                    </Link>
+                  ) : (
+                    ''
+                  )}
+                </div>
+                <p className={s.desc}>
+                  We’ll use your fund’s profile for check size, stages, and focus. The personal fields below are
+                  optional.
+                </p>
+              </div>
+            </label>
+          </div>
+          <div className={s.row}>
             <FormMultiSelect
-              name="investToStartups"
+              name="investInStartupStages"
               label="Do you invest in Startups?"
               placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
               options={options.fundingStageOptions}
               disabled={!secRulesAccepted}
               showNone
+              isRequired={secRulesAccepted && !investThroughFund}
             />
           </div>
           <div className={s.row}>
             <FormMultiSelect
-              name="investInVcFunds"
+              name="investInFundTypes"
               label="Do you invest in VC Funds?"
               placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
               options={investInVcFundsOptions}
               disabled={!secRulesAccepted}
               showNone
+              noneLabel="I don’t invest in VC Funds"
+              isRequired={secRulesAccepted && !investThroughFund}
             />
           </div>
           <div className={s.row}>
@@ -256,6 +303,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
               placeholder="Enter typical check size"
               currency="USD"
               disabled={!secRulesAccepted}
+              isRequired={secRulesAccepted && !investThroughFund}
             />
           </div>
           <div className={s.row}>
@@ -297,10 +345,10 @@ function CheckIcon(props: React.ComponentProps<'svg'>) {
 
 function ExternalLinkIcon(props: React.ComponentProps<'svg'>) {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10" fill="none">
       <path
-        d="M14.25 6.5C14.25 6.69891 14.171 6.88968 14.0303 7.03033C13.8897 7.17098 13.6989 7.25 13.5 7.25C13.3011 7.25 13.1103 7.17098 12.9697 7.03033C12.829 6.88968 12.75 6.69891 12.75 6.5V4.3125L9.03063 8.03187C8.88973 8.17277 8.69863 8.25193 8.49938 8.25193C8.30012 8.25193 8.10902 8.17277 7.96812 8.03187C7.82723 7.89098 7.74807 7.69988 7.74807 7.50063C7.74807 7.30137 7.82723 7.11027 7.96812 6.96938L11.6875 3.25H9.5C9.30109 3.25 9.11032 3.17098 8.96967 3.03033C8.82902 2.88968 8.75 2.69891 8.75 2.5C8.75 2.30109 8.82902 2.11032 8.96967 1.96967C9.11032 1.82902 9.30109 1.75 9.5 1.75H13.5C13.6989 1.75 13.8897 1.82902 14.0303 1.96967C14.171 2.11032 14.25 2.30109 14.25 2.5V6.5ZM11.5 8C11.3011 8 11.1103 8.07902 10.9697 8.21967C10.829 8.36032 10.75 8.55109 10.75 8.75V12.75H3.25V5.25H7.25C7.44891 5.25 7.63968 5.17098 7.78033 5.03033C7.92098 4.88968 8 4.69891 8 4.5C8 4.30109 7.92098 4.11032 7.78033 3.96967C7.63968 3.82902 7.44891 3.75 7.25 3.75H3C2.66848 3.75 2.35054 3.8817 2.11612 4.11612C1.8817 4.35054 1.75 4.66848 1.75 5V13C1.75 13.3315 1.8817 13.6495 2.11612 13.8839C2.35054 14.1183 2.66848 14.25 3 14.25H11C11.3315 14.25 11.6495 14.1183 11.8839 13.8839C12.1183 13.6495 12.25 13.3315 12.25 13V8.75C12.25 8.55109 12.171 8.36032 12.0303 8.21967C11.8897 8.07902 11.6989 8 11.5 8Z"
-        fill="#1B4DFF"
+        d="M9.74997 1V7.5C9.74997 7.69891 9.67095 7.88968 9.5303 8.03033C9.38965 8.17098 9.19889 8.25 8.99997 8.25C8.80106 8.25 8.61029 8.17098 8.46964 8.03033C8.32899 7.88968 8.24997 7.69891 8.24997 7.5V2.8125L1.5306 9.53063C1.3897 9.67152 1.19861 9.75068 0.999348 9.75068C0.800091 9.75068 0.608994 9.67152 0.468098 9.53063C0.327202 9.38973 0.248047 9.19863 0.248047 8.99938C0.248047 8.80012 0.327202 8.60902 0.468098 8.46813L7.18747 1.75H2.49997C2.30106 1.75 2.11029 1.67098 1.96964 1.53033C1.82899 1.38968 1.74997 1.19891 1.74997 1C1.74997 0.801088 1.82899 0.610322 1.96964 0.46967C2.11029 0.329018 2.30106 0.25 2.49997 0.25H8.99997C9.19889 0.25 9.38965 0.329018 9.5303 0.46967C9.67095 0.610322 9.74997 0.801088 9.74997 1Z"
+        fill="#455468"
       />
     </svg>
   );

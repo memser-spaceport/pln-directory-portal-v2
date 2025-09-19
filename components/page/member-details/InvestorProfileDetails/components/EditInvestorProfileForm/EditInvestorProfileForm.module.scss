@@ -65,7 +65,7 @@
   }
 
   .primary {
-    color: var(--foreground-neutral-secondary, #455468);
+    color: var(--action-foreground-neutral-normal, #455468);
     font-size: 14px;
     font-style: normal;
     font-weight: 500;
@@ -73,7 +73,7 @@
     letter-spacing: -0.2px;
 
     > a {
-      color: #156FF7;
+      text-decoration: underline;
     }
   }
 

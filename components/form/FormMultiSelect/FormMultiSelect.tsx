@@ -19,6 +19,7 @@ interface Props {
   disabled?: boolean;
   isRequired?: boolean;
   showNone?: boolean;
+  noneLabel?: string;
 }
 
 const filterAndSort = (option: { value: string; label: string }, input: string) => {
@@ -30,27 +31,37 @@ const filterAndSort = (option: { value: string; label: string }, input: string) 
 // Custom MultiValue component to handle None option display
 const CustomMultiValue = (props: any) => {
   // If this is the None option, render as plain text
-  if (props.data.value === 'None') {
-    return (
-      <div style={{
-        color: '#455468',
-        fontSize: '14px',
-        fontWeight: 300,
-        letterSpacing: '-0.2px',
-        marginRight: '8px',
-        display: 'flex',
-        alignItems: 'center',
-      }}>
-        {props.data.label}
-      </div>
-    );
-  }
+  // if (props.data.value === 'None') {
+  //   return (
+  //     <div style={{
+  //       color: '#455468',
+  //       fontSize: '14px',
+  //       fontWeight: 300,
+  //       letterSpacing: '-0.2px',
+  //       marginRight: '8px',
+  //       display: 'flex',
+  //       alignItems: 'center',
+  //     }}>
+  //       {props.data.label}
+  //     </div>
+  //   );
+  // }
 
   // For all other options, use the default MultiValue component
   return <components.MultiValue {...props} />;
 };
 
-export const FormMultiSelect = ({ name, placeholder, label, description, options, disabled, isRequired, showNone }: Props) => {
+export const FormMultiSelect = ({
+  name,
+  placeholder,
+  label,
+  description,
+  options,
+  disabled,
+  isRequired,
+  showNone,
+  noneLabel = 'None',
+}: Props) => {
   const {
     formState: { errors },
     setValue,
@@ -62,7 +73,7 @@ export const FormMultiSelect = ({ name, placeholder, label, description, options
   const val = values[name as keyof TRecommendationsSettingsForm] as { value: string; label: string }[];
 
   // Create None option if showNone is true
-  const noneOption = { label: 'None', value: 'None' };
+  const noneOption = { label: noneLabel, value: 'None' };
 
   // Sort filtered options by label dynamically
   const filteredOptions = [...options].filter((option) => filterAndSort(option, inputValue));
@@ -112,9 +123,15 @@ export const FormMultiSelect = ({ name, placeholder, label, description, options
           const previousValues = val || [];
 
           // Check what was just selected by comparing current and previous values
-          const noneSelected = currentValues.some((option: { value: string; label: string }) => option.value === 'None');
-          const noneWasSelected = previousValues.some((option: { value: string; label: string }) => option.value === 'None');
-          const otherOptionsSelected = currentValues.some((option: { value: string; label: string }) => option.value !== 'None');
+          const noneSelected = currentValues.some(
+            (option: { value: string; label: string }) => option.value === 'None',
+          );
+          const noneWasSelected = previousValues.some(
+            (option: { value: string; label: string }) => option.value === 'None',
+          );
+          const otherOptionsSelected = currentValues.some(
+            (option: { value: string; label: string }) => option.value !== 'None',
+          );
 
           // If None was just selected (wasn't selected before, but is now)
           if (noneSelected && !noneWasSelected) {
@@ -124,7 +141,9 @@ export const FormMultiSelect = ({ name, placeholder, label, description, options
           // If other options are selected while None is already selected
           else if (noneSelected && otherOptionsSelected && noneWasSelected) {
             // Remove None and keep the other options
-            const filteredVal = currentValues.filter((option: { value: string; label: string }) => option.value !== 'None');
+            const filteredVal = currentValues.filter(
+              (option: { value: string; label: string }) => option.value !== 'None',
+            );
             setValue(name, filteredVal, { shouldValidate: true, shouldDirty: true });
           }
           // Normal case - no conflicts

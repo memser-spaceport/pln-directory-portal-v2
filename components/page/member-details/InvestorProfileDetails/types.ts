@@ -1,9 +1,10 @@
 export interface TEditInvestorProfileForm {
   typicalCheckSize?: string;
   investmentFocusAreas: string[];
-  investToStartups: { label: string; value: string }[];
-  investInVcFunds: { label: string; value: string }[];
+  investInStartupStages: { label: string; value: string }[];
+  investInFundTypes: { label: string; value: string }[];
   secRulesAccepted: boolean;
+  investThroughFund: boolean;
 }
 
 export interface TEditInvestorProfileFormTeam {

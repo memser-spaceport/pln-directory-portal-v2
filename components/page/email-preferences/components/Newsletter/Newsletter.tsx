@@ -7,10 +7,17 @@ import { Switch } from '@base-ui-components/react/switch';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
+import { getMemberInfo } from '@/services/members.service';
 
-export const Newsletter = ({ userInfo }: { userInfo: IUserInfo }) => {
+export const Newsletter = ({
+  userInfo,
+  initialData,
+}: {
+  userInfo: IUserInfo;
+  initialData: Awaited<ReturnType<typeof getMemberInfo>>;
+}) => {
   const { mutate } = useUpdateMemberParams();
-  const { data } = useMember(userInfo.uid);
+  const { data } = useMember(userInfo.uid, initialData);
   const analytics = useSettingsAnalytics();
 
   const handleChange = (checked: boolean) => {
@@ -38,9 +45,9 @@ export const Newsletter = ({ userInfo }: { userInfo: IUserInfo }) => {
           <label className={clsx(s.Label, s.toggle)}>
             Subscribe to PL Newsletter
             <Switch.Root
-              defaultChecked
+              // defaultChecked
               className={s.Switch}
-              checked={data?.memberInfo.isSubscribedToNewsletter}
+              checked={data?.memberInfo?.isSubscribedToNewsletter ?? true}
               onCheckedChange={handleChange}
             >
               <Switch.Thumb className={s.Thumb}>

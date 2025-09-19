@@ -26,10 +26,11 @@ async function fetcher(uid: string | undefined) {
   };
 }
 
-export function useMember(uid: string | undefined) {
+export function useMember(uid: string | undefined, initialData: Awaited<ReturnType<typeof getMemberInfo>>) {
   return useQuery({
     queryKey: [MembersQueryKeys.GET_MEMBER, uid],
     queryFn: () => fetcher(uid),
     enabled: Boolean(uid),
+    initialData: initialData ? { memberInfo: initialData } : undefined,
   });
 }

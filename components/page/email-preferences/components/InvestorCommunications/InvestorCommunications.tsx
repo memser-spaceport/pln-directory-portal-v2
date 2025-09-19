@@ -1,17 +1,26 @@
+'use client';
+
 import React from 'react';
 
 import s from './InvestorCommunications.module.scss';
 import { IUserInfo } from '@/types/shared.types';
 import { clsx } from 'clsx';
 import { Switch } from '@base-ui-components/react/switch';
-import { useMember } from '@/services/members/hooks/useMember';
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
-import { useSettingsAnalytics } from '@/analytics/settings.analytics';
+import { InvestorSettings, useGetInvestorSettings } from '@/services/members/hooks/useGetInvestorSettings';
+import { useUpdateInvestorSettings } from '@/services/members/hooks/useUpdateInvestorSettings';
 
-export const InvestorCommunications = ({ userInfo }: { userInfo: IUserInfo }) => {
-  const { mutate } = useUpdateMemberParams();
-  const { data } = useMember(userInfo.uid);
-  const analytics = useSettingsAnalytics();
+export const InvestorCommunications = ({
+  userInfo,
+  initialData,
+}: {
+  userInfo: IUserInfo;
+  initialData: InvestorSettings;
+}) => {
+  const { mutate } = useUpdateInvestorSettings();
+  const { data } = useGetInvestorSettings(userInfo.uid, initialData);
+
+  console.log({ data, initialData });
 
   const handleInvestorEventsChange = (checked: boolean) => {
     if (!userInfo.uid || !data) {
@@ -19,15 +28,14 @@ export const InvestorCommunications = ({ userInfo }: { userInfo: IUserInfo }) =>
     }
 
     const _payload = {
-      isSubscribedToInvestorEvents: checked,
+      investorInvitesEnabled: checked,
+      investorDealflowEnabled: data.investorDealflowEnabled,
     };
 
     mutate({
       uid: userInfo.uid,
       payload: _payload,
     });
-
-    analytics.onSubscribeToPlNewsletterChange(_payload);
   };
 
   const handleDealflowDigestsChange = (checked: boolean) => {
@@ -36,15 +44,14 @@ export const InvestorCommunications = ({ userInfo }: { userInfo: IUserInfo }) =>
     }
 
     const _payload = {
-      isSubscribedToDealflowDigests: checked,
+      investorDealflowEnabled: checked,
+      investorInvitesEnabled: data.investorInvitesEnabled,
     };
 
     mutate({
       uid: userInfo.uid,
       payload: _payload,
     });
-
-    analytics.onSubscribeToPlNewsletterChange(_payload);
   };
 
   return (
@@ -55,9 +62,9 @@ export const InvestorCommunications = ({ userInfo }: { userInfo: IUserInfo }) =>
           <label className={clsx(s.Label, s.toggle)}>
             Invitations to investor & founder events
             <Switch.Root
-              defaultChecked
+              // defaultChecked
               className={s.Switch}
-              checked={data?.memberInfo.isSubscribedToInvestorEvents}
+              checked={data?.investorInvitesEnabled}
               onCheckedChange={handleInvestorEventsChange}
             >
               <Switch.Thumb className={s.Thumb}>
@@ -67,14 +74,14 @@ export const InvestorCommunications = ({ userInfo }: { userInfo: IUserInfo }) =>
           </label>
           <div className={s.desc}>I would like to receive invitations to investor and founder focused PL events.</div>
         </div>
-        
+
         <div className={s.toggleSection}>
           <label className={clsx(s.Label, s.toggle)}>
             Dealflow intros & digests
             <Switch.Root
-              defaultChecked
+              // defaultChecked={initialData?.investorDealflowEnabled}
               className={s.Switch}
-              checked={data?.memberInfo.isSubscribedToDealflowDigests}
+              checked={data?.investorDealflowEnabled}
               onCheckedChange={handleDealflowDigestsChange}
             >
               <Switch.Thumb className={s.Thumb}>

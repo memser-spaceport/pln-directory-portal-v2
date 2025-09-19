@@ -5,6 +5,12 @@ import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/com
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import s from './TeamDetailsDrawer.module.scss';
+import { EditProfileDrawer } from '@/components/page/demo-day/FounderPendingView/components/EditProfileDrawer';
+import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
+import { IUserInfo } from '@/types/shared.types';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
+import { useMember } from '@/services/members/hooks/useMember';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -26,6 +32,8 @@ interface TeamDetailsDrawerProps {
 }
 
 export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({ isOpen, onClose, team, scrollPosition }) => {
+  const { data } = useGetFundraisingProfile();
+
   if (!team) return null;
 
   const displayTeam = team;
@@ -35,6 +43,10 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({ isOpen, on
       onClose();
     }
   };
+
+  if (team?.team?.uid === data?.teamUid) {
+    return <EditProfileDrawer isOpen={isOpen} onClose={onClose} scrollPosition={0} data={data} />;
+  }
 
   return (
     <AnimatePresence>

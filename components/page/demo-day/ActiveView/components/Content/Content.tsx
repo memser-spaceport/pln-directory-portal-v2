@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { format } from 'date-fns-tz';
 import { TeamsList } from '@/components/page/demo-day/ActiveView/components/TeamsList';
 import { PITCH_DECK_URL, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
+import { MediaPreview } from '@/components/page/demo-day/FounderPendingView/components/MediaPreview';
 
 export const Content = () => {
   const { data } = useGetDemoDayState();
@@ -36,8 +37,10 @@ export const Content = () => {
               <LinkIcon />
             </Link>
           </div>
-
-          <ProfileContent pitchDeckUrl={PITCH_DECK_URL} videoUrl={PITCH_VIDEO_URL} />
+          <div className={s.videoWrapper}>
+            <MediaPreview url={PITCH_VIDEO_URL} type="video" title="Pitch Video" showMetadata={false} />
+          </div>
+          {/*<ProfileContent pitchDeckUrl={PITCH_DECK_URL} videoUrl={PITCH_VIDEO_URL} />*/}
         </div>
       </div>
 

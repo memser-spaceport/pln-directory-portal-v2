@@ -1,13 +1,15 @@
 'use client';
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import Toggle from '@/components/ui/toogle';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { TagsInput } from '@/components/form/TagsInput';
 import { CurrencyInput } from '@/components/form/CurrencyInput';
+import { StandaloneMultiSelect } from '@/components/form/StandaloneMultiSelect/StandaloneMultiSelect';
+import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions';
 
 interface ITeamBasicInfo {
   errors: string[];
@@ -27,8 +29,44 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);
+  const [isInvestmentFund, setIsInvestmentFund] = useState<boolean>(initialValues?.isInvestmentFund ?? false);
+  const [investInStartupStages, setInvestInStartupStages] = useState<{ label: string; value: string }[]>(
+    initialValues?.investInStartupStages || [],
+  );
+  const [investInFundTypes, setInvestInFundTypes] = useState<{ label: string; value: string }[]>(
+    initialValues?.investInFundTypes || [],
+  );
   const isAdmin = props.userInfo?.roles?.includes(ADMIN_ROLE);
   const isInvestor = props.userInfo?.accessLevel === 'L5' || props.userInfo?.accessLevel === 'L6';
+
+  // Get options for multiselects
+  const { data } = useTeamsFormOptions();
+
+  const investInVcFundsOptions = [
+    { label: 'Early stage', value: 'early-stage' },
+    { label: 'Late stage', value: 'late-stage' },
+    { label: 'Fund-of-funds', value: 'fund-of-funds' },
+  ];
+
+  const options = useMemo(() => {
+    if (!data) {
+      return {
+        fundingStageOptions: [],
+      };
+    }
+
+    return {
+      fundingStageOptions: [
+        ...data.fundingStage
+          .filter((val: { id: any; name: any }) => val.name !== 'Not Applicable')
+          .map((val: { id: any; name: any }) => ({
+            value: val.name,
+            label: val.name,
+          })),
+        { value: 'Series D and later', label: 'Series D and later' },
+      ],
+    };
+  }, [data]);
 
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -61,12 +99,18 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   useEffect(() => {
     setSavedImage(initialValues?.imageFile ?? '');
     setIsPlnFriend(initialValues?.plnFriend ?? false);
+    setIsInvestmentFund(initialValues?.isInvestmentFund ?? false);
+    setInvestInStartupStages(initialValues?.investInStartupStages || []);
+    setInvestInFundTypes(initialValues?.investInFundTypes || []);
     setProfileImage('');
     function resetHandler() {
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
         setSavedImage(initialValues?.imageFile ?? '');
         setProfileImage('');
+        setIsInvestmentFund(initialValues?.isInvestmentFund ?? false);
+        setInvestInStartupStages(initialValues?.investInStartupStages || []);
+        setInvestInFundTypes(initialValues?.investInFundTypes || []);
       }
     }
     document.addEventListener('reset-team-register-form', resetHandler);
@@ -244,7 +288,48 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
         </div>
 
         {(isAdmin || isInvestor) && (
+          <div className="teaminfo__form__checkbox">
+            <input
+              type="checkbox"
+              id="team-investment-fund"
+              name="isInvestmentFund"
+              checked={isInvestmentFund}
+              onChange={(e) => setIsInvestmentFund(e.target.checked)}
+            />
+            <label htmlFor="team-investment-fund" className="teaminfo__form__checkbox__label">
+              This team is an investment fund.
+            </label>
+          </div>
+        )}
+
+        {(isAdmin || isInvestor) && isInvestmentFund && (
           <>
+            <div className="teaminfo__form__item">
+              <StandaloneMultiSelect
+                name="investInStartupStages"
+                label="Do you invest in Startups?"
+                placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
+                options={options.fundingStageOptions}
+                showNone
+                noneLabel="We don't invest in startups"
+                value={investInStartupStages}
+                onChange={setInvestInStartupStages}
+              />
+              <input type="hidden" name="investInStartupStages" value={JSON.stringify(investInStartupStages)} />
+            </div>
+            <div className="teaminfo__form__item">
+              <StandaloneMultiSelect
+                name="investInFundTypes"
+                label="Do you invest in VC Funds?"
+                placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
+                options={investInVcFundsOptions}
+                showNone
+                noneLabel="We don't invest in VC funds"
+                value={investInFundTypes}
+                onChange={setInvestInFundTypes}
+              />
+              <input type="hidden" name="investInFundTypes" value={JSON.stringify(investInFundTypes)} />
+            </div>
             <div className="teaminfo__form__item">
               <CurrencyInput
                 defaultValue={initialValues?.investorProfile?.typicalCheckSize}
@@ -388,6 +473,26 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             line-height: 20px;
             color: #0f172a;
             flex: 1;
+          }
+          .teaminfo__form__checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+          }
+          .teaminfo__form__checkbox__label {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
+            color: #0f172a;
+            cursor: pointer;
+            flex: 1;
+          }
+          .teaminfo__form__checkbox input[type='checkbox'] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #156ff7;
           }
         `}
       </style>

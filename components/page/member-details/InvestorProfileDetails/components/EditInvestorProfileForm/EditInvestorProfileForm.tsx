@@ -236,6 +236,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
               placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
               options={options.fundingStageOptions}
               disabled={!secRulesAccepted}
+              showNone
             />
           </div>
           <div className={s.row}>
@@ -245,6 +246,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
               placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
               options={investInVcFundsOptions}
               disabled={!secRulesAccepted}
+              showNone
             />
           </div>
           <div className={s.row}>

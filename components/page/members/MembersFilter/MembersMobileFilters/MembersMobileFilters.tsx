@@ -7,7 +7,7 @@ import { Dialog } from '@base-ui-components/react/dialog';
 
 import { VIEW_TYPE_OPTIONS, SORT_OPTIONS, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { useFilterStore } from '@/services/members/store';
-import MembersFilter from '@/components/page/members/members-filter';
+import { MembersFilter } from '@/components/page/members/MembersFilter';
 import { useGetMembersFilterCount } from '@/components/page/members/hooks/useGetMembersFilterCount';
 
 import s from './MembersMobileFilters.module.scss';

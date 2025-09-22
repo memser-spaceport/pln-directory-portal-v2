@@ -102,8 +102,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   const router = useRouter();
   const updateInvestorProfileMutation = useUpdateInvestorProfile();
 
-  console.log(member.investorProfile);
-
   const investorTypeOptions = [
     { label: 'I angel invest', value: 'ANGEL' },
     { label: 'I invest through fund(s)', value: 'FUND' },
@@ -392,6 +390,37 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   </Link>
                 </>
               )}
+            </>
+          )}
+
+          {type && type.value === 'FUND' && (
+            <>
+              <div className={s.sectionHeader}>
+                <h3>Your Investment Fund Profile</h3>
+                <p>We use your fund’s profile for check size, stages, and focus.</p>
+
+                <div className={s.infoSectionLabel}>Verify your team profile details</div>
+                <div className={s.infoSectionContent}>
+                  We don’t see a whitelisted fund associated with your account.{' '}
+                  <Link href="/teams/add" className={s.ctaLink}>
+                    Submit a Fund <LinkIcon />
+                  </Link>
+                </div>
+              </div>
+
+              <div className={s.divider} />
+
+              <Link href="/settings/email" className={s.cta}>
+                <div className={s.ctaIcon}>
+                  <InfoIcon />
+                </div>
+                <div className={s.col}>
+                  <div className={s.ctaLink}>
+                    Manage your investor communications <LinkIcon />
+                  </div>
+                  <p>Choose if you&apos;d like to receive event invitations, dealflow intros, and digests.</p>
+                </div>
+              </Link>
             </>
           )}
         </div>

@@ -118,6 +118,8 @@ export interface ILinkedinProfile {
   updatedAt: string;
 }
 
+export type InvestorProfileType = 'ANGEL' | 'FUND' | 'ANGEL_AND_FUND';
+
 export interface IMember {
   profile?: string | null;
   id: string;
@@ -158,7 +160,7 @@ export interface IMember {
   visibleHandles?: string[];
   linkedinProfile: ILinkedinProfile;
   investorProfile?: {
-    type: 'ANGEL' | 'FUND' | 'ANGEL_AND_FUND';
+    type: InvestorProfileType;
     investInStartupStages: string[];
     investInFundTypes: string[];
     typicalCheckSize: string;

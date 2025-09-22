@@ -13,6 +13,26 @@
   }
 }
 
+.infoSectionContent {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #455468;
+  margin: 0;
+}
+
+.teamLogo {
+  @include mixins.centralize;
+  border-radius: var(--corner-radius-xsm, 4px);
+  border: 1px solid var(--border-brand-xsubtle, #E8EDFF);
+
+  width: 24px;
+  height: 24px;
+}
+
 .header {
   display: flex;
   align-items: center;

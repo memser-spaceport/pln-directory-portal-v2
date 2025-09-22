@@ -32,8 +32,6 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
 
   useMobileNavVisibility(editView);
 
-  console.log(member?.investorProfile);
-
   if (!isLoggedIn) {
     return null;
   }
@@ -64,6 +62,8 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
           isEditable={isEditable}
           showIncomplete={showIncomplete}
           onEdit={() => setEditView(true)}
+          type={member.investorProfile?.type}
+          member={member}
         />
       )}
     </div>

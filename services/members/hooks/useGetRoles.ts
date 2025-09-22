@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { useFilterStore } from '@/services/members/store';
+import { Option } from '@/services/members/types';
 
 async function fetcher(input: string, hasOfficeHours?: boolean) {
   const params = new URLSearchParams({
@@ -37,10 +38,9 @@ export function useGetRoles(input: string) {
   const { params } = useFilterStore();
   const hasOfficeHours = params.get('hasOfficeHours') === 'true';
 
-  return useQuery({
+  return useQuery<Option[]>({
     queryKey: [MembersQueryKeys.GET_ROLES, input, hasOfficeHours],
     queryFn: () => fetcher(input, hasOfficeHours),
-    enabled: !!input,
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 }

@@ -8,7 +8,7 @@ import s from './Checkbox.module.scss';
 
 interface Props {
   checked: boolean;
-  onChange: (checked: boolean) => void;
+  onChange?: (checked: boolean) => void;
   classes?: {
     root?: string;
     indicator?: string;

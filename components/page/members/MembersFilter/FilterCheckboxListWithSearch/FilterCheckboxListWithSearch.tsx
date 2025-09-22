@@ -20,22 +20,26 @@ import s from './FilterCheckboxListWithSearch.module.scss';
 interface Props {
   paramKey: string;
   placeholder?: string;
+  defaultItemsToShow: number;
   useGetDataHook: (input: string, limit?: number) => { data?: Option[] };
 }
 
 export function FilterCheckboxListWithSearch(props: Props) {
-  const { paramKey, placeholder, useGetDataHook } = props;
+  const { paramKey, placeholder, useGetDataHook, defaultItemsToShow } = props;
 
   const [searchValue, setSearchValue] = useState('');
 
   const { setParam } = useFilterStore();
   const selectedValues = useGetInitialValues(paramKey);
 
-  const limit = searchValue ? undefined : Math.max(0, 5 - selectedValues.length);
-  console.log('>>> limit', limit);
-  const { data = [] } = useGetDataHook(searchValue, limit);
+  const { data = [] } = useGetDataHook(searchValue);
 
-  const itemsToRender = useGetMergedItemsToRender({ beData: data, selectedData: selectedValues, searchValue });
+  const itemsToRender = useGetMergedItemsToRender({
+    beData: data,
+    selectedData: selectedValues,
+    searchValue,
+    defaultItemsToShow,
+  });
 
   const methods = useForm<Record<string, any[]>>({
     defaultValues: { [paramKey]: selectedValues },

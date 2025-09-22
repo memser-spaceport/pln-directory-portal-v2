@@ -7,12 +7,13 @@ interface Input {
   beData: Option[];
   selectedData: Option[];
   searchValue: string;
+  defaultItemsToShow: number
 }
 
 const ITEMS_TO_SHOW_WITHOUT_SEARCH = 5;
 
 export function useGetMergedItemsToRender(input: Input) {
-  const { beData = [], selectedData = [], searchValue } = input;
+  const { beData = [], selectedData = [], searchValue, defaultItemsToShow } = input;
 
   const result = useMemo(() => {
     const map = new Map<string, Option>();
@@ -34,12 +35,12 @@ export function useGetMergedItemsToRender(input: Input) {
 
     const result = [...selected, ...rest];
 
-    if (isEmpty(searchValue) && result.length > ITEMS_TO_SHOW_WITHOUT_SEARCH) {
-      if (selectedNum > ITEMS_TO_SHOW_WITHOUT_SEARCH) {
+    if (isEmpty(searchValue) && result.length > defaultItemsToShow) {
+      if (selectedNum > defaultItemsToShow) {
         return result.slice(0, selectedNum);
       }
 
-      return result.slice(0, ITEMS_TO_SHOW_WITHOUT_SEARCH);
+      return result.slice(0, defaultItemsToShow);
     }
 
     return result;

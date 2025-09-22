@@ -2,22 +2,14 @@ import { useMemo } from 'react';
 
 import { Option } from '@/services/members/types';
 
-import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { getInitialValues } from '@/components/page/members/MembersFilter/utils/getInitialValues';
 
 import { useFilterStore } from '@/services/members/store';
 
 export function useGetInitialValues(paramKey: string): Option[] {
   const { params } = useFilterStore();
 
-  const initialValues = useMemo(() => {
-    const paramValue = params.get(paramKey);
-    if (!paramValue) return [];
-
-    return paramValue.split(URL_QUERY_VALUE_SEPARATOR).map((value) => ({
-      value: value.trim(),
-      label: value.trim(),
-    }));
-  }, [params, paramKey]);
+  const initialValues = useMemo(() => getInitialValues(params, paramKey), [params, paramKey]);
 
   return initialValues;
 }

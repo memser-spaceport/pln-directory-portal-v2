@@ -81,6 +81,7 @@ export const MembersFilter = (props: IMembersFilter) => {
             paramKey="topics"
             placeholder="E.g. AI, Staking, Governance"
             useGetDataHook={useGetTopics}
+            defaultItemsToShow={0}
           />
         </FilterSection>
 
@@ -91,6 +92,7 @@ export const MembersFilter = (props: IMembersFilter) => {
             paramKey="roles"
             placeholder="E.g. Founder, VP Marketing..."
             useGetDataHook={useGetRoles}
+            defaultItemsToShow={6}
           />
         </FilterSection>
       </div>

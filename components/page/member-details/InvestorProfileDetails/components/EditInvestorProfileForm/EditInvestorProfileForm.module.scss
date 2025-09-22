@@ -35,6 +35,18 @@
   gap: 8px;
 }
 
+.sectionHeader {
+  margin: 16px 0 8px 0;
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 24px;
+    color: #0f172a;
+    margin: 0;
+  }
+}
+
 .switchDesc {
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 12px;

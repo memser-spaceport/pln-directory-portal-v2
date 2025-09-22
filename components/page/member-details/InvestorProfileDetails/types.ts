@@ -1,4 +1,5 @@
 export interface TEditInvestorProfileForm {
+  type?: { label: string; value: string };
   typicalCheckSize?: string;
   investmentFocusAreas: string[];
   investInStartupStages: { label: string; value: string }[];

@@ -1,4 +1,5 @@
 @use 'styles/media';
+@use 'styles/mixins';
 
 .body {
   display: grid;
@@ -139,6 +140,9 @@
 }
 
 .infoSectionContent {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-size: 14px;
   font-weight: 400;
   line-height: 20px;
@@ -264,6 +268,15 @@
   letter-spacing: -0.2px;
   margin-top: 24px;
   margin-bottom: 6px;
+}
+
+.teamLogo {
+  @include mixins.centralize;
+  border-radius: var(--corner-radius-xsm, 4px);
+  border: 1px solid var(--border-brand-xsubtle, #E8EDFF);
+
+  width: 24px;
+  height: 24px;
 }
 
 .infoSectionContent {

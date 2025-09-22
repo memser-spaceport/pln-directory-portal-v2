@@ -114,6 +114,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     { label: 'Fund-of-funds', value: 'fund-of-funds' },
   ];
 
+  const hasTeam = member?.teams?.length > 0;
+
   // Helper function to format number to currency string for initial display
   const formatNumberToCurrency = (value: string | number | undefined): string => {
     if (!value) return '';
@@ -401,12 +403,27 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                 <p>We use your fund’s profile for check size, stages, and focus.</p>
 
                 <div className={s.infoSectionLabel}>Verify your team profile details</div>
-                <div className={s.infoSectionContent}>
-                  We don’t see a whitelisted fund associated with your account.{' '}
-                  <Link href="/teams/add" className={s.ctaLink}>
-                    Submit a Fund <LinkIcon />
-                  </Link>
-                </div>
+                {hasTeam ? (
+                  <>
+                    <Link href={`/teams/${member?.mainTeam?.id}`} className={s.ctaLink}>
+                      <div className={s.infoSectionContent}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={member?.mainTeam?.logo} alt="team logo" className={s.teamLogo} />
+                        {member?.mainTeam?.name}
+                        <LinkIcon />
+                      </div>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <div className={s.infoSectionContent}>
+                      We don’t see a whitelisted fund associated with your account.{' '}
+                      <Link href="/teams/add" className={s.ctaLink}>
+                        Submit a Fund <LinkIcon />
+                      </Link>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className={s.divider} />
@@ -431,13 +448,27 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                 <h3>Your Investment Fund Profile</h3>
                 <p>We use your fund&apos;s profile for check size, stages, and focus.</p>
 
-                <div className={s.infoSectionLabel}>Verify your team profile details</div>
-                <div className={s.infoSectionContent}>
-                  We don&apos;t see a whitelisted fund associated with your account.{' '}
-                  <Link href="/teams/add" className={s.ctaLink}>
-                    Submit a Fund <LinkIcon />
-                  </Link>
-                </div>
+                {hasTeam ? (
+                  <>
+                    <Link href={`/teams/${member?.mainTeam?.id}`} className={s.ctaLink}>
+                      <div className={s.infoSectionContent}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={member?.mainTeam?.logo} alt="team logo" className={s.teamLogo} />
+                        {member?.mainTeam?.name}
+                        <LinkIcon />
+                      </div>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <div className={s.infoSectionContent}>
+                      We don’t see a whitelisted fund associated with your account.{' '}
+                      <Link href="/teams/add" className={s.ctaLink}>
+                        Submit a Fund <LinkIcon />
+                      </Link>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className={s.sectionHeader}>

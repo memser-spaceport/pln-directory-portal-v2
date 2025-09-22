@@ -195,6 +195,7 @@ export interface IMemberTeam {
   role?: string;
   teamLead?: boolean;
   mainTeam?: boolean;
+  logo?: string;
 }
 
 export type TMembersFiltersValues = {

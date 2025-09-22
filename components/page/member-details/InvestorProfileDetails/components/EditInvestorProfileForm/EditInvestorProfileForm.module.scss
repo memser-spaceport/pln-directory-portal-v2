@@ -130,6 +130,22 @@
   }
 }
 
+.infoSectionLabel {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: #0f172a;
+  margin: 16px 0 8px 0;
+}
+
+.infoSectionContent {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #455468;
+  margin: 0;
+}
+
 .switchDesc {
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 12px;

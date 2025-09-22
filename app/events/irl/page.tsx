@@ -51,7 +51,7 @@ export default async function Page({ searchParams }: any) {
       <div className={styles.irlGatherings__cn}>
         {/* Header */}
         <section className={styles.irlGatherings__header}>
-          <IrlHeader />
+          <IrlHeader searchParams={searchParams} locationDetails={locationDetails}/>
         </section>
         {/* Locations */}
         <section className={styles.irlGatheings__locations}>

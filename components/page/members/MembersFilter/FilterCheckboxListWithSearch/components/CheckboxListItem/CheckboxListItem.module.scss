@@ -1,0 +1,40 @@
+.root {
+  gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  height: 32px;
+  cursor: pointer;
+
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+}
+
+.content {
+  gap: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+}
+
+.badge {
+  font-size: 12px;
+  line-height: 16px;
+
+  height: 16px;
+  border-radius: 8px;
+  padding-inline: 8px;
+  background-color: #f1f1f1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

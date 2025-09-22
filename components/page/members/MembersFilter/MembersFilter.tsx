@@ -6,6 +6,7 @@ import { ADMIN_ROLE, EVENTS } from '@/utils/constants';
 
 import { useFilterStore } from '@/services/members/store';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { useGetRoles } from '@/services/members/hooks/useGetRoles';
 import { useGetTopics } from '@/services/members/hooks/useGetTopics';
 import { useGetMembersFilterCount } from '@/components/page/members/hooks/useGetMembersFilterCount';
 
@@ -17,8 +18,7 @@ import { FiltersPanelToggle } from '@/components/core/FiltersPanelToggle';
 
 import { FilterSearch } from './FilterSearch';
 import { FilterSection } from './FilterSection';
-import { FilterMultiSelect } from './FilterMultiSelect';
-// import { FilterCheckboxListWithSearch } from './FilterCheckboxListWithSearch';
+import { FilterCheckboxListWithSearch } from './FilterCheckboxListWithSearch';
 
 import s from './MembersFilter.module.scss';
 
@@ -77,24 +77,22 @@ export const MembersFilter = (props: IMembersFilter) => {
           description="OH are short 1:1 calls to connect about topics of interest or help others with your expertise."
         >
           <FiltersPanelToggle label="Only Show Members with Office Hours" paramKey="hasOfficeHours" />
-          <FilterMultiSelect
-            label="Search topics"
-            placeholder="E.g. AI, Staking..."
+          <FilterCheckboxListWithSearch
             paramKey="topics"
-            backLabel="Filters"
-            useDataHook={useGetTopics}
+            placeholder="E.g. AI, Staking, Governance"
+            useGetDataHook={useGetTopics}
+            defaultItemsToShow={0}
           />
-          {/*<FilterCheckboxListWithSearch placeholder="E.g. AI, Staking, Governance" />*/}
         </FilterSection>
 
         <div className={s.delimiter} />
 
         <FilterSection title="Roles">
-          <FilterMultiSelect
-            label="Search roles"
-            placeholder="E.g. Founder, VP Marketing..."
+          <FilterCheckboxListWithSearch
             paramKey="roles"
-            backLabel="Filters"
+            placeholder="E.g. Founder, VP Marketing..."
+            useGetDataHook={useGetRoles}
+            defaultItemsToShow={6}
           />
         </FilterSection>
       </div>

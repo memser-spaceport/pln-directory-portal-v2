@@ -64,17 +64,40 @@ export const InvestorProfileView = ({
 
         <div className={s.content}>
           <div className={s.section}>
-            {(type === 'ANGEL_AND_FUND' || type === 'FUND') && (
+            {type === 'ANGEL_AND_FUND' && (
+              <div className={s.sectionContent}>
+                <InvestmentDetailsSection
+                  typicalCheckSize={typicalCheckSize}
+                  investmentFocusAreas={investmentFocusAreas}
+                  investInStartupStages={investInStartupStages}
+                  investInFundTypes={investInFundTypes}
+                  secRulesAccepted={secRulesAccepted}
+                  isEditable={isEditable}
+                  onEdit={onEdit}
+                />
+                <div className={s.divider} />
+                <div>
+                  {fundTeam ? (
+                    <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
+                      <div className={s.infoSectionContent}>
+                        <span className={s.keywordsLabel}>I invest through: </span> <b>{fundTeam?.name}</b> <LinkIcon />
+                      </div>
+                    </Link>
+                  ) : (
+                    <Link href="/teams/add" className={s.infoSectionContent}>
+                      Submit a Fund <LinkIcon />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
+            {type === 'FUND' && (
               <>
                 <div>
                   {fundTeam ? (
                     <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
                       <div className={s.infoSectionContent}>
-                        <span className={s.keywordsLabel}>I invest through: </span>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={fundTeam?.logo} alt="team logo" className={s.teamLogo} />
-                        {fundTeam?.name}
-                        <LinkIcon />
+                        <span className={s.keywordsLabel}>I invest through: </span> <b>{fundTeam?.name}</b> <LinkIcon />
                       </div>
                     </Link>
                   ) : (

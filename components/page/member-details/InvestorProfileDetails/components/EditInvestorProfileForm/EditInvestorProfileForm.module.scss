@@ -40,6 +40,9 @@
 
 .sectionHeader {
   margin: 0;
+  gap: 8px;
+  display: flex;
+  flex-direction: column;
 
   h3 {
     color: var(--foreground-neutral-secondary, #455468);

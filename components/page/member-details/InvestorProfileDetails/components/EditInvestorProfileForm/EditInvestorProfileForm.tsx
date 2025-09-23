@@ -36,7 +36,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
 
   const { data: options } = useTeamsFormOptions();
 
-  const hasTeam = member?.teams?.length > 0;
+  const fundTeam = member?.teams.find((team) => team.isFund);
 
   const methods = useForm<TEditInvestorProfileForm>({
     defaultValues: {
@@ -219,18 +219,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                         isRequired
                       />
                     </div>
-                    {/*<div className={s.row}>*/}
-                    {/*  <FormMultiSelect*/}
-                    {/*    name="investInFundTypes"*/}
-                    {/*    label="Do you invest in VC Funds?"*/}
-                    {/*    placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"*/}
-                    {/*    options={investInVcFundsOptions}*/}
-                    {/*    disabled={!secRulesAccepted}*/}
-                    {/*    showNone*/}
-                    {/*    noneLabel="I don’t invest in VC Funds"*/}
-                    {/*    isRequired={secRulesAccepted && !investThroughFund}*/}
-                    {/*  />*/}
-                    {/*</div>*/}
                     <div className={s.row}>
                       <FormCurrencyField
                         name="typicalCheckSize"
@@ -265,193 +253,155 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   </div>
                 </Link>
               </div>
-
-              {/*<div className={s.row}>*/}
-              {/*  <label className={s.Label}>*/}
-              {/*    <Checkbox.Root*/}
-              {/*      className={s.Checkbox}*/}
-              {/*      checked={investThroughFund}*/}
-              {/*      onCheckedChange={(v: boolean) => {*/}
-              {/*        setValue('investThroughFund', v, { shouldValidate: true, shouldDirty: true });*/}
-              {/*        trigger();*/}
-              {/*      }}*/}
-              {/*    >*/}
-              {/*      <Checkbox.Indicator className={s.Indicator}>*/}
-              {/*        <CheckIcon className={s.Icon} />*/}
-              {/*      </Checkbox.Indicator>*/}
-              {/*    </Checkbox.Root>*/}
-              {/*    <div className={s.col}>*/}
-              {/*      <div className={s.primary}>*/}
-              {/*        I invest through a venture fund.{' '}*/}
-              {/*        {member.mainTeam ? (*/}
-              {/*          <Link target="_blank" href="/teams/add" className={s.link}>*/}
-              {/*            Submit your fund team <ExternalLinkIcon />*/}
-              {/*          </Link>*/}
-              {/*        ) : (*/}
-              {/*          ''*/}
-              {/*        )}*/}
-              {/*      </div>*/}
-              {/*      <p className={s.desc}>*/}
-              {/*        We’ll use your fund’s profile for check size, stages, and focus. The personal fields below are*/}
-              {/*        optional.*/}
-              {/*      </p>*/}
-              {/*    </div>*/}
-              {/*  </label>*/}
-              {/*</div>*/}
             </>
           )}
 
           {type && type.value === 'FUND' && (
             <>
-              <div className={s.sectionHeader}>
-                <h3>Your Investment Fund Profile</h3>
-                <p>We use your fund’s profile for check size, stages, and focus.</p>
-
-                <div className={s.infoSectionLabel}>Verify your team profile details</div>
-                {hasTeam ? (
-                  <>
-                    <Link href={`/teams/${member?.mainTeam?.id}`} className={s.ctaLink}>
-                      <div className={s.infoSectionContent}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={member?.mainTeam?.logo} alt="team logo" className={s.teamLogo} />
-                        {member?.mainTeam?.name}
-                        <LinkIcon />
-                      </div>
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <div className={s.infoSectionContent}>
-                      We don’t see a whitelisted fund associated with your account.{' '}
-                      <Link href="/teams/add" className={s.ctaLink}>
-                        Submit a Fund <LinkIcon />
+              <div className={s.block}>
+                <div className={s.sectionHeader}>
+                  <h3>Your Investment Fund Profile</h3>
+                  {fundTeam ? (
+                    <>
+                      <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
+                        <div className={s.infoSectionContent}>
+                          Verify your team profile details: <b>{fundTeam?.name}</b> <LinkIcon />
+                        </div>
                       </Link>
-                    </div>
-                  </>
-                )}
+                    </>
+                  ) : (
+                    <>
+                      <div className={s.infoSectionContent}>
+                        We don’t see a whitelisted fund associated with your account.{' '}
+                        <Link href="/teams/add" className={s.ctaLink}>
+                          Submit a Fund <LinkIcon />
+                        </Link>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
-              <div className={s.divider} />
-
-              <Link href="/settings/email" className={s.cta}>
-                <div className={s.ctaIcon}>
-                  <InfoIcon />
-                </div>
-                <div className={s.col}>
-                  <div className={s.ctaLink}>
-                    Manage your investor communications <LinkIcon />
+              <div className={s.block}>
+                <Link href="/settings/email" className={s.cta}>
+                  <div className={s.ctaIcon}>
+                    <InfoIcon />
                   </div>
-                  <p>Choose if you&apos;d like to receive event invitations, dealflow intros, and digests.</p>
-                </div>
-              </Link>
+                  <div className={s.col}>
+                    <div className={s.ctaLink}>
+                      Manage your investor communications <LinkIcon />
+                    </div>
+                    <p>Choose if you&apos;d like to receive event invitations, dealflow intros, and digests.</p>
+                  </div>
+                </Link>
+              </div>
             </>
           )}
 
           {type && type.value === 'ANGEL_AND_FUND' && (
             <>
-              <div className={s.sectionHeader}>
-                <h3>Your Investment Fund Profile</h3>
-                <p>We use your fund&apos;s profile for check size, stages, and focus.</p>
-
-                {hasTeam ? (
-                  <>
-                    <Link href={`/teams/${member?.mainTeam?.id}`} className={s.ctaLink}>
-                      <div className={s.infoSectionContent}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={member?.mainTeam?.logo} alt="team logo" className={s.teamLogo} />
-                        {member?.mainTeam?.name}
-                        <LinkIcon />
-                      </div>
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <div className={s.infoSectionContent}>
-                      We don’t see a whitelisted fund associated with your account.{' '}
-                      <Link href="/teams/add" className={s.ctaLink}>
-                        Submit a Fund <LinkIcon />
+              <div className={s.block}>
+                <div className={s.sectionHeader}>
+                  <h3>Your Investment Fund Profile</h3>
+                  {fundTeam ? (
+                    <>
+                      <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
+                        <div className={s.infoSectionContent}>
+                          Verify your team profile details: <b>{fundTeam?.name}</b> <LinkIcon />
+                        </div>
                       </Link>
+                    </>
+                  ) : (
+                    <>
+                      <div className={s.infoSectionContent}>
+                        We don’t see a whitelisted fund associated with your account.{' '}
+                        <Link href="/teams/add" className={s.ctaLink}>
+                          Submit a Fund <LinkIcon />
+                        </Link>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className={s.block}>
+                <div className={s.sectionHeader}>
+                  <h3>Your Angel Investor Profile</h3>
+                </div>
+                <div className={s.row}>
+                  <label className={s.Label}>
+                    <Checkbox.Root
+                      className={s.Checkbox}
+                      checked={secRulesAccepted}
+                      onCheckedChange={(v: boolean) => {
+                        setValue('secRulesAccepted', v, { shouldValidate: true, shouldDirty: true });
+                        trigger();
+                      }}
+                    >
+                      <Checkbox.Indicator className={s.Indicator}>
+                        <CheckIcon className={s.Icon} />
+                      </Checkbox.Indicator>
+                    </Checkbox.Root>
+                    <div className={s.col}>
+                      <div className={s.primary}>
+                        I&apos;m an accredited investor under{' '}
+                        <Link
+                          target="_blank"
+                          href="https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated-3"
+                          className={s.link}
+                        >
+                          SEC rules <ExternalLinkIcon />
+                        </Link>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                {secRulesAccepted && (
+                  <>
+                    <div className={s.row}>
+                      <FormMultiSelect
+                        name="investInStartupStages"
+                        label="Do you invest in Startups?"
+                        placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
+                        options={formOptions.fundingStageOptions}
+                        showNone
+                        isRequired
+                      />
+                    </div>
+                    <div className={s.row}>
+                      <FormCurrencyField
+                        name="typicalCheckSize"
+                        label="Typical Check Size"
+                        placeholder="Enter typical check size"
+                        currency="USD"
+                        isRequired
+                      />
+                    </div>
+                    <div className={s.row}>
+                      <FormTagsInput
+                        selectLabel="Add Investment Focus"
+                        name="investmentFocusAreas"
+                        placeholder="Enter focus area"
+                      />
                     </div>
                   </>
                 )}
               </div>
 
-              <div className={s.sectionHeader}>
-                <h3>Your Angel Investor Profile</h3>
-              </div>
-              <div className={s.row}>
-                <label className={s.Label}>
-                  <Checkbox.Root
-                    className={s.Checkbox}
-                    checked={secRulesAccepted}
-                    onCheckedChange={(v: boolean) => {
-                      setValue('secRulesAccepted', v, { shouldValidate: true, shouldDirty: true });
-                      trigger();
-                    }}
-                  >
-                    <Checkbox.Indicator className={s.Indicator}>
-                      <CheckIcon className={s.Icon} />
-                    </Checkbox.Indicator>
-                  </Checkbox.Root>
+              <div className={s.block}>
+                <Link href="/settings/email" className={s.cta}>
+                  <div className={s.ctaIcon}>
+                    <InfoIcon />
+                  </div>
                   <div className={s.col}>
-                    <div className={s.primary}>
-                      I&apos;m an accredited investor under{' '}
-                      <Link
-                        target="_blank"
-                        href="https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated-3"
-                        className={s.link}
-                      >
-                        SEC rules <ExternalLinkIcon />
-                      </Link>
+                    <div className={s.ctaLink}>
+                      Manage your investor communications <LinkIcon />
                     </div>
+                    <p>Choose if you&apos;d like to receive event invitations, dealflow intros, and digests.</p>
                   </div>
-                </label>
+                </Link>
               </div>
-
-              {secRulesAccepted && (
-                <>
-                  <div className={s.row}>
-                    <FormMultiSelect
-                      name="investInStartupStages"
-                      label="Do you invest in Startups?"
-                      placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
-                      options={formOptions.fundingStageOptions}
-                      showNone
-                      isRequired
-                    />
-                  </div>
-                  <div className={s.row}>
-                    <FormCurrencyField
-                      name="typicalCheckSize"
-                      label="Typical Check Size"
-                      placeholder="Enter typical check size"
-                      currency="USD"
-                      isRequired
-                    />
-                  </div>
-                  <div className={s.row}>
-                    <FormTagsInput
-                      selectLabel="Add Investment Focus"
-                      name="investmentFocusAreas"
-                      placeholder="Enter focus area"
-                    />
-                  </div>
-                </>
-              )}
-
-              <div className={s.divider} />
-
-              <Link href="/settings/email" className={s.cta}>
-                <div className={s.ctaIcon}>
-                  <InfoIcon />
-                </div>
-                <div className={s.col}>
-                  <div className={s.ctaLink}>
-                    Manage your investor communications <LinkIcon />
-                  </div>
-                  <p>Choose if you&apos;d like to receive event invitations, dealflow intros, and digests.</p>
-                </div>
-              </Link>
             </>
           )}
         </div>

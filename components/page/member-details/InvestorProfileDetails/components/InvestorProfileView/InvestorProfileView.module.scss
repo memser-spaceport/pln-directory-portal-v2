@@ -273,4 +273,15 @@
   }
 }
 
+.sectionContent {
+  width: 100%;
+}
+
+.divider {
+  height: 1px;
+  width: 100%;
+  background: var(--border-brand-xsubtle, #E8EDFF);
+  margin-block: 16px;
+}
+
 

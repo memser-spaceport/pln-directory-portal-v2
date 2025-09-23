@@ -36,19 +36,19 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
     {
       id: 1,
       title: 'Step 1',
-      description: "Invitation accepted — You're on the list.",
+      description: 'Confirm your invitation to join Demo Day',
       status: currentStep > 1 ? 'completed' : currentStep === 1 ? 'current' : 'pending',
     },
     {
       id: 2,
       title: 'Step 2',
-      description: 'Complete investor profile — Add information about you.',
+      description: 'Complete your investor profile',
       status: currentStep > 2 ? 'completed' : currentStep === 2 ? 'current' : 'pending',
     },
     {
       id: 3,
       title: 'Step 3',
-      description: `Demo Day access — Opens at ${eventDateFormatted}.`,
+      description: `You're all set for Demo Day! Access opens at ${eventDateFormatted}.`,
       status: currentStep > 3 ? 'completed' : currentStep === 3 ? 'current' : 'pending',
     },
   ];
@@ -57,8 +57,8 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
     <div className={s.stepperCard}>
       {/* Title Section */}
       <div className={s.titleSection}>
-        <h3 className={s.title}>Complete your investor profile to join Demo Day.</h3>
-        <p className={s.subtitle}>You need to have all your investor info to access Demo Day.</p>
+        <h3 className={s.title}>Get ready for Demo Day!</h3>
+        <p className={s.subtitle}>Follow these steps to secure your access:</p>
       </div>
 
       {/* Vertical Stepper */}
@@ -84,7 +84,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
 
       {/* Action Button */}
       <button className={s.primaryButton} onClick={onFillProfile}>
-        Fill in Your Investor Profile
+        Go to Investor Profile
       </button>
     </div>
   );

@@ -15,8 +15,8 @@ export default function LoginInfo() {
   return (
     <>
       <div className="login-info">
-        <div className="login-info__title">Login to submit a team</div>
-        <div className="login-info__subtitle">You need to log in to submit a team.Please login to proceed.</div>
+        <div className="login-info__title">Sign in to submit a team</div>
+        <div className="login-info__subtitle">You need to sign in to submit a team.Please login to proceed.</div>
         <div className="login-info__actions">
           <button onClick={onCancel} className="login-info__actions__cancel" type="button">
             Cancel

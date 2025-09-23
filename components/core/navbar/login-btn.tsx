@@ -29,7 +29,7 @@ const LoginBtn = () => {
   return (
     <>
       <button className={s.root} onClick={onLoginClickHandler}>
-        Log in
+        Sign in
       </button>
     </>
   );

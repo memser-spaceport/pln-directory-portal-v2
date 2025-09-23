@@ -184,7 +184,7 @@ function HuskyEmptyChat({
                   </div>
                   <div className="error__strip__msg">
                     <span onClick={onLoginClickHandler} className="link">
-                      Log in
+                      Sign in
                     </span>
                     {` `}or{` `}
                     <span onClick={handleSignUpClick} role="link" className="link">

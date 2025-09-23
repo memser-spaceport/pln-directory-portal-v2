@@ -39,8 +39,6 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   const isAdmin = props.userInfo?.roles?.includes(ADMIN_ROLE);
   const isInvestor = props.userInfo?.accessLevel === 'L5' || props.userInfo?.accessLevel === 'L6';
 
-  console.log({ initialValues });
-
   // Get options for multiselects
   const { data } = useTeamsFormOptions();
 

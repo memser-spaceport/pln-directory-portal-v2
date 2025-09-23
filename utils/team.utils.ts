@@ -271,8 +271,6 @@ export const getTechnologyImage = (technology: string) => {
 };
 
 export const getTeamInitialValue = (selectedTeam: any, membersDetail: any) => {
-  console.log(selectedTeam);
-
   return {
     basicInfo: {
       requestorEmail: '',

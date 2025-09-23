@@ -65,7 +65,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   } = methods;
   const type = watch('type');
   const secRulesAccepted = watch('secRulesAccepted');
-  const investThroughFund = watch('investThroughFund');
 
   const formOptions = useMemo(() => {
     if (!options) {
@@ -216,7 +215,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                         placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                         options={formOptions.fundingStageOptions}
                         showNone
-                        isRequired
                       />
                     </div>
                     <div className={s.row}>
@@ -226,7 +224,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                         placeholder="Enter typical check size"
                         currency="USD"
                         disabled={!secRulesAccepted}
-                        isRequired={secRulesAccepted && !investThroughFund}
                       />
                     </div>
                     <div className={s.row}>

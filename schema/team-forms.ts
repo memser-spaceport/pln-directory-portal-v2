@@ -15,10 +15,7 @@ export const basicInfoSchema = z.object({
     .trim()
     .min(1)
     .max(1000),
-  longDescription: z
-    .string({ errorMap: () => ({ message: 'Please add a Long Description' }) })
-    .trim()
-    .min(1),
+  longDescription: z.string({ errorMap: () => ({ message: 'Please add a Long Description' }) }).trim(),
 });
 
 const industryTag = z.object({

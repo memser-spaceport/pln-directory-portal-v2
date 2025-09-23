@@ -259,7 +259,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           </p>
         </div>
         <div className="teaminfo__form__item">
-          {<label className={`tf__label`}>Long Description*</label>}
+          {<label className={`tf__label`}>Long Description</label>}
           <RichTextEditor value={props?.longDesc} onChange={props.setLongDesc} />
           {/* <TextArea
             defaultValue={initialValues?.longDescription}

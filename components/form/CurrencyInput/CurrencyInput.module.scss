@@ -29,6 +29,14 @@
     color: red;
     margin-left: 0.25rem;
   }
+
+  &.secondary {
+    color: var(--Text-Dark, #0F172A);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 20px; /* 142.857% */
+  }
 }
 
 .input {

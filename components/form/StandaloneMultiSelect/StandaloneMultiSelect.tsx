@@ -13,6 +13,7 @@ interface Props {
   noneLabel?: string;
   value?: { label: string; value: string }[];
   onChange?: (value: { label: string; value: string }[]) => void;
+  variant?: 'primary' | 'secondary';
 }
 
 const filterAndSort = (option: { value: string; label: string }, input: string) => {
@@ -56,6 +57,7 @@ export const StandaloneMultiSelect = ({
   noneLabel = 'None',
   value = [],
   onChange,
+  variant,
 }: Props) => {
   const [inputValue, setInputValue] = useState('');
 
@@ -109,6 +111,7 @@ export const StandaloneMultiSelect = ({
         <label
           className={clsx('standalone-multiselect__label', {
             'standalone-multiselect__label--required': isRequired,
+            secondary: variant === 'secondary',
           })}
         >
           {label}
@@ -226,6 +229,14 @@ export const StandaloneMultiSelect = ({
           font-weight: 500;
           line-height: 20px; /* 166.667% */
           margin-bottom: 0.25rem;
+        }
+
+        .standalone-multiselect__label.secondary {
+          color: #0f172a;
+          font-size: 14px;
+          font-style: normal;
+          font-weight: 600;
+          line-height: 20px; /* 142.857% */
         }
 
         .standalone-multiselect__label--required::after {

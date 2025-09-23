@@ -23,7 +23,7 @@ interface Props {
   investInFundTypes: string[] | undefined;
   secRulesAccepted: boolean | undefined;
   type: InvestorProfileType | undefined;
-  member: IMember;
+  member?: IMember;
 }
 
 export const InvestorProfileView = ({

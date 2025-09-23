@@ -15,6 +15,7 @@ interface Props {
   disabled?: boolean;
   isRequired?: boolean;
   name?: string;
+  variant?: 'primary' | 'secondary';
 }
 
 export interface TagsInputRef {
@@ -23,114 +24,114 @@ export interface TagsInputRef {
   reset: () => void;
 }
 
-export const TagsInput = forwardRef<TagsInputRef, Props>(({
-  selectLabel,
-  defaultValue = [],
-  isColorfulBadges = true,
-  placeholder = 'Add keyword',
-  disabled = false,
-  isRequired = false,
-  name
-}, ref) => {
-  const [inputText, setInputText] = useState('');
-  const [tags, setTags] = useState<string[]>(defaultValue);
+export const TagsInput = forwardRef<TagsInputRef, Props>(
+  (
+    {
+      selectLabel,
+      defaultValue = [],
+      isColorfulBadges = true,
+      placeholder = 'Add keyword',
+      disabled = false,
+      isRequired = false,
+      name,
+      variant,
+    },
+    ref,
+  ) => {
+    const [inputText, setInputText] = useState('');
+    const [tags, setTags] = useState<string[]>(defaultValue);
 
-  useImperativeHandle(ref, () => ({
-    getValue: () => tags,
-    setValue: (value: string[]) => setTags(value),
-    reset: () => setTags(defaultValue)
-  }));
+    useImperativeHandle(ref, () => ({
+      getValue: () => tags,
+      setValue: (value: string[]) => setTags(value),
+      reset: () => setTags(defaultValue),
+    }));
 
-  const handleAddTag = (newTag: string) => {
-    if (newTag.trim() === '') {
-      return;
-    }
+    const handleAddTag = (newTag: string) => {
+      if (newTag.trim() === '') {
+        return;
+      }
 
-    if (tags.includes(newTag.trim())) {
-      return;
-    }
+      if (tags.includes(newTag.trim())) {
+        return;
+      }
 
-    const parsedInput = newTag
-      .trim()
-      .split(',')
-      .map((i) => i.trim())
-      .filter(Boolean);
+      const parsedInput = newTag
+        .trim()
+        .split(',')
+        .map((i) => i.trim())
+        .filter(Boolean);
 
-    setTags(prev => uniq([...prev, ...parsedInput]));
-    setInputText('');
-  };
+      setTags((prev) => uniq([...prev, ...parsedInput]));
+      setInputText('');
+    };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(prev => prev.filter((tag) => tag !== tagToRemove));
-  };
+    const handleRemoveTag = (tagToRemove: string) => {
+      setTags((prev) => prev.filter((tag) => tag !== tagToRemove));
+    };
 
-  return (
-    <div className={clsx(s.Content, { [s.disabled]: disabled })}>
-      <div className={clsx(s.inputLabel, { [s.required]: isRequired })}>
-        {selectLabel}
-      </div>
-      <div className={s.input}>
-        <div className={s.inputContent}>
-          {tags?.map((item: string) => {
-            return (
-              <Badge
-                key={item}
-                label={item}
-                isColorful={isColorfulBadges}
-                disabled={disabled}
-                onDelete={() => handleRemoveTag(item)}
-              />
-            );
-          })}
-          <Field.Control
-            placeholder={tags?.length > 0 ? '' : placeholder}
-            className={clsx(s.textInput, {
-              [s.hidePlaceholder]: tags?.length > 0,
+    return (
+      <div className={clsx(s.Content, { [s.disabled]: disabled })}>
+        <div className={clsx(s.inputLabel, { [s.required]: isRequired, [s.secondary]: variant === 'secondary' })}>
+          {selectLabel}
+        </div>
+        <div className={s.input}>
+          <div className={s.inputContent}>
+            {tags?.map((item: string) => {
+              return (
+                <Badge
+                  key={item}
+                  label={item}
+                  isColorful={isColorfulBadges}
+                  disabled={disabled}
+                  onDelete={() => handleRemoveTag(item)}
+                />
+              );
             })}
-            value={inputText}
+            <Field.Control
+              placeholder={tags?.length > 0 ? '' : placeholder}
+              className={clsx(s.textInput, {
+                [s.hidePlaceholder]: tags?.length > 0,
+              })}
+              value={inputText}
+              disabled={disabled}
+              name={name}
+              onChange={(e) => {
+                setInputText(e.target.value);
+              }}
+              onBlur={() => {
+                handleAddTag(inputText);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  setInputText('');
+                  return;
+                }
+
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  handleAddTag(inputText);
+                }
+              }}
+            />
+          </div>
+          <button
+            type="button"
+            className={s.addButton}
             disabled={disabled}
-            name={name}
-            onChange={(e) => {
-              setInputText(e.target.value);
-            }}
-            onBlur={() => {
+            onClick={() => {
               handleAddTag(inputText);
             }}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') {
-                setInputText('');
-                return;
-              }
-
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                handleAddTag(inputText);
-              }
-            }}
-          />
+          >
+            <PlusIcon />
+          </button>
         </div>
-        <button
-          type="button"
-          className={s.addButton}
-          disabled={disabled}
-          onClick={() => {
-            handleAddTag(inputText);
-          }}
-        >
-          <PlusIcon />
-        </button>
+        {/* Hidden input for form submission */}
+        {name && <input type="hidden" name={name} value={JSON.stringify(tags)} />}
       </div>
-      {/* Hidden input for form submission */}
-      {name && (
-        <input
-          type="hidden"
-          name={name}
-          value={JSON.stringify(tags)}
-        />
-      )}
-    </div>
-  );
-});
+    );
+  },
+);
 
 TagsInput.displayName = 'TagsInput';
 
@@ -138,12 +139,12 @@ const Badge = ({
   label,
   onDelete,
   isColorful,
-  disabled
+  disabled,
 }: {
   label: string;
   onDelete: () => void;
   isColorful: boolean;
-  disabled?: boolean
+  disabled?: boolean;
 }) => {
   return (
     <div

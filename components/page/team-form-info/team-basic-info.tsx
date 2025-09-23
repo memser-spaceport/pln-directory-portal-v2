@@ -29,7 +29,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);
-  const [isInvestmentFund, setIsInvestmentFund] = useState<boolean>(initialValues?.isInvestmentFund ?? false);
+  const [isInvestmentFund, setIsInvestmentFund] = useState<boolean>(initialValues?.isFund ?? false);
   const [investInStartupStages, setInvestInStartupStages] = useState<{ label: string; value: string }[]>(
     initialValues?.investInStartupStages || [],
   );
@@ -38,6 +38,8 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   );
   const isAdmin = props.userInfo?.roles?.includes(ADMIN_ROLE);
   const isInvestor = props.userInfo?.accessLevel === 'L5' || props.userInfo?.accessLevel === 'L6';
+
+  console.log({ initialValues });
 
   // Get options for multiselects
   const { data } = useTeamsFormOptions();
@@ -99,18 +101,27 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   useEffect(() => {
     setSavedImage(initialValues?.imageFile ?? '');
     setIsPlnFriend(initialValues?.plnFriend ?? false);
-    setIsInvestmentFund(initialValues?.isInvestmentFund ?? false);
-    setInvestInStartupStages(initialValues?.investInStartupStages || []);
-    setInvestInFundTypes(initialValues?.investInFundTypes || []);
+    setIsInvestmentFund(initialValues?.isFund ?? false);
+    setInvestInStartupStages(
+      initialValues?.investorProfile?.investInStartupStages?.map((item: any) => ({ label: item, value: item })) || [],
+    );
+    setInvestInFundTypes(
+      initialValues?.investorProfile?.investInFundTypes?.map((item: any) => ({ label: item, value: item })) || [],
+    );
     setProfileImage('');
     function resetHandler() {
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
         setSavedImage(initialValues?.imageFile ?? '');
         setProfileImage('');
-        setIsInvestmentFund(initialValues?.isInvestmentFund ?? false);
-        setInvestInStartupStages(initialValues?.investInStartupStages || []);
-        setInvestInFundTypes(initialValues?.investInFundTypes || []);
+        setIsInvestmentFund(initialValues?.isFund ?? false);
+        setInvestInStartupStages(
+          initialValues?.investorProfile?.investInStartupStages?.map((item: any) => ({ label: item, value: item })) ||
+            [],
+        );
+        setInvestInFundTypes(
+          initialValues?.investorProfile?.investInFundTypes?.map((item: any) => ({ label: item, value: item })) || [],
+        );
       }
     }
     document.addEventListener('reset-team-register-form', resetHandler);
@@ -292,7 +303,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             <input
               type="checkbox"
               id="team-investment-fund"
-              name="isInvestmentFund"
+              name="isFund"
               checked={isInvestmentFund}
               onChange={(e) => setIsInvestmentFund(e.target.checked)}
             />
@@ -306,44 +317,50 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           <>
             <div className="teaminfo__form__item">
               <StandaloneMultiSelect
+                name="investInFundTypes"
+                label="What types of fund(s) you invest in?"
+                placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
+                options={investInVcFundsOptions}
+                // showNone
+                // noneLabel="We don't invest in VC funds"
+                value={investInFundTypes}
+                onChange={setInvestInFundTypes}
+                variant="secondary"
+              />
+              <input type="hidden" name="investInFundTypes" value={JSON.stringify(investInFundTypes)} />
+            </div>
+
+            <div className="teaminfo__form__item">
+              <StandaloneMultiSelect
                 name="investInStartupStages"
                 label="Do you invest in Startups?"
                 placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                 options={options.fundingStageOptions}
-                showNone
-                noneLabel="We don't invest in startups"
+                // showNone
+                // noneLabel="We don't invest in startups"
                 value={investInStartupStages}
                 onChange={setInvestInStartupStages}
+                variant="secondary"
               />
               <input type="hidden" name="investInStartupStages" value={JSON.stringify(investInStartupStages)} />
             </div>
-            <div className="teaminfo__form__item">
-              <StandaloneMultiSelect
-                name="investInFundTypes"
-                label="Do you invest in VC Funds?"
-                placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
-                options={investInVcFundsOptions}
-                showNone
-                noneLabel="We don't invest in VC funds"
-                value={investInFundTypes}
-                onChange={setInvestInFundTypes}
-              />
-              <input type="hidden" name="investInFundTypes" value={JSON.stringify(investInFundTypes)} />
-            </div>
+
             <div className="teaminfo__form__item">
               <CurrencyInput
                 defaultValue={initialValues?.investorProfile?.typicalCheckSize}
-                label="Typical Check Size (Only if the Team is an Investment Fund)"
+                label="Typical Check Size"
                 name="typicalCheckSize"
                 placeholder="Enter a single amount (e.g., $250k)"
+                variant="secondary"
               />
             </div>
             <div className="teaminfo__form__item">
               <TagsInput
                 defaultValue={initialValues?.investorProfile?.investmentFocus}
-                selectLabel="Add Investment Focus (Only if the Team is an Investment Fund)"
+                selectLabel="Add Investment Focus"
                 name="investmentFocus"
                 placeholder="Add Keywords. E.g. AI, Staking, Governance, etc."
+                variant="secondary"
               />
             </div>
           </>
@@ -482,7 +499,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           }
           .teaminfo__form__checkbox__label {
             font-size: 14px;
-            font-weight: 400;
+            font-weight: 600;
             line-height: 20px;
             color: #0f172a;
             cursor: pointer;

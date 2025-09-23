@@ -51,6 +51,8 @@ async function Page({ params }: { params: ITeamDetailParams }) {
     return <Error />;
   }
 
+  console.log(team);
+
   return (
     <>
       <div className={styles?.teamDetail}>
@@ -70,7 +72,10 @@ async function Page({ params }: { params: ITeamDetailParams }) {
                 userInfo={userInfo}
                 isEditable={false}
                 showIncomplete={false}
-                secRulesAccepted={team?.investorProfile?.secRulesAccepted}
+                secRulesAccepted
+                investInStartupStages={team?.investorProfile?.investInStartupStages}
+                investInFundTypes={team?.investorProfile?.investInFundTypes}
+                type={'ANGEL'}
               />
             </div>
           )}

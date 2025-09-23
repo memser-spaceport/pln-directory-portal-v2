@@ -13,6 +13,7 @@ interface Props {
   isRequired?: boolean;
   currency?: string;
   name?: string;
+  variant: 'primary' | 'secondary';
 }
 
 export interface CurrencyInputRef {
@@ -70,122 +71,121 @@ const extractNumericValue = (formattedValue: string): string => {
   return formattedValue.replace(/[^\d.]/g, '');
 };
 
-export const CurrencyInput = forwardRef<CurrencyInputRef, Props>(({
-  defaultValue = '',
-  placeholder,
-  label,
-  description,
-  disabled = false,
-  isRequired = false,
-  currency = 'USD',
-  name
-}, ref) => {
-  const [isFocused, setIsFocused] = useState(false);
-  const [displayValue, setDisplayValue] = useState(defaultValue);
-  const [internalValue, setInternalValue] = useState(defaultValue);
-
-  useImperativeHandle(ref, () => ({
-    getValue: () => internalValue,
-    setValue: (value: string) => {
-      setInternalValue(value);
-      if (isFocused) {
-        const formattedForEditing = formatNumberWithCommas(extractNumericValue(value));
-        setDisplayValue(formattedForEditing);
-      } else {
-        const formattedValue = formatCurrency(value, currency);
-        setDisplayValue(formattedValue);
-      }
+export const CurrencyInput = forwardRef<CurrencyInputRef, Props>(
+  (
+    {
+      defaultValue = '',
+      placeholder,
+      label,
+      description,
+      disabled = false,
+      isRequired = false,
+      currency = 'USD',
+      name,
+      variant,
     },
-    reset: () => {
-      setInternalValue(defaultValue);
-      setDisplayValue(defaultValue);
-    },
-    getNumericValue: () => extractNumericValue(internalValue),
-    getCurrencyValue: () => formatCurrency(internalValue, currency)
-  }));
+    ref,
+  ) => {
+    const [isFocused, setIsFocused] = useState(false);
+    const [displayValue, setDisplayValue] = useState(defaultValue);
+    const [internalValue, setInternalValue] = useState(defaultValue);
 
-  const handleFocus = useCallback(() => {
-    setIsFocused(true);
-    // When focused, show formatted number with commas for easier editing
-    const numericValue = extractNumericValue(internalValue);
-    const formattedForEditing = formatNumberWithCommas(numericValue);
-    setDisplayValue(formattedForEditing);
-  }, [internalValue]);
-
-  const handleBlur = useCallback(() => {
-    setIsFocused(false);
-    // When blurred, format as currency and update internal value
-    const formattedValue = formatCurrency(displayValue, currency);
-    setDisplayValue(formattedValue);
-    setInternalValue(formattedValue);
-  }, [displayValue, currency]);
-
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-
-      if (isFocused) {
-        // While focused, format with commas for easier reading
-        const formattedValue = formatNumberWithCommas(value);
-        setDisplayValue(formattedValue);
-        // Store the raw numeric value internally
-        const numericValue = extractNumericValue(value);
-        setInternalValue(numericValue);
-      } else {
-        setDisplayValue(value);
+    useImperativeHandle(ref, () => ({
+      getValue: () => internalValue,
+      setValue: (value: string) => {
         setInternalValue(value);
-      }
-    },
-    [isFocused],
-  );
+        if (isFocused) {
+          const formattedForEditing = formatNumberWithCommas(extractNumericValue(value));
+          setDisplayValue(formattedForEditing);
+        } else {
+          const formattedValue = formatCurrency(value, currency);
+          setDisplayValue(formattedValue);
+        }
+      },
+      reset: () => {
+        setInternalValue(defaultValue);
+        setDisplayValue(defaultValue);
+      },
+      getNumericValue: () => extractNumericValue(internalValue),
+      getCurrencyValue: () => formatCurrency(internalValue, currency),
+    }));
 
-  return (
-    <Field.Root className={s.field}>
-      {label && (
-        <div className={s.labelWrapper}>
-          <Field.Label
-            className={clsx(s.label, {
-              [s.required]: isRequired,
-            })}
-          >
-            {label}
-          </Field.Label>
+    const handleFocus = useCallback(() => {
+      setIsFocused(true);
+      // When focused, show formatted number with commas for easier editing
+      const numericValue = extractNumericValue(internalValue);
+      const formattedForEditing = formatNumberWithCommas(numericValue);
+      setDisplayValue(formattedForEditing);
+    }, [internalValue]);
+
+    const handleBlur = useCallback(() => {
+      setIsFocused(false);
+      // When blurred, format as currency and update internal value
+      const formattedValue = formatCurrency(displayValue, currency);
+      setDisplayValue(formattedValue);
+      setInternalValue(formattedValue);
+    }, [displayValue, currency]);
+
+    const handleChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+
+        if (isFocused) {
+          // While focused, format with commas for easier reading
+          const formattedValue = formatNumberWithCommas(value);
+          setDisplayValue(formattedValue);
+          // Store the raw numeric value internally
+          const numericValue = extractNumericValue(value);
+          setInternalValue(numericValue);
+        } else {
+          setDisplayValue(value);
+          setInternalValue(value);
+        }
+      },
+      [isFocused],
+    );
+
+    return (
+      <Field.Root className={s.field}>
+        {label && (
+          <div className={s.labelWrapper}>
+            <Field.Label
+              className={clsx(s.label, {
+                [s.required]: isRequired,
+                [s.secondary]: variant === 'secondary',
+              })}
+            >
+              {label}
+            </Field.Label>
+          </div>
+        )}
+        <div className={s.input}>
+          <div className={s.inputContent}>
+            <Field.Control
+              disabled={disabled}
+              placeholder={placeholder}
+              className={s.inputElement}
+              id={name}
+              name={name}
+              value={displayValue}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              onChange={handleChange}
+              type="text"
+              inputMode="decimal"
+            />
+          </div>
         </div>
-      )}
-      <div className={s.input}>
-        <div className={s.inputContent}>
-          <Field.Control
-            disabled={disabled}
-            placeholder={placeholder}
-            className={s.inputElement}
-            id={name}
-            name={name}
-            value={displayValue}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onChange={handleChange}
-            type="text"
-            inputMode="decimal"
-          />
+        <div className={s.sub}>
+          <div>
+            {description ? <Field.Description className={s.fieldDescription}>{description}</Field.Description> : null}
+          </div>
         </div>
-      </div>
-      <div className={s.sub}>
-        <div>
-          {description ? (
-            <Field.Description className={s.fieldDescription}>{description}</Field.Description>
-          ) : null}
-        </div>
-      </div>
-      {/* Hidden input for form submission */}
-      {name && (
-        <input
-          type="hidden"
-          name={name}
-          value={internalValue}
-        />
-      )}
-    </Field.Root>
-  );
-});
+        {/* Hidden input for form submission */}
+        {name && <input type="hidden" name={name} value={internalValue} />}
+      </Field.Root>
+    );
+  },
+);
 
 CurrencyInput.displayName = 'CurrencyInput';

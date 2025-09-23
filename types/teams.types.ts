@@ -112,6 +112,8 @@ export interface ITeam {
     teamUid: string;
     memberUid: null;
     secRulesAccepted: boolean;
+    investInStartupStages: string[];
+    investInFundTypes: string[];
   };
 }
 

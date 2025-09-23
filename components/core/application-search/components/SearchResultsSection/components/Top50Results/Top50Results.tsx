@@ -13,10 +13,11 @@ import s from '@/components/core/application-search/components/SearchResultsSect
 
 interface Props {
   items: AllFoundItems;
+  onSelect?: () => void;
 }
 
 export function Top50Results(props: Props) {
-  const { items } = props;
+  const { items, onSelect } = props;
 
   const [showAll, toggleShowAll] = useToggle(false);
 
@@ -29,7 +30,7 @@ export function Top50Results(props: Props) {
           <div className={ls.groupTitle}>{getGroupTitleByGroupName(groupName)}</div>
           <ul className={s.list}>
             {groupItems.map((item) => (
-              <SearchResultsItem key={item.uid} item={item} />
+              <SearchResultsItem key={item.uid} item={item} onSelect={onSelect} />
             ))}
           </ul>
         </div>

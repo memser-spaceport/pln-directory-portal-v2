@@ -78,6 +78,7 @@ export const MembersFilter = (props: IMembersFilter) => {
         >
           <FiltersPanelToggle label="Only Show Members with Office Hours" paramKey="hasOfficeHours" />
           <FilterCheckboxListWithSearch
+            label="Search topics"
             paramKey="topics"
             placeholder="E.g. AI, Staking, Governance"
             useGetDataHook={useGetTopics}
@@ -89,6 +90,7 @@ export const MembersFilter = (props: IMembersFilter) => {
 
         <FilterSection title="Roles">
           <FilterCheckboxListWithSearch
+            label="Search roles"
             paramKey="roles"
             placeholder="E.g. Founder, VP Marketing..."
             useGetDataHook={useGetRoles}

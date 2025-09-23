@@ -1,3 +1,13 @@
+.label {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  margin-bottom: 8px;
+}
+
 .inputRoot {
   width: 100%;
   min-width: 0;
@@ -32,4 +42,12 @@
 .clearBtn {
   top: 3px;
   right: 4px !important;
+}
+
+.list {
+  max-height: 192px;
+  overflow: auto;
+
+  margin-top: 8px;
+  padding-right: 4px;
 }

@@ -157,13 +157,15 @@ export const getMember = async (
         role: teamMemberRole.role,
         teamUid: teamMemberRole.team?.uid,
       });
+
       return {
-        id: teamMemberRole.team?.uid || '',
-        name: teamMemberRole.team?.name || '',
-        role: teamMemberRole.role || 'Contributor',
-        teamLead: !!teamMemberRole.teamLead,
-        mainTeam: !!teamMemberRole.mainTeam,
+        id: teamMemberRole?.team?.uid || '',
+        name: teamMemberRole?.team?.name || '',
+        role: teamMemberRole?.role || 'Contributor',
+        teamLead: !!teamMemberRole?.teamLead,
+        mainTeam: !!teamMemberRole?.mainTeam,
         logo: teamMemberRole?.team?.logo?.url ?? '',
+        isFund: teamMemberRole?.team?.isFund,
       };
     }) || [];
 

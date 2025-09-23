@@ -39,6 +39,8 @@ export const InvestorProfileView = ({
   type,
   member,
 }: Props) => {
+  const fundTeam = member?.teams.find((team: any) => team.isFund);
+
   return (
     <>
       {showIncomplete && (
@@ -65,13 +67,13 @@ export const InvestorProfileView = ({
             {(type === 'ANGEL_AND_FUND' || type === 'FUND') && (
               <>
                 <div>
-                  {member?.mainTeam?.name ? (
-                    <Link href={`/teams/${member?.mainTeam?.id}`} className={s.ctaLink}>
+                  {fundTeam ? (
+                    <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
                       <div className={s.infoSectionContent}>
                         <span className={s.keywordsLabel}>I invest through: </span>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={member?.mainTeam?.logo} alt="team logo" className={s.teamLogo} />
-                        {member?.mainTeam?.name}
+                        <img src={fundTeam?.logo} alt="team logo" className={s.teamLogo} />
+                        {fundTeam?.name}
                         <LinkIcon />
                       </div>
                     </Link>

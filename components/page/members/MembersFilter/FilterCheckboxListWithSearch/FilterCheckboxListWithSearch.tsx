@@ -18,6 +18,7 @@ import { CheckboxListItem } from './components/CheckboxListItem';
 import s from './FilterCheckboxListWithSearch.module.scss';
 
 interface Props {
+  label: string;
   paramKey: string;
   placeholder?: string;
   defaultItemsToShow: number;
@@ -25,7 +26,7 @@ interface Props {
 }
 
 export function FilterCheckboxListWithSearch(props: Props) {
-  const { paramKey, placeholder, useGetDataHook, defaultItemsToShow } = props;
+  const { label, paramKey, placeholder, useGetDataHook, defaultItemsToShow } = props;
 
   const [searchValue, setSearchValue] = useState('');
 
@@ -63,38 +64,41 @@ export function FilterCheckboxListWithSearch(props: Props) {
 
   return (
     <FormProvider {...methods}>
-      <DebouncedInput
-        value={searchValue}
-        ids={{
-          root: '',
-          input: '',
-        }}
-        classes={{
-          root: s.inputRoot,
-          input: s.input,
-          flushBtn: s.flushBtn,
-          clearBtn: s.clearBtn,
-        }}
-        onChange={setSearchValue}
-        placeholder={placeholder}
-        hideFlushIconOnValueInput
-        clearIcon={<CloseIcon color="#455468" />}
-        flushIcon={<SearchIcon color="#455468" className={s.searchIcon} />}
-      />
       <div>
-        {itemsToRender.map((item) => {
-          const checked = filterValues?.some(({ value }) => value === item.value);
+        <div className={s.label}>{label}</div>
+        <DebouncedInput
+          value={searchValue}
+          ids={{
+            root: '',
+            input: '',
+          }}
+          classes={{
+            root: s.inputRoot,
+            input: s.input,
+            flushBtn: s.flushBtn,
+            clearBtn: s.clearBtn,
+          }}
+          onChange={setSearchValue}
+          placeholder={placeholder}
+          hideFlushIconOnValueInput
+          clearIcon={<CloseIcon color="#455468" />}
+          flushIcon={<SearchIcon color="#455468" className={s.searchIcon} />}
+        />
+        <div className={s.list}>
+          {itemsToRender.map((item) => {
+            const checked = filterValues?.some(({ value }) => value === item.value);
 
-          return (
-            <CheckboxListItem
-              key={item.value}
-              item={item}
-              values={filterValues}
-              setValue={setValue}
-              paramKey={paramKey}
-            />
-          );
-        })}
+            return (
+              <CheckboxListItem
+                key={item.value}
+                item={item}
+                values={filterValues}
+                setValue={setValue}
+                paramKey={paramKey}
+              />
+            );
+          })}
+        </div>
       </div>
     </FormProvider>
   );

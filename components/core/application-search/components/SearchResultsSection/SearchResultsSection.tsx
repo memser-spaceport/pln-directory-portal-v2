@@ -41,7 +41,7 @@ export const SearchResultsSection = ({ title, items, query, onSelect, groupItems
               <div className={s.groupTitle}>{getIndexDisplayName(index)}</div>
               <ul className={s.list}>
                 {groupItems.map((item) => (
-                  <SearchResultsItem key={item.uid} item={item} />
+                  <SearchResultsItem key={item.uid} item={item} onSelect={onSelect} />
                 ))}
               </ul>
             </div>
@@ -62,7 +62,7 @@ export const SearchResultsSection = ({ title, items, query, onSelect, groupItems
         )}
         <ul className={s.list}>
           {items.map((item) => (
-            <SearchResultsItem key={item.uid} item={item} />
+            <SearchResultsItem key={item.uid} item={item} onSelect={onSelect} />
           ))}
         </ul>
       </div>

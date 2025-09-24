@@ -62,7 +62,11 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
   return (
     <>
       <div className={s.root}>
-        <Tabs.Root className={s.Tabs} value={value || '1'} onValueChange={onValueChange}>
+        <Tabs.Root
+          className={s.Tabs}
+          value={value || '1'}
+          onValueChange={(v, event) => onValueChange(v, event as unknown as Event)}
+        >
           <Tabs.List className={s.List}>
             {tabs.map((item) => (
               // @ts-ignore

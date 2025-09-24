@@ -49,7 +49,7 @@ const shouldShowIncompleteDataWarning = (member: IMember): boolean => {
   const isAngelDataEmpty = (): boolean => {
     return (
       (!investorProfile.investInStartupStages || investorProfile.investInStartupStages.length === 0) &&
-      (!investorProfile.typicalCheckSize || investorProfile.typicalCheckSize.trim() === '') &&
+      (!investorProfile.typicalCheckSize || investorProfile.typicalCheckSize?.toString().trim() === '') &&
       (!investorProfile.investmentFocus || investorProfile.investmentFocus.length === 0)
     );
   };

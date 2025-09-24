@@ -280,7 +280,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   </>
                 )}
               </div>
-              <div className={s.block}>
+              {secRulesAccepted && (
+                <div className={s.block}>
                 <Link href="/settings/email" className={s.cta}>
                   <div className={s.ctaIcon}>
                     <InfoIcon />
@@ -292,7 +293,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                     <p>Choose if you’d like to receive event invitations, dealflow intros, and digests.</p>
                   </div>
                 </Link>
-              </div>
+                </div>
+              )}
             </>
           )}
 
@@ -463,7 +465,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                 )}
               </div>
 
-              <div className={s.block}>
+              {secRulesAccepted && (
+                <div className={s.block}>
                 <Link href="/settings/email" className={s.cta}>
                   <div className={s.ctaIcon}>
                     <InfoIcon />
@@ -475,7 +478,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                     <p>Choose if you&apos;d like to receive event invitations, dealflow intros, and digests.</p>
                   </div>
                 </Link>
-              </div>
+                </div>
+              )}
             </>
           )}
         </div>

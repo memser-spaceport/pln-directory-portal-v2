@@ -24,6 +24,8 @@ interface ITeamRegisterForm {
   userInfo: any;
 }
 
+const MAX_DESCRIPTION_LENGTH = 2000;
+
 function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
   // const onCloseForm = props.onCloseForm;
   const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({
@@ -223,6 +225,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
       setProjectDetailsErrors([]);
       setSocialErrors([]);
     }
+
     document.addEventListener('reset-team-register-form', resetHandler);
     return function () {
       document.removeEventListener('reset-team-register-form', resetHandler);
@@ -240,6 +243,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
                 initialValues={initialValues.basicInfo}
                 longDesc={content}
                 setLongDesc={setContent}
+                longDescMaxLength={MAX_DESCRIPTION_LENGTH}
               />
             </div>
             <div className={currentStep !== TEAM_FORM_STEPS[1] ? 'hidden' : 'form'}>
@@ -274,16 +278,19 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
             height: 0;
             overflow: hidden;
           }
+
           .trf {
             width: 100%;
             position: relative;
             height: 100%;
           }
+
           .trf__form {
             padding: 24px;
             height: calc(100% - 70px);
             overflow-y: auto;
           }
+
           .form {
             height: 100%;
             width: 100%;

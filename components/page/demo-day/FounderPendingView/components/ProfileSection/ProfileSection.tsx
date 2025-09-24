@@ -9,6 +9,9 @@ import { ErrorState } from './components/ErrorState';
 import Image from 'next/image';
 import { createDemoDayEmailHandler, DemoDayEmailData } from '@/utils/demo-day-email.utils';
 import { ProfileActions } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileActions';
+import { IUserInfo } from '@/types/shared.types';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
 
 interface ProfileSectionProps {
   investorData?: {
@@ -26,19 +29,21 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
 
   // Create email data for demo day actions
   const createEmailData = (): DemoDayEmailData | null => {
-    if (!investorData || !data) return null;
+    const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
-    // TODO: Replace with actual founder email and name from team data
-    // For now using placeholder values - these should come from the team's founder information
-    const founderEmail = 'founder@example.com'; // Replace with actual founder email
-    const founderName = 'Founder'; // Replace with actual founder name
+    const founder = data?.founders?.[0];
+
+    if (!founder || !userInfo) return null;
+
+    const founderEmail = founder.email;
+    const founderName = founder.name;
 
     return {
       founderEmail,
       founderName,
       demotingTeamName: data.team?.name || 'Team Name',
-      investorName: investorData.name,
-      investorTeamName: investorData.teamName,
+      investorName: userInfo.name ?? '',
+      investorTeamName: '',
     };
   };
 

@@ -18,7 +18,7 @@ export interface DemoDayEmailData {
  */
 const EMAIL_TEMPLATES = {
   like: {
-    subject: (demotingTeamName: string, investorTeamName: string) => 
+    subject: (demotingTeamName: string, investorTeamName: string) =>
       `PL F25 Demo Day Intro: ${demotingTeamName} <> ${investorTeamName}`,
     body: (data: DemoDayEmailData) => `Hi ${data.founderName},
 
@@ -28,10 +28,10 @@ I am interested in learning more. Please connect!
 
 Yours truly,
 ${data.investorName}
-${data.investorTeamName}`
+${data.investorTeamName}`,
   },
   connect: {
-    subject: (demotingTeamName: string, investorTeamName: string) => 
+    subject: (demotingTeamName: string, investorTeamName: string) =>
       `PL F25 Demo Day Intro: ${demotingTeamName} <> ${investorTeamName}`,
     body: (data: DemoDayEmailData) => `Hi ${data.founderName},
 
@@ -41,10 +41,10 @@ Please connect!
 
 Yours truly,
 ${data.investorName}
-${data.investorTeamName}`
+${data.investorTeamName}`,
   },
   invest: {
-    subject: (demotingTeamName: string, investorTeamName: string) => 
+    subject: (demotingTeamName: string, investorTeamName: string) =>
       `PL F25 Demo Day Intro: ${demotingTeamName} <> ${investorTeamName}`,
     body: (data: DemoDayEmailData) => `Hi ${data.founderName},
 
@@ -54,8 +54,8 @@ Please connect!
 
 Yours truly,
 ${data.investorName}
-${data.investorTeamName}`
-  }
+${data.investorTeamName}`,
+  },
 };
 
 /**
@@ -65,7 +65,7 @@ ${data.investorTeamName}`
  */
 export const openDemoDayEmail = (action: DemoDayEmailAction, data: DemoDayEmailData): void => {
   const template = EMAIL_TEMPLATES[action];
-  
+
   if (!template) {
     console.error(`Unknown demo day email action: ${action}`);
     return;
@@ -103,11 +103,8 @@ export const openDemoDayEmail = (action: DemoDayEmailAction, data: DemoDayEmailD
  */
 export const validateDemoDayEmailData = (data: Partial<DemoDayEmailData>): data is DemoDayEmailData => {
   return !!(
-    data.founderEmail &&
-    data.founderName &&
-    data.demotingTeamName &&
-    data.investorName &&
-    data.investorTeamName
+    (data.founderEmail && data.founderName && data.demotingTeamName && data.investorName)
+    // data.investorTeamName
   );
 };
 
@@ -117,10 +114,7 @@ export const validateDemoDayEmailData = (data: Partial<DemoDayEmailData>): data 
  * @param data - The email data
  * @returns A function that can be used as an event handler
  */
-export const createDemoDayEmailHandler = (
-  action: DemoDayEmailAction, 
-  data: DemoDayEmailData
-) => {
+export const createDemoDayEmailHandler = (action: DemoDayEmailAction, data: DemoDayEmailData) => {
   return (event?: React.MouseEvent) => {
     if (event) {
       event.preventDefault();

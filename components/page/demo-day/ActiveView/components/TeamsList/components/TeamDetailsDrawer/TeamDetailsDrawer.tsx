@@ -8,6 +8,9 @@ import s from './TeamDetailsDrawer.module.scss';
 import { EditProfileDrawer } from '@/components/page/demo-day/FounderPendingView/components/EditProfileDrawer';
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { createDemoDayEmailHandler, DemoDayEmailData } from '@/utils/demo-day-email.utils';
+import { IUserInfo } from '@/types/shared.types';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -48,19 +51,21 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
   // Create email data for demo day actions
   const createEmailData = (): DemoDayEmailData | null => {
-    if (!investorData) return null;
+    const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
-    // TODO: Replace with actual founder email and name from team data
-    // For now using placeholder values - these should come from the team's founder information
-    const founderEmail = 'founder@example.com'; // Replace with actual founder email
-    const founderName = 'Founder'; // Replace with actual founder name
+    const founder = team.founders?.[0];
+
+    if (!founder || !userInfo) return null;
+
+    const founderEmail = founder.email;
+    const founderName = founder.name;
 
     return {
       founderEmail,
       founderName,
       demotingTeamName: team.team?.name || 'Team Name',
-      investorName: investorData.name,
-      investorTeamName: investorData.teamName,
+      investorName: userInfo.name ?? '',
+      investorTeamName: '',
     };
   };
 

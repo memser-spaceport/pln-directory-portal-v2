@@ -5,6 +5,9 @@ import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/co
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { createDemoDayEmailHandler, DemoDayEmailData } from '@/utils/demo-day-email.utils';
 import s from './TeamProfileCard.module.scss';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
+import { IUserInfo } from '@/types/shared.types';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
@@ -23,19 +26,21 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
 
   // Create email data for demo day actions
   const createEmailData = (): DemoDayEmailData | null => {
-    if (!investorData) return null;
+    const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
-    // TODO: Replace with actual founder email and name from team data
-    // For now using placeholder values - these should come from the team's founder information
-    const founderEmail = 'founder@example.com'; // Replace with actual founder email
-    const founderName = 'Founder'; // Replace with actual founder name
+    const founder = team.founders?.[0];
+
+    if (!founder || !userInfo) return null;
+
+    const founderEmail = founder.email;
+    const founderName = founder.name;
 
     return {
       founderEmail,
       founderName,
       demotingTeamName: team.team?.name || 'Team Name',
-      investorName: investorData.name,
-      investorTeamName: investorData.teamName,
+      investorName: userInfo.name ?? '',
+      investorTeamName: '',
     };
   };
 

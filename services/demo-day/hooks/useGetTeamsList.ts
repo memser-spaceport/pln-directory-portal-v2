@@ -23,6 +23,15 @@ export type TeamProfile = {
   updatedAt: string;
   videoUpload: UploadInfo;
   videoUploadUid: string;
+  founders: {
+    email: string;
+    image: string | null;
+    name: string;
+    officeHours: null;
+    role: string;
+    skills: string[];
+    uid: string;
+  }[];
 };
 
 export type TeamsListResponse = TeamProfile[];

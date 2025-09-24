@@ -124,7 +124,7 @@ function Navbar(props: Readonly<INavbar>) {
         (demoDayState.access === 'none' && demoDayState.status === 'NONE') ||
         (demoDayState.access === 'none' && demoDayState.status === 'COMPLETED') ? null : (
           <NavigationMenu.Item>
-            <Link className={s.Trigger} href="/demo-day" onClick={() => onNavItemClickHandler('/demo-day', 'Demo Day')}>
+            <Link className={s.Trigger} href="/demoday" onClick={() => onNavItemClickHandler('/demoday', 'Demo Day')}>
               <DemoDayIcon /> Demo Day
             </Link>
           </NavigationMenu.Item>

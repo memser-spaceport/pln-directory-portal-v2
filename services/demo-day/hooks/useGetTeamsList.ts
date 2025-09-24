@@ -25,11 +25,11 @@ export type TeamProfile = {
   videoUploadUid: string;
   founders: {
     email: string;
-    image: string | null;
+    image: { url: string } | null;
     name: string;
     officeHours: null;
     role: string;
-    skills: string[];
+    skills: { uid: string; title: string }[];
     uid: string;
   }[];
 };

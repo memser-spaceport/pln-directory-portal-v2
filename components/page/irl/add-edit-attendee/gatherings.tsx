@@ -2,7 +2,7 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import CustomCheckbox from '@/components/form/custom-checkbox';
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE, EVENT_TYPE, EVENTS_SUBMIT_FORM_TYPES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
-import { getFormattedDateString } from '@/utils/irl.utils';
+import { filterUpcomingGatherings, getFormattedDateString } from '@/utils/irl.utils';
 import { SetStateAction, useEffect, useState } from 'react';
 import ParticipationDetails from './participation-details';
 import HiddenField from '@/components/form/hidden-field';
@@ -26,6 +26,7 @@ interface IGatherings {
 const Gatherings = (props: IGatherings) => {
   const selectedLocation = props?.selectedLocation ?? '';
   const gatherings = props?.gatherings ?? [];
+  const filteredGatherings = filterUpcomingGatherings(gatherings);
   const userInfo = props?.userInfo;
   const loggedInUserInfo = props?.loggedInUserInfo;
   const errors = props?.errors;
@@ -77,7 +78,7 @@ const Gatherings = (props: IGatherings) => {
           <div
             className={`gatrs__all__gths ${errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING) && !selectedGatherings?.length ? 'error' : ''}`}
           >
-            {gatherings?.map((gathering: any, index: number) => {
+            {filteredGatherings?.map((gathering: any, index: number) => {
               const isBooked = getIsAlreadyBooked(gathering);
               //
               // const isAllEventEditable = eventType === 'past' && from === 'list' && (isAdmin || isLoggedInUserEventDetails);
@@ -129,7 +130,7 @@ const Gatherings = (props: IGatherings) => {
                     } */}
                   </div>
                   <div
-                    className={`${index + 1 < gatherings.length ? 'gatrs__all__gatr__bb' : ''} gatrs__all__gatr__dteandname`}
+                    className={`${index + 1 < filteredGatherings.length ? 'gatrs__all__gatr__bb' : ''} gatrs__all__gatr__dteandname`}
                   >
                     <div className="gatrs__all__gatr__dteandname__dat">
                       {getFormattedDateString(gathering.startDate, gathering.endDate)}

@@ -10,6 +10,7 @@ import s from './InvestorProfileView.module.scss';
 import { LinkIcon } from '@/components/page/member-details/InvestorProfileDetails/components/EditInvestorProfileForm/icons';
 import Link from 'next/link';
 import { IMember, InvestorProfileType } from '@/types/members.types';
+import { ITeam } from '@/types/teams.types';
 
 interface Props {
   isLoggedIn: boolean;
@@ -26,6 +27,21 @@ interface Props {
   member?: IMember;
 }
 
+const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
+  if (!teams || teams.length === 0) return undefined;
+
+  // First priority: Find fund team
+  const fundTeam = teams.find((team) => team.isFund);
+  if (fundTeam) return fundTeam;
+
+  // Second priority: Find main team
+  const mainTeam = teams.find((team) => team.mainTeam);
+  if (mainTeam) return mainTeam;
+
+  // Fallback: Return first team
+  return teams[0];
+};
+
 export const InvestorProfileView = ({
   typicalCheckSize,
   investmentFocusAreas,
@@ -39,7 +55,7 @@ export const InvestorProfileView = ({
   type,
   member,
 }: Props) => {
-  const fundTeam = member?.teams.find((team: any) => team.isFund);
+  const fundTeam = findPreferredTeam(member?.teams);
 
   return (
     <>

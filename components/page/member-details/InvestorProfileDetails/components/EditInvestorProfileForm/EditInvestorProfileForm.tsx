@@ -23,6 +23,11 @@ import { investorTypeOptions } from './constants';
 import { formatNumberToCurrency } from './utils';
 import { CheckIcon, ExternalLinkIcon, InfoIcon, LinkIcon } from './icons';
 import s from './EditInvestorProfileForm.module.scss';
+import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
+import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
+import { useMember } from '@/services/members/hooks/useMember';
+import { formatPayload } from '@/components/page/member-details/TeamsDetails/components/EditTeamForm';
+import { ITeam } from '@/types/teams.types';
 
 interface Props {
   onClose: () => void;
@@ -30,19 +35,38 @@ interface Props {
   userInfo: IUserInfo;
 }
 
+const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
+  if (!teams || teams.length === 0) return undefined;
+
+  // First priority: Find fund team
+  const fundTeam = teams.find((team) => team.isFund);
+  if (fundTeam) return fundTeam;
+
+  // Second priority: Find main team
+  const mainTeam = teams.find((team) => team.mainTeam);
+  if (mainTeam) return mainTeam;
+
+  // Fallback: Return first team
+  return teams[0];
+};
+
 export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
   const updateInvestorProfileMutation = useUpdateInvestorProfile();
 
   const { data: options } = useTeamsFormOptions();
+  const { data } = useMemberFormOptions();
+  const { data: memberData } = useMember(member.id);
+  const { mutateAsync, isPending } = useUpdateMember();
 
-  const fundTeam = member?.teams.find((team) => team.isFund);
+  const fundTeam = findPreferredTeam(member?.teams);
 
   const methods = useForm<TEditInvestorProfileForm>({
     defaultValues: {
       type: member.investorProfile?.type
         ? investorTypeOptions.find((item) => item.value === member?.investorProfile?.type)
         : investorTypeOptions[0],
+      team: fundTeam?.name ? { label: fundTeam.name, value: fundTeam.id } : null,
       typicalCheckSize: formatNumberToCurrency(member.investorProfile?.typicalCheckSize) || '',
       investmentFocusAreas: member.investorProfile?.investmentFocus || [],
       investInStartupStages:
@@ -113,10 +137,27 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
       return;
     }
 
+    if (!memberData) {
+      return;
+    }
+
     // Parse the currency string to get numeric value
     const typicalCheckSizeNumber = parseCurrencyToNumber(formData.typicalCheckSize ?? '');
-
     try {
+      if (formData.team && !member.teams.length) {
+        const payload = {
+          participantType: 'MEMBER',
+          referenceUid: member.id,
+          uniqueIdentifier: member.email,
+          newData: formatPayload(memberData.memberInfo, { name: formData.team, role: '', url: '' }, true),
+        };
+
+        await mutateAsync({
+          uid: memberData.memberInfo.uid,
+          payload,
+        });
+      }
+
       const payload = {
         investorProfile: {
           type: formData.type?.value,
@@ -269,10 +310,27 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   ) : (
                     <>
                       <div className={s.infoSectionContent}>
-                        We don’t see a whitelisted fund associated with your account.{' '}
-                        <Link href="/teams/add" className={s.ctaLink}>
-                          Submit a Fund <LinkIcon />
-                        </Link>
+                        <FormSelect
+                          name="team"
+                          placeholder="Enter your team"
+                          backLabel="Teams"
+                          label="Team"
+                          options={
+                            data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                              value: item.teamUid,
+                              label: item.teamTitle,
+                            })) ?? []
+                          }
+                          notFoundContent={
+                            <div className={s.secondaryLabel}>
+                              If you don&apos;t see your team on this list, please{' '}
+                              <Link href="/teams/add" className={s.link} target="_blank">
+                                add your team
+                              </Link>{' '}
+                              first.
+                            </div>
+                          }
+                        />
                       </div>
                     </>
                   )}
@@ -311,10 +369,27 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   ) : (
                     <>
                       <div className={s.infoSectionContent}>
-                        We don’t see a whitelisted fund associated with your account.{' '}
-                        <Link href="/teams/add" className={s.ctaLink}>
-                          Submit a Fund <LinkIcon />
-                        </Link>
+                        <FormSelect
+                          name="team"
+                          placeholder="Enter your team"
+                          backLabel="Teams"
+                          label="Team"
+                          options={
+                            data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                              value: item.teamUid,
+                              label: item.teamTitle,
+                            })) ?? []
+                          }
+                          notFoundContent={
+                            <div className={s.secondaryLabel}>
+                              If you don&apos;t see your team on this list, please{' '}
+                              <Link href="/teams/add" className={s.link} target="_blank">
+                                add your team
+                              </Link>{' '}
+                              first.
+                            </div>
+                          }
+                        />
                       </div>
                     </>
                   )}

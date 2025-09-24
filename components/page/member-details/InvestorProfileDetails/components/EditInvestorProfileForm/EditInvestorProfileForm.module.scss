@@ -43,6 +43,7 @@
   gap: 8px;
   display: flex;
   flex-direction: column;
+  width: 100%;
 
   h3 {
     color: var(--foreground-neutral-secondary, #455468);
@@ -340,6 +341,7 @@
 }
 
 .block {
+  width: 100%;
   display: flex;
   padding: var(--spacing-md, 16px);
   flex-direction: column;

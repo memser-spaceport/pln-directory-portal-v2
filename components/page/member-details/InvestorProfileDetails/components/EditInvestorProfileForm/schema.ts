@@ -9,6 +9,14 @@ export const editInvestorProfileSchema = yup.object().shape({
     })
     .defined()
     .nullable(),
+  team: yup
+    .object()
+    .shape({
+      label: yup.string().required(),
+      value: yup.string().required(),
+    })
+    .defined()
+    .nullable(),
   typicalCheckSize: yup
     .string()
     // .when(['type', 'secRulesAccepted'], {

@@ -5,16 +5,44 @@ import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundra
 import { ProfileSkeleton } from './components/ProfileSkeleton';
 import { ProfileHeader } from './components/ProfileHeader';
 import { ProfileContent } from './components/ProfileContent';
-import { ProfileActions } from './components/ProfileActions';
 import { ErrorState } from './components/ErrorState';
 import Image from 'next/image';
-import { EditButton } from '@/components/page/member-details/components/EditButton';
+import { createDemoDayEmailHandler, DemoDayEmailData } from '@/utils/demo-day-email.utils';
+import { ProfileActions } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileActions';
 
-export const ProfileSection = () => {
+interface ProfileSectionProps {
+  investorData?: {
+    name: string;
+    teamName: string;
+    email: string;
+  };
+}
+
+export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) => {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const scrollPositionRef = React.useRef<number>(0);
 
   const { data, isLoading, error } = useGetFundraisingProfile();
+
+  // Create email data for demo day actions
+  const createEmailData = (): DemoDayEmailData | null => {
+    if (!investorData || !data) return null;
+
+    // TODO: Replace with actual founder email and name from team data
+    // For now using placeholder values - these should come from the team's founder information
+    const founderEmail = 'founder@example.com'; // Replace with actual founder email
+    const founderName = 'Founder'; // Replace with actual founder name
+
+    return {
+      founderEmail,
+      founderName,
+      demotingTeamName: data.team?.name || 'Team Name',
+      investorName: investorData.name,
+      investorTeamName: investorData.teamName,
+    };
+  };
+
+  const emailData = createEmailData();
 
   const handleEditProfile = () => {
     // Store current scroll position before opening drawer
@@ -42,6 +70,8 @@ export const ProfileSection = () => {
     );
   }
 
+  console.log(data);
+
   return (
     <>
       <div className={s.profileSection}>
@@ -68,15 +98,33 @@ export const ProfileSection = () => {
           <div className={s.profileDivider} />
 
           {/* Action Area */}
-          {/*<ProfileActions onEditProfile={handleEditProfile} />*/}
-
-          <div className={s.actions}>
-            <button className={s.secondaryButton}>
-              <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
-            </button>
-            <button className={s.secondaryButton}>🤝 Connect with Company</button>
-            <button className={s.primaryButton}>💰 Invest in Company</button>
-          </div>
+          {!data?.onePagerUpload?.url || !data?.videoUpload?.url ? (
+            <ProfileActions onEditProfile={handleEditProfile} />
+          ) : (
+            <div className={s.actions}>
+              <button
+                className={s.secondaryButton}
+                onClick={emailData ? createDemoDayEmailHandler('like', emailData) : undefined}
+                disabled={!emailData}
+              >
+                <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
+              </button>
+              <button
+                className={s.secondaryButton}
+                onClick={emailData ? createDemoDayEmailHandler('connect', emailData) : undefined}
+                disabled={!emailData}
+              >
+                🤝 Connect with Company
+              </button>
+              <button
+                className={s.primaryButton}
+                onClick={emailData ? createDemoDayEmailHandler('invest', emailData) : undefined}
+                disabled={!emailData}
+              >
+                💰 Invest in Company
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

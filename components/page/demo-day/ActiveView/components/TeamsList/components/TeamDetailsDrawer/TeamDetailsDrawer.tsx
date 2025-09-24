@@ -7,10 +7,7 @@ import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import s from './TeamDetailsDrawer.module.scss';
 import { EditProfileDrawer } from '@/components/page/demo-day/FounderPendingView/components/EditProfileDrawer';
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
-import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
-import { useMember } from '@/services/members/hooks/useMember';
+import { createDemoDayEmailHandler, DemoDayEmailData } from '@/utils/demo-day-email.utils';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -29,14 +26,45 @@ interface TeamDetailsDrawerProps {
   onClose: () => void;
   team: TeamProfile | null;
   scrollPosition: number;
+  investorData?: {
+    name: string;
+    teamName: string;
+    email: string;
+  };
 }
 
-export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({ isOpen, onClose, team, scrollPosition }) => {
+export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
+  isOpen,
+  onClose,
+  team,
+  scrollPosition,
+  investorData,
+}) => {
   const { data } = useGetFundraisingProfile();
 
   if (!team) return null;
 
   const displayTeam = team;
+
+  // Create email data for demo day actions
+  const createEmailData = (): DemoDayEmailData | null => {
+    if (!investorData) return null;
+
+    // TODO: Replace with actual founder email and name from team data
+    // For now using placeholder values - these should come from the team's founder information
+    const founderEmail = 'founder@example.com'; // Replace with actual founder email
+    const founderName = 'Founder'; // Replace with actual founder name
+
+    return {
+      founderEmail,
+      founderName,
+      demotingTeamName: team.team?.name || 'Team Name',
+      investorName: investorData.name,
+      investorTeamName: investorData.teamName,
+    };
+  };
+
+  const emailData = createEmailData();
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -152,12 +180,28 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({ isOpen, on
                 {/* Footer Actions */}
                 <div className={s.drawerFooter}>
                   <div className={s.actions}>
-                    <button className={s.secondaryButton}>
+                    <button
+                      className={s.secondaryButton}
+                      onClick={emailData ? createDemoDayEmailHandler('like', emailData) : undefined}
+                      disabled={!emailData}
+                    >
                       <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />
                       Like Company
                     </button>
-                    <button className={s.secondaryButton}>🤝 Connect with Company</button>
-                    <button className={s.primaryButton}>💰 Invest in Company</button>
+                    <button
+                      className={s.secondaryButton}
+                      onClick={emailData ? createDemoDayEmailHandler('connect', emailData) : undefined}
+                      disabled={!emailData}
+                    >
+                      🤝 Connect with Company
+                    </button>
+                    <button
+                      className={s.primaryButton}
+                      onClick={emailData ? createDemoDayEmailHandler('invest', emailData) : undefined}
+                      disabled={!emailData}
+                    >
+                      💰 Invest in Company
+                    </button>
                   </div>
                 </div>
               </div>

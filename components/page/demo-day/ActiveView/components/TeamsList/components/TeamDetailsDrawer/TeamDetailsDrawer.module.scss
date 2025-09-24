@@ -171,26 +171,37 @@
 }
 
 .sectionTitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 26px;
-  color: #0f172a;
-  margin: 0 0 16px 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+  margin-bottom: 8px;
+}
 
-  @include media.mobile-only {
-    font-size: 16px;
-    line-height: 24px;
-    margin-bottom: 12px;
-  }
+.sectionMaterials {
+  display: flex;
+  padding: 16px;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 16px;
+  align-self: stretch;
+  border-radius: 12px;
+  background: var(--Neutral-Slate-50, #F8FAFC);
 }
 
 .founderRow {
   display: flex;
+  height: 86px;
+  padding: var(--spacing-sm, 12px) var(--spacing-md, 16px);
+  justify-content: center;
   align-items: center;
-  gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px solid #f1f5f9;
+  gap: var(--spacing-sm, 12px);
+  flex: 1 0 0;
+
+  border-radius: 12px;
+  background: var(--Neutral-Slate-50, #F8FAFC);
 
   &:last-child {
     border-bottom: none;
@@ -231,31 +242,21 @@
 }
 
 .founderName {
-  font-family: 'Inter', sans-serif;
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 16px;
-  font-weight: 600;
-  line-height: 22px;
-  color: #0f172a;
-  margin: 0 0 2px 0;
-
-  @include media.mobile-only {
-    font-size: 14px;
-    line-height: 20px;
-  }
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px; /* 150% */
+  letter-spacing: -0.3px;
 }
 
 .founderRole {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
   font-weight: 400;
-  line-height: 20px;
-  color: #64748b;
-  margin: 0;
-
-  @include media.mobile-only {
-    font-size: 13px;
-    line-height: 18px;
-  }
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
 }
 
 .founderStatus {

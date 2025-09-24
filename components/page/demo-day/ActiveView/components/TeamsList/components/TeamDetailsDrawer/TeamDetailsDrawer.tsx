@@ -50,8 +50,6 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
   const displayTeam = team;
 
-  console.log(displayTeam);
-
   // Create email data for demo day actions
   const createEmailData = (): DemoDayEmailData | null => {
     const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -177,10 +175,13 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
                     {/* Profile Content */}
                     <div className={s.contentSection}>
-                      <ProfileContent
-                        pitchDeckUrl={displayTeam?.onePagerUpload?.url}
-                        videoUrl={displayTeam?.videoUpload?.url}
-                      />
+                      <h3 className={s.sectionTitle}>Demo Day Materials</h3>
+                      <div className={s.sectionMaterials}>
+                        <ProfileContent
+                          pitchDeckUrl={displayTeam?.onePagerUpload?.url}
+                          videoUrl={displayTeam?.videoUpload?.url}
+                        />
+                      </div>
                     </div>
                   </>
                 </div>

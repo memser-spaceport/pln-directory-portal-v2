@@ -45,6 +45,19 @@ export const FormSelect = ({
   const isMobile = useMedia('(max-width: 960px)', false);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Create options array with notFoundContent as the last option
+  const enhancedOptions = React.useMemo(() => {
+    const baseOptions = [...options];
+    if (notFoundContent) {
+      baseOptions.push({
+        label: '',
+        value: '__not_found_content__',
+        isNotFoundContent: true,
+      } as any);
+    }
+    return baseOptions;
+  }, [options, notFoundContent]);
+
   useScrollIntoViewOnFocus<HTMLInputElement>({ id: name });
 
   function renderMobileOptions() {
@@ -59,7 +72,7 @@ export const FormSelect = ({
       );
     }
 
-    return filtered.map((item) => {
+    const optionElements = filtered.map((item) => {
       return (
         <div
           key={item.value}
@@ -76,6 +89,17 @@ export const FormSelect = ({
         </div>
       );
     });
+
+    // Always add notFoundContent as the last element if it exists, regardless of filtering
+    if (notFoundContent) {
+      optionElements.push(
+        <div key="not-found-content" className={s.notFoundContent}>
+          {notFoundContent}
+        </div>
+      );
+    }
+
+    return optionElements;
   }
 
   return (
@@ -116,12 +140,26 @@ export const FormSelect = ({
         <Select
           menuPlacement="auto"
           placeholder={placeholder}
-          options={options}
+          options={enhancedOptions}
           value={value}
           defaultValue={value}
-          onChange={(val) => setValue(name, val, { shouldValidate: true, shouldDirty: true })}
+          onChange={(val) => {
+            // Don't allow selection of the notFoundContent option
+            if (val && (val as any).isNotFoundContent) {
+              return;
+            }
+            setValue(name, val, { shouldValidate: true, shouldDirty: true });
+          }}
           isDisabled={disabled || open}
           inputId={name}
+          filterOption={(option, inputValue) => {
+            // Always include the notFoundContent option
+            if ((option.data as any).isNotFoundContent) {
+              return true;
+            }
+            // Default filtering for regular options
+            return option.label.toLowerCase().includes(inputValue.toLowerCase());
+          }}
           onMenuOpen={() => {
             if (!isMobile) {
               return;
@@ -212,6 +250,15 @@ export const FormSelect = ({
               );
             },
             Option: (props) => {
+              // Handle the special notFoundContent option
+              if ((props.data as any).isNotFoundContent) {
+                return (
+                  <div className={s.notFoundContent}>
+                    {notFoundContent}
+                  </div>
+                );
+              }
+
               return (
                 <div onClick={() => props.selectOption(props.data)} className={s.option}>
                   <div className={s.optionLabel}>{props.data.label}</div>

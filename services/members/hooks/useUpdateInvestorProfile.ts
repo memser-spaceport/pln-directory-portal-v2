@@ -5,10 +5,10 @@ import { MembersQueryKeys } from '@/services/members/constants';
 
 interface InvestorProfilePayload {
   investorProfile: {
-    investmentFocus: string[];
-    typicalCheckSize: number;
-    investInStartupStages?: string[];
-    investInFundTypes?: string[];
+    investmentFocus: string[] | null;
+    typicalCheckSize: number | null;
+    investInStartupStages?: string[] | null;
+    // investInFundTypes?: string[];
     secRulesAccepted: boolean;
   };
 }

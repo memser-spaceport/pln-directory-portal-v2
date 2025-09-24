@@ -161,10 +161,12 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
       const payload = {
         investorProfile: {
           type: formData.type?.value,
-          investmentFocus: formData.investmentFocusAreas,
-          typicalCheckSize: typicalCheckSizeNumber,
-          investInStartupStages: formData.investInStartupStages.map((item) => item.label),
-          investInFundTypes: formData.investInFundTypes.map((item) => item.label),
+          investmentFocus: formData.secRulesAccepted ? formData.investmentFocusAreas : [],
+          typicalCheckSize: formData.secRulesAccepted ? typicalCheckSizeNumber : null,
+          investInStartupStages: formData.secRulesAccepted
+            ? formData.investInStartupStages.map((item) => item.label)
+            : [],
+          // investInFundTypes: formData.investInFundTypes.map((item) => item.label),
           secRulesAccepted: formData.secRulesAccepted,
           investThroughFund: formData.investThroughFund,
         },

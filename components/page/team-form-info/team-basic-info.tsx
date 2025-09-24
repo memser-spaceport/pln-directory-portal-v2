@@ -277,24 +277,24 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             </span>
           </p>
         </div>
-        <div className="teaminfo__form__item">
-          <TextField
-            defaultValue={initialValues?.officeHours}
-            isMandatory={false}
-            id="register-team-officeHours"
-            label="Team office hours"
-            name="officeHours"
-            type="text"
-            placeholder="Enter link here"
-          />
-          <p className="info">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="info__text">
-              If your team offers group office hours or open meetings that are open to the public, please share the link
-              so PLN members can join and learn more.
-            </span>
-          </p>
-        </div>
+        {/*<div className="teaminfo__form__item">*/}
+        {/*  <TextField*/}
+        {/*    defaultValue={initialValues?.officeHours}*/}
+        {/*    isMandatory={false}*/}
+        {/*    id="register-team-officeHours"*/}
+        {/*    label="Team office hours"*/}
+        {/*    name="officeHours"*/}
+        {/*    type="text"*/}
+        {/*    placeholder="Enter link here"*/}
+        {/*  />*/}
+        {/*  <p className="info">*/}
+        {/*    <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}*/}
+        {/*    <span className="info__text">*/}
+        {/*      If your team offers group office hours or open meetings that are open to the public, please share the link*/}
+        {/*      so PLN members can join and learn more.*/}
+        {/*    </span>*/}
+        {/*  </p>*/}
+        {/*</div>*/}
 
         {(isAdmin || isInvestor) && (
           <div className="teaminfo__form__checkbox">

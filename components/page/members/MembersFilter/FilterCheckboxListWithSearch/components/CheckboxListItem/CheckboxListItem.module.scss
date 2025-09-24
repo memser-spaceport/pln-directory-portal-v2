@@ -4,7 +4,8 @@
   align-items: center;
   justify-content: space-between;
 
-  height: 32px;
+  min-height: 32px;
+  padding-block: 4px;
   cursor: pointer;
 
   color: var(--action-foreground-neutral-normal, #455468);

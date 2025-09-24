@@ -19,8 +19,10 @@
   line-height: 16px;
   letter-spacing: -0.2px;
 
+  display: block;
+
   padding: 4px;
-  margin: 0 auto;
+  margin: 6px auto 0;
 
   cursor: pointer;
   color: var(--action-foreground-brand-normal, #1b4dff);

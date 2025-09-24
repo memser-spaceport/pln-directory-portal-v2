@@ -1,7 +1,8 @@
 import React from 'react';
-import { useToggle } from 'react-use';
 
 import { AllFoundItems } from '@/components/core/application-search/components/SearchResultsSection/types';
+
+import { MAX_ITEMS_TO_SHOW } from './constants';
 
 import { useGetGroupedItemsToRender } from './hooks/useGetGroupedItemsToRender';
 import { getGroupTitleByGroupName } from './utils/getGroupTitleByGroupName';
@@ -19,27 +20,28 @@ interface Props {
 export function Top50Results(props: Props) {
   const { items, onSelect } = props;
 
-  const [showAll, toggleShowAll] = useToggle(false);
+  const { state, showAll: showAllItems } = useGetGroupedItemsToRender(items);
 
-  const groupedItems = useGetGroupedItemsToRender(items, showAll);
+  return Object.entries(state).map(([groupName, groupState]) => {
+    const { items, hasMore, showAll } = groupState;
 
-  return (
-    <>
-      {Object.entries(groupedItems).map(([groupName, groupItems]) => (
-        <div key={groupName}>
-          <div className={ls.groupTitle}>{getGroupTitleByGroupName(groupName)}</div>
-          <ul className={s.list}>
-            {groupItems.map((item) => (
-              <SearchResultsItem key={item.uid} item={item} onSelect={onSelect} />
-            ))}
-          </ul>
-        </div>
-      ))}
-      {!showAll && (
-        <button tabIndex={0} onClick={toggleShowAll} className={ls.showAll}>
-          Show all results
-        </button>
-      )}
-    </>
-  );
+    const groupTitle = getGroupTitleByGroupName(groupName);
+    const itemsToShow = hasMore && !showAll ? items.slice(0, MAX_ITEMS_TO_SHOW) : items;
+
+    return (
+      <div key={groupName}>
+        <div className={ls.groupTitle}>{groupTitle}</div>
+        <ul className={s.list}>
+          {itemsToShow.map((item) => (
+            <SearchResultsItem key={item.uid} item={item} onSelect={onSelect} />
+          ))}
+        </ul>
+        {hasMore && !showAll && (
+          <button tabIndex={0} onClick={() => showAllItems(groupName)} className={ls.showAll}>
+            Show all {groupTitle}
+          </button>
+        )}
+      </div>
+    );
+  });
 }

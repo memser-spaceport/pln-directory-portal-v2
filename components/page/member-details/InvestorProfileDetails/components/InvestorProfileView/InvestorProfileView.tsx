@@ -11,6 +11,8 @@ import { LinkIcon } from '@/components/page/member-details/InvestorProfileDetail
 import Link from 'next/link';
 import { IMember, InvestorProfileType } from '@/types/members.types';
 import { ITeam } from '@/types/teams.types';
+import { formatUSD } from '@/utils/formatUSD';
+import { AddIcon } from '@storybook/icons';
 
 interface Props {
   isLoggedIn: boolean;
@@ -117,9 +119,24 @@ export const InvestorProfileView = ({
                       </div>
                     </Link>
                   ) : (
-                    <Link href="/teams/add" className={s.infoSectionContent}>
-                      Submit a Fund <LinkIcon />
-                    </Link>
+                    <div className={s.keywordsWrapper}>
+                      <span className={s.keywordsLabel}>I invest through:</span>
+                      <span className={s.badgesWrapper}>
+                        {typicalCheckSize && secRulesAccepted ? (
+                          <div className={s.badge}>{formatUSD.format(+typicalCheckSize)}</div>
+                        ) : (
+                          <button
+                            type="button"
+                            className={s.addKeywordsBadge}
+                            onClick={() => {
+                              onEdit?.();
+                            }}
+                          >
+                            <AddIcon /> Add
+                          </button>
+                        )}
+                      </span>
+                    </div>
                   )}
                 </div>
               </>

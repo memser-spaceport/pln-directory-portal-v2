@@ -76,7 +76,7 @@ export const MembersFilter = (props: IMembersFilter) => {
           titleIcon={<CalendarIcon />}
           description="OH are short 1:1 calls to connect about topics of interest or help others with your expertise."
         >
-          <FiltersPanelToggle label="Only Show Members with Office Hours" paramKey="hasOfficeHours" />
+          <FiltersPanelToggle label="Show all members with Office Hours" paramKey="hasOfficeHours" />
           <FilterCheckboxListWithSearch
             label="Search topics"
             paramKey="topics"

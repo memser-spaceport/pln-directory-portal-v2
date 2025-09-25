@@ -63,7 +63,15 @@ const extractNumericValue = (formattedValue: string): string => {
   return formattedValue.replace(/[^\d.]/g, '');
 };
 
-export const FormCurrencyField = ({ name, placeholder, label, description, disabled, isRequired, currency = 'USD' }: Props) => {
+export const FormCurrencyField = ({
+  name,
+  placeholder,
+  label,
+  description,
+  disabled,
+  isRequired,
+  currency = 'USD',
+}: Props) => {
   const {
     register,
     formState: { errors },
@@ -148,6 +156,7 @@ export const FormCurrencyField = ({ name, placeholder, label, description, disab
             onChange={handleChange}
             type="text"
             inputMode="decimal"
+            maxLength={14}
           />
         </div>
       </div>

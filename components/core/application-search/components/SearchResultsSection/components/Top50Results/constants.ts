@@ -1,1 +1,1 @@
-export const MAX_ITEMS_TO_SHOW = 2;
+export const MAX_ITEMS_TO_SHOW = 5;

@@ -92,8 +92,8 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
             image={data?.team?.logo?.url || '/images/demo-day/profile-placeholder.svg'}
             name={data?.team?.name || 'Team Name'}
             description={data?.team?.shortDescription || '-'}
-            fundingStage={data?.team.fundingStage.title || '-'}
-            tags={data?.team.industryTags.map((tag) => tag.title) || []}
+            fundingStage={data?.team?.fundingStage?.title || '-'}
+            tags={data?.team?.industryTags?.map((tag) => tag.title) || []}
           />
 
           {/* Content */}

@@ -29,7 +29,7 @@ export function SelectAll(props: Props) {
     const dataValues = map(data, 'value');
     const selectedValues = map(selected, 'value');
 
-    return !(isEmpty(data) || isEmpty(selectedValues)) && dataValues.every((value) => selectedValues.includes(value));
+    return dataValues.every((value) => selectedValues.includes(value));
   }, [data, selected]);
 
   const onClick = useCallback(() => {
@@ -37,6 +37,10 @@ export function SelectAll(props: Props) {
 
     setValue(paramKey, newValue, { shouldValidate: true, shouldDirty: true });
   }, [data, checked, selected]);
+
+  if (isEmpty(data) && isEmpty(selected)) {
+    return null;
+  }
 
   return (
     <CheckboxListItemRepresentation

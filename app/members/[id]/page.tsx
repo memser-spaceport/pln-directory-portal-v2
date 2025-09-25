@@ -72,7 +72,7 @@ const shouldShowInvestorProfileForThirdParty = (member: IMember, isOwner: boolea
   const hasAngelData = (): boolean => {
     return !!(
       (investorProfile.investInStartupStages && investorProfile.investInStartupStages.length > 0) ||
-      (investorProfile.typicalCheckSize && investorProfile.typicalCheckSize.trim() !== '') ||
+      (investorProfile.typicalCheckSize && investorProfile.typicalCheckSize?.toString().trim() !== '') ||
       (investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0)
     );
   };
@@ -165,7 +165,9 @@ const MemberDetails = ({ params }: { params: any }) => {
         return (
           <>
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            {showInvestorProfile && <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+            {showInvestorProfile && (
+              <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            )}
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
@@ -180,7 +182,9 @@ const MemberDetails = ({ params }: { params: any }) => {
           <>
             <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            {(member.accessLevel === 'L6' || showInvestorProfile) && <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+            {(member.accessLevel === 'L6' || showInvestorProfile) && (
+              <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            )}
             <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />

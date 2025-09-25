@@ -19,7 +19,13 @@ interface Props {
   disabled?: boolean;
 }
 
-export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, placeholder = 'Add keyword', disabled }: Props) => {
+export const FormTagsInput = ({
+  selectLabel,
+  name,
+  isColorfulBadges = true,
+  placeholder = 'Add keyword',
+  disabled,
+}: Props) => {
   const [inputText, setInputText] = useState('');
   const {
     setValue,
@@ -86,6 +92,14 @@ export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, plac
             onKeyDown={(event) => {
               if (event.key === 'Escape') {
                 setInputText('');
+                return;
+              }
+
+              if (event.key === 'Backspace' && inputText === '' && val?.length > 0) {
+                // Delete the last tag when backspace is pressed and input is empty
+                const newValues = [...val];
+                newValues.pop();
+                setValue(name, newValues, { shouldValidate: true, shouldDirty: true });
                 return;
               }
 

@@ -7,10 +7,8 @@ interface Input {
   beData: Option[];
   selectedData: Option[];
   searchValue: string;
-  defaultItemsToShow: number
+  defaultItemsToShow: number;
 }
-
-const ITEMS_TO_SHOW_WITHOUT_SEARCH = 5;
 
 export function useGetMergedItemsToRender(input: Input) {
   const { beData = [], selectedData = [], searchValue, defaultItemsToShow } = input;

@@ -13,6 +13,7 @@ import { DebouncedInput } from '@/components/core/application-search/components/
 
 import { useGetMergedItemsToRender } from './hooks/useGetMergedItemsToRender';
 
+import { SelectAll } from './components/SelectAll';
 import { CheckboxListItem } from './components/CheckboxListItem';
 
 import s from './FilterCheckboxListWithSearch.module.scss';
@@ -46,7 +47,7 @@ export function FilterCheckboxListWithSearch(props: Props) {
     defaultValues: { [paramKey]: selectedValues },
   });
 
-  const { watch, setValue, reset } = methods;
+  const { watch, setValue } = methods;
   const filterValues = watch(paramKey);
 
   useEffect(() => {
@@ -85,6 +86,7 @@ export function FilterCheckboxListWithSearch(props: Props) {
           flushIcon={<SearchIcon color="#455468" className={s.searchIcon} />}
         />
         <div className={s.list}>
+          {!!searchValue && <SelectAll data={data} paramKey={paramKey} setValue={setValue} selected={selectedValues} />}
           {itemsToRender.map((item) => {
             return (
               <CheckboxListItem

@@ -6,8 +6,8 @@
 export type DemoDayEmailAction = 'like' | 'connect' | 'invest';
 
 export interface DemoDayEmailData {
-  founderEmail: string;
-  founderName: string;
+  founderEmails: string[];
+  founderNames: string[];
   demotingTeamName: string;
   investorName: string;
   investorTeamName: string;
@@ -20,7 +20,7 @@ const EMAIL_TEMPLATES = {
   like: {
     subject: (demotingTeamName: string, investorTeamName: string) =>
       `PL F25 Demo Day Intro: ${demotingTeamName} <> ${investorTeamName}`,
-    body: (data: DemoDayEmailData) => `Hi ${data.founderName},
+    body: (data: DemoDayEmailData) => `Hi ${data.founderNames.join(', ')},
 
 I liked the idea that your team ${data.demotingTeamName} presented during PL F25 Demo Day.
 
@@ -33,7 +33,7 @@ ${data.investorTeamName}`,
   connect: {
     subject: (demotingTeamName: string, investorTeamName: string) =>
       `PL F25 Demo Day Intro: ${demotingTeamName} <> ${investorTeamName}`,
-    body: (data: DemoDayEmailData) => `Hi ${data.founderName},
+    body: (data: DemoDayEmailData) => `Hi ${data.founderNames.join(', ')},
 
 I would like to connect with your team ${data.demotingTeamName} and explore a possible investment opportunity as requested during PL F25 Demo Day.
 
@@ -46,7 +46,7 @@ ${data.investorTeamName}`,
   invest: {
     subject: (demotingTeamName: string, investorTeamName: string) =>
       `PL F25 Demo Day Intro: ${demotingTeamName} <> ${investorTeamName}`,
-    body: (data: DemoDayEmailData) => `Hi ${data.founderName},
+    body: (data: DemoDayEmailData) => `Hi ${data.founderNames.join(', ')},
 
 I am interested in speaking with you about investing in your team ${data.demotingTeamName} as requested during PL F25 Demo Day.
 
@@ -75,7 +75,7 @@ export const openDemoDayEmail = (action: DemoDayEmailAction, data: DemoDayEmailD
   const body = template.body(data);
 
   // Encode the email components for URL
-  const encodedTo = encodeURIComponent(data.founderEmail);
+  const encodedTo = encodeURIComponent(data.founderEmails.join(','));
   const encodedSubject = encodeURIComponent(subject);
   const encodedBody = encodeURIComponent(body);
 
@@ -103,8 +103,12 @@ export const openDemoDayEmail = (action: DemoDayEmailAction, data: DemoDayEmailD
  */
 export const validateDemoDayEmailData = (data: Partial<DemoDayEmailData>): data is DemoDayEmailData => {
   return !!(
-    (data.founderEmail && data.founderName && data.demotingTeamName && data.investorName)
-    // data.investorTeamName
+    data.founderEmails &&
+    data.founderEmails.length > 0 &&
+    data.founderNames &&
+    data.founderNames.length > 0 &&
+    data.demotingTeamName &&
+    data.investorName
   );
 };
 

@@ -12,6 +12,7 @@ import { ProfileActions } from '@/components/page/demo-day/FounderPendingView/co
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
+import { useMember } from '@/services/members/hooks/useMember';
 
 interface ProfileSectionProps {
   investorData?: {
@@ -24,26 +25,30 @@ interface ProfileSectionProps {
 export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) => {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const scrollPositionRef = React.useRef<number>(0);
-
   const { data, isLoading, error } = useGetFundraisingProfile();
+
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { data: memberData } = useMember(userInfo?.uid);
 
   // Create email data for demo day actions
   const createEmailData = (): DemoDayEmailData | null => {
     const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
-    const founder = data?.founders?.[0];
+    const founders = data?.founders;
 
-    if (!founder || !userInfo) return null;
+    if (!founders || founders.length === 0 || !userInfo) return null;
 
-    const founderEmail = founder.email;
-    const founderName = founder.name;
+    const founderEmails = founders.map((founder) => founder.email).filter((email) => email);
+    const founderNames = founders.map((founder) => founder.name).filter((name) => name);
+
+    if (founderEmails.length === 0 || founderNames.length === 0) return null;
 
     return {
-      founderEmail,
-      founderName,
+      founderEmails,
+      founderNames,
       demotingTeamName: data.team?.name || 'Team Name',
       investorName: userInfo.name ?? '',
-      investorTeamName: '',
+      investorTeamName: memberData?.memberInfo?.teamMemberRoles[0]?.teamTitle || '',
     };
   };
 

@@ -12,6 +12,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import Link from 'next/link';
+import { useMember } from '@/services/members/hooks/useMember';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -46,27 +47,30 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 }) => {
   const { data } = useGetFundraisingProfile();
 
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { data: memberData } = useMember(userInfo?.uid);
+
   if (!team) return null;
 
   const displayTeam = team;
 
   // Create email data for demo day actions
   const createEmailData = (): DemoDayEmailData | null => {
-    const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+    const founders = team.founders;
 
-    const founder = team.founders?.[0];
+    if (!founders || founders.length === 0 || !userInfo) return null;
 
-    if (!founder || !userInfo) return null;
+    const founderEmails = founders.map((founder) => founder.email).filter((email) => email);
+    const founderNames = founders.map((founder) => founder.name).filter((name) => name);
 
-    const founderEmail = founder.email;
-    const founderName = founder.name;
+    if (founderEmails.length === 0 || founderNames.length === 0) return null;
 
     return {
-      founderEmail,
-      founderName,
+      founderEmails,
+      founderNames,
       demotingTeamName: team.team?.name || 'Team Name',
       investorName: userInfo.name ?? '',
-      investorTeamName: '',
+      investorTeamName: memberData?.memberInfo?.teamMemberRoles[0]?.teamTitle || '',
     };
   };
 

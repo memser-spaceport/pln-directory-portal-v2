@@ -23,6 +23,7 @@ interface IMemberDetailHeader {
   isLoggedIn: boolean;
   onEdit: () => void;
 }
+
 const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const member = props?.member;
   const name = member?.name ?? '';
@@ -245,7 +246,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           text-overflow: ellipsis;
           letter-spacing: 0em;
           color: #0f172a;
-          display: flex;
+          display: block;
           align-items: center;
           gap: 8px;
         }
@@ -339,6 +340,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           font-style: normal;
           font-weight: 500;
         }
+
         .header__tags {
           grid-row: span 1 / span 1;
           grid-column: span 5 / span 5;

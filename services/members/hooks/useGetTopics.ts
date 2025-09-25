@@ -8,7 +8,7 @@ import { Option } from '@/services/members/types';
 async function fetcher(input: string, hasOfficeHours?: boolean) {
   const params = new URLSearchParams({
     q: input,
-    limit: '50',
+    limit: '10',
   });
 
   // Add hasOfficeHours parameter if it's set

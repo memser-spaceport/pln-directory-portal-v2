@@ -76,7 +76,16 @@ export const MembersFilter = (props: IMembersFilter) => {
           titleIcon={<CalendarIcon />}
           description="OH are short 1:1 calls to connect about topics of interest or help others with your expertise."
         >
-          <FiltersPanelToggle label="Show all members with Office Hours" paramKey="hasOfficeHours" />
+          <FiltersPanelToggle
+            label={
+              <>
+                Show all members with <br /> office hours
+              </>
+            }
+            paramKey="hasOfficeHours"
+          />
+
+          <div className={s.delimiter} />
           <FilterCheckboxListWithSearch
             label="Search topics"
             paramKey="topics"
@@ -85,8 +94,6 @@ export const MembersFilter = (props: IMembersFilter) => {
             defaultItemsToShow={0}
           />
         </FilterSection>
-
-        <div className={s.delimiter} />
 
         <FilterSection title="Roles">
           <FilterCheckboxListWithSearch

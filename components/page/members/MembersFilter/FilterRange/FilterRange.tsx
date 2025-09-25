@@ -14,6 +14,7 @@ interface Props {
     max: number;
   };
   formatValue?: (value: number) => string;
+  disabled?: boolean;
 }
 
 export function FilterRange({
@@ -31,6 +32,7 @@ export function FilterRange({
     }
     return value.toString();
   },
+  disabled = false,
 }: Props) {
   const { params, setParam } = useFilterStore();
 
@@ -108,7 +110,15 @@ export function FilterRange({
         <span className={styles.rangeText}>{getDisplayText()}</span>
       </div>
 
-      <Slider.Root className={styles.sliderContainer} step={25000} value={sliderValues} onValueChange={handleSliderChange} min={allowedRange.min} max={allowedRange.max}>
+      <Slider.Root
+        className={styles.sliderContainer}
+        step={25000}
+        value={sliderValues}
+        onValueChange={handleSliderChange}
+        min={allowedRange.min}
+        max={allowedRange.max}
+        disabled={disabled}
+      >
         <Slider.Control className={styles.Control}>
           <Slider.Track className={styles.Track}>
             <Slider.Thumb className={styles.Thumb}>

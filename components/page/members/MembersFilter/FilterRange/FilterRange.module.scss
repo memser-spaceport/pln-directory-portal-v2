@@ -67,6 +67,11 @@
 .sliderContainer {
   margin-inline: 8px;
   width: 100%;
+
+  &[data-disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
 }
 
 .slider {

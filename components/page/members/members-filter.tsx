@@ -107,11 +107,16 @@ const MembersFilter = (props: IMembersFilter) => {
                 min: 0,
                 max: 5000000,
               }}
+              disabled={!params.get('isInvestor')}
             />
 
             <FilterDivider />
 
-            <FilterTagInput selectLabel="Investment Focus" paramKey="investmentFocus" />
+            <FilterTagInput
+              selectLabel="Investment Focus"
+              paramKey="investmentFocus"
+              disabled={!params.get('isInvestor')}
+            />
           </FilterSection>
         </div>
 

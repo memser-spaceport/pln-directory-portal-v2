@@ -96,7 +96,9 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
       if (searchTerm === '') {
         setFilteredOptions(options);
       } else {
-        setFilteredOptions(options.filter((option) => option[displayKey].toLowerCase().includes(searchTerm.toLowerCase())));
+        setFilteredOptions(
+          options.filter((option) => option[displayKey].toLowerCase().includes(searchTerm.toLowerCase())),
+        );
       }
     }
   };
@@ -150,11 +152,19 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
           </label>
         )}
         <div className="select__cn" ref={containerRef}>
-          {iconKey && selectedOption && <img className="selected__icon" src={selectedOption[iconKey] || defaultImage} alt={selectedOption[displayKey]} />}
+          {iconKey && selectedOption && (
+            <img
+              className="selected__icon"
+              src={selectedOption[iconKey] || defaultImage}
+              alt={selectedOption[displayKey]}
+            />
+          )}
           <input
             id={id}
             className={`select__search ${iconKey && selectedOption ? 'hasDefaultImg' : ''} ${selectedOption && iconKey && selectedOption[iconKey] ? 'select__icon' : ''} ${
-              (isMandatory && !selectedOption?.[uniqueKey]) || (isMandatory && searchRef.current?.value === '') ? 'select__search--error' : ''
+              (isMandatory && !selectedOption?.[uniqueKey]) || (isMandatory && searchRef.current?.value === '')
+                ? 'select__search--error'
+                : ''
             }`}
             ref={searchRef}
             defaultValue={selectedOption ? selectedOption[displayKey] : ''}
@@ -182,11 +192,25 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
               {selectedOption && selectedOption[displayKey] ? (
                 <img onClick={onClear} className="select__reset" src={closeImgUrl} width="16" height="16" alt="close" />
               ) : (
-                <img onClick={onToggleOptions} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />
+                <img
+                  onClick={onToggleOptions}
+                  className="select__arrowimg"
+                  src={arrowImgUrl}
+                  width="10"
+                  height="7"
+                  alt="arrow down"
+                />
               )}
             </>
           ) : arrowImgUrl ? (
-            <img onClick={onToggleOptions} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />
+            <img
+              onClick={onToggleOptions}
+              className="select__arrowimg"
+              src={arrowImgUrl}
+              width="10"
+              height="7"
+              alt="arrow down"
+            />
           ) : (
             ''
           )}
@@ -206,7 +230,16 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
                       }}
                       className={`select__options__item ${option[displayKey] === selectedOption?.[displayKey] ? 'select__options__item--selected' : ''}`}
                     >
-                      {iconKey && <img loading="eager" height={24} width={24} className="select__options__item__img" src={option[iconKey] || defaultImage} alt={option[displayKey]} />}
+                      {iconKey && (
+                        <img
+                          loading="eager"
+                          height={24}
+                          width={24}
+                          className="select__options__item__img"
+                          src={option[iconKey] || defaultImage}
+                          alt={option[displayKey]}
+                        />
+                      )}
                       <span> {option[displayKey]}</span>
                     </li>
                   )}

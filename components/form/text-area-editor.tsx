@@ -7,65 +7,68 @@ interface TextAreaEditorProps {
   value: string;
 }
 
-const TextAreaEditor: React.FC<TextAreaEditorProps> = ({ name, value = '', label , placeholder }) => {
- 
+const TextAreaEditor: React.FC<TextAreaEditorProps> = ({ name, value = '', label, placeholder }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [editorContent, setEditorContent] = useState(value)
+  const [editorContent, setEditorContent] = useState(value);
 
   const handleInput = (event: React.FormEvent<HTMLDivElement>) => {
-    if(editorRef.current) {
-      setEditorContent(editorRef.current?.innerHTML)
+    if (editorRef.current) {
+      setEditorContent(editorRef.current?.innerHTML);
     }
   };
   useEffect(() => {
-    setEditorContent(value)
-    if(editorRef.current) {
+    setEditorContent(value);
+    if (editorRef.current) {
       editorRef.current.textContent = value;
       editorRef.current.innerHTML = value;
     }
-    if(inputRef.current) {
-      inputRef.current.value = value
+    if (inputRef.current) {
+      inputRef.current.value = value;
     }
     const handleFormReset = () => {
-      setEditorContent(value)
-      if(editorRef.current) {
+      setEditorContent(value);
+      if (editorRef.current) {
         editorRef.current.textContent = value;
         editorRef.current.innerHTML = value;
       }
-      if(inputRef.current) {
-        inputRef.current.value = value
+      if (inputRef.current) {
+        inputRef.current.value = value;
+      }
+    };
+    if (editorRef.current) {
+      const form = editorRef.current.closest('form');
+      if (form) {
+        form.addEventListener('reset', handleFormReset); // Add event listener to form reset event
+
+        return () => {
+          form.removeEventListener('reset', handleFormReset); // Cleanup: remove event listener
+        };
       }
     }
-   if(editorRef.current) {
-    const form = editorRef.current.closest('form')
-    if (form) {
-      form.addEventListener('reset', handleFormReset); // Add event listener to form reset event
-
-      return () => {
-        form.removeEventListener('reset', handleFormReset); // Cleanup: remove event listener
-      };
-    }
-   }
-  }, [value])
-
-
+  }, [value]);
 
   return (
     <>
       <div>
-        <label className='label'>{label}</label>
-        <div data-placeholder={placeholder} ref={editorRef} className={`editor ${editorContent === '' ? 'placeholder' : ''}`} contentEditable role="textarea" onInput={handleInput}></div>
+        <label className="label">{label}</label>
+        <div
+          data-placeholder={placeholder}
+          ref={editorRef}
+          className={`editor ${editorContent === '' ? 'placeholder' : ''}`}
+          contentEditable
+          role="textarea"
+          onInput={handleInput}
+        ></div>
         <input ref={inputRef} type="hidden" name={name} value={editorContent} />
       </div>
       <style jsx>
         {`
           .label {
-            font-size: 14px; 
+            font-size: 14px;
             font-weight: 600;
             margin-bottom: 12px;
             display: block;
-
           }
           .editor {
             border: 1px solid #ccc;

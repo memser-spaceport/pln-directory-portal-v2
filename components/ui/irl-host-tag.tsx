@@ -29,7 +29,11 @@ const IrlHostTag = ({ hostEvents, onHostEventClick }: IrlHostTag) => {
                   };
 
               return (
-                <Element key={index} {...elementProps} className={`gtr__guestName__li__info__host__list__item ${hostEvents?.length !== index + 1 ? 'border-bottom' : ''}`}>
+                <Element
+                  key={index}
+                  {...elementProps}
+                  className={`gtr__guestName__li__info__host__list__item ${hostEvents?.length !== index + 1 ? 'border-bottom' : ''}`}
+                >
                   {displayName}
                   {isLinkAvailable && <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />}
                 </Element>

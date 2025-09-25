@@ -56,7 +56,16 @@ const TeamGridView = (props: ITeamGridView) => {
     <>
       <div className="team-grid">
         <div className="team-grid__profile-container">
-          <Image alt="profile" height={72} width={72} layout="intrinsic" loading="eager" priority={true} className="team-grid__profile-container__profile" src={profile} />
+          <Image
+            alt="profile"
+            height={72}
+            width={72}
+            layout="intrinsic"
+            loading="eager"
+            priority={true}
+            className="team-grid__profile-container__profile"
+            src={profile}
+          />
         </div>
         <div className="team-grid__details-container">
           <div className="team-grid__details-container__team-detail">
@@ -80,9 +89,20 @@ const TeamGridView = (props: ITeamGridView) => {
                 {carousel.map((item, index) => (
                   <div key={item.id} className="embla__slide__cntr">
                     <div className={`embla__slide ${index === activeIndex ? 'active' : ''}`}>
-                      <Image alt="left" height={15} width={15} src="/icons/tabler_message-filled.svg" className="embla__img" />
+                      <Image
+                        alt="left"
+                        height={15}
+                        width={15}
+                        src="/icons/tabler_message-filled.svg"
+                        className="embla__img"
+                      />
                       <div className="hide-tooltip">
-                        <Popover name={item.name} description={item.description} tags={item.tags} onOpenChange={(isOpen) => setIsTooltipOpen(isOpen)} />
+                        <Popover
+                          name={item.name}
+                          description={item.description}
+                          tags={item.tags}
+                          onOpenChange={(isOpen) => setIsTooltipOpen(isOpen)}
+                        />
                       </div>
                       <div className="hide-name">{item.name}</div>
                     </div>

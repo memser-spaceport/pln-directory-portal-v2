@@ -5,7 +5,13 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import MemberSkillsInfo from '../member-info/member-skills-info';
 import MemberContributionInfo from '../member-info/member-contributions-info';
 import MemberSocialInfo from '../member-info/member-social-info';
-import { getMemberInfoFormValues, apiObjsToMemberObj, formInputsToMemberObj, getInitialMemberFormValues, updateMemberInfoCookie } from '@/utils/member.utils';
+import {
+  getMemberInfoFormValues,
+  apiObjsToMemberObj,
+  formInputsToMemberObj,
+  getInitialMemberFormValues,
+  updateMemberInfoCookie,
+} from '@/utils/member.utils';
 import SettingsAction from './actions';
 import SingleSelect from '@/components/form/single-select';
 import Cookies from 'js-cookie';
@@ -42,7 +48,12 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   const searchParams = useSearchParams();
   const formRef = useRef<HTMLFormElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
-  const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
+  const [errors, setErrors] = useState<any>({
+    basicErrors: [],
+    socialErrors: [],
+    contributionErrors: {},
+    skillsErrors: [],
+  });
   const queryClient = useQueryClient();
   const [allErrors, setAllErrors] = useState<any[]>([]);
   const tabsWithError = {
@@ -232,7 +243,11 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         }
         updateMemberInfoCookie(image.url);
         setProfileImage(image.url);
-      } else if (memberInfo?.image?.uid && memberInfo?.image?.url && formattedForms.imageFile === memberInfo?.image?.url) {
+      } else if (
+        memberInfo?.image?.uid &&
+        memberInfo?.image?.url &&
+        formattedForms.imageFile === memberInfo?.image?.url
+      ) {
         formattedForms.imageUid = memberInfo?.image?.uid;
       } else {
         setProfileImage(null);
@@ -353,7 +368,12 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
       <form ref={formRef} onSubmit={onFormSubmitted} onReset={onResetForm} className="ms" noValidate>
         <div className="ms__tab">
           <div className="ms__tab__desktop">
-            <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps} />
+            <Tabs
+              errorInfo={tabsWithError}
+              activeTab={activeTab.name}
+              onTabClick={(v) => handleTabClick(v)}
+              tabs={steps}
+            />
           </div>
           <div className="ms__tab__mobile">
             <SingleSelect
@@ -369,13 +389,28 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         </div>
         <div className="ms__content">
           <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-            <MemberBasicInfo errors={errors.basicErrors} uid={memberInfo.uid} isMemberSelfEdit={true} initialValues={initialValues.basicInfo} />
+            <MemberBasicInfo
+              errors={errors.basicErrors}
+              uid={memberInfo.uid}
+              isMemberSelfEdit={true}
+              initialValues={initialValues.basicInfo}
+            />
           </div>
           <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
-            <MemberSkillsInfo errors={errors.skillsErrors} isEdit={true} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />
+            <MemberSkillsInfo
+              errors={errors.skillsErrors}
+              isEdit={true}
+              initialValues={initialValues.skillsInfo}
+              skillsOptions={allData.skills}
+              teamsOptions={allData.teams}
+            />
           </div>
           <div className={`${activeTab.name !== 'contributions' ? 'hidden' : ''}`}>
-            <MemberContributionInfo errors={errors.contributionErrors} initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} />
+            <MemberContributionInfo
+              errors={errors.contributionErrors}
+              initialValues={initialValues.contributionInfo}
+              projectsOptions={allData.projects}
+            />
           </div>
           <div className={`${activeTab.name !== 'social' ? 'hidden' : ''}`}>
             <MemberSocialInfo initialValues={initialValues.socialInfo} />
@@ -422,7 +457,10 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
                 {Object.keys(errors.contributionErrors).map((v: string, i) => (
                   <ul key={`contrib-${v}`}>
                     {errors.contributionErrors[v].map((item: any, index: any) => (
-                      <li className="error__item__list__msg" key={`${v}-${index}`}>{`Project ${Number(v) + 1} - ${item}`}</li>
+                      <li
+                        className="error__item__list__msg"
+                        key={`${v}-${index}`}
+                      >{`Project ${Number(v) + 1} - ${item}`}</li>
                     ))}
                   </ul>
                 ))}

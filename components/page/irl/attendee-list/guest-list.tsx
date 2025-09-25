@@ -23,7 +23,7 @@ interface IGuestList {
   newSearchParams: URLSearchParams;
 }
 
-const GuestList = (props: IGuestList) => {  
+const GuestList = (props: IGuestList) => {
   const userInfo = props?.userInfo;
   const eventDetails = props?.eventDetails;
   const newSearchParams = props?.newSearchParams;
@@ -52,7 +52,7 @@ const GuestList = (props: IGuestList) => {
   const onClearFilters = () => {
     let isTriggerLoader = false;
     const currentParams = new URLSearchParams(searchParams);
-    const allowedParams = ['event', 'type', 'location']; 
+    const allowedParams = ['event', 'type', 'location'];
 
     // Remove parameters not in the allowed list
     for (const [key, value] of Object.entries(searchParams)) {
@@ -63,8 +63,7 @@ const GuestList = (props: IGuestList) => {
     }
     triggerLoader(isTriggerLoader);
     router.push(`${window.location.pathname}?${currentParams.toString()}`);
-
-  }
+  };
 
   useEffect(() => {
     document.dispatchEvent(
@@ -72,7 +71,7 @@ const GuestList = (props: IGuestList) => {
         detail: {
           isOpen: selectedGuests.length > 0,
         },
-      })
+      }),
     );
 
     if (selectedGuests.length > 0) {
@@ -103,7 +102,10 @@ const GuestList = (props: IGuestList) => {
           })}
         {filteredList.length === 0 && (
           <div className="guestList__empty">
-            No results found for the applied input <span role='button' onClick={onClearFilters} className="guestList__empty__reset">Reset to default</span>
+            No results found for the applied input{' '}
+            <span role="button" onClick={onClearFilters} className="guestList__empty__reset">
+              Reset to default
+            </span>
           </div>
         )}
       </div>

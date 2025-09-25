@@ -86,7 +86,9 @@ const AsksSection = (props: IAsksSection) => {
       // Fetch data
       const { authToken } = getCookiesFromClient();
       const url = `${process.env.DIRECTORY_API_URL}/v1/teams/${team.id}/ask`;
-      const payload = isAddMode ? { ask: formattedData, teamName: team?.name } : { ask: { ...formattedData, uid: selectedAsk.uid }, teamName: team?.name };
+      const payload = isAddMode
+        ? { ask: formattedData, teamName: team?.name }
+        : { ask: { ...formattedData, uid: selectedAsk.uid }, teamName: team?.name };
 
       const response = await customFetch(
         url,
@@ -201,7 +203,10 @@ const AsksSection = (props: IAsksSection) => {
         true,
       );
       if (response?.ok) {
-        analytics.teamDetailDeleteAskConfirmClicked(getAnalyticsTeamInfo(team), { ...payload.ask, teamName: payload.teamName });
+        analytics.teamDetailDeleteAskConfirmClicked(getAnalyticsTeamInfo(team), {
+          ...payload.ask,
+          teamName: payload.teamName,
+        });
         toast.success('Ask deleted successfully');
         const teamResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams/${team.id}`, {
           cache: 'no-store',
@@ -236,8 +241,9 @@ const AsksSection = (props: IAsksSection) => {
                 trigger={<img src="/icons/info.svg" height={16} />}
                 content={
                   <p style={{ padding: '8px' }}>
-                    Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise,
-                    networks, or resources to support your project.
+                    Asks are specific requests for help or resources that your team needs to achieve your next
+                    milestones. Use this space to connect with others who can contribute their expertise, networks, or
+                    resources to support your project.
                   </p>
                 }
               />
@@ -254,8 +260,9 @@ const AsksSection = (props: IAsksSection) => {
         {allAsks.length === 0 && (
           <div className="asksec__desc">
             <p className="asksec__desc__txt">
-              Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks,
-              or resources to support your project.
+              Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use
+              this space to connect with others who can contribute their expertise, networks, or resources to support
+              your project.
             </p>
             {hasEditAsksAccess && (
               <button className="asksec__desc__addask" onClick={onAddAsksClickHandler}>

@@ -56,14 +56,23 @@ const AllRepositories = (props: IAllRepos) => {
         </div>
         <div className="all-repos__search-bar">
           <img loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
-          <input value={searchTerm} className="all-repos__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
+          <input
+            value={searchTerm}
+            className="all-repos__search-bar__input"
+            placeholder="Search"
+            name="name"
+            autoComplete="off"
+            onChange={onInputChangeHandler}
+          />
         </div>
 
         <div className="all-repos__container">
           {allRepos?.map((repo: any, index: number) => {
             return (
               <Fragment key={`${repo} + ${index}`}>
-                <div className={`all-repos__container__repo ${index !== allRepos?.length - 1 && 'all-repos__border-set'}`}>
+                <div
+                  className={`all-repos__container__repo ${index !== allRepos?.length - 1 && 'all-repos__border-set'}`}
+                >
                   <MemberDetailsRepoCard userInfo={userInfo} memebr={member} repo={repo} />
                 </div>
               </Fragment>

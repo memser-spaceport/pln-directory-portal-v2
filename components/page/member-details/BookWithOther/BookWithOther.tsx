@@ -19,7 +19,11 @@ export const BookWithOther = ({ count, member }: Props) => {
     <div className={s.root}>
       <div className={s.header}>{member.name} doesn&apos;t have their schedule available right now</div>
       <div className={s.body}>You can book office hours with other members who are available.</div>
-      <Link className={s.button} href="/members?hasOfficeHours=true" onClick={() => onClickBookWithOther({ selectedMemberId: member.id })}>
+      <Link
+        className={s.button}
+        href="/members?hasOfficeHours=true"
+        onClick={() => onClickBookWithOther({ selectedMemberId: member.id })}
+      >
         See {count} members open to connect
       </Link>
     </div>

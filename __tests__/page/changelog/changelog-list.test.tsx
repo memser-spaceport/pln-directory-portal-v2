@@ -41,7 +41,7 @@ describe('ChangelogList Component', () => {
     expect(
       screen.getByRole('heading', {
         name: /changelog/i,
-      })
+      }),
     ).toBeInTheDocument();
   });
 

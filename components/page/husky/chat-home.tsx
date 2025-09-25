@@ -130,7 +130,11 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
             isLimitReached={limitReached}
           />
           {isDropdownOpen && (
-            <div className={`chat-home__prompts ${limitReached ? 'chat-home__prompts--error' : ''}`} tabIndex={-1} onMouseDown={(e) => e.preventDefault()}>
+            <div
+              className={`chat-home__prompts ${limitReached ? 'chat-home__prompts--error' : ''}`}
+              tabIndex={-1}
+              onMouseDown={(e) => e.preventDefault()}
+            >
               {limitReached ? (
                 <div className="chat-home__error">
                   <div className="chat-home__error-wrapper">
@@ -141,7 +145,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
                     </div>
                     <div className="chat-home__error-message">
                       <span onClick={onLoginClickHandler} className="chat-home__link">
-                        Log in
+                        Sign in
                       </span>
                       {` `}or{` `}
                       <span onClick={handleSignUpClick} role="link" className="chat-home__link">
@@ -155,7 +159,11 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
               ) : (
                 <>
                   <h4 className="chat-home__prompts-title">
-                    <img alt="Suggestions Orange" src="/icons/suggestions-orange.svg" className="chat-home__prompts-icon" />
+                    <img
+                      alt="Suggestions Orange"
+                      src="/icons/suggestions-orange.svg"
+                      className="chat-home__prompts-icon"
+                    />
                     <span className="chat-home__prompts-text">Try asking or searching for</span>
                   </h4>
                   <div className="chat-home__prompts-list">
@@ -352,8 +360,8 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
           .chat-home__prompts {
             width: 100%;
           }
-          
-           .chat-home__prompts--error {
+
+          .chat-home__prompts--error {
             width: 95%;
           }
         }

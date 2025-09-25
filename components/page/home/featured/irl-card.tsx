@@ -23,18 +23,24 @@ export default function IrlCard(props: IIrlCard) {
   const isLongName = name?.length > 25;
 
   const sanitizedDesc = DOMPurify.sanitize(description || '');
-  
+
   const clippedDesc = clip(sanitizedDesc, 250, { html: true, maxLines: isLongName ? 2 : 3 });
 
   return (
     <>
-      <div data-testid='featured-irl-card' className="irlCard">
+      <div data-testid="featured-irl-card" className="irlCard">
         <div className="irlCard__hdr">
           <img src={bannerImage} alt="banner image" />
         </div>
         <div className="irlCard__body">
           <div className={`irlCard__body__name ${isLongName ? 'irlCard__body__name--long' : ''}`}>{name}</div>
-          {clippedDesc && <div  aria-label="Event description" className={`irlCard__body__desc ${isLongName ? 'irlCard__body__desc--short' : ''}`} dangerouslySetInnerHTML={{ __html: clippedDesc }}></div>}
+          {clippedDesc && (
+            <div
+              aria-label="Event description"
+              className={`irlCard__body__desc ${isLongName ? 'irlCard__body__desc--short' : ''}`}
+              dangerouslySetInnerHTML={{ __html: clippedDesc }}
+            ></div>
+          )}
           <div className="irlCard__body__location" aria-label="Event location">
             <img src="/icons/location.svg" alt="location" />
             <span>{location}</span>
@@ -50,7 +56,7 @@ export default function IrlCard(props: IIrlCard) {
               </div>
             ) : (
               attendees > 0 && (
-                <div className="irlCard__footer__left__attendee"  aria-label={`${attendees} attendees`}>
+                <div className="irlCard__footer__left__attendee" aria-label={`${attendees} attendees`}>
                   <img src="/icons/thumbs-up.svg" alt="Thumbs Up" />
                   <span>{`${attendees} ${isPastEvent ? 'Joined' : 'Going'}`}</span>
                 </div>

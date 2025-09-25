@@ -13,11 +13,24 @@ interface Props {
   recipientTelegram: string | null | undefined;
 }
 
-export const InvalidOfficeHoursLinkDialog = ({ isOpen, onClose, recipientName, recipientEmail, recipientTelegram }: Props) => {
+export const InvalidOfficeHoursLinkDialog = ({
+  isOpen,
+  onClose,
+  recipientName,
+  recipientEmail,
+  recipientTelegram,
+}: Props) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div className={s.overlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }} onClick={onClose}>
+        <motion.div
+          className={s.overlay}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.1 }}
+          onClick={onClose}
+        >
           <motion.div
             className={s.dialog}
             initial={{ opacity: 0, y: 20 }}
@@ -31,32 +44,64 @@ export const InvalidOfficeHoursLinkDialog = ({ isOpen, onClose, recipientName, r
             </button>
 
             <div className={s.content}>
-              <motion.div className={s.iconWrapper} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1, duration: 0.3, ease: 'easeOut' }}>
+              <motion.div
+                className={s.iconWrapper}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1, duration: 0.3, ease: 'easeOut' }}
+              >
                 <WarningIcon />
               </motion.div>
 
-              <motion.h2 className={s.title} initial={{ opacity: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.3 }}>
+              <motion.h2
+                className={s.title}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.3 }}
+              >
                 Unable to Schedule Meeting
               </motion.h2>
 
-              <motion.p className={s.description} initial={{ opacity: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.3 }}>
+              <motion.p
+                className={s.description}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25, duration: 0.3 }}
+              >
                 This member&apos;s scheduling link is temporarily unavailable.
               </motion.p>
 
-              <motion.p className={s.subTitle} initial={{ opacity: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.3 }}>
+              <motion.p
+                className={s.subTitle}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.3 }}
+              >
                 <b style={{ fontWeight: 500 }}>What happens next:</b>
               </motion.p>
 
-              <motion.div className={s.practiceItem} initial={{ opacity: 0 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35, duration: 0.3 }}>
+              <motion.div
+                className={s.practiceItem}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.35, duration: 0.3 }}
+              >
                 <div className={s.practiceIcon}>
                   <CheckIcon />
                 </div>
                 <div className={s.practiceContent}>
-                  <p className={s.practiceText}>{recipientName} will be notified immediately to fix their scheduling link</p>
+                  <p className={s.practiceText}>
+                    {recipientName} will be notified immediately to fix their scheduling link
+                  </p>
                 </div>
               </motion.div>
 
-              <motion.div className={s.practiceItem} initial={{ opacity: 0 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4, duration: 0.3 }}>
+              <motion.div
+                className={s.practiceItem}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4, duration: 0.3 }}
+              >
                 <div className={s.practiceIcon}>
                   <CheckIcon />
                 </div>
@@ -65,7 +110,12 @@ export const InvalidOfficeHoursLinkDialog = ({ isOpen, onClose, recipientName, r
                 </div>
               </motion.div>
 
-              <motion.div className={s.practiceItem} initial={{ opacity: 0 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.45, duration: 0.3 }}>
+              <motion.div
+                className={s.practiceItem}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.45, duration: 0.3 }}
+              >
                 <div className={s.practiceIcon}>
                   <CheckIcon />
                 </div>
@@ -75,12 +125,24 @@ export const InvalidOfficeHoursLinkDialog = ({ isOpen, onClose, recipientName, r
               </motion.div>
 
               {(recipientEmail || recipientTelegram) && (
-                <motion.p className={s.description} style={{ marginTop: 8 }} initial={{ opacity: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.3 }}>
+                <motion.p
+                  className={s.description}
+                  style={{ marginTop: 8 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5, duration: 0.3 }}
+                >
                   Need to meet sooner? Try contacting {recipientName} directly at {recipientEmail || recipientTelegram}.
                 </motion.p>
               )}
 
-              <motion.button className={s.continueButton} onClick={onClose} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.1 }}>
+              <motion.button
+                className={s.continueButton}
+                onClick={onClose}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.1 }}
+              >
                 Got it
               </motion.button>
             </div>

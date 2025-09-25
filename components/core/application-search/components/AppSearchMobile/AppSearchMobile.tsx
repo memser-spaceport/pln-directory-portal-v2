@@ -25,13 +25,17 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
   const [searchTerm, setSearchTerm] = useState('');
   const { data } = useFullApplicationSearch(searchTerm);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
-  const [activeCategory, setActiveCategory] = React.useState<'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null>('top');
+  const [activeCategory, setActiveCategory] = React.useState<
+    'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null
+  >('top');
 
   const handleClose = useCallback(() => {
     // Preserve existing filter parameters when removing searchState
     const currentParams = new URLSearchParams(searchParams.toString());
     currentParams.delete('searchState');
-    const newUrl = currentParams.toString() ? `${window.location.pathname}?${currentParams.toString()}` : window.location.pathname;
+    const newUrl = currentParams.toString()
+      ? `${window.location.pathname}?${currentParams.toString()}`
+      : window.location.pathname;
     router.replace(newUrl, { scroll: false });
 
     setSearchTerm('');
@@ -85,7 +89,13 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
               {/*<SearchModeToggle active={mode} onChange={setMode} />*/}
               <span className={s.title}>Search</span>
               <button className={s.closeButton} onClick={handleClose}>
-                <Image src="/icons/close-gray.svg" alt="Close" width={20} height={20} style={{ pointerEvents: 'none' }} />
+                <Image
+                  src="/icons/close-gray.svg"
+                  alt="Close"
+                  width={20}
+                  height={20}
+                  style={{ pointerEvents: 'none' }}
+                />
               </button>
             </div>
             <div className={s.divider} />
@@ -104,15 +114,34 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
               {/*<SearchModeToggle active={mode} onChange={setMode} />*/}
               <span className={s.title}>AI Search</span>
               <button className={s.closeButton} onClick={handleClose}>
-                <Image src="/icons/close-gray.svg" alt="Close" width={20} height={20} style={{ pointerEvents: 'none' }} />
+                <Image
+                  src="/icons/close-gray.svg"
+                  alt="Close"
+                  width={20}
+                  height={20}
+                  style={{ pointerEvents: 'none' }}
+                />
               </button>
             </div>
             <div className={s.divider} />
             <div className={s.filtersWrapper}>
-              <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} mode={mode} onToggleMode={setMode} />
+              <SearchCategories
+                data={data}
+                activeCategory={activeCategory}
+                setActiveCategory={setActiveCategory}
+                mode={mode}
+                onToggleMode={setMode}
+              />
             </div>
           </div>
-          <AiChatPanel className={s.mobileContent} initialPrompt={initialAiPrompt} mobileView isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
+          <AiChatPanel
+            className={s.mobileContent}
+            initialPrompt={initialAiPrompt}
+            mobileView
+            isLoggedIn={isLoggedIn}
+            userInfo={userInfo}
+            authToken={authToken}
+          />
         </div>
       )}
     </div>

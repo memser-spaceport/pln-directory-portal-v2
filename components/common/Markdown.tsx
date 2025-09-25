@@ -39,4 +39,4 @@ export const Markdown: FC<MarkdownProps> = ({ children, className = '' }) => {
       </MarkdownToJSX>
     </div>
   );
-}; 
+};

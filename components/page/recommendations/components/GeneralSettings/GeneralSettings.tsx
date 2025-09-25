@@ -26,12 +26,19 @@ export const GeneralSettings = ({ uid }: { uid: string }) => {
         <div className={s.col}>
           <div className={s.row}>
             <div className={s.primary}>Receive Recommendations</div>
-            <Switch.Root defaultChecked className={s.Switch} checked={enabled} onCheckedChange={() => setValue('enabled', !enabled, { shouldValidate: true, shouldDirty: true })}>
+            <Switch.Root
+              defaultChecked
+              className={s.Switch}
+              checked={enabled}
+              onCheckedChange={() => setValue('enabled', !enabled, { shouldValidate: true, shouldDirty: true })}
+            >
               <Switch.Thumb className={s.Thumb} />
             </Switch.Root>
           </div>
 
-          <div className={s.secondary}>Receive suggestions on members you may want to connect with, delivered via email twice per month.</div>
+          <div className={s.secondary}>
+            Receive suggestions on members you may want to connect with, delivered via email twice per month.
+          </div>
         </div>
       </label>
       <div className={s.notification}>
@@ -64,9 +71,22 @@ const ArrowIcon = () => (
       />
     </g>
     <defs>
-      <filter id="filter0_d_2699_934" x="-2" y="-1" width="22" height="22" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+      <filter
+        id="filter0_d_2699_934"
+        x="-2"
+        y="-1"
+        width="22"
+        height="22"
+        filterUnits="userSpaceOnUse"
+        colorInterpolationFilters="sRGB"
+      >
         <feFlood floodOpacity="0" result="BackgroundImageFix" />
-        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+        <feColorMatrix
+          in="SourceAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          result="hardAlpha"
+        />
         <feOffset dy="1" />
         <feGaussianBlur stdDeviation="1" />
         <feComposite in2="hardAlpha" operator="out" />

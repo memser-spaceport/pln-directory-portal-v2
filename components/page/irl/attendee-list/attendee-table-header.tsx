@@ -294,7 +294,11 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
             </div>
             {attendeeTypeFilterProps?.isPaneActive && (
               <div className="tbl__hdr__attending__multiselect">
-                <FloatingMultiSelect {...attendeeTypeFilterProps} items={attendeeTypeFilterItems} onFilter={onFilterByAttendeeType} />
+                <FloatingMultiSelect
+                  {...attendeeTypeFilterProps}
+                  items={attendeeTypeFilterItems}
+                  onFilter={onFilterByAttendeeType}
+                />
               </div>
             )}
           </div>

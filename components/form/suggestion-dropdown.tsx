@@ -44,7 +44,13 @@ interface SuggestionDropdownProps {
  *   enableAddMode={handleEnableAddMode}
  * />
  */
-const SuggestionDropdown: React.FC<SuggestionDropdownProps> = ({ suggestions, addNew, onSelect, enableAddMode, setDropdownStatus }) => {
+const SuggestionDropdown: React.FC<SuggestionDropdownProps> = ({
+  suggestions,
+  addNew,
+  onSelect,
+  enableAddMode,
+  setDropdownStatus,
+}) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -88,11 +94,19 @@ const SuggestionDropdown: React.FC<SuggestionDropdownProps> = ({ suggestions, ad
           {/* add new suggestion */}
           {addNew?.enable && (
             <div className="suggestion__add">
-              <div className="suggestion__dropdown__suggestion__group__not-found__txt">{addNew?.title ?? 'Not able to find yours ?'}</div>
+              <div className="suggestion__dropdown__suggestion__group__not-found__txt">
+                {addNew?.title ?? 'Not able to find yours ?'}
+              </div>
               <div className="suggestion__add__action">
                 <button className="suggestion__add__action__btn" onClick={enableAddMode}>
                   <div className="suggestion__add__action__btn__img">
-                    <Image loading="lazy" src={addNew?.iconURL ?? '/icons/sign-up/share.svg'} alt="add" width={20} height={20} />
+                    <Image
+                      loading="lazy"
+                      src={addNew?.iconURL ?? '/icons/sign-up/share.svg'}
+                      alt="add"
+                      width={20}
+                      height={20}
+                    />
                   </div>
                   <div>{addNew?.actionString ?? 'Add yours'}</div>
                 </button>

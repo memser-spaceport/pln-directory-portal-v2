@@ -1,4 +1,4 @@
-@use "styles/mixins";
+@use 'styles/mixins';
 @use 'styles/media';
 
 .root {
@@ -6,9 +6,11 @@
   gap: 8px;
 
   border-radius: 8px;
-  border: 1px solid #427DFF;
-  background: #FFF;
-  box-shadow: 0 0 0 2px rgba(21, 111, 247, 0.25), 0 1px 1px 0 rgba(15, 23, 42, 0.08);
+  border: 1px solid #427dff;
+  background: #fff;
+  box-shadow:
+    0 0 0 2px rgba(21, 111, 247, 0.25),
+    0 1px 1px 0 rgba(15, 23, 42, 0.08);
   padding: 10px 24px 10px 8px;
   width: 100%;
 }
@@ -23,8 +25,10 @@
 }
 
 .title {
-  color: #0F172A;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #0f172a;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -33,7 +37,9 @@
 
 .subtitle {
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 400;

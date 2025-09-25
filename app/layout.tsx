@@ -28,7 +28,9 @@ const ToastContainer = dynamic(() => import('@/components/core/ToastContainer'),
 const BroadCastChannel = dynamic(() => import('@/components/core/login/broadcast-channel'), { ssr: false });
 const MemberRegisterDialog = dynamic(() => import('@/components/core/register/member-register-dialog'), { ssr: false });
 const CookieChecker = dynamic(() => import('@/components/core/login/cookie-checker'), { ssr: false });
-const PostHogPageview = dynamic(() => import('@/providers/analytics-provider').then((d) => d.PostHogPageview), { ssr: false });
+const PostHogPageview = dynamic(() => import('@/providers/analytics-provider').then((d) => d.PostHogPageview), {
+  ssr: false,
+});
 const RatingContainer = dynamic(() => import('@/components/core/office-hours-rating/rating-container'), { ssr: false });
 
 const inter = Inter({ subsets: ['latin'] });
@@ -61,7 +63,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html>
       <head>
         {/* importing google reCaptcha v3 */}
-        <script src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`} async defer></script>
+        <script
+          src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`}
+          async
+          defer
+        ></script>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
       <body className={`${inter.className} layout root`} id="body">

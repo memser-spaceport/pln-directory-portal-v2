@@ -21,7 +21,13 @@ export const saveFeedback = async (authToken: string, payload: any) => {
   };
 };
 
-export const getHuskyAugmentedInfo = async (authToken: string, query: string, answer: string, references: any[], source: string) => {
+export const getHuskyAugmentedInfo = async (
+  authToken: string,
+  query: string,
+  answer: string,
+  references: any[],
+  source: string,
+) => {
   try {
     const augementResponse = await fetch(`${process.env.HUSKY_API_URL}/augumented_info`, {
       cache: 'no-store',
@@ -90,7 +96,16 @@ export const getHuskyAugmentedInfo = async (authToken: string, query: string, an
   }
 };
 
-export const getHuskyResponse = async (userInfo: any, authToken: string, query: string, source: string, chatUid: string, previousQues?: string | null, previousAns?: string | null, isBlog = false) => {
+export const getHuskyResponse = async (
+  userInfo: any,
+  authToken: string,
+  query: string,
+  source: string,
+  chatUid: string,
+  previousQues?: string | null,
+  previousAns?: string | null,
+  isBlog = false,
+) => {
   const payload = {
     query,
     UID: chatUid,
@@ -121,7 +136,13 @@ export const getHuskyResponse = async (userInfo: any, authToken: string, query: 
   const huskyResponse = await queryResponse.json();
   let augementedActions: any[] = [];
   if (!isBlog) {
-    augementedActions = await getHuskyAugmentedInfo(authToken, query, huskyResponse?.Response?.answer, huskyResponse?.references, source);
+    augementedActions = await getHuskyAugmentedInfo(
+      authToken,
+      query,
+      huskyResponse?.Response?.answer,
+      huskyResponse?.references,
+      source,
+    );
   }
 
   const answerSourceLinks = huskyResponse.Source_list.filter((item: any) => {
@@ -246,7 +267,15 @@ export const getHuskyThreadById = async (id: string, authToken: string) => {
       sql: item?.sqlData,
     };
   });
-  return { threadId: thread?.threadId, title: thread?.title, chats: formattedThread, isOwner: thread?.isOwner, name: thread?.memberName, image: thread?.memberImage, guestUserId: thread?.guestUserId };
+  return {
+    threadId: thread?.threadId,
+    title: thread?.title,
+    chats: formattedThread,
+    isOwner: thread?.isOwner,
+    name: thread?.memberName,
+    image: thread?.memberImage,
+    guestUserId: thread?.guestUserId,
+  };
 };
 
 export const deleteThread = async (authToken: string, threadId: string): Promise<boolean> => {
@@ -269,7 +298,7 @@ export const duplicateThread = async (authToken: string, threadId: string, guest
       ...(authToken && { Authorization: `Bearer ${authToken}` }),
     },
     body: JSON.stringify({
-      ...(guestUserId && { guestUserId })
+      ...(guestUserId && { guestUserId }),
     }),
   });
 

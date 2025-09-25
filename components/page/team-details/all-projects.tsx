@@ -1,8 +1,8 @@
-import { IFormatedTeamProject } from "@/types/teams.types";
-import { EVENTS, PAGE_ROUTES } from "@/utils/constants";
-import Image from "next/image";
-import { ChangeEvent, Fragment, useEffect, useState } from "react";
-import TeamProjectCard from "./team-project-card";
+import { IFormatedTeamProject } from '@/types/teams.types';
+import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
+import Image from 'next/image';
+import { ChangeEvent, Fragment, useEffect, useState } from 'react';
+import TeamProjectCard from './team-project-card';
 
 interface IAllProjects {
   projects: IFormatedTeamProject[];
@@ -15,7 +15,7 @@ const AllProjects = (props: IAllProjects) => {
   const hasProjectsEditAccess = props?.hasProjectsEditAccess;
   const [allProjects, setAllProjects] = useState(projects);
   const callback = props?.onCardClicked;
-  const [searchValue, setSearchValue] = useState("");
+  const [searchValue, setSearchValue] = useState('');
 
   const onEditClicked = props?.onEditClicked;
 
@@ -23,7 +23,9 @@ const AllProjects = (props: IAllProjects) => {
     const name = e?.target?.value?.toLowerCase();
     setSearchValue(name);
     if (name) {
-      const filteredProjects = allProjects?.filter((project: IFormatedTeamProject) => project?.name?.toLowerCase()?.includes(name));
+      const filteredProjects = allProjects?.filter((project: IFormatedTeamProject) =>
+        project?.name?.toLowerCase()?.includes(name),
+      );
       setAllProjects(filteredProjects);
     } else {
       setAllProjects(projects);
@@ -31,10 +33,10 @@ const AllProjects = (props: IAllProjects) => {
   };
 
   useEffect(() => {
-    document.addEventListener(EVENTS.TEAM_DETAIL_ALL_PROJECTS_CLOSE, ((e: any) => {
+    document.addEventListener(EVENTS.TEAM_DETAIL_ALL_PROJECTS_CLOSE, (e: any) => {
       setAllProjects(projects);
-      setSearchValue("");
-    }));
+      setSearchValue('');
+    });
     document.removeEventListener(EVENTS.TRIGGER_LOADER, () => {});
   }, []);
 
@@ -44,15 +46,28 @@ const AllProjects = (props: IAllProjects) => {
         <h2 className="all-projects__title">Projects ({projects?.length})</h2>
         <div className="all-projects__search-bar">
           <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
-          <input value={searchValue} className="all-projects__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
+          <input
+            value={searchValue}
+            className="all-projects__search-bar__input"
+            placeholder="Search"
+            name="name"
+            autoComplete="off"
+            onChange={onInputChangeHandler}
+          />
         </div>
 
         <div className="all-projects__projects">
           {allProjects?.map((project: IFormatedTeamProject, index: number) => {
             return (
               <Fragment key={`${project} + ${index}`}>
-                <div className={`${index < allProjects?.length - 1 ? "all-projects__border-set" : ""}`}>
-                  <TeamProjectCard onEditClicked={onEditClicked}   onCardClicked={() => callback(project)} url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`} hasProjectsEditAccess={hasProjectsEditAccess} project={project} />
+                <div className={`${index < allProjects?.length - 1 ? 'all-projects__border-set' : ''}`}>
+                  <TeamProjectCard
+                    onEditClicked={onEditClicked}
+                    onCardClicked={() => callback(project)}
+                    url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`}
+                    hasProjectsEditAccess={hasProjectsEditAccess}
+                    project={project}
+                  />
                 </div>
               </Fragment>
             );

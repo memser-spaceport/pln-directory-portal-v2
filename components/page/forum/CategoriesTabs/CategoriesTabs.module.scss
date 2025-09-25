@@ -6,8 +6,8 @@
   align-items: center;
   justify-content: space-between;
   border-radius: var(--corner-radius-zero, 0px);
-  background: var(--Surface-surface-light, #FFF);
-  box-shadow: 0 1px 4px 0 #E2E8F0;
+  background: var(--Surface-surface-light, #fff);
+  box-shadow: 0 1px 4px 0 #e2e8f0;
   min-height: 48px;
 
   position: sticky;
@@ -64,7 +64,7 @@
   letter-spacing: -0.3px;
 
   &[data-selected] {
-    color: #1B4DFF;
+    color: #1b4dff;
   }
 
   @media (hover: hover) {
@@ -96,7 +96,7 @@
   width: var(--active-tab-width);
   height: 2px;
   border-radius: 9px 9px 0 0;
-  background-color: #1B4DFF;
+  background-color: #1b4dff;
   transition-property: translate, width;
   transition-duration: 200ms;
   transition-timing-function: ease-in-out;
@@ -133,7 +133,7 @@
   justify-content: flex-end;
   align-items: center;
   gap: var(--spacing-zero, 0px);
-  color: var(--action-foreground-base-inverted_white, #FFF);
+  color: var(--action-foreground-base-inverted_white, #fff);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -142,8 +142,11 @@
 
   border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  background: var(--action-background-brand-normal, #1B4DFF);
-  box-shadow: 0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  background: var(--action-background-brand-normal, #1b4dff);
+  box-shadow:
+    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
 
   @include media.tablet-landscape {
     display: inline-flex;

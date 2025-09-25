@@ -1,4 +1,4 @@
-import { SIGN_UP } from "@/utils/constants";
+import { SIGN_UP } from '@/utils/constants';
 
 declare global {
   interface Window {

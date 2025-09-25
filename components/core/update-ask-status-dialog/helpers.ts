@@ -7,7 +7,8 @@ export const closeAskFormSchema = yup.object({
     .object<CloseAskForm['resolvedBy']>()
     .nullable()
     .when('reason', {
-      is: (reason: string) => reason === AskCloseReasons.FULLY_ADDRESSED || reason === AskCloseReasons.PARTIALLY_ADDRESSED,
+      is: (reason: string) =>
+        reason === AskCloseReasons.FULLY_ADDRESSED || reason === AskCloseReasons.PARTIALLY_ADDRESSED,
       then: () => yup.object().required('Required'),
       otherwise: () => yup.object().nullable(),
     }),
@@ -18,7 +19,11 @@ export const closeAskFormSchema = yup.object({
       yup
         .string()
         .required('Required')
-        .test('not-only-spaces', 'This field cannot be only spaces', (value) => value != null && value.trim().length > 0),
+        .test(
+          'not-only-spaces',
+          'This field cannot be only spaces',
+          (value) => value != null && value.trim().length > 0,
+        ),
   }),
   disabled: yup.boolean(),
 }) as yup.ObjectSchema<CloseAskForm>;

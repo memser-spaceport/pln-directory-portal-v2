@@ -19,7 +19,7 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
   const onClose = props?.onClose;
   const contributorsList = props?.contributorsList ?? [];
 
-  const onContributorClickHandler = props?.onContributorClickHandler
+  const onContributorClickHandler = props?.onContributorClickHandler;
 
   const analytics = useProjectAnalytics();
 
@@ -41,17 +41,17 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
   const onInputchangeHandler = (event: any) => {
     const searchTerm = event?.target.value.toLowerCase();
     setSearchTerm(event.target.value);
-      const filteredMembers = contributorsList?.filter((member: IMember) => member?.name?.toLowerCase()?.includes(searchTerm));
-      setFilteredContriList(filteredMembers);
-
+    const filteredMembers = contributorsList?.filter((member: IMember) =>
+      member?.name?.toLowerCase()?.includes(searchTerm),
+    );
+    setFilteredContriList(filteredMembers);
   };
 
   const onModalCloseClickHandler = () => {
-    setSearchTerm("");
+    setSearchTerm('');
     setFilteredContriList(contributorsList);
     onClose();
-  }
-
+  };
 
   return (
     <>
@@ -63,7 +63,13 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
               <div className="cm__body__search__icon">
                 <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
               </div>
-              <input value={searchTerm} type="search" className="cm__body__search__input" placeholder="Search" onChange={onInputchangeHandler} />
+              <input
+                value={searchTerm}
+                type="search"
+                className="cm__body__search__input"
+                placeholder="Search"
+                onChange={onInputchangeHandler}
+              />
             </div>
           </div>
           <div className="cm__body__contributors">
@@ -79,8 +85,25 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
                   <div className="contributor">
                     <div className="contributor__info">
                       <div className="contributor__info__imgWrpr">
-                        <Image alt="profile" width={40} height={40} layout='intrinsic' loading='eager' priority={true}  className="contributor__info__img" src={contributor.logo || defaultAvatar}  />
-                        {contributor?.teamLead && <img src="/icons/badge/team-lead.svg" className="contributor__info__teamlead" alt="team lead image" width={16} height={16} />}
+                        <Image
+                          alt="profile"
+                          width={40}
+                          height={40}
+                          layout="intrinsic"
+                          loading="eager"
+                          priority={true}
+                          className="contributor__info__img"
+                          src={contributor.logo || defaultAvatar}
+                        />
+                        {contributor?.teamLead && (
+                          <img
+                            src="/icons/badge/team-lead.svg"
+                            className="contributor__info__teamlead"
+                            alt="team lead image"
+                            width={16}
+                            height={16}
+                          />
+                        )}
                       </div>
                       <div className="contributor__info__name">{contributor?.name}</div>
                     </div>
@@ -91,7 +114,9 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
                 </div>
               );
             })}
-            {filteredContriList.length === 0 && <div className="cm__body__contributors__notFound">No Contributors found.</div>}
+            {filteredContriList.length === 0 && (
+              <div className="cm__body__contributors__notFound">No Contributors found.</div>
+            )}
           </div>
         </div>
       </Modal>

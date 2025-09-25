@@ -9,7 +9,14 @@ import useStepsIndicator from '@/hooks/useStepsIndicator';
 import { createParticipantRequest } from '@/services/participants-request.service';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
-import { formInputsToMemberObj, getMemberInfoFormValues, memberRegistrationDefaults, validateBasicForms, validateContributionErrors, validateTeamsAndSkills } from '@/utils/member.utils';
+import {
+  formInputsToMemberObj,
+  getMemberInfoFormValues,
+  memberRegistrationDefaults,
+  validateBasicForms,
+  validateContributionErrors,
+  validateTeamsAndSkills,
+} from '@/utils/member.utils';
 import { toast } from '@/components/core/ToastContainer';
 import Cookies from 'js-cookie';
 import RegisterActions from '@/components/core/register/register-actions';
@@ -192,16 +199,30 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
               <MemberBasicInfo initialValues={initialValues.basicInfo} errors={basicErrors} />
             </div>
             <div className={currentStep !== 'contributions' ? 'hidden' : 'form'}>
-              <MemberContributionInfo initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} errors={contributionErrors} />
+              <MemberContributionInfo
+                initialValues={initialValues.contributionInfo}
+                projectsOptions={allData.projects}
+                errors={contributionErrors}
+              />
             </div>
             <div className={currentStep !== 'social' ? 'hidden' : 'form'}>
               <MemberSocialInfo initialValues={initialValues.socialInfo} errors={socialErrors} />
             </div>
             <div className={currentStep !== 'skills' ? 'hidden' : 'form'}>
-              <MemberSkillsInfo initialValues={initialValues.skillsInfo} errors={skillsErrors} teamsOptions={allData.teams} skillsOptions={allData.skills} />
+              <MemberSkillsInfo
+                initialValues={initialValues.skillsInfo}
+                errors={skillsErrors}
+                teamsOptions={allData.teams}
+                skillsOptions={allData.skills}
+              />
             </div>
           </div>
-          <RegisterActions currentStep={currentStep} onCloseForm={onCloseForm} onBackClicked={onBackClicked} onNextClicked={onNextClicked} />
+          <RegisterActions
+            currentStep={currentStep}
+            onCloseForm={onCloseForm}
+            onBackClicked={onBackClicked}
+            onNextClicked={onNextClicked}
+          />
         </form>
       )}
       {currentStep === 'success' && <RegisterSuccess onCloseForm={onCloseForm} />}

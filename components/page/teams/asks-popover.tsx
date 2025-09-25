@@ -12,7 +12,7 @@ interface TooltipProps {
 const Tooltip: React.FC<TooltipProps> = ({ name, description, tags, onOpenChange }) => {
   return (
     <>
-      <TooltipPrimitive.Provider delayDuration={0} disableHoverableContent={false} >
+      <TooltipPrimitive.Provider delayDuration={0} disableHoverableContent={false}>
         <TooltipPrimitive.Root onOpenChange={onOpenChange}>
           <TooltipPrimitive.Trigger asChild>
             <span className="hoverable-name">{name}</span>
@@ -30,7 +30,7 @@ const Tooltip: React.FC<TooltipProps> = ({ name, description, tags, onOpenChange
                       window.open(link.href, '_blank');
                     }
                   }}
-                   />
+                />
                 <div className="asks__tooltip__cnt__tags">
                   {tags?.map((tag, index) => (
                     <Fragment key={`${tag} + ${index}`}>
@@ -41,9 +41,7 @@ const Tooltip: React.FC<TooltipProps> = ({ name, description, tags, onOpenChange
                       )}
                     </Fragment>
                   ))}
-                  {tags?.length > 2 && (
-                    <Tag variant="primary" value={`+${tags.length - 2}`} />
-                  )}
+                  {tags?.length > 2 && <Tag variant="primary" value={`+${tags.length - 2}`} />}
                 </div>
               </div>
             </TooltipPrimitive.Content>
@@ -52,45 +50,45 @@ const Tooltip: React.FC<TooltipProps> = ({ name, description, tags, onOpenChange
       </TooltipPrimitive.Provider>
 
       <style jsx>{`
-          .asks__tooltip__cnt {
-            display: flex;  
-            flex-direction: column;
-            gap: 4px;
-          }
+        .asks__tooltip__cnt {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
 
-          .asks__tooltip__cnt__name {
-            font-size: 15px;
-            font-weight: 600;
-            line-height: 24px;
-            text-align: left;
-          }
+        .asks__tooltip__cnt__name {
+          font-size: 15px;
+          font-weight: 600;
+          line-height: 24px;
+          text-align: left;
+        }
 
-          .asks__tooltip__cnt__desc {
-            font-size: 14px;
-            font-weight: 400;
-            line-height: 22px;
-            text-align: left;
-            word-break: break-word;
-          }
+        .asks__tooltip__cnt__desc {
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 22px;
+          text-align: left;
+          word-break: break-word;
+        }
 
-          .asks__tooltip__cnt__tags {
-            display: flex;
-            flex-direction: row;
-            gap: 4px;
-          }
+        .asks__tooltip__cnt__tags {
+          display: flex;
+          flex-direction: row;
+          gap: 4px;
+        }
 
-          .hoverable-name:hover {
-            text-decoration: underline;
-            cursor: pointer;
-          }
-          .hoverable-name {
-            display: flex;
-          }
+        .hoverable-name:hover {
+          text-decoration: underline;
+          cursor: pointer;
+        }
+        .hoverable-name {
+          display: flex;
+        }
 
-          .asks__tooltip__cnt {
-            pointer-events: auto;
-          }
-    `}</style>
+        .asks__tooltip__cnt {
+          pointer-events: auto;
+        }
+      `}</style>
     </>
   );
 };

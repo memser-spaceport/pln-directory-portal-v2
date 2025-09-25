@@ -1,7 +1,7 @@
 /**
  * Returns an object containing color and background color properties based on the provided group name.
  *
- * @param {string} groupName - The name of the group to get the color object for. 
+ * @param {string} groupName - The name of the group to get the color object for.
  *                             Possible values are 'Team' and 'Project'.
  * @returns {Object} An object with the following properties:
  *                   - color: A string representing the color code.
@@ -37,7 +37,7 @@ export const getColorObject = (groupName: string) => {
   }
 };
 
-export const validateName = (input:string) => {
-  const nameRegex =  /^[a-zA-Z\s]*$/;
+export const validateName = (input: string) => {
+  const nameRegex = /^[a-zA-Z\s]*$/;
   return nameRegex.test(input);
 };

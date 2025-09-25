@@ -11,7 +11,10 @@ import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './OfficeHoursDetails.module.scss';
 import { useValidateOfficeHoursQuery } from '@/services/members/hooks/useValidateOfficeHoursQuery';
-import { useBrokenOfficeHoursLinkBookAttemptEventCapture, useFixBrokenOfficeHoursLinkEventCapture } from '@/components/page/member-details/hooks';
+import {
+  useBrokenOfficeHoursLinkBookAttemptEventCapture,
+  useFixBrokenOfficeHoursLinkEventCapture,
+} from '@/components/page/member-details/hooks';
 import { usePathname, useRouter } from 'next/navigation';
 
 interface Props {
@@ -35,7 +38,9 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const officeHoursValidation = {
     isValid: !officeHoursValidationOnLoad
       ? member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null
-      : officeHoursValidationOnLoad?.ohStatus === 'OK' || officeHoursValidationOnLoad?.ohStatus === 'NOT_FOUND' || officeHoursValidationOnLoad?.ohStatus === null,
+      : officeHoursValidationOnLoad?.ohStatus === 'OK' ||
+        officeHoursValidationOnLoad?.ohStatus === 'NOT_FOUND' ||
+        officeHoursValidationOnLoad?.ohStatus === null,
   };
 
   useMobileNavVisibility(editView);

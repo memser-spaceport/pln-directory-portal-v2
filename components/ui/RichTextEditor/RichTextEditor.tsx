@@ -1,15 +1,19 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef } from 'react';
-import ReactQuill, { Quill } from 'react-quill';
 import { clsx } from 'clsx';
-import 'react-quill/dist/quill.snow.css';
+import ReactQuill, { Quill } from 'react-quill';
 import ImageUploader from 'quill-image-uploader';
+import React, { forwardRef, useEffect, useMemo, useRef } from 'react';
+
+import 'react-quill/dist/quill.snow.css';
 import 'quill-image-uploader/dist/quill.imageUploader.min.css';
 
-import s from './RichTextEditor.module.scss';
-import { saveRegistrationImage } from '@/services/registration.service';
+import { mergeRefs } from '@/utils/mergeRef';
 import { toast } from '@/components/core/ToastContainer';
+
+import { saveRegistrationImage } from '@/services/registration.service';
+
+import s from './RichTextEditor.module.scss';
 
 interface Props {
   value: string;
@@ -19,6 +23,7 @@ interface Props {
   id?: string;
   disabled?: boolean;
   autoFocus?: boolean;
+  maxLength?: number;
 }
 
 const officeHours = `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -31,7 +36,9 @@ Quill.register('modules/imageUploader', ImageUploader);
 // Register it
 Quill.import('ui/icons')['officeHours'] = officeHours;
 
-const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled, autoFocus }: Props) => {
+const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
+  const { value, maxLength, onChange, className, errorMessage, id, disabled, autoFocus } = props;
+
   const quillRef = useRef<any>(null);
   // const { userInfo } = getCookiesFromClient();
   // const { data: member } = useMember(userInfo?.uid);
@@ -88,7 +95,20 @@ const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled
     }
   }, [autoFocus]);
 
-  // if (!member) return null;
+  const handleChange = (content: string) => {
+    const { editor } = quillRef.current || {};
+
+    if (maxLength && editor) {
+      // +1 as Quill adds \n in the end
+      if (editor.getLength() > maxLength + 1) {
+        editor.deleteText(maxLength, editor.getLength());
+      } else {
+        onChange(content);
+      }
+    } else {
+      onChange(content);
+    }
+  };
 
   return (
     <div
@@ -97,10 +117,20 @@ const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled
       })}
       id={id}
     >
-      <ReactQuill ref={quillRef} theme="snow" value={value} onChange={onChange} className={clsx(s.editor, className)} readOnly={disabled} modules={modules} />
+      <ReactQuill
+        ref={mergeRefs([ref, quillRef])}
+        theme="snow"
+        value={value}
+        onChange={handleChange}
+        className={clsx(s.editor, className)}
+        readOnly={disabled}
+        modules={modules}
+      />
       {errorMessage && <div className={s.error}>{errorMessage}</div>}
     </div>
   );
-};
+});
+
+RichTextEditor.displayName = 'RichTextEditor';
 
 export default RichTextEditor;

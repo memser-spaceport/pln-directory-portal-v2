@@ -26,7 +26,13 @@ async function Page({ searchParams }: { searchParams: Record<string, string> }) 
         <MembersToolbar searchParams={searchParams} totalTeams={totalMembers} userInfo={parsedUserDetails} />
       </div>
       <div className={styles.members__right__membersList} style={{ flex: 1 }}>
-        <MemberInfiniteList isUserLoggedIn={isLoggedIn} members={members} totalItems={totalMembers} userInfo={parsedUserDetails} searchParams={searchParams} />
+        <MemberInfiniteList
+          isUserLoggedIn={isLoggedIn}
+          members={members}
+          totalItems={totalMembers}
+          userInfo={parsedUserDetails}
+          searchParams={searchParams}
+        />
       </div>
     </div>
   );
@@ -42,7 +48,7 @@ const getPageData = async (searchParams: Record<string, string>) => {
     const query = qs.stringify({
       ...searchParams,
       roles: searchParams.roles?.split('|'),
-      topics: searchParams.hasOfficeHours ? searchParams.topics?.split('|') : '',
+      topics: searchParams.topics?.split('|') || '',
       sort: searchParams.sort
         ?.split(',')
         .map((s) => s.toLowerCase())

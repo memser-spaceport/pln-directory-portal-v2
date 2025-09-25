@@ -60,7 +60,7 @@
 .content {
   padding: 24px 24px 0;
   text-align: center;
-  
+
   @include media.tablet-landscape {
     padding: 32px;
   }
@@ -73,7 +73,7 @@
 }
 
 .title {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   text-align: center;
   font-size: 20px;
   font-style: normal;
@@ -81,7 +81,7 @@
   line-height: 27px; /* 135% */
   letter-spacing: -0.4px;
   margin-bottom: 8px;
-  
+
   @include media.tablet-landscape {
     font-size: 24px;
   }
@@ -107,7 +107,7 @@
 }
 
 .bestPracticesTitle {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   text-align: center;
   font-size: 16px;
   font-style: normal;
@@ -124,8 +124,8 @@
   align-self: stretch;
 
   border-radius: 8px;
-  background: var(--background-brand-soft-surface, #F2F5FF);
-  
+  background: var(--background-brand-soft-surface, #f2f5ff);
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -141,7 +141,7 @@
 }
 
 .practiceTitle {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -182,11 +182,11 @@
   background: white;
   cursor: pointer;
   position: relative;
-  
+
   &:checked {
     background: #3b82f6;
     border-color: #3b82f6;
-    
+
     &::after {
       content: '';
       position: absolute;
@@ -214,20 +214,23 @@
   margin: 0 auto;
   border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  background: var(--action-background-brand-normal, #1B4DFF);
-  box-shadow: 0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
-  color: var(--action-foreground-base-inverted_white, #FFF);
+  background: var(--action-background-brand-normal, #1b4dff);
+  box-shadow:
+    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  color: var(--action-foreground-base-inverted_white, #fff);
 
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
-  
+
   &:hover {
     background: #2563eb;
   }
-  
+
   &:active {
     background: #1d4ed8;
   }

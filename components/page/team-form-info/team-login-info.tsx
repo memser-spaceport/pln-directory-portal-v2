@@ -15,13 +15,15 @@ export default function LoginInfo() {
   return (
     <>
       <div className="login-info">
-        <div className="login-info__title">Login to submit a team</div>
-        <div className="login-info__subtitle">You need to log in to submit a team.Please login to proceed.</div>
-        <div className='login-info__actions'>
-            <button onClick={onCancel} className="login-info__actions__cancel" type="button">
-              Cancel
-            </button>
-            <button className="login-info__actions__login" onClick={onLogin}>Proceed to Login</button>
+        <div className="login-info__title">Sign in to submit a team</div>
+        <div className="login-info__subtitle">You need to sign in to submit a team.Please login to proceed.</div>
+        <div className="login-info__actions">
+          <button onClick={onCancel} className="login-info__actions__cancel" type="button">
+            Cancel
+          </button>
+          <button className="login-info__actions__login" onClick={onLogin}>
+            Proceed to Login
+          </button>
         </div>
       </div>
       <style jsx>
@@ -46,10 +48,10 @@ export default function LoginInfo() {
             line-height: 20px;
           }
 
-          .login-info__actions{
-            display:flex;
+          .login-info__actions {
+            display: flex;
             justify-content: flex-end;
-            gap:10px;
+            gap: 10px;
           }
 
           .login-info__actions__cancel {

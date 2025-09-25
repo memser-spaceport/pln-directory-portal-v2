@@ -63,7 +63,12 @@ const getPageData = async () => {
       getFeaturedData(authToken, isLoggedIn, isAdmin),
       getDiscoverData(),
     ]);
-    if (teamFocusAreaResponse?.error || projectFocusAreaResponse?.error || featuredResponse?.error || discoverResponse?.error) {
+    if (
+      teamFocusAreaResponse?.error ||
+      projectFocusAreaResponse?.error ||
+      featuredResponse?.error ||
+      discoverResponse?.error
+    ) {
       return {
         isError: true,
         userInfo,
@@ -76,8 +81,12 @@ const getPageData = async () => {
         featuredData,
       };
     }
-    teamFocusAreas = Array.isArray(teamFocusAreaResponse?.data) ? teamFocusAreaResponse?.data?.filter((data: any) => !data?.parentUid) : [];
-    projectFocusAreas = Array.isArray(projectFocusAreaResponse?.data) ? projectFocusAreaResponse?.data?.filter((data: any) => !data?.parentUid) : [];
+    teamFocusAreas = Array.isArray(teamFocusAreaResponse?.data)
+      ? teamFocusAreaResponse?.data?.filter((data: any) => !data?.parentUid)
+      : [];
+    projectFocusAreas = Array.isArray(projectFocusAreaResponse?.data)
+      ? projectFocusAreaResponse?.data?.filter((data: any) => !data?.parentUid)
+      : [];
     featuredData = formatFeaturedData(featuredResponse?.data);
     discoverData = discoverResponse?.data;
     return {

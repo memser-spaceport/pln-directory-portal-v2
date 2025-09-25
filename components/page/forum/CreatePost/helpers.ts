@@ -22,7 +22,11 @@ export const createPostSchema = yup.object().shape({
       },
     })
     .required('Required'),
-  title: yup.string().min(3, 'Title must be at least 3 characters.').required('Required').max(255, 'Title exceeds 255 characters. Please shorten.'),
+  title: yup
+    .string()
+    .min(3, 'Title must be at least 3 characters.')
+    .required('Required')
+    .max(255, 'Title exceeds 255 characters. Please shorten.'),
   content: yup
     .string()
     .test({

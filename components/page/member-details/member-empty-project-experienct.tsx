@@ -31,7 +31,15 @@ const MemberEmptyProjectExperience = (props: IMemberEmptyProjectExperience) => {
       {(isOwner || isAdmin) && (
         <div className="member-empty-contribution">
           <p>
-            <a href={isAdmin && !isOwner ? `${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}` : `${PAGE_ROUTES.SETTINGS}/profile`} className="member-empty-contribution__update" onClick={onEditOrAdd}>
+            <a
+              href={
+                isAdmin && !isOwner
+                  ? `${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}`
+                  : `${PAGE_ROUTES.SETTINGS}/profile`
+              }
+              className="member-empty-contribution__update"
+              onClick={onEditOrAdd}
+            >
               Click here
             </a>
             to add project experience & contribution details.

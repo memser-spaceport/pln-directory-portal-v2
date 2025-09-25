@@ -1,6 +1,11 @@
 'use client';
 
-import { STEP_INDICATOR_KEY, SUB_TITLE, SUBMIT_A_TEAM_PAGE_TITLE, TEAM_FORM_STEPS } from '@/utils/constants/team-constants';
+import {
+  STEP_INDICATOR_KEY,
+  SUB_TITLE,
+  SUBMIT_A_TEAM_PAGE_TITLE,
+  TEAM_FORM_STEPS,
+} from '@/utils/constants/team-constants';
 import FormStepIndicatorMob from '../../core/form-step-indicator-mob';
 import { FormStepIndicatorWeb } from '../../core/form-step-indicator-web';
 import TeamRegisterForm from '../team-form-info/team-register-form';
@@ -23,11 +28,23 @@ export default function AddEditTeamContainer(props: any): JSX.Element {
         {!isSaveSuccess && (
           <>
             <div className="add-edit-team__indicator--mobile">
-              <FormStepIndicatorMob steps={TEAM_FORM_STEPS} defaultStep={TEAM_FORM_STEPS[0]} uniqueKey={STEP_INDICATOR_KEY} title={SUBMIT_A_TEAM_PAGE_TITLE} subTitle={SUB_TITLE} />
+              <FormStepIndicatorMob
+                steps={TEAM_FORM_STEPS}
+                defaultStep={TEAM_FORM_STEPS[0]}
+                uniqueKey={STEP_INDICATOR_KEY}
+                title={SUBMIT_A_TEAM_PAGE_TITLE}
+                subTitle={SUB_TITLE}
+              />
             </div>
 
             <div className="add-edit-team__indicator--web">
-              <FormStepIndicatorWeb steps={TEAM_FORM_STEPS} defaultStep={TEAM_FORM_STEPS[0]} uniqueKey={STEP_INDICATOR_KEY} title={SUBMIT_A_TEAM_PAGE_TITLE} subTitle={SUB_TITLE} />
+              <FormStepIndicatorWeb
+                steps={TEAM_FORM_STEPS}
+                defaultStep={TEAM_FORM_STEPS[0]}
+                uniqueKey={STEP_INDICATOR_KEY}
+                title={SUBMIT_A_TEAM_PAGE_TITLE}
+                subTitle={SUB_TITLE}
+              />
             </div>
 
             <div className="add-edit-team__form-container">

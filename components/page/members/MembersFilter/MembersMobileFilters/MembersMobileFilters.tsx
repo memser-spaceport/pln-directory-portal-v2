@@ -1,13 +1,16 @@
+import { clsx } from 'clsx';
 import React, { useState } from 'react';
+import { useSwipeable } from 'react-swipeable';
+
 import { Menu } from '@base-ui-components/react/menu';
 import { Dialog } from '@base-ui-components/react/dialog';
 
-import s from './MembersMobileFilters.module.scss';
-import { clsx } from 'clsx';
 import { VIEW_TYPE_OPTIONS, SORT_OPTIONS, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { useFilterStore } from '@/services/members/store';
-import MembersFilter from '@/components/page/members/members-filter';
-import { useSwipeable } from 'react-swipeable';
+import { MembersFilter } from '@/components/page/members/MembersFilter';
+import { useGetMembersFilterCount } from '@/components/page/members/hooks/useGetMembersFilterCount';
+
+import s from './MembersMobileFilters.module.scss';
 
 interface MembersMobileFiltersProps {
   filterValues?: any;
@@ -16,7 +19,12 @@ interface MembersMobileFiltersProps {
   searchParams?: any;
 }
 
-export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, searchParams: propsSearchParams }: MembersMobileFiltersProps) => {
+export const MembersMobileFilters = ({
+  filterValues,
+  userInfo,
+  isUserLoggedIn,
+  searchParams: propsSearchParams,
+}: MembersMobileFiltersProps) => {
   const { params, setParam } = useFilterStore();
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
@@ -29,10 +37,10 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
   const appliedSearchRoles = params.get('searchRoles')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
   const hasOfficeHours = params.get('hasOfficeHours') === 'true';
   const includeFriends = params.get('includeFriends') === 'true';
-  const search = !!params.get('q');
+  const search = !!params.get('search');
 
   // Calculate filter count
-  const filterCount = [hasOfficeHours && appliedTopics.length > 0, appliedRoles.length > 0, appliedSearchRoles.length > 0, hasOfficeHours, includeFriends, search].filter(Boolean).length;
+  const filterCount = useGetMembersFilterCount();
 
   // Handler functions
   const handleViewChange = (newView: string) => {
@@ -135,12 +143,21 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
         </div>
 
         {/* Applied Filter Badges */}
-        {(appliedTopics.length > 0 || appliedRoles.length > 0 || appliedSearchRoles.length > 0 || hasOfficeHours || includeFriends || search) && (
+        {(appliedTopics.length > 0 ||
+          appliedRoles.length > 0 ||
+          appliedSearchRoles.length > 0 ||
+          hasOfficeHours ||
+          includeFriends ||
+          search) && (
           <div className={s.filterBadges}>
             {appliedTopics.map((topic) => (
               <div key={`topic-${topic}`} className={s.filterBadge}>
                 <span className={s.badgeLabel}>OH: {topic}</span>
-                <button className={s.badgeRemove} onClick={() => handleRemoveTopicBadge(topic)} aria-label={`Remove ${topic} topic filter`}>
+                <button
+                  className={s.badgeRemove}
+                  onClick={() => handleRemoveTopicBadge(topic)}
+                  aria-label={`Remove ${topic} topic filter`}
+                >
                   <CloseIcon />
                 </button>
               </div>
@@ -148,7 +165,11 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
             {appliedRoles.map((role) => (
               <div key={`role-${role}`} className={s.filterBadge}>
                 <span className={s.badgeLabel}>Role: {role}</span>
-                <button className={s.badgeRemove} onClick={() => handleRemoveRoleBadge(role)} aria-label={`Remove ${role} role filter`}>
+                <button
+                  className={s.badgeRemove}
+                  onClick={() => handleRemoveRoleBadge(role)}
+                  aria-label={`Remove ${role} role filter`}
+                >
                   <CloseIcon />
                 </button>
               </div>
@@ -156,7 +177,11 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
             {appliedSearchRoles.map((role) => (
               <div key={`search-role-${role}`} className={s.filterBadge}>
                 <span className={s.badgeLabel}>Search: {role}</span>
-                <button className={s.badgeRemove} onClick={() => handleRemoveSearchRoleBadge(role)} aria-label={`Remove ${role} search filter`}>
+                <button
+                  className={s.badgeRemove}
+                  onClick={() => handleRemoveSearchRoleBadge(role)}
+                  aria-label={`Remove ${role} search filter`}
+                >
                   <CloseIcon />
                 </button>
               </div>
@@ -164,7 +189,11 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
             {hasOfficeHours && (
               <div className={s.filterBadge}>
                 <span className={s.badgeLabel}>Office Hours Only</span>
-                <button className={s.badgeRemove} onClick={handleRemoveOfficeHours} aria-label="Remove office hours filter">
+                <button
+                  className={s.badgeRemove}
+                  onClick={handleRemoveOfficeHours}
+                  aria-label="Remove office hours filter"
+                >
                   <CloseIcon />
                 </button>
               </div>
@@ -172,7 +201,11 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
             {includeFriends && (
               <div className={s.filterBadge}>
                 <span className={s.badgeLabel}>Include Friends</span>
-                <button className={s.badgeRemove} onClick={handleRemoveFriends} aria-label="Remove include friends filter">
+                <button
+                  className={s.badgeRemove}
+                  onClick={handleRemoveFriends}
+                  aria-label="Remove include friends filter"
+                >
                   <CloseIcon />
                 </button>
               </div>
@@ -201,7 +234,13 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
               </Dialog.Close>
             </div>
             <div className={s.dialogContent}>
-              <MembersFilter filterValues={filterValues} userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} searchParams={propsSearchParams} onClose={handleCloseFilterDrawer} />
+              <MembersFilter
+                filterValues={filterValues}
+                userInfo={userInfo}
+                isUserLoggedIn={isUserLoggedIn}
+                searchParams={propsSearchParams}
+                onClose={handleCloseFilterDrawer}
+              />
             </div>
           </Dialog.Popup>
         </Dialog.Portal>
@@ -212,7 +251,13 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
 
 const CloseIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M12 4L4 12M4 4L12 12"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 

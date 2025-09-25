@@ -16,12 +16,12 @@ jest.mock('@/analytics/home.analytics', () => ({
 describe('FocusAreaHeader', () => {
   const mockOnPrevButtonClick = jest.fn();
   const mockOnNextButtonClick = jest.fn();
-  const userInfo: IUserInfo = { uid: "1", name: 'Test User' };
+  const userInfo: IUserInfo = { uid: '1', name: 'Test User' };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
-  
+
   it('should render the component with the correct title and description', () => {
     render(
       <FocusAreaHeader
@@ -30,7 +30,7 @@ describe('FocusAreaHeader', () => {
         prevBtnDisabled={false}
         nextBtnDisabled={false}
         userInfo={userInfo}
-      />
+      />,
     );
 
     expect(screen.getByText('Focus Areas')).toBeInTheDocument();
@@ -45,7 +45,7 @@ describe('FocusAreaHeader', () => {
         prevBtnDisabled={false}
         nextBtnDisabled={false}
         userInfo={userInfo}
-      />
+      />,
     );
 
     const prevButton = screen.getByRole('button', { name: /left arrow/i });
@@ -61,7 +61,7 @@ describe('FocusAreaHeader', () => {
         prevBtnDisabled={false}
         nextBtnDisabled={false}
         userInfo={userInfo}
-      />
+      />,
     );
 
     const nextButton = screen.getByRole('button', { name: /right arrow/i });
@@ -77,7 +77,7 @@ describe('FocusAreaHeader', () => {
         prevBtnDisabled={true}
         nextBtnDisabled={false}
         userInfo={userInfo}
-      />
+      />,
     );
 
     const prevButton = screen.getByRole('button', { name: /left arrow/i });
@@ -92,26 +92,26 @@ describe('FocusAreaHeader', () => {
         prevBtnDisabled={false}
         nextBtnDisabled={true}
         userInfo={userInfo}
-      />
+      />,
     );
 
     const nextButton = screen.getByRole('button', { name: /right arrow/i });
     expect(nextButton).toHaveClass('disabled');
   });
 
-it('should call analytics when the Protocol Labs vision link is clicked', () => {
-  render(
-    <FocusAreaHeader
-      onPrevButtonClick={mockOnPrevButtonClick}
-      onNextButtonClick={mockOnNextButtonClick}
-      prevBtnDisabled={false}
-      nextBtnDisabled={false}
-      userInfo={userInfo}
-    />
-  );
+  it('should call analytics when the Protocol Labs vision link is clicked', () => {
+    render(
+      <FocusAreaHeader
+        onPrevButtonClick={mockOnPrevButtonClick}
+        onNextButtonClick={mockOnNextButtonClick}
+        prevBtnDisabled={false}
+        nextBtnDisabled={false}
+        userInfo={userInfo}
+      />,
+    );
 
-  const link = screen.getByText(/Protocol Labs’ vision/);
-  fireEvent.click(link);
-  expect(mockAnalytics.onFocusAreaProtocolLabsVisionUrlClicked).toHaveBeenCalledTimes(1);
-});
+    const link = screen.getByText(/Protocol Labs’ vision/);
+    fireEvent.click(link);
+    expect(mockAnalytics.onFocusAreaProtocolLabsVisionUrlClicked).toHaveBeenCalledTimes(1);
+  });
 });

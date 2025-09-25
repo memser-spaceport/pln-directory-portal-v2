@@ -43,7 +43,14 @@ export const OfficeHoursDialog = ({ isOpen, onClose, onContinue, userInfo, view 
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div className={s.overlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }} onClick={onClose}>
+        <motion.div
+          className={s.overlay}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.1 }}
+          onClick={onClose}
+        >
           <motion.div
             className={s.dialog}
             initial={{ opacity: 0, y: 20 }}
@@ -57,42 +64,78 @@ export const OfficeHoursDialog = ({ isOpen, onClose, onContinue, userInfo, view 
             </button>
 
             <div className={s.content}>
-              <motion.div className={s.iconWrapper} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1, duration: 0.4, ease: 'easeOut' }}>
+              <motion.div
+                className={s.iconWrapper}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1, duration: 0.4, ease: 'easeOut' }}
+              >
                 <CalendarIcon />
               </motion.div>
 
-              <motion.h2 className={s.title} initial={{ opacity: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4 }}>
+              <motion.h2
+                className={s.title}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.4 }}
+              >
                 What are Office Hours?
               </motion.h2>
 
-              <motion.p className={s.description} initial={{ opacity: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }}>
-                Office Hours are short (15-30 min) 1:1 meetings where you can connect with experts across the Protocol Labs network to discuss real challenges and opportunities.
+              <motion.p
+                className={s.description}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+              >
+                Office Hours are short (15-30 min) 1:1 meetings where you can connect with experts across the Protocol
+                Labs network to discuss real challenges and opportunities.
               </motion.p>
 
               <div className={s.bestPractices}>
                 <h3 className={s.bestPracticesTitle}>Meeting Best Practices:</h3>
 
-                <motion.div className={s.practiceItem} initial={{ opacity: 0 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.3 }}>
+                <motion.div
+                  className={s.practiceItem}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1, duration: 0.3 }}
+                >
                   <div className={s.practiceIcon}>
                     <TopicsIcon />
                   </div>
                   <div className={s.practiceContent}>
                     <h4 className={s.practiceTitle}>You can talk about topics like:</h4>
-                    <p className={s.practiceText}>Technical decisions, product feedback, growth strategies, fundraising, and company building.</p>
+                    <p className={s.practiceText}>
+                      Technical decisions, product feedback, growth strategies, fundraising, and company building.
+                    </p>
                   </div>
                 </motion.div>
 
-                <motion.div className={s.practiceItem} initial={{ opacity: 0 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2, duration: 0.3 }}>
+                <motion.div
+                  className={s.practiceItem}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2, duration: 0.3 }}
+                >
                   <div className={s.practiceIcon}>
                     <EmailIcon />
                   </div>
                   <div className={s.practiceContent}>
                     <h4 className={s.practiceTitle}>Set context in advance:</h4>
-                    <p className={s.practiceText}>If it&apos;s your first time connecting, feel free to email your goals for the session ahead of time.</p>
+                    <p className={s.practiceText}>
+                      If it&apos;s your first time connecting, feel free to email your goals for the session ahead of
+                      time.
+                    </p>
                   </div>
                 </motion.div>
 
-                <motion.div className={s.practiceItem} initial={{ opacity: 0 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3, duration: 0.3 }}>
+                <motion.div
+                  className={s.practiceItem}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3, duration: 0.3 }}
+                >
                   <div className={s.practiceIcon}>
                     <PreparedIcon />
                   </div>
@@ -102,38 +145,68 @@ export const OfficeHoursDialog = ({ isOpen, onClose, onContinue, userInfo, view 
                   </div>
                 </motion.div>
 
-                <motion.div className={s.practiceItem} initial={{ opacity: 0 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4, duration: 0.3 }}>
+                <motion.div
+                  className={s.practiceItem}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4, duration: 0.3 }}
+                >
                   <div className={s.practiceIcon}>
                     <NoSellIcon />
                   </div>
                   <div className={s.practiceContent}>
                     <h4 className={s.practiceTitle}>Don&apos;t pitch or sell:</h4>
-                    <p className={s.practiceText}>Unless invited to, keep the meeting focused on collaboration and learning.</p>
+                    <p className={s.practiceText}>
+                      Unless invited to, keep the meeting focused on collaboration and learning.
+                    </p>
                   </div>
                 </motion.div>
 
-                <motion.div className={s.practiceItem} initial={{ opacity: 0 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5, duration: 0.3 }}>
+                <motion.div
+                  className={s.practiceItem}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5, duration: 0.3 }}
+                >
                   <div className={s.practiceIcon}>
                     <ResourcesIcon />
                   </div>
                   <div className={s.practiceContent}>
                     <h4 className={s.practiceTitle}>Ask for intros or resources:</h4>
-                    <p className={s.practiceText}>Don&apos;t hesitate to ask for additional support or follow-up suggestions.</p>
+                    <p className={s.practiceText}>
+                      Don&apos;t hesitate to ask for additional support or follow-up suggestions.
+                    </p>
                   </div>
                 </motion.div>
               </div>
 
               {view === 'actionable' && (
-                <motion.div className={s.checkboxWrapper} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 0.3 }}>
+                <motion.div
+                  className={s.checkboxWrapper}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.3 }}
+                >
                   <label className={s.checkboxLabel}>
-                    <input type="checkbox" checked={dontShowAgain} onChange={(e) => setDontShowAgain(e.target.checked)} className={s.checkbox} />
+                    <input
+                      type="checkbox"
+                      checked={dontShowAgain}
+                      onChange={(e) => setDontShowAgain(e.target.checked)}
+                      className={s.checkbox}
+                    />
                     <span className={s.checkboxText}>Don&apos;t show this again</span>
                   </label>
                 </motion.div>
               )}
 
               <div className={s.footer}>
-                <motion.button className={s.continueButton} onClick={handleContinue} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.1 }}>
+                <motion.button
+                  className={s.continueButton}
+                  onClick={handleContinue}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.1 }}
+                >
                   {view === 'actionable' ? 'Continue to Schedule Meeting' : 'Close'}
                 </motion.button>
               </div>
@@ -156,7 +229,10 @@ const CloseIcon = () => (
 
 const CalendarIcon = () => (
   <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M0 26C0 11.6406 11.6406 0 26 0C40.3594 0 52 11.6406 52 26C52 40.3594 40.3594 52 26 52C11.6406 52 0 40.3594 0 26Z" fill="#F2F5FF" />
+    <path
+      d="M0 26C0 11.6406 11.6406 0 26 0C40.3594 0 52 11.6406 52 26C52 40.3594 40.3594 52 26 52C11.6406 52 0 40.3594 0 26Z"
+      fill="#F2F5FF"
+    />
     <path
       d="M36 14H33V13C33 12.7348 32.8946 12.4804 32.7071 12.2929C32.5196 12.1054 32.2652 12 32 12C31.7348 12 31.4804 12.1054 31.2929 12.2929C31.1054 12.4804 31 12.7348 31 13V14H21V13C21 12.7348 20.8946 12.4804 20.7071 12.2929C20.5196 12.1054 20.2652 12 20 12C19.7348 12 19.4804 12.1054 19.2929 12.2929C19.1054 12.4804 19 12.7348 19 13V14H16C15.4696 14 14.9609 14.2107 14.5858 14.5858C14.2107 14.9609 14 15.4696 14 16V36C14 36.5304 14.2107 37.0391 14.5858 37.4142C14.9609 37.7893 15.4696 38 16 38H36C36.5304 38 37.0391 37.7893 37.4142 37.4142C37.7893 37.0391 38 36.5304 38 36V16C38 15.4696 37.7893 14.9609 37.4142 14.5858C37.0391 14.2107 36.5304 14 36 14ZM20.5 33C20.2033 33 19.9133 32.912 19.6666 32.7472C19.42 32.5824 19.2277 32.3481 19.1142 32.074C19.0006 31.7999 18.9709 31.4983 19.0288 31.2074C19.0867 30.9164 19.2296 30.6491 19.4393 30.4393C19.6491 30.2296 19.9164 30.0867 20.2074 30.0288C20.4983 29.9709 20.7999 30.0007 21.074 30.1142C21.3481 30.2277 21.5824 30.42 21.7472 30.6666C21.912 30.9133 22 31.2033 22 31.5C22 31.8978 21.842 32.2794 21.5607 32.5607C21.2794 32.842 20.8978 33 20.5 33ZM26 33C25.7033 33 25.4133 32.912 25.1666 32.7472C24.92 32.5824 24.7277 32.3481 24.6142 32.074C24.5006 31.7999 24.4709 31.4983 24.5288 31.2074C24.5867 30.9164 24.7296 30.6491 24.9393 30.4393C25.1491 30.2296 25.4164 30.0867 25.7074 30.0288C25.9983 29.9709 26.2999 30.0007 26.574 30.1142C26.8481 30.2277 27.0824 30.42 27.2472 30.6666C27.412 30.9133 27.5 31.2033 27.5 31.5C27.5 31.8978 27.342 32.2794 27.0607 32.5607C26.7794 32.842 26.3978 33 26 33ZM26 28C25.7033 28 25.4133 27.912 25.1666 27.7472C24.92 27.5824 24.7277 27.3481 24.6142 27.074C24.5006 26.7999 24.4709 26.4983 24.5288 26.2074C24.5867 25.9164 24.7296 25.6491 24.9393 25.4393C25.1491 25.2296 25.4164 25.0867 25.7074 25.0288C25.9983 24.9709 26.2999 25.0006 26.574 25.1142C26.8481 25.2277 27.0824 25.42 27.2472 25.6666C27.412 25.9133 27.5 26.2033 27.5 26.5C27.5 26.8978 27.342 27.2794 27.0607 27.5607C26.7794 27.842 26.3978 28 26 28ZM31.5 33C31.2033 33 30.9133 32.912 30.6666 32.7472C30.42 32.5824 30.2277 32.3481 30.1142 32.074C30.0007 31.7999 29.9709 31.4983 30.0288 31.2074C30.0867 30.9164 30.2296 30.6491 30.4393 30.4393C30.6491 30.2296 30.9164 30.0867 31.2074 30.0288C31.4983 29.9709 31.7999 30.0007 32.074 30.1142C32.3481 30.2277 32.5824 30.42 32.7472 30.6666C32.912 30.9133 33 31.2033 33 31.5C33 31.8978 32.842 32.2794 32.5607 32.5607C32.2794 32.842 31.8978 33 31.5 33ZM31.5 28C31.2033 28 30.9133 27.912 30.6666 27.7472C30.42 27.5824 30.2277 27.3481 30.1142 27.074C30.0007 26.7999 29.9709 26.4983 30.0288 26.2074C30.0867 25.9164 30.2296 25.6491 30.4393 25.4393C30.6491 25.2296 30.9164 25.0867 31.2074 25.0288C31.4983 24.9709 31.7999 25.0006 32.074 25.1142C32.3481 25.2277 32.5824 25.42 32.7472 25.6666C32.912 25.9133 33 26.2033 33 26.5C33 26.8978 32.842 27.2794 32.5607 27.5607C32.2794 27.842 31.8978 28 31.5 28ZM36 20H16V16H19V17C19 17.2652 19.1054 17.5196 19.2929 17.7071C19.4804 17.8946 19.7348 18 20 18C20.2652 18 20.5196 17.8946 20.7071 17.7071C20.8946 17.5196 21 17.2652 21 17V16H31V17C31 17.2652 31.1054 17.5196 31.2929 17.7071C31.4804 17.8946 31.7348 18 32 18C32.2652 18 32.5196 17.8946 32.7071 17.7071C32.8946 17.5196 33 17.2652 33 17V16H36V20Z"
       fill="#1B4DFF"

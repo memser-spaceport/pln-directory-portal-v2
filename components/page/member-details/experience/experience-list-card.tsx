@@ -53,7 +53,8 @@ export default async function ExperienceList({ member, isEditable }: { member: a
     return <></>;
   }
 
-  const experienceLabel = formattedExperiences.length > 0 ? `Experience (${formattedExperiences.length})` : 'Experience';
+  const experienceLabel =
+    formattedExperiences.length > 0 ? `Experience (${formattedExperiences.length})` : 'Experience';
   return (
     <>
       {(formattedExperiences.length > 0 || isEditable) && (
@@ -94,7 +95,12 @@ export default async function ExperienceList({ member, isEditable }: { member: a
               <div className={styles?.memberDetail__experience__list__content}>
                 {formattedExperiences.slice(0, 3).map((experience: any, index: number) => (
                   <div key={index}>
-                    <MemberDetailsExperienceDetail experience={experience} isEditable={isEditable} member={member} userInfo={userInfo} />
+                    <MemberDetailsExperienceDetail
+                      experience={experience}
+                      isEditable={isEditable}
+                      member={member}
+                      userInfo={userInfo}
+                    />
                   </div>
                 ))}
               </div>

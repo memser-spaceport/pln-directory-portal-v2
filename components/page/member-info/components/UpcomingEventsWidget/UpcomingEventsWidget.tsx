@@ -27,14 +27,20 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
   const { id } = useParams();
   const { data, isLoading } = useUpcomingEvents();
   const { data: settings } = useMemberNotificationsSettings(userInfo?.uid);
-  const { onUpcomingEventsWidgetShowAllClicked, onUpcomingEventsWidgetDismissClicked, onUpcomingEventsItemClicked } = useEventsAnalytics();
+  const { onUpcomingEventsWidgetShowAllClicked, onUpcomingEventsWidgetDismissClicked, onUpcomingEventsItemClicked } =
+    useEventsAnalytics();
   const accessLevel = getAccessLevel(userInfo, true);
 
   if (!userInfo || isLoading || !data?.length || userInfo.uid !== id || !settings?.recommendationsEnabled) {
     return null;
   }
 
-  if (!settings?.showInvitationDialog || (!settings?.subscribed && userInfo.uid === id) || !visible || accessLevel !== 'advanced') {
+  if (
+    !settings?.showInvitationDialog ||
+    (!settings?.subscribed && userInfo.uid === id) ||
+    !visible ||
+    accessLevel !== 'advanced'
+  ) {
     return null;
   }
 
@@ -85,8 +91,18 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
                   const _year = format(to, 'yy');
 
                   return (
-                    <Link key={item.uid} className={s.event} href={item.websiteUrl ?? ''} target="_blank" onClick={() => onUpcomingEventsItemClicked(item)}>
-                      {item.logo ? <Image width={30} height={30} alt={item.name} src={item.logo ?? ''} className={s.eventImage} /> : <DefaultEventImage />}
+                    <Link
+                      key={item.uid}
+                      className={s.event}
+                      href={item.websiteUrl ?? ''}
+                      target="_blank"
+                      onClick={() => onUpcomingEventsItemClicked(item)}
+                    >
+                      {item.logo ? (
+                        <Image width={30} height={30} alt={item.name} src={item.logo ?? ''} className={s.eventImage} />
+                      ) : (
+                        <DefaultEventImage />
+                      )}
                       <div className={s.details}>
                         <div className={s.name}>{item.name}</div>
                         <div className={s.info}>
@@ -107,7 +123,9 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
             </ul>
           </div>
         ) : (
-          <div className={s.desc}>Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem</div>
+          <div className={s.desc}>
+            Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem
+          </div>
         )}
       </div>
     </FloatingWidgets>
@@ -115,7 +133,14 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
 };
 
 const ArrowIcon = () => (
-  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: 'auto' }}>
+  <svg
+    width="10"
+    height="10"
+    viewBox="0 0 10 10"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    style={{ marginLeft: 'auto' }}
+  >
     <path
       d="M0.84375 8.93359C0.953125 9.07031 1.11719 9.125 1.28125 9.125C1.47266 9.125 1.63672 9.07031 1.74609 8.93359L8.0625 2.61719V7.59375C8.0625 7.97656 8.36328 8.25 8.71875 8.25C9.10156 8.25 9.375 7.97656 9.375 7.59375V1.03125C9.375 0.675781 9.10156 0.375 8.71875 0.375H2.15625C1.80078 0.375 1.5 0.675781 1.5 1.03125C1.5 1.41406 1.80078 1.6875 2.15625 1.6875H7.16016L0.84375 8.00391C0.570312 8.27734 0.570312 8.6875 0.84375 8.93359Z"
       fill="currentColor"
@@ -134,7 +159,14 @@ const ChevronDownIcon = () => (
 );
 
 const DefaultEventImage = () => (
-  <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" className={s.eventImage}>
+  <svg
+    width="30"
+    height="30"
+    viewBox="0 0 30 30"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={s.eventImage}
+  >
     <rect width="30" height="30" rx="8" fill="#156FF7" fillOpacity="0.1" />
     <path
       d="M18.0938 8.625C20.375 10.7188 22 14.1562 22 15.8125C22 19.7812 18.8438 23 15 23C11.125 23 8 19.7812 8 15.8125C8 13.5625 10.1562 9.875 13.25 7C14.4375 8.125 15.5 9.3125 16.3438 10.5C16.875 9.84375 17.4375 9.21875 18.0938 8.625ZM15 21.5C18.0312 21.5 20.5 18.9688 20.5 15.8125C20.5 14.8438 19.5 12.5625 18.0625 10.7812C17.875 11 17.6875 11.2188 17.5 11.4375L16.2812 12.9375L15.125 11.375C14.5938 10.625 13.9375 9.84375 13.25 9.125C10.875 11.6562 9.5 14.4062 9.5 15.8125C9.5 18.9688 11.9688 21.5 15 21.5ZM17.7812 14.625C17.9062 14.8125 18 14.9688 18.0938 15.1562C18.8438 16.5938 18.5312 18.4062 17.1875 19.3438C16.5938 19.7812 15.8438 20 15.0625 20C13.0938 20 11.5 18.7188 11.5 16.5938C11.5 15.5312 12.1562 14.5938 13.4688 13C13.6562 13.2188 16.1875 16.4375 16.1875 16.4375L17.7812 14.625Z"

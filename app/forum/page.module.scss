@@ -2,7 +2,7 @@
 @use 'styles/mixins';
 
 .root {
-  background: var(--Surface-surface-light, #FFF);
+  background: var(--Surface-surface-light, #fff);
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - 80px);

@@ -2,15 +2,17 @@
 
 .root {
   border-radius: 8px;
-  border: 2px solid var(--Element-state-warning, #FF820E);
-  background: var(--Surface-surface-light, #FFF);
+  border: 2px solid var(--Element-state-warning, #ff820e);
+  background: var(--Surface-surface-light, #fff);
   padding: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-direction: column;
   gap: 16px;
-  box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
 
   position: sticky;
   bottom: 24px;
@@ -38,8 +40,10 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  color: var(--Text-text-info-dark, #64748B);
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: var(--Text-text-info-dark, #64748b);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -67,14 +71,16 @@
   gap: 8px;
 
   border-radius: 8px;
-  border: 1px solid var(--Border-border-dark, #CBD5E1);
-  background: var(--Surface-surface-light, #FFF);
+  border: 1px solid var(--Border-border-dark, #cbd5e1);
+  background: var(--Surface-surface-light, #fff);
 
   /* Button Shadow */
   box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
 
-  color: var(--Text-text-dark, #0F172A);
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: var(--Text-text-dark, #0f172a);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
 
   /* Body 2/Medium */
   font-size: 14px;
@@ -99,14 +105,16 @@
   flex: 1;
 
   border-radius: 8px;
-  border: 1px solid var(--Neutral-Slate-300, #CBD5E1);
-  background: var(--Button-surface-brand-button, #156FF7);
+  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
+  background: var(--Button-surface-brand-button, #156ff7);
 
   /* Button Shadow */
   box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
 
-  color: var(--Text-text-lightest, #FFF);
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: var(--Text-text-lightest, #fff);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
 
   /* Body 2/Medium */
   font-size: 14px;

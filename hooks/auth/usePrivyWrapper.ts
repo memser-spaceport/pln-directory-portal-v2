@@ -18,7 +18,7 @@ function usePrivyWrapper() {
   const { updateEmail } = useUpdateAccount({
     onSuccess: (user, linkMethod, linkedAccount) => {
       document.dispatchEvent(
-        new CustomEvent(PRIVY_CUSTOM_EVENTS.AUTH_LINK_ACCOUNT_SUCCESS, { detail: { user, linkMethod, linkedAccount } })
+        new CustomEvent(PRIVY_CUSTOM_EVENTS.AUTH_LINK_ACCOUNT_SUCCESS, { detail: { user, linkMethod, linkedAccount } }),
       );
     },
     onError: (error) => {
@@ -40,7 +40,7 @@ function usePrivyWrapper() {
   const { linkEmail, linkGithub } = useLinkAccount({
     onSuccess: (user, linkMethod, linkedAccount) => {
       document.dispatchEvent(
-        new CustomEvent(PRIVY_CUSTOM_EVENTS.AUTH_LINK_ACCOUNT_SUCCESS, { detail: { user, linkMethod, linkedAccount } })
+        new CustomEvent(PRIVY_CUSTOM_EVENTS.AUTH_LINK_ACCOUNT_SUCCESS, { detail: { user, linkMethod, linkedAccount } }),
       );
     },
     onError: (error) => {

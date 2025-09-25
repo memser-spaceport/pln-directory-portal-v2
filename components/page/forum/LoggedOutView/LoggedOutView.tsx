@@ -11,7 +11,9 @@ import { TOAST_MESSAGES } from '@/utils/constants';
 const items = new Array(5).fill(0).map((_, i) => (
   <li className={s.listItem} key={i}>
     <div className={s.title}>How we reduced retrieval latency in a decentralized data pipeline by 45%</div>
-    <div className={s.desc}>We recently ran a benchmark sprint to optimize our retrieval layer on a distributed archive... Read more</div>
+    <div className={s.desc}>
+      We recently ran a benchmark sprint to optimize our retrieval layer on a distributed archive... Read more
+    </div>
     <div className={s.footer}>
       <Avatar.Root className={s.Avatar}>
         <Avatar.Fallback className={s.Fallback}>JS</Avatar.Fallback>
@@ -61,7 +63,7 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
         return "Your profile is under review. You'll be notified once approved to participate.";
       }
       default: {
-        return 'Get help or share insights with the PL network. Log in to read and contribute.';
+        return 'Get help or share insights with the PL network. Sign in to read and contribute.';
       }
     }
   }
@@ -91,7 +93,7 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
           {!accessLevel && (
             <>
               <button className={s.mainBtn} onClick={onLoginClickHandler}>
-                Log in
+                Sign in
               </button>
               <div className={s.sub}>
                 New to Protocol Labs? Join the network.{' '}

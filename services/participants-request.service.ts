@@ -3,12 +3,15 @@ export const validatePariticipantsEmail = async (emailid: string, participantTyp
     uniqueIdentifier: emailid.trim(),
     participantType: participantType,
   };
-  const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request/unique-identifier?type=${data?.participantType}&identifier=${data?.uniqueIdentifier}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
+  const result = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/participants-request/unique-identifier?type=${data?.participantType}&identifier=${data?.uniqueIdentifier}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     },
-  });
+  );
   if (!result.ok) {
     return {
       isError: true,

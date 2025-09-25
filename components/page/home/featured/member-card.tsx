@@ -52,12 +52,28 @@ const MemberCard = (props: any) => {
       <div className="member">
         <div className="member__profile__cn">
           <div className="member__profile__cn__outer-section">
-            <div data-testid="profile-outline" className={`${isBorder ? 'gradiant-border-rounded' : ''} member__profile__cn__outer-section__inner-circle`}>
-              <img className="member__profile__cn__outer-section__inner-circle__profile" src={profileUrl} alt="member image" />
+            <div
+              data-testid="profile-outline"
+              className={`${isBorder ? 'gradiant-border-rounded' : ''} member__profile__cn__outer-section__inner-circle`}
+            >
+              <img
+                className="member__profile__cn__outer-section__inner-circle__profile"
+                src={profileUrl}
+                alt="member image"
+              />
               {isTeamLead && (
                 <Tooltip
                   asChild
-                  trigger={<img loading="lazy" className="member__profile__cn__outer-section__inner-circle__lead" height={20} width={20} src="/icons/badge/team-lead.svg" alt="team lead" />}
+                  trigger={
+                    <img
+                      loading="lazy"
+                      className="member__profile__cn__outer-section__inner-circle__lead"
+                      height={20}
+                      width={20}
+                      src="/icons/badge/team-lead.svg"
+                      alt="team lead"
+                    />
+                  }
                   content={'Team Lead'}
                 />
               )}
@@ -93,14 +109,27 @@ const MemberCard = (props: any) => {
             <div className="member__details__primary__team-name-container">
               <div className="member__details__primary__team-name__wrpr">
                 {/* <p className="member__details__primary__team-name-container__team-name">{member?.teams?.length > 0 ? mainTeam?.name : '-'}</p> */}
-                {mainTeam?.name ? <Tooltip asChild trigger={<p className="member__details__primary__team-name-container__team-name">{mainTeam?.name}</p>} content={mainTeam?.name} /> : '-'}
+                {mainTeam?.name ? (
+                  <Tooltip
+                    asChild
+                    trigger={
+                      <p className="member__details__primary__team-name-container__team-name">{mainTeam?.name}</p>
+                    }
+                    content={mainTeam?.name}
+                  />
+                ) : (
+                  '-'
+                )}
                 {member?.teams?.length > 2 && (
                   <Tooltip
                     side="bottom"
                     align="center"
                     asChild
                     trigger={
-                      <button onClick={(e) => e.preventDefault()} className="member__details__primary__team-name-container__tems-count">
+                      <button
+                        onClick={(e) => e.preventDefault()}
+                        className="member__details__primary__team-name-container__tems-count"
+                      >
                         +{(member?.teams?.length - 1).toString()}
                       </button>
                     }
@@ -405,7 +434,8 @@ const MemberCard = (props: any) => {
           .gradiant-border-rounded {
             border: double 1px transparent;
             border-radius: 50%;
-            background-image: linear-gradient(rgb(248 250 252), rgb(248 250 252)), linear-gradient(to right, #427dff, #44d5bb);
+            background-image:
+              linear-gradient(rgb(248 250 252), rgb(248 250 252)), linear-gradient(to right, #427dff, #44d5bb);
             background-origin: border-box;
             background-clip: content-box, border-box;
           }

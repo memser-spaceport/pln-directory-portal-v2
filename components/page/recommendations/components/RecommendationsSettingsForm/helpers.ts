@@ -48,9 +48,18 @@ export const recommendationsSettingsSchema = yup
     teamTechnology: yup.array().of(selectOptionSchema).default([]),
     keywords: yup.array().of(yup.string().defined()).default([]),
   })
-  .test('require-one-when-enabled', 'At least one of Roles, Funding Stage, Team Technology, or Keywords must be filled when enabled', function (values) {
-    const { enabled, roles, fundingStage, teamTechnology, keywords } = values || {};
-    if (!enabled) return true;
+  .test(
+    'require-one-when-enabled',
+    'At least one of Roles, Funding Stage, Team Technology, or Keywords must be filled when enabled',
+    function (values) {
+      const { enabled, roles, fundingStage, teamTechnology, keywords } = values || {};
+      if (!enabled) return true;
 
-    return (roles && roles.length > 0) || (fundingStage && fundingStage.length > 0) || (teamTechnology && teamTechnology.length > 0) || (keywords && keywords.length > 0);
-  });
+      return (
+        (roles && roles.length > 0) ||
+        (fundingStage && fundingStage.length > 0) ||
+        (teamTechnology && teamTechnology.length > 0) ||
+        (keywords && keywords.length > 0)
+      );
+    },
+  );

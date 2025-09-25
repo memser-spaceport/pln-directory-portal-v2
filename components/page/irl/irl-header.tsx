@@ -1,15 +1,15 @@
-"use client"
+'use client';
 
-import { useIrlAnalytics } from "@/analytics/irl.analytics";
-import { PAGE_ROUTES } from "@/utils/constants";
+import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { PAGE_ROUTES } from '@/utils/constants';
 
 const IrlHeader = () => {
-   const analytics = useIrlAnalytics();
-   
-    const onViewPlEventsClick = () => {
-      analytics.trackViewPLEventsClick();
-    };
-  
+  const analytics = useIrlAnalytics();
+
+  const onViewPlEventsClick = () => {
+    analytics.trackViewPLEventsClick();
+  };
+
   return (
     <>
       <div className="irlheaderCnt">
@@ -21,7 +21,10 @@ const IrlHeader = () => {
             <div className="irlHeader">IRL Gatherings</div>
           </div>
         </div>
-        <div className="irlsubHeader">Choose a destination to view upcoming gatherings, attendees, resources & let the network know about your presence</div>
+        <div className="irlsubHeader">
+          Choose a destination to view upcoming gatherings, attendees, resources & let the network know about your
+          presence
+        </div>
       </div>
       <style jsx>
         {`

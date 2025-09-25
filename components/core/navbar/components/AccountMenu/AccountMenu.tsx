@@ -41,7 +41,8 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
   const { profileImage } = useUserStore();
   const { data: member, isLoading } = useMember(userInfo.uid);
   const [hideCompleteProfile] = useLocalStorageParam('complete_profile_bar', false);
-  const isProfileFilled = member?.memberInfo?.telegramHandler && member?.memberInfo?.officeHours && member?.memberInfo?.skills.length > 0;
+  const isProfileFilled =
+    member?.memberInfo?.telegramHandler && member?.memberInfo?.officeHours && member?.memberInfo?.skills.length > 0;
   const hideProfileStatus = !userInfo || isProfileFilled || hideCompleteProfile || isLoading;
 
   const handleLogout = useCallback(() => {
@@ -56,14 +57,22 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
 
   return (
     <>
-      <NotificationsMenu isMobileView={false} notifications={notifications} open={showNotifications} onClose={() => setShowNotifications(false)} userInfo={userInfo} />
+      <NotificationsMenu
+        isMobileView={false}
+        notifications={notifications}
+        open={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        userInfo={userInfo}
+      />
       <Menu.Root modal={false}>
         <Menu.Trigger className={s.Button} ref={menuTriggerRef}>
           <Avatar.Root className={s.Avatar}>
             <Avatar.Image src={profileImage ?? defaultAvatarImage} width="40" height="40" className={s.Image} />
             <Avatar.Fallback className={s.Fallback}>{userInfo?.name}</Avatar.Fallback>
           </Avatar.Root>
-          {notifications?.length > 0 && <div className={clsx(s.notificationsCount, s.absolute)}>{notifications?.length}</div>}
+          {notifications?.length > 0 && (
+            <div className={clsx(s.notificationsCount, s.absolute)}>{notifications?.length}</div>
+          )}
           <ChevronDownIcon className={s.ButtonIcon} />
         </Menu.Trigger>
         <Menu.Portal>
@@ -75,15 +84,22 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
                   router.push(`/members/${userInfo.uid}`);
                 }}
               >
-                <UserIcon /> {userInfo.name ?? userInfo.email} {/*{isNumber(profileFilledPercent) && profileFilledPercent !== 100 && (*/}
+                <UserIcon /> {userInfo.name ?? userInfo.email}{' '}
+                {/*{isNumber(profileFilledPercent) && profileFilledPercent !== 100 && (*/}
                 {/*  <span className={s.itemSub}>*/}
                 {/*    Filled <div className={s.notificationsCount}>{profileFilledPercent}%</div>*/}
                 {/*  </span>*/}
                 {/*)}*/}
               </Menu.Item>
-              <Menu.Item className={clsx(s.Item)} onClick={() => setShowNotifications(true)} disabled={!notifications?.length}>
+              <Menu.Item
+                className={clsx(s.Item)}
+                onClick={() => setShowNotifications(true)}
+                disabled={!notifications?.length}
+              >
                 <NotificationsIcon /> Notifications
-                <div className={s.itemSub}>{notifications?.length > 0 && <div className={s.notificationsCount}>{notifications?.length}</div>}</div>
+                <div className={s.itemSub}>
+                  {notifications?.length > 0 && <div className={s.notificationsCount}>{notifications?.length}</div>}
+                </div>
               </Menu.Item>
               {/*<Link target="_blank" href={process.env.PROTOSPHERE_URL ?? ''}>*/}
               {/*  <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('ProtoSphere', getAnalyticsUserInfo(userInfo))}>*/}
@@ -97,16 +113,11 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
                 Support
                 <Menu.Separator className={s.Separator} />
               </div>
-              <Link target="_blank" href={process.env.GET_SUPPORT_URL ?? ''}>
-                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('Get Support', getAnalyticsUserInfo(userInfo))}>
-                  <HelpIcon /> Get Support{' '}
-                  <span className={s.itemSub}>
-                    <LinkIcon />
-                  </span>
-                </Menu.Item>
-              </Link>
               <Link href="/changelog">
-                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('Changelog', getAnalyticsUserInfo(userInfo))}>
+                <Menu.Item
+                  className={s.Item}
+                  onClick={() => analytics.onNavGetHelpItemClicked('Changelog', getAnalyticsUserInfo(userInfo))}
+                >
                   <ChangeLogIcon /> Changelog
                 </Menu.Item>
               </Link>
@@ -115,7 +126,10 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
                 <Menu.Separator className={s.Separator} />
               </div>
               <Link href={isMobile ? '/settings' : '/settings/profile'}>
-                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('Settings Profile', getAnalyticsUserInfo(userInfo))}>
+                <Menu.Item
+                  className={s.Item}
+                  onClick={() => analytics.onNavGetHelpItemClicked('Settings Profile', getAnalyticsUserInfo(userInfo))}
+                >
                   <SettingsIcon /> Account Settings
                 </Menu.Item>
               </Link>

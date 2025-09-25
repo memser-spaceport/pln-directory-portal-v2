@@ -49,7 +49,9 @@ const SearchGatherings = (props: ISearchGatherings) => {
     setExpanded(true);
     if (inputRef?.current?.value) {
       const searchValue = inputRef?.current?.value.toLowerCase();
-      const filteredValues = eventsToShow.filter((gathering: any) => gathering?.name?.toLowerCase().includes(searchValue));
+      const filteredValues = eventsToShow.filter((gathering: any) =>
+        gathering?.name?.toLowerCase().includes(searchValue),
+      );
       setGatheringSearchProperties({
         ...gatheringSearchProperties,
         filteredValues,
@@ -67,7 +69,9 @@ const SearchGatherings = (props: ISearchGatherings) => {
 
   const ongatheringSearchHandler = (event: any) => {
     const searchValue = event.target.value.toLowerCase().trim();
-    const filteredValues = eventsToShow.filter((gathering: any) => gathering?.name?.toLowerCase().includes(searchValue));
+    const filteredValues = eventsToShow.filter((gathering: any) =>
+      gathering?.name?.toLowerCase().includes(searchValue),
+    );
     setGatheringSearchProperties({
       ...gatheringSearchProperties,
       filteredValues,
@@ -82,7 +86,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
     analytics.searchEventClicked(gathering);
 
     if (type === 'past') {
-      if (searchParams?.event !==  gathering.slugURL) {
+      if (searchParams?.event !== gathering.slugURL) {
         updateQueryParams('event', gathering.slugURL, searchParams);
         triggerLoader(true);
       }
@@ -96,7 +100,9 @@ const SearchGatherings = (props: ISearchGatherings) => {
       const mobileElement = document.getElementById(`${type}-mob-${gathering?.uid}`);
       const bodyReact = scrollableElement?.getBoundingClientRect();
       const elementReact = mobileElement?.getBoundingClientRect();
-      const scrollTop = elementReact?.top ? elementReact.top - (bodyReact?.top ?? 0) + (scrollableElement?.scrollTop ?? 0) : 0;
+      const scrollTop = elementReact?.top
+        ? elementReact.top - (bodyReact?.top ?? 0) + (scrollableElement?.scrollTop ?? 0)
+        : 0;
       scrollableElement?.scroll({ top: scrollTop - 200, behavior: 'smooth' });
       if (mobileElement) {
         mobileElement.style.backgroundColor = '#E3EFFF';
@@ -138,7 +144,9 @@ const SearchGatherings = (props: ISearchGatherings) => {
       </div>
       {gatheringSearchProperties?.isExpanded && (
         <div className="root__irl__table-col__headerNam__srchoptns">
-          {gatheringSearchProperties?.filteredValues?.length === 0 && <div className="root__irl__table-col__headerNam__srchoptns__empty">No Results Found</div>}
+          {gatheringSearchProperties?.filteredValues?.length === 0 && (
+            <div className="root__irl__table-col__headerNam__srchoptns__empty">No Results Found</div>
+          )}
           {gatheringSearchProperties?.filteredValues?.length > 0 && (
             <>
               {gatheringSearchProperties?.filteredValues?.map((gathering: any, index: number) => {
@@ -151,7 +159,9 @@ const SearchGatherings = (props: ISearchGatherings) => {
                   >
                     <div className="root__irl__table-col__headerNam__srchoptns__option__namecnt">
                       <img alt="logo" src={gathering?.logo?.url} height={20} width={20} />
-                      <div className="root__irl__table-col__headerNam__srchoptns__option__namecnt__nme">{gathering?.name}</div>
+                      <div className="root__irl__table-col__headerNam__srchoptns__option__namecnt__nme">
+                        {gathering?.name}
+                      </div>
                     </div>
                     <div className="root__irl__table-col__headerNam__srchoptns__option__sprtor">| </div>
                     <div className="root__irl__table-col__headerNam__srchoptns__option__dte">{dateString}</div>
@@ -166,7 +176,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
       <style jsx>
         {`
           .root__irl__table-col__headerName__srchCont {
-            border: 0.5px solid #156FF7;
+            border: 0.5px solid #156ff7;
             border-radius: 4px;
             display: flex;
             gap: 5px;

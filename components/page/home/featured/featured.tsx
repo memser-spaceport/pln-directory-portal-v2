@@ -11,7 +11,14 @@ import TeamCard from './team-card';
 import ProjectCard from './project-card';
 import { ADMIN_ROLE, PAGE_ROUTES } from '@/utils/constants';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
-import { getAnalyticsLocationCardInfo, getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
+import {
+  getAnalyticsLocationCardInfo,
+  getAnalyticsMemberInfo,
+  getAnalyticsProjectInfo,
+  getAnalyticsTeamInfo,
+  getAnalyticsUserInfo,
+  getParsedValue,
+} from '@/utils/common.utils';
 import dynamic from 'next/dynamic';
 import { isPastDate } from '@/utils/irl.utils';
 import LocationCard from './location-card';
@@ -126,9 +133,10 @@ const Featured = (props: any) => {
     router.refresh();
   };
 
-  const displayedFeaturedData = activeFilter === 'all'
-    ? unfilteredFeaturedData
-    : unfilteredFeaturedData.filter((item: any) => item.category === activeFilter);
+  const displayedFeaturedData =
+    activeFilter === 'all'
+      ? unfilteredFeaturedData
+      : unfilteredFeaturedData.filter((item: any) => item.category === activeFilter);
 
   return (
     <>
@@ -145,7 +153,9 @@ const Featured = (props: any) => {
               {displayedFeaturedData?.map((item: any, index: number) => (
                 <Fragment key={`${item.category}-${index}`}>
                   {item?.category === 'location' ? (
-                    item?.upcomingEvents?.length > 0 && <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
+                    item?.upcomingEvents?.length > 0 && (
+                      <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
+                    )
                   ) : (
                     <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
                   )}
@@ -214,7 +224,7 @@ const Featured = (props: any) => {
           align-items: center;
           justify-content: center;
         }
-        
+
         @media (min-width: 1024px) {
           .featured__no-results {
             height: 130px;

@@ -38,7 +38,8 @@ export default function ContributorsSection({
   },
   userInfo,
 }: ContributorsSectionProps) {
-  const { onContributeButtonClicked, onContributtonModalCloseClicked, onContributeModalIRLProceedButtonClicked } = useEventsAnalytics();
+  const { onContributeButtonClicked, onContributtonModalCloseClicked, onContributeModalIRLProceedButtonClicked } =
+    useEventsAnalytics();
   const contributeRef = useRef<HTMLDialogElement>(null);
   const onCloseModal = () => {
     if (contributeRef.current) {
@@ -113,13 +114,24 @@ export default function ContributorsSection({
         <div className="contribute-modal-container">
           <div className="contribute-modal-header">Ways to contribute</div>
           <div className="contribute-modal-video-container">
-            <video autoPlay loop muted playsInline style={{ width: '100%', height: 'auto', pointerEvents: 'none', borderRadius: '10px' }} className="contribute-modal-video" controls={false}>
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              style={{ width: '100%', height: 'auto', pointerEvents: 'none', borderRadius: '10px' }}
+              className="contribute-modal-video"
+              controls={false}
+            >
               <source src={CONTRIBUTE_MODAL_VIDEO_URL} type="video/webm" />
               Your browser does not support this video.
             </video>
           </div>
           <div className="contribute-modal-content">
-            <div className="contribute-modal-content-description">IRL Gatherings thrive when community members contribute in different ways! Here&apos;s how you can be a part of it.</div>
+            <div className="contribute-modal-content-description">
+              IRL Gatherings thrive when community members contribute in different ways! Here&apos;s how you can be a
+              part of it.
+            </div>
             <div className="contribute-modal-content-list">
               <div className="contribute-modal-content-list-item sponsor">
                 <span className="contribute-modal-content-list-item-icon">
@@ -128,7 +140,9 @@ export default function ContributorsSection({
                     Sponsor <span className="desktop-view"> -</span>
                   </span>
                 </span>
-                <div className="contribute-modal-content-list-item-title">Help make it happen by offering support or resources.</div>
+                <div className="contribute-modal-content-list-item-title">
+                  Help make it happen by offering support or resources.
+                </div>
               </div>
               <div className="contribute-modal-content-list-item speaker">
                 <span className="contribute-modal-content-list-item-icon">
@@ -137,7 +151,9 @@ export default function ContributorsSection({
                     Host <span className="desktop-view"> -</span>
                   </span>
                 </span>
-                <div className="contribute-modal-content-list-item-title">Plan or organize a gathering for the community.</div>
+                <div className="contribute-modal-content-list-item-title">
+                  Plan or organize a gathering for the community.
+                </div>
               </div>
               <div className="contribute-modal-content-list-item host">
                 <span className="contribute-modal-content-list-item-icon">
@@ -146,7 +162,9 @@ export default function ContributorsSection({
                     Speaker <span className="desktop-view"> -</span>
                   </span>
                 </span>
-                <div className="contribute-modal-content-list-item-title">Share insights and expertise by speaking at an event.</div>
+                <div className="contribute-modal-content-list-item-title">
+                  Share insights and expertise by speaking at an event.
+                </div>
               </div>
               <div className="contribute-modal-content-list-item attendee">
                 <span className="contribute-modal-content-list-item-icon">
@@ -155,12 +173,15 @@ export default function ContributorsSection({
                     Attendee <span className="desktop-view"> -</span>
                   </span>
                 </span>
-                <div className="contribute-modal-content-list-item-title">Be part of the experience and engage with others.</div>
+                <div className="contribute-modal-content-list-item-title">
+                  Be part of the experience and engage with others.
+                </div>
               </div>
             </div>
           </div>
           <div className="contribute-modal-content-description">
-            Once you land on IRL Gatherings, Click “I&apos;m Going” & choose how you&apos;d like to contribute and help make these gatherings valuable for everyone!
+            Once you land on IRL Gatherings, Click “I&apos;m Going” & choose how you&apos;d like to contribute and help
+            make these gatherings valuable for everyone!
           </div>
           <div className="contribute-modal-content-button">
             <button className="contribute-modal-content-button-cancel" onClick={onCloseModal}>

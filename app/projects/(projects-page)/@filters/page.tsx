@@ -15,15 +15,22 @@ export default async function Page({ searchParams }: any) {
   }
 
   return (
-    <FilterWrapper initialTeams={initialTeams} selectedTeam={selectedTeam} searchParams={searchParams} userInfo={userInfo} focusAreas={focusAreas} filters={filters}/>
+    <FilterWrapper
+      initialTeams={initialTeams}
+      selectedTeam={selectedTeam}
+      searchParams={searchParams}
+      userInfo={userInfo}
+      focusAreas={focusAreas}
+      filters={filters}
+    />
   );
 }
 
 const getPageData = async (searchParams: any) => {
   let isError = false;
-  let selectedTeam = { label: '', value: '', logo: '' }
+  let selectedTeam = { label: '', value: '', logo: '' };
   let initialTeams = [];
-  
+
   try {
     const { userInfo, isLoggedIn } = getCookiesFromHeaders();
     const filterFromQuery = getProjectsFiltersFromQuery(searchParams);
@@ -35,30 +42,36 @@ const getPageData = async (searchParams: any) => {
       return { isError };
     }
 
-    if(searchParams["team"]) {
-        const teamResponse = await getTeam(searchParams["team"], {
-          with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member',
-        });
-        if (!teamResponse.error) {
-          const formattedTeam = teamResponse?.data?.formatedData;
-          selectedTeam = ({ label: formattedTeam?.name, value: formattedTeam?.id, logo: formattedTeam?.logo }); 
-        }
+    if (searchParams['team']) {
+      const teamResponse = await getTeam(searchParams['team'], {
+        with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member',
+      });
+      if (!teamResponse.error) {
+        const formattedTeam = teamResponse?.data?.formatedData;
+        selectedTeam = { label: formattedTeam?.name, value: formattedTeam?.id, logo: formattedTeam?.logo };
+      }
     }
 
-    const [searchTeamsResponse, filterResponse] = await Promise.all([searchTeamsByName(selectedTeam.label), getProjectFilters(selectOpitons)]);
+    const [searchTeamsResponse, filterResponse] = await Promise.all([
+      searchTeamsByName(selectedTeam.label),
+      getProjectFilters(selectOpitons),
+    ]);
 
-    if(!searchTeamsResponse.error) {
+    if (!searchTeamsResponse.error) {
       initialTeams = searchTeamsResponse;
     }
 
     let filters = [];
-    if(!filterResponse.error) {
+    if (!filterResponse.error) {
       filters = filterResponse.data;
     }
 
     const focusAreaQuery = searchParams?.focusAreas;
     const focusAreaFilters = focusAreaQuery?.split(URL_QUERY_VALUE_SEPARATOR);
-    const selectedFocusAreas = focusAreaFilters?.length > 0 ? focusAreasResponse?.data?.filter((focusArea: any) => focusAreaFilters?.includes(focusArea?.title)) : [];
+    const selectedFocusAreas =
+      focusAreaFilters?.length > 0
+        ? focusAreasResponse?.data?.filter((focusArea: any) => focusAreaFilters?.includes(focusArea?.title))
+        : [];
 
     return {
       userInfo,

@@ -18,7 +18,15 @@ type CloseAskMutationParams = {
   closedByUid?: string;
 };
 
-async function mutation({ teamId, uid, teamName, status, closedByUid, closedReason, closedComment }: CloseAskMutationParams) {
+async function mutation({
+  teamId,
+  uid,
+  teamName,
+  status,
+  closedByUid,
+  closedReason,
+  closedComment,
+}: CloseAskMutationParams) {
   const { authToken } = getCookiesFromClient();
   const url = `${process.env.DIRECTORY_API_URL}/v1/asks/${uid}/close`;
   const payload = {

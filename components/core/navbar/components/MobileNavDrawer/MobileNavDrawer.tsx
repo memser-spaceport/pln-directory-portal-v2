@@ -100,7 +100,11 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                     onNavItemClickHandler(option?.url, option?.name);
                   }}
                 >
-                  <li key={option.name} tabIndex={0} className={`md__container__bdy__menus__menu ${pathName === option.url ? 'md__container__bdy__menus__menu--active' : ''}`}>
+                  <li
+                    key={option.name}
+                    tabIndex={0}
+                    className={`md__container__bdy__menus__menu ${pathName === option.url ? 'md__container__bdy__menus__menu--active' : ''}`}
+                  >
                     <Image
                       loading="lazy"
                       height={20}
@@ -146,11 +150,17 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                 >
                   <NotificationsIcon />
                   <div className="md__container__bdy__supandset__optn__name">Notifications</div>
-                  {!!props.notificationsCount && props.notificationsCount > 0 && <div className="nb__right_notifications_count">{props.notificationsCount}</div>}
+                  {!!props.notificationsCount && props.notificationsCount > 0 && (
+                    <div className="nb__right_notifications_count">{props.notificationsCount}</div>
+                  )}
                 </li>
               )}
 
-              <Link onClick={() => onHelpItemClickHandler('ProtoSphere')} target="_blank" href={process.env.PROTOSPHERE_URL ?? ''}>
+              <Link
+                onClick={() => onHelpItemClickHandler('ProtoSphere')}
+                target="_blank"
+                href={process.env.PROTOSPHERE_URL ?? ''}
+              >
                 <li className="md__container__bdy__supandset__optn">
                   <MessageIcon />
                   <div className="nb__right__helpc__opts__optn__name">ProtoSphere</div>
@@ -165,18 +175,30 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
               {HELPER_MENU_OPTIONS.map((helperMenu, index) => {
                 if (helperMenu.type === 'button' && helperMenu.name === 'Submit a Team' && isLoggedIn) {
                   return (
-                    <li key={`${helperMenu} + ${index}`} role="button" onClick={handleSubmitTeam} className="md__container__bdy__supandset__optn">
+                    <li
+                      key={`${helperMenu} + ${index}`}
+                      role="button"
+                      onClick={handleSubmitTeam}
+                      className="md__container__bdy__supandset__optn"
+                    >
                       <Image width={16} height={16} alt={helperMenu.name} src={helperMenu.icon} />
                       <div className="md__container__bdy__supandset__optn__name">{helperMenu.name}</div>
                     </li>
                   );
                 } else if (helperMenu.type !== 'button') {
                   return (
-                    <Link onClick={() => onHelpItemClickHandler(helperMenu.name)} target={helperMenu.type} href={helperMenu.url ?? ''} key={`${helperMenu} + ${index}`}>
+                    <Link
+                      onClick={() => onHelpItemClickHandler(helperMenu.name)}
+                      target={helperMenu.type}
+                      href={helperMenu.url ?? ''}
+                      key={`${helperMenu} + ${index}`}
+                    >
                       <li className="md__container__bdy__supandset__optn">
                         <Image width={16} height={16} alt={helperMenu.name} src={helperMenu.icon} />
                         <div className="nb__right__helpc__opts__optn__name">{helperMenu.name}</div>
-                        {helperMenu.isExternal && <Image width={20} height={20} alt="arrow-right" src="/icons/arrow-up-gray.svg" />}
+                        {helperMenu.isExternal && (
+                          <Image width={20} height={20} alt="arrow-right" src="/icons/arrow-up-gray.svg" />
+                        )}
                       </li>
                     </Link>
                   );
@@ -229,7 +251,13 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                     router.push(`/members/${userInfo.uid}`);
                   }}
                 >
-                  <img className="md__container__bdy__footer__usrop__profilesec__profile" src={userInfo?.profileImageUrl || defaultAvatarImage} alt="profile" height={40} width={40} />
+                  <img
+                    className="md__container__bdy__footer__usrop__profilesec__profile"
+                    src={userInfo?.profileImageUrl || defaultAvatarImage}
+                    alt="profile"
+                    height={40}
+                    width={40}
+                  />
                   <div className="md__container__bdy__footer__usrop__profilesec__name">{userInfo?.name}</div>
                 </div>
                 <button className="md__container__bdy__footer__usrop__lgout" onClick={onLogoutClickHandler}>

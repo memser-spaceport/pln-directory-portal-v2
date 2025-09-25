@@ -1,4 +1,4 @@
-@use "styles/mixins";
+@use 'styles/mixins';
 @use 'styles/media';
 
 .root {
@@ -8,8 +8,10 @@
   padding: 8px 16px;
 
   .label {
-    color: #156FF7;
-    font-feature-settings: 'liga' off, 'clig' off;
+    color: #156ff7;
+    font-feature-settings:
+      'liga' off,
+      'clig' off;
     font-size: 12px;
     font-style: normal;
     font-weight: 500;
@@ -27,10 +29,12 @@
     text-align: left;
     padding: 8px;
     border-radius: 8px;
-    background: #F8FAFC;
+    background: #f8fafc;
 
     color: #475569;
-    font-feature-settings: 'liga' off, 'clig' off;
+    font-feature-settings:
+      'liga' off,
+      'clig' off;
     font-size: 14px;
     font-style: normal;
     font-weight: 400;

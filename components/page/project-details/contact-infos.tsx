@@ -32,7 +32,11 @@ const ContactInfos = (props: IContactInfos) => {
             <span className="contacts__body__emailInfo__icon">
               <img src="/icons/message-blue.svg" alt="message icon" />
             </span>
-            <Tooltip asChild content={contactEmail} trigger={<span className="contacts__body__emailInfo__email">{contactEmail}</span>} />
+            <Tooltip
+              asChild
+              content={contactEmail}
+              trigger={<span className="contacts__body__emailInfo__email">{contactEmail}</span>}
+            />
           </div>
         </div>
       </div>

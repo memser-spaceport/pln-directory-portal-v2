@@ -11,7 +11,13 @@ interface MultiSelectWithSearchProps {
   onChange: (selected: Option[]) => void;
 }
 
-const MultiSelectWithSearch: React.FC<MultiSelectWithSearchProps> = ({ label, mandatory, options, selectedOptions, onChange }) => {
+const MultiSelectWithSearch: React.FC<MultiSelectWithSearchProps> = ({
+  label,
+  mandatory,
+  options,
+  selectedOptions,
+  onChange,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOptionsVisible, setOptionsVisible] = useState(false);
   const [selected, setSelected] = useState(selectedOptions);
@@ -23,7 +29,7 @@ const MultiSelectWithSearch: React.FC<MultiSelectWithSearchProps> = ({ label, ma
     // Close options when clicking outside the component
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setOptionsVisible(false)
+        setOptionsVisible(false);
       }
     };
 
@@ -58,7 +64,7 @@ const MultiSelectWithSearch: React.FC<MultiSelectWithSearchProps> = ({ label, ma
     if (e.key === 'Enter') {
       e.preventDefault();
     }
-    let matchingOptions = options.filter((option) => option.label.toLowerCase().includes(e.target.value.toLowerCase()))
+    let matchingOptions = options.filter((option) => option.label.toLowerCase().includes(e.target.value.toLowerCase()));
     setFilteredOptions(removeFromList(matchingOptions));
     setSearchTerm(e.target.value);
     setOptionsVisible(true);
@@ -79,59 +85,62 @@ const MultiSelectWithSearch: React.FC<MultiSelectWithSearchProps> = ({ label, ma
   }, [selected]);
 
   const handleKeyDown = (event: any) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       event.preventDefault(); // Prevent form submission
     }
   };
 
   return (
     <>
-      <div className="ms__cn"  ref={searchRef}>
+      <div className="ms__cn" ref={searchRef}>
         <div className="ms__cn__label">
           {label}
           {mandatory ? '*' : ''}
         </div>
         <div>
-        <div className="ms__cn__ip">
-          {selected.length > 0 && (
-            <div className="ms__cn__ip__cn">
-              {selected.map((option) => (
-                <div key={option.value} className="ms__cn__ip__cn__options-selected">
-                  <div>{option.label}</div>
-                  <div onClick={() => handleOptionDelete(option)} className='ms__cn__ip__cn__options-selected__delete'>
-                    <img alt="delete" src="/icons/close-gray.svg" />
+          <div className="ms__cn__ip">
+            {selected.length > 0 && (
+              <div className="ms__cn__ip__cn">
+                {selected.map((option) => (
+                  <div key={option.value} className="ms__cn__ip__cn__options-selected">
+                    <div>{option.label}</div>
+                    <div
+                      onClick={() => handleOptionDelete(option)}
+                      className="ms__cn__ip__cn__options-selected__delete"
+                    >
+                      <img alt="delete" src="/icons/close-gray.svg" />
+                    </div>
+                    <HiddenField
+                      value={JSON.stringify(option)}
+                      defaultValue={JSON.stringify(selectedOptions)}
+                      name={`projecttags-${option.value}`}
+                    />
                   </div>
-                  <HiddenField value={JSON.stringify(option)} defaultValue={JSON.stringify(selectedOptions)} name={`projecttags-${option.value}`} />
-                </div>
-              ))}
+                ))}
+              </div>
+            )}
+            <input
+              // ref={searchRef}
+              onFocus={() => setOptionsVisible(true)}
+              className="ms__cn__ip__search"
+              type="text"
+              placeholder={`Search ${label.toLowerCase()}`}
+              value={searchTerm}
+              onChange={handleSearchChange}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
+          {isOptionsVisible && (
+            <div className="ms__cn__options">
+              {filteredOptions.length > 0 &&
+                filteredOptions.map((option) => (
+                  <div key={option.value} onClick={() => handleOptionClick(option)} className="ms__cn__options__item">
+                    {option.label}
+                  </div>
+                ))}
+              {filteredOptions.length === 0 && <div className="ms__cn__options__item">No data available</div>}
             </div>
           )}
-          <input
-            // ref={searchRef}
-            onFocus={() => setOptionsVisible(true)}
-            className="ms__cn__ip__search"
-            type="text"
-            placeholder={`Search ${label.toLowerCase()}`}
-            value={searchTerm}
-            onChange={handleSearchChange}
-            onKeyDown={handleKeyDown}
-          />
-        </div>
-        {isOptionsVisible && (
-          <div className="ms__cn__options">
-            {filteredOptions.length > 0 && filteredOptions.map((option) => (
-              <div key={option.value} onClick={() => handleOptionClick(option)} className="ms__cn__options__item">
-                {option.label}
-              </div>
-            ))}
-            {
-             filteredOptions.length === 0 && 
-             <div className="ms__cn__options__item">
-                No data available
-              </div> 
-            }
-          </div>
-        )}
         </div>
       </div>
       <style jsx>{`
@@ -209,7 +218,7 @@ const MultiSelectWithSearch: React.FC<MultiSelectWithSearchProps> = ({ label, ma
           display: flex;
         }
 
-        .ms__cn__ip__cn__options-selected__delete{
+        .ms__cn__ip__cn__options-selected__delete {
           cursor: pointer;
         }
 

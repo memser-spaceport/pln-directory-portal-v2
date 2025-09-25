@@ -21,7 +21,13 @@ export const AskStatus = () => {
 
   return (
     <div className={s.formContentWrapper}>
-      <RadioButton disabled={disabled} name="reason" options={REASON_OPTIONS} selectedValue={reason} onChange={(value) => setValue('reason', value, { shouldValidate: true })} />
+      <RadioButton
+        disabled={disabled}
+        name="reason"
+        options={REASON_OPTIONS}
+        selectedValue={reason}
+        onChange={(value) => setValue('reason', value, { shouldValidate: true })}
+      />
       {(reason === AskCloseReasons.FULLY_ADDRESSED || reason === AskCloseReasons.PARTIALLY_ADDRESSED) && (
         <FormField name="resolvedBy">
           <SearchableSingleSelect
@@ -36,7 +42,9 @@ export const AskStatus = () => {
             iconKey="profile"
             arrowImgUrl="/icons/arrow-down.svg"
             displayKey="name"
-            onChange={(selectedOption) => setValue('resolvedBy', selectedOption as MemberOption, { shouldValidate: true })}
+            onChange={(selectedOption) =>
+              setValue('resolvedBy', selectedOption as MemberOption, { shouldValidate: true })
+            }
             disabled={disabled}
           />
         </FormField>

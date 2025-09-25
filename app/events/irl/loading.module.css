@@ -37,7 +37,8 @@
   width: 60%;
 }
 
-.irlGatherings__location__list, .irlGatherings__location__list2 {
+.irlGatherings__location__list,
+.irlGatherings__location__list2 {
   display: flex;
   gap: 8px;
   padding: 8px;
@@ -46,7 +47,8 @@
   background-color: #e4edf7;
 }
 
-.irlGatherings__location__list__item, .irlGatherings__location__list__item2 {
+.irlGatherings__location__list__item,
+.irlGatherings__location__list__item2 {
   min-width: 140px;
   height: 90px;
   background: white;
@@ -57,8 +59,6 @@
   padding: 16px 0px;
   gap: 10px;
 }
-
-
 
 .irlGatherings__location__list__item__desc {
   display: flex;
@@ -287,7 +287,9 @@
     padding: 0px;
   }
 
-  .irlGatherings__header__desc__line2, .irlGatherings__location__list__item2, .irlGatherings__location__list2 {
+  .irlGatherings__header__desc__line2,
+  .irlGatherings__location__list__item2,
+  .irlGatherings__location__list2 {
     display: none;
   }
 
@@ -343,9 +345,9 @@
   }
 }
 
-
 @media (min-width: 1440px) {
-  .irlGatherings, .irlGatherings__guests__table {
+  .irlGatherings,
+  .irlGatherings__guests__table {
     width: 1244px;
   }
 
@@ -365,7 +367,8 @@
 }
 
 @media (min-width: 1920px) {
-  .irlGatherings, .irlGatherings__guests__table {
+  .irlGatherings,
+  .irlGatherings__guests__table {
     width: 1678px;
   }
 
@@ -377,7 +380,8 @@
 }
 
 @media (min-width: 2560px) {
-  .irlGatherings, .irlGatherings__guests__table {
+  .irlGatherings,
+  .irlGatherings__guests__table {
     width: 2240px;
   }
 

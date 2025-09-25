@@ -34,7 +34,11 @@ const Contributors = (props: IContributors) => {
   };
 
   const onContributorClick = (contributor: any) => {
-    analytics.onProjectDetailContributorClicked(getAnalyticsUserInfo(user), getAnalyticsProjectInfo(project), getAnalyticsMemberInfo(contributor));
+    analytics.onProjectDetailContributorClicked(
+      getAnalyticsUserInfo(user),
+      getAnalyticsProjectInfo(project),
+      getAnalyticsMemberInfo(contributor),
+    );
     window.open('/members/' + contributor?.uid, '_blank');
   };
 
@@ -52,10 +56,24 @@ const Contributors = (props: IContributors) => {
                 const defaultImage = getDefaultAvatar(contributor?.name);
 
                 return (
-                  <button key={`contributor-${index}`} className="contributors__body__list__contributor" title={contributor?.name} onClick={() => onContributorClick(contributor)}>
-                    <Image alt="profile" width={32} height={32} layout='intrinsic' loading='eager' priority={true}  className="contributors__body__list__contributor__img" src={contributor.logo || defaultImage} />
+                  <button
+                    key={`contributor-${index}`}
+                    className="contributors__body__list__contributor"
+                    title={contributor?.name}
+                    onClick={() => onContributorClick(contributor)}
+                  >
+                    <Image
+                      alt="profile"
+                      width={32}
+                      height={32}
+                      layout="intrinsic"
+                      loading="eager"
+                      priority={true}
+                      className="contributors__body__list__contributor__img"
+                      src={contributor.logo || defaultImage}
+                    />
                   </button>
-                )
+                );
               })}
             {contributorsLength > 20 && (
               <button className="contributors__body__list__remaining" onClick={onOpenContributorsModal}>
@@ -65,7 +83,11 @@ const Contributors = (props: IContributors) => {
           </div>
         </div>
       </div>
-      <AllContributorsModal onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={contributors} />
+      <AllContributorsModal
+        onContributorClickHandler={onContributorClick}
+        onClose={onCloseContributorsModal}
+        contributorsList={contributors}
+      />
       <style jsx>{`
         button {
           background: none;

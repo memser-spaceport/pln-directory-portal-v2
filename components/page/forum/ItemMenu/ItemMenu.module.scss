@@ -25,15 +25,19 @@
 
 .popup {
   border-radius: 8px;
-  background: #FFF;
-  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.16), 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+  background: #fff;
+  box-shadow:
+    0 1px 2px 0 rgba(15, 23, 42, 0.16),
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
 
   box-sizing: border-box;
   padding-block: 8px;
   padding-inline: 12px;
   transform-origin: top right;
-  transition: transform 150ms,
-  opacity 150ms;
+  transition:
+    transform 150ms,
+    opacity 150ms;
 
   &[data-starting-style],
   &[data-ending-style] {
@@ -52,8 +56,10 @@
   display: flex;
   align-items: center;
 
-  color: #0F172A;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #0f172a;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
@@ -78,8 +84,10 @@
   .itemSub {
     display: flex;
     align-items: center;
-    color: #CAD3DF;
-    font-feature-settings: 'liga' off, 'clig' off;
+    color: #cad3df;
+    font-feature-settings:
+      'liga' off,
+      'clig' off;
     font-size: 10px;
     font-style: normal;
     font-weight: 400;

@@ -16,7 +16,14 @@ const fade = {
 export const FloatingWidgets = ({ children, className }: Props) => {
   return (
     <AnimatePresence>
-      <motion.div initial="hidden" animate="visible" exit="exit" variants={fade} transition={{ duration: 0.3, delay: 3.5 }} className={clsx(s.root, className)}>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        variants={fade}
+        transition={{ duration: 0.3, delay: 3.5 }}
+        className={clsx(s.root, className)}
+      >
         {children}
       </motion.div>
     </AnimatePresence>

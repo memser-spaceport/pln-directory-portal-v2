@@ -56,24 +56,41 @@ export const FiltersSearch = (props: Props) => {
   return (
     <>
       <div className="toolbar__left__search-container">
-        <form className="toolbar__left__search-container__searchfrm" onSubmit={onSubmitHandler} data-testid="search-form">
+        <form
+          className="toolbar__left__search-container__searchfrm"
+          onSubmit={onSubmitHandler}
+          data-testid="search-form"
+        >
           <input
             ref={inputRef}
             value={searchInput}
             onChange={(e) => onInputChange(e)}
             className="toolbar__left__search-container__searchfrm__input"
             placeholder="Search for a team"
-            onFocus={(e) => e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)}
+            onFocus={(e) =>
+              e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)
+            }
             data-testid="search-input"
           />
 
           <div className="toolbar__left__search-container__searchfrm__optns">
             {searchInput && (
-              <button title="Clear" type="button" onClick={onClearSearchClicked} className="toolbar__left__search-container__searchfrm__optns__clrbtn" data-testid="clear-search-button">
+              <button
+                title="Clear"
+                type="button"
+                onClick={onClearSearchClicked}
+                className="toolbar__left__search-container__searchfrm__optns__clrbtn"
+                data-testid="clear-search-button"
+              >
                 <Image loading="lazy" alt="close" src="/icons/close-gray.svg" height={16} width={16} />
               </button>
             )}
-            <button title="Search" className="toolbar__left__search-container__searchfrm__optns__sbtn" type="submit" data-testid="search-button">
+            <button
+              title="Search"
+              className="toolbar__left__search-container__searchfrm__optns__sbtn"
+              type="submit"
+              data-testid="search-button"
+            >
               <Image loading="lazy" alt="search" src="/icons/search.svg" height={16} width={16} />
             </button>
           </div>

@@ -63,7 +63,7 @@ export const useSignUpAnalytics = () => {
 
   /**
    * Records an analytics event when the user clicks on the home button after a successful sign-up.
-   * 
+   *
    * This function captures the `SIGN_UP_HOME_CLICK_AFTER_SUCCESS` event to track user behavior
    * post sign-up completion.
    */
@@ -71,7 +71,7 @@ export const useSignUpAnalytics = () => {
     captureEvent(SIGN_UP_ANALYTICS_EVENTS.SIGN_UP_HOME_CLICK_AFTER_SUCCESS);
   }
 
-  function trackSignupAMemberClick(){
+  function trackSignupAMemberClick() {
     captureEvent(SIGN_UP_ANALYTICS_EVENTS.SIGN_UP_MEMBER_CLICK_BY_ADMIN_OR_LEAD);
   }
 
@@ -80,6 +80,6 @@ export const useSignUpAnalytics = () => {
     recordSignUpCancel,
     recordURLClick,
     recordHomeClickAfterSuccess,
-    trackSignupAMemberClick
+    trackSignupAMemberClick,
   };
 };

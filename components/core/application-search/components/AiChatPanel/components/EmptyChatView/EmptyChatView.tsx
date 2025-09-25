@@ -12,7 +12,14 @@ export const EmptyChatView = () => {
           strokeOpacity="0.5"
         />
         <defs>
-          <linearGradient id="paint0_linear_1226_148541" x1="-13.4573" y1="119.999" x2="217.366" y2="41.2641" gradientUnits="userSpaceOnUse">
+          <linearGradient
+            id="paint0_linear_1226_148541"
+            x1="-13.4573"
+            y1="119.999"
+            x2="217.366"
+            y2="41.2641"
+            gradientUnits="userSpaceOnUse"
+          >
             <stop stopColor="#427DFF" />
             <stop offset="1" stopColor="#44D5BB" />
           </linearGradient>

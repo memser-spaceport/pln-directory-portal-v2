@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useAuthAnalytics } from "@/analytics/auth.analytics";
-import { PAGE_ROUTES } from "@/utils/constants";
-import { usePathname, useRouter } from "next/navigation";
+import { useAuthAnalytics } from '@/analytics/auth.analytics';
+import { PAGE_ROUTES } from '@/utils/constants';
+import { usePathname, useRouter } from 'next/navigation';
 
 const EmptyResult = (props: any) => {
   const router = useRouter();
@@ -16,21 +16,38 @@ const EmptyResult = (props: any) => {
   };
 
   const onLoginClickHandler = () => {
-      authAnalytics.onLoginBtnClicked();
+    authAnalytics.onLoginBtnClicked();
     router.push(`${window.location.pathname}${window.location.search}#login`);
-  };  
+  };
 
-  
   return (
     <>
       <div className="data-not-found">
         <p className="data-not-found__content">
-          There are no results for your criteria. You can try to define different criteria or {" "}
+          There are no results for your criteria. You can try to define different criteria or{' '}
           <span onClick={onClearAllClickHandler} className="data-not-found__content__clear-all">
             clear all the criteria.
           </span>
-          {!isLoggedIn && isProjectPage && <span> If you&apos;re unable to find your project, please <button className="data-not-found__content__addpro" onClick={onLoginClickHandler}>login</button> to add a project.</span>}
-          {isLoggedIn && isProjectPage && <span> If you&apos;re unable to find your project, <a className="data-not-found__content__addpro" href="/projects/add">click here </a> to add a project.</span>}
+          {!isLoggedIn && isProjectPage && (
+            <span>
+              {' '}
+              If you&apos;re unable to find your project, please{' '}
+              <button className="data-not-found__content__addpro" onClick={onLoginClickHandler}>
+                login
+              </button>{' '}
+              to add a project.
+            </span>
+          )}
+          {isLoggedIn && isProjectPage && (
+            <span>
+              {' '}
+              If you&apos;re unable to find your project,{' '}
+              <a className="data-not-found__content__addpro" href="/projects/add">
+                click here{' '}
+              </a>{' '}
+              to add a project.
+            </span>
+          )}
         </p>
       </div>
 

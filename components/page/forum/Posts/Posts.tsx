@@ -62,7 +62,14 @@ export const Posts = () => {
   }
 
   return (
-    <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage} style={{ overflow: 'unset' }}>
+    <InfiniteScroll
+      scrollableTarget="body"
+      loader={null}
+      hasMore={hasNextPage}
+      dataLength={data.length}
+      next={fetchNextPage}
+      style={{ overflow: 'unset' }}
+    >
       <div className={s.root}>
         {posts.map((post) => {
           const { cleanedText } = extractImagesAndClean(post.desc ?? '');
@@ -84,7 +91,12 @@ export const Posts = () => {
               <div className={s.footer}>
                 <Link href={`/members/${post.memberUid}`} onClick={(e) => e.stopPropagation()}>
                   <Avatar.Root className={s.Avatar}>
-                    <Avatar.Image src={post.image ?? getDefaultAvatar(post.author)} width="24" height="24" className={s.Image} />
+                    <Avatar.Image
+                      src={post.image ?? getDefaultAvatar(post.author)}
+                      width="24"
+                      height="24"
+                      className={s.Image}
+                    />
                     <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
                   </Avatar.Root>
                 </Link>

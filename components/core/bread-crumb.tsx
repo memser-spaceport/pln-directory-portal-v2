@@ -23,9 +23,16 @@ export function BreadCrumb(props: IBreadcrumb) {
         </a>
         <span className="breadcrumb__item__separator">/</span>
         {breadcrumbItems.map((item, itemIndex: number) => (
-          <div key={item.label} className={`breadcrumb__item ${itemIndex === breadcrumbItems.length - 1 ? 'breadcrumb__item--last' : ''}`}>
+          <div
+            key={item.label}
+            className={`breadcrumb__item ${itemIndex === breadcrumbItems.length - 1 ? 'breadcrumb__item--last' : ''}`}
+          >
             {item.href && (
-              <Link href={item.href} className="breadcrumb__item__link" style={{ overflow: 'hidden', maxWidth: '150px', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <Link
+                href={item.href}
+                className="breadcrumb__item__link"
+                style={{ overflow: 'hidden', maxWidth: '150px', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+              >
                 {item.label}
               </Link>
             )}

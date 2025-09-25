@@ -27,8 +27,10 @@
 
 .label {
   display: block;
-  color: #0F172A;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #0f172a;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -49,13 +51,13 @@
 
 .description {
   grid-area: desc;
-  color: #0F172A;
+  color: #0f172a;
   font-size: 12px;
   font-style: normal;
   font-weight: 400;
   line-height: 24px;
   letter-spacing: 0.12px;
-  width:  100%;
+  width: 100%;
 
   &.hidden {
     display: none;
@@ -63,9 +65,11 @@
 }
 
 .link {
-  grid-area:  link;
-  color: var(--Neutral-Slate-900, #0F172A);
-  font-feature-settings: 'liga' off, 'clig' off;
+  grid-area: link;
+  color: var(--Neutral-Slate-900, #0f172a);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 600;

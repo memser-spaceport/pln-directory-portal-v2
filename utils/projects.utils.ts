@@ -17,7 +17,7 @@ export const getProjectsFiltersFromQuery = (queryParams: any) => {
 };
 
 export function getProjectSelectOptions(options: any) {
-  return { ...options, pagination: true};
+  return { ...options, pagination: true };
 }
 
 export const SORT_OPTIONS = {
@@ -41,5 +41,11 @@ export const PROJECT_SORT_ICONS = [
     deselectIcon: '/icons/descending-black.svg',
     normalIcon: '/icons/ascending-gray.svg',
   },
-  { name: 'Score,asc', label: 'Default', deselectIcon: '/icons/star-outline-black.svg', selectedIcon: '/icons/star-outline-white.svg', normalIcon: '/icons/star-outline-gray.svg' },
+  {
+    name: 'Score,asc',
+    label: 'Default',
+    deselectIcon: '/icons/star-outline-black.svg',
+    selectedIcon: '/icons/star-outline-white.svg',
+    normalIcon: '/icons/star-outline-gray.svg',
+  },
 ];

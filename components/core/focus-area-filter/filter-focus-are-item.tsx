@@ -8,7 +8,7 @@ export interface FocusArea {
   selectedItems: IFocusArea[];
   onItemClickHandler: (item: IFocusArea) => void;
   parents: IFocusArea[];
-  uniqueKey: "teamAncestorFocusAreas" | "projectAncestorFocusAreas";
+  uniqueKey: 'teamAncestorFocusAreas' | 'projectAncestorFocusAreas';
   isGrandParent: boolean;
   isHelpActive: boolean;
 }
@@ -64,18 +64,13 @@ const FocusAreaItem = (props: FocusArea) => {
     }
   };
 
-
-  
   function hasSelectedItems(currentItem: IFocusArea): boolean {
     if (!currentItem || !currentItem.children) {
       return false;
     }
-  
-    return currentItem.children.some((child: IFocusArea) =>
-      (child?.[uniqueKey]?.length > 0) || hasSelectedItems(child)
-    );
+
+    return currentItem.children.some((child: IFocusArea) => child?.[uniqueKey]?.length > 0 || hasSelectedItems(child));
   }
-  
 
   function getIsSelectedItem(cItem: IFocusArea) {
     return selectedItems.some((item) => item.parentUid === cItem.uid || item.uid === cItem.uid);
@@ -95,7 +90,11 @@ const FocusAreaItem = (props: FocusArea) => {
     <>
       <div className="fltitemcon">
         <div className={`fltitemcon__item`}>
-          <button disabled={assignedItemsLength === 0} className={`filtitemcon__item__expbtn ${getStyle()}`} onClick={() => onCheckboxClickHandler()}>
+          <button
+            disabled={assignedItemsLength === 0}
+            className={`filtitemcon__item__expbtn ${getStyle()}`}
+            onClick={() => onCheckboxClickHandler()}
+          >
             {(isParent || isSelectedItem) && <img alt="mode" src={getIcon()} />}
           </button>
           {(isChildrensAvailable || isGrandParent) && (
@@ -134,7 +133,7 @@ const FocusAreaItem = (props: FocusArea) => {
                       onItemClickHandler={onItemClickHandler}
                     />
                   </div>
-                )
+                ),
             )}
           </>
         </>
@@ -205,38 +204,39 @@ const FocusAreaItem = (props: FocusArea) => {
           }
 
           .fltitemcont__textc__ttl__cnt {
-          margin-left: 6px;
-          width: fit-content;
-          border-radius: 2px;
-          background-color: #F1F5F9;
-          padding: 0 5px;
-          font-size: 10px;
-          font-weight: 500;
-          line-height: 14px;
-          coloe: #475569;
+            margin-left: 6px;
+            width: fit-content;
+            border-radius: 2px;
+            background-color: #f1f5f9;
+            padding: 0 5px;
+            font-size: 10px;
+            font-weight: 500;
+            line-height: 14px;
+            coloe: #475569;
           }
 
           .fltitemcon__descc {
-          margin-top: 12px;
-          border-radius: 4px;
-          background-color: #F1F5F9;
-          padding: 8px;
+            margin-top: 12px;
+            border-radius: 4px;
+            background-color: #f1f5f9;
+            padding: 8px;
           }
 
           .fltitemcon__descc__cnt {
-          word-break: break-word;
-          font-size: 12px;
-          font-weight: 500;
-          line-height: 17px;
-          color: #475569;
+            word-break: break-word;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 17px;
+            color: #475569;
           }
 
           .fltitem {
-          margin-top: 12px;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          padding-left: 26px;}
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-left: 26px;
+          }
         `}
       </style>
     </>

@@ -43,7 +43,7 @@ describe('DeleteConfirmationModal', () => {
     render(<DeleteConfirmationModal onClose={onClose} onDeleteProject={onDeleteProject} />);
     expect(addEventListenerSpy).toHaveBeenCalledWith(
       'project-detail-delete-modal-open-and-close',
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -53,8 +53,7 @@ describe('DeleteConfirmationModal', () => {
     unmount();
     expect(removeEventListenerSpy).toHaveBeenCalledWith(
       'project-detail-delete-modal-open-and-close',
-      expect.any(Function)
+      expect.any(Function),
     );
   });
-  
 });

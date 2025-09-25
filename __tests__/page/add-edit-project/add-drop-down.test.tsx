@@ -10,14 +10,14 @@ describe('AddDropdown Component', () => {
 
   it('renders the Add button', () => {
     const button = screen.getByTestId('add-dropdown-button');
-    expect(button).toBeInTheDocument()
+    expect(button).toBeInTheDocument();
   });
 
   test('toggles dropdown on button click', () => {
     const button = screen.getByTestId('add-dropdown-button');
     fireEvent.click(button);
     expect(screen.getByTestId('dropdown-options')).toBeInTheDocument();
-    
+
     fireEvent.click(button);
     expect(screen.queryByTestId('dropdown-options')).not.toBeInTheDocument();
   });
@@ -25,7 +25,7 @@ describe('AddDropdown Component', () => {
   it('calls onOpenPopup with correct option when option is clicked', () => {
     const button = screen.getByTestId('add-dropdown-button');
     fireEvent.click(button);
-    
+
     const optionButton = screen.getByTestId('option-maintainer-team');
     fireEvent.click(optionButton);
     expect(mockOnOpenPopup).toHaveBeenCalledWith('MaintainingTeam');
@@ -53,4 +53,3 @@ describe('AddDropdown Component', () => {
     expect(screen.queryByTestId('dropdown-options')).not.toBeInTheDocument();
   }); */
 });
-

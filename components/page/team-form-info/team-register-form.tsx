@@ -24,11 +24,23 @@ interface ITeamRegisterForm {
   userInfo: any;
 }
 
+const MAX_DESCRIPTION_LENGTH = 2000;
+
 function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
   // const onCloseForm = props.onCloseForm;
-  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: TEAM_FORM_STEPS, defaultStep: TEAM_FORM_STEPS[0], uniqueKey: STEP_INDICATOR_KEY });
+  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({
+    steps: TEAM_FORM_STEPS,
+    defaultStep: TEAM_FORM_STEPS[0],
+    uniqueKey: STEP_INDICATOR_KEY,
+  });
   const formRef = useRef<HTMLFormElement>(null);
-  const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], isError: false });
+  const [allData, setAllData] = useState({
+    technologies: [],
+    fundingStage: [],
+    membershipSources: [],
+    industryTags: [],
+    isError: false,
+  });
   const [basicErrors, setBasicErrors] = useState<string[]>([]);
   const [projectDetailsErrors, setProjectDetailsErrors] = useState<string[]>([]);
   const [socialErrors, setSocialErrors] = useState<string[]>([]);
@@ -213,6 +225,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
       setProjectDetailsErrors([]);
       setSocialErrors([]);
     }
+
     document.addEventListener('reset-team-register-form', resetHandler);
     return function () {
       document.removeEventListener('reset-team-register-form', resetHandler);
@@ -225,7 +238,13 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
         <form className="trf" onSubmit={onFormSubmit} ref={formRef} noValidate>
           <div ref={formContainerRef} className="trf__form">
             <div className={currentStep !== TEAM_FORM_STEPS[0] ? 'hidden' : 'form'}>
-              <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent} />
+              <TeamBasicInfo
+                errors={basicErrors}
+                initialValues={initialValues.basicInfo}
+                longDesc={content}
+                setLongDesc={setContent}
+                longDescMaxLength={MAX_DESCRIPTION_LENGTH}
+              />
             </div>
             <div className={currentStep !== TEAM_FORM_STEPS[1] ? 'hidden' : 'form'}>
               <TeamProjectsInfo
@@ -241,7 +260,12 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
               <TeamSocialInfo errors={socialErrors} />
             </div>
           </div>
-          <RegisterActions currentStep={currentStep} onNextClicked={onNextClicked} onBackClicked={onBackClicked} onCloseForm={onCloseForm} />
+          <RegisterActions
+            currentStep={currentStep}
+            onNextClicked={onNextClicked}
+            onBackClicked={onBackClicked}
+            onCloseForm={onCloseForm}
+          />
         </form>
       }
 
@@ -254,16 +278,19 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
             height: 0;
             overflow: hidden;
           }
+
           .trf {
             width: 100%;
             position: relative;
             height: 100%;
           }
+
           .trf__form {
             padding: 24px;
             height: calc(100% - 70px);
             overflow-y: auto;
           }
+
           .form {
             height: 100%;
             width: 100%;

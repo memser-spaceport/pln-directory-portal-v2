@@ -8,13 +8,7 @@ import ScrollObserver from '@/components/page/events/scroll-observer';
 
 import s from './layout.module.css';
 
-export default function Layout({
-  events,
-  contributors
-}: {
-  events: ReactNode;
-  contributors: ReactNode;
-}) {
+export default function Layout({ events, contributors }: { events: ReactNode; contributors: ReactNode }) {
   const { userInfo } = getCookiesFromHeaders();
 
   return (
@@ -22,9 +16,7 @@ export default function Layout({
       <div className={s.top}>
         <EventsBanner userInfo={userInfo} />
       </div>
-      <div id="events">
-        {events}
-      </div>
+      <div id="events">{events}</div>
       <div className={s.husky}>
         <HuskyBanner userInfo={userInfo} />
       </div>
@@ -32,7 +24,7 @@ export default function Layout({
         {contributors}
       </div>
       <div id="schedule" className={s.scheduler}>
-        <ScheduleSection userInfo={userInfo}/>
+        <ScheduleSection userInfo={userInfo} />
       </div>
       <ScrollObserver />
     </>
@@ -41,5 +33,5 @@ export default function Layout({
 
 export const metadata: Metadata = {
   title: 'Events | Protocol Labs Directory',
-  description: 'Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem.'
+  description: 'Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem.',
 };

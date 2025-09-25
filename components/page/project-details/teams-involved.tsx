@@ -22,7 +22,11 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
   const analytics = useProjectAnalytics();
 
   const onContributingTeamClick = (cteam: any) => {
-    analytics.onProjectDetailContributingTeamClicked(getAnalyticsUserInfo(user), project?.id, getAnalyticsTeamInfo(cteam));
+    analytics.onProjectDetailContributingTeamClicked(
+      getAnalyticsUserInfo(user),
+      project?.id,
+      getAnalyticsTeamInfo(cteam),
+    );
     window.open('/teams/' + cteam.uid);
   };
 
@@ -49,13 +53,32 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
         </button>
         <button className="teams__mTeam" onClick={() => onMaintainerTeamClick(maintainingTeam)}>
           <div className="teams__mTeam__info">
-            <img height={40} width={40} className="teams__mTeam__info__logo" src={maintainingTeam?.logo?.url || '/icons/team-default-profile.svg'} alt="team image" />
+            <img
+              height={40}
+              width={40}
+              className="teams__mTeam__info__logo"
+              src={maintainingTeam?.logo?.url || '/icons/team-default-profile.svg'}
+              alt="team image"
+            />
             <div title="Maintainer" className="teams__mTeam__info__name">
               {maintainingTeam?.name}
             </div>
           </div>
           <div className="teams__mTeam__settings">
-            <Tooltip asChild trigger={<img width={20} height={20} className="teams__mTeam__settings__logo" src="/icons/configuration.svg" alt="image" />} content={'Maintainer'} side="top" />
+            <Tooltip
+              asChild
+              trigger={
+                <img
+                  width={20}
+                  height={20}
+                  className="teams__mTeam__settings__logo"
+                  src="/icons/configuration.svg"
+                  alt="image"
+                />
+              }
+              content={'Maintainer'}
+              side="top"
+            />
           </div>
         </button>
         {contributingTeams.length > 0 &&
@@ -64,7 +87,13 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
               {index < 3 && (
                 <button className="cteam" onClick={() => onContributingTeamClick(cteam)}>
                   <div className="cteam__info">
-                    <img height={40} width={40} className="cteam__info__logo" src={cteam?.logo?.url || '/icons/team-default-profile.svg'} alt="team image" />
+                    <img
+                      height={40}
+                      width={40}
+                      className="cteam__info__logo"
+                      src={cteam?.logo?.url || '/icons/team-default-profile.svg'}
+                      alt="team image"
+                    />
                     <div className="cteam__info__name">{cteam?.name}</div>
                   </div>
                 </button>
@@ -76,7 +105,12 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
             +{project?.contributingTeams.length - 3} more
           </button>
         )}
-        <AllTeamsModal onClose={onCloseTeamsModal} project={project} onContributingTeamClicked={onContributingTeamClick} onMaintainerTeamClicked={onMaintainerTeamClick} />
+        <AllTeamsModal
+          onClose={onCloseTeamsModal}
+          project={project}
+          onContributingTeamClicked={onContributingTeamClick}
+          onMaintainerTeamClicked={onMaintainerTeamClick}
+        />
       </div>
       <style jsx>{`
         button {
@@ -205,7 +239,7 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
           font-weight: 400;
           //   line-height: 32px;
           letter-spacing: 0em;
-                    width: 168px;
+          width: 168px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;

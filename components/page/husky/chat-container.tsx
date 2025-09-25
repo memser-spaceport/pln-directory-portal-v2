@@ -21,7 +21,7 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
     setInitialMessages([]);
     setType('');
     analytics.trackMobileHeaderNewConversationClicked();
-  }
+  };
 
   useEffect(() => {
     // Retrieve and parse initial chat message from local storage
@@ -35,7 +35,7 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
       } catch (error) {
         console.error('Error parsing initial chat:', error);
       }
-    }  
+    }
 
     document.addEventListener('new-chat', resetChat);
     return () => {
@@ -43,13 +43,19 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
     };
   }, []);
 
-
   return (
     <>
       <div className="chat-container">
         {isLoggedIn && <ChatHeader resetChat={resetChat} />}
         <div className="chat-container__body">
-          <Chat isLoggedIn={isLoggedIn} userInfo={userInfo} initialMessages={initialMessages} setInitialMessages={setInitialMessages} from={type} setType={setType} />
+          <Chat
+            isLoggedIn={isLoggedIn}
+            userInfo={userInfo}
+            initialMessages={initialMessages}
+            setInitialMessages={setInitialMessages}
+            from={type}
+            setType={setType}
+          />
         </div>
       </div>
       <style jsx>{`

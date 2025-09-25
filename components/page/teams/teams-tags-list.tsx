@@ -66,6 +66,6 @@ const TeamsTagsList = (props: any) => {
       `}</style>
     </React.Fragment>
   );
-}
+};
 
 export default TeamsTagsList;

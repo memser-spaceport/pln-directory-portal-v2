@@ -116,7 +116,9 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
             <div className={s.left}>
               <CheckIcon />
               <span className={s.title}>You opted-in!</span>
-              <span className={s.description}>Make sure your profile is as complete as possible to increase the quality of recommended connections.</span>
+              <span className={s.description}>
+                Make sure your profile is as complete as possible to increase the quality of recommended connections.
+              </span>
             </div>
             <div className={s.right}>
               <button className={s.btn} onClick={handleClose}>
@@ -147,7 +149,9 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
               {view === 'initial' ? (
                 <span className={s.description}>Receive 2x/month email suggestions to meet high-signal peers.</span>
               ) : (
-                <span className={s.description}>Make sure your profile is as complete as possible to increase the quality of recommended connections.</span>
+                <span className={s.description}>
+                  Make sure your profile is as complete as possible to increase the quality of recommended connections.
+                </span>
               )}
             </div>
 

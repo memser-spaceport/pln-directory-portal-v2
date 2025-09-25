@@ -90,45 +90,40 @@
 
 .default {
   @include theme(
-                  var(--foreground-neutral-primary, #0A0C11),
-                  var(--border-neutral-muted, rgba(27, 56, 96, 0.24)),
-                  #455468,
-                  var(--background-neutral-soft-surface, #F9FAFB)
+    var(--foreground-neutral-primary, #0a0c11),
+    var(--border-neutral-muted, rgba(27, 56, 96, 0.24)),
+    #455468,
+    var(--background-neutral-soft-surface, #f9fafb)
   );
 }
 
 .error {
   @include theme(
-                  var(--foreground-error-primary, #D21A0E),
-                  var(--border-error-subtle, rgba(233, 34, 21, 0.16)),
-                  #FF3838,
-                  #FFF0F0
+    var(--foreground-error-primary, #d21a0e),
+    var(--border-error-subtle, rgba(233, 34, 21, 0.16)),
+    #ff3838,
+    #fff0f0
   );
 }
 
 .info {
   @include theme(
-                  var(--foreground-brand-primary, #1B4DFF),
-                  var(--border-brand-subtle, #AEBFFF),
-                  #1B4DFF,
-                  var(--background-brand-soft-surface, #F2F5FF)
+    var(--foreground-brand-primary, #1b4dff),
+    var(--border-brand-subtle, #aebfff),
+    #1b4dff,
+    var(--background-brand-soft-surface, #f2f5ff)
   );
 }
 
 .success {
   @include theme(
-                  var(--foreground-success-primary, #0A9952),
-                  var(--border-success-subtle, rgba(4, 135, 70, 0.32)),
-                  #0A9952,
-                  #E6F4ED
+    var(--foreground-success-primary, #0a9952),
+    var(--border-success-subtle, rgba(4, 135, 70, 0.32)),
+    #0a9952,
+    #e6f4ed
   );
 }
 
 .warning {
-  @include theme(
-                  var(--foreground-warning-primary, #B45309),
-                  var(--border-warning-subtle, #FDE68A),
-                  #D97706,
-                  #FEF5E6
-  );
+  @include theme(var(--foreground-warning-primary, #b45309), var(--border-warning-subtle, #fde68a), #d97706, #fef5e6);
 }

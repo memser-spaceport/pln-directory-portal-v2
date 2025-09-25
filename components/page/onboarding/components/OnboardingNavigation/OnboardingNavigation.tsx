@@ -55,7 +55,12 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
               Back
             </button>
             <span className={clsx(s.info)}>These details are needed for login and notifications.</span>
-            <button className={clsx(s.btn, s.primary)} onClick={handleNextClick} type="button" disabled={!!errors.name || !!errors.email}>
+            <button
+              className={clsx(s.btn, s.primary)}
+              onClick={handleNextClick}
+              type="button"
+              disabled={!!errors.name || !!errors.email}
+            >
               Next
             </button>
           </div>
@@ -67,7 +72,9 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
             <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick} type="button">
               Back
             </button>
-            <span className={clsx(s.info)}>Office Hours are times when you&apos;re available to connect with others in the network.</span>
+            <span className={clsx(s.info)}>
+              Office Hours are times when you&apos;re available to connect with others in the network.
+            </span>
             <button
               className={clsx(s.btn, s.primary)}
               type="submit"

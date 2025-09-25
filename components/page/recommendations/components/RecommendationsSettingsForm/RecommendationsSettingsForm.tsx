@@ -8,7 +8,10 @@ import { GeneralSettings } from '@/components/page/recommendations/components/Ge
 import { FineTuneMatches } from '@/components/page/recommendations/components/FineTuneMatches';
 import { IUserInfo } from '@/types/shared.types';
 import { RecommendationSettingsFormControls } from '@/components/page/recommendations/components/RecommendationSettingsFormControls';
-import { getInitialValues, recommendationsSettingsSchema } from '@/components/page/recommendations/components/RecommendationsSettingsForm/helpers';
+import {
+  getInitialValues,
+  recommendationsSettingsSchema,
+} from '@/components/page/recommendations/components/RecommendationsSettingsForm/helpers';
 import { useUpdateMemberNotificationsSettings } from '@/services/members/hooks/useUpdateMemberNotificationsSettings';
 import { useRouter } from 'next/navigation';
 

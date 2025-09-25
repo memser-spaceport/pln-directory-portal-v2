@@ -197,7 +197,6 @@ dialog {
 .asksec__allasks__ask__cont a {
   text-decoration: underline;
   color: blue;
-
 }
 
 .asks__tooltip__cnt__desc a {
@@ -424,31 +423,31 @@ dialog {
 
 .asks__tooltip {
   min-height: 50px;
-  width: 304px ;
-  background-color: #fff ;
+  width: 304px;
+  background-color: #fff;
   overflow: unset;
   padding: 12px;
   gap: 10px;
   border-radius: 12px;
   border: 1px solid;
   left: -9px;
-  border-image-source: linear-gradient(71.47deg, #427DFF 8.43%, #44D5BB 87.45%);
+  border-image-source: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
   position: relative;
   z-index: 3;
 }
 
 .asks__tooltip::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: 8px; 
+  border-radius: 8px;
   border: 1px solid transparent;
-  background: linear-gradient(71.47deg, #427DFF 8.43%, #44D5BB 87.45%) border-box;
+  background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
   -webkit-mask:
-    linear-gradient(#fff 0 0) padding-box, 
+    linear-gradient(#fff 0 0) padding-box,
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: destination-out;
   mask-composite: exclude;
@@ -551,7 +550,7 @@ dialog {
   /* home page husky text area  */
   .hec__content__box:focus-within:not(:has(.hec__content__box__search__button:focus)) {
     outline: none;
-    border-radius: 8px 8px 0px 0px ;
+    border-radius: 8px 8px 0px 0px;
     box-shadow: unset;
   }
 
@@ -583,4 +582,3 @@ dialog {
     }
   }
 }
-

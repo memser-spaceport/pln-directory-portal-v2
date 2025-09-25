@@ -24,7 +24,9 @@ export const ProfileLocationInput = () => {
           setValue('country', place.country ?? '', { shouldValidate: true, shouldDirty: true });
         }}
       />
-      <p className={s.hint}>Please share location details to receive invitations for the network events happening in your area.</p>
+      <p className={s.hint}>
+        Please share location details to receive invitations for the network events happening in your area.
+      </p>
     </div>
   );
 };

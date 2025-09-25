@@ -127,7 +127,9 @@ export const OnboardingWizard = ({ userInfo, memberData }: Props) => {
           >
             <div className={s.content}>
               <AnimatePresence mode="sync">
-                {step === 'welcome' && <WelcomeStep userInfo={userInfo} name={memberData?.memberInfo?.name} key="welcome" />}
+                {step === 'welcome' && (
+                  <WelcomeStep userInfo={userInfo} name={memberData?.memberInfo?.name} key="welcome" />
+                )}
                 {step === 'profile' && <ProfileStep userInfo={userInfo} key="profile" />}
                 {step === 'contacts' && <ContactsStep userInfo={userInfo} />}
                 {/*{step === 'expertise' && <ExpertiseStep userInfo={userInfo} />}*/}

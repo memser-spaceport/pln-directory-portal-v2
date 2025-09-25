@@ -9,7 +9,7 @@ type HuskyLimitStrip = {
   count: number;
   onDialogClose?: any;
   mode: 'blog' | 'chat';
-  from: string
+  from: string;
 };
 
 const HuskyLimitStrip = ({ type, count, onDialogClose, mode, from }: HuskyLimitStrip) => {
@@ -67,7 +67,7 @@ const HuskyLimitStrip = ({ type, count, onDialogClose, mode, from }: HuskyLimitS
             )}{' '}
             <span>
               <span onClick={onLoginClickHandler} role="a" className="link">
-                Log in
+                Sign in
               </span>{' '}
               or{' '}
               <span onClick={handleSignUpClick} role="a" className="link">

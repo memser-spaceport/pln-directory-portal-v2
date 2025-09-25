@@ -31,9 +31,11 @@
   flex-direction: column;
   border-radius: 16px 16px 0 0;
   width: 100%;
-  background: #156FF7;
+  background: #156ff7;
   overflow: hidden;
-  box-shadow: 0px 0px 1px 0px rgba(15, 23, 42, 0.12), 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04);
   padding: 4px;
 
   @include media.tablet-landscape {
@@ -64,7 +66,7 @@
 
 .top {
   position: relative;
-  background: #156FF7;
+  background: #156ff7;
   background-size: contain;
   flex: 1;
   display: flex;
@@ -77,8 +79,10 @@
 }
 
 .mainTitle {
-  color: #FFF;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #fff;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 600;
@@ -98,7 +102,7 @@
 }
 
 .desc {
-  color: rgba(255, 255, 255, 0.80);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
@@ -108,8 +112,8 @@
 
 .primaryBtn {
   border-radius: 8px;
-  border: 1px solid var(--Neutral-Slate-300, #CBD5E1);
-  background: var(--Button-surface-brand-button, #156FF7);
+  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
+  background: var(--Button-surface-brand-button, #156ff7);
 
   /* Button Shadow */
   box-shadow: 0px 1px 1px 0px rgba(15, 23, 42, 0.08);
@@ -122,8 +126,10 @@
   gap: 8px;
   align-self: stretch;
 
-  color: var(--Text-text-lightest, #FFF);
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: var(--Text-text-lightest, #fff);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
 
   /* Body 2/Medium */
   font-size: 14px;
@@ -152,7 +158,7 @@
   gap: 8px;
   align-self: stretch;
   border-radius: 8px;
-  background: var(--Neutral-White, #FFF);
+  background: var(--Neutral-White, #fff);
 }
 
 .controls {
@@ -178,7 +184,7 @@
   align-items: center;
   gap: 8px;
   border-radius: 12px;
-  background: #F8FAFC;
+  background: #f8fafc;
   transition: filter 0.2s ease;
 
   &:hover {
@@ -199,7 +205,7 @@
 
   .name {
     overflow: hidden;
-    color: var(--Neutral-Slate-900, #0F172A);
+    color: var(--Neutral-Slate-900, #0f172a);
     text-overflow: ellipsis;
     font-size: 12px;
     font-style: normal;

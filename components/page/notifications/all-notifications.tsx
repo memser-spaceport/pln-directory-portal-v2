@@ -28,7 +28,7 @@ const AllNotifications = (props: IAllNotifications) => {
         detail: {
           notification,
         },
-      })
+      }),
     );
   };
 
@@ -63,7 +63,14 @@ const AllNotifications = (props: IAllNotifications) => {
             <button className="allnotifins__empty__backbtn">
               <Link
                 onClick={onGoBackClickHandler}
-                style={{ height: 'inherit', width: 'inherit', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{
+                  height: 'inherit',
+                  width: 'inherit',
+                  textAlign: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
                 href={PAGE_ROUTES.TEAMS}
               >
                 Go Back Home
@@ -82,7 +89,11 @@ const AllNotifications = (props: IAllNotifications) => {
 
             <div>
               {notifications?.map((notification: any, index: number) => (
-                <button onClick={() => onNotificationClickHandler(notification)} className="allnot__body__ntifn" key={`notification-${index}`}>
+                <button
+                  onClick={() => onNotificationClickHandler(notification)}
+                  className="allnot__body__ntifn"
+                  key={`notification-${index}`}
+                >
                   <NotificationCard notification={notification} />
                 </button>
               ))}
@@ -173,8 +184,7 @@ const AllNotifications = (props: IAllNotifications) => {
           }
 
           .allnot__body__ntifn:hover {
-            background-color:  #F8FAFC;
-
+            background-color: #f8fafc;
           }
 
           @media (min-width: 1024px) {

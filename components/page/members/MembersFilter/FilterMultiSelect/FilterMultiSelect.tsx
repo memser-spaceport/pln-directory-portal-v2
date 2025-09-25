@@ -14,6 +14,7 @@ import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import s from '@/components/page/recommendations/components/MatchesSelector/MatchesSelector.module.scss';
 import mobileStyles from './FilterMultiSelect.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { getInitialValues as getInitialValuesFromUrl } from '@/components/page/members/MembersFilter/utils/getInitialValues';
 
 interface Props {
   label: string;
@@ -25,24 +26,31 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = useGetRoles, backLabel = 'Back', placement = 'auto', isDisabled }: Props) {
+export function FilterMultiSelect({
+  label,
+  placeholder,
+  paramKey,
+  useDataHook = useGetRoles,
+  backLabel = 'Back',
+  placement = 'auto',
+  isDisabled,
+}: Props) {
   const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [open, toggleOpen] = useToggle(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const isMobile = useMedia('(max-width: 960px)', false);
   const { params, setParam } = useFilterStore();
-  const { onMembersTopicsFilterSearched, onMembersRolesFilterSearched, onMembersTopicsFilterSelected, onMembersRolesFilterSelected } = useMemberAnalytics();
+  const {
+    onMembersTopicsFilterSearched,
+    onMembersRolesFilterSearched,
+    onMembersTopicsFilterSelected,
+    onMembersRolesFilterSelected,
+  } = useMemberAnalytics();
 
   // Get initial values from URL parameters
   const getInitialValues = () => {
-    const paramValue = params.get(paramKey);
-    if (!paramValue) return [];
-
-    return paramValue.split(URL_QUERY_VALUE_SEPARATOR).map((value) => ({
-      value: value.trim(),
-      label: value.trim(),
-    }));
+    return getInitialValuesFromUrl(params, paramKey);
   };
 
   const methods = useForm<Record<string, any[]>>({
@@ -157,9 +165,20 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
             </button>
           </div>
           <div className={mobileStyles.mobileSearchWrapper}>
-            <Input autoFocus className={mobileStyles.mobileSearchInput} placeholder={placeholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <Input
+              autoFocus
+              className={mobileStyles.mobileSearchInput}
+              placeholder={placeholder}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
             {searchTerm ? (
-              <button type="button" className={mobileStyles.clearSearchButton} onClick={() => setSearchTerm('')} aria-label="Clear search">
+              <button
+                type="button"
+                className={mobileStyles.clearSearchButton}
+                onClick={() => setSearchTerm('')}
+                aria-label="Clear search"
+              >
                 <CloseIcon />
               </button>
             ) : (
@@ -197,7 +216,11 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
               menuPlacement={options.length > 6 ? placement : 'bottom'}
               isMulti
               onInputChange={(value, actionMeta) => {
-                if (actionMeta.action !== 'input-blur' && actionMeta.action !== 'menu-close' && actionMeta.action !== 'set-value') {
+                if (
+                  actionMeta.action !== 'input-blur' &&
+                  actionMeta.action !== 'menu-close' &&
+                  actionMeta.action !== 'set-value'
+                ) {
                   if (paramKey === 'topics') {
                     onMembersTopicsFilterSearched({ page: 'Members', searchText: value });
                   } else if (paramKey === 'roles') {
@@ -313,7 +336,8 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                     borderRadius: 'var(--corner-radius-xl, 12px)',
                     border: '1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12))',
                     background: 'var(--background-base-white, #FFF)',
-                    boxShadow: '0 10px 20px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06)), 0 20px 65px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06))',
+                    boxShadow:
+                      '0 10px 20px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06)), 0 20px 65px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06))',
                   };
                 },
                 multiValueRemove: (base) => ({
@@ -360,7 +384,9 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                     >
                       <div className={mobileStyles.optionContent}>
                         <div className={mobileStyles.optionLabel}>{props.data.label}</div>
-                        {props.data.description && <div className={mobileStyles.optionDesc}>{props.data.description}</div>}
+                        {props.data.description && (
+                          <div className={mobileStyles.optionDesc}>{props.data.description}</div>
+                        )}
                       </div>
                       <div className={mobileStyles.optionRight}>
                         {count > 0 && <span className={mobileStyles.countBadge}>{count}</span>}
@@ -470,7 +496,14 @@ const CloseIcon = () => (
 );
 
 const SearchIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className={mobileStyles.searchIcon}>
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 20 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={mobileStyles.searchIcon}
+  >
     <g clipPath="url(#clip0_3455_13280)">
       <path
         fillRule="evenodd"

@@ -27,7 +27,7 @@ describe('AllTeamsModal', () => {
         project={project}
         onMaintainerTeamClicked={onMaintainerTeamClickedMock}
         onContributingTeamClicked={onContributingTeamClickedMock}
-      />
+      />,
     );
 
     expect(screen.getByText('Teams (3)')).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe('AllTeamsModal', () => {
   it('should render the modal with only maintaining team', () => {
     const projectWithEmptyTeamList = {
       ...project,
-      contributingTeams: null
+      contributingTeams: null,
     };
     render(
       <AllTeamsModal
@@ -47,7 +47,7 @@ describe('AllTeamsModal', () => {
         project={projectWithEmptyTeamList}
         onMaintainerTeamClicked={onMaintainerTeamClickedMock}
         onContributingTeamClicked={onContributingTeamClickedMock}
-      />
+      />,
     );
 
     expect(screen.getByText('Teams (1)')).toBeInTheDocument();
@@ -61,7 +61,7 @@ describe('AllTeamsModal', () => {
         project={project}
         onMaintainerTeamClicked={onMaintainerTeamClickedMock}
         onContributingTeamClicked={onContributingTeamClickedMock}
-      />
+      />,
     );
 
     const closeButton = screen.getByAltText('close');
@@ -77,7 +77,7 @@ describe('AllTeamsModal', () => {
         project={project}
         onMaintainerTeamClicked={onMaintainerTeamClickedMock}
         onContributingTeamClicked={onContributingTeamClickedMock}
-      />
+      />,
     );
 
     const searchInput = screen.getByPlaceholderText('Search');
@@ -94,7 +94,7 @@ describe('AllTeamsModal', () => {
         project={project}
         onMaintainerTeamClicked={onMaintainerTeamClickedMock}
         onContributingTeamClicked={onContributingTeamClickedMock}
-      />
+      />,
     );
 
     const maintainingTeam = screen.getByText('Maintaining Team');
@@ -110,7 +110,7 @@ describe('AllTeamsModal', () => {
         project={project}
         onMaintainerTeamClicked={onMaintainerTeamClickedMock}
         onContributingTeamClicked={onContributingTeamClickedMock}
-      />
+      />,
     );
 
     const contributingTeam = screen.getByText('Contributing Team 1');
@@ -135,7 +135,7 @@ describe('AllTeamsModal', () => {
         project={projectWithEmptyLogo}
         onMaintainerTeamClicked={onMaintainerTeamClickedMock}
         onContributingTeamClicked={onContributingTeamClickedMock}
-      />
+      />,
     );
 
     const targetImage = container.querySelector('img[src="/icons/team-default-profile.svg"]');
@@ -151,7 +151,7 @@ describe('AllTeamsModal', () => {
         project={project}
         onMaintainerTeamClicked={onMaintainerTeamClickedMock}
         onContributingTeamClicked={onContributingTeamClickedMock}
-      />
+      />,
     );
 
     const showModalEvent = new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE, { detail: true });
@@ -171,7 +171,7 @@ describe('AllTeamsModal', () => {
         project={project}
         onMaintainerTeamClicked={onMaintainerTeamClickedMock}
         onContributingTeamClicked={onContributingTeamClickedMock}
-      />
+      />,
     );
 
     const closeModalEvent = new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE, { detail: false });

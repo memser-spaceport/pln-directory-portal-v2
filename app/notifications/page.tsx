@@ -9,12 +9,12 @@ import { redirect } from 'next/navigation';
 import styles from './page.module.css';
 
 async function Notifications({ searchParams }: { searchParams: any }) {
-  const { isError, userInfo, notifications, isLoggedIn, authToken} = await getPageData();
+  const { isError, userInfo, notifications, isLoggedIn, authToken } = await getPageData();
 
-  if(!isLoggedIn) {
+  if (!isLoggedIn) {
     redirect(PAGE_ROUTES.HOME);
   }
-  
+
   if (isError) {
     return <Error />;
   }
@@ -38,7 +38,7 @@ async function getPageData() {
   let isError = false;
 
   try {
-    const response = await getFollowUps(userInfo.uid ?? '', authToken, "PENDING,CLOSED");
+    const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING,CLOSED');
     const result = response?.data ?? [];
     if (result?.error) {
       return {

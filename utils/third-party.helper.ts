@@ -26,7 +26,7 @@ export const removeCookie = (name: string) => {
   if (process.env.COOKIE_DOMAIN) {
     Cookies.remove(name, {
       path: '/',
-      domain: process.env.COOKIE_DOMAIN
+      domain: process.env.COOKIE_DOMAIN,
     });
   }
 };
@@ -62,4 +62,4 @@ export const getCookiesFromClient = () => {
   const refreshToken = Cookies.get('refreshToken')?.replace(/"/g, '');
   const userInfo = getUserInfo();
   return { authToken, refreshToken, userInfo };
-}
+};

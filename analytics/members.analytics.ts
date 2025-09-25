@@ -100,7 +100,12 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_ADD_EXPERIENCE_CLICKED, params);
   }
 
-  function onSocialProfileLinkClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, type: string, link: string) {
+  function onSocialProfileLinkClicked(
+    user: IAnalyticsUserInfo | null,
+    member: IAnalyticsMemberInfo | null,
+    type: string,
+    link: string,
+  ) {
     const params = {
       user,
       ...member,
@@ -127,7 +132,11 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_TEAMS_SEE_ALL_CLICKED, params);
   }
 
-  function onTeamClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, team: IAnalyticsTeamInfo | null) {
+  function onTeamClicked(
+    user: IAnalyticsUserInfo | null,
+    member: IAnalyticsMemberInfo | null,
+    team: IAnalyticsTeamInfo | null,
+  ) {
     const params = {
       user,
       ...member,
@@ -144,7 +153,11 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_SEE_ALL_CLICKED, params);
   }
 
-  function onProjectClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, project: IAnalyticsProjectInfo | null) {
+  function onProjectClicked(
+    user: IAnalyticsUserInfo | null,
+    member: IAnalyticsMemberInfo | null,
+    project: IAnalyticsProjectInfo | null,
+  ) {
     const params = {
       user,
       ...member,
@@ -332,7 +345,12 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_SAVE_CLICKED, params);
   }
 
-  function recordBioSave(type: string, member: IAnalyticsMemberInfo | null, user: IAnalyticsUserInfo | null, payload?: any) {
+  function recordBioSave(
+    type: string,
+    member: IAnalyticsMemberInfo | null,
+    user: IAnalyticsUserInfo | null,
+    payload?: any,
+  ) {
     const params = {
       type,
       user,
@@ -356,7 +374,12 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS, params);
   }
 
-  function onEditExperienceSaveClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, experience: any, status: string) {
+  function onEditExperienceSaveClicked(
+    user: IAnalyticsUserInfo | null,
+    member: IAnalyticsMemberInfo | null,
+    experience: any,
+    status: string,
+  ) {
     const params = {
       user,
       ...member,
@@ -366,7 +389,12 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_EXPERIENCE_SAVE_CLICKED, params);
   }
 
-  function onAddExperienceSaveClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, experience: any, status: string) {
+  function onAddExperienceSaveClicked(
+    user: IAnalyticsUserInfo | null,
+    member: IAnalyticsMemberInfo | null,
+    experience: any,
+    status: string,
+  ) {
     const params = {
       user,
       ...member,
@@ -376,7 +404,12 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_ADD_EXPERIENCE_SAVE_CLICKED, params);
   }
 
-  function onDeleteExperienceSaveClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, experience: any, status: string) {
+  function onDeleteExperienceSaveClicked(
+    user: IAnalyticsUserInfo | null,
+    member: IAnalyticsMemberInfo | null,
+    experience: any,
+    status: string,
+  ) {
     const params = {
       user,
       ...member,
@@ -390,7 +423,14 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_EXPLORE_PL_NETWORK_CLICKED, params);
   }
 
-  function onOpenProfileByRecommendationEmailLink(utmSource: string, utmMedium: string, utmCode: string, recommendedMember: string, targetId: string, targetEmail: string) {
+  function onOpenProfileByRecommendationEmailLink(
+    utmSource: string,
+    utmMedium: string,
+    utmCode: string,
+    recommendedMember: string,
+    targetId: string,
+    targetEmail: string,
+  ) {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_BY_RECOMMENDATION_EMAIL_LINK, {
       utmSource,
       utmMedium,

@@ -23,7 +23,17 @@ interface MessagesProps {
   threadId?: string;
 }
 
-const Messages: React.FC<MessagesProps> = ({ messages, onFollowupClicked, isAnswerLoading, onFeedback, onRegenerate, onQuestionEdit, onCopyAnswer, isLoadingObject, threadId }) => {
+const Messages: React.FC<MessagesProps> = ({
+  messages,
+  onFollowupClicked,
+  isAnswerLoading,
+  onFeedback,
+  onRegenerate,
+  onQuestionEdit,
+  onCopyAnswer,
+  isLoadingObject,
+  threadId,
+}) => {
   return (
     <>
       <div className="chat__messages">

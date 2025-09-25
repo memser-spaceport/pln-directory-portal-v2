@@ -38,7 +38,9 @@ export const FormMultiSelect = ({ name, placeholder, label, description, options
   const val = values[name as keyof TRecommendationsSettingsForm] as { value: string; label: string }[];
 
   // Sort filtered options by label dynamically
-  const sortedOptions = [...options].filter((option) => filterAndSort(option, inputValue)).sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase()));
+  const sortedOptions = [...options]
+    .filter((option) => filterAndSort(option, inputValue))
+    .sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase()));
 
   useScrollIntoViewOnFocus<HTMLInputElement>({ id: name });
 

@@ -39,7 +39,9 @@ const Funding = (props: IFunding) => {
                 />
               </Fragment>
             ))}
-            {accelerataorPrograms?.length === 0 && <p className="funding__seriescontainer__membership-source-container_notavai">Not available</p>}
+            {accelerataorPrograms?.length === 0 && (
+              <p className="funding__seriescontainer__membership-source-container_notavai">Not available</p>
+            )}
           </div>
         </div>
       </div>

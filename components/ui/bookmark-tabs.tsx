@@ -17,7 +17,11 @@ const BookmarkTabs: React.FC<BookmarkTabsProps> = ({ tabItems, activeTab, onTabS
     <>
       <div className="bookmark-tabs">
         {tabItems.map(({ key, displayText, image }) => (
-          <div key={key} className={`bookmark-tabs__item ${key === activeTab ? 'bookmark-tabs__item--active' : ''}`} onClick={() => onTabSelect(key)}>
+          <div
+            key={key}
+            className={`bookmark-tabs__item ${key === activeTab ? 'bookmark-tabs__item--active' : ''}`}
+            onClick={() => onTabSelect(key)}
+          >
             {image && <img src={image} alt={displayText} className="tab-icon" />} {/* Render image if provided */}
             {displayText}
           </div>
@@ -28,7 +32,6 @@ const BookmarkTabs: React.FC<BookmarkTabsProps> = ({ tabItems, activeTab, onTabS
           display: flex;
           border-bottom: 1px solid #cbd5e1;
           padding: 0 16px;
-          
         }
         .bookmark-tabs__item {
           display: flex;
@@ -43,14 +46,14 @@ const BookmarkTabs: React.FC<BookmarkTabsProps> = ({ tabItems, activeTab, onTabS
           line-height: 16px;
           letter-spacing: 0em;
           text-align: left;
-          color: #64748B;
+          color: #64748b;
         }
         .bookmark-tabs__item--active {
           background-color: #ffffff;
-          color: #156FF7;
-          border-left: 1px solid #E2E8F0;
-          border-top: 1px solid #E2E8F0;
-          border-right: 1px solid #E2E8F0;
+          color: #156ff7;
+          border-left: 1px solid #e2e8f0;
+          border-top: 1px solid #e2e8f0;
+          border-right: 1px solid #e2e8f0;
           border-bottom: 1px solid transparent;
           margin-bottom: -1px;
         }

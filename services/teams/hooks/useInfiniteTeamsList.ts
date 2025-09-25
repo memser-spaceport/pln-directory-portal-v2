@@ -34,7 +34,18 @@ export function useInfiniteTeamsList(
 ) {
   const queryClient = useQueryClient();
 
-  const { isRefetching, data, error, isError, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, status, refetch } = useInfiniteQuery({
+  const {
+    isRefetching,
+    data,
+    error,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isLoading,
+    isFetchingNextPage,
+    status,
+    refetch,
+  } = useInfiniteQuery({
     queryKey: [TeamsQueryKeys.GET_TEAMS_LIST, queryParams.searchParams],
     initialPageParam: 1,
     queryFn: async ({ pageParam = 1 }) => {

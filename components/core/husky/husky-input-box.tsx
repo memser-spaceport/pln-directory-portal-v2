@@ -24,9 +24,8 @@ function HuskyInputBox(props: any) {
 
   const isLoadingObject = props?.isLoadingObject;
   const stopStreaming = props.stop;
-  const question = props?.question ?? ''
+  const question = props?.question ?? '';
   const isLoadingObjectRef = useRef(isLoadingObject);
-
 
   // Handles the submission of text input
   const onTextSubmit = async () => {
@@ -57,9 +56,9 @@ function HuskyInputBox(props: any) {
   };
 
   const onStopStreaming = () => {
-    trackHuskyChatStopBtnClicked(question)
+    trackHuskyChatStopBtnClicked(question);
     stopStreaming();
-  }
+  };
 
   useEffect(() => {
     // Handles keydown events for input submission
@@ -127,23 +126,39 @@ function HuskyInputBox(props: any) {
       <div className={`huskyinput`} data-testid="husky-input-box">
         <img width={24} height={24} className="huskyinput__img" src="/images/husky-brain.png" alt="Husky Brain" />
         <div className="huskyinput__itemcn" data-testid="husky-input-container">
-          <div ref={inputRef} data-placeholder="Ask a follow up..." contentEditable={true} className="huskyinput__itemcn__textbox" tabIndex={0} data-testid="husky-input-textbox"></div>
+          <div
+            ref={inputRef}
+            data-placeholder="Ask a follow up..."
+            contentEditable={true}
+            className="huskyinput__itemcn__textbox"
+            tabIndex={0}
+            data-testid="husky-input-textbox"
+          ></div>
           {!isMobileDevice() && (
             <div className="huskyinput__itemcn__instruction">
               <p>
-                <span className="huskyinput__itemcn__instruction__tag">Shift</span> + <span className="huskyinput__itemcn__instruction__tag">Enter</span> for new line
+                <span className="huskyinput__itemcn__instruction__tag">Shift</span> +{' '}
+                <span className="huskyinput__itemcn__instruction__tag">Enter</span> for new line
               </p>
             </div>
           )}
         </div>
         <div className="huskyinput__action">
           {isAnswerLoading ? (
-            <div onClick={onTextSubmit} title="Please wait till response is generated." className={`huskyinput__action__submit huskyinput__action__submit--disabled`}>
-            <img className="huskyinput__action__submit__btn" src="/icons/send.svg" alt="Send" />
-          </div>
+            <div
+              onClick={onTextSubmit}
+              title="Please wait till response is generated."
+              className={`huskyinput__action__submit huskyinput__action__submit--disabled`}
+            >
+              <img className="huskyinput__action__submit__btn" src="/icons/send.svg" alt="Send" />
+            </div>
           ) : isLoadingObject ? (
-            <button onClick={onStopStreaming} title="Stop" className="huskyinput__action__submit huskyinput__action__submit--loading">
-                <div className="huskyinput__action__submit__loadingCn" />
+            <button
+              onClick={onStopStreaming}
+              title="Stop"
+              className="huskyinput__action__submit huskyinput__action__submit--loading"
+            >
+              <div className="huskyinput__action__submit__loadingCn" />
             </button>
           ) : isLimitReached ? (
             <div onClick={onTextSubmit} className={`huskyinput__action__submit huskyinput__action__submit--disabled`}>

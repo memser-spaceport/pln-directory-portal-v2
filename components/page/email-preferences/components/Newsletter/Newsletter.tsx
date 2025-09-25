@@ -36,7 +36,12 @@ export const Newsletter = ({ userInfo }: { userInfo: IUserInfo }) => {
       <div className={s.content}>
         <label className={clsx(s.Label, s.toggle)}>
           Subscribe to PL Newsletter
-          <Switch.Root defaultChecked className={s.Switch} checked={data?.memberInfo.isSubscribedToNewsletter} onCheckedChange={handleChange}>
+          <Switch.Root
+            defaultChecked
+            className={s.Switch}
+            checked={data?.memberInfo.isSubscribedToNewsletter}
+            onCheckedChange={handleChange}
+          >
             <Switch.Thumb className={s.Thumb}>
               <div className={s.dot} />
             </Switch.Thumb>

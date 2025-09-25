@@ -16,7 +16,6 @@ import { signupSchema } from '@/components/page/sign-up/components/SignupWizard/
 import { FormField } from '@/components/form/FormField';
 import { ProfileImageInput } from '@/components/page/sign-up/components/ProfileImageInput';
 import { Field } from '@base-ui-components/react/field';
-import { Checkbox } from '@base-ui-components/react/checkbox';
 import { getRecaptchaToken } from '@/services/google-recaptcha.service';
 import { toast } from '@/components/core/ToastContainer';
 import { isSkipRecaptcha } from '@/utils/common.utils';
@@ -24,6 +23,7 @@ import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 import SearchWithSuggestions from '@/components/form/suggestions';
 import { useSignup } from '@/services/signup/hooks/useSignup';
 import { GROUP_TYPES } from '@/utils/constants';
+import { Checkbox } from '@/components/common/Checkbox';
 
 import { TERMS_OF_SERVICE_AND_PRIVACY_URL } from './constants';
 
@@ -121,7 +121,9 @@ export const SignupWizard = ({ onClose }: Props) => {
       // toast.success('Thank you for signing up! Your profile is currently under review. You’ll receive an email as soon as it’s approved.');
 
       // todo - use case C
-      router.replace(`${window.location.origin}/members/${res.data.uid}?prefillEmail=${encodeURIComponent(payload.email)}&returnTo=members-${res.data.uid}#login`);
+      router.replace(
+        `${window.location.origin}/members/${res.data.uid}?prefillEmail=${encodeURIComponent(payload.email)}&returnTo=members-${res.data.uid}#login`,
+      );
 
       setTimeout(() => {
         if (onClose) {
@@ -190,19 +192,17 @@ export const SignupWizard = ({ onClose }: Props) => {
                 </div>
                 <div className={s.col}>
                   <label className={s.Label}>
-                    <Checkbox.Root className={s.Checkbox} checked={subscribe} onCheckedChange={(val) => setValue('subscribe', val, { shouldValidate: true })}>
-                      <Checkbox.Indicator className={s.Indicator}>
-                        <CheckIcon className={s.Icon} />
-                      </Checkbox.Indicator>
-                    </Checkbox.Root>
+                    <Checkbox
+                      checked={subscribe}
+                      onChange={(v) => setValue('subscribe', v, { shouldValidate: true })}
+                    />
                     <div className={s.primary}>Subscribe to PL Newsletter</div>
                   </label>
                   <label className={s.Label}>
-                    <Checkbox.Root className={s.Checkbox} checked={agreed} onCheckedChange={(val) => setValue('agreed', val as true, { shouldValidate: true })}>
-                      <Checkbox.Indicator className={s.Indicator}>
-                        <CheckIcon className={s.Icon} />
-                      </Checkbox.Indicator>
-                    </Checkbox.Root>
+                    <Checkbox
+                      checked={agreed}
+                      onChange={(v) => setValue('agreed', v as true, { shouldValidate: true })}
+                    />
                     <div className={s.primary}>
                       I agree to Protocol Labs{' '}
                       <a href={TERMS_OF_SERVICE_AND_PRIVACY_URL} target="_blank">
@@ -213,11 +213,16 @@ export const SignupWizard = ({ onClose }: Props) => {
                 </div>
 
                 <p className={s.hint}>
-                  You also allow Protocol Labs and companies within the network to contact you for events and opportunities within the network. Your information may only be shared with verified
-                  network members and will not be available to any individuals or entities outside the network.
+                  You also allow Protocol Labs and companies within the network to contact you for events and
+                  opportunities within the network. Your information may only be shared with verified network members
+                  and will not be available to any individuals or entities outside the network.
                 </p>
 
-                <button type="submit" className={s.actionButton} disabled={isSubmitting || !agreed || (submitCount > 0 && !isValid)}>
+                <button
+                  type="submit"
+                  className={s.actionButton}
+                  disabled={isSubmitting || !agreed || (submitCount > 0 && !isValid)}
+                >
                   {isSubmitting ? (
                     <>
                       <LoaderIcon /> <span>Creating profile</span>
@@ -231,17 +236,12 @@ export const SignupWizard = ({ onClose }: Props) => {
           </FormProvider>
         </div>
       </div>
-      <Script src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`} strategy="lazyOnload"></Script>
+      <Script
+        src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`}
+        strategy="lazyOnload"
+      ></Script>
     </>
   );
 };
 
 const LoaderIcon = () => <div className={s.loader} />;
-
-function CheckIcon(props: React.ComponentProps<'svg'>) {
-  return (
-    <svg fill="currentcolor" width="10" height="10" viewBox="0 0 10 10" {...props}>
-      <path d="M9.1603 1.12218C9.50684 1.34873 9.60427 1.81354 9.37792 2.16038L5.13603 8.66012C5.01614 8.8438 4.82192 8.96576 4.60451 8.99384C4.3871 9.02194 4.1683 8.95335 4.00574 8.80615L1.24664 6.30769C0.939709 6.02975 0.916013 5.55541 1.19372 5.24822C1.47142 4.94102 1.94536 4.91731 2.2523 5.19524L4.36085 7.10461L8.12299 1.33999C8.34934 0.993152 8.81376 0.895638 9.1603 1.12218Z" />
-    </svg>
-  );
-}

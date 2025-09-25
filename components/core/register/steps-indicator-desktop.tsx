@@ -29,10 +29,20 @@ function StepsIndicatorDesktop(props: any) {
           {filteredSteps.map((step: string, index: number) => (
             <li className={`mri__stepsd__item`} key={`register-step-desktop-${index}`}>
               <div className="mri__stepsd__item__icon">
-                <img className="mri__stepsd__item__icon__img" src={getStepImageSrc(index)} alt="step icon" width="24" height="24" />
+                <img
+                  className="mri__stepsd__item__icon__img"
+                  src={getStepImageSrc(index)}
+                  alt="step icon"
+                  width="24"
+                  height="24"
+                />
                 {currentStepIndex <= index && <p className="mri__stepsd__item__icon__text">{index + 1}</p>}
               </div>
-              <p className={`mri__stepsd__item__text ${index === currentStepIndex || currentStepIndex > index ? 'active--step' : ''}`}>{step}</p>
+              <p
+                className={`mri__stepsd__item__text ${index === currentStepIndex || currentStepIndex > index ? 'active--step' : ''}`}
+              >
+                {step}
+              </p>
             </li>
           ))}
         </ul>

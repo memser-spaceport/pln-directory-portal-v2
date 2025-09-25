@@ -9,11 +9,17 @@ interface HuskyChatSuggestionsProps {
   isLoadingObject: boolean;
 }
 
-function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowupClicked, isAnswerLoading, isLoadingObject }: HuskyChatSuggestionsProps) {
+function HuskyChatSuggestions({
+  followupQuestions = [],
+  chatIndex = 0,
+  onFollowupClicked,
+  isAnswerLoading,
+  isLoadingObject,
+}: HuskyChatSuggestionsProps) {
   // Handles the click event for a follow-up question.
   // If an answer is loading, it prevents further actions.
   const onQuestionClicked = (question: string) => {
-    if(isAnswerLoading || isLoadingObject) {
+    if (isAnswerLoading || isLoadingObject) {
       return;
     }
     if (onFollowupClicked) {
@@ -32,10 +38,10 @@ function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowu
         </h3>
         <div className="chat__suggestions__list" data-testid="suggestions-list">
           {followupQuestions.map((ques: any, index: number) => (
-            <p 
-              onClick={() => onQuestionClicked(ques)} 
-              key={`${chatIndex}-follow-up-question-${index}`} 
-              className="chat__suggestions__list__item" 
+            <p
+              onClick={() => onQuestionClicked(ques)}
+              key={`${chatIndex}-follow-up-question-${index}`}
+              className="chat__suggestions__list__item"
               data-testid={`follow-up-question-${index}`}
             >
               {ques}
@@ -46,7 +52,7 @@ function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowu
       <style jsx>
         {`
           .chat__suggestions {
-           width: 100%;
+            width: 100%;
           }
           .chat__suggestions__title {
             font-size: 14px;

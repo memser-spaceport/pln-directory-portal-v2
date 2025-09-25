@@ -17,10 +17,40 @@ interface Props {
   type?: 'text' | 'number';
   flushIcon?: ReactNode;
   onImplictFlush?: () => void;
+  hideFlushIconOnValueInput?: boolean;
+  clearIcon?: ReactNode;
+  classes?: {
+    root?: string;
+    input?: string;
+    clearBtn?: string;
+    flushBtn?: string;
+  };
+  ids?: {
+    root?: string;
+    input?: string;
+  };
 }
 
-export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, placeholder, type, onlyNumbers, flushIcon, onImplictFlush, onFocus, onClick, ...rest }) => {
+export const DebouncedInput: FC<Props> = ({
+  ids,
+  value,
+  classes,
+  onChange,
+  clearIcon,
+  onBlur,
+  disabled,
+  placeholder,
+  type,
+  hideFlushIconOnValueInput = false,
+  onlyNumbers,
+  flushIcon,
+  onImplictFlush,
+  onFocus,
+  onClick,
+  ...rest
+}) => {
   const [localValue, setLocalValue] = useState(value);
+  const hideFlushIcon = hideFlushIconOnValueInput && !!localValue;
 
   const debouncedChange = useMemo(
     () =>
@@ -63,9 +93,9 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
   }, [value]);
 
   return (
-    <div className={s.root} id="application-search-input-root">
+    <div className={clsx(s.root, classes?.root)} id={ids?.root ?? 'application-search-input-root'}>
       <input
-        id="application-search-input"
+        id={ids?.input ?? 'application-search-input'}
         type="text"
         value={localValue}
         onKeyPress={handleKeyPress}
@@ -76,6 +106,7 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
           setLocalValue(val);
           debouncedChange(val);
         }}
+        className={classes?.input}
         onClick={onClick}
         onBlur={onBlur}
         onFocus={onFocus}
@@ -86,8 +117,8 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
       {localValue && (
         <button
           id="application-search-clear"
-          className={clsx(s.clearButton, {
-            [s.singleView]: !flushIcon,
+          className={clsx(s.clearButton, classes?.clearBtn, {
+            [s.singleView]: !flushIcon || hideFlushIcon,
           })}
           onClick={() => {
             debouncedChange.cancel();
@@ -95,13 +126,22 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
             onChange('');
           }}
         >
-          <Image src="/icons/close-gray.svg" alt="Search" width={20} height={20} style={{ pointerEvents: 'none' }} id="application-search-clear-icon" />
+          {clearIcon || (
+            <Image
+              src="/icons/close-gray.svg"
+              alt="Search"
+              width={20}
+              height={20}
+              style={{ pointerEvents: 'none' }}
+              id="application-search-clear-icon"
+            />
+          )}
         </button>
       )}
-      {flushIcon && (
+      {flushIcon && !hideFlushIcon && (
         <button
           id="application-search-flush"
-          className={s.flushButton}
+          className={clsx(s.flushButton, classes?.flushBtn)}
           onClick={() => {
             debouncedChange.flush();
             onImplictFlush?.();

@@ -38,7 +38,15 @@ interface Chat {
 
 // This component represents the Husky AI interface, allowing users to interact with the AI in chat or blog modes.
 
-function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose, searchText, huskySource }: HuskyAiProps) {
+function HuskyAi({
+  mode = 'chat',
+  initialChats = [],
+  isLoggedIn,
+  blogId,
+  onClose,
+  searchText,
+  huskySource,
+}: HuskyAiProps) {
   const [chats, setChats] = useState<Chat[]>(initialChats); // list of chats
   const [isLoading, setLoadingStatus] = useState<boolean>(false); // feedback loading
   const [isAnswerLoading, setAnswerLoadingStatus] = useState<boolean>(false);
@@ -47,8 +55,17 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   const [selectedSource, setSelectedSource] = useState<string>('none'); //currently selected source
   const chatCnRef = useRef<HTMLDivElement>(null);
   // track analytics
-  const { trackUserPrompt, trackAnswerCopy, trackFollowupQuestionClick, trackQuestionEdit, trackRegenerate, trackCopyUrl, trackFeedbackClick, trackAiResponse, trackDisoverHuskyChatStopBtnClicked } =
-    useHuskyAnalytics();
+  const {
+    trackUserPrompt,
+    trackAnswerCopy,
+    trackFollowupQuestionClick,
+    trackQuestionEdit,
+    trackRegenerate,
+    trackCopyUrl,
+    trackFeedbackClick,
+    trackAiResponse,
+    trackDisoverHuskyChatStopBtnClicked,
+  } = useHuskyAnalytics();
   const initialRunRef = useRef(false); // ref for prevent api call second time
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest' | 'close'>(); // daily limit
   const [question, setQuestion] = useState('');
@@ -109,7 +126,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             name: z.string(),
             directoryLink: z.string(),
             type: z.string(),
-          })
+          }),
         )
         .optional(),
     }),
@@ -403,7 +420,15 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
           <div className="huskyai__footer">
             <div className="huskyai__footer__strip">
-              {limitReached && limitReached !== 'close' && <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} onDialogClose={onClose} type={limitReached} from="husky-chat" />}
+              {limitReached && limitReached !== 'close' && (
+                <HuskyLimitStrip
+                  mode="chat"
+                  count={DAILY_CHAT_LIMIT - getChatCount()}
+                  onDialogClose={onClose}
+                  type={limitReached}
+                  from="husky-chat"
+                />
+              )}
             </div>
             {chats.length !== 0 && (
               <div className="huskyai__input" data-testid="input-box">
@@ -443,7 +468,13 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             {isAnswerLoading && <HuskyAnswerLoader data-testid="blog-answer-loader" />}
             {limitReached && limitReached !== 'close' && (
               <div className="huskyai__cn__strip">
-                <HuskyLimitStrip mode="blog" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} onDialogClose={onClose} from="discover-blog" />
+                <HuskyLimitStrip
+                  mode="blog"
+                  count={DAILY_CHAT_LIMIT - getChatCount()}
+                  type={limitReached}
+                  onDialogClose={onClose}
+                  from="discover-blog"
+                />
               </div>
             )}
           </div>
@@ -452,7 +483,13 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
       {feedbackQandA.answer && feedbackQandA.question && (
         <div className="feedback-popup" data-testid="feedback-popup">
-          <HuskyFeedback forceUserLogin={forceUserLogin} setLoadingStatus={setLoadingStatus} question={feedbackQandA.question} answer={feedbackQandA.answer} onClose={onCloseFeedback} />
+          <HuskyFeedback
+            forceUserLogin={forceUserLogin}
+            setLoadingStatus={setLoadingStatus}
+            question={feedbackQandA.question}
+            answer={feedbackQandA.answer}
+            onClose={onCloseFeedback}
+          />
         </div>
       )}
 

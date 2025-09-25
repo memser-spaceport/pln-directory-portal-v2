@@ -91,7 +91,11 @@ function Navbar(props: Readonly<INavbar>) {
             <ul className={s.GridLinkList}>
               {directoryLinks.map((item) => (
                 <li key={item.href}>
-                  <Link className={s.LinkCard} href={item.href} onClick={() => onNavItemClickHandler(item.href, item.title)}>
+                  <Link
+                    className={s.LinkCard}
+                    href={item.href}
+                    onClick={() => onNavItemClickHandler(item.href, item.title)}
+                  >
                     {item.icon}
                     <div className={s.linkDetails}>
                       <h3 className={s.LinkTitle}>{item.title}</h3>
@@ -114,24 +118,39 @@ function Navbar(props: Readonly<INavbar>) {
           </Link>
         </NavigationMenu.Item>
         <div className={s.right}>
-          <NotificationsMenu isMobileView notifications={notifications} open={showNotifications} onClose={() => setShowNotifications(false)} userInfo={userInfo} />
+          <NotificationsMenu
+            isMobileView
+            notifications={notifications}
+            open={showNotifications}
+            onClose={() => setShowNotifications(false)}
+            userInfo={userInfo}
+          />
           <ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
-          {isLoggedIn && <AccountMenu userInfo={userInfo} authToken={authToken} isLoggedIn profileFilledPercent={profileStatus?.completeness} />}
+          <a target="_blank" href={process.env.GET_SUPPORT_URL ?? ''} className={s.IconTrigger}>
+            <HelpIcon />
+          </a>
+          {isLoggedIn && (
+            <AccountMenu
+              userInfo={userInfo}
+              authToken={authToken}
+              isLoggedIn
+              profileFilledPercent={profileStatus?.completeness}
+            />
+          )}
           {!isLoggedIn && (
-            <>
-              <a target="_blank" href={process.env.GET_SUPPORT_URL ?? ''} className={s.IconTrigger}>
-                <HelpIcon />
-              </a>
-              <div className={s.signInWrapper}>
-                <Signup />
-                <LoginBtn />
-              </div>
-            </>
+            <div className={s.signInWrapper}>
+              <Signup />
+              <LoginBtn />
+            </div>
           )}
         </div>
       </NavigationMenu.List>
       <NavigationMenu.Portal>
-        <NavigationMenu.Positioner className={s.Positioner} sideOffset={10} collisionPadding={{ top: 5, bottom: 5, left: 20, right: 20 }}>
+        <NavigationMenu.Positioner
+          className={s.Positioner}
+          sideOffset={10}
+          collisionPadding={{ top: 5, bottom: 5, left: 20, right: 20 }}
+        >
           <NavigationMenu.Popup className={s.Popup}>
             <NavigationMenu.Viewport className={s.Viewport} />
           </NavigationMenu.Popup>

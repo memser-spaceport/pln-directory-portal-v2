@@ -30,7 +30,17 @@ export const TeamsList = ({ isEditable, onAdd, onEdit, member }: Props) => {
         <ul className={s.list}>
           {member.teams?.map((item) => (
             <li key={item.id} className={s.expItem}>
-              {item.logo ? <Image src={item.logo ?? '/icons/default-project.svg'} alt={item.name ?? ''} width={40} height={40} className={s.logo} /> : <ExpIcon />}
+              {item.logo ? (
+                <Image
+                  src={item.logo ?? '/icons/default-project.svg'}
+                  alt={item.name ?? ''}
+                  width={40}
+                  height={40}
+                  className={s.logo}
+                />
+              ) : (
+                <ExpIcon />
+              )}
               <div className={s.details}>
                 <div className={s.row}>
                   <Link href={`/teams/${item.id}`} className={s.primaryLabel}>

@@ -41,7 +41,12 @@ const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean
     recommendationsEnabled = notificationSettings.recommendationsEnabled;
   }
 
-  return { memberDetails: memberResponse, preferences, notificationSettings: _notificationSettings, recommendationsEnabled };
+  return {
+    memberDetails: memberResponse,
+    preferences,
+    notificationSettings: _notificationSettings,
+    recommendationsEnabled,
+  };
 };
 
 async function RecommendationsPage({ searchParams }: { searchParams: any }) {
@@ -56,7 +61,11 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
   const isAdmin = roles.includes('DIRECTORYADMIN');
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;
-  const { memberDetails, preferences, notificationSettings, recommendationsEnabled } = await getPageData(userInfo, authToken, isLoggedIn);
+  const { memberDetails, preferences, notificationSettings, recommendationsEnabled } = await getPageData(
+    userInfo,
+    authToken,
+    isLoggedIn,
+  );
 
   if (!recommendationsEnabled) {
     redirect(PAGE_ROUTES.HOME);

@@ -15,7 +15,7 @@ async function infiniteFetcher(searchParams: MembersListQueryParams['searchParam
   const query = qs.stringify({
     ...searchParams,
     roles: searchParams.roles?.split('|'),
-    topics: searchParams.hasOfficeHours ? searchParams.topics?.split('|') : '',
+    topics: searchParams.topics?.split('|') || '',
     sort: searchParams.sort
       ?.split(',')
       .map((s: string) => s.toLowerCase())
@@ -40,7 +40,18 @@ export function useInfiniteMembersList(
 ) {
   const queryClient = useQueryClient();
 
-  const { isRefetching, data, error, isError, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, status, refetch } = useInfiniteQuery({
+  const {
+    isRefetching,
+    data,
+    error,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isLoading,
+    isFetchingNextPage,
+    status,
+    refetch,
+  } = useInfiniteQuery({
     queryKey: [MembersQueryKeys.GET_MEMBERS_LIST, queryParams.searchParams],
     initialPageParam: 1,
     queryFn: async ({ pageParam = 1 }) => {

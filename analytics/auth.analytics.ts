@@ -26,7 +26,7 @@ export const useAuthAnalytics = () => {
 
   const onSignUpBtnClicked = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_SIGN_UP_BTN_CLICKED);
-  }
+  };
 
   const onProceedToLogin = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_PROCEED_TO_LOGIN_CLICKED);
@@ -72,19 +72,19 @@ export const useAuthAnalytics = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_PRIVY_ACCOUNT_LINK, { ...privyUser });
   };
 
-  const onUpdateEmailClicked = (privyUser:any) => {
+  const onUpdateEmailClicked = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.SETTINGS_USER_CHANGE_EMAIL_CLICKED, { ...privyUser });
   };
 
-  const onUpdateEmailSuccess = (privyUser:any) => {
+  const onUpdateEmailSuccess = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_SUCCESS, { ...privyUser });
   };
 
-  const onUpdateEmailFailure = (privyUser:any) => {
+  const onUpdateEmailFailure = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_FAILED, { ...privyUser });
   };
 
-  const onUpdateSameEmailProvided = (privyUser:any) => {
+  const onUpdateSameEmailProvided = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD, { ...privyUser });
   };
 
@@ -105,6 +105,6 @@ export const useAuthAnalytics = () => {
     onUpdateEmailSuccess,
     onUpdateEmailFailure,
     onUpdateSameEmailProvided,
-    onSignUpBtnClicked
+    onSignUpBtnClicked,
   };
 };

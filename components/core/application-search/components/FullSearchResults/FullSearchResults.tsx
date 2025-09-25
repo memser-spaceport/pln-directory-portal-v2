@@ -19,10 +19,23 @@ interface Props {
   onToggleMode?: (mode: 'regular' | 'ai') => void;
 }
 
-export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose, activeCategory, setActiveCategory, mode, onToggleMode }: Props) => {
+export const FullSearchResults = ({
+  searchTerm,
+  onTryAiSearch,
+  onClose,
+  activeCategory,
+  setActiveCategory,
+  mode,
+  onToggleMode,
+}: Props) => {
   const { data, isLoading } = useFullApplicationSearch(searchTerm);
 
-  const totalFound = (data?.teams?.length ?? 0) + (data?.events?.length ?? 0) + (data?.members?.length ?? 0) + (data?.projects?.length ?? 0) + (data?.forumThreads?.length ?? 0);
+  const totalFound =
+    (data?.teams?.length ?? 0) +
+    (data?.events?.length ?? 0) +
+    (data?.members?.length ?? 0) +
+    (data?.projects?.length ?? 0) +
+    (data?.forumThreads?.length ?? 0);
 
   const sortedData = useMemo(() => {
     if (!data) {
@@ -94,7 +107,12 @@ export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose, activeCa
           forceOpen
           hideControl
         >
-          <SearchResultsSection groupItems={item.key === 'top'} items={item.values ?? []} query={searchTerm} onSelect={onClose} />
+          <SearchResultsSection
+            groupItems={item.key === 'top'}
+            items={item.values ?? []}
+            query={searchTerm}
+            onSelect={onClose}
+          />
         </CollapsibleSection>
       );
     });
@@ -104,7 +122,13 @@ export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose, activeCa
     <div className={s.root}>
       <div className={s.totalFoundLabel}>Total results ({totalFound})</div>
       <div className={s.sticky}>
-        <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} mode={mode} onToggleMode={onToggleMode} />
+        <SearchCategories
+          data={data}
+          activeCategory={activeCategory}
+          setActiveCategory={setActiveCategory}
+          mode={mode}
+          onToggleMode={onToggleMode}
+        />
       </div>
       {renderContent()}
     </div>

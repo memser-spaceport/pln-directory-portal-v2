@@ -1,7 +1,8 @@
 'use client';
+import { useEffect, useRef, useState } from 'react';
+
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
-import { useEffect, useRef, useState } from 'react';
 import Toggle from '@/components/ui/toogle';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 
@@ -11,11 +12,12 @@ interface ITeamBasicInfo {
   isEdit?: boolean;
   longDesc: string;
   setLongDesc: (content: string) => void;
+  longDescMaxLength?: number;
 }
 
 function TeamBasicInfo(props: ITeamBasicInfo) {
-  const errors = props?.errors;
-  const initialValues = props?.initialValues;
+  const { errors, setLongDesc, initialValues, longDescMaxLength } = props;
+
   const isEdit = props.isEdit ?? false;
   const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '');
   const [profileImage, setProfileImage] = useState<string>('');
@@ -55,6 +57,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
     setSavedImage(initialValues?.imageFile ?? '');
     setIsPlnFriend(initialValues?.plnFriend ?? false);
     setProfileImage('');
+
     function resetHandler() {
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
@@ -62,6 +65,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
         setProfileImage('');
       }
     }
+
     document.addEventListener('reset-team-register-form', resetHandler);
     return function () {
       document.removeEventListener('reset-team-register-form', resetHandler);
@@ -99,19 +103,51 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           <div className="teaminfo__form__team">
             <div>
               <label htmlFor="team-image-upload" className="teaminfo__form__team__profile">
-                {!profileImage && !savedImage && <img width="32" height="32" alt="upload team image" src="/icons/camera.svg" />}
+                {!profileImage && !savedImage && (
+                  <img width="32" height="32" alt="upload team image" src="/icons/camera.svg" />
+                )}
                 {!profileImage && !savedImage && <span className="teaminfo__form__team__profile__text">Add Image</span>}
-                {(profileImage || savedImage) && <img className="teaminfo__form__team__profile__preview" src={formImage} alt="team profile" width="95" height="95" />}
+                {(profileImage || savedImage) && (
+                  <img
+                    className="teaminfo__form__team__profile__preview"
+                    src={formImage}
+                    alt="team profile"
+                    width="95"
+                    height="95"
+                  />
+                )}
                 {(profileImage || savedImage) && (
                   <span className="teaminfo__form__team__profile__actions">
-                    <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                    <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
+                    <img
+                      width="32"
+                      height="32"
+                      title="Change profile image"
+                      alt="change image"
+                      src="/icons/recycle.svg"
+                    />
+                    <img
+                      onClick={onDeleteImage}
+                      width="32"
+                      height="32"
+                      title="Delete profile image"
+                      alt="delete image"
+                      src="/icons/trash.svg"
+                    />
                   </span>
                 )}
               </label>
 
               <input readOnly id="team-info-basic-image" value={formImage} hidden name="imageFile" />
-              <input data-testid="team-image-upload" onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name="teamProfile" hidden type="file" accept="image/png, image/jpeg" />
+              <input
+                data-testid="team-image-upload"
+                onChange={onImageUpload}
+                id="team-image-upload"
+                ref={uploadImageRef}
+                name="teamProfile"
+                hidden
+                type="file"
+                accept="image/png, image/jpeg"
+              />
             </div>
             <div className="teaminfo__form__name">
               <label htmlFor="register-team-name" className="tf__label">
@@ -137,11 +173,16 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             </div>
           </div>
           <p className="info">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a squared image in PNG or JPEG format with file size less than 4MB.</span>
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+            <span className="info__text">
+              Please upload a squared image in PNG or JPEG format with file size less than 4MB.
+            </span>
           </p>
           <div className="teaminfo__form__plnFriend__toggle">
             <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
-            <p className="teaminfo__form__plnFriend__toggle__label">Is your organization, company, or team friends of PL?</p>
+            <p className="teaminfo__form__plnFriend__toggle__label">
+              Is your organization, company, or team friends of PL?
+            </p>
             <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
           </div>
         </div>
@@ -157,12 +198,13 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             placeholder="Enter your short elevator pitch here"
           />
           <p className="info">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">One to two sentences is perfect! Use clear language and minimal jargon.</span>
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+            <span className="info__text">One to two sentences is perfect! Use clear language and minimal jargon.</span>
           </p>
         </div>
         <div className="teaminfo__form__item">
           {<label className={`tf__label`}>Long Description*</label>}
-          <RichTextEditor value={props?.longDesc} onChange={props.setLongDesc} />
+          <RichTextEditor value={props?.longDesc} onChange={setLongDesc} maxLength={longDescMaxLength} />
           {/* <TextArea
             defaultValue={initialValues?.longDescription}
             maxLength={2000}
@@ -174,7 +216,10 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           /> */}
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="info__text">Please explain what your team does in a bit more detail. 4-5 sentences will be great!</span>
+            <span className="info__text">
+              Please explain what your team does in a bit more detail. 4-5 sentences will be great!
+              {longDescMaxLength ? ` Max ${longDescMaxLength} characters.` : ''}
+            </span>
           </p>
         </div>
         <div className="teaminfo__form__item">
@@ -189,7 +234,10 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           />
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="info__text">If your team offers group office hours or open meetings that are open to the public, please share the link so PLN members can join and learn more.</span>
+            <span className="info__text">
+              If your team offers group office hours or open meetings that are open to the public, please share the link
+              so PLN members can join and learn more.
+            </span>
           </p>
         </div>
       </div>
@@ -200,28 +248,33 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             font-size: 14px;
             margin-bottom: 12px;
           }
+
           .teaminfo__form {
             display: flex;
             flex-direction: column;
             gap: 20px;
             padding: 20px 24px;
           }
+
           .teaminfo__form__item {
             display: flex;
             flex-direction: column;
             gap: 12px;
             width: 100%;
           }
+
           .teaminfo__form__name {
             display: flex;
             flex-direction: column;
             width: 100%;
           }
+
           .teaminfo__form__team {
             display: flex;
             gap: 20px;
             width: 100%;
           }
+
           .teaminfo__form__team__profile {
             width: 100px;
             height: 100px;
@@ -235,16 +288,19 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             color: #156ff7;
             font-size: 12px;
           }
+
           .teaminfo__form__errs {
             display: grid;
             gap: 4px;
             padding-left: 16px;
           }
+
           .teaminfo__form__errs__err {
             color: #ef4444;
             font-size: 12px;
             line-height: 16px;
           }
+
           .teaminfo__form__team__profile {
             width: 100px;
             height: 100px;
@@ -260,6 +316,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             cursor: pointer;
             position: relative;
           }
+
           .teaminfo__form__team__profile__actions {
             display: flex;
             gap: 10px;
@@ -274,16 +331,19 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             border-radius: 50%;
             background: rgb(0, 0, 0, 0.4);
           }
+
           .teaminfo__form__team__profile__preview {
             border-radius: 50%;
             object-fit: cover;
             object-position: top;
           }
+
           .info {
             display: flex;
             gap: 4px;
             align-items: center;
           }
+
           .info__text {
             text-align: left;
             font-size: 13px;
@@ -292,6 +352,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             font-weight: 500;
             line-height: 18px;
           }
+
           .teaminfo__form__plnFriend {
             display: flex;
             gap: 9px;
@@ -302,6 +363,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             font-size: 14px;
             margin-bottom: 12px;
           }
+
           .teaminfo__form__plnFriend__toggle {
             display: flex;
             align-items: center;
@@ -311,6 +373,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             border: 1px solid #e2e8f0;
             border-radius: 8px;
           }
+
           .teaminfo__form__plnFriend__toggle__label {
             font-size: 14px;
             font-weight: 400;

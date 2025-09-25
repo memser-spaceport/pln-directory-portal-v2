@@ -1,6 +1,7 @@
-// Helper function to get display name for index
-export const getIndexDisplayName = (index: string) => {
-  switch (index) {
+import capitalize from 'lodash/capitalize';
+
+export const getGroupTitleByGroupName = (groupName: string) => {
+  switch (groupName) {
     case 'members':
       return 'Members';
     case 'teams':
@@ -12,6 +13,6 @@ export const getIndexDisplayName = (index: string) => {
     case 'forumThreads':
       return 'Forum';
     default:
-      return index.charAt(0).toUpperCase() + index.slice(1);
+      return capitalize(groupName);
   }
 };

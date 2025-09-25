@@ -14,7 +14,15 @@ interface ITooptip {
   align?: 'start' | 'center' | 'end';
 }
 
-export function Tooltip({ trigger, triggerClassName = '', content, asChild = false, side = 'bottom', sideOffset = 8, align = 'start' }: ITooptip) {
+export function Tooltip({
+  trigger,
+  triggerClassName = '',
+  content,
+  asChild = false,
+  side = 'bottom',
+  sideOffset = 8,
+  align = 'start',
+}: ITooptip) {
   const [isOpen, setIsOpen] = useState(false);
   const tooltipRef = useRef(null);
 
@@ -42,11 +50,22 @@ export function Tooltip({ trigger, triggerClassName = '', content, asChild = fal
       <div className="tooltip__trigger__mob">
         <TooltipPrimitive.Provider delayDuration={0} disableHoverableContent={false}>
           <TooltipPrimitive.Root open={isOpen}>
-            <TooltipPrimitive.Trigger ref={tooltipRef} onClick={onClickandHoverHandler} className={triggerClassName} asChild={asChild}>
+            <TooltipPrimitive.Trigger
+              ref={tooltipRef}
+              onClick={onClickandHoverHandler}
+              className={triggerClassName}
+              asChild={asChild}
+            >
               {trigger}
             </TooltipPrimitive.Trigger>
             {content && (
-              <TooltipPrimitive.Content side={side} align={align} sideOffset={sideOffset} className="tp" avoidCollisions>
+              <TooltipPrimitive.Content
+                side={side}
+                align={align}
+                sideOffset={sideOffset}
+                className="tp"
+                avoidCollisions
+              >
                 {content}
               </TooltipPrimitive.Content>
             )}
@@ -61,7 +80,13 @@ export function Tooltip({ trigger, triggerClassName = '', content, asChild = fal
               {trigger}
             </TooltipPrimitive.Trigger>
             {content && (
-              <TooltipPrimitive.Content side={side} align={align} sideOffset={sideOffset} className="tp" avoidCollisions>
+              <TooltipPrimitive.Content
+                side={side}
+                align={align}
+                sideOffset={sideOffset}
+                className="tp"
+                avoidCollisions
+              >
                 {content}
               </TooltipPrimitive.Content>
             )}

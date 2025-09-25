@@ -1,16 +1,16 @@
 import React from 'react';
 
-import { ForumFoundItem, FoundItem } from '@/services/search/types';
-import { SearchResultsItem } from './components/SearchResultsItem';
+import { AllFoundItems } from './types';
 
-import { groupItemsByIndex } from './utils/groupItemsByIndex';
-import { getIndexDisplayName } from './utils/getIndexDisplayName';
+import { ResultsList } from './components/ResultsList';
+import { Top50Results } from './components/Top50Results';
+import { SearchResultsItem } from './components/SearchResultsItem';
 
 import s from './SearchResultsSection.module.scss';
 
 interface Props {
   title?: string;
-  items: FoundItem[] | ForumFoundItem[];
+  items: AllFoundItems;
   query: string;
   onSelect?: () => void;
   groupItems?: boolean;
@@ -24,49 +24,26 @@ const SECTION_TYPE_ICONS = {
   forumThreads: '/icons/chat.svg',
 };
 
-export const SearchResultsSection = ({ title, items, query, onSelect, groupItems = false }: Props) => {
-  if (groupItems) {
-    const groupedItems = groupItemsByIndex(items);
+export const SearchResultsSection = (props: Props) => {
+  const { title, items, groupItems = false, onSelect } = props;
 
+  const itemsCount = items.length;
+
+  if (groupItems) {
     return (
-      <>
-        <div className={s.root}>
-          {title && (
-            <div className={s.label}>
-              {title} ({items.length})
-            </div>
-          )}
-          {Object.entries(groupedItems).map(([index, groupItems]) => (
-            <div key={index}>
-              <div className={s.groupTitle}>{getIndexDisplayName(index)}</div>
-              <ul className={s.list}>
-                {groupItems.map((item) => (
-                  <SearchResultsItem key={item.uid} item={item} onSelect={onSelect} />
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <div className={s.divider} />
-      </>
+      <ResultsList title={title} itemsCount={itemsCount}>
+        <Top50Results items={items} onSelect={onSelect} />
+      </ResultsList>
     );
   }
 
   return (
-    <>
-      <div className={s.root}>
-        {title && (
-          <div className={s.label}>
-            {title} ({items.length})
-          </div>
-        )}
-        <ul className={s.list}>
-          {items.map((item) => (
-            <SearchResultsItem key={item.uid} item={item} onSelect={onSelect} />
-          ))}
-        </ul>
-      </div>
-      <div className={s.divider} />
-    </>
+    <ResultsList title={title} itemsCount={itemsCount}>
+      <ul className={s.list}>
+        {items.map((item) => (
+          <SearchResultsItem key={item.uid} item={item} onSelect={onSelect} />
+        ))}
+      </ul>
+    </ResultsList>
   );
 };

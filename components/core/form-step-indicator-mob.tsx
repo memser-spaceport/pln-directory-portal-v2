@@ -4,33 +4,34 @@ import useStepsIndicator from '@/hooks/useStepsIndicator';
 import { IFormStepIndicatorProps } from '@/types/shared.types';
 import { EVENTS, PROJECT_FORM_STEPS } from '@/utils/constants';
 
-
-function FormStepIndicatorMob({steps,defaultStep,uniqueKey,title,subTitle}: IFormStepIndicatorProps) {
+function FormStepIndicatorMob({ steps, defaultStep, uniqueKey, title, subTitle }: IFormStepIndicatorProps) {
   // const { currentStep } = useStepsIndicator({ steps: PROJECT_FORM_STEPS, defaultStep: 'General', uniqueKey: 'add-project' });
-  const { currentStep} = useStepsIndicator({ steps, defaultStep, uniqueKey });
+  const { currentStep } = useStepsIndicator({ steps, defaultStep, uniqueKey });
   const currentStepIndex = steps.findIndex((v: string) => v === currentStep);
 
   const activeIcon = '/icons/hexagon-active-blue.svg';
 
   return (
     <>
-        <div className="mri__stepsm">
-          <div className="mri__stepsm__cn">
-            <div className="mri__stepsd__item__icon">
-              <img className="mri__stepsd__item__icon__img" src={activeIcon} alt="step icon" width="24" height="24" />
-              {currentStepIndex <= currentStepIndex + 1 && <p className="mri__stepsd__item__icon__text">{currentStepIndex + 1}</p>}
-            </div>
-            <p className="mri__stepsm__stepname">{currentStep}</p>
+      <div className="mri__stepsm">
+        <div className="mri__stepsm__cn">
+          <div className="mri__stepsd__item__icon">
+            <img className="mri__stepsd__item__icon__img" src={activeIcon} alt="step icon" width="24" height="24" />
+            {currentStepIndex <= currentStepIndex + 1 && (
+              <p className="mri__stepsd__item__icon__text">{currentStepIndex + 1}</p>
+            )}
           </div>
-          <p className="mri__stepsm__stepinfo">{`Step ${currentStepIndex + 1} of ${steps.length}`}</p>
+          <p className="mri__stepsm__stepname">{currentStep}</p>
         </div>
+        <p className="mri__stepsm__stepinfo">{`Step ${currentStepIndex + 1} of ${steps.length}`}</p>
+      </div>
 
-        <div className='mri__stepsm__titles'>
-            <div>
-            <h1 className='mri__stepsm__titles__title'>{title}</h1>
-            </div>
-            <div className='mri__stepsm__titles__desc'>{subTitle}</div>
+      <div className="mri__stepsm__titles">
+        <div>
+          <h1 className="mri__stepsm__titles__title">{title}</h1>
         </div>
+        <div className="mri__stepsm__titles__desc">{subTitle}</div>
+      </div>
       <style jsx>
         {`
           .mri {
@@ -45,7 +46,7 @@ function FormStepIndicatorMob({steps,defaultStep,uniqueKey,title,subTitle}: IFor
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid lightgrey;
-            box-shadow: 0px 2px 6px 0px #0F172A29;
+            box-shadow: 0px 2px 6px 0px #0f172a29;
           }
 
           .mri__stepsm__stepname {
@@ -91,24 +92,23 @@ function FormStepIndicatorMob({steps,defaultStep,uniqueKey,title,subTitle}: IFor
           }
 
           .mri__stepsm__titles {
-          display: flex;
-          padding: 12px 20px;
-          flex-direction: column;
-          background-color: #DBEAFE;
+            display: flex;
+            padding: 12px 20px;
+            flex-direction: column;
+            background-color: #dbeafe;
           }
 
           .mri__stepsm__titles__title {
-          font-size: 14px;
-          font-weight: 700;
-          line-height: 17px;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 17px;
           }
 
           .mri__stepsm__titles__desc {
-          font-weight: 400;
-          font-size: 14px;
-          line-height: 24px;
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 24px;
           }
-
         `}
       </style>
     </>

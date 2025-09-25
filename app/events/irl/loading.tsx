@@ -56,14 +56,20 @@ export default function Page() {
         <div className={styles.irlGatherings__guests__table}>
           <div className={styles.irlGatherings__guests__table__hdr}>
             {Array.from({ length: 4 })?.map((container, index) => (
-              <div key={`irl-detail-column-loading-${index}`} className={styles.irlGatherings__guests__table__hdr__ttlWrpr}>
+              <div
+                key={`irl-detail-column-loading-${index}`}
+                className={styles.irlGatherings__guests__table__hdr__ttlWrpr}
+              >
                 <div className={styles.irlGatherings__guests__table__hdr__ttl}></div>
               </div>
             ))}
           </div>
           <div className={styles.irlGatherings__guests__table__body}>
             {Array.from({ length: 20 })?.map((container, index) => (
-              <div key={`irl-detail-column-loading-${index}`} className={styles.irlGatherings__guests__table__body__row}>
+              <div
+                key={`irl-detail-column-loading-${index}`}
+                className={styles.irlGatherings__guests__table__body__row}
+              >
                 <div className={styles.irlGatherings__guests__table__body__row__first}>
                   <div className={styles.irlGatherings__guests__table__body__row__first__img}></div>
                   <div className={styles.irlGatherings__guests__table__body__row__first__txt}></div>

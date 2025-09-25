@@ -24,7 +24,13 @@ const SuggestionItem = ({ suggestion, onSelect }: any) => {
         <div className="suggestion-item__team">
           <div className="suggestion-item__img">
             <Image
-              src={suggestion.logoURL ? suggestion.logoURL : suggestion.group === GROUP_TYPES.TEAM ? '/icons/team-default-profile.svg' : '/icons/default-project.svg'}
+              src={
+                suggestion.logoURL
+                  ? suggestion.logoURL
+                  : suggestion.group === GROUP_TYPES.TEAM
+                    ? '/icons/team-default-profile.svg'
+                    : '/icons/default-project.svg'
+              }
               alt={suggestion.name}
               width={22}
               height={22}
@@ -58,7 +64,7 @@ const SuggestionItem = ({ suggestion, onSelect }: any) => {
           background-color: #f1f5f9;
         }
 
-        .suggestion-item__img__item{
+        .suggestion-item__img__item {
           color: #475569;
         }
 

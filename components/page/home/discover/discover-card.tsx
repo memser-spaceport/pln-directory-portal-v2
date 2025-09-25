@@ -31,13 +31,18 @@ const DiscoverCard = (props: DiscoverCardProps) => {
   // Handle click event on the discover card
   const onDiscoverCardClick = () => {
     analytics.onDiscoverCardClicked(data, getAnalyticsUserInfo(userInfo));
-    const links = data?.answerSourceLinks?.map((item:any) => item?.link);
-    document.dispatchEvent(new CustomEvent('open-husky-discover', { detail: {...data, answerSourceLinks: links }}));
+    const links = data?.answerSourceLinks?.map((item: any) => item?.link);
+    document.dispatchEvent(new CustomEvent('open-husky-discover', { detail: { ...data, answerSourceLinks: links } }));
   };
 
   return (
     <>
-      <div data-testid={data.type === 'discoverhusky' ? 'discover-husky-card' : 'discover-card'} className="discover-card" onClick={onDiscoverCardClick} aria-label={`Discover card for ${data.question}`}>
+      <div
+        data-testid={data.type === 'discoverhusky' ? 'discover-husky-card' : 'discover-card'}
+        className="discover-card"
+        onClick={onDiscoverCardClick}
+        aria-label={`Discover card for ${data.question}`}
+      >
         <div className="discover-card__pattern">
           <picture>
             <source media="(max-width: 1024px)" srcSet={data.image?.mob} />
@@ -61,7 +66,11 @@ const DiscoverCard = (props: DiscoverCardProps) => {
             <img className="discover-card_chips_chip__img" src="/icons/share-gray.svg" alt="share" />
             <span className="discover-card_chips_chip__txt">{data.shareCount}</span>
           </div>
-          <div className="discover-card_chips_chip" role="listitem" aria-label={`${data?.answerSourceLinks?.length} sources`}>
+          <div
+            className="discover-card_chips_chip"
+            role="listitem"
+            aria-label={`${data?.answerSourceLinks?.length} sources`}
+          >
             <img className="discover-card_chips_chip__img" src="/icons/language-gray.svg" alt="sources" />
             <span className="discover-card_chips_chip__txt">{data?.answerSourceLinks?.length} sources</span>
           </div>
@@ -78,7 +87,9 @@ const DiscoverCard = (props: DiscoverCardProps) => {
           border-radius: 12px;
           display: flex;
           flex-direction: column;
-          box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
+          box-shadow:
+            0px 4px 4px 0px #0f172a0a,
+            0px 0px 1px 0px #0f172a1f;
           border: 1px solid #e2e8f0;
           justify-content: space-between;
         }

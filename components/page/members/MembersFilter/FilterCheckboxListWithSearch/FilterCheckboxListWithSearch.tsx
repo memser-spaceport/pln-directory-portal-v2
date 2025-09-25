@@ -86,13 +86,11 @@ export function FilterCheckboxListWithSearch(props: Props) {
         />
         <div className={s.list}>
           {itemsToRender.map((item) => {
-            const checked = filterValues?.some(({ value }) => value === item.value);
-
             return (
               <CheckboxListItem
                 key={item.value}
                 item={item}
-                values={filterValues}
+                values={selectedValues}
                 setValue={setValue}
                 paramKey={paramKey}
               />

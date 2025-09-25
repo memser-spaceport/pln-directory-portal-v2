@@ -148,9 +148,11 @@
 }
 
 .delimiter {
-  width: 100%;
+  width: calc(100% + 28px);
   height: 1px;
-  border-top: 1px solid #cbd5e1;
+  border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  margin: 6px 0;
+  margin-left: -16px;
 }
 
 .headerTitle {
@@ -186,4 +188,3 @@
     line-height: 20px;
   }
 }
-

@@ -6,7 +6,7 @@ import { useFilterStore } from '@/services/members/store';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
-  label: string;
+  label: React.ReactNode;
   paramKey: string;
 }
 

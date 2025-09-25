@@ -37,7 +37,7 @@ export type TeamProfile = {
 export type TeamsListResponse = TeamProfile[];
 
 async function fetcher(): Promise<TeamsListResponse> {
-  const url = `http://localhost:3000/v1/demo-days/current/fundraising-profiles`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profiles`;
 
   const response = await customFetch(
     url,

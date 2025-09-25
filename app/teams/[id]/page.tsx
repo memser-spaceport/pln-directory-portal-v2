@@ -51,8 +51,6 @@ async function Page({ params }: { params: ITeamDetailParams }) {
     return <Error />;
   }
 
-  console.log(team);
-
   return (
     <>
       <div className={styles?.teamDetail}>
@@ -63,7 +61,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
 
-          {team.investorProfile && (
+          {isLoggedIn && team.investorProfile && (
             <div className={clsx(s.root)}>
               <InvestorProfileView
                 investmentFocusAreas={team?.investorProfile?.investmentFocus}

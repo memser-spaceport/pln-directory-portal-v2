@@ -19,16 +19,20 @@ interface FilterState {
   setParam: (key: string, value?: string) => void;
   clearParams: () => void;
   setAllParams: (params: URLSearchParams) => void;
+  _clearImmediate: boolean; // Internal flag to signal immediate clear
 }
 
 export const useFilterStore = create<FilterState>((set, get) => ({
   params: new URLSearchParams(),
+  _clearImmediate: false,
   setParam: (key, value) => {
     const next = new URLSearchParams(get().params);
     if (value === undefined) next.delete(key);
     else next.set(key, value);
-    set({ params: next });
+    set({ params: next, _clearImmediate: false });
   },
-  clearParams: () => set({ params: new URLSearchParams() }),
-  setAllParams: (params) => set({ params }),
+  clearParams: () => {
+    set({ params: new URLSearchParams(), _clearImmediate: true });
+  },
+  setAllParams: (params) => set({ params, _clearImmediate: false }),
 }));

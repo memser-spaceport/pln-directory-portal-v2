@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import s from './InvestorPendingView.module.scss';
 import { useRouter } from 'next/navigation';
 import { getParsedValue } from '@/utils/common.utils';
@@ -8,12 +8,19 @@ import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState
 import { useMember } from '@/services/members/hooks/useMember';
 import { InvestorStepper } from './components/InvestorStepper';
 import { CountdownComponent } from '@/components/common/Countdown';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 
 export const InvestorPendingView = () => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const router = useRouter();
   const { data } = useGetDemoDayState();
   const { data: memberData } = useMember(userInfo?.uid);
+
+  // Analytics hooks
+  const { onInvestorPendingViewPageOpened, onInvestorPendingViewGoToInvestorProfileButtonClicked } =
+    useDemoDayAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
 
   // Function to check if investor profile is complete
   const isInvestorProfileComplete = useMemo(() => {
@@ -44,15 +51,57 @@ export const InvestorPendingView = () => {
     }
   }, [isInvestorProfileComplete]);
 
+  // Report page opened analytics on component mount
+  useEffect(() => {
+    if (userInfo?.email) {
+      // PostHog analytics
+      onInvestorPendingViewPageOpened();
+
+      // Custom analytics event
+      const pageOpenedEvent: TrackEventDto = {
+        name: 'investor_pending_view_page_opened',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          currentStep: currentStep,
+          isProfileComplete: isInvestorProfileComplete,
+        },
+      };
+
+      reportAnalytics.mutate(pageOpenedEvent);
+    }
+  }, [userInfo, onInvestorPendingViewPageOpened, reportAnalytics, currentStep, isInvestorProfileComplete]);
+
   const handleFillProfile = () => {
-    if (!userInfo) {
+    if (!userInfo?.email) {
       return;
     }
 
+    // Report button click analytics
+    onInvestorPendingViewGoToInvestorProfileButtonClicked();
+
+    const buttonClickEvent: TrackEventDto = {
+      name: 'investor_pending_view_go_to_profile_clicked',
+      distinctId: userInfo.email,
+      properties: {
+        userId: userInfo.uid,
+        userEmail: userInfo.email,
+        userName: userInfo.name,
+        path: '/demoday',
+        timestamp: new Date().toISOString(),
+        currentStep: currentStep,
+        targetPath: `/members/${userInfo.uid}`,
+      },
+    };
+
+    reportAnalytics.mutate(buttonClickEvent);
+
     router.push(`/members/${userInfo.uid}`);
   };
-
-
 
   return (
     <div className={s.root}>

@@ -3,6 +3,8 @@ import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'react-toastify';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -53,6 +55,10 @@ const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
 export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
   const updateInvestorProfileMutation = useUpdateInvestorProfile();
+
+  // Analytics hooks
+  const { onInvestorProfileUpdated } = useDemoDayAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
 
   const { data: options } = useTeamsFormOptions();
   const { data } = useMemberFormOptions();
@@ -173,6 +179,33 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
       };
 
       await updateInvestorProfileMutation.mutateAsync({ memberUid: member.id, payload });
+
+      // Report successful profile update analytics
+      if (userInfo?.email) {
+        // PostHog analytics
+        onInvestorProfileUpdated();
+
+        // Custom analytics event
+        const profileUpdatedEvent: TrackEventDto = {
+          name: 'investor_profile_updated',
+          distinctId: userInfo.email,
+          properties: {
+            userId: userInfo.uid,
+            userEmail: userInfo.email,
+            userName: userInfo.name,
+            path: `/members/${member.id}`,
+            timestamp: new Date().toISOString(),
+            investorProfileType: formData.type,
+            hasInvestmentFocus: formData.investmentFocusAreas?.length > 0,
+            hasTypicalCheckSize: !!formData.typicalCheckSize,
+            secRulesAccepted: formData.secRulesAccepted,
+            investThroughFund: formData.investThroughFund,
+            fieldsUpdated: Object.keys(formData).filter(key => formData[key as keyof typeof formData] !== undefined),
+          },
+        };
+
+        reportAnalytics.mutate(profileUpdatedEvent);
+      }
 
       toast.success('Investor profile updated successfully!');
       router.refresh();

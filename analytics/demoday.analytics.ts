@@ -28,8 +28,23 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PENDING_VIEW_GO_TO_INVESTOR_PROFILE_BUTTON_CLICKED);
   }
 
+  function onInvestorProfilePageOpened() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_PAGE_OPENED);
+  }
+
+  function onInvestorProfileEditStarted() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_EDIT_STARTED);
+  }
+
+  function onInvestorProfileUpdated() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_UPDATED);
+  }
+
   return {
     onInvestorPendingViewPageOpened,
     onInvestorPendingViewGoToInvestorProfileButtonClicked,
+    onInvestorProfilePageOpened,
+    onInvestorProfileEditStarted,
+    onInvestorProfileUpdated,
   };
 };

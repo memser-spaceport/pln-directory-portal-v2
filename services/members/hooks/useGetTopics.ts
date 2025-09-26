@@ -29,11 +29,15 @@ async function fetcher(input: string, useOfficeHours?: boolean) {
 
   const data = await res.json();
 
-  return data.results.map((item: any) => ({
-    value: item.topic,
-    label: item.topic,
-    count: item.count,
-  }));
+  return data.results.map((item: any) => {
+    const topic = item.topic.trim();
+
+    return {
+      value: topic,
+      label: topic,
+      count: item.count,
+    };
+  });
 }
 
 export function useGetTopics(input: string) {

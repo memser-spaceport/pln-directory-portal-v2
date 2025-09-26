@@ -32,7 +32,7 @@ export function useGetMergedItemsToRender(input: Input) {
 
     const rest: Option[] = beData.filter((item) => !selectedData.some((s) => s.value === item.value));
 
-    const result = uniqBy([...selected, ...rest], ({ value }) => value.trim());
+    const result = [...selected, ...rest];
 
     if (isEmpty(searchValue) && result.length > defaultItemsToShow) {
       if (selectedNum > defaultItemsToShow) {

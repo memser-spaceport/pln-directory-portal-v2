@@ -75,18 +75,10 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
     );
   }
 
-  console.log(data);
-
   return (
     <>
       <div className={s.profileSection}>
-        <div className={s.profileCard}>
-          <div className={s.editButtonContainer}>
-            <button className={s.drawerEditButton} onClick={handleEditProfile}>
-              <EditIcon />
-              <span>Edit</span>
-            </button>
-          </div>
+        <div className={s.profileCard} onClick={handleEditProfile}>
           {/* Header */}
           <ProfileHeader
             image={data?.team?.logo?.url || '/images/demo-day/profile-placeholder.svg'}

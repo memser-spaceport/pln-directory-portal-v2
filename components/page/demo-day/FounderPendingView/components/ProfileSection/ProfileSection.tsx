@@ -75,8 +75,6 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
     );
   }
 
-  console.log(data);
-
   return (
     <>
       <div className={s.profileSection}>

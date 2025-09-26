@@ -24,6 +24,7 @@ import SearchWithSuggestions from '@/components/form/suggestions';
 import { useSignup } from '@/services/signup/hooks/useSignup';
 import { GROUP_TYPES } from '@/utils/constants';
 import { Checkbox } from '@/components/common/Checkbox';
+import { MAX_NAME_LENGTH } from '@/constants/profile';
 
 import { TERMS_OF_SERVICE_AND_PRIVACY_URL } from './constants';
 
@@ -165,7 +166,7 @@ export const SignupWizard = ({ onClose }: Props) => {
                 <div className={s.title}>Join the PL Network</div>
                 <div className={s.row}>
                   <ProfileImageInput />
-                  <FormField name="name" label="Name*" placeholder="Enter name" />
+                  <FormField name="name" label="Name*" placeholder="Enter name" max={MAX_NAME_LENGTH} />
                 </div>
                 <div className={s.row}>
                   <FormField name="email" label="Email*" placeholder="Enter email" />

@@ -12,10 +12,7 @@ async function fetcher(input: string, useOfficeHours?: boolean) {
     limit: '10',
   });
 
-  // Add hasOfficeHours parameter if it's set
-  if (useOfficeHours) {
-    params.append(OFFICE_HOURS_FILTER_PARAM_KEY, 'true');
-  }
+  params.append(OFFICE_HOURS_FILTER_PARAM_KEY, 'true');
 
   const res = await customFetch(
     `${process.env.DIRECTORY_API_URL}/v1/members/autocomplete/topics?${params.toString()}`,

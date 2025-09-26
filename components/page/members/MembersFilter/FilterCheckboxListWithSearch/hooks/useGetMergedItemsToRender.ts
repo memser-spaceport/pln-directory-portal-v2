@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import uniqBy from 'lodash/uniqBy';
 import isEmpty from 'lodash/isEmpty';
 
 import { Option } from '@/services/members/types';
@@ -31,7 +32,7 @@ export function useGetMergedItemsToRender(input: Input) {
 
     const rest: Option[] = beData.filter((item) => !selectedData.some((s) => s.value === item.value));
 
-    const result = [...selected, ...rest];
+    const result = uniqBy([...selected, ...rest], 'value');
 
     if (isEmpty(searchValue) && result.length > defaultItemsToShow) {
       if (selectedNum > defaultItemsToShow) {

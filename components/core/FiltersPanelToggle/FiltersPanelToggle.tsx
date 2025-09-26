@@ -1,5 +1,6 @@
 import React from 'react';
 import { clsx } from 'clsx';
+import isFunction from 'lodash/isFunction';
 import s from '@/components/page/members/MembersFilter/MembersFilter.module.scss';
 import { Switch } from '@base-ui-components/react/switch';
 import { useFilterStore } from '@/services/members/store';
@@ -8,9 +9,12 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 interface Props {
   label: React.ReactNode;
   paramKey: string;
+  onChange?: (checked: boolean) => void;
 }
 
-export const FiltersPanelToggle = ({ label, paramKey }: Props) => {
+export const FiltersPanelToggle = (props: Props) => {
+  const { label, paramKey, onChange } = props
+
   const { params, setParam } = useFilterStore();
   const checked = params.get(paramKey) === 'true';
   const { onMembersOHFilterToggled } = useMemberAnalytics();
@@ -18,6 +22,10 @@ export const FiltersPanelToggle = ({ label, paramKey }: Props) => {
   const handleChange = () => {
     onMembersOHFilterToggled({ page: 'Members', option: paramKey, value: checked ? 'false' : 'true' });
     setParam(paramKey, checked ? undefined : 'true');
+
+    if (isFunction(onChange)) {
+      onChange(!checked);
+    }
   };
 
   return (

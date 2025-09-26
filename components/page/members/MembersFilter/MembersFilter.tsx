@@ -1,8 +1,9 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 
 import { ADMIN_ROLE, EVENTS } from '@/utils/constants';
+import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/constants/filters';
 
 import { useFilterStore } from '@/services/members/store';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
@@ -34,8 +35,9 @@ export const MembersFilter = (props: IMembersFilter) => {
   const userInfo = props?.userInfo;
   const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const analytics = useMemberAnalytics();
-  const { clearParams } = useFilterStore();
+  const { setParam, clearParams } = useFilterStore();
   const apliedFiltersCount = useGetMembersFilterCount();
+  const [shouldClearTopicsSearch, setShouldClearTopicsSearch] = useState(false);
 
   const onCloseClickHandler = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.SHOW_MEMBERS_FILTER, { detail: false }));
@@ -82,16 +84,25 @@ export const MembersFilter = (props: IMembersFilter) => {
                 Show all members with <br /> office hours
               </>
             }
-            paramKey="hasOfficeHours"
+            paramKey={OFFICE_HOURS_FILTER_PARAM_KEY}
+            onChange={(checked) => {
+              if (checked) {
+                setParam(TOPICS_FILTER_PARAM_KEY, undefined);
+                setShouldClearTopicsSearch(true);
+              } else {
+                setShouldClearTopicsSearch(false);
+              }
+            }}
           />
 
           <div className={s.delimiter} />
           <FilterCheckboxListWithSearch
             label="Search topics"
-            paramKey="topics"
+            paramKey={TOPICS_FILTER_PARAM_KEY}
             placeholder="E.g. AI, Staking, Governance"
             useGetDataHook={useGetTopics}
             defaultItemsToShow={0}
+            shouldClearSearch={shouldClearTopicsSearch}
           />
         </FilterSection>
 

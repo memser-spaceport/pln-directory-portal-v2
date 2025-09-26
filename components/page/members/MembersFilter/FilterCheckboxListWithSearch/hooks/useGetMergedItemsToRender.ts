@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import uniqBy from 'lodash/uniqBy';
 import isEmpty from 'lodash/isEmpty';
 
 import { Option } from '@/services/members/types';

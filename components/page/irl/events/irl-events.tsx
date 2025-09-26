@@ -6,7 +6,7 @@ import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { getFormattedDateString, abbreviateString } from '@/utils/irl.utils';
 import IrlUpcomingEvents from './irl-upcoming-events';
 import IrlPastEvents from './irl-past-events';
-import { triggerLoader } from '@/utils/common.utils';
+import { triggerLoader, toTitleCase } from '@/utils/common.utils';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ILocationDetails } from '@/types/irl.types';
@@ -57,7 +57,7 @@ const IrlEvents = (props: IIrlEvents) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const searchParam = useSearchParams();
-  const type = searchParam.get('type');
+  const type = searchParam?.get('type');
 
   const editResponseRef = useRef<HTMLButtonElement>(null);
   const guestDetails = props?.guestDetails;
@@ -120,14 +120,14 @@ const IrlEvents = (props: IIrlEvents) => {
   const onViewScheduleClick = () => {
     analytics.trackViewScheduleClick({
       location: irlLocation,
-      link: `${process.env.SCHEDULE_BASE_URL}/${updatedIrlLocation}/calendar`,
+      link: `${process.env.PL_EVENTS_BASE_URL}/program?location=${encodeURIComponent(toTitleCase(irlLocation))}`,
     });
   };
 
   const onSubmitEventClick = () => {
     analytics.trackSubmitEventClick({
       location: irlLocation,
-      link: `${process.env.SCHEDULE_BASE_URL}/${updatedIrlLocation}/calendar`,
+      link: `${process.env.IRL_SUBMIT_FORM_URL}/add`,
     });
   };
 
@@ -416,7 +416,7 @@ const IrlEvents = (props: IIrlEvents) => {
                 <Link
                   legacyBehavior
                   target="_blank"
-                  href={`${process.env.SCHEDULE_BASE_URL}/${updatedIrlLocation}/calendar`}
+                  href={`${process.env.PL_EVENTS_BASE_URL}/program?location=${encodeURIComponent(toTitleCase(irlLocation))}`}
                 >
                   <a target="_blank" className="root__schedule" onClick={onViewScheduleClick}>
                     {/* <img src="/icons/calendar-white.svg" height={16} width={16} className="root__schedule__img" alt="calendar" /> */}

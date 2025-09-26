@@ -3,16 +3,17 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { useFilterStore } from '@/services/members/store';
 import { Option } from '@/services/members/types';
+import { OFFICE_HOURS_FILTER_PARAM_KEY } from '@/app/constants/filters';
 
-async function fetcher(input: string, hasOfficeHours?: boolean) {
+async function fetcher(input: string, useOfficeHours?: boolean) {
   const params = new URLSearchParams({
     q: input,
-    limit: '50',
+    limit: '10',
   });
 
   // Add hasOfficeHours parameter if it's set
-  if (hasOfficeHours) {
-    params.append('hasOfficeHours', 'true');
+  if (useOfficeHours) {
+    params.append(OFFICE_HOURS_FILTER_PARAM_KEY, 'true');
   }
 
   const res = await customFetch(
@@ -36,11 +37,11 @@ async function fetcher(input: string, hasOfficeHours?: boolean) {
 
 export function useGetRoles(input: string) {
   const { params } = useFilterStore();
-  const hasOfficeHours = params.get('hasOfficeHours') === 'true';
+  const useOfficeHours = params.get(OFFICE_HOURS_FILTER_PARAM_KEY) === 'true';
 
   return useQuery<Option[]>({
-    queryKey: [MembersQueryKeys.GET_ROLES, input, hasOfficeHours],
-    queryFn: () => fetcher(input, hasOfficeHours),
+    queryKey: [MembersQueryKeys.GET_ROLES, input, useOfficeHours],
+    queryFn: () => fetcher(input, useOfficeHours),
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 }

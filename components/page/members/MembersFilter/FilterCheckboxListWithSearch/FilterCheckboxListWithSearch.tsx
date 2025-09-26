@@ -8,11 +8,13 @@ import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { useFilterStore } from '@/services/members/store';
 import { useGetInitialValues } from '@/components/page/members/MembersFilter/hooks/useGetInitialValues';
 
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { CloseIcon, SearchIcon } from '@/components/icons';
 import { DebouncedInput } from '@/components/core/application-search/components/DebouncedInput';
 
 import { useGetMergedItemsToRender } from './hooks/useGetMergedItemsToRender';
 
+import { SelectAll } from './components/SelectAll';
 import { CheckboxListItem } from './components/CheckboxListItem';
 
 import s from './FilterCheckboxListWithSearch.module.scss';
@@ -23,10 +25,12 @@ interface Props {
   placeholder?: string;
   defaultItemsToShow: number;
   useGetDataHook: (input: string, limit?: number) => { data?: Option[] };
+  shouldClearSearch?: boolean;
 }
 
 export function FilterCheckboxListWithSearch(props: Props) {
-  const { label, paramKey, placeholder, useGetDataHook, defaultItemsToShow } = props;
+  const { label, paramKey, placeholder, useGetDataHook, defaultItemsToShow, shouldClearSearch } = props;
+  const { onMembersTopicsFilterSelected, onMembersRolesFilterSelected } = useMemberAnalytics();
 
   const [searchValue, setSearchValue] = useState('');
 
@@ -46,7 +50,7 @@ export function FilterCheckboxListWithSearch(props: Props) {
     defaultValues: { [paramKey]: selectedValues },
   });
 
-  const { watch, setValue, reset } = methods;
+  const { watch, setValue } = methods;
   const filterValues = watch(paramKey);
 
   useEffect(() => {
@@ -55,12 +59,25 @@ export function FilterCheckboxListWithSearch(props: Props) {
 
   useEffect(() => {
     if (filterValues && filterValues.length > 0) {
-      const values = filterValues.map((item: any) => item.value).join(URL_QUERY_VALUE_SEPARATOR);
+      const valuesArr = filterValues.map((item: any) => item.value);
+      const values = valuesArr.join(URL_QUERY_VALUE_SEPARATOR);
       setParam(paramKey, values);
+
+      if (paramKey === 'topics') {
+        onMembersTopicsFilterSelected({ page: 'Members', topics: valuesArr });
+      } else if (paramKey === 'roles') {
+        onMembersRolesFilterSelected({ page: 'Members', roles: valuesArr });
+      }
     } else {
       setParam(paramKey, undefined);
     }
   }, [paramKey, filterValues]);
+
+  useEffect(() => {
+    if (shouldClearSearch) {
+      setSearchValue('');
+    }
+  }, [shouldClearSearch]);
 
   return (
     <FormProvider {...methods}>
@@ -85,6 +102,7 @@ export function FilterCheckboxListWithSearch(props: Props) {
           flushIcon={<SearchIcon color="#455468" className={s.searchIcon} />}
         />
         <div className={s.list}>
+          {!!searchValue && <SelectAll data={data} paramKey={paramKey} setValue={setValue} selected={selectedValues} />}
           {itemsToRender.map((item) => {
             return (
               <CheckboxListItem

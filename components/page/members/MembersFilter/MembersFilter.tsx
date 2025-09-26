@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 
 import { ADMIN_ROLE, EVENTS } from '@/utils/constants';
@@ -37,6 +37,7 @@ export const MembersFilter = (props: IMembersFilter) => {
   const analytics = useMemberAnalytics();
   const { setParam, clearParams } = useFilterStore();
   const apliedFiltersCount = useGetMembersFilterCount();
+  const [shouldClearTopicsSearch, setShouldClearTopicsSearch] = useState(false);
 
   const onCloseClickHandler = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.SHOW_MEMBERS_FILTER, { detail: false }));
@@ -87,6 +88,9 @@ export const MembersFilter = (props: IMembersFilter) => {
             onChange={(checked) => {
               if (checked) {
                 setParam(TOPICS_FILTER_PARAM_KEY, undefined);
+                setShouldClearTopicsSearch(true);
+              } else {
+                setShouldClearTopicsSearch(false);
               }
             }}
           />
@@ -98,6 +102,7 @@ export const MembersFilter = (props: IMembersFilter) => {
             placeholder="E.g. AI, Staking, Governance"
             useGetDataHook={useGetTopics}
             defaultItemsToShow={0}
+            shouldClearSearch={shouldClearTopicsSearch}
           />
         </FilterSection>
 

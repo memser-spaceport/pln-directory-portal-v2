@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { clsx } from 'clsx';
-import MemberDetailHeader from '@/components/page/member-details/member-detail-header';
+import { MemberDetailHeader } from '@/components/page/member-details/MemberDetailHeader';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { EditProfileForm } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm';

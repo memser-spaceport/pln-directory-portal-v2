@@ -182,7 +182,7 @@ const MemberDetails = ({ params }: { params: any }) => {
           <>
             <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            {(member.accessLevel === 'L6' || showInvestorProfile) && (
+            {member.accessLevel === 'L6' && showInvestorProfile && (
               <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             )}
             <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />

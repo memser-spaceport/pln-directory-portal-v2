@@ -66,7 +66,7 @@ export const InvestorProfileView = ({
           <span>
             <AlertIcon />
           </span>{' '}
-          Add your investor details to connect with founders during Demo Days.
+          Add investor details to be eligible for demo day participation
         </div>
       )}
 

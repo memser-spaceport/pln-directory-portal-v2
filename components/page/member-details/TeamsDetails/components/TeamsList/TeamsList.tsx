@@ -62,7 +62,7 @@ export const TeamsList = ({ isEditable, onAdd, onEdit, member }: Props) => {
       )}
       {!member.teams?.length && (
         <div className={s.emptyData}>
-          <span className={s.label}>{isEditable ? 'Add team' : 'Not provided'}</span>
+          <span className={s.label}>{isEditable ? 'Add your team' : 'Not provided'}</span>
           {/*<button className={s.connectButton}>*/}
           {/*  <Image src="/icons/contact/linkedIn-contact-logo.svg" alt="Linkedin" height={24} width={24} />*/}
           {/*  Connect LinkedIn*/}

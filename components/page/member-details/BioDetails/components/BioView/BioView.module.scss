@@ -26,7 +26,7 @@
 .officeHoursSection {
   padding: 16px;
   gap: 12px;
-  align-items: flex-start;
+  align-items: center;
 
   border-radius: 12px;
   background: var(--Neutral-Slate-50, #f8fafc);
@@ -175,11 +175,11 @@
 
   p {
     color: var(--Neutral-Slate-600, #475569);
-    font-size: 14px;
+    font-size: 12px;
     font-style: normal;
     font-weight: 400;
-    line-height: 20px; /* 142.857% */
-    letter-spacing: -0.2px;
+    line-height: 14px; /* 116.667% */
+    letter-spacing: 0.12px;
 
     display: flex;
     flex-direction: column;
@@ -190,28 +190,24 @@
 .primaryButton {
   display: flex;
   padding: 8px var(--global-size-size-125, 10px);
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
-  gap: var(--spacing-zero, 4px);
-  border-radius: var(--corner-radius-md, 8px);
-  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  background: var(--action-background-brand-normal, #1b4dff);
-  box-shadow:
-    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
-    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
-    0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  gap: var(--spacing-zero, 2px);
+  margin-left: auto;
 
-  color: var(--action-foreground-base-inverted_white, #fff);
+  border-radius: var(--corner-radius-md, 8px);
+  border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
+  background: var(--action-background-base-white, #FFF);
+
+  /* Button/secondary/border */
+  box-shadow: 0 -2px 8px 0 var(--transparent-dark-2, rgba(14, 15, 17, 0.02)) inset, 0 1px 2px 0 var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+
+  color: var(--action-foreground-neutral-normal, #455468);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
-  white-space: nowrap;
-  margin-left: auto;
-
-  grid-area: button;
-  width: 100%;
 
   @include media.tablet-landscape {
     width: fit-content;

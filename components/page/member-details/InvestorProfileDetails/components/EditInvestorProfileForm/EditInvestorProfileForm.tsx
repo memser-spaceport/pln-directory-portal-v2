@@ -200,7 +200,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
             hasTypicalCheckSize: !!formData.typicalCheckSize,
             secRulesAccepted: formData.secRulesAccepted,
             investThroughFund: formData.investThroughFund,
-            fieldsUpdated: Object.keys(formData).filter(key => formData[key as keyof typeof formData] !== undefined),
+            fieldsUpdated: Object.keys(formData).filter((key) => formData[key as keyof typeof formData] !== undefined),
           },
         };
 
@@ -315,17 +315,17 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
               </div>
               {secRulesAccepted && (
                 <div className={s.block}>
-                <Link href="/settings/email" className={s.cta}>
-                  <div className={s.ctaIcon}>
-                    <InfoIcon />
-                  </div>
-                  <div className={s.col}>
-                    <div className={s.ctaLink}>
-                      Manage your investor communications <LinkIcon />
+                  <Link href="/settings/email" className={s.cta}>
+                    <div className={s.ctaIcon}>
+                      <InfoIcon />
                     </div>
-                    <p>Choose if you’d like to receive event invitations, dealflow intros, and digests.</p>
-                  </div>
-                </Link>
+                    <div className={s.col}>
+                      <div className={s.ctaLink}>
+                        Manage your investor communications <LinkIcon />
+                      </div>
+                      <p>Choose if you’d like to receive event invitations, dealflow intros, and digests.</p>
+                    </div>
+                  </Link>
                 </div>
               )}
             </>
@@ -394,47 +394,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
             <>
               <div className={s.block}>
                 <div className={s.sectionHeader}>
-                  <h3>Your Investment Fund Profile</h3>
-                  {fundTeam ? (
-                    <>
-                      <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
-                        <div className={s.infoSectionContent}>
-                          Verify your team profile details: <b>{fundTeam?.name}</b> <LinkIcon />
-                        </div>
-                      </Link>
-                    </>
-                  ) : (
-                    <>
-                      <div className={s.infoSectionContent}>
-                        <FormSelect
-                          name="team"
-                          placeholder="Enter your team"
-                          backLabel="Teams"
-                          label="Team"
-                          options={
-                            data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
-                              value: item.teamUid,
-                              label: item.teamTitle,
-                            })) ?? []
-                          }
-                          notFoundContent={
-                            <div className={s.secondaryLabel}>
-                              If you don&apos;t see your team on this list, please{' '}
-                              <Link href="/teams/add" className={s.link} target="_blank">
-                                add your team
-                              </Link>{' '}
-                              first.
-                            </div>
-                          }
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              <div className={s.block}>
-                <div className={s.sectionHeader}>
                   <h3>Your Angel Investor Profile</h3>
                 </div>
                 <div className={s.row}>
@@ -498,19 +457,60 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                 )}
               </div>
 
+              <div className={s.block}>
+                <div className={s.sectionHeader}>
+                  <h3>Your Investment Fund Profile</h3>
+                  {fundTeam ? (
+                    <>
+                      <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
+                        <div className={s.infoSectionContent}>
+                          Verify your team profile details: <b>{fundTeam?.name}</b> <LinkIcon />
+                        </div>
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <div className={s.infoSectionContent}>
+                        <FormSelect
+                          name="team"
+                          placeholder="Enter your team"
+                          backLabel="Teams"
+                          label="Team"
+                          options={
+                            data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                              value: item.teamUid,
+                              label: item.teamTitle,
+                            })) ?? []
+                          }
+                          notFoundContent={
+                            <div className={s.secondaryLabel}>
+                              If you don&apos;t see your team on this list, please{' '}
+                              <Link href="/teams/add" className={s.link} target="_blank">
+                                add your team
+                              </Link>{' '}
+                              first.
+                            </div>
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
               {secRulesAccepted && (
                 <div className={s.block}>
-                <Link href="/settings/email" className={s.cta}>
-                  <div className={s.ctaIcon}>
-                    <InfoIcon />
-                  </div>
-                  <div className={s.col}>
-                    <div className={s.ctaLink}>
-                      Manage your investor communications <LinkIcon />
+                  <Link href="/settings/email" className={s.cta}>
+                    <div className={s.ctaIcon}>
+                      <InfoIcon />
                     </div>
-                    <p>Choose if you&apos;d like to receive event invitations, dealflow intros, and digests.</p>
-                  </div>
-                </Link>
+                    <div className={s.col}>
+                      <div className={s.ctaLink}>
+                        Manage your investor communications <LinkIcon />
+                      </div>
+                      <p>Choose if you&apos;d like to receive event invitations, dealflow intros, and digests.</p>
+                    </div>
+                  </Link>
                 </div>
               )}
             </>

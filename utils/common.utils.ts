@@ -422,3 +422,7 @@ export const normalizeOfficeHoursUrl = (url: string): string => {
 
   return url;
 };
+
+export const toTitleCase = (str: string) => {
+  return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+}

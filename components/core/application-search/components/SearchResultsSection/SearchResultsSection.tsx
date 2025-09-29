@@ -25,14 +25,14 @@ const SECTION_TYPE_ICONS = {
 };
 
 export const SearchResultsSection = (props: Props) => {
-  const { title, items, groupItems = false } = props;
+  const { title, items, groupItems = false, onSelect } = props;
 
   const itemsCount = items.length;
 
   if (groupItems) {
     return (
       <ResultsList title={title} itemsCount={itemsCount}>
-        <Top50Results items={items} />
+        <Top50Results items={items} onSelect={onSelect} />
       </ResultsList>
     );
   }
@@ -41,7 +41,7 @@ export const SearchResultsSection = (props: Props) => {
     <ResultsList title={title} itemsCount={itemsCount}>
       <ul className={s.list}>
         {items.map((item) => (
-          <SearchResultsItem key={item.uid} item={item} />
+          <SearchResultsItem key={item.uid} item={item} onSelect={onSelect} />
         ))}
       </ul>
     </ResultsList>

@@ -145,7 +145,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
                     </div>
                     <div className="chat-home__error-message">
                       <span onClick={onLoginClickHandler} className="chat-home__link">
-                        Log in
+                        Sign in
                       </span>
                       {` `}or{` `}
                       <span onClick={handleSignUpClick} role="link" className="chat-home__link">

@@ -14,6 +14,7 @@ import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import s from '@/components/page/recommendations/components/MatchesSelector/MatchesSelector.module.scss';
 import mobileStyles from './FilterMultiSelect.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { getInitialValues as getInitialValuesFromUrl } from '@/components/page/members/MembersFilter/utils/getInitialValues';
 
 interface Props {
   label: string;
@@ -49,13 +50,7 @@ export function FilterMultiSelect({
 
   // Get initial values from URL parameters
   const getInitialValues = () => {
-    const paramValue = params.get(paramKey);
-    if (!paramValue) return [];
-
-    return paramValue.split(URL_QUERY_VALUE_SEPARATOR).map((value) => ({
-      value: value.trim(),
-      label: value.trim(),
-    }));
+    return getInitialValuesFromUrl(params, paramKey);
   };
 
   const methods = useForm<Record<string, any[]>>({

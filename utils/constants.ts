@@ -628,6 +628,19 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.2.4 - Directory Search & Filter Enhancements',
+    tag: 'Improvements',
+    date: '25, Sep 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Directory Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Member Filters Refresh</span> - Improved member directory filters with clearer organization and quicker selection to find the right collaborators faster.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Unified Search Results Expansion</span> - Updated unified search experience with smoother usability and a new show more results option to reveal additional matches without losing context.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.2.3 - Available to Connect Badge',
     tag: 'Improvements',
     date: '29, Aug 2025',

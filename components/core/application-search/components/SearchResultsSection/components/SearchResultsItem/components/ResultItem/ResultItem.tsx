@@ -29,7 +29,10 @@ export function ResultItem(props: Props) {
 
   const onClick = useCallback(() => {
     analytics.onSearchResultClick(item);
-    onSelect?.();
+
+    if (item.index !== 'events') {
+      onSelect?.();
+    }
   }, [item, analytics, onSelect]);
 
   const link = item.index === 'events' ? item.source?.eventUrl || '' : `/${item.index}/${item.uid}`;

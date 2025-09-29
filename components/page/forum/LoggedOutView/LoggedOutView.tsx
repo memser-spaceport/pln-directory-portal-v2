@@ -63,7 +63,7 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
         return "Your profile is under review. You'll be notified once approved to participate.";
       }
       default: {
-        return 'Get help or share insights with the PL network. Log in to read and contribute.';
+        return 'Get help or share insights with the PL network. Sign in to read and contribute.';
       }
     }
   }
@@ -93,7 +93,7 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
           {!accessLevel && (
             <>
               <button className={s.mainBtn} onClick={onLoginClickHandler}>
-                Log in
+                Sign in
               </button>
               <div className={s.sub}>
                 New to Protocol Labs? Join the network.{' '}

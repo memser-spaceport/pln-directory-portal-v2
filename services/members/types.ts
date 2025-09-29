@@ -25,3 +25,9 @@ export type MemberProfileStatus = {
   memberUid: string;
   completeness: number;
 };
+
+export type Option = {
+  value: string;
+  label: string;
+  count?: number;
+};

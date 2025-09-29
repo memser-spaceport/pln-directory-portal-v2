@@ -340,7 +340,10 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                     <>
                       <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
                         <div className={s.infoSectionContent}>
-                          Verify your team profile details: <b>{fundTeam?.name}</b> <LinkIcon />
+                          Verify your team profile details: <b>{fundTeam?.name}</b>{' '}
+                          <span className={s.linkIcon}>
+                            <LinkIcon />
+                          </span>
                         </div>
                       </Link>
                     </>

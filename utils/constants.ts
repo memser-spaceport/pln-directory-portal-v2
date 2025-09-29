@@ -1574,4 +1574,13 @@ export const DEMO_DAY_ANALYTICS = {
   ON_FOUNDER_DEMO_MATERIAL_UPLOAD_FAILED: 'demo-day-on-founder-demo-material-upload-failed',
   ON_FOUNDER_DEMO_MATERIAL_DELETED: 'demo-day-on-founder-demo-material-deleted',
   ON_FOUNDER_DEMO_MATERIAL_VIEWED: 'demo-day-on-founder-demo-material-viewed',
+  ON_ACTIVE_VIEW_PAGE_OPENED: 'demo-day-on-active-view-page-opened',
+  ON_ACTIVE_VIEW_TIME_ON_PAGE: 'demo-day-on-active-view-time-on-page',
+  ON_ACTIVE_VIEW_FILTERS_APPLIED: 'demo-day-on-active-view-filters-applied',
+  ON_ACTIVE_VIEW_TEAM_CARD_CLICKED: 'demo-day-on-active-view-team-card-clicked',
+  ON_ACTIVE_VIEW_TEAM_PITCH_DECK_VIEWED: 'demo-day-on-active-view-team-pitch-deck-viewed',
+  ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_VIEWED: 'demo-day-on-active-view-team-pitch-video-viewed',
+  ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED: 'demo-day-on-active-view-like-company-clicked',
+  ON_ACTIVE_VIEW_CONNECT_COMPANY_CLICKED: 'demo-day-on-active-view-connect-company-clicked',
+  ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED: 'demo-day-on-active-view-invest-company-clicked',
 };

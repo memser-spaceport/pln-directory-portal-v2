@@ -80,6 +80,42 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_VIEWED, eventParams);
   }
 
+  function onActiveViewPageOpened() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_PAGE_OPENED);
+  }
+
+  function onActiveViewTimeOnPage(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TIME_ON_PAGE, eventParams);
+  }
+
+  function onActiveViewFiltersApplied(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_FILTERS_APPLIED, eventParams);
+  }
+
+  function onActiveViewTeamCardClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_CARD_CLICKED, eventParams);
+  }
+
+  function onActiveViewTeamPitchDeckViewed(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_DECK_VIEWED, eventParams);
+  }
+
+  function onActiveViewTeamPitchVideoViewed(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_VIEWED, eventParams);
+  }
+
+  function onActiveViewLikeCompanyClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED, eventParams);
+  }
+
+  function onActiveViewConnectCompanyClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_CONNECT_COMPANY_CLICKED, eventParams);
+  }
+
+  function onActiveViewInvestCompanyClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED, eventParams);
+  }
+
   return {
     onInvestorPendingViewPageOpened,
     onInvestorPendingViewGoToInvestorProfileButtonClicked,
@@ -96,5 +132,14 @@ export const useDemoDayAnalytics = () => {
     onFounderDemoMaterialUploadFailed,
     onFounderDemoMaterialDeleted,
     onFounderDemoMaterialViewed,
+    onActiveViewPageOpened,
+    onActiveViewTimeOnPage,
+    onActiveViewFiltersApplied,
+    onActiveViewTeamCardClicked,
+    onActiveViewTeamPitchDeckViewed,
+    onActiveViewTeamPitchVideoViewed,
+    onActiveViewLikeCompanyClicked,
+    onActiveViewConnectCompanyClicked,
+    onActiveViewInvestCompanyClicked,
   };
 };

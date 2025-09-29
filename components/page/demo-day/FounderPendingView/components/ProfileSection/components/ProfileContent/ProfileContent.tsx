@@ -6,6 +6,8 @@ import s from './ProfileContent.module.scss';
 interface ProfileContentProps {
   pitchDeckUrl?: string | null;
   videoUrl?: string | null;
+  onPitchDeckView?: () => void;
+  onPitchVideoView?: () => void;
 }
 
 const ExpandIcon = () => (
@@ -32,12 +34,23 @@ const ChevronRightIcon = () => (
   </svg>
 );
 
-export const ProfileContent = ({ pitchDeckUrl, videoUrl }: ProfileContentProps) => {
+export const ProfileContent = ({
+  pitchDeckUrl,
+  videoUrl,
+  onPitchDeckView,
+  onPitchVideoView
+}: ProfileContentProps) => {
   return (
     <div className={s.profileContent}>
       {/* Pitch Deck Card */}
       {pitchDeckUrl ? (
-        <MediaPreview url={pitchDeckUrl} type="document" title="Pitch Deck" showMetadata={false} />
+        <MediaPreview
+          url={pitchDeckUrl}
+          type="document"
+          title="Pitch Deck"
+          showMetadata={false}
+          onView={onPitchDeckView}
+        />
       ) : (
         <div className={s.placeholder}>
           <ImageIcon />
@@ -47,7 +60,13 @@ export const ProfileContent = ({ pitchDeckUrl, videoUrl }: ProfileContentProps) 
 
       {/* Video Card */}
       {videoUrl ? (
-        <MediaPreview url={videoUrl} type="video" title="Pitch Video" showMetadata={false} />
+        <MediaPreview
+          url={videoUrl}
+          type="video"
+          title="Pitch Video"
+          showMetadata={false}
+          onView={onPitchVideoView}
+        />
       ) : (
         <div className={s.placeholder}>
           <VideoIcon />

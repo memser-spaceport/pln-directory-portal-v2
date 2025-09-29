@@ -12,6 +12,8 @@ import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import Link from 'next/link';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -46,6 +48,17 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 }) => {
   const { data } = useGetFundraisingProfile();
 
+  // Analytics hooks
+  const {
+    onActiveViewLikeCompanyClicked,
+    onActiveViewConnectCompanyClicked,
+    onActiveViewInvestCompanyClicked,
+    onActiveViewTeamPitchDeckViewed,
+    onActiveViewTeamPitchVideoViewed,
+  } = useDemoDayAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+
   if (!team) return null;
 
   const displayTeam = team;
@@ -53,17 +66,16 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   // Create email data for demo day actions
   const createEmailData = (): DemoDayEmailData | null => {
     const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+    const founders = team.founders;
 
-    const founder = team.founders?.[0];
+    if (!founders?.length || !userInfo) return null;
 
-    if (!founder || !userInfo) return null;
-
-    const founderEmail = founder.email;
-    const founderName = founder.name;
+    const founderEmails = founders.map((f) => f.email);
+    const founderNames = founders.map((f) => f.name);
 
     return {
-      founderEmail,
-      founderName,
+      founderEmails,
+      founderNames,
       demotingTeamName: team.team?.name || 'Team Name',
       investorName: userInfo.name ?? '',
       investorTeamName: '',
@@ -71,6 +83,159 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   };
 
   const emailData = createEmailData();
+
+  // Analytics helper function for team details
+  const getTeamAnalyticsData = () => ({
+    teamName: team.team?.name,
+    teamUid: team.uid,
+    teamShortDescription: team.team?.shortDescription,
+    fundingStage: team.team?.fundingStage?.title,
+    fundingStageUid: team.team?.fundingStage?.uid,
+    industryTags: team.team?.industryTags?.map((tag) => tag.title),
+    industryTagUids: team.team?.industryTags?.map((tag) => tag.uid),
+    foundersCount: team.founders?.length || 0,
+    founderNames: team.founders?.map((f) => f.name),
+    hasLogo: !!team.team?.logo?.url,
+  });
+
+  // Analytics handlers for action buttons
+  const handleLikeCompanyClick = () => {
+    if (userInfo?.email) {
+      // PostHog analytics
+      onActiveViewLikeCompanyClicked(getTeamAnalyticsData());
+
+      // Custom analytics event
+      const likeEvent: TrackEventDto = {
+        name: 'active_view_like_company_clicked',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          action: 'like_company',
+          ...getTeamAnalyticsData(),
+        },
+      };
+
+      reportAnalytics.mutate(likeEvent);
+    }
+
+    // Execute original email handler
+    if (emailData) {
+      createDemoDayEmailHandler('like', emailData)();
+    }
+  };
+
+  const handleConnectCompanyClick = () => {
+    if (userInfo?.email) {
+      // PostHog analytics
+      onActiveViewConnectCompanyClicked(getTeamAnalyticsData());
+
+      // Custom analytics event
+      const connectEvent: TrackEventDto = {
+        name: 'active_view_connect_company_clicked',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          action: 'connect_company',
+          ...getTeamAnalyticsData(),
+        },
+      };
+
+      reportAnalytics.mutate(connectEvent);
+    }
+
+    // Execute original email handler
+    if (emailData) {
+      createDemoDayEmailHandler('connect', emailData)();
+    }
+  };
+
+  const handleInvestCompanyClick = () => {
+    if (userInfo?.email) {
+      // PostHog analytics
+      onActiveViewInvestCompanyClicked(getTeamAnalyticsData());
+
+      // Custom analytics event
+      const investEvent: TrackEventDto = {
+        name: 'active_view_invest_company_clicked',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          action: 'invest_company',
+          ...getTeamAnalyticsData(),
+        },
+      };
+
+      reportAnalytics.mutate(investEvent);
+    }
+
+    // Execute original email handler
+    if (emailData) {
+      createDemoDayEmailHandler('invest', emailData)();
+    }
+  };
+
+  // Analytics handlers for media viewing
+  const handlePitchDeckView = () => {
+    if (userInfo?.email) {
+      // PostHog analytics
+      onActiveViewTeamPitchDeckViewed(getTeamAnalyticsData());
+
+      // Custom analytics event
+      const pitchDeckEvent: TrackEventDto = {
+        name: 'active_view_team_pitch_deck_viewed',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          materialType: 'pitch_deck',
+          materialUrl: team.onePagerUpload?.url,
+          ...getTeamAnalyticsData(),
+        },
+      };
+
+      reportAnalytics.mutate(pitchDeckEvent);
+    }
+  };
+
+  const handlePitchVideoView = () => {
+    if (userInfo?.email) {
+      // PostHog analytics
+      onActiveViewTeamPitchVideoViewed(getTeamAnalyticsData());
+
+      // Custom analytics event
+      const pitchVideoEvent: TrackEventDto = {
+        name: 'active_view_team_pitch_video_viewed',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          materialType: 'pitch_video',
+          materialUrl: team.videoUpload?.url,
+          ...getTeamAnalyticsData(),
+        },
+      };
+
+      reportAnalytics.mutate(pitchVideoEvent);
+    }
+  };
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -180,6 +345,8 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                         <ProfileContent
                           pitchDeckUrl={displayTeam?.onePagerUpload?.url}
                           videoUrl={displayTeam?.videoUpload?.url}
+                          onPitchDeckView={handlePitchDeckView}
+                          onPitchVideoView={handlePitchVideoView}
                         />
                       </div>
                     </div>
@@ -189,26 +356,14 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                 {/* Footer Actions */}
                 <div className={s.drawerFooter}>
                   <div className={s.actions}>
-                    <button
-                      className={s.secondaryButton}
-                      onClick={emailData ? createDemoDayEmailHandler('like', emailData) : undefined}
-                      disabled={!emailData}
-                    >
+                    <button className={s.secondaryButton} onClick={handleLikeCompanyClick} disabled={!emailData}>
                       <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />
                       Like Company
                     </button>
-                    <button
-                      className={s.secondaryButton}
-                      onClick={emailData ? createDemoDayEmailHandler('connect', emailData) : undefined}
-                      disabled={!emailData}
-                    >
+                    <button className={s.secondaryButton} onClick={handleConnectCompanyClick} disabled={!emailData}>
                       🤝 Connect with Company
                     </button>
-                    <button
-                      className={s.primaryButton}
-                      onClick={emailData ? createDemoDayEmailHandler('invest', emailData) : undefined}
-                      disabled={!emailData}
-                    >
+                    <button className={s.primaryButton} onClick={handleInvestCompanyClick} disabled={!emailData}>
                       💰 Invest in Company
                     </button>
                   </div>

@@ -155,6 +155,7 @@ export const getTeam = async (
     eventGuests: result?.eventGuests,
     asks: result?.asks ?? [],
     investorProfile: result?.investorProfile,
+    isFund: result?.isFund,
   };
   return { data: { formatedData } };
 };

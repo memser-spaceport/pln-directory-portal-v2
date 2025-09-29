@@ -8,8 +8,9 @@ import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState
 import { useMember } from '@/services/members/hooks/useMember';
 import { InvestorStepper } from './components/InvestorStepper';
 import { CountdownComponent } from '@/components/common/Countdown';
+import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
-import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 
 export const InvestorPendingView = () => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -18,8 +19,7 @@ export const InvestorPendingView = () => {
   const { data: memberData } = useMember(userInfo?.uid);
 
   // Analytics hooks
-  const { onInvestorPendingViewPageOpened, onInvestorPendingViewGoToInvestorProfileButtonClicked } =
-    useDemoDayAnalytics();
+  const { onInvestorPendingViewGoToInvestorProfileButtonClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
 
   // Function to check if investor profile is complete
@@ -51,30 +51,11 @@ export const InvestorPendingView = () => {
     }
   }, [isInvestorProfileComplete]);
 
-  // Report page opened analytics on component mount
-  useEffect(() => {
-    if (userInfo?.email) {
-      // PostHog analytics
-      onInvestorPendingViewPageOpened();
-
-      // Custom analytics event
-      const pageOpenedEvent: TrackEventDto = {
-        name: 'investor_pending_view_page_opened',
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          currentStep: currentStep,
-          isProfileComplete: isInvestorProfileComplete,
-        },
-      };
-
-      reportAnalytics.mutate(pageOpenedEvent);
-    }
-  }, [userInfo, onInvestorPendingViewPageOpened, reportAnalytics, currentStep, isInvestorProfileComplete]);
+  // Page view analytics - triggers only once on mount
+  useDemoDayPageViewAnalytics('onInvestorPendingViewPageOpened', 'investor_pending_view_page_opened', '/demoday', {
+    currentStep: currentStep,
+    isProfileComplete: isInvestorProfileComplete,
+  });
 
   const handleFillProfile = () => {
     if (!userInfo?.email) {

@@ -10,10 +10,18 @@ import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import Link from 'next/link';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M12.5 5L7.5 10L12.5 15"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
@@ -48,9 +56,46 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
   const [editView, setEditView] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const successAlertTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Analytics hooks
+  const {
+    onFounderSaveTeamDetailsClicked,
+    onFounderCancelTeamDetailsClicked,
+    onFounderDemoMaterialUploadStarted,
+    onFounderDemoMaterialUploadSuccess,
+    onFounderDemoMaterialUploadFailed,
+    onFounderDemoMaterialDeleted,
+    onFounderDemoMaterialViewed,
+    onFounderEditTeamProfileButtonClicked,
+  } = useDemoDayAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
   const previousDataRef = useRef<FundraisingProfile | undefined>(data);
 
   const handleEditClick = () => {
+    if (userInfo?.email) {
+      // PostHog analytics
+      onFounderEditTeamProfileButtonClicked();
+
+      // Custom analytics event
+      const editButtonClickedEvent: TrackEventDto = {
+        name: 'founder_edit_team_profile_button_clicked',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          teamName: data?.team?.name,
+          teamUid: data?.teamUid,
+          hasOnePager: !!data?.onePagerUpload?.url,
+          hasVideo: !!data?.videoUpload?.url,
+        },
+      };
+
+      reportAnalytics.mutate(editButtonClickedEvent);
+    }
+
     setEditView(true);
     // Hide success alert when entering edit mode
     setShowSuccessAlert(false);
@@ -60,10 +105,55 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
   };
 
   const handleBackToView = () => {
+    if (userInfo?.email) {
+      // PostHog analytics
+      onFounderCancelTeamDetailsClicked();
+
+      // Custom analytics event
+      const cancelEvent: TrackEventDto = {
+        name: 'founder_cancel_team_details_clicked',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          teamName: data?.team?.name,
+          teamUid: data?.teamUid,
+          action: 'back_to_view',
+        },
+      };
+
+      reportAnalytics.mutate(cancelEvent);
+    }
+
     setEditView(false);
   };
 
-  const handleFormClose = () => {
+  const handleFormClose = (saved = false) => {
+    if (userInfo?.email && saved) {
+      // PostHog analytics
+      onFounderSaveTeamDetailsClicked();
+
+      // Custom analytics event
+      const saveEvent: TrackEventDto = {
+        name: 'founder_save_team_details_clicked',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          teamName: data?.team?.name,
+          teamUid: data?.teamUid,
+        },
+      };
+
+      reportAnalytics.mutate(saveEvent);
+    }
+
     setEditView(false);
   };
 
@@ -173,11 +263,153 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
     }
   };
 
+  // Analytics helper functions for demo materials
+  const handleDemoMaterialUploadStarted = (fileMetadata: any) => {
+    if (userInfo?.email) {
+      onFounderDemoMaterialUploadStarted(fileMetadata);
+
+      const uploadStartedEvent: TrackEventDto = {
+        name: 'founder_demo_material_upload_started',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          teamName: data?.team?.name,
+          teamUid: data?.teamUid,
+          fileName: fileMetadata.fileName,
+          fileSize: fileMetadata.fileSize,
+          fileType: fileMetadata.fileType,
+          materialType: fileMetadata.materialType, // 'onePager' or 'video'
+        },
+      };
+
+      reportAnalytics.mutate(uploadStartedEvent);
+    }
+  };
+
+  const handleDemoMaterialUploadSuccess = (fileMetadata: any) => {
+    if (userInfo?.email) {
+      onFounderDemoMaterialUploadSuccess(fileMetadata);
+
+      const uploadSuccessEvent: TrackEventDto = {
+        name: 'founder_demo_material_upload_success',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          teamName: data?.team?.name,
+          teamUid: data?.teamUid,
+          fileName: fileMetadata.fileName,
+          fileSize: fileMetadata.fileSize,
+          fileType: fileMetadata.fileType,
+          materialType: fileMetadata.materialType,
+          uploadDuration: fileMetadata.uploadDuration,
+        },
+      };
+
+      reportAnalytics.mutate(uploadSuccessEvent);
+    }
+  };
+
+  const handleDemoMaterialUploadFailed = (fileMetadata: any, error: string) => {
+    if (userInfo?.email) {
+      onFounderDemoMaterialUploadFailed({ ...fileMetadata, error });
+
+      const uploadFailedEvent: TrackEventDto = {
+        name: 'founder_demo_material_upload_failed',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          teamName: data?.team?.name,
+          teamUid: data?.teamUid,
+          fileName: fileMetadata.fileName,
+          fileSize: fileMetadata.fileSize,
+          fileType: fileMetadata.fileType,
+          materialType: fileMetadata.materialType,
+          error: error,
+        },
+      };
+
+      reportAnalytics.mutate(uploadFailedEvent);
+    }
+  };
+
+  const handleDemoMaterialDeleted = (materialType: string, fileName: string) => {
+    if (userInfo?.email) {
+      onFounderDemoMaterialDeleted({ materialType, fileName });
+
+      const deletedEvent: TrackEventDto = {
+        name: 'founder_demo_material_deleted',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          teamName: data?.team?.name,
+          teamUid: data?.teamUid,
+          materialType: materialType,
+          fileName: fileName,
+        },
+      };
+
+      reportAnalytics.mutate(deletedEvent);
+    }
+  };
+
+  const handleDemoMaterialViewed = (materialType: string, fileName: string) => {
+    if (userInfo?.email) {
+      onFounderDemoMaterialViewed({ materialType, fileName });
+
+      const viewedEvent: TrackEventDto = {
+        name: 'founder_demo_material_viewed',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          teamName: data?.team?.name,
+          teamUid: data?.teamUid,
+          materialType: materialType,
+          fileName: fileName,
+        },
+      };
+
+      reportAnalytics.mutate(viewedEvent);
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div className={s.drawerOverlay} onClick={handleOverlayClick} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3, ease: 'easeOut' }}>
-          <motion.div className={s.drawerContainer} initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ duration: 0.3, ease: 'easeOut' }}>
+        <motion.div
+          className={s.drawerOverlay}
+          onClick={handleOverlayClick}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+        >
+          <motion.div
+            className={s.drawerContainer}
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+          >
             {/* Header */}
             <div className={s.drawerHeader}>
               <div className={s.breadcrumbs}>
@@ -196,7 +428,11 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
                 })}
               >
                 {/* Success Alert */}
-                <SuccessAlert isVisible={showSuccessAlert} onClose={handleCloseSuccessAlert} message="Thanks for the submission! You are all set." />
+                <SuccessAlert
+                  isVisible={showSuccessAlert}
+                  onClose={handleCloseSuccessAlert}
+                  message="Thanks for the submission! You are all set."
+                />
 
                 {/* Conditional Top Section */}
                 {editView ? (
@@ -205,7 +441,10 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
                   /* Profile Header */
                   <div className={s.drawerProfileHeader}>
                     <div className={s.drawerProfileImage}>
-                      <img src={data?.team?.logo?.url || '/images/demo-day/profile-placeholder.svg'} alt={data?.team?.name || 'Team Logo'} />
+                      <img
+                        src={data?.team?.logo?.url || '/images/demo-day/profile-placeholder.svg'}
+                        alt={data?.team?.name || 'Team Logo'}
+                      />
                     </div>
                     <div className={s.drawerMemberDetails}>
                       <div className={s.drawerMemberInfo}>
@@ -214,7 +453,13 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
                             {data?.team.name}
                             <Link className={s.externalLinkIcon} href={`/teams/${data?.team.uid}`} target="_blank">
                               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                <path d="M13.5 4.5L4.5 13.5M13.5 4.5H8.25M13.5 4.5V9.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path
+                                  d="M13.5 4.5L4.5 13.5M13.5 4.5H8.25M13.5 4.5V9.75"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
                               </svg>
                             </Link>
                           </h2>
@@ -278,7 +523,10 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
                 <div className={s.warningSection}>
                   <div className={s.warningContent}>
                     <WarningIcon />
-                    <p className={s.warningText}>To participate in Demo Day, you must upload all Demo Day Materials. Profiles without these will not be shown to investors.</p>
+                    <p className={s.warningText}>
+                      To participate in Demo Day, you must upload all Demo Day Materials. Profiles without these will
+                      not be shown to investors.
+                    </p>
                   </div>
                 </div>
               )}

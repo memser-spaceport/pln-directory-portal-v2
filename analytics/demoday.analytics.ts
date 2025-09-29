@@ -40,11 +40,61 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_UPDATED);
   }
 
+  function onFounderPendingViewPageOpened() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_PENDING_VIEW_PAGE_OPENED);
+  }
+
+  function onFounderTeamFundraisingCardClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_TEAM_FUNDRAISING_CARD_CLICKED);
+  }
+
+  function onFounderEditTeamProfileButtonClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_EDIT_TEAM_PROFILE_BUTTON_CLICKED);
+  }
+
+  function onFounderSaveTeamDetailsClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_SAVE_TEAM_DETAILS_CLICKED);
+  }
+
+  function onFounderCancelTeamDetailsClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_CANCEL_TEAM_DETAILS_CLICKED);
+  }
+
+  function onFounderDemoMaterialUploadStarted(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_UPLOAD_STARTED, eventParams);
+  }
+
+  function onFounderDemoMaterialUploadSuccess(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_UPLOAD_SUCCESS, eventParams);
+  }
+
+  function onFounderDemoMaterialUploadFailed(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_UPLOAD_FAILED, eventParams);
+  }
+
+  function onFounderDemoMaterialDeleted(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_DELETED, eventParams);
+  }
+
+  function onFounderDemoMaterialViewed(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_VIEWED, eventParams);
+  }
+
   return {
     onInvestorPendingViewPageOpened,
     onInvestorPendingViewGoToInvestorProfileButtonClicked,
     onInvestorProfilePageOpened,
     onInvestorProfileEditStarted,
     onInvestorProfileUpdated,
+    onFounderPendingViewPageOpened,
+    onFounderTeamFundraisingCardClicked,
+    onFounderEditTeamProfileButtonClicked,
+    onFounderSaveTeamDetailsClicked,
+    onFounderCancelTeamDetailsClicked,
+    onFounderDemoMaterialUploadStarted,
+    onFounderDemoMaterialUploadSuccess,
+    onFounderDemoMaterialUploadFailed,
+    onFounderDemoMaterialDeleted,
+    onFounderDemoMaterialViewed,
   };
 };

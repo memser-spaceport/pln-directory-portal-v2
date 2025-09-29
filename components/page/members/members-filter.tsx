@@ -9,6 +9,7 @@ import React from 'react';
 import { FilterMultiSelect } from './MembersFilter/FilterMultiSelect/FilterMultiSelect';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { FiltersPanelToggle } from '@/components/core/FiltersPanelToggle';
+import { InvestorFilterToggle } from '@/components/core/InvestorFilterToggle';
 import { useFilterStore } from '@/services/members/store';
 import { FilterSection } from '@/components/page/members/MembersFilter/FilterSection';
 
@@ -95,7 +96,7 @@ const MembersFilter = (props: IMembersFilter) => {
           </FilterSection>
 
           <FilterSection title="Investors">
-            <FiltersPanelToggle label="Show all Investors" paramKey="isInvestor" />
+            <InvestorFilterToggle label="Show all Investors" paramKey="isInvestor" />
 
             <FilterDivider />
 

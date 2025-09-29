@@ -45,7 +45,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         teamName: team.team?.name,
         teamUid: team.uid,
         fundingStage: team.team?.fundingStage?.title,
-        industryTags: team.team?.industryTags?.map(tag => tag.title),
+        industryTags: team.team?.industryTags?.map((tag) => tag.title),
       });
 
       // Custom analytics event
@@ -63,12 +63,10 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
           teamShortDescription: team.team?.shortDescription,
           fundingStage: team.team?.fundingStage?.title,
           fundingStageUid: team.team?.fundingStage?.uid,
-          industryTags: team.team?.industryTags?.map(tag => tag.title),
-          industryTagUids: team.team?.industryTags?.map(tag => tag.uid),
+          industryTags: team.team?.industryTags?.map((tag) => tag.title),
+          industryTagUids: team.team?.industryTags?.map((tag) => tag.uid),
           foundersCount: team.founders?.length || 0,
           hasLogo: !!team.team?.logo?.url,
-          hasPitchDeck: !!team.pitchDeckUrl,
-          hasPitchVideo: !!team.pitchVideoUrl,
         },
       };
 
@@ -82,16 +80,16 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
   const createEmailData = (): DemoDayEmailData | null => {
     const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
-    const founder = team.founders?.[0];
+    const founders = team.founders;
 
-    if (!founder || !userInfo) return null;
+    if (!founders || !userInfo) return null;
 
-    const founderEmail = founder.email;
-    const founderName = founder.name;
+    const founderEmails = founders.map((founder) => founder.email);
+    const founderNames = founders.map((founder) => founder.name);
 
     return {
-      founderEmail,
-      founderName,
+      founderEmails,
+      founderNames,
       demotingTeamName: team.team?.name || 'Team Name',
       investorName: userInfo.name ?? '',
       investorTeamName: '',

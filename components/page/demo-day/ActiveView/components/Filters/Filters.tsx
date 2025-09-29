@@ -79,7 +79,7 @@ export const Filters = () => {
           Filters
           {appliedFiltersCount > 0 && <FilterCount count={appliedFiltersCount} />}
         </h2>
-        <button className="team-fitlter__header__clear-all-btn" onClick={clearParams}>
+        <button className={s.cleaarAllButton} onClick={clearParams}>
           Clear all
         </button>
       </div>
@@ -95,7 +95,7 @@ export const Filters = () => {
             options={industryOptions}
             paramName="industry"
             placeholder="Search industries..."
-            emptyMessage={teamsLoading ? "Loading industries..." : "No industries found"}
+            emptyMessage={teamsLoading ? 'Loading industries...' : 'No industries found'}
           />
         </FilterSection>
 
@@ -104,7 +104,7 @@ export const Filters = () => {
             options={stageOptions}
             paramName="stage"
             placeholder="Search stages..."
-            emptyMessage={teamsLoading ? "Loading stages..." : "No stages found"}
+            emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
           />
         </FilterSection>
       </div>

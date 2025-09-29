@@ -139,13 +139,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
   return (
     <>
       <div className={s.profileSection}>
-        <div className={s.profileCard} onClick={handleCardClick} style={{ cursor: 'pointer' }}>
-          {/*<div className={s.editButtonContainer}>*/}
-          {/*  <button className={s.drawerEditButton} onClick={(e) => { e.stopPropagation(); handleEditProfile(); }}>*/}
-          {/*    <EditIcon />*/}
-          {/*    <span>Edit</span>*/}
-          {/*  </button>*/}
-          {/*</div>*/}
+        <div className={s.profileCard} onClick={handleEditProfile}>
           {/* Header */}
           <ProfileHeader
             image={data?.team?.logo?.url || '/images/demo-day/profile-placeholder.svg'}

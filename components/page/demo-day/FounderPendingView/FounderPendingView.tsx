@@ -7,9 +7,22 @@ import { TeamFundraisingCard } from '@/components/page/demo-day/InvestorPendingV
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 import { PITCH_DECK_URL, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
 import { CountdownComponent } from '@/components/common/Countdown';
+import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 
 export const FounderPendingView = () => {
   const { data } = useGetDemoDayState();
+
+  // Page view analytics - triggers only once on mount
+  useDemoDayPageViewAnalytics(
+    'onFounderPendingViewPageOpened',
+    'founder_pending_view_page_opened',
+    '/demoday',
+    {
+      demoDayTitle: data?.title,
+      demoDayDate: data?.date,
+      demoDayStatus: data?.status,
+    }
+  );
 
   return (
     <div className={s.root}>

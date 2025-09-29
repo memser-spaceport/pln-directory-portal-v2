@@ -8,6 +8,7 @@ import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { useQueryClient } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { formatWalletAddress } from '@privy-io/js-sdk-core';
+import { DemoMaterialAnalyticsHandlers } from '../EditProfileDrawer/EditProfileDrawer';
 
 const FolderIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -81,6 +82,7 @@ const DotIcon = () => (
 
 interface PitchDeckUploadProps {
   existingFile?: UploadInfo | null;
+  analyticsHandlers?: DemoMaterialAnalyticsHandlers;
 }
 
 interface UploadState {
@@ -91,7 +93,7 @@ interface UploadState {
   error: string | null;
 }
 
-export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
+export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUploadProps) => {
   const [uploadState, setUploadState] = useState<UploadState>({
     file: null,
     progress: 0,
@@ -137,6 +139,17 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
         return;
       }
 
+      const uploadStartTime = Date.now();
+      const fileMetadata = {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        materialType: 'onePager',
+      };
+
+      // Report upload started analytics
+      analyticsHandlers?.onUploadStarted(fileMetadata);
+
       setUploadState({
         file,
         progress: 0,
@@ -160,6 +173,14 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
         onSuccess: () => {
           clearInterval(progressInterval);
           queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
+
+          // Report upload success analytics
+          const uploadDuration = Date.now() - uploadStartTime;
+          analyticsHandlers?.onUploadSuccess({
+            ...fileMetadata,
+            uploadDuration,
+          });
+
           setUploadState((prev) => ({
             ...prev,
             isUploading: false,
@@ -170,15 +191,21 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
         onError: (error) => {
           clearInterval(progressInterval);
           queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
+
+          const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+
+          // Report upload failed analytics
+          analyticsHandlers?.onUploadFailed(fileMetadata, errorMessage);
+
           setUploadState((prev) => ({
             ...prev,
             isUploading: false,
-            error: error instanceof Error ? error.message : 'Upload failed',
+            error: errorMessage,
           }));
         },
       });
     },
-    [queryClient, uploadMutation],
+    [queryClient, uploadMutation, analyticsHandlers],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -269,6 +296,9 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
     const fileSize = existingFile?.size ?? 0;
 
     const handleDelete = () => {
+      // Report delete analytics
+      analyticsHandlers?.onDeleted('onePager', fileName);
+
       // Reset upload state to show upload area again
       setUploadState({
         file: null,
@@ -277,6 +307,11 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
         isComplete: false,
         error: null,
       });
+    };
+
+    const handleView = () => {
+      // Report view analytics
+      analyticsHandlers?.onViewed('onePager', fileName);
     };
 
     return (
@@ -291,6 +326,7 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
             uploadDate: uploadState.isComplete ? 'Just now' : undefined,
           }}
           onDelete={handleDelete}
+          onView={handleView}
           showDeleteButton={true}
         />
       </div>

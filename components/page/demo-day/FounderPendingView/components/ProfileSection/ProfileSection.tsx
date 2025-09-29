@@ -12,6 +12,8 @@ import { ProfileActions } from '@/components/page/demo-day/FounderPendingView/co
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 
 interface ProfileSectionProps {
   investorData?: {
@@ -26,21 +28,26 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
   const scrollPositionRef = React.useRef<number>(0);
 
   const { data, isLoading, error } = useGetFundraisingProfile();
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+
+  // Analytics hooks
+  const { onFounderTeamFundraisingCardClicked, onFounderEditTeamProfileButtonClicked } = useDemoDayAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
 
   // Create email data for demo day actions
   const createEmailData = (): DemoDayEmailData | null => {
-    const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+    const founders = data?.founders;
 
-    const founder = data?.founders?.[0];
+    if (!founders || founders.length === 0 || !userInfo) return null;
 
-    if (!founder || !userInfo) return null;
+    const founderEmails = founders.map((founder) => founder.email).filter((email) => email);
+    const founderNames = founders.map((founder) => founder.name).filter((name) => name);
 
-    const founderEmail = founder.email;
-    const founderName = founder.name;
+    if (founderEmails.length === 0 || founderNames.length === 0) return null;
 
     return {
-      founderEmail,
-      founderName,
+      founderEmails,
+      founderNames,
       demotingTeamName: data.team?.name || 'Team Name',
       investorName: userInfo.name ?? '',
       investorTeamName: '',
@@ -50,6 +57,60 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
   const emailData = createEmailData();
 
   const handleEditProfile = () => {
+    if (userInfo?.email) {
+      // PostHog analytics
+      onFounderEditTeamProfileButtonClicked();
+
+      // Custom analytics event
+      const editButtonClickedEvent: TrackEventDto = {
+        name: 'founder_edit_team_profile_button_clicked',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          teamName: data?.team?.name,
+          teamUid: data?.teamUid,
+          hasOnePager: !!data?.onePagerUpload?.url,
+          hasVideo: !!data?.videoUpload?.url,
+        },
+      };
+
+      reportAnalytics.mutate(editButtonClickedEvent);
+    }
+
+    // Store current scroll position before opening drawer
+    scrollPositionRef.current = document.body.scrollTop;
+    setIsDrawerOpen(true);
+  };
+
+  const handleCardClick = () => {
+    if (userInfo?.email) {
+      // PostHog analytics
+      onFounderTeamFundraisingCardClicked();
+
+      // Custom analytics event
+      const cardClickedEvent: TrackEventDto = {
+        name: 'founder_team_fundraising_card_clicked',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          teamName: data?.team?.name,
+          teamUid: data?.teamUid,
+          fundingStage: data?.team?.fundingStage?.title,
+          industryTags: data?.team?.industryTags?.map((tag) => tag.title) || [],
+        },
+      };
+
+      reportAnalytics.mutate(cardClickedEvent);
+    }
+
     // Store current scroll position before opening drawer
     scrollPositionRef.current = document.body.scrollTop;
     setIsDrawerOpen(true);

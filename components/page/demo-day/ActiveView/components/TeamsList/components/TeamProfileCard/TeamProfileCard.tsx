@@ -8,6 +8,8 @@ import s from './TeamProfileCard.module.scss';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
@@ -17,10 +19,60 @@ interface TeamProfileCardProps {
     teamName: string;
     email: string;
   };
+  onLikeCompany?: (team: TeamProfile) => void;
+  onConnectCompany?: (team: TeamProfile) => void;
+  onInvestCompany?: (team: TeamProfile) => void;
 }
 
-export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick, investorData }) => {
+export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
+  team,
+  onClick,
+  investorData,
+  onLikeCompany,
+  onConnectCompany,
+  onInvestCompany,
+}) => {
+  // Analytics hooks
+  const { onActiveViewTeamCardClicked } = useDemoDayAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+
   const handleCardClick = () => {
+    // Report team card click analytics
+    if (userInfo?.email) {
+      // PostHog analytics
+      onActiveViewTeamCardClicked({
+        teamName: team.team?.name,
+        teamUid: team.uid,
+        fundingStage: team.team?.fundingStage?.title,
+        industryTags: team.team?.industryTags?.map((tag) => tag.title),
+      });
+
+      // Custom analytics event
+      const teamCardEvent: TrackEventDto = {
+        name: 'active_view_team_card_clicked',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          teamName: team.team?.name,
+          teamUid: team.uid,
+          teamShortDescription: team.team?.shortDescription,
+          fundingStage: team.team?.fundingStage?.title,
+          fundingStageUid: team.team?.fundingStage?.uid,
+          industryTags: team.team?.industryTags?.map((tag) => tag.title),
+          industryTagUids: team.team?.industryTags?.map((tag) => tag.uid),
+          foundersCount: team.founders?.length || 0,
+          hasLogo: !!team.team?.logo?.url,
+        },
+      };
+
+      reportAnalytics.mutate(teamCardEvent);
+    }
+
     onClick?.(team);
   };
 
@@ -28,16 +80,16 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   const createEmailData = (): DemoDayEmailData | null => {
     const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
-    const founder = team.founders?.[0];
+    const founders = team.founders;
 
-    if (!founder || !userInfo) return null;
+    if (!founders || !userInfo) return null;
 
-    const founderEmail = founder.email;
-    const founderName = founder.name;
+    const founderEmails = founders.map((founder) => founder.email);
+    const founderNames = founders.map((founder) => founder.name);
 
     return {
-      founderEmail,
-      founderName,
+      founderEmails,
+      founderNames,
       demotingTeamName: team.team?.name || 'Team Name',
       investorName: userInfo.name ?? '',
       investorTeamName: '',

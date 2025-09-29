@@ -15,6 +15,10 @@ import { saveRegistrationImage } from '@/services/registration.service';
 import { toast } from 'react-toastify';
 import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
 
 interface EditProfileFormData {
   image: File | null;
@@ -25,7 +29,7 @@ interface EditProfileFormData {
 }
 
 interface Props {
-  onClose: () => void;
+  onClose: (saved?: boolean) => void;
   member?: IMember;
   userInfo?: IUserInfo;
 }
@@ -61,6 +65,11 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const { data: profileData } = useGetFundraisingProfile();
   const updateProfileMutation = useUpdateFundraisingProfile();
   const { data } = useTeamsFormOptions();
+
+  // Analytics hooks
+  const { onFounderSaveTeamDetailsClicked, onFounderCancelTeamDetailsClicked } = useDemoDayAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
+  const currentUserInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
   const options = useMemo(() => {
     if (!data) {
@@ -135,12 +144,74 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
 
       await updateProfileMutation.mutateAsync(updateData);
 
+      // Report save analytics
+      if (currentUserInfo?.email) {
+        // PostHog analytics
+        onFounderSaveTeamDetailsClicked();
+
+        // Custom analytics event
+        const saveEvent: TrackEventDto = {
+          name: 'founder_save_team_details_clicked',
+          distinctId: currentUserInfo.email,
+          properties: {
+            userId: currentUserInfo.uid,
+            userEmail: currentUserInfo.email,
+            userName: currentUserInfo.name,
+            path: '/demoday',
+            timestamp: new Date().toISOString(),
+            teamName: formData.name,
+            teamUid: profileData?.teamUid,
+            hasLogoUpdate: !!formData.image,
+            industryTagsCount: formData.tags.length,
+            fundingStage: formData.fundingStage?.label,
+            fieldsUpdated: [
+              'name',
+              'shortDescription',
+              'industryTags',
+              'fundingStage',
+              ...(formData.image ? ['logo'] : []),
+            ],
+          },
+        };
+
+        reportAnalytics.mutate(saveEvent);
+      }
+
       reset();
-      onClose();
+      onClose(true); // Pass true to indicate successful save
     } catch (error) {
       console.error('Failed to update profile:', error);
       toast.error('Failed to update profile');
     }
+  };
+
+  const handleCancel = () => {
+    // Report cancel analytics
+    if (currentUserInfo?.email) {
+      // PostHog analytics
+      onFounderCancelTeamDetailsClicked();
+
+      // Custom analytics event
+      const cancelEvent: TrackEventDto = {
+        name: 'founder_cancel_team_details_clicked',
+        distinctId: currentUserInfo.email,
+        properties: {
+          userId: currentUserInfo.uid,
+          userEmail: currentUserInfo.email,
+          userName: currentUserInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          teamName: profileData?.team?.name,
+          teamUid: profileData?.teamUid,
+          action: 'cancel_form',
+        },
+      };
+
+      reportAnalytics.mutate(cancelEvent);
+    }
+
+    reset();
+    onClose(false); // Pass false to indicate cancel
   };
 
   return (
@@ -154,7 +225,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           }
         }}
       >
-        <EditFormControls onClose={onClose} title="Edit Profile Details" />
+        <EditFormControls onClose={handleCancel} title="Edit Profile Details" />
         <div className={s.body}>
           <div className={s.row}>
             <ProfileImageInput

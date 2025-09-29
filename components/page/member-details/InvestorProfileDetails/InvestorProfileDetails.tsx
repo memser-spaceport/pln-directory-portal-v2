@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 import { IMember, InvestorProfileType } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -9,6 +9,8 @@ import { EditInvestorProfileForm } from '@/components/page/member-details/Invest
 import { InvestorProfileView } from '@/components/page/member-details/InvestorProfileDetails/components/InvestorProfileView';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import { ITeam } from '@/types/teams.types';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 
 import s from './InvestorProfileDetails.module.scss';
 
@@ -80,6 +82,10 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
 
+  // Analytics hooks
+  const { onInvestorProfileEditStarted } = useDemoDayAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
+
   // Use the new function to determine if we should show incomplete data warning
   const showWarningUseCaseA = shouldShowIncompleteDataWarning(member);
   const showIncomplete = !editView && isOwner && showWarningUseCaseA;
@@ -88,6 +94,33 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
   const hasInvestorProfile = !!member?.investorProfile?.type;
 
   useMobileNavVisibility(editView);
+
+  // Handle edit mode start
+  const handleEditStart = () => {
+    if (userInfo?.email) {
+      // PostHog analytics
+      onInvestorProfileEditStarted();
+
+      // Custom analytics event
+      const editStartedEvent: TrackEventDto = {
+        name: 'investor_profile_edit_started',
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: `/members/${member.id}`,
+          timestamp: new Date().toISOString(),
+          currentInvestorProfileType: member?.investorProfile?.type || null,
+          isProfileComplete: !shouldShowIncompleteDataWarning(member),
+        },
+      };
+
+      reportAnalytics.mutate(editStartedEvent);
+    }
+
+    setEditView(true);
+  };
 
   if (!isLoggedIn) {
     return null;
@@ -118,7 +151,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
           userInfo={userInfo}
           isEditable={isEditable}
           showIncomplete={showIncomplete}
-          onEdit={() => setEditView(true)}
+          onEdit={handleEditStart}
           type={member.investorProfile?.type}
           member={member}
         />

@@ -1556,3 +1556,31 @@ export const EVENTS_SUBMIT_FORM_TYPES = {
 export const CONTRIBUTE_MODAL_VIDEO_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/IRL+video-Updated.webm';
 
 export const GROUPS_URL = 'https://protosphere.plnetwork.io/groups';
+
+export const DEMO_DAY_ANALYTICS = {
+  ON_INVESTOR_PENDING_VIEW_PAGE_OPENED: 'demo-day-on-investor-pending-view-page-opened',
+  ON_INVESTOR_PENDING_VIEW_GO_TO_INVESTOR_PROFILE_BUTTON_CLICKED:
+    'demo-day-on-investor-pending-view-go-to-profile-clicked',
+  ON_INVESTOR_PROFILE_PAGE_OPENED: 'demo-day-on-investor-profile-page-opened',
+  ON_INVESTOR_PROFILE_EDIT_STARTED: 'demo-day-on-investor-profile-edit-started',
+  ON_INVESTOR_PROFILE_UPDATED: 'demo-day-on-investor-profile-updated',
+  ON_FOUNDER_PENDING_VIEW_PAGE_OPENED: 'demo-day-on-founder-pending-view-page-opened',
+  ON_FOUNDER_TEAM_FUNDRAISING_CARD_CLICKED: 'demo-day-on-founder-team-fundraising-card-clicked',
+  ON_FOUNDER_EDIT_TEAM_PROFILE_BUTTON_CLICKED: 'demo-day-on-founder-edit-team-profile-button-clicked',
+  ON_FOUNDER_SAVE_TEAM_DETAILS_CLICKED: 'demo-day-on-founder-save-team-details-clicked',
+  ON_FOUNDER_CANCEL_TEAM_DETAILS_CLICKED: 'demo-day-on-founder-cancel-team-details-clicked',
+  ON_FOUNDER_DEMO_MATERIAL_UPLOAD_STARTED: 'demo-day-on-founder-demo-material-upload-started',
+  ON_FOUNDER_DEMO_MATERIAL_UPLOAD_SUCCESS: 'demo-day-on-founder-demo-material-upload-success',
+  ON_FOUNDER_DEMO_MATERIAL_UPLOAD_FAILED: 'demo-day-on-founder-demo-material-upload-failed',
+  ON_FOUNDER_DEMO_MATERIAL_DELETED: 'demo-day-on-founder-demo-material-deleted',
+  ON_FOUNDER_DEMO_MATERIAL_VIEWED: 'demo-day-on-founder-demo-material-viewed',
+  ON_ACTIVE_VIEW_PAGE_OPENED: 'demo-day-on-active-view-page-opened',
+  ON_ACTIVE_VIEW_TIME_ON_PAGE: 'demo-day-on-active-view-time-on-page',
+  ON_ACTIVE_VIEW_FILTERS_APPLIED: 'demo-day-on-active-view-filters-applied',
+  ON_ACTIVE_VIEW_TEAM_CARD_CLICKED: 'demo-day-on-active-view-team-card-clicked',
+  ON_ACTIVE_VIEW_TEAM_PITCH_DECK_VIEWED: 'demo-day-on-active-view-team-pitch-deck-viewed',
+  ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_VIEWED: 'demo-day-on-active-view-team-pitch-video-viewed',
+  ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED: 'demo-day-on-active-view-like-company-clicked',
+  ON_ACTIVE_VIEW_CONNECT_COMPANY_CLICKED: 'demo-day-on-active-view-connect-company-clicked',
+  ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED: 'demo-day-on-active-view-invest-company-clicked',
+};

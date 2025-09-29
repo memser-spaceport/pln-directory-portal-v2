@@ -434,7 +434,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                         placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                         options={formOptions.fundingStageOptions}
                         showNone
-                        isRequired
                       />
                     </div>
                     <div className={s.row}>
@@ -443,7 +442,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                         label="Typical Check Size"
                         placeholder="Enter typical check size"
                         currency="USD"
-                        isRequired
                       />
                     </div>
                     <div className={s.row}>

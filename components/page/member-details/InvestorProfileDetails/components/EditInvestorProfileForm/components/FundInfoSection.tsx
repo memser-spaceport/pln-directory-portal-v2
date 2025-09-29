@@ -14,7 +14,10 @@ export const FundInfoSection: React.FC = () => {
       <div className={s.infoSectionContent}>
         We don&apos;t see a whitelisted fund associated with your account.{' '}
         <Link href={TEAMS_ADD_URL} className={s.ctaLink}>
-          Submit a Fund <LinkIcon />
+          Submit a Fund{' '}
+          <span className={s.linkIcon}>
+            <LinkIcon />
+          </span>
         </Link>
       </div>
     </div>

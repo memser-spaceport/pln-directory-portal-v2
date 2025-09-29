@@ -301,6 +301,10 @@
     line-height: 22px;
     letter-spacing: -0.2px;
   }
+
+  .linkIcon {
+    color: var(--foreground-brand-primary, #1B4DFF);
+  }
 }
 
 .cta {

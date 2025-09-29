@@ -9,6 +9,7 @@ import { INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
 import MemberInfiniteList from '@/components/page/members/member-infinite-list';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
+import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/constants/filters';
 
 async function Page({ searchParams }: { searchParams: Record<string, string> }) {
   const { userInfo } = getCookiesFromHeaders();
@@ -42,6 +43,10 @@ const getPageData = async (searchParams: Record<string, string>) => {
   let members: IMember[] = [];
   let isError = false;
   let totalMembers = 0;
+
+  if (!!searchParams[TOPICS_FILTER_PARAM_KEY]) {
+    searchParams[OFFICE_HOURS_FILTER_PARAM_KEY] = 'true';
+  }
 
   try {
     const { isLoggedIn, authToken } = getCookiesFromHeaders();

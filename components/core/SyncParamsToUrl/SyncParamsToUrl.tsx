@@ -5,12 +5,13 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useFilterStore } from '@/services/members/store';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useDebounce } from 'react-use';
+import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/constants/filters';
 
 // Whitelist of parameters that should be tracked and synced
 const TRACKED_PARAMS = [
-  'topics',
+  TOPICS_FILTER_PARAM_KEY,
   'roles',
-  'hasOfficeHours',
+  OFFICE_HOURS_FILTER_PARAM_KEY,
   'sort',
   'search',
   'isInvestor',

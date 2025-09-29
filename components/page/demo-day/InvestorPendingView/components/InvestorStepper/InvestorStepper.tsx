@@ -33,21 +33,21 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
 
   const eventDateFormatted = data?.date ? formatEventDate(data.date) : '12:00 UTC, Oct 25';
   const steps: StepData[] = [
+    // {
+    //   id: 1,
+    //   title: 'Step 1',
+    //   description: 'Confirm your invitation to join Demo Day',
+    //   status: currentStep > 1 ? 'completed' : currentStep === 1 ? 'current' : 'pending',
+    // },
     {
       id: 1,
       title: 'Step 1',
-      description: 'Confirm your invitation to join Demo Day',
-      status: currentStep > 1 ? 'completed' : currentStep === 1 ? 'current' : 'pending',
-    },
-    {
-      id: 2,
-      title: 'Step 2',
       description: 'Complete your investor profile',
       status: currentStep > 2 ? 'completed' : currentStep === 2 ? 'current' : 'pending',
     },
     {
-      id: 3,
-      title: 'Step 3',
+      id: 2,
+      title: 'Step 2',
       description: `You're all set for Demo Day! Access opens at ${eventDateFormatted}.`,
       status: currentStep > 3 ? 'completed' : currentStep === 3 ? 'current' : 'pending',
     },

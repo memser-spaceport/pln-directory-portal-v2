@@ -32,6 +32,7 @@ type SortOption = {
 };
 
 const SORT_OPTIONS: SortOption[] = [
+  { value: 'default', label: 'Default' },
   { value: 'name-asc', label: 'Name A-Z' },
   { value: 'name-desc', label: 'Name Z-A' },
   { value: 'stage-asc', label: 'Funding Stage A-Z' },
@@ -41,7 +42,7 @@ const SORT_OPTIONS: SortOption[] = [
 
 export const TeamsList: React.FC = () => {
   const { data: teams, isLoading, error } = useGetTeamsList();
-  const [sortBy, setSortBy] = useState<string>('name-asc');
+  const [sortBy, setSortBy] = useState<string>('default');
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const scrollPositionRef = useRef<number>(0);
@@ -77,10 +78,8 @@ export const TeamsList: React.FC = () => {
 
       // Industry filter
       if (selectedIndustries.length > 0) {
-        const teamIndustryUids = team.team.industryTags.map(tag => tag.uid);
-        const hasMatchingIndustry = selectedIndustries.some(industryUid =>
-          teamIndustryUids.includes(industryUid)
-        );
+        const teamIndustryUids = team.team.industryTags.map((tag) => tag.uid);
+        const hasMatchingIndustry = selectedIndustries.some((industryUid) => teamIndustryUids.includes(industryUid));
         if (!hasMatchingIndustry) {
           return false;
         }
@@ -170,7 +169,8 @@ export const TeamsList: React.FC = () => {
         <div className={s.headerLeft}>
           <h2 className={s.title}>Teams List</h2>
           <span className={s.counter}>
-            ({filteredTeamsCount}{totalTeamsCount !== filteredTeamsCount ? ` of ${totalTeamsCount}` : ''})
+            ({filteredTeamsCount}
+            {totalTeamsCount !== filteredTeamsCount ? ` of ${totalTeamsCount}` : ''})
           </span>
         </div>
 

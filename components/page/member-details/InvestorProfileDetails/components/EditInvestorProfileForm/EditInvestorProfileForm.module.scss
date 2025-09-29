@@ -303,6 +303,11 @@
   }
 }
 
+.linkIcon {
+  color: var(--foreground-brand-primary, #1B4DFF);
+  line-height: 12px;
+}
+
 .cta {
   display: flex;
   align-items: flex-start;

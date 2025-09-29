@@ -107,7 +107,7 @@ export const InvestorProfileView = ({
                     {fundTeam ? (
                       <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
                         <div className={s.infoSectionContent}>
-                          <span className={s.keywordsLabel}>I invest through: </span> <b>{fundTeam?.name}</b>{' '}
+                          <span className={s.keywordsLabel}>I also invest through: </span> <b>{fundTeam?.name}</b>{' '}
                           <LinkIcon />
                         </div>
                       </Link>
@@ -126,12 +126,13 @@ export const InvestorProfileView = ({
                   {fundTeam ? (
                     <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
                       <div className={s.infoSectionContent}>
-                        <span className={s.keywordsLabel}>I invest through: </span> <b>{fundTeam?.name}</b> <LinkIcon />
+                        <span className={s.keywordsLabel}>I also invest through: </span> <b>{fundTeam?.name}</b>{' '}
+                        <LinkIcon />
                       </div>
                     </Link>
                   ) : (
                     <div className={s.keywordsWrapper}>
-                      <span className={s.keywordsLabel}>I invest through:</span>
+                      <span className={s.keywordsLabel}>I also invest through:</span>
                       <span className={s.badgesWrapper}>
                         {typicalCheckSize && secRulesAccepted ? (
                           <div className={s.badge}>{formatUSD.format(+typicalCheckSize)}</div>

@@ -32,50 +32,6 @@ export const InvestmentDetailsSection: React.FC<Props> = ({
 }) => {
   return (
     <div className={s.col}>
-      {(typicalCheckSize || isEditable) && (
-        <div className={s.keywordsWrapper}>
-          <span className={s.keywordsLabel}>Check Size:</span>
-          <span className={s.badgesWrapper}>
-            {typicalCheckSize && secRulesAccepted ? (
-              <div className={s.badge}>{formatUSD.format(+typicalCheckSize)}</div>
-            ) : (
-              <button
-                type="button"
-                className={s.addKeywordsBadge}
-                onClick={() => {
-                  onEdit?.();
-                }}
-              >
-                <AddIcon /> Add
-              </button>
-            )}
-          </span>
-        </div>
-      )}
-      {(!!investmentFocusAreas?.length || isEditable) && (
-        <div className={s.keywordsWrapper}>
-          <span className={s.keywordsLabel}>Investment Focus:</span>
-          <span className={s.badgesWrapper}>
-            {investmentFocusAreas?.length && secRulesAccepted ? (
-              investmentFocusAreas?.map((item: string) => (
-                <div key={item} className={s.badge}>
-                  {item}
-                </div>
-              ))
-            ) : (
-              <button
-                type="button"
-                className={s.addKeywordsBadge}
-                onClick={() => {
-                  onEdit?.();
-                }}
-              >
-                <AddIcon /> Add
-              </button>
-            )}
-          </span>
-        </div>
-      )}
       {(!!investInStartupStages?.length || isEditable) && (
         <div className={s.keywordsWrapper}>
           <span className={s.keywordsLabel}>Startup Stages:</span>
@@ -100,6 +56,53 @@ export const InvestmentDetailsSection: React.FC<Props> = ({
           </span>
         </div>
       )}
+
+      {(typicalCheckSize || isEditable) && (
+        <div className={s.keywordsWrapper}>
+          <span className={s.keywordsLabel}>Check Size:</span>
+          <span className={s.badgesWrapper}>
+            {typicalCheckSize && secRulesAccepted ? (
+              <div className={s.badge}>{formatUSD.format(+typicalCheckSize)}</div>
+            ) : (
+              <button
+                type="button"
+                className={s.addKeywordsBadge}
+                onClick={() => {
+                  onEdit?.();
+                }}
+              >
+                <AddIcon /> Add
+              </button>
+            )}
+          </span>
+        </div>
+      )}
+
+      {(!!investmentFocusAreas?.length || isEditable) && (
+        <div className={s.keywordsWrapper}>
+          <span className={s.keywordsLabel}>Investment Focus:</span>
+          <span className={s.badgesWrapper}>
+            {investmentFocusAreas?.length && secRulesAccepted ? (
+              investmentFocusAreas?.map((item: string) => (
+                <div key={item} className={s.badge}>
+                  {item}
+                </div>
+              ))
+            ) : (
+              <button
+                type="button"
+                className={s.addKeywordsBadge}
+                onClick={() => {
+                  onEdit?.();
+                }}
+              >
+                <AddIcon /> Add
+              </button>
+            )}
+          </span>
+        </div>
+      )}
+
       {/*{isEditable && (*/}
       {/*  <div className={s.keywordsWrapper}>*/}
       {/*    <span className={s.keywordsLabel}>Investment Types in VC Funds:</span>*/}

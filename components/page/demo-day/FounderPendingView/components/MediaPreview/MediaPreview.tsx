@@ -22,6 +22,7 @@ interface MediaPreviewProps {
   };
   showMetadata?: boolean;
   onDelete?: () => void;
+  onView?: () => void;
   showDeleteButton?: boolean;
 }
 
@@ -59,6 +60,7 @@ export const MediaPreview = ({
   metadata,
   showMetadata = true,
   onDelete,
+  onView,
   showDeleteButton = true,
 }: MediaPreviewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -118,6 +120,10 @@ export const MediaPreview = ({
 
   const openModal = (e?: MouseEvent<HTMLDivElement>) => {
     e?.stopPropagation();
+
+    // Report view analytics
+    onView?.();
+
     setIsModalOpen(true);
   };
 

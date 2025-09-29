@@ -44,6 +44,14 @@ const WarningIcon = () => (
   </svg>
 );
 
+export interface DemoMaterialAnalyticsHandlers {
+  onUploadStarted: (fileMetadata: any) => void;
+  onUploadSuccess: (fileMetadata: any) => void;
+  onUploadFailed: (fileMetadata: any, error: string) => void;
+  onDeleted: (materialType: string, fileName: string) => void;
+  onViewed: (materialType: string, fileName: string) => void;
+}
+
 interface EditProfileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -158,7 +166,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
   };
 
   // Reset edit mode and hide alert when drawer closes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isOpen) {
       setEditView(false);
       setShowSuccessAlert(false);
@@ -532,7 +540,17 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
               )}
 
               {/* Demo Day Materials - Always Visible */}
-              <DemoMaterials existingPitchDeck={data?.onePagerUpload} existingVideo={data?.videoUpload} />
+              <DemoMaterials
+                existingPitchDeck={data?.onePagerUpload}
+                existingVideo={data?.videoUpload}
+                analyticsHandlers={{
+                  onUploadStarted: handleDemoMaterialUploadStarted,
+                  onUploadSuccess: handleDemoMaterialUploadSuccess,
+                  onUploadFailed: handleDemoMaterialUploadFailed,
+                  onDeleted: handleDemoMaterialDeleted,
+                  onViewed: handleDemoMaterialViewed,
+                }}
+              />
             </div>
 
             {/* Footer - Always Visible */}

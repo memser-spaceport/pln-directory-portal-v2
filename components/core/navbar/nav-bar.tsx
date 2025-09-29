@@ -15,7 +15,6 @@ import { NavigationMenu } from '@base-ui-components/react';
 import NextLink from 'next/link';
 
 import s from './NavBar.module.scss';
-import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 interface INavbar {
   userInfo: IUserInfo;
@@ -75,8 +74,6 @@ function Navbar(props: Readonly<INavbar>) {
 
   const { data: profileStatus } = useMemberProfileStatus(userInfo?.uid);
 
-  const { data: demoDayState } = useGetDemoDayState();
-
   return (
     <NavigationMenu.Root className={s.Root}>
       <NavigationMenu.List className={s.List}>
@@ -120,15 +117,11 @@ function Navbar(props: Readonly<INavbar>) {
             <ForumIcon /> Forum
           </Link>
         </NavigationMenu.Item>
-        {!demoDayState ||
-        (demoDayState.access === 'none' && demoDayState.status === 'NONE') ||
-        (demoDayState.access === 'none' && demoDayState.status === 'COMPLETED') ? null : (
-          <NavigationMenu.Item>
-            <Link className={s.Trigger} href="/demoday" onClick={() => onNavItemClickHandler('/demoday', 'Demo Day')}>
-              <DemoDayIcon /> Demo Day
-            </Link>
-          </NavigationMenu.Item>
-        )}
+        <NavigationMenu.Item>
+          <Link className={s.Trigger} href="/demoday" onClick={() => onNavItemClickHandler('/demoday', 'Demo Day')}>
+            <DemoDayIcon /> Demo Day
+          </Link>
+        </NavigationMenu.Item>
 
         <div className={s.right}>
           <NotificationsMenu

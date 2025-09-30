@@ -19,6 +19,7 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
 interface EditProfileFormData {
   image: File | null;
@@ -155,7 +156,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
 
         // Custom analytics event
         const saveEvent: TrackEventDto = {
-          name: 'founder_save_team_details_clicked',
+          name: DEMO_DAY_ANALYTICS.ON_FOUNDER_SAVE_TEAM_DETAILS_CLICKED,
           distinctId: currentUserInfo.email,
           properties: {
             userId: currentUserInfo.uid,
@@ -197,7 +198,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
 
       // Custom analytics event
       const cancelEvent: TrackEventDto = {
-        name: 'founder_cancel_team_details_clicked',
+        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_CANCEL_TEAM_DETAILS_CLICKED,
         distinctId: currentUserInfo.email,
         properties: {
           userId: currentUserInfo.uid,

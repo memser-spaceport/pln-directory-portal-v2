@@ -10,27 +10,24 @@
 }
 
 .title {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  color: #5e718d;
+  font-size: 18px;
+  font-style: normal;
   font-weight: 400;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  color: rgba(0, 0, 0, 0.5);
+  line-height: 27px;
+  letter-spacing: -0.3px;
   text-align: center;
   max-width: 640px;
   width: 100%;
-
-  @include media.mobile-only {
-    font-size: 13px;
-    line-height: 18px;
-  }
+  opacity: 0.6;
 }
 
 .timeContainer {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
+  gap: 28px;
+  padding-top: 12px;
 
   @include media.mobile-only {
     gap: 16px;
@@ -46,40 +43,30 @@
 }
 
 .timeValue {
-  font-family: 'Inter', sans-serif;
-  font-size: 24px;
+  font-size: 30px;
+  font-style: normal;
   font-weight: 600;
-  line-height: 34px;
-  letter-spacing: -0.4px;
-  color: #000000;
+  line-height: 27px; /* 84.375% */
+  letter-spacing: -0.5px;
+  color: #0a0c11;
   min-width: 32px;
-
-  @include media.mobile-only {
-    font-size: 20px;
-    line-height: 28px;
-    min-width: 28px;
-  }
 }
 
 .timeLabel {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 16px;
-  letter-spacing: -0.2px;
-  color: rgba(0, 0, 0, 0.5);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 27px; /* 150% */
+  letter-spacing: -0.3px;
+  color: #5e718d;
   white-space: nowrap;
-
-  @include media.mobile-only {
-    font-size: 11px;
-    line-height: 15px;
-  }
+  opacity: 0.6;
 }
 
 .divider {
   width: 0.5px;
   height: 50px;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: #d7dfe9;
   flex-shrink: 0;
 
   @include media.mobile-only {

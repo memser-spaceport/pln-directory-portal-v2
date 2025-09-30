@@ -14,6 +14,7 @@ import Cookies from 'js-cookie';
 import Link from 'next/link';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -106,7 +107,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
       // Custom analytics event
       const likeEvent: TrackEventDto = {
-        name: 'active_view_like_company_clicked',
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -135,7 +136,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
       // Custom analytics event
       const connectEvent: TrackEventDto = {
-        name: 'active_view_connect_company_clicked',
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_CONNECT_COMPANY_CLICKED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -164,7 +165,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
       // Custom analytics event
       const investEvent: TrackEventDto = {
-        name: 'active_view_invest_company_clicked',
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -194,7 +195,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
       // Custom analytics event
       const pitchDeckEvent: TrackEventDto = {
-        name: 'active_view_team_pitch_deck_viewed',
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_DECK_VIEWED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -219,7 +220,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
       // Custom analytics event
       const pitchVideoEvent: TrackEventDto = {
-        name: 'active_view_team_pitch_video_viewed',
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_VIEWED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,

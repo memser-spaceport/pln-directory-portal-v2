@@ -1,23 +1,25 @@
 @use 'styles/media';
 
 .header {
-  color: #0A0C11;
+  color: #0a0c11;
   text-align: center;
   font-size: 32px;
   font-weight: 600;
-  line-height: 110%;
+  line-height: 40px;
   letter-spacing: -0.75px;
 
   margin: 0 auto;
+  margin-top: 10px;
   max-width: 554px;
 
-  @include media.desktop {
-    line-height: 40px;
+  @include media.mobile-only {
+    font-size: 26px;
+    line-height: 32px;
   }
 }
 
 .subheader {
-  color: #5E718D;
+  color: #5e718d;
   text-align: center;
   font-size: 16px;
   font-weight: 500;
@@ -38,10 +40,10 @@
   gap: 22px;
   display: grid;
   flex-shrink: 0;
+  // max-width: 1146px;
 
   grid-template-rows: repeat(13, minmax(0, 1fr));
   grid-template-columns: repeat(3, minmax(0, 1fr));
-
 
   @include media.desktop {
     grid-template-rows: repeat(8, minmax(0, 1fr));
@@ -57,5 +59,11 @@
 }
 
 .logo {
-  max-width: 100%;
+  max-width: 75%;
+  max-height: 75%;
+
+  @include media.mobile-only {
+    max-width: 100%;
+    max-height: 100%;
+  }
 }

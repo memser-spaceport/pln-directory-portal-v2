@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 import { IMember, InvestorProfileType } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE } from '@/utils/constants';
+import { ADMIN_ROLE, DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { EditInvestorProfileForm } from '@/components/page/member-details/InvestorProfileDetails/components/EditInvestorProfileForm';
 import { InvestorProfileView } from '@/components/page/member-details/InvestorProfileDetails/components/InvestorProfileView';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
@@ -103,7 +103,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
 
       // Custom analytics event
       const editStartedEvent: TrackEventDto = {
-        name: 'investor_profile_edit_started',
+        name: DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_EDIT_STARTED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,

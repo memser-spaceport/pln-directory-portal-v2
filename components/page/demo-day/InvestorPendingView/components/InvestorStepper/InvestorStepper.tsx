@@ -48,7 +48,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
     {
       id: 2,
       title: 'Step 2',
-      description: `You're all set for Demo Day! Access opens at ${eventDateFormatted}.`,
+      description: `Return to this page on ${eventDateFormatted} to join the event.`,
       status: currentStep > 3 ? 'completed' : currentStep === 3 ? 'current' : 'pending',
     },
   ];
@@ -57,7 +57,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
     <div className={s.stepperCard}>
       {/* Title Section */}
       <div className={s.titleSection}>
-        <h3 className={s.title}>Get ready for Demo Day!</h3>
+        <h3 className={s.title}>You&apos;re invited to Demo Day.</h3>
         <p className={s.subtitle}>Follow these steps to secure your access:</p>
       </div>
 

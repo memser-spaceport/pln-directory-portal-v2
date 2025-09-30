@@ -301,22 +301,20 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
         {/*  </p>*/}
         {/*</div>*/}
 
-        {(isAdmin || isInvestor) && (
-          <div className="teaminfo__form__checkbox">
-            <input
-              type="checkbox"
-              id="team-investment-fund"
-              name="isFund"
-              checked={isInvestmentFund}
-              onChange={(e) => setIsInvestmentFund(e.target.checked)}
-            />
-            <label htmlFor="team-investment-fund" className="teaminfo__form__checkbox__label">
-              This team is an investment fund.
-            </label>
-          </div>
-        )}
+        <div className="teaminfo__form__checkbox">
+          <input
+            type="checkbox"
+            id="team-investment-fund"
+            name="isFund"
+            checked={isInvestmentFund}
+            onChange={(e) => setIsInvestmentFund(e.target.checked)}
+          />
+          <label htmlFor="team-investment-fund" className="teaminfo__form__checkbox__label">
+            This team is an investment fund.
+          </label>
+        </div>
 
-        {(isAdmin || isInvestor) && isInvestmentFund && (
+        {isInvestmentFund && (
           <>
             <div className="teaminfo__form__item">
               <StandaloneMultiSelect

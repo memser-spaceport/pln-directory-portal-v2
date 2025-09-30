@@ -11,6 +11,8 @@ import { CountdownComponent } from '@/components/common/Countdown';
 import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { FAQ } from './components/FAQ';
+import { faqItems } from '@/app/constants/demoday';
 
 export const InvestorPendingView = () => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -109,6 +111,9 @@ export const InvestorPendingView = () => {
           </div>
 
           <InvestorStepper currentStep={currentStep} onFillProfile={handleFillProfile} />
+
+          {/* FAQ Section */}
+          <FAQ items={faqItems} />
         </div>
       </div>
     </div>

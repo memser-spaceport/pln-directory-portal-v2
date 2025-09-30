@@ -21,6 +21,7 @@ import IrlErrorPage from '@/components/core/irl-error-page';
 import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 import IrlFollowGathering from '@/components/page/irl/follow-gathering/irl-follow-gathering';
 import IrlHuskyIntegration from '@/components/page/irl/irl-husky/irl-husky-integration';
+import AddtionalResources from '@/components/page/irl/events/addtional-resources';
 
 export default async function Page({ searchParams }: any) {
   const {
@@ -51,14 +52,14 @@ export default async function Page({ searchParams }: any) {
       <div className={styles.irlGatherings__cn}>
         {/* Header */}
         <section className={styles.irlGatherings__header}>
-          <IrlHeader />
+          <IrlHeader searchParams={searchParams} locationDetails={locationDetails}/>
         </section>
         {/* Locations */}
         <section className={styles.irlGatheings__locations}>
           <IrlLocation locationDetails={locationDetails} searchParams={searchParams} />
         </section>
         {/* Events */}
-        <section className={styles.irlGatherings__events}>
+        {/* <section className={styles.irlGatherings__events}>
           <IrlEvents
             isUserGoing={isUserGoing as boolean}
             userInfo={userInfo}
@@ -71,7 +72,7 @@ export default async function Page({ searchParams }: any) {
         </section>
         <section className={styles.irlGatheings__huskyIntegration}>
           <IrlHuskyIntegration currentLocation={eventLocationSummary} />
-        </section>
+        </section> */}
         {/* Follow Gathering */}
         <section className={styles.irlGatheings__follow}>
           <IrlFollowGathering
@@ -84,6 +85,9 @@ export default async function Page({ searchParams }: any) {
             eventDetails={eventDetails}
             guestDetails={guestDetails}
           />
+        </section>
+        <section className={styles.irlGatherings__additionalResources}>
+          <AddtionalResources eventDetails={eventDetails} searchParams={searchParams} isLoggedIn={isLoggedIn} />
         </section>
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
@@ -205,8 +209,15 @@ const getPageData = async (searchParams: any) => {
       });
     }
     let guestDetails = events as any;
+    
+    // Handle the new return structure with selectedType
+    let finalEventType = eventType;
+    if ((events as any)?.selectedType) {
+      finalEventType = (events as any).selectedType;
+    }
+    
     const selectedTypeEvents =
-      eventType === 'past' || (eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0)
+      finalEventType === 'past' || (eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0)
         ? eventDetails.pastEvents
         : eventDetails.upcomingEvents;
 

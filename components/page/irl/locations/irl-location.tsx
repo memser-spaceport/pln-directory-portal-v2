@@ -85,50 +85,17 @@ const IrlLocation = (props: IrlLocation) => {
   };
 
   const setSearchParams = (locationDetail: any, currentParams: URLSearchParams, searchParams: any) => {
-    const hasPastEvents = locationDetail?.pastEvents?.length > 0;
-    const hasUpcomingEvents = locationDetail?.upcomingEvents?.length > 0;
-    const isTypePast = searchParams?.type === 'past';
-    const isTypeUpcoming = searchParams?.type === 'upcoming';
-
+    // Only set the location parameter, remove all other parameters
     currentParams.set('location', locationDetail?.location?.split(',')[0].trim());
-
-    if (!searchParams?.type) {
-      if (hasUpcomingEvents && !hasPastEvents) currentParams.set('type', 'upcoming');
-      else if (hasPastEvents && !hasUpcomingEvents) setPastEvent();
-      else if (hasUpcomingEvents && hasPastEvents) {
-        currentParams.delete('type');
-        currentParams.delete('event');
-      }
-    } else if (hasPastEvents && hasUpcomingEvents) {
-      currentParams.delete('type');
-      currentParams.delete('event');
-    } else if (hasPastEvents && isTypePast) setPastEvent();
-    else if (!hasPastEvents && isTypePast) switchToUpcoming();
-    else if (!hasUpcomingEvents && isTypeUpcoming) setPastEvent();
-    else currentParams.delete('event');
-
-    function setPastEvent() {
-      currentParams.set('type', 'past');
-      currentParams.set('event', locationDetail.pastEvents[0]?.slugURL);
-    }
-
-    function switchToUpcoming() {
-      currentParams.set('type', 'upcoming');
-      currentParams.delete('event');
-    }
+    
+    // Remove type and event parameters to keep URL clean
+    currentParams.delete('type');
+    currentParams.delete('event');
   };
 
   const handleCardClick = (locationDetail: any) => {
-    const currentParams = new URLSearchParams(searchParams);
-    const allowedParams = ['event', 'type', 'location'];
-
-    // Remove parameters not in the allowed list
-    for (const [key, value] of Object.entries(searchParams)) {
-      if (!allowedParams.includes(key)) {
-        currentParams.delete(key);
-      }
-    }
-
+    const currentParams = new URLSearchParams();
+    
     setSearchParams(locationDetail, currentParams, searchParams);
 
     const locationChanged = locationDetail?.location?.split(',')[0].trim() !== searchParams?.location;
@@ -144,28 +111,12 @@ const IrlLocation = (props: IrlLocation) => {
     if (clickedIndex === -1) return;
     triggerLoader(true);
 
-    // const updatedLocations = [...locations];
-    // const fourthIndex = cardLimit - 1;
-
-    // // Swap locations
-    // [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] =
-    //     [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
-
-    const currentParams = new URLSearchParams(searchParams);
-    const allowedParams = ['event', 'type', 'location'];
-
-    // Remove parameters not in the allowed list
-    for (const [key, value] of Object.entries(searchParams)) {
-      if (!allowedParams.includes(key)) {
-        currentParams.delete(key);
-      }
-    }
+    const currentParams = new URLSearchParams();
     setSearchParams(clickedLocation, currentParams, searchParams);
 
     router.push(`${window.location.pathname}?${currentParams.toString()}`);
 
     dialogRef.current?.close();
-    // setLocations(updatedLocations);
     setShowMore(false);
 
     analytics.trackLocationClicked(clickedLocation.uid, clickedLocation?.location);

@@ -25,6 +25,8 @@ export const useIrlAnalytics = () => {
     IRL_GUEST_LIST_TABLE_SPEAKER_EVENT_CLICKED: 'irl-guest-list-table-speaker-event-clicked',
     IRL_GUEST_LIST_TABLE_SPONSOR_EVENT_CLICKED: 'irl-guest-list-table-sponsor-event-clicked',
     IRL_GUEST_LIST_ADD_NEW_MEMBER_BTN_CLICKED: 'irl-guest-list-add-new-member-btn-clicked',
+    IRL_SHOW_ONLY_PAST_ATTENDEES_CHECKBOX_CLICKED: 'irl-show-only-past-attendees-checkbox-clicked',
+    IRL_SHOW_ONLY_CURRENT_ATTENDEES_CLICKED: 'irl-show-only-current-attendees-clicked',
     IRL_TO_HUSKY_REDIRECT_CLICKED: 'irl-to-husky-redirect-clicked',
     IRL_FLOATING_BAR_OPEN: 'irl-floating-bar-open',
     IRL_ADMIN_REMOVE_ATTENDEES_POPUP_OPEN: 'irl-admin-remove-attendees-popup-open',
@@ -83,6 +85,22 @@ export const useIrlAnalytics = () => {
     IRL_EVENT_DELETE_CLICKED: 'irl-event-delete-clicked',
     IRL_EVENT_DELETE_CONFIRMED: 'irl-event-delete-confirmed',
     IRL_EVENT_DELETE_CANCELLED: 'irl-event-delete-cancelled',
+  };
+
+  const trackShowOnlyPastAttendeesCheckboxClicked = (location: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SHOW_ONLY_PAST_ATTENDEES_CHECKBOX_CLICKED, { ...params });
+  };
+
+  const trackShowOnlyCurrentAttendeesClicked = (location: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SHOW_ONLY_CURRENT_ATTENDEES_CLICKED, { ...params });
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -642,6 +660,8 @@ export const useIrlAnalytics = () => {
     trackFloatingBarEditBtnClicked,
     trackNoAttendeesStripRespondBtnClicked,
     trackHostEventClicked,
+    trackShowOnlyPastAttendeesCheckboxClicked,
+    trackShowOnlyCurrentAttendeesClicked,
     trackSpeakerEventClicked,
     trackSponsorEventClicked,
     trackPastEventClicked,

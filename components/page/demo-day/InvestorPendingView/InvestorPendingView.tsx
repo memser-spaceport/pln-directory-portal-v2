@@ -1,5 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
-import s from './InvestorPendingView.module.scss';
+import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
@@ -7,13 +6,10 @@ import { IUserInfo } from '@/types/shared.types';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useMember } from '@/services/members/hooks/useMember';
 import { InvestorStepper } from './components/InvestorStepper';
-import { CountdownComponent } from '@/components/common/Countdown';
 import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { FAQ } from './components/FAQ';
-import { faqItems } from '@/app/constants/demoday';
-import { LogosGrid } from '@/components/common/LogosGrid';
+import { LandingBase } from '../LandingBase';
 
 export const InvestorPendingView = () => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -88,37 +84,8 @@ export const InvestorPendingView = () => {
   };
 
   return (
-    <div className={s.root}>
-      <div className={s.eventHeader}>
-        {/* Main content */}
-        <div className={s.content}>
-          <div className={s.mainContent}>
-            {/* Countdown section */}
-            <div className={s.countdownSection}>
-              <CountdownComponent targetDate={data?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />
-            </div>
-
-            {/* Headline section */}
-            <div className={s.headline}>
-              <h1 className={s.title}>{data?.title || 'PL Demo Day'}</h1>
-              <p className={s.description}>
-                An invite-only event for accredited investors, featuring 25 emerging <br />
-                <a href="https://www.protocol.ai/" className={s.link}>
-                  Protocol Labs Network
-                </a>{' '}
-                teams in rapid-fire demos. <b>October 23, 2025</b>.
-              </p>
-            </div>
-          </div>
-
-          <InvestorStepper currentStep={currentStep} onFillProfile={handleFillProfile} />
-
-          <LogosGrid />
-
-          {/* FAQ Section */}
-          <FAQ items={faqItems} />
-        </div>
-      </div>
-    </div>
+    <LandingBase>
+      <InvestorStepper currentStep={currentStep} onFillProfile={handleFillProfile} />
+    </LandingBase>
   );
 };

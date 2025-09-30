@@ -79,8 +79,8 @@ function PrivyModals() {
 
     showSuccessMessage();
 
-    if (pathname === '/demoday') {
-      const res = await getDemoDayState();
+    if (pathname === '/demoday' && output?.userInfo?.uid) {
+      const res = await getDemoDayState(output.userInfo.uid);
       if (res?.access === 'none') {
         document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'rejected_access_level' }));
 

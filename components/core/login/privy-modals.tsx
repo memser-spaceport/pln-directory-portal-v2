@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { decodeToken } from '@/utils/auth.utils';
 import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
@@ -12,6 +12,7 @@ import { deletePrivyUser } from '@/services/auth.service';
 import { triggerLoader } from '@/utils/common.utils';
 import { getFollowUps } from '@/services/office-hours.service';
 import { usePostHog } from 'posthog-js/react';
+import { getDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 function PrivyModals() {
   const {
@@ -32,6 +33,7 @@ function PrivyModals() {
   const postHogProps = usePostHog();
   const [linkAccountKey, setLinkAccountKey] = useState('');
   const router = useRouter();
+  const pathname = usePathname();
 
   const clearPrivyParams = () => {
     const queryString = window.location.search.substring(1);
@@ -63,7 +65,7 @@ function PrivyModals() {
     return linkedAccounts.filter((v: any) => v !== '').join(',');
   };
 
-  const loginInUser = (output: any) => {
+  const loginInUser = async (output: any) => {
     clearPrivyParams();
 
     const showSuccessMessage = () => {
@@ -76,6 +78,15 @@ function PrivyModals() {
     };
 
     showSuccessMessage();
+
+    if (pathname === '/demoday') {
+      const res = await getDemoDayState();
+      if (res?.access === 'none') {
+        document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'rejected_access_level' }));
+
+        return;
+      }
+    }
 
     // Reload the page after a delay
     setTimeout(() => {
@@ -195,7 +206,7 @@ function PrivyModals() {
           const formattedResult = structuredClone(result);
           delete formattedResult.userInfo.isFirstTimeLogin;
           saveTokensAndUserInfo(formattedResult, user as User);
-          loginInUser(result);
+          await loginInUser(result);
           analytics.onDirectoryLoginSuccess();
         }
       }

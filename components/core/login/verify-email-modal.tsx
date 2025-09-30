@@ -117,6 +117,7 @@ export function VerifyEmailModal({ content, handleModalClose, dialogRef }: IVeri
             align-items: center;
             justify-content: center;
             width: 100%;
+            min-height: 220px;
           }
           .verifyEmail__cn__box__info__hdr {
             position: relative;

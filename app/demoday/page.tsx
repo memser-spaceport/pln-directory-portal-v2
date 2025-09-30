@@ -6,10 +6,11 @@ import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect } from 'react';
 import { InvestorPendingView } from '@/components/page/demo-day/InvestorPendingView';
 import { ActiveView } from '@/components/page/demo-day/ActiveView';
+import { Landing } from '@/components/page/demo-day/Landing';
 
 const COMMON_VIEWS: Record<string, ReactNode> = {
-  upcoming: <div>LANDING</div>,
-  active: <div>LANDING</div>,
+  upcoming: <Landing />,
+  active: <Landing />,
 };
 
 const FOUNDER_VIEWS: Record<string, ReactNode> = {

@@ -7,8 +7,15 @@ import { useRouter } from 'next/navigation';
 import { toast } from '@/components/core/ToastContainer';
 
 import s from './LoginButton.module.scss';
+import { PropsWithChildren } from 'react';
 
-const LoginBtn = () => {
+interface Props {
+  className?: string;
+}
+
+const LoginBtn = (props: PropsWithChildren<Props>) => {
+  const { className, children } = props;
+
   const authAnalytics = useAuthAnalytics();
   const router = useRouter();
 
@@ -26,10 +33,11 @@ const LoginBtn = () => {
       }
     }
   };
+
   return (
     <>
-      <button className={s.root} onClick={onLoginClickHandler}>
-        Sign in
+      <button className={className || s.root} onClick={onLoginClickHandler}>
+        {children || 'Sign in'}
       </button>
     </>
   );

@@ -13,6 +13,7 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { FAQ } from './components/FAQ';
 import { faqItems } from '@/app/constants/demoday';
+import { LogosGrid } from '@/components/common/LogosGrid';
 
 export const InvestorPendingView = () => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -111,6 +112,8 @@ export const InvestorPendingView = () => {
           </div>
 
           <InvestorStepper currentStep={currentStep} onFillProfile={handleFillProfile} />
+
+          <LogosGrid />
 
           {/* FAQ Section */}
           <FAQ items={faqItems} />

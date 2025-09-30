@@ -79,10 +79,10 @@
 
 .questionText {
   flex: 1;
+  font-family: 'Inter', sans-serif;
   color: var(--foreground-neutral-primary, #0A0C11);
-  font-size: 20px;
-  font-style: normal;
-  font-weight: 500;
+  font-size: 24px;
+  font-weight: 600;
   line-height: 26px;
   letter-spacing: -0.4px;
   transition: color 0.2s ease;
@@ -112,12 +112,13 @@
 .answerWrapper {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease, opacity 0.3s ease;
+  transition: all 0.3s ease;
   opacity: 0;
 
   &.expanded {
     max-height: 1000px;
     opacity: 1;
+    padding-top: 16px;
   }
 }
 
@@ -131,7 +132,7 @@
 
 .answerText {
   color: var(--foreground-neutral-secondary, #455468);
-  font-size: 16px;
+  font-size: 20px;
   font-style: normal;
   font-weight: 400;
   line-height: 24px;

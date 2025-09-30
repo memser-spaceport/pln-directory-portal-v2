@@ -30,17 +30,6 @@ function DemoDayPage() {
   const router = useRouter();
   const { data } = useGetDemoDayState();
 
-  // ***** access: 'none' & status: 'NONE' - немає сторінки і немає лінки в хедері
-  // ***** access: 'none' & status: 'UPCOMING' - лендінг (чекаємо дизайн)
-  // ***** access: 'none' & status: 'ACTIVE' - лендінг (чекаємо дизайн)
-  // ***** access: 'none' & status: 'COMPLETED' - немає сторінки і немає лінки в хедері
-  // ***** access: 'founder' | 'investor' & status: 'NONE' - немає сторінки і немає лінки в хедері
-  // ***** access: 'investor' & status: 'UPCOMING' - новий дизайн з степами для інвестора
-  // ***** access: 'founder' & status: 'UPCOMING' - все так як зараз але видаляємо відео і картинку для Demo Day зверху
-  // ***** access: 'founder' | 'investor' & status: 'ACTIVE' - live demo day сторінка з списком команд
-  // ***** access: 'investor' & status: 'COMPLETED' - сторінка статистики по демо дей (чекаємо дизайн)
-  // access: 'founder' & status: 'COMPLETED' - сторінка статистики по демо дей (чекаємо дизайн)
-
   useEffect(() => {
     if (data?.access === 'none' && data?.status === 'NONE') {
       router.replace('/members');

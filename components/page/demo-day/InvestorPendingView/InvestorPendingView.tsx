@@ -11,6 +11,8 @@ import { CountdownComponent } from '@/components/common/Countdown';
 import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { FAQ } from './components/FAQ';
+import { faqItems } from '@/app/constants/demoday';
 
 export const InvestorPendingView = () => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -99,13 +101,19 @@ export const InvestorPendingView = () => {
             <div className={s.headline}>
               <h1 className={s.title}>{data?.title || 'PL Demo Day'}</h1>
               <p className={s.description}>
-                {data?.description ||
-                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'}
+                An invite-only event for accredited investors, featuring 25 emerging <br />
+                <a href="https://www.protocol.ai/" className={s.link}>
+                  Protocol Labs Network
+                </a>{' '}
+                teams in rapid-fire demos. <b>October 23, 2025</b>.
               </p>
             </div>
           </div>
 
           <InvestorStepper currentStep={currentStep} onFillProfile={handleFillProfile} />
+
+          {/* FAQ Section */}
+          <FAQ items={faqItems} />
         </div>
       </div>
     </div>

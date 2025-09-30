@@ -2,7 +2,7 @@
 
 .root {
   margin: 0 auto;
-  max-width: 900px;
+  max-width: 1320px;
   padding-top: 24px;
   padding-bottom: 64px;
   display: flex;
@@ -71,7 +71,7 @@
   align-items: center;
   gap: 40px;
   padding: 48px 24px 48px;
-  max-width: 1420px;
+  //max-width: 1420px;
   width: 100%;
 
   @include media.mobile-only {
@@ -304,5 +304,14 @@
   @include media.mobile-only {
     font-size: 14px;
     line-height: 20px;
+  }
+}
+
+.link {
+  color: #156FF7;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
   }
 }

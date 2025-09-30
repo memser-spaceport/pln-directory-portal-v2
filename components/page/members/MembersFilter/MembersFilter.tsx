@@ -112,7 +112,7 @@ export const MembersFilter = (props: IMembersFilter) => {
             paramKey="roles"
             placeholder="E.g. Founder, VP Marketing..."
             useGetDataHook={useGetRoles}
-            defaultItemsToShow={5}
+            defaultItemsToShow={4}
           />
         </FilterSection>
       </div>

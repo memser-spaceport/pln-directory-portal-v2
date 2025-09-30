@@ -264,7 +264,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
         </div>
         <div className="teaminfo__form__item">
           {<label className={`tf__label`}>Long Description</label>}
-          <RichTextEditor value={props?.longDesc} onChange={props.setLongDesc} />
+          <RichTextEditor value={props?.longDesc} onChange={props.setLongDesc} maxLength={longDescMaxLength} />
           {/* <TextArea
             defaultValue={initialValues?.longDescription}
             maxLength={2000}
@@ -507,12 +507,14 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             color: #0f172a;
             flex: 1;
           }
+
           .teaminfo__form__checkbox {
             display: flex;
             align-items: center;
             gap: 8px;
             padding: 8px 0;
           }
+
           .teaminfo__form__checkbox__label {
             font-size: 14px;
             font-weight: 600;
@@ -521,6 +523,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             cursor: pointer;
             flex: 1;
           }
+
           .teaminfo__form__checkbox input[type='checkbox'] {
             width: 16px;
             height: 16px;

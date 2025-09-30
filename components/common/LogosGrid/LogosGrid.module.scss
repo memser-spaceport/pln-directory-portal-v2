@@ -1,0 +1,61 @@
+@use 'styles/media';
+
+.header {
+  color: #0A0C11;
+  text-align: center;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 110%;
+  letter-spacing: -0.75px;
+
+  margin: 0 auto;
+  max-width: 554px;
+
+  @include media.desktop {
+    line-height: 40px;
+  }
+}
+
+.subheader {
+  color: #5E718D;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 140%;
+  letter-spacing: -0.3px;
+
+  margin: 12px 0 35px 0;
+
+  @include media.desktop {
+    font-size: 20px;
+    line-height: 27px;
+
+    margin-bottom: 48px;
+  }
+}
+
+.grid {
+  gap: 22px;
+  display: grid;
+  flex-shrink: 0;
+
+  grid-template-rows: repeat(13, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+
+  @include media.desktop {
+    grid-template-rows: repeat(8, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.cell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  max-width: 100%;
+}

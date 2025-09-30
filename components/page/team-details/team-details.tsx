@@ -251,7 +251,6 @@ const TeamDetails = (props: ITeamDetails) => {
                 overflow: hidden;
                 display: -webkit-box;
                 width: fit-content;
-                max-width: 200px;
                 -webkit-line-clamp: 1;
                 -webkit-box-orient: vertical;
                 text-overflow: ellipsis;
@@ -305,8 +304,8 @@ const TeamDetails = (props: ITeamDetails) => {
 
               .team-details__profile__logo-tags-container__name-tagcontainer__team-name {
                 font-size: 24px;
-                max-width: 300px;
                 line-height: 32px;
+                width: 100%
               }
 
               .team-details__profile__logo-tags-container__name-tagcontainer__tags__mobile {

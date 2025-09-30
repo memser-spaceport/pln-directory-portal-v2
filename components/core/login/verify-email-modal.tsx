@@ -24,15 +24,22 @@ export function VerifyEmailModal({ content, handleModalClose, dialogRef }: IVeri
             <div className="verifyEmail__cn__box__info">
               {variant === 'access_denied_demo_day' ? (
                 <div className="verifyEmail__cn__box__info__accessDenied">
+                  <button
+                    onClick={handleModalClose}
+                    className="verifyEmail__cn__box__info__hdr__clsBtn"
+                    data-testid="close-button"
+                  >
+                    <img width={22} height={22} src="/icons/close.svg" alt="close" />
+                  </button>
                   <div className={s.icon}>
                     <WarningIcon />
                   </div>
-                  <div className={s.title}>{title}</div>
-                  <div className={s.description}>{description}</div>
+                  {/*<div className={s.title}>{title}</div>*/}
+                  <div className={s.description}>{errorMessage}</div>
 
-                  <button onClick={() => {}} className={s.cta}>
+                  <a href={description} className={s.cta}>
                     Request invite
-                  </button>
+                  </a>
                 </div>
               ) : (
                 <>
@@ -110,6 +117,7 @@ export function VerifyEmailModal({ content, handleModalClose, dialogRef }: IVeri
             align-items: center;
             justify-content: center;
             width: 100%;
+            min-height: 220px;
           }
           .verifyEmail__cn__box__info__hdr {
             position: relative;
@@ -137,8 +145,8 @@ export function VerifyEmailModal({ content, handleModalClose, dialogRef }: IVeri
 
           .verifyEmail__cn__box__info__hdr__clsBtn {
             position: absolute;
-            right: 0;
-            top: 0;
+            right: 12px;
+            top: 12px;
             background: transparent;
           }
 

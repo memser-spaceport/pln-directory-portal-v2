@@ -17,7 +17,7 @@ type DemoDayState = {
   teamsCount: 1;
 };
 
-async function fetcher(memberUid?: string) {
+export async function getDemoDayState(memberUid?: string) {
   const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current${memberUid ? `?memberUid=${memberUid}` : ''}`;
 
   const response = await customFetch(
@@ -42,6 +42,6 @@ export function useGetDemoDayState() {
 
   return useQuery({
     queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATE, userInfo?.uid],
-    queryFn: () => fetcher(userInfo.uid),
+    queryFn: () => getDemoDayState(userInfo.uid),
   });
 }

@@ -88,6 +88,11 @@
     margin: auto;
   }
 
+  .irlGatherings__additionalResources {
+    width: 900px !important;
+    margin-top: 10px;
+  }
+
   .irlGatheings__locations {
     border-radius: 16px;
     height: 173px;
@@ -107,7 +112,7 @@
   }
 
   .irlGatheings__guests {
-    padding-top: 42px;
+    padding-top: 40px;
   }
 }
 

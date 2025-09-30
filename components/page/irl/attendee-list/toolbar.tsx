@@ -7,6 +7,7 @@ import useClickedOutside from '@/hooks/useClickedOutside';
 import { IAnalyticsGuestLocation, IGuestDetails } from '@/types/irl.types';
 import Search from './search';
 import { triggerLoader } from '@/utils/common.utils';
+import {Checkbox} from '@/components/common/Checkbox';
 // import FollowButton from '../follow-gathering/follow-button';
 interface IToolbar {
   onLogin: () => void;
@@ -18,9 +19,11 @@ interface IToolbar {
   isAdminInAllEvents: any;
   locationEvents: any;
   followers: any;
+  handleAttendeesClick: (type: string, e: { stopPropagation: () => void }) => void;
 }
 const Toolbar = (props: IToolbar) => {
   //props
+  const { handleAttendeesClick, eventDetails } = props;
   const location = props?.location;
   const filteredListLength = props?.filteredListLength ?? 0;
   //states
@@ -28,6 +31,7 @@ const Toolbar = (props: IToolbar) => {
   const searchRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
   const search = searchParams.get('search');
+  const type = searchParams.get('type');
   const router = useRouter();
 
   //hooks
@@ -60,6 +64,16 @@ const Toolbar = (props: IToolbar) => {
     updateQueryParams(searchValue?.trim());
   };
 
+  const onCheckboxChange = () => {
+    if (type === 'past') {
+      handleAttendeesClick('upcoming', { stopPropagation: () => {} });
+      analytics.trackShowOnlyCurrentAttendeesClicked(location);
+    } else {
+      handleAttendeesClick('past', { stopPropagation: () => {} });
+      analytics.trackShowOnlyPastAttendeesCheckboxClicked(location);
+    }
+  };
+
   useEffect(() => {
     if (searchRef.current) {
       searchRef.current.value = search ?? '';
@@ -71,12 +85,18 @@ const Toolbar = (props: IToolbar) => {
       <div className="toolbar">
         <span className="toolbar__hdr">
           <span className="toolbar__hdr__count">
-            Attendees{` `}({filteredListLength})
+            {(eventDetails as any)?.upcomingCount === 0 || type === 'past' ? 'Past Attendees' : 'Current Attendees'}{` `}({filteredListLength})
           </span>
         </span>
         <div className="toolbar__search">
           <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
         </div>
+        {(eventDetails as any)?.upcomingCount > 0 && (eventDetails as any)?.pastCount > 0 && (
+          <div className="toolbar__checkbox">
+            <Checkbox checked={type === 'past' ? true : false} onChange={onCheckboxChange} />
+            <p>Show Only Past Attendees</p>
+          </div>
+        )}
       </div>
       <style jsx>
         {`
@@ -87,8 +107,29 @@ const Toolbar = (props: IToolbar) => {
           .toolbar {
             display: flex;
             flex-direction: column;
+            justify-content: ${(eventDetails as any)?.upcomingCount > 0 && (eventDetails as any)?.pastCount > 0 ? 'space-between' : ''};
             row-gap: 16px;
             padding: 16px 20px;
+          }
+          .toolbar__hdr {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+          }
+          .toolbar__left {
+              display: flex;
+              gap: 8px;
+            }
+          .toolbar__checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 400;
+            color: rgba(71, 85, 105, 1);
+            line-height: 20px;
+            letter-spacing: 0;
           }
           .toolbar__search {
             width: 100%;
@@ -271,24 +312,28 @@ const Toolbar = (props: IToolbar) => {
           }
 
           @media (min-width: 360px) {
-            // .mb-btn {
-            //   font-size: 12px;
-            // }
             .toolbar {
-              flex-direction: row;
+              display: flex;
+              flex-direction: column;
               flex-wrap: wrap;
+              gap: 12px;
             }
-            .toolbar__actionCn,
-            .toolbar__hdr {
-              flex: 1;
-              align-items: center;
-            }
+          .toolbar__hdr {
+            flex: 1;
+            align-items: center;
+            order: 1; /* Current Attendees comes first */
+          }
             .toolbar__actionCn {
               justify-content: flex-end;
               flex: unset;
             }
+            .toolbar__checkbox {
+              order: 2; /* Checkbox comes second */
+            }
             .toolbar__search {
-              flex-basis: 100%;
+              width: 300px;
+              flex-basis: unset;
+              order: 3; /* Search comes last */
             }
             .toolbar__actionCn__edit__list {
               right: 0px;
@@ -300,6 +345,23 @@ const Toolbar = (props: IToolbar) => {
               display: none;
             }
           }
+          @media (min-width: 692px) {
+            .toolbar {
+              flex-direction: row;
+              flex-wrap: wrap;
+            }
+            .toolbar__hdr {
+              order: 1; /* Current Attendees comes first */
+            }
+            .toolbar__search {
+              width: 300px;
+              flex-basis: unset;
+              order: 2; /* Search comes second */
+            }
+            .toolbar__checkbox {
+              order: 3; /* Checkbox comes last */
+            }
+          }
           @media (min-width: 1024px) {
             .toolbar__actionCn__webView,
             .toolbar__actionCn__webView__follCnt {
@@ -308,14 +370,13 @@ const Toolbar = (props: IToolbar) => {
 
             .toolbar {
               flex-wrap: unset;
-              justify-content: unset;
+              justify-content: ${(eventDetails as any)?.upcomingCount > 0 && (eventDetails as any)?.pastCount > 0 ? 'space-between' : ''};
               align-items: center;
               padding: 0px;
+              gap: 10px;
             }
             .toolbar__search {
               width: 300px;
-              margin-left: 16px;
-              order: 1;
               flex-basis: unset;
             }
             .toolbar__hdr {
@@ -324,6 +385,9 @@ const Toolbar = (props: IToolbar) => {
             }
             .toolbar__hdr__count {
               min-width: 140px;
+            }
+            .toolbar__checkbox {
+              margin-left: auto;
             }
             .toolbar__actionCn {
               flex: 1;

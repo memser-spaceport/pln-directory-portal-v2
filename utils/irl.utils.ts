@@ -627,3 +627,14 @@ export function compareEventDates(eventA: any, eventB: any, type: 'upcoming' | '
       return 0;
   }
 }
+
+
+export const filterUpcomingGatherings = (gatherings: any) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return gatherings.filter((gathering: any) => {
+    const eventEndDate = new Date(gathering.endDate);
+    eventEndDate.setHours(0, 0, 0, 0);
+    return eventEndDate >= today;
+  });
+}

@@ -122,11 +122,20 @@ const AttendeeList = (props: IAttendeeList) => {
       userInfo,
     );
 
+    // Handle the new return structure with selectedType
+    let finalEventType = eventType;
+    if ((eventInfo as any)?.selectedType) {
+      finalEventType = (eventInfo as any).selectedType;
+    }
+
     setUpdatedEventDetails((prev) => ({
       ...eventInfo,
       events: prev.events,
       currentGuest,
       totalGuests: eventInfo.totalGuests,
+      selectedType: finalEventType,
+      upcomingCount: (eventInfo as any).upcomingCount,
+      pastCount: (eventInfo as any).pastCount,
     }));
     triggerLoader(false);
     router.refresh();
@@ -134,6 +143,28 @@ const AttendeeList = (props: IAttendeeList) => {
 
   const onIamGoingPopupClose = () => {
     setIamGoingPopupProps({ isOpen: false, formdata: null, mode: '' });
+  };
+
+
+  const handleAttendeesClick = (type: string, e: { stopPropagation: () => void }) => {
+    e.stopPropagation();
+    const currentParams = new URLSearchParams(searchParams);
+    const allowedParams = ['type', 'location'];
+
+    // Remove parameters not in the allowed list
+    for (const [key, value] of Object.entries(searchParams)) {
+      if (!allowedParams.includes(key)) {
+        currentParams.delete(key);
+      }
+    }
+    currentParams.set('type', type);
+    currentParams.delete('event');
+    router.push(`${window.location.pathname}?${currentParams.toString()}`);
+       // updateQueryParams('type', 'upcoming', searchParams);
+       if (searchParams?.type !== type) {
+        triggerLoader(true);
+        // analytics.trackUpcomingEventsDropdownClicked(eventDetails.upcomingEvents);
+      }
   };
 
   useEffect(() => {
@@ -240,10 +271,10 @@ const AttendeeList = (props: IAttendeeList) => {
             userInfo={userInfo}
             isLoggedIn={isLoggedIn}
             followers={props.followers}
+            handleAttendeesClick={handleAttendeesClick}
           />
         </div>
         <div className="attendeeList__table">
-          {/* {eventDetails?.guests?.length > 0 && ( */}
           <div className={`irl__table table__login`}>
             <AttendeeTableHeader isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} />
             <div ref={tableRef} className={`irl__table__body w-full`}>
@@ -309,6 +340,13 @@ const AttendeeList = (props: IAttendeeList) => {
           display: flex;
           max-width: 900px;
           flex-direction: column;
+        }
+        .attendeeList__table__header{
+          display: flex;
+          flex-direction: row;
+          gap: 8px;
+          margin-bottom: 8px;
+          cursor: pointer
         }
 
         .irl__floating-bar {

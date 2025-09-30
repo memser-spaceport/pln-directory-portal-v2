@@ -425,6 +425,7 @@ const IrlEvents = (props: IIrlEvents) => {
                 </Link>
               </div>
 
+              {/* TODO: Remove this once the new design is confirmed */}
               <div className="root__manage__events">
                 {/* TODO: Remove this once the new submit form is deployed */}
                 {/* <Link href={`${process.env.IRL_SUBMIT_FORM_URL}?location=${updatedIrlLocation}`} legacyBehavior target="_blank"> */}

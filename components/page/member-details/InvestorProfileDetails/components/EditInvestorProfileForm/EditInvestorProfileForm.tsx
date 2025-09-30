@@ -112,7 +112,13 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
       })),
       fundingStageOptions: [
         ...options.fundingStage
-          .filter((val: { id: any; name: any }) => val.name !== 'Not Applicable')
+          .filter(
+            (val: { id: any; name: any }) =>
+              val.name !== 'Not Applicable' &&
+              val.name !== 'Series D' &&
+              val.name !== 'Series E' &&
+              val.name !== 'None',
+          )
           .map((val: { id: any; name: any }) => ({
             value: val.name,
             label: val.name,
@@ -290,7 +296,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                         label="Do you invest in Startups?"
                         placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                         options={formOptions.fundingStageOptions}
-                        showNone
+                        // showNone
                       />
                     </div>
                     <div className={s.row}>
@@ -436,7 +442,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                         label="Do you invest in Startups?"
                         placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                         options={formOptions.fundingStageOptions}
-                        showNone
+                        // showNone
                       />
                     </div>
                     <div className={s.row}>

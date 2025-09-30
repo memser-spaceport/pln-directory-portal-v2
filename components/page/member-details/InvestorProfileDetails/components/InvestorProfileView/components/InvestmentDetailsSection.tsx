@@ -59,7 +59,7 @@ export const InvestmentDetailsSection: React.FC<Props> = ({
 
       {(typicalCheckSize || isEditable) && (
         <div className={s.keywordsWrapper}>
-          <span className={s.keywordsLabel}>Check Size:</span>
+          <span className={s.keywordsLabel}>Typical Check Size:</span>
           <span className={s.badgesWrapper}>
             {typicalCheckSize && secRulesAccepted ? (
               <div className={s.badge}>{formatUSD.format(+typicalCheckSize)}</div>

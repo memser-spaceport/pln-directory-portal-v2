@@ -19,7 +19,7 @@ export interface DemoDayEmailData {
 const EMAIL_TEMPLATES = {
   like: {
     subject: (demotingTeamName: string, investorTeamName: string) =>
-      `PL F25 Demo Day Intro: ${demotingTeamName} <> ${investorTeamName}`,
+      `PL F25 Demo Day Intro: ${demotingTeamName} ${investorTeamName ? `<> ${investorTeamName}` : ''}`,
     body: (data: DemoDayEmailData) => `Hi ${data.founderNames.join(', ')},
 
 I liked the idea that your team ${data.demotingTeamName} presented during PL F25 Demo Day.
@@ -32,7 +32,7 @@ ${data.investorTeamName}`,
   },
   connect: {
     subject: (demotingTeamName: string, investorTeamName: string) =>
-      `PL F25 Demo Day Intro: ${demotingTeamName} <> ${investorTeamName}`,
+      `PL F25 Demo Day Intro: ${demotingTeamName} ${investorTeamName ? `<> ${investorTeamName}` : ''}`,
     body: (data: DemoDayEmailData) => `Hi ${data.founderNames.join(', ')},
 
 I would like to connect with your team ${data.demotingTeamName} and explore a possible investment opportunity as requested during PL F25 Demo Day.
@@ -45,7 +45,7 @@ ${data.investorTeamName}`,
   },
   invest: {
     subject: (demotingTeamName: string, investorTeamName: string) =>
-      `PL F25 Demo Day Intro: ${demotingTeamName} <> ${investorTeamName}`,
+      `PL F25 Demo Day Intro: ${demotingTeamName} ${investorTeamName ? `<> ${investorTeamName}` : ''}`,
     body: (data: DemoDayEmailData) => `Hi ${data.founderNames.join(', ')},
 
 I am interested in speaking with you about investing in your team ${data.demotingTeamName} as requested during PL F25 Demo Day.

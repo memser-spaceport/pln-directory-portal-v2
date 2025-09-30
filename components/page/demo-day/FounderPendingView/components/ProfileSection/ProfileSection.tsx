@@ -50,7 +50,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
       founderNames,
       demotingTeamName: data.team?.name || 'Team Name',
       investorName: userInfo.name ?? '',
-      investorTeamName: '',
+      investorTeamName: userInfo.mainTeamName ?? '',
     };
   };
 

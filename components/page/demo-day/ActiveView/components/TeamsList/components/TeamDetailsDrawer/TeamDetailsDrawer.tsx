@@ -78,7 +78,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
       founderNames,
       demotingTeamName: team.team?.name || 'Team Name',
       investorName: userInfo.name ?? '',
-      investorTeamName: '',
+      investorTeamName: userInfo.mainTeamName ?? '',
     };
   };
 

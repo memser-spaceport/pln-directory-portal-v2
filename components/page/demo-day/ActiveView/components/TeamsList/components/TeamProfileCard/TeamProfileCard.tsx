@@ -92,7 +92,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
       founderNames,
       demotingTeamName: team.team?.name || 'Team Name',
       investorName: userInfo.name ?? '',
-      investorTeamName: '',
+      investorTeamName: userInfo.mainTeamName ?? '',
     };
   };
 

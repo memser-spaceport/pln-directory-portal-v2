@@ -25,10 +25,10 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
       minute: '2-digit',
       hour12: false,
     });
-    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    const month = date.toLocaleDateString('en-US', { month: 'long' });
     const day = date.getDate();
 
-    return `${time} UTC, ${month} ${day}`;
+    return `${month} ${day} at ${time} UTC`;
   };
 
   const eventDateFormatted = data?.date ? formatEventDate(data.date) : '12:00 UTC, Oct 25';

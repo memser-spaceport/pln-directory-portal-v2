@@ -9,6 +9,7 @@ import { InvestorStepper } from './components/InvestorStepper';
 import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { LandingBase } from '../LandingBase';
 
 export const InvestorPendingView = () => {
@@ -51,10 +52,15 @@ export const InvestorPendingView = () => {
   }, [isInvestorProfileComplete]);
 
   // Page view analytics - triggers only once on mount
-  useDemoDayPageViewAnalytics('onInvestorPendingViewPageOpened', 'investor_pending_view_page_opened', '/demoday', {
-    currentStep: currentStep,
-    isProfileComplete: isInvestorProfileComplete,
-  });
+  useDemoDayPageViewAnalytics(
+    'onInvestorPendingViewPageOpened',
+    DEMO_DAY_ANALYTICS.ON_INVESTOR_PENDING_VIEW_PAGE_OPENED,
+    '/demoday',
+    {
+      currentStep: currentStep,
+      isProfileComplete: isInvestorProfileComplete,
+    },
+  );
 
   const handleFillProfile = () => {
     if (!userInfo?.email) {
@@ -65,7 +71,7 @@ export const InvestorPendingView = () => {
     onInvestorPendingViewGoToInvestorProfileButtonClicked();
 
     const buttonClickEvent: TrackEventDto = {
-      name: 'investor_pending_view_go_to_profile_clicked',
+      name: DEMO_DAY_ANALYTICS.ON_INVESTOR_PENDING_VIEW_GO_TO_INVESTOR_PROFILE_BUTTON_CLICKED,
       distinctId: userInfo.email,
       properties: {
         userId: userInfo.uid,

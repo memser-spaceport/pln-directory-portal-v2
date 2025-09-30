@@ -14,6 +14,7 @@ import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
 interface ProfileSectionProps {
   investorData?: {
@@ -63,7 +64,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
 
       // Custom analytics event
       const editButtonClickedEvent: TrackEventDto = {
-        name: 'founder_edit_team_profile_button_clicked',
+        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_EDIT_TEAM_PROFILE_BUTTON_CLICKED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -93,7 +94,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
 
       // Custom analytics event
       const cardClickedEvent: TrackEventDto = {
-        name: 'founder_team_fundraising_card_clicked',
+        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_TEAM_FUNDRAISING_CARD_CLICKED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,

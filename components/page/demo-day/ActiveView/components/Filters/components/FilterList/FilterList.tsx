@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useFilterStore } from '@/services/members/store';
-import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { URL_QUERY_VALUE_SEPARATOR, DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import s from './FilterList.module.scss';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
@@ -71,46 +71,49 @@ export const FilterList: React.FC<FilterListProps> = ({
   }, [params, paramName]);
 
   // Update URL parameters when selection changes
-  const updateSelection = useCallback((newSelection: string[], changedOption?: { id: string; name: string; action: 'added' | 'removed' }) => {
-    if (newSelection.length > 0) {
-      const values = newSelection.join(URL_QUERY_VALUE_SEPARATOR);
-      setParam(paramName, values);
-    } else {
-      setParam(paramName, undefined);
-    }
+  const updateSelection = useCallback(
+    (newSelection: string[], changedOption?: { id: string; name: string; action: 'added' | 'removed' }) => {
+      if (newSelection.length > 0) {
+        const values = newSelection.join(URL_QUERY_VALUE_SEPARATOR);
+        setParam(paramName, values);
+      } else {
+        setParam(paramName, undefined);
+      }
 
-    // Report filter analytics
-    if (userInfo?.email && changedOption) {
-      // PostHog analytics
-      onActiveViewFiltersApplied({
-        filterType: paramName,
-        filterValue: changedOption.name,
-        action: changedOption.action,
-        totalSelected: newSelection.length,
-      });
-
-      // Custom analytics event
-      const filterEvent: TrackEventDto = {
-        name: 'active_view_filters_applied',
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
+      // Report filter analytics
+      if (userInfo?.email && changedOption) {
+        // PostHog analytics
+        onActiveViewFiltersApplied({
           filterType: paramName,
           filterValue: changedOption.name,
-          filterId: changedOption.id,
           action: changedOption.action,
           totalSelected: newSelection.length,
-          selectedFilters: newSelection,
-        },
-      };
+        });
 
-      reportAnalytics.mutate(filterEvent);
-    }
-  }, [paramName, setParam, userInfo, onActiveViewFiltersApplied, reportAnalytics]);
+        // Custom analytics event
+        const filterEvent: TrackEventDto = {
+          name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_FILTERS_APPLIED,
+          distinctId: userInfo.email,
+          properties: {
+            userId: userInfo.uid,
+            userEmail: userInfo.email,
+            userName: userInfo.name,
+            path: '/demoday',
+            timestamp: new Date().toISOString(),
+            filterType: paramName,
+            filterValue: changedOption.name,
+            filterId: changedOption.id,
+            action: changedOption.action,
+            totalSelected: newSelection.length,
+            selectedFilters: newSelection,
+          },
+        };
+
+        reportAnalytics.mutate(filterEvent);
+      }
+    },
+    [paramName, setParam, userInfo, onActiveViewFiltersApplied, reportAnalytics],
+  );
 
   // Filter options based on search term
   const filteredOptions = useMemo(() => {
@@ -160,7 +163,7 @@ export const FilterList: React.FC<FilterListProps> = ({
 
   const handleOptionToggle = (optionId: string) => {
     const isSelected = selectedOptions.includes(optionId);
-    const option = options.find(opt => opt.id === optionId);
+    const option = options.find((opt) => opt.id === optionId);
     let newSelection: string[];
     let action: 'added' | 'removed';
 
@@ -172,11 +175,13 @@ export const FilterList: React.FC<FilterListProps> = ({
       action = 'added';
     }
 
-    const changedOption = option ? {
-      id: optionId,
-      name: option.name,
-      action,
-    } : undefined;
+    const changedOption = option
+      ? {
+          id: optionId,
+          name: option.name,
+          action,
+        }
+      : undefined;
 
     updateSelection(newSelection, changedOption);
   };
@@ -249,11 +254,7 @@ export const FilterList: React.FC<FilterListProps> = ({
 
             {/* Show All / Show Less Button */}
             {hasMoreOptions && !isSearching && (
-              <button
-                type="button"
-                onClick={handleToggleShowAll}
-                className={s.toggleButton}
-              >
+              <button type="button" onClick={handleToggleShowAll} className={s.toggleButton}>
                 {showAll ? 'Show less' : `Show all (${filteredOptions.length})`}
               </button>
             )}

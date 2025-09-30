@@ -25,10 +25,21 @@ const ChevronDownIcon = () => (
 );
 
 export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', items }) => {
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  // Initialize with all items expanded by default
+  const [expandedIndices, setExpandedIndices] = useState<Set<number>>(
+    () => new Set(Array.from({ length: items.length }, (_, i) => i)),
+  );
 
   const toggleItem = (index: number) => {
-    setExpandedIndex(expandedIndex === index ? null : index);
+    setExpandedIndices((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
   };
 
   return (
@@ -40,15 +51,15 @@ export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', 
           <div key={index} className={s.faqItem}>
             <button
               className={clsx(s.questionButton, {
-                [s.expanded]: expandedIndex === index,
+                [s.expanded]: expandedIndices.has(index),
               })}
               onClick={() => toggleItem(index)}
-              aria-expanded={expandedIndex === index}
+              aria-expanded={expandedIndices.has(index)}
             >
               <span className={s.questionText}>{item.question}</span>
               {/*<span*/}
               {/*  className={clsx(s.iconWrapper, {*/}
-              {/*    [s.rotated]: expandedIndex === index,*/}
+              {/*    [s.rotated]: expandedIndices.has(index),*/}
               {/*  })}*/}
               {/*>*/}
               {/*  <ChevronDownIcon />*/}
@@ -56,7 +67,7 @@ export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', 
             </button>
             <div
               className={clsx(s.answerWrapper, {
-                [s.expanded]: expandedIndex === index,
+                [s.expanded]: expandedIndices.has(index),
               })}
             >
               <div className={s.answerContent}>

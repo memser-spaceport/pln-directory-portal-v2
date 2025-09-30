@@ -5,6 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'react-toastify';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -193,7 +194,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
 
         // Custom analytics event
         const profileUpdatedEvent: TrackEventDto = {
-          name: 'investor_profile_updated',
+          name: DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_UPDATED,
           distinctId: userInfo.email,
           properties: {
             userId: userInfo.uid,

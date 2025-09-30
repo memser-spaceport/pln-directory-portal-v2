@@ -12,6 +12,7 @@ import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingP
 import Link from 'next/link';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -86,7 +87,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
 
       // Custom analytics event
       const editButtonClickedEvent: TrackEventDto = {
-        name: 'founder_edit_team_profile_button_clicked',
+        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_EDIT_TEAM_PROFILE_BUTTON_CLICKED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -119,7 +120,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
 
       // Custom analytics event
       const cancelEvent: TrackEventDto = {
-        name: 'founder_cancel_team_details_clicked',
+        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_CANCEL_TEAM_DETAILS_CLICKED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -146,7 +147,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
 
       // Custom analytics event
       const saveEvent: TrackEventDto = {
-        name: 'founder_save_team_details_clicked',
+        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_SAVE_TEAM_DETAILS_CLICKED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -277,7 +278,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
       onFounderDemoMaterialUploadStarted(fileMetadata);
 
       const uploadStartedEvent: TrackEventDto = {
-        name: 'founder_demo_material_upload_started',
+        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_UPLOAD_STARTED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -303,7 +304,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
       onFounderDemoMaterialUploadSuccess(fileMetadata);
 
       const uploadSuccessEvent: TrackEventDto = {
-        name: 'founder_demo_material_upload_success',
+        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_UPLOAD_SUCCESS,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -330,7 +331,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
       onFounderDemoMaterialUploadFailed({ ...fileMetadata, error });
 
       const uploadFailedEvent: TrackEventDto = {
-        name: 'founder_demo_material_upload_failed',
+        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_UPLOAD_FAILED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -357,7 +358,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
       onFounderDemoMaterialDeleted({ materialType, fileName });
 
       const deletedEvent: TrackEventDto = {
-        name: 'founder_demo_material_deleted',
+        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_DELETED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -381,7 +382,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
       onFounderDemoMaterialViewed({ materialType, fileName });
 
       const viewedEvent: TrackEventDto = {
-        name: 'founder_demo_material_viewed',
+        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_VIEWED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,

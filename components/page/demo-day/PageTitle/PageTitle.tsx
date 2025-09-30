@@ -14,7 +14,7 @@ export function PageTitle() {
     <div className={s.root}>
       <h1 className={s.title}>{data?.title || 'PL F25 Demo Day'}</h1>
       <p className={s.description}>
-        An invite-only event for accredited investors, featuring 25 emerging <br />
+        An invite-only event for accredited investors, featuring 25 emerging <br className={s.hideOnMobile} />
         <a href="https://www.protocol.ai/" className={s.link}>
           Protocol Labs Network
         </a>{' '}

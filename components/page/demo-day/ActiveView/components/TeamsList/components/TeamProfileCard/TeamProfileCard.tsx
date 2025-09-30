@@ -10,6 +10,7 @@ import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
@@ -50,7 +51,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
 
       // Custom analytics event
       const teamCardEvent: TrackEventDto = {
-        name: 'active_view_team_card_clicked',
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_CARD_CLICKED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,

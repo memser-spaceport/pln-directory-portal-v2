@@ -29,6 +29,10 @@
   align-items: center;
   justify-content: space-around;
   width: 100%;
+
+  li {
+    list-style: none;
+  }
 }
 
 .item {

@@ -116,7 +116,37 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED, eventParams);
   }
 
+  function onLandingPageOpened() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_LANDING_PAGE_OPENED);
+  }
+
+  function onLandingLoginButtonClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_LANDING_LOGIN_BUTTON_CLICKED);
+  }
+
+  function onLandingRequestInviteButtonClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_LANDING_REQUEST_INVITE_BUTTON_CLICKED);
+  }
+
+  function onAccessDeniedModalShown(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACCESS_DENIED_MODAL_SHOWN, eventParams);
+  }
+
+  function onAccessDeniedUserNotWhitelistedModalShown(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACCESS_DENIED_USER_NOT_WHITELISTED_MODAL_SHOWN, eventParams);
+  }
+
+  function onAccessDeniedRequestInviteClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACCESS_DENIED_REQUEST_INVITE_CLICKED, eventParams);
+  }
+
   return {
+    onLandingPageOpened,
+    onLandingLoginButtonClicked,
+    onLandingRequestInviteButtonClicked,
+    onAccessDeniedModalShown,
+    onAccessDeniedUserNotWhitelistedModalShown,
+    onAccessDeniedRequestInviteClicked,
     onInvestorPendingViewPageOpened,
     onInvestorPendingViewGoToInvestorProfileButtonClicked,
     onInvestorProfilePageOpened,

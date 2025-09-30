@@ -1571,6 +1571,13 @@ export const CONTRIBUTE_MODAL_VIDEO_URL = 'https://plabs-assets.s3.us-west-1.ama
 export const GROUPS_URL = 'https://protosphere.plnetwork.io/groups';
 
 export const DEMO_DAY_ANALYTICS = {
+  ON_LANDING_PAGE_OPENED: 'demo-day-on-landing-page-opened',
+  ON_LANDING_TIME_ON_PAGE: 'demo-day-on-landing-time-on-page',
+  ON_LANDING_LOGIN_BUTTON_CLICKED: 'demo-day-on-landing-login-button-clicked',
+  ON_LANDING_REQUEST_INVITE_BUTTON_CLICKED: 'demo-day-on-landing-request-invite-button-clicked',
+  ON_ACCESS_DENIED_MODAL_SHOWN: 'demo-day-on-access-denied-modal-shown',
+  ON_ACCESS_DENIED_USER_NOT_WHITELISTED_MODAL_SHOWN: 'demo-day-on-access-denied-user-not-whitelisted-modal-shown',
+  ON_ACCESS_DENIED_REQUEST_INVITE_CLICKED: 'demo-day-on-access-denied-request-invite-clicked',
   ON_INVESTOR_PENDING_VIEW_PAGE_OPENED: 'demo-day-on-investor-pending-view-page-opened',
   ON_INVESTOR_PENDING_VIEW_GO_TO_INVESTOR_PROFILE_BUTTON_CLICKED:
     'demo-day-on-investor-pending-view-go-to-profile-clicked',

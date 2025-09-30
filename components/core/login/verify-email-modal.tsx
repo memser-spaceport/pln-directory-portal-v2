@@ -1,5 +1,11 @@
 // This component renders a modal for verifying email with error messages and actions.
 import { RefObject, useEffect } from 'react';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
+import { IUserInfo } from '@/types/shared.types';
 
 import s from './VerifyEmailModal/VerifyEmailModal.module.scss';
 
@@ -15,6 +21,33 @@ export function VerifyEmailModal({ content, handleModalClose, dialogRef }: IVeri
   const title = content?.title ?? '';
   const errorMessage = content?.errorMessage ?? '';
   const variant = content?.variant ?? 'regular';
+
+  // Analytics hooks
+  const { onAccessDeniedRequestInviteClicked } = useDemoDayAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
+
+  const handleRequestInviteClick = () => {
+    const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+
+    // PostHog analytics
+    onAccessDeniedRequestInviteClicked({ userEmail: userInfo?.email || 'anonymous' });
+
+    // Custom analytics event
+    const requestInviteEvent: TrackEventDto = {
+      name: DEMO_DAY_ANALYTICS.ON_ACCESS_DENIED_REQUEST_INVITE_CLICKED,
+      distinctId: userInfo?.email || 'anonymous',
+      properties: {
+        userId: userInfo?.uid || null,
+        userEmail: userInfo?.email || null,
+        userName: userInfo?.name || null,
+        path: '/demoday',
+        timestamp: new Date().toISOString(),
+        source: 'access_denied_modal',
+      },
+    };
+
+    reportAnalytics.mutate(requestInviteEvent);
+  };
 
   return (
     <>
@@ -37,7 +70,13 @@ export function VerifyEmailModal({ content, handleModalClose, dialogRef }: IVeri
                   {/*<div className={s.title}>{title}</div>*/}
                   <div className={s.description}>{errorMessage}</div>
 
-                  <a href={description} className={s.cta}>
+                  <a
+                    href={description}
+                    className={s.cta}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={handleRequestInviteClick}
+                  >
                     Request invite
                   </a>
                 </div>

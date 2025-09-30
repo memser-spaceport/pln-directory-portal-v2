@@ -41,11 +41,12 @@ function AuthInvalidUser() {
     function handleInvalidEmail(e: CustomEvent) {
       if (e?.detail) {
         router.refresh();
-        if (pathname === '/demo-day') {
+        if (pathname === '/demoday') {
           setContent({
             title: 'Access Denied',
-            errorMessage: "Your email address isn't on our invite list yet.",
-            description: '',
+            errorMessage: "Your email isn't on our Protocol Labs Demo Day invite list yet. Request access below.",
+            description:
+              'https://docs.google.com/forms/d/1c_djy7MnO-0k89w1zdFnBKF6GLdYKKWUvLTDBjxd114/viewform?edit_requested=true',
             variant: 'access_denied_demo_day',
           });
         } else if (e.detail === 'linked_to_another_user') {

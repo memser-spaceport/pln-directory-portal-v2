@@ -99,7 +99,7 @@ const navItems = [
   { href: '/projects', label: 'Projects', icon: ProjectsIcon },
   { href: '/events', label: 'Events', icon: EventsIcon },
   { href: '/forum?cid=0', label: 'Forum', icon: ForumIcon },
-  { href: '/demo-day', label: 'Demo Day', icon: DemoDayIcon },
+  { href: '/demoday', label: 'Demo Day', icon: DemoDayIcon },
 ];
 
 export function MobileBottomNav() {
@@ -120,7 +120,7 @@ export function MobileBottomNav() {
           {navItems
             .filter((item) => {
               if (
-                item.href === '/demo-day' &&
+                item.href === '/demoday' &&
                 (!demoDayState ||
                   (demoDayState.access === 'none' && demoDayState.status === 'NONE') ||
                   (demoDayState.access === 'none' && demoDayState.status === 'COMPLETED'))

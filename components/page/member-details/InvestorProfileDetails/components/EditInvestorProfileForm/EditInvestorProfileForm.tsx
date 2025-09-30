@@ -358,9 +358,9 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       <div className={s.infoSectionContent}>
                         <FormSelect
                           name="team"
-                          placeholder="Enter your team"
                           backLabel="Teams"
-                          label="Team"
+                          placeholder="Search by team name"
+                          label="Search and add an investment fund team"
                           options={
                             data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
                               value: item.teamUid,
@@ -480,9 +480,9 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       <div className={s.infoSectionContent}>
                         <FormSelect
                           name="team"
-                          placeholder="Enter your team"
                           backLabel="Teams"
-                          label="Team"
+                          placeholder="Search by team name"
+                          label="Search and add an investment fund team"
                           options={
                             data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
                               value: item.teamUid,

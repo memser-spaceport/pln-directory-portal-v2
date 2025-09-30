@@ -105,7 +105,9 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
       name: profileData?.team?.name || '',
       shortDescription: profileData?.team?.shortDescription || '',
       tags: profileData?.team?.industryTags?.map((tag) => ({ value: tag.uid, label: tag.title })) || [],
-      fundingStage: profileData?.team?.fundingStage ? formatFundingStageForForm(profileData.team.fundingStage.uid) : null,
+      fundingStage: profileData?.team?.fundingStage
+        ? formatFundingStageForForm(profileData.team.fundingStage.uid)
+        : null,
     },
     resolver: yupResolver(schema),
   });
@@ -118,7 +120,9 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         name: profileData.team?.name || '',
         shortDescription: profileData.team?.shortDescription || '',
         tags: profileData.team?.industryTags?.map((tag) => ({ value: tag.uid, label: tag.title })) || [],
-        fundingStage: profileData.team?.fundingStage ? formatFundingStageForForm(profileData.team.fundingStage.uid) : null,
+        fundingStage: profileData.team?.fundingStage
+          ? formatFundingStageForForm(profileData.team.fundingStage.uid)
+          : null,
       });
     }
   }, [profileData, methods]);
@@ -237,15 +241,29 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
             <FormField name="name" label="Team Name" placeholder="Enter team name" />
           </div>
           <div className={s.row}>
-            <FormField name="shortDescription" label="Short Description" placeholder="Describe your team and what you do..." />
+            <FormField
+              name="shortDescription"
+              label="Short Description"
+              placeholder="Describe your team and what you do..."
+            />
           </div>
 
           <div className={s.row}>
-            <FormMultiSelect name="tags" label="Tags" placeholder="Add tags (e.g., AI, Blockchain, FinTech)" options={options.industryTagsOptions} />
+            <FormMultiSelect
+              name="tags"
+              label="Tags"
+              placeholder="Add tags (e.g., AI, Blockchain, FinTech)"
+              options={options.industryTagsOptions}
+            />
           </div>
 
           <div className={s.row}>
-            <FormSelect name="fundingStage" label="Funding Stage" placeholder="Select your current funding stage" options={options.fundingStageOptions} />
+            <FormSelect
+              name="fundingStage"
+              label="Funding Stage"
+              placeholder="Select your current funding stage"
+              options={options.fundingStageOptions}
+            />
           </div>
         </div>
       </form>

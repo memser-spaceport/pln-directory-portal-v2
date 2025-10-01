@@ -25,7 +25,7 @@ export function Landing() {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
   // Analytics hooks
-  const { onLandingLoginButtonClicked, onLandingRequestInviteButtonClicked } = useDemoDayAnalytics();
+  const { onLandingRequestInviteButtonClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
 
   // Page view analytics - triggers only once on mount
@@ -82,32 +82,6 @@ export function Landing() {
 
     reportAnalytics.mutate(requestInviteEvent);
   };
-
-  // Track login button click via hash change
-  React.useEffect(() => {
-    const handleHashChange = () => {
-      if (window.location.hash === '#login') {
-        // PostHog analytics
-        onLandingLoginButtonClicked();
-
-        // Custom analytics event
-        const loginButtonEvent: TrackEventDto = {
-          name: DEMO_DAY_ANALYTICS.ON_LANDING_LOGIN_BUTTON_CLICKED,
-          distinctId: 'anonymous',
-          properties: {
-            path: '/demoday',
-            timestamp: new Date().toISOString(),
-            demoDayTitle: data?.title,
-          },
-        };
-
-        reportAnalytics.mutate(loginButtonEvent);
-      }
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [data?.title, onLandingLoginButtonClicked, reportAnalytics]);
 
   return (
     <LandingBase>

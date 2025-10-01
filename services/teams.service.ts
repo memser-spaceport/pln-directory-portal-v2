@@ -154,6 +154,8 @@ export const getTeam = async (
     teamFocusAreas: result?.teamFocusAreas,
     eventGuests: result?.eventGuests,
     asks: result?.asks ?? [],
+    investorProfile: result?.investorProfile,
+    isFund: result?.isFund,
   };
   return { data: { formatedData } };
 };

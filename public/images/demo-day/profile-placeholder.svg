@@ -1,0 +1,12 @@
+<svg width="74" height="74" viewBox="0 0 74 74" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="74" height="74" rx="8" fill="#afbaca" />
+  <rect x="0.378" y="0.378" width="73.244" height="73.244" rx="7.622" stroke="#d7dfe9" strokeWidth="0.755" />
+  
+  <!-- Profile icon -->
+  <circle cx="37" cy="28" r="8" fill="#8b9cb5" />
+  <path d="M20 58c0-9.389 7.611-17 17-17s17 7.611 17 17" fill="#8b9cb5" />
+  
+  <!-- Company/Team indicator -->
+  <rect x="50" y="50" width="20" height="20" rx="4" fill="#6b7c95" />
+  <path d="M58 56h4M58 60h6M58 64h3" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+</svg>

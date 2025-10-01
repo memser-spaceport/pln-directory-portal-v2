@@ -8,7 +8,19 @@ import { useDebounce } from 'react-use';
 import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/constants/filters';
 
 // Whitelist of parameters that should be tracked and synced
-const TRACKED_PARAMS = [TOPICS_FILTER_PARAM_KEY, 'roles', OFFICE_HOURS_FILTER_PARAM_KEY, 'sort', 'search'] as const;
+const TRACKED_PARAMS = [
+  TOPICS_FILTER_PARAM_KEY,
+  'roles',
+  OFFICE_HOURS_FILTER_PARAM_KEY,
+  'sort',
+  'search',
+  'isInvestor',
+  'investmentFocus',
+  'minTypicalCheckSize',
+  'maxTypicalCheckSize',
+  'stage',
+  'industry',
+] as const;
 
 // Helper function to filter URLSearchParams to only include tracked parameters
 const filterTrackedParams = (params: URLSearchParams): URLSearchParams => {

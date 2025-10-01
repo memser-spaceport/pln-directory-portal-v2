@@ -90,6 +90,18 @@ export function getTagsFromValues(allValues: string[], availableValues: string[]
   });
 }
 
+// Helper function to parse currency string to number
+const parseCurrencyToNumber = (currencyString: string): number => {
+  // Remove all non-numeric characters except decimal point
+  const numericString = currencyString.replace(/[^\d.]/g, '');
+
+  // Convert to number
+  const numericValue = parseFloat(numericString);
+
+  // Return 0 if parsing failed
+  return isNaN(numericValue) ? 0 : numericValue;
+};
+
 export function getTeamsListOptions(options: ITeamListOptions) {
   return { ...options, select: 'uid,name,shortDescription,logo.url,industryTags.title,asks', pagination: true };
 }
@@ -188,6 +200,44 @@ export function transformRawInputsToFormObj(obj: any) {
       result['longDescription'] = obj[key];
     } else if (key.startsWith('name')) {
       result['name'] = obj[key].trim();
+    } else if (key.startsWith('investmentFocus')) {
+      if (result.investorProfile) {
+        result.investorProfile.investmentFocus = obj[key] ? JSON.parse(obj[key]) : [];
+      } else {
+        result.investorProfile = {
+          investmentFocus: obj[key] ? JSON.parse(obj[key]) : [],
+        };
+      }
+    } else if (key.startsWith('typicalCheckSize')) {
+      if (result.investorProfile) {
+        result.investorProfile.typicalCheckSize = parseCurrencyToNumber(obj[key]);
+      } else {
+        result.investorProfile = {
+          typicalCheckSize: parseCurrencyToNumber(obj[key]),
+        };
+      }
+    } else if (key.startsWith('isFund')) {
+      result.isFund = obj[key] === 'on';
+    } else if (key.startsWith('investInFundTypes')) {
+      if (result.investorProfile) {
+        result.investorProfile.investInFundTypes = obj[key]
+          ? (JSON.parse(obj[key])?.map((item: any) => item.label) ?? [])
+          : [];
+      } else {
+        result.investorProfile = {
+          investInFundTypes: obj[key] ? (JSON.parse(obj[key])?.map((item: any) => item.label) ?? []) : [],
+        };
+      }
+    } else if (key.startsWith('investInStartupStages')) {
+      if (result.investorProfile) {
+        result.investorProfile.investInStartupStages = obj[key]
+          ? (JSON.parse(obj[key])?.map((item: any) => item.label) ?? [])
+          : [];
+      } else {
+        result.investorProfile = {
+          investInStartupStages: obj[key] ? (JSON.parse(obj[key])?.map((item: any) => item.label) ?? []) : [],
+        };
+      }
     } else {
       result[key] = obj[key];
     }
@@ -230,6 +280,13 @@ export const getTeamInitialValue = (selectedTeam: any, membersDetail: any) => {
       longDescription: selectedTeam.longDescription ?? '',
       officeHours: selectedTeam.officeHours ?? '',
       plnFriend: selectedTeam.plnFriend ?? false,
+      isFund: selectedTeam?.isFund ?? false,
+      investorProfile: {
+        investmentFocus: selectedTeam.investorProfile?.investmentFocus ?? [],
+        typicalCheckSize: selectedTeam.investorProfile?.typicalCheckSize ?? '',
+        investInStartupStages: selectedTeam.investorProfile?.investInStartupStages ?? [],
+        investInFundTypes: selectedTeam.investorProfile?.investInFundTypes ?? [],
+      },
     },
     projectsInfo: {
       technologies: selectedTeam.technologies ?? [],

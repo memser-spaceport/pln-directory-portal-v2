@@ -64,6 +64,64 @@ export const getGuestsByLocation = async (
   currentEventNames: string[],
   currentPage = 1,
   limit = 10,
+) => {  
+  // Always make dual API calls to get both counts
+  let upcomingParams: any;
+  let pastParams: any;
+  if (searchParams?.type ==='past' ) {
+    upcomingParams = { type: 'upcoming' };
+    pastParams = { ...searchParams, type: 'past' };
+  } else if (searchParams?.type ==='upcoming' ) {
+    upcomingParams = { ...searchParams, type: 'upcoming' };
+    pastParams = { type: 'past' };
+  } else {
+    upcomingParams = { ...searchParams, type: 'upcoming' };
+    pastParams = { ...searchParams, type: 'past' };
+  }
+  
+  // Make both API calls in parallel
+  const [upcomingResult, pastResult] = await Promise.all([
+    fetchGuestsWithParams(location, upcomingParams, authToken, currentEventNames, currentPage, limit),
+    fetchGuestsWithParams(location, pastParams, authToken, currentEventNames, currentPage, limit)
+  ]);
+  
+  if (upcomingResult.isError || pastResult.isError) {
+    return { isError: true };
+  }
+  
+  const upcomingCount = upcomingResult.totalGuests || 0;
+  const pastCount = pastResult.totalGuests || 0;
+  
+  // Logic for determining selectedType and data to return
+  const selectedType = searchParams?.type 
+    ? searchParams.type 
+    : upcomingCount === 0 && pastCount > 0 
+      ? 'past' 
+      : 'upcoming';
+  
+    const actualResult = selectedType === 'past' ? pastResult : upcomingResult;
+  
+  if (actualResult.isError) {
+    return { isError: true };
+  }
+  
+  return {
+    guests: actualResult.guests,
+    totalGuests: actualResult.totalGuests,
+    selectedType,
+    upcomingCount,
+    pastCount
+  };
+};
+
+// Helper function to fetch guests with parameters
+const fetchGuestsWithParams = async (
+  location: string,
+  searchParams: any,
+  authToken: string,
+  currentEventNames: string[],
+  currentPage: number,
+  limit: number
 ) => {
   const urlParams = new URLSearchParams() as any;
 

@@ -21,6 +21,9 @@ import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
+import { InvestorProfileView } from '@/components/page/member-details/InvestorProfileDetails/components/InvestorProfileView';
+import { clsx } from 'clsx';
+import s from '@/components/page/member-details/InvestorProfileDetails/InvestorProfileDetails.module.scss';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
@@ -57,18 +60,23 @@ async function Page({ params }: { params: ITeamDetailParams }) {
           <div className={styles?.teamDetail__Container__details}>
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
-          {/* Asks */}
-          {/*{!hasEditAsksAccess && team?.asks.length > 0 && (*/}
-          {/*  <div className={styles.teamDetail__Container__asks}>*/}
-          {/*    <AsksSection team={team} canEdit={hasEditAsksAccess ?? false} />*/}
-          {/*  </div>*/}
-          {/*)}*/}
 
-          {/*{hasEditAsksAccess && (*/}
-          {/*  <div className={styles.teamDetail__Container__asks}>*/}
-          {/*    <AsksSection team={team} canEdit={hasEditAsksAccess ?? false} />*/}
-          {/*  </div>*/}
-          {/*)}*/}
+          {isLoggedIn && team.investorProfile && (
+            <div className={clsx(s.root)}>
+              <InvestorProfileView
+                investmentFocusAreas={team?.investorProfile?.investmentFocus}
+                typicalCheckSize={team?.investorProfile?.typicalCheckSize}
+                isLoggedIn={isLoggedIn}
+                userInfo={userInfo}
+                isEditable={false}
+                showIncomplete={false}
+                secRulesAccepted
+                investInStartupStages={team?.investorProfile?.investInStartupStages}
+                investInFundTypes={team?.investorProfile?.investInFundTypes}
+                type={'ANGEL'}
+              />
+            </div>
+          )}
 
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>

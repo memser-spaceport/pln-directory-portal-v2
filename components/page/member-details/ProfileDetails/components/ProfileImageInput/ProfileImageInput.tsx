@@ -10,7 +10,7 @@ import { IMember } from '@/types/members.types';
 import { toast } from '@/components/core/ToastContainer';
 
 interface Props {
-  member: IMember;
+  member: Partial<IMember>;
 }
 
 export const ProfileImageInput = ({ member }: Props) => {

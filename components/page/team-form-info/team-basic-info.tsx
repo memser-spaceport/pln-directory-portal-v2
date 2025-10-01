@@ -1,10 +1,16 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
 
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import Toggle from '@/components/ui/toogle';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
+import { IUserInfo } from '@/types/shared.types';
+import { ADMIN_ROLE } from '@/utils/constants';
+import { TagsInput } from '@/components/form/TagsInput';
+import { CurrencyInput } from '@/components/form/CurrencyInput';
+import { StandaloneMultiSelect } from '@/components/form/StandaloneMultiSelect/StandaloneMultiSelect';
+import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions';
 
 interface ITeamBasicInfo {
   errors: string[];
@@ -13,6 +19,7 @@ interface ITeamBasicInfo {
   longDesc: string;
   setLongDesc: (content: string) => void;
   longDescMaxLength?: number;
+  userInfo: IUserInfo;
 }
 
 function TeamBasicInfo(props: ITeamBasicInfo) {
@@ -24,6 +31,44 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);
+  const [isInvestmentFund, setIsInvestmentFund] = useState<boolean>(initialValues?.isFund ?? false);
+  const [investInStartupStages, setInvestInStartupStages] = useState<{ label: string; value: string }[]>(
+    initialValues?.investInStartupStages || [],
+  );
+  const [investInFundTypes, setInvestInFundTypes] = useState<{ label: string; value: string }[]>(
+    initialValues?.investInFundTypes || [],
+  );
+  const isAdmin = props.userInfo?.roles?.includes(ADMIN_ROLE);
+  const isInvestor = props.userInfo?.accessLevel === 'L5' || props.userInfo?.accessLevel === 'L6';
+
+  // Get options for multiselects
+  const { data } = useTeamsFormOptions();
+
+  const investInVcFundsOptions = [
+    { label: 'Early stage', value: 'early-stage' },
+    { label: 'Late stage', value: 'late-stage' },
+    { label: 'Fund-of-funds', value: 'fund-of-funds' },
+  ];
+
+  const options = useMemo(() => {
+    if (!data) {
+      return {
+        fundingStageOptions: [],
+      };
+    }
+
+    return {
+      fundingStageOptions: [
+        ...data.fundingStage
+          .filter((val: { id: any; name: any }) => val.name !== 'Not Applicable')
+          .map((val: { id: any; name: any }) => ({
+            value: val.name,
+            label: val.name,
+          })),
+        { value: 'Series D and later', label: 'Series D and later' },
+      ],
+    };
+  }, [data]);
 
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -56,6 +101,13 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   useEffect(() => {
     setSavedImage(initialValues?.imageFile ?? '');
     setIsPlnFriend(initialValues?.plnFriend ?? false);
+    setIsInvestmentFund(initialValues?.isFund ?? false);
+    setInvestInStartupStages(
+      initialValues?.investorProfile?.investInStartupStages?.map((item: any) => ({ label: item, value: item })) || [],
+    );
+    setInvestInFundTypes(
+      initialValues?.investorProfile?.investInFundTypes?.map((item: any) => ({ label: item, value: item })) || [],
+    );
     setProfileImage('');
 
     function resetHandler() {
@@ -63,6 +115,14 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
         uploadImageRef.current.value = '';
         setSavedImage(initialValues?.imageFile ?? '');
         setProfileImage('');
+        setIsInvestmentFund(initialValues?.isFund ?? false);
+        setInvestInStartupStages(
+          initialValues?.investorProfile?.investInStartupStages?.map((item: any) => ({ label: item, value: item })) ||
+            [],
+        );
+        setInvestInFundTypes(
+          initialValues?.investorProfile?.investInFundTypes?.map((item: any) => ({ label: item, value: item })) || [],
+        );
       }
     }
 
@@ -203,8 +263,8 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           </p>
         </div>
         <div className="teaminfo__form__item">
-          {<label className={`tf__label`}>Long Description*</label>}
-          <RichTextEditor value={props?.longDesc} onChange={setLongDesc} maxLength={longDescMaxLength} />
+          {<label className={`tf__label`}>Long Description</label>}
+          <RichTextEditor value={props?.longDesc} onChange={props.setLongDesc} maxLength={longDescMaxLength} />
           {/* <TextArea
             defaultValue={initialValues?.longDescription}
             maxLength={2000}
@@ -222,24 +282,90 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             </span>
           </p>
         </div>
-        <div className="teaminfo__form__item">
-          <TextField
-            defaultValue={initialValues?.officeHours}
-            isMandatory={false}
-            id="register-team-officeHours"
-            label="Team office hours"
-            name="officeHours"
-            type="text"
-            placeholder="Enter link here"
+        {/*<div className="teaminfo__form__item">*/}
+        {/*  <TextField*/}
+        {/*    defaultValue={initialValues?.officeHours}*/}
+        {/*    isMandatory={false}*/}
+        {/*    id="register-team-officeHours"*/}
+        {/*    label="Team office hours"*/}
+        {/*    name="officeHours"*/}
+        {/*    type="text"*/}
+        {/*    placeholder="Enter link here"*/}
+        {/*  />*/}
+        {/*  <p className="info">*/}
+        {/*    <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}*/}
+        {/*    <span className="info__text">*/}
+        {/*      If your team offers group office hours or open meetings that are open to the public, please share the link*/}
+        {/*      so PLN members can join and learn more.*/}
+        {/*    </span>*/}
+        {/*  </p>*/}
+        {/*</div>*/}
+
+        <div className="teaminfo__form__checkbox">
+          <input
+            type="checkbox"
+            id="team-investment-fund"
+            name="isFund"
+            checked={isInvestmentFund}
+            onChange={(e) => setIsInvestmentFund(e.target.checked)}
           />
-          <p className="info">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="info__text">
-              If your team offers group office hours or open meetings that are open to the public, please share the link
-              so PLN members can join and learn more.
-            </span>
-          </p>
+          <label htmlFor="team-investment-fund" className="teaminfo__form__checkbox__label">
+            This team is an investment fund.
+          </label>
         </div>
+
+        {isInvestmentFund && (
+          <>
+            <div className="teaminfo__form__item">
+              <StandaloneMultiSelect
+                name="investInFundTypes"
+                label="What types of fund(s) you invest in?"
+                placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
+                options={investInVcFundsOptions}
+                // showNone
+                // noneLabel="We don't invest in VC funds"
+                value={investInFundTypes}
+                onChange={setInvestInFundTypes}
+                variant="secondary"
+              />
+              <input type="hidden" name="investInFundTypes" value={JSON.stringify(investInFundTypes)} />
+            </div>
+
+            <div className="teaminfo__form__item">
+              <StandaloneMultiSelect
+                name="investInStartupStages"
+                label="Do you invest in Startups?"
+                placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
+                options={options.fundingStageOptions}
+                // showNone
+                // noneLabel="We don't invest in startups"
+                value={investInStartupStages}
+                onChange={setInvestInStartupStages}
+                variant="secondary"
+              />
+              <input type="hidden" name="investInStartupStages" value={JSON.stringify(investInStartupStages)} />
+            </div>
+
+            <div className="teaminfo__form__item">
+              <CurrencyInput
+                defaultValue={initialValues?.investorProfile?.typicalCheckSize}
+                label="Typical Check Size"
+                name="typicalCheckSize"
+                placeholder="E.g. $250.000"
+                variant="secondary"
+              />
+            </div>
+            <div className="teaminfo__form__item">
+              <TagsInput
+                defaultValue={initialValues?.investorProfile?.investmentFocus}
+                selectLabel="Add Investment Focus"
+                name="investmentFocus"
+                placeholder="Add Keywords. E.g. AI, Staking, Governance, etc."
+                variant="secondary"
+              />
+            </div>
+          </>
+        )}
       </div>
       <style jsx>
         {`
@@ -380,6 +506,29 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             line-height: 20px;
             color: #0f172a;
             flex: 1;
+          }
+
+          .teaminfo__form__checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+          }
+
+          .teaminfo__form__checkbox__label {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            color: #0f172a;
+            cursor: pointer;
+            flex: 1;
+          }
+
+          .teaminfo__form__checkbox input[type='checkbox'] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #156ff7;
           }
         `}
       </style>

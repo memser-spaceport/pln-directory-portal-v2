@@ -6,7 +6,7 @@ import { useDebounce } from 'react-use';
 import styles from './FilterSearch.module.scss';
 
 interface Props {
-  label: string;
+  label?: string;
   placeholder: string;
   debounceMs?: number;
 }
@@ -70,7 +70,7 @@ export function FilterSearch({ label, placeholder, debounceMs = 700 }: Props) {
 
   return (
     <div className={styles.container}>
-      <div className={styles.inputLabel}>{label}</div>
+      {label && <div className={styles.inputLabel}>{label}</div>}
       <div className={styles.inputWrapper}>
         <div className={styles.inputContainer}>
           {/*{!hasValue && (*/}

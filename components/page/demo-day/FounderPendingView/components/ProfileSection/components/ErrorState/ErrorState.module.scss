@@ -1,0 +1,32 @@
+@use 'styles/media';
+
+.profileCard {
+  background: white;
+  border: 1px solid #e8edff;
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  @include media.mobile-only {
+    padding: 20px 16px;
+    gap: 20px;
+    border-radius: 12px;
+  }
+}
+
+.errorState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: #6b7280;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+
+  p {
+    margin: 0;
+  }
+}

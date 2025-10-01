@@ -37,8 +37,11 @@ interface Props {
 
 const schema = yup.object().shape({
   image: yup.mixed<File>().nullable().defined(),
-  name: yup.string().required('Name is required'),
-  shortDescription: yup.string().required('Short description is required'),
+  name: yup.string().required('Name is required').max(50, 'Name should not exceed 50 characters'),
+  shortDescription: yup
+    .string()
+    .required('Short description is required')
+    .max(250, 'Short description should not exceed 250 characters'),
   tags: yup
     .array()
     .of(
@@ -239,13 +242,14 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
                 name: profileData?.team?.name || 'Team Name',
               }}
             />
-            <FormField name="name" label="Team Name" placeholder="Enter team name" />
+            <FormField name="name" label="Team Name" placeholder="Enter team name" max={50} />
           </div>
           <div className={s.row}>
             <FormField
               name="shortDescription"
               label="Short Description"
               placeholder="Describe your team and what you do..."
+              max={250}
             />
           </div>
 

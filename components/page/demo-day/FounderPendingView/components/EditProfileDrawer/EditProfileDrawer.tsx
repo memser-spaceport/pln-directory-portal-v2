@@ -13,6 +13,8 @@ import Link from 'next/link';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -437,7 +439,11 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
                   <div className={s.drawerProfileHeader}>
                     <div className={s.drawerProfileImage}>
                       <img
-                        src={data?.team?.logo?.url || '/images/demo-day/profile-placeholder.svg'}
+                        src={
+                          data?.team?.logo?.url ||
+                          getDefaultAvatar(data?.team?.name) ||
+                          '/images/demo-day/profile-placeholder.svg'
+                        }
                         alt={data?.team?.name || 'Team Logo'}
                       />
                     </div>
@@ -486,7 +492,12 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
                 {data?.founders?.map((item) => (
                   <div className={s.memberRow} key={item.uid}>
                     <div className={s.memberAvatar}>
-                      <img src={item.image?.url || '/images/demo-day/profile-placeholder.svg'} alt={item.name} />
+                      <img
+                        src={
+                          item.image?.url || getDefaultAvatar(item.name) || '/images/demo-day/profile-placeholder.svg'
+                        }
+                        alt={item.name}
+                      />
                     </div>
                     <div className={s.memberInfo}>
                       <div className={s.memberNameRole}>
@@ -496,11 +507,24 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
                       {item.officeHours && <p className={s.memberStatus}>Available to connect</p>}
                     </div>
                     <div className={s.memberBadges}>
-                      {item.skills.map((skill) => (
+                      {item.skills.slice(0, 3).map((skill) => (
                         <span className={s.memberBadge} key={skill.uid}>
                           {skill.title}
                         </span>
                       ))}
+                      {item.skills.length > 3 && (
+                        <Tooltip
+                          asChild
+                          trigger={<span className={s.memberBadge}>+{item.skills.length - 3}</span>}
+                          content={
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              {item.skills.slice(3).map((skill) => (
+                                <div key={skill.uid}>{skill.title}</div>
+                              ))}
+                            </div>
+                          }
+                        />
+                      )}
                     </div>
                     <Link href={`/members/${item.uid}`} target="_blank" className={s.memberArrow}>
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

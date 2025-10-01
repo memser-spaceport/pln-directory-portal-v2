@@ -45,4 +45,8 @@ jest.mock('@tanstack/react-query', () => ({
     isLoading: false,
     error: null,
   }),
+  useMutation: () => ({
+    mutate: jest.fn(),
+    mutateAsync: jest.fn(),
+  }),
 }));

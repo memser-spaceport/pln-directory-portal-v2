@@ -214,8 +214,6 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
               teamName: data?.team?.name,
               hasOnePager: !!currentData?.onePagerUpload,
               hasVideo: !!currentData?.videoUpload,
-              onePagerFileName: currentData?.onePagerUpload?.fileName,
-              videoFileName: currentData?.videoUpload?.fileName,
             },
           };
 

@@ -20,6 +20,7 @@ interface Props {
   isRequired?: boolean;
   notFoundContent?: ReactNode;
   backLabel?: string;
+  onChange?: (value: { label: string; value: string } | null) => void;
 }
 
 export const FormSelect = ({
@@ -32,6 +33,7 @@ export const FormSelect = ({
   isRequired,
   notFoundContent,
   backLabel,
+  onChange,
 }: Props) => {
   const {
     watch,
@@ -81,6 +83,7 @@ export const FormSelect = ({
           })}
           onClick={() => {
             setValue(name, item, { shouldValidate: true, shouldDirty: true });
+            onChange?.(item);
             toggleOpen();
           }}
         >
@@ -149,6 +152,7 @@ export const FormSelect = ({
               return;
             }
             setValue(name, val, { shouldValidate: true, shouldDirty: true });
+            onChange?.(val as { label: string; value: string } | null);
           }}
           isDisabled={disabled || open}
           inputId={name}

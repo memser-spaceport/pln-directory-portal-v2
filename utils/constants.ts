@@ -1603,4 +1603,6 @@ export const DEMO_DAY_ANALYTICS = {
   ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED: 'demo-day-active-view-like-company-clicked',
   ON_ACTIVE_VIEW_CONNECT_COMPANY_CLICKED: 'demo-day-active-view-connect-company-clicked',
   ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED: 'demo-day-active-view-invest-company-clicked',
+  ON_INVESTOR_PROFILE_ADD_TEAM_LINK_CLICKED: 'demo-day-investor-profile-add-team-link-clicked',
+  ON_INVESTOR_PROFILE_TEAM_SELECTED: 'demo-day-investor-profile-team-selected',
 };

@@ -38,7 +38,7 @@ export function Landing() {
 
   // Time on page tracking (analytics/track only, no PostHog)
   useTimeOnPage({
-    onTimeReport: (timeSpent) => {
+    onTimeReport: (timeSpent, sessionId) => {
       // Custom analytics event only (no PostHog)
       const timeOnPageEvent: TrackEventDto = {
         name: DEMO_DAY_ANALYTICS.ON_LANDING_TIME_ON_PAGE,
@@ -50,6 +50,7 @@ export function Landing() {
           path: '/demoday',
           timestamp: new Date().toISOString(),
           timeSpent: timeSpent,
+          sessionId: sessionId,
           demoDayTitle: data?.title,
           isLoggedIn: !!userInfo,
         },

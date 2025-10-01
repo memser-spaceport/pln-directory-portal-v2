@@ -1,0 +1,1 @@
+export { EditInvestorProfileForm } from './EditInvestorProfileForm';

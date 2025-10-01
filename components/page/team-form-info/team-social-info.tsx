@@ -87,7 +87,7 @@ function TeamSocialInfo(props: ITeamSocialInfo) {
           defaultValue={initialValues?.telegramHandler ?? ''}
           name="telegramHandler"
           type="text"
-          placeholder="Telegram"
+          placeholder="Enter telegram handle"
         />
         <div className="teamSocialInfo__form__item">
           <TextField

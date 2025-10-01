@@ -42,6 +42,10 @@ const TeamOfficeHours = (props: any) => {
   //   teamAnalytics.onLearnMoreClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team));
   // };
 
+  if (!officeHours) {
+    return null;
+  }
+
   return (
     <>
       <div className="office-hours">

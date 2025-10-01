@@ -1,0 +1,1 @@
+export { InvestorCommunications } from './InvestorCommunications';

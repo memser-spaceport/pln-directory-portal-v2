@@ -22,6 +22,10 @@ import { FilterSection } from './FilterSection';
 import { FilterCheckboxListWithSearch } from './FilterCheckboxListWithSearch';
 
 import s from './MembersFilter.module.scss';
+import { InvestorFilterToggle } from '@/components/core/InvestorFilterToggle';
+import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
+import { FilterRange } from '@/components/page/members/MembersFilter/FilterRange';
+import { FilterTagInput } from '@/components/form/FilterTagInput';
 
 export interface IMembersFilter {
   filterValues: any | undefined;
@@ -35,7 +39,7 @@ export const MembersFilter = (props: IMembersFilter) => {
   const userInfo = props?.userInfo;
   const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const analytics = useMemberAnalytics();
-  const { setParam, clearParams } = useFilterStore();
+  const { setParam, clearParams, params } = useFilterStore();
   const apliedFiltersCount = useGetMembersFilterCount();
   const [shouldClearTopicsSearch, setShouldClearTopicsSearch] = useState(false);
 
@@ -113,6 +117,31 @@ export const MembersFilter = (props: IMembersFilter) => {
             placeholder="E.g. Founder, VP Marketing..."
             useGetDataHook={useGetRoles}
             defaultItemsToShow={4}
+          />
+        </FilterSection>
+
+        <FilterSection title="Investors">
+          <InvestorFilterToggle label="Show all Investors" paramKey="isInvestor" />
+
+          <FilterDivider />
+
+          <FilterRange
+            label="Typical Check Size, USD"
+            minParamName="minTypicalCheckSize"
+            maxParamName="maxTypicalCheckSize"
+            allowedRange={{
+              min: 0,
+              max: 5000000,
+            }}
+            disabled={!params.get('isInvestor')}
+          />
+
+          <FilterDivider />
+
+          <FilterTagInput
+            selectLabel="Investment Focus"
+            paramKey="investmentFocus"
+            disabled={!params.get('isInvestor')}
           />
         </FilterSection>
       </div>

@@ -14,26 +14,43 @@ interface Props {
   isColorfulBadges?: boolean;
   menuPlacement?: MenuPlacement;
   selectLabel: string;
-  warning: boolean;
+  warning?: boolean;
   placeholder?: string;
+  disabled?: boolean;
 }
 
-export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, placeholder = 'Add keyword' }: Props) => {
+export const FormTagsInput = ({
+  selectLabel,
+  name,
+  isColorfulBadges = true,
+  placeholder = 'Add keyword',
+  disabled,
+}: Props) => {
   const [inputText, setInputText] = useState('');
-  const { setValue, getValues } = useFormContext();
+  const {
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useFormContext();
   const values = getValues();
   const val = values[name as keyof TRecommendationsSettingsForm] as string[];
 
   return (
     <div className={s.Content}>
       <div className={s.inputLabel}>{selectLabel}</div>
-      <div className={s.input}>
+      <div
+        className={clsx(s.input, {
+          [s.disabled]: disabled,
+          [s.error]: errors[name],
+        })}
+      >
         <div className={s.inputContent}>
           {val?.map((item: string) => {
             return (
               <Badge
                 key={item}
                 label={item}
+                disabled={disabled}
                 isColorful={isColorfulBadges}
                 onDelete={() => {
                   setValue(
@@ -46,6 +63,7 @@ export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, plac
             );
           })}
           <Field.Control
+            disabled={disabled}
             placeholder={val?.length > 0 ? '' : placeholder}
             className={clsx(s.textInput, {
               [s.hidePlaceholder]: val?.length > 0,
@@ -74,6 +92,14 @@ export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, plac
             onKeyDown={(event) => {
               if (event.key === 'Escape') {
                 setInputText('');
+                return;
+              }
+
+              if (event.key === 'Backspace' && inputText === '' && val?.length > 0) {
+                // Delete the last tag when backspace is pressed and input is empty
+                const newValues = [...val];
+                newValues.pop();
+                setValue(name, newValues, { shouldValidate: true, shouldDirty: true });
                 return;
               }
 
@@ -107,6 +133,9 @@ export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, plac
         >
           <PlusIcon />
         </button>
+      </div>
+      <div className={s.sub}>
+        <div>{errors[name] && <div className={s.errorMsg}>{(errors?.[name]?.message as string) ?? ''}</div>}</div>
       </div>
     </div>
   );

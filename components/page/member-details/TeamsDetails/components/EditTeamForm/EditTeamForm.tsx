@@ -243,7 +243,13 @@ const DeleteIcon = () => (
   </svg>
 );
 
-function formatPayload(memberInfo: any, formData: TEditTeamForm, isNew?: boolean, uid?: string, isDelete?: boolean) {
+export function formatPayload(
+  memberInfo: any,
+  formData: TEditTeamForm,
+  isNew?: boolean,
+  uid?: string,
+  isDelete?: boolean,
+) {
   let teams;
 
   if (isNew) {

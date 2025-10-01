@@ -118,6 +118,8 @@ export interface ILinkedinProfile {
   updatedAt: string;
 }
 
+export type InvestorProfileType = 'ANGEL' | 'FUND' | 'ANGEL_AND_FUND';
+
 export interface IMember {
   profile?: string | null;
   id: string;
@@ -131,7 +133,7 @@ export interface IMember {
   discordHandle?: string | null;
   telegramHandle?: string | null;
   twitter?: string | null;
-  accessLevel: 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'Rejected';
+  accessLevel: 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'Rejected' | 'L5' | 'L6';
   officeHours: string | null;
   ohInterest?: string[] | null;
   ohHelpWith?: string[] | null;
@@ -157,6 +159,15 @@ export interface IMember {
   eventGuests?: [];
   visibleHandles?: string[];
   linkedinProfile: ILinkedinProfile;
+  investorProfile?: {
+    type: InvestorProfileType;
+    investInStartupStages: string[];
+    investInFundTypes: string[];
+    typicalCheckSize: string;
+    investmentFocus: string[];
+    secRulesAccepted: boolean;
+    investThroughFund: boolean;
+  };
 }
 
 export interface ILoggedoutMember {}
@@ -186,6 +197,7 @@ export interface IMemberTeam {
   role?: string;
   teamLead?: boolean;
   mainTeam?: boolean;
+  logo?: string;
 }
 
 export type TMembersFiltersValues = {

@@ -466,6 +466,7 @@ function ManageTeamsSettings(props: any) {
               initialValues={initialValues.basicInfo}
               longDesc={content}
               setLongDesc={setContent}
+              userInfo={userInfo}
             />
           </div>
           <div className={`${activeTab.name !== 'team details' ? 'hidden' : ''}`}>

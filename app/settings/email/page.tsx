@@ -6,6 +6,7 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { EmailPreferencesForm } from '@/components/page/email-preferences/components/EmailPreferencesForm';
+import { getMemberInfo } from '@/services/members.service';
 
 async function RecommendationsPage({ searchParams }: { searchParams: any }) {
   const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
@@ -15,13 +16,20 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
     redirect(`/${params ? `?${params}` : '?'}&returnTo=settings-email#login`);
   }
 
-  const [settingResponse] = await Promise.all([
+  const [settingResponse, investorSettingsResponse, memberInfo] = await Promise.all([
     fetch(`${process.env.DIRECTORY_API_URL}/v1/notification/settings/${userInfo.uid}/forum`, {
       headers: {
         contentType: 'application/json',
         Authorization: `Bearer ${authToken}`,
       },
     }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/notification/settings/${userInfo.uid}/investor`, {
+      headers: {
+        contentType: 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+    }),
+    getMemberInfo(userInfo.uid),
   ]);
 
   if (!settingResponse.ok) {
@@ -29,6 +37,7 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
   }
 
   const settings = await settingResponse.json();
+  const investorSettings = await investorSettingsResponse.json();
   const roles = userInfo.roles ?? [];
   const isAdmin = roles.includes('DIRECTORYADMIN');
   const leadingTeams = userInfo.leadingTeams ?? [];
@@ -55,6 +64,8 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
               userInfo={userInfo}
               initialData={{
                 settings,
+                investorSettings,
+                memberInfo,
               }}
             />
           </div>

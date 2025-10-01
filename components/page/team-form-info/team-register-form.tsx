@@ -77,6 +77,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
       const formData = new FormData(formRef.current);
       const formattedData = transformRawInputsToFormObj(Object.fromEntries(formData));
       formattedData['longDescription'] = content;
+
       analytics.recordTeamJoinNetworkSave('save-click', formattedData);
       if (currentStep === TEAM_FORM_STEPS[2]) {
         const validationResponse = validateForm(socialSchema, formattedData);
@@ -244,6 +245,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
                 longDesc={content}
                 setLongDesc={setContent}
                 longDescMaxLength={MAX_DESCRIPTION_LENGTH}
+                userInfo={userInfo}
               />
             </div>
             <div className={currentStep !== TEAM_FORM_STEPS[1] ? 'hidden' : 'form'}>

@@ -28,6 +28,16 @@
   }
 }
 
+.title {
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .footer {
   position: absolute;
   bottom: 0;
@@ -147,6 +157,14 @@
   }
 }
 
+.cleaarAllButton {
+  color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
 .delimiter {
   width: calc(100% + 28px);
   height: 1px;

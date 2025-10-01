@@ -51,7 +51,9 @@ export const getAccessLevel = (userInfo: IUserInfo | null, isLoggedIn: boolean) 
     }
     case 'L2':
     case 'L3':
-    case 'L4': {
+    case 'L4':
+    case 'L5':
+    case 'L6': {
       return 'advanced';
     }
     case 'Rejected':

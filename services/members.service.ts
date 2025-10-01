@@ -157,13 +157,15 @@ export const getMember = async (
         role: teamMemberRole.role,
         teamUid: teamMemberRole.team?.uid,
       });
+
       return {
-        id: teamMemberRole.team?.uid || '',
-        name: teamMemberRole.team?.name || '',
-        role: teamMemberRole.role || 'Contributor',
-        teamLead: !!teamMemberRole.teamLead,
-        mainTeam: !!teamMemberRole.mainTeam,
+        id: teamMemberRole?.team?.uid || '',
+        name: teamMemberRole?.team?.name || '',
+        role: teamMemberRole?.role || 'Contributor',
+        teamLead: !!teamMemberRole?.teamLead,
+        mainTeam: !!teamMemberRole?.mainTeam,
         logo: teamMemberRole?.team?.logo?.url ?? '',
+        isFund: teamMemberRole?.team?.isFund,
       };
     }) || [];
 
@@ -202,6 +204,7 @@ export const getMember = async (
     ohInterest: result.ohInterest,
     ohHelpWith: result.ohHelpWith,
     ohStatus: result.ohStatus,
+    investorProfile: result.investorProfile,
   };
 
   if (isLoggedIn) {
@@ -508,6 +511,32 @@ export const updateMemberBio = async (uid: string, payload: any, authToken: stri
     return {
       isError: true,
       errorData,
+      errorMessage: result.statusText,
+      status: result.status,
+    };
+  }
+
+  const output = await result.json();
+
+  return {
+    data: output,
+  };
+};
+
+export const updateInvestorProfile = async (memberUid: string, payload: any, authToken: string) => {
+  const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${memberUid}/investor-profile`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!result.ok) {
+    return {
+      isError: true,
       errorMessage: result.statusText,
       status: result.status,
     };

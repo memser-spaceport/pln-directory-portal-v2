@@ -628,6 +628,21 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.3.0 - Protocol Labs Demo Day Platform',
+    tag: 'New Feature',
+    date: '15, Oct 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day Platform Launch</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Experience</span> - Participating teams can now manage their profiles, upload pitch decks and demo videos, and showcase their fundraising details to potential investors.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor Experience</span> - Accredited investors can browse participating teams, view detailed profiles and pitch materials, and connect with founders directly through the platform.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Event Discovery</span> - Public landing page with event information, and invite request functionality for interested participants.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team Showcase</span> - Browse and filter through participating startups, view their pitch materials, and discover innovative projects building in the Protocol Labs Network.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.2.4 - Directory Search & Filter Enhancements',
     tag: 'Improvements',
     date: '25, Sep 2025',
@@ -1569,3 +1584,42 @@ export const EVENTS_SUBMIT_FORM_TYPES = {
 export const CONTRIBUTE_MODAL_VIDEO_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/IRL+video-Updated.webm';
 
 export const GROUPS_URL = 'https://protosphere.plnetwork.io/groups';
+
+export const DEMO_DAY_ANALYTICS = {
+  ON_LANDING_PAGE_OPENED: 'demo-day-landing-page-opened',
+  ON_LANDING_TIME_ON_PAGE: 'demo-day-landing-time-on-page',
+  ON_LANDING_LOGIN_BUTTON_CLICKED: 'demo-day-landing-login-button-clicked',
+  ON_LANDING_REQUEST_INVITE_BUTTON_CLICKED: 'demo-day-landing-request-invite-button-clicked',
+  ON_ACCESS_DENIED_MODAL_SHOWN: 'demo-day-access-denied-modal-shown',
+  ON_ACCESS_DENIED_USER_NOT_WHITELISTED_MODAL_SHOWN: 'demo-day-access-denied-user-not-whitelisted-modal-shown',
+  ON_ACCESS_DENIED_REQUEST_INVITE_CLICKED: 'demo-day-access-denied-request-invite-clicked',
+  ON_INVESTOR_PENDING_VIEW_PAGE_OPENED: 'demo-day-investor-pending-view-page-opened',
+  ON_INVESTOR_PENDING_VIEW_GO_TO_INVESTOR_PROFILE_BUTTON_CLICKED:
+    'demo-day-investor-pending-view-go-to-profile-clicked',
+  ON_INVESTOR_PROFILE_PAGE_OPENED: 'demo-day-investor-profile-page-opened',
+  ON_INVESTOR_PROFILE_EDIT_STARTED: 'demo-day-investor-profile-edit-started',
+  ON_INVESTOR_PROFILE_UPDATED: 'demo-day-investor-profile-updated',
+  ON_FOUNDER_PENDING_VIEW_PAGE_OPENED: 'demo-day-founder-pending-view-page-opened',
+  ON_FOUNDER_TEAM_FUNDRAISING_CARD_CLICKED: 'demo-day-founder-team-fundraising-card-clicked',
+  ON_FOUNDER_EDIT_TEAM_PROFILE_BUTTON_CLICKED: 'demo-day-founder-edit-team-profile-button-clicked',
+  ON_FOUNDER_SAVE_TEAM_DETAILS_CLICKED: 'demo-day-founder-save-team-details-clicked',
+  ON_FOUNDER_CANCEL_TEAM_DETAILS_CLICKED: 'demo-day-founder-cancel-team-details-clicked',
+  ON_FOUNDER_DEMO_MATERIAL_UPLOAD_STARTED: 'demo-day-founder-demo-material-upload-started',
+  ON_FOUNDER_DEMO_MATERIAL_UPLOAD_SUCCESS: 'demo-day-founder-demo-material-upload-success',
+  ON_FOUNDER_DEMO_MATERIAL_UPLOAD_FAILED: 'demo-day-founder-demo-material-upload-failed',
+  ON_FOUNDER_DEMO_MATERIAL_DELETED: 'demo-day-founder-demo-material-deleted',
+  ON_FOUNDER_DEMO_MATERIAL_VIEWED: 'demo-day-founder-demo-material-viewed',
+  ON_ACTIVE_VIEW_PAGE_OPENED: 'demo-day-active-view-page-opened',
+  ON_ACTIVE_VIEW_TIME_ON_PAGE: 'demo-day-active-view-time-on-page',
+  ON_ACTIVE_VIEW_FILTERS_APPLIED: 'demo-day-active-view-filters-applied',
+  ON_ACTIVE_VIEW_TEAM_CARD_CLICKED: 'demo-day-active-view-team-card-clicked',
+  ON_ACTIVE_VIEW_TEAM_PITCH_DECK_VIEWED: 'demo-day-active-view-team-pitch-deck-viewed',
+  ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_VIEWED: 'demo-day-active-view-team-pitch-video-viewed',
+  ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED: 'demo-day-active-view-like-company-clicked',
+  ON_ACTIVE_VIEW_CONNECT_COMPANY_CLICKED: 'demo-day-active-view-connect-company-clicked',
+  ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED: 'demo-day-active-view-invest-company-clicked',
+  ON_INVESTOR_PROFILE_ADD_TEAM_LINK_CLICKED: 'demo-day-investor-profile-add-team-link-clicked',
+  ON_INVESTOR_PROFILE_TEAM_SELECTED: 'demo-day-investor-profile-team-selected',
+  ON_TEAM_PROFILE_READY: 'demo-day-team-profile-ready',
+  ON_PROTOCOL_LABS_LINK_CLICKED: 'demo-day-protocol-labs-link-clicked',
+};

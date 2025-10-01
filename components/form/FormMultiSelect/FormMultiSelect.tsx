@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Field } from '@base-ui-components/react/field';
 import { useFormContext } from 'react-hook-form';
 
-import Select, { GroupBase, OptionsOrGroups } from 'react-select';
+import Select, { GroupBase, OptionsOrGroups, components } from 'react-select';
 
 import s from './FormMultiSelect.module.scss';
 import { clsx } from 'clsx';
@@ -18,6 +18,8 @@ interface Props {
   options: { label: string; value: string }[];
   disabled?: boolean;
   isRequired?: boolean;
+  showNone?: boolean;
+  noneLabel?: string;
 }
 
 const filterAndSort = (option: { value: string; label: string }, input: string) => {
@@ -26,7 +28,40 @@ const filterAndSort = (option: { value: string; label: string }, input: string) 
   return option.label.toLowerCase().includes(input.toLowerCase());
 };
 
-export const FormMultiSelect = ({ name, placeholder, label, description, options, disabled, isRequired }: Props) => {
+// Custom MultiValue component to handle None option display
+const CustomMultiValue = (props: any) => {
+  // If this is the None option, render as plain text
+  // if (props.data.value === 'None') {
+  //   return (
+  //     <div style={{
+  //       color: '#455468',
+  //       fontSize: '14px',
+  //       fontWeight: 300,
+  //       letterSpacing: '-0.2px',
+  //       marginRight: '8px',
+  //       display: 'flex',
+  //       alignItems: 'center',
+  //     }}>
+  //       {props.data.label}
+  //     </div>
+  //   );
+  // }
+
+  // For all other options, use the default MultiValue component
+  return <components.MultiValue {...props} />;
+};
+
+export const FormMultiSelect = ({
+  name,
+  placeholder,
+  label,
+  description,
+  options,
+  disabled,
+  isRequired,
+  showNone,
+  noneLabel = 'None',
+}: Props) => {
   const {
     formState: { errors },
     setValue,
@@ -37,10 +72,15 @@ export const FormMultiSelect = ({ name, placeholder, label, description, options
   const values = getValues();
   const val = values[name as keyof TRecommendationsSettingsForm] as { value: string; label: string }[];
 
+  // Create None option if showNone is true
+  const noneOption = { label: noneLabel, value: 'None' };
+
   // Sort filtered options by label dynamically
-  const sortedOptions = [...options]
-    .filter((option) => filterAndSort(option, inputValue))
-    .sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase()));
+  const filteredOptions = [...options].filter((option) => filterAndSort(option, inputValue));
+  const sortedOptions = filteredOptions.sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase()));
+
+  // Add None option at the top if showNone is true
+  const finalOptions = showNone ? [noneOption, ...sortedOptions] : sortedOptions;
 
   useScrollIntoViewOnFocus<HTMLInputElement>({ id: name });
 
@@ -61,15 +101,55 @@ export const FormMultiSelect = ({ name, placeholder, label, description, options
         onInputChange={(value) => setInputValue(value)}
         inputValue={inputValue}
         // autoFocus
-        options={sortedOptions}
+        options={finalOptions}
         filterOption={() => true}
         isClearable={false}
         placeholder={placeholder}
         inputId={name}
+        isDisabled={disabled}
         // @ts-ignore
         value={val}
-        onChange={(val) => {
-          setValue(name, val, { shouldValidate: true, shouldDirty: true });
+        components={{
+          MultiValue: CustomMultiValue,
+        }}
+        onChange={(newVal) => {
+          if (!showNone) {
+            // If showNone is false, use normal behavior
+            setValue(name, newVal, { shouldValidate: true, shouldDirty: true });
+            return;
+          }
+
+          const currentValues = newVal || [];
+          const previousValues = val || [];
+
+          // Check what was just selected by comparing current and previous values
+          const noneSelected = currentValues.some(
+            (option: { value: string; label: string }) => option.value === 'None',
+          );
+          const noneWasSelected = previousValues.some(
+            (option: { value: string; label: string }) => option.value === 'None',
+          );
+          const otherOptionsSelected = currentValues.some(
+            (option: { value: string; label: string }) => option.value !== 'None',
+          );
+
+          // If None was just selected (wasn't selected before, but is now)
+          if (noneSelected && !noneWasSelected) {
+            // Remove all other options, keep only None
+            setValue(name, [noneOption], { shouldValidate: true, shouldDirty: true });
+          }
+          // If other options are selected while None is already selected
+          else if (noneSelected && otherOptionsSelected && noneWasSelected) {
+            // Remove None and keep the other options
+            const filteredVal = currentValues.filter(
+              (option: { value: string; label: string }) => option.value !== 'None',
+            );
+            setValue(name, filteredVal, { shouldValidate: true, shouldDirty: true });
+          }
+          // Normal case - no conflicts
+          else {
+            setValue(name, currentValues, { shouldValidate: true, shouldDirty: true });
+          }
         }}
         styles={{
           container: (base) => ({
@@ -107,7 +187,7 @@ export const FormMultiSelect = ({ name, placeholder, label, description, options
           }),
           input: (baseStyles) => ({
             ...baseStyles,
-            height: '32px',
+            height: '42px',
             fontSize: '14px',
             padding: 0,
             display: 'flex !important',

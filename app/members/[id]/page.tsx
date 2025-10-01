@@ -16,6 +16,7 @@ import { UpcomingEventsWidget } from '@/components/page/member-info/components/U
 import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
 import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
 import { OfficeHoursDetails } from '@/components/page/member-details/OfficeHoursDetails';
+import { InvestorProfileDetails } from '@/components/page/member-details/InvestorProfileDetails';
 import { BackButton } from '@/components/ui/BackButton';
 import React, { useEffect } from 'react';
 import { BookWithOther } from '@/components/page/member-details/BookWithOther';
@@ -27,10 +28,74 @@ import { isMemberAvailableToConnect } from '@/utils/member.utils';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useQuery } from '@tanstack/react-query';
+import { IMember } from '@/types/members.types';
+import { ITeam } from '@/types/teams.types';
 
 import MemberPageLoader from './loading';
 import Head from 'next/head';
 import { MembersQueryKeys } from '@/services/members/constants';
+
+/**
+ * Determines if we should show the investor profile section for third-party users
+ * based on investor profile type and data availability
+ */
+const shouldShowInvestorProfileForThirdParty = (member: IMember, isOwner: boolean, isAdmin: boolean): boolean => {
+  // Always show for owner and admin
+  if (isOwner || isAdmin) {
+    return true;
+  }
+
+  const investorProfile = member?.investorProfile;
+  const teams = member?.teams;
+
+  if (!investorProfile?.type) {
+    return false; // No investor profile type
+  }
+
+  // Helper function to find preferred team (fund team, main team, or first team)
+  const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
+    if (!teams || teams.length === 0) return undefined;
+
+    // First priority: Find fund team
+    const fundTeam = teams.find((team) => team.isFund);
+    if (fundTeam) return fundTeam;
+
+    // Second priority: Find main team
+    const mainTeam = teams.find((team) => team.mainTeam);
+    if (mainTeam) return mainTeam;
+
+    // Fallback: Return first team
+    return teams[0];
+  };
+
+  // Helper function to check if any angel investor data is provided
+  const hasAngelData = (): boolean => {
+    return !!(
+      (investorProfile.investInStartupStages && investorProfile.investInStartupStages.length > 0) ||
+      (investorProfile.typicalCheckSize && investorProfile.typicalCheckSize?.toString().trim() !== '') ||
+      (investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0)
+    );
+  };
+
+  const preferredTeam = findPreferredTeam(teams);
+
+  switch (investorProfile.type) {
+    case 'ANGEL':
+      // ANGEL type: show section only if at least one angel field is provided
+      return hasAngelData();
+
+    case 'FUND':
+      // FUND type: show section only if investor has a team
+      return !!preferredTeam;
+
+    case 'ANGEL_AND_FUND':
+      // ANGEL_AND_FUND: show section if investor has a team OR if at least one angel field is provided
+      return !!preferredTeam || hasAngelData();
+
+    default:
+      return false; // Unknown type
+  }
+};
 
 const MemberDetails = ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -88,6 +153,56 @@ const MemberDetails = ({ params }: { params: any }) => {
     return null;
   }
 
+  function renderPageContent() {
+    if (!member) {
+      return null;
+    }
+
+    switch (member.accessLevel) {
+      case 'L5': {
+        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(member, isOwner, isAdmin);
+
+        return (
+          <>
+            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {showInvestorProfile && (
+              <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            )}
+            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+          </>
+        );
+      }
+      default: {
+        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(member, isOwner, isAdmin);
+
+        return (
+          <>
+            <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {member.accessLevel === 'L6' && showInvestorProfile && (
+              <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            )}
+            <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {member.eventGuests.length > 0 && (
+              <div className={styles?.memberDetail__irlContribution}>
+                <IrlMemberContribution member={member} userInfo={userInfo} />
+              </div>
+            )}
+            <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+          </>
+        );
+      }
+    }
+  }
+
   return (
     <>
       <Head>
@@ -106,29 +221,7 @@ const MemberDetails = ({ params }: { params: any }) => {
                 [styles.centered]: isAvailableToConnect || isOwner,
               })}
             >
-              <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-
-              <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              {member.eventGuests.length > 0 && (
-                <div className={styles?.memberDetail__irlContribution}>
-                  <IrlMemberContribution member={member} userInfo={userInfo} />
-                </div>
-              )}
-
-              <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+              {renderPageContent()}
             </div>
           </div>
           {!isAvailableToConnect && isLoggedIn && accessLevel === 'advanced' && !isOwner && (

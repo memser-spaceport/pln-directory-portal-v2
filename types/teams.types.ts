@@ -103,6 +103,19 @@ export interface ITeam {
   officeHours?: string | null;
   teamFocusAreas: any[];
   eventGuests?: any;
+  isFund?: boolean;
+  investorProfile?: {
+    uid: string;
+    investmentFocus: string[] | undefined;
+    typicalCheckSize: string | undefined;
+    createdAt: string;
+    updatedAt: string;
+    teamUid: string;
+    memberUid: null;
+    secRulesAccepted: boolean;
+    investInStartupStages: string[];
+    investInFundTypes: string[];
+  };
 }
 
 export interface ITeamDetailParams {

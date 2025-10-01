@@ -96,6 +96,15 @@
   }
 }
 
+.notFoundContent {
+  padding: var(--spacing-sm, 12px) var(--spacing-md, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  border-top: 1px solid var(--Border-border-light, #e2e8f0);
+}
+
 .mobileRoot {
   position: fixed;
   inset: 0;

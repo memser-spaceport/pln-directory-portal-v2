@@ -1,0 +1,1 @@
+export { InvestorProfileView } from './InvestorProfileView';

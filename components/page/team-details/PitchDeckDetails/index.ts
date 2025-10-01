@@ -1,0 +1,1 @@
+export { PitchDeckDetails } from './PitchDeckDetails';

@@ -2,7 +2,7 @@
 
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { Tag } from '@/components/ui/tag';
-import { IMember } from '@/types/members.types';
+import { IMember, InvestorProfileType } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { ADMIN_ROLE } from '@/utils/constants';
@@ -14,6 +14,7 @@ import { EditButton } from '@/components/page/member-details/components/EditButt
 import clsx from 'clsx';
 import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 import Link from 'next/link';
+import { ITeam } from '@/types/teams.types';
 
 import s from './ProfileDetails/ProfileDetails.module.scss';
 
@@ -23,6 +24,54 @@ interface IMemberDetailHeader {
   isLoggedIn: boolean;
   onEdit: () => void;
 }
+
+/**
+ * Determines if we should show the investor tag based on investor profile type and conditions
+ */
+const shouldShowInvestorTag = (member: IMember): boolean => {
+  const investorProfile = member?.investorProfile;
+  const teams = member?.teams;
+
+  if (!investorProfile?.type) {
+    return false; // No investor profile type
+  }
+
+  // Helper function to find preferred team (fund team, main team, or first team)
+  const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
+    if (!teams || teams.length === 0) return undefined;
+
+    // First priority: Find fund team
+    const fundTeam = teams.find((team) => team.isFund);
+    if (fundTeam) return fundTeam;
+
+    // Second priority: Find main team
+    const mainTeam = teams.find((team) => team.mainTeam);
+    if (mainTeam) return mainTeam;
+
+    // Fallback: Return first team
+    return teams[0];
+  };
+
+  const preferredTeam = findPreferredTeam(teams);
+
+  switch (investorProfile.type) {
+    case 'ANGEL':
+      // ANGEL type: show tag if secRulesAccepted
+      return !!investorProfile.secRulesAccepted;
+
+    case 'FUND':
+      // FUND type: show tag if has a team
+      return !!preferredTeam;
+
+    case 'ANGEL_AND_FUND':
+      // ANGEL_AND_FUND: show tag if has a team OR secRulesAccepted
+      return !!preferredTeam || !!investorProfile.secRulesAccepted;
+
+    default:
+      return false; // Unknown type
+  }
+};
+
 const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const member = props?.member;
   const name = member?.name ?? '';
@@ -34,6 +83,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const skills = member?.skills;
   const userInfo = props?.userInfo;
   const { onEdit } = props;
+  const showInvestorTag = shouldShowInvestorTag(member);
 
   const mainTeam = member?.mainTeam;
   const otherTeams = member.teams
@@ -137,6 +187,8 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
         </div>
 
         <div className="header__tags">
+          {showInvestorTag && <div className={s.investorTag}>Investor</div>}
+
           {isOpenToWork && (
             <div className="header__tags__funds">
               <span className="header__tags__funds__text">Open to Collaborate</span>

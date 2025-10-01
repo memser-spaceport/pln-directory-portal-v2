@@ -1,0 +1,1 @@
+export { EditPitchDeckForm } from './EditPitchDeckForm';

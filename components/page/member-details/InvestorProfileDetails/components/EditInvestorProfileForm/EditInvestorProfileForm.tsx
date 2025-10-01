@@ -346,7 +346,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       <FormCurrencyField
                         name="typicalCheckSize"
                         label="Typical Check Size"
-                        placeholder="Enter typical check size"
+                        placeholder="E.g. $250.000"
                         currency="USD"
                         disabled={!secRulesAccepted}
                       />
@@ -355,7 +355,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       <FormTagsInput
                         selectLabel="Add Investment Focus"
                         name="investmentFocusAreas"
-                        placeholder="Enter focus area"
+                        placeholder="Add keywords E.g. AI, Staking, Governance, etc."
                         disabled={!secRulesAccepted}
                       />
                     </div>
@@ -414,7 +414,12 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                           notFoundContent={
                             <div className={s.secondaryLabel}>
                               If you don&apos;t see your team on this list, please{' '}
-                              <Link href="/teams/add" className={s.link} target="_blank" onClick={handleAddTeamLinkClick}>
+                              <Link
+                                href="/teams/add"
+                                className={s.link}
+                                target="_blank"
+                                onClick={handleAddTeamLinkClick}
+                              >
                                 add your team
                               </Link>{' '}
                               first.
@@ -493,7 +498,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       <FormCurrencyField
                         name="typicalCheckSize"
                         label="Typical Check Size"
-                        placeholder="Enter typical check size"
+                        placeholder="E.g. $250.000"
                         currency="USD"
                       />
                     </div>
@@ -501,7 +506,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       <FormTagsInput
                         selectLabel="Add Investment Focus"
                         name="investmentFocusAreas"
-                        placeholder="Enter focus area"
+                        placeholder="Add keywords E.g. AI, Staking, Governance, etc."
                       />
                     </div>
                   </>
@@ -537,7 +542,12 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                           notFoundContent={
                             <div className={s.secondaryLabel}>
                               If you don&apos;t see your team on this list, please{' '}
-                              <Link href="/teams/add" className={s.link} target="_blank" onClick={handleAddTeamLinkClick}>
+                              <Link
+                                href="/teams/add"
+                                className={s.link}
+                                target="_blank"
+                                onClick={handleAddTeamLinkClick}
+                              >
                                 add your team
                               </Link>{' '}
                               first.

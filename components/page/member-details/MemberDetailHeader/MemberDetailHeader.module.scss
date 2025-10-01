@@ -1,0 +1,232 @@
+@use 'styles/media';
+
+.teamLink {
+  color: #1b4dff !important;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.moreTeamsButton {
+  display: flex;
+  padding: var(--spacing-5xs, 2px) var(--spacing-3xs, 6px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-brand-4, rgba(27, 77, 255, 0.04));
+
+  color: var(--foreground-brand-secondary_inverted, #4174ff);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.2px;
+}
+
+.role {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.desktopOnly {
+  display: none !important;
+
+  @include media.tablet-landscape {
+    display: block !important;
+  }
+}
+
+.locationName {
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+
+.header {
+  display: grid;
+  color: #000;
+  grid-template-columns: 48px auto;
+  column-gap: 8px;
+}
+
+.headerProfile {
+  grid-row: span 2 / span 2;
+}
+
+.headerProfileImg {
+  width: 48px;
+  height: 48px;
+  border-radius: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.headerDetails {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  grid-row: span 2 / span 2;
+  grid-column: span 4 / span 4;
+  margin-bottom: 16px;
+}
+
+.teams {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.specificsHdr {
+  display: flex;
+  align-items: center;
+}
+
+.specificsName {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 32px;
+  max-width: 200px;
+  cursor: default;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  letter-spacing: 0em;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.roleAndLocation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+.teamsName {
+  font-size: 14px;
+  font-weight: 500;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 20px;
+  letter-spacing: 0px;
+  text-align: center;
+  padding-right: 4px;
+}
+
+.location {
+  display: flex;
+  gap: 4px;
+  padding-right: 24px;
+  align-items: center;
+}
+
+.tags {
+  grid-row: span 1 / span 1;
+  grid-column: span 5 / span 5;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+
+  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.fundsLabel {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0px;
+  color: #475569;
+}
+
+.funds {
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #f1f5f9;
+  border-radius: 56px;
+  padding: 1px 8px;
+}
+
+
+@media (min-width: 1024px) {
+  .header {
+    grid-template-columns: 80px auto;
+    column-gap: 24px;
+  }
+
+  .headerProfile {
+    grid-row: span 3 / span 3;
+  }
+
+  .headerProfileImg {
+    height: 80px;
+    width: 80px;
+  }
+
+  .headerDetails {
+    grid-row: span 2 / span 2;
+    grid-column: 2 / auto;
+    margin-bottom: unset;
+  }
+
+  .specificsName {
+    max-width: 300px;
+  }
+
+  .tags {
+    grid-row: span 1 / span 1;
+    grid-column: 2 / auto;
+    border-top: unset;
+    padding-top: 16px;
+    margin-top: unset;
+    padding: 16px 0px 0px 0px;
+  }
+}
+
+.investorTag {
+  display: flex;
+  padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+
+  color: var(--foreground-brand-secondary_inverted, #4174FF);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}

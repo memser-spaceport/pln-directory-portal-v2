@@ -31,7 +31,7 @@ export const ActiveView = () => {
 
   // Time on page tracking
   useTimeOnPage({
-    onTimeReport: (timeSpent) => {
+    onTimeReport: (timeSpent, sessionId) => {
       if (userInfo?.email) {
         // Custom analytics event
         const timeOnPageEvent: TrackEventDto = {
@@ -44,6 +44,7 @@ export const ActiveView = () => {
             path: '/demoday',
             timestamp: new Date().toISOString(),
             timeSpent: timeSpent,
+            eventId: sessionId,
             demoDayTitle: demoDayData?.title,
             teamsCount: demoDayData?.teamsCount,
           },

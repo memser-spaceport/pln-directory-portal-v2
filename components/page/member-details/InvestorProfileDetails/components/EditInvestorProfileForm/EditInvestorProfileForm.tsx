@@ -145,6 +145,48 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     return isNaN(numericValue) ? 0 : numericValue;
   };
 
+  const handleAddTeamLinkClick = () => {
+    if (userInfo?.email) {
+      // Custom analytics event
+      const addTeamLinkEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_ADD_TEAM_LINK_CLICKED,
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: `/members/${member.id}`,
+          timestamp: new Date().toISOString(),
+          investorType: type?.value,
+        },
+      };
+
+      reportAnalytics.mutate(addTeamLinkEvent);
+    }
+  };
+
+  const handleTeamSelect = (selectedTeam: { label: string; value: string } | null) => {
+    if (selectedTeam && userInfo?.email) {
+      // Custom analytics event
+      const teamSelectedEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_TEAM_SELECTED,
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: `/members/${member.id}`,
+          timestamp: new Date().toISOString(),
+          teamId: selectedTeam.value,
+          teamName: selectedTeam.label,
+          investorType: type?.value,
+        },
+      };
+
+      reportAnalytics.mutate(teamSelectedEvent);
+    }
+  };
+
   const onSubmit = async (formData: TEditInvestorProfileForm) => {
     if (!isValid) {
       return;
@@ -368,10 +410,11 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                               label: item.teamTitle,
                             })) ?? []
                           }
+                          onChange={(value) => handleTeamSelect(value)}
                           notFoundContent={
                             <div className={s.secondaryLabel}>
                               If you don&apos;t see your team on this list, please{' '}
-                              <Link href="/teams/add" className={s.link} target="_blank">
+                              <Link href="/teams/add" className={s.link} target="_blank" onClick={handleAddTeamLinkClick}>
                                 add your team
                               </Link>{' '}
                               first.
@@ -490,10 +533,11 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                               label: item.teamTitle,
                             })) ?? []
                           }
+                          onChange={(value) => handleTeamSelect(value)}
                           notFoundContent={
                             <div className={s.secondaryLabel}>
                               If you don&apos;t see your team on this list, please{' '}
-                              <Link href="/teams/add" className={s.link} target="_blank">
+                              <Link href="/teams/add" className={s.link} target="_blank" onClick={handleAddTeamLinkClick}>
                                 add your team
                               </Link>{' '}
                               first.

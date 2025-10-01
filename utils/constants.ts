@@ -628,6 +628,21 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.3.0 - Protocol Labs Demo Day Platform',
+    tag: 'New Feature',
+    date: '15, Oct 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day Platform Launch</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Experience</span> - Participating teams can now manage their profiles, upload pitch decks and demo videos, and showcase their fundraising details to potential investors.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor Experience</span> - Accredited investors can browse participating teams, view detailed profiles and pitch materials, and connect with founders directly through the platform.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Event Discovery</span> - Public landing page with event information, and invite request functionality for interested participants.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team Showcase</span> - Browse and filter through participating startups, view their pitch materials, and discover innovative projects building in the Protocol Labs Network.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.2.4 - Directory Search & Filter Enhancements',
     tag: 'Improvements',
     date: '25, Sep 2025',

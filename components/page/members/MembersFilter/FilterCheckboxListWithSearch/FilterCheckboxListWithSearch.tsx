@@ -98,8 +98,8 @@ export function FilterCheckboxListWithSearch(props: Props) {
           onChange={setSearchValue}
           placeholder={placeholder}
           hideFlushIconOnValueInput
-          clearIcon={<CloseIcon color="#455468" />}
-          flushIcon={<SearchIcon color="#455468" className={s.searchIcon} />}
+          clearIcon={<CloseIcon color="#64748b" />}
+          flushIcon={<SearchIcon color="#64748b" className={s.searchIcon} />}
         />
         <div className={s.list}>
           {!!searchValue && <SelectAll data={data} paramKey={paramKey} setValue={setValue} selected={selectedValues} />}

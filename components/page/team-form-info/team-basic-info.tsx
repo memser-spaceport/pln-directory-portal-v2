@@ -351,7 +351,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
                 defaultValue={initialValues?.investorProfile?.typicalCheckSize}
                 label="Typical Check Size"
                 name="typicalCheckSize"
-                placeholder="Enter a single amount (e.g., $250k)"
+                placeholder="E.g. $250.000"
                 variant="secondary"
               />
             </div>

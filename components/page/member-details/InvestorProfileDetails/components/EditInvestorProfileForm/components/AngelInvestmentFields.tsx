@@ -25,7 +25,7 @@ export const AngelInvestmentFields: React.FC<Props> = ({ fundingStageOptions }) 
         <FormCurrencyField
           name="typicalCheckSize"
           label="Typical Check Size"
-          placeholder="Enter typical check size"
+          placeholder="E.g. $250.000"
           currency="USD"
           isRequired
         />
@@ -34,7 +34,7 @@ export const AngelInvestmentFields: React.FC<Props> = ({ fundingStageOptions }) 
         <FormTagsInput
           selectLabel="Add Investment Focus"
           name="investmentFocusAreas"
-          placeholder="Enter focus area"
+          placeholder="Add keywords E.g. AI, Staking, Governance, etc."
         />
       </div>
     </>

@@ -7,31 +7,7 @@ import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hook
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
-
-const SearchIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path d="M14 14L11.1 11.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const CloseIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M12 4L4 12M4 4L12 12"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+import { SearchIcon, CloseIcon } from '@/components/icons';
 
 export interface FilterOption {
   id: string;
@@ -193,11 +169,6 @@ export const FilterList: React.FC<FilterListProps> = ({
       {/* Search Input */}
       <div className={s.searchContainer}>
         <div className={s.inputContainer}>
-          {!hasSearchValue && (
-            <div className={s.inputPrefix}>
-              <SearchIcon />
-            </div>
-          )}
           <input
             type="text"
             value={searchTerm}
@@ -206,6 +177,11 @@ export const FilterList: React.FC<FilterListProps> = ({
             placeholder={placeholder}
             className={s.input}
           />
+          {!hasSearchValue && (
+            <div className={s.inputPrefix}>
+              <SearchIcon />
+            </div>
+          )}
           {hasSearchValue && (
             <button type="button" onClick={handleClearSearch} className={s.clearButton} aria-label="Clear search">
               <CloseIcon />

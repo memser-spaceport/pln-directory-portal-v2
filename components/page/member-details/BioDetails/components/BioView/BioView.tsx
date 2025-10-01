@@ -36,7 +36,7 @@ export const BioView = ({ member, isLoggedIn, userInfo, isEditable, showIncomple
             <div className={s.col}>
               <p>Tell others who you are, what you’re working on, and what you’re looking to connect around.</p>
             </div>
-            {showIncomplete && (
+            {isEditable && (
               <button className={s.primaryButton} onClick={onEdit}>
                 Gen Bio with AI <AiIcon />
               </button>

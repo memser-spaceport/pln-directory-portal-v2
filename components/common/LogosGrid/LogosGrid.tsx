@@ -1,4 +1,5 @@
 import s from './LogosGrid.module.scss';
+import clsx from 'clsx';
 
 const icons = [
   '/icons/demoday/landing/logos/Protocol Labs.svg',
@@ -57,7 +58,7 @@ export function LogosGrid(props: Props) {
   const { className } = props;
 
   return (
-    <div className={className}>
+    <div className={clsx(s.root, className)}>
       <div className={s.header}>PL Network comprises startups that have raised $100M+ in funding</div>
 
       <div className={s.subheader}>Past Demo Days have featured teams from top Web3 Investors</div>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, ReactNode } from 'react';
 import { useFilterStore } from '@/services/members/store';
 import { URL_QUERY_VALUE_SEPARATOR, DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import s from './FilterList.module.scss';
@@ -21,11 +21,13 @@ interface FilterListProps {
   placeholder?: string;
   emptyMessage?: string;
   initialDisplayCount?: number;
+  showAllLabel?: ReactNode;
 }
 
 export const FilterList: React.FC<FilterListProps> = ({
   options,
   paramName,
+  showAllLabel,
   placeholder = 'Search options...',
   emptyMessage = 'No options found',
   initialDisplayCount = 5,
@@ -231,7 +233,7 @@ export const FilterList: React.FC<FilterListProps> = ({
             {/* Show All / Show Less Button */}
             {hasMoreOptions && !isSearching && (
               <button type="button" onClick={handleToggleShowAll} className={s.toggleButton}>
-                {showAll ? 'Show less' : `Show all (${filteredOptions.length})`}
+                {showAll ? 'Show less' : showAllLabel || `Show all (${filteredOptions.length})`}
               </button>
             )}
           </>

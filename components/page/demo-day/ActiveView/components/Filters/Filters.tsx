@@ -94,6 +94,7 @@ export const Filters = () => {
           <FilterList
             options={industryOptions}
             paramName="industry"
+            showAllLabel="Show All Industries"
             placeholder="E.g. AI, DePIN, Web3, etc."
             emptyMessage={teamsLoading ? 'Loading industries...' : 'No industries found'}
           />
@@ -103,6 +104,7 @@ export const Filters = () => {
           <FilterList
             options={stageOptions}
             paramName="stage"
+            showAllLabel="Show All Stages"
             placeholder="E.g. Seed, Pre-Seed, etc."
             emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
           />

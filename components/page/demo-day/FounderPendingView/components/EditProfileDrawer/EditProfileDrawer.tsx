@@ -199,6 +199,29 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
       if (!hadBothFilesBefore && hasBothFilesNow) {
         setShowSuccessAlert(true);
 
+        // Report team profile ready analytics
+        if (userInfo?.email) {
+          const teamProfileReadyEvent: TrackEventDto = {
+            name: DEMO_DAY_ANALYTICS.ON_TEAM_PROFILE_READY,
+            distinctId: userInfo.email,
+            properties: {
+              userId: userInfo.uid,
+              userEmail: userInfo.email,
+              userName: userInfo.name,
+              path: '/demoday',
+              timestamp: new Date().toISOString(),
+              teamId: data?.team?.uid,
+              teamName: data?.team?.name,
+              hasOnePager: !!currentData?.onePagerUpload,
+              hasVideo: !!currentData?.videoUpload,
+              onePagerFileName: currentData?.onePagerUpload?.fileName,
+              videoFileName: currentData?.videoUpload?.fileName,
+            },
+          };
+
+          reportAnalytics.mutate(teamProfileReadyEvent);
+        }
+
         // Clear any existing timeout
         if (successAlertTimeoutRef.current) {
           clearTimeout(successAlertTimeoutRef.current);
@@ -213,7 +236,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
 
     // Update previous data reference
     previousDataRef.current = currentData;
-  }, [data, isOpen, editView]);
+  }, [data, isOpen, editView, reportAnalytics, userInfo.email, userInfo.name, userInfo.uid]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -223,41 +246,6 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
       }
     };
   }, []);
-
-  // Handle ESC key press and body scroll lock
-  // React.useEffect(() => {
-  // const handleEscKey = (event: KeyboardEvent) => {
-  //   if (event.key === 'Escape' && isOpen) {
-  //     onClose();
-  //   }
-  // };
-
-  //   if (isOpen) {
-  //     // document.addEventListener('keydown', handleEscKey);
-  //
-  //     // Lock body scroll and preserve position
-  //     const scrollY = window.scrollY;
-  //     document.body.style.position = 'fixed';
-  //     document.body.style.top = `-${scrollY}px`;
-  //     document.body.style.width = '100%';
-  //     document.body.style.overflow = 'hidden';
-  //   }
-  //
-  //   return () => {
-  //     // document.removeEventListener('keydown', handleEscKey);
-  //
-  //     // Restore body scroll and position
-  //     if (isOpen) {
-  //       document.body.style.position = '';
-  //       document.body.style.top = '';
-  //       document.body.style.width = '';
-  //       document.body.style.overflow = '';
-  //
-  //       // Restore scroll position
-  //       document.body.scrollTop = scrollPosition;
-  //     }
-  //   };
-  // }, [isOpen, onClose, scrollPosition]);
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {

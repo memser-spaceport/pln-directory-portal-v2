@@ -10,7 +10,12 @@ import { IUserInfo } from '@/types/shared.types';
 
 import s from './PageTitle.module.scss';
 
-export function PageTitle() {
+interface PageTitleProps {
+  size?: 'small' | 'large';
+}
+
+export function PageTitle(props: PageTitleProps) {
+  const { size = 'large' } = props;
   const { data } = useGetDemoDayState();
   const reportAnalytics = useReportAnalyticsEvent();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -38,8 +43,8 @@ export function PageTitle() {
 
   return (
     <div className={s.root}>
-      <h1 className={s.title}>{data?.title || 'PL F25 Demo Day'}</h1>
-      <p className={s.description}>
+      <h1 className={`${s.title} ${size === 'small' && s.small}`}>{data?.title || 'PL F25 Demo Day'}</h1>
+      <p className={`${s.description} ${size === 'small' && s.small}`}>
         An invite-only event for accredited investors, featuring 25 emerging <br className={s.hideOnMobile} />
         <a
           href="https://www.protocol.ai/"

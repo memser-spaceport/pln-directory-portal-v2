@@ -31,7 +31,7 @@ export const FounderPendingView = () => {
             <CountdownComponent targetDate={data?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />
           </div>
 
-          <PageTitle />
+          <PageTitle size="small" />
 
           {/*<ProfileContent pitchDeckUrl={PITCH_DECK_URL} videoUrl={PITCH_VIDEO_URL} />*/}
         </div>

@@ -7,6 +7,7 @@ import { format } from 'date-fns-tz';
 import { TeamsList } from '@/components/page/demo-day/ActiveView/components/TeamsList';
 import { PITCH_DECK_URL, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
 import { MediaPreview } from '@/components/page/demo-day/FounderPendingView/components/MediaPreview';
+import { PageTitle } from '@/components/page/demo-day/PageTitle';
 
 export const Content = () => {
   const { data } = useGetDemoDayState();
@@ -16,11 +17,7 @@ export const Content = () => {
       <div className={s.eventHeader}>
         <div className={s.content}>
           <div className={s.headline}>
-            <h1 className={s.title}>{data?.title || 'PL Demo Day'}</h1>
-            <p className={s.description}>
-              {data?.description ||
-                'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'}
-            </p>
+          <PageTitle size="small" />
           </div>
 
           <div className={s.stats}>

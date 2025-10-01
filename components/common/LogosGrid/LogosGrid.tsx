@@ -59,9 +59,7 @@ export function LogosGrid(props: Props) {
 
   return (
     <div className={clsx(s.root, className)}>
-      <div className={s.header}>PL Network comprises startups that have raised $100M+ in funding</div>
-
-      <div className={s.subheader}>Past Demo Days have featured teams from top Web3 Investors</div>
+      <div className={s.header}>Past Demo Days have featured teams backed by top Web3 Investors</div>
 
       <div className={s.grid}>
         {icons.map((icon) => (

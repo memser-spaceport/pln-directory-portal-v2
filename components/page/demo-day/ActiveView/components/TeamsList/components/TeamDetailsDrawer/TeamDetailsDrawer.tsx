@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -314,11 +315,24 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                               {founder.officeHours && <p className={s.founderStatus}>Available to connect</p>}
                             </div>
                             <div className={s.founderBadges}>
-                              {founder.skills.map((skill) => (
+                              {founder.skills.slice(0, 3).map((skill) => (
                                 <span className={s.founderBadge} key={skill.uid}>
                                   {skill.title}
                                 </span>
                               ))}
+                              {founder.skills.length > 3 && (
+                                <Tooltip
+                                  asChild
+                                  trigger={<span className={s.founderBadge}>+{founder.skills.length - 3}</span>}
+                                  content={
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                      {founder.skills.slice(3).map((skill) => (
+                                        <div key={skill.uid}>{skill.title}</div>
+                                      ))}
+                                    </div>
+                                  }
+                                />
+                              )}
                             </div>
                             <Link href={`/members/${founder.uid}`} target="_blank" className={s.founderArrow}>
                               <svg

@@ -49,7 +49,7 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
         return 'Forum access unavailable';
       }
       case 'L5': {
-        return 'Forum access is restricted';
+        return 'Forum Access Restricted';
       }
       default: {
         return 'Forum requires login access';
@@ -66,7 +66,7 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
         return "Your profile is under review. You'll be notified once approved to participate.";
       }
       case 'L5': {
-        return 'You currently do not have access to the forum.';
+        return "Your current access level doesn't include Forum privileges.";
       }
       default: {
         return 'Get help or share insights with the PL network. Sign in to read and contribute.';

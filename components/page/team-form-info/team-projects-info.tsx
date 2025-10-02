@@ -1,6 +1,6 @@
 'use client';
 import HiddenField from '@/components/form/hidden-field';
-import MultiSelect from '@/components/form/multi-select';
+import MultiSelect from '@/components/form/MultiSelect';
 import SingleSelect from '@/components/form/single-select';
 import { useEffect, useRef, useState } from 'react';
 import FocusAreasList from './focus-area/focus-area-list';
@@ -198,18 +198,18 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
             uniqueKey="id"
             displayKey="name"
             label="Industry Tags*"
-            placeholder="Search the Industry Tags"
+            placeholder="Search or select industry tags..."
             isMandatory
             closeImgUrl="/icons/close.svg"
             arrowImgUrl="/icons/arrow-down.svg"
           />
-          <div className="info">
-            <img src="/icons/info.svg" />
-            <p>
-              Add industries that you had worked in. This will make it easier for people to find & connect based on
-              shared professional interests.
-            </p>
-          </div>
+          {/*<div className="info">*/}
+          {/*  <img src="/icons/info.svg" />*/}
+          {/*  <p>*/}
+          {/*    Add industries that you had worked in. This will make it easier for people to find & connect based on*/}
+          {/*    shared professional interests.*/}
+          {/*  </p>*/}
+          {/*</div>*/}
           <div className="hidden">
             {selectedIndustryTags.map((tag, index) => (
               <div key={`team-industryTags-${tag.id}-${index}`}>

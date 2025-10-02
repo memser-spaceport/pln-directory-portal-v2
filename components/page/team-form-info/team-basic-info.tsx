@@ -413,6 +413,8 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             border-radius: 50px;
             color: #156ff7;
             font-size: 12px;
+            cursor: pointer;
+            position: relative;
           }
 
           .teaminfo__form__errs {
@@ -425,22 +427,6 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             color: #ef4444;
             font-size: 12px;
             line-height: 16px;
-          }
-
-          .teaminfo__form__team__profile {
-            width: 100px;
-            height: 100px;
-            border: 3px solid #cbd5e1;
-            background: #f1f5f9;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            color: #156ff7;
-            font-size: 12px;
-            cursor: pointer;
-            position: relative;
           }
 
           .teaminfo__form__team__profile__actions {

@@ -2,6 +2,8 @@
 
 import React, { PointerEvent, useEffect, useMemo, useRef, useState } from 'react';
 
+import s from './MultiSelect.module.scss'
+
 interface Option {
   [key: string]: any;
 }

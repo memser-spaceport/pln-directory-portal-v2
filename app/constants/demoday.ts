@@ -10,7 +10,7 @@ export const faqItems = [
       'Protocol Labs Demo Day is an invite-only event for investors. Invitations will be sent to the most active angel investors and VCs. If you think you should attend, request an invite.',
   },
   {
-    question: 'How can i learn more about projects in the Protocol Labs network?',
+    question: 'How can I learn more about projects in the Protocol Labs network?',
     answer:
       'A surge of innovative teams are building within the Protocol Labs Network and LabOS ecosystem, backed by leading investors. Upcoming catalysts like enhanced fundraising tools and network growth are creating even more opportunities for new businesses and projects. If investors are interested in learning about the teams and projects in the Protocol Labs Network, please reach out via pldemoday@protocol.ai to schedule time to speak.',
   },

@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useFilterStore } from '@/services/members/store';
 import { useDebounce } from 'react-use';
+import React, { useState, useEffect, useCallback } from 'react';
+
+import { useFilterStore } from '@/services/members/store';
+import { CloseIcon, SearchIcon } from '@/components/icons';
+
 import styles from './FilterSearch.module.scss';
 
 interface Props {
@@ -73,11 +76,6 @@ export function FilterSearch({ label, placeholder, debounceMs = 700 }: Props) {
       {label && <div className={styles.inputLabel}>{label}</div>}
       <div className={styles.inputWrapper}>
         <div className={styles.inputContainer}>
-          {/*{!hasValue && (*/}
-          {/*  <div className={styles.inputPrefix}>*/}
-          {/*    <SearchIcon />*/}
-          {/*  </div>*/}
-          {/*)}*/}
           <input
             type="text"
             value={inputValue}
@@ -85,6 +83,11 @@ export function FilterSearch({ label, placeholder, debounceMs = 700 }: Props) {
             placeholder={placeholder}
             className={styles.input}
           />
+          {!hasValue && (
+            <div className={styles.inputPrefix}>
+              <SearchIcon />
+            </div>
+          )}
           {hasValue && (
             <button type="button" onClick={handleClear} className={styles.clearButton} aria-label="Clear search">
               <CloseIcon />
@@ -95,22 +98,3 @@ export function FilterSearch({ label, placeholder, debounceMs = 700 }: Props) {
     </div>
   );
 }
-
-const SearchIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z"
-      stroke="#64748B"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path d="M14 14L11.1 11.1" stroke="#64748B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const CloseIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 4L4 12M4 4L12 12" stroke="#64748B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);

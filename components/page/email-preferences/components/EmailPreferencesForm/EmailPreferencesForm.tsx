@@ -46,8 +46,12 @@ export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
   return (
     <div className={s.root}>
       <h5 className={s.title}>Email Preferences</h5>
-      <ForumDigest userInfo={userInfo} initialData={initialData.settings} />
-      <Newsletter userInfo={userInfo} initialData={initialData.memberInfo} />
+      {userInfo.accessLevel !== 'L5' && (
+        <>
+          <ForumDigest userInfo={userInfo} initialData={initialData.settings} />
+          <Newsletter userInfo={userInfo} initialData={initialData.memberInfo} />
+        </>
+      )}
       <InvestorCommunications userInfo={userInfo} initialData={initialData.investorSettings} />
     </div>
   );

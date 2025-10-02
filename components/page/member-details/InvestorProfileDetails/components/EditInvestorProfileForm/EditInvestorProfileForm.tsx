@@ -364,7 +364,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
               </div>
               {secRulesAccepted && (
                 <div className={s.block}>
-                  <Link href="/settings/email" className={s.cta}>
+                  <Link href="/settings/email" target="_blank" className={s.cta}>
                     <div className={s.ctaIcon}>
                       <InfoIcon />
                     </div>
@@ -433,7 +433,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
               </div>
 
               <div className={s.block}>
-                <Link href="/settings/email" className={s.cta}>
+                <Link href="/settings/email" target="_blank" className={s.cta}>
                   <div className={s.ctaIcon}>
                     <InfoIcon />
                   </div>
@@ -562,7 +562,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
 
               {secRulesAccepted && (
                 <div className={s.block}>
-                  <Link href="/settings/email" className={s.cta}>
+                  <Link href="/settings/email" target="_blank" className={s.cta}>
                     <div className={s.ctaIcon}>
                       <InfoIcon />
                     </div>

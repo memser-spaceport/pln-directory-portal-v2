@@ -1,20 +1,20 @@
-.multi-select {
+.root {
   width: 100%;
   position: relative;
 }
 
-.multi-select__content {
+.content {
   position: relative;
 }
 
-.multi-select__label {
+.label {
   font-weight: 600;
   font-size: 14px;
   margin-bottom: 12px;
   display: block;
 }
 
-.multi-select__selected-options {
+.selectedOptions {
   display: flex;
   font-size: 14px;
   gap: 8px;
@@ -26,26 +26,59 @@
   min-height: 40px;
 }
 
-.multi-select__selected-options--error {
+.error {
   border: 1px solid red;
 }
 
-.multi-select__selected-options-wrapper {
-  display: flex;
+.optionsWrapper {
+  flex: 1;
   gap: 4px;
+  display: flex;
   flex-wrap: wrap;
+  overflow: hidden;
 }
 
-.multi-select__arrow-img {
+.root {
+  .input {
+    border: 0;
+    outline: none;
+
+    height: 100%;
+    font-size: 14px !important;
+
+    &:focus {
+      //width: 100%;
+    }
+  }
+
+  .searchWrapper {
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .expandLine {
+    height: 0;
+    visibility: hidden;
+  }
+
+  &.empty .searchWrapper {
+    flex: 1;
+  }
+
+  &:not(.empty) .input.emptyInput {
+    width: 10px;
+  }
+}
+
+.arrowImg {
   margin-left: auto;
   cursor: pointer;
 }
 
-.multi-select__placeholder {
-  color: #aab0b8;
-}
-
-.multi-select__selected-option {
+.selectedOption {
   border: 1px solid #cbd5e1;
   padding: 5px 12px;
   border-radius: 24px;
@@ -56,12 +89,12 @@
   gap: 3px;
 }
 
-.multi-select__remove-option {
+.removeOption {
   margin-left: 5px;
   cursor: pointer;
 }
 
-.multi-select__options {
+.options {
   width: 100%;
   list-style-type: none;
   border-radius: 8px;
@@ -77,17 +110,17 @@
   left: 0;
 }
 
-.multi-select__option {
+.option {
   cursor: pointer;
   font-size: 14px;
   padding: 4px 8px;
 }
 
-.multi-select__option--selected {
+.selected {
   background-color: #e0e0e0;
 }
 
-.multi-select__no-results {
+.noResults {
   padding: 16px;
   font-size: 14px;
   width: 90%;

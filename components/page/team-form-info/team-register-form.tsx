@@ -290,7 +290,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
           .trf__form {
             padding: 24px;
             height: calc(100% - 70px);
-            overflow-y: auto;
+            overflow-y: visible;
           }
 
           .form {
@@ -301,7 +301,6 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
           @media (min-width: 1024px) {
             .trf__form {
               padding: 24px 32px;
-              overflow-y: auto;
             }
           }
         `}

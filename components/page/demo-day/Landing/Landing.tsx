@@ -50,7 +50,7 @@ export function Landing() {
           path: '/demoday',
           timestamp: new Date().toISOString(),
           timeSpent: timeSpent,
-          sessionId: sessionId,
+          eventId: sessionId,
           demoDayTitle: data?.title,
           isLoggedIn: !!userInfo,
         },

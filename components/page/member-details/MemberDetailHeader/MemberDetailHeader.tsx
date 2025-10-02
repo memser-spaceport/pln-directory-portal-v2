@@ -146,7 +146,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
         </div>
 
         <div className={s.tags}>
-          {true && <div className={s.investorTag}>Investor</div>}
+          {showInvestorTag && <div className={s.investorTag}>Investor</div>}
 
           {isOpenToWork && (
             <div className={s.funds}>

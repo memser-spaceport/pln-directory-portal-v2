@@ -8,8 +8,8 @@ export const CommunicationsLink: React.FC = () => {
   return (
     <>
       <div className={s.divider} />
-      
-      <Link href={EMAIL_SETTINGS_URL} className={s.cta}>
+
+      <Link href={EMAIL_SETTINGS_URL} target="_blank" className={s.cta}>
         <div className={s.ctaIcon}>
           <InfoIcon />
         </div>

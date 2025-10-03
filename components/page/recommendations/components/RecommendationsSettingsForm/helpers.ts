@@ -50,7 +50,7 @@ export const recommendationsSettingsSchema = yup
   })
   .test(
     'require-one-when-enabled',
-    'At least one of Roles, Funding Stage, Team Technology, or Keywords must be filled when enabled',
+    'At least one of Roles, Company Stage, Team Technology, or Keywords must be filled when enabled',
     function (values) {
       const { enabled, roles, fundingStage, teamTechnology, keywords } = values || {};
       if (!enabled) return true;

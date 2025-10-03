@@ -60,11 +60,11 @@ export const FineTuneMatches = () => {
           placeholder="E.g. AI, Staking, Governance..."
         />
         <MatchesSelector
-          placeholder="Pick 1 or several funding stages"
-          hint="Used to match you with members on the teams at funding stage(s) of your interest."
+          placeholder="Pick 1 or several company stages"
+          hint="Used to match you with members on the teams at company stage(s) of your interest."
           icon={<LeafIcon />}
           selectLabel="Select stage"
-          title="Funding Stage"
+          title="Company Stage"
           options={options.fundingStageOptions}
           name="fundingStage"
           warning={isInvalid && !fundingStage.length}

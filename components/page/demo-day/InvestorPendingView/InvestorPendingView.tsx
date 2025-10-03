@@ -86,7 +86,7 @@ export const InvestorPendingView = () => {
 
     reportAnalytics.mutate(buttonClickEvent);
 
-    router.push(`/members/${userInfo.uid}`);
+    window.open(`/members/${userInfo.uid}`, '_blank');
   };
 
   return (

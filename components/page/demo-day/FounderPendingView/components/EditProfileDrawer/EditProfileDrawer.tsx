@@ -62,9 +62,16 @@ interface EditProfileDrawerProps {
   onClose: () => void;
   scrollPosition: number;
   data?: FundraisingProfile;
+  hideActions?: boolean;
 }
 
-export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, onClose, scrollPosition, data }) => {
+export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
+  isOpen,
+  onClose,
+  scrollPosition,
+  data,
+  hideActions,
+}) => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const [editView, setEditView] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
@@ -589,29 +596,31 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
             </div>
 
             {/* Footer - Always Visible */}
-            <div className={s.drawerFooter}>
-              <button
-                className={s.secondaryButton}
-                onClick={emailData ? createDemoDayEmailHandler('like', emailData) : undefined}
-                disabled={!emailData}
-              >
-                <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
-              </button>
-              <button
-                className={s.secondaryButton}
-                onClick={emailData ? createDemoDayEmailHandler('connect', emailData) : undefined}
-                disabled={!emailData}
-              >
-                🤝 Connect with Company
-              </button>
-              <button
-                className={s.primaryButton}
-                onClick={emailData ? createDemoDayEmailHandler('invest', emailData) : undefined}
-                disabled={!emailData}
-              >
-                💰 Invest in Company
-              </button>
-            </div>
+            {!hideActions && (
+              <div className={s.drawerFooter}>
+                <button
+                  className={s.secondaryButton}
+                  onClick={emailData ? createDemoDayEmailHandler('like', emailData) : undefined}
+                  disabled={!emailData}
+                >
+                  <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
+                </button>
+                <button
+                  className={s.secondaryButton}
+                  onClick={emailData ? createDemoDayEmailHandler('connect', emailData) : undefined}
+                  disabled={!emailData}
+                >
+                  🤝 Connect with Company
+                </button>
+                <button
+                  className={s.primaryButton}
+                  onClick={emailData ? createDemoDayEmailHandler('invest', emailData) : undefined}
+                  disabled={!emailData}
+                >
+                  💰 Invest in Company
+                </button>
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}

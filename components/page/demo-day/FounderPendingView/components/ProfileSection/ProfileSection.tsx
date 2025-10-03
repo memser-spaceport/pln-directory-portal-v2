@@ -35,6 +35,8 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
   const { onFounderTeamFundraisingCardClicked, onFounderEditTeamProfileButtonClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
 
+  const isNotCompleted = !data?.onePagerUpload?.url || !data?.videoUpload?.url;
+
   // Create email data for demo day actions
   const createEmailData = (): DemoDayEmailData | null => {
     const founders = data?.founders;
@@ -141,12 +143,14 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
     <>
       <div className={s.profileSection}>
         <div className={s.profileCard} onClick={handleEditProfile}>
-          <div className={s.editButtonContainer}>
-            <button className={s.drawerEditButton} onClick={handleEditProfile}>
-              <EditIcon />
-              <span>Edit</span>
-            </button>
-          </div>
+          {!isNotCompleted && (
+            <div className={s.editButtonContainer}>
+              <button className={s.drawerEditButton} onClick={handleEditProfile}>
+                <EditIcon />
+                <span>Edit</span>
+              </button>
+            </div>
+          )}
           {/* Header */}
           <ProfileHeader
             image={data?.team?.logo?.url || '/images/demo-day/profile-placeholder.svg'}
@@ -163,7 +167,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
           <div className={s.profileDivider} />
 
           {/* Action Area */}
-          {!data?.onePagerUpload?.url || !data?.videoUpload?.url ? (
+          {isNotCompleted ? (
             <ProfileActions onEditProfile={handleEditProfile} />
           ) : (
             <div className={s.actions}>
@@ -199,6 +203,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
         onClose={handleCloseDrawer}
         scrollPosition={scrollPositionRef.current}
         data={data}
+        hideActions={isNotCompleted}
       />
     </>
   );

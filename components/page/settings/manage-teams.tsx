@@ -48,6 +48,7 @@ function ManageTeamsSettings(props: any) {
     isError: false,
   });
   const [teamMembers, setTeamMembers] = useState(structuredClone(membersDetail));
+  const [isInvestmentFund, setIsInvestmentFund] = useState(false);
 
   const [allMembers, setAllMembers] = useState(() =>
     (props?.allMembers || []).filter((member: any) => !membersDetail.some((m: any) => m.id === member.uid)),
@@ -467,10 +468,13 @@ function ManageTeamsSettings(props: any) {
               longDesc={content}
               setLongDesc={setContent}
               userInfo={userInfo}
+              isInvestmentFund={isInvestmentFund}
+              setIsInvestmentFund={setIsInvestmentFund}
             />
           </div>
           <div className={`${activeTab.name !== 'team details' ? 'hidden' : ''}`}>
             <TeamProjectsInfo
+              isInvestmentFund={isInvestmentFund}
               errors={errors.projectErrors}
               protocolOptions={allData?.technologies}
               fundingStageOptions={allData?.fundingStage}

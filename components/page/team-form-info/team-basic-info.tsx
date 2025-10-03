@@ -20,10 +20,13 @@ interface ITeamBasicInfo {
   setLongDesc: (content: string) => void;
   longDescMaxLength?: number;
   userInfo: IUserInfo;
+  isInvestmentFund: boolean;
+  setIsInvestmentFund: (v: boolean) => void;
 }
 
 function TeamBasicInfo(props: ITeamBasicInfo) {
-  const { errors, setLongDesc, initialValues, longDescMaxLength } = props;
+  const { errors, userInfo, setLongDesc, initialValues, longDescMaxLength, isInvestmentFund, setIsInvestmentFund } =
+    props;
 
   const isEdit = props.isEdit ?? false;
   const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '');
@@ -31,15 +34,14 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);
-  const [isInvestmentFund, setIsInvestmentFund] = useState<boolean>(initialValues?.isFund ?? false);
   const [investInStartupStages, setInvestInStartupStages] = useState<{ label: string; value: string }[]>(
     initialValues?.investInStartupStages || [],
   );
   const [investInFundTypes, setInvestInFundTypes] = useState<{ label: string; value: string }[]>(
     initialValues?.investInFundTypes || [],
   );
-  const isAdmin = props.userInfo?.roles?.includes(ADMIN_ROLE);
-  const isInvestor = props.userInfo?.accessLevel === 'L5' || props.userInfo?.accessLevel === 'L6';
+  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
+  const isInvestor = userInfo?.accessLevel === 'L5' || userInfo?.accessLevel === 'L6';
 
   // Get options for multiselects
   const { data } = useTeamsFormOptions();
@@ -264,7 +266,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
         </div>
         <div className="teaminfo__form__item">
           {<label className={`tf__label`}>Long Description</label>}
-          <RichTextEditor value={props?.longDesc} onChange={props.setLongDesc} maxLength={longDescMaxLength} />
+          <RichTextEditor value={props?.longDesc} onChange={setLongDesc} maxLength={longDescMaxLength} />
           {/* <TextArea
             defaultValue={initialValues?.longDescription}
             maxLength={2000}
@@ -413,6 +415,8 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             border-radius: 50px;
             color: #156ff7;
             font-size: 12px;
+            cursor: pointer;
+            position: relative;
           }
 
           .teaminfo__form__errs {
@@ -425,22 +429,6 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             color: #ef4444;
             font-size: 12px;
             line-height: 16px;
-          }
-
-          .teaminfo__form__team__profile {
-            width: 100px;
-            height: 100px;
-            border: 3px solid #cbd5e1;
-            background: #f1f5f9;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            color: #156ff7;
-            font-size: 12px;
-            cursor: pointer;
-            position: relative;
           }
 
           .teaminfo__form__team__profile__actions {

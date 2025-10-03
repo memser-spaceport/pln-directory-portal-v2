@@ -1,6 +1,6 @@
 'use client';
 import HiddenField from '@/components/form/hidden-field';
-import MultiSelect from '@/components/form/multi-select';
+import MultiSelect from '@/components/form/MultiSelect';
 import SingleSelect from '@/components/form/single-select';
 import { useEffect, useRef, useState } from 'react';
 import FocusAreasList from './focus-area/focus-area-list';
@@ -13,9 +13,13 @@ interface ICommonProperties {
 }
 
 interface IProtocolOptions extends ICommonProperties {}
+
 interface IFundingStage extends ICommonProperties {}
+
 interface IMembershipSourceOptions extends ICommonProperties {}
+
 interface IIndustryTagsOptions extends ICommonProperties {}
+
 interface ITeamProjectsInfo {
   protocolOptions: IProtocolOptions[];
   fundingStageOptions: IFundingStage[];
@@ -25,17 +29,22 @@ interface ITeamProjectsInfo {
   focusAreas?: any[];
   initialValues: any;
   showFocusArea?: boolean;
+  isInvestmentFund: boolean;
 }
 
 const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
-  const initialValues = props?.initialValues;
-  const protocolOptions = props?.protocolOptions;
-  const fundingStageOptions = props?.fundingStageOptions;
-  const membershipResourceOptions = props?.membershipSourceOptions;
-  const industryTagOptions = props?.industryTagOptions;
-  const showFocusArea = props.showFocusArea ?? false;
-  const focusAreas = props?.focusAreas ?? [];
-  const errors = props?.errors;
+  const {
+    errors,
+    focusAreas = [],
+    initialValues,
+    isInvestmentFund,
+    showFocusArea = false,
+    protocolOptions,
+    fundingStageOptions,
+    industryTagOptions,
+    membershipSourceOptions,
+  } = props;
+
   const focusAreaDialogRef = useRef<HTMLDialogElement>(null);
   const [selectedProtocols, setSelectedProtocols] = useState<IProtocolOptions[]>([]);
   const [selectedMembershipSources, setSelectedMembershipSources] = useState<IMembershipSourceOptions[]>([]);
@@ -44,6 +53,13 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
     ...initialValues.fundingStage,
   });
   const [selectedFocusAreas, setSelectedFocusAreas] = useState<any[]>([]);
+
+  useEffect(() => {
+    const investmentOption = industryTagOptions.find(({ name }) => name === 'Investment Fund');
+    if (isInvestmentFund && investmentOption) {
+      setSelectedIndustryTags((prev) => [investmentOption, ...prev]);
+    }
+  }, [isInvestmentFund, industryTagOptions]);
 
   const [isFocusAreaModalOpen, setIsFocusAreaModalOpen] = useState(false);
 
@@ -63,6 +79,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
   const onFocusAreaChanged = (items: any[]) => {
     setSelectedFocusAreas([...items]);
   };
+
   const onEditFocusArea = () => {
     setIsFocusAreaModalOpen(true);
     if (focusAreaDialogRef.current) {
@@ -88,6 +105,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
     setSelectedIndustryTags([...initialValues.industryTags]);
     setSelectedFundingStage({ ...initialValues.fundingStage });
     setSelectedFocusAreas([...(initialValues?.teamFocusAreas ?? [])]);
+
     function resetHandler() {
       setSelectedProtocols(structuredClone(initialValues.technologies));
       setSelectedMembershipSources(structuredClone(initialValues.membershipSources));
@@ -95,6 +113,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
       setSelectedFundingStage(structuredClone(initialValues.fundingStage));
       setSelectedFocusAreas([...(initialValues?.teamFocusAreas ?? [])]);
     }
+
     document.addEventListener('reset-team-register-form', resetHandler);
     return function () {
       document.removeEventListener('reset-team-register-form', resetHandler);
@@ -168,7 +187,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
         </div>
         <div className="teamProject__form__item">
           <MultiSelect
-            options={membershipResourceOptions}
+            options={membershipSourceOptions}
             selectedOptions={selectedMembershipSources}
             onAdd={(itemToAdd) => addItem(setSelectedMembershipSources, itemToAdd)}
             onRemove={(itemToRemove) => removeItem(setSelectedMembershipSources, itemToRemove)}
@@ -198,18 +217,18 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
             uniqueKey="id"
             displayKey="name"
             label="Industry Tags*"
-            placeholder="Search the Industry Tags"
+            placeholder="Search or select industry tags..."
             isMandatory
             closeImgUrl="/icons/close.svg"
             arrowImgUrl="/icons/arrow-down.svg"
           />
-          <div className="info">
-            <img src="/icons/info.svg" />
-            <p>
-              Add industries that you had worked in. This will make it easier for people to find & connect based on
-              shared professional interests.
-            </p>
-          </div>
+          {/*<div className="info">*/}
+          {/*  <img src="/icons/info.svg" />*/}
+          {/*  <p>*/}
+          {/*    Add industries that you had worked in. This will make it easier for people to find & connect based on*/}
+          {/*    shared professional interests.*/}
+          {/*  </p>*/}
+          {/*</div>*/}
           <div className="hidden">
             {selectedIndustryTags.map((tag, index) => (
               <div key={`team-industryTags-${tag.id}-${index}`}>
@@ -260,21 +279,25 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
           gap: 20px;
           padding: 20px 24px;
         }
+
         .teamProject__form__item {
           display: flex;
           flex-direction: column;
           gap: 12px;
         }
+
         .teamProject__form__errs {
           display: grid;
           gap: 4px;
           padding-left: 16px;
         }
+
         .teamProject__form__errs__err {
           color: #ef4444;
           font-size: 12px;
           line-height: 16px;
         }
+
         .info {
           display: flex;
           color: #94a3b8;
@@ -283,6 +306,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
           align-items: flex-start;
           gap: 4px;
         }
+
         .hidden {
           visibility: hidden;
           height: 0;

@@ -1,7 +1,7 @@
 'use client';
 import CustomToggle from '@/components/form/custom-toggle';
 import HiddenField from '@/components/form/hidden-field';
-import MultiSelect from '@/components/form/multi-select';
+import MultiSelect from '@/components/form/MultiSelect';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import TextField from '@/components/form/text-field';
 import { getUniqueId } from '@/utils/common.utils';

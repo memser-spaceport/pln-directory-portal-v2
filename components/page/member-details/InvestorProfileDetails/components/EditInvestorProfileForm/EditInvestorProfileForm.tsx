@@ -7,7 +7,7 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
-import { IMember } from '@/types/members.types';
+import { IMember, InvestorProfileType } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { TEditInvestorProfileForm } from '@/components/page/member-details/InvestorProfileDetails/types';
 import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
@@ -70,17 +70,19 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
 
   const methods = useForm<TEditInvestorProfileForm>({
     defaultValues: {
-      type: member.investorProfile?.type
-        ? investorTypeOptions.find((item) => item.value === member?.investorProfile?.type)
-        : investorTypeOptions[0],
+      // type: member.investorProfile?.type
+      //   ? investorTypeOptions.find((item) => item.value === member?.investorProfile?.type)
+      //   : investorTypeOptions[0],
+      secRulesAccepted: member.investorProfile?.secRulesAccepted ?? false,
+      isInvestViaFund:
+        member.investorProfile?.type === 'FUND' || member.investorProfile?.type === 'ANGEL_AND_FUND' || false,
+
       team: fundTeam?.name ? { label: fundTeam.name, value: fundTeam.id } : null,
       typicalCheckSize: formatNumberToCurrency(member.investorProfile?.typicalCheckSize) || '',
       investmentFocusAreas: member.investorProfile?.investmentFocus || [],
       investInStartupStages:
         member.investorProfile?.investInStartupStages?.map((item) => ({ label: item, value: item })) || [],
       investInFundTypes: member.investorProfile?.investInFundTypes?.map((item) => ({ label: item, value: item })) || [],
-      secRulesAccepted: member.investorProfile?.secRulesAccepted ?? false,
-      investThroughFund: member.investorProfile?.investThroughFund ?? false,
     },
     resolver: yupResolver(editInvestorProfileSchema),
     mode: 'all',
@@ -94,8 +96,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     trigger,
     formState: { errors, isValid },
   } = methods;
-  const type = watch('type');
   const secRulesAccepted = watch('secRulesAccepted');
+  const isInvestViaFund = watch('isInvestViaFund');
 
   const formOptions = useMemo(() => {
     if (!options) {
@@ -157,7 +159,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
           userName: userInfo.name,
           path: `/members/${member.id}`,
           timestamp: new Date().toISOString(),
-          investorType: type?.value,
         },
       };
 
@@ -179,7 +180,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
           timestamp: new Date().toISOString(),
           teamId: selectedTeam.value,
           teamName: selectedTeam.label,
-          investorType: type?.value,
         },
       };
 
@@ -215,7 +215,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
 
       const payload = {
         investorProfile: {
-          type: formData.type?.value,
+          type: deriveType(formData),
           investmentFocus: formData.secRulesAccepted ? formData.investmentFocusAreas : [],
           typicalCheckSize: formData.secRulesAccepted ? typicalCheckSizeNumber : null,
           investInStartupStages: formData.secRulesAccepted
@@ -223,7 +223,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
             : [],
           // investInFundTypes: formData.investInFundTypes.map((item) => item.label),
           secRulesAccepted: formData.secRulesAccepted,
-          investThroughFund: formData.investThroughFund,
+          isInvestViaFund: formData.isInvestViaFund,
         },
       };
 
@@ -244,11 +244,10 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
             userName: userInfo.name,
             path: `/members/${member.id}`,
             timestamp: new Date().toISOString(),
-            investorProfileType: formData.type,
             hasInvestmentFocus: formData.investmentFocusAreas?.length > 0,
             hasTypicalCheckSize: !!formData.typicalCheckSize,
             secRulesAccepted: formData.secRulesAccepted,
-            investThroughFund: formData.investThroughFund,
+            isInvestViaFund: formData.isInvestViaFund,
             fieldsUpdated: Object.keys(formData).filter((key) => formData[key as keyof typeof formData] !== undefined),
           },
         };
@@ -281,110 +280,91 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Profile" />
         <div className={s.body}>
           <div className={s.block}>
-            <div className={s.row}>
-              <FormSelect
-                name="type"
-                label="Do you angel invest or invest through fund(s)?"
-                placeholder="Select investment type"
-                options={investorTypeOptions}
-                isRequired
-              />
+            <div className={s.sectionHeader}>
+              <h3>How do you invest (select all that apply)?</h3>
             </div>
-          </div>
-
-          {type && type.value === 'ANGEL' && (
-            <>
-              <div className={s.block}>
-                <div className={s.sectionHeader}>
-                  <h3>Your Angel Investor Profile</h3>
-                </div>
-                <div className={s.row}>
-                  <label className={s.Label}>
-                    <Checkbox.Root
-                      className={s.Checkbox}
-                      checked={secRulesAccepted}
-                      onCheckedChange={(v: boolean) => {
-                        setValue('secRulesAccepted', v, { shouldValidate: true, shouldDirty: true });
-                        trigger();
-                      }}
+            <section>
+              <label className={s.Label}>
+                <Checkbox.Root
+                  className={s.Checkbox}
+                  checked={secRulesAccepted}
+                  onCheckedChange={(v: boolean) => {
+                    setValue('secRulesAccepted', v, { shouldValidate: true, shouldDirty: true });
+                    trigger();
+                  }}
+                >
+                  <Checkbox.Indicator className={s.Indicator}>
+                    <CheckIcon className={s.Icon} />
+                  </Checkbox.Indicator>
+                </Checkbox.Root>
+                <div className={s.col}>
+                  <div className={s.primary}>
+                    I angel invest as an accredited investor under{' '}
+                    <Link
+                      target="_blank"
+                      href="https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated-3"
+                      className={s.link}
                     >
-                      <Checkbox.Indicator className={s.Indicator}>
-                        <CheckIcon className={s.Icon} />
-                      </Checkbox.Indicator>
-                    </Checkbox.Root>
-                    <div className={s.col}>
-                      <div className={s.primary}>
-                        I&apos;m an accredited investor under{' '}
-                        <Link
-                          target="_blank"
-                          href="https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated-3"
-                          className={s.link}
-                        >
-                          SEC rules <ExternalLinkIcon />
-                        </Link>
-                      </div>
-                      {/*<p className={s.desc}>*/}
-                      {/*  This certification is required to access investor features and participate in demo days. You must*/}
-                      {/*  confirm accredited investor status to save your investor profile.*/}
-                      {/*</p>*/}
-                    </div>
-                  </label>
+                      SEC rules <ExternalLinkIcon />
+                    </Link>
+                  </div>
                 </div>
+              </label>
 
-                {secRulesAccepted && (
-                  <>
-                    <div className={s.row}>
-                      <FormMultiSelect
-                        name="investInStartupStages"
-                        label="Do you invest in Startups?"
-                        placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
-                        options={formOptions.fundingStageOptions}
-                        // showNone
-                      />
-                    </div>
-                    <div className={s.row}>
-                      <FormCurrencyField
-                        name="typicalCheckSize"
-                        label="Typical Check Size"
-                        placeholder="E.g. $250.000"
-                        currency="USD"
-                        disabled={!secRulesAccepted}
-                      />
-                    </div>
-                    <div className={s.row}>
-                      <FormTagsInput
-                        selectLabel="Add Investment Focus"
-                        name="investmentFocusAreas"
-                        placeholder="Add keywords E.g. AI, Staking, Governance, etc."
-                        disabled={!secRulesAccepted}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
               {secRulesAccepted && (
-                <div className={s.block}>
-                  <Link href="/settings/email" target="_blank" className={s.cta}>
-                    <div className={s.ctaIcon}>
-                      <InfoIcon />
-                    </div>
-                    <div className={s.col}>
-                      <div className={s.ctaLink}>
-                        Manage your investor communications <LinkIcon />
-                      </div>
-                      <p>Manage communication preferences for event invitations, deal flow intros, and digests.</p>
-                    </div>
-                  </Link>
-                </div>
-              )}
-            </>
-          )}
+                <>
+                  <div className={s.row}>
+                    <FormMultiSelect
+                      name="investInStartupStages"
+                      label="Do you invest in Startups?"
+                      placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
+                      options={formOptions.fundingStageOptions}
+                      // showNone
+                    />
+                  </div>
+                  <div className={s.row}>
+                    <FormCurrencyField
+                      name="typicalCheckSize"
+                      label="Typical Check Size"
+                      placeholder="E.g. $250.000"
+                      currency="USD"
+                      disabled={!secRulesAccepted}
+                    />
+                  </div>
+                  <div className={s.row}>
+                    <FormTagsInput
+                      selectLabel="Add Investment Focus"
+                      name="investmentFocusAreas"
+                      placeholder="Add keywords E.g. AI, Staking, Governance, etc."
+                      disabled={!secRulesAccepted}
+                    />
+                  </div>
 
-          {type && type.value === 'FUND' && (
-            <>
-              <div className={s.block}>
-                <div className={s.sectionHeader}>
-                  <h3>Your Investment Fund Profile</h3>
+                  <div className={s.divider} />
+                </>
+              )}
+            </section>
+            <section>
+              <label className={s.Label}>
+                <Checkbox.Root
+                  className={s.Checkbox}
+                  checked={isInvestViaFund}
+                  onCheckedChange={(v: boolean) => {
+                    setValue('isInvestViaFund', v, { shouldValidate: true, shouldDirty: true });
+                    trigger();
+                  }}
+                >
+                  <Checkbox.Indicator className={s.Indicator}>
+                    <CheckIcon className={s.Icon} />
+                  </Checkbox.Indicator>
+                </Checkbox.Root>
+                <div className={s.col}>
+                  <div className={s.primary}>I invest through a fund(s).</div>
+                </div>
+              </label>
+
+              {isInvestViaFund && (
+                <>
                   {fundTeam ? (
                     <>
                       <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
@@ -429,153 +409,25 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       </div>
                     </>
                   )}
-                </div>
-              </div>
-
-              <div className={s.block}>
-                <Link href="/settings/email" target="_blank" className={s.cta}>
-                  <div className={s.ctaIcon}>
-                    <InfoIcon />
-                  </div>
-                  <div className={s.col}>
-                    <div className={s.ctaLink}>
-                      Manage your investor communications <LinkIcon />
-                    </div>
-                    <p>Manage communication preferences for event invitations, deal flow intros, and digests.</p>
-                  </div>
-                </Link>
-              </div>
-            </>
-          )}
-
-          {type && type.value === 'ANGEL_AND_FUND' && (
-            <>
-              <div className={s.block}>
-                <div className={s.sectionHeader}>
-                  <h3>Your Angel Investor Profile</h3>
-                </div>
-                <div className={s.row}>
-                  <label className={s.Label}>
-                    <Checkbox.Root
-                      className={s.Checkbox}
-                      checked={secRulesAccepted}
-                      onCheckedChange={(v: boolean) => {
-                        setValue('secRulesAccepted', v, { shouldValidate: true, shouldDirty: true });
-                        trigger();
-                      }}
-                    >
-                      <Checkbox.Indicator className={s.Indicator}>
-                        <CheckIcon className={s.Icon} />
-                      </Checkbox.Indicator>
-                    </Checkbox.Root>
-                    <div className={s.col}>
-                      <div className={s.primary}>
-                        I&apos;m an accredited investor under{' '}
-                        <Link
-                          target="_blank"
-                          href="https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated-3"
-                          className={s.link}
-                        >
-                          SEC rules <ExternalLinkIcon />
-                        </Link>
-                      </div>
-                    </div>
-                  </label>
-                </div>
-
-                {secRulesAccepted && (
-                  <>
-                    <div className={s.row}>
-                      <FormMultiSelect
-                        name="investInStartupStages"
-                        label="Do you invest in Startups?"
-                        placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
-                        options={formOptions.fundingStageOptions}
-                        // showNone
-                      />
-                    </div>
-                    <div className={s.row}>
-                      <FormCurrencyField
-                        name="typicalCheckSize"
-                        label="Typical Check Size"
-                        placeholder="E.g. $250.000"
-                        currency="USD"
-                      />
-                    </div>
-                    <div className={s.row}>
-                      <FormTagsInput
-                        selectLabel="Add Investment Focus"
-                        name="investmentFocusAreas"
-                        placeholder="Add keywords E.g. AI, Staking, Governance, etc."
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className={s.block}>
-                <div className={s.sectionHeader}>
-                  <h3>Your Investment Fund Profile</h3>
-                  {fundTeam ? (
-                    <>
-                      <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
-                        <div className={s.infoSectionContent}>
-                          Verify your team profile details: <b>{fundTeam?.name}</b> <LinkIcon />
-                        </div>
-                      </Link>
-                    </>
-                  ) : (
-                    <>
-                      <div className={s.infoSectionContent}>
-                        <FormSelect
-                          name="team"
-                          backLabel="Teams"
-                          placeholder="Search by team name"
-                          label="Search and add an investment fund team"
-                          options={
-                            data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
-                              value: item.teamUid,
-                              label: item.teamTitle,
-                            })) ?? []
-                          }
-                          onChange={(value) => handleTeamSelect(value)}
-                          notFoundContent={
-                            <div className={s.secondaryLabel}>
-                              If you don&apos;t see your team on this list, please{' '}
-                              <Link
-                                href="/teams/add"
-                                className={s.link}
-                                target="_blank"
-                                onClick={handleAddTeamLinkClick}
-                              >
-                                add your team
-                              </Link>{' '}
-                              first.
-                            </div>
-                          }
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {secRulesAccepted && (
-                <div className={s.block}>
-                  <Link href="/settings/email" target="_blank" className={s.cta}>
-                    <div className={s.ctaIcon}>
-                      <InfoIcon />
-                    </div>
-                    <div className={s.col}>
-                      <div className={s.ctaLink}>
-                        Manage your investor communications <LinkIcon />
-                      </div>
-                      <p>Choose if you&apos;d like to receive event invitations, dealflow intros, and digests.</p>
-                    </div>
-                  </Link>
-                </div>
+                </>
               )}
-            </>
+            </section>
+          </div>
+
+          {secRulesAccepted && (
+            <div className={s.block}>
+              <Link href="/settings/email" target="_blank" className={s.cta}>
+                <div className={s.ctaIcon}>
+                  <InfoIcon />
+                </div>
+                <div className={s.col}>
+                  <div className={s.ctaLink}>
+                    Manage your investor communications <LinkIcon />
+                  </div>
+                  <p>Manage communication preferences for event invitations, deal flow intros, and digests.</p>
+                </div>
+              </Link>
+            </div>
           )}
         </div>
         <EditOfficeHoursMobileControls />
@@ -583,3 +435,15 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     </FormProvider>
   );
 };
+
+function deriveType(formData: TEditInvestorProfileForm): InvestorProfileType | null {
+  if (formData.isInvestViaFund && formData.secRulesAccepted) {
+    return 'ANGEL_AND_FUND';
+  } else if (formData.secRulesAccepted) {
+    return 'ANGEL';
+  } else if (formData.isInvestViaFund) {
+    return 'FUND';
+  }
+
+  return null;
+}

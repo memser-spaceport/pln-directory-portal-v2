@@ -1,14 +1,14 @@
 import * as yup from 'yup';
 
 export const editInvestorProfileSchema = yup.object().shape({
-  type: yup
-    .object()
-    .shape({
-      label: yup.string().required(),
-      value: yup.string().required(),
-    })
-    .defined()
-    .nullable(),
+  // type: yup
+  //   .object()
+  //   .shape({
+  //     label: yup.string().required(),
+  //     value: yup.string().required(),
+  //   })
+  //   .defined()
+  //   .nullable(),
   team: yup
     .object()
     .shape({
@@ -86,5 +86,5 @@ export const editInvestorProfileSchema = yup.object().shape({
     //   otherwise: () => yup.boolean().optional(),
     // })
     .defined(),
-  investThroughFund: yup.boolean().required(),
+  isInvestViaFund: yup.boolean().required(),
 });

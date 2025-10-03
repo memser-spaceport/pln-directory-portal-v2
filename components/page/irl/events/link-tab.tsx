@@ -22,6 +22,8 @@ const LinkTab = (props: any) => {
           cursor: pointer;
           text-decoration: none;
           outline: none;
+          height: 100%;
+          max-width: 100%;
         }
 
         .link__tab__text {
@@ -31,6 +33,9 @@ const LinkTab = (props: any) => {
           line-height: 20px;
           letter-spacing: 0;
           text-align: center;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .link__tab:hover .link-arrow {

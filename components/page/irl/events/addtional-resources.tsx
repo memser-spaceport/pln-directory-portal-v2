@@ -1,16 +1,15 @@
 'use client';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import Modal from '@/components/core/modal';
 import { ILocationDetails } from '@/types/irl.types';
 import LinkTab from '@/components/page/irl/events/link-tab';
-import Link from 'next/link';
 
 const AddtionalResources = (props: any) => {
   const { eventDetails, searchParams, isLoggedIn } = props;
   const analytics = useIrlAnalytics();
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const addResRef = useRef<HTMLDialogElement>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const isEventAvailable =
     searchParams?.type === 'past' &&
     eventDetails?.pastEvents?.some((event: any) => event.slugURL === searchParams?.event);
@@ -35,16 +34,14 @@ const AddtionalResources = (props: any) => {
   let eventType = getEventType(searchParams?.type, eventDetails);
 
   const onCloseModal = () => {
-    if (dialogRef.current) {
-      dialogRef.current.close();
-    }
-
+    setIsModalOpen(false);
     if (addResRef.current) {
       addResRef.current.close();
     }
   };
 
   const handleAddResClick = () => {
+    setIsModalOpen(true);
     if (addResRef.current) {
       addResRef.current.showModal();
     }
@@ -53,26 +50,21 @@ const AddtionalResources = (props: any) => {
 
   return (
     <>
-      {eventDetails?.resources?.length > 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) && (
+      {(searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) && (
         <div className={`${searchParams?.type === 'past' ? 'irl__addResWrpr' : ''}`}>
           <div className="irl__addRes">
-            <div className="irl__addRes__cnt">
-              <div className="irl__addRes__cnt__icon">📋</div>
-              <div>Resources</div>
-            </div>
-
             <div className="irl__addRes__cntr">
               <div className="irl__addRes__cntr__resource">
-                {eventDetails?.resources?.slice(0, 4).map((resource: any, index: number) => (
+                {eventDetails?.resources?.map((resource: any, index: number) => (
                   <div key={index} className="irl__addRes__cntr__resCnt">
                     <LinkTab resource={resource} handleAdditionalResourceClicked={handleAdditionalResourceClicked} />
                   </div>
                 ))}
               </div>
 
-              {eventDetails?.resources?.length > 4 && (
+              {eventDetails?.resources?.length > 2 && (
                 <div className="irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
-                  <div>+{eventDetails?.resources?.length - 4}</div>
+                  <div className="irl__showMore__count">+{eventDetails?.resources?.length - 2}</div>
                   <div>more</div>
                 </div>
               )}
@@ -81,98 +73,50 @@ const AddtionalResources = (props: any) => {
         </div>
       )}
 
-      <Modal modalRef={addResRef} onClose={onCloseModal}>
-        <div className="irl__addRes__popup">
-          <div className="irl__modalHeader">
-            <div className="irl__modalHeader__title">Additional Resources</div>
-            <div className="irl__modalHeader__count">({eventDetails?.resources?.length})</div>
-          </div>
-          <div className="irl__popupCntr">
-            {eventDetails?.resources?.map((resource: any, index: number) => (
-              <div key={index} className="irl__popupCnt">
-                <div>
-                  <img src="/icons/hyper-link.svg" alt="icon" />
+        <Modal modalRef={addResRef} onClose={onCloseModal}>
+          {isModalOpen && <div className="irl__addRes__popup">
+            <div className="irl__modalHeader">
+              <div className="irl__modalHeader__title">Additional Resources</div>
+              <div className="irl__modalHeader__count">({eventDetails?.resources?.length})</div>
+            </div>
+            <div className="irl__popupCntr">
+              {eventDetails?.resources?.map((resource: any, index: number) => (
+                <div key={index} className="irl__popupCnt">
+                  <div>
+                    <img src="/icons/hyper-link.svg" alt="icon" />
+                  </div>
+                  <a href={resource?.link} target="_blank">
+                    {resource?.name}
+                  </a>
+                  <div>
+                    <img src="/icons/arrow-blue.svg" alt="arrow icon" />
+                  </div>
                 </div>
-                <a href={resource?.link} target="_blank">
-                  {resource?.name}
-                </a>
-                <div>
-                  <img src="/icons/arrow-blue.svg" alt="arrow icon" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Modal>
+              ))}
+            </div>
+          </div>}
+        </Modal>
       <style jsx>{`
-        .irl__addRes,
-        .irl__addRes__loggedOut {
+        /* Mobile styles (default) */
+        .irl__addRes {
           display: flex;
           flex-direction: row;
-          border-radius: 4px;
           font-size: 14px;
           line-height: 20px;
           text-align: left;
           align-items: ${!isLoggedIn ? 'center' : 'unset'};
-          justify-content: ${!isLoggedIn ? 'center' : 'unset'};
-        }
-
-        .irl__addRes {
-          font-weight: 600;
-        }
-        .irl__addRes__loggedOut {
-          font-weight: 400;
-          height: 56px;
-        }
-
-        .irl__addRes {
+          padding: 20px 14px;
+          border-block: 1px solid #CBD5E1;
           min-height: 36px;
-          padding: 5px;
-        }
-
-        .irl__addRes__loggedOut {
-          background-color: #ffe2c8;
-          min-height: 44px;
-          padding: 5px;
-          border-radius: 0;
-        }
-
-        .irl__addRes__cnt__loggedOut {
-          display: flex;
-          flex-direction: row;
-          justify-content: center;
-          gap: 8px;
-          align-items: center;
-        }
-
-        .irl__addRes__cnt__loggedOut a {
-          background-color: #fff;
-          width: 70px;
-          height: 30px;
-          border-radius: 8px;
-          display: grid;
-          place-items: center;
-          font-weight: 500;
-        }
-
-        .irl__addRes__cnt {
-          display: flex;
-          flex-direction: row;
-          gap: 4px;
-          padding: 6px;
-          width: 100px;
-        }
-
-        .irl__addRes__cnt__icon {
-          display: flex;
-          justify-content: center;
         }
 
         .irl__addRes__popup {
           display: flex;
           overflow-y: auto;
           flex-direction: column;
-          padding: 25px;
+          padding: 16px 8px 16px 16px;
+          width: 90vw;
+          height: 394px;
         }
 
         .irl__addResWrpr {
@@ -180,20 +124,21 @@ const AddtionalResources = (props: any) => {
           scroll-behavior: smooth;
           overflow-x: scroll;
         }
+
         .irl__addRes__cntr {
           display: flex;
           flex-direction: row;
           gap: 6px;
           color: #156ff7;
           align-content: center;
-          width: 77%;
+          width: 100%;
         }
 
         .irl__addRes__cntr__resource {
           display: flex;
           flex-direction: row;
           flex-wrap: wrap;
-          gap: 10px;
+          gap: 8px;
         }
 
         .irl__addRes__cntr__resCnt {
@@ -202,6 +147,13 @@ const AddtionalResources = (props: any) => {
           gap: 8px;
           justify-content: center;
           align-items: center;
+          height: 24px;
+          max-width: 120px;
+        }
+
+        /* Hide tags beyond the 2nd on mobile (default) */
+        .irl__addRes__cntr__resCnt:nth-child(n+3) {
+          display: none;
         }
 
         .irl__addRes__cntr__resCnt__showMore {
@@ -214,21 +166,36 @@ const AddtionalResources = (props: any) => {
           line-height: 20px;
           text-align: center;
           width: 68px;
-          height: 23px;
+          height: 24px;
           padding: 0px 7px 0px 5px;
           gap: 5px;
           border-radius: 6px;
-          margin-top: ${isLoggedIn ? '6px' : 'usnset'};
+          margin-top: ${isLoggedIn ? '6px' : 'unset'};
           color: #156ff7;
           cursor: pointer;
         }
+
+        /* Hide show more button on mobile when there are 2 or fewer tags */
+        .irl__addRes__cntr__resCnt__showMore {
+          display: ${eventDetails?.resources?.length > 2 ? 'flex' : 'none'};
+        }
+
+        /* Mobile count calculation - show count for tags beyond 2 */
+        .irl__showMore__count {
+          font-size: 0; /* Hide the original text */
+        }
+        
+        .irl__showMore__count::before {
+          content: '+${eventDetails?.resources?.length - 2}';
+          font-size: 13px;
+        }
+
         .irl__modalHeader {
           display: flex;
           flex-direction: row;
           gap: 8px;
           position: absolute;
           width: 100%;
-          gap: 8px;
         }
 
         .irl__modalHeader__title {
@@ -249,85 +216,74 @@ const AddtionalResources = (props: any) => {
         .irl__popupCntr {
           display: flex;
           flex-direction: column;
-          gap: 16px;
           overflow-y: auto;
-          margin-top: ${isLoggedIn ? '44px' : '14px'};
+          margin-top : 34px;
+          padding-right: 10px;
         }
-                  .irl__popupCnt {
+
+        .irl__popupCnt {
           display: flex;
           flex-direction: row;
-          gap: 8px;
-          width: 594px;
-          height: 48px;
-          padding: 14px 0px 14px 0px;
           gap: 10px;
+          width: 100%;
+          height: 48px;
+          padding: 14px 0px;
           border-bottom: 1px solid #cbd5e1;
           color: #156ff7;
         }
 
-        @media (min-width: 360px) {
-          .irl__addRes__loggedOut {
-            padding: 12px;
-          }
-          .irl__addRes__popup {
-            width: 90vw;
-            height: 394px;
-          }
-          .irl__addRes {
-            // width:unset';
-          }
-          .irl__addRes__loggedOut {
-            width: ${eventType === 'upcoming' || eventType === 'all' ? '' : 'unset'};
-          }
-                      .irl__popupCnt {
-            width: 100%;
-          }
+        .irl__popupCnt:last-child {
+          border-bottom: none;
         }
-        @media (min-width: 450px) {
-          .irl__addRes__loggedOut {
-            height: 40px;
-          }
-        }
-        @media (min-width: 768px) {
-          .irl__addRes__loggedOut {
-            max-width: 900px;
-            width: 100%;
-          }
-        }
+
+        /* Desktop styles (1024px and above) */
         @media (min-width: 1024px) {
-          .irl__addRes,
-          .irl__addRes__loggedOut {
+          .irl__addRes {
             width: unset;
+            border-block: unset;
+            padding: 16px 0px;
           }
+
           .irl__addRes__popup {
             width: 650px;
             height: 394px;
-          }
-        }
-        @media (min-width: 1440px) {
-          .irl__addRes__cntr {
-            width: 84%;
-          }
-          .irl__addRes__loggedOut,
-          .irl__submit__event {
-            max-width: 1244px;
-          }
-        }
-        @media (min-width: 1920px) {
-          .irl__addRes__cntr {
-            width: 88%;
-          }
-          .irl__addRes__loggedOut,
-          .irl__submit__event {
-            max-width: 1678px;
-          }
-          .irl__addRes__cntr {
-            width: 91%;
+            padding: 24px 14px 24px 24px;
           }
 
-          .irl__addRes__loggedOut,
-          .irl__submit__event {
-            max-width: 2240px;
+          .irl__addRes__cntr {
+            width: 100%;
+          }
+
+          .irl__popupCntr {
+            padding-right: 10px;
+          }
+
+          .irl__popupCnt {
+            width: 594px;
+          }
+
+          .irl__addRes__cntr__resCnt {
+            max-width: 150px;
+          }
+
+          /* Show up to 4 tags on desktop, hide beyond the 4th */
+          .irl__addRes__cntr__resCnt:nth-child(n+3) {
+            display: flex;
+          }
+          
+          .irl__addRes__cntr__resCnt:nth-child(n+5) {
+            display: none;
+          }
+
+          /* Show more button logic for desktop - show when more than 4 tags */
+          .irl__addRes__cntr__resCnt__showMore {
+            display: ${eventDetails?.resources?.length > 4 ? 'flex' : 'none'};
+          }
+
+          /* Desktop count calculation - show count for tags beyond 4 */
+          .irl__showMore__count::before {
+            content: '+${eventDetails?.resources?.length - 4}';
+            font-size: 13px;
           }
         }
       `}</style>

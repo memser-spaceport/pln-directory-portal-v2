@@ -6,8 +6,6 @@ import AddEditProjectForm from './add-edit-project-form';
 import FormStepIndicatorMob from '../../core/form-step-indicator-mob';
 import { FormStepIndicatorWeb } from '../../core/form-step-indicator-web';
 import { PROJECT_FORM_STEPS } from '@/utils/constants';
-import AddEditTeamContainer from '../add-edit-team/add-edit-team-container';
-import { SUB_TITLE, SUBMIT_A_TEAM_PAGE_TITLE, TEAM_FORM_STEPS } from '@/utils/constants/team-constants';
 
 interface IAddEditProjectContainerProps {
   project: IProjectResponse;

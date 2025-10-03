@@ -6,6 +6,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 24px;
+  position: relative;
 
   border-radius: 8px;
   background: #FFF;
@@ -79,4 +80,34 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+}
+
+.editButtonContainer {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1;
+}
+
+.drawerEditButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #455468;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  padding: 4px 8px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(69, 84, 104, 0.1);
+  }
 }

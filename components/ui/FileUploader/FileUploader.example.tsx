@@ -13,11 +13,11 @@ export const FileUploaderExample: React.FC = () => {
   return (
     <div style={{ padding: '20px', maxWidth: '600px' }}>
       <h2>File Uploader Examples</h2>
-      
+
       {/* Pitch Deck Uploader - matching the provided example */}
       <div style={{ marginBottom: '40px' }}>
         <FileUploader
-          title="Upload Your Pitch Deck"
+          title="Upload Your Pitch Slide"
           description="Accepted format: PDF, max 1 slide only, up to 5MB."
           supportedFormats={['PDF']}
           maxFiles={1}

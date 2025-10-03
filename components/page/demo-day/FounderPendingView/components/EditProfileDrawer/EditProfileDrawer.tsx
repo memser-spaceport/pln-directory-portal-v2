@@ -15,6 +15,8 @@ import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hook
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { createDemoDayEmailHandler, DemoDayEmailData } from '@/utils/demo-day-email.utils';
+import Image from 'next/image';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -60,9 +62,16 @@ interface EditProfileDrawerProps {
   onClose: () => void;
   scrollPosition: number;
   data?: FundraisingProfile;
+  hideActions?: boolean;
 }
 
-export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, onClose, scrollPosition, data }) => {
+export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
+  isOpen,
+  onClose,
+  scrollPosition,
+  data,
+  hideActions,
+}) => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const [editView, setEditView] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
@@ -81,6 +90,28 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const previousDataRef = useRef<FundraisingProfile | undefined>(data);
+
+  // Create email data for demo day actions
+  const createEmailData = (): DemoDayEmailData | null => {
+    const founders = data?.founders;
+
+    if (!founders || founders.length === 0 || !userInfo) return null;
+
+    const founderEmails = founders.map((founder) => founder.email).filter((email) => email);
+    const founderNames = founders.map((founder) => founder.name).filter((name) => name);
+
+    if (founderEmails.length === 0 || founderNames.length === 0) return null;
+
+    return {
+      founderEmails,
+      founderNames,
+      demotingTeamName: data.team?.name || 'Team Name',
+      investorName: userInfo.name ?? '',
+      investorTeamName: userInfo.mainTeamName ?? '',
+    };
+  };
+
+  const emailData = createEmailData();
 
   const handleEditClick = () => {
     if (userInfo?.email) {
@@ -565,7 +596,31 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
             </div>
 
             {/* Footer - Always Visible */}
-            <div className={s.drawerFooter}>{/* Empty footer with border */}</div>
+            {!hideActions && (
+              <div className={s.drawerFooter}>
+                <button
+                  className={s.secondaryButton}
+                  onClick={emailData ? createDemoDayEmailHandler('like', emailData) : undefined}
+                  disabled={!emailData}
+                >
+                  <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
+                </button>
+                <button
+                  className={s.secondaryButton}
+                  onClick={emailData ? createDemoDayEmailHandler('connect', emailData) : undefined}
+                  disabled={!emailData}
+                >
+                  🤝 Connect with Company
+                </button>
+                <button
+                  className={s.primaryButton}
+                  onClick={emailData ? createDemoDayEmailHandler('invest', emailData) : undefined}
+                  disabled={!emailData}
+                >
+                  💰 Invest in Company
+                </button>
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}

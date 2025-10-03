@@ -43,9 +43,13 @@
 
   .clearButton {
     @include mixins.centralize;
-    position: absolute;
+
+    top: 0;
     right: 40px;
+    position: absolute;
+
     padding: 4px;
+    height: 100%;
 
     &.singleView {
       right: 12px;

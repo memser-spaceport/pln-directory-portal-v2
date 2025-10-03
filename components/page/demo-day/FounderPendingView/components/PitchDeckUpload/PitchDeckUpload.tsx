@@ -21,27 +21,60 @@ const FolderIcon = () => (
       fill="url(#paint1_linear_7395_157695)"
     />
     <g style={{ mixBlendMode: 'multiply' }}>
-      <path d="M5.37298 4.40381H19.856C20.3677 4.40381 20.7832 4.81931 20.7832 5.33099V9.27213H4.4458V5.33099C4.4458 4.81931 4.8613 4.40381 5.37298 4.40381Z" fill="#E6E6E6" />
+      <path
+        d="M5.37298 4.40381H19.856C20.3677 4.40381 20.7832 4.81931 20.7832 5.33099V9.27213H4.4458V5.33099C4.4458 4.81931 4.8613 4.40381 5.37298 4.40381Z"
+        fill="#E6E6E6"
+      />
     </g>
-    <path d="M4.98244 4.65869H19.7369C20.1737 4.65869 20.5283 5.01338 20.5283 5.4501V9.27194H4.19092V5.4501C4.19092 5.01327 4.5456 4.65869 4.98233 4.65869H4.98244Z" fill="#E6E6E6" />
+    <path
+      d="M4.98244 4.65869H19.7369C20.1737 4.65869 20.5283 5.01338 20.5283 5.4501V9.27194H4.19092V5.4501C4.19092 5.01327 4.5456 4.65869 4.98233 4.65869H4.98244Z"
+      fill="#E6E6E6"
+    />
     <g style={{ mixBlendMode: 'multiply' }}>
-      <path d="M4.59466 5.18213H19.0777C19.5894 5.18213 20.0049 5.59763 20.0049 6.10931V9.79549H3.66748V6.10931C3.66748 5.59763 4.08298 5.18213 4.59466 5.18213Z" fill="#E6E6E6" />
+      <path
+        d="M4.59466 5.18213H19.0777C19.5894 5.18213 20.0049 5.59763 20.0049 6.10931V9.79549H3.66748V6.10931C3.66748 5.59763 4.08298 5.18213 4.59466 5.18213Z"
+        fill="#E6E6E6"
+      />
     </g>
-    <path d="M4.20412 5.43701H18.9586C19.3954 5.43701 19.75 5.7917 19.75 6.22842V10.0503H3.4126V6.22842C3.4126 5.79159 3.76728 5.43701 4.20401 5.43701H4.20412Z" fill="white" />
+    <path
+      d="M4.20412 5.43701H18.9586C19.3954 5.43701 19.75 5.7917 19.75 6.22842V10.0503H3.4126V6.22842C3.4126 5.79159 3.76728 5.43701 4.20401 5.43701H4.20412Z"
+      fill="white"
+    />
     <path
       d="M23.2472 10.4102L22.4607 21.3223C22.4586 21.3524 22.4551 21.3821 22.4505 21.4114C22.3703 21.9232 21.9282 22.308 21.4016 22.308H2.61887C2.05809 22.308 1.59394 21.8719 1.5589 21.3122L0.752115 8.39956C0.71386 7.78815 1.19945 7.27148 1.81197 7.27148H9.52575C10.2786 7.27148 10.9819 7.64651 11.4013 8.27175C11.8208 8.89699 12.5242 9.27202 13.2769 9.27202H22.1879C22.8045 9.27202 23.2914 9.79531 23.2472 10.4104V10.4102Z"
       fill="url(#paint2_linear_7395_157695)"
     />
     <defs>
-      <linearGradient id="paint0_linear_7395_157695" x1="12.0002" y1="15.1363" x2="12.0002" y2="1.69189" gradientUnits="userSpaceOnUse">
+      <linearGradient
+        id="paint0_linear_7395_157695"
+        x1="12.0002"
+        y1="15.1363"
+        x2="12.0002"
+        y2="1.69189"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#FA842A" />
         <stop offset="1" stopColor="#FAC03E" />
       </linearGradient>
-      <linearGradient id="paint1_linear_7395_157695" x1="12.0002" y1="15.1364" x2="12.0002" y2="1.6918" gradientUnits="userSpaceOnUse">
+      <linearGradient
+        id="paint1_linear_7395_157695"
+        x1="12.0002"
+        y1="15.1364"
+        x2="12.0002"
+        y2="1.6918"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#1B4DFF" />
         <stop offset="1" stopColor="#5177FF" />
       </linearGradient>
-      <linearGradient id="paint2_linear_7395_157695" x1="12" y1="22.3081" x2="12" y2="7.27137" gradientUnits="userSpaceOnUse">
+      <linearGradient
+        id="paint2_linear_7395_157695"
+        x1="12"
+        y1="22.3081"
+        x2="12"
+        y2="7.27137"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#1B4DFF" />
         <stop offset="1" stopColor="#5177FF" />
       </linearGradient>
@@ -224,9 +257,7 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUp
     if (uploadState.isUploading) {
       return (
         <div className={s.filePreview}>
-          <div className={s.fileIcon}>
-            {uploadState.file ? getFileIcon(uploadState.file.type) : <PDFIcon />}
-          </div>
+          <div className={s.fileIcon}>{uploadState.file ? getFileIcon(uploadState.file.type) : <PDFIcon />}</div>
           <div className={s.fileInfo}>
             <div className={s.fileName}>{formatWalletAddress(uploadState.file?.name) || 'Uploading...'}</div>
             <div className={s.fileDetails}>
@@ -280,7 +311,7 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUp
           <FolderIcon />
         </div>
         <div className={s.uploadText}>
-          <h4>Drag & Drop or Upload Your Pitch Deck</h4>
+          <h4>Drag & Drop or Upload Your Pitch Slide</h4>
           <p>Accepted formats: PDF, JPG, PNG. Max 1 slide only, up to 5MB.</p>
         </div>
         <button type="button" className={s.browseButton}>
@@ -319,7 +350,7 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUp
         <MediaPreview
           url={fileUrl}
           type="document"
-          title="Pitch Deck"
+          title="Pitch Slide"
           metadata={{
             fileName,
             fileSize,

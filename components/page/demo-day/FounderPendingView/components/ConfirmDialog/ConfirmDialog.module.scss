@@ -185,3 +185,35 @@
     line-height: 18px;
   }
 }
+
+.primary {
+  .cancelButton {
+    background: white;
+    color: #1B4DFF;
+    border: 1px solid #1B4DFF;
+
+    &:hover:not(:disabled) {
+      background: #E8EDFF;
+      border-color: #0F3CD9;
+    }
+
+    &:active:not(:disabled) {
+      background: rgba(27, 77, 255, 0.04);
+    }
+  }
+
+  .confirmButton {
+    background: #1B4DFF;
+    border: 1px solid #1B4DFF;
+
+    &:hover:not(:disabled) {
+      background: #0F3CD9;
+      border-color: #0F3CD9;
+    }
+
+    &:active:not(:disabled) {
+      background: #1B4DFF;
+      border-color: #1B4DFF;
+    }
+  }
+}

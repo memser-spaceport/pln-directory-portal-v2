@@ -1,4 +1,6 @@
 import React from 'react';
+import { clsx } from 'clsx';
+
 import s from './ConfirmDialog.module.scss';
 
 interface ConfirmDialogProps {
@@ -10,6 +12,8 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   isLoading?: boolean;
+  isModal?: boolean;
+  type?: 'primary' | 'danger';
 }
 
 const WarningIcon = () => (
@@ -21,11 +25,31 @@ const WarningIcon = () => (
   </svg>
 );
 
-export const ConfirmDialog = ({ isOpen, title, message, confirmText = 'Delete', cancelText = 'Cancel', onConfirm, onCancel, isLoading = false }: ConfirmDialogProps) => {
-  if (!isOpen) return null;
+export const ConfirmDialog = (props: ConfirmDialogProps) => {
+  const {
+    type = 'danger',
+    isOpen,
+    title,
+    message,
+    confirmText = 'Delete',
+    cancelText = 'Cancel',
+    onConfirm,
+    onCancel,
+    isLoading = false,
+    isModal = true,
+  } = props;
+
+  if (!isOpen) {
+    return null;
+  }
 
   return (
-    <div className={s.overlay} onClick={onCancel}>
+    <div
+      className={clsx(s.overlay, {
+        [s.primary]: type === 'primary',
+      })}
+      onClick={isModal ? onCancel : undefined}
+    >
       <div className={s.dialog} onClick={(e) => e.stopPropagation()}>
         <div className={s.header}>
           <div className={s.iconContainer}>

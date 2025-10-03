@@ -1,0 +1,42 @@
+.root {
+  width: 100%;
+}
+
+.indicatorWeb {
+  display: none;
+}
+
+.formContainer {
+  max-width: 1024px;
+  background-color: white;
+  border-radius: 8px;
+  margin: auto;
+}
+
+@media (min-width: 1024px) {
+  .root {
+    display: flex;
+    gap: 24px;
+    padding: 0;
+  }
+
+  .indicatorMobile {
+    display: none;
+  }
+
+  .indicatorWeb {
+    display: unset;
+    width: 296px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    height: fit-content;
+    background-color: white;
+    padding: 24px 20px 29px 20px;
+    position: sticky;
+    top: calc(var(--app-header-height) + 64px);
+  }
+
+  .formContainer {
+    max-width: 768px;
+  }
+}

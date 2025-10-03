@@ -67,7 +67,7 @@ export default async function ManageMembers(props: any) {
     authToken,
     isVerified,
   );
-  if (preferences.memberPreferences) {
+  if (preferences?.memberPreferences) {
     preferences.memberPreferences.newsLetter = selectedMember?.isSubscribedToNewsletter;
   }
   const formattedMembers = [...members]?.filter((v) => v.id !== userInfo.uid);

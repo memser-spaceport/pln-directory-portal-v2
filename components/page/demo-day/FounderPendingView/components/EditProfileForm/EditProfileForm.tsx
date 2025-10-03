@@ -48,8 +48,8 @@ const schema = yup.object().shape({
       yup
         .object()
         .shape({
-          value: yup.string().required('Funding stage is required'),
-          label: yup.string().required('Funding stage is required'),
+          value: yup.string().required('Company Stage is required'),
+          label: yup.string().required('Company Stage is required'),
         })
         .defined(),
     )
@@ -59,8 +59,8 @@ const schema = yup.object().shape({
   fundingStage: yup
     .object()
     .shape({
-      value: yup.string().required('Funding stage is required'),
-      label: yup.string().required('Funding stage is required'),
+      value: yup.string().required('Company Stage is required'),
+      label: yup.string().required('Company Stage is required'),
     })
     .nullable(),
 });
@@ -97,7 +97,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
     };
   }, [data]);
 
-  // Helper function to format funding stage for form
+  // Helper function to format Company Stage for form
   const formatFundingStageForForm = (stage: string) => {
     const option = options?.fundingStageOptions?.find((opt: { value: string }) => opt.value === stage);
     return option || null;
@@ -265,8 +265,8 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           <div className={s.row}>
             <FormSelect
               name="fundingStage"
-              label="Funding Stage"
-              placeholder="Select your current funding stage"
+              label="Company Stage"
+              placeholder="Select your current company stage"
               options={options.fundingStageOptions}
             />
           </div>

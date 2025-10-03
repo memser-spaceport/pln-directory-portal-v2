@@ -30,7 +30,7 @@ const fundingStage = z.object({
 
 export const projectDetailsSchema = z.object({
   fundingStage: fundingStage.refine((obj) => obj.title && obj.uid, {
-    message: 'Please add Funding Stage',
+    message: 'Please add Company Stage',
   }),
   industryTags: z.array(industryTag).nonempty({ message: 'Please add Industry Tags' }),
 });

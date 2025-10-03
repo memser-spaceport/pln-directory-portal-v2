@@ -30,7 +30,8 @@ export const PitchDeckView = ({ team, isLoggedIn, userInfo, isEditable, showInco
           <span>
             <AlertIcon />
           </span>{' '}
-          To participate in Demo Day, you must upload Pitch Deck. Profiles without these will not be shown to investors.
+          To participate in Demo Day, you must upload Pitch Slide. Profiles without these will not be shown to
+          investors.
         </div>
       )}
 
@@ -40,7 +41,7 @@ export const PitchDeckView = ({ team, isLoggedIn, userInfo, isEditable, showInco
         })}
       >
         <div className={s.header}>
-          <h3 className={s.title}>Pitch Deck</h3>
+          <h3 className={s.title}>Pitch Slide</h3>
           {isEditable && <EditButton onClick={onEdit} />}
         </div>
 
@@ -48,10 +49,11 @@ export const PitchDeckView = ({ team, isLoggedIn, userInfo, isEditable, showInco
           <div className={s.section}>
             <div className={s.col}>
               <p className={s.description}>
-                Your one-page pitch deck will be visible to whitelisted investors during Demo Day. Use it to highlight your team, product, traction, and fundraising needs in a concise format.
+                Your one-page pitch slide will be visible to whitelisted investors during Demo Day. Use it to highlight
+                your team, product, traction, and fundraising needs in a concise format.
               </p>
               <FileUploader
-                title="Upload Your Pitch Deck"
+                title="Upload Your Pitch Slide"
                 description="Accepted format: PDF, max 1 slide only, up to 5MB."
                 supportedFormats={['PDF']}
                 maxFiles={1}

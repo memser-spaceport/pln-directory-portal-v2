@@ -335,7 +335,7 @@ const Filter = (props: ITeamFilterWeb) => {
           <div className="team-filter__bl"></div>
           <TagContainer
             page={PAGE_ROUTES.TEAMS}
-            label="Funding Stage"
+            label="Company Stage"
             name="fundingStage"
             items={filterValues?.fundingStage ?? []}
             onTagClickHandler={onTagClickHandler}

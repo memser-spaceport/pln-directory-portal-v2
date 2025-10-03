@@ -35,8 +35,8 @@ const SORT_OPTIONS: SortOption[] = [
   { value: 'default', label: 'Default' },
   { value: 'name-asc', label: 'Name A-Z' },
   { value: 'name-desc', label: 'Name Z-A' },
-  { value: 'stage-asc', label: 'Funding Stage A-Z' },
-  { value: 'stage-desc', label: 'Funding Stage Z-A' },
+  { value: 'stage-asc', label: 'Company Stage A-Z' },
+  { value: 'stage-desc', label: 'Company Stage Z-A' },
   { value: 'recent', label: 'Most Recent' },
 ];
 

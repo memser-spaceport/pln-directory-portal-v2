@@ -372,7 +372,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       <div className={s.ctaLink}>
                         Manage your investor communications <LinkIcon />
                       </div>
-                      <p>Choose if you’d like to receive event invitations, dealflow intros, and digests.</p>
+                      <p>Manage communication preferences for event invitations, deal flow intros, and digests.</p>
                     </div>
                   </Link>
                 </div>
@@ -441,7 +441,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                     <div className={s.ctaLink}>
                       Manage your investor communications <LinkIcon />
                     </div>
-                    <p>Choose if you&apos;d like to receive event invitations, dealflow intros, and digests.</p>
+                    <p>Manage communication preferences for event invitations, deal flow intros, and digests.</p>
                   </div>
                 </Link>
               </div>

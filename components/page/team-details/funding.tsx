@@ -16,7 +16,7 @@ const Funding = (props: IFunding) => {
   return (
     <>
       <div className="funding">
-        <h2 className="funding__title">Funding Stage</h2>
+        <h2 className="funding__title">Company Stage</h2>
 
         <div className="funding__seriescontainer">
           <div className="funding__seriescontainer__title-container">

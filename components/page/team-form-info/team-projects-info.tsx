@@ -153,7 +153,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
             selectedOption={selectedFundingStage}
             onItemSelect={(item) => onTeamSelectionChanged(item)}
             arrowImgUrl="/icons/arrow-down.svg"
-            label="Funding Stage*"
+            label="Company Stage*"
           />
           <HiddenField
             value={selectedFundingStage?.id}

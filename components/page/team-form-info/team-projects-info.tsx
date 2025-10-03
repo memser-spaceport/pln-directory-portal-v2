@@ -45,8 +45,6 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
     membershipSourceOptions,
   } = props;
 
-  console.log('>>>', isInvestmentFund, industryTagOptions);
-
   const focusAreaDialogRef = useRef<HTMLDialogElement>(null);
   const [selectedProtocols, setSelectedProtocols] = useState<IProtocolOptions[]>([]);
   const [selectedMembershipSources, setSelectedMembershipSources] = useState<IMembershipSourceOptions[]>([]);

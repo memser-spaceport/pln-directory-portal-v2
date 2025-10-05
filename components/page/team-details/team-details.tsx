@@ -20,7 +20,7 @@ import s from './TeamDetails/TeamDetails.module.scss';
 interface ITeamDetails {
   team: ITeam;
   userInfo: IUserInfo | undefined;
-  members: IMember[] | undefined;
+  members?: IMember[] | undefined;
 }
 
 const TeamDetails = (props: ITeamDetails) => {

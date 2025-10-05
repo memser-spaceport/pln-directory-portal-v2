@@ -86,7 +86,7 @@ export function Landing() {
   return (
     <LandingBase>
       <div className={s.root}>
-        {!userInfo && <LoginBtn className={clsx(s.btn, s.loginButton)}>Have an Invite? Log In</LoginBtn>}
+        {!userInfo && <LoginBtn className={clsx(s.btn, s.loginButton)}>Already Approved? Log In</LoginBtn>}
 
         <a
           href={INVITE_FORM_URL}
@@ -95,7 +95,7 @@ export function Landing() {
           className={s.link}
           onClick={handleRequestInviteClick}
         >
-          <button className={clsx(s.btn, s.primaryButton)}>Request an Invite</button>
+          <button className={clsx(s.btn, s.primaryButton)}>Request to Join</button>
         </a>
       </div>
     </LandingBase>

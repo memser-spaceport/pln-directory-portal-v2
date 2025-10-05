@@ -7,9 +7,16 @@ interface RegisterActionsProps {
   onCloseForm: () => void;
   onBackClicked: () => void;
   onNextClicked: () => void;
+  isSubmitting?: boolean;
 }
 
-function RegisterActions({ currentStep, onBackClicked, onCloseForm, onNextClicked }: RegisterActionsProps) {
+function RegisterActions({
+  currentStep,
+  onBackClicked,
+  onCloseForm,
+  onNextClicked,
+  isSubmitting = false,
+}: RegisterActionsProps) {
   return (
     <>
       <div className="rfa rfa--desktop">
@@ -29,8 +36,8 @@ function RegisterActions({ currentStep, onBackClicked, onCloseForm, onNextClicke
           </button>
         )}
         {currentStep === TEAM_FORM_STEPS[TEAM_FORM_STEPS.length - 1] && (
-          <button className="rfa__submit" type="submit">
-            Submit
+          <button className="rfa__submit" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>
         )}
       </div>
@@ -54,8 +61,8 @@ function RegisterActions({ currentStep, onBackClicked, onCloseForm, onNextClicke
             </div>
           )}
           {currentStep === TEAM_FORM_STEPS[TEAM_FORM_STEPS.length - 1] && (
-            <button className="rfa__submit" type="submit">
-              Submit
+            <button className="rfa__submit" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Submitting...' : 'Submit'}
             </button>
           )}
         </div>
@@ -108,6 +115,11 @@ function RegisterActions({ currentStep, onBackClicked, onCloseForm, onNextClicke
           color: white;
           font-size: 14px;
           font-weight: 500;
+        }
+        .rfa__submit:disabled {
+          background: #9ca3af;
+          cursor: not-allowed;
+          opacity: 0.7;
         }
         @media (min-width: 1024px) {
           .rfa {

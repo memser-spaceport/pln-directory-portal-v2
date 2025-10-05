@@ -42,6 +42,10 @@ async function Page({ params }: { params: ITeamDetailParams }) {
     hasEditAsksAccess,
     isLoggedInMemberPartOfTeam,
   } = await getPageData(teamId);
+  const shouldShowInvestorProfile =
+    team.investorProfile?.typicalCheckSize ||
+    Number(team.investorProfile?.investmentFocus?.length) > 0 ||
+    Number(team.investorProfile?.investInStartupStages?.length) > 0;
 
   if (redirectTeamUid) {
     redirect(`/teams/${redirectTeamUid}`, RedirectType.replace);
@@ -58,10 +62,10 @@ async function Page({ params }: { params: ITeamDetailParams }) {
         <div className={styles?.teamDetail__container}>
           {/* Details */}
           <div className={styles?.teamDetail__Container__details}>
-            <TeamDetails team={team} userInfo={userInfo} />
+            <TeamDetails team={team} userInfo={userInfo} members={members} />
           </div>
 
-          {isLoggedIn && team.investorProfile && (
+          {isLoggedIn && team.investorProfile && shouldShowInvestorProfile && (
             <div className={clsx(s.root)}>
               <InvestorProfileView
                 investmentFocusAreas={team?.investorProfile?.investmentFocus}

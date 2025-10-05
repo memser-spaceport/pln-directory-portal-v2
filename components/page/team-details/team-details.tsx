@@ -13,17 +13,20 @@ import About from './about';
 import Technologies from './technologies';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { IMember } from '@/types/members.types';
 
 import s from './TeamDetails/TeamDetails.module.scss';
 
 interface ITeamDetails {
   team: ITeam;
   userInfo: IUserInfo | undefined;
+  members: IMember[] | undefined;
 }
 
 const TeamDetails = (props: ITeamDetails) => {
   const params = useParams();
   const team = props?.team;
+  const members = props?.members;
   const logo = team?.logo ?? '/icons/team-default-profile.svg';
   const teamName = team?.name ?? '';
   const tags = team?.industryTags ?? [];
@@ -45,7 +48,11 @@ const TeamDetails = (props: ITeamDetails) => {
 
   function getHasTeamEditAccess() {
     try {
-      if (userInfo?.roles?.includes(ADMIN_ROLE) || userInfo?.leadingTeams?.includes(team?.id)) {
+      if (
+        userInfo?.roles?.includes(ADMIN_ROLE) ||
+        userInfo?.leadingTeams?.includes(team?.id) ||
+        members?.some((member) => member.teamLead && member.id === userInfo?.uid)
+      ) {
         return true;
       }
       return false;

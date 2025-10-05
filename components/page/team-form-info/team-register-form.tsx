@@ -51,6 +51,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
 
   const [initialValues, setInitialValues] = useState({ ...teamRegisterDefault });
   const [content, setContent] = useState(initialValues?.basicInfo.longDescription ?? '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
 
@@ -90,6 +91,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
         setSocialErrors([]);
 
         try {
+          setIsSubmitting(true);
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
           if (formattedData?.teamProfile && formattedData.teamProfile.size > 0) {
             const imgResponse = await saveRegistrationImage(formattedData?.teamProfile);
@@ -113,14 +115,17 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
           if (response.ok) {
             // goToNextStep();
             onSuccess();
+            setIsSubmitting(false);
             document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
             analytics.recordTeamJoinNetworkSave('save-success', data);
           } else {
+            setIsSubmitting(false);
             document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
             toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
             analytics.recordTeamJoinNetworkSave('save-error', data);
           }
         } catch (err) {
+          setIsSubmitting(false);
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
           analytics.recordTeamJoinNetworkSave('save-error');
@@ -267,6 +272,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
             onNextClicked={onNextClicked}
             onBackClicked={onBackClicked}
             onCloseForm={onCloseForm}
+            isSubmitting={isSubmitting}
           />
         </form>
       }

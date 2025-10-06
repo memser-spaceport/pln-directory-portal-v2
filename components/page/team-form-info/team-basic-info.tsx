@@ -319,7 +319,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             <div className="teaminfo__form__item">
               <StandaloneMultiSelect
                 name="investInFundTypes"
-                label="What types of fund(s) you invest in?"
+                label="Type of fund(s) you invest in?"
                 placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
                 options={investInVcFundsOptions}
                 // showNone

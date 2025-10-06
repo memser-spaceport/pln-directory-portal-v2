@@ -87,4 +87,5 @@ export const editInvestorProfileSchema = yup.object().shape({
     // })
     .defined(),
   isInvestViaFund: yup.boolean().required(),
+  teamRole: yup.string().defined(),
 });

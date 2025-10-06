@@ -376,3 +376,77 @@
     color: var(--foreground-brand-primary, #1B4DFF);
   }
 }
+
+.fundInfoBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+}
+
+.fundInfo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.fundAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: white;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.fundDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.fundName {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.removeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #455468;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}

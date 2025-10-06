@@ -107,28 +107,28 @@ export const InvestorProfileView = ({
                     </div>
 
                     <div className={s.column}>
-                      {!!team.investorProfile?.investInFundTypes?.length && (
-                        <InvestorProfileField label="Fund Type(s)">
-                          {team.investorProfile?.investInFundTypes.join(', ')}
-                        </InvestorProfileField>
-                      )}
-                      {!!team.investorProfile?.typicalCheckSize && (
-                        <InvestorProfileField label="Typical Check Size">
-                          {formatUSD.format(+(team.investorProfile?.typicalCheckSize ?? 0))}
-                        </InvestorProfileField>
-                      )}
+                      <InvestorProfileField label="Fund Type(s)">
+                        {!!team.investorProfile?.investInFundTypes?.length
+                          ? team.investorProfile?.investInFundTypes.join(', ')
+                          : '-'}
+                      </InvestorProfileField>
+                      <InvestorProfileField label="Typical Check Size">
+                        {!!team.investorProfile?.typicalCheckSize
+                          ? formatUSD.format(+(team.investorProfile?.typicalCheckSize ?? 0))
+                          : '-'}
+                      </InvestorProfileField>
                     </div>
                     <div className={s.column}>
-                      {!!team.investorProfile?.investInStartupStages.length && (
-                        <InvestorProfileField label="Startup Stages">
-                          {team.investorProfile?.investInStartupStages.join(', ')}
-                        </InvestorProfileField>
-                      )}
-                      {!!team.investorProfile?.investmentFocus?.length && (
-                        <InvestorProfileField label="Investment Focus">
-                          {team.investorProfile?.investmentFocus.join(', ')}
-                        </InvestorProfileField>
-                      )}
+                      <InvestorProfileField label="Startup Stages">
+                        {!!team.investorProfile?.investInStartupStages.length
+                          ? team.investorProfile?.investInStartupStages.join(', ')
+                          : '-'}
+                      </InvestorProfileField>
+                      <InvestorProfileField label="Investment Focus">
+                        {!!team.investorProfile?.investmentFocus?.length
+                          ? team.investorProfile?.investmentFocus.join(', ')
+                          : '-'}
+                      </InvestorProfileField>
                     </div>
                     {/*<div>params</div>*/}
                   </div>

@@ -83,8 +83,9 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
       investmentFocusAreas: member.investorProfile?.investmentFocus || [],
       investInStartupStages:
         member.investorProfile?.investInStartupStages?.map((item) => ({ label: item, value: item })) || [],
+      investInFundTypes: member.investorProfile?.investInFundTypes?.map((item) => ({ label: item, value: item })) || [],
 
-      teamRole: '', // member.role || '',
+      teamRole: fundTeam?.role || '',
       teamInvestInFundTypes:
         fundTeam?.investorProfile?.investInFundTypes?.map((item) => ({ label: item, value: item })) || [],
       teamInvestInStartupStages:

@@ -166,7 +166,7 @@ export interface IMember {
     typicalCheckSize: string;
     investmentFocus: string[];
     secRulesAccepted: boolean;
-    investThroughFund: boolean;
+    isInvestViaFund: boolean;
   };
 }
 

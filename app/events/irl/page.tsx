@@ -52,7 +52,7 @@ export default async function Page({ searchParams }: any) {
       <div className={styles.irlGatherings__cn}>
         {/* Header */}
         <section className={styles.irlGatherings__header}>
-          <IrlHeader searchParams={searchParams} locationDetails={locationDetails}/>
+          <IrlHeader />
         </section>
         {/* Locations */}
         <section className={styles.irlGatheings__locations}>
@@ -86,9 +86,9 @@ export default async function Page({ searchParams }: any) {
             guestDetails={guestDetails}
           />
         </section>
-        <section className={styles.irlGatherings__additionalResources}>
+        {eventDetails?.resources?.length > 0 && <section className={styles.irlGatherings__additionalResources}>
           <AddtionalResources eventDetails={eventDetails} searchParams={searchParams} isLoggedIn={isLoggedIn} />
-        </section>
+        </section>}
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
           <AttendeeList

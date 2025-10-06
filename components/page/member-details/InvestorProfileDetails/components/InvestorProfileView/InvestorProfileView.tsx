@@ -58,8 +58,6 @@ export const InvestorProfileView = ({
 }: Props) => {
   const fundTeam = findPreferredTeam(member?.teams);
 
-  console.log(member);
-
   return (
     <>
       {showIncomplete && (
@@ -86,31 +84,33 @@ export const InvestorProfileView = ({
             <div className={s.block}>
               <div className={s.blockTitle}>Investment through fund(s)</div>
 
-              {member?.teams.map((team) => {
-                return (
-                  <div className={s.section} key={team.id}>
-                    <div className={s.teamInfo}>
-                      <img
-                        src={team.logo || '/images/demo-day/profile-placeholder.svg'}
-                        className={s.teamLogo}
-                        alt={team.name ?? 'Team Logo'}
-                      />
-                      <div className={s.teamCol}>
-                        <div className={s.teamName}>
-                          {team.name}{' '}
-                          <Link href={`/teams/${team.id}`} target="_blank">
-                            <LinkIcon />
-                          </Link>
+              {member?.teams
+                // .filter((team) => team.investmentTeam)
+                .map((team) => {
+                  return (
+                    <div className={s.section} key={team.id}>
+                      <div className={s.teamInfo}>
+                        <img
+                          src={team.logo || '/images/demo-day/profile-placeholder.svg'}
+                          className={s.teamLogo}
+                          alt={team.name ?? 'Team Logo'}
+                        />
+                        <div className={s.teamCol}>
+                          <div className={s.teamName}>
+                            {team.name}{' '}
+                            <Link href={`/teams/${team.id}`} target="_blank">
+                              <LinkIcon />
+                            </Link>
+                          </div>
+                          <div className={s.teamTag}>Investment Fund</div>
                         </div>
-                        <div className={s.teamTag}>Investment Fund</div>
                       </div>
-                    </div>
 
-                    <div>params</div>
-                    <div>params</div>
-                  </div>
-                );
-              })}
+                      {/*<div>params</div>*/}
+                      {/*<div>params</div>*/}
+                    </div>
+                  );
+                })}
             </div>
           )}
 

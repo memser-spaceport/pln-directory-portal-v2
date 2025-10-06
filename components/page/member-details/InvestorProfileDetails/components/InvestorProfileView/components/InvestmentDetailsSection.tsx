@@ -31,17 +31,13 @@ export const InvestmentDetailsSection: React.FC<Props> = ({
   onEdit,
 }) => {
   return (
-    <div className={s.col}>
+    <div className={s.section}>
       {(!!investInStartupStages?.length || isEditable) && (
         <div className={s.keywordsWrapper}>
           <span className={s.keywordsLabel}>Startup Stages:</span>
           <span className={s.badgesWrapper}>
             {investInStartupStages?.length && secRulesAccepted ? (
-              investInStartupStages?.map((item: string) => (
-                <div key={item} className={s.badge}>
-                  {item}
-                </div>
-              ))
+              investInStartupStages?.join(', ')
             ) : (
               <button
                 type="button"

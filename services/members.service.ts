@@ -166,6 +166,7 @@ export const getMember = async (
         mainTeam: !!teamMemberRole?.mainTeam,
         logo: teamMemberRole?.team?.logo?.url ?? '',
         isFund: teamMemberRole?.team?.isFund,
+        investmentTeam: teamMemberRole.investmentTeam,
       };
     }) || [];
 

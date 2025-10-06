@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, ReactNode, useEffect, useRef, useState } from 'react';
 
 interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -6,7 +6,7 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   placeholder?: string;
   isDelete?: boolean;
   isMandatory?: boolean;
-  label?: string;
+  label?: ReactNode;
   type: string;
   name: string;
   id: string;
@@ -79,6 +79,7 @@ const TextField: React.FC<TextFieldProps> = ({
             font-size: 14px;
             margin-bottom: 12px;
           }
+
           .tf__input {
             width: 100%;
             padding: 8px 12px;
@@ -91,6 +92,7 @@ const TextField: React.FC<TextFieldProps> = ({
             background-color: ${readOnly ? '#F1F5F9' : ''};
             cursor: ${readOnly ? 'not-allowed' : ''};
           }
+
           .tf__input:invalid {
             border: 1px solid red;
           }
@@ -99,9 +101,11 @@ const TextField: React.FC<TextFieldProps> = ({
           .tf__input:focus {
             outline: none;
           }
+
           ::placeholder {
             color: #aab0b8;
           }
+
           .hidden {
             visibility: hidden;
             height: 0;

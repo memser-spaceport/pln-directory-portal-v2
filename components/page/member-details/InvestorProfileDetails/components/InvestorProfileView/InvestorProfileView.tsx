@@ -139,7 +139,9 @@ export const InvestorProfileView = ({
 
           {(type === 'ANGEL' || type === 'ANGEL_AND_FUND' || !type) && (
             <div className={s.block}>
-              <div className={s.blockTitle}>Direct Investments</div>
+              {typicalCheckSize || investInStartupStages?.length || investmentFocusAreas?.length ? (
+                <div className={s.blockTitle}>Direct Investments</div>
+              ) : null}
               <InvestmentDetailsSection
                 typicalCheckSize={typicalCheckSize}
                 investmentFocusAreas={investmentFocusAreas}

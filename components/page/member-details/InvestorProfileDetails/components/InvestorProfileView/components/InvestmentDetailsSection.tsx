@@ -36,19 +36,18 @@ export const InvestmentDetailsSection: React.FC<Props> = ({
         <div className={s.keywordsWrapper}>
           <span className={s.keywordsLabel}>Startup Stages:</span>
           <span className={s.badgesWrapper}>
-            {investInStartupStages?.length && secRulesAccepted ? (
-              investInStartupStages?.join(', ')
-            ) : (
-              <button
-                type="button"
-                className={s.addKeywordsBadge}
-                onClick={() => {
-                  onEdit?.();
-                }}
-              >
-                <AddIcon /> Add
-              </button>
-            )}
+            {investInStartupStages?.length && secRulesAccepted
+              ? investInStartupStages?.join(', ')
+              : // <button
+                //   type="button"
+                //   className={s.addKeywordsBadge}
+                //   onClick={() => {
+                //     onEdit?.();
+                //   }}
+                // >
+                //   <AddIcon /> Add
+                // </button>
+                '-'}
           </span>
         </div>
       )}
@@ -60,15 +59,16 @@ export const InvestmentDetailsSection: React.FC<Props> = ({
             {typicalCheckSize && secRulesAccepted ? (
               <div className={s.badge}>{formatUSD.format(+typicalCheckSize)}</div>
             ) : (
-              <button
-                type="button"
-                className={s.addKeywordsBadge}
-                onClick={() => {
-                  onEdit?.();
-                }}
-              >
-                <AddIcon /> Add
-              </button>
+              // <button
+              //   type="button"
+              //   className={s.addKeywordsBadge}
+              //   onClick={() => {
+              //     onEdit?.();
+              //   }}
+              // >
+              //   <AddIcon /> Add
+              // </button>
+              '-'
             )}
           </span>
         </div>
@@ -78,23 +78,22 @@ export const InvestmentDetailsSection: React.FC<Props> = ({
         <div className={s.keywordsWrapper}>
           <span className={s.keywordsLabel}>Investment Focus:</span>
           <span className={s.badgesWrapper}>
-            {investmentFocusAreas?.length && secRulesAccepted ? (
-              investmentFocusAreas?.map((item: string) => (
-                <div key={item} className={s.badge}>
-                  {item}
-                </div>
-              ))
-            ) : (
-              <button
-                type="button"
-                className={s.addKeywordsBadge}
-                onClick={() => {
-                  onEdit?.();
-                }}
-              >
-                <AddIcon /> Add
-              </button>
-            )}
+            {investmentFocusAreas?.length && secRulesAccepted
+              ? investmentFocusAreas?.map((item: string) => (
+                  <div key={item} className={s.badge}>
+                    {item}
+                  </div>
+                ))
+              : // <button
+                //   type="button"
+                //   className={s.addKeywordsBadge}
+                //   onClick={() => {
+                //     onEdit?.();
+                //   }}
+                // >
+                //   <AddIcon /> Add
+                // </button>
+                '-'}
           </span>
         </div>
       )}

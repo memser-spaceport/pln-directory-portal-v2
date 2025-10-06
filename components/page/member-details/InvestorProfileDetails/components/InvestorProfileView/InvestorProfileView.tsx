@@ -4,7 +4,7 @@ import React from 'react';
 import { clsx } from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
-import { InvestmentDetailsSection } from './components';
+import { InvestmentDetailsSection, InvestorProfileField } from './components';
 
 import s from './InvestorProfileView.module.scss';
 import { LinkIcon } from '@/components/page/member-details/InvestorProfileDetails/components/EditInvestorProfileForm/icons';
@@ -106,7 +106,30 @@ export const InvestorProfileView = ({
                       </div>
                     </div>
 
-                    {/*<div>params</div>*/}
+                    <div className={s.column}>
+                      {!!team.investorProfile?.investInFundTypes?.length && (
+                        <InvestorProfileField label="Fund Type(s)">
+                          {team.investorProfile?.investInFundTypes.join(', ')}
+                        </InvestorProfileField>
+                      )}
+                      {!!team.investorProfile?.typicalCheckSize && (
+                        <InvestorProfileField label="Typical Check Size">
+                          {formatUSD.format(+(team.investorProfile?.typicalCheckSize ?? 0))}
+                        </InvestorProfileField>
+                      )}
+                    </div>
+                    <div className={s.column}>
+                      {!!team.investorProfile?.investInStartupStages.length && (
+                        <InvestorProfileField label="Startup Stages">
+                          {team.investorProfile?.investInStartupStages.join(', ')}
+                        </InvestorProfileField>
+                      )}
+                      {!!team.investorProfile?.investmentFocus?.length && (
+                        <InvestorProfileField label="Investment Focus">
+                          {team.investorProfile?.investmentFocus.join(', ')}
+                        </InvestorProfileField>
+                      )}
+                    </div>
                     {/*<div>params</div>*/}
                   </div>
                 );

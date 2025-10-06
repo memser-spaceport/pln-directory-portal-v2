@@ -167,6 +167,7 @@ export const getMember = async (
         logo: teamMemberRole?.team?.logo?.url ?? '',
         isFund: teamMemberRole?.team?.isFund,
         investmentTeam: teamMemberRole.investmentTeam,
+        investorProfile: teamMemberRole?.team?.investorProfile,
       };
     }) || [];
 

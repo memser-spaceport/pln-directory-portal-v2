@@ -70,6 +70,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
 
   const fundTeam = findPreferredTeam(member?.teams);
 
+  console.log({ fundTeam });
+
   const methods = useForm<TEditInvestorProfileForm>({
     defaultValues: {
       // type: member.investorProfile?.type
@@ -241,7 +243,11 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
           participantType: 'MEMBER',
           referenceUid: member.id,
           uniqueIdentifier: member.email,
-          newData: formatPayload(memberData.memberInfo, { name: formData.team, role: '', url: '' }, true),
+          newData: formatPayload(
+            memberData.memberInfo,
+            { name: formData.team, role: formData.teamRole, url: '' },
+            true,
+          ),
         };
 
         await mutateAsync({

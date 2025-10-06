@@ -58,6 +58,8 @@ export const InvestorProfileView = ({
 }: Props) => {
   const fundTeam = findPreferredTeam(member?.teams);
 
+  const investmentTeams = member?.teams.filter((team) => team.investmentTeam) ?? [];
+
   return (
     <>
       {showIncomplete && (
@@ -80,37 +82,35 @@ export const InvestorProfileView = ({
         </div>
 
         <div className={s.content}>
-          {(type === 'ANGEL_AND_FUND' || type === 'FUND') && (
+          {(type === 'ANGEL_AND_FUND' || type === 'FUND') && investmentTeams?.length > 0 && (
             <div className={s.block}>
               <div className={s.blockTitle}>Investment through fund(s)</div>
 
-              {member?.teams
-                // .filter((team) => team.investmentTeam)
-                .map((team) => {
-                  return (
-                    <div className={s.section} key={team.id}>
-                      <div className={s.teamInfo}>
-                        <img
-                          src={team.logo || '/images/demo-day/profile-placeholder.svg'}
-                          className={s.teamLogo}
-                          alt={team.name ?? 'Team Logo'}
-                        />
-                        <div className={s.teamCol}>
-                          <div className={s.teamName}>
-                            {team.name}{' '}
-                            <Link href={`/teams/${team.id}`} target="_blank">
-                              <LinkIcon />
-                            </Link>
-                          </div>
-                          <div className={s.teamTag}>Investment Fund</div>
+              {investmentTeams.map((team) => {
+                return (
+                  <div className={s.section} key={team.id}>
+                    <div className={s.teamInfo}>
+                      <img
+                        src={team.logo || '/images/demo-day/profile-placeholder.svg'}
+                        className={s.teamLogo}
+                        alt={team.name ?? 'Team Logo'}
+                      />
+                      <div className={s.teamCol}>
+                        <div className={s.teamName}>
+                          {team.name}{' '}
+                          <Link href={`/teams/${team.id}`} target="_blank">
+                            <LinkIcon />
+                          </Link>
                         </div>
+                        <div className={s.teamTag}>Investment Fund</div>
                       </div>
-
-                      {/*<div>params</div>*/}
-                      {/*<div>params</div>*/}
                     </div>
-                  );
-                })}
+
+                    {/*<div>params</div>*/}
+                    {/*<div>params</div>*/}
+                  </div>
+                );
+              })}
             </div>
           )}
 

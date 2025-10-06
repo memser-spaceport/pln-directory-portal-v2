@@ -20,6 +20,7 @@ import { FormField } from '@/components/form/FormField';
 import { Checkbox } from '@base-ui-components/react/checkbox';
 import Link from 'next/link';
 import { useUpdateInvestorProfile } from '@/services/members/hooks/useUpdateInvestorProfile';
+import { useUpdateTeamInvestorProfile } from '@/services/teams/hooks/useUpdateTeamInvestorProfile';
 import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions';
 
 import { editInvestorProfileSchema } from './schema';
@@ -56,6 +57,7 @@ const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
 export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
   const updateInvestorProfileMutation = useUpdateInvestorProfile();
+  const updateTeamInvestorProfileMutation = useUpdateTeamInvestorProfile();
 
   // Analytics hooks
   const { onInvestorProfileUpdated } = useDemoDayAnalytics();
@@ -214,8 +216,27 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
 
     // Parse the currency string to get numeric value
     const typicalCheckSizeNumber = parseCurrencyToNumber(formData.typicalCheckSize ?? '');
+    const teamTypicalCheckSizeNumber = parseCurrencyToNumber(formData.teamTypicalCheckSize ?? '');
+
     try {
-      if (formData.team && !member.teams.length) {
+      if (formData.team) {
+        const teamPayload = {
+          role: formData.teamRole,
+          investmentTeam: true,
+          isFund: true,
+          investorProfile: {
+            investmentFocus: formData.teamInvestmentFocusAreas,
+            investInStartupStages: formData.teamInvestInStartupStages.map((item) => item.value),
+            investInFundTypes: formData.teamInvestInFundTypes.map((item) => item.value),
+            typicalCheckSize: teamTypicalCheckSizeNumber,
+          },
+        };
+
+        await updateTeamInvestorProfileMutation.mutateAsync({
+          teamUid: formData.team.value,
+          payload: teamPayload,
+        });
+
         const payload = {
           participantType: 'MEMBER',
           referenceUid: member.id,

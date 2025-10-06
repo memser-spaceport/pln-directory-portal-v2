@@ -2,7 +2,7 @@
 
 import { clsx } from 'clsx';
 import isEmpty from 'lodash/isEmpty';
-import React, { PointerEvent, useEffect, useMemo, useRef, useState } from 'react';
+import React, { PointerEvent, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
 import s from './MultiSelect.module.scss';
 
@@ -21,7 +21,7 @@ interface MultiSelectProps {
   isMandatory?: boolean;
   arrowImgUrl?: string;
   closeImgUrl: string;
-  label?: string;
+  label?: ReactNode;
 }
 
 function MultiSelect(props: MultiSelectProps) {

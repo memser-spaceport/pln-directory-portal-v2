@@ -44,7 +44,7 @@ async function mutation({ teamUid, payload }: MutationParams) {
   );
 
   if (response?.ok) {
-    toast.success('Team investor profile updated successfully');
+    // toast.success('Team investor profile updated successfully');
     return await response.json();
   } else {
     toast.error('Failed to update team investor profile');
@@ -69,4 +69,3 @@ export function useUpdateTeamInvestorProfile() {
     },
   });
 }
-

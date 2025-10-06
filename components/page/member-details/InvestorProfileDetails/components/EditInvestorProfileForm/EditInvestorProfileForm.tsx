@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
@@ -69,8 +69,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   const { mutateAsync, isPending } = useUpdateMember();
 
   const fundTeam = findPreferredTeam(member?.teams);
-
-  console.log({ fundTeam });
 
   const methods = useForm<TEditInvestorProfileForm>({
     defaultValues: {

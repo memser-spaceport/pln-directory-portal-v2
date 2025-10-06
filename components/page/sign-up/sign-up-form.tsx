@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { SIGN_UP } from '@/utils/constants';
 import TextField from '@/components/form/text-field';
 import SearchWithSuggestions from '@/components/form/suggestions';
-import MultiSelect from '@/components/form/multi-select';
+import MultiSelect from '@/components/form/MultiSelect';
 import HiddenField from '@/components/form/hidden-field';
 import CustomCheckbox from '@/components/form/custom-checkbox';
 import Cookies from 'js-cookie';

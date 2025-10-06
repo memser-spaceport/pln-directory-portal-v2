@@ -17,6 +17,7 @@ import RegisterSuccess from '@/components/core/register/register-success';
 import { useJoinNetworkAnalytics } from '@/analytics/join-network.analytics';
 import { useRouter } from 'next/navigation';
 import { STEP_INDICATOR_KEY, TEAM_FORM_STEPS } from '@/utils/constants/team-constants';
+import { isEditorEmpty } from '@/utils/isEditorEmpty';
 
 interface ITeamRegisterForm {
   // onCloseForm: () => void;
@@ -49,6 +50,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
     teamRegisterDefault.basicInfo.requestorEmail = userInfo.email;
   }
 
+  const [isInvestmentFund, setIsInvestmentFund] = useState(false);
   const [initialValues, setInitialValues] = useState({ ...teamRegisterDefault });
   const [content, setContent] = useState(initialValues?.basicInfo.longDescription ?? '');
 
@@ -76,7 +78,9 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formattedData = transformRawInputsToFormObj(Object.fromEntries(formData));
-      formattedData['longDescription'] = content;
+
+      const longDescription = isEditorEmpty(content) ? formattedData.shortDescription : content;
+      formattedData['longDescription'] = longDescription;
 
       analytics.recordTeamJoinNetworkSave('save-click', formattedData);
       if (currentStep === TEAM_FORM_STEPS[2]) {
@@ -246,11 +250,14 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
                 setLongDesc={setContent}
                 longDescMaxLength={MAX_DESCRIPTION_LENGTH}
                 userInfo={userInfo}
+                isInvestmentFund={isInvestmentFund}
+                setIsInvestmentFund={setIsInvestmentFund}
               />
             </div>
             <div className={currentStep !== TEAM_FORM_STEPS[1] ? 'hidden' : 'form'}>
               <TeamProjectsInfo
                 errors={projectDetailsErrors}
+                isInvestmentFund={isInvestmentFund}
                 protocolOptions={allData?.technologies}
                 fundingStageOptions={allData?.fundingStage}
                 membershipSourceOptions={allData?.membershipSources}
@@ -290,7 +297,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
           .trf__form {
             padding: 24px;
             height: calc(100% - 70px);
-            overflow-y: auto;
+            overflow-y: visible;
           }
 
           .form {
@@ -301,7 +308,6 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
           @media (min-width: 1024px) {
             .trf__form {
               padding: 24px 32px;
-              overflow-y: auto;
             }
           }
         `}

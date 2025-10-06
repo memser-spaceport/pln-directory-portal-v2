@@ -17,6 +17,7 @@ import { useUpdateMemberNotificationSettings } from '@/services/notifications/ho
 import { useEditPost } from '@/services/forum/hooks/useEditPost';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { Checkbox } from '@/components/common/Checkbox';
+import { isEditorEmpty } from '@/utils/isEditorEmpty';
 
 // Custom hook to detect when scrolling down and stops
 const useScrollDownAndStop = (delay: number = 150) => {
@@ -277,8 +278,3 @@ const ArrowUpIcon = () => (
     />
   </svg>
 );
-
-function isEditorEmpty(html: string): boolean {
-  const trimmed = html.trim();
-  return trimmed === '<p><br></p>' || trimmed === '';
-}

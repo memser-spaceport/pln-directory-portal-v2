@@ -18,6 +18,7 @@ import { clsx } from 'clsx';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { Checkbox } from '@/components/common/Checkbox';
+import { isEditorEmpty } from '@/utils/isEditorEmpty';
 
 interface Props {
   tid: number;
@@ -231,8 +232,3 @@ export const CommentsInputDesktop = ({
 };
 
 export default CommentsInputDesktop;
-
-function isEditorEmpty(html: string): boolean {
-  const trimmed = html.trim();
-  return trimmed === '<p><br></p>' || trimmed === '';
-}

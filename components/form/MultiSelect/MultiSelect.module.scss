@@ -1,0 +1,132 @@
+.root {
+  width: 100%;
+  position: relative;
+}
+
+.content {
+  position: relative;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.selectedOptions {
+  display: flex;
+  font-size: 14px;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid lightgrey;
+  border-radius: 8px;
+  cursor: pointer;
+  align-items: center;
+  min-height: 40px;
+}
+
+.error {
+  border: 1px solid red;
+}
+
+.optionsWrapper {
+  flex: 1;
+  gap: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+
+.root {
+  .input {
+    border: 0;
+    outline: none;
+
+    height: 100%;
+    font-size: 14px !important;
+
+    &:focus {
+      //width: 100%;
+    }
+  }
+
+  .searchWrapper {
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .expandLine {
+    height: 0;
+    visibility: hidden;
+  }
+
+  &.empty .searchWrapper {
+    flex: 1;
+  }
+
+  &:not(.empty) .input.emptyInput {
+    width: 10px;
+  }
+}
+
+.arrowImg {
+  margin-left: auto;
+  cursor: pointer;
+}
+
+.selectedOption {
+  border: 1px solid #cbd5e1;
+  padding: 5px 12px;
+  border-radius: 24px;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.removeOption {
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+.options {
+  width: 100%;
+  list-style-type: none;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  z-index: 2;
+  overflow-y: auto;
+  max-height: 150px;
+  position: absolute;
+  background: white;
+  border: 1px solid lightgrey;
+  top: 100%;
+  left: 0;
+}
+
+.option {
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+}
+
+.selected {
+  background-color: #e0e0e0;
+}
+
+.noResults {
+  padding: 16px;
+  font-size: 14px;
+  width: 90%;
+  overflow-x: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px;
+}

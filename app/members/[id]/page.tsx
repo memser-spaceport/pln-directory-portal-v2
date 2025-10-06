@@ -169,9 +169,9 @@ const MemberDetails = ({ params }: { params: any }) => {
               <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             )}
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
           </>
         );
       }
@@ -187,6 +187,7 @@ const MemberDetails = ({ params }: { params: any }) => {
             )}
             <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
@@ -196,7 +197,6 @@ const MemberDetails = ({ params }: { params: any }) => {
               </div>
             )}
             <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
           </>
         );
       }

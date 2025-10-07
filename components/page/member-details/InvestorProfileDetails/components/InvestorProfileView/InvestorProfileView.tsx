@@ -60,6 +60,8 @@ export const InvestorProfileView = ({
 
   const investmentTeams = member?.teams.filter((team) => team.investmentTeam) ?? [];
 
+  console.log(member?.teams);
+
   return (
     <>
       {showIncomplete && (

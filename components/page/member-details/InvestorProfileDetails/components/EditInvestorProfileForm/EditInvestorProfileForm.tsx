@@ -28,31 +28,15 @@ import { formatNumberToCurrency } from './utils';
 import { CheckIcon, ExternalLinkIcon, InfoIcon, LinkIcon } from './icons';
 import s from './EditInvestorProfileForm.module.scss';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
-import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { useMember } from '@/services/members/hooks/useMember';
-import { formatPayload } from '@/components/page/member-details/TeamsDetails/components/EditTeamForm';
-import { ITeam } from '@/types/teams.types';
+import { findPreferredTeam } from './utils/findPreferredTeam';
+import { AddTeamDrawer } from './components/AddTeamDrawer/AddTeamDrawer';
 
 interface Props {
   onClose: () => void;
   member: IMember;
   userInfo: IUserInfo;
 }
-
-const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
-  if (!teams || teams.length === 0) return undefined;
-
-  // First priority: Find fund team
-  const fundTeam = teams.find((team) => team.investmentTeam);
-  if (fundTeam) return fundTeam;
-
-  // Second priority: Find main team
-  const mainTeam = teams.find((team) => team.mainTeam);
-  if (mainTeam) return mainTeam;
-
-  // Fallback: Return first team
-  return teams[0];
-};
 
 export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
@@ -66,7 +50,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   const { data: options } = useTeamsFormOptions();
   const { data } = useMemberFormOptions();
   const { data: memberData } = useMember(member.id);
-  const { mutateAsync, isPending } = useUpdateMember();
 
   const fundTeam = findPreferredTeam(member?.teams);
 
@@ -103,16 +86,17 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     handleSubmit,
     reset,
     setValue,
-    getValues,
     watch,
     trigger,
-    formState: { errors, isValid, dirtyFields, isDirty },
+    formState: { isValid },
   } = methods;
   const secRulesAccepted = watch('secRulesAccepted');
   const isInvestViaFund = watch('isInvestViaFund');
   const selectedTeam = watch('team');
 
   const isTeamLead = member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead;
+
+  const [isAddTeamDrawerOpen, setIsAddTeamDrawerOpen] = React.useState(false);
 
   const formOptions = useMemo(() => {
     if (!options) {
@@ -190,27 +174,28 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   const handleTeamSelect = (selectedTeam: { label: string; value: string; originalObject?: any } | null) => {
     const _team = member?.teams.find((team) => team.id === selectedTeam?.value);
 
-    reset(
-      {
-        ...getValues(),
-        teamRole: _team?.role ?? '',
-        teamInvestInFundTypes:
-          selectedTeam?.originalObject?.investorProfile?.investInFundTypes?.map((item: any) => ({
-            label: item,
-            value: item,
-          })) || [],
-        teamInvestInStartupStages:
-          selectedTeam?.originalObject?.investorProfile?.investInStartupStages?.map((item: any) => ({
-            label: item,
-            value: item,
-          })) || [],
-        teamTypicalCheckSize: selectedTeam?.originalObject?.investorProfile?.typicalCheckSize
-          ? formatNumberToCurrency(selectedTeam?.originalObject?.investorProfile?.typicalCheckSize)
-          : '',
-        teamInvestmentFocusAreas: selectedTeam?.originalObject?.investorProfile?.investmentFocus || [],
-      },
-      { keepDirty: true },
+    setValue('teamRole', _team?.role ?? '', { shouldValidate: true, shouldDirty: true });
+    setValue(
+      'teamInvestInFundTypes',
+      selectedTeam?.originalObject?.investorProfile?.investInFundTypes?.map((item: any) => ({
+        label: item,
+        value: item,
+      })) || [],
     );
+    setValue(
+      'teamInvestInStartupStages',
+      selectedTeam?.originalObject?.investorProfile?.investInStartupStages?.map((item: any) => ({
+        label: item,
+        value: item,
+      })) || [],
+    );
+    setValue(
+      'teamTypicalCheckSize',
+      selectedTeam?.originalObject?.investorProfile?.typicalCheckSize
+        ? formatNumberToCurrency(selectedTeam?.originalObject?.investorProfile?.typicalCheckSize)
+        : '',
+    );
+    setValue('teamInvestmentFocusAreas', selectedTeam?.originalObject?.investorProfile?.investmentFocus || []);
 
     if (selectedTeam && userInfo?.email) {
       // Custom analytics event
@@ -452,7 +437,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       <button
                         type="button"
                         className={s.removeButton}
-                        onClick={() => setValue('team', null)}
+                        onClick={() => setValue('team', null, { shouldValidate: true, shouldDirty: true })}
                         aria-label="Remove team"
                       >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -485,9 +470,16 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       notFoundContent={
                         <div className={s.secondaryLabel}>
                           If you don&apos;t see your team on this list, please{' '}
-                          <Link href="/teams/add" className={s.link} target="_blank" onClick={handleAddTeamLinkClick}>
+                          <button
+                            type="button"
+                            className={s.link}
+                            onClick={() => {
+                              handleAddTeamLinkClick();
+                              setIsAddTeamDrawerOpen(true);
+                            }}
+                          >
                             add your team
-                          </Link>{' '}
+                          </button>{' '}
                           first.
                         </div>
                       }
@@ -559,6 +551,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         </div>
         <EditOfficeHoursMobileControls />
       </form>
+
+      <AddTeamDrawer isOpen={isAddTeamDrawerOpen} onClose={() => setIsAddTeamDrawerOpen(false)} userInfo={userInfo} />
     </FormProvider>
   );
 };

@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import React, { useState } from 'react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useFormContext } from 'react-hook-form';
@@ -11,9 +12,13 @@ import { toast } from '@/components/core/ToastContainer';
 
 interface Props {
   member: Partial<IMember>;
+  classes?: {
+    root?: string;
+    dropzoneIcon?: string;
+  };
 }
 
-export const ProfileImageInput = ({ member }: Props) => {
+export const ProfileImageInput = ({ member, classes }: Props) => {
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { setValue } = useFormContext<OnboardingForm>();
@@ -64,7 +69,7 @@ export const ProfileImageInput = ({ member }: Props) => {
   });
 
   return (
-    <div className={s.dropzone} {...getRootProps()}>
+    <div className={clsx(s.dropzone, classes?.root)} {...getRootProps()}>
       <input {...getInputProps()} />
       <Image
         src={imagePreview || member?.profile || defaultAvatarImage}
@@ -72,7 +77,7 @@ export const ProfileImageInput = ({ member }: Props) => {
         className={s.imagePreview}
         fill
       />
-      <div className={s.dropzoneHint}>
+      <div className={clsx(s.dropzoneHint, classes?.dropzoneIcon)}>
         <EditIcon />
       </div>
     </div>

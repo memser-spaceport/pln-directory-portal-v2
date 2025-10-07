@@ -163,7 +163,7 @@ export interface IMember {
     type: InvestorProfileType;
     investInStartupStages: string[];
     investInFundTypes: string[];
-    typicalCheckSize: number;
+    typicalCheckSize: string;
     investmentFocus: string[];
     secRulesAccepted: boolean;
     isInvestViaFund: boolean;

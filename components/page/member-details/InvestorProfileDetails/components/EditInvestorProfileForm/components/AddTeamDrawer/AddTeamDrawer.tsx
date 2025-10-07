@@ -105,6 +105,9 @@ export function AddTeamDrawer(props: Props) {
     queryClient.invalidateQueries({
       queryKey: [MembersQueryKeys.GET_MEMBER, userInfo.uid],
     });
+    queryClient.invalidateQueries({
+      queryKey: [MembersQueryKeys.GET_SKILLS_OPTIONS],
+    });
     props.onClose();
     toast.success('Team submitted successfully');
   });

@@ -3,11 +3,11 @@ import { formatUSD } from '@/utils/formatUSD';
 import s from '../InvestorProfileView.module.scss';
 
 interface Props {
-  typicalCheckSize: string | undefined;
-  investmentFocusAreas: string[] | undefined;
-  investInStartupStages: string[] | undefined;
-  investInFundTypes: string[] | undefined;
-  secRulesAccepted: boolean | undefined;
+  typicalCheckSize?: string | undefined;
+  investmentFocusAreas?: string[] | undefined;
+  investInStartupStages?: string[] | undefined;
+  investInFundTypes?: string[] | undefined;
+  secRulesAccepted?: boolean | undefined;
   isEditable: boolean;
   onEdit?: () => void;
 }
@@ -79,11 +79,7 @@ export const InvestmentDetailsSection: React.FC<Props> = ({
           <span className={s.keywordsLabel}>Investment Focus:</span>
           <span className={s.badgesWrapper}>
             {investmentFocusAreas?.length && secRulesAccepted
-              ? investmentFocusAreas?.map((item: string) => (
-                  <div key={item} className={s.badge}>
-                    {item}
-                  </div>
-                ))
+              ? investmentFocusAreas?.join(', ')
               : // <button
                 //   type="button"
                 //   className={s.addKeywordsBadge}

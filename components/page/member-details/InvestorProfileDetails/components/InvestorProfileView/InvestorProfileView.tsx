@@ -60,8 +60,6 @@ export const InvestorProfileView = ({
 
   const investmentTeams = member?.teams.filter((team) => team.investmentTeam) ?? [];
 
-  console.log(member?.teams);
-
   return (
     <>
       {showIncomplete && (
@@ -136,6 +134,12 @@ export const InvestorProfileView = ({
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {type === 'FUND' && !investmentTeams?.length && (
+            <div className={s.block}>
+              <InvestmentDetailsSection isEditable={isEditable} />
             </div>
           )}
 

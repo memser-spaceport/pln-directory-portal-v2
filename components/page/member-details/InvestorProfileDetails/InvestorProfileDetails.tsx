@@ -31,22 +31,6 @@ const shouldShowIncompleteDataWarning = (member: IMember): boolean => {
     return true; // No type selected
   }
 
-  // Helper function to find preferred team (fund team, main team, or first team)
-  const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
-    if (!teams || teams.length === 0) return undefined;
-
-    // First priority: Find fund team
-    const fundTeam = teams.find((team) => team.isFund);
-    if (fundTeam) return fundTeam;
-
-    // Second priority: Find main team
-    const mainTeam = teams.find((team) => team.mainTeam);
-    if (mainTeam) return mainTeam;
-
-    // Fallback: Return first team
-    return teams[0];
-  };
-
   // Helper function to check if angel investor data is empty
   const isAngelDataEmpty = (): boolean => {
     return (
@@ -56,7 +40,7 @@ const shouldShowIncompleteDataWarning = (member: IMember): boolean => {
     );
   };
 
-  const preferredTeam = findPreferredTeam(teams);
+  const investmentTeam = teams?.find((team) => team.investmentTeam);
 
   switch (investorProfile.type) {
     case 'ANGEL':
@@ -65,11 +49,11 @@ const shouldShowIncompleteDataWarning = (member: IMember): boolean => {
 
     case 'FUND':
       // FUND type: show warning if no team
-      return !preferredTeam;
+      return !investmentTeam;
 
     case 'ANGEL_AND_FUND':
       // ANGEL_AND_FUND: show warning if no team OR if all angel values are empty
-      return !preferredTeam || isAngelDataEmpty();
+      return !investmentTeam || isAngelDataEmpty();
 
     default:
       return true; // Unknown type

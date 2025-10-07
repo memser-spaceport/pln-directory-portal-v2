@@ -20,7 +20,7 @@ interface MultiSelectProps<T> {
   label?: ReactNode;
 }
 
-function MultiSelect<T extends Record<string, string>>(props: MultiSelectProps<T>) {
+function MultiSelect<T extends { [K in keyof T]: string }>(props: MultiSelectProps<T>) {
   const {
     options,
     selectedOptions,

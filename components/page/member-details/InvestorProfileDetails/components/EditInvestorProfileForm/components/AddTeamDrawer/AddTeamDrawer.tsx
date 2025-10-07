@@ -35,6 +35,8 @@ import { Label } from './components/Label';
 import { Section } from './components/Section';
 
 import s from './AddTeamDrawer.module.scss';
+import { MembersQueryKeys } from '@/services/members/constants';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Props extends Omit<DrawerProps, 'header'> {
   userInfo: IUserInfo;
@@ -43,6 +45,7 @@ interface Props extends Omit<DrawerProps, 'header'> {
 export function AddTeamDrawer(props: Props) {
   const { isOpen, userInfo } = props;
 
+  const queryClient = useQueryClient();
   const formOptions = useGetTeamsFormOptions();
   const fundingStageOptions = useGetFundingStageOptions(formOptions?.fundingStage);
 
@@ -97,6 +100,9 @@ export function AddTeamDrawer(props: Props) {
   });
 
   const saveTeam = useGetSaveTeam(() => {
+    queryClient.invalidateQueries({
+      queryKey: [MembersQueryKeys.GET_SKILLS_OPTIONS],
+    });
     props.onClose();
     toast.success('Team submitted successfully');
   });

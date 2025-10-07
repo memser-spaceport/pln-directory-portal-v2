@@ -28,7 +28,6 @@ import { formatNumberToCurrency } from './utils';
 import { CheckIcon, ExternalLinkIcon, InfoIcon, LinkIcon } from './icons';
 import s from './EditInvestorProfileForm.module.scss';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
-import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { useMember } from '@/services/members/hooks/useMember';
 import { findPreferredTeam } from './utils/findPreferredTeam';
 import { AddTeamDrawer } from './components/AddTeamDrawer/AddTeamDrawer';
@@ -51,7 +50,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   const { data: options } = useTeamsFormOptions();
   const { data } = useMemberFormOptions();
   const { data: memberData } = useMember(member.id);
-  const { mutateAsync, isPending } = useUpdateMember();
 
   const fundTeam = findPreferredTeam(member?.teams);
 

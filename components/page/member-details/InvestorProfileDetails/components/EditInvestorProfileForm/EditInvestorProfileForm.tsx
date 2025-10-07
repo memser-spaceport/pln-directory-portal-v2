@@ -32,27 +32,13 @@ import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { useMember } from '@/services/members/hooks/useMember';
 import { formatPayload } from '@/components/page/member-details/TeamsDetails/components/EditTeamForm';
 import { ITeam } from '@/types/teams.types';
+import { findPreferredTeam } from './utils/findPreferredTeam';
 
 interface Props {
   onClose: () => void;
   member: IMember;
   userInfo: IUserInfo;
 }
-
-const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
-  if (!teams || teams.length === 0) return undefined;
-
-  // First priority: Find fund team
-  const fundTeam = teams.find((team) => team.investmentTeam);
-  if (fundTeam) return fundTeam;
-
-  // Second priority: Find main team
-  const mainTeam = teams.find((team) => team.mainTeam);
-  if (mainTeam) return mainTeam;
-
-  // Fallback: Return first team
-  return teams[0];
-};
 
 export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();

@@ -11,6 +11,8 @@ import { TagsInput } from '@/components/form/TagsInput';
 import { CurrencyInput } from '@/components/form/CurrencyInput';
 import { StandaloneMultiSelect } from '@/components/form/StandaloneMultiSelect/StandaloneMultiSelect';
 import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions';
+import { INVEST_IN_VC_FUNDS_OPTIONS } from '@/constants/createTeam';
+import { useGetFundingStageOptions } from '@/hooks/createTeam/useGetFundingStageOptions';
 
 interface ITeamBasicInfo {
   errors: string[];
@@ -46,31 +48,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   // Get options for multiselects
   const { data } = useTeamsFormOptions();
 
-  const investInVcFundsOptions = [
-    { label: 'Early stage', value: 'early-stage' },
-    { label: 'Late stage', value: 'late-stage' },
-    { label: 'Fund-of-funds', value: 'fund-of-funds' },
-  ];
-
-  const options = useMemo(() => {
-    if (!data) {
-      return {
-        fundingStageOptions: [],
-      };
-    }
-
-    return {
-      fundingStageOptions: [
-        ...data.fundingStage
-          .filter((val: { id: any; name: any }) => val.name !== 'Not Applicable')
-          .map((val: { id: any; name: any }) => ({
-            value: val.name,
-            label: val.name,
-          })),
-        { value: 'Series D and later', label: 'Series D and later' },
-      ],
-    };
-  }, [data]);
+  const fundingStageOptions = useGetFundingStageOptions(data?.fundingStage);
 
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -215,19 +193,12 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
               <label htmlFor="register-team-name" className="tf__label">
                 What is your organization, company, or team name?*
               </label>
-              {/* {
-                <div className="teaminfo__form__plnFriend">
-                  <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
-                  <label htmlFor="pl-friend" className="teaminfo__form__plnFriend__label">Friends of PL</label>
-                  <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
-                </div>
-              } */}
+
               <TextField
                 defaultValue={initialValues?.name}
                 maxLength={150}
                 isMandatory
                 id="register-team-name"
-                // label="What is your organization, company, or team name?*"
                 name="name"
                 type="text"
                 placeholder="Enter name here"
@@ -323,7 +294,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
                 name="investInFundTypes"
                 label="Type of fund(s) you invest in?"
                 placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
-                options={investInVcFundsOptions}
+                options={INVEST_IN_VC_FUNDS_OPTIONS}
                 // showNone
                 // noneLabel="We don't invest in VC funds"
                 value={investInFundTypes}
@@ -338,7 +309,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
                 name="investInStartupStages"
                 label="Do you invest in Startups?"
                 placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
-                options={options.fundingStageOptions}
+                options={fundingStageOptions}
                 // showNone
                 // noneLabel="We don't invest in startups"
                 value={investInStartupStages}

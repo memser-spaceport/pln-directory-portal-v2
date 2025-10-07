@@ -19,7 +19,7 @@ interface Props {
   isEditable: boolean;
   showIncomplete: boolean;
   onEdit?: () => void;
-  typicalCheckSize: string | undefined;
+  typicalCheckSize: number | undefined;
   investmentFocusAreas: string[] | undefined;
   investInStartupStages: string[] | undefined;
   investInFundTypes: string[] | undefined;

@@ -79,11 +79,7 @@ export const InvestmentDetailsSection: React.FC<Props> = ({
           <span className={s.keywordsLabel}>Investment Focus:</span>
           <span className={s.badgesWrapper}>
             {investmentFocusAreas?.length && secRulesAccepted
-              ? investmentFocusAreas?.map((item: string) => (
-                  <div key={item} className={s.badge}>
-                    {item}
-                  </div>
-                ))
+              ? investmentFocusAreas?.join(', ')
               : // <button
                 //   type="button"
                 //   className={s.addKeywordsBadge}

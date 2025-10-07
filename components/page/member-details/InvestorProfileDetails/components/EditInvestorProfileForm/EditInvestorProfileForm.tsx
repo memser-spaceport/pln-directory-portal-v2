@@ -28,11 +28,9 @@ import { formatNumberToCurrency } from './utils';
 import { CheckIcon, ExternalLinkIcon, InfoIcon, LinkIcon } from './icons';
 import s from './EditInvestorProfileForm.module.scss';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
-import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { useMember } from '@/services/members/hooks/useMember';
-import { formatPayload } from '@/components/page/member-details/TeamsDetails/components/EditTeamForm';
-import { ITeam } from '@/types/teams.types';
 import { findPreferredTeam } from './utils/findPreferredTeam';
+import { AddTeamDrawer } from './components/AddTeamDrawer/AddTeamDrawer';
 
 interface Props {
   onClose: () => void;
@@ -52,7 +50,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   const { data: options } = useTeamsFormOptions();
   const { data } = useMemberFormOptions();
   const { data: memberData } = useMember(member.id);
-  const { mutateAsync, isPending } = useUpdateMember();
 
   const fundTeam = findPreferredTeam(member?.teams);
 
@@ -89,16 +86,17 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     handleSubmit,
     reset,
     setValue,
-    getValues,
     watch,
     trigger,
-    formState: { errors, isValid, dirtyFields, isDirty },
+    formState: { isValid },
   } = methods;
   const secRulesAccepted = watch('secRulesAccepted');
   const isInvestViaFund = watch('isInvestViaFund');
   const selectedTeam = watch('team');
 
   const isTeamLead = member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead;
+
+  const [isAddTeamDrawerOpen, setIsAddTeamDrawerOpen] = React.useState(false);
 
   const formOptions = useMemo(() => {
     if (!options) {
@@ -472,9 +470,16 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       notFoundContent={
                         <div className={s.secondaryLabel}>
                           If you don&apos;t see your team on this list, please{' '}
-                          <Link href="/teams/add" className={s.link} target="_blank" onClick={handleAddTeamLinkClick}>
+                          <button
+                            type="button"
+                            className={s.link}
+                            onClick={() => {
+                              handleAddTeamLinkClick();
+                              setIsAddTeamDrawerOpen(true);
+                            }}
+                          >
                             add your team
-                          </Link>{' '}
+                          </button>{' '}
                           first.
                         </div>
                       }
@@ -546,6 +551,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         </div>
         <EditOfficeHoursMobileControls />
       </form>
+
+      <AddTeamDrawer isOpen={isAddTeamDrawerOpen} onClose={() => setIsAddTeamDrawerOpen(false)} userInfo={userInfo} />
     </FormProvider>
   );
 };

@@ -3,7 +3,7 @@ import { formatUSD } from '@/utils/formatUSD';
 import s from '../InvestorProfileView.module.scss';
 
 interface Props {
-  typicalCheckSize: number | undefined;
+  typicalCheckSize: string | undefined;
   investmentFocusAreas: string[] | undefined;
   investInStartupStages: string[] | undefined;
   investInFundTypes: string[] | undefined;

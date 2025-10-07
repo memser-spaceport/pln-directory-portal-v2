@@ -103,6 +103,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     handleSubmit,
     reset,
     setValue,
+    getValues,
     watch,
     trigger,
     formState: { errors, isValid },
@@ -110,6 +111,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   const secRulesAccepted = watch('secRulesAccepted');
   const isInvestViaFund = watch('isInvestViaFund');
   const selectedTeam = watch('team');
+
+  const isTeamLead = member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead;
 
   const formOptions = useMemo(() => {
     if (!options) {
@@ -185,6 +188,15 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   };
 
   const handleTeamSelect = (selectedTeam: { label: string; value: string } | null) => {
+    reset({
+      ...getValues(),
+      teamRole: '',
+      teamInvestInFundTypes: [],
+      teamInvestInStartupStages: [],
+      teamTypicalCheckSize: '',
+      teamInvestmentFocusAreas: [],
+    });
+
     if (selectedTeam && userInfo?.email) {
       // Custom analytics event
       const teamSelectedEvent: TrackEventDto = {
@@ -467,7 +479,12 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   </div>
 
                   <div className={s.row}>
-                    <FormField name="teamRole" placeholder="Enter your role" label="Role" />
+                    <FormField
+                      name="teamRole"
+                      placeholder="Enter your role"
+                      label="Role"
+                      disabled={!isTeamLead || !selectedTeam}
+                    />
                   </div>
 
                   <div className={s.row}>
@@ -476,6 +493,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       label="Type of fund(s) you invest in?"
                       placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
                       options={formOptions.fundTypeOptions}
+                      disabled={!isTeamLead || !selectedTeam}
                     />
                   </div>
 
@@ -485,6 +503,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       label="Startup stage(s) you invest in?"
                       placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                       options={formOptions.fundingStageOptions}
+                      disabled={!isTeamLead || !selectedTeam}
                     />
                   </div>
 
@@ -494,6 +513,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       label="Typical Check Size"
                       placeholder="Select typical check size (E.g. $25k - $50.000k)"
                       currency="USD"
+                      disabled={!isTeamLead || !selectedTeam}
                     />
                   </div>
 
@@ -502,6 +522,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       selectLabel="Add Investment Focus"
                       name="teamInvestmentFocusAreas"
                       placeholder="Add keywords. E.g. AI, Staking, Governance, etc."
+                      disabled={!isTeamLead || !selectedTeam}
                     />
                   </div>
                 </>

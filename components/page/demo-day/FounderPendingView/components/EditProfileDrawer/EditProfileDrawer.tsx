@@ -442,7 +442,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
 
           {/* Conditional Top Section */}
           {editView ? (
-            <EditProfileForm onClose={handleFormClose} userInfo={userInfo} />
+            <EditProfileForm onClose={handleFormClose} userInfo={userInfo} profileData={data} />
           ) : (
             /* Profile Header */
             <div className={s.drawerProfileHeader}>

@@ -10,7 +10,7 @@ import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { DEMO_DAY_ANALYTICS, ADMIN_ROLE } from '@/utils/constants';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
@@ -30,7 +30,8 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick 
   const { onActiveViewTeamCardClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
-  const canEdit = team.founders.some((founder) => founder.uid === userInfo?.uid);
+  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
+  const canEdit = team.founders.some((founder) => founder.uid === userInfo?.uid) || isAdmin;
 
   const handleCardClick = () => {
     // Report team card click analytics

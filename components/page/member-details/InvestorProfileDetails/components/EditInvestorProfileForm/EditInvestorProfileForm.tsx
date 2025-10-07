@@ -247,24 +247,24 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     debugger;
     try {
       if (formData.team) {
-        if (isTeamLead) {
-          const teamPayload = {
-            role: formData.teamRole,
-            investmentTeam: true,
-            isFund: true,
-            investorProfile: {
-              investmentFocus: formData.teamInvestmentFocusAreas,
-              investInStartupStages: formData.teamInvestInStartupStages.map((item) => item.value),
-              investInFundTypes: formData.teamInvestInFundTypes.map((item) => item.value),
-              typicalCheckSize: teamTypicalCheckSizeNumber,
-            },
-          };
+        const teamPayload: any = {
+          role: formData.teamRole,
+          investmentTeam: true,
+        };
 
-          await updateTeamInvestorProfileMutation.mutateAsync({
-            teamUid: formData.team.value,
-            payload: teamPayload,
-          });
+        if (isTeamLead) {
+          teamPayload.investorProfile = {
+            investmentFocus: formData.teamInvestmentFocusAreas,
+            investInStartupStages: formData.teamInvestInStartupStages.map((item) => item.value),
+            investInFundTypes: formData.teamInvestInFundTypes.map((item) => item.value),
+            typicalCheckSize: teamTypicalCheckSizeNumber,
+          };
         }
+
+        await updateTeamInvestorProfileMutation.mutateAsync({
+          teamUid: formData.team.value,
+          payload: teamPayload,
+        });
 
         const _existingTeam = member.teams.find((t) => t.id === formData?.team?.value);
 

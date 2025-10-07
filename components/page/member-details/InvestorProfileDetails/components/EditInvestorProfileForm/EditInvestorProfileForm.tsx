@@ -176,27 +176,28 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   const handleTeamSelect = (selectedTeam: { label: string; value: string; originalObject?: any } | null) => {
     const _team = member?.teams.find((team) => team.id === selectedTeam?.value);
 
-    reset(
-      {
-        ...getValues(),
-        teamRole: _team?.role ?? '',
-        teamInvestInFundTypes:
-          selectedTeam?.originalObject?.investorProfile?.investInFundTypes?.map((item: any) => ({
-            label: item,
-            value: item,
-          })) || [],
-        teamInvestInStartupStages:
-          selectedTeam?.originalObject?.investorProfile?.investInStartupStages?.map((item: any) => ({
-            label: item,
-            value: item,
-          })) || [],
-        teamTypicalCheckSize: selectedTeam?.originalObject?.investorProfile?.typicalCheckSize
-          ? formatNumberToCurrency(selectedTeam?.originalObject?.investorProfile?.typicalCheckSize)
-          : '',
-        teamInvestmentFocusAreas: selectedTeam?.originalObject?.investorProfile?.investmentFocus || [],
-      },
-      { keepDirty: true },
+    setValue('teamRole', _team?.role ?? '', { shouldValidate: true, shouldDirty: true });
+    setValue(
+      'teamInvestInFundTypes',
+      selectedTeam?.originalObject?.investorProfile?.investInFundTypes?.map((item: any) => ({
+        label: item,
+        value: item,
+      })) || [],
     );
+    setValue(
+      'teamInvestInStartupStages',
+      selectedTeam?.originalObject?.investorProfile?.investInStartupStages?.map((item: any) => ({
+        label: item,
+        value: item,
+      })) || [],
+    );
+    setValue(
+      'teamTypicalCheckSize',
+      selectedTeam?.originalObject?.investorProfile?.typicalCheckSize
+        ? formatNumberToCurrency(selectedTeam?.originalObject?.investorProfile?.typicalCheckSize)
+        : '',
+    );
+    setValue('teamInvestmentFocusAreas', selectedTeam?.originalObject?.investorProfile?.investmentFocus || []);
 
     if (selectedTeam && userInfo?.email) {
       // Custom analytics event
@@ -438,7 +439,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       <button
                         type="button"
                         className={s.removeButton}
-                        onClick={() => setValue('team', null)}
+                        onClick={() => setValue('team', null, { shouldValidate: true, shouldDirty: true })}
                         aria-label="Remove team"
                       >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

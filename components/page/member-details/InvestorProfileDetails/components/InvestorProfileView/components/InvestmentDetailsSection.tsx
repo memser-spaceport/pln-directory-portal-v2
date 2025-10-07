@@ -3,11 +3,11 @@ import { formatUSD } from '@/utils/formatUSD';
 import s from '../InvestorProfileView.module.scss';
 
 interface Props {
-  typicalCheckSize: string | undefined;
-  investmentFocusAreas: string[] | undefined;
-  investInStartupStages: string[] | undefined;
-  investInFundTypes: string[] | undefined;
-  secRulesAccepted: boolean | undefined;
+  typicalCheckSize?: string | undefined;
+  investmentFocusAreas?: string[] | undefined;
+  investInStartupStages?: string[] | undefined;
+  investInFundTypes?: string[] | undefined;
+  secRulesAccepted?: boolean | undefined;
   isEditable: boolean;
   onEdit?: () => void;
 }

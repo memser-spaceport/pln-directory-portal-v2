@@ -1,7 +1,6 @@
 .root {
-  padding: 20px;
-
-  gap: 20px;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -15,6 +14,25 @@
   gap: 4px;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: white;
+  padding: 20px;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 10px 20px;
+
+  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
 }
 
 .subheader {
@@ -29,6 +47,7 @@
   width: 100%;
   height: 1px;
   background-color: rgba(27, 56, 96, 0.12);
+  flex-shrink: 0;
 }
 
 .teamNameSection {
@@ -65,6 +84,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
+  padding: 20px;
+  border-top: 1px solid rgba(27, 56, 96, 0.12);
 }
 
 .isFund {
@@ -89,5 +111,3 @@
 .hidden {
   display: none;
 }
-
-

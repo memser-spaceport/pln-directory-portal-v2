@@ -6,17 +6,13 @@ import React, { PointerEvent, ReactNode, useEffect, useMemo, useRef, useState } 
 
 import s from './MultiSelect.module.scss';
 
-interface Option {
-  [key: string]: any;
-}
-
-interface MultiSelectProps {
-  options: Option[];
-  selectedOptions: Option[];
-  onAdd: (selectedOptions: Option) => void;
-  onRemove: (selectedOptions: Option) => void;
-  uniqueKey: string;
-  displayKey: string;
+interface MultiSelectProps<T> {
+  options: T[];
+  selectedOptions: T[];
+  onAdd: (selectedOptions: T) => void;
+  onRemove: (selectedOptions: T) => void;
+  uniqueKey: keyof T;
+  displayKey: keyof T;
   placeholder?: string;
   isMandatory?: boolean;
   arrowImgUrl?: string;
@@ -24,7 +20,7 @@ interface MultiSelectProps {
   label?: ReactNode;
 }
 
-function MultiSelect(props: MultiSelectProps) {
+function MultiSelect<T extends Record<string, string>>(props: MultiSelectProps<T>) {
   const {
     options,
     selectedOptions,
@@ -69,13 +65,13 @@ function MultiSelect(props: MultiSelectProps) {
   );
 
   // Handle adding an option
-  const handleOptionClick = (option: Option) => {
+  const handleOptionClick = (option: T) => {
     onAdd(option);
     focusInput();
   };
 
   // Handle removing an option
-  const handleRemoveOption = (e: PointerEvent<HTMLImageElement>, optionToRemove: Option) => {
+  const handleRemoveOption = (e: PointerEvent<HTMLImageElement>, optionToRemove: T) => {
     e.preventDefault();
     e.stopPropagation();
     onRemove(optionToRemove);

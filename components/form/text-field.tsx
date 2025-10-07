@@ -9,7 +9,7 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: ReactNode;
   type: string;
   name: string;
-  id: string;
+  id?: string;
   defaultValue?: string;
   value?: string;
   hide?: boolean;

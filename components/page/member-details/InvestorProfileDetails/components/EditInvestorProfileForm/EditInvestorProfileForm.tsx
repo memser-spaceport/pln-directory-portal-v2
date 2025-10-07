@@ -43,7 +43,7 @@ const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
   if (!teams || teams.length === 0) return undefined;
 
   // First priority: Find fund team
-  const fundTeam = teams.find((team) => team.isFund);
+  const fundTeam = teams.find((team) => team.investmentTeam);
   if (fundTeam) return fundTeam;
 
   // Second priority: Find main team
@@ -244,7 +244,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     // Parse the currency string to get numeric value
     const typicalCheckSizeNumber = parseCurrencyToNumber(formData.typicalCheckSize ?? '');
     const teamTypicalCheckSizeNumber = parseCurrencyToNumber(formData.teamTypicalCheckSize ?? '');
-    debugger;
     try {
       if (formData.team) {
         const teamPayload: any = {
@@ -266,24 +265,23 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
           payload: teamPayload,
         });
 
-        const _existingTeam = member.teams.find((t) => t.id === formData?.team?.value);
-
-        const payload = {
-          participantType: 'MEMBER',
-          referenceUid: member.id,
-          uniqueIdentifier: member.email,
-          newData: formatPayload(
-            memberData.memberInfo,
-            { name: formData.team, role: formData.teamRole, url: '' },
-            !_existingTeam,
-            formData?.team?.value,
-          ),
-        };
-
-        await mutateAsync({
-          uid: memberData.memberInfo.uid,
-          payload,
-        });
+        // const _existingTeam = member.teams.find((t) => t.id === formData?.team?.value);
+        // const payload = {
+        //   participantType: 'MEMBER',
+        //   referenceUid: member.id,
+        //   uniqueIdentifier: member.email,
+        //   newData: formatPayload(
+        //     memberData.memberInfo,
+        //     { name: formData.team, role: formData.teamRole, url: '' },
+        //     !_existingTeam,
+        //     formData?.team?.value,
+        //   ),
+        // };
+        //
+        // await mutateAsync({
+        //   uid: memberData.memberInfo.uid,
+        //   payload,
+        // });
       }
 
       const payload = {
@@ -497,12 +495,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   </div>
 
                   <div className={s.row}>
-                    <FormField
-                      name="teamRole"
-                      placeholder="Enter your role"
-                      label="Role"
-                      disabled={!isTeamLead || !selectedTeam}
-                    />
+                    <FormField name="teamRole" placeholder="Enter your role" label="Role" disabled={!selectedTeam} />
                   </div>
 
                   <div className={s.row}>

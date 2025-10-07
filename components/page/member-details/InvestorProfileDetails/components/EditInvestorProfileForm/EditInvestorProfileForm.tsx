@@ -244,11 +244,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
           },
         };
 
-        await updateTeamInvestorProfileMutation.mutateAsync({
-          teamUid: formData.team.value,
-          payload: teamPayload,
-        });
-
         const payload = {
           participantType: 'MEMBER',
           referenceUid: member.id,
@@ -263,6 +258,11 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         await mutateAsync({
           uid: memberData.memberInfo.uid,
           payload,
+        });
+
+        await updateTeamInvestorProfileMutation.mutateAsync({
+          teamUid: formData.team.value,
+          payload: teamPayload,
         });
       }
 

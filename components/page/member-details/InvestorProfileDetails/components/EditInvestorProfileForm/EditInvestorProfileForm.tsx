@@ -43,7 +43,7 @@ const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
   if (!teams || teams.length === 0) return undefined;
 
   // First priority: Find fund team
-  const fundTeam = teams.find((team) => team.isFund);
+  const fundTeam = teams.find((team) => team.investmentTeam);
   if (fundTeam) return fundTeam;
 
   // Second priority: Find main team
@@ -106,7 +106,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     getValues,
     watch,
     trigger,
-    formState: { errors, isValid },
+    formState: { errors, isValid, dirtyFields, isDirty },
   } = methods;
   const secRulesAccepted = watch('secRulesAccepted');
   const isInvestViaFund = watch('isInvestViaFund');
@@ -187,15 +187,30 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     }
   };
 
-  const handleTeamSelect = (selectedTeam: { label: string; value: string } | null) => {
-    reset({
-      ...getValues(),
-      teamRole: '',
-      teamInvestInFundTypes: [],
-      teamInvestInStartupStages: [],
-      teamTypicalCheckSize: '',
-      teamInvestmentFocusAreas: [],
-    });
+  const handleTeamSelect = (selectedTeam: { label: string; value: string; originalObject?: any } | null) => {
+    const _team = member?.teams.find((team) => team.id === selectedTeam?.value);
+
+    reset(
+      {
+        ...getValues(),
+        teamRole: _team?.role ?? '',
+        teamInvestInFundTypes:
+          selectedTeam?.originalObject?.investorProfile?.investInFundTypes?.map((item: any) => ({
+            label: item,
+            value: item,
+          })) || [],
+        teamInvestInStartupStages:
+          selectedTeam?.originalObject?.investorProfile?.investInStartupStages?.map((item: any) => ({
+            label: item,
+            value: item,
+          })) || [],
+        teamTypicalCheckSize: selectedTeam?.originalObject?.investorProfile?.typicalCheckSize
+          ? formatNumberToCurrency(selectedTeam?.originalObject?.investorProfile?.typicalCheckSize)
+          : '',
+        teamInvestmentFocusAreas: selectedTeam?.originalObject?.investorProfile?.investmentFocus || [],
+      },
+      { keepDirty: true },
+    );
 
     if (selectedTeam && userInfo?.email) {
       // Custom analytics event
@@ -229,52 +244,52 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     // Parse the currency string to get numeric value
     const typicalCheckSizeNumber = parseCurrencyToNumber(formData.typicalCheckSize ?? '');
     const teamTypicalCheckSizeNumber = parseCurrencyToNumber(formData.teamTypicalCheckSize ?? '');
-
     try {
       if (formData.team) {
-        const teamPayload = {
+        const teamPayload: any = {
           role: formData.teamRole,
           investmentTeam: true,
-          isFund: true,
-          investorProfile: {
+        };
+
+        if (isTeamLead) {
+          teamPayload.investorProfile = {
             investmentFocus: formData.teamInvestmentFocusAreas,
             investInStartupStages: formData.teamInvestInStartupStages.map((item) => item.value),
             investInFundTypes: formData.teamInvestInFundTypes.map((item) => item.value),
             typicalCheckSize: teamTypicalCheckSizeNumber,
-          },
-        };
+          };
+        }
 
         await updateTeamInvestorProfileMutation.mutateAsync({
           teamUid: formData.team.value,
           payload: teamPayload,
         });
 
-        const payload = {
-          participantType: 'MEMBER',
-          referenceUid: member.id,
-          uniqueIdentifier: member.email,
-          newData: formatPayload(
-            memberData.memberInfo,
-            { name: formData.team, role: formData.teamRole, url: '' },
-            true,
-          ),
-        };
-
-        await mutateAsync({
-          uid: memberData.memberInfo.uid,
-          payload,
-        });
+        // const _existingTeam = member.teams.find((t) => t.id === formData?.team?.value);
+        // const payload = {
+        //   participantType: 'MEMBER',
+        //   referenceUid: member.id,
+        //   uniqueIdentifier: member.email,
+        //   newData: formatPayload(
+        //     memberData.memberInfo,
+        //     { name: formData.team, role: formData.teamRole, url: '' },
+        //     !_existingTeam,
+        //     formData?.team?.value,
+        //   ),
+        // };
+        //
+        // await mutateAsync({
+        //   uid: memberData.memberInfo.uid,
+        //   payload,
+        // });
       }
 
       const payload = {
         investorProfile: {
           type: deriveType(formData),
-          investmentFocus: formData.secRulesAccepted ? formData.investmentFocusAreas : [],
-          typicalCheckSize: formData.secRulesAccepted ? typicalCheckSizeNumber : null,
-          investInStartupStages: formData.secRulesAccepted
-            ? formData.investInStartupStages.map((item) => item.label)
-            : [],
-          // investInFundTypes: formData.investInFundTypes.map((item) => item.label),
+          investmentFocus: formData.investmentFocusAreas,
+          typicalCheckSize: typicalCheckSizeNumber,
+          investInStartupStages: formData.investInStartupStages.map((item) => item.label),
           secRulesAccepted: formData.secRulesAccepted,
           isInvestViaFund: formData.isInvestViaFund,
         },
@@ -463,6 +478,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                         data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
                           value: item.teamUid,
                           label: item.teamTitle,
+                          originalObject: item,
                         })) ?? []
                       }
                       onChange={(value) => handleTeamSelect(value)}
@@ -479,12 +495,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   </div>
 
                   <div className={s.row}>
-                    <FormField
-                      name="teamRole"
-                      placeholder="Enter your role"
-                      label="Role"
-                      disabled={!isTeamLead || !selectedTeam}
-                    />
+                    <FormField name="teamRole" placeholder="Enter your role" label="Role" disabled={!selectedTeam} />
                   </div>
 
                   <div className={s.row}>

@@ -361,12 +361,14 @@ export const getMemberInfoFormValues = async () => {
   const teamsData = await teamsInfo.json();
   const projectsData = await projectsInfo.json();
   const skillsData = await skillsInfo.json();
+
   return {
     teams: teamsData?.teams
       ?.map((d: any) => {
         return {
           teamUid: d.uid,
           teamTitle: d.name,
+          investorProfile: d.investorProfile,
           role: '',
         };
       })

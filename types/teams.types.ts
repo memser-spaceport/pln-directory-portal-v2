@@ -108,7 +108,7 @@ export interface ITeam {
   investorProfile?: {
     uid: string;
     investmentFocus: string[] | undefined;
-    typicalCheckSize: string | undefined;
+    typicalCheckSize: number | undefined;
     createdAt: string;
     updatedAt: string;
     teamUid: string;

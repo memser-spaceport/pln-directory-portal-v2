@@ -19,7 +19,7 @@ interface Props {
   isEditable: boolean;
   showIncomplete: boolean;
   onEdit?: () => void;
-  typicalCheckSize: string | undefined;
+  typicalCheckSize: number | undefined;
   investmentFocusAreas: string[] | undefined;
   investInStartupStages: string[] | undefined;
   investInFundTypes: string[] | undefined;
@@ -59,6 +59,8 @@ export const InvestorProfileView = ({
   const fundTeam = findPreferredTeam(member?.teams);
 
   const investmentTeams = member?.teams.filter((team) => team.investmentTeam) ?? [];
+
+  console.log(member?.teams);
 
   return (
     <>

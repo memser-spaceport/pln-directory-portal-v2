@@ -106,7 +106,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     getValues,
     watch,
     trigger,
-    formState: { errors, isValid },
+    formState: { errors, isValid, dirtyFields, isDirty },
   } = methods;
   const secRulesAccepted = watch('secRulesAccepted');
   const isInvestViaFund = watch('isInvestViaFund');
@@ -187,15 +187,30 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     }
   };
 
-  const handleTeamSelect = (selectedTeam: { label: string; value: string } | null) => {
-    reset({
-      ...getValues(),
-      teamRole: '',
-      teamInvestInFundTypes: [],
-      teamInvestInStartupStages: [],
-      teamTypicalCheckSize: '',
-      teamInvestmentFocusAreas: [],
-    });
+  const handleTeamSelect = (selectedTeam: { label: string; value: string; originalObject?: any } | null) => {
+    const _team = member?.teams.find((team) => team.id === selectedTeam?.value);
+
+    reset(
+      {
+        ...getValues(),
+        teamRole: _team?.role ?? '',
+        teamInvestInFundTypes:
+          selectedTeam?.originalObject?.investorProfile?.investInFundTypes?.map((item: any) => ({
+            label: item,
+            value: item,
+          })) || [],
+        teamInvestInStartupStages:
+          selectedTeam?.originalObject?.investorProfile?.investInStartupStages?.map((item: any) => ({
+            label: item,
+            value: item,
+          })) || [],
+        teamTypicalCheckSize: selectedTeam?.originalObject?.investorProfile?.typicalCheckSize
+          ? formatNumberToCurrency(selectedTeam?.originalObject?.investorProfile?.typicalCheckSize)
+          : '',
+        teamInvestmentFocusAreas: selectedTeam?.originalObject?.investorProfile?.investmentFocus || [],
+      },
+      { keepDirty: true },
+    );
 
     if (selectedTeam && userInfo?.email) {
       // Custom analytics event
@@ -229,25 +244,29 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     // Parse the currency string to get numeric value
     const typicalCheckSizeNumber = parseCurrencyToNumber(formData.typicalCheckSize ?? '');
     const teamTypicalCheckSizeNumber = parseCurrencyToNumber(formData.teamTypicalCheckSize ?? '');
-
+    debugger;
     try {
       if (formData.team) {
-        const teamPayload = {
-          role: formData.teamRole,
-          investmentTeam: true,
-          isFund: true,
-          investorProfile: {
-            investmentFocus: formData.teamInvestmentFocusAreas,
-            investInStartupStages: formData.teamInvestInStartupStages.map((item) => item.value),
-            investInFundTypes: formData.teamInvestInFundTypes.map((item) => item.value),
-            typicalCheckSize: teamTypicalCheckSizeNumber,
-          },
-        };
+        if (isTeamLead) {
+          const teamPayload = {
+            role: formData.teamRole,
+            investmentTeam: true,
+            isFund: true,
+            investorProfile: {
+              investmentFocus: formData.teamInvestmentFocusAreas,
+              investInStartupStages: formData.teamInvestInStartupStages.map((item) => item.value),
+              investInFundTypes: formData.teamInvestInFundTypes.map((item) => item.value),
+              typicalCheckSize: teamTypicalCheckSizeNumber,
+            },
+          };
 
-        await updateTeamInvestorProfileMutation.mutateAsync({
-          teamUid: formData.team.value,
-          payload: teamPayload,
-        });
+          await updateTeamInvestorProfileMutation.mutateAsync({
+            teamUid: formData.team.value,
+            payload: teamPayload,
+          });
+        }
+
+        const _existingTeam = member.teams.find((t) => t.id === formData?.team?.value);
 
         const payload = {
           participantType: 'MEMBER',
@@ -256,7 +275,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
           newData: formatPayload(
             memberData.memberInfo,
             { name: formData.team, role: formData.teamRole, url: '' },
-            true,
+            !_existingTeam,
+            formData?.team?.value,
           ),
         };
 
@@ -460,6 +480,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                         data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
                           value: item.teamUid,
                           label: item.teamTitle,
+                          originalObject: item,
                         })) ?? []
                       }
                       onChange={(value) => handleTeamSelect(value)}

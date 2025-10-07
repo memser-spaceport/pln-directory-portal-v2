@@ -15,12 +15,12 @@ interface Props {
   placeholder: string;
   label?: string;
   description?: string;
-  options: { label: string; value: string; description?: string }[];
+  options: { label: string; value: string; description?: string; originalObject?: any }[];
   disabled?: boolean;
   isRequired?: boolean;
   notFoundContent?: ReactNode;
   backLabel?: string;
-  onChange?: (value: { label: string; value: string } | null) => void;
+  onChange?: (value: { label: string; value: string; originalObject?: any } | null) => void;
 }
 
 export const FormSelect = ({
@@ -98,7 +98,7 @@ export const FormSelect = ({
       optionElements.push(
         <div key="not-found-content" className={s.notFoundContent}>
           {notFoundContent}
-        </div>
+        </div>,
       );
     }
 
@@ -256,11 +256,7 @@ export const FormSelect = ({
             Option: (props) => {
               // Handle the special notFoundContent option
               if ((props.data as any).isNotFoundContent) {
-                return (
-                  <div className={s.notFoundContent}>
-                    {notFoundContent}
-                  </div>
-                );
+                return <div className={s.notFoundContent}>{notFoundContent}</div>;
               }
 
               return (

@@ -1,4 +1,3 @@
-
 import React, { PropsWithChildren } from 'react';
 
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
@@ -35,6 +34,13 @@ export function LandingBase(props: PropsWithChildren) {
 
           <LogosGrid />
           <FAQ items={faqItems} />
+          <div className={s.reachOut}>
+            Reach out to us on{' '}
+            <a href="mailto:pldemoday@protocol.ai" className={s.email}>
+              pldemoday@protocol.ai
+            </a>{' '}
+            for any other questions.
+          </div>
         </div>
       </div>
     </div>

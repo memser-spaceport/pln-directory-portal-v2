@@ -26,6 +26,7 @@ interface Props {
   secRulesAccepted: boolean | undefined;
   type: InvestorProfileType | undefined;
   member?: IMember;
+  hideHeader?: boolean;
 }
 
 const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
@@ -55,6 +56,7 @@ export const InvestorProfileView = ({
   onEdit,
   type,
   member,
+  hideHeader,
 }: Props) => {
   const fundTeam = findPreferredTeam(member?.teams);
 
@@ -147,9 +149,13 @@ export const InvestorProfileView = ({
 
           {(type === 'ANGEL' || type === 'ANGEL_AND_FUND' || !type) && (
             <div className={s.block}>
-              {typicalCheckSize || investInStartupStages?.length || investmentFocusAreas?.length ? (
-                <div className={s.blockTitle}>Direct Investments</div>
-              ) : null}
+              {!hideHeader && (
+                <>
+                  {typicalCheckSize || investInStartupStages?.length || investmentFocusAreas?.length ? (
+                    <div className={s.blockTitle}>Direct Investments</div>
+                  ) : null}
+                </>
+              )}
               <InvestmentDetailsSection
                 typicalCheckSize={typicalCheckSize}
                 investmentFocusAreas={investmentFocusAreas}

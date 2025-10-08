@@ -101,7 +101,7 @@ export function AddTeamDrawer(props: Props) {
     [s.hidden]: !isInvestmentFund,
   });
 
-  const saveTeam = useGetSaveTeam(() => {
+  const saveTeam = useGetSaveTeam((newData: any) => {
     queryClient.invalidateQueries({
       queryKey: [MembersQueryKeys.GET_MEMBER, userInfo.uid],
     });

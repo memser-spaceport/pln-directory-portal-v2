@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from '@/components/core/ToastContainer';
+import { useUpdateFundraiseDescription } from '@/services/demo-day/hooks/useUpdateFundraiseDescription';
 import s from './CompanyFundraiseParagraph.module.scss';
 
 interface CompanyFundraiseParagraphProps {
@@ -16,6 +18,8 @@ export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps>
   editable = false,
 }) => {
   const [isEditMode, setIsEditMode] = useState(false);
+  const updateDescriptionMutation = useUpdateFundraiseDescription();
+
   const {
     register,
     handleSubmit,
@@ -36,10 +40,17 @@ export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps>
     setIsEditMode(false);
   };
 
-  const onSubmit = (data: FormData) => {
-    console.log('Form submitted:', data);
-    // TODO: Add API call here
-    setIsEditMode(false);
+  const onSubmit = async (data: FormData) => {
+    try {
+      await updateDescriptionMutation.mutateAsync({
+        description: data.fundraiseParagraph,
+      });
+      toast.success('Fundraise description updated successfully!');
+      setIsEditMode(false);
+    } catch (error) {
+      console.error('Error updating fundraise description:', error);
+      toast.error('Failed to update fundraise description. Please try again.');
+    }
   };
 
   // Edit mode view
@@ -50,11 +61,16 @@ export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps>
           <div className={s.header}>
             <h3 className={s.subtitle}>Company paragraph for fundraise</h3>
             <div className={s.actions}>
-              <button type="button" className={s.cancelButton} onClick={handleCancel}>
+              <button
+                type="button"
+                className={s.cancelButton}
+                onClick={handleCancel}
+                disabled={updateDescriptionMutation.isPending}
+              >
                 Cancel
               </button>
-              <button type="submit" className={s.saveButton}>
-                Save
+              <button type="submit" className={s.saveButton} disabled={updateDescriptionMutation.isPending}>
+                {updateDescriptionMutation.isPending ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>
@@ -70,6 +86,7 @@ export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps>
                 className={s.textarea}
                 placeholder="Say what you do, who it's for, proof/traction, and what you're raising."
                 rows={5}
+                disabled={updateDescriptionMutation.isPending}
               />
             </div>
             <div className={s.helperText}>

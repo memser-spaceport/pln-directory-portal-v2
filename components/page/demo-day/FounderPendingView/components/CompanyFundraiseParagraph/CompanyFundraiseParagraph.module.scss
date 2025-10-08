@@ -112,8 +112,13 @@
   box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
   width: 58px;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: #f8fafc;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
@@ -136,14 +141,19 @@
   box-shadow: 0px 1px 5px 0px rgba(27, 77, 255, 0.16),
     0px 1px 3px 0px inset rgba(255, 255, 255, 0.32),
     0px 4px 6px 0px inset rgba(255, 255, 255, 0.06);
-  width: 58px;
+  min-width: 58px;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: #1a47e6;
   }
 
-  &:active {
+  &:active:not(:disabled) {
     background: #1640cc;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 }
 
@@ -181,9 +191,15 @@
     color: #8897ae;
   }
 
-  &:focus {
+  &:focus:not(:disabled) {
     outline: none;
     border-color: #1b4dff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f8fafc;
   }
 }
 

@@ -8,6 +8,7 @@ import RegsiterFormLoader from '@/components/core/register/register-form-loader'
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails, IIrlEvent } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { toast } from '@/components/core/ToastContainer';
 
 interface IDeleteAttendeesPopup {
   eventDetails: IGuestDetails;
@@ -45,7 +46,6 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
 
   const onDeleteGuests = async (e: SyntheticEvent) => {
     e.preventDefault();
-    const toast = (await import('react-toastify')).toast;
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     if (type === 'self-delete') {
       analytics.trackSelfRemoveAttendeePopupConfirmRemovalBtnClicked(location);

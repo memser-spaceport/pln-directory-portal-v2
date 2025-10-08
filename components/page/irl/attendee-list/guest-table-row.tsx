@@ -228,27 +228,15 @@ const GuestTableRow = (props: IGuestTableRow) => {
                   {guestName}
                 </div>
                 <div className="gtr__guestName__li__info">
-                  {newSearchParams.type === 'past'
-                    ? isEventAvailable[0]?.isSpeaker && (
-                        <IrlSpeakerTag speakerEvents={speakerEvents} onSpeakerEventClick={onSpeakerEventClick} />
-                      )
-                    : speakerEvents?.length > 0 && (
+                      {speakerEvents?.length > 0 && (
                         <IrlSpeakerTag speakerEvents={speakerEvents} onSpeakerEventClick={onSpeakerEventClick} />
                       )}
-                  {newSearchParams.type === 'past'
-                    ? isEventAvailable[0]?.isHost && (
-                        <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
-                      )
-                    : hostEvents?.length > 0 && (
+                     {hostEvents?.length > 0 && (
                         <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
                       )}
-                  {newSearchParams.type === 'past'
-                    ? isEventAvailable[0]?.isSponsor && (
+                     {sponsorEvents?.length > 0 && (
                         <IrlSponsorTag sponsorEvents={sponsorEvents} onSponsorEventClick={onSponsorEventClick} />
-                      )
-                    : sponsorEvents?.length > 0 && (
-                        <IrlSponsorTag sponsorEvents={sponsorEvents} onSponsorEventClick={onSponsorEventClick} />
-                      )}
+                      )}                      
                 </div>
               </div>
             </a>

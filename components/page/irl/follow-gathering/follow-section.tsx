@@ -11,7 +11,7 @@ import Image from 'next/image';
 import FollowButton from './follow-button';
 import { useSearchParams } from 'next/navigation';
 import useClickedOutside from '@/hooks/useClickedOutside';
-import { canUserPerformEditAction } from '@/utils/irl.utils';
+import { canUserPerformEditAction, filterUpcomingGatherings } from '@/utils/irl.utils';
 import PresenceRequestSuccess from './presence-request-success';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { getAccessLevel } from '@/utils/auth.utils';
@@ -40,12 +40,12 @@ const FollowSection = (props: IFollowSectionProps) => {
   const updatedUser = guestDetails?.currentGuest ?? null;
   const isUserGoing = guestDetails?.isUserGoing;
   const [isEdit, seIsEdit] = useState(false);
-  const searchParam = useSearchParams();
-  const type = searchParam.get('type');
+  const type = searchParams?.type;
   const editResponseRef = useRef<HTMLButtonElement>(null);
   const locationEvents = props?.locationEvents;
   const pastEvents = locationEvents?.pastEvents;
   const upcomingEvents = locationEvents?.upcomingEvents;
+  const filteredGatherings = filterUpcomingGatherings(upcomingEvents);
   const inPastEvents = type
     ? type === 'past'
     : pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0;
@@ -275,7 +275,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             </button>
           )}
 
-          {!isUserGoing && isUserLoggedIn && !inPastEvents && accessLevel === 'advanced' && (
+          {!isUserGoing && isUserLoggedIn && !inPastEvents && accessLevel === 'advanced' && filteredGatherings?.length > 0 && (
             <button onClick={() => onIAmGoingClick('upcoming')} className="toolbar__actionCn__imGoingBtn">
               I&apos;m Going
             </button>

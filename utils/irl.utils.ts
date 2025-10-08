@@ -354,10 +354,10 @@ export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
     });
   }
 
-  if (event) {
-    const matchingEvent = currentEvents.find((event: any) => event.slugURL === searchParams?.event);
-    result['filteredEvents[]'].push(matchingEvent?.uid);
-  }
+  // if (event) {
+  //   const matchingEvent = currentEvents.find((event: any) => event.slugURL === searchParams?.event);
+  //   result['filteredEvents[]'].push(matchingEvent?.uid);
+  // }
 
   if (attendees) {
     const attendeeTypes = attendees.split(URL_QUERY_VALUE_SEPARATOR).map((name: string) => name.trim());
@@ -478,8 +478,8 @@ export const transformGuestDetail = (result: any, gatherings: any) => {
   };
 };
 export function checkAdminInAllEvents(searchType: any, upcomingEvents: any, pastEvents: any) {
-  if (
-    searchType === 'upcoming' ||
+  // If type is specified (past or upcoming), check if user can admin that specific type
+  if (searchType === 'upcoming' ||
     (upcomingEvents && upcomingEvents.length > 0 && pastEvents && pastEvents.length === 0)
   ) {
     return true;
@@ -489,6 +489,13 @@ export function checkAdminInAllEvents(searchType: any, upcomingEvents: any, past
   ) {
     return true;
   }
+  
+  // If no type is specified (empty), allow admin access if there are any events
+  // This enables the "Member" button to show when type parameter is empty
+  if (!searchType || searchType === '') {
+    return (upcomingEvents && upcomingEvents.length > 0) || (pastEvents && pastEvents.length > 0);
+  }
+  
   return false;
 }
 

@@ -137,6 +137,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         { label: 'Early stage', value: 'Early stage' },
         { label: 'Late stage', value: 'Late stage' },
         { label: 'Fund-of-funds', value: 'Fund-of-funds' },
+        { label: 'Growth', value: 'Growth' },
       ],
     };
   }, [options]);
@@ -154,7 +155,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   };
 
   const handleTeamCreated = (team: any) => {
-    debugger;
     // Find the newly created team in the options by name
     // const newTeam = data?.teams.find((item: { teamTitle: string }) => item.teamTitle === teamName);
 
@@ -395,7 +395,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   <div className={s.row}>
                     <FormMultiSelect
                       name="investInStartupStages"
-                      label="Do you invest in Startups?"
+                      label="Startup stage(s) you invest in?"
                       placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                       options={formOptions.fundingStageOptions}
                       // showNone

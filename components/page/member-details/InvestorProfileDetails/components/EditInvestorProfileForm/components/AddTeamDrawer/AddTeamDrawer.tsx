@@ -312,7 +312,7 @@ export function AddTeamDrawer(props: Props) {
                   uniqueKey="label"
                   displayKey="label"
                   label={<Label>Startup stage(s) you invest in?</Label>}
-                  placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
+                  placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                   closeImgUrl="/icons/close.svg"
                   arrowImgUrl="/icons/arrow-down.svg"
                 />

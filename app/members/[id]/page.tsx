@@ -152,7 +152,7 @@ const MemberDetails = ({ params }: { params: any }) => {
   }
 
   if (!member) {
-    return null;
+    return <Error />;
   }
 
   function renderPageContent() {

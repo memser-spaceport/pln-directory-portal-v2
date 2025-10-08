@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { formatWalletAddress } from '@privy-io/js-sdk-core';
 import { DemoMaterialAnalyticsHandlers } from '../EditProfileDrawer/EditProfileDrawer';
+import { toast } from '@/components/core/ToastContainer';
 
 const FolderIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -156,18 +157,22 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUp
       // Validate file type - PDF only
       const allowedTypes = ['application/pdf'];
       if (!allowedTypes.includes(file.type)) {
+        const errorMessage = 'Only PDF files are allowed';
+        toast.error(errorMessage);
         setUploadState((prev) => ({
           ...prev,
-          error: 'Only PDF files are allowed',
+          error: errorMessage,
         }));
         return;
       }
 
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
+        const errorMessage = 'File size must be less than 5MB';
+        toast.error(errorMessage);
         setUploadState((prev) => ({
           ...prev,
-          error: 'File size must be less than 5MB',
+          error: errorMessage,
         }));
         return;
       }
@@ -214,6 +219,8 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUp
             uploadDuration,
           });
 
+          toast.success('Pitch slide uploaded successfully!');
+
           setUploadState((prev) => ({
             ...prev,
             isUploading: false,
@@ -230,6 +237,8 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUp
           // Report upload failed analytics
           analyticsHandlers?.onUploadFailed(fileMetadata, errorMessage);
 
+          toast.error(`Failed to upload pitch slide: ${errorMessage}`);
+
           setUploadState((prev) => ({
             ...prev,
             isUploading: false,
@@ -241,11 +250,38 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUp
     [queryClient, uploadMutation, analyticsHandlers],
   );
 
+  const onDropRejected = useCallback((fileRejections: any[]) => {
+    const rejection = fileRejections[0];
+    if (!rejection) return;
+
+    let errorMessage = 'File upload failed';
+
+    // Check for file type errors
+    const fileTypeError = rejection.errors.find((e: any) => e.code === 'file-invalid-type');
+    if (fileTypeError) {
+      errorMessage = 'Only PDF files are allowed';
+    }
+
+    // Check for file size errors
+    const fileSizeError = rejection.errors.find((e: any) => e.code === 'file-too-large');
+    if (fileSizeError) {
+      errorMessage = 'File size must be less than 5MB';
+    }
+
+    toast.error(errorMessage);
+    setUploadState((prev) => ({
+      ...prev,
+      error: errorMessage,
+    }));
+  }, []);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onDropRejected,
     accept: {
       'application/pdf': ['.pdf'],
     },
+    maxSize: 5 * 1024 * 1024, // 5MB
     multiple: false,
     disabled: uploadState.isUploading,
   });

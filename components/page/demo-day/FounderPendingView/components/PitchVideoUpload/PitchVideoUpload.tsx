@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { formatWalletAddress } from '@privy-io/js-sdk-core';
 import { DemoMaterialAnalyticsHandlers } from '../EditProfileDrawer/EditProfileDrawer';
+import { toast } from '@/components/core/ToastContainer';
 
 const FolderIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -102,18 +103,22 @@ export const PitchVideoUpload = ({ existingFile, analyticsHandlers }: PitchVideo
       // Validate file type
       const allowedTypes = ['video/mp4', 'video/mov', 'video/quicktime', 'video/webm'];
       if (!allowedTypes.includes(file.type)) {
+        const errorMessage = 'Only MP4, MOV, and WebM video files are allowed';
+        toast.error(errorMessage);
         setUploadState((prev) => ({
           ...prev,
-          error: 'Only MP4, MOV, and WebM video files are allowed',
+          error: errorMessage,
         }));
         return;
       }
 
       // Validate file size (500MB limit)
       if (file.size > 500 * 1024 * 1024) {
+        const errorMessage = 'File size must be less than 500MB';
+        toast.error(errorMessage);
         setUploadState((prev) => ({
           ...prev,
-          error: 'File size must be less than 500MB',
+          error: errorMessage,
         }));
         return;
       }
@@ -160,6 +165,8 @@ export const PitchVideoUpload = ({ existingFile, analyticsHandlers }: PitchVideo
             uploadDuration,
           });
 
+          toast.success('Pitch video uploaded successfully!');
+
           setUploadState((prev) => ({
             ...prev,
             isUploading: false,
@@ -176,6 +183,8 @@ export const PitchVideoUpload = ({ existingFile, analyticsHandlers }: PitchVideo
           // Report upload failed analytics
           analyticsHandlers?.onUploadFailed(fileMetadata, errorMessage);
 
+          toast.error(`Failed to upload pitch video: ${errorMessage}`);
+
           setUploadState((prev) => ({
             ...prev,
             isUploading: false,
@@ -187,14 +196,41 @@ export const PitchVideoUpload = ({ existingFile, analyticsHandlers }: PitchVideo
     [queryClient, uploadMutation, analyticsHandlers],
   );
 
+  const onDropRejected = useCallback((fileRejections: any[]) => {
+    const rejection = fileRejections[0];
+    if (!rejection) return;
+
+    let errorMessage = 'File upload failed';
+
+    // Check for file type errors
+    const fileTypeError = rejection.errors.find((e: any) => e.code === 'file-invalid-type');
+    if (fileTypeError) {
+      errorMessage = 'Only MP4, MOV, and WebM video files are allowed';
+    }
+
+    // Check for file size errors
+    const fileSizeError = rejection.errors.find((e: any) => e.code === 'file-too-large');
+    if (fileSizeError) {
+      errorMessage = 'File size must be less than 500MB';
+    }
+
+    toast.error(errorMessage);
+    setUploadState((prev) => ({
+      ...prev,
+      error: errorMessage,
+    }));
+  }, []);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onDropRejected,
     accept: {
       'video/mp4': ['.mp4'],
       'video/mov': ['.mov'],
       'video/quicktime': ['.mov'],
       'video/webm': ['.webm'],
     },
+    maxSize: 500 * 1024 * 1024, // 500MB
     multiple: false,
     disabled: uploadState.isUploading,
   });

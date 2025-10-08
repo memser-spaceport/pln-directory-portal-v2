@@ -11,7 +11,7 @@ import FloatingBar from './floating-bar';
 import Modal from '@/components/core/modal';
 import DeleteAttendeesPopup from './delete-attendees-popup';
 import { getParsedValue, triggerLoader } from '@/utils/common.utils';
-import { getGuestEvents, getGuestsByLocation, getTopicsByLocation } from '@/services/irl.service';
+import { getCurrentGuestsByLocation, getGuestEvents, getGuestsByLocation, getTopicsByLocation } from '@/services/irl.service';
 import AttendeeForm from '../add-edit-attendee/attendee-form';
 import NoAttendees from './no-attendees';
 import AttendeeTableHeader from './attendee-table-header';
@@ -107,7 +107,7 @@ const AttendeeList = (props: IAttendeeList) => {
         authToken,
         currentEventNames,
       ),
-      await getGuestsByLocation(location?.uid, { type: eventType }, authToken, currentEventNames, 1, 1),
+      await getCurrentGuestsByLocation(location?.uid, { type: eventType }, authToken, currentEventNames, 1, 1),
       await getTopicsByLocation(location?.uid, eventType),
       await getGuestEvents(location?.uid, authToken),
     ]);

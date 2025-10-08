@@ -32,6 +32,7 @@ export type TeamProfile = {
     skills: { uid: string; title: string }[];
     uid: string;
   }[];
+  description: string | null;
 };
 
 export type TeamsListResponse = TeamProfile[];

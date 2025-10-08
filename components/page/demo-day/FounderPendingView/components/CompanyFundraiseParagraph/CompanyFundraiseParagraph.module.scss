@@ -9,6 +9,13 @@
   padding: 0;
   width: 100%;
   flex-shrink: 0;
+
+  form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
 }
 
 .header {
@@ -78,5 +85,131 @@
   color: #64748b;
   margin: 0;
   width: 100%;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cancelButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  cursor: pointer;
+  color: #455468;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  transition: background-color 0.2s ease;
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+  width: 58px;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+.saveButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #1b4dff;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  cursor: pointer;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  transition: background-color 0.2s ease;
+  box-shadow: 0px 1px 5px 0px rgba(27, 77, 255, 0.16),
+    0px 1px 3px 0px inset rgba(255, 255, 255, 0.32),
+    0px 4px 6px 0px inset rgba(255, 255, 255, 0.06);
+  width: 58px;
+
+  &:hover {
+    background: #1a47e6;
+  }
+
+  &:active {
+    background: #1640cc;
+  }
+}
+
+.editContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.textareaWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 154px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  background: white;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #0f172a;
+  resize: vertical;
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.08),
+    0px -2px 8px 0px inset rgba(14, 15, 17, 0.02);
+  transition: border-color 0.2s ease;
+
+  &::placeholder {
+    color: #8897ae;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #1b4dff;
+  }
+}
+
+.helperText {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+
+  p {
+    color: var(--foreground-neutral-secondary, #455468);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 18px; /* 150% */
+    letter-spacing: -0.2px;
+  }
+}
+
+.errorText {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #dc2626;
+  margin: 0;
 }
 

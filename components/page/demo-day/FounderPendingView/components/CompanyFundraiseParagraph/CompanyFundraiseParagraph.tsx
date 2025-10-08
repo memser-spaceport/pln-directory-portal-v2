@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import s from './CompanyFundraiseParagraph.module.scss';
 
 interface CompanyFundraiseParagraphProps {
@@ -6,30 +7,84 @@ interface CompanyFundraiseParagraphProps {
   editable?: boolean;
 }
 
+interface FormData {
+  fundraiseParagraph: string;
+}
+
 export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps> = ({
   paragraph,
   editable = false,
 }) => {
   const [isEditMode, setIsEditMode] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>({
+    defaultValues: {
+      fundraiseParagraph: paragraph || '',
+    },
+  });
 
   const handleEditClick = () => {
     setIsEditMode(true);
   };
 
-  // TODO: Add edit form view
+  const handleCancel = () => {
+    reset();
+    setIsEditMode(false);
+  };
+
+  const onSubmit = (data: FormData) => {
+    console.log('Form submitted:', data);
+    // TODO: Add API call here
+    setIsEditMode(false);
+  };
+
+  // Edit mode view
   if (isEditMode) {
     return (
       <div className={s.container}>
-        <div className={s.header}>
-          <h3 className={s.subtitle}>Company paragraph for fundraise</h3>
-        </div>
-        <div className={s.content}>
-          <p className={s.text}>Edit mode - to be implemented</p>
-        </div>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className={s.header}>
+            <h3 className={s.subtitle}>Company paragraph for fundraise</h3>
+            <div className={s.actions}>
+              <button type="button" className={s.cancelButton} onClick={handleCancel}>
+                Cancel
+              </button>
+              <button type="submit" className={s.saveButton}>
+                Save
+              </button>
+            </div>
+          </div>
+          <div className={s.editContent}>
+            <div className={s.textareaWrapper}>
+              <textarea
+                {...register('fundraiseParagraph', {
+                  maxLength: {
+                    value: 400,
+                    message: 'Maximum 400 characters allowed',
+                  },
+                })}
+                className={s.textarea}
+                placeholder="Say what you do, who it's for, proof/traction, and what you're raising."
+                rows={5}
+              />
+            </div>
+            <div className={s.helperText}>
+              <p>One short paragraph, max 400 characters.</p>
+            </div>
+            {errors.fundraiseParagraph && (
+              <div className={s.errorText}>{errors.fundraiseParagraph.message}</div>
+            )}
+          </div>
+        </form>
       </div>
     );
   }
 
+  // View mode
   return (
     <div className={s.container}>
       <div className={s.header}>

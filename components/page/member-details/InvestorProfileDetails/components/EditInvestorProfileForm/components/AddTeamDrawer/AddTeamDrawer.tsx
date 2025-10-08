@@ -40,6 +40,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 interface Props extends Omit<DrawerProps, 'header'> {
   userInfo: IUserInfo;
+  onSuccess?: (teamName: string) => void;
 }
 
 export function AddTeamDrawer(props: Props) {
@@ -101,13 +102,22 @@ export function AddTeamDrawer(props: Props) {
     [s.hidden]: !isInvestmentFund,
   });
 
-  const saveTeam = useGetSaveTeam(() => {
-    queryClient.invalidateQueries({
+  const saveTeam = useGetSaveTeam(async (newData: any) => {
+    // Invalidate queries and wait for them to refetch
+    await queryClient.invalidateQueries({
       queryKey: [MembersQueryKeys.GET_MEMBER, userInfo.uid],
     });
-    queryClient.invalidateQueries({
+    await queryClient.invalidateQueries({
       queryKey: [MembersQueryKeys.GET_SKILLS_OPTIONS],
     });
+
+    // Call onSuccess with the team name
+    if (props.onSuccess && newData?.name) {
+      setTimeout(() => {
+        props.onSuccess?.(newData);
+      }, 2000);
+    }
+
     props.onClose();
     toast.success('Team submitted successfully');
   });

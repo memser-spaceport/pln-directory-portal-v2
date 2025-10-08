@@ -31,6 +31,7 @@ import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOpti
 import { useMember } from '@/services/members/hooks/useMember';
 import { findPreferredTeam } from './utils/findPreferredTeam';
 import { AddTeamDrawer } from './components/AddTeamDrawer/AddTeamDrawer';
+import clsx from 'clsx';
 
 interface Props {
   onClose: () => void;
@@ -136,6 +137,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         { label: 'Early stage', value: 'Early stage' },
         { label: 'Late stage', value: 'Late stage' },
         { label: 'Fund-of-funds', value: 'Fund-of-funds' },
+        { label: 'Growth', value: 'Growth' },
       ],
     };
   }, [options]);
@@ -150,6 +152,25 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
 
     // Return 0 if parsing failed
     return isNaN(numericValue) ? 0 : numericValue;
+  };
+
+  const handleTeamCreated = (team: any) => {
+    // Find the newly created team in the options by name
+    // const newTeam = data?.teams.find((item: { teamTitle: string }) => item.teamTitle === teamName);
+
+    if (team) {
+      const teamOption = {
+        value: team.uid,
+        label: team.name,
+        originalObject: team,
+      };
+
+      // Set the team value in the form
+      setValue('team', teamOption, { shouldValidate: true, shouldDirty: true });
+
+      // Trigger team selection analytics
+      handleTeamSelect(teamOption);
+    }
   };
 
   const handleAddTeamLinkClick = () => {
@@ -374,7 +395,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   <div className={s.row}>
                     <FormMultiSelect
                       name="investInStartupStages"
-                      label="Do you invest in Startups?"
+                      label="Startup stage(s) you invest in?"
                       placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                       options={formOptions.fundingStageOptions}
                       // showNone
@@ -472,6 +493,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                         })) ?? []
                       }
                       onChange={(value) => handleTeamSelect(value)}
+                      isStickyNoData
                       notFoundContent={
                         <div className={s.secondaryLabel}>
                           If you don&apos;t see your team on this list, please{' '}
@@ -499,6 +521,18 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                           label="Role"
                           disabled={!selectedTeam}
                         />
+                        {!isTeamLead && (
+                          <div className={s.infoSection}>
+                            <div className={s.infoIcon}>
+                              <InfoIcon />
+                            </div>
+                            <div className={s.infoContent}>
+                              <p className={s.infoText}>
+                                Update to fund&apos;s investment details can only be made by team lead
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className={s.row}>
@@ -565,7 +599,12 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         <EditOfficeHoursMobileControls />
       </form>
 
-      <AddTeamDrawer isOpen={isAddTeamDrawerOpen} onClose={() => setIsAddTeamDrawerOpen(false)} userInfo={userInfo} />
+      <AddTeamDrawer
+        isOpen={isAddTeamDrawerOpen}
+        onClose={() => setIsAddTeamDrawerOpen(false)}
+        userInfo={userInfo}
+        onSuccess={handleTeamCreated}
+      />
     </FormProvider>
   );
 };

@@ -103,6 +103,13 @@
   gap: 8px;
   width: 100%;
   border-top: 1px solid var(--Border-border-light, #e2e8f0);
+  position: relative;
+
+  &.sticky {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+  }
 }
 
 .mobileRoot {

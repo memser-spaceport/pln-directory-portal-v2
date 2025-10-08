@@ -1,0 +1,82 @@
+@use 'styles/media';
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 0;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.subtitle {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  margin: 0;
+}
+
+.editButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #455468;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  padding: 4px 8px;
+  transition: background-color 0.2s ease;
+  box-shadow: 0px -1px 4px 0px inset rgba(27, 77, 255, 0.08);
+
+  &:hover {
+    background: rgba(69, 84, 104, 0.1);
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.content {
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 0;
+  border-radius: 12px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #64748b;
+  margin: 0;
+  width: 100%;
+}
+

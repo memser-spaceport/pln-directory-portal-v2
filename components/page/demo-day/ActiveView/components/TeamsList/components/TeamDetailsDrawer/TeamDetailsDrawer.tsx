@@ -7,8 +7,7 @@ import { CompanyFundraiseParagraph } from '@/components/page/demo-day/FounderPen
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import s from './TeamDetailsDrawer.module.scss';
 import { EditProfileDrawer } from '@/components/page/demo-day/FounderPendingView/components/EditProfileDrawer';
-import { useGetFundraisingProfile, FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
-import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
+import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { createDemoDayEmailHandler, DemoDayEmailData } from '@/utils/demo-day-email.utils';
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
@@ -16,7 +15,7 @@ import Cookies from 'js-cookie';
 import Link from 'next/link';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { DEMO_DAY_ANALYTICS, ADMIN_ROLE } from '@/utils/constants';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 const BackIcon = () => (
@@ -41,6 +40,7 @@ interface TeamDetailsDrawerProps {
     teamName: string;
     email: string;
   };
+  isAdmin?: boolean;
 }
 
 export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
@@ -49,12 +49,9 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   team,
   scrollPosition,
   investorData,
+  isAdmin = false,
 }) => {
   const { data } = useGetFundraisingProfile();
-  const { data: teamsList } = useGetTeamsList();
-
-  // For admin editing another team, get the latest data from the teams list
-  const latestTeamData = teamsList?.find((t) => t.uid === team?.uid);
 
   // Analytics hooks
   const {
@@ -69,8 +66,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
   if (!team) return null;
 
-  // Use the latest team data from the refetched list, fallback to the prop
-  const displayTeam = latestTeamData || team;
+  const displayTeam = team;
 
   // Create email data for demo day actions
   const createEmailData = (): DemoDayEmailData | null => {
@@ -252,12 +248,10 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     }
   };
 
-  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const isOwnTeam = team?.team?.uid === data?.teamUid;
 
-  // If a user is editing their own team or admin is editing any team, show the edit drawer
   if (isOwnTeam || isAdmin) {
-    const editData = (isAdmin && !isOwnTeam ? (latestTeamData || team) : data) as FundraisingProfile | undefined;
+    const editData = isAdmin && !isOwnTeam ? team : data;
     return <EditProfileDrawer isOpen={isOpen} onClose={onClose} scrollPosition={0} data={editData} />;
   }
 

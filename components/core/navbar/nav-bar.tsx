@@ -2,6 +2,7 @@
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import { ADMIN_ROLE } from '@/utils/constants';
 import { usePathname } from 'next/navigation';
 import React, { memo, useState } from 'react';
 import LoginBtn from './login-btn';
@@ -122,6 +123,17 @@ function Navbar(props: Readonly<INavbar>) {
             <DemoDayIcon /> Demo Day
           </Link>
         </NavigationMenu.Item>
+        {userInfo?.roles?.includes(ADMIN_ROLE) && (
+          <NavigationMenu.Item>
+            <Link
+              className={s.Trigger}
+              href="/demoday/admin"
+              onClick={() => onNavItemClickHandler('/demoday/admin', 'Demo Day Admin')}
+            >
+              <DemoDayIcon /> Demo Day (Admin)
+            </Link>
+          </NavigationMenu.Item>
+        )}
 
         <div className={s.right}>
           <NotificationsMenu

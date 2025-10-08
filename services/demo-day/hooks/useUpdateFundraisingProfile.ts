@@ -46,9 +46,10 @@ export function useUpdateFundraisingProfile() {
     onSuccess: (result) => {
       // Invalidate the user's own fundraising profile
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
-      // Only invalidate the team list if editing another team (admin case)
+      // If editing another team (admin case), invalidate both team lists
       if (result.teamUid) {
         queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST] });
+        queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES] });
       }
     },
     onError: (error) => {

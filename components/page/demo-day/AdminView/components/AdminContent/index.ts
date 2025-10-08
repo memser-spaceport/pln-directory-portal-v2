@@ -1,0 +1,1 @@
+export { AdminContent } from './AdminContent';

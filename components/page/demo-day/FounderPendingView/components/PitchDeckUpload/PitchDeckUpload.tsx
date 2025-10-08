@@ -153,12 +153,12 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUp
       const file = acceptedFiles[0];
       if (!file) return;
 
-      // Validate file type
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      // Validate file type - PDF only
+      const allowedTypes = ['application/pdf'];
       if (!allowedTypes.includes(file.type)) {
         setUploadState((prev) => ({
           ...prev,
-          error: 'Only PDF, JPG, and PNG files are allowed',
+          error: 'Only PDF files are allowed',
         }));
         return;
       }
@@ -245,8 +245,6 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUp
     onDrop,
     accept: {
       'application/pdf': ['.pdf'],
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png'],
     },
     multiple: false,
     disabled: uploadState.isUploading,
@@ -312,7 +310,7 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUp
         </div>
         <div className={s.uploadText}>
           <h4>Drag & Drop or Upload Your Pitch Slide</h4>
-          <p>Accepted formats: PDF, JPG, PNG. Max 1 slide only, up to 5MB.</p>
+          <p>Format: PDF, 1-slide ONLY, Max 5 MB, Aspect Ratio: 16:9, 1920 × 1080 pixels, 150-300 DPI for images.</p>
         </div>
         <button type="button" className={s.browseButton}>
           Browse

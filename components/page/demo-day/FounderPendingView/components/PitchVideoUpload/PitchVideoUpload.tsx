@@ -261,7 +261,7 @@ export const PitchVideoUpload = ({ existingFile, analyticsHandlers }: PitchVideo
         </div>
         <div className={s.uploadText}>
           <h4>Drag & Drop or Upload Your Pitch Video</h4>
-          <p>Supported: MP4, MOV, WebM. Max 500 MB. Max X min.</p>
+          <p>Supported: MP4, MOV, WebM. Max 500 MB. Max 3 min.</p>
         </div>
         <button type="button" className={s.browseButton}>
           Browse

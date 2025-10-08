@@ -569,7 +569,10 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             onDeleted: handleDemoMaterialDeleted,
             onViewed: handleDemoMaterialViewed,
           }}
-          companyFundraiseParagraph={<CompanyFundraiseParagraph paragraph={data?.description} editable={true} />}
+          companyFundraiseParagraph={
+            <CompanyFundraiseParagraph paragraph={data?.description} editable={true} teamUid={data?.teamUid} />
+          }
+          teamUid={data?.teamUid}
         />
       </div>
 

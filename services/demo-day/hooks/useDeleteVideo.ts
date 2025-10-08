@@ -6,8 +6,15 @@ interface DeleteVideoResponse {
   message: string;
 }
 
-async function deleteVideo(): Promise<DeleteVideoResponse> {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/video`;
+interface DeleteVideoParams {
+  teamUid?: string; // Optional team UID for admin deletes
+}
+
+async function deleteVideo(params?: DeleteVideoParams): Promise<DeleteVideoResponse> {
+  // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
+  const url = params?.teamUid
+    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/current/teams/${params.teamUid}/fundraising-profile/video`
+    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/video`;
 
   const response = await customFetch(
     url,

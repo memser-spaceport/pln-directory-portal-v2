@@ -6,8 +6,15 @@ interface DeleteOnePagerResponse {
   message: string;
 }
 
-async function deleteOnePager(): Promise<DeleteOnePagerResponse> {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/one-pager`;
+interface DeleteOnePagerParams {
+  teamUid?: string; // Optional team UID for admin deletes
+}
+
+async function deleteOnePager(params?: DeleteOnePagerParams): Promise<DeleteOnePagerResponse> {
+  // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
+  const url = params?.teamUid
+    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/current/teams/${params.teamUid}/fundraising-profile/one-pager`
+    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/one-pager`;
 
   const response = await customFetch(
     url,

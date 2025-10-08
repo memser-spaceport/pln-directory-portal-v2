@@ -11,11 +11,20 @@ interface UploadVideoResponse {
   };
 }
 
-async function uploadVideo(file: File): Promise<UploadVideoResponse> {
+interface UploadVideoParams {
+  file: File;
+  teamUid?: string; // Optional team UID for admin uploads
+}
+
+async function uploadVideo(params: UploadVideoParams): Promise<UploadVideoResponse> {
+  const { file, teamUid } = params;
   const formData = new FormData();
   formData.append('videoFile', file);
 
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/video`;
+  // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
+  const url = teamUid
+    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/current/teams/${teamUid}/fundraising-profile/video`
+    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/video`;
 
   const response = await customFetch(
     url,

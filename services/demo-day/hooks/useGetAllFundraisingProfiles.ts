@@ -4,7 +4,7 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import { TeamProfile } from './useGetTeamsList';
 
 async function fetcher(): Promise<TeamProfile[]> {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profiles/admin`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/current/fundraising-profiles`;
 
   const response = await customFetch(
     url,

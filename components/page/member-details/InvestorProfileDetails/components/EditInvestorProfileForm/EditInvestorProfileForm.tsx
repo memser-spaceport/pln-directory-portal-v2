@@ -152,6 +152,26 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     return isNaN(numericValue) ? 0 : numericValue;
   };
 
+  const handleTeamCreated = (team: any) => {
+    debugger;
+    // Find the newly created team in the options by name
+    // const newTeam = data?.teams.find((item: { teamTitle: string }) => item.teamTitle === teamName);
+
+    if (team) {
+      const teamOption = {
+        value: team.uid,
+        label: team.name,
+        originalObject: team,
+      };
+
+      // Set the team value in the form
+      setValue('team', teamOption, { shouldValidate: true, shouldDirty: true });
+
+      // Trigger team selection analytics
+      handleTeamSelect(teamOption);
+    }
+  };
+
   const handleAddTeamLinkClick = () => {
     if (userInfo?.email) {
       // Custom analytics event
@@ -565,7 +585,12 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         <EditOfficeHoursMobileControls />
       </form>
 
-      <AddTeamDrawer isOpen={isAddTeamDrawerOpen} onClose={() => setIsAddTeamDrawerOpen(false)} userInfo={userInfo} />
+      <AddTeamDrawer
+        isOpen={isAddTeamDrawerOpen}
+        onClose={() => setIsAddTeamDrawerOpen(false)}
+        userInfo={userInfo}
+        onSuccess={handleTeamCreated}
+      />
     </FormProvider>
   );
 };

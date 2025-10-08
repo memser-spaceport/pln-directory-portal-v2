@@ -130,6 +130,8 @@ const MemberDetails = ({ params }: { params: any }) => {
   const isAvailableToConnect = isMemberAvailableToConnect(member);
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
 
+  const hasBio = member?.bio?.trim() && member?.bio?.trim() !== '<p><br></p>';
+
   // Scroll to top when member data is loaded or member ID changes
   useEffect(() => {
     if (member && !isLoading) {
@@ -169,9 +171,10 @@ const MemberDetails = ({ params }: { params: any }) => {
               <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             )}
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
             <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {!hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
           </>
         );
       }
@@ -187,6 +190,7 @@ const MemberDetails = ({ params }: { params: any }) => {
             )}
             <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
             <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
@@ -196,7 +200,7 @@ const MemberDetails = ({ params }: { params: any }) => {
               </div>
             )}
             <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {!hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
           </>
         );
       }

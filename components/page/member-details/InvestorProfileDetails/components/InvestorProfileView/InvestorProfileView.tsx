@@ -4,7 +4,7 @@ import React from 'react';
 import { clsx } from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
-import { InvestmentDetailsSection } from './components';
+import { InvestmentDetailsSection, InvestorProfileField } from './components';
 
 import s from './InvestorProfileView.module.scss';
 import { LinkIcon } from '@/components/page/member-details/InvestorProfileDetails/components/EditInvestorProfileForm/icons';
@@ -26,6 +26,7 @@ interface Props {
   secRulesAccepted: boolean | undefined;
   type: InvestorProfileType | undefined;
   member?: IMember;
+  hideHeader?: boolean;
 }
 
 const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
@@ -55,8 +56,11 @@ export const InvestorProfileView = ({
   onEdit,
   type,
   member,
+  hideHeader,
 }: Props) => {
   const fundTeam = findPreferredTeam(member?.teams);
+
+  const investmentTeams = member?.teams.filter((team) => team.investmentTeam) ?? [];
 
   return (
     <>
@@ -80,78 +84,78 @@ export const InvestorProfileView = ({
         </div>
 
         <div className={s.content}>
-          <div className={s.section}>
-            {type === 'ANGEL_AND_FUND' && (
-              <div className={s.sectionContent}>
-                {typicalCheckSize ||
-                investmentFocusAreas?.length ||
-                investInStartupStages?.length ||
-                investInFundTypes?.length ||
-                isEditable ? (
-                  <>
-                    <InvestmentDetailsSection
-                      typicalCheckSize={typicalCheckSize}
-                      investmentFocusAreas={investmentFocusAreas}
-                      investInStartupStages={investInStartupStages}
-                      investInFundTypes={investInFundTypes}
-                      secRulesAccepted={secRulesAccepted}
-                      isEditable={isEditable}
-                      onEdit={onEdit}
-                    />
-                    <div className={s.divider} />
-                  </>
-                ) : null}
-                <>
-                  <div>
-                    {fundTeam ? (
-                      <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
-                        <div className={s.infoSectionContent}>
-                          <span className={s.keywordsLabel}>I also invest through: </span> <b>{fundTeam?.name}</b>{' '}
-                          <LinkIcon />
+          {(type === 'ANGEL_AND_FUND' || type === 'FUND') && investmentTeams?.length > 0 && (
+            <div className={s.block}>
+              <div className={s.blockTitle}>Investment through fund(s)</div>
+
+              {investmentTeams.map((team) => {
+                return (
+                  <div className={s.section} key={team.id}>
+                    <div className={s.teamInfo}>
+                      <img
+                        src={team.logo || '/images/demo-day/profile-placeholder.svg'}
+                        className={s.teamLogo}
+                        alt={team.name ?? 'Team Logo'}
+                      />
+                      <div className={s.teamCol}>
+                        <div className={s.teamName}>
+                          {team.name}{' '}
+                          <Link href={`/teams/${team.id}`} target="_blank">
+                            <LinkIcon />
+                          </Link>
                         </div>
-                      </Link>
-                    ) : (
-                      <Link href="/teams/add" className={s.infoSectionContent}>
-                        Submit a Fund <LinkIcon />
-                      </Link>
-                    )}
-                  </div>
-                </>
-              </div>
-            )}
-            {type === 'FUND' && (
-              <>
-                <div>
-                  {fundTeam ? (
-                    <Link href={`/teams/${fundTeam?.id}`} className={s.ctaLink}>
-                      <div className={s.infoSectionContent}>
-                        <span className={s.keywordsLabel}>I invest through: </span> <b>{fundTeam?.name}</b> <LinkIcon />
+                        <div className={s.teamTag}>Investment Fund</div>
                       </div>
-                    </Link>
-                  ) : (
-                    <div className={s.keywordsWrapper}>
-                      <span className={s.keywordsLabel}>I invest through:</span>
-                      <span className={s.badgesWrapper}>
-                        {typicalCheckSize && secRulesAccepted ? (
-                          <div className={s.badge}>{formatUSD.format(+typicalCheckSize)}</div>
-                        ) : (
-                          <button
-                            type="button"
-                            className={s.addKeywordsBadge}
-                            onClick={() => {
-                              onEdit?.();
-                            }}
-                          >
-                            <AddIcon /> Add team
-                          </button>
-                        )}
-                      </span>
                     </div>
-                  )}
-                </div>
-              </>
-            )}
-            {(type === 'ANGEL' || !type) && (
+
+                    <div className={s.column}>
+                      {isEditable && (
+                        <InvestorProfileField label="Fund Type(s)">
+                          {!!team.investorProfile?.investInFundTypes?.length
+                            ? team.investorProfile?.investInFundTypes.join(', ')
+                            : '-'}
+                        </InvestorProfileField>
+                      )}
+                      <InvestorProfileField label="Typical Check Size">
+                        {!!team.investorProfile?.typicalCheckSize
+                          ? formatUSD.format(+(team.investorProfile?.typicalCheckSize ?? 0))
+                          : '-'}
+                      </InvestorProfileField>
+                    </div>
+                    <div className={s.column}>
+                      <InvestorProfileField label="Startup Stages">
+                        {!!team.investorProfile?.investInStartupStages.length
+                          ? team.investorProfile?.investInStartupStages.join(', ')
+                          : '-'}
+                      </InvestorProfileField>
+                      <InvestorProfileField label="Investment Focus">
+                        {!!team.investorProfile?.investmentFocus?.length
+                          ? team.investorProfile?.investmentFocus.join(', ')
+                          : '-'}
+                      </InvestorProfileField>
+                    </div>
+                    {/*<div>params</div>*/}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {type === 'FUND' && !investmentTeams?.length && (
+            <div className={s.block}>
+              <InvestmentDetailsSection isEditable={isEditable} />
+            </div>
+          )}
+
+          {(type === 'ANGEL' || type === 'ANGEL_AND_FUND' || !type) && (
+            <div className={s.block}>
+              {!hideHeader && (
+                <>
+                  {typicalCheckSize || investInStartupStages?.length || investmentFocusAreas?.length ? (
+                    <div className={s.blockTitle}>Direct Investments</div>
+                  ) : null}
+                </>
+              )}
               <InvestmentDetailsSection
                 typicalCheckSize={typicalCheckSize}
                 investmentFocusAreas={investmentFocusAreas}
@@ -161,8 +165,8 @@ export const InvestorProfileView = ({
                 isEditable={isEditable}
                 onEdit={onEdit}
               />
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </>

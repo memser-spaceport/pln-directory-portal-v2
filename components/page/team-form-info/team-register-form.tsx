@@ -4,19 +4,20 @@ import useStepsIndicator from '@/hooks/useStepsIndicator';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import TeamBasicInfo from './team-basic-info';
 import { basicInfoSchema, projectDetailsSchema, socialSchema } from '@/schema/team-forms';
-import { getTeamsFormOptions, saveRegistrationImage } from '@/services/registration.service';
+
 import TeamProjectsInfo from './team-projects-info';
 import TeamSocialInfo from './team-social-info';
 import { createParticipantRequest, validatePariticipantsEmail } from '@/services/participants-request.service';
 import { ENROLLMENT_TYPE, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
-import { toast } from '@/components/core/ToastContainer';
-import Cookies from 'js-cookie';
 import { teamRegisterDefault, transformRawInputsToFormObj } from '@/utils/team.utils';
 import RegisterActions from '@/components/core/register/register-actions';
 import RegisterSuccess from '@/components/core/register/register-success';
 import { useJoinNetworkAnalytics } from '@/analytics/join-network.analytics';
 import { useRouter } from 'next/navigation';
 import { STEP_INDICATOR_KEY, TEAM_FORM_STEPS } from '@/utils/constants/team-constants';
+import { isEditorEmpty } from '@/utils/isEditorEmpty';
+import { useGetTeamsFormOptions } from '@/hooks/createTeam/useGetTeamsFormOptions';
+import { useGetSaveTeam } from '@/hooks/createTeam/useGetSaveTeam';
 
 interface ITeamRegisterForm {
   // onCloseForm: () => void;
@@ -34,13 +35,8 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
     uniqueKey: STEP_INDICATOR_KEY,
   });
   const formRef = useRef<HTMLFormElement>(null);
-  const [allData, setAllData] = useState({
-    technologies: [],
-    fundingStage: [],
-    membershipSources: [],
-    industryTags: [],
-    isError: false,
-  });
+
+  const allData = useGetTeamsFormOptions();
   const [basicErrors, setBasicErrors] = useState<string[]>([]);
   const [projectDetailsErrors, setProjectDetailsErrors] = useState<string[]>([]);
   const [socialErrors, setSocialErrors] = useState<string[]>([]);
@@ -49,18 +45,14 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
     teamRegisterDefault.basicInfo.requestorEmail = userInfo.email;
   }
 
+  const [isInvestmentFund, setIsInvestmentFund] = useState(false);
   const [initialValues, setInitialValues] = useState({ ...teamRegisterDefault });
   const [content, setContent] = useState(initialValues?.basicInfo.longDescription ?? '');
 
   const router = useRouter();
 
   const analytics = useJoinNetworkAnalytics();
-
-  // const scrollToTop = () => {
-  //   if (formContainerRef.current) {
-  //     formContainerRef.current.scrollTop = 0;
-  //   }
-  // };
+  const saveTeam = useGetSaveTeam(onSuccess);
 
   // Scrolls the page to the top
   function scrollToTop() {
@@ -76,7 +68,8 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formattedData = transformRawInputsToFormObj(Object.fromEntries(formData));
-      formattedData['longDescription'] = content;
+
+      formattedData['longDescription'] = isEditorEmpty(content) ? '' : content;
 
       analytics.recordTeamJoinNetworkSave('save-click', formattedData);
       if (currentStep === TEAM_FORM_STEPS[2]) {
@@ -89,42 +82,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
         }
         setSocialErrors([]);
 
-        try {
-          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-          if (formattedData?.teamProfile && formattedData.teamProfile.size > 0) {
-            const imgResponse = await saveRegistrationImage(formattedData?.teamProfile);
-            const image: any = imgResponse?.image;
-            formattedData.logoUid = image.uid;
-            formattedData.logoUrl = image.url;
-            delete formattedData.teamProfile;
-            delete formattedData.imageFile;
-          }
-          const data = {
-            participantType: 'TEAM',
-            status: 'PENDING',
-            requesterEmailId: formattedData?.requestorEmail,
-            uniqueIdentifier: formattedData?.name,
-            newData: { ...formattedData },
-          };
-
-          const authToken = Cookies.get('authToken') || '';
-          const response = await createParticipantRequest(data, authToken);
-
-          if (response.ok) {
-            // goToNextStep();
-            onSuccess();
-            document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-            analytics.recordTeamJoinNetworkSave('save-success', data);
-          } else {
-            document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-            toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-            analytics.recordTeamJoinNetworkSave('save-error', data);
-          }
-        } catch (err) {
-          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-          toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-          analytics.recordTeamJoinNetworkSave('save-error');
-        }
+        await saveTeam(formattedData);
       }
     }
   };
@@ -206,16 +164,6 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
   };
 
   useEffect(() => {
-    getTeamsFormOptions()
-      .then((data) => {
-        if (!data.isError) {
-          setAllData(data as any);
-        }
-      })
-      .catch((e) => console.error(e));
-  }, []);
-
-  useEffect(() => {
     function resetHandler() {
       if (formRef.current) {
         formRef.current.reset();
@@ -246,11 +194,14 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
                 setLongDesc={setContent}
                 longDescMaxLength={MAX_DESCRIPTION_LENGTH}
                 userInfo={userInfo}
+                isInvestmentFund={isInvestmentFund}
+                setIsInvestmentFund={setIsInvestmentFund}
               />
             </div>
             <div className={currentStep !== TEAM_FORM_STEPS[1] ? 'hidden' : 'form'}>
               <TeamProjectsInfo
                 errors={projectDetailsErrors}
+                isInvestmentFund={isInvestmentFund}
                 protocolOptions={allData?.technologies}
                 fundingStageOptions={allData?.fundingStage}
                 membershipSourceOptions={allData?.membershipSources}
@@ -290,7 +241,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
           .trf__form {
             padding: 24px;
             height: calc(100% - 70px);
-            overflow-y: auto;
+            overflow-y: visible;
           }
 
           .form {
@@ -301,7 +252,6 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
           @media (min-width: 1024px) {
             .trf__form {
               padding: 24px 32px;
-              overflow-y: auto;
             }
           }
         `}

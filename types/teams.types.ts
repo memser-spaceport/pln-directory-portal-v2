@@ -104,6 +104,7 @@ export interface ITeam {
   teamFocusAreas: any[];
   eventGuests?: any;
   isFund?: boolean;
+  investmentTeam?: boolean;
   investorProfile?: {
     uid: string;
     investmentFocus: string[] | undefined;

@@ -1,0 +1,17 @@
+.root {
+  gap: 4px;
+  display: flex;
+  align-items: center;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  margin-bottom: -4px;
+}
+
+.mandatory {
+  color: var(--foreground-error-secondary, #FF3838);
+}

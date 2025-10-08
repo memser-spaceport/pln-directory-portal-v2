@@ -74,6 +74,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
                 investInStartupStages={team?.investorProfile?.investInStartupStages}
                 investInFundTypes={team?.investorProfile?.investInFundTypes}
                 type={'ANGEL'}
+                hideHeader
               />
             </div>
           )}

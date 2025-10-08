@@ -118,14 +118,14 @@ const AttendeeDetails = (props: IAttendeeForm) => {
               formData['topicsAndReason'] = topicsAndReasonResponse;
             }
 
-            setFormInitialValues(formData);
+              setFormInitialValues(formData);
           } else {
             const formData: any = {};
             if (!topicsAndReasonResponse.isError) {
               formData['topicsAndReason'] = topicsAndReasonResponse;
             }
             updateMemberDetails(true);
-            setFormInitialValues(formData);
+              setFormInitialValues(formData);
             return;
           }
         } catch (error) {

@@ -23,7 +23,6 @@ const FloatingBar = (props: IFloatingBar) => {
   const selectedGuest = guests?.find((guest: IGuest) => selectedGuestIds[0] === guest?.memberUid);
   const location = props.location;
   const searchParams = props.searchParams;
-
   //variables
   const authToken = getParsedValue(Cookies.get('authToken'));
   const eventType = searchParams?.type === 'past' ? '' : 'upcoming';
@@ -49,7 +48,6 @@ const FloatingBar = (props: IFloatingBar) => {
     if (selectedGuest?.memberUid) {
       let guestDetails = await getGuestDetail(selectedGuest?.memberUid, location.uid, authToken, eventType);
       guestDetails = transformGuestDetail(guestDetails, []);
-
       const formData = {
         team: {
           name: guestDetails?.teamName,

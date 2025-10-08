@@ -15,12 +15,13 @@ interface Props {
   placeholder: string;
   label?: string;
   description?: string;
-  options: { label: string; value: string; description?: string }[];
+  options: { label: string; value: string; description?: string; originalObject?: any }[];
   disabled?: boolean;
   isRequired?: boolean;
   notFoundContent?: ReactNode;
+  isStickyNoData?: boolean;
   backLabel?: string;
-  onChange?: (value: { label: string; value: string } | null) => void;
+  onChange?: (value: { label: string; value: string; originalObject?: any } | null) => void;
 }
 
 export const FormSelect = ({
@@ -34,6 +35,7 @@ export const FormSelect = ({
   notFoundContent,
   backLabel,
   onChange,
+  isStickyNoData,
 }: Props) => {
   const {
     watch,
@@ -98,7 +100,7 @@ export const FormSelect = ({
       optionElements.push(
         <div key="not-found-content" className={s.notFoundContent}>
           {notFoundContent}
-        </div>
+        </div>,
       );
     }
 
@@ -226,6 +228,7 @@ export const FormSelect = ({
             menuList: (base) => ({
               ...base,
               width: '100%',
+              padding: 0,
             }),
             menu: (baseStyles) => ({
               ...baseStyles,
@@ -257,7 +260,11 @@ export const FormSelect = ({
               // Handle the special notFoundContent option
               if ((props.data as any).isNotFoundContent) {
                 return (
-                  <div className={s.notFoundContent}>
+                  <div
+                    className={clsx(s.notFoundContent, {
+                      [s.sticky]: isStickyNoData,
+                    })}
+                  >
                     {notFoundContent}
                   </div>
                 );

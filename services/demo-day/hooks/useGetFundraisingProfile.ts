@@ -54,6 +54,7 @@ export type FundraisingProfile = {
     skills: { uid: string; title: string }[];
     uid: string;
   }[];
+  description: string | null;
 };
 
 async function fetcher() {

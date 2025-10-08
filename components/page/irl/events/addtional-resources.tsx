@@ -170,7 +170,6 @@ const AddtionalResources = (props: any) => {
           padding: 0px 7px 0px 5px;
           gap: 5px;
           border-radius: 6px;
-          margin-top: ${isLoggedIn ? '6px' : 'unset'};
           color: #156ff7;
           cursor: pointer;
         }

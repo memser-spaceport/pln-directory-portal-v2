@@ -397,7 +397,8 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         section.scrollIntoView({ behavior: 'smooth' });
       }
     }
-    setFormInitialValues(props?.formData);
+    // Only set formInitialValues if props.formData exists and formInitialValues is not already set
+      setFormInitialValues(props?.formData);
   }, []);
 
   const onCloseClickHandler = () => {
@@ -548,6 +549,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
               isVerifiedMember={isVerifiedMember}
               eventType={eventType}
               from={from}
+              mode={mode}
             />
           </div>
           {from !== EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE && (

@@ -1,17 +1,16 @@
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import CustomCheckbox from '@/components/form/custom-checkbox';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE, EVENT_TYPE, EVENTS_SUBMIT_FORM_TYPES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
+import { ADMIN_ROLE, EVENT_TYPE, EVENTS_SUBMIT_FORM_TYPES, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
 import { filterUpcomingGatherings, getFormattedDateString } from '@/utils/irl.utils';
 import { SetStateAction, useEffect, useState } from 'react';
 import ParticipationDetails from './participation-details';
-import HiddenField from '@/components/form/hidden-field';
-import { IIrlAttendeeFormErrors, IIrlEvent, IIrlGathering, IIrlLocation } from '@/types/irl.types';
-import { log } from 'console';
+import { IIrlAttendeeFormErrors, IIrlEvent, IIrlLocation } from '@/types/irl.types';
 
 interface IGatherings {
   selectedLocation: IIrlLocation;
   gatherings: IIrlEvent[];
+  eventType: string;
   userInfo: IUserInfo | null;
   errors: IIrlAttendeeFormErrors;
   initialValues: any;
@@ -19,22 +18,23 @@ interface IGatherings {
   setErrors: SetStateAction<any>;
   loggedInUserInfo: IUserInfo | null;
   isVerifiedMember: any;
-  eventType: string;
   from?: string;
+  mode: string;
 }
 
 const Gatherings = (props: IGatherings) => {
   const selectedLocation = props?.selectedLocation ?? '';
+  const mode = props?.mode;
   const gatherings = props?.gatherings ?? [];
-  const filteredGatherings = filterUpcomingGatherings(gatherings);
+  const eventType = props?.eventType;
+  const from = props?.from ?? '';
+  const filteredGatherings = mode === IAM_GOING_POPUP_MODES.ADMINADD || from === 'list' || eventType === 'past' ? gatherings : filterUpcomingGatherings(gatherings);
   const userInfo = props?.userInfo;
   const loggedInUserInfo = props?.loggedInUserInfo;
   const errors = props?.errors;
   const initialValues = props?.initialValues;
   const guests = props?.guests;
   const isVerifiedMember = props?.isVerifiedMember;
-  const eventType = props?.eventType;
-  const from = props?.from ?? '';
   const isLoggedInUserEventDetails = userInfo?.uid === loggedInUserInfo?.uid;
 
   const isAdmin = Array.isArray(loggedInUserInfo?.roles) && loggedInUserInfo?.roles.includes(ADMIN_ROLE);

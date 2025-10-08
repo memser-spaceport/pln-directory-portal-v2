@@ -107,11 +107,13 @@ export const InvestorProfileView = ({
                     </div>
 
                     <div className={s.column}>
-                      <InvestorProfileField label="Fund Type(s)">
-                        {!!team.investorProfile?.investInFundTypes?.length
-                          ? team.investorProfile?.investInFundTypes.join(', ')
-                          : '-'}
-                      </InvestorProfileField>
+                      {isEditable && (
+                        <InvestorProfileField label="Fund Type(s)">
+                          {!!team.investorProfile?.investInFundTypes?.length
+                            ? team.investorProfile?.investInFundTypes.join(', ')
+                            : '-'}
+                        </InvestorProfileField>
+                      )}
                       <InvestorProfileField label="Typical Check Size">
                         {!!team.investorProfile?.typicalCheckSize
                           ? formatUSD.format(+(team.investorProfile?.typicalCheckSize ?? 0))

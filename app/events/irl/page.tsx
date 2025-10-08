@@ -5,6 +5,7 @@ import IrlHeader from '@/components/page/irl/irl-header';
 import IrlLocation from '@/components/page/irl/locations/irl-location';
 import {
   getAllLocations,
+  getCurrentGuestsByLocation,
   getFollowersByLocation,
   getGuestEvents,
   getGuestsByLocation,
@@ -188,7 +189,7 @@ const getPageData = async (searchParams: any) => {
     // Proceed with API calls only after currentEventNames is set
     const [events, currentGuestResponse, topics, loggedInUserEvents, followersResponse] = await Promise.all([
       getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), authToken, currentEventNames),
-      getGuestsByLocation(uid, { type: eventType }, authToken, currentEventNames, 1, 1),
+      getCurrentGuestsByLocation(uid, { type: eventType }, authToken, currentEventNames, 1, 1),
       getTopicsByLocation(uid, eventType),
       getGuestEvents(uid, authToken),
       getFollowersByLocation(uid, authToken),
@@ -216,12 +217,18 @@ const getPageData = async (searchParams: any) => {
       finalEventType = (events as any).selectedType;
     }
     
-    const selectedTypeEvents =
-      finalEventType === 'past' || (eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0)
-        ? eventDetails.pastEvents
-        : eventDetails.upcomingEvents;
-
+    // Determine which events to show based on counts and selectedType
+    let selectedTypeEvents;
+    
+    if (guestDetails.selectedType === 'past') {
+      selectedTypeEvents = eventDetails.pastEvents;
+      searchParams.type = 'past';
+    } else if (guestDetails.selectedType === 'upcoming') {
+      selectedTypeEvents = eventDetails.upcomingEvents;
+      searchParams.type = 'upcoming';
+    }
     guestDetails.events = selectedTypeEvents;
+
     guestDetails.currentGuest =
       currentGuestResponse?.guests?.[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests?.[0] : null;
     guestDetails.isUserGoing = selectedTypeEvents?.some((event: any) =>

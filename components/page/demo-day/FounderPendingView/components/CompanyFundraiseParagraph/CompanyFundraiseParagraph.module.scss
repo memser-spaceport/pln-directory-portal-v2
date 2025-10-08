@@ -26,13 +26,12 @@
 }
 
 .subtitle {
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 12px;
-  line-height: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px; /* 133.333% */
   letter-spacing: -0.2px;
-  color: #455468;
-  margin: 0;
 }
 
 .editButton {
@@ -77,14 +76,15 @@
 }
 
 .text {
-  font-family: 'Inter', sans-serif;
+  color: var(--Neutral-Slate-600, #475569);
+  font-size: 14px;
+  font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
+  line-height: 16px; /* 133.333% */
   letter-spacing: -0.2px;
-  color: #64748b;
   margin: 0;
   width: 100%;
+  word-break: break-word;
 }
 
 .actions {

@@ -114,6 +114,17 @@ export const getGuestsByLocation = async (
   };
 };
 
+export const getCurrentGuestsByLocation = async (  location: string,
+  searchParams: any,
+  authToken: string,
+  currentEventNames: string[],
+  currentPage = 1,
+  limit = 10,) => {
+  const response = await fetchGuestsWithParams(location, searchParams, authToken, currentEventNames, currentPage, limit);
+  if (response.isError) return { isError: true };
+  return response;
+};
+
 // Helper function to fetch guests with parameters
 const fetchGuestsWithParams = async (
   location: string,
@@ -138,6 +149,7 @@ const fetchGuestsWithParams = async (
   const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?&page=${currentPage}&limit=${limit}&${urlParams.toString()}`;
 
   let result = await fetchGuests(url, authToken);
+  if (result.length === 0) return { guests: [], totalGuests: 0 };
   if (result.isError) return { isError: true };
 
   const transformedMembers = transformMembers(result, currentEventNames);

@@ -52,22 +52,6 @@ const shouldShowInvestorProfileForThirdParty = (member: IMember, isOwner: boolea
     return false; // No investor profile type
   }
 
-  // Helper function to find preferred team (fund team, main team, or first team)
-  const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
-    if (!teams || teams.length === 0) return undefined;
-
-    // First priority: Find fund team
-    const fundTeam = teams.find((team) => team.isFund);
-    if (fundTeam) return fundTeam;
-
-    // Second priority: Find main team
-    const mainTeam = teams.find((team) => team.mainTeam);
-    if (mainTeam) return mainTeam;
-
-    // Fallback: Return first team
-    return teams[0];
-  };
-
   // Helper function to check if any angel investor data is provided
   const hasAngelData = (): boolean => {
     return !!(
@@ -77,7 +61,7 @@ const shouldShowInvestorProfileForThirdParty = (member: IMember, isOwner: boolea
     );
   };
 
-  const preferredTeam = findPreferredTeam(teams);
+  const investmentTeam = teams?.find((team) => team.investmentTeam);
 
   switch (investorProfile.type) {
     case 'ANGEL':
@@ -86,11 +70,11 @@ const shouldShowInvestorProfileForThirdParty = (member: IMember, isOwner: boolea
 
     case 'FUND':
       // FUND type: show section only if investor has a team
-      return !!preferredTeam;
+      return !!investmentTeam;
 
     case 'ANGEL_AND_FUND':
       // ANGEL_AND_FUND: show section if investor has a team OR if at least one angel field is provided
-      return !!preferredTeam || hasAngelData();
+      return !!investmentTeam || hasAngelData();
 
     default:
       return false; // Unknown type
@@ -152,7 +136,7 @@ const MemberDetails = ({ params }: { params: any }) => {
   }
 
   if (!member) {
-    return null;
+    return <Error />;
   }
 
   function renderPageContent() {

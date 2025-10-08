@@ -209,12 +209,18 @@ export const getMember = async (
     investorProfile: result.investorProfile,
   };
 
+  const hasEditAccess = userInfo?.roles?.includes(ADMIN_ROLE) || userInfo?.uid === member?.id;
+
+  if (!hasEditAccess && ['Rejected', 'L0', 'L1'].includes(member?.accessLevel)) {
+    return { error: { status: 404, statusText: 'Member not found' } };
+  }
+
   if (isLoggedIn) {
     const respositorymemberResponse = await getMemberRepositories(member?.id);
     member = { ...member, repositories: respositorymemberResponse };
   }
 
-  if (isLoggedIn && (!userInfo?.roles?.includes(ADMIN_ROLE) || userInfo?.uid !== member?.id)) {
+  if (isLoggedIn && !hasEditAccess) {
     let memberPreferences = member?.preferences;
     let preferences;
 

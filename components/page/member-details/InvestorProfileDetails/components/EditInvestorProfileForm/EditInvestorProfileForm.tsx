@@ -31,6 +31,7 @@ import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOpti
 import { useMember } from '@/services/members/hooks/useMember';
 import { findPreferredTeam } from './utils/findPreferredTeam';
 import { AddTeamDrawer } from './components/AddTeamDrawer/AddTeamDrawer';
+import clsx from 'clsx';
 
 interface Props {
   onClose: () => void;
@@ -492,6 +493,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                         })) ?? []
                       }
                       onChange={(value) => handleTeamSelect(value)}
+                      isStickyNoData
                       notFoundContent={
                         <div className={s.secondaryLabel}>
                           If you don&apos;t see your team on this list, please{' '}
@@ -519,6 +521,18 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                           label="Role"
                           disabled={!selectedTeam}
                         />
+                        {!isTeamLead && (
+                          <div className={s.infoSection}>
+                            <div className={s.infoIcon}>
+                              <InfoIcon />
+                            </div>
+                            <div className={s.infoContent}>
+                              <p className={s.infoText}>
+                                Update to fund&apos;s investment details can only be made by team lead
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className={s.row}>

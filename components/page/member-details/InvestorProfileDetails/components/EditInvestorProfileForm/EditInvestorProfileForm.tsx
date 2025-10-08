@@ -28,11 +28,10 @@ import { formatNumberToCurrency } from './utils';
 import { CheckIcon, ExternalLinkIcon, InfoIcon, LinkIcon } from './icons';
 import s from './EditInvestorProfileForm.module.scss';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
-import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { useMember } from '@/services/members/hooks/useMember';
-import { formatPayload } from '@/components/page/member-details/TeamsDetails/components/EditTeamForm';
-import { ITeam } from '@/types/teams.types';
 import { findPreferredTeam } from './utils/findPreferredTeam';
+import { AddTeamDrawer } from './components/AddTeamDrawer/AddTeamDrawer';
+import clsx from 'clsx';
 
 interface Props {
   onClose: () => void;
@@ -52,7 +51,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   const { data: options } = useTeamsFormOptions();
   const { data } = useMemberFormOptions();
   const { data: memberData } = useMember(member.id);
-  const { mutateAsync, isPending } = useUpdateMember();
 
   const fundTeam = findPreferredTeam(member?.teams);
 
@@ -89,16 +87,17 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     handleSubmit,
     reset,
     setValue,
-    getValues,
     watch,
     trigger,
-    formState: { errors, isValid, dirtyFields, isDirty },
+    formState: { isValid },
   } = methods;
   const secRulesAccepted = watch('secRulesAccepted');
   const isInvestViaFund = watch('isInvestViaFund');
   const selectedTeam = watch('team');
 
   const isTeamLead = member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead;
+
+  const [isAddTeamDrawerOpen, setIsAddTeamDrawerOpen] = React.useState(false);
 
   const formOptions = useMemo(() => {
     if (!options) {
@@ -138,6 +137,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         { label: 'Early stage', value: 'Early stage' },
         { label: 'Late stage', value: 'Late stage' },
         { label: 'Fund-of-funds', value: 'Fund-of-funds' },
+        { label: 'Growth', value: 'Growth' },
       ],
     };
   }, [options]);
@@ -152,6 +152,25 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
 
     // Return 0 if parsing failed
     return isNaN(numericValue) ? 0 : numericValue;
+  };
+
+  const handleTeamCreated = (team: any) => {
+    // Find the newly created team in the options by name
+    // const newTeam = data?.teams.find((item: { teamTitle: string }) => item.teamTitle === teamName);
+
+    if (team) {
+      const teamOption = {
+        value: team.uid,
+        label: team.name,
+        originalObject: team,
+      };
+
+      // Set the team value in the form
+      setValue('team', teamOption, { shouldValidate: true, shouldDirty: true });
+
+      // Trigger team selection analytics
+      handleTeamSelect(teamOption);
+    }
   };
 
   const handleAddTeamLinkClick = () => {
@@ -176,27 +195,28 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   const handleTeamSelect = (selectedTeam: { label: string; value: string; originalObject?: any } | null) => {
     const _team = member?.teams.find((team) => team.id === selectedTeam?.value);
 
-    reset(
-      {
-        ...getValues(),
-        teamRole: _team?.role ?? '',
-        teamInvestInFundTypes:
-          selectedTeam?.originalObject?.investorProfile?.investInFundTypes?.map((item: any) => ({
-            label: item,
-            value: item,
-          })) || [],
-        teamInvestInStartupStages:
-          selectedTeam?.originalObject?.investorProfile?.investInStartupStages?.map((item: any) => ({
-            label: item,
-            value: item,
-          })) || [],
-        teamTypicalCheckSize: selectedTeam?.originalObject?.investorProfile?.typicalCheckSize
-          ? formatNumberToCurrency(selectedTeam?.originalObject?.investorProfile?.typicalCheckSize)
-          : '',
-        teamInvestmentFocusAreas: selectedTeam?.originalObject?.investorProfile?.investmentFocus || [],
-      },
-      { keepDirty: true },
+    setValue('teamRole', _team?.role ?? '', { shouldValidate: true, shouldDirty: true });
+    setValue(
+      'teamInvestInFundTypes',
+      selectedTeam?.originalObject?.investorProfile?.investInFundTypes?.map((item: any) => ({
+        label: item,
+        value: item,
+      })) || [],
     );
+    setValue(
+      'teamInvestInStartupStages',
+      selectedTeam?.originalObject?.investorProfile?.investInStartupStages?.map((item: any) => ({
+        label: item,
+        value: item,
+      })) || [],
+    );
+    setValue(
+      'teamTypicalCheckSize',
+      selectedTeam?.originalObject?.investorProfile?.typicalCheckSize
+        ? formatNumberToCurrency(selectedTeam?.originalObject?.investorProfile?.typicalCheckSize)
+        : '',
+    );
+    setValue('teamInvestmentFocusAreas', selectedTeam?.originalObject?.investorProfile?.investmentFocus || []);
 
     if (selectedTeam && userInfo?.email) {
       // Custom analytics event
@@ -268,6 +288,11 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         //   uid: memberData.memberInfo.uid,
         //   payload,
         // });
+      } else if (fundTeam) {
+        await updateTeamInvestorProfileMutation.mutateAsync({
+          teamUid: fundTeam?.id,
+          payload: { investmentTeam: false },
+        });
       }
 
       const payload = {
@@ -370,7 +395,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   <div className={s.row}>
                     <FormMultiSelect
                       name="investInStartupStages"
-                      label="Do you invest in Startups?"
+                      label="Startup stage(s) you invest in?"
                       placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                       options={formOptions.fundingStageOptions}
                       // showNone
@@ -438,7 +463,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       <button
                         type="button"
                         className={s.removeButton}
-                        onClick={() => setValue('team', null)}
+                        onClick={() => setValue('team', null, { shouldValidate: true, shouldDirty: true })}
                         aria-label="Remove team"
                       >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -468,60 +493,88 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                         })) ?? []
                       }
                       onChange={(value) => handleTeamSelect(value)}
+                      isStickyNoData
                       notFoundContent={
                         <div className={s.secondaryLabel}>
                           If you don&apos;t see your team on this list, please{' '}
-                          <Link href="/teams/add" className={s.link} target="_blank" onClick={handleAddTeamLinkClick}>
+                          <button
+                            type="button"
+                            className={s.link}
+                            onClick={() => {
+                              handleAddTeamLinkClick();
+                              setIsAddTeamDrawerOpen(true);
+                            }}
+                          >
                             add your team
-                          </Link>{' '}
+                          </button>{' '}
                           first.
                         </div>
                       }
                     />
                   </div>
+                  {selectedTeam && (
+                    <>
+                      <div className={s.row}>
+                        <FormField
+                          name="teamRole"
+                          placeholder="Enter your role"
+                          label="Role"
+                          disabled={!selectedTeam}
+                        />
+                        {!isTeamLead && (
+                          <div className={s.infoSection}>
+                            <div className={s.infoIcon}>
+                              <InfoIcon />
+                            </div>
+                            <div className={s.infoContent}>
+                              <p className={s.infoText}>
+                                Update to fund&apos;s investment details can only be made by team lead
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
 
-                  <div className={s.row}>
-                    <FormField name="teamRole" placeholder="Enter your role" label="Role" disabled={!selectedTeam} />
-                  </div>
+                      <div className={s.row}>
+                        <FormMultiSelect
+                          name="teamInvestInFundTypes"
+                          label="Type of fund(s) you invest in?"
+                          placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
+                          options={formOptions.fundTypeOptions}
+                          disabled={!isTeamLead || !selectedTeam}
+                        />
+                      </div>
 
-                  <div className={s.row}>
-                    <FormMultiSelect
-                      name="teamInvestInFundTypes"
-                      label="Type of fund(s) you invest in?"
-                      placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
-                      options={formOptions.fundTypeOptions}
-                      disabled={!isTeamLead || !selectedTeam}
-                    />
-                  </div>
+                      <div className={s.row}>
+                        <FormMultiSelect
+                          name="teamInvestInStartupStages"
+                          label="Startup stage(s) you invest in?"
+                          placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
+                          options={formOptions.fundingStageOptions}
+                          disabled={!isTeamLead || !selectedTeam}
+                        />
+                      </div>
 
-                  <div className={s.row}>
-                    <FormMultiSelect
-                      name="teamInvestInStartupStages"
-                      label="Startup stage(s) you invest in?"
-                      placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
-                      options={formOptions.fundingStageOptions}
-                      disabled={!isTeamLead || !selectedTeam}
-                    />
-                  </div>
+                      <div className={s.row}>
+                        <FormCurrencyField
+                          name="teamTypicalCheckSize"
+                          label="Typical Check Size"
+                          placeholder="Select typical check size (E.g. $25k - $50.000k)"
+                          currency="USD"
+                          disabled={!isTeamLead || !selectedTeam}
+                        />
+                      </div>
 
-                  <div className={s.row}>
-                    <FormCurrencyField
-                      name="teamTypicalCheckSize"
-                      label="Typical Check Size"
-                      placeholder="Select typical check size (E.g. $25k - $50.000k)"
-                      currency="USD"
-                      disabled={!isTeamLead || !selectedTeam}
-                    />
-                  </div>
-
-                  <div className={s.row}>
-                    <FormTagsInput
-                      selectLabel="Add Investment Focus"
-                      name="teamInvestmentFocusAreas"
-                      placeholder="Add keywords. E.g. AI, Staking, Governance, etc."
-                      disabled={!isTeamLead || !selectedTeam}
-                    />
-                  </div>
+                      <div className={s.row}>
+                        <FormTagsInput
+                          selectLabel="Add Investment Focus"
+                          name="teamInvestmentFocusAreas"
+                          placeholder="Add keywords. E.g. AI, Staking, Governance, etc."
+                          disabled={!isTeamLead || !selectedTeam}
+                        />
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </section>
@@ -545,6 +598,13 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         </div>
         <EditOfficeHoursMobileControls />
       </form>
+
+      <AddTeamDrawer
+        isOpen={isAddTeamDrawerOpen}
+        onClose={() => setIsAddTeamDrawerOpen(false)}
+        userInfo={userInfo}
+        onSuccess={handleTeamCreated}
+      />
     </FormProvider>
   );
 };

@@ -82,7 +82,7 @@
     letter-spacing: -0.2px;
     color: #8897ae;
     margin: 0;
-    max-width: 70%;
+    max-width: 100%;
 
     @include media.mobile-only {
       font-size: 11px;
@@ -275,6 +275,7 @@
   gap: 12px;
   min-height: 120px;
   justify-content: center;
+  height: 100%;
 
   @include media.mobile-only {
     padding: 16px;

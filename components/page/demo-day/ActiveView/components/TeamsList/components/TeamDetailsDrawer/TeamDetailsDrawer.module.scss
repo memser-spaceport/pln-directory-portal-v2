@@ -183,13 +183,15 @@
 
 .sectionMaterials {
   display: flex;
+  flex-direction: column;
   padding: 16px;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: flex-start;
   gap: 16px;
   align-self: stretch;
   border-radius: 12px;
   background: var(--Neutral-Slate-50, #F8FAFC);
+  margin-bottom: 16px;
 }
 
 .founderRow {

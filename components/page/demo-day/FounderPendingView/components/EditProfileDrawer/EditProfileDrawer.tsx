@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { EditProfileForm } from '../EditProfileForm';
 import { DemoMaterials } from '../DemoMaterials';
+import { CompanyFundraiseParagraph } from '../CompanyFundraiseParagraph';
 import { SuccessAlert } from '../SuccessAlert';
 import s from './EditProfileDrawer.module.scss';
 import { clsx } from 'clsx';
@@ -568,6 +569,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             onDeleted: handleDemoMaterialDeleted,
             onViewed: handleDemoMaterialViewed,
           }}
+          companyFundraiseParagraph={<CompanyFundraiseParagraph paragraph={data?.description} editable={true} />}
         />
       </div>
 

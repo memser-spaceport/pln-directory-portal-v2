@@ -10,7 +10,7 @@ import { createParticipantRequest } from '@/services/participants-request.servic
 
 import { useJoinNetworkAnalytics } from '@/analytics/join-network.analytics';
 
-export function useGetSaveTeam(onSuccess: () => void) {
+export function useGetSaveTeam(onSuccess: (newData: any) => void) {
   const analytics = useJoinNetworkAnalytics();
 
   async function saveTeam(formattedData: any) {
@@ -18,7 +18,7 @@ export function useGetSaveTeam(onSuccess: () => void) {
 
     try {
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-      
+
       if (formattedData?.teamProfile && formattedData.teamProfile.size > 0) {
         const imgResponse = await saveRegistrationImage(formattedData?.teamProfile);
         const image: any = imgResponse?.image;
@@ -45,7 +45,9 @@ export function useGetSaveTeam(onSuccess: () => void) {
 
       if (response.ok) {
         if (isFunction(onSuccess)) {
-          onSuccess();
+          const res = await response.json();
+
+          onSuccess(res?.newData);
         }
 
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));

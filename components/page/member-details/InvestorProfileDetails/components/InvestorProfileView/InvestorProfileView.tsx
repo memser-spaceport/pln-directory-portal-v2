@@ -19,13 +19,14 @@ interface Props {
   isEditable: boolean;
   showIncomplete: boolean;
   onEdit?: () => void;
-  typicalCheckSize: number | undefined;
+  typicalCheckSize: string | undefined;
   investmentFocusAreas: string[] | undefined;
   investInStartupStages: string[] | undefined;
   investInFundTypes: string[] | undefined;
   secRulesAccepted: boolean | undefined;
   type: InvestorProfileType | undefined;
   member?: IMember;
+  hideHeader?: boolean;
 }
 
 const findPreferredTeam = (teams: ITeam[] | undefined): ITeam | undefined => {
@@ -55,12 +56,11 @@ export const InvestorProfileView = ({
   onEdit,
   type,
   member,
+  hideHeader,
 }: Props) => {
   const fundTeam = findPreferredTeam(member?.teams);
 
   const investmentTeams = member?.teams.filter((team) => team.investmentTeam) ?? [];
-
-  console.log(member?.teams);
 
   return (
     <>
@@ -109,11 +109,13 @@ export const InvestorProfileView = ({
                     </div>
 
                     <div className={s.column}>
-                      <InvestorProfileField label="Fund Type(s)">
-                        {!!team.investorProfile?.investInFundTypes?.length
-                          ? team.investorProfile?.investInFundTypes.join(', ')
-                          : '-'}
-                      </InvestorProfileField>
+                      {isEditable && (
+                        <InvestorProfileField label="Fund Type(s)">
+                          {!!team.investorProfile?.investInFundTypes?.length
+                            ? team.investorProfile?.investInFundTypes.join(', ')
+                            : '-'}
+                        </InvestorProfileField>
+                      )}
                       <InvestorProfileField label="Typical Check Size">
                         {!!team.investorProfile?.typicalCheckSize
                           ? formatUSD.format(+(team.investorProfile?.typicalCheckSize ?? 0))
@@ -139,11 +141,21 @@ export const InvestorProfileView = ({
             </div>
           )}
 
+          {type === 'FUND' && !investmentTeams?.length && (
+            <div className={s.block}>
+              <InvestmentDetailsSection isEditable={isEditable} />
+            </div>
+          )}
+
           {(type === 'ANGEL' || type === 'ANGEL_AND_FUND' || !type) && (
             <div className={s.block}>
-              {typicalCheckSize || investInStartupStages?.length || investmentFocusAreas?.length ? (
-                <div className={s.blockTitle}>Direct Investments</div>
-              ) : null}
+              {!hideHeader && (
+                <>
+                  {typicalCheckSize || investInStartupStages?.length || investmentFocusAreas?.length ? (
+                    <div className={s.blockTitle}>Direct Investments</div>
+                  ) : null}
+                </>
+              )}
               <InvestmentDetailsSection
                 typicalCheckSize={typicalCheckSize}
                 investmentFocusAreas={investmentFocusAreas}

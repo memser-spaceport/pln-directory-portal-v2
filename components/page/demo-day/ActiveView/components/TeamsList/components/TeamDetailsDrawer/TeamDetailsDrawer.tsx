@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader';
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
+import { CompanyFundraiseParagraph } from '@/components/page/demo-day/FounderPendingView/components/CompanyFundraiseParagraph';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import s from './TeamDetailsDrawer.module.scss';
 import { EditProfileDrawer } from '@/components/page/demo-day/FounderPendingView/components/EditProfileDrawer';
@@ -374,6 +375,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                           onPitchDeckView={handlePitchDeckView}
                           onPitchVideoView={handlePitchVideoView}
                         />
+                        <CompanyFundraiseParagraph paragraph={displayTeam?.description} editable={false} />
                       </div>
                     </div>
                   </>

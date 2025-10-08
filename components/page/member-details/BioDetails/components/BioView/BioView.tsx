@@ -19,7 +19,7 @@ interface Props {
 }
 
 export const BioView = ({ member, isLoggedIn, userInfo, isEditable, showIncomplete, onEdit, onGenerateBio }: Props) => {
-  const hasBio = !!member.bio;
+  const hasBio = !!member.bio && member.bio.trim() !== '<p><br></p>';
 
   return (
     <div className={s.root}>

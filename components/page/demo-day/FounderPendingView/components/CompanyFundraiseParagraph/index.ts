@@ -1,0 +1,2 @@
+export { CompanyFundraiseParagraph } from './CompanyFundraiseParagraph';
+

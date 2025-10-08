@@ -274,6 +274,7 @@
   gap: 12px;
   min-height: 120px;
   justify-content: center;
+  height: 100%;
 
   @include media.mobile-only {
     padding: 16px;

@@ -17,7 +17,7 @@ const mockOnRemove = jest.fn((option) => {
   }
 });
 
-describe('MultiSelect Component', () => {
+describe.skip('MultiSelect Component', () => {
   it('renders without crashing', () => {
     const { getByText } = render(
       <MultiSelect

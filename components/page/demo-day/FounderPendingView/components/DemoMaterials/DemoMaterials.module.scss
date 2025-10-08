@@ -13,6 +13,13 @@
   }
 }
 
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .sectionTitle {
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
@@ -20,6 +27,29 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.prepDocLink {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+  border-radius: 8px;
+  color: #455468;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
 }
 
 .materialsContainer {

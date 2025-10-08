@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
+import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 
 interface UploadOnePagerResponse {
   success: boolean;
@@ -49,9 +50,13 @@ export function useUploadOnePager() {
 
   return useMutation({
     mutationFn: uploadOnePager,
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       // Invalidate and refetch the fundraising profile data
-      queryClient.invalidateQueries({ queryKey: ['fundraising-profile'] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
+      // Only invalidate admin list if uploading as admin
+      if (variables.teamUid) {
+        queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES] });
+      }
     },
     onError: (error) => {
       console.error('Failed to upload one-pager:', error);

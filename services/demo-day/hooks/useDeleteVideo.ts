@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
+import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 
 interface DeleteVideoResponse {
   success: boolean;
@@ -37,9 +38,13 @@ export function useDeleteVideo() {
 
   return useMutation({
     mutationFn: deleteVideo,
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       // Invalidate and refetch the fundraising profile data
-      queryClient.invalidateQueries({ queryKey: ['fundraising-profile'] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
+      // Only invalidate admin list if deleting as admin
+      if (variables?.teamUid) {
+        queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES] });
+      }
     },
     onError: (error) => {
       console.error('Failed to delete video:', error);

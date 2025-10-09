@@ -33,6 +33,8 @@ interface Props {
   userInfo: IUserInfo;
 }
 
+const SHOW_OPEN_TO_COLLABORATE = false;
+
 export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
   const { actions } = useUserStore();
@@ -127,9 +129,11 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           <div className={s.row}>
             <ProfileSkillsInput />
           </div>
-          <div className={s.row}>
-            <ProfileCollaborateInput />
-          </div>
+          {SHOW_OPEN_TO_COLLABORATE && (
+            <div className={s.row}>
+              <ProfileCollaborateInput />
+            </div>
+          )}
         </div>
         <EditFormMobileControls />
       </form>

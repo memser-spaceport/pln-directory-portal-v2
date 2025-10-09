@@ -20,7 +20,7 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
-import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { ADMIN_ROLE, DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
 interface EditProfileFormData {
   image: File | null;
@@ -77,6 +77,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
   const { onFounderSaveTeamDetailsClicked, onFounderCancelTeamDetailsClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const currentUserInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const isDirectoryAdmin = currentUserInfo?.roles?.includes(ADMIN_ROLE);
 
   const options = useMemo(() => {
     if (!data) {
@@ -151,7 +152,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
         industryTags: formData.tags.map((t) => t.value),
         fundingStage: formData.fundingStage?.value || profileData?.team?.fundingStage?.uid || '',
         logo: image || profileData?.team.logo?.uid,
-        teamUid: profileDataProp?.teamUid, // Include teamUid if editing another team (admin)
+        teamUid: isDirectoryAdmin ? profileDataProp?.teamUid : undefined, // Include teamUid if editing another team (admin)
       };
 
       await updateProfileMutation.mutateAsync(updateData);

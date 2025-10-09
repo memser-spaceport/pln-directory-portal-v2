@@ -9,7 +9,7 @@ import { MediaPreview } from '@/components/page/demo-day/FounderPendingView/comp
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
 import { AdminTeamsList } from '../AdminTeamsList';
 
-export const AdminContent = () => {
+export const AdminContent = ({ isDirectoryAdmin }: { isDirectoryAdmin: boolean }) => {
   const { data: demoDayData } = useGetDemoDayState();
   const { data: profiles, isLoading } = useGetAllFundraisingProfiles();
 
@@ -18,8 +18,19 @@ export const AdminContent = () => {
       <div className={s.eventHeader}>
         <div className={s.content}>
           <div className={s.headline}>
+            <div
+              style={{
+                margin: 'auto',
+                marginBottom: '12px',
+                fontSize: '24px',
+                color: '#798391',
+                fontWeight: 600,
+                textAlign: 'center',
+              }}
+            >
+              [Demo Day Preview]
+            </div>
             <PageTitle size="small" />
-            <span style={{ marginLeft: '12px', color: '#1B4DFF', fontWeight: 600 }}>(Admin View)</span>
           </div>
 
           <div className={s.stats}>
@@ -42,7 +53,7 @@ export const AdminContent = () => {
         </div>
       </div>
 
-      <AdminTeamsList profiles={profiles} isLoading={isLoading} />
+      <AdminTeamsList profiles={profiles} isLoading={isLoading} isDirectoryAdmin={isDirectoryAdmin} />
     </div>
   );
 };

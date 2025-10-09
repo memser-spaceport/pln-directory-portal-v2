@@ -43,9 +43,10 @@ const SORT_OPTIONS: SortOption[] = [
 interface AdminTeamsListProps {
   profiles?: TeamProfile[];
   isLoading: boolean;
+  isDirectoryAdmin?: boolean;
 }
 
-export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoading }) => {
+export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoading, isDirectoryAdmin = false }) => {
   const [sortBy, setSortBy] = useState<string>('default');
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -145,7 +146,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     return (
       <div className={s.container}>
         <div className={s.header}>
-          <h2 className={s.title}>All Teams (Admin)</h2>
+          <h2 className={s.title}>All Teams</h2>
           <div className={s.headerRight}>
             <span className={s.counter}>Loading...</span>
           </div>
@@ -159,7 +160,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     <div className={s.container}>
       <div className={s.header}>
         <div className={s.headerLeft}>
-          <h2 className={s.title}>All Teams (Admin)</h2>
+          <h2 className={s.title}>All Teams</h2>
           <span className={s.counter}>
             ({filteredTeamsCount}
             {totalTeamsCount !== filteredTeamsCount ? ` of ${totalTeamsCount}` : ''})
@@ -196,7 +197,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
 
       <div className={s.teamsList}>
         {filteredAndSortedTeams.map((profile) => (
-          <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={true} />
+          <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={isDirectoryAdmin} />
         ))}
 
         {filteredAndSortedTeams.length === 0 && totalTeamsCount > 0 && (
@@ -219,7 +220,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
         onClose={handleCloseDrawer}
         team={latestTeamData || selectedTeam}
         scrollPosition={scrollPositionRef.current}
-        isAdmin={true}
+        isAdmin={isDirectoryAdmin}
       />
     </div>
   );

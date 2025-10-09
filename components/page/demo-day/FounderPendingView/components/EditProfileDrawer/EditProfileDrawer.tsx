@@ -12,7 +12,7 @@ import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingP
 import Link from 'next/link';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { ADMIN_ROLE, DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
@@ -74,6 +74,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   hideActions,
 }) => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const [editView, setEditView] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const successAlertTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -549,9 +550,13 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             onViewed: handleDemoMaterialViewed,
           }}
           companyFundraiseParagraph={
-            <CompanyFundraiseParagraph paragraph={data?.description} editable={true} teamUid={data?.teamUid} />
+            <CompanyFundraiseParagraph
+              paragraph={data?.description}
+              editable={true}
+              teamUid={isDirectoryAdmin ? data?.teamUid : undefined}
+            />
           }
-          teamUid={data?.teamUid}
+          teamUid={isDirectoryAdmin ? data?.teamUid : undefined}
         />
       </div>
 

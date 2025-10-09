@@ -13,21 +13,22 @@ import { Filters } from '@/components/page/demo-day/ActiveView/components/Filter
 import { AdminContent } from '@/components/page/demo-day/AdminView/components/AdminContent';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
-function DemoDayPreviewPage() {
+function DemoDayPrepPage() {
   const router = useRouter();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const { data } = useGetDemoDayState();
+  const hasAccess = isDirectoryAdmin || data?.isDemoDayAdmin || data?.access === 'FOUNDER';
 
   useEffect(() => {
     // Redirect non-admins to regular demo day page
-    if (!isDirectoryAdmin && !data?.isDemoDayAdmin) {
+    if (!hasAccess) {
       router.replace('/demoday');
     }
-  }, [isDirectoryAdmin, data?.isDemoDayAdmin, router]);
+  }, [hasAccess]);
 
   // Don't render anything for non-admins while redirecting
-  if (!isDirectoryAdmin && !data?.isDemoDayAdmin) {
+  if (!hasAccess) {
     return null;
   }
 
@@ -39,4 +40,4 @@ function DemoDayPreviewPage() {
   );
 }
 
-export default DemoDayPreviewPage;
+export default DemoDayPrepPage;

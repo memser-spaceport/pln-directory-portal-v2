@@ -94,7 +94,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         image={team.team.logo?.url || '/images/demo-day/profile-placeholder.svg'}
         name={team.team?.name || 'Team Name'}
         description={team?.team?.shortDescription || '-'}
-        fundingStage={team?.team.fundingStage.title || '-'}
+        fundingStage={team?.team?.fundingStage?.title || '-'}
         tags={team?.team.industryTags.map((tag) => tag.title) || []}
       />
       <ProfileContent pitchDeckUrl={team?.onePagerUpload?.url} videoUrl={team?.videoUpload?.url} />

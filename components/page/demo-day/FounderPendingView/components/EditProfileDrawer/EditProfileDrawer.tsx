@@ -463,7 +463,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
                   <p className={s.drawerMemberDescription}>{data?.team.shortDescription}</p>
                 </div>
                 <div className={s.drawerTagList}>
-                  <div className={s.drawerStageTag}>Stage: {data?.team?.fundingStage.title}</div>
+                  <div className={s.drawerStageTag}>Stage: {data?.team?.fundingStage?.title}</div>
                   <div className={s.drawerTagDivider} />
                   {data?.team.industryTags.map((tag) => (
                     <div className={s.drawerTag} key={tag.uid}>

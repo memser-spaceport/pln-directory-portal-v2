@@ -26,6 +26,7 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { toast } from '@/components/core/ToastContainer';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { MAX_NAME_LENGTH } from '@/constants/profile';
+import { isInvestor } from '@/utils/isInvestor';
 
 interface Props {
   onClose: () => void;
@@ -127,9 +128,11 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           <div className={s.row}>
             <ProfileSkillsInput />
           </div>
-          <div className={s.row}>
-            <ProfileCollaborateInput />
-          </div>
+          {!isInvestor(userInfo?.accessLevel) && (
+            <div className={s.row}>
+              <ProfileCollaborateInput />
+            </div>
+          )}
         </div>
         <EditFormMobileControls />
       </form>

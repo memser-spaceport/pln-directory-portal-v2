@@ -108,13 +108,13 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     return [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'name-asc':
-          return a.team.name.localeCompare(b.team.name);
+          return a.team?.name.localeCompare(b.team?.name);
         case 'name-desc':
-          return b.team.name.localeCompare(a.team.name);
+          return b.team?.name.localeCompare(a.team?.name);
         case 'stage-asc':
-          return a.team.fundingStage.title.localeCompare(b.team.fundingStage.title);
+          return a.team?.fundingStage?.title.localeCompare(b.team?.fundingStage?.title);
         case 'stage-desc':
-          return b.team.fundingStage.title.localeCompare(a.team.fundingStage.title);
+          return b.team?.fundingStage?.title.localeCompare(a.team?.fundingStage?.title);
         case 'recent':
           return b.uid.localeCompare(a.uid);
         default:

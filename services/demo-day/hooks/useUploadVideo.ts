@@ -52,6 +52,7 @@ export function useUploadVideo() {
     onSuccess: (_, variables) => {
       // Invalidate and refetch the fundraising profile data
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST] });
       // Only invalidate admin list if uploading as admin
       if (variables.teamUid) {
         queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES] });

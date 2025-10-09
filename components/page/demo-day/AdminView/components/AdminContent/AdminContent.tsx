@@ -28,7 +28,7 @@ export const AdminContent = ({ isDirectoryAdmin }: { isDirectoryAdmin: boolean }
                 textAlign: 'center',
               }}
             >
-              [Demo Day Preview]
+              [Demo Day Prep]
             </div>
             <PageTitle size="small" />
           </div>

@@ -4,6 +4,7 @@ import { triggerLoader, getParsedValue } from '@/utils/common.utils';
 import { usePathname, useRouter } from 'next/navigation';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { INVITE_FORM_URL } from '@/constants/demoDay';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
@@ -56,8 +57,7 @@ function AuthInvalidUser() {
           setContent({
             title: 'Access Denied',
             errorMessage: "Your email isn't on our Protocol Labs Demo Day invite list yet. Request access below.",
-            description:
-              'https://docs.google.com/forms/d/1c_djy7MnO-0k89w1zdFnBKF6GLdYKKWUvLTDBjxd114/viewform?edit_requested=true',
+            description: INVITE_FORM_URL,
             variant: 'access_denied_demo_day',
           });
 
@@ -126,6 +126,7 @@ function AuthInvalidUser() {
       }
       handleModalOpen();
     }
+
     document.addEventListener('auth-invalid-email', handleInvalidEmail as EventListener);
     return function () {
       document.removeEventListener('auth-invalid-email', handleInvalidEmail as EventListener);

@@ -2,6 +2,9 @@ import React from 'react';
 import { clsx } from 'clsx';
 import Cookies from 'js-cookie';
 
+import { INVITE_FORM_URL } from '@/constants/demoDay';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+
 import { getParsedValue } from '@/utils/common.utils';
 
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
@@ -11,14 +14,11 @@ import { LandingBase } from '@/components/page/demo-day/LandingBase';
 import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
 import { useTimeOnPage } from '@/hooks/useTimeOnPage';
 
 import s from './Landing.module.scss';
 
-const INVITE_FORM_URL =
-  'https://docs.google.com/forms/d/1c_djy7MnO-0k89w1zdFnBKF6GLdYKKWUvLTDBjxd114/viewform?edit_requested=true';
 
 export function Landing() {
   const { data } = useGetDemoDayState();

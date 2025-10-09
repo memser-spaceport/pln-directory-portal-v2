@@ -116,7 +116,10 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
   };
 
   const handleGoogleCalendar = async () => {
-    generateICSFile();
+    window.open(
+      'https://calendar.google.com/calendar/u/0/r/eventedit/copy/MnFjZ2p0cWphYW05YjhxZ2kwM285dHFidm8gY18yMWRlZDg3OGJiNjU3NzA3ZTFhODE0NDNlMTIzNzViMmE3MzgyYzNiYmE0MzY4ZGQ3NDVlYjVlMGZlZmU3MjViQGc/dm92YS5ob3JpbkBtYWdpY3Bvd2VyZWQuaW8',
+      '_blank',
+    );
     await markCalendarAsAdded();
     onClose();
   };

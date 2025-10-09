@@ -30,7 +30,8 @@ export const InvestorPendingView = () => {
       return false;
     }
 
-    const { investorProfile } = memberData.memberInfo;
+    const { investorProfile, teamMemberRoles } = memberData.memberInfo;
+    const investmentTeams = teamMemberRoles?.filter((tmr: { investmentTeam: boolean }) => tmr.investmentTeam) ?? [];
 
     // Check if all required fields are populated
     // const hasInvestmentFocus = investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0;
@@ -42,10 +43,10 @@ export const InvestorPendingView = () => {
     }
 
     if (investorProfile.type === 'ANGEL_AND_FUND') {
-      return investorProfile.team && hasTypicalCheckSize;
+      return investmentTeams.length > 0 && hasTypicalCheckSize;
     }
 
-    return !!investorProfile.team;
+    return !!investmentTeams.length;
   }, [memberData]);
 
   // Determine current step based on profile completion and calendar added

@@ -148,7 +148,7 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
   };
 
   const handleGoogleCalendar = () => {
-    window.open(generateGoogleCalendarUrl(), '_blank');
+    window.open('https://calendar.google.com/calendar/render?', '_blank');
   };
 
   const handleOutlookCalendar = () => {

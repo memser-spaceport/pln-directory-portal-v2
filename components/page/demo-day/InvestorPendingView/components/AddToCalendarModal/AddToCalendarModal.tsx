@@ -101,48 +101,30 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
   };
 
   const generateICSFile = () => {
-    const startDate = new Date(eventDate);
-    const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+    const icsUrl = 'https://pl-directory-uploads-prod.s3.us-west-1.amazonaws.com/pl_f25_demo_day_investor_event.ics';
 
-    const formatICSDate = (date: Date) => {
-      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    };
+    // Create a hidden iframe to download the file
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = icsUrl;
+    document.body.appendChild(iframe);
 
-    const icsContent = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//Protocol Labs//Demo Day//EN',
-      'BEGIN:VEVENT',
-      `DTSTART:${formatICSDate(startDate)}`,
-      `DTEND:${formatICSDate(endDate)}`,
-      `SUMMARY:${eventTitle}`,
-      'DESCRIPTION:Join us for Protocol Labs Demo Day to see innovative projects and connect with founders.',
-      'LOCATION:Virtual Event',
-      'STATUS:CONFIRMED',
-      'SEQUENCE:0',
-      'END:VEVENT',
-      'END:VCALENDAR',
-    ].join('\r\n');
-
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'protocol-labs-demo-day.ics';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Remove the iframe after a short delay
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 1000);
   };
 
   const handleGoogleCalendar = async () => {
     window.open(
-      'https://calendar.google.com/calendar/u/0/r/eventedit/copy/MnFjZ2p0cWphYW05YjhxZ2kwM285[…]NDVlYjVlMGZlZmU3MjViQGc/dm92YS5ob3JpbkBtYWdpY3Bvd2VyZWQuaW8',
+      'https://calendar.google.com/calendar/u/0/r/eventedit/copy/MnFjZ2p0cWphYW05YjhxZ2kwM285dHFidm8gY18yMWRlZDg3OGJiNjU3NzA3ZTFhODE0NDNlMTIzNzViMmE3MzgyYzNiYmE0MzY4ZGQ3NDVlYjVlMGZlZmU3MjViQGc/dm92YS5ob3JpbkBtYWdpY3Bvd2VyZWQuaW8',
       '_blank',
     );
     await markCalendarAsAdded();
   };
 
   const handleOutlookCalendar = async () => {
-    window.open(generateOutlookCalendarUrl(), '_blank');
+    generateICSFile();
     await markCalendarAsAdded();
   };
 

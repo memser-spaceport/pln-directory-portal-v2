@@ -52,15 +52,6 @@ const OutlookIcon = () => (
   </svg>
 );
 
-const AppleCalendarIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="20" height="20" rx="4" fill="#FF3B30" />
-    <text x="10" y="14" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">
-      15
-    </text>
-  </svg>
-);
-
 interface AddToCalendarModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -90,25 +81,6 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
       console.error('Failed to mark calendar as added:', error);
       // Don't show error toast - the calendar action itself succeeded
     }
-  };
-
-  const generateGoogleCalendarUrl = () => {
-    const startDate = new Date(eventDate);
-    const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours duration
-
-    const formatDate = (date: Date) => {
-      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    };
-
-    const params = new URLSearchParams({
-      action: 'TEMPLATE',
-      text: eventTitle,
-      dates: `${formatDate(startDate)}/${formatDate(endDate)}`,
-      details: 'Join us for Protocol Labs Demo Day to see innovative projects and connect with founders.',
-      location: 'Virtual Event',
-    });
-
-    return `https://calendar.google.com/calendar/render?${params.toString()}`;
   };
 
   const generateOutlookCalendarUrl = () => {
@@ -162,7 +134,10 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
   };
 
   const handleGoogleCalendar = async () => {
-    window.open(generateGoogleCalendarUrl(), '_blank');
+    window.open(
+      'https://calendar.google.com/calendar/u/0/r/eventedit/copy/MnFjZ2p0cWphYW05YjhxZ2kwM285[…]NDVlYjVlMGZlZmU3MjViQGc/dm92YS5ob3JpbkBtYWdpY3Bvd2VyZWQuaW8',
+      '_blank',
+    );
     await markCalendarAsAdded();
   };
 

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
 import { clsx } from 'clsx';
+import React, { ReactNode, useState } from 'react';
+
 import s from './FAQ.module.scss';
 
 interface FAQItem {
   question: string;
-  answer: string;
+  answer: ReactNode;
 }
 
 interface FAQProps {
@@ -56,14 +57,10 @@ export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', 
               onClick={() => toggleItem(index)}
               aria-expanded={expandedIndices.has(index)}
             >
-              <span className={s.questionText}>{item.question}</span>
-              {/*<span*/}
-              {/*  className={clsx(s.iconWrapper, {*/}
-              {/*    [s.rotated]: expandedIndices.has(index),*/}
-              {/*  })}*/}
-              {/*>*/}
-              {/*  <ChevronDownIcon />*/}
-              {/*</span>*/}
+              <div className={s.titleContainer}>
+                <span className={s.questionLetter}>Q.</span>
+                <span className={s.questionText}>{item.question}</span>
+              </div>
             </button>
             <div
               className={clsx(s.answerWrapper, {

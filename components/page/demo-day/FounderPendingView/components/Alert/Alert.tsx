@@ -22,7 +22,10 @@ export const Alert = () => {
           <InfoIcon />
         </div>
         <div className={s.alertText}>
-          <p>Your fund raising profile is private until Demo Day launch. Visibility is restricted to you and admins only.</p>
+          <p>
+            Your fund raising profile is private until Demo Day launch. Visibility is restricted to you, admins and
+            other participating founders.
+          </p>
         </div>
       </div>
     </div>

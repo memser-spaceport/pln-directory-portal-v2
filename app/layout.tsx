@@ -81,7 +81,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <PostHogIdentifier />
             <header className="layout__header">
               <DemoDayBanner />
-              <SubscribeToRecoomendations userInfo={userInfo} />
+              {false && <SubscribeToRecoomendations userInfo={userInfo} />}
               <CompleteYourProfile userInfo={userInfo} />
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>

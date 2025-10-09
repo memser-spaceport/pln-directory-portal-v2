@@ -48,6 +48,8 @@ const Toolbar = (props: IToolbar) => {
     }
   };
 
+  useClickedOutside({ callback: () => setIsShowAttendeeListPopup(false), ref: dropdownRef });
+
   const debounce = (func: Function, delay: number) => {
     let timeoutId: NodeJS.Timeout;
     return (...args: any[]) => {
@@ -87,7 +89,7 @@ const Toolbar = (props: IToolbar) => {
         <span className="toolbar__hdr">
           <span className="toolbar__hdr__count">
             Attendees{` `}({filteredListLength})
-            <div className="toolbar__hdr__dropdown" ref={dropdownRef} onClick={() => setIsShowAttendeeListPopup(true)}>
+            <div className="toolbar__hdr__dropdown" ref={dropdownRef} onClick={() => setIsShowAttendeeListPopup((prev) => !prev)}>
             <img src="/icons/down-arrow-black.svg" alt="dropdown" />
             {isShowAttendeeListPopup && (
               <div className="toolbar__dropdown__attendee__type">
@@ -132,6 +134,7 @@ const Toolbar = (props: IToolbar) => {
               display: flex;
               gap: 8px;
             }
+            }
           .toolbar__search {
             width: 100%;
           }
@@ -142,12 +145,73 @@ const Toolbar = (props: IToolbar) => {
           }
           .toolbar__hdr__count {
             display: flex;
+            display: flex;
             font-size: 14px;
             font-weight: 400;
             font-size: 18px;
             font-weight: 700;
             line-height: 20px;
             color: #0f172a;
+          }
+          
+          .toolbar__hdr__dropdown {
+            margin-left: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 24px;
+            width: 24px;
+            border-radius: 6px;
+            border: 1px solid rgba(203, 213, 225, 1);
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0px 1px 1px 0px rgba(15, 23, 42, 0.08);
+            cursor: pointer;
+            position: relative;
+          }
+          .toolbar__dropdown__attendee__type {
+            position: absolute;
+            top: 100%;
+            right: -50px;
+            margin-top: 4px;
+            z-index: 2;
+            background: rgba(255, 255, 255, 1);
+            border-radius: 8px;
+            padding: 8px;
+            width: 205px;
+            height: 85px;
+            box-shadow: 0px 2px 6px 0px rgba(15, 23, 42, 0.16);
+          }
+  
+          .toolbar__dropdown__attendee__type__body {
+            display: flex;
+            flex-direction: column;
+          }
+  
+          .toolbar__dropdown__attendee__type__body__item {
+            height: 35px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 4px
+          }
+  
+          .toolbar__dropdown__attendee__type__body__item__label {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 100%;
+            color: rgba(15, 23, 42, 1);
+            cursor: pointer;
+          }
+
+          .toolbar__dropdown__attendee__type__body__item:hover {
+            background: rgba(241, 245, 249, 1);
+            border-radius: 4px;
+          }
+
+          @media (min-width: 1024px) {
+            .toolbar__dropdown__attendee__type {
+              right: 0;
+            }
           }
           
           .toolbar__hdr__dropdown {

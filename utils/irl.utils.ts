@@ -2,7 +2,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE, URL_QUERY_VALUE_SEPARATOR } from './constants';
 import { format, toZonedTime } from 'date-fns-tz';
 import { isSameDay } from 'date-fns';
-import { CalendarDate, EventDuration } from '@/types/irl.types';
+import { CalendarDate, EventDuration, IIrlEvent } from '@/types/irl.types';
 
 export const isPastDate = (date: any) => {
   const currentDate = new Date();
@@ -644,4 +644,11 @@ export const filterUpcomingGatherings = (gatherings: any) => {
     eventEndDate.setHours(0, 0, 0, 0);
     return eventEndDate >= today;
   });
+}
+
+export function getGatherings(searchParams: any, events: any, from: string): IIrlEvent[] {
+  if (searchParams?.type === 'past' || from === 'past') {
+    return events?.pastEvents ?? [];
+  }
+  return events?.upcomingEvents ?? [];
 }

@@ -371,7 +371,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
           .tbl__hdr {
             position: sticky;
             top: 0;
-            z-index: 2;
+            z-index: 1;
             display: flex;
             min-height: 54px;
             border-radius: 8px 8px 0px 0px;

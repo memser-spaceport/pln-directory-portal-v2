@@ -137,7 +137,6 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
             Follow
           </button>
         )}
-      </div>
       <Modal modalRef={dialogRef} onClose={onCloseModal}>
         <div className="popup__cnt">
           <div className="popup__cnt__header"> Wait! You&apos;re about to miss out…</div>
@@ -162,11 +161,16 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
           </div>
         </div>
       </Modal>
+      </div>
       <style jsx>
         {`
+          .followRoot {
+            width: 100%;
+          }
+
           .followRoot__followBtn {
-            padding: ${expand ? '9px 15.5px' : '9px 40px'};
-            min-width: 103px;
+            padding: 9px 15px;
+            // min-width: 103px;
             border: 1px solid #cbd5e1;
             background: #fff;
             border-radius: 8px;
@@ -178,6 +182,8 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
             line-height: 20px;
             font-size: 14px;
             box-shadow: 0px 1px 1px 0px #0f172a14;
+            width: 100%;
+            justify-content: center;
           }
 
           .followRoot__followingBtn {
@@ -193,6 +199,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
             font-size: 14px;
             border: 1px solid #cbd5e1;
             box-shadow: 0px 1px 1px 0px #0f172a14;
+            width: 100%;
           }
 
           .popup__footer {
@@ -270,28 +277,13 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
             }
           }
 
-          @media (min-width: 768px) {
-            .followRoot__followBtn,
-            .followRoot__followingBtn {
-              padding: 10px 16px !important;
-            }
-          }
-
           @media (min-width: 1024px) {
             .popup__cnt {
               height: 220px;
               width: 656px;
               padding: 24px;
             }
-
-            .followRoot__followBtn {
-              padding: 10px 16px !important;
-            }
-
-            .followRoot__followingBtn {
-              padding: 10px 16px;
-            }
-
+              
             .followRoot__unfollow__popup {
               display: flex;
               width: 90vw;

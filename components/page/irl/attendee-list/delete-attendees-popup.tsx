@@ -3,7 +3,7 @@ import { Dispatch, SetStateAction, SyntheticEvent, useState } from 'react';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { deleteEventGuestByLocation } from '@/services/irl.service';
 import { EVENT_TYPE, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
-import { getFormattedDateString } from '@/utils/irl.utils';
+import { getFormattedDateString, getGatherings } from '@/utils/irl.utils';
 import RegsiterFormLoader from '@/components/core/register/register-form-loader';
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails, IIrlEvent } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -19,6 +19,8 @@ interface IDeleteAttendeesPopup {
   onClose: () => void;
   setSelectedGuests: Dispatch<SetStateAction<string[]>>;
   getEventDetails: any;
+  searchParams: any;
+  from: string;
 }
 
 interface ISelectedEvents {
@@ -26,8 +28,9 @@ interface ISelectedEvents {
 }
 
 const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
-  const eventDetails = props?.eventDetails;
-  const guests = eventDetails?.guests ?? [];
+  const eventDetails = getGatherings(props?.searchParams, props?.eventDetails?.events, props?.from);
+  const currentGuest = props?.eventDetails?.currentGuest;
+  const guests = props?.eventDetails?.guests ?? [];
   const onClose = props?.onClose;
   const location = props.location;
   const type = props?.type;
@@ -37,7 +40,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
   const selectedGuestIds = type === 'self-delete' ? [userInfo?.uid] : (props?.selectedGuests ?? []);
   const selectedGuests =
     type === 'self-delete'
-      ? [eventDetails?.currentGuest]
+      ? [currentGuest]
       : (guests?.filter((guest: IGuest) => selectedGuestIds?.includes(guest?.memberUid)) ?? []);
   const setSelectedGuests = props?.setSelectedGuests;
 
@@ -201,7 +204,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
           <div className="popup__body__members">
             {selectedGuests?.map((guest: IGuest, index: number) => {
               const events = guest?.events?.filter((event: IIrlEvent) =>
-                eventDetails?.events?.some((g: IIrlEvent) => g?.uid === event?.uid),
+                eventDetails?.some((g: IIrlEvent) => g?.uid === event?.uid),
               );
               return (
                 <div className="popup__member" key={guest?.memberUid}>

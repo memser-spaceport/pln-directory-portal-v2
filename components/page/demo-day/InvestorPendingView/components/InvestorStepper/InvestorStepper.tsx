@@ -7,6 +7,7 @@ import { AddToCalendarModal } from '../AddToCalendarModal';
 interface StepperProps {
   currentStep: number;
   onFillProfile?: () => void;
+  onAddToCalendar?: () => void;
 }
 
 interface StepData {
@@ -18,9 +19,14 @@ interface StepData {
   height?: number;
 }
 
-export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillProfile }) => {
+export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillProfile, onAddToCalendar }) => {
   const { data } = useGetDemoDayState();
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+
+  const handleAddToCalendarClick = () => {
+    onAddToCalendar?.();
+    setIsCalendarModalOpen(true);
+  };
 
   // Format the date for Step 3 description
   const formatEventDate = (dateString: string) => {
@@ -71,7 +77,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
       description: step2Description,
       status: step2Status,
       children: (
-        <button className={s.secondaryButton} onClick={() => setIsCalendarModalOpen(true)}>
+        <button className={s.secondaryButton} onClick={handleAddToCalendarClick}>
           <CalendarIcon /> Add to your Calendar
         </button>
       ),

@@ -31,11 +31,19 @@ export const InvestorPendingView = () => {
     const { investorProfile } = memberData.memberInfo;
 
     // Check if all required fields are populated
-    const hasInvestmentFocus = investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0;
+    // const hasInvestmentFocus = investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0;
     const hasTypicalCheckSize = investorProfile.typicalCheckSize && investorProfile.typicalCheckSize > 0;
-    const hasSecRulesAccepted = investorProfile.secRulesAccepted === true;
+    // const hasSecRulesAccepted = investorProfile.secRulesAccepted === true;
 
-    return hasInvestmentFocus && hasTypicalCheckSize && hasSecRulesAccepted;
+    if (investorProfile.type === 'ANGEL') {
+      return hasTypicalCheckSize;
+    }
+
+    if (investorProfile.type === 'ANGEL_AND_FUND') {
+      return investorProfile.team && hasTypicalCheckSize;
+    }
+
+    return !!investorProfile.team;
   }, [memberData]);
 
   // Determine current step based on profile completion
@@ -45,9 +53,9 @@ export const InvestorPendingView = () => {
     // Step 3: Demo Day access (if profile is complete)
 
     if (isInvestorProfileComplete) {
-      return 3; // Profile complete, ready for Demo Day
+      return 2; // Profile complete, ready for Demo Day
     } else {
-      return 2; // Need to complete profile
+      return 1; // Need to complete profile
     }
   }, [isInvestorProfileComplete]);
 

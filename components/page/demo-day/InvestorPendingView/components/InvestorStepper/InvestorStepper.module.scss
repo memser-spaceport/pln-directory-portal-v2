@@ -122,7 +122,7 @@
 
 .stepConnector {
   width: 2px;
-  height: 60px;
+  height: 120px;
   background: #f0f3f9;
   margin-top: 4px;
   transition: background-color 0.3s ease;
@@ -138,8 +138,11 @@
 
 .stepContent {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   padding-top: 0;
-  margin-top: -8px;
+  //margin-top: -2px;
+  gap: 12px;
 
   &:not(:last-child) {
     padding-bottom: 24px;
@@ -151,35 +154,21 @@
 }
 
 .stepTitle {
-  color: #0a0c11;
-  font-size: 20px;
+  color: #0A0C11;
+  font-size: 14px;
   font-style: normal;
   font-weight: 500;
-  line-height: 27px; /* 135% */
-  letter-spacing: -0.3px;
-
-  @include media.mobile-only {
-    font-size: 18px;
-    line-height: 18px;
-    margin: 0 0 4px 0;
-  }
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
 }
 
 .stepDescription {
-  margin: 0;
-  color: #5e718d;
-  font-size: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
   font-style: normal;
   font-weight: 400;
-  line-height: 20px; /* 180% */
-  letter-spacing: -0.3px;
-
-  opacity: 0.7;
-
-  @include media.mobile-only {
-    font-size: 13px;
-    line-height: 15px;
-  }
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
 }
 
 // Step status styles
@@ -226,17 +215,18 @@
     0px 1px 3px 0px inset rgba(255, 255, 255, 0.32),
     0px 4px 6px 0px inset rgba(255, 255, 255, 0.06),
     0px 1px 5px 0px rgba(27, 77, 255, 0.16);
-  color: #fff;
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
+  color: var(--action-foreground-base-inverted_white, #FFF);
+  font-size: 14px;
+  font-style: normal;
   font-weight: 500;
-  line-height: 24px;
-  letter-spacing: -0.3px;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
   cursor: pointer;
   transition: all 0.2s ease;
   width: 100%;
   max-width: 220px;
-  margin-top: 20px;
+  //margin-top: 20px;
+  gap: 6px;
 
   &:hover {
     background: #1a45e6;

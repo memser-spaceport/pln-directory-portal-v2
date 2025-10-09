@@ -559,7 +559,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             className={s.secondaryButton}
             onClick={() =>
               expressInterest.mutate({
-                teamFundraisingProfileUid: data?.uid,
+                teamFundraisingProfileUid: data?.uid || '',
                 interestType: 'like',
               })
             }
@@ -571,7 +571,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             className={s.secondaryButton}
             onClick={() =>
               expressInterest.mutate({
-                teamFundraisingProfileUid: data?.uid,
+                teamFundraisingProfileUid: data?.uid || '',
                 interestType: 'connect',
               })
             }
@@ -583,7 +583,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             className={s.primaryButton}
             onClick={() =>
               expressInterest.mutate({
-                teamFundraisingProfileUid: data?.uid,
+                teamFundraisingProfileUid: data?.uid || '',
                 interestType: 'invest',
               })
             }

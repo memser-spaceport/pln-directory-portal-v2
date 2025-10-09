@@ -35,10 +35,14 @@ export function useExpressInterest() {
   return useMutation({
     mutationFn: expressInterest,
     onSuccess: () => {
-      toast.success('Connection request sent! Both parties have been notified via email.');
+      toast.success('Connection request sent! Both parties have been notified via email.', {
+        autoClose: 5000,
+      });
     },
     onError: (error) => {
-      toast.error('Connection request failed. Please try again.');
+      toast.error('Connection request failed. Please try again.', {
+        autoClose: 5000,
+      });
     },
   });
 }

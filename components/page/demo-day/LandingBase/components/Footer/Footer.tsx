@@ -1,6 +1,6 @@
 import s from './Footer.module.scss';
 
-const PRIVACY_POLICY_URL = 'https://drive.google.com/file/d/1MjOF66asddB_hsg7Jc-7Oxk6L1EvYHxk/view';
+const PRIVACY_POLICY_URL = 'https://drive.google.com/file/d/1RIAyMlyuLYnipa6W_YBzcJ6hDzfH7yW3/view';
 const TERMS_AND_CONDITIONS_URL = 'https://drive.google.com/file/d/1MjOF66asddB_hsg7Jc-7Oxk6L1EvYHxk/view';
 
 export function Footer() {

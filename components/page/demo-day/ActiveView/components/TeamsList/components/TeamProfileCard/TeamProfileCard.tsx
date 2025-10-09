@@ -23,15 +23,16 @@ interface TeamProfileCardProps {
   onLikeCompany?: (team: TeamProfile) => void;
   onConnectCompany?: (team: TeamProfile) => void;
   onInvestCompany?: (team: TeamProfile) => void;
+  isAdmin?: boolean;
 }
 
-export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick }) => {
+export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick, isAdmin = false }) => {
   // Analytics hooks
   const { onActiveViewTeamCardClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
-  const canEdit = team.founders.some((founder) => founder.uid === userInfo?.uid);
+  const canEdit = isAdmin || team.founders.some((founder) => founder.uid === userInfo?.uid);
 
   const handleCardClick = () => {
     // Report team card click analytics

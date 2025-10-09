@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader';
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
-import { createDemoDayEmailHandler, DemoDayEmailData } from '@/utils/demo-day-email.utils';
+import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
 import s from './TeamProfileCard.module.scss';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
@@ -29,6 +29,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick 
   // Analytics hooks
   const { onActiveViewTeamCardClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
+  const expressInterest = useExpressInterest();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const canEdit = team.founders.some((founder) => founder.uid === userInfo?.uid);
 
@@ -71,27 +72,14 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick 
     onClick?.(team);
   };
 
-  // Create email data for demo day actions
-  const createEmailData = (): DemoDayEmailData | null => {
-    const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
-
-    const founders = team.founders;
-
-    if (!founders || !userInfo) return null;
-
-    const founderEmails = founders.map((founder) => founder.email);
-    const founderNames = founders.map((founder) => founder.name);
-
-    return {
-      founderEmails,
-      founderNames,
-      demotingTeamName: team.team?.name || 'Team Name',
-      investorName: userInfo.name ?? '',
-      investorTeamName: userInfo.mainTeamName ?? '',
-    };
+  const handleInterestCompanyClick = (e: React.MouseEvent, interestType: InterestType) => {
+    e.stopPropagation();
+    e.preventDefault();
+    expressInterest.mutate({
+      teamFundraisingProfileUid: team.uid,
+      interestType: interestType,
+    });
   };
-
-  const emailData = createEmailData();
 
   return (
     <div className={s.profileCard} onClick={handleCardClick}>
@@ -113,22 +101,22 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick 
       <div className={s.actions}>
         <button
           className={s.secondaryButton}
-          onClick={emailData ? createDemoDayEmailHandler('like', emailData) : undefined}
-          disabled={!emailData}
+          onClick={(e) => handleInterestCompanyClick(e, 'like')}
+          disabled={expressInterest.isPending || !team.uid}
         >
           <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like the Company
         </button>
         <button
           className={s.secondaryButton}
-          onClick={emailData ? createDemoDayEmailHandler('connect', emailData) : undefined}
-          disabled={!emailData}
+          onClick={(e) => handleInterestCompanyClick(e, 'connect')}
+          disabled={expressInterest.isPending || !team.uid}
         >
           🤝 Connect with Company
         </button>
         <button
           className={s.primaryButton}
-          onClick={emailData ? createDemoDayEmailHandler('invest', emailData) : undefined}
-          disabled={!emailData}
+          onClick={(e) => handleInterestCompanyClick(e, 'invest')}
+          disabled={expressInterest.isPending || !team.uid}
         >
           💰 Invest in Company
         </button>

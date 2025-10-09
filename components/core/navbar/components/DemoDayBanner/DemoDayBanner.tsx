@@ -18,14 +18,34 @@ export function DemoDayBanner() {
   }
 
   const { date } = data || {};
-  const dateToShow = date ? format(date, 'do MMM') : '23rd Oct.';
+
+  // Format date with ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
+  const getOrdinalSuffix = (day: number) => {
+    if (day > 3 && day < 21) return 'th';
+    switch (day % 10) {
+      case 1: return 'st';
+      case 2: return 'nd';
+      case 3: return 'rd';
+      default: return 'th';
+    }
+  };
+
+  const dateToShow = date
+    ? (() => {
+        const parsedDate = new Date(date);
+        const month = format(parsedDate, 'MMMM');
+        const day = parsedDate.getDate();
+        const suffix = getOrdinalSuffix(day);
+        return `${month} ${day}${suffix}`;
+      })()
+    : 'October 23rd';
 
   return (
     <HighlightsBar>
       <div className={s.root}>
-        PL F25 Demo day is taking place on {dateToShow}.{' '}
+        PL F25 Demo Day will take place {dateToShow}.{' '}
         <Link href="/demoday" className={s.link}>
-          View more info.
+          Learn more
         </Link>
       </div>
     </HighlightsBar>

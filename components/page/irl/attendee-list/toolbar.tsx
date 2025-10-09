@@ -4,22 +4,22 @@ import { EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useClickedOutside from '@/hooks/useClickedOutside';
-import { IAnalyticsGuestLocation, IGuestDetails } from '@/types/irl.types';
+import { IAnalyticsGuestLocation } from '@/types/irl.types';
 import Search from './search';
 import { triggerLoader } from '@/utils/common.utils';
-import {Checkbox} from '@/components/common/Checkbox';
-// import FollowButton from '../follow-gathering/follow-button';
+import { ATTENDEE_TYPE_DATA } from '@/utils/constants';
 interface IToolbar {
   onLogin: () => void;
   userInfo: IUserInfo;
   filteredListLength: number;
   isLoggedIn: boolean;
-  eventDetails: IGuestDetails;
   location: IAnalyticsGuestLocation;
   isAdminInAllEvents: any;
   locationEvents: any;
   followers: any;
   handleAttendeesClick: (type: string, e: { stopPropagation: () => void }) => void;
+  type: string;
+  eventDetails: any;
 }
 const Toolbar = (props: IToolbar) => {
   //props
@@ -31,11 +31,25 @@ const Toolbar = (props: IToolbar) => {
   const searchRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
   const search = searchParams.get('search');
-  const type = searchParams.get('type');
+  const type = props?.type;
   const router = useRouter();
+  const [isShowAttendeeListPopup, setIsShowAttendeeListPopup] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   //hooks
   const analytics = useIrlAnalytics();
+
+  const onHandleAttendeesClick = (from: string) => {
+    if (from === 'upcoming') {
+      handleAttendeesClick('upcoming', { stopPropagation: () => {} });
+      analytics.trackShowOnlyCurrentAttendeesClicked(location);
+    } else {
+      handleAttendeesClick('past', { stopPropagation: () => {} });
+      analytics.trackShowOnlyPastAttendeesCheckboxClicked(location);
+    }
+  };
+
+  useClickedOutside({ callback: () => setIsShowAttendeeListPopup(false), ref: dropdownRef });
 
   const debounce = (func: Function, delay: number) => {
     let timeoutId: NodeJS.Timeout;
@@ -64,16 +78,6 @@ const Toolbar = (props: IToolbar) => {
     updateQueryParams(searchValue?.trim());
   };
 
-  const onCheckboxChange = () => {
-    if (type === 'past') {
-      handleAttendeesClick('upcoming', { stopPropagation: () => {} });
-      analytics.trackShowOnlyCurrentAttendeesClicked(location);
-    } else {
-      handleAttendeesClick('past', { stopPropagation: () => {} });
-      analytics.trackShowOnlyPastAttendeesCheckboxClicked(location);
-    }
-  };
-
   useEffect(() => {
     if (searchRef.current) {
       searchRef.current.value = search ?? '';
@@ -85,18 +89,36 @@ const Toolbar = (props: IToolbar) => {
       <div className="toolbar">
         <span className="toolbar__hdr">
           <span className="toolbar__hdr__count">
-            {(eventDetails as any)?.upcomingCount === 0 || type === 'past' ? 'Past Attendees' : 'Current Attendees'}{` `}({filteredListLength})
+            <span className="toolbar__hdr__count__text">{type === 'past'
+                ? `Past Attendees (${filteredListLength})`
+                : `Attendees (${filteredListLength})`}
+              </span>
+            {
+              (eventDetails?.upcomingEvents?.length > 0 && eventDetails?.pastEvents?.length > 0) && (
+                <div className="toolbar__hdr__dropdown" ref={dropdownRef} onClick={() => setIsShowAttendeeListPopup((prev) => !prev)}>
+                <img src="/icons/irl/arrow-down-white.svg" alt="dropdown" />
+                {isShowAttendeeListPopup && (
+                  <div className="toolbar__dropdown__attendee__type">
+                    <div className="toolbar__dropdown__attendee__type__body">
+                    {ATTENDEE_TYPE_DATA.map((item: any) => (
+                      <div className="toolbar__dropdown__attendee__type__body__item" key={item.from} onClick={() => onHandleAttendeesClick(item.from)}>
+                        <input type="radio" name="attendees" value={item.from} checked={type === item.from || ((type === null || type === undefined) && item.from === 'upcoming')} />
+                        <label className="toolbar__dropdown__attendee__type__body__item__label">
+                          {item.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  </div>
+                )}
+              </div>
+              )
+            }
           </span>
         </span>
-        <div className="toolbar__search">
+        {<div className="toolbar__search">
           <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
-        </div>
-        {(eventDetails as any)?.upcomingCount > 0 && (eventDetails as any)?.pastCount > 0 && (
-          <div className="toolbar__checkbox">
-            <Checkbox checked={type === 'past' ? true : false} onChange={onCheckboxChange} />
-            <p>Show Only Past Attendees</p>
-          </div>
-        )}
+        </div>}
       </div>
       <style jsx>
         {`
@@ -107,7 +129,6 @@ const Toolbar = (props: IToolbar) => {
           .toolbar {
             display: flex;
             flex-direction: column;
-            justify-content: ${(eventDetails as any)?.upcomingCount > 0 && (eventDetails as any)?.pastCount > 0 ? 'space-between' : ''};
             row-gap: 16px;
             padding: 16px 20px;
           }
@@ -121,16 +142,7 @@ const Toolbar = (props: IToolbar) => {
               display: flex;
               gap: 8px;
             }
-          .toolbar__checkbox {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 400;
-            color: rgba(71, 85, 105, 1);
-            line-height: 20px;
-            letter-spacing: 0;
-          }
+            }
           .toolbar__search {
             width: 100%;
           }
@@ -140,12 +152,126 @@ const Toolbar = (props: IToolbar) => {
             display: flex;
           }
           .toolbar__hdr__count {
+            display: inline-flex;
             font-size: 14px;
             font-weight: 400;
             font-size: 18px;
             font-weight: 700;
             line-height: 20px;
             color: #0f172a;
+            vertical-align: middle;
+          }
+
+          .toolbar__hdr__count__text {
+            display: flex;
+            align-items: center;
+          }
+          
+          .toolbar__hdr__dropdown {
+            margin-left: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 24px;
+            width: 24px;
+            border-radius: 6px;
+            border: 1px solid rgba(203, 213, 225, 1);
+            background: #156FF7;
+            box-shadow: 0px 1px 1px 0px rgba(15, 23, 42, 0.08);
+            cursor: pointer;
+            position: relative;
+          }
+          .toolbar__dropdown__attendee__type {
+            position: absolute;
+            top: 100%;
+            right: -50px;
+            margin-top: 4px;
+            z-index: 2;
+            background: rgba(255, 255, 255, 1);
+            border-radius: 8px;
+            padding: 8px;
+            width: 205px;
+            height: 85px;
+            box-shadow: 0px 2px 6px 0px rgba(15, 23, 42, 0.16);
+          }
+  
+          .toolbar__dropdown__attendee__type__body {
+            display: flex;
+            flex-direction: column;
+          }
+  
+          .toolbar__dropdown__attendee__type__body__item {
+            height: 35px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 4px;
+            padding-left: 4px;
+          }
+  
+          .toolbar__dropdown__attendee__type__body__item__label {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 100%;
+            color: rgba(15, 23, 42, 1);
+            cursor: pointer;
+          }
+
+          .toolbar__dropdown__attendee__type__body__item:hover {
+            background: rgba(241, 245, 249, 1);
+            border-radius: 4px;
+          }
+
+          @media (min-width: 1024px) {
+            .toolbar__dropdown__attendee__type {
+              right: 0;
+            }
+          }
+        
+          .toolbar__dropdown__attendee__type {
+            position: absolute;
+            top: 100%;
+            right: -50px;
+            margin-top: 4px;
+            z-index: 2;
+            background: rgba(255, 255, 255, 1);
+            border-radius: 8px;
+            padding: 8px;
+            width: 205px;
+            height: 85px;
+            box-shadow: 0px 2px 6px 0px rgba(15, 23, 42, 0.16);
+          }
+  
+          .toolbar__dropdown__attendee__type__body {
+            display: flex;
+            flex-direction: column;
+          }
+  
+          .toolbar__dropdown__attendee__type__body__item {
+            height: 35px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 4px
+          }
+  
+          .toolbar__dropdown__attendee__type__body__item__label {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 100%;
+            color: rgba(15, 23, 42, 1);
+            cursor: pointer;
+          }
+
+          .toolbar__dropdown__attendee__type__body__item:hover {
+            background: rgba(241, 245, 249, 1);
+            border-radius: 4px;
+          }
+
+          @media (min-width: 1024px) {
+            .toolbar__dropdown__attendee__type {
+              right: 0;
+            }
           }
           .toolbar__actionCn {
             display: flex;
@@ -321,14 +447,10 @@ const Toolbar = (props: IToolbar) => {
           .toolbar__hdr {
             flex: 1;
             align-items: center;
-            order: 1; /* Current Attendees comes first */
           }
             .toolbar__actionCn {
               justify-content: flex-end;
               flex: unset;
-            }
-            .toolbar__checkbox {
-              order: 2; /* Checkbox comes second */
             }
             .toolbar__search {
               width: 300px;
@@ -350,16 +472,9 @@ const Toolbar = (props: IToolbar) => {
               flex-direction: row;
               flex-wrap: wrap;
             }
-            .toolbar__hdr {
-              order: 1; /* Current Attendees comes first */
-            }
             .toolbar__search {
               width: 300px;
               flex-basis: unset;
-              order: 2; /* Search comes second */
-            }
-            .toolbar__checkbox {
-              order: 3; /* Checkbox comes last */
             }
           }
           @media (min-width: 1024px) {
@@ -370,10 +485,9 @@ const Toolbar = (props: IToolbar) => {
 
             .toolbar {
               flex-wrap: unset;
-              justify-content: ${(eventDetails as any)?.upcomingCount > 0 && (eventDetails as any)?.pastCount > 0 ? 'space-between' : ''};
               align-items: center;
               padding: 0px;
-              gap: 10px;
+              gap: 18px;
             }
             .toolbar__search {
               width: 300px;
@@ -386,13 +500,9 @@ const Toolbar = (props: IToolbar) => {
             .toolbar__hdr__count {
               min-width: 140px;
             }
-            .toolbar__checkbox {
-              margin-left: auto;
-            }
             .toolbar__actionCn {
               flex: 1;
               justify-content: flex-end;
-              order: 2;
             }
             .toolbar__actionCn__schduleBtn {
               width: unset;

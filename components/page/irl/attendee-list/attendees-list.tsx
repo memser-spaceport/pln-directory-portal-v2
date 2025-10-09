@@ -11,14 +11,13 @@ import FloatingBar from './floating-bar';
 import Modal from '@/components/core/modal';
 import DeleteAttendeesPopup from './delete-attendees-popup';
 import { getParsedValue, triggerLoader } from '@/utils/common.utils';
-import { getCurrentGuestsByLocation, getGuestEvents, getGuestsByLocation, getTopicsByLocation } from '@/services/irl.service';
+import { getGuestEvents, getGuestsByLocation, getTopicsByLocation } from '@/services/irl.service';
 import AttendeeForm from '../add-edit-attendee/attendee-form';
-import NoAttendees from './no-attendees';
 import AttendeeTableHeader from './attendee-table-header';
 import { IUserInfo } from '@/types/shared.types';
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
 import usePagination from '@/hooks/irl/use-pagination';
-import { checkAdminInAllEvents, getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
+import { checkAdminInAllEvents, getFilteredEventsForUser, getGatherings, parseSearchParams } from '@/utils/irl.utils';
 import TableLoader from '@/components/core/table-loader';
 
 interface IAttendeeList {
@@ -60,6 +59,7 @@ const AttendeeList = (props: IAttendeeList) => {
   const [iamGoingPopupProps, setIamGoingPopupProps]: any = useState({ isOpen: false, formdata: null, mode: '' });
   const deleteRef = useRef<HTMLDialogElement>(null);
   const router = useRouter();
+  const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';
 
   const [deleteModalOpen, setDeleteModalOpen] = useState({ isOpen: false, type: '' });
 
@@ -93,7 +93,6 @@ const AttendeeList = (props: IAttendeeList) => {
 
   const getEventDetails = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
-    const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';
 
     if (tableRef.current) {
       tableRef.current.scrollTop = 0;
@@ -103,21 +102,22 @@ const AttendeeList = (props: IAttendeeList) => {
     const [eventInfo, currentGuestResponse, topics, loggedInUserEvents]: any = await Promise.all([
       await getGuestsByLocation(
         location?.uid,
-        parseSearchParams(searchParams, eventDetails?.events),
+        parseSearchParams(searchParams, eventType === 'past' ? eventDetails?.events?.pastEvents : eventDetails?.events?.upcomingEvents),
         authToken,
         currentEventNames,
       ),
-      await getCurrentGuestsByLocation(location?.uid, { type: eventType }, authToken, currentEventNames, 1, 1),
+      await getGuestsByLocation(location?.uid, { type: eventType }, authToken, currentEventNames, 1, 1),
       await getTopicsByLocation(location?.uid, eventType),
       await getGuestEvents(location?.uid, authToken),
     ]);
+    const gatherings = getGatherings(searchParams?.type, eventDetails?.events, iamGoingPopupProps?.from);
     const currentGuest =
       currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests[0] : null;
     eventInfo.isUserGoing = currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid;
     eventInfo.topics = topics;
     eventInfo.eventsForFilter = getFilteredEventsForUser(
       loggedInUserEvents,
-      eventDetails?.events,
+      gatherings,
       isLoggedIn,
       userInfo,
     );
@@ -127,16 +127,7 @@ const AttendeeList = (props: IAttendeeList) => {
     if ((eventInfo as any)?.selectedType) {
       finalEventType = (eventInfo as any).selectedType;
     }
-
-    setUpdatedEventDetails((prev) => ({
-      ...eventInfo,
-      events: prev.events,
-      currentGuest,
-      totalGuests: eventInfo.totalGuests,
-      selectedType: finalEventType,
-      upcomingCount: (eventInfo as any).upcomingCount,
-      pastCount: (eventInfo as any).pastCount,
-    }));
+    setUpdatedEventDetails((prev) => ({ ...eventInfo, events: prev.events, currentGuest, totalGuests: eventInfo.totalGuests }));
     triggerLoader(false);
     router.refresh();
   };
@@ -165,6 +156,12 @@ const AttendeeList = (props: IAttendeeList) => {
         triggerLoader(true);
         // analytics.trackUpcomingEventsDropdownClicked(eventDetails.upcomingEvents);
       }
+  };
+
+    // Check if any filters are applied
+  const hasFiltersApplied = () => {
+    const filterParams = ['search', 'attending', 'attendees', 'topics', 'sortBy', 'sortDirection'];
+    return filterParams.some(param => searchParams[param]);
   };
 
   useEffect(() => {
@@ -208,7 +205,7 @@ const AttendeeList = (props: IAttendeeList) => {
         const authToken = getParsedValue(Cookies.get('authToken'));
         const eventInfo: any = await getGuestsByLocation(
           location?.uid,
-          parseSearchParams(searchParams, eventDetails?.events),
+          parseSearchParams(searchParams, eventType === 'past' ? eventDetails?.events?.pastEvents : eventDetails?.events?.upcomingEvents),
           authToken,
           currentEventNames,
           currentPage,
@@ -267,16 +264,17 @@ const AttendeeList = (props: IAttendeeList) => {
             location={location}
             onLogin={onLogin}
             filteredListLength={updatedEventDetails.totalGuests}
-            eventDetails={updatedEventDetails}
             userInfo={userInfo}
             isLoggedIn={isLoggedIn}
             followers={props.followers}
             handleAttendeesClick={handleAttendeesClick}
+            type={searchParams?.type}
+            eventDetails={updatedEventDetails.events}
           />
         </div>
         <div className="attendeeList__table">
           <div className={`irl__table table__login`}>
-            <AttendeeTableHeader isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} />
+            {<AttendeeTableHeader isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} />}
             <div ref={tableRef} className={`irl__table__body w-full`}>
               <GuestList
                 userInfo={userInfo}
@@ -291,6 +289,7 @@ const AttendeeList = (props: IAttendeeList) => {
                 searchParams={searchParams}
                 isAdminInAllEvents={isAdminInAllEvents}
                 newSearchParams={newSearchParams}
+                hasFiltersApplied={hasFiltersApplied()}
               />
               {isAttendeeLoading && <TableLoader />}
               <div ref={observerRef} className="scroll-observer"></div>
@@ -324,6 +323,8 @@ const AttendeeList = (props: IAttendeeList) => {
             type={deleteModalOpen?.type}
             setSelectedGuests={setSelectedGuests}
             getEventDetails={getEventDetails}
+            from={iamGoingPopupProps?.from}
+            searchParams={searchParams}
           />
         )}
       </Modal>
@@ -446,7 +447,7 @@ const AttendeeList = (props: IAttendeeList) => {
           }
 
           .table__login {
-            height: calc(100vh - 170px);
+            height: calc(100vh - 210px);
           }
 
           .table__not-login {

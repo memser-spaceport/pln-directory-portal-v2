@@ -28,7 +28,10 @@ const Gatherings = (props: IGatherings) => {
   const gatherings = props?.gatherings ?? [];
   const eventType = props?.eventType;
   const from = props?.from ?? '';
-  const filteredGatherings = mode === IAM_GOING_POPUP_MODES.ADMINADD || from === 'list' || eventType === 'past' ? gatherings : filterUpcomingGatherings(gatherings);
+  
+  // Determine if we should show all gatherings or filter them
+  const shouldShowAllGatherings = mode === IAM_GOING_POPUP_MODES.ADMINADD || from === 'list' || eventType === 'past';
+  
   const userInfo = props?.userInfo;
   const loggedInUserInfo = props?.loggedInUserInfo;
   const errors = props?.errors;
@@ -78,16 +81,21 @@ const Gatherings = (props: IGatherings) => {
           <div
             className={`gatrs__all__gths ${errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING) && !selectedGatherings?.length ? 'error' : ''}`}
           >
-            {filteredGatherings?.map((gathering: any, index: number) => {
+            {gatherings?.map((gathering: any, index: number) => {
               const isBooked = getIsAlreadyBooked(gathering);
               //
               // const isAllEventEditable = eventType === 'past' && from === 'list' && (isAdmin || isLoggedInUserEventDetails);
-              const isAllEventEditable = eventType === 'past' && (isAdmin || isLoggedInUserEventDetails);
+              const isAllEventEditable = isAdmin || isLoggedInUserEventDetails;
               const isEventDisabled = isAllEventEditable ? !isAllEventEditable : isBooked;
+              
+              // Determine if this gathering should be visible based on filtering logic
+              const shouldShowGathering = shouldShowAllGatherings || filterUpcomingGatherings(gathering);
+              
               return (
                 <div
                   key={`${gathering.uid} - ${index}`}
                   className={`gatrs__all__gatr  ${isEventDisabled ? 'disable' : ''}`}
+                  style={{ display: shouldShowGathering ? 'flex' : 'none' }}
                 >
                   <div className={`gatrs__all__gatr__ckbox`}>
                     {gathering?.type === EVENT_TYPE.INVITE_ONLY && isBooked && (
@@ -130,7 +138,7 @@ const Gatherings = (props: IGatherings) => {
                     } */}
                   </div>
                   <div
-                    className={`${index + 1 < filteredGatherings.length ? 'gatrs__all__gatr__bb' : ''} gatrs__all__gatr__dteandname`}
+                    className={`${index + 1 < gatherings.length ? 'gatrs__all__gatr__bb' : ''} gatrs__all__gatr__dteandname`}
                   >
                     <div className="gatrs__all__gatr__dteandname__dat">
                       {getFormattedDateString(gathering.startDate, gathering.endDate)}
@@ -175,6 +183,10 @@ const Gatherings = (props: IGatherings) => {
               errors={errors}
               selectedGatherings={selectedGatherings}
               setSelectedGatherings={setSelectedGatherings}
+              shouldShowAllGatherings={shouldShowAllGatherings}
+              eventType={eventType}
+              from={from}
+              mode={mode}
             />
           </div>
         )}

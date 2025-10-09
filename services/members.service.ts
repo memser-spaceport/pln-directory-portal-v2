@@ -374,11 +374,14 @@ export const getMembersForAttendeeForm = async () => {
 };
 
 export const getMemberInfo = async (memberUid: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${memberUid}`, {
-    cache: 'no-store',
-    method: 'GET',
-    headers: getHeader(''),
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/members/${memberUid}?${new URLSearchParams({ with: 'image,skills,location,teamMemberRoles.team' })}`,
+    {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(''),
+    },
+  );
   if (!response?.ok) {
     return { isError: true, status: response.status, message: response.statusText };
   }
@@ -389,6 +392,8 @@ export const getMemberInfo = async (memberUid: string) => {
       teamTitle: tm.team.name,
       teamUid: tm.teamUid,
       role: tm.role,
+      team: tm.team,
+      investmentTeam: tm.investmentTeam,
     };
   });
 

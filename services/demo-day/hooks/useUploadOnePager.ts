@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
+import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 
 interface UploadOnePagerResponse {
   success: boolean;
@@ -11,11 +12,20 @@ interface UploadOnePagerResponse {
   };
 }
 
-async function uploadOnePager(file: File): Promise<UploadOnePagerResponse> {
+interface UploadOnePagerParams {
+  file: File;
+  teamUid?: string; // Optional team UID for admin uploads
+}
+
+async function uploadOnePager(params: UploadOnePagerParams): Promise<UploadOnePagerResponse> {
+  const { file, teamUid } = params;
   const formData = new FormData();
   formData.append('onePagerFile', file);
 
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/one-pager`;
+  // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
+  const url = teamUid
+    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/current/teams/${teamUid}/fundraising-profile/one-pager`
+    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/one-pager`;
 
   const response = await customFetch(
     url,
@@ -40,9 +50,14 @@ export function useUploadOnePager() {
 
   return useMutation({
     mutationFn: uploadOnePager,
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       // Invalidate and refetch the fundraising profile data
-      queryClient.invalidateQueries({ queryKey: ['fundraising-profile'] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST] });
+      // Only invalidate admin list if uploading as admin
+      if (variables.teamUid) {
+        queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES] });
+      }
     },
     onError: (error) => {
       console.error('Failed to upload one-pager:', error);

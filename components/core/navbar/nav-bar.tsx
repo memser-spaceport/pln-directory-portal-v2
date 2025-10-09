@@ -2,6 +2,7 @@
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import { ADMIN_ROLE } from '@/utils/constants';
 import { usePathname } from 'next/navigation';
 import React, { memo, useState } from 'react';
 import LoginBtn from './login-btn';

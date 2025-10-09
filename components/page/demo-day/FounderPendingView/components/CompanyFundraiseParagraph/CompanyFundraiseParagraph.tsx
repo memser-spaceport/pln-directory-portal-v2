@@ -7,6 +7,7 @@ import s from './CompanyFundraiseParagraph.module.scss';
 interface CompanyFundraiseParagraphProps {
   paragraph?: string | null;
   editable?: boolean;
+  teamUid?: string;
 }
 
 interface FormData {
@@ -16,6 +17,7 @@ interface FormData {
 export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps> = ({
   paragraph,
   editable = false,
+  teamUid,
 }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const updateDescriptionMutation = useUpdateFundraiseDescription();
@@ -44,6 +46,7 @@ export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps>
     try {
       await updateDescriptionMutation.mutateAsync({
         description: data.fundraiseParagraph,
+        teamUid,
       });
       toast.success('Fundraise description updated successfully!');
       setIsEditMode(false);
@@ -92,9 +95,7 @@ export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps>
             <div className={s.helperText}>
               <p>One short paragraph, max 400 characters.</p>
             </div>
-            {errors.fundraiseParagraph && (
-              <div className={s.errorText}>{errors.fundraiseParagraph.message}</div>
-            )}
+            {errors.fundraiseParagraph && <div className={s.errorText}>{errors.fundraiseParagraph.message}</div>}
           </div>
         </form>
       </div>
@@ -105,12 +106,14 @@ export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps>
   return (
     <div className={s.container}>
       <div className={s.header}>
-        <h3 className={s.subtitle}>Company paragraph for fundraise</h3>
         {editable && (
-          <button className={s.editButton} onClick={handleEditClick}>
-            <EditIcon />
-            <span>Edit</span>
-          </button>
+          <>
+            <h3 className={s.subtitle}>Company paragraph for fundraise</h3>
+            <button className={s.editButton} onClick={handleEditClick}>
+              <EditIcon />
+              <span>Edit</span>
+            </button>
+          </>
         )}
       </div>
       <div className={s.content}>

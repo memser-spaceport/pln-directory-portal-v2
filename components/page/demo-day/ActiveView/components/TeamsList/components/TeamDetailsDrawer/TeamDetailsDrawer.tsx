@@ -8,7 +8,7 @@ import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import s from './TeamDetailsDrawer.module.scss';
 import { EditProfileDrawer } from '@/components/page/demo-day/FounderPendingView/components/EditProfileDrawer';
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
-import { createDemoDayEmailHandler, DemoDayEmailData } from '@/utils/demo-day-email.utils';
+import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
@@ -40,6 +40,7 @@ interface TeamDetailsDrawerProps {
     teamName: string;
     email: string;
   };
+  isAdmin?: boolean;
 }
 
 export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
@@ -48,6 +49,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   team,
   scrollPosition,
   investorData,
+  isAdmin = false,
 }) => {
   const { data } = useGetFundraisingProfile();
 
@@ -60,32 +62,12 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     onActiveViewTeamPitchVideoViewed,
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
+  const expressInterest = useExpressInterest();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
   if (!team) return null;
 
   const displayTeam = team;
-
-  // Create email data for demo day actions
-  const createEmailData = (): DemoDayEmailData | null => {
-    const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
-    const founders = team.founders;
-
-    if (!founders?.length || !userInfo) return null;
-
-    const founderEmails = founders.map((f) => f.email);
-    const founderNames = founders.map((f) => f.name);
-
-    return {
-      founderEmails,
-      founderNames,
-      demotingTeamName: team.team?.name || 'Team Name',
-      investorName: userInfo.name ?? '',
-      investorTeamName: userInfo.mainTeamName ?? '',
-    };
-  };
-
-  const emailData = createEmailData();
 
   // Analytics helper function for team details
   const getTeamAnalyticsData = () => ({
@@ -125,10 +107,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
       reportAnalytics.mutate(likeEvent);
     }
 
-    // Execute original email handler
-    if (emailData) {
-      createDemoDayEmailHandler('like', emailData)();
-    }
+    // Express interest via API
+    expressInterest.mutate({
+      teamFundraisingProfileUid: team.uid,
+      interestType: 'like',
+    });
   };
 
   const handleConnectCompanyClick = () => {
@@ -154,10 +137,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
       reportAnalytics.mutate(connectEvent);
     }
 
-    // Execute original email handler
-    if (emailData) {
-      createDemoDayEmailHandler('connect', emailData)();
-    }
+    // Express interest via API
+    expressInterest.mutate({
+      teamFundraisingProfileUid: team.uid,
+      interestType: 'connect',
+    });
   };
 
   const handleInvestCompanyClick = () => {
@@ -183,10 +167,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
       reportAnalytics.mutate(investEvent);
     }
 
-    // Execute original email handler
-    if (emailData) {
-      createDemoDayEmailHandler('invest', emailData)();
-    }
+    // Express interest via API
+    expressInterest.mutate({
+      teamFundraisingProfileUid: team.uid,
+      interestType: 'invest',
+    });
   };
 
   // Analytics handlers for media viewing
@@ -246,8 +231,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     }
   };
 
-  if (team?.team?.uid === data?.teamUid) {
-    return <EditProfileDrawer isOpen={isOpen} onClose={onClose} scrollPosition={0} data={data} />;
+  const isOwnTeam = team?.team?.uid === data?.teamUid;
+
+  if (isOwnTeam || isAdmin) {
+    const editData = isAdmin && !isOwnTeam ? (team as any) : data;
+    return <EditProfileDrawer isOpen={isOpen} onClose={onClose} scrollPosition={0} data={editData} />;
   }
 
   return (
@@ -289,7 +277,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                         image={displayTeam.team.logo?.url || '/images/demo-day/profile-placeholder.svg'}
                         name={displayTeam.team?.name || 'Team Name'}
                         description={displayTeam?.team?.shortDescription || '-'}
-                        fundingStage={displayTeam?.team.fundingStage.title || '-'}
+                        fundingStage={displayTeam?.team?.fundingStage?.title || '-'}
                         tags={displayTeam?.team.industryTags.map((tag) => tag.title) || []}
                       />
                     </div>
@@ -373,14 +361,26 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                 {/* Footer Actions */}
                 <div className={s.drawerFooter}>
                   <div className={s.actions}>
-                    <button className={s.secondaryButton} onClick={handleLikeCompanyClick} disabled={!emailData}>
+                    <button
+                      className={s.secondaryButton}
+                      onClick={handleLikeCompanyClick}
+                      disabled={expressInterest.isPending || !team.uid}
+                    >
                       <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />
                       Like Company
                     </button>
-                    <button className={s.secondaryButton} onClick={handleConnectCompanyClick} disabled={!emailData}>
+                    <button
+                      className={s.secondaryButton}
+                      onClick={handleConnectCompanyClick}
+                      disabled={expressInterest.isPending || !team.uid}
+                    >
                       🤝 Connect with Company
                     </button>
-                    <button className={s.primaryButton} onClick={handleInvestCompanyClick} disabled={!emailData}>
+                    <button
+                      className={s.primaryButton}
+                      onClick={handleInvestCompanyClick}
+                      disabled={expressInterest.isPending || !team.uid}
+                    >
                       💰 Invest in Company
                     </button>
                   </div>

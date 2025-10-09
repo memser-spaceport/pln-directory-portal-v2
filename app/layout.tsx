@@ -20,6 +20,7 @@ import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginF
 import { UserInfoChecker } from '@/components/core/login/UserInfoChecker';
 import { MobileBottomNav } from '@/components/core/MobileBottomNav/MobileBottomNav';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { DemoDayBanner } from '@/components/core/navbar/components/DemoDayBanner';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -79,7 +80,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <StoreInitializer userInfo={userInfo} />
             <PostHogIdentifier />
             <header className="layout__header">
-              <SubscribeToRecoomendations userInfo={userInfo} />
+              <DemoDayBanner />
+              {false && <SubscribeToRecoomendations userInfo={userInfo} />}
               <CompleteYourProfile userInfo={userInfo} />
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>

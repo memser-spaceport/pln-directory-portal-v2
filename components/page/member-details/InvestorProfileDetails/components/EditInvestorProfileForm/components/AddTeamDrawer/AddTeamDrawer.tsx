@@ -7,6 +7,7 @@ import { IUserInfo } from '@/types/shared.types';
 
 import { INVEST_IN_VC_FUNDS_OPTIONS } from '@/constants/createTeam';
 
+import { isInvestor } from '@/utils/isInvestor';
 import { toast } from '@/components/core/ToastContainer';
 
 import { useGetSaveTeam } from '@/hooks/createTeam/useGetSaveTeam';
@@ -38,6 +39,7 @@ import s from './AddTeamDrawer.module.scss';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useQueryClient } from '@tanstack/react-query';
 
+
 interface Props extends Omit<DrawerProps, 'header'> {
   userInfo: IUserInfo;
   onSuccess?: (teamName: string) => void;
@@ -62,7 +64,7 @@ export function AddTeamDrawer(props: Props) {
       fundTypes: [],
       startupStages: [],
       investmentFocus: [],
-      isInvestmentFund: ['L5', 'L6'].includes(userInfo?.accessLevel ?? ''),
+      isInvestmentFund: isInvestor(userInfo?.accessLevel),
     },
     // TODO figure out damn types
     // @ts-ignore

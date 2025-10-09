@@ -24,6 +24,7 @@ interface MediaPreviewProps {
   onDelete?: () => void;
   onView?: () => void;
   showDeleteButton?: boolean;
+  teamUid?: string;
 }
 
 const ExpandIcon = () => (
@@ -62,6 +63,7 @@ export const MediaPreview = ({
   onDelete,
   onView,
   showDeleteButton = true,
+  teamUid,
 }: MediaPreviewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -139,7 +141,7 @@ export const MediaPreview = ({
 
   const handleDeleteConfirm = () => {
     if (type === 'document') {
-      deleteOnePagerMutation.mutate(undefined, {
+      deleteOnePagerMutation.mutate(teamUid ? { teamUid } : undefined, {
         onSuccess: () => {
           setShowDeleteDialog(false);
           queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
@@ -150,7 +152,7 @@ export const MediaPreview = ({
         },
       });
     } else if (type === 'video') {
-      deleteVideoMutation.mutate(undefined, {
+      deleteVideoMutation.mutate(teamUid ? { teamUid } : undefined, {
         onSuccess: () => {
           setShowDeleteDialog(false);
           queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });

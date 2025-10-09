@@ -117,6 +117,7 @@ const DotIcon = () => (
 interface PitchDeckUploadProps {
   existingFile?: UploadInfo | null;
   analyticsHandlers?: DemoMaterialAnalyticsHandlers;
+  teamUid?: string;
 }
 
 interface UploadState {
@@ -127,7 +128,7 @@ interface UploadState {
   error: string | null;
 }
 
-export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUploadProps) => {
+export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: PitchDeckUploadProps) => {
   const [uploadState, setUploadState] = useState<UploadState>({
     file: null,
     progress: 0,
@@ -207,47 +208,50 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUp
       }, 200);
 
       // Start upload
-      uploadMutation.mutate(file, {
-        onSuccess: () => {
-          clearInterval(progressInterval);
-          queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
+      uploadMutation.mutate(
+        { file, teamUid },
+        {
+          onSuccess: () => {
+            clearInterval(progressInterval);
+            queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
 
-          // Report upload success analytics
-          const uploadDuration = Date.now() - uploadStartTime;
-          analyticsHandlers?.onUploadSuccess({
-            ...fileMetadata,
-            uploadDuration,
-          });
+            // Report upload success analytics
+            const uploadDuration = Date.now() - uploadStartTime;
+            analyticsHandlers?.onUploadSuccess({
+              ...fileMetadata,
+              uploadDuration,
+            });
 
-          toast.success('Pitch slide uploaded successfully!');
+            toast.success('Pitch slide uploaded successfully!');
 
-          setUploadState((prev) => ({
-            ...prev,
-            isUploading: false,
-            isComplete: true,
-            progress: 100,
-          }));
+            setUploadState((prev) => ({
+              ...prev,
+              isUploading: false,
+              isComplete: true,
+              progress: 100,
+            }));
+          },
+          onError: (error) => {
+            clearInterval(progressInterval);
+            queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
+
+            const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+
+            // Report upload failed analytics
+            analyticsHandlers?.onUploadFailed(fileMetadata, errorMessage);
+
+            toast.error(`Failed to upload pitch slide: ${errorMessage}`);
+
+            setUploadState((prev) => ({
+              ...prev,
+              isUploading: false,
+              error: errorMessage,
+            }));
+          },
         },
-        onError: (error) => {
-          clearInterval(progressInterval);
-          queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
-
-          const errorMessage = error instanceof Error ? error.message : 'Upload failed';
-
-          // Report upload failed analytics
-          analyticsHandlers?.onUploadFailed(fileMetadata, errorMessage);
-
-          toast.error(`Failed to upload pitch slide: ${errorMessage}`);
-
-          setUploadState((prev) => ({
-            ...prev,
-            isUploading: false,
-            error: errorMessage,
-          }));
-        },
-      });
+      );
     },
-    [queryClient, uploadMutation, analyticsHandlers],
+    [queryClient, uploadMutation, analyticsHandlers, teamUid],
   );
 
   const onDropRejected = useCallback((fileRejections: any[]) => {
@@ -393,6 +397,7 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers }: PitchDeckUp
           onDelete={handleDelete}
           onView={handleView}
           showDeleteButton={true}
+          teamUid={teamUid}
         />
       </div>
     );

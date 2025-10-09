@@ -1,0 +1,1 @@
+export { AdminTeamsList } from './AdminTeamsList';

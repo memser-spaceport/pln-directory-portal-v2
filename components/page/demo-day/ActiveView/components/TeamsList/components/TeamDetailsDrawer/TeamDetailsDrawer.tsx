@@ -40,6 +40,7 @@ interface TeamDetailsDrawerProps {
     teamName: string;
     email: string;
   };
+  isAdmin?: boolean;
 }
 
 export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
@@ -48,6 +49,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   team,
   scrollPosition,
   investorData,
+  isAdmin = false,
 }) => {
   const { data } = useGetFundraisingProfile();
 
@@ -229,8 +231,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     }
   };
 
-  if (team?.team?.uid === data?.teamUid) {
-    return <EditProfileDrawer isOpen={isOpen} onClose={onClose} scrollPosition={0} data={data} />;
+  const isOwnTeam = team?.team?.uid === data?.teamUid;
+
+  if (isOwnTeam || isAdmin) {
+    const editData = isAdmin && !isOwnTeam ? (team as any) : data;
+    return <EditProfileDrawer isOpen={isOpen} onClose={onClose} scrollPosition={0} data={editData} />;
   }
 
   return (

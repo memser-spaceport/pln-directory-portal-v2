@@ -46,7 +46,8 @@ interface DemoMaterialsProps {
   existingPitchDeck?: UploadInfo | null;
   existingVideo?: UploadInfo | null;
   analyticsHandlers?: DemoMaterialAnalyticsHandlers;
-  companyFundraiseParagraph?: React.ReactNode;
+  companyFundraiseParagraph: React.ReactNode;
+  teamUid?: string;
 }
 
 export const DemoMaterials = ({
@@ -54,6 +55,7 @@ export const DemoMaterials = ({
   existingVideo,
   analyticsHandlers,
   companyFundraiseParagraph,
+  teamUid,
 }: DemoMaterialsProps) => {
   return (
     <div className={s.demoMaterialsSection}>
@@ -71,8 +73,8 @@ export const DemoMaterials = ({
       </div>
       <div className={s.materialsContainer}>
         <div className={s.materials}>
-          <PitchDeckUpload existingFile={existingPitchDeck} analyticsHandlers={analyticsHandlers} />
-          <PitchVideoUpload existingFile={existingVideo} analyticsHandlers={analyticsHandlers} />
+          <PitchDeckUpload existingFile={existingPitchDeck} analyticsHandlers={analyticsHandlers} teamUid={teamUid} />
+          <PitchVideoUpload existingFile={existingVideo} analyticsHandlers={analyticsHandlers} teamUid={teamUid} />
         </div>
         {companyFundraiseParagraph && <div className={s.fundraiseParagraphContainer}>{companyFundraiseParagraph}</div>}
       </div>

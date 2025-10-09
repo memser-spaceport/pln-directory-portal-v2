@@ -9,6 +9,7 @@ import s from './EditProfileForm.module.scss';
 import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { useUpdateFundraisingProfile } from '@/services/demo-day/hooks/useUpdateFundraisingProfile';
+import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { saveRegistrationImage } from '@/services/registration.service';
@@ -19,7 +20,7 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
-import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { ADMIN_ROLE, DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
 interface EditProfileFormData {
   image: File | null;
@@ -33,6 +34,7 @@ interface Props {
   onClose: (saved?: boolean) => void;
   member?: IMember;
   userInfo?: IUserInfo;
+  profileData?: FundraisingProfile;
 }
 
 const schema = yup.object().shape({
@@ -65,8 +67,9 @@ const schema = yup.object().shape({
     .nullable(),
 });
 
-export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
-  const { data: profileData } = useGetFundraisingProfile();
+export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props) => {
+  const { data: profileDataFromHook } = useGetFundraisingProfile();
+  const profileData = profileDataProp || profileDataFromHook; // Use prop if provided, otherwise use hook
   const updateProfileMutation = useUpdateFundraisingProfile();
   const { data } = useTeamsFormOptions();
 
@@ -74,6 +77,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const { onFounderSaveTeamDetailsClicked, onFounderCancelTeamDetailsClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const currentUserInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const isDirectoryAdmin = currentUserInfo?.roles?.includes(ADMIN_ROLE);
 
   const options = useMemo(() => {
     if (!data) {
@@ -146,8 +150,9 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         name: formData.name,
         shortDescription: formData.shortDescription,
         industryTags: formData.tags.map((t) => t.value),
-        fundingStage: formData.fundingStage?.value || '',
+        fundingStage: formData.fundingStage?.value || profileData?.team?.fundingStage?.uid || '',
         logo: image || profileData?.team.logo?.uid,
+        teamUid: isDirectoryAdmin ? profileDataProp?.teamUid : undefined, // Include teamUid if editing another team (admin)
       };
 
       await updateProfileMutation.mutateAsync(updateData);

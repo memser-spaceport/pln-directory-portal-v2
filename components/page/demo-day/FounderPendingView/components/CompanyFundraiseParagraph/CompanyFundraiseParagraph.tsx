@@ -7,6 +7,7 @@ import s from './CompanyFundraiseParagraph.module.scss';
 interface CompanyFundraiseParagraphProps {
   paragraph?: string | null;
   editable?: boolean;
+  teamUid?: string;
 }
 
 interface FormData {
@@ -16,6 +17,7 @@ interface FormData {
 export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps> = ({
   paragraph,
   editable = false,
+  teamUid,
 }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const updateDescriptionMutation = useUpdateFundraiseDescription();
@@ -44,6 +46,7 @@ export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps>
     try {
       await updateDescriptionMutation.mutateAsync({
         description: data.fundraiseParagraph,
+        teamUid,
       });
       toast.success('Fundraise description updated successfully!');
       setIsEditMode(false);

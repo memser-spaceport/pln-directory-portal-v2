@@ -4,8 +4,6 @@ import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState
 import { useGetAllFundraisingProfiles } from '@/services/demo-day/hooks/useGetAllFundraisingProfiles';
 import Link from 'next/link';
 import { format } from 'date-fns-tz';
-import { PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
-import { MediaPreview } from '@/components/page/demo-day/FounderPendingView/components/MediaPreview';
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
 import { AdminTeamsList } from '../AdminTeamsList';
 
@@ -47,9 +45,9 @@ export const AdminContent = ({ isDirectoryAdmin }: { isDirectoryAdmin: boolean }
               <LinkIcon />
             </Link>
           </div>
-          <div className={s.videoWrapper}>
+          {/*<div className={s.videoWrapper}>
             <MediaPreview url={PITCH_VIDEO_URL} type="video" title="Pitch Video" showMetadata={false} />
-          </div>
+          </div>*/}
         </div>
       </div>
 

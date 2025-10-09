@@ -45,7 +45,7 @@ export function PageTitle(props: PageTitleProps) {
     <div className={s.root}>
       <h1 className={`${s.title} ${size === 'small' && s.small}`}>{data?.title || 'PL F25 Demo Day'}</h1>
       <p className={`${s.description} ${size === 'small' && s.small}`}>
-        An invite-only event for accredited investors, featuring 25 emerging <br className={s.hideOnMobile} />
+        An invite-only event for accredited investors, featuring 20+ top teams from Pre-Seed to Series A, across the{' '}
         <a
           href="https://www.protocol.ai/"
           className={s.link}
@@ -53,9 +53,9 @@ export function PageTitle(props: PageTitleProps) {
           target="_blank"
           rel="noreferrer"
         >
-          Protocol Labs Network
+          Protocol Labs
         </a>{' '}
-        teams in rapid-fire demos. <b>{date ? format(date, 'MMMM dd, yyyy') : 'October 23, 2025'}</b>.
+        network. <br className={s.hideOnMobile} /> <b>{date ? format(date, 'MMMM dd, yyyy') : 'October 23, 2025'}</b>.
       </p>
     </div>
   );

@@ -1,12 +1,9 @@
 import React from 'react';
 import s from '@/components/page/demo-day/FounderPendingView/FounderPendingView.module.scss';
-import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import Link from 'next/link';
 import { format } from 'date-fns-tz';
 import { TeamsList } from '@/components/page/demo-day/ActiveView/components/TeamsList';
-import { PITCH_DECK_URL, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
-import { MediaPreview } from '@/components/page/demo-day/FounderPendingView/components/MediaPreview';
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
 
 export const Content = () => {
@@ -17,7 +14,7 @@ export const Content = () => {
       <div className={s.eventHeader}>
         <div className={s.content}>
           <div className={s.headline}>
-          <PageTitle size="small" />
+            <PageTitle size="small" />
           </div>
 
           <div className={s.stats}>
@@ -33,9 +30,6 @@ export const Content = () => {
               {data?.investorsCount} Investor{(data?.investorsCount ?? 0) > 1 ? 's' : ''}
               <LinkIcon />
             </Link>
-          </div>
-          <div className={s.videoWrapper}>
-            <MediaPreview url={PITCH_VIDEO_URL} type="video" title="Pitch Video" showMetadata={false} />
           </div>
           {/*<ProfileContent pitchDeckUrl={PITCH_DECK_URL} videoUrl={PITCH_VIDEO_URL} />*/}
         </div>

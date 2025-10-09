@@ -121,6 +121,7 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
       '_blank',
     );
     await markCalendarAsAdded();
+    onClose();
   };
 
   const handleOutlookCalendar = async () => {

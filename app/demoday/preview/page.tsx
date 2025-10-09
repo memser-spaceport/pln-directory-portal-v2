@@ -21,10 +21,10 @@ function DemoDayPreviewPage() {
 
   useEffect(() => {
     // Redirect non-admins to regular demo day page
-    if (!isDirectoryAdmin && !data?.isDemoDayAdmin) {
+    if (!isDirectoryAdmin && !data?.isDemoDayAdmin && data?.access !== 'FOUNDER') {
       router.replace('/demoday');
     }
-  }, [isDirectoryAdmin, data?.isDemoDayAdmin, router]);
+  }, [isDirectoryAdmin, data?.isDemoDayAdmin, data?.access, router]);
 
   // Don't render anything for non-admins while redirecting
   if (!isDirectoryAdmin && !data?.isDemoDayAdmin) {

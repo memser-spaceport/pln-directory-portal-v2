@@ -1596,6 +1596,7 @@ export const DEMO_DAY_ANALYTICS = {
   ON_INVESTOR_PENDING_VIEW_PAGE_OPENED: 'demo-day-investor-pending-view-page-opened',
   ON_INVESTOR_PENDING_VIEW_GO_TO_INVESTOR_PROFILE_BUTTON_CLICKED:
     'demo-day-investor-pending-view-go-to-profile-clicked',
+  ON_INVESTOR_PENDING_VIEW_ADD_TO_CALENDAR_BUTTON_CLICKED: 'demo-day-investor-pending-view-add-to-calendar-clicked',
   ON_INVESTOR_PROFILE_PAGE_OPENED: 'demo-day-investor-profile-page-opened',
   ON_INVESTOR_PROFILE_EDIT_STARTED: 'demo-day-investor-profile-edit-started',
   ON_INVESTOR_PROFILE_UPDATED: 'demo-day-investor-profile-updated',

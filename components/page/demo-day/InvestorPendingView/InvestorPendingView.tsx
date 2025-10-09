@@ -21,7 +21,8 @@ export const InvestorPendingView = () => {
   const { data: engagementData } = useGetEngagement();
 
   // Analytics hooks
-  const { onInvestorPendingViewGoToInvestorProfileButtonClicked } = useDemoDayAnalytics();
+  const { onInvestorPendingViewGoToInvestorProfileButtonClicked, onInvestorPendingViewAddToCalendarButtonClicked } =
+    useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
 
   // Function to check if investor profile is complete
@@ -105,9 +106,33 @@ export const InvestorPendingView = () => {
     router.push(`/members/${userInfo.uid}`);
   };
 
+  const handleAddToCalendar = () => {
+    if (!userInfo?.email) {
+      return;
+    }
+
+    // Report button click analytics
+    onInvestorPendingViewAddToCalendarButtonClicked();
+
+    const buttonClickEvent: TrackEventDto = {
+      name: DEMO_DAY_ANALYTICS.ON_INVESTOR_PENDING_VIEW_ADD_TO_CALENDAR_BUTTON_CLICKED,
+      distinctId: userInfo.email,
+      properties: {
+        userId: userInfo.uid,
+        userEmail: userInfo.email,
+        userName: userInfo.name,
+        path: '/demoday',
+        timestamp: new Date().toISOString(),
+        currentStep: currentStep,
+      },
+    };
+
+    reportAnalytics.mutate(buttonClickEvent);
+  };
+
   return (
     <LandingBase>
-      <InvestorStepper currentStep={currentStep} onFillProfile={handleFillProfile} />
+      <InvestorStepper currentStep={currentStep} onFillProfile={handleFillProfile} onAddToCalendar={handleAddToCalendar} />
     </LandingBase>
   );
 };

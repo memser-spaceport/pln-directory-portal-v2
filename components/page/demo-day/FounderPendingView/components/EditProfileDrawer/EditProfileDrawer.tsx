@@ -15,7 +15,7 @@ import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hook
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { createDemoDayEmailHandler, DemoDayEmailData } from '@/utils/demo-day-email.utils';
+import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
 import Image from 'next/image';
 import { Drawer } from '@/components/common/Drawer';
 
@@ -90,29 +90,8 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
     onFounderEditTeamProfileButtonClicked,
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
+  const expressInterest = useExpressInterest();
   const previousDataRef = useRef<FundraisingProfile | undefined>(data);
-
-  // Create email data for demo day actions
-  const createEmailData = (): DemoDayEmailData | null => {
-    const founders = data?.founders;
-
-    if (!founders || founders.length === 0 || !userInfo) return null;
-
-    const founderEmails = founders.map((founder) => founder.email).filter((email) => email);
-    const founderNames = founders.map((founder) => founder.name).filter((name) => name);
-
-    if (founderEmails.length === 0 || founderNames.length === 0) return null;
-
-    return {
-      founderEmails,
-      founderNames,
-      demotingTeamName: data.team?.name || 'Team Name',
-      investorName: userInfo.name ?? '',
-      investorTeamName: userInfo.mainTeamName ?? '',
-    };
-  };
-
-  const emailData = createEmailData();
 
   const handleEditClick = () => {
     if (userInfo?.email) {
@@ -581,22 +560,37 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
         <div className={s.drawerFooter}>
           <button
             className={s.secondaryButton}
-            onClick={emailData ? createDemoDayEmailHandler('like', emailData) : undefined}
-            disabled={!emailData}
+            onClick={() =>
+              expressInterest.mutate({
+                teamFundraisingProfileUid: data?.uid || '',
+                interestType: 'like',
+              })
+            }
+            disabled={expressInterest.isPending || !data?.uid}
           >
             <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
           </button>
           <button
             className={s.secondaryButton}
-            onClick={emailData ? createDemoDayEmailHandler('connect', emailData) : undefined}
-            disabled={!emailData}
+            onClick={() =>
+              expressInterest.mutate({
+                teamFundraisingProfileUid: data?.uid || '',
+                interestType: 'connect',
+              })
+            }
+            disabled={expressInterest.isPending || !data?.uid}
           >
             🤝 Connect with Company
           </button>
           <button
             className={s.primaryButton}
-            onClick={emailData ? createDemoDayEmailHandler('invest', emailData) : undefined}
-            disabled={!emailData}
+            onClick={() =>
+              expressInterest.mutate({
+                teamFundraisingProfileUid: data?.uid || '',
+                interestType: 'invest',
+              })
+            }
+            disabled={expressInterest.isPending || !data?.uid}
           >
             💰 Invest in Company
           </button>

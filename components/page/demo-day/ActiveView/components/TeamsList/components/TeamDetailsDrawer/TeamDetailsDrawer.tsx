@@ -277,7 +277,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                         image={displayTeam.team.logo?.url || '/images/demo-day/profile-placeholder.svg'}
                         name={displayTeam.team?.name || 'Team Name'}
                         description={displayTeam?.team?.shortDescription || '-'}
-                        fundingStage={displayTeam?.team.fundingStage.title || '-'}
+                        fundingStage={displayTeam?.team?.fundingStage?.title || '-'}
                         tags={displayTeam?.team.industryTags.map((tag) => tag.title) || []}
                       />
                     </div>

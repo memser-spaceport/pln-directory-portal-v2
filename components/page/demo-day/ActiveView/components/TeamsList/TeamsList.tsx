@@ -104,9 +104,9 @@ export const TeamsList: React.FC = () => {
         case 'name-desc':
           return b.team.name.localeCompare(a.team.name);
         case 'stage-asc':
-          return a.team.fundingStage.title.localeCompare(b.team.fundingStage.title);
+          return a.team?.fundingStage?.title.localeCompare(b.team?.fundingStage?.title);
         case 'stage-desc':
-          return b.team.fundingStage.title.localeCompare(a.team.fundingStage.title);
+          return b.team?.fundingStage?.title.localeCompare(a.team?.fundingStage?.title);
         case 'recent':
           // Sort by most recent (assuming we can use uid or another field for recency)
           return b.uid.localeCompare(a.uid);

@@ -5,6 +5,7 @@ import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useMember } from '@/services/members/hooks/useMember';
+import { useGetEngagement } from '@/services/demo-day/hooks/useGetEngagement';
 import { InvestorStepper } from './components/InvestorStepper';
 import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
@@ -17,6 +18,7 @@ export const InvestorPendingView = () => {
   const router = useRouter();
   const { data } = useGetDemoDayState();
   const { data: memberData } = useMember(userInfo?.uid);
+  const { data: engagementData } = useGetEngagement();
 
   // Analytics hooks
   const { onInvestorPendingViewGoToInvestorProfileButtonClicked } = useDemoDayAnalytics();
@@ -31,25 +33,38 @@ export const InvestorPendingView = () => {
     const { investorProfile } = memberData.memberInfo;
 
     // Check if all required fields are populated
-    const hasInvestmentFocus = investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0;
+    // const hasInvestmentFocus = investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0;
     const hasTypicalCheckSize = investorProfile.typicalCheckSize && investorProfile.typicalCheckSize > 0;
-    const hasSecRulesAccepted = investorProfile.secRulesAccepted === true;
+    // const hasSecRulesAccepted = investorProfile.secRulesAccepted === true;
 
-    return hasInvestmentFocus && hasTypicalCheckSize && hasSecRulesAccepted;
+    if (investorProfile.type === 'ANGEL') {
+      return hasTypicalCheckSize;
+    }
+
+    if (investorProfile.type === 'ANGEL_AND_FUND') {
+      return investorProfile.team && hasTypicalCheckSize;
+    }
+
+    return !!investorProfile.team;
   }, [memberData]);
 
-  // Determine current step based on profile completion
+  // Determine current step based on profile completion and calendar added
   const currentStep = useMemo(() => {
-    // Step 1: Invitation accepted (default - user is on the page)
-    // Step 2: Complete investor profile (if profile is not complete)
-    // Step 3: Demo Day access (if profile is complete)
+    // Step 0: Invitation accepted (default - user is on the page)
+    // Step 1: Complete investor profile (if profile is not complete)
+    // Step 2: Add to calendar (if profile is complete but calendar not added)
+    // Step 3: Demo Day access (if profile is complete and calendar added)
 
-    if (isInvestorProfileComplete) {
-      return 3; // Profile complete, ready for Demo Day
-    } else {
-      return 2; // Need to complete profile
+    if (!isInvestorProfileComplete) {
+      return 1; // Need to complete profile
     }
-  }, [isInvestorProfileComplete]);
+
+    if (isInvestorProfileComplete && !engagementData?.calendarAdded) {
+      return 2; // Profile complete, need to add to calendar
+    }
+
+    return 3; // Profile complete and calendar added, ready for Demo Day
+  }, [isInvestorProfileComplete, engagementData?.calendarAdded]);
 
   // Page view analytics - triggers only once on mount
   useDemoDayPageViewAnalytics(
@@ -86,7 +101,7 @@ export const InvestorPendingView = () => {
 
     reportAnalytics.mutate(buttonClickEvent);
 
-    window.open(`/members/${userInfo.uid}`, '_blank');
+    router.push(`/members/${userInfo.uid}`);
   };
 
   return (

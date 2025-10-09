@@ -37,6 +37,14 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
   };
 
   const eventDateFormatted = data?.date ? formatEventDate(data.date) : '12:00 UTC, Oct 25';
+
+  // Determine Step 2 status and description
+  const step2Status = currentStep > 2 ? 'completed' : currentStep === 2 ? 'current' : 'pending';
+  const step2Description =
+    step2Status === 'completed'
+      ? `You're all set for Demo Day! Return to this page on ${eventDateFormatted} to join the event.`
+      : `Return to this page on ${eventDateFormatted} to join the event.`;
+
   const steps: StepData[] = [
     {
       id: 0,
@@ -49,7 +57,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
       id: 1,
       title: 'Step 1',
       description: 'Complete your investor profile',
-      status: currentStep > 1 ? 'completed' : currentStep === 2 ? 'current' : 'pending',
+      status: currentStep > 1 ? 'completed' : currentStep === 1 ? 'current' : 'pending',
       children: (
         <button className={s.primaryButton} onClick={onFillProfile}>
           <EditIcon /> Go to Investor Profile
@@ -60,11 +68,11 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
     {
       id: 2,
       title: 'Step 2',
-      description: `Return to this page on ${eventDateFormatted} to join the event.`,
-      status: currentStep > 2 ? 'completed' : currentStep === 3 ? 'current' : 'pending',
+      description: step2Description,
+      status: step2Status,
       children: (
         <button className={s.secondaryButton} onClick={() => setIsCalendarModalOpen(true)}>
-          <CalendarIcon /> Add to Calendar
+          <CalendarIcon /> Add to your Calendar
         </button>
       ),
       height: 120,
@@ -93,7 +101,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
                     [s.pending]: step.status === 'pending',
                   })}
                 >
-                  <div className={s.stepDot} />
+                  {step.status === 'completed' ? <CompletedIcon /> : <div className={s.stepDot} />}
                 </div>
                 {index < steps.length - 1 && <div className={clsx(s.stepConnector)} style={{ height: step.height }} />}
               </div>
@@ -163,5 +171,14 @@ const CalendarIcon = () => (
         <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_9878_30859" result="shape" />
       </filter>
     </defs>
+  </svg>
+);
+
+const CompletedIcon = () => (
+  <svg width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M10.5 1.875C8.89303 1.875 7.32214 2.35152 5.986 3.24431C4.64985 4.1371 3.60844 5.40605 2.99348 6.8907C2.37852 8.37535 2.21762 10.009 2.53112 11.5851C2.84463 13.1612 3.61846 14.6089 4.75476 15.7452C5.89106 16.8815 7.3388 17.6554 8.9149 17.9689C10.491 18.2824 12.1247 18.1215 13.6093 17.5065C15.094 16.8916 16.3629 15.8502 17.2557 14.514C18.1485 13.1779 18.625 11.607 18.625 10C18.6227 7.84581 17.766 5.78051 16.2427 4.25727C14.7195 2.73403 12.6542 1.87727 10.5 1.875ZM14.0672 8.56719L9.69219 12.9422C9.63415 13.0003 9.56522 13.0464 9.48934 13.0779C9.41347 13.1093 9.33214 13.1255 9.25 13.1255C9.16787 13.1255 9.08654 13.1093 9.01067 13.0779C8.93479 13.0464 8.86586 13.0003 8.80782 12.9422L6.93282 11.0672C6.81554 10.9499 6.74966 10.7909 6.74966 10.625C6.74966 10.4591 6.81554 10.3001 6.93282 10.1828C7.05009 10.0655 7.20915 9.99965 7.375 9.99965C7.54086 9.99965 7.69992 10.0655 7.81719 10.1828L9.25 11.6164L13.1828 7.68281C13.2409 7.62474 13.3098 7.57868 13.3857 7.54725C13.4616 7.51583 13.5429 7.49965 13.625 7.49965C13.7071 7.49965 13.7884 7.51583 13.8643 7.54725C13.9402 7.57868 14.0091 7.62474 14.0672 7.68281C14.1253 7.74088 14.1713 7.80982 14.2027 7.88569C14.2342 7.96156 14.2504 8.04288 14.2504 8.125C14.2504 8.20712 14.2342 8.28844 14.2027 8.36431C14.1713 8.44018 14.1253 8.50912 14.0672 8.56719Z"
+      fill="#1B4DFF"
+    />
   </svg>
 );

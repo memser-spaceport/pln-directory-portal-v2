@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import s from './AddToCalendarModal.module.scss';
+import { useSetCalendarAdded } from '@/services/demo-day/hooks/useSetCalendarAdded';
+import { toast } from '@/components/core/ToastContainer';
 
 const CalendarPlusIcon = () => (
   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -72,9 +74,21 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
   eventDate = '2024-10-25T12:00:00Z',
   eventTitle = 'Protocol Labs Demo Day',
 }) => {
+  const setCalendarAddedMutation = useSetCalendarAdded();
+
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
+    }
+  };
+
+  const markCalendarAsAdded = async () => {
+    try {
+      await setCalendarAddedMutation.mutateAsync();
+      toast.success('Event added to calendar!');
+    } catch (error) {
+      console.error('Failed to mark calendar as added:', error);
+      // Don't show error toast - the calendar action itself succeeded
     }
   };
 
@@ -147,16 +161,19 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
     document.body.removeChild(link);
   };
 
-  const handleGoogleCalendar = () => {
-    window.open('https://calendar.google.com/calendar/render?', '_blank');
+  const handleGoogleCalendar = async () => {
+    window.open(generateGoogleCalendarUrl(), '_blank');
+    await markCalendarAsAdded();
   };
 
-  const handleOutlookCalendar = () => {
+  const handleOutlookCalendar = async () => {
     window.open(generateOutlookCalendarUrl(), '_blank');
+    await markCalendarAsAdded();
   };
 
-  const handleAppleCalendar = () => {
+  const handleAppleCalendar = async () => {
     generateICSFile();
+    await markCalendarAsAdded();
   };
 
   return (

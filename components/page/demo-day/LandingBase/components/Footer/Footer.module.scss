@@ -1,0 +1,38 @@
+.root {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  max-width: 1000px;
+  padding: 20px 0;
+
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.legal {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-weight: 400;
+}
+
+.links {
+  gap: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.link {
+  color: var(--foreground-neutral-secondary, #455468);
+
+  font-weight: 500;
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-skip-ink: none;
+  text-decoration-thickness: auto;
+  text-underline-offset: auto;
+  text-underline-position: from-font;
+}

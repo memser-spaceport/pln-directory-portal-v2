@@ -13,7 +13,7 @@ import { Filters } from '@/components/page/demo-day/ActiveView/components/Filter
 import { AdminContent } from '@/components/page/demo-day/AdminView/components/AdminContent';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
-function DemoDayPreviewPage() {
+function DemoDayPrepPage() {
   const router = useRouter();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
@@ -39,4 +39,4 @@ function DemoDayPreviewPage() {
   );
 }
 
-export default DemoDayPreviewPage;
+export default DemoDayPrepPage;

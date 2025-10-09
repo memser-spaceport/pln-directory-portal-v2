@@ -42,8 +42,6 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   const [investInFundTypes, setInvestInFundTypes] = useState<{ label: string; value: string }[]>(
     initialValues?.investInFundTypes || [],
   );
-  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
-  const isInvestor = userInfo?.accessLevel === 'L5' || userInfo?.accessLevel === 'L6';
 
   // Get options for multiselects
   const { data } = useTeamsFormOptions();

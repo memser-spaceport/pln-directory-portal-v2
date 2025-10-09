@@ -12,6 +12,8 @@ import {
   SUBMIT_A_TEAM_PAGE_TITLE,
 } from '@/utils/constants/team-constants';
 
+import { isInvestor } from '@/utils/isInvestor';
+
 import FormStepIndicatorMob from '@/components/core/form-step-indicator-mob';
 import { FormStepIndicatorWeb } from '@/components/core/form-step-indicator-web';
 import TeamRegisterForm from '@/components/page/team-form-info/team-register-form';
@@ -34,9 +36,9 @@ export function AddEditTeamContainer(props: Props) {
   const [isSaveSuccess, setSuccessState] = useState(false);
 
   const onSuccessCallback = () => {
-    const { accessLevel = '' } = userInfo;
+    const { accessLevel } = userInfo;
 
-    if (['L5', 'L6'].includes(accessLevel)) {
+    if (isInvestor(accessLevel)) {
       setShowModal(true);
     } else {
       setSuccessState(true);

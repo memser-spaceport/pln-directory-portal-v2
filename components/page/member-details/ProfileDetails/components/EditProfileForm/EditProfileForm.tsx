@@ -26,14 +26,13 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { toast } from '@/components/core/ToastContainer';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { MAX_NAME_LENGTH } from '@/constants/profile';
+import { isInvestor } from '@/utils/isInvestor';
 
 interface Props {
   onClose: () => void;
   member: IMember;
   userInfo: IUserInfo;
 }
-
-const SHOW_OPEN_TO_COLLABORATE = false;
 
 export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
@@ -129,7 +128,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           <div className={s.row}>
             <ProfileSkillsInput />
           </div>
-          {SHOW_OPEN_TO_COLLABORATE && (
+          {!isInvestor(userInfo?.accessLevel) && (
             <div className={s.row}>
               <ProfileCollaborateInput />
             </div>

@@ -4,7 +4,10 @@ import s from '@/components/page/members/MembersFilter/MembersFilter.module.scss
 import FilterCount from '@/components/ui/filter-count';
 import { FilterSection } from '@/components/page/members/MembersFilter/FilterSection';
 import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
-import { FilterList, FilterOption } from '@/components/page/demo-day/ActiveView/components/Filters/components/FilterList';
+import {
+  FilterList,
+  FilterOption,
+} from '@/components/page/demo-day/ActiveView/components/Filters/components/FilterList';
 import { useGetAllFundraisingProfiles } from '@/services/demo-day/hooks/useGetAllFundraisingProfiles';
 import { useFilterStore } from '@/services/members/store';
 
@@ -22,7 +25,9 @@ export const AdminFilters = () => {
     const industryMap = new Map<string, { name: string; count: number }>();
 
     teams.forEach((team) => {
-      team.team.industryTags.forEach((tag) => {
+      team.team?.industryTags?.forEach((tag) => {
+        if (!tag) return;
+
         const existing = industryMap.get(tag.uid);
         if (existing) {
           existing.count += 1;
@@ -48,7 +53,10 @@ export const AdminFilters = () => {
     const stageMap = new Map<string, { name: string; count: number }>();
 
     teams.forEach((team) => {
-      const stage = team.team.fundingStage;
+      const stage = team.team?.fundingStage;
+
+      if (!stage) return;
+
       const existing = stageMap.get(stage.uid);
       if (existing) {
         existing.count += 1;

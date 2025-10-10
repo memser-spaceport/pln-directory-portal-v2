@@ -89,7 +89,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
       // Search filter - check team name and description
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
-        const matchesName = profile.team.name.toLowerCase().includes(searchLower);
+        const matchesName = profile.team?.name.toLowerCase().includes(searchLower);
         const matchesDescription = profile.team.shortDescription?.toLowerCase().includes(searchLower);
         if (!matchesName && !matchesDescription) {
           return false;
@@ -98,7 +98,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
 
       // Industry filter
       if (selectedIndustries.length > 0) {
-        const teamIndustryUids = profile.team.industryTags.map((tag) => tag.uid);
+        const teamIndustryUids = profile.team?.industryTags?.map((tag) => tag.uid);
         const hasMatchingIndustry = selectedIndustries.some((industryUid) => teamIndustryUids.includes(industryUid));
         if (!hasMatchingIndustry) {
           return false;
@@ -107,7 +107,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
 
       // Stage filter
       if (selectedStages.length > 0) {
-        const teamStageUid = profile.team.fundingStage.uid;
+        const teamStageUid = profile.team?.fundingStage?.uid;
         if (!selectedStages.includes(teamStageUid)) {
           return false;
         }

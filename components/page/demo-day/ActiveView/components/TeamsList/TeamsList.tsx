@@ -90,7 +90,7 @@ export const TeamsList: React.FC = () => {
 
       // Industry filter
       if (selectedIndustries.length > 0) {
-        const teamIndustryUids = team.team.industryTags.map((tag) => tag.uid);
+        const teamIndustryUids = team.team?.industryTags?.map((tag) => tag.uid);
         const hasMatchingIndustry = selectedIndustries.some((industryUid) => teamIndustryUids.includes(industryUid));
         if (!hasMatchingIndustry) {
           return false;
@@ -99,7 +99,7 @@ export const TeamsList: React.FC = () => {
 
       // Stage filter
       if (selectedStages.length > 0) {
-        const teamStageUid = team.team.fundingStage.uid;
+        const teamStageUid = team.team?.fundingStage?.uid;
         if (!selectedStages.includes(teamStageUid)) {
           return false;
         }

@@ -4,16 +4,16 @@ import s from '@/components/page/members/MembersFilter/MembersFilter.module.scss
 import FilterCount from '@/components/ui/filter-count';
 import { FilterSection } from '@/components/page/members/MembersFilter/FilterSection';
 import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
-import { FilterList, FilterOption } from './components/FilterList';
-import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
+import { FilterList, FilterOption } from '@/components/page/demo-day/ActiveView/components/Filters/components/FilterList';
+import { useGetAllFundraisingProfiles } from '@/services/demo-day/hooks/useGetAllFundraisingProfiles';
 import { useFilterStore } from '@/services/members/store';
 
-export const Filters = () => {
+export const AdminFilters = () => {
   const appliedFiltersCount = useGetMembersFilterCount();
   const { clearParams } = useFilterStore();
 
-  // Fetch teams data
-  const { data: teams, isLoading: teamsLoading } = useGetTeamsList();
+  // Fetch ALL teams data (without filters) to build filter options
+  const { data: teams, isLoading: teamsLoading } = useGetAllFundraisingProfiles();
 
   // Build industry options dynamically from teams data
   const industryOptions = useMemo((): FilterOption[] => {
@@ -104,16 +104,6 @@ export const Filters = () => {
           />
         </FilterSection>
       </div>
-
-      {/*<div className={s.footer}>*/}
-      {/*  <button className={s.secondaryBtn} onClick={clearParams}>*/}
-      {/*    Clear filters*/}
-      {/*  </button>*/}
-
-      {/*  <button className={s.primaryBtn} onClick={props.onClose}>*/}
-      {/*    Apply filters*/}
-      {/*  </button>*/}
-      {/*</div>*/}
     </div>
   );
 };

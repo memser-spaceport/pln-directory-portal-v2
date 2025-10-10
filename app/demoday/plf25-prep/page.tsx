@@ -9,7 +9,7 @@ import { ADMIN_ROLE } from '@/utils/constants';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { SyncParamsToUrl } from '@/components/core/SyncParamsToUrl';
 import { FiltersHydrator } from '@/components/core/FiltersHydrator/FiltersHydrator';
-import { Filters } from '@/components/page/demo-day/ActiveView/components/Filters';
+import { AdminFilters } from '@/components/page/demo-day/AdminView/components/AdminFilters';
 import { AdminContent } from '@/components/page/demo-day/AdminView/components/AdminContent';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
@@ -35,7 +35,7 @@ function DemoDayPrepPage() {
   return (
     <FiltersHydrator>
       <SyncParamsToUrl debounceTime={0} />
-      <DashboardPagesLayout filters={<Filters />} content={<AdminContent isDirectoryAdmin={!!isDirectoryAdmin} />} />
+      <DashboardPagesLayout filters={<AdminFilters />} content={<AdminContent isDirectoryAdmin={!!isDirectoryAdmin} />} />
     </FiltersHydrator>
   );
 }

@@ -10,7 +10,7 @@
 .mediaCard {
   position: relative;
   width: 100%;
-  height: 188px;
+  aspect-ratio: 16 / 9;
   border-radius: 4px;
   overflow: hidden;
   cursor: pointer;
@@ -79,9 +79,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: top;
-
-  // todo - add gradient
+  object-position: center;
 }
 
 .videoOverlay {

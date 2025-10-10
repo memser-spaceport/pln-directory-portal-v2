@@ -13,6 +13,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import Link from 'next/link';
+import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
@@ -52,6 +53,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   isAdmin = false,
 }) => {
   const { data } = useGetFundraisingProfile();
+  const isPrepDemoDay = useIsPrepDemoDay();
 
   // Analytics hooks
   const {
@@ -62,7 +64,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     onActiveViewTeamPitchVideoViewed,
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
-  const expressInterest = useExpressInterest();
+  const expressInterest = useExpressInterest(team?.team?.name);
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
   if (!team) return null;
@@ -111,6 +113,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     expressInterest.mutate({
       teamFundraisingProfileUid: team.uid,
       interestType: 'like',
+      isPrepDemoDay,
     });
   };
 
@@ -141,6 +144,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     expressInterest.mutate({
       teamFundraisingProfileUid: team.uid,
       interestType: 'connect',
+      isPrepDemoDay,
     });
   };
 
@@ -171,6 +175,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     expressInterest.mutate({
       teamFundraisingProfileUid: team.uid,
       interestType: 'invest',
+      isPrepDemoDay,
     });
   };
 

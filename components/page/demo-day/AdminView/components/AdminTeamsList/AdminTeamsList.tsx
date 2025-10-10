@@ -7,6 +7,9 @@ import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { TeamProfileCard } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamProfileCard';
 import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamDetailsDrawer';
 import s from '@/components/page/demo-day/ActiveView/components/TeamsList/TeamsList.module.scss';
+import { getParsedValue } from '@/utils/common.utils';
+import { IUserInfo } from '@/types/shared.types';
+import Cookies from 'js-cookie';
 
 const ChevronDownIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -52,6 +55,15 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const scrollPositionRef = useRef<number>(0);
   const { params } = useFilterStore();
+
+  // Get current user info
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+
+  // Function to check if current user is a founder of a team
+  const isUserFounder = (team: TeamProfile): boolean => {
+    if (!userInfo?.uid) return false;
+    return team.founders.some((founder) => founder.uid === userInfo.uid);
+  };
 
   // Get the latest team data from the refetched profiles list
   const latestTeamData = profiles?.find((p) => p.uid === selectedTeam?.uid);
@@ -106,6 +118,15 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
 
     // Apply sorting
     return [...filtered].sort((a, b) => {
+      // Always prioritize teams where current user is a founder
+      const aIsUserFounder = isUserFounder(a);
+      const bIsUserFounder = isUserFounder(b);
+
+      // If one team has user as founder and the other doesn't, prioritize the user's team
+      if (aIsUserFounder && !bIsUserFounder) return -1;
+      if (!aIsUserFounder && bIsUserFounder) return 1;
+
+      // If both are user teams or both are not, apply the selected sorting
       switch (sortBy) {
         case 'name-asc':
           return a.team?.name.localeCompare(b.team?.name);

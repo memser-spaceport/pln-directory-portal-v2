@@ -357,7 +357,9 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                           onPitchDeckView={handlePitchDeckView}
                           onPitchVideoView={handlePitchVideoView}
                         />
-                        <CompanyFundraiseParagraph paragraph={displayTeam?.description} editable={false} />
+                        {displayTeam?.description && (
+                          <CompanyFundraiseParagraph paragraph={displayTeam?.description} editable={false} />
+                        )}
                       </div>
                     </div>
                   </>

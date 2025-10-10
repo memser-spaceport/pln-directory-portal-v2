@@ -223,6 +223,11 @@ export const TeamsList: React.FC = () => {
         </div>
       </div>
 
+      <p className={s.subtitle}>
+        The default sort is randomized to give every team equal visibility. Your view is unique — no two users see the
+        same list.
+      </p>
+
       <div className={s.teamsList}>
         {filteredAndSortedTeams.map((team) => (
           <TeamProfileCard key={team.uid} team={team} onClick={handleTeamClick} />

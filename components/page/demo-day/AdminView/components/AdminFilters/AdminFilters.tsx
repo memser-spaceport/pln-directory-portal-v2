@@ -4,7 +4,10 @@ import s from '@/components/page/members/MembersFilter/MembersFilter.module.scss
 import FilterCount from '@/components/ui/filter-count';
 import { FilterSection } from '@/components/page/members/MembersFilter/FilterSection';
 import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
-import { FilterList, FilterOption } from '@/components/page/demo-day/ActiveView/components/Filters/components/FilterList';
+import {
+  FilterList,
+  FilterOption,
+} from '@/components/page/demo-day/ActiveView/components/Filters/components/FilterList';
 import { useGetAllFundraisingProfiles } from '@/services/demo-day/hooks/useGetAllFundraisingProfiles';
 import { useFilterStore } from '@/services/members/store';
 
@@ -49,11 +52,11 @@ export const AdminFilters = () => {
 
     teams.forEach((team) => {
       const stage = team.team.fundingStage;
-      const existing = stageMap.get(stage.uid);
+      const existing = stageMap.get(stage?.uid);
       if (existing) {
         existing.count += 1;
       } else {
-        stageMap.set(stage.uid, { name: stage.title, count: 1 });
+        stageMap.set(stage?.uid, { name: stage.title, count: 1 });
       }
     });
 

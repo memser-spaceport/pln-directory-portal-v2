@@ -45,8 +45,6 @@
   justify-content: center;
   gap: 16px;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.95);
-  border-top: 1px solid #e2e8f0;
   flex-shrink: 0;
 
   @include media.mobile-only {
@@ -99,7 +97,7 @@
 .pageInfo {
   margin: 0;
   font-size: 12px;
-  color: #455468;
+  color: #e2e8f0;
   text-align: center;
   flex-shrink: 0;
   font-family: 'Inter', sans-serif;

@@ -25,7 +25,9 @@ export const AdminFilters = () => {
     const industryMap = new Map<string, { name: string; count: number }>();
 
     teams.forEach((team) => {
-      team.team.industryTags.forEach((tag) => {
+      team.team?.industryTags?.forEach((tag) => {
+        if (!tag) return;
+
         const existing = industryMap.get(tag.uid);
         if (existing) {
           existing.count += 1;
@@ -51,12 +53,15 @@ export const AdminFilters = () => {
     const stageMap = new Map<string, { name: string; count: number }>();
 
     teams.forEach((team) => {
-      const stage = team.team.fundingStage;
-      const existing = stageMap.get(stage?.uid);
+      const stage = team.team?.fundingStage;
+
+      if (!stage) return;
+
+      const existing = stageMap.get(stage.uid);
       if (existing) {
         existing.count += 1;
       } else {
-        stageMap.set(stage?.uid, { name: stage.title, count: 1 });
+        stageMap.set(stage.uid, { name: stage.title, count: 1 });
       }
     });
 

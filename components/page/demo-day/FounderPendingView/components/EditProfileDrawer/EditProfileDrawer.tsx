@@ -10,6 +10,7 @@ import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import Link from 'next/link';
+import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { ADMIN_ROLE, DEMO_DAY_ANALYTICS } from '@/utils/constants';
@@ -75,6 +76,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
 }) => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
+  const isPrepDemoDay = useIsPrepDemoDay();
   const [editView, setEditView] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const successAlertTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -91,7 +93,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
     onFounderEditTeamProfileButtonClicked,
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
-  const expressInterest = useExpressInterest();
+  const expressInterest = useExpressInterest(data?.team?.name);
   const previousDataRef = useRef<FundraisingProfile | undefined>(data);
 
   const handleEditClick = () => {
@@ -569,6 +571,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
               expressInterest.mutate({
                 teamFundraisingProfileUid: data?.uid || '',
                 interestType: 'like',
+                isPrepDemoDay,
               })
             }
             disabled={expressInterest.isPending || !data?.uid}
@@ -581,6 +584,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
               expressInterest.mutate({
                 teamFundraisingProfileUid: data?.uid || '',
                 interestType: 'connect',
+                isPrepDemoDay,
               })
             }
             disabled={expressInterest.isPending || !data?.uid}
@@ -593,6 +597,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
               expressInterest.mutate({
                 teamFundraisingProfileUid: data?.uid || '',
                 interestType: 'invest',
+                isPrepDemoDay,
               })
             }
             disabled={expressInterest.isPending || !data?.uid}

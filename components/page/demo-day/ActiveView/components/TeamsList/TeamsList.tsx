@@ -4,6 +4,9 @@ import { Menu } from '@base-ui-components/react/menu';
 import { useGetTeamsList, TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { useFilterStore } from '@/services/members/store';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
+import { IUserInfo } from '@/types/shared.types';
 import { TeamProfileCard } from './components/TeamProfileCard';
 import { TeamDetailsDrawer } from './components/TeamDetailsDrawer';
 import s from './TeamsList.module.scss';
@@ -48,6 +51,15 @@ export const TeamsList: React.FC = () => {
   const scrollPositionRef = useRef<number>(0);
   const { params } = useFilterStore();
 
+  // Get current user info
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+
+  // Function to check if current user is a founder of a team
+  const isUserFounder = (team: TeamProfile): boolean => {
+    if (!userInfo?.uid) return false;
+    return team.founders.some((founder) => founder.uid === userInfo.uid);
+  };
+
   // Get filter parameters from URL
   const searchTerm = params.get('search') || '';
   const selectedIndustries = useMemo(() => {
@@ -78,7 +90,7 @@ export const TeamsList: React.FC = () => {
 
       // Industry filter
       if (selectedIndustries.length > 0) {
-        const teamIndustryUids = team.team.industryTags.map((tag) => tag.uid);
+        const teamIndustryUids = team.team?.industryTags?.map((tag) => tag.uid);
         const hasMatchingIndustry = selectedIndustries.some((industryUid) => teamIndustryUids.includes(industryUid));
         if (!hasMatchingIndustry) {
           return false;
@@ -87,7 +99,7 @@ export const TeamsList: React.FC = () => {
 
       // Stage filter
       if (selectedStages.length > 0) {
-        const teamStageUid = team.team.fundingStage.uid;
+        const teamStageUid = team.team?.fundingStage?.uid;
         if (!selectedStages.includes(teamStageUid)) {
           return false;
         }
@@ -98,6 +110,15 @@ export const TeamsList: React.FC = () => {
 
     // Apply sorting
     const sorted = [...filtered].sort((a, b) => {
+      // Always prioritize teams where current user is a founder
+      const aIsUserFounder = isUserFounder(a);
+      const bIsUserFounder = isUserFounder(b);
+
+      // If one team has user as founder and the other doesn't, prioritize the user's team
+      if (aIsUserFounder && !bIsUserFounder) return -1;
+      if (!aIsUserFounder && bIsUserFounder) return 1;
+
+      // If both are user teams or both are not, apply the selected sorting
       switch (sortBy) {
         case 'name-asc':
           return a.team.name.localeCompare(b.team.name);
@@ -116,7 +137,7 @@ export const TeamsList: React.FC = () => {
     });
 
     return sorted;
-  }, [teams, sortBy, searchTerm, selectedIndustries, selectedStages]);
+  }, [teams, sortBy, searchTerm, selectedIndustries, selectedStages, userInfo]);
 
   const selectedSortOption = SORT_OPTIONS.find((option) => option.value === sortBy);
   const totalTeamsCount = teams?.length || 0;

@@ -7,6 +7,9 @@ import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { TeamProfileCard } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamProfileCard';
 import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamDetailsDrawer';
 import s from '@/components/page/demo-day/ActiveView/components/TeamsList/TeamsList.module.scss';
+import { getParsedValue } from '@/utils/common.utils';
+import { IUserInfo } from '@/types/shared.types';
+import Cookies from 'js-cookie';
 
 const ChevronDownIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -53,6 +56,15 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
   const scrollPositionRef = useRef<number>(0);
   const { params } = useFilterStore();
 
+  // Get current user info
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+
+  // Function to check if current user is a founder of a team
+  const isUserFounder = (team: TeamProfile): boolean => {
+    if (!userInfo?.uid) return false;
+    return team.founders.some((founder) => founder.uid === userInfo.uid);
+  };
+
   // Get the latest team data from the refetched profiles list
   const latestTeamData = profiles?.find((p) => p.uid === selectedTeam?.uid);
 
@@ -77,7 +89,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
       // Search filter - check team name and description
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
-        const matchesName = profile.team.name.toLowerCase().includes(searchLower);
+        const matchesName = profile.team?.name.toLowerCase().includes(searchLower);
         const matchesDescription = profile.team.shortDescription?.toLowerCase().includes(searchLower);
         if (!matchesName && !matchesDescription) {
           return false;
@@ -86,7 +98,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
 
       // Industry filter
       if (selectedIndustries.length > 0) {
-        const teamIndustryUids = profile.team.industryTags.map((tag) => tag.uid);
+        const teamIndustryUids = profile.team?.industryTags?.map((tag) => tag.uid);
         const hasMatchingIndustry = selectedIndustries.some((industryUid) => teamIndustryUids.includes(industryUid));
         if (!hasMatchingIndustry) {
           return false;
@@ -95,7 +107,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
 
       // Stage filter
       if (selectedStages.length > 0) {
-        const teamStageUid = profile.team.fundingStage.uid;
+        const teamStageUid = profile.team?.fundingStage?.uid;
         if (!selectedStages.includes(teamStageUid)) {
           return false;
         }
@@ -106,6 +118,15 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
 
     // Apply sorting
     return [...filtered].sort((a, b) => {
+      // Always prioritize teams where current user is a founder
+      const aIsUserFounder = isUserFounder(a);
+      const bIsUserFounder = isUserFounder(b);
+
+      // If one team has user as founder and the other doesn't, prioritize the user's team
+      if (aIsUserFounder && !bIsUserFounder) return -1;
+      if (!aIsUserFounder && bIsUserFounder) return 1;
+
+      // If both are user teams or both are not, apply the selected sorting
       switch (sortBy) {
         case 'name-asc':
           return a.team?.name.localeCompare(b.team?.name);

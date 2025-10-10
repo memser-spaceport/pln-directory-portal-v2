@@ -7,6 +7,7 @@ import { ProfileHeader } from './components/ProfileHeader';
 import { ProfileContent } from './components/ProfileContent';
 import { ErrorState } from './components/ErrorState';
 import Image from 'next/image';
+import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
 import { ProfileActions } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileActions';
 import { IUserInfo } from '@/types/shared.types';
@@ -27,6 +28,7 @@ interface ProfileSectionProps {
 export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) => {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const scrollPositionRef = React.useRef<number>(0);
+  const isPrepDemoDay = useIsPrepDemoDay();
 
   const { data, isLoading, error } = useGetFundraisingProfile();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -34,7 +36,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
   // Analytics hooks
   const { onFounderTeamFundraisingCardClicked, onFounderEditTeamProfileButtonClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
-  const expressInterest = useExpressInterest();
+  const expressInterest = useExpressInterest(data?.team?.name);
 
   const isNotCompleted = !data?.onePagerUpload?.url || !data?.videoUpload?.url;
 
@@ -156,6 +158,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
                   expressInterest.mutate({
                     teamFundraisingProfileUid: data?.uid,
                     interestType: 'like',
+                    isPrepDemoDay,
                   })
                 }
                 disabled={expressInterest.isPending || !data?.uid}
@@ -168,6 +171,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
                   expressInterest.mutate({
                     teamFundraisingProfileUid: data?.uid,
                     interestType: 'connect',
+                    isPrepDemoDay,
                   })
                 }
                 disabled={expressInterest.isPending || !data?.uid}
@@ -180,6 +184,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
                   expressInterest.mutate({
                     teamFundraisingProfileUid: data?.uid,
                     interestType: 'invest',
+                    isPrepDemoDay,
                   })
                 }
                 disabled={expressInterest.isPending || !data?.uid}

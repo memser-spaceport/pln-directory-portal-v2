@@ -8,6 +8,7 @@ import s from './TeamProfileCard.module.scss';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
+import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
@@ -27,12 +28,33 @@ interface TeamProfileCardProps {
 }
 
 export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick, isAdmin = false }) => {
+  const isPrepDemoDay = useIsPrepDemoDay();
+
   // Analytics hooks
-  const { onActiveViewTeamCardClicked } = useDemoDayAnalytics();
+  const {
+    onActiveViewTeamCardClicked,
+    onActiveViewLikeCompanyClicked,
+    onActiveViewConnectCompanyClicked,
+    onActiveViewInvestCompanyClicked,
+  } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
-  const expressInterest = useExpressInterest();
+  const expressInterest = useExpressInterest(team.team?.name);
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const canEdit = isAdmin || team.founders.some((founder) => founder.uid === userInfo?.uid);
+
+  // Analytics helper function for team details
+  const getTeamAnalyticsData = () => ({
+    teamName: team.team?.name,
+    teamUid: team.uid,
+    teamShortDescription: team.team?.shortDescription,
+    fundingStage: team.team?.fundingStage?.title,
+    fundingStageUid: team.team?.fundingStage?.uid,
+    industryTags: team.team?.industryTags?.map((tag) => tag.title),
+    industryTagUids: team.team?.industryTags?.map((tag) => tag.uid),
+    foundersCount: team.founders?.length || 0,
+    founderNames: team.founders?.map((f) => f.name),
+    hasLogo: !!team.team?.logo?.url,
+  });
 
   const handleCardClick = () => {
     // Report team card click analytics
@@ -76,9 +98,48 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   const handleInterestCompanyClick = (e: React.MouseEvent, interestType: InterestType) => {
     e.stopPropagation();
     e.preventDefault();
+
+    // Report analytics for interest company click
+    if (userInfo?.email) {
+      const analyticsData = getTeamAnalyticsData();
+
+      // PostHog analytics
+      switch (interestType) {
+        case 'like':
+          onActiveViewLikeCompanyClicked(analyticsData);
+          break;
+        case 'connect':
+          onActiveViewConnectCompanyClicked(analyticsData);
+          break;
+        case 'invest':
+          onActiveViewInvestCompanyClicked(analyticsData);
+          break;
+      }
+
+      // Custom analytics event
+      const interestEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS[
+          `ON_ACTIVE_VIEW_${interestType.toUpperCase()}_COMPANY_CLICKED` as keyof typeof DEMO_DAY_ANALYTICS
+        ],
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          action: `${interestType}_company`,
+          ...analyticsData,
+        },
+      };
+
+      reportAnalytics.mutate(interestEvent);
+    }
+
     expressInterest.mutate({
       teamFundraisingProfileUid: team.uid,
       interestType: interestType,
+      isPrepDemoDay,
     });
   };
 

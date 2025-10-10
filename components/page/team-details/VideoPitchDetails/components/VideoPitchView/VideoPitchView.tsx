@@ -58,6 +58,7 @@ export const VideoPitchView = ({ team, isLoggedIn, userInfo, isEditable, showInc
                 maxFiles={1}
                 maxFileSize={500}
                 onUpload={handleUpload}
+                showVideoPreview={true}
               />
             </div>
           </div>

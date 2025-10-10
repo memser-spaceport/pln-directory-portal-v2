@@ -26,7 +26,7 @@ export const faqItems = [
             high-quality startups will deliver pitches, in a fully asynchronous environment.
           </span>,
           'Attendees will have access to single-slide company summaries and 3-min video pitches through our online platform which will go live on Oct 23, 11:00 UTC, and will be available until Nov 6, 11:00 UTC.',
-          'Attendees can directly connect with the companies they are interested in, by clicking buttons that will trigger emails from their personal email clients (please keep them open as you look at pitches). Alternatively, the email address & telegram handle of the founder will be available for direct outreach.',
+          'Attendees can directly connect with companies they\'re interested in by clicking buttons that will automatically send emails on their behalf. Alternatively, the founder\'s email address and Telegram handle will be available for direct outreach.',
         ]}
       />
     ),
@@ -38,7 +38,7 @@ export const faqItems = [
         items={[
           'PL F25 Demo Day is an invite-only event for investors. Invitations are being sent to a vetted list of angel investors and VCs.',
           <span key={1}>
-            If you think you should attend, <FaqLink href={INVITE_FORM_URL}>request an invite</FaqLink>.
+            If you think you should attend, <FaqLink href={INVITE_FORM_URL}>Request to Join</FaqLink>.
           </span>,
         ]}
       />

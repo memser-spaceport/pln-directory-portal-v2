@@ -1,6 +1,6 @@
 export const LOGOS = [
-  '/icons/demoday/landing/logos/A16zcrypto.svg',
   '/icons/demoday/landing/logos/Protocol Labs.svg',
+  '/icons/demoday/landing/logos/A16zcrypto.svg',
   '/icons/demoday/landing/logos/Coinbase.svg',
   '/icons/demoday/landing/logos/HashKey.svg',
   '/icons/demoday/landing/logos/BlueYard.svg',
@@ -18,6 +18,7 @@ export const LOGOS = [
   '/icons/demoday/landing/logos/Galaxy.svg',
 
   '/icons/demoday/landing/logos/InsightPartners.svg',
+  '/icons/demoday/landing/logos/JuanBenet.svg',
   '/icons/demoday/landing/logos/BalajiSrinivasan.svg',
   '/icons/demoday/landing/logos/VitalikButerin.svg',
   '/icons/demoday/landing/logos/AnatolyYakovenko.svg',
@@ -62,8 +63,8 @@ export const LOGOS = [
   '/icons/demoday/landing/logos/HiveMind.svg',
   '/icons/demoday/landing/logos/FabricVentures.svg',
   '/icons/demoday/landing/logos/Framework.svg',
-  '/icons/demoday/landing/logos/JuanBenet.svg',
   '/icons/demoday/landing/logos/JustinKan.svg',
+  '/icons/demoday/landing/logos/ChrisLarsen.svg',
 
   '/icons/demoday/landing/logos/GSR.svg',
   '/icons/demoday/landing/logos/Techstars.svg',
@@ -78,5 +79,4 @@ export const LOGOS = [
   '/icons/demoday/landing/logos/KrakenVentures.svg',
 
   '/icons/demoday/landing/logos/OutlinerVentures.svg',
-  '/icons/demoday/landing/logos/ChrisLarsen.svg',
 ];

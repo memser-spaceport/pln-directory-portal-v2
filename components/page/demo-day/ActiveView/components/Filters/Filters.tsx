@@ -23,6 +23,8 @@ export const Filters = () => {
 
     teams.forEach((team) => {
       team.team.industryTags.forEach((tag) => {
+        if (!tag) return;
+
         const existing = industryMap.get(tag.uid);
         if (existing) {
           existing.count += 1;
@@ -48,6 +50,8 @@ export const Filters = () => {
     const stageMap = new Map<string, { name: string; count: number }>();
 
     teams.forEach((team) => {
+      if (!team.team) return;
+
       const stage = team.team.fundingStage;
       const existing = stageMap.get(stage.uid);
       if (existing) {

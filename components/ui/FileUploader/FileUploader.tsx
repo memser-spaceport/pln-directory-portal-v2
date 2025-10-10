@@ -13,14 +13,16 @@ interface FileUploaderProps {
   onUpload: (files: File[]) => void;
   disabled?: boolean;
   className?: string;
+  showVideoPreview?: boolean; // Show video preview with 16:9 aspect ratio
 }
 
 interface UploadedFile {
   file: File;
   id: string;
+  previewUrl?: string;
 }
 
-export const FileUploader: React.FC<FileUploaderProps> = ({ title, description, supportedFormats, maxFiles, maxFileSize, onUpload, disabled = false, className }) => {
+export const FileUploader: React.FC<FileUploaderProps> = ({ title, description, supportedFormats, maxFiles, maxFileSize, onUpload, disabled = false, className, showVideoPreview = false }) => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +52,10 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ title, description, 
     return null;
   };
 
+  const isVideoFile = (file: File): boolean => {
+    return file.type.startsWith('video/');
+  };
+
   const handleFiles = useCallback(
     (files: FileList) => {
       setError(null);
@@ -67,10 +73,17 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ title, description, 
         if (validationError) {
           errors.push(`${file.name}: ${validationError}`);
         } else {
-          newFiles.push({
+          const uploadedFile: UploadedFile = {
             file,
             id: Math.random().toString(36).substr(2, 9),
-          });
+          };
+
+          // Create preview URL for video files if showVideoPreview is enabled
+          if (showVideoPreview && isVideoFile(file)) {
+            uploadedFile.previewUrl = URL.createObjectURL(file);
+          }
+
+          newFiles.push(uploadedFile);
         }
       });
 
@@ -83,7 +96,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ title, description, 
       setUploadedFiles(updatedFiles);
       onUpload(updatedFiles.map((f) => f.file));
     },
-    [uploadedFiles, maxFiles, maxFileSize, supportedFormats, onUpload],
+    [uploadedFiles, maxFiles, maxFileSize, supportedFormats, onUpload, showVideoPreview],
   );
 
   const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,6 +135,12 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ title, description, 
   };
 
   const removeFile = (id: string) => {
+    // Revoke preview URL to free up memory
+    const fileToRemove = uploadedFiles.find((f) => f.id === id);
+    if (fileToRemove?.previewUrl) {
+      URL.revokeObjectURL(fileToRemove.previewUrl);
+    }
+
     const updatedFiles = uploadedFiles.filter((f) => f.id !== id);
     setUploadedFiles(updatedFiles);
     onUpload(updatedFiles.map((f) => f.file));
@@ -165,14 +184,31 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ title, description, 
       {uploadedFiles.length > 0 && (
         <div className={s.fileList}>
           {uploadedFiles.map((uploadedFile) => (
-            <div key={uploadedFile.id} className={s.fileItem}>
-              <div className={s.fileInfo}>
-                <div className={s.fileName}>{uploadedFile.file.name}</div>
-                <div className={s.fileSize}>{formatFileSize(uploadedFile.file.size)}</div>
-              </div>
-              <button type="button" className={s.removeButton} onClick={() => removeFile(uploadedFile.id)} aria-label={`Remove ${uploadedFile.file.name}`}>
-                <CloseIcon />
-              </button>
+            <div key={uploadedFile.id} className={clsx(s.fileItem, { [s.withPreview]: uploadedFile.previewUrl })}>
+              {uploadedFile.previewUrl && (
+                <div className={s.videoPreviewContainer}>
+                  <video src={uploadedFile.previewUrl} className={s.videoPreview} muted playsInline preload="metadata" />
+                  <div className={s.videoOverlay}>
+                    <div className={s.playIcon}>
+                      <PlayIcon />
+                    </div>
+                  </div>
+                  <button type="button" className={s.removeButtonOverlay} onClick={() => removeFile(uploadedFile.id)} aria-label={`Remove ${uploadedFile.file.name}`}>
+                    <CloseIcon />
+                  </button>
+                </div>
+              )}
+              {!uploadedFile.previewUrl && (
+                <>
+                  <div className={s.fileInfo}>
+                    <div className={s.fileName}>{uploadedFile.file.name}</div>
+                    <div className={s.fileSize}>{formatFileSize(uploadedFile.file.size)}</div>
+                  </div>
+                  <button type="button" className={s.removeButton} onClick={() => removeFile(uploadedFile.id)} aria-label={`Remove ${uploadedFile.file.name}`}>
+                    <CloseIcon />
+                  </button>
+                </>
+              )}
             </div>
           ))}
         </div>
@@ -200,6 +236,16 @@ const CloseIcon: React.FC = () => (
       fillRule="evenodd"
       d="M4.293 4.293a1 1 0 011.414 0L8 6.586l2.293-2.293a1 1 0 111.414 1.414L9.414 8l2.293 2.293a1 1 0 01-1.414 1.414L8 9.414l-2.293 2.293a1 1 0 01-1.414-1.414L6.586 8 4.293 5.707a1 1 0 010-1.414z"
       clipRule="evenodd"
+    />
+  </svg>
+);
+
+// Play Icon Component
+const PlayIcon: React.FC = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M22.5 12C22.5006 12.2546 22.4353 12.5051 22.3105 12.727C22.1856 12.949 22.0055 13.1348 21.7875 13.2665L8.28 21.5297C8.05227 21.6691 7.79144 21.7452 7.52445 21.7502C7.25746 21.7551 6.99399 21.6887 6.76125 21.5578C6.53073 21.4289 6.3387 21.2409 6.2049 21.0132C6.07111 20.7855 6.00039 20.5263 6 20.2622V3.73779C6.00039 3.47368 6.07111 3.21445 6.2049 2.98673C6.3387 2.75902 6.53073 2.57106 6.76125 2.44217C6.99399 2.31124 7.25746 2.24482 7.52445 2.24977C7.79144 2.25471 8.05227 2.33084 8.28 2.47029L21.7875 10.7334C22.0055 10.8651 22.1856 11.051 22.3105 11.2729C22.4353 11.4949 22.5006 11.7453 22.5 12Z"
+      fill="#455468"
     />
   </svg>
 );

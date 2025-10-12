@@ -5,7 +5,6 @@ import { useState } from 'react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { pdfjs } from 'react-pdf';
-import { createPdfProxyUrl } from '@/utils/pdf-proxy.utils';
 import s from './PdfViewer.module.scss';
 
 // pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
@@ -24,13 +23,10 @@ export default function PdfViewer({ fileUrl, isPreview = false }: PdfViewerProps
     setNumPages(numPages);
   }
 
-  // Create proxy URL to avoid CORS issues
-  const proxyUrl = createPdfProxyUrl(fileUrl);
-
   return (
     <div className={`${s.pdfViewerContainer} ${isPreview ? s.previewMode : ''}`}>
       <div className={s.documentContainer}>
-        <Document file={proxyUrl} onLoadSuccess={onDocumentLoadSuccess}>
+        <Document file={fileUrl} onLoadSuccess={onDocumentLoadSuccess}>
           <Page pageNumber={pageNumber} width={undefined} height={undefined} scale={1} renderTextLayer={!isPreview} renderAnnotationLayer={!isPreview} />
         </Document>
       </div>

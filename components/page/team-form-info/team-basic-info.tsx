@@ -289,21 +289,6 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           <>
             <div className="teaminfo__form__item">
               <StandaloneMultiSelect
-                name="investInFundTypes"
-                label="Type of fund(s) you invest in?"
-                placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
-                options={INVEST_IN_VC_FUNDS_OPTIONS}
-                // showNone
-                // noneLabel="We don't invest in VC funds"
-                value={investInFundTypes}
-                onChange={setInvestInFundTypes}
-                variant="secondary"
-              />
-              <input type="hidden" name="investInFundTypes" value={JSON.stringify(investInFundTypes)} />
-            </div>
-
-            <div className="teaminfo__form__item">
-              <StandaloneMultiSelect
                 name="investInStartupStages"
                 label="Do you invest in Startups?"
                 placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
@@ -334,6 +319,21 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
                 placeholder="Add Keywords. E.g. AI, Staking, Governance, etc."
                 variant="secondary"
               />
+            </div>
+
+            <div className="teaminfo__form__item">
+              <StandaloneMultiSelect
+                name="investInFundTypes"
+                label="Type of fund(s) you invest in?"
+                placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
+                options={INVEST_IN_VC_FUNDS_OPTIONS}
+                // showNone
+                // noneLabel="We don't invest in VC funds"
+                value={investInFundTypes}
+                onChange={setInvestInFundTypes}
+                variant="secondary"
+              />
+              <input type="hidden" name="investInFundTypes" value={JSON.stringify(investInFundTypes)} />
             </div>
           </>
         )}

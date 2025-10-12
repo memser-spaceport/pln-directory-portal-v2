@@ -14,7 +14,7 @@ export const AngelInvestmentFields: React.FC<Props> = ({ fundingStageOptions }) 
       <div className={s.row}>
         <FormMultiSelect
           name="investInStartupStages"
-          label="Do you invest in Startups?"
+          label="Startup stage(s) you invest in?"
           placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
           options={fundingStageOptions}
           showNone

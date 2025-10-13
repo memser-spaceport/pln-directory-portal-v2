@@ -103,7 +103,8 @@ export const InvestorPendingView = () => {
 
     reportAnalytics.mutate(buttonClickEvent);
 
-    router.push(`/members/${userInfo.uid}`);
+    // Open in new tab
+    window.open(`/members/${userInfo.uid}`, '_blank');
   };
 
   const handleAddToCalendar = () => {
@@ -132,7 +133,11 @@ export const InvestorPendingView = () => {
 
   return (
     <LandingBase>
-      <InvestorStepper currentStep={currentStep} onFillProfile={handleFillProfile} onAddToCalendar={handleAddToCalendar} />
+      <InvestorStepper
+        currentStep={currentStep}
+        onFillProfile={handleFillProfile}
+        onAddToCalendar={handleAddToCalendar}
+      />
     </LandingBase>
   );
 };

@@ -291,26 +291,29 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
     // Show uploading state
     if (uploadState.isUploading) {
       return (
-        <div className={s.filePreview}>
-          <div className={s.fileIcon}>{uploadState.file ? getFileIcon(uploadState.file.type) : <PDFIcon />}</div>
-          <div className={s.fileInfo}>
-            <div className={s.fileName}>{formatWalletAddress(uploadState.file?.name) || 'Uploading...'}</div>
-            <div className={s.fileDetails}>
-              <span className={s.fileSize}>{uploadState.file ? formatFileSize(uploadState.file.size) : ''}</span>
-              <DotIcon />
-              <div className={s.uploadStatus}>
-                <SpinnerIcon />
-                <span>Uploading</span>
+        <div className={s.mediaPreview}>
+          <div className={s.filePreview}>
+            <div className={s.fileIcon}>{uploadState.file ? getFileIcon(uploadState.file.type) : <PDFIcon />}</div>
+            <div className={s.fileInfo}>
+              <div className={s.fileName}>{formatWalletAddress(uploadState.file?.name) || 'Uploading...'}</div>
+              <div className={s.fileDetails}>
+                <span className={s.fileSize}>{uploadState.file ? formatFileSize(uploadState.file.size) : ''}</span>
+                <DotIcon />
+                <div className={s.uploadStatus}>
+                  <SpinnerIcon />
+                  <span>Uploading</span>
+                </div>
               </div>
             </div>
-          </div>
-          <div className={s.progressBar}>
-            <div className={s.progressTrack}>
-              <div className={s.progressFill} style={{ width: `${uploadState.progress}%` }} />
+            <div className={s.progressBar}>
+              <div className={s.progressTrack}>
+                <div className={s.progressFill} style={{ width: `${uploadState.progress}%` }} />
+              </div>
+              <span className={s.progressText}>{uploadState.progress}%</span>
             </div>
-            <span className={s.progressText}>{uploadState.progress}%</span>
+            {uploadState.error && <div className={s.errorMessage}>{uploadState.error}</div>}
           </div>
-          {uploadState.error && <div className={s.errorMessage}>{uploadState.error}</div>}
+          <div className={s.placeholder}>&nbsp;</div>
         </div>
       );
     }
@@ -318,40 +321,46 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
     // Show error state
     if (uploadState.error) {
       return (
-        <div className={s.errorContainer}>
-          <div className={s.errorMessage}>{uploadState.error}</div>
-          <button
-            type="button"
-            className={s.retryButton}
-            onClick={() =>
-              setUploadState({
-                file: null,
-                progress: 0,
-                isUploading: false,
-                isComplete: false,
-                error: null,
-              })
-            }
-          >
-            Try Again
-          </button>
+        <div className={s.mediaPreview}>
+          <div className={s.errorContainer}>
+            <div className={s.errorMessage}>{uploadState.error}</div>
+            <button
+              type="button"
+              className={s.retryButton}
+              onClick={() =>
+                setUploadState({
+                  file: null,
+                  progress: 0,
+                  isUploading: false,
+                  isComplete: false,
+                  error: null,
+                })
+              }
+            >
+              Try Again
+            </button>
+          </div>
+          <div className={s.placeholder}>&nbsp;</div>
         </div>
       );
     }
 
     return (
-      <div {...getRootProps()} className={`${s.uploadArea} ${isDragActive ? s.dragActive : ''}`}>
-        <input {...getInputProps()} />
-        <div className={s.uploadIcon}>
-          <FolderIcon />
+      <div className={s.mediaPreview}>
+        <div {...getRootProps()} className={`${s.uploadArea} ${isDragActive ? s.dragActive : ''}`}>
+          <input {...getInputProps()} />
+          <div className={s.uploadIcon}>
+            <FolderIcon />
+          </div>
+          <div className={s.uploadText}>
+            <h4>Drag & Drop or Upload Your Pitch Slide</h4>
+            <p>Format: PDF, 1-slide ONLY, Max 5 MB, Aspect Ratio: 16:9, 1920 × 1080 pixels, 150-300 DPI for images.</p>
+          </div>
+          <button type="button" className={s.browseButton}>
+            Browse
+          </button>
         </div>
-        <div className={s.uploadText}>
-          <h4>Drag & Drop or Upload Your Pitch Slide</h4>
-          <p>Format: PDF, 1-slide ONLY, Max 5 MB, Aspect Ratio: 16:9, 1920 × 1080 pixels, 150-300 DPI for images.</p>
-        </div>
-        <button type="button" className={s.browseButton}>
-          Browse
-        </button>
+        <div className={s.placeholder}>&nbsp;</div>
       </div>
     );
   };

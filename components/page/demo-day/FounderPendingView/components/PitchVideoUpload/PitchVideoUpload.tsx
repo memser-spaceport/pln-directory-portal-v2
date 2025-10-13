@@ -273,28 +273,31 @@ export const PitchVideoUpload = ({ existingFile, analyticsHandlers, teamUid }: P
     // Show uploading state
     if (uploadState.isUploading) {
       return (
-        <div className={s.filePreview}>
-          <div className={s.fileIcon}>
-            <VideoIcon />
-          </div>
-          <div className={s.fileInfo}>
-            <div className={s.fileName}>{formatWalletAddress(uploadState.file?.name) || 'Uploading...'}</div>
-            <div className={s.fileDetails}>
-              <span className={s.fileSize}>{uploadState.file ? formatFileSize(uploadState.file.size) : ''}</span>
-              <DotIcon />
-              <div className={s.uploadStatus}>
-                <SpinnerIcon />
-                <span>Uploading</span>
+        <div className={s.mediaPreview}>
+          <div className={s.filePreview}>
+            <div className={s.fileIcon}>
+              <VideoIcon />
+            </div>
+            <div className={s.fileInfo}>
+              <div className={s.fileName}>{formatWalletAddress(uploadState.file?.name) || 'Uploading...'}</div>
+              <div className={s.fileDetails}>
+                <span className={s.fileSize}>{uploadState.file ? formatFileSize(uploadState.file.size) : ''}</span>
+                <DotIcon />
+                <div className={s.uploadStatus}>
+                  <SpinnerIcon />
+                  <span>Uploading</span>
+                </div>
               </div>
             </div>
-          </div>
-          <div className={s.progressBar}>
-            <div className={s.progressTrack}>
-              <div className={s.progressFill} style={{ width: `${uploadState.progress}%` }} />
+            <div className={s.progressBar}>
+              <div className={s.progressTrack}>
+                <div className={s.progressFill} style={{ width: `${uploadState.progress}%` }} />
+              </div>
+              <span className={s.progressText}>{uploadState.progress}%</span>
             </div>
-            <span className={s.progressText}>{uploadState.progress}%</span>
+            {uploadState.error && <div className={s.errorMessage}>{uploadState.error}</div>}
           </div>
-          {uploadState.error && <div className={s.errorMessage}>{uploadState.error}</div>}
+          <div className={s.placeholder}>&nbsp;</div>
         </div>
       );
     }
@@ -302,40 +305,47 @@ export const PitchVideoUpload = ({ existingFile, analyticsHandlers, teamUid }: P
     // Show error state
     if (uploadState.error) {
       return (
-        <div className={s.errorContainer}>
-          <div className={s.errorMessage}>{uploadState.error}</div>
-          <button
-            type="button"
-            className={s.retryButton}
-            onClick={() =>
-              setUploadState({
-                file: null,
-                progress: 0,
-                isUploading: false,
-                isComplete: false,
-                error: null,
-              })
-            }
-          >
-            Try Again
-          </button>
+        <div className={s.mediaPreview}>
+          <div className={s.errorContainer}>
+            <div className={s.errorMessage}>{uploadState.error}</div>
+            <button
+              type="button"
+              className={s.retryButton}
+              onClick={() =>
+                setUploadState({
+                  file: null,
+                  progress: 0,
+                  isUploading: false,
+                  isComplete: false,
+                  error: null,
+                })
+              }
+            >
+              Try Again
+            </button>
+          </div>
+          <div className={s.placeholder}>&nbsp;</div>
         </div>
       );
     }
 
     return (
-      <div {...getRootProps()} className={`${s.uploadArea} ${isDragActive ? s.dragActive : ''}`}>
-        <input {...getInputProps()} />
-        <div className={s.uploadIcon}>
-          <FolderIcon />
+      <div className={s.mediaPreview}>
+        <div {...getRootProps()} className={`${s.uploadArea} ${isDragActive ? s.dragActive : ''}`}>
+          <input {...getInputProps()} />
+          <div className={s.uploadIcon}>
+            <FolderIcon />
+          </div>
+          <div className={s.uploadText}>
+            <h4>Drag & Drop or Upload Your Pitch Video</h4>
+            <p>
+              Use multiple slides or full pitch deck presentation. Supported: MP4, MOV, WebM. Max 500 MB. Max 3 min.
+            </p>
+          </div>
+          <button type="button" className={s.browseButton}>
+            Browse
+          </button>
         </div>
-        <div className={s.uploadText}>
-          <h4>Drag & Drop or Upload Your Pitch Video</h4>
-          <p>Use multiple slides or full pitch deck presentation. Supported: MP4, MOV, WebM. Max 500 MB. Max 3 min.</p>
-        </div>
-        <button type="button" className={s.browseButton}>
-          Browse
-        </button>
       </div>
     );
   };

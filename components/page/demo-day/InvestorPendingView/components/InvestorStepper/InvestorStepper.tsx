@@ -51,6 +51,12 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
       ? `You're all set for Demo Day! Return to this page on ${eventDateFormatted} to join the event.`
       : `Return to this page on ${eventDateFormatted} to join the event.`;
 
+  // Determine button styles based on step completion
+  const step1Status = currentStep > 1 ? 'completed' : currentStep === 1 ? 'current' : 'pending';
+  const step1ButtonClass = step1Status === 'completed' ? s.secondaryButton : s.primaryButton;
+  const step2ButtonClass =
+    step1Status === 'completed' && step2Status !== 'completed' ? s.primaryButton : s.secondaryButton;
+
   const steps: StepData[] = [
     {
       id: 0,
@@ -63,9 +69,9 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
       id: 1,
       title: 'Step 1',
       description: 'Complete your investor profile',
-      status: currentStep > 1 ? 'completed' : currentStep === 1 ? 'current' : 'pending',
+      status: step1Status,
       children: (
-        <button className={s.primaryButton} onClick={onFillProfile}>
+        <button className={step1ButtonClass} onClick={onFillProfile}>
           <EditIcon /> Go to Investor Profile
         </button>
       ),
@@ -77,7 +83,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
       description: step2Description,
       status: step2Status,
       children: (
-        <button className={s.secondaryButton} onClick={handleAddToCalendarClick}>
+        <button className={step2ButtonClass} onClick={handleAddToCalendarClick}>
           <CalendarIcon /> Add to your Calendar
         </button>
       ),

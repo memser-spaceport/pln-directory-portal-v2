@@ -33,6 +33,9 @@ export type TeamProfile = {
     uid: string;
   }[];
   description: string | null;
+  liked: boolean;
+  connected: boolean;
+  invested: boolean;
 };
 
 export type TeamsListResponse = TeamProfile[];

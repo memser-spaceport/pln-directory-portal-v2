@@ -139,7 +139,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     expressInterest.mutate({
       teamFundraisingProfileUid: team.uid,
       interestType: interestType,
-      isPrepDemoDay,
+      // isPrepDemoDay,
     });
   };
 
@@ -157,7 +157,9 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         description={team?.team?.shortDescription || '-'}
         fundingStage={team?.team?.fundingStage?.title || '-'}
         tags={team?.team.industryTags.map((tag) => tag.title) || []}
+        founders={team.founders}
       />
+
       <ProfileContent pitchDeckUrl={team?.onePagerUpload?.url} videoUrl={team?.videoUpload?.url} />
       <div className={s.profileDivider} />
       <div className={s.actions}>

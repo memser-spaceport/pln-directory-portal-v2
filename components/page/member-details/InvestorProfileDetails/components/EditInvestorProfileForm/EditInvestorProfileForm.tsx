@@ -438,7 +438,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   </Checkbox.Indicator>
                 </Checkbox.Root>
                 <div className={s.col}>
-                  <div className={s.primary}>I invest through a fund(s).</div>
+                  <div className={s.primary}>I invest through fund(s).</div>
                 </div>
               </label>
 

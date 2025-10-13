@@ -1,15 +1,23 @@
 import React from 'react';
 import s from './ProfileHeader.module.scss';
 
+interface Founder {
+  uid: string;
+  name: string;
+  role: string;
+  image: { url: string } | null;
+}
+
 interface ProfileHeaderProps {
   image?: string;
   name: string;
   description: string;
   fundingStage?: string;
   tags: string[];
+  founders?: Founder[];
 }
 
-export const ProfileHeader = ({ image, name, description, fundingStage, tags }: ProfileHeaderProps) => {
+export const ProfileHeader = ({ image, name, description, fundingStage, tags, founders }: ProfileHeaderProps) => {
   // Helper function to format funding stage
   const formatFundingStage = (stage: string) => {
     const stageMap: Record<string, string> = {
@@ -74,6 +82,31 @@ export const ProfileHeader = ({ image, name, description, fundingStage, tags }: 
             </>
           )}
         </div>
+
+        {/* Founders Info */}
+        {founders && founders.length > 0 && (
+          <div className={s.foundersInfo}>
+            {founders.map((founder, index) => (
+              <React.Fragment key={founder.uid}>
+                {index > 0 && <div className={s.founderDivider} />}
+                <div className={s.founderItem}>
+                  <div
+                    className={s.founderAvatar}
+                    style={{
+                      backgroundImage: founder.image?.url
+                        ? `url('${founder.image.url}')`
+                        : 'linear-gradient(135deg, #d0cff2 0%, #d7dfe9 100%)',
+                    }}
+                  />
+                  <div className={s.founderText}>
+                    <div className={s.founderName}>{founder.name}</div>
+                    <div className={s.founderRole}>{founder.role || 'Co-Founder'}</div>
+                  </div>
+                </div>
+              </React.Fragment>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

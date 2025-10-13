@@ -296,6 +296,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                         description={displayTeam?.team?.shortDescription || '-'}
                         fundingStage={displayTeam?.team?.fundingStage?.title || '-'}
                         tags={displayTeam?.team.industryTags.map((tag) => tag.title) || []}
+                        founders={displayTeam.founders}
                       />
                     </div>
 

@@ -290,7 +290,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             <div className="teaminfo__form__item">
               <StandaloneMultiSelect
                 name="investInStartupStages"
-                label="Do you invest in Startups?"
+                label="Startup stage(s) you invest in?"
                 placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                 options={fundingStageOptions}
                 // showNone

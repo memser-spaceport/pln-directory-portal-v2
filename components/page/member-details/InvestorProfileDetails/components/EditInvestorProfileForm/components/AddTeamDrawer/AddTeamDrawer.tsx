@@ -39,7 +39,6 @@ import s from './AddTeamDrawer.module.scss';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useQueryClient } from '@tanstack/react-query';
 
-
 interface Props extends Omit<DrawerProps, 'header'> {
   userInfo: IUserInfo;
   onSuccess?: (teamName: string) => void;
@@ -284,23 +283,6 @@ export function AddTeamDrawer(props: Props) {
                 <label htmlFor="team-investment-fund">This team is an investment fund.</label>
               </div>
 
-              <FormField name="fundTypes" className={hiddenClass}>
-                <MultiSelect
-                  options={INVEST_IN_VC_FUNDS_OPTIONS}
-                  selectedOptions={fundTypes}
-                  onAdd={(item) => setValue('fundTypes', fundTypeHandlers.addItem(item), { shouldValidate: true })}
-                  onRemove={(item) =>
-                    setValue('fundTypes', fundTypeHandlers.removeItem(item), { shouldValidate: true })
-                  }
-                  uniqueKey="label"
-                  displayKey="label"
-                  label={<Label>Type of fund(s) you invest in?</Label>}
-                  placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
-                  closeImgUrl="/icons/close.svg"
-                  arrowImgUrl="/icons/arrow-down.svg"
-                />
-              </FormField>
-
               <FormField name="startupStages" className={hiddenClass}>
                 <MultiSelect
                   options={fundingStageOptions}
@@ -339,6 +321,23 @@ export function AddTeamDrawer(props: Props) {
                   placeholder="Add Keywords. E.g. AI, Staking, Governance, etc."
                   variant="secondary"
                   onChange={(tags) => setValue('investmentFocus', tags, { shouldValidate: true })}
+                />
+              </FormField>
+
+              <FormField name="fundTypes" className={hiddenClass}>
+                <MultiSelect
+                  options={INVEST_IN_VC_FUNDS_OPTIONS}
+                  selectedOptions={fundTypes}
+                  onAdd={(item) => setValue('fundTypes', fundTypeHandlers.addItem(item), { shouldValidate: true })}
+                  onRemove={(item) =>
+                    setValue('fundTypes', fundTypeHandlers.removeItem(item), { shouldValidate: true })
+                  }
+                  uniqueKey="label"
+                  displayKey="label"
+                  label={<Label>Type of fund(s) you invest in?</Label>}
+                  placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
+                  closeImgUrl="/icons/close.svg"
+                  arrowImgUrl="/icons/arrow-down.svg"
                 />
               </FormField>
             </Section>

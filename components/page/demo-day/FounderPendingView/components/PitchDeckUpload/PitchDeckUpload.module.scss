@@ -328,3 +328,15 @@
     transform: rotate(360deg);
   }
 }
+
+.mediaPreview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.placeholder {
+  height: 40px;
+}
+

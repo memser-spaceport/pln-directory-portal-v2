@@ -176,22 +176,20 @@ export const PitchVideoUpload = ({ existingFile, analyticsHandlers, teamUid }: P
         error: null,
       });
 
-      // Simulate progress for better UX (since fetch doesn't support real progress)
-      const progressInterval = setInterval(() => {
-        setUploadState((prev) => {
-          if (prev.progress < 90) {
-            return { ...prev, progress: prev.progress + 5 }; // Slower progress for larger files
-          }
-          return prev;
-        });
-      }, 500); // Slower interval for video uploads
-
-      // Start upload
+      // Start upload with real progress tracking
       uploadMutation.mutate(
-        { file, teamUid },
+        {
+          file,
+          teamUid,
+          onProgress: (progress) => {
+            setUploadState((prev) => ({
+              ...prev,
+              progress,
+            }));
+          },
+        },
         {
           onSuccess: () => {
-            clearInterval(progressInterval);
             queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
 
             // Report upload success analytics
@@ -211,7 +209,6 @@ export const PitchVideoUpload = ({ existingFile, analyticsHandlers, teamUid }: P
             }));
           },
           onError: (error) => {
-            clearInterval(progressInterval);
             queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
 
             const errorMessage = error instanceof Error ? error.message : 'Upload failed';

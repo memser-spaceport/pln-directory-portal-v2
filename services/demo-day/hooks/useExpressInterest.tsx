@@ -47,7 +47,7 @@ export function useExpressInterest(teamName?: string) {
           title = `You're connecting with ${teamName || '[TeamName]'}`;
           break;
         case 'invest':
-          title = `You marked interest to invest in ${teamName || '[TeamName]'}`;
+          title = `You expressed interest to invest in ${teamName || '[TeamName]'}`;
           break;
         default:
           title = 'Connection request sent!';

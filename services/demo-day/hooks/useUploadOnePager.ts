@@ -1,48 +1,56 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { customFetch } from '@/utils/fetch-wrapper';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
+import { getOnePagerUploadUrl, confirmOnePagerUpload } from '../fundraising-profile.service';
+import { uploadToS3 } from '@/utils/s3-upload.utils';
 
 interface UploadOnePagerResponse {
   success: boolean;
-  data: {
-    onePagerUploadUid: string;
-    onePagerUpload: string;
-    fileName: string;
-    fileSize: number;
-  };
+  data: any; // FundraisingProfile
 }
 
 interface UploadOnePagerParams {
   file: File;
   teamUid?: string; // Optional team UID for admin uploads
+  onProgress?: (progress: number) => void; // Progress callback
 }
 
 async function uploadOnePager(params: UploadOnePagerParams): Promise<UploadOnePagerResponse> {
-  const { file, teamUid } = params;
-  const formData = new FormData();
-  formData.append('onePagerFile', file);
+  const { file, teamUid, onProgress } = params;
 
-  // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
-  const url = teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/current/teams/${teamUid}/fundraising-profile/one-pager`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/one-pager`;
+  try {
+    // Step 1: Get presigned upload URL
+    const { uploadUid, presignedUrl } = await getOnePagerUploadUrl({
+      filename: file.name,
+      filesize: file.size,
+      mimetype: file.type,
+      teamUid,
+    });
 
-  const response = await customFetch(
-    url,
-    {
-      method: 'PUT',
-      body: formData,
-      // Note: Don't set Content-Type header for FormData, let the browser set it
-    },
-    true, // withAuth
-  );
+    // Step 2: Upload to S3 directly
+    await uploadToS3(file, presignedUrl, file.type, (progress) => {
+      onProgress?.(progress);
+    });
 
-  if (!response?.ok) {
-    throw new Error('Failed to upload one-pager file');
+    // Step 3: Confirm upload completion
+    const result = await confirmOnePagerUpload({
+      uploadUid,
+      teamUid,
+    });
+
+    return result;
+  } catch (error) {
+    // Handle specific error types
+    if (error instanceof Error) {
+      if (error.message.includes('presigned') || error.message.includes('expired')) {
+        throw new Error('Upload session expired, please try again');
+      } else if (error.message.includes('network') || error.message.includes('timeout')) {
+        throw new Error('Upload failed, please check your connection');
+      } else if (error.message.includes('confirm') || error.message.includes('verification')) {
+        throw new Error('Upload verification failed, please try again');
+      }
+    }
+    throw error;
   }
-
-  const data: UploadOnePagerResponse = await response.json();
-  return data;
 }
 
 export function useUploadOnePager() {

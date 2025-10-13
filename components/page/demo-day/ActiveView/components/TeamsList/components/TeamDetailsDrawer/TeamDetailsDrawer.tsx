@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader';
@@ -25,6 +25,18 @@ const BackIcon = () => (
       d="M12.5 5L7.5 10L12.5 15"
       stroke="currentColor"
       strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M13.3337 4L6.00033 11.3333L2.66699 8"
+      stroke="currentColor"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
@@ -109,11 +121,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
       reportAnalytics.mutate(likeEvent);
     }
 
-    // Express interest via API
+    // Express interest via API (state will be updated automatically via useGetExpressedInterests)
     expressInterest.mutate({
       teamFundraisingProfileUid: team.uid,
       interestType: 'like',
-      isPrepDemoDay,
+      // isPrepDemoDay,
     });
   };
 
@@ -140,11 +152,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
       reportAnalytics.mutate(connectEvent);
     }
 
-    // Express interest via API
+    // Express interest via API (state will be updated automatically via useGetExpressedInterests)
     expressInterest.mutate({
       teamFundraisingProfileUid: team.uid,
       interestType: 'connect',
-      isPrepDemoDay,
+      // isPrepDemoDay,
     });
   };
 
@@ -171,11 +183,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
       reportAnalytics.mutate(investEvent);
     }
 
-    // Express interest via API
+    // Express interest via API (state will be updated automatically via useGetExpressedInterests)
     expressInterest.mutate({
       teamFundraisingProfileUid: team.uid,
       interestType: 'invest',
-      isPrepDemoDay,
+      // isPrepDemoDay,
     });
   };
 
@@ -371,24 +383,47 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     <button
                       className={s.secondaryButton}
                       onClick={handleLikeCompanyClick}
-                      disabled={expressInterest.isPending || !team.uid}
+                      disabled={expressInterest.isPending || !team.uid || team.liked}
                     >
-                      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />
-                      Like Company
+                      {team.liked ? (
+                        <>
+                          Liked Company
+                          <CheckIcon />
+                        </>
+                      ) : (
+                        <>
+                          <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />
+                          Like Company
+                        </>
+                      )}
                     </button>
                     <button
                       className={s.secondaryButton}
                       onClick={handleConnectCompanyClick}
-                      disabled={expressInterest.isPending || !team.uid}
+                      disabled={expressInterest.isPending || !team.uid || team.connected}
                     >
-                      🤝 Connect with Company
+                      {team.connected ? (
+                        <>
+                          Connected with Company
+                          <CheckIcon />
+                        </>
+                      ) : (
+                        <>🤝 Connect with Company</>
+                      )}
                     </button>
                     <button
                       className={s.primaryButton}
                       onClick={handleInvestCompanyClick}
-                      disabled={expressInterest.isPending || !team.uid}
+                      disabled={expressInterest.isPending || !team.uid || team.invested}
                     >
-                      💰 Invest in Company
+                      {team.invested ? (
+                        <>
+                          Invested in Company
+                          <CheckIcon />
+                        </>
+                      ) : (
+                        <>💰 Invest in Company</>
+                      )}
                     </button>
                   </div>
                 </div>

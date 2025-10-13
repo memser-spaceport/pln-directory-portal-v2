@@ -17,6 +17,18 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
+const CheckIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M13.3337 4L6.00033 11.3333L2.66699 8"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 interface ProfileSectionProps {
   investorData?: {
     name: string;
@@ -158,12 +170,21 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
                   expressInterest.mutate({
                     teamFundraisingProfileUid: data?.uid,
                     interestType: 'like',
-                    isPrepDemoDay,
+                    // isPrepDemoDay,
                   })
                 }
-                disabled={expressInterest.isPending || !data?.uid}
+                disabled={expressInterest.isPending || !data?.uid || data?.liked}
               >
-                <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
+                {data?.liked ? (
+                  <>
+                    Liked Company
+                    <CheckIcon />
+                  </>
+                ) : (
+                  <>
+                    <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
+                  </>
+                )}
               </button>
               <button
                 className={s.secondaryButton}
@@ -171,12 +192,19 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
                   expressInterest.mutate({
                     teamFundraisingProfileUid: data?.uid,
                     interestType: 'connect',
-                    isPrepDemoDay,
+                    // isPrepDemoDay,
                   })
                 }
-                disabled={expressInterest.isPending || !data?.uid}
+                disabled={expressInterest.isPending || !data?.uid || data?.connected}
               >
-                🤝 Connect with Company
+                {data?.connected ? (
+                  <>
+                    Connected with Company
+                    <CheckIcon />
+                  </>
+                ) : (
+                  <>🤝 Connect with Company</>
+                )}
               </button>
               <button
                 className={s.primaryButton}
@@ -184,12 +212,19 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
                   expressInterest.mutate({
                     teamFundraisingProfileUid: data?.uid,
                     interestType: 'invest',
-                    isPrepDemoDay,
+                    // isPrepDemoDay,
                   })
                 }
-                disabled={expressInterest.isPending || !data?.uid}
+                disabled={expressInterest.isPending || !data?.uid || data?.invested}
               >
-                💰 Invest in Company
+                {data?.invested ? (
+                  <>
+                    Invested in Company
+                    <CheckIcon />
+                  </>
+                ) : (
+                  <>💰 Invest in Company</>
+                )}
               </button>
             </div>
           )}

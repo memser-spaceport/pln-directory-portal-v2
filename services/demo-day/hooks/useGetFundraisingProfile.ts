@@ -55,6 +55,9 @@ export type FundraisingProfile = {
     uid: string;
   }[];
   description: string | null;
+  liked: boolean;
+  connected: boolean;
+  invested: boolean;
 };
 
 async function fetcher() {

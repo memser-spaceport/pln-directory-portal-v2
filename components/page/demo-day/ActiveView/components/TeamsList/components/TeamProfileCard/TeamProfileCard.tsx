@@ -139,7 +139,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     expressInterest.mutate({
       teamFundraisingProfileUid: team.uid,
       interestType: interestType,
-      isPrepDemoDay,
+      // isPrepDemoDay,
     });
   };
 

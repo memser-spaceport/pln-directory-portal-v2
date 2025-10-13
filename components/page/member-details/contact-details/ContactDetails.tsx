@@ -44,7 +44,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   const hasMissingRequiredData = !member?.telegramHandle;
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
-  const showIncomplete = hasMissingRequiredData && isOwner;
+  const showIncomplete = (hasMissingRequiredData && isOwner) && false;
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
 
   const onLoginClickHandler = () => {

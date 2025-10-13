@@ -33,6 +33,73 @@
   margin-bottom: 24px;
 }
 
+// Alert component styles
+.alert {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid rgba(27, 56, 96, 0.24);
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+
+  @include media.mobile-only {
+    margin-bottom: 20px;
+  }
+}
+
+.alertContent {
+  display: flex;
+  gap: 10px;
+  align-items: start;
+  padding: 8px 16px;
+  overflow: hidden;
+}
+
+.alertIcon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alertText {
+  flex: 1;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #0a0c11;
+  margin: 0;
+
+  @include media.mobile-only {
+    font-size: 14px;
+    line-height: 22px;
+  }
+}
+
+.alertCloseButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  &:active {
+    background: rgba(0, 0, 0, 0.1);
+  }
+}
+
 .headerLeft {
   display: flex;
   align-items: center;

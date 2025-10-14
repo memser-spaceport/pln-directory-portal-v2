@@ -91,7 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <AuthBox />
             <ToastContainer />
             <BroadCastChannel />
-            <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+            {/* <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} /> */}
             <MemberRegisterDialog />
             <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />

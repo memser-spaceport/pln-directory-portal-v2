@@ -15,6 +15,7 @@ import { canUserPerformEditAction, filterUpcomingGatherings } from '@/utils/irl.
 import PresenceRequestSuccess from './presence-request-success';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { getAccessLevel } from '@/utils/auth.utils';
+import Link from 'next/link';
 interface IFollowSectionProps {
   userInfo: any;
   eventLocationSummary: any;
@@ -40,16 +41,20 @@ const FollowSection = (props: IFollowSectionProps) => {
   const updatedUser = guestDetails?.currentGuest ?? null;
   const isUserGoing = guestDetails?.isUserGoing;
   const [isEdit, seIsEdit] = useState(false);
+  const [isAddMemberDropdownOpen, setIsAddMemberDropdownOpen] = useState(false);
   const type = searchParams?.type;
   const editResponseRef = useRef<HTMLButtonElement>(null);
+  const addMemberRef = useRef<HTMLButtonElement>(null);
   const locationEvents = props?.locationEvents;
   const pastEvents = locationEvents?.pastEvents;
   const upcomingEvents = locationEvents?.upcomingEvents;
-  const filteredGatherings = filterUpcomingGatherings(upcomingEvents);
-  const inPastEvents = type
-    ? type === 'past'
-    : pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0;
-  const inPastEventsAndHaveEvents = inPastEvents && pastEvents && pastEvents.length > 0;
+  const totalEvents = (upcomingEvents?.length || 0) + (pastEvents?.length || 0);
+  const filteredGatherings = upcomingEvents.filter((gathering: any) => filterUpcomingGatherings(gathering));
+  // Check if user has any upcoming events (events they can edit)
+  const userHasUpcomingEvents = updatedUser?.events?.some((event: any) => filterUpcomingGatherings(event)) ?? false;
+  const inPastEvents = type === 'past' || 
+    (pastEvents?.length > 0 && upcomingEvents?.length === 0);
+  const inPastEventsAndHaveEvents = inPastEvents && pastEvents?.length > 0;
   const onLogin = props.onLogin;
   const isUserLoggedIn = props?.isLoggedIn;
   const isAdminInAllEvents = props?.isAdminInAllEvents;
@@ -58,13 +63,20 @@ const FollowSection = (props: IFollowSectionProps) => {
     isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const topicsAndReason = props?.topicsAndReason;
   const accessLevel = getAccessLevel(userInfo, isUserLoggedIn);
+  const scheduleURL = guestDetails?.additionalInfo?.schedule_url || 
+    `${process.env.SCHEDULE_BASE_URL}/program?location=${encodeURIComponent(eventLocationSummary.name)}`;
 
-  function getFollowProperties(followers: any) {
-    return {
-      followers: followers ?? [],
-      isFollowing: followers.some((follower: any) => follower.memberUid === userInfo?.uid),
-    };
-  }
+  // Helper functions
+  const getFollowProperties = (followers: any[]) => ({
+    followers: followers ?? [],
+    isFollowing: followers?.some((follower) => follower.memberUid === userInfo?.uid) ?? false,
+  });
+
+
+  const getFollowerCountText = () => {
+    const count = followProperties.followers.length;
+    return `${count} ${count > 1 ? 'members' : 'member'}`;
+  };
 
   useEffect(() => {
     setFollowProperties((e: any) => getFollowProperties(props.followers));
@@ -95,12 +107,66 @@ const FollowSection = (props: IFollowSectionProps) => {
   };
 
   const onAddMemberClick = () => {
-    analytics.trackGuestListAddNewMemberBtnClicked(location);
+    if (upcomingEvents?.length === 0) {
+    analytics.trackGuestListAddNewMemberBtnClicked({
+      ...location,
+      option: 'past_attendees',
+      action: 'add_to_past_attendees'
+    });
     document.dispatchEvent(
       new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
-        detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD },
+        detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD, from: 'past' },
       }),
     );
+  setIsAddMemberDropdownOpen(false);
+  }
+  else if (pastEvents?.length === 0) {
+    analytics.trackGuestListAddNewMemberBtnClicked({
+      ...location,
+      option: 'upcoming_attendees',
+      action: 'add_to_upcoming_attendees'
+    });
+        document.dispatchEvent(
+      new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
+        detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD, from: 'upcoming' },
+      }),
+    );
+  setIsAddMemberDropdownOpen(false);
+  }
+  else {
+    const isOpening = !isAddMemberDropdownOpen;
+    setIsAddMemberDropdownOpen((prev) => !prev);
+    
+    if (isOpening) {
+      analytics.trackGuestListAddNewMemberBtnClicked({
+        ...location,
+        action: 'dropdown_opened'
+      });
+    }
+  }
+};
+
+  const onHandleAttendeesClick = (from: string) => {
+    if (from === 'upcoming') {
+      analytics.trackGuestListAddNewMemberBtnClicked({
+        ...location,
+        option: 'current_attendees',
+        action: 'add_to_current_attendees'
+      });
+    } else if (from === 'past') {
+      analytics.trackGuestListAddNewMemberBtnClicked({
+        ...location,
+        option: 'past_attendees',
+        action: 'add_to_past_attendees'
+      });
+    }
+    
+    document.dispatchEvent(
+      new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
+        detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD, from: from },
+      }),
+    );
+    setIsAddMemberDropdownOpen(false);
   };
 
   const onIAmGoingClick = (from?: string) => {
@@ -181,6 +247,13 @@ const FollowSection = (props: IFollowSectionProps) => {
     },
   });
 
+  useClickedOutside({
+    ref: addMemberRef,
+    callback: () => {
+      setIsAddMemberDropdownOpen(false);
+    },
+  });
+
   const [isShrunk, setIsShrunk] = useState(false);
 
   useEffect(() => {
@@ -213,9 +286,6 @@ const FollowSection = (props: IFollowSectionProps) => {
       />
       <div className={`root__irl__follwcnt ${isShrunk ? 'showCntr' : ''}`} id="actionCn">
         <div className={`root__irl__follwcnt__cnt ${!isShrunk ? 'hideCnt' : 'showCnt'}`}>
-          <div className="root__irl__follcnt__update__web">
-            Planning to attend? Enroll yourselves & follow to get event updates & reminders.
-          </div>
           <div className={`root__irl__follwcnt__imgsec ${!isShrunk ? 'hideCnt-mob' : 'showCnt'}`}>
             <div onClick={onFollowersClickHandler} className="root__irl__follwcnt__imgsec__images">
               {followProperties.followers?.slice(0, 3).map((follower: any, index: number) => {
@@ -237,84 +307,100 @@ const FollowSection = (props: IFollowSectionProps) => {
             </div>
             <div className="root__irl__follwcnt__imgsec__desccnt">
               <span className="root__irl__follwcnt__imgsec__desccnt__desc__cnt" onClick={onFollowersClickHandler}>
-                {followProperties.followers.length} {followProperties.followers.length > 1 ? 'members' : 'member'}{' '}
+                {getFollowerCountText()}{' '}
               </span>
-              following gatherings at
+              following gatherings
               <span className="root__irl__follwcnt__imgsec__desccnt__desc__cnt__location">
+                at
                 <img
                   src={eventLocationSummary?.flag || '/images/irl/defaultFlag.svg'}
                   alt="flag"
                   style={{ width: '17px', height: '17px' }}
                 />{' '}
-                {eventLocationSummary.name}{' '}
+                <span style={{ textTransform: 'capitalize' }}>{eventLocationSummary.name}{' '}</span>
               </span>
             </div>
           </div>
         </div>
 
         <div className="toolbar__actionCn">
-          <FollowButton
-            eventLocationSummary={location}
-            userInfo={userInfo}
-            followProperties={followProperties}
-            expand={canUserAddAttendees}
-          />
+          <Link 
+            href={scheduleURL} 
+            target="_blank" 
+            className="toolbar__actionCn__scheduleBtn"
+            onClick={() => analytics.trackViewScheduleClick(location)}
+          >
+            <img className="toolbar__actionCn__scheduleBtn__calendarIcon" src="/icons/calendar.svg" width={18} height={18} alt="schedule" />
+            Schedule
+            {totalEvents > 0 && <span className="toolbar__actionCn__scheduleBtn__scheduleText">({totalEvents > 1 ? `${totalEvents} events` : `${totalEvents} event`})</span>}
+            <img className="toolbar__actionCn__scheduleBtn__arrowIcon" src="/icons/arrow-blue.svg" alt="arrow icon" width={10} height={10} />
+          </Link>
 
-          {canUserAddAttendees && accessLevel === 'advanced' && (
-            <div className="toolbar__actionCn__add">
-              <button className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
-                <img src="/icons/add.svg" width={16} height={16} alt="add" />
-                <span className="toolbar__actionCn__add__btn__txt">Member</span>
-              </button>
-            </div>
-          )}
-
-          {isUserLoggedIn && !canUserAddAttendees && type === 'past' && !isUserGoing && accessLevel === 'advanced' && (
-            <button onClick={() => onIAmGoingClick('mark-presence')} className="toolbar__actionCn__imGoingBtn">
-              Claim Attendance
-            </button>
-          )}
-
-          {!isUserGoing && isUserLoggedIn && !inPastEvents && accessLevel === 'advanced' && filteredGatherings?.length > 0 && (
-            <button onClick={() => onIAmGoingClick('upcoming')} className="toolbar__actionCn__imGoingBtn">
-              I&apos;m Going
-            </button>
-          )}
-
-          {!isUserLoggedIn && (
-            <button onClick={onLoginClick} className="toolbar__actionCn__login">
-              Login to Respond
-            </button>
-          )}
-
-          {isUserGoing &&
-            isUserLoggedIn &&
-            (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) &&
-            accessLevel === 'advanced' && (
-              <div className="toolbar__actionCn__edit__wrpr">
-                <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
-                  <img src="/icons/edit-white.svg" alt="arrow" width={18} height={18} />
-                  Response
-                  <img src="/icons/down-arrow-white.svg" alt="arrow" width={18} height={18} />
-                </button>
-                {isEdit && (
-                  <div className="toolbar__actionCn__edit__list">
-                    <button className="toolbar__actionCn__edit__list__item" onClick={onEditDetailsClicked}>
-                      Edit Details
-                    </button>
-                    <button onClick={onRemoveFromGatherings} className="toolbar__actionCn__edit__list__item">
-                      Remove from Gathering(s)
-                    </button>
-                  </div>
-                )}
+          <div className="toolbar__actionCn__buttons">
+            <FollowButton
+              eventLocationSummary={location}
+              userInfo={userInfo}
+              followProperties={followProperties}
+              expand={true}
+            />
+            {canUserAddAttendees && accessLevel === 'advanced' && (
+              <div className="toolbar__actionCn__add">
+                <div className="toolbar__actionCn__add__wrpr">
+                  <button ref={addMemberRef} className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
+                    <img src="/icons/add.svg" width={16} height={16} alt="add" />
+                    <span className="toolbar__actionCn__add__btn__txt">Member</span>
+                  </button>
+                  {isAddMemberDropdownOpen && (
+                    <div className="toolbar__actionCn__add__list">
+                      <button className="toolbar__actionCn__add__list__item" onClick={()=> onHandleAttendeesClick("upcoming")}>
+                        Add to Current Attendees
+                      </button>
+                      <button className="toolbar__actionCn__add__list__item" onClick={()=> onHandleAttendeesClick("past")}>
+                        Add to Past Attendees
+                      </button>
+                    </div>
+                 )}
+                </div>
               </div>
             )}
+            {isUserLoggedIn && !canUserAddAttendees && type === 'past' && !isUserGoing && accessLevel === 'advanced' && (
+              <button onClick={() => onIAmGoingClick('mark-presence')} className="toolbar__actionCn__imGoingBtn">
+                Claim Attendance
+              </button>
+            )}
+            {((isUserLoggedIn && !inPastEvents && accessLevel === 'advanced') && (!isUserGoing || (isUserGoing && filteredGatherings?.length > 0)) && !userHasUpcomingEvents) && (
+              <button onClick={() => onIAmGoingClick('upcoming')} className="toolbar__actionCn__imGoingBtn">
+                I&apos;m Going
+              </button>
+            )} 
+            {!isUserLoggedIn && (
+              <button onClick={onLoginClick} className="toolbar__actionCn__login">
+                Login to Respond
+              </button>
+            )} 
+            {isUserGoing && isUserLoggedIn && (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) && accessLevel === 'advanced' && userHasUpcomingEvents &&
+               (
+                <div className="toolbar__actionCn__edit__wrpr">
+                  <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
+                    <img src="/icons/edit-white.svg" alt="arrow" width={18} height={18} />
+                    Response
+                    <img src="/icons/down-arrow-white.svg" alt="arrow" width={18} height={18} />
+                  </button>
+                  {isEdit && (
+                    <div className="toolbar__actionCn__edit__list">
+                      <button className="toolbar__actionCn__edit__list__item" onClick={onEditDetailsClicked}>
+                        Edit Details
+                      </button>
+                      <button onClick={onRemoveFromGatherings} className="toolbar__actionCn__edit__list__item">
+                        Remove from Gathering(s)
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-
-        <div className={`root__irl__follcnt__update__mob ${!isShrunk ? 'hideCnt' : 'showCnt'}`}>
-          Planning to attend? Enroll yourselves & follow to get event updates & reminders.
-        </div>
-      </div>
       <PresenceRequestSuccess />
       <style jsx>
         {`
@@ -322,13 +408,13 @@ const FollowSection = (props: IFollowSectionProps) => {
             display: flex;
             padding: 10px;
             transition: all 0.3s ease-in-out;
-            padding-top: ${!isShrunk ? '0px' : ''};
-            padding-bottom: ${!isShrunk ? '0px' : ''};
+            padding-top: ${!isShrunk ? '10px' : ''};
+            padding-bottom: ${!isShrunk ? '10px' : ''};
             width: 100%;
-          }
-
-          .showCntr {
-            // padding-block: 0px;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: ${!isShrunk ? '0' : '16px'};
           }
 
           .root__irl__follwcnt__cnt {
@@ -377,37 +463,6 @@ const FollowSection = (props: IFollowSectionProps) => {
             min-height: ${followProperties?.followers?.length > 0 ? '25px' : ''};
           }
 
-          .root__irl__follwcnt__followbtn {
-            padding: 4px 8px;
-            min-width: 103px;
-            border: 1px solid #cbd5e1;
-            background: #fff;
-            border-radius: 8px;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            color: #0f172a;
-            font-weight: 500;
-            line-height: 20px;
-            font-size: 14px;
-            box-shadow: 0px 1px 1px 0px #0f172a14;
-          }
-
-          .root__irl__follwcnt__followingbtn {
-            padding: 4px 8px;
-            border: 1px solid #cbd5e1;
-            background: #ffffff;
-            border-radius: 8px;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            font-weight: 500;
-            line-height: 20px;
-            font-size: 14px;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0px 1px 1px 0px #0f172a14;
-          }
-
           .root__irl__follwcnt__imgsec__desccnt__desc {
             display: flex;
             color: #64748b;
@@ -426,131 +481,75 @@ const FollowSection = (props: IFollowSectionProps) => {
             display: flex;
             align-items: center;
             gap: 4px;
-            text-transform: capitalize;
           }
 
-          .popup__footer {
-            display: flex;
-            justify-content: end;
-            gap: 10px;
-            margin-top: 16px;
-            padding: 10px 10px 0px 0px;
-          }
 
-          .popup__footer__cancel {
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 20px;
-            color: #0f172a;
-            background: #fff;
-            border: 1px solid #cbd5e1;
-            padding: 10px 24px;
-            border-radius: 8px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          .popup__footer__confirm {
-            height: 40px;
-            border-radius: 8px;
-            padding: 10px 24px;
-            background: #dd2c5a;
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 20px;
-            color: #ffffff;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          .root__irl__follcnt__update__web,
-          .root__irl__follcnt__update__mob {
-            font-size: 14px;
-            font-weight: 400;
-            line-height: 20px;
-            letter-spacing: 0.01em;
-            text-align: left;
-          }
 
           .toolbar__actionCn {
             display: flex;
             gap: 8px;
-            width: auto;
+            width: 100%;
+            flex-wrap: wrap;
           }
+
+          .toolbar__actionCn__buttons {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+          }
+
           .toolbar__actionCn__add {
             display: flex;
             align-items: center;
+            width: 100%;
           }
-          .toolbar__actionCn__download__btn {
-            display: none;
+          .toolbar__actionCn__add__wrpr {
+            position: relative;
+            width: 100%;
           }
           .toolbar__actionCn__add__btn {
             display: flex;
             align-items: center;
             gap: 4px;
-            background: transparent;
-            border: 1px solid #cbd5e1;
             background: #fff;
+            border: 1px solid #cbd5e1;
             height: 40px;
             padding: 10px 8px;
             border-radius: 8px;
             justify-content: center;
+            width: 100%;
+          }
+          .toolbar__actionCn__add__list {
+            position: absolute;
+            z-index: 4;
+            width: 207px;
+            background: #fff;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0px 2px 6px 0px #0f172a29;
+            margin-top: 4px;
+            left: 0;
+          }
+          .toolbar__actionCn__add__list__item {
+            font-size: 14px;
+            line-height: 28px;
+            text-align: left;
+            color: #0F172A;
+            cursor: pointer;
+            padding: 4px 8px;
+            white-space: nowrap;
+            width: 100%;
+            background: inherit;
+          }
+          .toolbar__actionCn__add__list__item:hover {
+            background-color: #f1f5f9;
+            border-radius: 8px;
+            transition: all 0.2s ease;
           }
           .toolbar__actionCn__add__btn__txt {
             font-size: 14px;
             font-weight: 500;
             line-height: 24px;
-            color: #0f172a;
-          }
-          .toolbar__actionCn__download__btn__txt {
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 24px;
-            color: #0f172a;
-          }
-          .toolbar__actionCn__add__btn-mob {
-            height: 40px;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: #fff;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-          }
-          .toolbar__actionCn__download__btn-mob {
-            height: 40px;
-            padding: 10px 12px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: #fff;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-          }
-          .toolbar__actionCn__add__btn__txt-mob {
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 20px;
-            color: #0f172a;
-          }
-          .toolbar__actionCn__schduleBtn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            padding: 10px 12px;
-            font-size: 14px;
-            font-weight: 500;
-            height: 40px;
-            cursor: pointer;
-            background: white;
             color: #0f172a;
           }
           .toolbar__actionCn__imGoingBtn {
@@ -567,13 +566,16 @@ const FollowSection = (props: IFollowSectionProps) => {
             cursor: pointer;
             background: #156ff7;
             color: #fff;
-            width: ${!canUserAddAttendees ? '162px' : '127px'};
+            white-space: nowrap;
+            width: 100%;
+            padding: 10px 12px;
           }
           .toolbar__actionCn__imGoingBtn:hover {
             background: #1d4ed8;
           }
           .toolbar__actionCn__edit__wrpr {
             position: relative;
+            width: 100%;
           }
           .toolbar__actionCn__edit {
             display: flex;
@@ -582,13 +584,15 @@ const FollowSection = (props: IFollowSectionProps) => {
             gap: 6px;
             border-radius: 8px;
             border: 1px solid #cbd5e1;
-            padding: ${canUserAddAttendees ? '10px 8px' : '10px 25px'};
+            padding: 10px 8px;
             font-size: 14px;
             font-weight: 500;
             height: 40px;
             cursor: pointer;
             background: #156ff7;
             color: #fff;
+            width: 100%;
+            white-space: nowrap;
           }
           .toolbar__actionCn__edit__list {
             position: absolute;
@@ -635,8 +639,9 @@ const FollowSection = (props: IFollowSectionProps) => {
             height: 40px;
             cursor: pointer;
             background: #156ff7;
-            width: 170px;
+            width: 100%;
             color: #fff;
+            white-space: nowrap;
           }
 
           .root__irl__follwcnt__imgsec__desccnt {
@@ -646,14 +651,6 @@ const FollowSection = (props: IFollowSectionProps) => {
             align-items: center;
           }
 
-          @media (min-width: 360px) {
-            .root__irl__follcnt__update__web {
-              display: none;
-            }
-
-            .root__irl__follcnt__update__mob {
-              display: flex;
-            }
 
             .root__irl__mobileView {
               display: flex;
@@ -666,14 +663,9 @@ const FollowSection = (props: IFollowSectionProps) => {
               flex-direction: row;
               flex-wrap: wrap;
             }
-            .toolbar__actionCn,
             .toolbar__hdr {
               flex: 1;
               align-items: center;
-            }
-            .toolbar__actionCn {
-              justify-content: flex-end;
-              flex: unset;
             }
             .toolbar__search {
               flex-basis: 100%;
@@ -682,48 +674,24 @@ const FollowSection = (props: IFollowSectionProps) => {
               right: 0px;
               left: unset;
             }
+            .toolbar__actionCn__add__list {
+              left: 0px;
+              right: unset;
+            }
 
             .toolbar__actionCn__webView,
             .toolbar__actionCn__webView__follCnt {
               display: none;
             }
 
-            .root__irl__follwcnt {
-              display: flex;
-              flex-direction: column-reverse;
-              gap: 12px;
-
-              justify-content: space-between;
-              align-items: flex-start;
-            }
-          }
-
           @media (min-width: 768px) {
             .root__irl__follwcnt {
               width: 100%;
-              flex-direction: row;
-              justify-content: space-between;
-              align-items: center;
-              padding: 10px;
             }
 
-            .root__irl__follcnt__update__mob {
-              display: none;
-            }
-            .root__irl__follcnt__update__web {
-              display: flex;
-            }
 
             .root__irl__follwcnt__imgsec {
               display: flex;
-            }
-
-            .root__irl__follwcnt__followbtn {
-              padding: 10px 16px;
-            }
-
-            .root__irl__follwcnt__followingbtn {
-              padding: 10px 16px;
             }
 
             .hideCnt {
@@ -740,17 +708,19 @@ const FollowSection = (props: IFollowSectionProps) => {
               margin-top: ${!isShrunk ? '15px' : ''};
             }
 
-            .toolbar__actionCn__imGoingBtn {
-              //width: 132px !important;
-              width: auto !important;
-            }
-
             .toolbar__actionCn__edit {
               padding: 10px 12px;
             }
           }
 
           @media (min-width: 1024px) {
+            .root__irl__follwcnt {
+              width: 100%;
+              flex-direction: row;
+              align-items: center;
+              gap: 10px !important;
+            }
+
             .hideCnt-mob {
               opacity: 1;
               visibility: visible !important;
@@ -797,56 +767,63 @@ const FollowSection = (props: IFollowSectionProps) => {
               min-width: 140px;
             }
             .toolbar__actionCn {
+              flex-direction: row;
               flex: 1;
               justify-content: flex-end;
-              order: 2;
-            }
-            .toolbar__actionCn__schduleBtn {
-              width: unset;
-            }
-            .toolbar__actionCn__imGoingBtn {
-              width: 95px;
-              padding: 10px 12px;
+              flex-wrap: unset;
             }
             .toolbar__actionCn__login {
               width: fit-content;
             }
-            .toolbar__actionCn__download__btn {
-              display: flex;
-              align-items: center;
-              gap: 4px;
-              background: transparent;
-              border: 1px solid #cbd5e1;
-              background: #fff;
-              height: 40px;
-              padding: 10px 12px;
-              border-radius: 8px;
-            }
-            .toolbar__actionCn__download__btn-mob {
-              display: none;
-            }
 
-            .toolbar__actionCn__login {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 8px;
-              border-radius: 8px;
-              border: 1px solid #cbd5e1;
-              padding: 10px 24px;
-              font-size: 14px;
-              font-weight: 500;
-              height: 40px;
-              cursor: pointer;
-              background: #156ff7;
-              color: #fff;
-            }
-            .toolbar__actionCn__login:hover {
-              background: #1d4ed8;
-            }
           }
         `}
       </style>
+
+      <style jsx global>{`
+        .toolbar__actionCn__scheduleBtn {
+          display: ${isShrunk ? 'flex' : 'none'};
+          align-items: center;
+          justify-content: center;
+          border: 1px solid #CBD5E1;
+          background: #FFFFFF;
+          height: 40px;
+          padding: 10px 12px;
+          font-weight: 400;
+          font-size: 14px;
+          line-height: 20px;
+          letter-spacing: 0px;
+          border-radius: 8px;
+          cursor: pointer;
+          color: #0F172A;
+          text-decoration: none;
+          box-shadow: 0px 1px 1px 0px #0F172A14;
+          width: 100%;
+        }
+
+        .toolbar__actionCn__scheduleBtn__arrowIcon {
+          margin-left: 5px;
+        }
+
+        .toolbar__actionCn__scheduleBtn__calendarIcon {
+          margin-right: 8px;
+        }
+
+        .toolbar__actionCn__scheduleBtn__scheduleText {
+          font-size: 12px;
+          font-weight: 400;
+          line-height: 18px;
+          color: #475569;
+          margin-left: 5px;
+          white-space: nowrap;
+        }
+
+        @media (min-width: 1024px) {
+          .toolbar__actionCn__scheduleBtn {
+            display: flex;
+          }
+        }
+      `}</style>
     </>
   );
 };

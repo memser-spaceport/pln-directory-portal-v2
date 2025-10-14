@@ -315,7 +315,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
         <div className="tbl__hdr__attending">
           Attending
-          {events?.length > 0 && eventType !== 'past' && (
+          {events?.length > 0 && (
             <>
               <div className="tbl__hdr__attending__filter">
                 <button className="tbl__hdr__attending__filter__btn" onClick={onEventsFilterclicked}>
@@ -371,7 +371,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
           .tbl__hdr {
             position: sticky;
             top: 0;
-            z-index: 2;
+            z-index: 1;
             display: flex;
             min-height: 54px;
             border-radius: 8px 8px 0px 0px;

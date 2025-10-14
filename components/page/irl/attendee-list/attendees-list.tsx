@@ -274,7 +274,7 @@ const AttendeeList = (props: IAttendeeList) => {
         </div>
         <div className="attendeeList__table">
           <div className={`irl__table table__login`}>
-            {<AttendeeTableHeader isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} />}
+            {<AttendeeTableHeader isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} eventType={searchParams?.type} />}
             <div ref={tableRef} className={`irl__table__body w-full`}>
               <GuestList
                 userInfo={userInfo}

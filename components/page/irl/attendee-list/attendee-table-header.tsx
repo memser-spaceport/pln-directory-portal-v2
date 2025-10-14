@@ -8,6 +8,7 @@ import { getUniqueEvents } from '@/utils/irl.utils';
 interface IAttendeeTableHeader {
   isLoggedIn: boolean;
   eventDetails: any;
+  eventType: string;
 }
 
 const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
@@ -18,7 +19,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
   const events = getUniqueEvents(eventDetails?.eventsForFilter ?? []);
   const topics = eventDetails?.topics ?? [];
   const searchParams = useSearchParams();
-  const eventType = searchParams.get('type');
+  const eventType = props?.eventType;
 
   const router = useRouter();
 
@@ -315,7 +316,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
         <div className="tbl__hdr__attending">
           Attending
-          {events?.length > 0 && (
+          {events?.length > 0 && eventType && (
             <>
               <div className="tbl__hdr__attending__filter">
                 <button className="tbl__hdr__attending__filter__btn" onClick={onEventsFilterclicked}>

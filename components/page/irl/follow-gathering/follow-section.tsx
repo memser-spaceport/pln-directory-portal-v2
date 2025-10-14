@@ -63,7 +63,7 @@ const FollowSection = (props: IFollowSectionProps) => {
     isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const topicsAndReason = props?.topicsAndReason;
   const accessLevel = getAccessLevel(userInfo, isUserLoggedIn);
-  const scheduleURL = guestDetails?.additionalInfo?.schedule_url || 
+  const scheduleURL = locationEvents?.additionalInfo?.schedule_url || 
     `${process.env.SCHEDULE_BASE_URL}/program?location=${encodeURIComponent(eventLocationSummary.name)}`;
 
   // Helper functions
@@ -368,7 +368,7 @@ const FollowSection = (props: IFollowSectionProps) => {
                 Claim Attendance
               </button>
             )}
-            {((isUserLoggedIn && !inPastEvents && accessLevel === 'advanced') && (!isUserGoing || (isUserGoing && filteredGatherings?.length > 0)) && !userHasUpcomingEvents) && (
+            {((isUserLoggedIn && !inPastEvents && accessLevel === 'advanced') && (!isUserGoing || (isUserGoing && filteredGatherings?.length > 0)) && !userHasUpcomingEvents && filteredGatherings?.length > 0) && (
               <button onClick={() => onIAmGoingClick('upcoming')} className="toolbar__actionCn__imGoingBtn">
                 I&apos;m Going
               </button>

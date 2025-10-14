@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
-import { getOnePagerUploadUrl, confirmOnePagerUpload } from '../fundraising-profile.service';
+import { getOnePagerUploadUrl, confirmOnePagerUpload, uploadOnePagerPreview } from '../fundraising-profile.service';
 import { uploadToS3 } from '@/utils/s3-upload.utils';
+import { generatePdfPreview } from '@/utils/pdf-preview.utils';
 
 interface UploadOnePagerResponse {
   success: boolean;
@@ -36,6 +37,21 @@ async function uploadOnePager(params: UploadOnePagerParams): Promise<UploadOnePa
       uploadUid,
       teamUid,
     });
+
+    // Step 4: Generate and upload preview image for PDFs
+    try {
+      if (file.type === 'application/pdf') {
+        const previewImage = await generatePdfPreview(file, 1.0, 0.8);
+
+        await uploadOnePagerPreview({
+          previewImage,
+          teamUid,
+        });
+      }
+    } catch (previewError) {
+      // Log preview generation/upload error but don't fail the main upload
+      console.warn('Failed to generate/upload preview image:', previewError);
+    }
 
     return result;
   } catch (error) {

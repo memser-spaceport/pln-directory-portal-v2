@@ -404,6 +404,7 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
           onView={handleView}
           showDeleteButton={true}
           teamUid={teamUid}
+          previewImageUrl={existingFile?.previewImageUrl}
         />
       </div>
     );

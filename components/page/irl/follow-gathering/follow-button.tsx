@@ -270,7 +270,6 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
             .popup__cnt {
               width: 89vw;
               max-height: 80svh;
-              // min-height: 25vh;
               display: flex;
               flex-direction: column;
               overflow-y: auto;
@@ -284,12 +283,24 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
               width: 656px;
               padding: 24px;
             }
+
+            .followRoot {
+              width: fit-content;
+            }
               
             .followRoot__unfollow__popup {
               display: flex;
               width: 90vw;
               max-height: 70vh;
               overflow-y: auto;
+            }
+
+            .followRoot__followBtn {
+              max-width: 91px;
+            }
+
+            .followRoot__followingBtn {
+              max-width: 110px;
             }
           }
         `}

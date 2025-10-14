@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
@@ -14,7 +14,6 @@ import { AdminContent } from '@/components/page/demo-day/AdminView/components/Ad
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 function DemoDayPrepPage() {
-  const router = useRouter();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const { data } = useGetDemoDayState();
@@ -23,7 +22,7 @@ function DemoDayPrepPage() {
   useEffect(() => {
     // Redirect non-admins to regular demo day page
     if (!hasAccess) {
-      router.replace('/demoday');
+      redirect('/demoday');
     }
   }, [hasAccess]);
 
@@ -35,7 +34,10 @@ function DemoDayPrepPage() {
   return (
     <FiltersHydrator>
       <SyncParamsToUrl debounceTime={0} />
-      <DashboardPagesLayout filters={<AdminFilters />} content={<AdminContent isDirectoryAdmin={!!isDirectoryAdmin} />} />
+      <DashboardPagesLayout
+        filters={<AdminFilters />}
+        content={<AdminContent isDirectoryAdmin={!!isDirectoryAdmin} />}
+      />
     </FiltersHydrator>
   );
 }

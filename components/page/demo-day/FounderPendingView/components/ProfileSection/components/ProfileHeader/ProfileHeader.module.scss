@@ -219,6 +219,7 @@
   width: 1px;
   height: 40px;
   background: #0e0f11;
+  opacity: 0.1;
   flex-shrink: 0;
 
   @include media.mobile-only {

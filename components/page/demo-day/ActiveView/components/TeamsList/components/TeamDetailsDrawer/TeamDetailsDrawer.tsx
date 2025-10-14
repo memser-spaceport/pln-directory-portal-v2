@@ -18,6 +18,7 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -307,7 +308,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                           <div className={s.founderRow} key={founder.uid}>
                             <div className={s.founderAvatar}>
                               <Image
-                                src={founder.image?.url || '/images/demo-day/profile-placeholder.svg'}
+                                src={founder.image?.url || getDefaultAvatar(founder.name)}
                                 alt={founder.name}
                                 width={48}
                                 height={48}

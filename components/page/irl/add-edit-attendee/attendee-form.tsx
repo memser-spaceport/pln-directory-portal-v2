@@ -39,11 +39,12 @@ import {
 } from '@/utils/common.utils';
 import { useSearchParams } from 'next/navigation';
 import AttendeeOptions from './attendee-options';
+import { getGatherings } from '@/utils/irl.utils';
 
 interface IAttendeeForm {
   selectedLocation: IIrlLocation;
   userInfo: IUserInfo | null;
-  allGatherings: IIrlEvent[];
+  allGatherings: any;
   defaultTags: string[];
   mode: string;
   allGuests: any;
@@ -75,7 +76,6 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
   const scrollTo = props?.scrollTo;
   const searchParams = props?.searchParams;
   const getEventDetails = props?.getEventDetails;
-  const gatherings = getGatherings();
 
   const eventType = searchParams?.type === 'past' ? 'past' : 'upcoming';
   const analytics = useIrlAnalytics();
@@ -93,6 +93,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     dateErrors: [],
   });
 
+  const gatherings = getGatherings(searchParams?.type, props?.allGatherings, from);
   const attendeeFormRef = useRef<HTMLFormElement>(null);
   const formBodyRef = useRef<HTMLDivElement>(null);
 
@@ -107,19 +108,6 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       setTopicsAndReason(formInitialValues.topicsAndReason);
     }
   }, [formInitialValues]);
-
-  function getGatherings(): IIrlEvent[] {
-    // if (searchParams?.type === 'past') {
-    //   if (searchParams?.event) {
-    //     const filteredList = props?.allGatherings.filter((gathering: IIrlEvent) => gathering?.slugURL === searchParams?.event);
-    //     if (filteredList?.length > 0) {
-    //       return filteredList;
-    //     }
-    //   }
-    //   return [];
-    // }
-    return props?.allGatherings ?? [];
-  }
 
   const onFormSubmitHandler = async (e: FormEvent, type: string) => {
     e.preventDefault();
@@ -281,7 +269,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             events[eventIndex]['speakerSubEvents'] = [];
             events[eventIndex]['sponsorSubEvents'] = [];
             if (from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) {
-              events[eventIndex]['eventName'] = props?.allGatherings?.find(
+              events[eventIndex]['eventName'] = gatherings?.find(
                 (gathering: IIrlEvent) => gathering?.uid === formValues[key],
               )?.name;
             }

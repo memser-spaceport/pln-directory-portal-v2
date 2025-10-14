@@ -26,7 +26,7 @@ export const faqItems = [
             high-quality startups will deliver pitches, in a fully asynchronous environment.
           </span>,
           'Attendees will have access to single-slide company summaries and 3-min video pitches through our online platform which will go live on Oct 23, 11:00 UTC, and will be available until Nov 6, 11:00 UTC.',
-          'Attendees can directly connect with companies they\'re interested in by clicking buttons that will automatically send emails on their behalf. Alternatively, the founder\'s email address and Telegram handle will be available for direct outreach.',
+          "Attendees can directly connect with companies they're interested in by clicking buttons that will automatically send emails on their behalf. Alternatively, the founder's email address and Telegram handle will be available for direct outreach.",
         ]}
       />
     ),
@@ -54,7 +54,7 @@ export const faqItems = [
             <FaqLink href={DESCRIPTION_LINK}>here</FaqLink>.
           </span>,
           <span key={2}>
-            Explore teams and members in our directory <FaqLink href={DIRECTORY_LINK}>here</FaqLink>.
+            Explore <FaqLink href="/members">members</FaqLink> and <FaqLink href="/teams">teams</FaqLink> in LabOS.
           </span>,
           <span key={3}>
             Latest updates can be found on our social channels: <FaqLink href={X_LINK}>X</FaqLink>

@@ -22,6 +22,7 @@ export type UploadInfo = {
   uploaderUid: string | null;
   url: string;
   freshUrl: string;
+  previewImageUrl: string;
 };
 
 export type FundraisingProfile = {
@@ -55,6 +56,9 @@ export type FundraisingProfile = {
     uid: string;
   }[];
   description: string | null;
+  liked: boolean;
+  connected: boolean;
+  invested: boolean;
 };
 
 async function fetcher() {

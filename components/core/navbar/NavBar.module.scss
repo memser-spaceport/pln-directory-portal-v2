@@ -10,6 +10,8 @@ $text-color: #475569;
   height: var(--app-header-height);
   display: flex;
   align-items: center;
+  position: relative;
+  width: 100%;
 
   background: var(--Surface-surface-light, #fff);
   box-shadow: 0 1px 4px 0 #e2e8f0;

@@ -1,6 +1,7 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { toast } from '@/components/core/ToastContainer/utils/toast';
+import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 
 export type InterestType = 'like' | 'connect' | 'invest';
 
@@ -33,6 +34,8 @@ async function expressInterest(data: ExpressInterestData): Promise<boolean> {
 }
 
 export function useExpressInterest(teamName?: string) {
+  const queryClient = useQueryClient();
+
   return useMutation<boolean, Error, ExpressInterestData>({
     mutationFn: expressInterest,
     onSuccess: (_, variables) => {
@@ -66,6 +69,11 @@ export function useExpressInterest(teamName?: string) {
           autoClose: 3000,
         },
       );
+
+      // Invalidate caches to refetch the updated data with new flags
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES] });
     },
     onError: (error) => {
       toast.error('Connection request failed. Please try again.', {

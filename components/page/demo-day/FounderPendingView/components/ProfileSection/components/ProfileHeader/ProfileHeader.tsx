@@ -1,5 +1,14 @@
 import React from 'react';
+import Link from 'next/link';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import s from './ProfileHeader.module.scss';
+
+interface Founder {
+  uid: string;
+  name: string;
+  role: string;
+  image: { url: string } | null;
+}
 
 interface ProfileHeaderProps {
   image?: string;
@@ -7,19 +16,20 @@ interface ProfileHeaderProps {
   description: string;
   fundingStage?: string;
   tags: string[];
+  founders?: Founder[];
 }
 
-export const ProfileHeader = ({ image, name, description, fundingStage, tags }: ProfileHeaderProps) => {
+export const ProfileHeader = ({ image, name, description, fundingStage, tags, founders }: ProfileHeaderProps) => {
   // Helper function to format funding stage
   const formatFundingStage = (stage: string) => {
     const stageMap: Record<string, string> = {
       'pre-seed': 'Pre-Seed',
-      'seed': 'Seed',
+      seed: 'Seed',
       'series-a': 'Series A',
       'series-b': 'Series B',
       'series-c': 'Series C',
-      'growth': 'Growth',
-      'ipo': 'IPO',
+      growth: 'Growth',
+      ipo: 'IPO',
     };
     return stageMap[stage] || stage;
   };
@@ -37,9 +47,7 @@ export const ProfileHeader = ({ image, name, description, fundingStage, tags }: 
             {tag}
           </div>
         ))}
-        {remainingCount > 0 && (
-          <div className={s.tag}>+{remainingCount}</div>
-        )}
+        {remainingCount > 0 && <div className={s.tag}>+{remainingCount}</div>}
       </>
     );
   };
@@ -64,9 +72,7 @@ export const ProfileHeader = ({ image, name, description, fundingStage, tags }: 
           <p className={s.memberDescription}>{description}</p>
         </div>
         <div className={s.tagList}>
-          <div className={s.stageTag}>
-            Stage: {fundingStage ? formatFundingStage(fundingStage) : 'Not specified'}
-          </div>
+          <div className={s.stageTag}>Stage: {fundingStage ? formatFundingStage(fundingStage) : 'Not specified'}</div>
           {tags && tags.length > 0 && (
             <>
               <div className={s.tagDivider} />
@@ -74,6 +80,38 @@ export const ProfileHeader = ({ image, name, description, fundingStage, tags }: 
             </>
           )}
         </div>
+
+        {/* Founders Info */}
+        {founders && founders.length > 0 && (
+          <div className={s.foundersInfo}>
+            {founders.map((founder, index) => (
+              <React.Fragment key={founder.uid}>
+                {index > 0 && <div className={s.founderDivider} />}
+                <Link
+                  href={`/members/${founder.uid}`}
+                  target="_blank"
+                  className={s.founderItem}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <div
+                    className={s.founderAvatar}
+                    style={{
+                      backgroundImage: founder.image?.url
+                        ? `url('${founder.image.url}')`
+                        : `url('${getDefaultAvatar(founder.name)}')`,
+                    }}
+                  />
+                  <div className={s.founderText}>
+                    <div className={s.founderName}>{founder.name}</div>
+                    <div className={s.founderRole}>{founder.role || 'Co-Founder'}</div>
+                  </div>
+                </Link>
+              </React.Fragment>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

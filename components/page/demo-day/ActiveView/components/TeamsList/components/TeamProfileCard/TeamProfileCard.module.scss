@@ -33,10 +33,15 @@
 
 .actions {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: flex-end;
   gap: 16px;
   width: 100%;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+  }
 }
 
 .secondaryButton {
@@ -44,7 +49,7 @@
   padding: 8px var(--global-size-size-125, 10px);
   justify-content: center;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
 
   border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--transparent-brand-2, rgba(27, 77, 255, 0.02));

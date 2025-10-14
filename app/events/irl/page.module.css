@@ -6,6 +6,7 @@
 
 .irlGatherings {
   background-color: #f1f5f9;
+  margin-top: 56px;
 }
 
 .irlGatheings__locations {
@@ -85,7 +86,8 @@
   }
   .irlGatherings {
     width: 900px;
-    margin: auto;
+    margin-inline: auto;
+    margin-top: 36px;
   }
 
   .irlGatherings__additionalResources {

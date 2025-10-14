@@ -6,7 +6,7 @@
   align-items: flex-start;
 
   @include media.mobile-only {
-    gap: 16px;
+    gap: 12px;
   }
 }
 
@@ -20,8 +20,8 @@
   overflow: hidden;
 
   @include media.mobile-only {
-    width: 64px;
-    height: 64px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
   }
 }
@@ -62,7 +62,7 @@
 }
 
 .memberName {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 24px;
   font-style: normal;
   font-weight: 600;
@@ -70,7 +70,7 @@
   letter-spacing: -0.4px;
 
   @include media.mobile-only {
-    font-size: 20px;
+    font-size: 18px;
     line-height: 28px;
     letter-spacing: -0.3px;
   }
@@ -78,14 +78,16 @@
 
 .memberDescription {
   color: var(--Neutral-Slate-600, #475569);
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
   line-height: 20px; /* 142.857% */
 
   @include media.mobile-only {
-    font-size: 14px;
+    font-size: 12px;
     line-height: 20px;
   }
 }
@@ -117,6 +119,11 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+
+  @include media.mobile-only {
+    font-size: 12px;
+    line-height: 16px;
+  }
 }
 
 .tagDivider {
@@ -142,4 +149,79 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+
+  @include media.mobile-only {
+    font-size: 12px;
+    line-height: 16px;
+  }
+}
+
+// Founders Info Section
+.foundersInfo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 4px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+.founderItem {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-shrink: 0;
+
+  &:hover .founderName {
+    color: #1b4dff;
+  }
+}
+
+.founderAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background-size: cover;
+  background-position: 50% 50%;
+  flex-shrink: 0;
+}
+
+.founderText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+}
+
+.founderName {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #455468;
+}
+
+.founderRole {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.founderDivider {
+  width: 1px;
+  height: 40px;
+  background: #0e0f11;
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    display: none;
+  }
 }

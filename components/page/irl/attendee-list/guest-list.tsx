@@ -1,12 +1,13 @@
 import { Dispatch, SetStateAction, useEffect } from 'react';
 
-import { EVENTS } from '@/utils/constants';
+import { EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import GuestTableRow from './guest-table-row';
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
 import { useRouter } from 'next/navigation';
 import { triggerLoader } from '@/utils/common.utils';
+import { filterUpcomingGatherings } from '@/utils/irl.utils';
 
 interface IGuestList {
   userInfo: IUserInfo;
@@ -21,11 +22,13 @@ interface IGuestList {
   searchParams: any;
   isAdminInAllEvents: any;
   newSearchParams: URLSearchParams;
+  hasFiltersApplied: boolean;
 }
 
 const GuestList = (props: IGuestList) => {
   const userInfo = props?.userInfo;
   const eventDetails = props?.eventDetails;
+  const events = eventDetails?.events;
   const newSearchParams = props?.newSearchParams;
   const showTelegram = props?.showTelegram;
   const filteredList = props?.items;
@@ -36,6 +39,8 @@ const GuestList = (props: IGuestList) => {
   const onLogin = props.onLogin;
   const searchParams = props?.searchParams;
   const isAdminInAllEvents = props?.isAdminInAllEvents;
+  const hasFiltersApplied = props?.hasFiltersApplied;
+  const filteredGatherings = events?.upcomingEvents?.filter((gathering: any) => filterUpcomingGatherings(gathering));
   const analytics = useIrlAnalytics();
   const router = useRouter();
 
@@ -65,6 +70,21 @@ const GuestList = (props: IGuestList) => {
     router.push(`${window.location.pathname}?${currentParams.toString()}`);
   };
 
+  const onViewPastAttendees = () => {
+    analytics.trackGuestListViewPastAttendeesClicked(location);
+    triggerLoader(true);
+    const currentParams = new URLSearchParams(searchParams);
+    currentParams.set('type', 'past');
+    router.push(`${window.location.pathname}?${currentParams.toString()}`);
+  };
+
+  const onRegisterToday = () => {
+    analytics.trackGuestListRegisterTodayClicked(location);
+    let formData: any = { member: userInfo };
+    let props: any = { detail: { isOpen: true, formdata: { ...formData }, mode: IAM_GOING_POPUP_MODES.ADD } };
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, props));
+  };
+
   useEffect(() => {
     document.dispatchEvent(
       new CustomEvent(EVENTS.OPEN_FLOATING_BAR, {
@@ -78,6 +98,127 @@ const GuestList = (props: IGuestList) => {
       analytics.trackFloatingBarOpen(location, { selectedGuests });
     }
   }, [selectedGuests]);
+
+
+  if(events?.upcomingEvents?.length > 0 && events?.pastEvents?.length === 0 && filteredList.length === 0 && !hasFiltersApplied) {
+    return (
+      <>
+        <div className="guestList__empty__current">
+          <img width={182} height={118} src="/images/irl/attendees.svg" alt="attendees empty" />
+          <p className="guestList__empty__current__text">You could be one of the very first to join!</p>
+          <p className="guestList__empty__current__text__secondary">Claim your spot as one of the pioneers</p>
+          {filteredGatherings?.length > 0 && <button onClick={onRegisterToday} className="guestList__empty__current__button">Register Today</button>}
+        </div>
+        <style jsx>{`
+          .guestList__empty__current {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            align-items: center;
+            padding-block: 45px;
+          }
+
+          .guestList__empty__current__text {
+            font-weight: 600;
+            font-size: 16px;
+            line-height: 20px;
+            letter-spacing: 0.01em;
+            color: #0F172A;
+            margin-top: 24px;
+          }
+
+          .guestList__empty__current__text__secondary {
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 20px;
+            letter-spacing: 0px;
+            color: #000000;
+            margin-top: 8px;
+          }
+
+          .guestList__empty__current__button {
+            background: #156FF7;
+            border: 1px solid #CBD5E1;
+            box-shadow: 0px 1px 1px 0px #0F172A14;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 20px;
+            letter-spacing: 0px;
+            color: #FFFFFF;
+            height: 40px;
+            border-radius: 8px;
+            padding: 9px 16px;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+          }
+        `}</style>
+      </>
+    );
+  }
+
+  if(filteredList.length === 0 && !hasFiltersApplied) {
+    return (
+      <>
+        <div className="guestList__empty__current">
+          <img width={182} height={118} src="/images/irl/attendees.svg" alt="attendees empty" />
+          <p className="guestList__empty__current__text">Registration is opening up! Be among the first to sign up{' '}</p>
+          <p className="guestList__empty__current__text__secondary">Check out who has attended in the past</p>
+          <button onClick={onViewPastAttendees} className="guestList__empty__current__button">View Past Attendees
+            <img src="/images/irl/attendees-avatar-group.svg" alt="avatar group" />
+          </button>
+        </div>
+        <style jsx>{`
+          .guestList__empty__current {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            align-items: center;
+            padding-block: 45px;
+          }
+
+          .guestList__empty__current__text {
+            font-weight: 600;
+            font-size: 16px;
+            line-height: 20px;
+            letter-spacing: 0.01em;
+            color: #0F172A;
+            margin-top: 24px;
+          }
+
+          .guestList__empty__current__text__secondary {
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 20px;
+            letter-spacing: 0px;
+            color: #000000;
+            margin-top: 8px;
+          }
+
+          .guestList__empty__current__button {
+            background: #156FF7;
+            border: 1px solid #CBD5E1;
+            box-shadow: 0px 1px 1px 0px #0F172A14;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 20px;
+            letter-spacing: 0px;
+            color: #FFFFFF;
+            height: 40px;
+            border-radius: 8px;
+            padding: 9px 16px;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+          }
+        `}</style>
+      </>
+    );
+  }
 
   return (
     <>
@@ -100,7 +241,7 @@ const GuestList = (props: IGuestList) => {
               </div>
             );
           })}
-        {filteredList.length === 0 && (
+        {filteredList.length === 0 && hasFiltersApplied && (
           <div className="guestList__empty">
             No results found for the applied input{' '}
             <span role="button" onClick={onClearFilters} className="guestList__empty__reset">

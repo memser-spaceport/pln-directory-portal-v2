@@ -9,11 +9,23 @@ import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { TeamProfileCard } from './components/TeamProfileCard';
 import { TeamDetailsDrawer } from './components/TeamDetailsDrawer';
+import { FiltersDrawer } from './components/FiltersDrawer';
 import s from './TeamsList.module.scss';
 
 const ChevronDownIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const InfoIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22ZM12 11C12.5523 11 13 11.4477 13 12V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V12C11 11.4477 11.4477 11 12 11ZM12 7C11.4477 7 11 7.44772 11 8C11 8.55228 11.4477 9 12 9C12.5523 9 13 8.55228 13 8C13 7.44772 12.5523 7 12 7Z"
+      fill="#0A0C11"
+    />
   </svg>
 );
 
@@ -29,25 +41,63 @@ const SortIcon = () => (
   </svg>
 );
 
+const FilterIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M2 4H14M4 8H12M6 12H10"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 type SortOption = {
   value: string;
   label: string;
 };
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: 'default', label: 'Default' },
-  { value: 'name-asc', label: 'Name A-Z' },
-  { value: 'name-desc', label: 'Name Z-A' },
-  { value: 'stage-asc', label: 'Company Stage A-Z' },
-  { value: 'stage-desc', label: 'Company Stage Z-A' },
-  { value: 'recent', label: 'Most Recent' },
+  // { value: 'default', label: 'Default' },
+  // { value: 'name-asc', label: 'Name A-Z' },
+  // { value: 'name-desc', label: 'Name Z-A' },
+  { value: 'stage-asc', label: 'Pre-seed > Seed > Series A/B' },
+  { value: 'stage-desc', label: 'Series A/B > Seed > Pre-seed' },
+  // { value: 'recent', label: 'Most Recent' },
 ];
+
+// Helper function to determine stage group
+const getStageGroup = (fundingStage: string): string => {
+  const stageLower = fundingStage.toLowerCase();
+
+  if (stageLower.includes('pre-seed') || stageLower.includes('preseed')) {
+    return 'pre-seed';
+  } else if (stageLower.includes('seed') && !stageLower.includes('pre')) {
+    return 'seed';
+  } else if (
+    stageLower.includes('series a') ||
+    stageLower.includes('series b') ||
+    stageLower.includes('series c') ||
+    stageLower.includes('series d') ||
+    stageLower.includes('series')
+  ) {
+    return 'series';
+  }
+
+  return 'other';
+};
+
+// Stage group order for sorting
+const STAGE_GROUP_ORDER_ASC = ['pre-seed', 'seed', 'series', 'other'];
+const STAGE_GROUP_ORDER_DESC = ['series', 'seed', 'pre-seed', 'other'];
 
 export const TeamsList: React.FC = () => {
   const { data: teams, isLoading, error } = useGetTeamsList();
-  const [sortBy, setSortBy] = useState<string>('default');
+  const [sortBy, setSortBy] = useState<string>('stage-asc');
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isFiltersDrawerOpen, setIsFiltersDrawerOpen] = useState(false);
   const scrollPositionRef = useRef<number>(0);
   const { params } = useFilterStore();
 
@@ -108,40 +158,88 @@ export const TeamsList: React.FC = () => {
       return true;
     });
 
-    // Apply sorting
-    const sorted = [...filtered].sort((a, b) => {
-      // Always prioritize teams where current user is a founder
-      const aIsUserFounder = isUserFounder(a);
-      const bIsUserFounder = isUserFounder(b);
+    // Separate user's teams from other teams
+    const userTeams = filtered.filter((team) => isUserFounder(team));
+    const otherTeams = filtered.filter((team) => !isUserFounder(team));
 
-      // If one team has user as founder and the other doesn't, prioritize the user's team
-      if (aIsUserFounder && !bIsUserFounder) return -1;
-      if (!aIsUserFounder && bIsUserFounder) return 1;
+    // Group teams by stage group
+    const groupTeamsByStage = (teamsList: TeamProfile[]) => {
+      const groups = new Map<string, TeamProfile[]>();
 
-      // If both are user teams or both are not, apply the selected sorting
-      switch (sortBy) {
-        case 'name-asc':
-          return a.team.name.localeCompare(b.team.name);
-        case 'name-desc':
-          return b.team.name.localeCompare(a.team.name);
-        case 'stage-asc':
-          return a.team?.fundingStage?.title.localeCompare(b.team?.fundingStage?.title);
-        case 'stage-desc':
-          return b.team?.fundingStage?.title.localeCompare(a.team?.fundingStage?.title);
-        case 'recent':
-          // Sort by most recent (assuming we can use uid or another field for recency)
-          return b.uid.localeCompare(a.uid);
-        default:
-          return 0;
-      }
-    });
+      teamsList.forEach((team) => {
+        const stageGroup = getStageGroup(team.team?.fundingStage?.title || '');
+        if (!groups.has(stageGroup)) {
+          groups.set(stageGroup, []);
+        }
+        groups.get(stageGroup)!.push(team);
+      });
 
-    return sorted;
+      return groups;
+    };
+
+    // Sort groups and flatten
+    const sortGroupedTeams = (teamsList: TeamProfile[]) => {
+      const groups = groupTeamsByStage(teamsList);
+      const stageOrder = sortBy === 'stage-desc' ? STAGE_GROUP_ORDER_DESC : STAGE_GROUP_ORDER_ASC;
+
+      const result: TeamProfile[] = [];
+
+      stageOrder.forEach((stageGroup) => {
+        const teamsInGroup = groups.get(stageGroup);
+        if (teamsInGroup && teamsInGroup.length > 0) {
+          // Teams within each group maintain their original order (randomized on backend)
+          result.push(...teamsInGroup);
+        }
+      });
+
+      return result;
+    };
+
+    // Sort user teams and other teams separately by stage groups
+    const sortedUserTeams = sortGroupedTeams(userTeams);
+    const sortedOtherTeams = sortGroupedTeams(otherTeams);
+
+    // Combine: user teams first, then other teams
+    return [...sortedUserTeams, ...sortedOtherTeams];
   }, [teams, sortBy, searchTerm, selectedIndustries, selectedStages, userInfo]);
 
   const selectedSortOption = SORT_OPTIONS.find((option) => option.value === sortBy);
   const totalTeamsCount = teams?.length || 0;
   const filteredTeamsCount = filteredAndSortedTeams.length;
+
+  // Group teams by stage for rendering with headers
+  const groupedTeams = useMemo(() => {
+    const groups: { stageGroup: string; label: string; teams: TeamProfile[] }[] = [];
+    const stageOrder = sortBy === 'stage-desc' ? STAGE_GROUP_ORDER_DESC : STAGE_GROUP_ORDER_ASC;
+
+    stageOrder.forEach((stageGroup) => {
+      const teamsInGroup = filteredAndSortedTeams.filter(
+        (team) => getStageGroup(team.team?.fundingStage?.title || '') === stageGroup,
+      );
+
+      if (teamsInGroup.length > 0) {
+        let label = '';
+        switch (stageGroup) {
+          case 'pre-seed':
+            label = 'Pre-seed';
+            break;
+          case 'seed':
+            label = 'Seed';
+            break;
+          case 'series':
+            label = 'Series A/B';
+            break;
+          case 'other':
+            label = 'Other';
+            break;
+        }
+
+        groups.push({ stageGroup, label, teams: teamsInGroup });
+      }
+    });
+
+    return groups;
+  }, [filteredAndSortedTeams, sortBy]);
 
   const handleSortChange = (value: string) => {
     setSortBy(value);
@@ -195,42 +293,60 @@ export const TeamsList: React.FC = () => {
           </span>
         </div>
 
-        <div className={s.headerRight}>
-          <Menu.Root modal={false}>
-            <Menu.Trigger className={s.sortButton}>
-              <SortIcon />
-              <span className={s.sortLabel}>Sort by: {selectedSortOption?.label}</span>
-              <ChevronDownIcon />
-            </Menu.Trigger>
-            <Menu.Portal>
-              <Menu.Positioner className={s.menuPositioner} align="end" sideOffset={8}>
-                <Menu.Popup className={s.menuPopup}>
-                  {SORT_OPTIONS.map((option) => (
-                    <Menu.Item
-                      key={option.value}
-                      className={clsx(s.menuItem, {
-                        [s.active]: sortBy === option.value,
-                      })}
-                      onClick={() => handleSortChange(option.value)}
-                    >
-                      {option.label}
-                    </Menu.Item>
-                  ))}
-                </Menu.Popup>
-              </Menu.Positioner>
-            </Menu.Portal>
-          </Menu.Root>
+        <div className={s.filtersWrapper}>
+          <button className={s.filterButton} onClick={() => setIsFiltersDrawerOpen(true)}>
+            <FilterIcon />
+            <span>Filters</span>
+          </button>
+          <div className={s.headerRight}>
+            <Menu.Root modal={false}>
+              <Menu.Trigger className={s.sortButton}>
+                <SortIcon />
+                <span className={s.sortLabel}>Sort by: {selectedSortOption?.label}</span>
+                <ChevronDownIcon />
+              </Menu.Trigger>
+              <Menu.Portal>
+                <Menu.Positioner className={s.menuPositioner} align="end" sideOffset={8}>
+                  <Menu.Popup className={s.menuPopup}>
+                    {SORT_OPTIONS.map((option) => (
+                      <Menu.Item
+                        key={option.value}
+                        className={clsx(s.menuItem, {
+                          [s.active]: sortBy === option.value,
+                        })}
+                        onClick={() => handleSortChange(option.value)}
+                      >
+                        {option.label}
+                      </Menu.Item>
+                    ))}
+                  </Menu.Popup>
+                </Menu.Positioner>
+              </Menu.Portal>
+            </Menu.Root>
+          </div>
         </div>
       </div>
 
-      <p className={s.subtitle}>
-        The default sort is randomized to give every team equal visibility. Your view is unique — no two users see the
-        same list.
-      </p>
+      <div className={s.alert}>
+        <div className={s.alertContent}>
+          <div className={s.alertIcon}>
+            <InfoIcon />
+          </div>
+          <p className={s.alertText}>
+            The list is split into stages. Within each stage, the sort order is randomized to give every team equal
+            visibility. Your order is unique — no two users see the same list.
+          </p>
+        </div>
+      </div>
 
       <div className={s.teamsList}>
-        {filteredAndSortedTeams.map((team) => (
-          <TeamProfileCard key={team.uid} team={team} onClick={handleTeamClick} />
+        {groupedTeams.map((group, groupIndex) => (
+          <div key={group.stageGroup} className={s.stageGroup}>
+            {/*<h3 className={s.stageGroupHeader}>{group.label}</h3>*/}
+            {group.teams.map((team) => (
+              <TeamProfileCard key={team.uid} team={team} onClick={handleTeamClick} />
+            ))}
+          </div>
         ))}
 
         {filteredAndSortedTeams.length === 0 && totalTeamsCount > 0 && (
@@ -254,6 +370,9 @@ export const TeamsList: React.FC = () => {
         team={selectedTeam}
         scrollPosition={scrollPositionRef.current}
       />
+
+      {/* Filters Drawer */}
+      <FiltersDrawer isOpen={isFiltersDrawerOpen} onClose={() => setIsFiltersDrawerOpen(false)} />
     </div>
   );
 };

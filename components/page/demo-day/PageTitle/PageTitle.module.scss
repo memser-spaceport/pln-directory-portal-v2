@@ -36,6 +36,10 @@
     font-size: 42px;
     line-height: 120%;
     letter-spacing: -0.32px;
+
+    @include media.mobile-only {
+      font-size: 24;
+    }
   }
 }
 

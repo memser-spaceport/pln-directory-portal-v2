@@ -134,6 +134,13 @@
   }
 }
 
+.filtersWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .headerRight {
   display: flex;
   align-items: center;

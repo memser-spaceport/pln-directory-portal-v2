@@ -46,17 +46,17 @@ type SortOption = {
 };
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: 'default', label: 'Default' },
-  { value: 'name-asc', label: 'Name A-Z' },
-  { value: 'name-desc', label: 'Name Z-A' },
+  // { value: 'default', label: 'Default' },
+  // { value: 'name-asc', label: 'Name A-Z' },
+  // { value: 'name-desc', label: 'Name Z-A' },
   { value: 'stage-asc', label: 'Company Stage A-Z' },
   { value: 'stage-desc', label: 'Company Stage Z-A' },
-  { value: 'recent', label: 'Most Recent' },
+  // { value: 'recent', label: 'Most Recent' },
 ];
 
 export const TeamsList: React.FC = () => {
   const { data: teams, isLoading, error } = useGetTeamsList();
-  const [sortBy, setSortBy] = useState<string>('default');
+  const [sortBy, setSortBy] = useState<string>('stage-asc');
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const scrollPositionRef = useRef<number>(0);
@@ -206,31 +206,34 @@ export const TeamsList: React.FC = () => {
           </span>
         </div>
 
-        <div className={s.headerRight}>
-          <Menu.Root modal={false}>
-            <Menu.Trigger className={s.sortButton}>
-              <SortIcon />
-              <span className={s.sortLabel}>Sort by: {selectedSortOption?.label}</span>
-              <ChevronDownIcon />
-            </Menu.Trigger>
-            <Menu.Portal>
-              <Menu.Positioner className={s.menuPositioner} align="end" sideOffset={8}>
-                <Menu.Popup className={s.menuPopup}>
-                  {SORT_OPTIONS.map((option) => (
-                    <Menu.Item
-                      key={option.value}
-                      className={clsx(s.menuItem, {
-                        [s.active]: sortBy === option.value,
-                      })}
-                      onClick={() => handleSortChange(option.value)}
-                    >
-                      {option.label}
-                    </Menu.Item>
-                  ))}
-                </Menu.Popup>
-              </Menu.Positioner>
-            </Menu.Portal>
-          </Menu.Root>
+        <div className={s.filtersWrapper}>
+          <div>left</div>
+          <div className={s.headerRight}>
+            <Menu.Root modal={false}>
+              <Menu.Trigger className={s.sortButton}>
+                <SortIcon />
+                <span className={s.sortLabel}>Sort by: {selectedSortOption?.label}</span>
+                <ChevronDownIcon />
+              </Menu.Trigger>
+              <Menu.Portal>
+                <Menu.Positioner className={s.menuPositioner} align="end" sideOffset={8}>
+                  <Menu.Popup className={s.menuPopup}>
+                    {SORT_OPTIONS.map((option) => (
+                      <Menu.Item
+                        key={option.value}
+                        className={clsx(s.menuItem, {
+                          [s.active]: sortBy === option.value,
+                        })}
+                        onClick={() => handleSortChange(option.value)}
+                      >
+                        {option.label}
+                      </Menu.Item>
+                    ))}
+                  </Menu.Popup>
+                </Menu.Positioner>
+              </Menu.Portal>
+            </Menu.Root>
+          </div>
         </div>
       </div>
 
@@ -240,8 +243,8 @@ export const TeamsList: React.FC = () => {
             <InfoIcon />
           </div>
           <p className={s.alertText}>
-            The default sort is randomized to give every team equal visibility. Your view is unique — no two users see
-            the same list.
+            The list is split into stages. Within each stage, the sort order is randomized to give every team equal
+            visibility. Your order is unique — no two users see the same list.
           </p>
         </div>
       </div>

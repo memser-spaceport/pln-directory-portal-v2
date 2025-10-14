@@ -113,6 +113,7 @@
   font-weight: 600;
   line-height: 34px; /* 141.667% */
   letter-spacing: -0.4px;
+  white-space: nowrap;
 
   @include media.mobile-only {
     font-size: 20px;
@@ -139,6 +140,38 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+}
+
+.filterButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  line-height: 20px;
+  color: #475569;
+
+  &:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+  }
+
+  &:focus {
+    outline: 2px solid #156ff7;
+    outline-offset: 2px;
+    border-color: #156ff7;
+  }
+
+  @include media.tablet-landscape {
+    visibility: hidden;
+  }
 }
 
 .headerRight {

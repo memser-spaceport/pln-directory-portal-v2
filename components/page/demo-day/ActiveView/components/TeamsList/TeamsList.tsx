@@ -9,6 +9,7 @@ import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { TeamProfileCard } from './components/TeamProfileCard';
 import { TeamDetailsDrawer } from './components/TeamDetailsDrawer';
+import { FiltersDrawer } from './components/FiltersDrawer';
 import s from './TeamsList.module.scss';
 
 const ChevronDownIcon = () => (
@@ -40,6 +41,18 @@ const SortIcon = () => (
   </svg>
 );
 
+const FilterIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M2 4H14M4 8H12M6 12H10"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 type SortOption = {
   value: string;
   label: string;
@@ -59,6 +72,7 @@ export const TeamsList: React.FC = () => {
   const [sortBy, setSortBy] = useState<string>('stage-asc');
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isFiltersDrawerOpen, setIsFiltersDrawerOpen] = useState(false);
   const scrollPositionRef = useRef<number>(0);
   const { params } = useFilterStore();
 
@@ -207,7 +221,10 @@ export const TeamsList: React.FC = () => {
         </div>
 
         <div className={s.filtersWrapper}>
-          <div>left</div>
+          <button className={s.filterButton} onClick={() => setIsFiltersDrawerOpen(true)}>
+            <FilterIcon />
+            <span>Filters</span>
+          </button>
           <div className={s.headerRight}>
             <Menu.Root modal={false}>
               <Menu.Trigger className={s.sortButton}>
@@ -275,6 +292,9 @@ export const TeamsList: React.FC = () => {
         team={selectedTeam}
         scrollPosition={scrollPositionRef.current}
       />
+
+      {/* Filters Drawer */}
+      <FiltersDrawer isOpen={isFiltersDrawerOpen} onClose={() => setIsFiltersDrawerOpen(false)} />
     </div>
   );
 };

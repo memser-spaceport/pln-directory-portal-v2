@@ -62,7 +62,7 @@
 }
 
 .memberName {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 24px;
   font-style: normal;
   font-weight: 600;
@@ -78,7 +78,9 @@
 
 .memberDescription {
   color: var(--Neutral-Slate-600, #475569);
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
@@ -173,6 +175,10 @@
   gap: 12px;
   align-items: center;
   flex-shrink: 0;
+
+  &:hover .founderName {
+    color: #1b4dff;
+  }
 }
 
 .founderAvatar {

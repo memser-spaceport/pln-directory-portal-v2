@@ -8,7 +8,6 @@ import s from './TeamProfileCard.module.scss';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
-import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
@@ -28,8 +27,6 @@ interface TeamProfileCardProps {
 }
 
 export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick, isAdmin = false }) => {
-  const isPrepDemoDay = useIsPrepDemoDay();
-
   // Analytics hooks
   const {
     onActiveViewTeamCardClicked,

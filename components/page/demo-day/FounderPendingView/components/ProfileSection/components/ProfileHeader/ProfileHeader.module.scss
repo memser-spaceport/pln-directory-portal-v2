@@ -6,7 +6,7 @@
   align-items: flex-start;
 
   @include media.mobile-only {
-    gap: 16px;
+    gap: 12px;
   }
 }
 
@@ -20,8 +20,8 @@
   overflow: hidden;
 
   @include media.mobile-only {
-    width: 64px;
-    height: 64px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
   }
 }
@@ -70,7 +70,7 @@
   letter-spacing: -0.4px;
 
   @include media.mobile-only {
-    font-size: 20px;
+    font-size: 18px;
     line-height: 28px;
     letter-spacing: -0.3px;
   }
@@ -85,7 +85,7 @@
   line-height: 20px; /* 142.857% */
 
   @include media.mobile-only {
-    font-size: 14px;
+    font-size: 12px;
     line-height: 20px;
   }
 }
@@ -117,6 +117,11 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+
+  @include media.mobile-only {
+    font-size: 12px;
+    line-height: 16px;
+  }
 }
 
 .tagDivider {
@@ -142,6 +147,11 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+
+  @include media.mobile-only {
+    font-size: 12px;
+    line-height: 16px;
+  }
 }
 
 // Founders Info Section

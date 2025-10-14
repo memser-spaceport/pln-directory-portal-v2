@@ -21,10 +21,10 @@ function DemoDayPrepPage() {
 
   useEffect(() => {
     // Redirect non-admins to regular demo day page
-    if (!hasAccess) {
+    if (!hasAccess && data) {
       redirect('/demoday');
     }
-  }, [hasAccess]);
+  }, [hasAccess, data]);
 
   // Don't render anything for non-admins while redirecting
   if (!hasAccess) {

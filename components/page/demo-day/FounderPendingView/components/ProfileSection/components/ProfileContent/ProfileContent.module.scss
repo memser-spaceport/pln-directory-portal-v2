@@ -56,11 +56,11 @@
   color: #6b7280;
   flex-grow: 1;
   width: 100%;
-  min-height: 206px;
+  height: 204px;
 
   border-radius: 4px;
-  border: 1px solid var(--border-brand-xsubtle, #e8edff);
-  background: var(--background-neutral-soft-surface, #f9fafb);
+  border: 1px solid var(--border-brand-xsubtle, #E8EDFF);
+  background: var(--background-neutral-soft-surface, #F9FAFB);
 }
 
 .placeholderText {
@@ -336,6 +336,7 @@
   max-height: 100%;
   object-fit: contain;
   border-radius: 8px;
+
 }
 
 .pdfModal {

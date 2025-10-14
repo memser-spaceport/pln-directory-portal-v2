@@ -165,31 +165,32 @@ const getPageData = async (searchParams: any) => {
 
     // Determine event type and fetch event guest data
     const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';
-    const currentEvents =
-      eventType === 'upcoming'
-        ? eventDetails?.upcomingEvents
-        : eventType === 'past'
-          ? eventDetails?.pastEvents
-          : eventDetails?.events;
-    const currentEventNames = currentEvents?.map((item: any) => item.name); // Get current event names
-
-    // Set default event if location has only past events
+    
     if (!eventType) {
       if (eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0) {
-        searchParams.event = pastEvents[0]?.slugURL;
         searchParams.type = 'past';
+      } else if (eventDetails?.upcomingEvents?.length > 0 && eventDetails?.pastEvents?.length === 0) {
+        searchParams.type = 'upcoming';
+      } else if (eventDetails?.upcomingEvents?.length > 0 && eventDetails?.pastEvents?.length > 0) {
+        searchParams.type = 'upcoming';
       }
-    } else {
-      if (eventType === 'past' && !searchParams?.event) {
-        searchParams.event = pastEvents[0]?.slugURL;
-      }
+    } else if (eventType === 'past' && !searchParams?.event) {
+      searchParams.event = pastEvents[0]?.slugURL;
     }
+
+    const currentEvents =
+    searchParams.type === 'upcoming'
+      ? eventDetails?.upcomingEvents
+      : searchParams.type === 'past'
+        ? eventDetails?.pastEvents
+        : eventDetails?.events;
+    const currentEventNames = currentEvents?.map((item: any) => item.name); 
 
     // Proceed with API calls only after currentEventNames is set
     const [events, currentGuestResponse, topics, loggedInUserEvents, followersResponse] = await Promise.all([
       getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), authToken, currentEventNames),
       getGuestsByLocation(uid, { type: eventType }, authToken, currentEventNames, 1, 1),
-      getTopicsByLocation(uid, eventType),
+      getTopicsByLocation(uid, searchParams.type),
       getGuestEvents(uid, authToken),
       getFollowersByLocation(uid, authToken),
     ]);

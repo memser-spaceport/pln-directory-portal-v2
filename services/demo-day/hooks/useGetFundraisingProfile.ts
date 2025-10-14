@@ -22,6 +22,7 @@ export type UploadInfo = {
   uploaderUid: string | null;
   url: string;
   freshUrl: string;
+  previewImageUrl: string;
 };
 
 export type FundraisingProfile = {

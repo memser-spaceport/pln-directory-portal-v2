@@ -25,6 +25,7 @@ interface MediaPreviewProps {
   onView?: () => void;
   showDeleteButton?: boolean;
   teamUid?: string;
+  previewImageUrl?: string;
 }
 
 const ExpandIcon = () => (
@@ -64,6 +65,7 @@ export const MediaPreview = ({
   onView,
   showDeleteButton = true,
   teamUid,
+  previewImageUrl,
 }: MediaPreviewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -178,6 +180,14 @@ export const MediaPreview = ({
         </div>
       );
     } else if (isPDF(url)) {
+      // Use previewImageUrl if available, otherwise fall back to PDF viewer
+      if (previewImageUrl) {
+        return (
+          <div className={s.imagePreviewContainer}>
+            <img src={previewImageUrl} alt="PDF Preview" className={s.previewMedia} />
+          </div>
+        );
+      }
       return (
         <div className={s.pdfPreviewContainer}>
           <PdfViewer fileUrl={url} isPreview={true} />

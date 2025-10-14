@@ -590,7 +590,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
           >
             {data?.liked ? (
               <>
-                Liked Company
+                <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Liked Company
                 <CheckIcon />
               </>
             ) : (
@@ -612,7 +612,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
           >
             {data?.connected ? (
               <>
-                Connected with Company
+                🤝 Connected with Company
                 <CheckIcon />
               </>
             ) : (
@@ -632,7 +632,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
           >
             {data?.invested ? (
               <>
-                Invested in Company
+                💰 Invested in Company
                 <CheckIcon />
               </>
             ) : (

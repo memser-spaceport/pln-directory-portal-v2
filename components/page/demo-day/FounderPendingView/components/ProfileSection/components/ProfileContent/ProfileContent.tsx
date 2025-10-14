@@ -8,6 +8,7 @@ interface ProfileContentProps {
   videoUrl?: string | null;
   onPitchDeckView?: () => void;
   onPitchVideoView?: () => void;
+  pitchDeckPreviewUrl?: string | null;
 }
 
 const ExpandIcon = () => (
@@ -40,7 +41,13 @@ const ChevronRightIcon = () => (
   </svg>
 );
 
-export const ProfileContent = ({ pitchDeckUrl, videoUrl, onPitchDeckView, onPitchVideoView }: ProfileContentProps) => {
+export const ProfileContent = ({
+  pitchDeckUrl,
+  videoUrl,
+  onPitchDeckView,
+  onPitchVideoView,
+  pitchDeckPreviewUrl,
+}: ProfileContentProps) => {
   return (
     <div className={s.profileContent}>
       {/* Pitch Deck Card */}
@@ -51,6 +58,7 @@ export const ProfileContent = ({ pitchDeckUrl, videoUrl, onPitchDeckView, onPitc
           title="Pitch Slide"
           showMetadata={false}
           onView={onPitchDeckView}
+          previewImageUrl={pitchDeckPreviewUrl || undefined}
         />
       ) : (
         <div className={s.placeholder}>

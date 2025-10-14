@@ -128,6 +128,7 @@
   font-size: 16px;
   line-height: 24px;
   color: #64748b;
+  white-space: nowrap;
 
   @include media.mobile-only {
     font-size: 14px;
@@ -279,6 +280,35 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.stageGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stageGroupHeader {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 26px;
+  letter-spacing: -0.3px;
+  color: #0f172a;
+  margin: 24px 0 0 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+
+  &:first-child {
+    margin-top: 0;
+  }
+
+  @include media.mobile-only {
+    font-size: 16px;
+    line-height: 24px;
+    margin: 20px 0 0 0;
+    padding-bottom: 10px;
+  }
 }
 
 .teamCard {

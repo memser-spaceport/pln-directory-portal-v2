@@ -105,6 +105,11 @@ export const PROFILE_MENU_OPTIONS = [
   },
 ];
 
+export const ATTENDEE_TYPE_DATA = [
+  { label: 'Current Attendees', from: 'upcoming' },
+  { label: 'Past Attendees', from: 'past' },
+]
+
 export const HELPER_MENU_OPTIONS = [
   // {
   //   icon: '/icons/submitteam.svg',

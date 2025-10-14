@@ -2,7 +2,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE, URL_QUERY_VALUE_SEPARATOR } from './constants';
 import { format, toZonedTime } from 'date-fns-tz';
 import { isSameDay } from 'date-fns';
-import { CalendarDate, EventDuration } from '@/types/irl.types';
+import { CalendarDate, EventDuration, IIrlEvent } from '@/types/irl.types';
 
 export const isPastDate = (date: any) => {
   const currentDate = new Date();
@@ -636,12 +636,22 @@ export function compareEventDates(eventA: any, eventB: any, type: 'upcoming' | '
 }
 
 
-export const filterUpcomingGatherings = (gatherings: any) => {
+export const filterUpcomingGatherings = (gathering: any) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  return gatherings.filter((gathering: any) => {
-    const eventEndDate = new Date(gathering.endDate);
+    const eventEndDate = new Date(gathering?.endDate);
     eventEndDate.setHours(0, 0, 0, 0);
     return eventEndDate >= today;
-  });
+}
+
+export function getGatherings(type: string, events: any, from: string): IIrlEvent[] {
+  if (!events) return [];
+  
+  // Determine event type with from parameter taking priority
+  const shouldReturnPastEvents = from === 'past' || 
+    (from !== 'upcoming' && type === 'past');
+  
+  return shouldReturnPastEvents 
+    ? (events.pastEvents ?? [])
+    : (events.upcomingEvents ?? []);
 }

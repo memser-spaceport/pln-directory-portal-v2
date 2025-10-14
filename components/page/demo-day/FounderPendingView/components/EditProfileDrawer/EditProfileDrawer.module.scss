@@ -30,22 +30,24 @@
       position: relative;
       inset: unset;
       z-index: unset;
-      border: 1px solid var(--border-brand-subtle, #AEBFFF);
-      background: var(--background-brand-soft-surface, #F2F5FF);
+      border: 1px solid var(--border-brand-subtle, #aebfff);
+      background: var(--background-brand-soft-surface, #f2f5ff);
 
       /* Card Shadow */
-      box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+      box-shadow:
+        0 0 1px 0 rgba(15, 23, 42, 0.12),
+        0 4px 4px 0 rgba(15, 23, 42, 0.04);
     }
   }
 
   &.missingData {
     border-radius: 8px;
-    border: 1px solid #FDE68A;
+    border: 1px solid #fde68a;
   }
 
   .missingDataHeader {
     border-radius: 0;
-    background: #EEBD6C;
+    background: #eebd6c;
     display: flex;
     padding: 8px 16px;
     justify-content: center;
@@ -53,7 +55,7 @@
     align-self: stretch;
     gap: 8px;
 
-    color: #0F172A;
+    color: #0f172a;
     font-size: 12px;
     font-style: normal;
     font-weight: 400;
@@ -68,7 +70,6 @@
     }
   }
 }
-
 
 // Drawer Styles
 .drawerHeader {
@@ -186,7 +187,7 @@
 }
 
 .drawerMemberName {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 24px;
   font-style: normal;
   font-weight: 600;
@@ -202,7 +203,7 @@
 .externalLinkIcon {
   width: 18px;
   height: 18px;
-  color: #1B4DFF;
+  color: #1b4dff;
   flex-shrink: 0;
   display: inline-flex;
 }
@@ -329,6 +330,8 @@
   background-image: url('/images/demo-day/profile-placeholder.svg');
   background-size: cover;
   background-position: center;
+  border-radius: 50%;
+  overflow: hidden;
 
   img {
     width: 100%;
@@ -619,7 +622,7 @@
 
   box-shadow: 0 -1px 4px 0 var(--transparent-brand-8, rgba(27, 77, 255, 0.08)) inset;
 
-  color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -636,16 +639,18 @@
 
   border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  background: var(--action-background-brand-normal, #1B4DFF);
+  background: var(--action-background-brand-normal, #1b4dff);
 
   /* Button/primay/fill */
-  box-shadow: 0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  box-shadow:
+    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
 
-  color: var(--action-foreground-base-inverted_white, #FFF);
+  color: var(--action-foreground-base-inverted_white, #fff);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
 }
-

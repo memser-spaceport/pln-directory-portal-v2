@@ -3,12 +3,17 @@ import TextField from '@/components/form/text-field';
 import TextFieldWithCopyIcon from '@/components/form/text-field-with-copy-icon';
 import { IIrlAttendeeFormErrors, IIrlGathering, IIrlParticipationEvent } from '@/types/irl.types';
 import { SetStateAction, useEffect, useState } from 'react';
+import { filterUpcomingGatherings } from '@/utils/irl.utils';
 
 interface IParticipationDetails {
   selectedGatherings: IIrlGathering[];
   setSelectedGatherings: SetStateAction<any>;
   errors: IIrlAttendeeFormErrors;
   isVerifiedMember: boolean;
+  shouldShowAllGatherings?: boolean;
+  eventType?: string;
+  from?: string;
+  mode?: string;
 }
 
 const ParticipationDetails = (props: IParticipationDetails) => {
@@ -16,6 +21,10 @@ const ParticipationDetails = (props: IParticipationDetails) => {
   const setSelectedGatherings = props?.setSelectedGatherings;
   const isVerifiedMember = props?.isVerifiedMember;
   const errors = props?.errors;
+  const shouldShowAllGatherings = props?.shouldShowAllGatherings ?? false;
+  const eventType = props?.eventType ?? '';
+  const from = props?.from ?? '';
+  const mode = props?.mode ?? '';
   const [participationErrors, setParticipationErrors] = useState<string[]>([]);
 
   useEffect(() => {
@@ -340,8 +349,16 @@ const ParticipationDetails = (props: IParticipationDetails) => {
               const isHostSubEvents = selectedGathering?.hostSubEvents?.length > 0;
               const isSpeakerSubEvents = selectedGathering?.speakerSubEvents?.length > 0;
               const isSponsorSubEvents = selectedGathering?.sponsorSubEvents?.length > 0;
+              
+              // Determine if this gathering should be visible based on filtering logic
+              const shouldShowGathering = shouldShowAllGatherings || filterUpcomingGatherings(selectedGathering);
+              
               return (
-                <div className="ptndtls__cnt__pptdtls__pptdtlcnt" key={`${selectedGathering.uid} + ${index}`}>
+                <div 
+                  className="ptndtls__cnt__pptdtls__pptdtlcnt" 
+                  key={`${selectedGathering.uid} + ${index}`}
+                  style={{ display: shouldShowGathering ? 'block' : 'none' }}
+                >
                   <div
                     className={`ptndtls__cnt__pptdtls__pptdtl ${index > 0 ? 'bordert' : ''} ${
                       selectedGathering?.hostSubEvents?.length > 0 ||

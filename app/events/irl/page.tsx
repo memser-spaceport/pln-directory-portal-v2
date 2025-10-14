@@ -5,7 +5,6 @@ import IrlHeader from '@/components/page/irl/irl-header';
 import IrlLocation from '@/components/page/irl/locations/irl-location';
 import {
   getAllLocations,
-  getCurrentGuestsByLocation,
   getFollowersByLocation,
   getGuestEvents,
   getGuestsByLocation,
@@ -166,31 +165,32 @@ const getPageData = async (searchParams: any) => {
 
     // Determine event type and fetch event guest data
     const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';
-    const currentEvents =
-      eventType === 'upcoming'
-        ? eventDetails?.upcomingEvents
-        : eventType === 'past'
-          ? eventDetails?.pastEvents
-          : eventDetails?.events;
-    const currentEventNames = currentEvents?.map((item: any) => item.name); // Get current event names
-
-    // Set default event if location has only past events
+    
     if (!eventType) {
       if (eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0) {
-        searchParams.event = pastEvents[0]?.slugURL;
         searchParams.type = 'past';
+      } else if (eventDetails?.upcomingEvents?.length > 0 && eventDetails?.pastEvents?.length === 0) {
+        searchParams.type = 'upcoming';
+      } else if (eventDetails?.upcomingEvents?.length > 0 && eventDetails?.pastEvents?.length > 0) {
+        searchParams.type = 'upcoming';
       }
-    } else {
-      if (eventType === 'past' && !searchParams?.event) {
-        searchParams.event = pastEvents[0]?.slugURL;
-      }
+    } else if (eventType === 'past' && !searchParams?.event) {
+      searchParams.event = pastEvents[0]?.slugURL;
     }
+
+    const currentEvents =
+    searchParams.type === 'upcoming'
+      ? eventDetails?.upcomingEvents
+      : searchParams.type === 'past'
+        ? eventDetails?.pastEvents
+        : eventDetails?.events;
+    const currentEventNames = currentEvents?.map((item: any) => item.name); 
 
     // Proceed with API calls only after currentEventNames is set
     const [events, currentGuestResponse, topics, loggedInUserEvents, followersResponse] = await Promise.all([
       getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), authToken, currentEventNames),
-      getCurrentGuestsByLocation(uid, { type: eventType }, authToken, currentEventNames, 1, 1),
-      getTopicsByLocation(uid, eventType),
+      getGuestsByLocation(uid, { type: eventType }, authToken, currentEventNames, 1, 1),
+      getTopicsByLocation(uid, searchParams.type),
       getGuestEvents(uid, authToken),
       getFollowersByLocation(uid, authToken),
     ]);
@@ -216,21 +216,16 @@ const getPageData = async (searchParams: any) => {
     if ((events as any)?.selectedType) {
       finalEventType = (events as any).selectedType;
     }
-    
+
     // Determine which events to show based on counts and selectedType
-    let selectedTypeEvents;
-    
-    if (guestDetails.selectedType === 'past') {
-      selectedTypeEvents = eventDetails.pastEvents;
-      searchParams.type = 'past';
-    } else if (guestDetails.selectedType === 'upcoming') {
-      selectedTypeEvents = eventDetails.upcomingEvents;
-      searchParams.type = 'upcoming';
-    }
-    guestDetails.events = selectedTypeEvents;
+    const selectedTypeEvents =
+      finalEventType === 'past' || (eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0)
+        ? eventDetails.pastEvents
+        : eventDetails.upcomingEvents;
+    guestDetails.events = {upcomingEvents: eventDetails.upcomingEvents, pastEvents: eventDetails.pastEvents};
 
     guestDetails.currentGuest =
-      currentGuestResponse?.guests?.[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests?.[0] : null;
+      !currentGuestResponse?.isError && (currentGuestResponse as any)?.guests?.[0]?.memberUid === userInfo?.uid ? (currentGuestResponse as any).guests[0] : null;
     guestDetails.isUserGoing = selectedTypeEvents?.some((event: any) =>
       loggedInUserEvents?.some((userEvent: any) => userEvent?.uid === event?.uid),
     );

@@ -22,7 +22,6 @@ function DemoDayPrepPage() {
   useEffect(() => {
     // Redirect non-admins to regular demo day page
     if (!hasAccess) {
-      console.log('router.replace');
       redirect('/demoday');
     }
   }, [hasAccess]);

@@ -2,13 +2,21 @@
 
 .profileContent {
   display: flex;
+  flex-direction: column;
   gap: 16px;
-  align-items: center;
   width: 100%;
 
-  @include media.mobile-only {
-    gap: 12px;
-    flex-direction: column;
+  @include media.tablet-landscape {
+    flex-direction: row;
+    align-items: stretch; // Ensure both components have equal height
+  }
+
+  // Ensure both upload components have equal width and height
+  > * {
+    flex: 1;
+    min-width: 0; // Allow flex items to shrink below their content size
+    display: flex; // Make children flex containers
+    flex-direction: column; // Stack content vertically
   }
 }
 

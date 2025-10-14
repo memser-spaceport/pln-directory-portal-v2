@@ -14,6 +14,20 @@ export const Content = () => {
       <div className={s.eventHeader}>
         <div className={s.content}>
           <div className={s.headline}>
+            {data?.isEarlyAccess && (
+              <div
+                style={{
+                  margin: 'auto',
+                  marginBottom: '12px',
+                  fontSize: '24px',
+                  color: '#798391',
+                  fontWeight: 600,
+                  textAlign: 'center',
+                }}
+              >
+                [Early Access]
+              </div>
+            )}
             <PageTitle size="small" />
           </div>
 

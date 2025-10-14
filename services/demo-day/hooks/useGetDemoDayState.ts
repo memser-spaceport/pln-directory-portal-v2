@@ -13,6 +13,7 @@ type DemoDayState = {
   description: string;
   status: 'NONE' | 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
   isDemoDayAdmin: boolean;
+  isEarlyAccess?: boolean;
 
   investorsCount: 1;
   teamsCount: 1;

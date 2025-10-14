@@ -165,7 +165,7 @@ const GuestList = (props: IGuestList) => {
         <div className="guestList__empty__current">
           <img width={182} height={118} src="/images/irl/attendees.svg" alt="attendees empty" />
           <p className="guestList__empty__current__text">Registration is opening up! Be among the first to sign up{' '}</p>
-          <p className="guestList__empty__current__text__secondary">Check out who has attended in past years</p>
+          <p className="guestList__empty__current__text__secondary">Check out who has attended in the past</p>
           <button onClick={onViewPastAttendees} className="guestList__empty__current__button">View Past Attendees
             <img src="/images/irl/attendees-avatar-group.svg" alt="avatar group" />
           </button>

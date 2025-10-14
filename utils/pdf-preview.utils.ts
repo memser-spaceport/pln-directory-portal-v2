@@ -1,4 +1,7 @@
 import { getDocument } from 'pdfjs-dist';
+import { pdfjs } from 'react-pdf';
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 /**
  * Generate a preview image from a PDF file

@@ -41,6 +41,7 @@ async function uploadOnePager(params: UploadOnePagerParams): Promise<UploadOnePa
     // Step 4: Generate and upload preview image for PDFs
     try {
       if (file.type === 'application/pdf') {
+        console.log('generatePdfPreview');
         const previewImage = await generatePdfPreview(file, 1.0, 0.8);
 
         await uploadOnePagerPreview({

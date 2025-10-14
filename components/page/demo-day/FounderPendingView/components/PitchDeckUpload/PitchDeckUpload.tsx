@@ -412,3 +412,5 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
 
   return <div className={s.materialUpload}>{renderUploadArea()}</div>;
 };
+
+export default PitchDeckUpload;

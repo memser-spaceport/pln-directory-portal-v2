@@ -46,75 +46,32 @@ export const AdminFilters = () => {
       .sort((a, b) => b.count - a.count); // Sort by count descending
   }, [teams]);
 
-  // Build stage options dynamically from teams data with grouping
+  // Build stage options dynamically from teams data
   const stageOptions = useMemo((): FilterOption[] => {
     if (!teams) return [];
 
-    const stageMap = new Map<string, { name: string; count: number; uids: string[] }>();
+    const stageMap = new Map<string, { name: string; count: number }>();
 
     teams.forEach((team) => {
-      if (!team.team) return;
+      const stage = team.team?.fundingStage;
 
-      const stage = team.team.fundingStage;
-      const stageName = stage.title.toLowerCase();
+      if (!stage) return;
 
-      // Determine the group for this stage
-      let groupKey: string;
-      let groupName: string;
-
-      if (stageName.includes('pre-seed') || stageName.includes('preseed')) {
-        groupKey = 'pre-seed';
-        groupName = 'Pre-seed';
-      } else if (stageName.includes('seed') && !stageName.includes('pre')) {
-        groupKey = 'seed';
-        groupName = 'Seed';
-      } else if (
-        stageName.includes('series a') ||
-        stageName.includes('series b') ||
-        stageName.includes('series c') ||
-        stageName.includes('series d') ||
-        stageName.includes('series')
-      ) {
-        groupKey = 'series';
-        groupName = 'Series A/B';
-      } else {
-        // For any other stages, keep them as individual options
-        groupKey = stage.uid;
-        groupName = stage.title;
-      }
-
-      const existing = stageMap.get(groupKey);
+      const existing = stageMap.get(stage.uid);
       if (existing) {
         existing.count += 1;
-        if (!existing.uids.includes(stage.uid)) {
-          existing.uids.push(stage.uid);
-        }
       } else {
-        stageMap.set(groupKey, { name: groupName, count: 1, uids: [stage.uid] });
+        stageMap.set(stage.uid, { name: stage.title, count: 1 });
       }
     });
 
-    // Convert to FilterOption format with grouped UIDs
     return Array.from(stageMap.entries())
-      .map(([key, { name, count, uids }]) => ({
-        id: uids.join(','), // Join multiple UIDs with comma for grouped options
+      .map(([uid, { name, count }]) => ({
+        id: uid,
         name,
         count,
       }))
-      .sort((a, b) => {
-        // Custom sort order: Pre-seed, Seed, Series A/B, then others
-        const order = ['Pre-seed', 'Seed', 'Series A/B'];
-        const aIndex = order.indexOf(a.name);
-        const bIndex = order.indexOf(b.name);
-
-        if (aIndex !== -1 && bIndex !== -1) {
-          return aIndex - bIndex;
-        }
-        if (aIndex !== -1) return -1;
-        if (bIndex !== -1) return 1;
-
-        return b.count - a.count; // For others, sort by count
-      });
+      .sort((a, b) => b.count - a.count); // Sort by count descending
   }, [teams]);
 
   return (

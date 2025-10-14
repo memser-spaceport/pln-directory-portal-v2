@@ -776,15 +776,6 @@ const FollowSection = (props: IFollowSectionProps) => {
               width: fit-content;
             }
 
-            .toolbar__actionCn__add {
-              width: 104px;
-            }
-
-            .toolbar__actionCn__buttons {
-               justify-content: flex-end;
-               width: fit-content;
-            }
-
           }
         `}
       </style>
@@ -825,16 +816,11 @@ const FollowSection = (props: IFollowSectionProps) => {
           color: #475569;
           margin-left: 5px;
           white-space: nowrap;
-          display: flex;
-          align-items: center;
-          margin-top: 2px;
         }
 
         @media (min-width: 1024px) {
           .toolbar__actionCn__scheduleBtn {
             display: flex;
-            max-width: 210px;
-            align-items: center;
           }
         }
       `}</style>

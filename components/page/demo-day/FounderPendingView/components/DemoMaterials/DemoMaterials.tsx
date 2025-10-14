@@ -1,12 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
+import { PitchDeckUpload } from '../PitchDeckUpload';
 import { PitchVideoUpload } from '../PitchVideoUpload';
 import s from './DemoMaterials.module.scss';
 import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { DemoMaterialAnalyticsHandlers } from '../EditProfileDrawer/EditProfileDrawer';
-import dynamic from 'next/dynamic';
-
-const PitchDeckUpload = dynamic(() => import('../PitchDeckUpload'), { ssr: false });
 
 const ExternalLinkIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">

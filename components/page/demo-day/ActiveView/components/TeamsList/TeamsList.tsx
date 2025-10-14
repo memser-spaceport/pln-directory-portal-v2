@@ -85,7 +85,6 @@ const getStageGroup = (fundingStage: string): string => {
     return 'series';
   }
 
-  // All other stages go to "Other" group
   return 'other';
 };
 

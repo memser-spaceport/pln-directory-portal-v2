@@ -52,6 +52,17 @@ export interface ConfirmOnePagerUploadResponse {
   data: any; // FundraisingProfile
 }
 
+// Types for one-pager preview upload request
+export interface UploadOnePagerPreviewParams {
+  previewImage: File;
+  teamUid?: string; // Optional team UID for admin uploads
+}
+
+export interface UploadOnePagerPreviewResponse {
+  success: boolean;
+  data: any; // Updated FundraisingProfile with preview image URL
+}
+
 /**
  * Get presigned upload URL for video upload
  */
@@ -187,5 +198,38 @@ export async function confirmOnePagerUpload(
   }
 
   const data: ConfirmOnePagerUploadResponse = await response.json();
+  return data;
+}
+
+/**
+ * Upload preview image for one-pager
+ */
+export async function uploadOnePagerPreview(
+  params: UploadOnePagerPreviewParams,
+): Promise<UploadOnePagerPreviewResponse> {
+  const { previewImage, teamUid } = params;
+
+  // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
+  const url = teamUid
+    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/current/teams/${teamUid}/fundraising-profile/one-pager/preview`
+    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/one-pager/preview`;
+
+  const formData = new FormData();
+  formData.append('previewImage', previewImage);
+
+  const response = await customFetch(
+    url,
+    {
+      method: 'POST',
+      body: formData,
+    },
+    true, // withAuth
+  );
+
+  if (!response?.ok) {
+    throw new Error('Failed to upload one-pager preview image');
+  }
+
+  const data: UploadOnePagerPreviewResponse = await response.json();
   return data;
 }

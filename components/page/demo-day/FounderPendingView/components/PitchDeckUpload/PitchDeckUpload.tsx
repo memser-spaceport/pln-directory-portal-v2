@@ -404,7 +404,6 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
           onView={handleView}
           showDeleteButton={true}
           teamUid={teamUid}
-          previewImageUrl={existingFile?.previewImageUrl}
         />
       </div>
     );
@@ -412,5 +411,3 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
 
   return <div className={s.materialUpload}>{renderUploadArea()}</div>;
 };
-
-export default PitchDeckUpload;

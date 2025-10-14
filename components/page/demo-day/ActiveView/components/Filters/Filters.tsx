@@ -50,7 +50,7 @@ export const Filters = () => {
     const stageMap = new Map<string, { name: string; count: number; uids: string[] }>();
 
     teams.forEach((team) => {
-      if (!team.team) return;
+      if (!team.team || !team.team.fundingStage) return;
 
       const stage = team.team.fundingStage;
       const stageName = stage.title.toLowerCase();

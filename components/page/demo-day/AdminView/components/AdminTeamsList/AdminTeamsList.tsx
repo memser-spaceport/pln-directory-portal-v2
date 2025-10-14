@@ -46,12 +46,12 @@ type SortOption = {
 };
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: 'default', label: 'Default' },
-  { value: 'name-asc', label: 'Name A-Z' },
-  { value: 'name-desc', label: 'Name Z-A' },
+  // { value: 'default', label: 'Default' },
+  // { value: 'name-asc', label: 'Name A-Z' },
+  // { value: 'name-desc', label: 'Name Z-A' },
   { value: 'stage-asc', label: 'Company Stage A-Z' },
   { value: 'stage-desc', label: 'Company Stage Z-A' },
-  { value: 'recent', label: 'Most Recent' },
+  // { value: 'recent', label: 'Most Recent' },
 ];
 
 interface AdminTeamsListProps {
@@ -61,7 +61,7 @@ interface AdminTeamsListProps {
 }
 
 export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoading, isDirectoryAdmin = false }) => {
-  const [sortBy, setSortBy] = useState<string>('default');
+  const [sortBy, setSortBy] = useState<string>('stage-asc');
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const scrollPositionRef = useRef<number>(0);
@@ -233,8 +233,8 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
             <InfoIcon />
           </div>
           <p className={s.alertText}>
-            Your fund raising profile is private until Demo Day launch. Visibility is restricted to you, admins and
-            other participating founders.
+            The list is split into stages. Within each stage, the sort order is randomized to give every team equal
+            visibility. Your order is unique — no two users see the same list.
           </p>
         </div>
       </div>

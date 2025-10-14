@@ -54,6 +54,32 @@ const SORT_OPTIONS: SortOption[] = [
   // { value: 'recent', label: 'Most Recent' },
 ];
 
+// Helper function to determine stage group
+const getStageGroup = (fundingStage: string): string => {
+  const stageLower = fundingStage.toLowerCase();
+
+  if (stageLower.includes('pre-seed') || stageLower.includes('preseed')) {
+    return 'pre-seed';
+  } else if (stageLower.includes('seed') && !stageLower.includes('pre')) {
+    return 'seed';
+  } else if (
+    stageLower.includes('series a') ||
+    stageLower.includes('series b') ||
+    stageLower.includes('series c') ||
+    stageLower.includes('series d') ||
+    stageLower.includes('series')
+  ) {
+    return 'series';
+  }
+
+  // All other stages go to "Other" group
+  return 'other';
+};
+
+// Stage group order for sorting
+const STAGE_GROUP_ORDER_ASC = ['pre-seed', 'seed', 'series', 'other'];
+const STAGE_GROUP_ORDER_DESC = ['series', 'seed', 'pre-seed', 'other'];
+
 interface AdminTeamsListProps {
   profiles?: TeamProfile[];
   isLoading: boolean;
@@ -127,37 +153,88 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
       return true;
     });
 
-    // Apply sorting
-    return [...filtered].sort((a, b) => {
-      // Always prioritize teams where current user is a founder
-      const aIsUserFounder = isUserFounder(a);
-      const bIsUserFounder = isUserFounder(b);
+    // Separate user's teams from other teams
+    const userTeams = filtered.filter((team) => isUserFounder(team));
+    const otherTeams = filtered.filter((team) => !isUserFounder(team));
 
-      // If one team has user as founder and the other doesn't, prioritize the user's team
-      if (aIsUserFounder && !bIsUserFounder) return -1;
-      if (!aIsUserFounder && bIsUserFounder) return 1;
+    // Group teams by stage group
+    const groupTeamsByStage = (teamsList: TeamProfile[]) => {
+      const groups = new Map<string, TeamProfile[]>();
 
-      // If both are user teams or both are not, apply the selected sorting
-      switch (sortBy) {
-        case 'name-asc':
-          return a.team?.name.localeCompare(b.team?.name);
-        case 'name-desc':
-          return b.team?.name.localeCompare(a.team?.name);
-        case 'stage-asc':
-          return a.team?.fundingStage?.title.localeCompare(b.team?.fundingStage?.title);
-        case 'stage-desc':
-          return b.team?.fundingStage?.title.localeCompare(a.team?.fundingStage?.title);
-        case 'recent':
-          return b.uid.localeCompare(a.uid);
-        default:
-          return 0;
-      }
-    });
-  }, [profiles, sortBy, searchTerm, selectedIndustries, selectedStages]);
+      teamsList.forEach((team) => {
+        const stageGroup = getStageGroup(team.team?.fundingStage?.title || '');
+        if (!groups.has(stageGroup)) {
+          groups.set(stageGroup, []);
+        }
+        groups.get(stageGroup)!.push(team);
+      });
+
+      return groups;
+    };
+
+    // Sort groups and flatten
+    const sortGroupedTeams = (teamsList: TeamProfile[]) => {
+      const groups = groupTeamsByStage(teamsList);
+      const stageOrder = sortBy === 'stage-desc' ? STAGE_GROUP_ORDER_DESC : STAGE_GROUP_ORDER_ASC;
+
+      const result: TeamProfile[] = [];
+
+      stageOrder.forEach((stageGroup) => {
+        const teamsInGroup = groups.get(stageGroup);
+        if (teamsInGroup && teamsInGroup.length > 0) {
+          // Teams within each group maintain their original order (randomized on backend)
+          result.push(...teamsInGroup);
+        }
+      });
+
+      return result;
+    };
+
+    // Sort user teams and other teams separately by stage groups
+    const sortedUserTeams = sortGroupedTeams(userTeams);
+    const sortedOtherTeams = sortGroupedTeams(otherTeams);
+
+    // Combine: user teams first, then other teams
+    return [...sortedUserTeams, ...sortedOtherTeams];
+  }, [profiles, sortBy, searchTerm, selectedIndustries, selectedStages, userInfo]);
 
   const selectedSortOption = SORT_OPTIONS.find((option) => option.value === sortBy);
   const totalTeamsCount = profiles?.length || 0;
   const filteredTeamsCount = filteredAndSortedTeams.length;
+
+  // Group teams by stage for rendering with headers
+  const groupedTeams = useMemo(() => {
+    const groups: { stageGroup: string; label: string; teams: TeamProfile[] }[] = [];
+    const stageOrder = sortBy === 'stage-desc' ? STAGE_GROUP_ORDER_DESC : STAGE_GROUP_ORDER_ASC;
+
+    stageOrder.forEach((stageGroup) => {
+      const teamsInGroup = filteredAndSortedTeams.filter(
+        (team) => getStageGroup(team.team?.fundingStage?.title || '') === stageGroup,
+      );
+
+      if (teamsInGroup.length > 0) {
+        let label = '';
+        switch (stageGroup) {
+          case 'pre-seed':
+            label = 'Pre-seed';
+            break;
+          case 'seed':
+            label = 'Seed';
+            break;
+          case 'series':
+            label = 'Series A/B';
+            break;
+          case 'other':
+            label = 'Other';
+            break;
+        }
+
+        groups.push({ stageGroup, label, teams: teamsInGroup });
+      }
+    });
+
+    return groups;
+  }, [filteredAndSortedTeams, sortBy]);
 
   const handleSortChange = (value: string) => {
     setSortBy(value);
@@ -240,8 +317,13 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
       </div>
 
       <div className={s.teamsList}>
-        {filteredAndSortedTeams.map((profile) => (
-          <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={isDirectoryAdmin} />
+        {groupedTeams.map((group, groupIndex) => (
+          <div key={group.stageGroup} className={s.stageGroup}>
+            {/*<h3 className={s.stageGroupHeader}>{group.label}</h3>*/}
+            {group.teams.map((profile) => (
+              <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={isDirectoryAdmin} />
+            ))}
+          </div>
         ))}
 
         {filteredAndSortedTeams.length === 0 && totalTeamsCount > 0 && (

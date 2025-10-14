@@ -209,7 +209,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
 
     stageOrder.forEach((stageGroup) => {
       const teamsInGroup = filteredAndSortedTeams.filter(
-        (team) => getStageGroup(team.team?.fundingStage?.title || '') === stageGroup
+        (team) => getStageGroup(team.team?.fundingStage?.title || '') === stageGroup,
       );
 
       if (teamsInGroup.length > 0) {
@@ -319,7 +319,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
       <div className={s.teamsList}>
         {groupedTeams.map((group, groupIndex) => (
           <div key={group.stageGroup} className={s.stageGroup}>
-            <h3 className={s.stageGroupHeader}>{group.label}</h3>
+            {/*<h3 className={s.stageGroupHeader}>{group.label}</h3>*/}
             {group.teams.map((profile) => (
               <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={isDirectoryAdmin} />
             ))}

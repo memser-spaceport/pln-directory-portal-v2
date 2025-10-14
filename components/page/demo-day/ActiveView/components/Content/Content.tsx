@@ -14,22 +14,26 @@ export const Content = () => {
       <div className={s.eventHeader}>
         <div className={s.content}>
           <div className={s.headline}>
-          <PageTitle size="small" />
+            <PageTitle size="small" />
           </div>
 
           <div className={s.stats}>
             <span>
               <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, HH:mm') : ''}
             </span>
-            &nbsp;&bull;&nbsp;
-            <span>
-              {data?.teamsCount} Team{(data?.teamsCount ?? 0) > 1 ? 's' : ''}
-            </span>
-            &nbsp;&bull;&nbsp;
-            <Link href={`/members?isInvestor=true`}>
-              {data?.investorsCount} Investor{(data?.investorsCount ?? 0) > 1 ? 's' : ''}
-              <LinkIcon />
-            </Link>
+            {data?.investorsCount && data?.investorsCount > 200 ? (
+              <>
+                &nbsp;&bull;&nbsp;
+                <span>
+                  {data?.teamsCount} Team{(data?.teamsCount ?? 0) > 1 ? 's' : ''}
+                </span>
+                &nbsp;&bull;&nbsp;
+                <Link href={`/members?isInvestor=true`}>
+                  {data?.investorsCount} Investor{(data?.investorsCount ?? 0) > 1 ? 's' : ''}
+                  <LinkIcon />
+                </Link>
+              </>
+            ) : null}
           </div>
           {/*<div className={s.videoWrapper}>
             <MediaPreview url={PITCH_VIDEO_URL} type="video" title="Pitch Video" showMetadata={false} />

@@ -140,16 +140,24 @@ export const FilterList: React.FC<FilterListProps> = ({
   };
 
   const handleOptionToggle = (optionId: string) => {
-    const isSelected = selectedOptions.includes(optionId);
     const option = options.find((opt) => opt.id === optionId);
+
+    // Handle grouped options (comma-separated UIDs)
+    const optionUids = optionId.split(',');
+
+    // Check if any of the UIDs in this option are selected
+    const isSelected = optionUids.some((uid) => selectedOptions.includes(uid));
+
     let newSelection: string[];
     let action: 'added' | 'removed';
 
     if (isSelected) {
-      newSelection = selectedOptions.filter((id) => id !== optionId);
+      // Remove all UIDs from this option
+      newSelection = selectedOptions.filter((id) => !optionUids.includes(id));
       action = 'removed';
     } else {
-      newSelection = [...selectedOptions, optionId];
+      // Add all UIDs from this option
+      newSelection = [...selectedOptions, ...optionUids];
       action = 'added';
     }
 
@@ -199,7 +207,9 @@ export const FilterList: React.FC<FilterListProps> = ({
         ) : (
           <>
             {displayedOptions.map((option) => {
-              const isSelected = selectedOptions.includes(option.id);
+              // Handle grouped options (comma-separated UIDs)
+              const optionUids = option.id.split(',');
+              const isSelected = optionUids.some((uid) => selectedOptions.includes(uid));
 
               return (
                 <label key={option.id} className={s.optionItem}>
@@ -229,16 +239,15 @@ export const FilterList: React.FC<FilterListProps> = ({
                 </label>
               );
             })}
-
-            {/* Show All / Show Less Button */}
-            {hasMoreOptions && !isSearching && (
-              <button type="button" onClick={handleToggleShowAll} className={s.toggleButton}>
-                {showAll ? 'Show less' : showAllLabel || `Show all (${filteredOptions.length})`}
-              </button>
-            )}
           </>
         )}
       </div>
+      {/* Show All / Show Less Button */}
+      {hasMoreOptions && !isSearching && (
+        <button type="button" onClick={handleToggleShowAll} className={s.toggleButton}>
+          {showAll ? 'Show less' : showAllLabel || `Show all (${filteredOptions.length})`}
+        </button>
+      )}
     </div>
   );
 };

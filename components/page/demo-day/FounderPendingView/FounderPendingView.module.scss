@@ -9,6 +9,12 @@
   flex-direction: column;
   gap: 24px;
   width: 100%;
+
+  padding-inline: 8px;
+
+  @include media.tablet-landscape {
+    padding-inline: 0;
+  }
 }
 
 .eventHeader {

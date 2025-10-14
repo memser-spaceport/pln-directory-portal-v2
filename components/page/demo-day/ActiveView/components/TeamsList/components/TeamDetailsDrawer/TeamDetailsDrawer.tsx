@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader';
@@ -8,7 +8,7 @@ import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import s from './TeamDetailsDrawer.module.scss';
 import { EditProfileDrawer } from '@/components/page/demo-day/FounderPendingView/components/EditProfileDrawer';
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
-import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
+import { useExpressInterest } from '@/services/demo-day/hooks/useExpressInterest';
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
@@ -369,6 +369,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                           videoUrl={displayTeam?.videoUpload?.url}
                           onPitchDeckView={handlePitchDeckView}
                           onPitchVideoView={handlePitchVideoView}
+                          pitchDeckPreviewUrl={displayTeam?.onePagerUpload?.previewImageUrl}
                         />
                         {displayTeam?.description && (
                           <CompanyFundraiseParagraph paragraph={displayTeam?.description} editable={false} />
@@ -388,6 +389,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     >
                       {team.liked ? (
                         <>
+                          <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />
                           Liked Company
                           <CheckIcon />
                         </>
@@ -405,7 +407,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     >
                       {team.connected ? (
                         <>
-                          Connected with Company
+                          🤝 Connected with Company
                           <CheckIcon />
                         </>
                       ) : (
@@ -419,7 +421,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     >
                       {team.invested ? (
                         <>
-                          Invested in Company
+                          💰 Invested in Company
                           <CheckIcon />
                         </>
                       ) : (

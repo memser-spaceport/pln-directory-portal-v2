@@ -101,7 +101,7 @@ export const InvestorProfileView = ({
                         <div className={s.teamName}>
                           {team.name}{' '}
                           <Link href={`/teams/${team.id}`} target="_blank">
-                            <LinkIcon />
+                            <LinkIcon className={s.linkIcon} />
                           </Link>
                         </div>
                         <div className={s.teamTag}>Investment Fund</div>

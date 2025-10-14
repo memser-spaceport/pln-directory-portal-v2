@@ -154,7 +154,11 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
           />
 
           {/* Content */}
-          <ProfileContent pitchDeckUrl={data?.onePagerUpload?.url} videoUrl={data?.videoUpload?.url} />
+          <ProfileContent
+            pitchDeckUrl={data?.onePagerUpload?.url}
+            videoUrl={data?.videoUpload?.url}
+            pitchDeckPreviewUrl={data?.onePagerUpload?.previewImageUrl}
+          />
 
           {/* Divider */}
           <div className={s.profileDivider} />
@@ -177,6 +181,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
               >
                 {data?.liked ? (
                   <>
+                    <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />
                     Liked Company
                     <CheckIcon />
                   </>
@@ -199,7 +204,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
               >
                 {data?.connected ? (
                   <>
-                    Connected with Company
+                    🤝 Connected with Company
                     <CheckIcon />
                   </>
                 ) : (
@@ -219,7 +224,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
               >
                 {data?.invested ? (
                   <>
-                    Invested in Company
+                    💰 Invested in Company
                     <CheckIcon />
                   </>
                 ) : (

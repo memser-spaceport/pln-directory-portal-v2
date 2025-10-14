@@ -107,6 +107,10 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+
+  .linkIcon {
+    color: #1b4dff;
+  }
 }
 
 .teamTag {
@@ -204,11 +208,11 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  
+
   &.enabled {
     background-color: #10B981;
   }
-  
+
   &.disabled {
     background-color: #6B7280;
   }

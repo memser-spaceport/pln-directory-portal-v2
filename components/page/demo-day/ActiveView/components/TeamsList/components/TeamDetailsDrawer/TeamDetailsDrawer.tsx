@@ -369,6 +369,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                           videoUrl={displayTeam?.videoUpload?.url}
                           onPitchDeckView={handlePitchDeckView}
                           onPitchVideoView={handlePitchVideoView}
+                          pitchDeckPreviewUrl={displayTeam?.onePagerUpload?.previewImageUrl}
                         />
                         {displayTeam?.description && (
                           <CompanyFundraiseParagraph paragraph={displayTeam?.description} editable={false} />
@@ -388,6 +389,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     >
                       {team.liked ? (
                         <>
+                          <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />
                           Liked Company
                           <CheckIcon />
                         </>
@@ -405,7 +407,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     >
                       {team.connected ? (
                         <>
-                          Connected with Company
+                          🤝 Connected with Company
                           <CheckIcon />
                         </>
                       ) : (
@@ -419,7 +421,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     >
                       {team.invested ? (
                         <>
-                          Invested in Company
+                          💰 Invested in Company
                           <CheckIcon />
                         </>
                       ) : (

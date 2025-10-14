@@ -160,29 +160,56 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         founders={team.founders}
       />
 
-      <ProfileContent pitchDeckUrl={team?.onePagerUpload?.url} videoUrl={team?.videoUpload?.url} />
+      <ProfileContent
+        pitchDeckUrl={team?.onePagerUpload?.url}
+        videoUrl={team?.videoUpload?.url}
+        pitchDeckPreviewUrl={team?.onePagerUpload?.previewImageUrl}
+      />
       <div className={s.profileDivider} />
       <div className={s.actions}>
         <button
           className={s.secondaryButton}
           onClick={(e) => handleInterestCompanyClick(e, 'like')}
-          disabled={expressInterest.isPending || !team.uid}
+          disabled={expressInterest.isPending || !team.uid || team.liked}
         >
-          <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like the Company
+          {team.liked ? (
+            <>
+              <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Liked Company
+              <CheckIcon />
+            </>
+          ) : (
+            <>
+              <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like the Company
+            </>
+          )}
         </button>
         <button
           className={s.secondaryButton}
           onClick={(e) => handleInterestCompanyClick(e, 'connect')}
-          disabled={expressInterest.isPending || !team.uid}
+          disabled={expressInterest.isPending || !team.uid || team.connected}
         >
-          🤝 Connect with Company
+          {team.connected ? (
+            <>
+              🤝 Connected with Company
+              <CheckIcon />
+            </>
+          ) : (
+            <>🤝 Connect with Company</>
+          )}
         </button>
         <button
           className={s.primaryButton}
           onClick={(e) => handleInterestCompanyClick(e, 'invest')}
-          disabled={expressInterest.isPending || !team.uid}
+          disabled={expressInterest.isPending || !team.uid || team.invested}
         >
-          💰 Invest in Company
+          {team.invested ? (
+            <>
+              💰 Invested in Company
+              <CheckIcon />
+            </>
+          ) : (
+            <>💰 Invest in Company</>
+          )}
         </button>
       </div>
     </div>
@@ -258,5 +285,17 @@ const EditIcon = () => (
         <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_9353_10999" result="shape" />
       </filter>
     </defs>
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M13.3332 4L5.99984 11.3333L2.6665 8"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );

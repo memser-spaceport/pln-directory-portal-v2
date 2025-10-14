@@ -183,10 +183,10 @@
 
 .sectionMaterials {
   display: flex;
-  flex-direction: column;
   padding: 16px;
   justify-content: flex-start;
   align-items: flex-start;
+  flex-direction: column;
   gap: 16px;
   align-self: stretch;
   border-radius: 12px;
@@ -314,10 +314,15 @@
 }
 
 .contentSection {
-  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 0;
+  width: 100%;
 
   @include media.mobile-only {
-    margin-bottom: 24px;
+    padding: 20px 0;
+    gap: 12px;
   }
 }
 

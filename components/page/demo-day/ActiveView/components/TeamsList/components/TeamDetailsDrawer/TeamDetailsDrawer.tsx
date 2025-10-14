@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader';
@@ -8,7 +8,7 @@ import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import s from './TeamDetailsDrawer.module.scss';
 import { EditProfileDrawer } from '@/components/page/demo-day/FounderPendingView/components/EditProfileDrawer';
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
-import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
+import { useExpressInterest } from '@/services/demo-day/hooks/useExpressInterest';
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';

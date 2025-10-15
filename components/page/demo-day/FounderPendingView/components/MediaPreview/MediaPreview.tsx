@@ -208,7 +208,7 @@ export const MediaPreview = ({
 
   const renderModalContent = () => {
     if (type === 'video') {
-      return <VideoPlayer autoplay src={url} className={s.modalMedia} />;
+      return <VideoPlayer autoplay src={url} />;
     } else if (isPDF(url)) {
       if (previewImageUrl) {
         return <img src={previewImageUrl} alt="Media" className={s.modalMedia} />;

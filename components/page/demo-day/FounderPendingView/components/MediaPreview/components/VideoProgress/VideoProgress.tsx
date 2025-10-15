@@ -10,18 +10,12 @@ export function VideoProgress(props: Props) {
   const { src } = props;
 
   const progressKey = getVideoDataStorageKey(src, 'progress');
-  const watchedKey = getVideoDataStorageKey(src, 'watched');
   const lengthKey = getVideoDataStorageKey(src, 'length');
 
   const length = localStorage.getItem(lengthKey);
-  const watched = localStorage.getItem(watchedKey);
   const progress = localStorage.getItem(progressKey);
 
   const progressInPercents = (() => {
-    if (watched) {
-      return 100;
-    }
-
     if (progress && length) {
       return Math.ceil((100 * parseFloat(progress)) / parseFloat(length));
     }

@@ -223,7 +223,48 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
   const totalTeamsCount = profiles?.length || 0;
   const filteredTeamsCount = filteredAndSortedTeams.length;
 
-  // Group teams by stage for rendering with headers
+  // Helper function to get label for stage group
+  const getStageGroupLabel = (stageGroup: string): string => {
+    switch (stageGroup) {
+      case 'pre-seed':
+        return 'Pre-seed';
+      case 'seed':
+        return 'Seed';
+      case 'series':
+        return 'Series A/B';
+      case 'other':
+        return 'Other';
+      default:
+        return '';
+    }
+  };
+
+  // All groups with counts (for header badges) - always show all groups except 'other' if empty
+  const allGroupsWithCounts = useMemo(() => {
+    const stageOrder = sortBy === 'stage-desc' ? STAGE_GROUP_ORDER_DESC : STAGE_GROUP_ORDER_ASC;
+
+    return stageOrder
+      .map((stageGroup) => {
+        const teamsInGroup = filteredAndSortedTeams.filter(
+          (team) => getStageGroup(team.team?.fundingStage?.title || '') === stageGroup,
+        );
+
+        return {
+          stageGroup,
+          label: getStageGroupLabel(stageGroup),
+          count: teamsInGroup.length,
+        };
+      })
+      .filter((group) => {
+        // Hide 'other' group if it has no teams
+        if (group.stageGroup === 'other' && group.count === 0) {
+          return false;
+        }
+        return true;
+      });
+  }, [filteredAndSortedTeams, sortBy]);
+
+  // Group teams by stage for rendering with headers (only groups with teams)
   const groupedTeams = useMemo(() => {
     const groups: { stageGroup: string; label: string; teams: TeamProfile[] }[] = [];
     const stageOrder = sortBy === 'stage-desc' ? STAGE_GROUP_ORDER_DESC : STAGE_GROUP_ORDER_ASC;
@@ -234,23 +275,11 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
       );
 
       if (teamsInGroup.length > 0) {
-        let label = '';
-        switch (stageGroup) {
-          case 'pre-seed':
-            label = 'Pre-seed';
-            break;
-          case 'seed':
-            label = 'Seed';
-            break;
-          case 'series':
-            label = 'Series A/B';
-            break;
-          case 'other':
-            label = 'Other';
-            break;
-        }
-
-        groups.push({ stageGroup, label, teams: teamsInGroup });
+        groups.push({
+          stageGroup,
+          label: getStageGroupLabel(stageGroup),
+          teams: teamsInGroup,
+        });
       }
     });
 
@@ -291,16 +320,16 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
   useEffect(() => {
     const handleScroll = () => {
       // If scrolled to top, activate first group
-      if (document.body.scrollTop < 100 && groupedTeams.length > 0) {
-        setActiveGroup(groupedTeams[0].stageGroup);
+      if (document.body.scrollTop < 100 && allGroupsWithCounts.length > 0) {
+        setActiveGroup(allGroupsWithCounts[0].stageGroup);
         return;
       }
 
       // Calculate middle of viewport
       const viewportMiddle = document.body.scrollTop + window.innerHeight / 2;
 
-      // Find which group is closest to the middle of viewport
-      let closestGroup = groupedTeams[0]?.stageGroup;
+      // Find which group is closest to the middle of viewport (only from rendered groups)
+      let closestGroup = groupedTeams[0]?.stageGroup || allGroupsWithCounts[0]?.stageGroup;
       let closestDistance = Infinity;
 
       for (const group of groupedTeams) {
@@ -326,7 +355,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     handleScroll(); // Set initial active group
 
     return () => document.body.removeEventListener('scroll', handleScroll);
-  }, [groupedTeams]);
+  }, [groupedTeams, allGroupsWithCounts]);
 
   if (isLoading) {
     return <TeamsListLoading title="All Teams" />;
@@ -336,7 +365,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     <div className={s.container}>
       <div className={s.header}>
         <div className={s.headerLeft}>
-          {groupedTeams.map((group) => (
+          {allGroupsWithCounts.map((group) => (
             <button
               key={group.stageGroup}
               className={clsx(s.groupBadge, {
@@ -345,7 +374,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
               onClick={() => scrollToGroup(group.stageGroup)}
             >
               <span className={s.groupLabel}>{group.label}</span>
-              <span className={s.groupCount}>{group.teams.length}</span>
+              <span className={s.groupCount}>{group.count}</span>
             </button>
           ))}
         </div>

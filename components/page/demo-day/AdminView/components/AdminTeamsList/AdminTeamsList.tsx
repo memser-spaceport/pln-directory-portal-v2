@@ -120,6 +120,11 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     return stageParam ? stageParam.split(URL_QUERY_VALUE_SEPARATOR) : [];
   }, [params]);
 
+  const selectedActivities = useMemo(() => {
+    const activityParam = params.get('activity');
+    return activityParam ? activityParam.split(URL_QUERY_VALUE_SEPARATOR) : [];
+  }, [params]);
+
   // Filter and sort teams based on current filter parameters
   const filteredAndSortedTeams = useMemo(() => {
     if (!profiles) return [];
@@ -149,6 +154,19 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
       if (selectedStages.length > 0) {
         const teamStageUid = profile.team?.fundingStage?.uid;
         if (!selectedStages.includes(teamStageUid)) {
+          return false;
+        }
+      }
+
+      // Activity filter (liked, connected, invested)
+      if (selectedActivities.length > 0) {
+        const matchesActivity = selectedActivities.some((activity) => {
+          if (activity === 'liked') return profile.liked;
+          if (activity === 'connected') return profile.connected;
+          if (activity === 'invested') return profile.invested;
+          return false;
+        });
+        if (!matchesActivity) {
           return false;
         }
       }
@@ -199,7 +217,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
 
     // Combine: user teams first, then other teams
     return [...sortedUserTeams, ...sortedOtherTeams];
-  }, [profiles, sortBy, searchTerm, selectedIndustries, selectedStages, userInfo]);
+  }, [profiles, sortBy, searchTerm, selectedIndustries, selectedStages, selectedActivities, userInfo]);
 
   const selectedSortOption = SORT_OPTIONS.find((option) => option.value === sortBy);
   const totalTeamsCount = profiles?.length || 0;

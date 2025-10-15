@@ -117,6 +117,31 @@ export const AdminFilters = () => {
       });
   }, [teams]);
 
+  // Build activity options (liked, connected, invested)
+  const activityOptions = useMemo((): FilterOption[] => {
+    if (!teams) return [];
+
+    const likedCount = teams.filter((team) => team.liked).length;
+    const connectedCount = teams.filter((team) => team.connected).length;
+    const investedCount = teams.filter((team) => team.invested).length;
+
+    const options: FilterOption[] = [];
+
+    if (likedCount > 0) {
+      options.push({ id: 'liked', name: 'Liked', count: likedCount });
+    }
+
+    if (connectedCount > 0) {
+      options.push({ id: 'connected', name: 'Connected', count: connectedCount });
+    }
+
+    if (investedCount > 0) {
+      options.push({ id: 'invested', name: 'Invested', count: investedCount });
+    }
+
+    return options;
+  }, [teams]);
+
   return (
     <div className={s.root}>
       <div className={s.header}>
@@ -131,6 +156,19 @@ export const AdminFilters = () => {
 
       {/* Body */}
       <div className={s.body}>
+        {activityOptions.length > 0 && (
+          <FilterSection title="My Activity">
+            <FilterList
+              options={activityOptions}
+              paramName="activity"
+              showAllLabel=""
+              placeholder=""
+              emptyMessage=""
+              hideSearch
+            />
+          </FilterSection>
+        )}
+
         <FilterSection title="Team Search">
           <FilterSearch placeholder="Search for a team" />
         </FilterSection>

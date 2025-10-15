@@ -10,6 +10,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { TeamProfileCard } from './components/TeamProfileCard';
 import { TeamDetailsDrawer } from './components/TeamDetailsDrawer';
 import { FiltersDrawer } from './components/FiltersDrawer';
+import { TeamsListLoading, TeamsListError } from '@/components/page/demo-day/shared/TeamsListStates';
 import s from './TeamsList.module.scss';
 
 const ChevronDownIcon = () => (
@@ -305,28 +306,11 @@ export const TeamsList: React.FC = () => {
   }, [groupedTeams]);
 
   if (isLoading) {
-    return (
-      <div className={s.container}>
-        <div className={s.header}>
-          <h2 className={s.title}>Teams List</h2>
-          <div className={s.headerRight}>
-            <span className={s.counter}>Loading...</span>
-          </div>
-        </div>
-        <div className={s.loading}>Loading teams...</div>
-      </div>
-    );
+    return <TeamsListLoading title="Teams List" />;
   }
 
   if (error) {
-    return (
-      <div className={s.container}>
-        <div className={s.header}>
-          <h2 className={s.title}>Teams List</h2>
-        </div>
-        <div className={s.error}>Failed to load teams. Please try again.</div>
-      </div>
-    );
+    return <TeamsListError title="Teams List" message="Failed to load teams. Please try again." />;
   }
 
   return (

@@ -6,6 +6,7 @@ import { useFilterStore } from '@/services/members/store';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { TeamProfileCard } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamProfileCard';
 import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamDetailsDrawer';
+import { TeamsListLoading, TeamsListError } from '@/components/page/demo-day/shared/TeamsListStates';
 import s from '@/components/page/demo-day/ActiveView/components/TeamsList/TeamsList.module.scss';
 import { getParsedValue } from '@/utils/common.utils';
 import { IUserInfo } from '@/types/shared.types';
@@ -298,17 +299,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
   }, [groupedTeams]);
 
   if (isLoading) {
-    return (
-      <div className={s.container}>
-        <div className={s.header}>
-          <h2 className={s.title}>All Teams</h2>
-          <div className={s.headerRight}>
-            <span className={s.counter}>Loading...</span>
-          </div>
-        </div>
-        <div className={s.loading}>Loading teams...</div>
-      </div>
-    );
+    return <TeamsListLoading title="All Teams" />;
   }
 
   return (

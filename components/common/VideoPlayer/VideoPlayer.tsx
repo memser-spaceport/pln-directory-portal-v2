@@ -10,11 +10,10 @@ interface VideoPlayerProps {
   src: string;
   poster?: string;
   autoplay?: boolean;
-  className?: string;
 }
 
 export function VideoPlayer(props: VideoPlayerProps) {
-  const { src, poster, autoplay = false, className } = props;
+  const { src, poster, autoplay = false } = props;
 
   const [player, setPlayer] = useState<Player | null>(null);
   const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
@@ -48,8 +47,14 @@ export function VideoPlayer(props: VideoPlayerProps) {
   usePersistWatchProgress({ src, player });
 
   return (
-    <div data-vjs-player className={className}>
-      <video autoPlay={autoplay} ref={setVideoEl} className="video-js vjs-big-play-centered vjs-theme-city" />
+    <div
+      data-vjs-player
+      style={{
+        height: '100%',
+        paddingTop: 0,
+      }}
+    >
+      <video autoPlay={autoplay} ref={setVideoEl} className="video-js vjs-big-play-centered vjs-theme-city vjs-fluid" />
     </div>
   );
 }

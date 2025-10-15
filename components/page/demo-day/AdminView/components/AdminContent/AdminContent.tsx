@@ -32,8 +32,7 @@ export const AdminContent = ({ isDirectoryAdmin }: { isDirectoryAdmin: boolean }
           </div>
           <div className={s.stats}>
             <span>
-              <CalendarIcon />{' '}
-              {demoDayData?.date ? format(demoDayData.date, 'dd MMM yyyy, HH:mm', { timeZone: 'UTC' }) : ''}
+              <CalendarIcon /> {demoDayData?.date ? format(demoDayData.date, 'dd MMM yyyy, hh:mm a zzz') : ''}
             </span>
             &nbsp;&bull;&nbsp;
             <span>

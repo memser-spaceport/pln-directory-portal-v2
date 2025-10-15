@@ -4,6 +4,7 @@ import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hook
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
+import { useUtmParams } from './useUtmParams';
 
 export interface PageViewAnalyticsConfig {
   /** PostHog event function to call */
@@ -23,9 +24,9 @@ export interface PageViewAnalyticsConfig {
 /**
  * Reusable hook for reporting page view analytics
  * Ensures the event is triggered only once on component mount
- * 
+ *
  * @param config - Configuration object for the page view analytics
- * 
+ *
  * @example
  * // Basic usage
  * usePageViewAnalytics({
@@ -33,7 +34,7 @@ export interface PageViewAnalyticsConfig {
  *   customEventName: 'founder_pending_view_page_opened',
  *   path: '/demoday',
  * });
- * 
+ *
  * @example
  * // With additional properties
  * usePageViewAnalytics({
@@ -46,7 +47,7 @@ export interface PageViewAnalyticsConfig {
  *     isComplete: isProfileComplete,
  *   },
  * });
- * 
+ *
  * @example
  * // Without authentication requirement
  * usePageViewAnalytics({
@@ -68,6 +69,7 @@ export const usePageViewAnalytics = (config: PageViewAnalyticsConfig) => {
 
   const reportAnalytics = useReportAnalyticsEvent();
   const hasReported = useRef(false);
+  const utmParams = useUtmParams();
 
   useEffect(() => {
     // Prevent multiple executions
@@ -76,10 +78,10 @@ export const usePageViewAnalytics = (config: PageViewAnalyticsConfig) => {
     }
 
     const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
-    
+
     // Determine distinct ID
     const distinctId = customDistinctId || userInfo?.email;
-    
+
     // Check authentication requirements
     if (requireAuth && (!userInfo?.email || !distinctId)) {
       return;
@@ -108,13 +110,16 @@ export const usePageViewAnalytics = (config: PageViewAnalyticsConfig) => {
       distinctId: distinctId!,
       properties: {
         // Base properties
-        ...(requireAuth && userInfo && {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-        }),
+        ...(requireAuth &&
+          userInfo && {
+            userId: userInfo.uid,
+            userEmail: userInfo.email,
+            userName: userInfo.name,
+          }),
         path: path,
         timestamp: new Date().toISOString(),
+        // UTM parameters
+        ...utmParams,
         // Additional custom properties
         ...additionalProperties,
       },
@@ -130,6 +135,7 @@ export const usePageViewAnalytics = (config: PageViewAnalyticsConfig) => {
     requireAuth,
     customDistinctId,
     reportAnalytics,
+    utmParams,
   ]);
 
   // Return whether the analytics has been reported (useful for debugging)
@@ -144,12 +150,16 @@ export const useDemoDayPageViewAnalytics = (
   eventName: keyof ReturnType<typeof useDemoDayAnalytics>,
   customEventName: string,
   path: string,
-  additionalProperties?: Record<string, any>
+  additionalProperties?: Record<string, any>,
 ) => {
   const demoDayAnalytics = useDemoDayAnalytics();
-  
+  const utmParams = useUtmParams();
+
   return usePageViewAnalytics({
-    postHogEventFunction: demoDayAnalytics[eventName] as () => void,
+    postHogEventFunction: () => {
+      const eventFunction = demoDayAnalytics[eventName] as (eventParams?: Record<string, any>) => void;
+      eventFunction(utmParams);
+    },
     customEventName,
     path,
     additionalProperties,

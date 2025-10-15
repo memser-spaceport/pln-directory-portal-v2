@@ -174,10 +174,10 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
                   expressInterest.mutate({
                     teamFundraisingProfileUid: data?.uid,
                     interestType: 'like',
-                    // isPrepDemoDay,
+                    isPrepDemoDay,
                   })
                 }
-                disabled={expressInterest.isPending || !data?.uid || data?.liked}
+                disabled={expressInterest.isPending || !data?.uid}
               >
                 {data?.liked ? (
                   <>
@@ -197,10 +197,10 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
                   expressInterest.mutate({
                     teamFundraisingProfileUid: data?.uid,
                     interestType: 'connect',
-                    // isPrepDemoDay,
+                    isPrepDemoDay,
                   })
                 }
-                disabled={expressInterest.isPending || !data?.uid || data?.connected}
+                disabled={expressInterest.isPending || !data?.uid}
               >
                 {data?.connected ? (
                   <>
@@ -217,10 +217,10 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
                   expressInterest.mutate({
                     teamFundraisingProfileUid: data?.uid,
                     interestType: 'invest',
-                    // isPrepDemoDay,
+                    isPrepDemoDay,
                   })
                 }
-                disabled={expressInterest.isPending || !data?.uid || data?.invested}
+                disabled={expressInterest.isPending || !data?.uid}
               >
                 {data?.invested ? (
                   <>

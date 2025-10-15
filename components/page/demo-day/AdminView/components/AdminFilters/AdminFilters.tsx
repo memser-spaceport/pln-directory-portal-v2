@@ -196,6 +196,7 @@ export const AdminFilters = () => {
             showAllLabel="Show All Industries"
             placeholder="E.g. AI, DePIN, Web3, etc."
             emptyMessage={teamsLoading ? 'Loading industries...' : 'No industries found'}
+            initialDisplayCount={3}
           />
         </FilterSection>
 

@@ -126,7 +126,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     expressInterest.mutate({
       teamFundraisingProfileUid: team.uid,
       interestType: 'like',
-      // isPrepDemoDay,
+      isPrepDemoDay,
     });
   };
 
@@ -157,7 +157,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     expressInterest.mutate({
       teamFundraisingProfileUid: team.uid,
       interestType: 'connect',
-      // isPrepDemoDay,
+      isPrepDemoDay,
     });
   };
 
@@ -188,7 +188,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     expressInterest.mutate({
       teamFundraisingProfileUid: team.uid,
       interestType: 'invest',
-      // isPrepDemoDay,
+      isPrepDemoDay,
     });
   };
 
@@ -385,7 +385,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     <button
                       className={s.secondaryButton}
                       onClick={handleLikeCompanyClick}
-                      disabled={expressInterest.isPending || !team.uid || team.liked}
+                      disabled={expressInterest.isPending || !team.uid}
                     >
                       {team.liked ? (
                         <>
@@ -403,7 +403,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     <button
                       className={s.secondaryButton}
                       onClick={handleConnectCompanyClick}
-                      disabled={expressInterest.isPending || !team.uid || team.connected}
+                      disabled={expressInterest.isPending || !team.uid}
                     >
                       {team.connected ? (
                         <>
@@ -417,7 +417,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     <button
                       className={s.primaryButton}
                       onClick={handleInvestCompanyClick}
-                      disabled={expressInterest.isPending || !team.uid || team.invested}
+                      disabled={expressInterest.isPending || !team.uid}
                     >
                       {team.invested ? (
                         <>

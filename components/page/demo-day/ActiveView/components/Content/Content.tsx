@@ -33,14 +33,14 @@ export const Content = () => {
 
           <div className={s.stats}>
             <span>
-              <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, HH:mm') : ''}
+              <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, HH:mm', { timeZone: 'UTC' }) : ''}
+            </span>
+            &nbsp;&bull;&nbsp;
+            <span>
+              {data?.teamsCount} Team{(data?.teamsCount ?? 0) > 1 ? 's' : ''}
             </span>
             {data?.investorsCount && data?.investorsCount > 200 ? (
               <>
-                &nbsp;&bull;&nbsp;
-                <span>
-                  {data?.teamsCount} Team{(data?.teamsCount ?? 0) > 1 ? 's' : ''}
-                </span>
                 &nbsp;&bull;&nbsp;
                 <Link href={`/members?isInvestor=true`}>
                   {data?.investorsCount} Investor{(data?.investorsCount ?? 0) > 1 ? 's' : ''}

@@ -22,6 +22,7 @@ interface FilterListProps {
   emptyMessage?: string;
   initialDisplayCount?: number;
   showAllLabel?: ReactNode;
+  hideSearch?: boolean;
 }
 
 export const FilterList: React.FC<FilterListProps> = ({
@@ -31,6 +32,7 @@ export const FilterList: React.FC<FilterListProps> = ({
   placeholder = 'Search options...',
   emptyMessage = 'No options found',
   initialDisplayCount = 5,
+  hideSearch = false,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAll, setShowAll] = useState(false);
@@ -177,28 +179,30 @@ export const FilterList: React.FC<FilterListProps> = ({
   return (
     <div className={s.container}>
       {/* Search Input */}
-      <div className={s.searchContainer}>
-        <div className={s.inputContainer}>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            className={s.input}
-          />
-          {!hasSearchValue && (
-            <div className={s.inputPrefix}>
-              <SearchIcon />
-            </div>
-          )}
-          {hasSearchValue && (
-            <button type="button" onClick={handleClearSearch} className={s.clearButton} aria-label="Clear search">
-              <CloseIcon />
-            </button>
-          )}
+      {!hideSearch && (
+        <div className={s.searchContainer}>
+          <div className={s.inputContainer}>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              className={s.input}
+            />
+            {!hasSearchValue && (
+              <div className={s.inputPrefix}>
+                <SearchIcon />
+              </div>
+            )}
+            {hasSearchValue && (
+              <button type="button" onClick={handleClearSearch} className={s.clearButton} aria-label="Clear search">
+                <CloseIcon />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Options List */}
       <div className={s.optionsList}>

@@ -120,6 +120,11 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     return stageParam ? stageParam.split(URL_QUERY_VALUE_SEPARATOR) : [];
   }, [params]);
 
+  const selectedActivities = useMemo(() => {
+    const activityParam = params.get('activity');
+    return activityParam ? activityParam.split(URL_QUERY_VALUE_SEPARATOR) : [];
+  }, [params]);
+
   // Filter and sort teams based on current filter parameters
   const filteredAndSortedTeams = useMemo(() => {
     if (!profiles) return [];
@@ -149,6 +154,19 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
       if (selectedStages.length > 0) {
         const teamStageUid = profile.team?.fundingStage?.uid;
         if (!selectedStages.includes(teamStageUid)) {
+          return false;
+        }
+      }
+
+      // Activity filter (liked, connected, invested)
+      if (selectedActivities.length > 0) {
+        const matchesActivity = selectedActivities.some((activity) => {
+          if (activity === 'liked') return profile.liked;
+          if (activity === 'connected') return profile.connected;
+          if (activity === 'invested') return profile.invested;
+          return false;
+        });
+        if (!matchesActivity) {
           return false;
         }
       }
@@ -199,13 +217,54 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
 
     // Combine: user teams first, then other teams
     return [...sortedUserTeams, ...sortedOtherTeams];
-  }, [profiles, sortBy, searchTerm, selectedIndustries, selectedStages, userInfo]);
+  }, [profiles, sortBy, searchTerm, selectedIndustries, selectedStages, selectedActivities, userInfo]);
 
   const selectedSortOption = SORT_OPTIONS.find((option) => option.value === sortBy);
   const totalTeamsCount = profiles?.length || 0;
   const filteredTeamsCount = filteredAndSortedTeams.length;
 
-  // Group teams by stage for rendering with headers
+  // Helper function to get label for stage group
+  const getStageGroupLabel = (stageGroup: string): string => {
+    switch (stageGroup) {
+      case 'pre-seed':
+        return 'Pre-seed';
+      case 'seed':
+        return 'Seed';
+      case 'series':
+        return 'Series A/B';
+      case 'other':
+        return 'Other';
+      default:
+        return '';
+    }
+  };
+
+  // All groups with counts (for header badges) - always show all groups except 'other' if empty
+  const allGroupsWithCounts = useMemo(() => {
+    const stageOrder = sortBy === 'stage-desc' ? STAGE_GROUP_ORDER_DESC : STAGE_GROUP_ORDER_ASC;
+
+    return stageOrder
+      .map((stageGroup) => {
+        const teamsInGroup = filteredAndSortedTeams.filter(
+          (team) => getStageGroup(team.team?.fundingStage?.title || '') === stageGroup,
+        );
+
+        return {
+          stageGroup,
+          label: getStageGroupLabel(stageGroup),
+          count: teamsInGroup.length,
+        };
+      })
+      .filter((group) => {
+        // Hide 'other' group if it has no teams
+        if (group.stageGroup === 'other' && group.count === 0) {
+          return false;
+        }
+        return true;
+      });
+  }, [filteredAndSortedTeams, sortBy]);
+
+  // Group teams by stage for rendering with headers (only groups with teams)
   const groupedTeams = useMemo(() => {
     const groups: { stageGroup: string; label: string; teams: TeamProfile[] }[] = [];
     const stageOrder = sortBy === 'stage-desc' ? STAGE_GROUP_ORDER_DESC : STAGE_GROUP_ORDER_ASC;
@@ -216,23 +275,11 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
       );
 
       if (teamsInGroup.length > 0) {
-        let label = '';
-        switch (stageGroup) {
-          case 'pre-seed':
-            label = 'Pre-seed';
-            break;
-          case 'seed':
-            label = 'Seed';
-            break;
-          case 'series':
-            label = 'Series A/B';
-            break;
-          case 'other':
-            label = 'Other';
-            break;
-        }
-
-        groups.push({ stageGroup, label, teams: teamsInGroup });
+        groups.push({
+          stageGroup,
+          label: getStageGroupLabel(stageGroup),
+          teams: teamsInGroup,
+        });
       }
     });
 
@@ -269,26 +316,38 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     }
   };
 
-  // Track which group is currently visible
+  // Track which group is currently visible in the middle of viewport
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = document.body.scrollTop + 200; // Offset for header
-
       // If scrolled to top, activate first group
-      if (window.scrollY < 100 && groupedTeams.length > 0) {
-        setActiveGroup(groupedTeams[0].stageGroup);
+      if (document.body.scrollTop < 100 && allGroupsWithCounts.length > 0) {
+        setActiveGroup(allGroupsWithCounts[0].stageGroup);
         return;
       }
+
+      // Calculate middle of viewport
+      const viewportMiddle = document.body.scrollTop + window.innerHeight / 2;
+
+      // Find which group is closest to the middle of viewport (only from rendered groups)
+      let closestGroup = groupedTeams[0]?.stageGroup || allGroupsWithCounts[0]?.stageGroup;
+      let closestDistance = Infinity;
 
       for (const group of groupedTeams) {
         const element = groupRefs.current.get(group.stageGroup);
         if (element) {
           const { offsetTop, offsetHeight } = element;
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-            setActiveGroup(group.stageGroup);
-            break;
+          const groupMiddle = offsetTop + offsetHeight / 2;
+          const distance = Math.abs(viewportMiddle - groupMiddle);
+
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestGroup = group.stageGroup;
           }
         }
+      }
+
+      if (closestGroup) {
+        setActiveGroup(closestGroup);
       }
     };
 
@@ -296,7 +355,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     handleScroll(); // Set initial active group
 
     return () => document.body.removeEventListener('scroll', handleScroll);
-  }, [groupedTeams]);
+  }, [groupedTeams, allGroupsWithCounts]);
 
   if (isLoading) {
     return <TeamsListLoading title="All Teams" />;
@@ -306,7 +365,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     <div className={s.container}>
       <div className={s.header}>
         <div className={s.headerLeft}>
-          {groupedTeams.map((group) => (
+          {allGroupsWithCounts.map((group) => (
             <button
               key={group.stageGroup}
               className={clsx(s.groupBadge, {
@@ -315,7 +374,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
               onClick={() => scrollToGroup(group.stageGroup)}
             >
               <span className={s.groupLabel}>{group.label}</span>
-              <span className={s.groupCount}>{group.teams.length}</span>
+              <span className={s.groupCount}>{group.count}</span>
             </button>
           ))}
         </div>

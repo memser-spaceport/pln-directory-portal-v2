@@ -20,6 +20,7 @@ const TRACKED_PARAMS = [
   'maxTypicalCheckSize',
   'stage',
   'industry',
+  'activity',
 ] as const;
 
 // Helper function to filter URLSearchParams to only include tracked parameters

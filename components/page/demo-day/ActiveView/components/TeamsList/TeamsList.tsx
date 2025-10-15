@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { clsx } from 'clsx';
 import { Menu } from '@base-ui-components/react/menu';
 import { useGetTeamsList, TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
@@ -99,7 +99,9 @@ export const TeamsList: React.FC = () => {
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isFiltersDrawerOpen, setIsFiltersDrawerOpen] = useState(false);
+  const [activeGroup, setActiveGroup] = useState<string>('');
   const scrollPositionRef = useRef<number>(0);
+  const groupRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { params } = useFilterStore();
 
   // Get current user info
@@ -248,7 +250,7 @@ export const TeamsList: React.FC = () => {
 
   const handleTeamClick = (team: TeamProfile) => {
     // Store current scroll position before opening drawer
-    scrollPositionRef.current = window.scrollY;
+    scrollPositionRef.current = document.body.scrollTop;
     setSelectedTeam(team);
     setIsDrawerOpen(true);
   };
@@ -257,6 +259,44 @@ export const TeamsList: React.FC = () => {
     setIsDrawerOpen(false);
     setSelectedTeam(null);
   };
+
+  // Scroll to specific group
+  const scrollToGroup = (stageGroup: string) => {
+    const element = groupRefs.current.get(stageGroup);
+    if (element) {
+      const headerOffset = 120; // Offset for sticky header
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + document.body.scrollTop - headerOffset;
+
+      document.body.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  // Track which group is currently visible
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = document.body.scrollTop + 200; // Offset for header
+
+      for (const group of groupedTeams) {
+        const element = groupRefs.current.get(group.stageGroup);
+        if (element) {
+          const { offsetTop, offsetHeight } = element;
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            setActiveGroup(group.stageGroup);
+            break;
+          }
+        }
+      }
+    };
+
+    document.body.addEventListener('scroll', handleScroll);
+    handleScroll(); // Set initial active group
+
+    return () => document.body.removeEventListener('scroll', handleScroll);
+  }, [groupedTeams]);
 
   if (isLoading) {
     return (
@@ -287,11 +327,18 @@ export const TeamsList: React.FC = () => {
     <div className={s.container}>
       <div className={s.header}>
         <div className={s.headerLeft}>
-          <h2 className={s.title}>Teams List</h2>
-          <span className={s.counter}>
-            ({filteredTeamsCount}
-            {totalTeamsCount !== filteredTeamsCount ? ` of ${totalTeamsCount}` : ''})
-          </span>
+          {groupedTeams.map((group) => (
+            <button
+              key={group.stageGroup}
+              className={clsx(s.groupBadge, {
+                [s.active]: activeGroup === group.stageGroup,
+              })}
+              onClick={() => scrollToGroup(group.stageGroup)}
+            >
+              <span className={s.groupLabel}>{group.label}</span>
+              <span className={s.groupCount}>{group.teams.length}</span>
+            </button>
+          ))}
         </div>
 
         <div className={s.filtersWrapper}>
@@ -342,8 +389,16 @@ export const TeamsList: React.FC = () => {
 
       <div className={s.teamsList}>
         {groupedTeams.map((group, groupIndex) => (
-          <div key={group.stageGroup} className={s.stageGroup}>
-            {/*<h3 className={s.stageGroupHeader}>{group.label}</h3>*/}
+          <div
+            key={group.stageGroup}
+            className={s.stageGroup}
+            ref={(el) => {
+              if (el) {
+                groupRefs.current.set(group.stageGroup, el);
+              }
+            }}
+          >
+            <h3 className={s.stageGroupHeader}>{group.label}</h3>
             {group.teams.map((team) => (
               <TeamProfileCard key={team.uid} team={team} onClick={handleTeamClick} />
             ))}

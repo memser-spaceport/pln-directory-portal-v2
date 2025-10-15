@@ -44,8 +44,8 @@ export function usePersistWatchProgress(input: Input) {
     });
 
     player.on('pause', saveProgress);
+
     player.on('ended', () => {
-      localStorage.removeItem(progressKey);
       localStorage.setItem(watchedKey, 'true');
     });
 

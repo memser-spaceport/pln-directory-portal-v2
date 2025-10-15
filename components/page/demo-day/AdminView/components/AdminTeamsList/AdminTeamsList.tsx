@@ -287,26 +287,38 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     }
   };
 
-  // Track which group is currently visible
+  // Track which group is currently visible in the middle of viewport
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = document.body.scrollTop + 200; // Offset for header
-
       // If scrolled to top, activate first group
-      if (window.scrollY < 100 && groupedTeams.length > 0) {
+      if (document.body.scrollTop < 100 && groupedTeams.length > 0) {
         setActiveGroup(groupedTeams[0].stageGroup);
         return;
       }
+
+      // Calculate middle of viewport
+      const viewportMiddle = document.body.scrollTop + window.innerHeight / 2;
+
+      // Find which group is closest to the middle of viewport
+      let closestGroup = groupedTeams[0]?.stageGroup;
+      let closestDistance = Infinity;
 
       for (const group of groupedTeams) {
         const element = groupRefs.current.get(group.stageGroup);
         if (element) {
           const { offsetTop, offsetHeight } = element;
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-            setActiveGroup(group.stageGroup);
-            break;
+          const groupMiddle = offsetTop + offsetHeight / 2;
+          const distance = Math.abs(viewportMiddle - groupMiddle);
+
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestGroup = group.stageGroup;
           }
         }
+      }
+
+      if (closestGroup) {
+        setActiveGroup(closestGroup);
       }
     };
 

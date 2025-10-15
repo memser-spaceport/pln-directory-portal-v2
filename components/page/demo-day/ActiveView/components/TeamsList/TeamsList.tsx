@@ -280,6 +280,12 @@ export const TeamsList: React.FC = () => {
     const handleScroll = () => {
       const scrollPosition = document.body.scrollTop + 200; // Offset for header
 
+      // If scrolled to top, activate first group
+      if (window.scrollY < 100 && groupedTeams.length > 0) {
+        setActiveGroup(groupedTeams[0].stageGroup);
+        return;
+      }
+
       for (const group of groupedTeams) {
         const element = groupRefs.current.get(group.stageGroup);
         if (element) {

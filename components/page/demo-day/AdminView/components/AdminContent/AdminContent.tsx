@@ -30,17 +30,17 @@ export const AdminContent = ({ isDirectoryAdmin }: { isDirectoryAdmin: boolean }
             </div>
             <PageTitle size="small" />
           </div>
-
           <div className={s.stats}>
             <span>
-              <CalendarIcon /> {demoDayData?.date ? format(demoDayData.date, 'dd MMM yyyy, HH:mm') : ''}
+              <CalendarIcon />{' '}
+              {demoDayData?.date ? format(demoDayData.date, 'dd MMM yyyy, HH:mm', { timeZone: 'UTC' }) : ''}
+            </span>
+            &nbsp;&bull;&nbsp;
+            <span>
+              {demoDayData?.teamsCount} Team{(demoDayData?.teamsCount ?? 0) > 1 ? 's' : ''}
             </span>
             {demoDayData?.investorsCount && demoDayData?.investorsCount > 200 ? (
               <>
-                &nbsp;&bull;&nbsp;
-                <span>
-                  {profiles?.length} Team{(profiles?.length ?? 0) > 1 ? 's' : ''}
-                </span>
                 &nbsp;&bull;&nbsp;
                 <Link href={`/members?isInvestor=true`}>
                   {demoDayData?.investorsCount} Investor{(demoDayData?.investorsCount ?? 0) > 1 ? 's' : ''}

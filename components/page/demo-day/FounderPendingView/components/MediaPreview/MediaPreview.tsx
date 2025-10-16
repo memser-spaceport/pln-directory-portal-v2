@@ -9,6 +9,9 @@ import { formatFileSize } from '@/utils/file.utils';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
+import { VideoPlayer } from '@/components/common/VideoPlayer';
+import { VideoProgress } from '@/components/page/demo-day/FounderPendingView/components/MediaPreview/components/VideoProgress';
+
 const PdfViewer = dynamic(() => import('@/components/page/demo-day/FounderPendingView/components/PdfViewer/PdfViewer'));
 
 interface MediaPreviewProps {
@@ -177,6 +180,7 @@ export const MediaPreview = ({
               </svg>
             </div>
           </div>
+          <VideoProgress src={url} />
         </div>
       );
     } else if (isPDF(url)) {
@@ -204,7 +208,7 @@ export const MediaPreview = ({
 
   const renderModalContent = () => {
     if (type === 'video') {
-      return <video src={url} className={s.modalMedia} controls autoPlay />;
+      return <VideoPlayer autoplay src={url} />;
     } else if (isPDF(url)) {
       if (previewImageUrl) {
         return <img src={previewImageUrl} alt="Media" className={s.modalMedia} />;

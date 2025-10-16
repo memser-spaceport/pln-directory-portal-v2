@@ -28,19 +28,18 @@ export const AdminContent = ({ isDirectoryAdmin }: { isDirectoryAdmin: boolean }
             >
               [Demo Day Prep]
             </div>
-            <PageTitle size="small" />
+            <PageTitle size="small" showDate={false} />
           </div>
-
           <div className={s.stats}>
             <span>
-              <CalendarIcon /> {demoDayData?.date ? format(demoDayData.date, 'dd MMM yyyy, HH:mm') : ''}
+              <CalendarIcon /> {demoDayData?.date ? format(demoDayData.date, 'dd MMM yyyy, hh:mm (zzz)') : ''}
+            </span>
+            &nbsp;&bull;&nbsp;
+            <span>
+              {profiles?.length} Team{(profiles?.length ?? 0) > 1 ? 's' : ''}
             </span>
             {demoDayData?.investorsCount && demoDayData?.investorsCount > 200 ? (
               <>
-                &nbsp;&bull;&nbsp;
-                <span>
-                  {profiles?.length} Team{(profiles?.length ?? 0) > 1 ? 's' : ''}
-                </span>
                 &nbsp;&bull;&nbsp;
                 <Link href={`/members?isInvestor=true`}>
                   {demoDayData?.investorsCount} Investor{(demoDayData?.investorsCount ?? 0) > 1 ? 's' : ''}

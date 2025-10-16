@@ -176,7 +176,7 @@ const Gatherings = (props: IGatherings) => {
 
         {/* Host, speaker and sponsor details */}
 
-        {selectedGatherings.length > 0 && (
+        {(shouldShowAllGatherings ? selectedGatherings.length > 0 : selectedGatherings.filter((gathering: any) => filterUpcomingGatherings(gathering)).length > 0) && (
           <div>
             <ParticipationDetails
               isVerifiedMember={isVerifiedMember}

@@ -109,7 +109,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     }
   }, [formInitialValues]);
 
-  const onFormSubmitHandler = async (e: FormEvent, type: string) => {
+  const onFormSubmitHandler = async (e: FormEvent, type: string, from: string) => {
     e.preventDefault();
     try {
       if (type === 'Save') {
@@ -129,7 +129,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         return;
       }
 
-      const isUpdate = allGuests?.some((guest: any) => guest.memberUid === formInitialValues?.memberUid);
+      const isUpdate = guestGoingEvents?.length > 0;
       const formData = new FormData(attendeeFormRef.current);
       const formattedData = transformObject(Object.fromEntries(formData));
 
@@ -203,7 +203,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           selectedLocation.uid,
           formInitialValues?.memberUid,
           formattedData,
-          eventType,
+          from || eventType,
         );
         if (result?.error) {
           triggerLoader(false);
@@ -495,7 +495,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       {/* <RegisterFormLoader /> */}
       <form
         noValidate
-        onSubmit={(e) => onFormSubmitHandler(e, IAM_GOING_POPUP_MODES.EDIT ? 'Edit' : 'Save')}
+        onSubmit={(e) => onFormSubmitHandler(e, IAM_GOING_POPUP_MODES.EDIT ? 'Edit' : 'Save', from)}
         ref={attendeeFormRef}
         className="atndform"
       >
@@ -522,6 +522,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
               errors={errors}
               location={selectedLocation}
               eventType={eventType}
+              from={from}
             />
           </div>
           <div>

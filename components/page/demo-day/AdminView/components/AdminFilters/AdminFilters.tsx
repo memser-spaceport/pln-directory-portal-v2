@@ -50,7 +50,13 @@ export const AdminFilters = () => {
   const stageOptions = useMemo((): FilterOption[] => {
     if (!teams) return [];
 
-    const stageMap = new Map<string, { name: string; count: number; uids: string[] }>();
+    // Initialize all main stage groups with 0 count
+    const stageMap = new Map<string, { name: string; count: number; uids: string[] }>([
+      ['pre-seed', { name: 'Pre-seed', count: 0, uids: [] }],
+      ['seed', { name: 'Seed', count: 0, uids: [] }],
+      ['series', { name: 'Series A/B', count: 0, uids: [] }],
+      ['other', { name: 'Other', count: 0, uids: [] }],
+    ]);
 
     teams.forEach((team) => {
       if (!team.team || !team.team.fundingStage) return;
@@ -60,14 +66,11 @@ export const AdminFilters = () => {
 
       // Determine the group for this stage
       let groupKey: string;
-      let groupName: string;
 
       if (stageName.includes('pre-seed') || stageName.includes('preseed')) {
         groupKey = 'pre-seed';
-        groupName = 'Pre-seed';
       } else if (stageName.includes('seed') && !stageName.includes('pre')) {
         groupKey = 'seed';
-        groupName = 'Seed';
       } else if (
         stageName.includes('series a') ||
         stageName.includes('series b') ||
@@ -76,45 +79,60 @@ export const AdminFilters = () => {
         stageName.includes('series')
       ) {
         groupKey = 'series';
-        groupName = 'Series A/B';
       } else {
-        // For any other stages, keep them as individual options
-        groupKey = stage.uid;
-        groupName = stage.title;
+        // All other stages go to "Other" group
+        groupKey = 'other';
       }
 
+      // Update the stage map with count and UIDs
       const existing = stageMap.get(groupKey);
       if (existing) {
         existing.count += 1;
         if (!existing.uids.includes(stage.uid)) {
           existing.uids.push(stage.uid);
         }
-      } else {
-        stageMap.set(groupKey, { name: groupName, count: 1, uids: [stage.uid] });
       }
     });
 
-    // Convert to FilterOption format with grouped UIDs
+    // Convert to FilterOption format and filter out "Other" if count is 0
     return Array.from(stageMap.entries())
       .map(([key, { name, count, uids }]) => ({
-        id: uids.join(','), // Join multiple UIDs with comma for grouped options
+        id: uids.length > 0 ? uids.join(',') : key, // Use key if no UIDs (count is 0)
         name,
         count,
       }))
-      .sort((a, b) => {
-        // Custom sort order: Pre-seed, Seed, Series A/B, then others
-        const order = ['Pre-seed', 'Seed', 'Series A/B'];
-        const aIndex = order.indexOf(a.name);
-        const bIndex = order.indexOf(b.name);
-
-        if (aIndex !== -1 && bIndex !== -1) {
-          return aIndex - bIndex;
+      .filter((option) => {
+        // Hide "Other" group if it has no teams
+        if (option.name === 'Other') {
+          return false;
         }
-        if (aIndex !== -1) return -1;
-        if (bIndex !== -1) return 1;
-
-        return b.count - a.count; // For others, sort by count
+        return true;
       });
+  }, [teams]);
+
+  // Build activity options (liked, connected, invested)
+  const activityOptions = useMemo((): FilterOption[] => {
+    if (!teams) return [];
+
+    const likedCount = teams.filter((team) => team.liked).length;
+    const connectedCount = teams.filter((team) => team.connected).length;
+    const investedCount = teams.filter((team) => team.invested).length;
+
+    const options: FilterOption[] = [];
+
+    if (likedCount > 0) {
+      options.push({ id: 'liked', name: 'Liked', count: likedCount });
+    }
+
+    if (connectedCount > 0) {
+      options.push({ id: 'connected', name: 'Connected', count: connectedCount });
+    }
+
+    if (investedCount > 0) {
+      options.push({ id: 'invested', name: 'Invested', count: investedCount });
+    }
+
+    return options;
   }, [teams]);
 
   return (
@@ -131,6 +149,19 @@ export const AdminFilters = () => {
 
       {/* Body */}
       <div className={s.body}>
+        {activityOptions.length > 0 && (
+          <FilterSection title="My Activity">
+            <FilterList
+              options={activityOptions}
+              paramName="activity"
+              showAllLabel=""
+              placeholder=""
+              emptyMessage=""
+              hideSearch
+            />
+          </FilterSection>
+        )}
+
         <FilterSection title="Team Search">
           <FilterSearch placeholder="Search for a team" />
         </FilterSection>
@@ -142,6 +173,7 @@ export const AdminFilters = () => {
             showAllLabel="Show All Industries"
             placeholder="E.g. AI, DePIN, Web3, etc."
             emptyMessage={teamsLoading ? 'Loading industries...' : 'No industries found'}
+            initialDisplayCount={3}
           />
         </FilterSection>
 

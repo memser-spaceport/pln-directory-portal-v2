@@ -11,6 +11,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
@@ -38,6 +39,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   const expressInterest = useExpressInterest(team.team?.name);
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const canEdit = isAdmin || team.founders.some((founder) => founder.uid === userInfo?.uid);
+  const isPrepDemoDay = useIsPrepDemoDay();
 
   // Analytics helper function for team details
   const getTeamAnalyticsData = () => ({
@@ -136,7 +138,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     expressInterest.mutate({
       teamFundraisingProfileUid: team.uid,
       interestType: interestType,
-      // isPrepDemoDay,
+      isPrepDemoDay,
     });
   };
 
@@ -167,7 +169,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         <button
           className={s.secondaryButton}
           onClick={(e) => handleInterestCompanyClick(e, 'like')}
-          disabled={expressInterest.isPending || !team.uid || team.liked}
+          disabled={expressInterest.isPending || !team.uid}
         >
           {team.liked ? (
             <>
@@ -183,7 +185,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         <button
           className={s.secondaryButton}
           onClick={(e) => handleInterestCompanyClick(e, 'connect')}
-          disabled={expressInterest.isPending || !team.uid || team.connected}
+          disabled={expressInterest.isPending || !team.uid}
         >
           {team.connected ? (
             <>
@@ -197,7 +199,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         <button
           className={s.primaryButton}
           onClick={(e) => handleInterestCompanyClick(e, 'invest')}
-          disabled={expressInterest.isPending || !team.uid || team.invested}
+          disabled={expressInterest.isPending || !team.uid}
         >
           {team.invested ? (
             <>

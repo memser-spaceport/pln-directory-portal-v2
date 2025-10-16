@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 import { Menu } from '@base-ui-components/react/menu';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
@@ -6,6 +6,7 @@ import { useFilterStore } from '@/services/members/store';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { TeamProfileCard } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamProfileCard';
 import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamDetailsDrawer';
+import { TeamsListLoading, TeamsListError } from '@/components/page/demo-day/shared/TeamsListStates';
 import s from '@/components/page/demo-day/ActiveView/components/TeamsList/TeamsList.module.scss';
 import { getParsedValue } from '@/utils/common.utils';
 import { IUserInfo } from '@/types/shared.types';
@@ -90,7 +91,9 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
   const [sortBy, setSortBy] = useState<string>('stage-asc');
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [activeGroup, setActiveGroup] = useState<string>('');
   const scrollPositionRef = useRef<number>(0);
+  const groupRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { params } = useFilterStore();
 
   // Get current user info
@@ -115,6 +118,11 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
   const selectedStages = useMemo(() => {
     const stageParam = params.get('stage');
     return stageParam ? stageParam.split(URL_QUERY_VALUE_SEPARATOR) : [];
+  }, [params]);
+
+  const selectedActivities = useMemo(() => {
+    const activityParam = params.get('activity');
+    return activityParam ? activityParam.split(URL_QUERY_VALUE_SEPARATOR) : [];
   }, [params]);
 
   // Filter and sort teams based on current filter parameters
@@ -146,6 +154,19 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
       if (selectedStages.length > 0) {
         const teamStageUid = profile.team?.fundingStage?.uid;
         if (!selectedStages.includes(teamStageUid)) {
+          return false;
+        }
+      }
+
+      // Activity filter (liked, connected, invested)
+      if (selectedActivities.length > 0) {
+        const matchesActivity = selectedActivities.some((activity) => {
+          if (activity === 'liked') return profile.liked;
+          if (activity === 'connected') return profile.connected;
+          if (activity === 'invested') return profile.invested;
+          return false;
+        });
+        if (!matchesActivity) {
           return false;
         }
       }
@@ -196,13 +217,54 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
 
     // Combine: user teams first, then other teams
     return [...sortedUserTeams, ...sortedOtherTeams];
-  }, [profiles, sortBy, searchTerm, selectedIndustries, selectedStages, userInfo]);
+  }, [profiles, sortBy, searchTerm, selectedIndustries, selectedStages, selectedActivities, userInfo]);
 
   const selectedSortOption = SORT_OPTIONS.find((option) => option.value === sortBy);
   const totalTeamsCount = profiles?.length || 0;
   const filteredTeamsCount = filteredAndSortedTeams.length;
 
-  // Group teams by stage for rendering with headers
+  // Helper function to get label for stage group
+  const getStageGroupLabel = (stageGroup: string): string => {
+    switch (stageGroup) {
+      case 'pre-seed':
+        return 'Pre-seed';
+      case 'seed':
+        return 'Seed';
+      case 'series':
+        return 'Series A/B';
+      case 'other':
+        return 'Other';
+      default:
+        return '';
+    }
+  };
+
+  // All groups with counts (for header badges) - always show all groups except 'other' if empty
+  const allGroupsWithCounts = useMemo(() => {
+    const stageOrder = sortBy === 'stage-desc' ? STAGE_GROUP_ORDER_DESC : STAGE_GROUP_ORDER_ASC;
+
+    return stageOrder
+      .map((stageGroup) => {
+        const teamsInGroup = filteredAndSortedTeams.filter(
+          (team) => getStageGroup(team.team?.fundingStage?.title || '') === stageGroup,
+        );
+
+        return {
+          stageGroup,
+          label: getStageGroupLabel(stageGroup),
+          count: teamsInGroup.length,
+        };
+      })
+      .filter((group) => {
+        // Hide 'other' group if it has no teams
+        if (group.stageGroup === 'other' && group.count === 0) {
+          return false;
+        }
+        return true;
+      });
+  }, [filteredAndSortedTeams, sortBy]);
+
+  // Group teams by stage for rendering with headers (only groups with teams)
   const groupedTeams = useMemo(() => {
     const groups: { stageGroup: string; label: string; teams: TeamProfile[] }[] = [];
     const stageOrder = sortBy === 'stage-desc' ? STAGE_GROUP_ORDER_DESC : STAGE_GROUP_ORDER_ASC;
@@ -213,23 +275,11 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
       );
 
       if (teamsInGroup.length > 0) {
-        let label = '';
-        switch (stageGroup) {
-          case 'pre-seed':
-            label = 'Pre-seed';
-            break;
-          case 'seed':
-            label = 'Seed';
-            break;
-          case 'series':
-            label = 'Series A/B';
-            break;
-          case 'other':
-            label = 'Other';
-            break;
-        }
-
-        groups.push({ stageGroup, label, teams: teamsInGroup });
+        groups.push({
+          stageGroup,
+          label: getStageGroupLabel(stageGroup),
+          teams: teamsInGroup,
+        });
       }
     });
 
@@ -241,7 +291,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
   };
 
   const handleTeamClick = (team: TeamProfile) => {
-    scrollPositionRef.current = window.scrollY;
+    scrollPositionRef.current = document.body.scrollTop;
     setSelectedTeam(team);
     setIsDrawerOpen(true);
   };
@@ -251,29 +301,79 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     setSelectedTeam(null);
   };
 
+  // Scroll to specific group (group top at middle of viewport)
+  const scrollToGroup = (stageGroup: string) => {
+    const element = groupRefs.current.get(stageGroup);
+    if (element) {
+      const elementPosition = element.offsetTop;
+      const viewportHeight = window.innerHeight;
+
+      // Calculate position to place group top at middle of viewport
+      const offsetPosition = elementPosition - (viewportHeight / 2);
+
+      document.body.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  // Track which group enters the viewport from bottom
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = document.body.scrollTop;
+      const viewportBottom = scrollTop + window.innerHeight;
+
+      // Find the last group that has entered the viewport (from bottom)
+      let lastVisibleGroup = null;
+
+      for (const group of groupedTeams) {
+        const element = groupRefs.current.get(group.stageGroup);
+        if (element) {
+          const { offsetTop } = element;
+          const groupTop = offsetTop;
+
+          // Check if group top has entered the viewport
+          if (groupTop < viewportBottom) {
+            lastVisibleGroup = group.stageGroup;
+          }
+        }
+      }
+
+      if (lastVisibleGroup) {
+        setActiveGroup(lastVisibleGroup);
+      } else if (allGroupsWithCounts.length > 0) {
+        // Fallback to first group if none have entered
+        setActiveGroup(allGroupsWithCounts[0].stageGroup);
+      }
+    };
+
+    document.body.addEventListener('scroll', handleScroll);
+    handleScroll(); // Set initial active group
+
+    return () => document.body.removeEventListener('scroll', handleScroll);
+  }, [groupedTeams, allGroupsWithCounts]);
+
   if (isLoading) {
-    return (
-      <div className={s.container}>
-        <div className={s.header}>
-          <h2 className={s.title}>All Teams</h2>
-          <div className={s.headerRight}>
-            <span className={s.counter}>Loading...</span>
-          </div>
-        </div>
-        <div className={s.loading}>Loading teams...</div>
-      </div>
-    );
+    return <TeamsListLoading title="All Teams" />;
   }
 
   return (
     <div className={s.container}>
       <div className={s.header}>
         <div className={s.headerLeft}>
-          <h2 className={s.title}>All Teams</h2>
-          <span className={s.counter}>
-            ({filteredTeamsCount}
-            {totalTeamsCount !== filteredTeamsCount ? ` of ${totalTeamsCount}` : ''})
-          </span>
+          {allGroupsWithCounts.map((group) => (
+            <button
+              key={group.stageGroup}
+              className={clsx(s.groupBadge, {
+                [s.active]: activeGroup === group.stageGroup,
+              })}
+              onClick={() => scrollToGroup(group.stageGroup)}
+            >
+              <span className={s.groupLabel}>{group.label}</span>
+              <span className={s.groupCount}>{group.count}</span>
+            </button>
+          ))}
         </div>
 
         <div className={s.headerRight}>
@@ -318,8 +418,16 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
 
       <div className={s.teamsList}>
         {groupedTeams.map((group, groupIndex) => (
-          <div key={group.stageGroup} className={s.stageGroup}>
-            {/*<h3 className={s.stageGroupHeader}>{group.label}</h3>*/}
+          <div
+            key={group.stageGroup}
+            className={s.stageGroup}
+            ref={(el) => {
+              if (el) {
+                groupRefs.current.set(group.stageGroup, el);
+              }
+            }}
+          >
+            <h3 className={s.stageGroupHeader}>{group.label}</h3>
             {group.teams.map((profile) => (
               <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={isDirectoryAdmin} />
             ))}

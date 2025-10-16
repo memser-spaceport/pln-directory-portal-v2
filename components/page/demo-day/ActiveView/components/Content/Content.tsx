@@ -14,19 +14,33 @@ export const Content = () => {
       <div className={s.eventHeader}>
         <div className={s.content}>
           <div className={s.headline}>
-            <PageTitle size="small" />
+            {data?.isEarlyAccess && (
+              <div
+                style={{
+                  margin: 'auto',
+                  marginBottom: '12px',
+                  fontSize: '24px',
+                  color: '#798391',
+                  fontWeight: 600,
+                  textAlign: 'center',
+                }}
+              >
+                [Early Access]
+              </div>
+            )}
+            <PageTitle size="small" showDate={false} />
           </div>
 
           <div className={s.stats}>
             <span>
-              <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, HH:mm') : ''}
+              <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, hh:mm (zzz)') : ''}
+            </span>
+            &nbsp;&bull;&nbsp;
+            <span>
+              {data?.teamsCount} Team{(data?.teamsCount ?? 0) > 1 ? 's' : ''}
             </span>
             {data?.investorsCount && data?.investorsCount > 200 ? (
               <>
-                &nbsp;&bull;&nbsp;
-                <span>
-                  {data?.teamsCount} Team{(data?.teamsCount ?? 0) > 1 ? 's' : ''}
-                </span>
                 &nbsp;&bull;&nbsp;
                 <Link href={`/members?isInvestor=true`}>
                   {data?.investorsCount} Investor{(data?.investorsCount ?? 0) > 1 ? 's' : ''}

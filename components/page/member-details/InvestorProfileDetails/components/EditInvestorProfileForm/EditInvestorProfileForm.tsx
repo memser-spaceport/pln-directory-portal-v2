@@ -292,7 +292,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
       } else if (fundTeam) {
         await updateTeamInvestorProfileMutation.mutateAsync({
           teamUid: fundTeam?.id,
-          payload: { investmentTeam: false },
+          payload: { investmentTeam: false, memberUid: member.id },
         });
       }
 

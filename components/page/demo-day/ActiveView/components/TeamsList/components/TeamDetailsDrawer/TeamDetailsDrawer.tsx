@@ -253,7 +253,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
   if (isOwnTeam || isAdmin) {
     const editData = isAdmin && !isOwnTeam ? (team as any) : data;
-    return <EditProfileDrawer isOpen={isOpen} onClose={onClose} scrollPosition={0} data={editData} />;
+    return <EditProfileDrawer isOpen={isOpen} onClose={onClose} scrollPosition={0} data={editData} team={team} />;
   }
 
   return (

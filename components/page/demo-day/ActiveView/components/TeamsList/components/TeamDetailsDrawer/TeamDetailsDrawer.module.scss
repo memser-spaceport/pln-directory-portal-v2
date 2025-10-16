@@ -382,6 +382,11 @@
     padding: 6px 10px;
     font-size: 13px;
   }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
 }
 
 .primaryButton {
@@ -419,5 +424,10 @@
   @include media.mobile-only {
     padding: 6px 10px;
     font-size: 13px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
   }
 }

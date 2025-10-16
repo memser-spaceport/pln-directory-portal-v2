@@ -2,11 +2,8 @@
 
 import React, { useState } from 'react';
 import { clsx } from 'clsx';
-import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
-import { EditInvestorProfileForm } from '@/components/page/member-details/InvestorProfileDetails/components/EditInvestorProfileForm';
-import { InvestorProfileView } from '@/components/page/member-details/InvestorProfileDetails/components/InvestorProfileView';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './PitchDeckDetails.module.scss';
@@ -48,7 +45,12 @@ export const PitchDeckDetails = ({ isLoggedIn, userInfo, team }: Props) => {
       {editView ? (
         <EditPitchDeckForm onClose={() => setEditView(false)} team={team} userInfo={userInfo} />
       ) : (
-        <PitchDeckView team={team} isLoggedIn={isLoggedIn} userInfo={userInfo} isEditable={isEditable} showIncomplete={showIncomplete} onEdit={() => setEditView(true)} />
+        <PitchDeckView
+          isLoggedIn={isLoggedIn}
+          isEditable={isEditable}
+          showIncomplete={showIncomplete}
+          onEdit={() => setEditView(true)}
+        />
       )}
     </div>
   );

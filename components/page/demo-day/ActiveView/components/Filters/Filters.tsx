@@ -80,18 +80,6 @@ export const Filters = () => {
         // All other stages go to "Other" group
         groupKey = 'other';
       }
-
-      if (isOther) {
-        const existing = otherStages.get(groupKey);
-        if (existing) {
-          existing.count += 1;
-          if (!existing.uids.includes(stage.uid)) {
-            existing.uids.push(stage.uid);
-          }
-        } else {
-          otherStages.set(groupKey, { name: groupName, count: 1, uids: [stage.uid] });
-        }
-      }
     });
 
     // Convert to FilterOption format and filter out "Other" if count is 0

@@ -77,7 +77,7 @@ export function VerifyEmailModal({ content, handleModalClose, dialogRef }: IVeri
                     rel="noopener noreferrer"
                     onClick={handleRequestInviteClick}
                   >
-                    Request to Join
+                    Register
                   </a>
                 </div>
               ) : (

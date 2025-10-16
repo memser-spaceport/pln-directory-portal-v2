@@ -12,7 +12,7 @@ interface UploadOnePagerResponse {
 interface UploadOnePagerParams {
   file: File;
   teamUid?: string; // Optional team UID for admin uploads
-  onProgress?: (progress: number) => void; // Progress callback
+  onProgress?: (progress: number, status?: string) => void; // Progress callback with optional status
 }
 
 async function uploadOnePager(params: UploadOnePagerParams): Promise<UploadOnePagerResponse> {
@@ -29,7 +29,7 @@ async function uploadOnePager(params: UploadOnePagerParams): Promise<UploadOnePa
 
     // Step 2: Upload to S3 directly
     await uploadToS3(file, presignedUrl, file.type, (progress) => {
-      onProgress?.(progress);
+      onProgress?.(progress, 'Uploading');
     });
 
     // Step 3: Confirm upload completion
@@ -41,8 +41,10 @@ async function uploadOnePager(params: UploadOnePagerParams): Promise<UploadOnePa
     // Step 4: Generate and upload preview image for PDFs
     try {
       if (file.type === 'application/pdf') {
-        console.log('generatePdfPreview');
-        const previewImage = await generatePdfPreview(file, 1.0, 0.8);
+        // Signal that we're starting the processing phase
+        onProgress?.(100, 'Processing');
+
+        const previewImage = await generatePdfPreview(file, 8.0, 'png', 1);
 
         await uploadOnePagerPreview({
           previewImage,

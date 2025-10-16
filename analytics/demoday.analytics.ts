@@ -20,8 +20,8 @@ export const useDemoDayAnalytics = () => {
     }
   };
 
-  function onInvestorPendingViewPageOpened() {
-    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PENDING_VIEW_PAGE_OPENED);
+  function onInvestorPendingViewPageOpened(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PENDING_VIEW_PAGE_OPENED, eventParams);
   }
 
   function onInvestorPendingViewGoToInvestorProfileButtonClicked() {
@@ -32,8 +32,8 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PENDING_VIEW_ADD_TO_CALENDAR_BUTTON_CLICKED);
   }
 
-  function onInvestorProfilePageOpened() {
-    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_PAGE_OPENED);
+  function onInvestorProfilePageOpened(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_PAGE_OPENED, eventParams);
   }
 
   function onInvestorProfileEditStarted() {
@@ -44,8 +44,8 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_UPDATED);
   }
 
-  function onFounderPendingViewPageOpened() {
-    captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_PENDING_VIEW_PAGE_OPENED);
+  function onFounderPendingViewPageOpened(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_PENDING_VIEW_PAGE_OPENED, eventParams);
   }
 
   function onFounderTeamFundraisingCardClicked() {
@@ -84,8 +84,8 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_VIEWED, eventParams);
   }
 
-  function onActiveViewPageOpened() {
-    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_PAGE_OPENED);
+  function onActiveViewPageOpened(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_PAGE_OPENED, eventParams);
   }
 
   function onActiveViewTimeOnPage(eventParams = {}) {
@@ -120,8 +120,8 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED, eventParams);
   }
 
-  function onLandingPageOpened() {
-    captureEvent(DEMO_DAY_ANALYTICS.ON_LANDING_PAGE_OPENED);
+  function onLandingPageOpened(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_LANDING_PAGE_OPENED, eventParams);
   }
 
   function onLandingLoginButtonClicked() {

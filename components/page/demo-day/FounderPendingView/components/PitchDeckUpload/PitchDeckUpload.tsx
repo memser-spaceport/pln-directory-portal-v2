@@ -123,6 +123,7 @@ interface PitchDeckUploadProps {
 interface UploadState {
   file: File | null;
   progress: number;
+  status: string;
   isUploading: boolean;
   isComplete: boolean;
   error: string | null;
@@ -132,6 +133,7 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
   const [uploadState, setUploadState] = useState<UploadState>({
     file: null,
     progress: 0,
+    status: '',
     isUploading: false,
     isComplete: false,
     error: null,
@@ -192,6 +194,7 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
       setUploadState({
         file,
         progress: 0,
+        status: 'Uploading',
         isUploading: true,
         isComplete: false,
         error: null,
@@ -202,10 +205,11 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
         {
           file,
           teamUid,
-          onProgress: (progress) => {
+          onProgress: (progress, status) => {
             setUploadState((prev) => ({
               ...prev,
               progress,
+              status: status || 'Uploading',
             }));
           },
         },
@@ -227,6 +231,7 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
               isUploading: false,
               isComplete: true,
               progress: 100,
+              status: '',
             }));
           },
           onError: (error) => {
@@ -243,6 +248,7 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
               ...prev,
               isUploading: false,
               error: errorMessage,
+              status: '',
             }));
           },
         },
@@ -273,6 +279,7 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
     setUploadState((prev) => ({
       ...prev,
       error: errorMessage,
+      status: '',
     }));
   }, []);
 
@@ -295,13 +302,15 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
           <div className={s.filePreview}>
             <div className={s.fileIcon}>{uploadState.file ? getFileIcon(uploadState.file.type) : <PDFIcon />}</div>
             <div className={s.fileInfo}>
-              <div className={s.fileName}>{formatWalletAddress(uploadState.file?.name) || 'Uploading...'}</div>
+              <div className={s.fileName}>
+                {formatWalletAddress(uploadState.file?.name) || `${uploadState.status}...`}
+              </div>
               <div className={s.fileDetails}>
                 <span className={s.fileSize}>{uploadState.file ? formatFileSize(uploadState.file.size) : ''}</span>
                 <DotIcon />
                 <div className={s.uploadStatus}>
                   <SpinnerIcon />
-                  <span>Uploading</span>
+                  <span>{uploadState.status}</span>
                 </div>
               </div>
             </div>
@@ -331,6 +340,7 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
                 setUploadState({
                   file: null,
                   progress: 0,
+                  status: '',
                   isUploading: false,
                   isComplete: false,
                   error: null,
@@ -378,6 +388,7 @@ export const PitchDeckUpload = ({ existingFile, analyticsHandlers, teamUid }: Pi
       setUploadState({
         file: null,
         progress: 0,
+        status: '',
         isUploading: false,
         isComplete: false,
         error: null,

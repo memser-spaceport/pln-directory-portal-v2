@@ -38,7 +38,7 @@ export function usePersistWatchProgress(input: Input) {
     };
 
     player.on('timeupdate', () => {
-      if (Math.floor(getTime(player) || 0) % 5 === 0) {
+      if (Math.floor(getTime(player) || 0) % 2 === 0) {
         saveProgress();
       }
     });

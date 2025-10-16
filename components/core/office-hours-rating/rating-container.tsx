@@ -151,7 +151,7 @@ const RatingContainer = (props: IRatingContainer) => {
             currentFollowup={currentFollowup}
           />
         )}
-        {currentStep === OFFICE_HOURS_STEPS.NOT_HAPPENED.name && (
+        {/* {currentStep === OFFICE_HOURS_STEPS.NOT_HAPPENED.name && (
           <NotHappened
             authToken={authToken}
             userInfo={userInfo}
@@ -167,7 +167,7 @@ const RatingContainer = (props: IRatingContainer) => {
             currentFollowup={currentFollowup}
             onClose={onCloseClickHandler}
           />
-        )}
+        )} */}
       </Modal>
     </>
   );

@@ -242,47 +242,10 @@
   grid-area: icon;
 }
 
-.incompleteStrip {
-  display: flex;
-  padding: 8px 16px;
-  justify-content: center;
-  gap: 4px;
-  align-items: flex-start;
-  align-self: stretch;
-  border-radius: 8px 8px 0 0;
-  background: var(--background-brand-soft-surface, #f2f5ff);
-
-  color: var(--foreground-brand-primary, #1b4dff);
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 20px; /* 166.667% */
-  letter-spacing: 0.12px;
-}
-
 .incompleteStripAlert {
-  display: flex;
-  padding: 8px 16px;
-  justify-content: center;
-  gap: 4px;
-  align-items: flex-start;
-  align-self: stretch;
-  border-radius: 8px;
   background: linear-gradient(0deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%), #fff;
 
   color: var(--foreground-warning-primary, #b45309);
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 20px; /* 166.667% */
-  letter-spacing: 0.12px;
-
-  span {
-    @include mixins.centralize;
-    display: inline-flex;
-    width: 18px;
-    height: 18px;
-  }
 }
 
 .keywordsLabel {
@@ -318,21 +281,11 @@
 }
 
 .alertMessageText {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
   color: var(--foreground-warning-secondary, #d97706);
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 20px; /* 166.667% */
-  letter-spacing: 0.12px;
 }
 
 .warningMessageText {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  color: var(--foreground-brand-primary, #1b4dff);
 }
 
 .addKeywordsBadge {

@@ -80,6 +80,15 @@ export const Filters = () => {
         // All other stages go to "Other" group
         groupKey = 'other';
       }
+
+      // Update the stage map with count and UIDs
+      const existing = stageMap.get(groupKey);
+      if (existing) {
+        existing.count += 1;
+        if (!existing.uids.includes(stage.uid)) {
+          existing.uids.push(stage.uid);
+        }
+      }
     });
 
     // Convert to FilterOption format and filter out "Other" if count is 0

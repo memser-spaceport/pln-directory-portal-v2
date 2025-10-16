@@ -301,13 +301,15 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     setSelectedTeam(null);
   };
 
-  // Scroll to specific group
+  // Scroll to specific group (group top at middle of viewport)
   const scrollToGroup = (stageGroup: string) => {
     const element = groupRefs.current.get(stageGroup);
     if (element) {
-      const headerOffset = 120; // Offset for sticky header
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + document.body.scrollTop - headerOffset;
+      const elementPosition = element.offsetTop;
+      const viewportHeight = window.innerHeight;
+
+      // Calculate position to place group top at middle of viewport
+      const offsetPosition = elementPosition - (viewportHeight / 2);
 
       document.body.scrollTo({
         top: offsetPosition,
@@ -316,38 +318,33 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
     }
   };
 
-  // Track which group is currently visible in the middle of viewport
+  // Track which group enters the viewport from bottom
   useEffect(() => {
     const handleScroll = () => {
-      // If scrolled to top, activate first group
-      if (document.body.scrollTop < 100 && allGroupsWithCounts.length > 0) {
-        setActiveGroup(allGroupsWithCounts[0].stageGroup);
-        return;
-      }
+      const scrollTop = document.body.scrollTop;
+      const viewportBottom = scrollTop + window.innerHeight;
 
-      // Calculate middle of viewport
-      const viewportMiddle = document.body.scrollTop + window.innerHeight / 2;
-
-      // Find which group is closest to the middle of viewport (only from rendered groups)
-      let closestGroup = groupedTeams[0]?.stageGroup || allGroupsWithCounts[0]?.stageGroup;
-      let closestDistance = Infinity;
+      // Find the last group that has entered the viewport (from bottom)
+      let lastVisibleGroup = null;
 
       for (const group of groupedTeams) {
         const element = groupRefs.current.get(group.stageGroup);
         if (element) {
-          const { offsetTop, offsetHeight } = element;
-          const groupMiddle = offsetTop + offsetHeight / 2;
-          const distance = Math.abs(viewportMiddle - groupMiddle);
+          const { offsetTop } = element;
+          const groupTop = offsetTop;
 
-          if (distance < closestDistance) {
-            closestDistance = distance;
-            closestGroup = group.stageGroup;
+          // Check if group top has entered the viewport
+          if (groupTop < viewportBottom) {
+            lastVisibleGroup = group.stageGroup;
           }
         }
       }
 
-      if (closestGroup) {
-        setActiveGroup(closestGroup);
+      if (lastVisibleGroup) {
+        setActiveGroup(lastVisibleGroup);
+      } else if (allGroupsWithCounts.length > 0) {
+        // Fallback to first group if none have entered
+        setActiveGroup(allGroupsWithCounts[0].stageGroup);
       }
     };
 

@@ -52,9 +52,8 @@ export const Filters = () => {
       ['pre-seed', { name: 'Pre-seed', count: 0, uids: [] }],
       ['seed', { name: 'Seed', count: 0, uids: [] }],
       ['series', { name: 'Series A/B', count: 0, uids: [] }],
+      ['other', { name: 'Other', count: 0, uids: [] }],
     ]);
-
-    const otherStages = new Map<string, { name: string; count: number; uids: string[] }>();
 
     teams.forEach((team) => {
       if (!team.team || !team.team.fundingStage) return;
@@ -64,15 +63,11 @@ export const Filters = () => {
 
       // Determine the group for this stage
       let groupKey: string;
-      let groupName: string;
-      let isOther = false;
 
       if (stageName.includes('pre-seed') || stageName.includes('preseed')) {
         groupKey = 'pre-seed';
-        groupName = 'Pre-seed';
       } else if (stageName.includes('seed') && !stageName.includes('pre')) {
         groupKey = 'seed';
-        groupName = 'Seed';
       } else if (
         stageName.includes('series a') ||
         stageName.includes('series b') ||
@@ -81,53 +76,34 @@ export const Filters = () => {
         stageName.includes('series')
       ) {
         groupKey = 'series';
-        groupName = 'Series A/B';
       } else {
-        // For any other stages, keep them as individual options
-        groupKey = stage.uid;
-        groupName = stage.title;
-        isOther = true;
+        // All other stages go to "Other" group
+        groupKey = 'other';
       }
 
-      if (isOther) {
-        const existing = otherStages.get(groupKey);
-        if (existing) {
-          existing.count += 1;
-          if (!existing.uids.includes(stage.uid)) {
-            existing.uids.push(stage.uid);
-          }
-        } else {
-          otherStages.set(groupKey, { name: groupName, count: 1, uids: [stage.uid] });
-        }
-      } else {
-        const existing = stageMap.get(groupKey);
-        if (existing) {
-          existing.count += 1;
-          if (!existing.uids.includes(stage.uid)) {
-            existing.uids.push(stage.uid);
-          }
+      const existing = stageMap.get(groupKey);
+      if (existing) {
+        existing.count += 1;
+        if (!existing.uids.includes(stage.uid)) {
+          existing.uids.push(stage.uid);
         }
       }
     });
 
-    // Convert main stages to FilterOption format
-    const mainStages = Array.from(stageMap.entries()).map(([key, { name, count, uids }]) => ({
-      id: uids.length > 0 ? uids.join(',') : key, // Use key if no UIDs (count is 0)
-      name,
-      count,
-    }));
-
-    // Convert other stages to FilterOption format (only if they exist)
-    const otherStageOptions = Array.from(otherStages.entries())
+    // Convert to FilterOption format and filter out "Other" if count is 0
+    return Array.from(stageMap.entries())
       .map(([key, { name, count, uids }]) => ({
-        id: uids.join(','),
+        id: uids.length > 0 ? uids.join(',') : key, // Use key if no UIDs (count is 0)
         name,
         count,
       }))
-      .sort((a, b) => b.count - a.count);
-
-    // Combine main stages with other stages
-    return [...mainStages, ...otherStageOptions];
+      .filter((option) => {
+        // Hide "Other" group if it has no teams
+        if (option.name === 'Other' && option.count === 0) {
+          return false;
+        }
+        return true;
+      });
   }, [teams]);
 
   // Build activity options (liked, connected, invested)

@@ -35,6 +35,9 @@ export function VideoPlayer(props: VideoPlayerProps) {
         },
       ],
       poster,
+      controlBar: {
+        pictureInPictureToggle: false,
+      },
     });
 
     setPlayer(player);
@@ -54,7 +57,12 @@ export function VideoPlayer(props: VideoPlayerProps) {
         paddingTop: 0,
       }}
     >
-      <video autoPlay={autoplay} ref={setVideoEl} className="video-js vjs-big-play-centered vjs-theme-city vjs-fluid" />
+      <video
+        ref={setVideoEl}
+        autoPlay={autoplay}
+        disablePictureInPicture
+        className="video-js vjs-big-play-centered vjs-theme-city vjs-fluid"
+      />
     </div>
   );
 }

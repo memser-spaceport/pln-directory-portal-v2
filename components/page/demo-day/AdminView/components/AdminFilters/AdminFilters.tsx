@@ -103,7 +103,7 @@ export const AdminFilters = () => {
       }))
       .filter((option) => {
         // Hide "Other" group if it has no teams
-        if (option.name === 'Other' && option.count === 0) {
+        if (option.name === 'Other') {
           return false;
         }
         return true;

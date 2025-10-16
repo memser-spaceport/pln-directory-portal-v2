@@ -119,20 +119,22 @@ export const FormTagsInput = ({
             }}
           />
         </div>
-        <button
-          type="button"
-          className={s.addButton}
-          onClick={() => {
-            if (inputText.trim() === '') {
-              return;
-            }
+        {inputText.trim() !== '' && (
+          <button
+            type="button"
+            className={s.addButton}
+            onClick={() => {
+              if (inputText.trim() === '') {
+                return;
+              }
 
-            setValue(name, [...val, inputText], { shouldValidate: true, shouldDirty: true });
-            setInputText('');
-          }}
-        >
-          <PlusIcon />
-        </button>
+              setValue(name, [...val, inputText], { shouldValidate: true, shouldDirty: true });
+              setInputText('');
+            }}
+          >
+            <PlusIcon />
+          </button>
+        )}
       </div>
       <div className={s.sub}>
         <div>{errors[name] && <div className={s.errorMsg}>{(errors?.[name]?.message as string) ?? ''}</div>}</div>

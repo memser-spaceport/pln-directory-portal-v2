@@ -19,6 +19,7 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
 import Image from 'next/image';
 import { Drawer } from '@/components/common/Drawer';
+import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -77,6 +78,7 @@ interface EditProfileDrawerProps {
   scrollPosition: number;
   data?: FundraisingProfile;
   hideActions?: boolean;
+  team?: TeamProfile | null;
 }
 
 export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
@@ -85,6 +87,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   scrollPosition,
   data,
   hideActions,
+  team,
 }) => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
@@ -588,7 +591,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             }
             disabled={expressInterest.isPending || !data?.uid}
           >
-            {data?.liked ? (
+            {team?.liked ? (
               <>
                 <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Liked Company
                 <CheckIcon />
@@ -610,7 +613,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             }
             disabled={expressInterest.isPending || !data?.uid}
           >
-            {data?.connected ? (
+            {team?.connected ? (
               <>
                 🤝 Connected with Company
                 <CheckIcon />
@@ -630,7 +633,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             }
             disabled={expressInterest.isPending || !data?.uid}
           >
-            {data?.invested ? (
+            {team?.invested ? (
               <>
                 💰 Invested in Company
                 <CheckIcon />

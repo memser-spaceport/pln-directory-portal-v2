@@ -223,11 +223,10 @@ export const TeamsList: React.FC = () => {
 
     // Combine: user teams first, then other teams
     return [...sortedUserTeams, ...sortedOtherTeams];
-  }, [teams, sortBy, searchTerm, selectedIndustries, selectedStages, selectedActivities, userInfo]);
+  }, [teams, searchTerm, selectedIndustries, selectedStages, selectedActivities, isUserFounder, sortBy]);
 
   const selectedSortOption = SORT_OPTIONS.find((option) => option.value === sortBy);
   const totalTeamsCount = teams?.length || 0;
-  const filteredTeamsCount = filteredAndSortedTeams.length;
 
   // Helper function to get label for stage group
   const getStageGroupLabel = (stageGroup: string): string => {
@@ -308,6 +307,19 @@ export const TeamsList: React.FC = () => {
     setSelectedTeam(null);
   };
 
+  // Update selectedTeam when teams data changes
+  useEffect(() => {
+    if (selectedTeam && teams) {
+      // Find the updated team data by uid
+      const updatedTeam = teams.find((team) => team.uid === selectedTeam.uid);
+      if (updatedTeam) {
+        // Update selectedTeam with the new data
+        setSelectedTeam(updatedTeam);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teams, selectedTeam?.uid]);
+
   // Scroll to specific group (group top at middle of viewport)
   const scrollToGroup = (stageGroup: string) => {
     const element = groupRefs.current.get(stageGroup);
@@ -316,7 +328,7 @@ export const TeamsList: React.FC = () => {
       const viewportHeight = window.innerHeight;
 
       // Calculate position to place group top at middle of viewport
-      const offsetPosition = elementPosition - (viewportHeight / 2);
+      const offsetPosition = elementPosition - viewportHeight / 2;
 
       document.body.scrollTo({
         top: offsetPosition,

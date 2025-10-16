@@ -11,7 +11,7 @@
 .header {
   position: sticky;
   top: var(--app-header-height);
-  z-index: 100;
+  z-index: 5;
   background: #f1f5f9;
   padding: 16px 0;
   margin: -16px 0 12px 0;
@@ -209,7 +209,7 @@
 }
 
 .title {
-  color: var(--Text-text-dark, #0F172A);
+  color: var(--Text-text-dark, #0f172a);
   font-size: 24px;
   font-style: normal;
   font-weight: 600;
@@ -610,5 +610,3 @@
 .error {
   color: #dc2626;
 }
-
-

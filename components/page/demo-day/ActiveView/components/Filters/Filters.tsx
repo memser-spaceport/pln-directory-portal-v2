@@ -81,11 +81,15 @@ export const Filters = () => {
         groupKey = 'other';
       }
 
-      const existing = stageMap.get(groupKey);
-      if (existing) {
-        existing.count += 1;
-        if (!existing.uids.includes(stage.uid)) {
-          existing.uids.push(stage.uid);
+      if (isOther) {
+        const existing = otherStages.get(groupKey);
+        if (existing) {
+          existing.count += 1;
+          if (!existing.uids.includes(stage.uid)) {
+            existing.uids.push(stage.uid);
+          }
+        } else {
+          otherStages.set(groupKey, { name: groupName, count: 1, uids: [stage.uid] });
         }
       }
     });
@@ -169,6 +173,7 @@ export const Filters = () => {
             showAllLabel="Show All Industries"
             placeholder="E.g. AI, DePIN, Web3, etc."
             emptyMessage={teamsLoading ? 'Loading industries...' : 'No industries found'}
+            initialDisplayCount={3}
           />
         </FilterSection>
 

@@ -33,7 +33,7 @@ export const Content = () => {
 
           <div className={s.stats}>
             <span>
-              <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, HH:mm', { timeZone: 'UTC' }) : ''}
+              <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, hh:mm a zzz') : ''}
             </span>
             &nbsp;&bull;&nbsp;
             <span>

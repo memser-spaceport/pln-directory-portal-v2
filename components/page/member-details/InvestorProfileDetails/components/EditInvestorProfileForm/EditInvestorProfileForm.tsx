@@ -255,6 +255,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         const teamPayload: any = {
           role: formData.teamRole,
           investmentTeam: true,
+          memberUid: member.id,
         };
 
         if (isTeamLead) {

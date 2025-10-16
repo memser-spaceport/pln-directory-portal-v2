@@ -19,7 +19,6 @@ import { useTimeOnPage } from '@/hooks/useTimeOnPage';
 
 import s from './Landing.module.scss';
 
-
 export function Landing() {
   const { data } = useGetDemoDayState();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -95,7 +94,7 @@ export function Landing() {
           className={s.link}
           onClick={handleRequestInviteClick}
         >
-          <button className={clsx(s.btn, s.primaryButton)}>Request to Join</button>
+          <button className={clsx(s.btn, s.primaryButton)}>Register</button>
         </a>
       </div>
     </LandingBase>

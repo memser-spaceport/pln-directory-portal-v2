@@ -38,7 +38,7 @@ export const faqItems = [
         items={[
           'PL F25 Demo Day is an invite-only event for investors. Invitations are being sent to a vetted list of angel investors and VCs.',
           <span key={1}>
-            If you think you should attend, <FaqLink href={INVITE_FORM_URL}>Request to Join</FaqLink>.
+            If you think you should attend, <FaqLink href={INVITE_FORM_URL}>Register</FaqLink>.
           </span>,
         ]}
       />

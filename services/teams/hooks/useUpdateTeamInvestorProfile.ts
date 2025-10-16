@@ -8,6 +8,7 @@ interface TeamInvestorProfilePayload {
   role?: string;
   investmentTeam?: boolean;
   isFund?: boolean;
+  memberUid?: string;
   investorProfile?: {
     investmentFocus?: string[];
     investInStartupStages?: string[];

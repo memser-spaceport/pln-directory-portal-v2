@@ -28,12 +28,12 @@ export const Content = () => {
                 [Early Access]
               </div>
             )}
-            <PageTitle size="small" />
+            <PageTitle size="small" showDate={false} />
           </div>
 
           <div className={s.stats}>
             <span>
-              <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, hh:mm a zzz') : ''}
+              <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, hh:mm (zzz)') : ''}
             </span>
             &nbsp;&bull;&nbsp;
             <span>

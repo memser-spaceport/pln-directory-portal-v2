@@ -12,10 +12,11 @@ import s from './PageTitle.module.scss';
 
 interface PageTitleProps {
   size?: 'small' | 'large';
+  showDate?: boolean;
 }
 
 export function PageTitle(props: PageTitleProps) {
-  const { size = 'large' } = props;
+  const { size = 'large', showDate = true } = props;
   const { data } = useGetDemoDayState();
   const reportAnalytics = useReportAnalyticsEvent();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -56,7 +57,7 @@ export function PageTitle(props: PageTitleProps) {
           Protocol Labs
         </a>{' '}
         network. <br className={s.hideOnMobile} />{' '}
-        <b>{date ? format(date, 'dd MMM yyyy, hh:mm a zzz') : 'October 23, 2025'}</b>.
+        {showDate && <b>{date ? format(date, 'dd MMM yyyy, hh:mm (zzz)') : 'October 23, 2025'}.</b>}
       </p>
     </div>
   );

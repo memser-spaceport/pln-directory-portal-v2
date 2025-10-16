@@ -24,7 +24,7 @@ import { FilterCheckboxListWithSearch } from './FilterCheckboxListWithSearch';
 import s from './MembersFilter.module.scss';
 import { InvestorFilterToggle } from '@/components/core/InvestorFilterToggle';
 import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
-import { FilterRange } from '@/components/page/members/MembersFilter/FilterRange';
+import { FilterCheckSizeInput } from '@/components/page/members/MembersFilter/FilterCheckSizeInput';
 import { FilterTagInput } from '@/components/form/FilterTagInput';
 
 export interface IMembersFilter {
@@ -125,8 +125,8 @@ export const MembersFilter = (props: IMembersFilter) => {
 
           <FilterDivider />
 
-          <FilterRange
-            label="Typical Check Size, USD"
+          <FilterCheckSizeInput
+            label="Typical Check Size"
             minParamName="minTypicalCheckSize"
             maxParamName="maxTypicalCheckSize"
             allowedRange={{

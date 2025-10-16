@@ -28,15 +28,15 @@ export const AdminContent = ({ isDirectoryAdmin }: { isDirectoryAdmin: boolean }
             >
               [Demo Day Prep]
             </div>
-            <PageTitle size="small" />
+            <PageTitle size="small" showDate={false} />
           </div>
           <div className={s.stats}>
             <span>
-              <CalendarIcon /> {demoDayData?.date ? format(demoDayData.date, 'dd MMM yyyy, hh:mm a zzz') : ''}
+              <CalendarIcon /> {demoDayData?.date ? format(demoDayData.date, 'dd MMM yyyy, hh:mm (zzz)') : ''}
             </span>
             &nbsp;&bull;&nbsp;
             <span>
-              {demoDayData?.teamsCount} Team{(demoDayData?.teamsCount ?? 0) > 1 ? 's' : ''}
+              {profiles?.length} Team{(profiles?.length ?? 0) > 1 ? 's' : ''}
             </span>
             {demoDayData?.investorsCount && demoDayData?.investorsCount > 200 ? (
               <>

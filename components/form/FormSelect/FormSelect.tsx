@@ -30,7 +30,7 @@ interface Props {
   isStickyNoData?: boolean;
   backLabel?: string;
   onChange?: (value: { label: string; value: string; originalObject?: any } | null) => void;
-  renderOption: (input: RenderOptionInput) => ReactNode;
+  renderOption?: (input: RenderOptionInput) => ReactNode;
 }
 
 export const FormSelect = (props: Props) => {

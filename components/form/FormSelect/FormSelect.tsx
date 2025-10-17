@@ -10,33 +10,44 @@ import { clsx } from 'clsx';
 import { useMedia, useToggle } from 'react-use';
 import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
 
+type Option = { label: string; value: string; description?: string; originalObject?: any };
+
+type RenderOptionInput = {
+  option: Option;
+  label: ReactNode;
+  description: ReactNode;
+};
+
 interface Props {
   name: string;
   placeholder: string;
   label?: string;
   description?: string;
-  options: { label: string; value: string; description?: string; originalObject?: any }[];
+  options: Option[];
   disabled?: boolean;
   isRequired?: boolean;
   notFoundContent?: ReactNode;
   isStickyNoData?: boolean;
   backLabel?: string;
   onChange?: (value: { label: string; value: string; originalObject?: any } | null) => void;
+  renderOption: (input: RenderOptionInput) => ReactNode;
 }
 
-export const FormSelect = ({
-  name,
-  placeholder,
-  label,
-  description,
-  options,
-  disabled,
-  isRequired,
-  notFoundContent,
-  backLabel,
-  onChange,
-  isStickyNoData,
-}: Props) => {
+export const FormSelect = (props: Props) => {
+  const {
+    name,
+    placeholder,
+    label,
+    description,
+    options,
+    disabled,
+    isRequired,
+    notFoundContent,
+    backLabel,
+    onChange,
+    isStickyNoData,
+  } = props;
+
   const {
     watch,
     formState: { errors },
@@ -44,6 +55,27 @@ export const FormSelect = ({
   } = useFormContext();
 
   const value = watch(name);
+
+  const renderSelectOption = (option: Option) => {
+    const renderOption =
+      props.renderOption ||
+      function ({ label, description }) {
+        return (
+          <>
+            {label}
+            {description}
+          </>
+        );
+      };
+
+    const { label, description } = option;
+
+    return renderOption({
+      option,
+      label: <div className={s.optionLabel}>{label}</div>,
+      description: description && <div className={s.optionDesc}>{description}</div>,
+    });
+  };
 
   const [open, toggleOpen] = useToggle(false);
   const isMobile = useMedia('(max-width: 960px)', false);
@@ -89,8 +121,7 @@ export const FormSelect = ({
             toggleOpen();
           }}
         >
-          <div className={s.optionLabel}>{item.label}</div>
-          {item.description && <div className={s.optionDesc}>{item.description}</div>}
+          {renderSelectOption(item)}
         </div>
       );
     });
@@ -272,8 +303,7 @@ export const FormSelect = ({
 
               return (
                 <div onClick={() => props.selectOption(props.data)} className={s.option}>
-                  <div className={s.optionLabel}>{props.data.label}</div>
-                  {props.data.description && <div className={s.optionDesc}>{props.data.description}</div>}
+                  {renderSelectOption(props.data)}
                 </div>
               );
             },

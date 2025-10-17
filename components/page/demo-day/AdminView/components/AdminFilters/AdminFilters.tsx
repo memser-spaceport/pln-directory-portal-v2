@@ -179,6 +179,7 @@ export const AdminFilters = () => {
 
         <FilterSection title="Stage">
           <FilterList
+            hideSearch
             options={stageOptions}
             paramName="stage"
             showAllLabel="Show All Stages"

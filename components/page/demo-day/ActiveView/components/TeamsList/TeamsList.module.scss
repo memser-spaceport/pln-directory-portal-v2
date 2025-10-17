@@ -11,7 +11,7 @@
 .header {
   position: sticky;
   top: var(--app-header-height);
-  z-index: 5;
+  z-index: 4;
   background: #f1f5f9;
   padding: 16px 0;
   margin: -16px 0 12px 0;
@@ -43,10 +43,16 @@
 // Alert component styles
 .alert {
   margin-bottom: 24px;
-  border-radius: 12px;
-  background: #f8fafc;
-  border: 1px solid rgba(27, 56, 96, 0.24);
-  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+  display: flex;
+  padding: var(--spacing-2xs, 8px);
+  align-items: flex-start;
+  gap: var(--spacing-3xs, 6px);
+  border-radius: var(--corner-radius-md, 8px);
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  background: var(--background-base-white, #FFF);
+
+  /* Shadow/xs */
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 
   @include media.mobile-only {
     margin-bottom: 20px;
@@ -57,14 +63,13 @@
   display: flex;
   gap: 10px;
   align-items: start;
-  padding: 8px 16px;
   overflow: hidden;
 }
 
 .alertIcon {
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,13 +77,12 @@
 
 .alertText {
   flex: 1;
-  font-family: 'Inter', sans-serif;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
   font-weight: 500;
-  font-size: 16px;
-  line-height: 24px;
-  letter-spacing: -0.3px;
-  color: #0a0c11;
-  margin: 0;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.2px;
 
   @include media.mobile-only {
     font-size: 14px;
@@ -396,13 +400,13 @@
   justify-content: center;
   gap: 16px;
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 24px;
-  letter-spacing: -0.3px;
-  color: #8897ae;
+  color: var(--foreground-neutral-primary, #0A0C11);
   text-align: center;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px; /* 150% */
+  letter-spacing: -0.3px;
   white-space: nowrap;
 
   &:first-child {
@@ -415,7 +419,7 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: rgba(27, 56, 96, 0.12);
+    background: rgba(27, 56, 96, 0.24);
     min-width: 0;
   }
 

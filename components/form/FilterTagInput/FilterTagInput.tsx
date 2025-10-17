@@ -25,7 +25,7 @@ export const FilterTagInput = ({
   placeholder = 'Add keyword',
   disabled = false,
   isRequired = false,
-  warning = false
+  warning = false,
 }: Props) => {
   const [inputText, setInputText] = useState('');
   const { params, setParam } = useFilterStore();
@@ -59,40 +59,46 @@ export const FilterTagInput = ({
     }
   }, [tags, paramKey, setParam]);
 
-  const handleAddTag = useCallback((newTag: string) => {
-    if (newTag.trim() === '') {
-      return;
-    }
+  const handleAddTag = useCallback(
+    (newTag: string) => {
+      if (newTag.trim() === '') {
+        return;
+      }
 
-    if (tags.includes(newTag.trim())) {
-      return;
-    }
+      if (tags.includes(newTag.trim())) {
+        return;
+      }
 
-    const parsedInput = newTag
-      .trim()
-      .split(',')
-      .map((i) => i.trim())
-      .filter(Boolean);
+      const parsedInput = newTag
+        .trim()
+        .split(',')
+        .map((i) => i.trim())
+        .filter(Boolean);
 
-    setTags(prev => uniq([...prev, ...parsedInput]));
-    setInputText('');
-  }, [tags]);
+      setTags((prev) => uniq([...prev, ...parsedInput]));
+      setInputText('');
+    },
+    [tags],
+  );
 
   const handleRemoveTag = useCallback((tagToRemove: string) => {
-    setTags(prev => prev.filter((tag) => tag !== tagToRemove));
+    setTags((prev) => prev.filter((tag) => tag !== tagToRemove));
   }, []);
 
-  const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      setInputText('');
-      return;
-    }
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'Escape') {
+        setInputText('');
+        return;
+      }
 
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      handleAddTag(inputText);
-    }
-  }, [inputText, handleAddTag]);
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        handleAddTag(inputText);
+      }
+    },
+    [inputText, handleAddTag],
+  );
 
   const handleBlur = useCallback(() => {
     handleAddTag(inputText);
@@ -108,10 +114,12 @@ export const FilterTagInput = ({
 
   return (
     <div className={clsx(s.Content, { [s.disabled]: disabled })}>
-      <div className={clsx(s.inputLabel, { 
-        [s.required]: isRequired,
-        [s.warning]: warning 
-      })}>
+      <div
+        className={clsx(s.inputLabel, {
+          [s.required]: isRequired,
+          [s.warning]: warning,
+        })}
+      >
         {selectLabel}
       </div>
       <div className={s.input}>
@@ -139,29 +147,26 @@ export const FilterTagInput = ({
             onKeyDown={handleKeyDown}
           />
         </div>
-        <button
-          type="button"
-          className={s.addButton}
-          disabled={disabled}
-          onClick={handleAddButtonClick}
-        >
-          <PlusIcon />
-        </button>
+        {!!inputText?.length && (
+          <button type="button" className={s.addButton} disabled={disabled} onClick={handleAddButtonClick}>
+            <PlusIcon />
+          </button>
+        )}
       </div>
     </div>
   );
 };
 
-const Badge = ({ 
-  label, 
-  onDelete, 
-  isColorful, 
-  disabled 
-}: { 
-  label: string; 
-  onDelete: () => void; 
-  isColorful: boolean; 
-  disabled?: boolean 
+const Badge = ({
+  label,
+  onDelete,
+  isColorful,
+  disabled,
+}: {
+  label: string;
+  onDelete: () => void;
+  isColorful: boolean;
+  disabled?: boolean;
 }) => {
   return (
     <div

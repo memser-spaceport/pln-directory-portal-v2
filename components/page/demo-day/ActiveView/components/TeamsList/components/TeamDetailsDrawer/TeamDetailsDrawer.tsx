@@ -292,6 +292,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     {/* Profile Header */}
                     <div className={s.profileSection}>
                       <ProfileHeader
+                        uid={displayTeam.team.uid}
                         image={displayTeam.team.logo?.url || '/images/demo-day/profile-placeholder.svg'}
                         name={displayTeam.team?.name || 'Team Name'}
                         description={displayTeam?.team?.shortDescription || '-'}

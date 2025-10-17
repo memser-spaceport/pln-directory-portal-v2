@@ -17,6 +17,7 @@ import React, { Fragment } from 'react';
 import { clsx } from 'clsx';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
 
 interface Props {
   member: IMember;
@@ -73,76 +74,84 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
         [s.missingData]: showIncomplete && isLoggedIn && isOwner,
       })}
     >
-      {/*{showIncomplete && (*/}
-      {/*  <div className={s.missingDataHeader}>*/}
-      {/*    <WarningIcon />*/}
-      {/*    Please complete your profile to get full access to the platform.*/}
-      {/*  </div>*/}
-      {/*)}*/}
-      <div className={s.header}>
-        <h2 className={s.title}>Contact Details</h2>
-        {isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEdit} incomplete={showIncomplete} />}
-      </div>
-      <div className={s.container}>
-        {isLoggedIn && (accessLevel === 'advanced' || isOwner) ? (
-          <div className={s.social}>
-            <div className={s.top}>
-              <div className={s.content}>
-                {VISIBLE_HANDLES?.map((item) => {
-                  const handle = (member as unknown as Record<string, string>)[SOCIAL_TO_HANDLE_MAP[item]];
+      {showIncomplete && (
+        <DataIncomplete className={s.incompleteStrip}>
+          Complete your profile by adding contact details — make it easier for others to connect with you
+        </DataIncomplete>
+      )}
+      <div className={s.contentRoot}>
+        <div className={s.header}>
+          <h2 className={s.title}>Contact Details</h2>
+          {isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEdit} />}
+        </div>
+        <div className={s.container}>
+          {isLoggedIn && (accessLevel === 'advanced' || isOwner) ? (
+            <div className={s.social}>
+              <div className={s.top}>
+                <div className={s.content}>
+                  {VISIBLE_HANDLES?.map((item) => {
+                    const handle = (member as unknown as Record<string, string>)[SOCIAL_TO_HANDLE_MAP[item]];
 
-                  return {
-                    completed: !!handle,
-                    content: (
+                    return {
+                      completed: !!handle,
+                      content: (
+                        <Fragment key={item}>
+                          <ProfileSocialLink
+                            profile={getProfileFromURL(handle, item)}
+                            height={24}
+                            width={24}
+                            callback={callback}
+                            type={item}
+                            handle={handle}
+                            logo={getLogoByProvider(item, !handle)}
+                            className={clsx({
+                              [s.incomplete]: !handle,
+                            })}
+                          />
+                          <div className={s.divider} />
+                        </Fragment>
+                      ),
+                    };
+                  })
+                    .sort((a) => (a.completed ? -1 : 1))
+                    .map((item) => item.content)}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className={s.socialPreview}>
+              <div className={s.bg1} />
+              <div className={s.bg2} />
+              <div className={s.top}>
+                <div className={s.content}>
+                  {visibleHandles?.map((item, i, arr) => {
+                    return (
                       <Fragment key={item}>
                         <ProfileSocialLink
-                          profile={getProfileFromURL(handle, item)}
+                          key={item}
+                          profile=""
                           height={24}
                           width={24}
                           callback={callback}
                           type={item}
-                          handle={handle}
-                          logo={getLogoByProvider(item, !handle)}
-                          className={clsx({
-                            [s.incomplete]: !handle,
-                          })}
+                          handle={consistentRandomString(`${member.name}__${item}`)}
+                          logo={getLogoByProvider(item)}
+                          isPreview
                         />
-                        <div className={s.divider} />
+                        {i === arr.length - 1 ? null : <div className={s.divider} />}
                       </Fragment>
-                    ),
-                  };
-                })
-                  .sort((a) => (a.completed ? -1 : 1))
-                  .map((item) => item.content)}
+                    );
+                  })}
+                </div>
+                <div className={clsx(s.control, s.tablet)}>
+                  {!isLoggedIn && (
+                    <button className={s.loginButton} onClick={onLoginClickHandler}>
+                      Login for access
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-        ) : (
-          <div className={s.socialPreview}>
-            <div className={s.bg1} />
-            <div className={s.bg2} />
-            <div className={s.top}>
-              <div className={s.content}>
-                {visibleHandles?.map((item, i, arr) => {
-                  return (
-                    <Fragment key={item}>
-                      <ProfileSocialLink
-                        key={item}
-                        profile=""
-                        height={24}
-                        width={24}
-                        callback={callback}
-                        type={item}
-                        handle={consistentRandomString(`${member.name}__${item}`)}
-                        logo={getLogoByProvider(item)}
-                        isPreview
-                      />
-                      {i === arr.length - 1 ? null : <div className={s.divider} />}
-                    </Fragment>
-                  );
-                })}
-              </div>
-              <div className={clsx(s.control, s.tablet)}>
+              <div className={clsx(s.control, s.mobileOnly)}>
                 {!isLoggedIn && (
                   <button className={s.loginButton} onClick={onLoginClickHandler}>
                     Login for access
@@ -150,15 +159,8 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
                 )}
               </div>
             </div>
-            <div className={clsx(s.control, s.mobileOnly)}>
-              {!isLoggedIn && (
-                <button className={s.loginButton} onClick={onLoginClickHandler}>
-                  Login for access
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

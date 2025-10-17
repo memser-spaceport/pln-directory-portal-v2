@@ -11,6 +11,7 @@ interface Founder {
 }
 
 interface ProfileHeaderProps {
+  uid?: string;
   image?: string;
   name: string;
   description: string;
@@ -19,7 +20,7 @@ interface ProfileHeaderProps {
   founders?: Founder[];
 }
 
-export const ProfileHeader = ({ image, name, description, fundingStage, tags, founders }: ProfileHeaderProps) => {
+export const ProfileHeader = ({ uid, image, name, description, fundingStage, tags, founders }: ProfileHeaderProps) => {
   // Helper function to format funding stage
   const formatFundingStage = (stage: string) => {
     const stageMap: Record<string, string> = {
@@ -67,7 +68,22 @@ export const ProfileHeader = ({ image, name, description, fundingStage, tags, fo
       <div className={s.memberDetails}>
         <div className={s.memberInfo}>
           <div className={s.memberNameContainer}>
-            <h2 className={s.memberName}>{name}</h2>
+            <h2 className={s.memberName}>
+              {name}{' '}
+              {uid && (
+                <Link className={s.externalLinkIcon} href={`/teams/${uid}`} target="_blank">
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <path
+                      d="M13.5 4.5L4.5 13.5M13.5 4.5H8.25M13.5 4.5V9.75"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </Link>
+              )}
+            </h2>
           </div>
           <p className={s.memberDescription}>{description}</p>
         </div>

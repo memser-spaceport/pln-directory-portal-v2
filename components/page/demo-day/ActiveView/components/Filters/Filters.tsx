@@ -126,7 +126,7 @@ export const Filters = () => {
     }
 
     if (investedCount > 0) {
-      options.push({ id: 'invested', name: 'Invested', count: investedCount });
+      options.push({ id: 'invested', name: 'Signaled investment interest', count: investedCount });
     }
 
     return options;

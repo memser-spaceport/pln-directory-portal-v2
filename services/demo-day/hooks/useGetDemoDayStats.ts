@@ -41,11 +41,12 @@ async function fetcher(): Promise<DemoDayStats> {
   });
 }
 
-export function useGetDemoDayStats() {
+export function useGetDemoDayStats(enabled: boolean = true) {
   return useQuery({
     queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATS],
     queryFn: fetcher,
-    refetchInterval: 15000, // Refetch every 15 seconds
+    enabled, // Only fetch when enabled
+    refetchInterval: enabled ? 15000 : false, // Only refetch every 15 seconds when enabled
     refetchIntervalInBackground: true, // Continue refetching even when tab is not focused
     staleTime: 10000, // Consider data stale after 10 seconds
   });

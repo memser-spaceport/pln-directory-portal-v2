@@ -4,6 +4,7 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useGetDemoDayStats } from '@/services/demo-day/hooks/useGetDemoDayStats';
+import { NumberTicker } from '@/components/ui/NumberTicker';
 import s from './DemoDayStats.module.scss';
 
 const HandshakeIcon = () => (
@@ -17,11 +18,12 @@ const HandshakeIcon = () => (
 
 export const DemoDayStats: React.FC = () => {
   const pathname = usePathname();
-  const { data } = useGetDemoDayState();
-  const { data: stats, isLoading } = useGetDemoDayStats();
 
   // Check if we're on a demo day related page (including prep page)
   const isDemoDayPage = pathname?.startsWith('/demoday');
+
+  const { data } = useGetDemoDayState();
+  const { data: stats, isLoading } = useGetDemoDayStats(isDemoDayPage);
 
   // Don't render if not on demo day page or no data or no access
   if (!isDemoDayPage || !data || data.access === 'none') {
@@ -38,7 +40,7 @@ export const DemoDayStats: React.FC = () => {
           <div className={s.iconWrapper}>
             <HandshakeIcon />
           </div>
-          <div className={s.value}>{introsCount}</div>
+          <NumberTicker value={introsCount} className={s.value} />
         </div>
         <div className={s.label}>intros made</div>
       </div>

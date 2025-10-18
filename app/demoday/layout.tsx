@@ -1,12 +1,16 @@
 import { PropsWithChildren } from 'react';
 import { Metadata } from 'next';
+import { DEMO_DAY_SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 export const metadata: Metadata = {
+  title: 'Protocol Labs Demo Day',
+  description:
+    'An invite-only event for accredited investors, featuring 20+ top teams from Pre-Seed to Series A, across the Protocol Labs network.',
   openGraph: {
     type: 'website',
     images: [
       {
-        url: 'https://plabs-assets.s3.us-west-1.amazonaws.com/demoday.jpeg',
+        url: DEMO_DAY_SOCIAL_IMAGE_URL,
         width: 800,
         height: 800,
         alt: 'Demo Day',
@@ -16,7 +20,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['/images/demo-day/demoday.jpeg'],
+    images: [DEMO_DAY_SOCIAL_IMAGE_URL],
   },
 };
 

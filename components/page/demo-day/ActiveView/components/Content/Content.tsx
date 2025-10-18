@@ -33,7 +33,7 @@ export const Content = () => {
 
           <div className={s.stats}>
             <span>
-              <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, hh:mm (zzz)') : ''}
+              <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, hh:mm aa (zzz)') : ''}
             </span>
             &nbsp;&bull;&nbsp;
             <span>

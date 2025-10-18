@@ -11,8 +11,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: DEMO_DAY_SOCIAL_IMAGE_URL,
-        width: 1162,
-        height: 1182,
+        width: 1920,
+        height: 1080,
         alt: 'Demo Day',
         type: 'image/jpeg',
       },
@@ -20,7 +20,15 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    images: [DEMO_DAY_SOCIAL_IMAGE_URL],
+    images: [
+      {
+        url: DEMO_DAY_SOCIAL_IMAGE_URL,
+        width: 1920,
+        height: 1080,
+        alt: 'Demo Day',
+        type: 'image/jpeg',
+      },
+    ],
   },
 };
 

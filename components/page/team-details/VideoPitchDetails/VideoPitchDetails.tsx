@@ -7,8 +7,6 @@ import { ADMIN_ROLE } from '@/utils/constants';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './VideoPitchDetails.module.scss';
-import { PitchDeckView } from '@/components/page/team-details/PitchDeckDetails/components/PitchDeckView';
-import { EditPitchDeckForm } from '@/components/page/team-details/PitchDeckDetails/components/EditPitchDeckForm';
 import { ITeam } from '@/types/teams.types';
 import { VideoPitchView } from '@/components/page/team-details/VideoPitchDetails/components/VideoPitchView';
 import { EditVideoPitchForm } from '@/components/page/team-details/VideoPitchDetails/components/EditVideoPitchForm';
@@ -47,7 +45,12 @@ export const VideoPitchDetails = ({ isLoggedIn, userInfo, team }: Props) => {
       {editView ? (
         <EditVideoPitchForm onClose={() => setEditView(false)} team={team} userInfo={userInfo} />
       ) : (
-        <VideoPitchView team={team} isLoggedIn={isLoggedIn} userInfo={userInfo} isEditable={isEditable} showIncomplete={showIncomplete} onEdit={() => setEditView(true)} />
+        <VideoPitchView
+          isLoggedIn={isLoggedIn}
+          isEditable={isEditable}
+          showIncomplete={showIncomplete}
+          onEdit={() => setEditView(true)}
+        />
       )}
     </div>
   );

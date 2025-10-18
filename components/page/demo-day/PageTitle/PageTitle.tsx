@@ -57,7 +57,7 @@ export function PageTitle(props: PageTitleProps) {
           Protocol Labs
         </a>{' '}
         network. <br className={s.hideOnMobile} />{' '}
-        {showDate && <b>{date ? format(date, 'dd MMM yyyy, hh:mm (zzz)') : 'October 23, 2025'}.</b>}
+        {showDate && <b>{date ? format(date, 'dd MMM yyyy, hh:mm aa (zzz)') : 'October 23, 2025'}.</b>}
       </p>
     </div>
   );

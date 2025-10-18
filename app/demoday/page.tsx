@@ -9,6 +9,9 @@ export function generateMetadata() {
         },
       ],
     },
+    twitter: {
+      images: ['/images/demo-day/demoday.jpeg'],
+    },
   };
 }
 

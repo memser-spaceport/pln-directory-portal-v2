@@ -31,7 +31,7 @@ import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOpti
 import { useMember } from '@/services/members/hooks/useMember';
 import { findPreferredTeam } from './utils/findPreferredTeam';
 import { AddTeamDrawer } from './components/AddTeamDrawer/AddTeamDrawer';
-import clsx from 'clsx';
+import ImageWithFallback from '@/components/common/ImageWithFallback';
 
 interface Props {
   onClose: () => void;
@@ -493,6 +493,24 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                           originalObject: item,
                         })) ?? []
                       }
+                      renderOption={({ option, label, description }) => {
+                        return (
+                          <div className={s.teamOption}>
+                            <ImageWithFallback
+                              width={24}
+                              height={24}
+                              alt={option.label}
+                              className={s.optImg}
+                              fallbackSrc="/icons/camera.svg"
+                              src={option.originalObject.logo}
+                            />
+                            <div>
+                              {label}
+                              {description}
+                            </div>
+                          </div>
+                        );
+                      }}
                       onChange={(value) => handleTeamSelect(value)}
                       isStickyNoData
                       notFoundContent={

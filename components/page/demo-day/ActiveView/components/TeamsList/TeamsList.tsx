@@ -328,7 +328,7 @@ export const TeamsList: React.FC = () => {
       const viewportHeight = window.innerHeight;
 
       // Calculate position to place group top at middle of viewport
-      const offsetPosition = elementPosition - viewportHeight / 2;
+      const offsetPosition = elementPosition - 80;
 
       document.body.scrollTo({
         top: offsetPosition,
@@ -383,6 +383,18 @@ export const TeamsList: React.FC = () => {
 
   return (
     <div className={s.container}>
+      <div className={s.alert}>
+        <div className={s.alertContent}>
+          <div className={s.alertIcon}>
+            <InfoIcon />
+          </div>
+          <p className={s.alertText}>
+            The list is split into stages. Within each stage, the sort order is randomized to give every team equal
+            visibility. Your order is unique — no two users see the same list.
+          </p>
+        </div>
+      </div>
+
       <div className={s.header}>
         <div className={s.headerLeft}>
           {allGroupsWithCounts.map((group) => (
@@ -430,18 +442,6 @@ export const TeamsList: React.FC = () => {
               </Menu.Portal>
             </Menu.Root>
           </div>
-        </div>
-      </div>
-
-      <div className={s.alert}>
-        <div className={s.alertContent}>
-          <div className={s.alertIcon}>
-            <InfoIcon />
-          </div>
-          <p className={s.alertText}>
-            The list is split into stages. Within each stage, the sort order is randomized to give every team equal
-            visibility. Your order is unique — no two users see the same list.
-          </p>
         </div>
       </div>
 

@@ -164,12 +164,13 @@ export const TeamsList: React.FC = () => {
         }
       }
 
-      // Activity filter (liked, connected, invested)
+      // Activity filter (liked, connected, invested, referred)
       if (selectedActivities.length > 0) {
         const matchesActivity = selectedActivities.some((activity) => {
           if (activity === 'liked') return team.liked;
           if (activity === 'connected') return team.connected;
           if (activity === 'invested') return team.invested;
+          if (activity === 'referral') return team.referral;
           return false;
         });
         if (!matchesActivity) {

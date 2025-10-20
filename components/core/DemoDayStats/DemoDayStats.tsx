@@ -23,10 +23,10 @@ export const DemoDayStats: React.FC = () => {
   const isDemoDayPage = pathname?.startsWith('/demoday');
 
   const { data } = useGetDemoDayState();
-  const { data: stats, isLoading } = useGetDemoDayStats(isDemoDayPage);
+  const { data: stats } = useGetDemoDayStats(isDemoDayPage && data?.status === 'ACTIVE');
 
   // Don't render if not on demo day page or no data or no access
-  if (!isDemoDayPage || !data || data.access === 'none') {
+  if (!isDemoDayPage || !data || data.access === 'none' || data.status !== 'ACTIVE' || (stats?.total ?? 0) < 500) {
     return null;
   }
 

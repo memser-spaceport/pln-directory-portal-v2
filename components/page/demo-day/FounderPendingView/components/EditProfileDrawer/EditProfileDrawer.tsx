@@ -20,6 +20,7 @@ import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useE
 import Image from 'next/image';
 import { Drawer } from '@/components/common/Drawer';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
+import { ReferCompanyModal } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/ReferCompanyModal';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -94,6 +95,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   const isPrepDemoDay = useIsPrepDemoDay();
   const [editView, setEditView] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [isReferModalOpen, setIsReferModalOpen] = useState(false);
   const successAlertTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Analytics hooks
@@ -412,6 +414,24 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
     }
   };
 
+  const handleReferSubmit = (referralData: { investorName: string; investorEmail: string; message: string }) => {
+    if (data?.uid) {
+      expressInterest.mutate(
+        {
+          teamFundraisingProfileUid: data.uid,
+          interestType: 'referral',
+          isPrepDemoDay,
+          referralData,
+        },
+        {
+          onSuccess: () => {
+            setIsReferModalOpen(false);
+          },
+        },
+      );
+    }
+  };
+
   return (
     <Drawer isOpen={isOpen} onClose={onClose}>
       {/* Header */}
@@ -582,6 +602,20 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
         <div className={s.drawerFooter}>
           <button
             className={s.secondaryButton}
+            onClick={() => setIsReferModalOpen(true)}
+            disabled={expressInterest.isPending || !data?.uid}
+          >
+            {team?.referral ? (
+              <>
+                ⤴️ Referred Company
+                <CheckIcon />
+              </>
+            ) : (
+              <>⤴️ Refer Company</>
+            )}
+          </button>
+          <button
+            className={s.secondaryButton}
             onClick={() =>
               expressInterest.mutate({
                 teamFundraisingProfileUid: data?.uid || '',
@@ -644,6 +678,15 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
           </button>
         </div>
       )}
+
+      {/* Refer Company Modal */}
+      <ReferCompanyModal
+        isOpen={isReferModalOpen}
+        onClose={() => setIsReferModalOpen(false)}
+        onSubmit={handleReferSubmit}
+        teamName={data?.team?.name || ''}
+        isSubmitting={expressInterest.isPending}
+      />
     </Drawer>
   );
 };

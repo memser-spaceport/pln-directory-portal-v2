@@ -413,6 +413,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                           onPitchDeckView={handlePitchDeckView}
                           onPitchVideoView={handlePitchVideoView}
                           pitchDeckPreviewUrl={displayTeam?.onePagerUpload?.previewImageUrl}
+                          pitchDeckPreviewSmallUrl={displayTeam?.onePagerUpload?.previewImageSmallUrl}
                         />
                         {displayTeam?.description && (
                           <CompanyFundraiseParagraph paragraph={displayTeam?.description} editable={false} />

@@ -208,6 +208,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         pitchDeckUrl={team?.onePagerUpload?.url}
         videoUrl={team?.videoUpload?.url}
         pitchDeckPreviewUrl={team?.onePagerUpload?.previewImageUrl}
+        pitchDeckPreviewSmallUrl={team?.onePagerUpload?.previewImageSmallUrl}
       />
       <div className={s.profileDivider} />
       <div className={s.actions}>

@@ -23,6 +23,7 @@ export type UploadInfo = {
   url: string;
   freshUrl: string;
   previewImageUrl: string;
+  previewImageSmallUrl: string;
 };
 
 export type FundraisingProfile = {

@@ -17,8 +17,6 @@ export const metadata: Metadata = {
     images: [
       {
         url: SOCIAL_IMAGE_URL,
-        width: 1280,
-        height: 640,
         alt: 'Protocol Labs Directory',
         type: 'image/jpeg',
       },

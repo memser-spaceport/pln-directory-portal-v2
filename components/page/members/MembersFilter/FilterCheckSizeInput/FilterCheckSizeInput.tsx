@@ -113,6 +113,15 @@ export function FilterCheckSizeInput({
     } else {
       setParam(minParamName, clampedValue.toString());
       setMinValue(clampedValue.toString());
+
+      // If maximum is set and is less than the new minimum, clear maximum
+      if (maxValue !== '') {
+        const currentMax = parseFloat(maxValue);
+        if (!isNaN(currentMax) && currentMax < clampedValue) {
+          setMaxValue('');
+          setParam(maxParamName, undefined);
+        }
+      }
     }
   };
 
@@ -132,6 +141,17 @@ export function FilterCheckSizeInput({
 
     // Clamp to allowed range
     const clampedValue = Math.max(allowedRange.min, Math.min(numericValue, allowedRange.max));
+
+    // Check if minimum is set and maximum is less than minimum
+    if (minValue !== '') {
+      const currentMin = parseFloat(minValue);
+      if (!isNaN(currentMin) && clampedValue < currentMin) {
+        // Clear maximum if it's less than minimum
+        setMaxValue('');
+        setParam(maxParamName, undefined);
+        return;
+      }
+    }
 
     if (clampedValue === allowedRange.max) {
       setParam(maxParamName, undefined);

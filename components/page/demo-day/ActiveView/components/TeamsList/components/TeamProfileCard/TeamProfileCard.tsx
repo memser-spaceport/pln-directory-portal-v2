@@ -178,7 +178,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
             </>
           ) : (
             <>
-              <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like the Company
+              <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
             </>
           )}
         </button>

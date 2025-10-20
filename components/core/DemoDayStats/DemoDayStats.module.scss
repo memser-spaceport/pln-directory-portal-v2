@@ -1,0 +1,75 @@
+@use 'styles/media';
+
+.root {
+  position: fixed;
+  top: calc(var(--app-header-height) + 16px);
+  right: 24px;
+  z-index: 10;
+  border-radius: 24px;
+  box-shadow: 0 10px 20px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06)), 0 20px 65px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.content {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  box-shadow: 0px -1px 4px 0px rgba(27, 77, 255, 0.08) inset;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconWrapper {
+  background: rgba(27, 77, 255, 0.04);
+  border-radius: 9999px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  box-shadow: 0px -1px 4px 0px rgba(27, 77, 255, 0.08) inset;
+  
+  svg {
+    color: #1b4dff;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.value {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.4px;
+  color: #0a0c11;
+  white-space: nowrap;
+}
+
+.label {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  text-align: center;
+  width: min-content;
+  min-width: 100%;
+  white-space: nowrap;
+}
+

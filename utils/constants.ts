@@ -1219,7 +1219,7 @@ export const tagColors = [
 export const SOCIAL_IMAGE_URL =
   'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
 
-export const DEMO_DAY_SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/demoday_v4.png';
+export const DEMO_DAY_SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/demoday_v4.jpeg';
 
 export const OFFICE_HOURS_STEPS = {
   MEETING_INITIATED: {
@@ -1626,6 +1626,7 @@ export const DEMO_DAY_ANALYTICS = {
   ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED: 'demo-day-active-view-like-company-clicked',
   ON_ACTIVE_VIEW_CONNECT_COMPANY_CLICKED: 'demo-day-active-view-connect-company-clicked',
   ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED: 'demo-day-active-view-invest-company-clicked',
+  ON_ACTIVE_VIEW_REFER_COMPANY_CLICKED: 'demo-day-active-view-refer-company-clicked',
   ON_INVESTOR_PROFILE_ADD_TEAM_LINK_CLICKED: 'demo-day-investor-profile-add-team-link-clicked',
   ON_INVESTOR_PROFILE_TEAM_SELECTED: 'demo-day-investor-profile-team-selected',
   ON_TEAM_PROFILE_READY: 'demo-day-team-profile-ready',

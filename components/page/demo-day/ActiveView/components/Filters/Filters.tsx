@@ -107,13 +107,14 @@ export const Filters = () => {
       });
   }, [teams]);
 
-  // Build activity options (liked, connected, invested)
+  // Build activity options (liked, connected, invested, referred)
   const activityOptions = useMemo((): FilterOption[] => {
     if (!teams) return [];
 
     const likedCount = teams.filter((team) => team.liked).length;
     const connectedCount = teams.filter((team) => team.connected).length;
     const investedCount = teams.filter((team) => team.invested).length;
+    const referredCount = teams.filter((team) => team.referral).length;
 
     const options: FilterOption[] = [];
 
@@ -126,7 +127,11 @@ export const Filters = () => {
     }
 
     if (investedCount > 0) {
-      options.push({ id: 'invested', name: 'Invested', count: investedCount });
+      options.push({ id: 'invested', name: 'Signaled investment interest', count: investedCount });
+    }
+
+    if (referredCount > 0) {
+      options.push({ id: 'referral', name: 'Referred', count: referredCount });
     }
 
     return options;

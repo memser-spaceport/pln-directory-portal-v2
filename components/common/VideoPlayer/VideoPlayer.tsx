@@ -12,6 +12,19 @@ interface VideoPlayerProps {
   autoplay?: boolean;
 }
 
+// Helper function to detect if source is HLS
+const isHLSSource = (src: string): boolean => {
+  return src.includes('.m3u8') || src.includes('application/x-mpegURL');
+};
+
+// Helper function to get appropriate MIME type for source
+const getSourceType = (src: string): string => {
+  if (isHLSSource(src)) {
+    return 'application/x-mpegURL';
+  }
+  return 'video/mp4';
+};
+
 export function VideoPlayer(props: VideoPlayerProps) {
   const { src, poster, autoplay = false } = props;
 
@@ -31,7 +44,7 @@ export function VideoPlayer(props: VideoPlayerProps) {
       sources: [
         {
           src,
-          type: 'video/mp4',
+          type: getSourceType(src),
         },
       ],
       poster,

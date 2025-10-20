@@ -3,12 +3,19 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import { toast } from '@/components/core/ToastContainer/utils/toast';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 
-export type InterestType = 'like' | 'connect' | 'invest';
+export type InterestType = 'like' | 'connect' | 'invest' | 'referral';
+
+interface ReferralData {
+  investorName: string;
+  investorEmail: string;
+  message: string;
+}
 
 interface ExpressInterestData {
   teamFundraisingProfileUid: string;
   interestType: InterestType;
   isPrepDemoDay?: boolean;
+  referralData?: ReferralData;
 }
 
 async function expressInterest(data: ExpressInterestData): Promise<boolean> {
@@ -52,6 +59,9 @@ export function useExpressInterest(teamName?: string) {
         case 'invest':
           title = `You expressed interest to invest in ${teamName || '[TeamName]'}`;
           break;
+        case 'referral':
+          title = `You referred ${teamName || '[TeamName]'} to an investor`;
+          break;
         default:
           title = 'Connection request sent!';
       }
@@ -74,6 +84,7 @@ export function useExpressInterest(teamName?: string) {
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST] });
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATS] });
     },
     onError: (error) => {
       toast.error('Connection request failed. Please try again.', {

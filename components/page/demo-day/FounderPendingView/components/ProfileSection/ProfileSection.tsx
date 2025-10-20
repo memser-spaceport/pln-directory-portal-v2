@@ -158,6 +158,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
             pitchDeckUrl={data?.onePagerUpload?.url}
             videoUrl={data?.videoUpload?.url}
             pitchDeckPreviewUrl={data?.onePagerUpload?.previewImageUrl}
+            pitchDeckPreviewSmallUrl={data?.onePagerUpload?.previewImageSmallUrl}
           />
 
           {/* Divider */}

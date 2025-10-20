@@ -21,6 +21,7 @@ import { UserInfoChecker } from '@/components/core/login/UserInfoChecker';
 import { MobileBottomNav } from '@/components/core/MobileBottomNav/MobileBottomNav';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { DemoDayBanner } from '@/components/core/navbar/components/DemoDayBanner';
+import { DemoDayStats } from '@/components/core/DemoDayStats';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -85,6 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <CompleteYourProfile userInfo={userInfo} />
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>
+            <DemoDayStats />
             <main className="layout__main">{children}</main>
             <MobileBottomNav />
             <Loader />

@@ -55,6 +55,7 @@ export interface ConfirmOnePagerUploadResponse {
 // Types for one-pager preview upload request
 export interface UploadOnePagerPreviewParams {
   previewImage: File;
+  previewImageSmall: File;
   teamUid?: string; // Optional team UID for admin uploads
 }
 
@@ -207,7 +208,7 @@ export async function confirmOnePagerUpload(
 export async function uploadOnePagerPreview(
   params: UploadOnePagerPreviewParams,
 ): Promise<UploadOnePagerPreviewResponse> {
-  const { previewImage, teamUid } = params;
+  const { previewImage, previewImageSmall, teamUid } = params;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
   const url = teamUid
@@ -216,6 +217,7 @@ export async function uploadOnePagerPreview(
 
   const formData = new FormData();
   formData.append('previewImage', previewImage);
+  formData.append('previewImageSmall', previewImageSmall);
 
   const response = await customFetch(
     url,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader';
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
@@ -12,6 +12,7 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
+import { ReferCompanyModal } from '../ReferCompanyModal';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
@@ -28,6 +29,8 @@ interface TeamProfileCardProps {
 }
 
 export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick, isAdmin = false }) => {
+  const [isReferModalOpen, setIsReferModalOpen] = useState(false);
+
   // Analytics hooks
   const {
     onActiveViewTeamCardClicked,
@@ -98,6 +101,12 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     e.stopPropagation();
     e.preventDefault();
 
+    // For referral, open modal instead of direct action
+    if (interestType === 'referral') {
+      setIsReferModalOpen(true);
+      return;
+    }
+
     // Report analytics for interest company click
     if (userInfo?.email) {
       const analyticsData = getTeamAnalyticsData();
@@ -142,6 +151,42 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     });
   };
 
+  const handleReferSubmit = (referralData: { investorName: string; investorEmail: string; message: string }) => {
+    if (userInfo?.email) {
+      const analyticsData = getTeamAnalyticsData();
+
+      // Custom analytics event
+      const referEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_REFER_COMPANY_CLICKED,
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          action: 'refer_company',
+          ...analyticsData,
+          referralInvestorName: referralData.investorName,
+          referralInvestorEmail: referralData.investorEmail,
+        },
+      };
+
+      reportAnalytics.mutate(referEvent);
+    }
+
+    // Express interest via API with referral data
+    expressInterest.mutate({
+      teamFundraisingProfileUid: team.uid,
+      interestType: 'referral',
+      isPrepDemoDay,
+      referralData,
+    });
+
+    // Close modal
+    setIsReferModalOpen(false);
+  };
+
   return (
     <div className={s.profileCard} onClick={handleCardClick}>
       <div className={s.editButtonContainer}>
@@ -168,6 +213,20 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
       <div className={s.actions}>
         <button
           className={s.secondaryButton}
+          onClick={(e) => handleInterestCompanyClick(e, 'referral')}
+          disabled={expressInterest.isPending || !team.uid}
+        >
+          {team.referral ? (
+            <>
+              ⤴️ Referred Company
+              <CheckIcon />
+            </>
+          ) : (
+            <>⤴️ Refer Company</>
+          )}
+        </button>
+        <button
+          className={s.secondaryButton}
           onClick={(e) => handleInterestCompanyClick(e, 'like')}
           disabled={expressInterest.isPending || !team.uid}
         >
@@ -178,7 +237,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
             </>
           ) : (
             <>
-              <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like the Company
+              <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
             </>
           )}
         </button>
@@ -211,6 +270,15 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
           )}
         </button>
       </div>
+
+      {/* Refer Company Modal */}
+      <ReferCompanyModal
+        isOpen={isReferModalOpen}
+        onClose={() => setIsReferModalOpen(false)}
+        onSubmit={handleReferSubmit}
+        teamName={team?.team?.name || 'this company'}
+        isSubmitting={expressInterest.isPending}
+      />
     </div>
   );
 };

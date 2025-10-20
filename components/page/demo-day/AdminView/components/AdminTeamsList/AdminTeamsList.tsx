@@ -158,12 +158,13 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
         }
       }
 
-      // Activity filter (liked, connected, invested)
+      // Activity filter (liked, connected, invested, referral)
       if (selectedActivities.length > 0) {
         const matchesActivity = selectedActivities.some((activity) => {
           if (activity === 'liked') return profile.liked;
           if (activity === 'connected') return profile.connected;
           if (activity === 'invested') return profile.invested;
+          if (activity === 'referral') return profile.referral;
           return false;
         });
         if (!matchesActivity) {

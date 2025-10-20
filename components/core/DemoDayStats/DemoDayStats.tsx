@@ -30,9 +30,6 @@ export const DemoDayStats: React.FC = () => {
     return null;
   }
 
-  // Use stats from API, fallback to 0 if loading or no data
-  const introsCount = stats?.introsCount ?? 0;
-
   return (
     <div className={s.root}>
       <div className={s.content}>
@@ -40,7 +37,7 @@ export const DemoDayStats: React.FC = () => {
           <div className={s.iconWrapper}>
             <HandshakeIcon />
           </div>
-          <NumberTicker value={introsCount} className={s.value} />
+          <NumberTicker value={stats?.total ?? 0} className={s.value} />
         </div>
         <div className={s.label}>intros made</div>
       </div>

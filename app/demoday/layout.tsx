@@ -11,10 +11,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: DEMO_DAY_SOCIAL_IMAGE_URL,
-        width: 1920,
-        height: 1080,
         alt: 'Demo Day',
-        type: 'image/jpeg',
+        type: 'image/png',
       },
     ],
   },
@@ -23,10 +21,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: DEMO_DAY_SOCIAL_IMAGE_URL,
-        width: 1920,
-        height: 1080,
         alt: 'Demo Day',
-        type: 'image/jpeg',
+        type: 'image/png',
       },
     ],
   },

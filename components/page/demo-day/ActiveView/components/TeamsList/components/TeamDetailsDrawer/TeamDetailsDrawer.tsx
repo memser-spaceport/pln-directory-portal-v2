@@ -20,6 +20,7 @@ import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { ReferCompanyModal } from '../ReferCompanyModal';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -66,7 +67,8 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   investorData,
   isAdmin = false,
 }) => {
-  const { data } = useGetFundraisingProfile();
+  const { data: demoDayData } = useGetDemoDayState();
+  const { data } = useGetFundraisingProfile(demoDayData?.access === 'FOUNDER');
   const isPrepDemoDay = useIsPrepDemoDay();
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
 

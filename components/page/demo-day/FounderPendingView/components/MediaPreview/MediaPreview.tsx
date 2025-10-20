@@ -29,6 +29,7 @@ interface MediaPreviewProps {
   showDeleteButton?: boolean;
   teamUid?: string;
   previewImageUrl?: string;
+  previewImageSmallUrl?: string;
 }
 
 const ExpandIcon = () => (
@@ -69,6 +70,7 @@ export const MediaPreview = ({
   showDeleteButton = true,
   teamUid,
   previewImageUrl,
+  previewImageSmallUrl,
 }: MediaPreviewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -78,6 +80,14 @@ export const MediaPreview = ({
   const deleteVideoMutation = useDeleteVideo();
 
   const queryClient = useQueryClient();
+
+  // Preload full image URL for faster modal display
+  useEffect(() => {
+    if (previewImageUrl && typeof window !== 'undefined') {
+      const img = new Image();
+      img.src = previewImageUrl;
+    }
+  }, [previewImageUrl]);
 
   // Create portal container
   useEffect(() => {
@@ -184,11 +194,10 @@ export const MediaPreview = ({
         </div>
       );
     } else if (isPDF(url)) {
-      // Use previewImageUrl if available, otherwise fall back to PDF viewer
-      if (previewImageUrl) {
+      if (previewImageSmallUrl || previewImageUrl) {
         return (
           <div className={s.imagePreviewContainer}>
-            <img src={previewImageUrl} alt="PDF Preview" className={s.previewMedia} />
+            <img src={previewImageSmallUrl || previewImageUrl} alt="PDF Preview" className={s.previewMedia} />
           </div>
         );
       }

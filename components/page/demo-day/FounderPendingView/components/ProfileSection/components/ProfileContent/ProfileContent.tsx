@@ -9,6 +9,7 @@ interface ProfileContentProps {
   onPitchDeckView?: () => void;
   onPitchVideoView?: () => void;
   pitchDeckPreviewUrl?: string | null;
+  pitchDeckPreviewSmallUrl?: string | null;
 }
 
 export const ProfileContent = ({
@@ -17,6 +18,7 @@ export const ProfileContent = ({
   onPitchDeckView,
   onPitchVideoView,
   pitchDeckPreviewUrl,
+  pitchDeckPreviewSmallUrl,
 }: ProfileContentProps) => {
   return (
     <div className={s.profileContent}>
@@ -29,6 +31,7 @@ export const ProfileContent = ({
           showMetadata={false}
           onView={onPitchDeckView}
           previewImageUrl={pitchDeckPreviewUrl || undefined}
+          previewImageSmallUrl={pitchDeckPreviewSmallUrl || undefined}
         />
       ) : (
         <div className={s.placeholder}>

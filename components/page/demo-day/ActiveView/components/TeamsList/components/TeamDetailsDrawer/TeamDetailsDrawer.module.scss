@@ -163,6 +163,10 @@
   }
 }
 
+.teamName {
+  padding-right: 100px;
+}
+
 .foundersSection {
   margin-bottom: 32px;
 
@@ -272,7 +276,7 @@
   font-size: 12px;
   font-weight: 500;
   line-height: 16px;
-  color: #059669;
+  color: #1b4dff;
   margin: 0;
 }
 
@@ -343,9 +347,14 @@
   gap: 12px;
   flex-wrap: wrap;
 
-  @include media.mobile-only {
-    justify-content: center;
+  @media(max-width: 720px) {
     gap: 8px;
+    flex-direction: column;
+
+    .primaryButton,
+    .secondaryButton {
+      width: 100%;
+    }
   }
 }
 
@@ -398,9 +407,9 @@
   border-radius: 8px;
   border: 1px solid rgba(14, 15, 17, 0.12);
   background: #1B4DFF;
-  box-shadow: 
-    0 1px 3px 0 rgba(255, 255, 255, 0.32) inset, 
-    0 4px 6px 0 rgba(255, 255, 255, 0.06) inset, 
+  box-shadow:
+    0 1px 3px 0 rgba(255, 255, 255, 0.32) inset,
+    0 4px 6px 0 rgba(255, 255, 255, 0.06) inset,
     0 1px 5px 0 rgba(27, 77, 255, 0.16);
   color: #FFF;
   font-size: 14px;

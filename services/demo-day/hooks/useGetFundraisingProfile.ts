@@ -82,9 +82,10 @@ async function fetcher() {
   return data;
 }
 
-export function useGetFundraisingProfile() {
+export function useGetFundraisingProfile(enabled: boolean = true) {
   return useQuery({
     queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE],
     queryFn: fetcher,
+    enabled,
   });
 }

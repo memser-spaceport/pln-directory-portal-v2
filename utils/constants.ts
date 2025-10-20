@@ -1219,7 +1219,7 @@ export const tagColors = [
 export const SOCIAL_IMAGE_URL =
   'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
 
-export const DEMO_DAY_SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/demoday_v4.png';
+export const DEMO_DAY_SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/demoday_v4.jpeg';
 
 export const OFFICE_HOURS_STEPS = {
   MEETING_INITIATED: {

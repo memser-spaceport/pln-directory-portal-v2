@@ -194,14 +194,6 @@ export const MediaPreview = ({
         </div>
       );
     } else if (isPDF(url)) {
-      if (previewImageSmallUrl) {
-        return (
-          <div className={s.imagePreviewContainer}>
-            <img src={previewImageUrl} alt="PDF Preview" className={s.previewMediaHighQuality} />
-            <img src={previewImageSmallUrl} alt="PDF Preview" className={s.previewMedia} />
-          </div>
-        );
-      }
       if (previewImageUrl) {
         return (
           <div className={s.imagePreviewContainer}>

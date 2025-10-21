@@ -50,8 +50,8 @@ const SORT_OPTIONS: SortOption[] = [
   // { value: 'default', label: 'Default' },
   // { value: 'name-asc', label: 'Name A-Z' },
   // { value: 'name-desc', label: 'Name Z-A' },
-  { value: 'stage-asc', label: 'Pre-seed > Seed > Series A/B' },
-  { value: 'stage-desc', label: 'Series A/B > Seed > Pre-seed' },
+  { value: 'stage-asc', label: 'Pre-seed > Seed > Series A/B > Fund' },
+  { value: 'stage-desc', label: 'Fund > Series A/B > Seed > Pre-seed' },
   // { value: 'recent', label: 'Most Recent' },
 ];
 

@@ -63,6 +63,8 @@ const getStageGroup = (fundingStage: string): string => {
     return 'pre-seed';
   } else if (stageLower.includes('seed') && !stageLower.includes('pre')) {
     return 'seed';
+  } else if (stageLower.includes('fund')) {
+    return 'fund';
   } else if (
     stageLower.includes('series a') ||
     stageLower.includes('series b') ||

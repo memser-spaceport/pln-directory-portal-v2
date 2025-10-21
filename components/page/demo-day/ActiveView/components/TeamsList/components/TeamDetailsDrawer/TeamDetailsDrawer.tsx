@@ -79,6 +79,10 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     onActiveViewInvestCompanyClicked,
     onActiveViewTeamPitchDeckViewed,
     onActiveViewTeamPitchVideoViewed,
+    onActiveViewReferCompanyClicked,
+    onActiveViewIntroCompanyClicked,
+    onActiveViewIntroCompanyCancelClicked,
+    onActiveViewIntroCompanyConfirmClicked,
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest(team?.team?.name);
@@ -198,13 +202,17 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
   const handleReferCompanyClick = () => {
     setIsReferModalOpen(true);
-  };
 
-  const handleReferSubmit = (referralData: { investorName: string; investorEmail: string; message: string }) => {
+    // Report intro company clicked analytics
     if (userInfo?.email) {
+      const analyticsData = getTeamAnalyticsData();
+
+      // PostHog analytics
+      onActiveViewIntroCompanyClicked(analyticsData);
+
       // Custom analytics event
-      const referEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_REFER_COMPANY_CLICKED,
+      const introEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INTRO_COMPANY_CLICKED,
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -212,10 +220,40 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
           userName: userInfo.name,
           path: '/demoday',
           timestamp: new Date().toISOString(),
-          action: 'refer_company',
-          ...getTeamAnalyticsData(),
-          referralInvestorName: referralData.investorName,
-          referralInvestorEmail: referralData.investorEmail,
+          action: 'intro_company',
+          ...analyticsData,
+        },
+      };
+
+      reportAnalytics.mutate(introEvent);
+    }
+  };
+
+  const handleReferSubmit = (referralData: { investorName: string; investorEmail: string; message: string }) => {
+    if (userInfo?.email) {
+      const analyticsData = getTeamAnalyticsData();
+
+      // PostHog analytics
+      onActiveViewIntroCompanyConfirmClicked({
+        ...analyticsData,
+        referralName: referralData.investorName,
+        referralEmail: referralData.investorEmail,
+      });
+
+      // Custom analytics event
+      const referEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INTRO_COMPANY_CONFIRM_CLICKED,
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          action: 'intro_company',
+          ...analyticsData,
+          referralName: referralData.investorName,
+          referralEmail: referralData.investorEmail,
         },
       };
 
@@ -498,7 +536,34 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
           {/* Refer Company Modal */}
           <ReferCompanyModal
             isOpen={isReferModalOpen}
-            onClose={() => setIsReferModalOpen(false)}
+            onClose={() => {
+              setIsReferModalOpen(false);
+
+              // Report intro company cancel analytics
+              if (userInfo?.email) {
+                const analyticsData = getTeamAnalyticsData();
+
+                // PostHog analytics
+                onActiveViewIntroCompanyCancelClicked(analyticsData);
+
+                // Custom analytics event
+                const cancelEvent: TrackEventDto = {
+                  name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INTRO_COMPANY_CANCEL_CLICKED,
+                  distinctId: userInfo.email,
+                  properties: {
+                    userId: userInfo.uid,
+                    userEmail: userInfo.email,
+                    userName: userInfo.name,
+                    path: '/demoday',
+                    timestamp: new Date().toISOString(),
+                    action: 'intro_company_cancel',
+                    ...analyticsData,
+                  },
+                };
+
+                reportAnalytics.mutate(cancelEvent);
+              }
+            }}
             onSubmit={handleReferSubmit}
             teamName={team?.team?.name || 'this company'}
             isSubmitting={expressInterest.isPending}

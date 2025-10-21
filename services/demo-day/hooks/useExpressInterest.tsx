@@ -60,7 +60,7 @@ export function useExpressInterest(teamName?: string) {
           title = `You expressed interest to invest in ${teamName || '[TeamName]'}`;
           break;
         case 'referral':
-          title = `You referred ${teamName || '[TeamName]'} to an investor`;
+          title = `${teamName || '[TeamName]'} introduction sent`;
           break;
         default:
           title = 'Connection request sent!';

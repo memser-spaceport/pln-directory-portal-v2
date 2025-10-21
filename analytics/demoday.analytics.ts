@@ -120,6 +120,22 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED, eventParams);
   }
 
+  function onActiveViewReferCompanyClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_REFER_COMPANY_CLICKED, eventParams);
+  }
+
+  function onActiveViewIntroCompanyClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INTRO_COMPANY_CLICKED, eventParams);
+  }
+
+  function onActiveViewIntroCompanyCancelClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INTRO_COMPANY_CANCEL_CLICKED, eventParams);
+  }
+
+  function onActiveViewIntroCompanyConfirmClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INTRO_COMPANY_CONFIRM_CLICKED, eventParams);
+  }
+
   function onLandingPageOpened(eventParams = {}) {
     captureEvent(DEMO_DAY_ANALYTICS.ON_LANDING_PAGE_OPENED, eventParams);
   }
@@ -176,5 +192,9 @@ export const useDemoDayAnalytics = () => {
     onActiveViewLikeCompanyClicked,
     onActiveViewConnectCompanyClicked,
     onActiveViewInvestCompanyClicked,
+    onActiveViewReferCompanyClicked,
+    onActiveViewIntroCompanyClicked,
+    onActiveViewIntroCompanyCancelClicked,
+    onActiveViewIntroCompanyConfirmClicked,
   };
 };

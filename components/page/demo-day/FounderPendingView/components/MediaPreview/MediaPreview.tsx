@@ -82,12 +82,12 @@ export const MediaPreview = ({
   const queryClient = useQueryClient();
 
   // Preload full image URL for faster modal display
-  useEffect(() => {
-    if (previewImageUrl && typeof window !== 'undefined') {
-      const img = new Image();
-      img.src = previewImageUrl;
-    }
-  }, [previewImageUrl]);
+  // useEffect(() => {
+  //   if (previewImageSmallUrl && previewImageUrl && typeof window !== 'undefined') {
+  //     const img = new Image();
+  //     img.src = previewImageUrl;
+  //   }
+  // }, [previewImageUrl, previewImageSmallUrl]);
 
   // Create portal container
   useEffect(() => {
@@ -194,10 +194,10 @@ export const MediaPreview = ({
         </div>
       );
     } else if (isPDF(url)) {
-      if (previewImageSmallUrl || previewImageUrl) {
+      if (previewImageUrl) {
         return (
           <div className={s.imagePreviewContainer}>
-            <img src={previewImageSmallUrl || previewImageUrl} alt="PDF Preview" className={s.previewMedia} />
+            <img src={previewImageUrl} alt="PDF Preview" className={s.previewMedia} />
           </div>
         );
       }

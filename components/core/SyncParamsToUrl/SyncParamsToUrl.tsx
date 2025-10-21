@@ -109,7 +109,7 @@ export function SyncParamsToUrl({ debounceTime = 700 }: { debounceTime?: number 
 
   // Handle analytics and initial load separately (no debounce needed)
   useEffect(() => {
-    onMembersFiltersChange(params);
+    // onMembersFiltersChange(params);
 
     // Mark that initial load is complete
     if (isInitialLoad.current) {

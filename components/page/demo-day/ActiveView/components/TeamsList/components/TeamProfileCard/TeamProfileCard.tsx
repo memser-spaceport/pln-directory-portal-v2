@@ -13,6 +13,7 @@ import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hook
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { ReferCompanyModal } from '../ReferCompanyModal';
+import { clsx } from 'clsx';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
@@ -30,6 +31,8 @@ interface TeamProfileCardProps {
 
 export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick, isAdmin = false }) => {
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
+  const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
+  const descriptionRef = React.useRef<HTMLParagraphElement>(null);
 
   // Analytics hooks
   const {
@@ -187,6 +190,14 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     setIsReferModalOpen(false);
   };
 
+  // Check if description is truncated
+  React.useEffect(() => {
+    if (descriptionRef.current && team.description) {
+      const element = descriptionRef.current;
+      setIsDescriptionTruncated(element.scrollHeight > element.clientHeight);
+    }
+  }, [team.description]);
+
   return (
     <div className={s.profileCard} onClick={handleCardClick}>
       <div className={s.editButtonContainer}>
@@ -202,6 +213,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         fundingStage={team?.team?.fundingStage?.title || '-'}
         tags={team?.team.industryTags.map((tag) => tag.title) || []}
         founders={team.founders}
+        uid={team.uid}
       />
 
       <ProfileContent
@@ -210,6 +222,27 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         pitchDeckPreviewUrl={team?.onePagerUpload?.previewImageUrl}
         pitchDeckPreviewSmallUrl={team?.onePagerUpload?.previewImageSmallUrl}
       />
+
+      {/* Team Description */}
+      {team.description && (
+        <div className={s.descriptionSection}>
+          <p ref={descriptionRef} className={clsx(s.description, { [s.truncated]: isDescriptionTruncated })}>
+            {team.description}
+          </p>
+          {isDescriptionTruncated && (
+            <button
+              className={s.showMoreButton}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCardClick();
+              }}
+            >
+              Show more
+            </button>
+          )}
+        </div>
+      )}
+
       <div className={s.profileDivider} />
       <div className={s.actions}>
         <button
@@ -219,11 +252,11 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         >
           {team.referral ? (
             <>
-              ⤴️ Referred Company
+              ⤴️ Sent intro
               <CheckIcon />
             </>
           ) : (
-            <>⤴️ Refer Company</>
+            <>⤴️ Send Intro</>
           )}
         </button>
         <button

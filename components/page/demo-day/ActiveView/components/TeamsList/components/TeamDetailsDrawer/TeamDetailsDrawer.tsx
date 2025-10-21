@@ -334,6 +334,9 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     {/* Profile Header */}
                     <div className={s.profileSection}>
                       <ProfileHeader
+                        classes={{
+                          name: s.teamName,
+                        }}
                         uid={displayTeam.team.uid}
                         image={displayTeam.team.logo?.url || '/images/demo-day/profile-placeholder.svg'}
                         name={displayTeam.team?.name || 'Team Name'}
@@ -433,11 +436,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     >
                       {team.referral ? (
                         <>
-                          ⤴️ Referred Company
+                          ⤴️ Sent Intro
                           <CheckIcon />
                         </>
                       ) : (
-                        <>⤴️ Refer Company</>
+                        <>⤴️ Send Intro</>
                       )}
                     </button>
                     <button

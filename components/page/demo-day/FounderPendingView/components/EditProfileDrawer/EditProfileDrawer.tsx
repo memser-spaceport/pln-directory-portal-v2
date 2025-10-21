@@ -607,11 +607,11 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
           >
             {team?.referral ? (
               <>
-                ✉️ Send Introduction
+                ✉️ Make an Intro
                 <CheckIcon />
               </>
             ) : (
-              <>✉️ Send Introduction</>
+              <>✉️ Make an Intro</>
             )}
           </button>
           <button

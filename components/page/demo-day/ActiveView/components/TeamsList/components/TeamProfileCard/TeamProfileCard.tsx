@@ -344,11 +344,11 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         >
           {team.referral ? (
             <>
-              ✉️ Send Introduction
+              ✉️ Make an Intro
               <CheckIcon />
             </>
           ) : (
-            <>✉️ Send Introduction</>
+            <>✉️ Make an Intro</>
           )}
         </button>
         <button

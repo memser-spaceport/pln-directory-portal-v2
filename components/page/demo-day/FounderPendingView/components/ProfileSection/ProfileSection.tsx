@@ -151,6 +151,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
             description={data?.team?.shortDescription || '-'}
             fundingStage={data?.team?.fundingStage?.title || '-'}
             tags={data?.team?.industryTags?.map((tag) => tag.title) || []}
+            uid={data?.team?.uid}
           />
 
           {/* Content */}

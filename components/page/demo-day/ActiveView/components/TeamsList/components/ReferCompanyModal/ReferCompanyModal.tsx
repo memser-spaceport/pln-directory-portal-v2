@@ -158,7 +158,7 @@ export const ReferCompanyModal: React.FC<ReferCompanyModalProps> = ({
                   name="message"
                   label="Why are you making this introduction?"
                   placeholder="Enter your message..."
-                  description="This will be shared with both the founder and the investor."
+                  description="This will be shared with both the team and the recipient."
                   disabled={isSubmitting}
                   isRequired
                   rows={5}

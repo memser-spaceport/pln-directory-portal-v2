@@ -6,10 +6,11 @@ import s from './Drawer.module.scss';
 export interface DrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  width?: number;
 }
 
 export function Drawer(props: PropsWithChildren<DrawerProps>) {
-  const { isOpen, onClose, children } = props;
+  const { isOpen, onClose, children, width = 720 } = props;
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -30,6 +31,7 @@ export function Drawer(props: PropsWithChildren<DrawerProps>) {
         >
           <motion.div
             className={s.container}
+            style={{ width }}
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}

@@ -78,8 +78,8 @@ const getStageGroup = (fundingStage: string): string => {
 };
 
 // Stage group order for sorting
-const STAGE_GROUP_ORDER_ASC = ['pre-seed', 'seed', 'series', 'other'];
-const STAGE_GROUP_ORDER_DESC = ['series', 'seed', 'pre-seed', 'other'];
+const STAGE_GROUP_ORDER_ASC = ['pre-seed', 'seed', 'series', 'fund', 'other'];
+const STAGE_GROUP_ORDER_DESC = ['fund', 'series', 'seed', 'pre-seed', 'other'];
 
 interface AdminTeamsListProps {
   profiles?: TeamProfile[];
@@ -233,6 +233,8 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
         return 'Seed';
       case 'series':
         return 'Series A/B';
+      case 'fund':
+        return 'Fund';
       case 'other':
         return 'Other';
       default:

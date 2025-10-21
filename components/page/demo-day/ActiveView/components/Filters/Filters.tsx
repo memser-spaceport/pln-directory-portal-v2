@@ -52,6 +52,7 @@ export const Filters = () => {
       ['pre-seed', { name: 'Pre-seed', count: 0, uids: [] }],
       ['seed', { name: 'Seed', count: 0, uids: [] }],
       ['series', { name: 'Series A/B', count: 0, uids: [] }],
+      ['fund', { name: 'Fund', count: 0, uids: [] }],
       ['other', { name: 'Other', count: 0, uids: [] }],
     ]);
 
@@ -76,6 +77,8 @@ export const Filters = () => {
         stageName.includes('series')
       ) {
         groupKey = 'series';
+      } else if (stageName.includes('fund')) {
+        groupKey = 'fund';
       } else {
         // All other stages go to "Other" group
         groupKey = 'other';
@@ -175,11 +178,12 @@ export const Filters = () => {
             showAllLabel="Show All Industries"
             placeholder="E.g. AI, DePIN, Web3, etc."
             emptyMessage={teamsLoading ? 'Loading industries...' : 'No industries found'}
-            initialDisplayCount={3}
+            initialDisplayCount={6}
+            useScrollOnly
           />
         </FilterSection>
 
-        <FilterSection title="Stage">
+        <FilterSection title="Stage/Type">
           <FilterList
             hideSearch
             options={stageOptions}

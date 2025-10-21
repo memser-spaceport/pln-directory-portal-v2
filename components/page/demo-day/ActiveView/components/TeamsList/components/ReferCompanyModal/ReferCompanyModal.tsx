@@ -170,7 +170,7 @@ export const ReferCompanyModal: React.FC<ReferCompanyModalProps> = ({
                     Cancel
                   </button>
                   <button type="submit" className={s.submitButton} disabled={isSubmitting}>
-                    {isSubmitting ? 'Sending...' : 'Send Introduction'}
+                    {isSubmitting ? 'Sending...' : 'Send'}
                   </button>
                 </div>
               </form>

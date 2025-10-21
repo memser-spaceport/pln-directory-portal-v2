@@ -137,7 +137,7 @@ export const AdminFilters = () => {
     }
 
     if (referredCount > 0) {
-      options.push({ id: 'referral', name: 'Referred', count: referredCount });
+      options.push({ id: 'referral', name: 'Intros', count: referredCount });
     }
 
     return options;

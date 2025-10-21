@@ -13,6 +13,7 @@ import { StandaloneMultiSelect } from '@/components/form/StandaloneMultiSelect/S
 import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions';
 import { INVEST_IN_VC_FUNDS_OPTIONS } from '@/constants/createTeam';
 import { useGetFundingStageOptions } from '@/hooks/createTeam/useGetFundingStageOptions';
+import { isInvestor } from '@/utils/isInvestor';
 
 interface ITeamBasicInfo {
   errors: string[];
@@ -109,7 +110,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
       document.removeEventListener('reset-team-register-form', resetHandler);
     };
   }, [initialValues]);
-
+  
   return (
     <>
       <div className="teaminfo__form">
@@ -209,13 +210,22 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
               Please upload a squared image in PNG or JPEG format with file size less than 4MB.
             </span>
           </p>
-          <div className="teaminfo__form__plnFriend__toggle">
-            <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
-            <p className="teaminfo__form__plnFriend__toggle__label">
-              Is your organization, company, or team friends of PL?
-            </p>
-            <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
-          </div>
+          {!isInvestor(userInfo?.accessLevel) && (
+            <div className="teaminfo__form__plnFriend__toggle">
+              <input
+                type="checkbox"
+                readOnly
+                checked={isPlnFriend}
+                id="member-info-pln-friend"
+                hidden
+                name="plnFriend"
+              />
+              <p className="teaminfo__form__plnFriend__toggle__label">
+                Is your organization, company, or team friends of PL?
+              </p>
+              <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
+            </div>
+          )}
         </div>
 
         <div className="teaminfo__form__item">

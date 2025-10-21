@@ -44,6 +44,8 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     onActiveViewIntroCompanyClicked,
     onActiveViewIntroCompanyCancelClicked,
     onActiveViewIntroCompanyConfirmClicked,
+    onActiveViewTeamPitchDeckViewed,
+    onActiveViewTeamPitchVideoViewed,
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest(team.team?.name);
@@ -227,6 +229,57 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     setIsReferModalOpen(false);
   };
 
+  // Analytics handlers for media viewing
+  const handlePitchDeckView = () => {
+    if (userInfo?.email) {
+      // PostHog analytics
+      onActiveViewTeamPitchDeckViewed(getTeamAnalyticsData());
+
+      // Custom analytics event
+      const pitchDeckEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_DECK_VIEWED,
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          materialType: 'pitch_deck',
+          materialUrl: team.onePagerUpload?.url,
+          ...getTeamAnalyticsData(),
+        },
+      };
+
+      reportAnalytics.mutate(pitchDeckEvent);
+    }
+  };
+
+  const handlePitchVideoView = () => {
+    if (userInfo?.email) {
+      // PostHog analytics
+      onActiveViewTeamPitchVideoViewed(getTeamAnalyticsData());
+
+      // Custom analytics event
+      const pitchVideoEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_VIEWED,
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          materialType: 'pitch_video',
+          materialUrl: team.videoUpload?.url,
+          ...getTeamAnalyticsData(),
+        },
+      };
+
+      reportAnalytics.mutate(pitchVideoEvent);
+    }
+  };
+
   // Check if description is truncated
   React.useEffect(() => {
     if (descriptionRef.current && team.description) {
@@ -256,6 +309,8 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
       <ProfileContent
         pitchDeckUrl={team?.onePagerUpload?.url}
         videoUrl={team?.videoUpload?.url}
+        onPitchDeckView={handlePitchDeckView}
+        onPitchVideoView={handlePitchVideoView}
         pitchDeckPreviewUrl={team?.onePagerUpload?.previewImageUrl}
         pitchDeckPreviewSmallUrl={team?.onePagerUpload?.previewImageSmallUrl}
       />

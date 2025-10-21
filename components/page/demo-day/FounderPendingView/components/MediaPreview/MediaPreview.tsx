@@ -83,11 +83,11 @@ export const MediaPreview = ({
 
   // Preload full image URL for faster modal display
   useEffect(() => {
-    if (previewImageUrl && typeof window !== 'undefined') {
+    if (previewImageSmallUrl && previewImageUrl && typeof window !== 'undefined') {
       const img = new Image();
       img.src = previewImageUrl;
     }
-  }, [previewImageUrl]);
+  }, [previewImageUrl, previewImageSmallUrl]);
 
   // Create portal container
   useEffect(() => {

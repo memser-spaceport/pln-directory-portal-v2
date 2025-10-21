@@ -436,11 +436,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     >
                       {team.referral ? (
                         <>
-                          ⤴️ Referred Company
+                          ⤴️ Sent Intro
                           <CheckIcon />
                         </>
                       ) : (
-                        <>⤴️ Refer Company</>
+                        <>⤴️ Send Intro</>
                       )}
                     </button>
                     <button

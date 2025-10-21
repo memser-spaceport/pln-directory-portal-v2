@@ -46,18 +46,15 @@ export function PageTitle(props: PageTitleProps) {
     <div className={s.root}>
       <h1 className={`${s.title} ${size === 'small' && s.small}`}>{data?.title || 'PL F25 Demo Day'}</h1>
       <p className={`${s.description} ${size === 'small' && s.small}`}>
-        An invite-only event for accredited investors, featuring 20+ top teams from Pre-Seed to Series A, across the{' '}
-        <a
-          href="https://www.protocol.ai/"
-          className={s.link}
-          onClick={handleProtocolLabsLinkClick}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Protocol Labs
-        </a>{' '}
-        network. <br className={s.hideOnMobile} />{' '}
-        {showDate && <b>{date ? format(date, 'dd MMM yyyy, hh:mm aa (zzz)') : 'October 23, 2025'}.</b>}
+        Featuring 28 teams from Pre-Seed to Series A+ across AI, web3, crypto, robotics, and neurotech.
+        <br />
+        <br />
+        This is an Invite-only virtual event. The experience is asynchronous and efficient, so you can review quickly
+        and at your convenience.
+        <br />
+        {showDate && (
+          <b>Demo Day opens on {date ? format(date, 'dd MMM yyyy, hh:mm aa (zzz)') : 'October 23, 2025'}.</b>
+        )}
       </p>
     </div>
   );

@@ -91,8 +91,8 @@ const getStageGroup = (fundingStage: string): string => {
 };
 
 // Stage group order for sorting
-const STAGE_GROUP_ORDER_ASC = ['pre-seed', 'seed', 'series', 'other'];
-const STAGE_GROUP_ORDER_DESC = ['series', 'seed', 'pre-seed', 'other'];
+const STAGE_GROUP_ORDER_ASC = ['pre-seed', 'seed', 'series', 'fund', 'other'];
+const STAGE_GROUP_ORDER_DESC = ['fund', 'series', 'seed', 'pre-seed', 'other'];
 
 export const TeamsList: React.FC = () => {
   const { data: teams, isLoading, error } = useGetTeamsList();
@@ -238,6 +238,8 @@ export const TeamsList: React.FC = () => {
         return 'Seed';
       case 'series':
         return 'Series A/B';
+      case 'fund':
+        return 'Fund';
       case 'other':
         return 'Other';
       default:

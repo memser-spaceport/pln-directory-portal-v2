@@ -133,3 +133,51 @@
     background: rgba(69, 84, 104, 0.1);
   }
 }
+
+.descriptionSection {
+  width: 100%;
+  position: relative;
+}
+
+.description {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  margin: 0;
+
+  /* Limit to 3 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &.truncated {
+    /* Add space for the "Show more" button at the end */
+    padding-right: 80px;
+  }
+}
+
+.showMoreButton {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: white;
+  border: none;
+  color: #1b4dff;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  padding: 0 0 0 4px;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}

@@ -53,11 +53,6 @@ export const ReferCompanyModal: React.FC<ReferCompanyModalProps> = ({
     resolver: async (values) => {
       const errors: Record<string, { message: string }> = {};
 
-      // Validate investorName
-      if (!values.investorName?.trim()) {
-        errors.investorName = { message: 'Investor name is required' };
-      }
-
       // Validate investorEmail
       if (!values.investorEmail?.trim()) {
         errors.investorEmail = { message: 'Investor email is required' };
@@ -135,25 +130,28 @@ export const ReferCompanyModal: React.FC<ReferCompanyModalProps> = ({
             </div>
 
             {/* Title */}
-            <h2 className={s.title}>Refer {teamName} to an Investor</h2>
+            <h2 className={s.title}>Introduce {teamName} to Someone</h2>
+
+            <p className={s.desc}>
+              This will send an intro email to the company, yourself, and the person you list below
+            </p>
 
             {/* Form */}
             <FormProvider {...methods}>
               <form onSubmit={handleSubmit(onFormSubmit)} className={s.form}>
                 <FormField
-                  name="investorName"
-                  label="Investor Name"
-                  placeholder="Enter name (e.g. Sarah Cohen)"
+                  name="investorEmail"
+                  label="Email Address"
+                  placeholder="Enter email (e.g. sarah@mail.com)"
                   disabled={isSubmitting}
                   isRequired
                 />
 
                 <FormField
-                  name="investorEmail"
-                  label="Investor Email Address"
-                  placeholder="Enter email (e.g. sarah@mail.com)"
+                  name="investorName"
+                  label="Name"
+                  placeholder="Enter name (e.g. Sarah Cohen)"
                   disabled={isSubmitting}
-                  isRequired
                 />
 
                 <FormTextArea
@@ -172,7 +170,7 @@ export const ReferCompanyModal: React.FC<ReferCompanyModalProps> = ({
                     Cancel
                   </button>
                   <button type="submit" className={s.submitButton} disabled={isSubmitting}>
-                    {isSubmitting ? 'Sending...' : 'Send Intro'}
+                    {isSubmitting ? 'Sending...' : 'Send Introduction'}
                   </button>
                 </div>
               </form>

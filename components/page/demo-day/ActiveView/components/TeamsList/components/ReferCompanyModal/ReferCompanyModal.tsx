@@ -133,7 +133,7 @@ export const ReferCompanyModal: React.FC<ReferCompanyModalProps> = ({
             <h2 className={s.title}>Introduce {teamName} to Someone</h2>
 
             <p className={s.desc}>
-              This will send an intro email to the company, yourself, and the person you list below"
+              This will send an intro email to the company, yourself, and the person you list below
             </p>
 
             {/* Form */}

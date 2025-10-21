@@ -33,7 +33,8 @@
   gap: 3px;
 }
 
-.content {}
+.content {
+}
 
 .section {
   padding: 16px;
@@ -109,11 +110,11 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  
+
   &.enabled {
     background-color: #10B981;
   }
-  
+
   &.disabled {
     background-color: #6B7280;
   }
@@ -153,21 +154,7 @@
 }
 
 .incompleteStrip {
-  display: flex;
-  padding: 8px 16px;
-  justify-content: center;
-  gap: 4px;
-  align-items: flex-start;
-  align-self: stretch;
-  border-radius: 8px 8px 0 0;
-  background: var(--background-brand-soft-surface, #F2F5FF);
-
   color: var(--foreground-warning-secondary, #D97706);
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 20px; /* 166.667% */
-  letter-spacing: 0.12px;
 }
 
 .keywordsWrapper {

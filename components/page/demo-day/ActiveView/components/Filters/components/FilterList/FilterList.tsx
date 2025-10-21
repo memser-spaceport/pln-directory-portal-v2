@@ -8,6 +8,7 @@ import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { SearchIcon, CloseIcon } from '@/components/icons';
+import { clsx } from 'clsx';
 
 export interface FilterOption {
   id: string;
@@ -23,6 +24,7 @@ interface FilterListProps {
   initialDisplayCount?: number;
   showAllLabel?: ReactNode;
   hideSearch?: boolean;
+  useScrollOnly?: boolean;
 }
 
 export const FilterList: React.FC<FilterListProps> = ({
@@ -33,6 +35,7 @@ export const FilterList: React.FC<FilterListProps> = ({
   emptyMessage = 'No options found',
   initialDisplayCount = 5,
   hideSearch = false,
+  useScrollOnly = false,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAll, setShowAll] = useState(false);
@@ -112,14 +115,19 @@ export const FilterList: React.FC<FilterListProps> = ({
       return filteredOptions;
     }
 
+    // If useScrollOnly is true, show all options (CSS max-height will handle scrolling)
+    if (useScrollOnly) {
+      return filteredOptions;
+    }
+
     if (showAll || filteredOptions.length <= initialDisplayCount) {
       return filteredOptions;
     }
 
     return filteredOptions.slice(0, initialDisplayCount);
-  }, [filteredOptions, showAll, searchTerm, initialDisplayCount]);
+  }, [filteredOptions, showAll, searchTerm, initialDisplayCount, useScrollOnly]);
 
-  const hasMoreOptions = filteredOptions.length > initialDisplayCount;
+  const hasMoreOptions = !useScrollOnly && filteredOptions.length > initialDisplayCount;
   const isSearching = searchTerm.trim().length > 0;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,6 +184,11 @@ export const FilterList: React.FC<FilterListProps> = ({
 
   const hasSearchValue = searchTerm.trim().length > 0;
 
+  // Calculate max-height for scroll-only mode
+  // Each item: 36px (8px padding-top + 20px line-height + 8px padding-bottom)
+  // Gap between items: 2px
+  const scrollOnlyMaxHeight = useScrollOnly ? initialDisplayCount * 36 + (initialDisplayCount - 1) * 2 : undefined;
+
   return (
     <div className={s.container}>
       {/* Search Input */}
@@ -205,7 +218,10 @@ export const FilterList: React.FC<FilterListProps> = ({
       )}
 
       {/* Options List */}
-      <div className={s.optionsList}>
+      <div
+        className={clsx(s.optionsList, { [s.scrollOnly]: useScrollOnly })}
+        style={scrollOnlyMaxHeight ? { maxHeight: `${scrollOnlyMaxHeight}px` } : undefined}
+      >
         {filteredOptions.length === 0 ? (
           <div className={s.emptyState}>{hasSearchValue ? `No results for "${searchTerm}"` : emptyMessage}</div>
         ) : (

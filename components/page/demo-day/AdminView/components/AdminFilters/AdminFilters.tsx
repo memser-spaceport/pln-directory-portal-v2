@@ -55,6 +55,7 @@ export const AdminFilters = () => {
       ['pre-seed', { name: 'Pre-seed', count: 0, uids: [] }],
       ['seed', { name: 'Seed', count: 0, uids: [] }],
       ['series', { name: 'Series A/B', count: 0, uids: [] }],
+      ['fund', { name: 'Fund', count: 0, uids: [] }],
       ['other', { name: 'Other', count: 0, uids: [] }],
     ]);
 
@@ -79,6 +80,8 @@ export const AdminFilters = () => {
         stageName.includes('series')
       ) {
         groupKey = 'series';
+      } else if (stageName.includes('fund')) {
+        groupKey = 'fund';
       } else {
         // All other stages go to "Other" group
         groupKey = 'other';
@@ -117,6 +120,7 @@ export const AdminFilters = () => {
     const likedCount = teams.filter((team) => team.liked).length;
     const connectedCount = teams.filter((team) => team.connected).length;
     const investedCount = teams.filter((team) => team.invested).length;
+    const referredCount = teams.filter((team) => team.referral).length;
 
     const options: FilterOption[] = [];
 
@@ -129,7 +133,11 @@ export const AdminFilters = () => {
     }
 
     if (investedCount > 0) {
-      options.push({ id: 'invested', name: 'Invested', count: investedCount });
+      options.push({ id: 'invested', name: 'Signaled investment interest', count: investedCount });
+    }
+
+    if (referredCount > 0) {
+      options.push({ id: 'referral', name: 'Intros', count: referredCount });
     }
 
     return options;
@@ -173,11 +181,12 @@ export const AdminFilters = () => {
             showAllLabel="Show All Industries"
             placeholder="E.g. AI, DePIN, Web3, etc."
             emptyMessage={teamsLoading ? 'Loading industries...' : 'No industries found'}
-            initialDisplayCount={3}
+            initialDisplayCount={6}
+            useScrollOnly
           />
         </FilterSection>
 
-        <FilterSection title="Stage">
+        <FilterSection title="Stage/Type">
           <FilterList
             hideSearch
             options={stageOptions}

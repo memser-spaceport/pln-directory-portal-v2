@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader';
@@ -19,6 +19,8 @@ import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hook
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { ReferCompanyModal } from '../ReferCompanyModal';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -65,8 +67,10 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   investorData,
   isAdmin = false,
 }) => {
-  const { data } = useGetFundraisingProfile();
+  const { data: demoDayData } = useGetDemoDayState();
+  const { data } = useGetFundraisingProfile(demoDayData?.access === 'FOUNDER');
   const isPrepDemoDay = useIsPrepDemoDay();
+  const [isReferModalOpen, setIsReferModalOpen] = useState(false);
 
   // Analytics hooks
   const {
@@ -192,6 +196,44 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     });
   };
 
+  const handleReferCompanyClick = () => {
+    setIsReferModalOpen(true);
+  };
+
+  const handleReferSubmit = (referralData: { investorName: string; investorEmail: string; message: string }) => {
+    if (userInfo?.email) {
+      // Custom analytics event
+      const referEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_REFER_COMPANY_CLICKED,
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          action: 'refer_company',
+          ...getTeamAnalyticsData(),
+          referralInvestorName: referralData.investorName,
+          referralInvestorEmail: referralData.investorEmail,
+        },
+      };
+
+      reportAnalytics.mutate(referEvent);
+    }
+
+    // Express interest via API with referral data
+    expressInterest.mutate({
+      teamFundraisingProfileUid: team.uid,
+      interestType: 'referral',
+      isPrepDemoDay,
+      referralData,
+    });
+
+    // Close modal
+    setIsReferModalOpen(false);
+  };
+
   // Analytics handlers for media viewing
   const handlePitchDeckView = () => {
     if (userInfo?.email) {
@@ -292,6 +334,9 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     {/* Profile Header */}
                     <div className={s.profileSection}>
                       <ProfileHeader
+                        classes={{
+                          name: s.teamName,
+                        }}
                         uid={displayTeam.team.uid}
                         image={displayTeam.team.logo?.url || '/images/demo-day/profile-placeholder.svg'}
                         name={displayTeam.team?.name || 'Team Name'}
@@ -371,6 +416,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                           onPitchDeckView={handlePitchDeckView}
                           onPitchVideoView={handlePitchVideoView}
                           pitchDeckPreviewUrl={displayTeam?.onePagerUpload?.previewImageUrl}
+                          pitchDeckPreviewSmallUrl={displayTeam?.onePagerUpload?.previewImageSmallUrl}
                         />
                         {displayTeam?.description && (
                           <CompanyFundraiseParagraph paragraph={displayTeam?.description} editable={false} />
@@ -383,6 +429,20 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                 {/* Footer Actions */}
                 <div className={s.drawerFooter}>
                   <div className={s.actions}>
+                    <button
+                      className={s.secondaryButton}
+                      onClick={handleReferCompanyClick}
+                      disabled={expressInterest.isPending || !team.uid}
+                    >
+                      {team.referral ? (
+                        <>
+                          ✉️ Sent intro
+                          <CheckIcon />
+                        </>
+                      ) : (
+                        <>✉️ Send intro</>
+                      )}
+                    </button>
                     <button
                       className={s.secondaryButton}
                       onClick={handleLikeCompanyClick}
@@ -434,6 +494,15 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
               </div>
             </motion.div>
           </motion.div>
+
+          {/* Refer Company Modal */}
+          <ReferCompanyModal
+            isOpen={isReferModalOpen}
+            onClose={() => setIsReferModalOpen(false)}
+            onSubmit={handleReferSubmit}
+            teamName={team?.team?.name || 'this company'}
+            isSubmitting={expressInterest.isPending}
+          />
         </>
       )}
     </AnimatePresence>

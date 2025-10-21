@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { format } from 'date-fns-tz';
 import { TeamsList } from '@/components/page/demo-day/ActiveView/components/TeamsList';
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
+import { Alert } from '@/components/page/demo-day/shared/Alert';
 
 export const Content = () => {
   const { data } = useGetDemoDayState();
@@ -53,6 +54,14 @@ export const Content = () => {
             <MediaPreview url={PITCH_VIDEO_URL} type="video" title="Pitch Video" showMetadata={false} />
           </div>*/}
           {/*<ProfileContent pitchDeckUrl={PITCH_DECK_URL} videoUrl={PITCH_VIDEO_URL} />*/}
+
+          <Alert>
+            <p>
+              Confidentiality notice: Materials presented here are confidential and are provided exclusively for your
+              review. DO NOT copy, screenshot, share, or distribute to others. Any unauthorized disclosure will result
+              in removal from the network.
+            </p>
+          </Alert>
         </div>
       </div>
 

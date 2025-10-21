@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { format } from 'date-fns-tz';
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
 import { AdminTeamsList } from '../AdminTeamsList';
+import { Alert } from '@/components/page/demo-day/shared/Alert';
 
 export const AdminContent = ({ isDirectoryAdmin }: { isDirectoryAdmin: boolean }) => {
   const { data: demoDayData } = useGetDemoDayState();
@@ -51,6 +52,14 @@ export const AdminContent = ({ isDirectoryAdmin }: { isDirectoryAdmin: boolean }
           {/*<div className={s.videoWrapper}>
             <MediaPreview url={PITCH_VIDEO_URL} type="video" title="Pitch Video" showMetadata={false} />
           </div>*/}
+
+          <Alert>
+            <p>
+              Confidentiality notice: Materials presented here are confidential and are provided exclusively for your
+              review. DO NOT copy, screenshot, share, or distribute to others. Any unauthorized disclosure will result
+              in removal from the network.
+            </p>
+          </Alert>
         </div>
       </div>
 

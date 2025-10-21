@@ -45,9 +45,11 @@ async function uploadOnePager(params: UploadOnePagerParams): Promise<UploadOnePa
         onProgress?.(100, 'Processing');
 
         const previewImage = await generatePdfPreview(file, 6.0, 'jpeg', 0.99);
+        const previewImageSmall = await generatePdfPreview(file, 0.5, 'jpeg', 0.5);
 
         await uploadOnePagerPreview({
           previewImage,
+          previewImageSmall,
           teamUid,
         });
       }

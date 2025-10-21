@@ -36,6 +36,7 @@ export type TeamProfile = {
   liked: boolean;
   connected: boolean;
   invested: boolean;
+  referral: boolean;
 };
 
 export type TeamsListResponse = TeamProfile[];
@@ -56,6 +57,7 @@ async function fetcher(): Promise<TeamsListResponse> {
   }
 
   const data: TeamsListResponse = await response.json();
+
   return data;
 }
 

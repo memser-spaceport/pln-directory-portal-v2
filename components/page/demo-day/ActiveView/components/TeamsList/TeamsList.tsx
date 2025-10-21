@@ -63,8 +63,8 @@ const SORT_OPTIONS: SortOption[] = [
   // { value: 'default', label: 'Default' },
   // { value: 'name-asc', label: 'Name A-Z' },
   // { value: 'name-desc', label: 'Name Z-A' },
-  { value: 'stage-asc', label: 'Pre-seed > Seed > Series A/B' },
-  { value: 'stage-desc', label: 'Series A/B > Seed > Pre-seed' },
+  { value: 'stage-asc', label: 'Pre-seed > Seed > Series A/B > Fund' },
+  { value: 'stage-desc', label: 'Fund > Series A/B > Seed > Pre-seed' },
   // { value: 'recent', label: 'Most Recent' },
 ];
 
@@ -76,6 +76,8 @@ const getStageGroup = (fundingStage: string): string => {
     return 'pre-seed';
   } else if (stageLower.includes('seed') && !stageLower.includes('pre')) {
     return 'seed';
+  } else if (stageLower.includes('fund')) {
+    return 'fund';
   } else if (
     stageLower.includes('series a') ||
     stageLower.includes('series b') ||
@@ -91,8 +93,8 @@ const getStageGroup = (fundingStage: string): string => {
 };
 
 // Stage group order for sorting
-const STAGE_GROUP_ORDER_ASC = ['pre-seed', 'seed', 'series', 'other'];
-const STAGE_GROUP_ORDER_DESC = ['series', 'seed', 'pre-seed', 'other'];
+const STAGE_GROUP_ORDER_ASC = ['pre-seed', 'seed', 'series', 'fund', 'other'];
+const STAGE_GROUP_ORDER_DESC = ['fund', 'series', 'seed', 'pre-seed', 'other'];
 
 export const TeamsList: React.FC = () => {
   const { data: teams, isLoading, error } = useGetTeamsList();
@@ -164,12 +166,13 @@ export const TeamsList: React.FC = () => {
         }
       }
 
-      // Activity filter (liked, connected, invested)
+      // Activity filter (liked, connected, invested, referred)
       if (selectedActivities.length > 0) {
         const matchesActivity = selectedActivities.some((activity) => {
           if (activity === 'liked') return team.liked;
           if (activity === 'connected') return team.connected;
           if (activity === 'invested') return team.invested;
+          if (activity === 'referral') return team.referral;
           return false;
         });
         if (!matchesActivity) {
@@ -237,6 +240,8 @@ export const TeamsList: React.FC = () => {
         return 'Seed';
       case 'series':
         return 'Series A/B';
+      case 'fund':
+        return 'Fund';
       case 'other':
         return 'Other';
       default:

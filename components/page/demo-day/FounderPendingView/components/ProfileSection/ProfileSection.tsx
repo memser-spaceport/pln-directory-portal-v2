@@ -151,6 +151,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
             description={data?.team?.shortDescription || '-'}
             fundingStage={data?.team?.fundingStage?.title || '-'}
             tags={data?.team?.industryTags?.map((tag) => tag.title) || []}
+            uid={data?.team?.uid}
           />
 
           {/* Content */}
@@ -158,6 +159,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
             pitchDeckUrl={data?.onePagerUpload?.url}
             videoUrl={data?.videoUpload?.url}
             pitchDeckPreviewUrl={data?.onePagerUpload?.previewImageUrl}
+            pitchDeckPreviewSmallUrl={data?.onePagerUpload?.previewImageSmallUrl}
           />
 
           {/* Divider */}

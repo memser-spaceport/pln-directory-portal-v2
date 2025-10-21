@@ -1,6 +1,9 @@
 import React from 'react';
+import { clsx } from 'clsx';
 import Link from 'next/link';
+
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+
 import s from './ProfileHeader.module.scss';
 
 interface Founder {
@@ -18,9 +21,14 @@ interface ProfileHeaderProps {
   fundingStage?: string;
   tags: string[];
   founders?: Founder[];
+  classes?: {
+    name?: string;
+  };
 }
 
-export const ProfileHeader = ({ uid, image, name, description, fundingStage, tags, founders }: ProfileHeaderProps) => {
+export const ProfileHeader = (props: ProfileHeaderProps) => {
+  const { uid, image, name, description, fundingStage, tags, founders, classes } = props;
+
   // Helper function to format funding stage
   const formatFundingStage = (stage: string) => {
     const stageMap: Record<string, string> = {
@@ -68,7 +76,7 @@ export const ProfileHeader = ({ uid, image, name, description, fundingStage, tag
       <div className={s.memberDetails}>
         <div className={s.memberInfo}>
           <div className={s.memberNameContainer}>
-            <h2 className={s.memberName}>
+            <h2 className={clsx(s.memberName, classes?.name)}>
               {name}{' '}
               {uid && (
                 <Link className={s.externalLinkIcon} href={`/teams/${uid}`} target="_blank">

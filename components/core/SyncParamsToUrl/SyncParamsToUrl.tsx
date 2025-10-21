@@ -44,6 +44,7 @@ export function SyncParamsToUrl({ debounceTime = 700 }: { debounceTime?: number 
   const { onMembersFiltersChange } = useMemberAnalytics();
   const isInitialLoad = useRef(true);
   const lastSyncedParams = useRef<string>('');
+  const lastAnalyticsParams = useRef<string>('');
 
   // Function to update URL
   const updateUrl = useCallback(
@@ -107,15 +108,29 @@ export function SyncParamsToUrl({ debounceTime = 700 }: { debounceTime?: number 
     [params],
   );
 
-  // Handle analytics and initial load separately (no debounce needed)
-  useEffect(() => {
-    // onMembersFiltersChange(params);
+  // Debounce analytics event to prevent excessive firing
+  useDebounce(
+    () => {
+      // Only fire analytics if:
+      // 1. Not the initial load, AND
+      // 2. The params have actually changed from the last analytics event
+      const currentParamsString = filterTrackedParams(params).toString();
+      if (!isInitialLoad.current && lastAnalyticsParams.current !== currentParamsString) {
+        onMembersFiltersChange(params);
+        lastAnalyticsParams.current = currentParamsString;
+      }
+    },
+    debounceTime,
+    [params],
+  );
 
-    // Mark that initial load is complete
+  // Track initial load state and set initial analytics params
+  useEffect(() => {
     if (isInitialLoad.current) {
       isInitialLoad.current = false;
+      lastAnalyticsParams.current = filterTrackedParams(params).toString();
     }
-  }, [params, onMembersFiltersChange]);
+  }, [params]);
 
   return null;
 }

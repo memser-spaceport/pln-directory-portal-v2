@@ -433,7 +433,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   };
 
   return (
-    <Drawer isOpen={isOpen} onClose={onClose}>
+    <Drawer isOpen={isOpen} onClose={onClose} width={780}>
       {/* Header */}
       <div className={s.drawerHeader}>
         <div className={s.breadcrumbs}>
@@ -607,11 +607,11 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
           >
             {team?.referral ? (
               <>
-                ✉️ Sent intro
+                ✉️ Send Introduction
                 <CheckIcon />
               </>
             ) : (
-              <>✉️ Send intro</>
+              <>✉️ Send Introduction</>
             )}
           </button>
           <button

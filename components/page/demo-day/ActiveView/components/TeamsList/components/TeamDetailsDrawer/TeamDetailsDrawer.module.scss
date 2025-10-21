@@ -18,7 +18,7 @@
 
 .drawerContainer {
   background: white;
-  width: 720px;
+  width: 780px;
   height: 100vh;
   overflow-y: auto;
   display: flex;
@@ -194,7 +194,7 @@
   gap: 16px;
   align-self: stretch;
   border-radius: 12px;
-  background: var(--Neutral-Slate-50, #F8FAFC);
+  background: var(--Neutral-Slate-50, #f8fafc);
   margin-bottom: 16px;
 }
 
@@ -208,7 +208,7 @@
   flex: 1 0 0;
 
   border-radius: 12px;
-  background: var(--Neutral-Slate-50, #F8FAFC);
+  background: var(--Neutral-Slate-50, #f8fafc);
 
   &:last-child {
     border-bottom: none;
@@ -347,7 +347,7 @@
   gap: 12px;
   flex-wrap: wrap;
 
-  @media(max-width: 720px) {
+  @media (max-width: 720px) {
     gap: 8px;
     flex-direction: column;
 
@@ -368,7 +368,7 @@
   border: 1px solid rgba(27, 77, 255, 0.02);
   background: rgba(27, 77, 255, 0.04);
   box-shadow: 0 -1px 4px 0 rgba(27, 77, 255, 0.08) inset;
-  color: #1B4DFF;
+  color: #1b4dff;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -406,12 +406,12 @@
   gap: 6px;
   border-radius: 8px;
   border: 1px solid rgba(14, 15, 17, 0.12);
-  background: #1B4DFF;
+  background: #1b4dff;
   box-shadow:
     0 1px 3px 0 rgba(255, 255, 255, 0.32) inset,
     0 4px 6px 0 rgba(255, 255, 255, 0.06) inset,
     0 1px 5px 0 rgba(27, 77, 255, 0.16);
-  color: #FFF;
+  color: #fff;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;

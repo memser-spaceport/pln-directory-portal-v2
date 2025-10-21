@@ -6,6 +6,9 @@ import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState
 import { useGetDemoDayStats } from '@/services/demo-day/hooks/useGetDemoDayStats';
 import { NumberTicker } from '@/components/ui/NumberTicker';
 import s from './DemoDayStats.module.scss';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
+import { IUserInfo } from '@/types/shared.types';
 
 const HandshakeIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -18,12 +21,13 @@ const HandshakeIcon = () => (
 
 export const DemoDayStats: React.FC = () => {
   const pathname = usePathname();
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
   // Check if we're on a demo day related page (including prep page)
   const isDemoDayPage = pathname?.startsWith('/demoday');
 
   const { data } = useGetDemoDayState();
-  const { data: stats } = useGetDemoDayStats(isDemoDayPage && data?.status === 'ACTIVE');
+  const { data: stats } = useGetDemoDayStats(isDemoDayPage && data?.status === 'ACTIVE' && !!userInfo?.uid);
 
   // Don't render if not on demo day page or no data or no access
   if (!isDemoDayPage || !data || data.access === 'none' || data.status !== 'ACTIVE' || (stats?.total ?? 0) < 500) {

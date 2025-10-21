@@ -213,7 +213,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         fundingStage={team?.team?.fundingStage?.title || '-'}
         tags={team?.team.industryTags.map((tag) => tag.title) || []}
         founders={team.founders}
-        uid={team.uid}
+        uid={team?.team?.uid}
       />
 
       <ProfileContent

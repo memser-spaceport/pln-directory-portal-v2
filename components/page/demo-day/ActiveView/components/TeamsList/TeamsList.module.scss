@@ -409,10 +409,6 @@
   letter-spacing: -0.75px;
   white-space: nowrap;
 
-  &:first-child {
-    margin-top: 0;
-  }
-
   // Lines on both sides
   &::before,
   &::after {

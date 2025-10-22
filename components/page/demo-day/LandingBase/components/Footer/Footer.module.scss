@@ -2,10 +2,7 @@
   font-size: 12px;
   line-height: 16px;
   letter-spacing: -0.2px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  color: var(--foreground-neutral-secondary, #455468);
 
   width: 100%;
   max-width: 1000px;
@@ -14,8 +11,18 @@
   border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
+.note {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .legal {
-  color: var(--foreground-neutral-secondary, #455468);
   font-weight: 400;
 }
 
@@ -26,8 +33,6 @@
 }
 
 .link {
-  color: var(--foreground-neutral-secondary, #455468);
-
   font-weight: 500;
   text-decoration-line: underline;
   text-decoration-style: solid;

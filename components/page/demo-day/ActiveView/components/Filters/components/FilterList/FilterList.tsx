@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, ReactNode } from 'react';
+import React, { useState, useMemo, useCallback, ReactNode, useRef } from 'react';
 import { useFilterStore } from '@/services/members/store';
 import { URL_QUERY_VALUE_SEPARATOR, DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import s from './FilterList.module.scss';
@@ -39,7 +39,9 @@ export const FilterList: React.FC<FilterListProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const { params, setParam } = useFilterStore();
+  const optionsListRef = useRef<HTMLDivElement>(null);
 
   // Analytics hooks
   const { onActiveViewFiltersApplied } = useDemoDayAnalytics();
@@ -189,6 +191,19 @@ export const FilterList: React.FC<FilterListProps> = ({
   // Gap between items: 2px
   const scrollOnlyMaxHeight = useScrollOnly ? initialDisplayCount * 36 + (initialDisplayCount - 1) * 2 : undefined;
 
+  // Handle mouse enter/leave for scrollbar visibility
+  const handleMouseEnter = () => {
+    if (useScrollOnly) {
+      setIsHovered(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (useScrollOnly) {
+      setIsHovered(false);
+    }
+  };
+
   return (
     <div className={s.container}>
       {/* Search Input */}
@@ -219,8 +234,14 @@ export const FilterList: React.FC<FilterListProps> = ({
 
       {/* Options List */}
       <div
-        className={clsx(s.optionsList, { [s.scrollOnly]: useScrollOnly })}
+        ref={optionsListRef}
+        className={clsx(s.optionsList, {
+          [s.scrollOnly]: useScrollOnly,
+          [s.showScrollbar]: useScrollOnly && isHovered,
+        })}
         style={scrollOnlyMaxHeight ? { maxHeight: `${scrollOnlyMaxHeight}px` } : undefined}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         {filteredOptions.length === 0 ? (
           <div className={s.emptyState}>{hasSearchValue ? `No results for "${searchTerm}"` : emptyMessage}</div>

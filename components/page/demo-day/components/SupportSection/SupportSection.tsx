@@ -5,15 +5,14 @@ export const SupportSection = () => {
   return (
     <div className={s.container}>
       <div className={s.content}>
-        <p className={s.title}>
-          Anything not working? <br /> Questions? Feedback?
-        </p>
+        <p className={s.title}>Questions or feedback?</p>
         <p className={s.description}>
-          Email us:{' '}
+          Reach out:{' '}
           <a href="mailto:pldemoday@protocol.ai" className={s.link}>
             pldemoday@protocol.ai
-          </a>{' '}
-          — we aim to get back asap.
+          </a>
+          <br />
+          (Typical response time: within 24 hrs)
         </p>
       </div>
     </div>

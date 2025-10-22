@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Modal } from '@/components/common/Modal';
 import { useAcceptConfidentiality } from '@/services/demo-day/hooks/useAcceptConfidentiality';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import s from './ConfidentialityModal.module.scss';
 
 const InfoIcon = () => (
@@ -33,14 +34,18 @@ export const ConfidentialityModal: React.FC<ConfidentialityModalProps> = ({ isOp
   const router = useRouter();
   const [isChecked, setIsChecked] = useState(false);
   const acceptConfidentiality = useAcceptConfidentiality();
+  const demoDayAnalytics = useDemoDayAnalytics();
 
   const handleClose = () => {
+    demoDayAnalytics.onConfidentialityModalClosed();
+
     // Redirect to /members when close button is clicked
     router.push('/members');
   };
 
   const handleSubmit = () => {
     if (isChecked) {
+      demoDayAnalytics.onConfidentialityModalSubmitted();
       acceptConfidentiality.mutate({ accepted: true });
     }
   };

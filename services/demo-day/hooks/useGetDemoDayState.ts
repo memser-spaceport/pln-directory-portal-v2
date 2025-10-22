@@ -15,8 +15,10 @@ type DemoDayState = {
   isDemoDayAdmin: boolean;
   isEarlyAccess?: boolean;
 
-  investorsCount: 1;
-  teamsCount: 1;
+  confidentialityAccepted: boolean;
+
+  investorsCount: number;
+  teamsCount: number;
 };
 
 export async function getDemoDayState(memberUid?: string) {

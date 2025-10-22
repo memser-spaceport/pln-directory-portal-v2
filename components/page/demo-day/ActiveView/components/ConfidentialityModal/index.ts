@@ -1,0 +1,2 @@
+export { ConfidentialityModal } from './ConfidentialityModal';
+

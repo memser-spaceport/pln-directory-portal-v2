@@ -4,6 +4,7 @@ import { SyncParamsToUrl } from '@/components/core/SyncParamsToUrl';
 import { FiltersHydrator } from '@/components/core/FiltersHydrator/FiltersHydrator';
 import { Filters } from './components/Filters';
 import { Content } from './components/Content';
+import { ConfidentialityModal } from './components/ConfidentialityModal';
 import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 import { useTimeOnPage } from '@/hooks/useTimeOnPage';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
@@ -60,6 +61,9 @@ export const ActiveView = () => {
     <FiltersHydrator>
       <SyncParamsToUrl debounceTime={0} />
       <DashboardPagesLayout filters={<Filters />} content={<Content />} />
+
+      {/* Confidentiality Modal - shows when confidentialityAccepted is false */}
+      <ConfidentialityModal isOpen={demoDayData?.confidentialityAccepted === false} />
     </FiltersHydrator>
   );
 };

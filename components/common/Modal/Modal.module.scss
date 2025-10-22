@@ -1,0 +1,22 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(14, 15, 17, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  backdrop-filter: blur(15px);
+}
+
+.modalContainer {
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+

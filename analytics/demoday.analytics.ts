@@ -100,6 +100,14 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_CARD_CLICKED, eventParams);
   }
 
+  function onConfidentialityModalSubmitted(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_CONFIDENTIALITY_MODAL_SUBMITTED, eventParams);
+  }
+
+  function onConfidentialityModalClosed(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_CONFIDENTIALITY_MODAL_CLOSED, eventParams);
+  }
+
   function onActiveViewTeamPitchDeckViewed(eventParams = {}) {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_DECK_VIEWED, eventParams);
   }
@@ -196,5 +204,7 @@ export const useDemoDayAnalytics = () => {
     onActiveViewIntroCompanyClicked,
     onActiveViewIntroCompanyCancelClicked,
     onActiveViewIntroCompanyConfirmClicked,
+    onConfidentialityModalSubmitted,
+    onConfidentialityModalClosed,
   };
 };

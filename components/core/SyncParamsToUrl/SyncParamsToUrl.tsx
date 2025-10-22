@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useCallback } from 'react';
-import { useFilterStore } from '@/services/members/store';
+import { useFilterStore, setFilterAnalyticsCallback } from '@/services/members/store';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useDebounce } from 'react-use';
 import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/constants/filters';
@@ -44,6 +44,13 @@ export function SyncParamsToUrl({ debounceTime = 700 }: { debounceTime?: number 
   const { onMembersFiltersChange } = useMemberAnalytics();
   const isInitialLoad = useRef(true);
   const lastSyncedParams = useRef<string>('');
+  const lastAnalyticsParams = useRef<string>('');
+
+  // Set analytics callback once on mount
+  useEffect(() => {
+    setFilterAnalyticsCallback(onMembersFiltersChange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   // Function to update URL
   const updateUrl = useCallback(
@@ -107,15 +114,13 @@ export function SyncParamsToUrl({ debounceTime = 700 }: { debounceTime?: number 
     [params],
   );
 
-  // Handle analytics and initial load separately (no debounce needed)
+  // Mark initial load as complete after first render
   useEffect(() => {
-    // onMembersFiltersChange(params);
-
-    // Mark that initial load is complete
     if (isInitialLoad.current) {
       isInitialLoad.current = false;
+      lastAnalyticsParams.current = filterTrackedParams(params).toString();
     }
-  }, [params, onMembersFiltersChange]);
+  }, []);
 
   return null;
 }

@@ -113,22 +113,33 @@
   }
 
   &.scrollOnly {
-    // When in scroll-only mode, show scrollbar
+    // When in scroll-only mode, hide scrollbar by default
     overflow-y: auto;
 
-    // Show scrollbar
+    // Hide scrollbar by default
     &::-webkit-scrollbar {
       width: 6px;
     }
 
     &::-webkit-scrollbar-track {
-      background: #f1f5f9;
+      background: transparent;
       border-radius: 3px;
     }
 
     &::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: transparent;
       border-radius: 3px;
+    }
+  }
+
+  // Show scrollbar when hovered (controlled by JS)
+  &.showScrollbar {
+    &::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
 
       &:hover {
         background: #94a3b8;

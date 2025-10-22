@@ -1634,4 +1634,6 @@ export const DEMO_DAY_ANALYTICS = {
   ON_INVESTOR_PROFILE_TEAM_SELECTED: 'demo-day-investor-profile-team-selected',
   ON_TEAM_PROFILE_READY: 'demo-day-team-profile-ready',
   ON_PROTOCOL_LABS_LINK_CLICKED: 'demo-day-protocol-labs-link-clicked',
+  ON_CONFIDENTIALITY_MODAL_SUBMITTED: 'demo-day-confidentiality-modal-submitted',
+  ON_CONFIDENTIALITY_MODAL_CLOSED: 'demo-day-confidentiality-modal-closed',
 };

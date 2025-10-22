@@ -44,6 +44,7 @@ export function SyncParamsToUrl({ debounceTime = 700 }: { debounceTime?: number 
   const { onMembersFiltersChange } = useMemberAnalytics();
   const isInitialLoad = useRef(true);
   const lastSyncedParams = useRef<string>('');
+  const lastAnalyticsParams = useRef<string>('');
 
   // Set analytics callback once on mount
   useEffect(() => {
@@ -117,6 +118,7 @@ export function SyncParamsToUrl({ debounceTime = 700 }: { debounceTime?: number 
   useEffect(() => {
     if (isInitialLoad.current) {
       isInitialLoad.current = false;
+      lastAnalyticsParams.current = filterTrackedParams(params).toString();
     }
   }, []);
 

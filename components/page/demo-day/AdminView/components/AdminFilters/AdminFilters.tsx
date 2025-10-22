@@ -10,6 +10,7 @@ import {
 } from '@/components/page/demo-day/ActiveView/components/Filters/components/FilterList';
 import { useGetAllFundraisingProfiles } from '@/services/demo-day/hooks/useGetAllFundraisingProfiles';
 import { useFilterStore } from '@/services/members/store';
+import { SupportSection } from '@/components/page/demo-day/components/SupportSection';
 
 export const AdminFilters = () => {
   const appliedFiltersCount = useGetMembersFilterCount();
@@ -196,6 +197,9 @@ export const AdminFilters = () => {
             emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
           />
         </FilterSection>
+
+        {/* Support Section */}
+        <SupportSection />
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSear
 import { FilterList, FilterOption } from './components/FilterList';
 import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
 import { useFilterStore } from '@/services/members/store';
+import { SupportSection } from '@/components/page/demo-day/components/SupportSection';
 
 export const Filters = () => {
   const appliedFiltersCount = useGetMembersFilterCount();
@@ -193,6 +194,9 @@ export const Filters = () => {
             emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
           />
         </FilterSection>
+
+        {/* Support Section */}
+        <SupportSection />
       </div>
 
       {/*<div className={s.footer}>*/}

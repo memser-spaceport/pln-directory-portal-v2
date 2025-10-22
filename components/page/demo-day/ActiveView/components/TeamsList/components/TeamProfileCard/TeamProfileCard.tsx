@@ -304,6 +304,9 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         tags={team?.team.industryTags.map((tag) => tag.title) || []}
         founders={team.founders}
         uid={team?.team?.uid}
+        classes={{
+          name: s.teamName
+        }}
       />
 
       <ProfileContent

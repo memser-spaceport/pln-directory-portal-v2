@@ -80,7 +80,7 @@ export const ConfidentialityModal: React.FC<ConfidentialityModalProps> = ({ isOp
                   onChange={(e) => setIsChecked(e.target.checked)}
                   className={s.checkbox}
                 />
-                <span className={s.checkboxText}>I accept the confidentiality terms</span>
+                <span className={s.checkboxText}>I accept the terms</span>
               </label>
             </div>
           </div>

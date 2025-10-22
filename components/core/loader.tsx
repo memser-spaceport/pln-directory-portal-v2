@@ -8,23 +8,23 @@ const Loader = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   useEffect(() => {
-    function loadingHandler(e: any){
+    function loadingHandler(e: any) {
       if (e?.detail) {
         setIsLoading(e?.detail);
       } else {
         setIsLoading(false);
       }
-    };
-    document.addEventListener(EVENTS.TRIGGER_LOADER, loadingHandler);
-    return function() {
-      document.removeEventListener(EVENTS.TRIGGER_LOADER, loadingHandler);
     }
+    document.addEventListener(EVENTS.TRIGGER_LOADER, loadingHandler);
+    return function () {
+      document.removeEventListener(EVENTS.TRIGGER_LOADER, loadingHandler);
+    };
   }, []);
 
   useEffect(() => {
-    setIsLoading(false)
+    setIsLoading(false);
   }, [pathname, searchParams]);
-  
+
   return (
     <>
       {isLoading && (

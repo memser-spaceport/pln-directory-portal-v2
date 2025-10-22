@@ -12,7 +12,7 @@ import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import { updateTeam } from '@/services/teams.service';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { projectDetailsSchema, socialSchema, basicInfoSchema } from '@/schema/team-forms';
 import Modal from '@/components/core/modal';
 import SettingsAction from './actions';
@@ -21,6 +21,7 @@ import { ENROLLMENT_TYPE } from '@/utils/constants';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import AlertMessage from './alert-message';
 import TeamsMemberInfo from './teams-member-info';
+import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 function ManageTeamsSettings(props: any) {
   //props
@@ -38,10 +39,20 @@ function ManageTeamsSettings(props: any) {
   const [activeTab, setActiveTab] = useState({ name: 'basic', label: 'BASIC' });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
-  const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], focusAreas: [], isError: false });
+  const [allData, setAllData] = useState({
+    technologies: [],
+    fundingStage: [],
+    membershipSources: [],
+    industryTags: [],
+    focusAreas: [],
+    isError: false,
+  });
   const [teamMembers, setTeamMembers] = useState(structuredClone(membersDetail));
+  const [isInvestmentFund, setIsInvestmentFund] = useState(false);
 
-  const [allMembers, setAllMembers] = useState(() => (props?.allMembers || []).filter((member: any) => !membersDetail.some((m: any) => m.id === member.uid)));
+  const [allMembers, setAllMembers] = useState(() =>
+    (props?.allMembers || []).filter((member: any) => !membersDetail.some((m: any) => m.id === member.uid)),
+  );
 
   const [errors, setErrors] = useState({ basicErrors: [], socialErrors: [], projectErrors: [] });
   const tabsWithError = {
@@ -54,6 +65,7 @@ function ManageTeamsSettings(props: any) {
   const [content, setContent] = useState(initialValues?.basicInfo.longDescription ?? '');
   const analytics = useSettingsAnalytics();
   const [isAlertInfoDismissed, setIsAlertInfoDismissed] = useState(false);
+  useMobileNavVisibility(true);
 
   const handleTabClick = (v: string) => {
     analytics.recordTeamProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
@@ -215,7 +227,11 @@ function ManageTeamsSettings(props: any) {
         if (imgEle) {
           imgEle.value = image.url;
         }
-      } else if (selectedTeam?.logo?.uid && selectedTeam?.logo?.url && formattedInputValues.imageFile === selectedTeam?.logo?.url) {
+      } else if (
+        selectedTeam?.logo?.uid &&
+        selectedTeam?.logo?.url &&
+        formattedInputValues.imageFile === selectedTeam?.logo?.url
+      ) {
         formattedInputValues.logoUid = selectedTeam?.logo?.uid;
         formattedInputValues.logoUrl = selectedTeam?.logo?.url;
       }
@@ -259,7 +275,7 @@ function ManageTeamsSettings(props: any) {
 
     const member = teamMembers.find((m: any) => m.id === memberUid);
 
-    if (member?.teams?.status === "Add") {
+    if (member?.teams?.status === 'Add') {
       const updatedMembers = teamMembers.map((m: any) => {
         if (m.id === member.id) {
           return {
@@ -270,7 +286,7 @@ function ManageTeamsSettings(props: any) {
             },
           };
         }
-        return m; 
+        return m;
       });
       setTeamMembers(updatedMembers);
       return;
@@ -291,7 +307,7 @@ function ManageTeamsSettings(props: any) {
         teams: {
           ...member.teams,
           teamLead: isTeamLead,
-          status: "Update",
+          status: 'Update',
         },
       };
     });
@@ -343,7 +359,7 @@ function ManageTeamsSettings(props: any) {
       formattedInputValues.teamMemberRoles = teamMembers;
       if (!formattedInputValues.teamFocusAreas) {
         formattedInputValues.teamFocusAreas = [];
-      } 
+      }
       if (!formattedInputValues.imageFile) {
         formattedInputValues.imageFile = '';
       }
@@ -390,7 +406,11 @@ function ManageTeamsSettings(props: any) {
   }, [initialValues]);
 
   useEffect(() => {
-    setAllMembers((props?.allMembers || []).filter((member: any) => !teamMembers.some((teamMember: any) => teamMember.id === member.uid)));
+    setAllMembers(
+      (props?.allMembers || []).filter(
+        (member: any) => !teamMembers.some((teamMember: any) => teamMember.id === member.uid),
+      ),
+    );
   }, [teamMembers]);
 
   const isAlertInfo = isAlertInfoDismissed ? false : Boolean(numberOfChanges) ? true : false;
@@ -419,7 +439,12 @@ function ManageTeamsSettings(props: any) {
 
           <div className="ms__tab">
             <div className="ms__tab__desktop">
-              <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps} />
+              <Tabs
+                errorInfo={tabsWithError}
+                activeTab={activeTab.name}
+                onTabClick={(v) => handleTabClick(v)}
+                tabs={steps}
+              />
             </div>
             <div className="ms__tab__mobile">
               <SingleSelect
@@ -436,10 +461,20 @@ function ManageTeamsSettings(props: any) {
         </div>
         <div className="ms__content">
           <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-            <TeamBasicInfo isEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent} />
+            <TeamBasicInfo
+              isEdit={true}
+              errors={errors.basicErrors}
+              initialValues={initialValues.basicInfo}
+              longDesc={content}
+              setLongDesc={setContent}
+              userInfo={userInfo}
+              isInvestmentFund={isInvestmentFund}
+              setIsInvestmentFund={setIsInvestmentFund}
+            />
           </div>
           <div className={`${activeTab.name !== 'team details' ? 'hidden' : ''}`}>
             <TeamProjectsInfo
+              isInvestmentFund={isInvestmentFund}
               errors={errors.projectErrors}
               protocolOptions={allData?.technologies}
               fundingStageOptions={allData?.fundingStage}
@@ -612,8 +647,8 @@ function ManageTeamsSettings(props: any) {
           }
           .ms__head {
             background: white;
-            position: sticky;
-            top: 128px;
+            //position: sticky;
+            //top: 128px;
             z-index: 3;
             padding-bottom: 8px;
           }
@@ -699,8 +734,8 @@ function ManageTeamsSettings(props: any) {
               padding-top: 0px;
             }
             .ms__head {
-              top: 128.5px;
-              padding-bottom: 0px;
+              //top: 128.5px;
+              padding-bottom: 0;
             }
             .ms__member-selection {
               padding: 8px 16px;

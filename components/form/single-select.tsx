@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
 interface Option {
   [key: string]: any;
@@ -15,7 +15,7 @@ interface SingleSelectProps {
   placeholder?: string;
   isMandatory?: boolean;
   arrowImgUrl?: string;
-  label?: string;
+  label?: ReactNode;
   id: string;
   onSingleSelectClicked?: () => void;
 }
@@ -102,11 +102,24 @@ const SingleSelect: React.FC<SingleSelectProps> = ({
             placeholder={placeholder}
             readOnly
           />
-          {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
+          {arrowImgUrl && (
+            <img
+              onClick={onSearchFocus}
+              className="select__arrowimg"
+              src={arrowImgUrl}
+              width="10"
+              height="7"
+              alt="arrow down"
+            />
+          )}
           {showOptions && (
             <ul className="select__options">
               {filteredOptions?.map((option) => (
-                <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
+                <li
+                  key={option[uniqueKey]}
+                  onClick={() => handleOptionClick(option)}
+                  className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}
+                >
                   {option[displayKey]}
                 </li>
               ))}
@@ -133,6 +146,7 @@ const SingleSelect: React.FC<SingleSelectProps> = ({
             display: block;
             width: fit-content;
           }
+
           .select__arrowimg {
             position: absolute;
             cursor: pointer;
@@ -140,6 +154,7 @@ const SingleSelect: React.FC<SingleSelectProps> = ({
             transform: translateY(-50%);
             right: 12px;
           }
+
           .select__search {
             padding: 8px 12px;
             padding-right: 22px;
@@ -151,13 +166,16 @@ const SingleSelect: React.FC<SingleSelectProps> = ({
             border: 1px solid lightgrey;
             cursor: pointer;
           }
+
           .select__search:focus-visible,
           .select__search:focus {
             outline: none;
           }
+
           .select__search--error {
             border: 1px solid red;
           }
+
           .select__options {
             width: 100%;
             list-style-type: none;
@@ -174,11 +192,13 @@ const SingleSelect: React.FC<SingleSelectProps> = ({
             left: 0;
             right: 0;
           }
+
           .select__options__item {
             cursor: pointer;
             font-size: 14px;
             padding: 4px 8px;
           }
+
           .select__options__noresults {
             cursor: pointer;
             font-size: 15px;

@@ -1,0 +1,257 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+.container {
+  padding: 0;
+  inset: initial;
+  bottom: 0 !important;
+  left: 0;
+  z-index: 11;
+
+  @include media.tablet-landscape {
+    &.open {
+      padding: 24px;
+      inset: unset !important;
+      bottom: 0 !important;
+      left: 0 !important;
+    }
+
+    padding: 0 16px;
+  }
+
+  &.open {
+    padding: 16px;
+    inset: 0;
+    bottom: 0;
+  }
+}
+
+.root {
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px 16px 0 0;
+  width: 100%;
+  background: #156ff7;
+  overflow: hidden;
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  padding: 4px;
+
+  @include media.tablet-landscape {
+    max-width: 328px;
+    min-width: 328px;
+  }
+
+  &.open {
+    border-radius: 16px;
+
+    .top .chevron {
+      transform: rotate(0deg);
+    }
+
+    .content {
+      display: flex;
+    }
+
+    .top {
+      padding-bottom: 16px;
+    }
+  }
+}
+
+.chevron {
+  transform: rotate(180deg);
+}
+
+.top {
+  position: relative;
+  background: #156ff7;
+  background-size: contain;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 16px 16px 0 0;
+  padding: 4px 4px 4px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mainTitle {
+  color: #fff;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 20px; /* 142.857% */
+}
+
+.content {
+  @include mixins.hide-scrollbar;
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0 16px 12px;
+  display: none;
+
+  max-height: 400px;
+  overflow: auto;
+}
+
+.desc {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  padding: 0 16px 8px;
+}
+
+.primaryBtn {
+  border-radius: 8px;
+  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
+  background: var(--Button-surface-brand-button, #156ff7);
+
+  /* Button Shadow */
+  box-shadow: 0px 1px 1px 0px rgba(15, 23, 42, 0.08);
+
+  display: flex;
+  height: 48px;
+  padding: 10px 24px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  align-self: stretch;
+
+  color: var(--Text-text-lightest, #fff);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+
+  /* Body 2/Medium */
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+
+  position: relative;
+
+  .glow {
+    position: absolute;
+    right: -12px;
+    top: -12px;
+
+    animation: glowPulse 1.5s infinite ease-in-out;
+    pointer-events: none;
+  }
+}
+
+.secondaryBtn {
+  display: flex;
+  height: 32px;
+  padding: 0px 24px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  align-self: stretch;
+  border-radius: 8px;
+  background: var(--Neutral-White, #fff);
+}
+
+.controls {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.list {
+  list-style: none;
+  padding: 12px 0 24px;
+  margin: 0;
+  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.event {
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 12px;
+  background: #f8fafc;
+  transition: filter 0.2s ease;
+
+  &:hover {
+    filter: brightness(95%);
+  }
+}
+
+.eventImage {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .name {
+    overflow: hidden;
+    color: var(--Neutral-Slate-900, #0f172a);
+    text-overflow: ellipsis;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 14px; /* 116.667% */
+    letter-spacing: 0.12px;
+  }
+
+  .info {
+    display: flex;
+    align-items: center;
+
+    color: var(--Neutral-Slate-600, #475569);
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 14px; /* 140% */
+    letter-spacing: 0.1px;
+  }
+}
+
+@keyframes glowPulse {
+  0% {
+    opacity: 0.8;
+    transform: scale(1);
+    filter: drop-shadow(0 0 6px rgba(21, 111, 247, 0.6));
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 12px rgba(21, 111, 247, 0.8));
+  }
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+    filter: drop-shadow(0 0 6px rgba(21, 111, 247, 0.6));
+  }
+}
+
+.toggleBtn {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px;
+  color: #ffffff;
+
+  &:hover {
+    filter: brightness(90%);
+  }
+}

@@ -15,52 +15,82 @@ type ChatMessageActions = {
   threadId?: string;
 };
 
-const ChatMessageActions = ({ onQuestionEdit, onFeedback, onRegenerate, onCopyAnswer, answer, isLastIndex, question, hideActions, isLoadingObject, threadId }: ChatMessageActions) => {
+const ChatMessageActions = ({
+  onQuestionEdit,
+  onFeedback,
+  onRegenerate,
+  onCopyAnswer,
+  answer,
+  isLastIndex,
+  question,
+  hideActions,
+  isLoadingObject,
+  threadId,
+}: ChatMessageActions) => {
   const [copied, setCopied] = useState(false);
   const analytics = useHuskyAnalytics();
-  
+
   const handleFeedbackClick = async () => {
     await onFeedback(question, answer);
   };
-  
+
   const handleShareClick = () => {
     navigator.clipboard.writeText(`${window.location.origin}/husky/chat/${threadId}`);
     setCopied(true);
     setTimeout(() => {
       setCopied(false);
     }, 1500);
-    
+
     // Track share event with analytics
     if (threadId) {
       analytics.trackThreadShareClicked({
         threadId,
         title: question, // Using question as title for analytics
-        from: 'chat_message_actions' // Identifies this component as the source of the share action
+        from: 'chat_message_actions', // Identifies this component as the source of the share action
       });
     }
   };
-  
+
   return (
     <>
       <div className="chat-message-actions">
         <div data-state={isLoadingObject ? 'loading' : ''} className={`chat-message-actions__container`}>
-          {isLastIndex && <img onClick={async () => await onRegenerate(question)} className="chat-message-actions__item" title="Regenerate response" src="/icons/refresh-circle.svg" />}
-          {isLastIndex && <img onClick={() => onQuestionEdit(question)} className="chat-message-actions__item" title="Edit question" src="/icons/edit-chat.svg" />}
+          {isLastIndex && (
+            <img
+              onClick={async () => await onRegenerate(question)}
+              className="chat-message-actions__item"
+              title="Regenerate response"
+              src="/icons/refresh-circle.svg"
+            />
+          )}
+          {isLastIndex && (
+            <img
+              onClick={() => onQuestionEdit(question)}
+              className="chat-message-actions__item"
+              title="Edit question"
+              src="/icons/edit-chat.svg"
+            />
+          )}
           {!hideActions && (
             <CopyText onCopyCallback={onCopyAnswer} textToCopy={answer}>
-              <img className="chat-message-actions__item chat-message-actions__item--copy" title="Copy response" src="/icons/copy.svg" />
+              <img
+                className="chat-message-actions__item chat-message-actions__item--copy"
+                title="Copy response"
+                src="/icons/copy.svg"
+              />
             </CopyText>
           )}
-          <img className="chat-message-actions__item" title="Submit feedback" onClick={handleFeedbackClick} src="/icons/feedback.svg" />
+          <img
+            className="chat-message-actions__item"
+            title="Submit feedback"
+            onClick={handleFeedbackClick}
+            src="/icons/feedback.svg"
+          />
         </div>
         <div className="chat-message-actions__share">
           {isLastIndex && !hideActions && threadId && (
             <div className="share-button-container">
-              <button 
-                className="share-button" 
-                onClick={handleShareClick}
-                title="Share entire thread"
-              >
+              <button className="share-button" onClick={handleShareClick} title="Share entire thread">
                 <img src="/icons/share-gray.svg" alt="Share" />
                 <span>Share entire thread</span>
               </button>
@@ -83,7 +113,7 @@ const ChatMessageActions = ({ onQuestionEdit, onFeedback, onRegenerate, onCopyAn
           gap: 16px;
           align-items: center;
         }
-        
+
         .chat-message-actions__item {
           cursor: pointer;
         }
@@ -96,17 +126,17 @@ const ChatMessageActions = ({ onQuestionEdit, onFeedback, onRegenerate, onCopyAn
           cursor: default;
           pointer-events: none;
         }
-        
+
         .share-button-container {
           position: relative;
         }
-        
+
         .share-button {
           display: flex;
           align-items: center;
           gap: 8px;
           background: none;
-          border: 1px solid #CBD5E1;
+          border: 1px solid #cbd5e1;
           border-radius: 4px;
           cursor: pointer;
           font-size: 14px;
@@ -114,22 +144,22 @@ const ChatMessageActions = ({ onQuestionEdit, onFeedback, onRegenerate, onCopyAn
           padding: 4px 8px;
           transition: all 0.2s ease;
         }
-        
+
         .share-button:hover {
           color: var(--text-primary);
         }
-        
+
         .share-button img {
           width: 16px;
           height: 16px;
         }
-        
+
         .share-button span {
           font-weight: 400;
           font-size: 12px;
           line-height: 22px;
         }
-        
+
         .copy-popover {
           position: absolute;
           top: -36px;
@@ -143,7 +173,7 @@ const ChatMessageActions = ({ onQuestionEdit, onFeedback, onRegenerate, onCopyAn
           animation: fadeIn 0.3s ease-in-out;
           z-index: 10;
         }
-        
+
         .copy-popover::before {
           content: '';
           position: absolute;

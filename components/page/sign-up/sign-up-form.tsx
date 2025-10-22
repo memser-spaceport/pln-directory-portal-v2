@@ -1,16 +1,16 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { triggerLoader } from '@/utils/common.utils';
-import validateCaptcha, { getRecaptchaToken } from '@/services/google-recaptcha.service';
-import { toast } from 'react-toastify';
+import { isSkipRecaptcha, triggerLoader } from '@/utils/common.utils';
+import { getRecaptchaToken } from '@/services/google-recaptcha.service';
+import { toast } from '@/components/core/ToastContainer';
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 import { signUpFormAction } from '@/app/actions/sign-up.actions';
 import { useRouter } from 'next/navigation';
 import { SIGN_UP } from '@/utils/constants';
 import TextField from '@/components/form/text-field';
 import SearchWithSuggestions from '@/components/form/suggestions';
-import MultiSelect from '@/components/form/multi-select';
+import MultiSelect from '@/components/form/MultiSelect';
 import HiddenField from '@/components/form/hidden-field';
 import CustomCheckbox from '@/components/form/custom-checkbox';
 import Cookies from 'js-cookie';
@@ -66,7 +66,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
       const reCAPTCHAToken = await getRecaptchaToken();
 
       // Validating reCAPTCHAToken
-      if (reCAPTCHAToken.error || !reCAPTCHAToken.token) {
+      if ((reCAPTCHAToken.error || !reCAPTCHAToken.token) && !isSkipRecaptcha()) {
         toast.error('Google reCAPTCHA validation failed. Please try again.');
         analytics.recordSignUpSave('submit-clicked-captcha-failed', Object.fromEntries(formData.entries()));
         triggerLoader(false);
@@ -131,11 +131,11 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
             //   analytics.recordSignUpSave('submit-clicked-fail', result?.errors);
             //   setErrors(result?.errors);
             // } else {
-              if (result?.message) {
-                toast.error(result?.message);
-              } else {
-                toast.error('Something went wrong. Please try again.');
-              }
+            if (result?.message) {
+              toast.error(result?.message);
+            } else {
+              toast.error('Something went wrong. Please try again.');
+            }
             // }
           }
         }
@@ -243,13 +243,36 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
                 {/* Member profile image upload */}
                 <div className="signup__user__cn">
                   <label htmlFor="member-image-upload" className="signup__user__cn__profile">
-                    {!profileImage && !savedImage && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
+                    {!profileImage && !savedImage && (
+                      <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />
+                    )}
                     {!profileImage && !savedImage && <span className="signup__user__cn__profile__text">Add Image</span>}
-                    {(profileImage || savedImage) && <img className="signup__user__cn__profile__preview" src={formImage} alt="member profile" width="95" height="95" />}
+                    {(profileImage || savedImage) && (
+                      <img
+                        className="signup__user__cn__profile__preview"
+                        src={formImage}
+                        alt="member profile"
+                        width="95"
+                        height="95"
+                      />
+                    )}
                     {(profileImage || savedImage) && (
                       <span className="signup__user__cn__profile__actions">
-                        <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                        <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
+                        <img
+                          width="32"
+                          height="32"
+                          title="Change profile image"
+                          alt="change image"
+                          src="/icons/recycle.svg"
+                        />
+                        <img
+                          onClick={onDeleteImage}
+                          width="32"
+                          height="32"
+                          title="Delete profile image"
+                          alt="delete image"
+                          src="/icons/trash.svg"
+                        />
                       </span>
                     )}
                   </label>
@@ -287,13 +310,25 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
               {/* Image validation error */}
               {errors?.profile && <div className="signup__form__error">{errors.profile}</div>}
               <p className="info">
-                <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB.</span>
+                <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+                <span className="info__text">
+                  Please upload a image in PNG or JPEG format with file size less than 4MB.
+                </span>
               </p>
             </div>
 
             {/* Member Email */}
             <div className="signup__form__item">
-              <TextField defaultValue={''} isMandatory={true} id="signup-email" label="Email*" name="email" type="email" placeholder="Enter your email address" data-testid="member-email-input" />
+              <TextField
+                defaultValue={''}
+                isMandatory={true}
+                id="signup-email"
+                label="Email*"
+                name="email"
+                type="email"
+                placeholder="Enter your email address"
+                data-testid="member-email-input"
+              />
               {errors?.email && <div className="signup__form__error">{errors.email}</div>}
             </div>
 
@@ -313,7 +348,8 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
                 placeHolder="Enter a name of your team or project"
               />
               <p className="info">
-                <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Type atleast 3 characters to see suggestions.</span>
+                <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+                <span className="info__text">Type atleast 3 characters to see suggestions.</span>
               </p>
             </div>
 
@@ -363,8 +399,9 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
               <p className="info">
                 <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
                 <span className="info__text">
-                  You also allow Protocol Labs and companies within the network to contact you for events and opportunities within the network. Your information may only be shared with verified
-                  network members and will not be available to any individuals or entities outside the network.
+                  You also allow Protocol Labs and companies within the network to contact you for events and
+                  opportunities within the network. Your information may only be shared with verified network members
+                  and will not be available to any individuals or entities outside the network.
                 </span>
               </p>
             </div>

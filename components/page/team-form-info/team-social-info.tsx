@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import TextField from '@/components/form/text-field';
 
 interface ITeamSocialInfo {
@@ -8,7 +8,7 @@ interface ITeamSocialInfo {
 
 function TeamSocialInfo(props: ITeamSocialInfo) {
   const errors = props?.errors;
-  const initialValues = props?.initialValues
+  const initialValues = props?.initialValues;
 
   return (
     <>
@@ -25,27 +25,85 @@ function TeamSocialInfo(props: ITeamSocialInfo) {
           </ul>
         )}
         <div className="teamSocialInfo__form__item">
-          <TextField isMandatory defaultValue={initialValues?.contactMethod ?? ''} maxLength={200} id="register-team-contactMethod" label="Preferred method of contact*" name="contactMethod" type="text" placeholder="Enter contact method" />
+          <TextField
+            isMandatory
+            defaultValue={initialValues?.contactMethod ?? ''}
+            maxLength={200}
+            id="register-team-contactMethod"
+            label="Preferred method of contact*"
+            name="contactMethod"
+            type="text"
+            placeholder="Enter contact method"
+          />
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="info__text">What is the best way for people to connect with your team? (e.g., team Slack channel, team email address, team Discord server/channel, etc.)</span>
+            <span className="info__text">
+              What is the best way for people to connect with your team? (e.g., team Slack channel, team email address,
+              team Discord server/channel, etc.)
+            </span>
           </p>
         </div>
         <div className="teamSocialInfo__form__item">
-          <TextField isMandatory maxLength={1000} id="register-team-website" label="Website address*" defaultValue={initialValues?.website ?? ''} name="website" type="text" placeholder="Enter address here" />
+          <TextField
+            isMandatory
+            maxLength={1000}
+            id="register-team-website"
+            label="Website address*"
+            defaultValue={initialValues?.website ?? ''}
+            name="website"
+            type="text"
+            placeholder="Enter address here"
+          />
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="info__text">Let us check out what you and your team do! If you have more than one primary website (i.e a docs site), list one per line.</span>
+            <span className="info__text">
+              Let us check out what you and your team do! If you have more than one primary website (i.e a docs site),
+              list one per line.
+            </span>
           </p>
         </div>
-        <TextField id="register-team-linkedinHandler" maxLength={200} label="LinkedIn" defaultValue={initialValues?.linkedinHandler ?? ''} name="linkedinHandler" type="text" placeholder="eg., https://www.linkedin.com/in/jbenetcs/" />
-        <TextField id="register-team-twitterHandler" maxLength={200} label="Twitter" defaultValue={initialValues?.twitterHandler ?? ''} name="twitterHandler" type="text" placeholder="e.g., @protocollabs" />
-        <TextField id="register-team-telegramHandler" maxLength={200} label="Telegram" defaultValue={initialValues?.telegramHandler ?? ''} name="telegramHandler" type="text" placeholder="Telegram" />
+        <TextField
+          id="register-team-linkedinHandler"
+          maxLength={200}
+          label="LinkedIn"
+          defaultValue={initialValues?.linkedinHandler ?? ''}
+          name="linkedinHandler"
+          type="text"
+          placeholder="eg., https://www.linkedin.com/in/jbenetcs/"
+        />
+        <TextField
+          id="register-team-twitterHandler"
+          maxLength={200}
+          label="Twitter"
+          defaultValue={initialValues?.twitterHandler ?? ''}
+          name="twitterHandler"
+          type="text"
+          placeholder="e.g., @protocollabs"
+        />
+        <TextField
+          id="register-team-telegramHandler"
+          maxLength={200}
+          label="Telegram"
+          defaultValue={initialValues?.telegramHandler ?? ''}
+          name="telegramHandler"
+          type="text"
+          placeholder="Enter telegram handle"
+        />
         <div className="teamSocialInfo__form__item">
-          <TextField id="register-team-blog" maxLength={1000} label="Blog address" defaultValue={initialValues?.blog ?? ''} name="blog" type="text" placeholder="Enter address here" />
+          <TextField
+            id="register-team-blog"
+            maxLength={1000}
+            label="Blog address"
+            defaultValue={initialValues?.blog ?? ''}
+            name="blog"
+            type="text"
+            placeholder="Enter address here"
+          />
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="info__text">Sharing your blog link allows us to stay up to date with you, your team, and the direction you are going!</span>
+            <span className="info__text">
+              Sharing your blog link allows us to stay up to date with you, your team, and the direction you are going!
+            </span>
           </p>
         </div>
       </div>

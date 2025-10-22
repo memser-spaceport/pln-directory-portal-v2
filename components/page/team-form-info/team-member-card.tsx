@@ -3,6 +3,7 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import Toggle from '@/components/ui/toogle';
 import Image from 'next/image';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 const TeamMemberCard = (props: any) => {
   //props
@@ -35,7 +36,9 @@ const TeamMemberCard = (props: any) => {
 
   return (
     <>
-      <div className={`memberCard ${isMemberRemovedChanges && 'removed'} ${member?.teams?.status == "Add" && "new__member"}`}>
+      <div
+        className={`memberCard ${isMemberRemovedChanges && 'removed'} ${member?.teams?.status == 'Add' && 'new__member'}`}
+      >
         <div className="memberCard__profile-details">
           <div className="memberCard__profile-details__profile">
             <div className="memberCard__profile-details__profile-container">
@@ -45,17 +48,39 @@ const TeamMemberCard = (props: any) => {
                   asChild
                   trigger={
                     <div>
-                      <img alt="lead" loading="lazy" className="memberCard__profile-details__profile-container__lead" height={16} width={16} src="/icons/badge/team-lead.svg" />
+                      <img
+                        alt="lead"
+                        loading="lazy"
+                        className="memberCard__profile-details__profile-container__lead"
+                        height={16}
+                        width={16}
+                        src="/icons/badge/team-lead.svg"
+                      />
                     </div>
                   }
                   content={'Team Lead'}
                 />
               )}
-              <img loading="lazy" className="memberCard__profile-details__profile__image" alt="profile" src={member?.profile || '/icons/default-user-profile.svg'} width={40} height={40} />
+              <img
+                loading="lazy"
+                className="memberCard__profile-details__profile__image"
+                alt="profile"
+                src={member?.profile || getDefaultAvatar(member?.name)}
+                width={40}
+                height={40}
+              />
             </div>
             <div className="memberCard__profile-details__profile__name-role">
-              <Tooltip asChild trigger={<h2 className="memberCard__profile-details__profile__name-role__name">{member?.name}</h2>} content={member?.name} />
-              <Tooltip asChild trigger={<p className="memberCard__profile-details__profile__name-role__role">{role}</p>} content={role} />
+              <Tooltip
+                asChild
+                trigger={<h2 className="memberCard__profile-details__profile__name-role__name">{member?.name}</h2>}
+                content={member?.name}
+              />
+              <Tooltip
+                asChild
+                trigger={<p className="memberCard__profile-details__profile__name-role__role">{role}</p>}
+                content={role}
+              />
             </div>
           </div>
         </div>
@@ -79,23 +104,34 @@ const TeamMemberCard = (props: any) => {
         </div> */}
         {!isMemberRemovedChanges ? (
           <div className="memberCard__btn__actions">
-            {member.isVerified == true 
-              ? <div className={`memberCard__btn__actions__team__lead__toggle ${isMemberTeamLeadChanges && 'toggle-changes'}`}>
-                 <p className="memberCard__btn__actions__team__lead__toggle__label">Team Lead</p>            
-                 <Toggle height="16px" width="28px" callback={handleTeamLeadClick} isChecked={member?.teams?.teamLead} />
-                </div>
-              : <Tooltip
-                 side="top"
-                 asChild
-                 trigger={
-                  <div className={`memberCard__btn__actions__team__lead__toggle ${isMemberTeamLeadChanges && 'toggle-changes'} ${member?.isVerified ? '' : 'disabled-bg'} `}  >
-                    <p className="memberCard__btn__actions__team__lead__toggle__label">Team Lead</p>            
-                    <Toggle height="16px" width="28px" callback={handleTeamLeadClick} isChecked={false} disabled={true}/>
-                   </div>
-                 }
-                 content={'Member has limited access. Please contact admin'}
-                />
-            }
+            {member.isVerified == true ? (
+              <div
+                className={`memberCard__btn__actions__team__lead__toggle ${isMemberTeamLeadChanges && 'toggle-changes'}`}
+              >
+                <p className="memberCard__btn__actions__team__lead__toggle__label">Team Lead</p>
+                <Toggle height="16px" width="28px" callback={handleTeamLeadClick} isChecked={member?.teams?.teamLead} />
+              </div>
+            ) : (
+              <Tooltip
+                side="top"
+                asChild
+                trigger={
+                  <div
+                    className={`memberCard__btn__actions__team__lead__toggle ${isMemberTeamLeadChanges && 'toggle-changes'} ${member?.isVerified ? '' : 'disabled-bg'} `}
+                  >
+                    <p className="memberCard__btn__actions__team__lead__toggle__label">Team Lead</p>
+                    <Toggle
+                      height="16px"
+                      width="28px"
+                      callback={handleTeamLeadClick}
+                      isChecked={false}
+                      disabled={true}
+                    />
+                  </div>
+                }
+                content={'Member has limited access. Please contact admin'}
+              />
+            )}
 
             <button className="memberCard__btn__actions__delete__btn" type="button" onClick={handleRemoveClick}>
               <Image src="/icons/delete-grey-outline.svg" alt="remove" width={16} height={16} />
@@ -201,7 +237,7 @@ const TeamMemberCard = (props: any) => {
 
           .memberCard__more__menu {
             position: absolute;
-            width:165px;
+            width: 165px;
             top: 20px;
             right: 0;
             background-color: #ffffff;
@@ -259,7 +295,7 @@ const TeamMemberCard = (props: any) => {
             border: 1px solid #ff820e;
           }
           .memberCard__btn__actions__team__lead__toggle.disabled-bg {
-            background-color: #F1F5F9 !important;
+            background-color: #f1f5f9 !important;
           }
           .memberCard__btn__actions__team__lead__toggle__label,
           .memberCard__btn__actions__delete__btn__text {
@@ -300,8 +336,8 @@ const TeamMemberCard = (props: any) => {
           .memberCard.removed {
             background-color: #ffb57233;
           }
-          .memberCard.new__member{
-            background-color: #FFF0E3;
+          .memberCard.new__member {
+            background-color: #fff0e3;
           }
           @media (min-width: 1024px) {
             .memberCard {

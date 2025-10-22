@@ -19,7 +19,7 @@ function DirectoryResults({ actions }: RelatedResultsProps) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const memoizedActions = useMemo(() => actions, [actions]);
-  
+
   const handleActionCardClick = (action: ActionItem) => {
     trackDirectoryResultsCardClicked(action);
   };
@@ -38,21 +38,46 @@ function DirectoryResults({ actions }: RelatedResultsProps) {
   };
 
   // Reusable ActionCard component to avoid duplication
-  const ActionCard = ({ action, index }: { action: ActionItem; index: number }) => ( 
+  const ActionCard = ({ action, index }: { action: ActionItem; index: number }) => (
     <>
-      <a target="_blank" href={action.source} onClick={() => handleActionCardClick(action)} className="action-card" key={index} tabIndex={0} aria-label={`${action.name} - ${action.type}`}>
+      <a
+        target="_blank"
+        href={action.source}
+        onClick={() => handleActionCardClick(action)}
+        className="action-card"
+        key={index}
+        tabIndex={0}
+        aria-label={`${action.name} - ${action.type}`}
+      >
         <div className="action-card__wrapper">
           <div className="action-card__icon-wrapper">
-            {(action.type?.toLowerCase() === 'member' || action.type?.toLowerCase() === 'member-event-participation')  && <img className="action-card__icon" src="/icons/husky/husky-member.svg" alt="Member icon" />}
-            {action.type?.toLowerCase() === 'team' && <img className="action-card__icon" src="/icons/husky/husky-team.svg" alt="Team icon" />}
-            {action.type?.toLowerCase() === 'project' && <img className="action-card__icon" src="/icons/husky/husky-project.svg" alt="Project icon" />}
-            {(action.type?.toLowerCase() === 'event' || action.type?.toLowerCase() === 'irl-event') && <img className="action-card__icon" src="/icons/husky/husky-event.svg" alt="Event icon" />}
+            {(action.type?.toLowerCase() === 'member' ||
+              action.type?.toLowerCase() === 'member-event-participation') && (
+              <img className="action-card__icon" src="/icons/husky/husky-member.svg" alt="Member icon" />
+            )}
+            {action.type?.toLowerCase() === 'team' && (
+              <img className="action-card__icon" src="/icons/husky/husky-team.svg" alt="Team icon" />
+            )}
+            {action.type?.toLowerCase() === 'project' && (
+              <img className="action-card__icon" src="/icons/husky/husky-project.svg" alt="Project icon" />
+            )}
+            {(action.type?.toLowerCase() === 'event' || action.type?.toLowerCase() === 'irl-event') && (
+              <img className="action-card__icon" src="/icons/husky/husky-event.svg" alt="Event icon" />
+            )}
           </div>
           <div className="action-card__content">
             <p title={action.name} className="action-card__name">
               <span title={action.name}>{action.name}</span>
             </p>
-            <p className="action-card__type">{action.type ? (action.type === 'irl-event' ? 'Event' : action.type === 'member-event-participation' ? 'Member' : action.type) : ''}</p>
+            <p className="action-card__type">
+              {action.type
+                ? action.type === 'irl-event'
+                  ? 'Event'
+                  : action.type === 'member-event-participation'
+                    ? 'Member'
+                    : action.type
+                : ''}
+            </p>
           </div>
         </div>
       </a>
@@ -77,7 +102,9 @@ function DirectoryResults({ actions }: RelatedResultsProps) {
           border-radius: 12px;
           border: 1px solid transparent;
           background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
-          -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+          -webkit-mask:
+            linear-gradient(#fff 0 0) padding-box,
+            linear-gradient(#fff 0 0);
           -webkit-mask-composite: destination-out;
           mask-composite: exclude;
         }
@@ -142,7 +169,12 @@ function DirectoryResults({ actions }: RelatedResultsProps) {
           </div>
 
           {memoizedActions.length > noOfItemsToShowDesktop && (
-            <button onClick={handleOpenDirectoryResultsPopup} className="directory-results__header__show-all" tabIndex={0} aria-label="Show all directory results">
+            <button
+              onClick={handleOpenDirectoryResultsPopup}
+              className="directory-results__header__show-all"
+              tabIndex={0}
+              aria-label="Show all directory results"
+            >
               Show all ({memoizedActions.length})
             </button>
           )}
@@ -183,23 +215,36 @@ function DirectoryResults({ actions }: RelatedResultsProps) {
         </div>
       </div>
 
-      <dialog onClose={handleCloseDirectoryResultsPopup} ref={directoryResultsPopupRef} className="directoryResults-popup">
-        {isPopupOpen && <div className="directoryResults-popup__wrpr">
-          <div className="directoryResults-popup__header">
-            <h3 className="directoryResults-popup__header__title">
-              <span className="directoryResults-popup__header__title__count">{`${memoizedActions.length}`}</span>
-              <span role='heading' className="directoryResults-popup__header__title__text">Results from the directory</span>
-            </h3>
-            <button onClick={handleCloseDirectoryResultsPopup} className="directoryResults-popup__header__close" tabIndex={0} aria-label="Close directory results popup">
-              <img src="/icons/close-blue.svg" alt="close" />
-            </button>
+      <dialog
+        onClose={handleCloseDirectoryResultsPopup}
+        ref={directoryResultsPopupRef}
+        className="directoryResults-popup"
+      >
+        {isPopupOpen && (
+          <div className="directoryResults-popup__wrpr">
+            <div className="directoryResults-popup__header">
+              <h3 className="directoryResults-popup__header__title">
+                <span className="directoryResults-popup__header__title__count">{`${memoizedActions.length}`}</span>
+                <span role="heading" className="directoryResults-popup__header__title__text">
+                  Results from the directory
+                </span>
+              </h3>
+              <button
+                onClick={handleCloseDirectoryResultsPopup}
+                className="directoryResults-popup__header__close"
+                tabIndex={0}
+                aria-label="Close directory results popup"
+              >
+                <img src="/icons/close-blue.svg" alt="close" />
+              </button>
+            </div>
+            <div className="directory-results__cn--popup">
+              {memoizedActions.map((action, index) => (
+                <ActionCard action={action} index={index} key={index} />
+              ))}
+            </div>
           </div>
-          <div className="directory-results__cn--popup">
-            {memoizedActions.map((action, index) => (
-              <ActionCard action={action} index={index} key={index} />
-            ))}
-          </div>
-        </div>}
+        )}
       </dialog>
       <style jsx>
         {`

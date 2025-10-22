@@ -29,7 +29,15 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   return (
     <div className={styles.husky}>
       {isLoggedIn && <ChatHeader showActions={isOwnThread} title={thread?.title} />}
-      <Chat id={id} isLoggedIn={isLoggedIn} userInfo={userInfo} initialMessages={thread?.chats ?? []} isOwnThread={isOwnThread} threadOwner={threadOwner} from="detail" />
+      <Chat
+        id={id}
+        isLoggedIn={isLoggedIn}
+        userInfo={userInfo}
+        initialMessages={thread?.chats ?? []}
+        isOwnThread={isOwnThread}
+        threadOwner={threadOwner}
+        from="detail"
+      />
     </div>
   );
 }

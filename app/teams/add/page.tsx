@@ -1,14 +1,14 @@
-import { BreadCrumb } from '@/components/core/bread-crumb';
 import Error from '@/components/core/error';
-import AddEditProjectContainer from '@/components/page/add-edit-project/add-edit-project-container';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import styles from './page.module.css';
 import { RedirectType, redirect } from 'next/navigation';
 import { PAGE_ROUTES, PROJECT_NAME, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata } from 'next';
 import { METADATA_DESC, METADATA_TITLE, SUBMIT_A_TEAM_PAGE_TITLE } from '@/utils/constants/team-constants';
-import AddEditTeamContainer from '@/components/page/add-edit-team/add-edit-team-container';
+import { AddEditTeamContainer } from '@/components/page/add-edit-team/AddEditTeamContainer';
 import LoginInfo from '@/components/page/team-form-info/team-login-info';
+import { BackButton } from '@/components/ui/BackButton';
+import React from 'react';
 
 export default function SubmitATeam(props: any) {
   const { isError, isLoggedIn, userInfo } = getPageData();
@@ -23,12 +23,10 @@ export default function SubmitATeam(props: any) {
 
   return (
     <div className={styles?.submitATeam}>
-      <div className={styles.submitATeam__breadcrumb}>
-        <BreadCrumb backLink={PAGE_ROUTES.TEAMS} directoryName="Teams" pageName={SUBMIT_A_TEAM_PAGE_TITLE} />
-      </div>
+      <BackButton to={`/teams`} className={styles.backBtn} />
       {isLoggedIn && (
         <div className={styles.submitATeam__cnt}>
-          <AddEditTeamContainer team={null} type="Add" userInfo={userInfo} />
+          <AddEditTeamContainer userInfo={userInfo} />
         </div>
       )}
       {!isLoggedIn && (

@@ -1,12 +1,13 @@
 'use client';
 import CustomToggle from '@/components/form/custom-toggle';
 import HiddenField from '@/components/form/hidden-field';
-import MultiSelect from '@/components/form/multi-select';
+import MultiSelect from '@/components/form/MultiSelect';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import TextField from '@/components/form/text-field';
 import { getUniqueId } from '@/utils/common.utils';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 interface TeamAndRoleOptions {
   teamTitle: string;
@@ -27,7 +28,13 @@ interface MemberSkillsInfoProps {
   isEdit?: boolean;
 }
 
-function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions = [], errors = [], isEdit = false }: MemberSkillsInfoProps) {
+function MemberSkillsInfo({
+  initialValues = {},
+  teamsOptions = [],
+  skillsOptions = [],
+  errors = [],
+  isEdit = false,
+}: MemberSkillsInfoProps) {
   const [teamsinfo, setTeamsInfo] = useState<TeamAndRoleOptions[]>(initialValues?.teamsAndRoles ?? []);
   const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>(initialValues?.skills ?? []);
 
@@ -111,15 +118,24 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
             <li key={`member-error-${index}`}>{error}</li>
           ))}
         </ul>
-        <div className='msf__teamOrProject'>
-        <TextField type="text" id="register-member-teamOrProjectURL" defaultValue={initialValues.teamOrProjectURL} name="teamOrProjectURL" label="Team or Project URL" placeholder="eg.,https://linkedin.com/in/jbenetcs" />
+        <div className="msf__teamOrProject">
+          <TextField
+            type="text"
+            id="register-member-teamOrProjectURL"
+            defaultValue={initialValues.teamOrProjectURL}
+            name="teamOrProjectURL"
+            label="Team or Project URL"
+            placeholder="eg.,https://linkedin.com/in/jbenetcs"
+          />
         </div>
         {/**************  TEAMS & ROLES UI  *****************/}
         <div className="msf__tr">
-          {teamsinfo.length > 0 && <div className="msf__tr__head">
-            <p className="msf__tr__head__item">Team*</p>
-            <p className="msf__tr__head__item">Role</p>
-          </div>}
+          {teamsinfo.length > 0 && (
+            <div className="msf__tr__head">
+              <p className="msf__tr__head__item">Team*</p>
+              <p className="msf__tr__head__item">Role</p>
+            </div>
+          )}
           <div className="msf__tr__content">
             {teamsinfo.map((teaminfo, index) => (
               <div key={`teams-role-${teaminfo.teamUid}`} className="msf__tr__content__cn">
@@ -138,7 +154,11 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
                     onChange={(item) => onTeamSelectionChanged(index, item)}
                     arrowImgUrl="/icons/arrow-down.svg"
                   />
-                  <HiddenField value={teaminfo.teamUid} defaultValue={teaminfo.teamUid} name={`teamInfo${index}-teamUid`} />
+                  <HiddenField
+                    value={teaminfo.teamUid}
+                    defaultValue={teaminfo.teamUid}
+                    name={`teamInfo${index}-teamUid`}
+                  />
                 </div>
                 <div className="msf__tr__content__cn__role">
                   <TextField
@@ -152,9 +172,9 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
                   />
                 </div>
                 <div className="msf__tr__content__cn__delete">
-                    <div className="msf__tr__content__cn__delete__btn" onClick={() => onDeleteTeam(index)}>
-                      <Image src="/icons/close.svg" alt="delete team role" width="18" height="18" />
-                    </div>
+                  <div className="msf__tr__content__cn__delete__btn" onClick={() => onDeleteTeam(index)}>
+                    <Image src="/icons/close.svg" alt="delete team role" width="18" height="18" />
+                  </div>
                 </div>
               </div>
             ))}
@@ -169,7 +189,11 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
           </div>
           <div className="msf__tr__info">
             <img src="/icons/info.svg" />
-            <p>If you don&apos;t see your team on this list please add your team first by using &apos;Join the network&apos; - &apos;As a Team&apos;</p>
+            If you don&apos;t see your team on this list, please{' '}
+            <Link href="/teams/add" className="msf__tr__add__btn" style={{ color: '#156ff7' }}>
+              add your team
+            </Link>{' '}
+            first.
           </div>
         </div>
 
@@ -200,17 +224,26 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
           ))}
         </div>
 
-       {isEdit &&  <div className="msf__ps__ow">
-          <div className="msf__ps__ow__head">
-            <label> Are you open to collaborate?</label>
-            <CustomToggle defaultChecked={initialValues?.openToWork ?? false}  name="openToWork"  id="members-opentowork-form-item"/>
-          </div>
+        {isEdit && (
+          <div className="msf__ps__ow">
+            <div className="msf__ps__ow__head">
+              <label> Are you open to collaborate?</label>
+              <CustomToggle
+                defaultChecked={initialValues?.openToWork ?? false}
+                name="openToWork"
+                id="members-opentowork-form-item"
+              />
+            </div>
 
-          <p className="info">
-          <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="">Enabling this implies you are open to collaborate on shared ideas & projects with other members. This is one way to join forces & reach a common goal.</span>
-          </p>
-        </div>}
+            <p className="info">
+              <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+              <span className="">
+                Enabling this implies you are open to collaborate on shared ideas & projects with other members. This is
+                one way to join forces & reach a common goal.
+              </span>
+            </p>
+          </div>
+        )}
       </div>
       <style jsx>
         {`
@@ -219,14 +252,15 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
             flex-direction: column;
             gap: 4px;
           }
-            .info {
-             display: flex;
+          .info {
+            display: flex;
             color: #94a3b8;
             font-size: 13px;
             font-weight: 400;
             align-items: flex-start;
             gap: 4px;
-            margin-top: 12px;}
+            margin-top: 12px;
+          }
           .msf__ps__ow__head {
             display: flex;
             width: 100%;
@@ -242,7 +276,7 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
             padding: 8px 16px 16px 16px;
           }
           .msf__tr {
-             margin: 16px 0 0 0;
+            margin: 16px 0 0 0;
           }
           .msf__tr__head {
             display: flex;

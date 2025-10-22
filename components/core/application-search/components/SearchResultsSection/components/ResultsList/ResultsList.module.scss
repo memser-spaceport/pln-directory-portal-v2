@@ -1,0 +1,24 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+  gap: 8px;
+}
+
+.label {
+  color: #64748b;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.divider {
+  height: 1px;
+  width: calc(100%);
+  margin-block: 8px;
+  background: #e2e8f0;
+}

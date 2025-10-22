@@ -23,7 +23,6 @@ const Discover = (props: any) => {
     return <DiscoverCard data={data} userInfo={userInfo} />;
   };
 
-
   const slides = [];
   for (let i = 0; i < formattedDiscoverData.length; i += 2) {
     slides.push(formattedDiscoverData.slice(i, i + 2));
@@ -61,11 +60,13 @@ const Discover = (props: any) => {
                 })}
               </div>}
             </div> */}
-            <div className="discover__body__carousal__cards embla__container">
+            <div className="discover__body__carousal__cards embla__container" data-testid="discover-carousel-cards">
               {slides.map((slide, index) => (
                 <div key={index} className="discover__body__carousal__cards__embla embla__slide">
                   {slide.map((card, slideIndex) => (
-                    <div key={slideIndex} className="discover__body__carousal__cards__embla__card ">{renderCard(card)}</div>
+                    <div key={slideIndex} className="discover__body__carousal__cards__embla__card ">
+                      {renderCard(card)}
+                    </div>
                   ))}
                 </div>
               ))}
@@ -94,7 +95,11 @@ const Discover = (props: any) => {
               aria-label="Previous slide"
               disabled={prevBtnDisabled}
             >
-              <img className="discover__ftr__actions__left__img" src={prevBtnDisabled ? '/icons/left-arrow-circle-disabled.svg' : '/icons/left-arrow-circle.svg'} alt="left arrow" />
+              <img
+                className="discover__ftr__actions__left__img"
+                src={prevBtnDisabled ? '/icons/left-arrow-circle-disabled.svg' : '/icons/left-arrow-circle.svg'}
+                alt="left arrow"
+              />
             </button>
             <button
               data-testid="next-button"
@@ -106,7 +111,11 @@ const Discover = (props: any) => {
               aria-label="Next slide"
               disabled={nextBtnDisabled}
             >
-              <img className="discover__ftr__actions__right__img" src={nextBtnDisabled ? '/icons/right-arrow-circle-disabled.svg' : '/icons/right-arrow-circle.svg'} alt="right arrow" />
+              <img
+                className="discover__ftr__actions__right__img"
+                src={nextBtnDisabled ? '/icons/right-arrow-circle-disabled.svg' : '/icons/right-arrow-circle.svg'}
+                alt="right arrow"
+              />
             </button>
           </div>
         </div>

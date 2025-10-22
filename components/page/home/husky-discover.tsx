@@ -3,11 +3,11 @@
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import HuskyAi from '@/components/core/husky/husky-ai';
 import PageLoader from '@/components/core/page-loader';
-import {  } from '@/services/husky.service';
+import {} from '@/services/husky.service';
 import { useRouter, useSearchParams } from 'next/navigation';
-import cookies from 'js-cookie'
+import cookies from 'js-cookie';
 import { useEffect, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { getHuskyResponseBySlug, incrementHuskyViewCount } from '@/services/discovery.service';
 
 let huskyRecorded = false;
@@ -16,50 +16,49 @@ function HuskyDiscover(props: any) {
   const isLoggedIn = props.isLoggedIn;
   const dialogRef = useRef<HTMLDialogElement>(null);
   const searchParams = useSearchParams();
-  const router = useRouter()
+  const router = useRouter();
   const modalCode = searchParams.get('showmodal');
   const huskyShareId = searchParams.get('discoverid');
   const [slugId, setSlugId] = useState(huskyShareId ?? '');
-  const [initialChats, setInitialChats] = useState<any[]>([])
+  const [initialChats, setInitialChats] = useState<any[]>([]);
   const [isLoading, setLoadingStatus] = useState(false);
-  const { trackSharedBlog} = useHuskyAnalytics();
+  const { trackSharedBlog } = useHuskyAnalytics();
 
   const onDialogClose = () => {
     dialogRef.current?.close();
-    setInitialChats([])
-    if(modalCode === 'husky') {
-      router.push('/')
+    setInitialChats([]);
+    if (modalCode === 'husky') {
+      router.push('/');
     }
   };
   const increaseViewAndShow = (data: any) => {
-   incrementHuskyViewCount(data.slug)
-    .then(() => {
-      if(data && dialogRef.current) {
-        setSlugId(data.slug)
-       }
-    })
-    .catch(e => console.error(e))
-    .finally(() => {})
-  }
+    incrementHuskyViewCount(data.slug)
+      .then(() => {
+        if (data && dialogRef.current) {
+          setSlugId(data.slug);
+        }
+      })
+      .catch((e) => console.error(e))
+      .finally(() => {});
+  };
 
   const getUserInfoFromCookie = () => {
-      const rawUserInfo = cookies.get('userInfo');
-      if(rawUserInfo) {
-        const parsedUserInfo = JSON.parse(rawUserInfo)
-        return parsedUserInfo
-      }
+    const rawUserInfo = cookies.get('userInfo');
+    if (rawUserInfo) {
+      const parsedUserInfo = JSON.parse(rawUserInfo);
+      return parsedUserInfo;
+    }
 
-      return null
-  }
-
+    return null;
+  };
 
   useEffect(() => {
     function dialogHandler(e: any) {
       if (dialogRef.current) {
-        increaseViewAndShow(e?.detail)
-        setInitialChats([e?.detail])
+        increaseViewAndShow(e?.detail);
+        setInitialChats([e?.detail]);
         dialogRef.current.showModal();
-        trackSharedBlog(e?.detail?.slug, 'discover', e?.detail?.question)
+        trackSharedBlog(e?.detail?.slug, 'discover', e?.detail?.question);
       }
     }
     document.addEventListener('open-husky-discover', dialogHandler);
@@ -69,32 +68,28 @@ function HuskyDiscover(props: any) {
   }, []);
 
   useEffect(() => {
-    if(modalCode === 'husky' && huskyShareId && huskyShareId === slugId ) {
-      setLoadingStatus(true)
+    if (modalCode === 'husky' && huskyShareId && huskyShareId === slugId) {
+      setLoadingStatus(true);
       getHuskyResponseBySlug(huskyShareId, true)
-      .then(result => {
-        if(result.data && dialogRef.current) {
-          setInitialChats([result.data]);
-          if(!huskyRecorded) {
-            trackSharedBlog(huskyShareId, 'shareurl', result.data?.question)
+        .then((result) => {
+          if (result.data && dialogRef.current) {
+            setInitialChats([result.data]);
+            if (!huskyRecorded) {
+              trackSharedBlog(huskyShareId, 'shareurl', result.data?.question);
+            }
+            huskyRecorded = true;
+            dialogRef.current.showModal();
+          } else {
+            toast.error('Something went wrong');
           }
-          huskyRecorded = true;
-          dialogRef.current.showModal();
-        } else {
-         toast.error('Something went wrong')
-        }
-      })
-      .catch((e) => {
-       console.error(e);
-       toast.error('Something went wrong')
-      })
-      .finally(() => setLoadingStatus(false))
-
+        })
+        .catch((e) => {
+          console.error(e);
+          toast.error('Something went wrong');
+        })
+        .finally(() => setLoadingStatus(false));
     }
-  }, [modalCode, huskyShareId])
-
-
-
+  }, [modalCode, huskyShareId]);
 
   return (
     <>
@@ -104,10 +99,18 @@ function HuskyDiscover(props: any) {
           <img onClick={onDialogClose} className="hd__head__close" src="/icons/close.svg" />
         </div>
         <div className="hd__content">
-          {initialChats.length > 0 && <HuskyAi blogId={slugId} isLoggedIn={isLoggedIn} initialChats={initialChats} mode="blog" onClose={onDialogClose} />}
+          {initialChats.length > 0 && (
+            <HuskyAi
+              blogId={slugId}
+              isLoggedIn={isLoggedIn}
+              initialChats={initialChats}
+              mode="blog"
+              onClose={onDialogClose}
+            />
+          )}
         </div>
       </dialog>
-      {isLoading && <PageLoader/>}
+      {isLoading && <PageLoader />}
       <style jsx>
         {`
           .hd {

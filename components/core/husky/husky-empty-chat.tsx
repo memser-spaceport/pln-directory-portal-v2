@@ -4,9 +4,9 @@
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { getChatQuestions } from '@/services/discovery.service';
 import { PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, MouseEventHandler } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { triggerLoader } from '@/utils/common.utils';
@@ -16,9 +16,17 @@ interface HuskyEmptyChatProps {
   setLimitReached: any;
   checkIsLimitReached: any;
   isHidden: any;
+  // for tests
+  onPromptClicked?: () => void;
 }
 
-function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, isHidden }: HuskyEmptyChatProps) {
+function HuskyEmptyChat({
+  limitReached,
+  setLimitReached,
+  checkIsLimitReached,
+  isHidden,
+  onPromptClicked,
+}: HuskyEmptyChatProps) {
   // Initial prompts displayed to the user
   const [initialPrompts, setInitialPrompts] = useState<any[]>([]);
 
@@ -41,7 +49,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
     if (!trimmedValue) {
       return;
     }
-    
+
     // setLimitReached(checkIsLimitReached());
     if (!checkIsLimitReached()) {
       // document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { from: 'home', searchText: trimmedValue } }));
@@ -60,7 +68,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
   const onExplorationPromptClicked = async (quesObj: any) => {
     trackExplorationPromptSelection(quesObj.question, 'home-page');
     const links = quesObj?.answerSourceLinks?.map((item: any) => item?.link);
-    localStorage.setItem('initialChat', JSON.stringify({message: { ...quesObj, sources: links }, type: 'blog'}));
+    localStorage.setItem('initialChat', JSON.stringify({ message: { ...quesObj, sources: links }, type: 'blog' }));
     router.push(PAGE_ROUTES.HUSKY);
     // document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { initialChat: { ...quesObj, answerSourceLinks: links } } }));
   };
@@ -71,7 +79,12 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
     if (!isMobileOrTablet && window.innerWidth >= 1024) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault(); // Prevents adding a new line
-        handlePromptSubmission(); // Submits the form
+        if (onPromptClicked) {
+          // for testing
+          onPromptClicked();
+        } else {
+          handlePromptSubmission(); // Submits the form
+        }
       }
     }
   };
@@ -139,14 +152,15 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
           {!isMobileDevice() && (
             <div className="hec__content__box__search__instruction">
               <p>
-                <span className="hec__content__box__search__instruction__tag">Shift</span> + <span className="hec__content__box__search__instruction__tag">Enter</span> to add new line
+                <span className="hec__content__box__search__instruction__tag">Shift</span> +{' '}
+                <span className="hec__content__box__search__instruction__tag">Enter</span> to add new line
               </p>
             </div>
           )}
           <button
             tabIndex={-1} // Allow focusing
             onMouseDown={(e) => e.preventDefault()}
-            onClick={handlePromptSubmission}
+            onClick={onPromptClicked ?? handlePromptSubmission}
             className={`hec__content__box__search__button ${limitReached ? 'disabled' : ''}`}
             data-testid="submit-button"
             disabled={limitReached}
@@ -170,7 +184,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
                   </div>
                   <div className="error__strip__msg">
                     <span onClick={onLoginClickHandler} className="link">
-                      Log in
+                      Sign in
                     </span>
                     {` `}or{` `}
                     <span onClick={handleSignUpClick} role="link" className="link">
@@ -184,7 +198,11 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
             ) : (
               <>
                 <h4 className="hec__content__box__prompts__title">
-                  <img alt="Suggestions Orange" src="/icons/suggestions-orange.svg" className="hec__content__box__prompts__title__icon" />
+                  <img
+                    alt="Suggestions Orange"
+                    src="/icons/suggestions-orange.svg"
+                    className="hec__content__box__prompts__title__icon"
+                  />
                   <span className="hec__content__box__prompts__title__text">Try asking or searching for</span>
                 </h4>
                 <div className="hec__content__box__prompts__list">
@@ -200,7 +218,11 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
                       data-testid={`prompt-${index}`}
                     >
                       {/* Added data-testid for each prompt */}
-                      <img alt="Prompt Icon" src={prompt.icon} className="hec__content__box__prompts__list__item__icon" />
+                      <img
+                        alt="Prompt Icon"
+                        src={prompt.icon}
+                        className="hec__content__box__prompts__list__item__icon"
+                      />
                       <span className="hec__content__box__prompts__list__item__text">{prompt.question}</span>
                     </div>
                   ))}
@@ -210,10 +232,10 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
           </div>
         )}
       </div>
-        <div className={`hec__content__input__logo ${isHidden ? 'logo--hidden' : ''}`}>
-          <span className="hec__content__input__logo__txt">Powered by</span>
-          <img className="hec__content__input__logo__img" src="/images/husky-logo.svg" alt="Husky Logo" />
-        </div>
+      <div className={`hec__content__input__logo ${isHidden ? 'logo--hidden' : ''}`}>
+        <span className="hec__content__input__logo__txt">Powered by</span>
+        <img className="hec__content__input__logo__img" src="/images/husky-logo.svg" alt="Husky Logo" />
+      </div>
       <style jsx>{`
         .error__strip__msgWrpr {
           display: flex;
@@ -359,14 +381,16 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
           padding: 10px 0px 0px 0px;
           justify-content: end;
           opacity: 1;
-          transition: opacity 0.3s ease, transform 0.3s ease;
+          transition:
+            opacity 0.3s ease,
+            transform 0.3s ease;
         }
 
         .logo--hidden {
           height: 16px;
           opacity: 0;
           transform: translateY(-10px);
-          pointer-events: none; 
+          pointer-events: none;
         }
 
         .hec__content__input__logo__img {

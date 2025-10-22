@@ -23,15 +23,20 @@ export const useIrlAnalytics = () => {
     IRL_GUEST_LIST_TABLE_ADD_OFFICE_HOURS_CLICKED: 'irl-guest-list-table-add-office-hours-clicked',
     IRL_GUEST_LIST_TABLE_HOST_EVENT_CLICKED: 'irl-guest-list-table-host-event-clicked',
     IRL_GUEST_LIST_TABLE_SPEAKER_EVENT_CLICKED: 'irl-guest-list-table-speaker-event-clicked',
+    IRL_GUEST_LIST_TABLE_SPONSOR_EVENT_CLICKED: 'irl-guest-list-table-sponsor-event-clicked',
     IRL_GUEST_LIST_ADD_NEW_MEMBER_BTN_CLICKED: 'irl-guest-list-add-new-member-btn-clicked',
+    IRL_SHOW_ONLY_PAST_ATTENDEES_CHECKBOX_CLICKED: 'irl-show-only-past-attendees-checkbox-clicked',
+    IRL_SHOW_ONLY_CURRENT_ATTENDEES_CLICKED: 'irl-show-only-current-attendees-clicked',
     IRL_TO_HUSKY_REDIRECT_CLICKED: 'irl-to-husky-redirect-clicked',
     IRL_FLOATING_BAR_OPEN: 'irl-floating-bar-open',
     IRL_ADMIN_REMOVE_ATTENDEES_POPUP_OPEN: 'irl-admin-remove-attendees-popup-open',
     IRL_SELF_REMOVE_ATTENDEE_POPUP_BTN_CLICKED: 'irl-self-remove-attendee-popup-btn-clicked',
-    IRL_SELF_REMOVE_ATTENDEE_POPUP_CONFIRM_REMOVAL_BTN_CLICKED: 'irl-self-remove-attendee-popup-confirm-removal-btn-clicked',
+    IRL_SELF_REMOVE_ATTENDEE_POPUP_CONFIRM_REMOVAL_BTN_CLICKED:
+      'irl-self-remove-attendee-popup-confirm-removal-btn-clicked',
     IRL_SELF_REMOVAL_GATHERINGS_SUCCESS: 'irl-self-removal-gatherings-success',
     IRL_SELF_REMOVAL_GATHERINGS_FAILED: 'irl-self-removal-gatherings-failed',
-    IRL_ADMIN_REMOVE_ATTENDEES_POPUP_CONFIRM_REMOVAL_BTN_CLICKED: 'irl-admin-remove-attendees-popup-confirm-removal-btn-clicked',
+    IRL_ADMIN_REMOVE_ATTENDEES_POPUP_CONFIRM_REMOVAL_BTN_CLICKED:
+      'irl-admin-remove-attendees-popup-confirm-removal-btn-clicked',
     IRL_ADMIN_REMOVE_ATTENDEES_SUCCESS: 'irl-admin-remove-attendees-success',
     IRL_ADMIN_REMOVE_ATTENDEES_FAILED: 'irl-admin-remove-attendees-failed',
     IRL_FLOATING_BAR_EDIT_BTN_CLICKED: 'irl-floating-bar-edit-btn-clicked',
@@ -77,6 +82,28 @@ export const useIrlAnalytics = () => {
     IRL_SUBMIT_FORM_CLICKED: 'irl-submit-form-clicked',
     IRL_MANAGE_EVENTS_CLICKED: 'irl-manage-events-clicked',
     IRL_VIEW_PL_EVENTS_CLICKED: 'irl-view-pl-events-clicked',
+    IRL_EVENT_DELETE_CLICKED: 'irl-event-delete-clicked',
+    IRL_EVENT_DELETE_CONFIRMED: 'irl-event-delete-confirmed',
+    IRL_EVENT_DELETE_CANCELLED: 'irl-event-delete-cancelled',
+    
+    IRL_GUEST_LIST_REGISTER_TODAY_CLICKED: 'irl-guest-list-register-today-clicked',
+    IRL_GUEST_LIST_VIEW_PAST_ATTENDEES_CLICKED: 'irl-guest-list-view-past-attendees-clicked',
+  };
+
+  const trackShowOnlyPastAttendeesCheckboxClicked = (location: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SHOW_ONLY_PAST_ATTENDEES_CHECKBOX_CLICKED, { ...params });
+  };
+
+  const trackShowOnlyCurrentAttendeesClicked = (location: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SHOW_ONLY_CURRENT_ATTENDEES_CLICKED, { ...params });
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -358,6 +385,15 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_TABLE_SPEAKER_EVENT_CLICKED, { ...params });
   };
 
+  const trackSponsorEventClicked = (location: any, event: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+      ...event,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_TABLE_SPONSOR_EVENT_CLICKED, { ...params });
+  };
+
   function trackLocationClicked(id: any, locationName: any) {
     const params = {
       locationUid: id,
@@ -559,6 +595,54 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_VIEW_PL_EVENTS_CLICKED);
   }
 
+  function trackEventDeleteClicked(event: any) {
+    const params = {
+      eventUid: event?.uid,
+      eventName: event?.name,
+      eventLocation: event?.location,
+      eventType: event?.type,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_EVENT_DELETE_CLICKED, { ...params });
+  }
+
+  function trackEventDeleteConfirmed(event: any) {
+    const params = {
+      eventUid: event?.uid,
+      eventName: event?.name,
+      eventLocation: event?.location,
+      eventType: event?.type,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_EVENT_DELETE_CONFIRMED, { ...params });
+  }
+
+  function trackEventDeleteCancelled(event: any) {
+    const params = {
+      eventUid: event?.uid,
+      eventName: event?.name,
+      eventLocation: event?.location,
+      eventType: event?.type,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_EVENT_DELETE_CANCELLED, { ...params });
+  }
+
+  function trackGuestListRegisterTodayClicked(location: any) {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+      source: 'guest_list_empty_state'
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_REGISTER_TODAY_CLICKED, { ...params });
+  }
+
+  function trackGuestListViewPastAttendeesClicked(location: any) {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+      source: 'guest_list_empty_state'
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_VIEW_PAST_ATTENDEES_CLICKED, { ...params });
+  }
+
   return {
     trackImGoingBtnClick,
     trackLoginToRespondBtnClick,
@@ -597,7 +681,10 @@ export const useIrlAnalytics = () => {
     trackFloatingBarEditBtnClicked,
     trackNoAttendeesStripRespondBtnClicked,
     trackHostEventClicked,
+    trackShowOnlyPastAttendeesCheckboxClicked,
+    trackShowOnlyCurrentAttendeesClicked,
     trackSpeakerEventClicked,
+    trackSponsorEventClicked,
     trackPastEventClicked,
     trackAdditionalResourcesClicked,
     irlGuestDetailPrivacySettingClick,
@@ -620,6 +707,11 @@ export const useIrlAnalytics = () => {
     trackAllEventsDropdownClicked,
     trackPastEventsDropdownClicked,
     trackUpcomingEventsDropdownClicked,
-    trackViewPLEventsClick
+    trackViewPLEventsClick,
+    trackEventDeleteClicked,
+    trackEventDeleteConfirmed,
+    trackEventDeleteCancelled,
+    trackGuestListRegisterTodayClicked,
+    trackGuestListViewPastAttendeesClicked,
   };
 };

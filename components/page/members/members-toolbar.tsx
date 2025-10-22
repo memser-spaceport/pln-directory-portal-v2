@@ -14,7 +14,7 @@ import Image from 'next/image';
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 
 interface IMembersToolbar {
-  searchParams: IMembersSearchParams;
+  searchParams: Record<string, string>;
   totalTeams: number;
   userInfo: IUserInfo | undefined;
 }
@@ -63,7 +63,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
 
   const onClearSearchClicked = () => {
     setSearchInput('');
-    if(searchParams["searchBy"]) {
+    if (searchParams['searchBy']) {
       triggerLoader(true);
     }
     updateQueryParams('searchBy', '', searchParams);
@@ -127,11 +127,17 @@ const MembersToolbar = (props: IMembersToolbar) => {
                 onChange={(e) => onInputChange(e)}
                 className="toolbar__left__search-container__searchfrm__input"
                 placeholder="Search by Member Name, Team, or Project"
-                onFocus={(e) => e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)}
+                onFocus={(e) =>
+                  e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)
+                }
               />
               <div className="toolbar__left__search-container__searchfrm__optns">
                 {searchInput && (
-                  <button type="button" onClick={onClearSearchClicked} className="toolbar__left__search-container__searchfrm__optns__clrbtn">
+                  <button
+                    type="button"
+                    onClick={onClearSearchClicked}
+                    className="toolbar__left__search-container__searchfrm__optns__clrbtn"
+                  >
                     <Image loading="lazy" alt="close" src="/icons/close-gray.svg" height={16} width={16} />
                   </button>
                 )}
@@ -146,15 +152,27 @@ const MembersToolbar = (props: IMembersToolbar) => {
         <div className="toolbar__right">
           <div className="toolbar__right__mobile">
             <button className="toolbar__right__mobile__sort-by" onClick={() => onSortClickHandler('mobile')}>
-              {sortBy === SORT_OPTIONS.ASCENDING && <img loading="lazy" alt="sort" src="/icons/ascending-gray.svg" height={20} width={20} />}
-              {sortBy === SORT_OPTIONS.DESCENDING && <img loading="lazy" alt="sort" src="/icons/descending-gray.svg" height={20} width={20} />}
+              {sortBy === SORT_OPTIONS.ASCENDING && (
+                <img loading="lazy" alt="sort" src="/icons/ascending-gray.svg" height={20} width={20} />
+              )}
+              {sortBy === SORT_OPTIONS.DESCENDING && (
+                <img loading="lazy" alt="sort" src="/icons/descending-gray.svg" height={20} width={20} />
+              )}
             </button>
           </div>
           <div className="toolbar__right__web">
             <p className="toolbar__right__web__sort-by-text">Sort by:</p>
             <button ref={sortByRef} className="toolbar__right__web__sort-by" onClick={() => onSortClickHandler('web')}>
-              <img loading="lazy" alt="sort" src={sortBy === SORT_OPTIONS.ASCENDING ? '/icons/ascending-gray.svg' : '/icons/descending-gray.svg'} height={20} width={20} />
-              <p className="toolbar__right__web__sord-by__name">{sortBy === SORT_OPTIONS.ASCENDING ? 'Ascending' : 'Descending'}</p>
+              <img
+                loading="lazy"
+                alt="sort"
+                src={sortBy === SORT_OPTIONS.ASCENDING ? '/icons/ascending-gray.svg' : '/icons/descending-gray.svg'}
+                height={20}
+                width={20}
+              />
+              <p className="toolbar__right__web__sord-by__name">
+                {sortBy === SORT_OPTIONS.ASCENDING ? 'Ascending' : 'Descending'}
+              </p>
               <img loading="lazy" alt="dropdown" src="/icons/dropdown-gray.svg" />
             </button>
             {isSortBy && (
@@ -163,7 +181,6 @@ const MembersToolbar = (props: IMembersToolbar) => {
               </div>
             )}
           </div>
-          <ViewType callback={onViewtypeClickHandler} view={view} />
         </div>
       </div>
 
@@ -188,7 +205,11 @@ const MembersToolbar = (props: IMembersToolbar) => {
           }
 
           .toolbar__right__web__sort-by-text {
-            color: #000;
+            color: #0f172a;
+            font-size: 15px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 24px; /* 160% */
           }
 
           .toolbar__left__filterbtn {
@@ -203,7 +224,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
             box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
           }
 
-           .toolbar__left__search-container__searchfrm__optns__clrbtn {
+          .toolbar__left__search-container__searchfrm__optns__clrbtn {
             background: inherit;
             outline: none;
             position: absolute;
@@ -223,6 +244,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
             background: #fff;
             box-shadow: 0px 1px 2px 0px #0f172a29;
             background: #fff;
+            display: none;
           }
 
           .toolbar__left__search-container__searchfrm {
@@ -358,7 +380,9 @@ const MembersToolbar = (props: IMembersToolbar) => {
 
               &:focus {
                 border: 1px solid #156ff7;
-                box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16), 0px 0px 0px 2px rgba(21, 111, 247, 0.25);
+                box-shadow:
+                  0px 1px 2px 0px rgba(15, 23, 42, 0.16),
+                  0px 0px 0px 2px rgba(21, 111, 247, 0.25);
               }
             }
 

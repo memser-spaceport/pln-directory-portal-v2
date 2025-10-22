@@ -35,6 +35,7 @@ export interface IIrlEvent {
   name: string;
   isHost: boolean;
   isSpeaker: boolean;
+  isSponsor: boolean;
   checkInDate: string;
   checkOutDate: string;
   hostSubEvents: {
@@ -42,6 +43,10 @@ export interface IIrlEvent {
     name: string;
   }[];
   speakerSubEvents: {
+    link: string;
+    name: string;
+  }[];
+  sponsorSubEvents: {
     link: string;
     name: string;
   }[];
@@ -74,7 +79,10 @@ export interface IAnalyticsGuestLocation {
 
 export interface IGuestDetails {
   guests: IGuest[];
-  events: IIrlEvent[];
+  events: {
+    upcomingEvents: IIrlEvent[];
+    pastEvents: IIrlEvent[];
+  };
   isUserGoing: boolean;
   currentGuest: IGuest;
   totalGuests: number;
@@ -119,6 +127,7 @@ export interface IIrlGathering {
   };
   hostSubEvents: IIrlParticipationEvent[];
   speakerSubEvents: IIrlParticipationEvent[];
+  sponsorSubEvents: IIrlParticipationEvent[];
 }
 
 export interface IIrlGuest {
@@ -140,8 +149,10 @@ export interface IIrlGuest {
     logo: string;
     isHost: boolean;
     isSpeaker: boolean;
+    isSponsor: boolean;
     hostSubEvents: any[];
     speakerSubEvents: any[];
+    sponsorSubEvents: any[];
   }[];
   topics: string[];
   officeHours: string;
@@ -152,6 +163,7 @@ export interface IIrlGuest {
     checkOutDate: string;
     hostSubEvents: any[];
     speakerSubEvents: any[];
+    sponsorSubEvents: any[];
   };
 }
 
@@ -229,4 +241,15 @@ export interface ILocationDetails {
   startDate: string;
   endDate: string;
   resources: AdditionalResource[];
+}
+
+export interface CalendarDate {
+  year: number;
+  month: number;
+  day: number;
+}
+
+export interface EventDuration {
+  startDate: CalendarDate;
+  endDate: CalendarDate;
 }

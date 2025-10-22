@@ -23,7 +23,6 @@ interface IToolbar {
   userInfo: IUserInfo | undefined;
 }
 
-
 /**
  * TeamsToolbar component provides a UI for filtering, sorting, and searching teams.
  * @param props - Contains search parameters, total number of teams, and user information.
@@ -122,7 +121,6 @@ const TeamsToolbar = (props: IToolbar) => {
     updateQueryParams('searchBy', '', searchParams);
   };
 
-
   /**
    * Handles the sort option click event.
    * @param option - The selected sort option.
@@ -154,24 +152,41 @@ const TeamsToolbar = (props: IToolbar) => {
             <p className="toolbar__left__title__container__count">({totalTeams})</p>
           </div>
           <div className="toolbar__left__search-container">
-            <form className="toolbar__left__search-container__searchfrm" onSubmit={onSubmitHandler} data-testid="search-form">
+            <form
+              className="toolbar__left__search-container__searchfrm"
+              onSubmit={onSubmitHandler}
+              data-testid="search-form"
+            >
               <input
                 ref={inputRef}
                 value={searchInput}
                 onChange={(e) => onInputChange(e)}
                 className="toolbar__left__search-container__searchfrm__input"
                 placeholder="Search for a team"
-                onFocus={(e) => e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)}
+                onFocus={(e) =>
+                  e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)
+                }
                 data-testid="search-input"
               />
 
               <div className="toolbar__left__search-container__searchfrm__optns">
                 {searchInput && (
-                  <button title='Clear' type="button" onClick={onClearSearchClicked} className="toolbar__left__search-container__searchfrm__optns__clrbtn" data-testid="clear-search-button">
+                  <button
+                    title="Clear"
+                    type="button"
+                    onClick={onClearSearchClicked}
+                    className="toolbar__left__search-container__searchfrm__optns__clrbtn"
+                    data-testid="clear-search-button"
+                  >
                     <Image loading="lazy" alt="close" src="/icons/close-gray.svg" height={16} width={16} />
                   </button>
                 )}
-                <button title='Search' className="toolbar__left__search-container__searchfrm__optns__sbtn" type="submit" data-testid="search-button">
+                <button
+                  title="Search"
+                  className="toolbar__left__search-container__searchfrm__optns__sbtn"
+                  type="submit"
+                  data-testid="search-button"
+                >
                   <Image loading="lazy" alt="search" src="/icons/search.svg" height={16} width={16} />
                 </button>
               </div>
@@ -181,14 +196,26 @@ const TeamsToolbar = (props: IToolbar) => {
 
         <div className="toolbar__right">
           <div className="toolbar__right__mobile">
-            <button className="toolbar__right__mobile__sort-by" onClick={() => onSortClickHandler('mobile')} data-testid="mobile-sort-button">
-              {sortBy === SORT_OPTIONS.ASCENDING && <Image loading="lazy" alt="sort" src="/icons/ascending-gray.svg" height={20} width={20} />}
-              {sortBy === SORT_OPTIONS.DESCENDING && <Image loading="lazy" alt="sort" src="/icons/descending-gray.svg" height={20} width={20} />}
+            <button
+              className="toolbar__right__mobile__sort-by"
+              onClick={() => onSortClickHandler('mobile')}
+              data-testid="mobile-sort-button"
+            >
+              {sortBy === SORT_OPTIONS.ASCENDING && (
+                <Image loading="lazy" alt="sort" src="/icons/ascending-gray.svg" height={20} width={20} />
+              )}
+              {sortBy === SORT_OPTIONS.DESCENDING && (
+                <Image loading="lazy" alt="sort" src="/icons/descending-gray.svg" height={20} width={20} />
+              )}
             </button>
           </div>
           <div className="toolbar__right__web" ref={sortByRef}>
             <p className="toolbar__right__web__sort-by-text">Sort by:</p>
-            <button className="toolbar__right__web__sort-by" onClick={() => onSortClickHandler('web')} data-testid="web-sort-button">
+            <button
+              className="toolbar__right__web__sort-by"
+              onClick={() => onSortClickHandler('web')}
+              data-testid="web-sort-button"
+            >
               <Image
                 loading="lazy"
                 className="toolbar__right__web__sort-by__icon"
@@ -197,7 +224,9 @@ const TeamsToolbar = (props: IToolbar) => {
                 height={20}
                 width={20}
               />
-              <p className="toolbar__right__web__sord-by__name">{sortBy === SORT_OPTIONS.ASCENDING ? 'Ascending' : 'Descending'}</p>
+              <p className="toolbar__right__web__sord-by__name">
+                {sortBy === SORT_OPTIONS.ASCENDING ? 'Ascending' : 'Descending'}
+              </p>
               <Image loading="lazy" alt="dropdown" src="/icons/dropdown-gray.svg" height={20} width={20} />
             </button>
             {isSortBy && (
@@ -264,6 +293,8 @@ const TeamsToolbar = (props: IToolbar) => {
             background: #fff;
             box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
             background: #fff;
+
+            display: none;
           }
 
           .toolbar__left__search-container__searchfrm {
@@ -415,8 +446,6 @@ const TeamsToolbar = (props: IToolbar) => {
               border: none;
               box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
               border: 1px solid #fff;
-
-             
             }
 
             .toolbar__right__web__sort-by__name {
@@ -475,6 +504,5 @@ const TeamsToolbar = (props: IToolbar) => {
     </>
   );
 };
-
 
 export default TeamsToolbar;

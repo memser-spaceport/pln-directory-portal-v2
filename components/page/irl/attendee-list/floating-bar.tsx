@@ -23,7 +23,6 @@ const FloatingBar = (props: IFloatingBar) => {
   const selectedGuest = guests?.find((guest: IGuest) => selectedGuestIds[0] === guest?.memberUid);
   const location = props.location;
   const searchParams = props.searchParams;
-
   //variables
   const authToken = getParsedValue(Cookies.get('authToken'));
   const eventType = searchParams?.type === 'past' ? '' : 'upcoming';
@@ -40,7 +39,7 @@ const FloatingBar = (props: IFloatingBar) => {
           isOpen: true,
           type: 'admin-delete',
         },
-      })
+      }),
     );
   };
 
@@ -49,7 +48,6 @@ const FloatingBar = (props: IFloatingBar) => {
     if (selectedGuest?.memberUid) {
       let guestDetails = await getGuestDetail(selectedGuest?.memberUid, location.uid, authToken, eventType);
       guestDetails = transformGuestDetail(guestDetails, []);
-      
       const formData = {
         team: {
           name: guestDetails?.teamName,
@@ -67,14 +65,21 @@ const FloatingBar = (props: IFloatingBar) => {
           return { ...team, uid: team?.id };
         }),
         memberUid: guestDetails?.memberUid,
-        additionalInfo: { checkInDate: guestDetails?.additionalInfo?.checkInDate || '', checkOutDate: guestDetails?.additionalInfo?.checkOutDate ?? '' },
+        additionalInfo: {
+          checkInDate: guestDetails?.additionalInfo?.checkInDate || '',
+          checkOutDate: guestDetails?.additionalInfo?.checkOutDate ?? '',
+        },
         topics: guestDetails?.topics,
         reason: guestDetails?.reason,
         telegramId: guestDetails?.telegramId,
         officeHours: guestDetails?.officeHours ?? '',
       };
 
-      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT, from: 'list' } }));
+      document.dispatchEvent(
+        new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
+          detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT, from: 'list' },
+        }),
+      );
       analytics.trackFloatingBarEditBtnClicked(location, { selectedGuests: selectedGuestIds });
     }
   };

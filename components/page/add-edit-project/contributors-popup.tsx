@@ -1,6 +1,7 @@
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import { EVENTS } from '@/utils/constants';
 import { Fragment, useEffect, useRef, useState } from 'react';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 export default function ContributorsPopup(props: any) {
   const selectedContributors = [...props?.selectedContributors];
@@ -67,7 +68,9 @@ export default function ContributorsPopup(props: any) {
   };
 
   function getSelectedCountributorsCount() {
-    const filteredContributorsCount = contributors.filter((contributor: any) => selectedContributors.some((data: any) => data.uid === contributor.uid));
+    const filteredContributorsCount = contributors.filter((contributor: any) =>
+      selectedContributors.some((data: any) => data.uid === contributor.uid),
+    );
     return filteredContributorsCount;
   }
 
@@ -109,7 +112,9 @@ export default function ContributorsPopup(props: any) {
 
   const onSearchChangeHandler = (e: any) => {
     const searchQuery = e.target.value.toLowerCase();
-    const filteredValues = [...contributors].filter((contributor) => contributor?.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+    const filteredValues = [...contributors].filter((contributor) =>
+      contributor?.name?.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
     setFilteredContributors([...filteredValues]);
   };
 
@@ -117,12 +122,11 @@ export default function ContributorsPopup(props: any) {
     setFilteredContributors([...contributors]);
   }, [contributors]);
 
-
   const getSelectedCount = () => {
-    const selectedItems = filteredContributors?.filter((ctr: any) =>  getIsSelected(ctr))
+    const selectedItems = filteredContributors?.filter((ctr: any) => getIsSelected(ctr));
 
     return selectedItems?.length;
-  }
+  };
 
   return (
     <>
@@ -132,7 +136,12 @@ export default function ContributorsPopup(props: any) {
             <div className="cpc__header__titlSec__ttl">
               <div className="cpc__header__titlSec__ttl__txt">
                 <button type="button" onClick={onBackClickHandler}>
-                  <img className="cpc__header__titlSec__ttl__bkbtn" src="/icons/left-arrow-blue.svg" height={16} width={16} />
+                  <img
+                    className="cpc__header__titlSec__ttl__bkbtn"
+                    src="/icons/left-arrow-blue.svg"
+                    height={16}
+                    width={16}
+                  />
                 </button>
                 <div className="">Select Contributors</div>
               </div>
@@ -142,7 +151,11 @@ export default function ContributorsPopup(props: any) {
 
             <div className="cpc__header__titlSec__opts">
               {from !== 'Contributors' && (
-                <button onClick={onSkipAndSaveClickHandler} className="cpc__header__titlSec__opts__sAndSave" type="button">
+                <button
+                  onClick={onSkipAndSaveClickHandler}
+                  className="cpc__header__titlSec__opts__sAndSave"
+                  type="button"
+                >
                   Skip & Save
                 </button>
               )}
@@ -174,7 +187,12 @@ export default function ContributorsPopup(props: any) {
             )}
             <div className="cpc__header__flts__searchc">
               <img height={15} width={15} src="/icons/search-gray.svg"></img>
-              <input ref={inputRef} onChange={onSearchChangeHandler} className="cpc__header__flts__searchc__input" placeholder="Search"></input>
+              <input
+                ref={inputRef}
+                onChange={onSearchChangeHandler}
+                className="cpc__header__flts__searchc__input"
+                placeholder="Search"
+              ></input>
             </div>
           </div>
 
@@ -185,7 +203,12 @@ export default function ContributorsPopup(props: any) {
               </>
             </div>
             <div className="cpc__header__info__optns">
-              <input type="checkbox" className="cpc__header__info__optns__shopt" checked={isOnlySelectedContributors} onChange={() => setIsOnlySelectedContributors(!isOnlySelectedContributors)} />
+              <input
+                type="checkbox"
+                className="cpc__header__info__optns__shopt"
+                checked={isOnlySelectedContributors}
+                onChange={() => setIsOnlySelectedContributors(!isOnlySelectedContributors)}
+              />
               <span>Show selected</span>
             </div>
           </div>
@@ -196,15 +219,36 @@ export default function ContributorsPopup(props: any) {
             <>
               {filteredContributors?.map((contributor: any, index: any) => {
                 const isSelected = getIsSelected(contributor);
+                const defaultAvatar = getDefaultAvatar(contributor?.name);
+
                 return (
                   <div className="cpt__cnt__cptr" key={`${contributor} + ${index}`}>
-                    <input type="checkbox" className="cpt__cnt__cptr__chbox" checked={isSelected} onChange={() => onCheckBoxChange(contributor)} />
+                    <input
+                      type="checkbox"
+                      className="cpt__cnt__cptr__chbox"
+                      checked={isSelected}
+                      onChange={() => onCheckBoxChange(contributor)}
+                    />
                     <div className="cpt__cnt__cptr__pflctr">
-                      <img alt="profile" className="cpt__cnt__cptr__profile" src={contributor?.logo ? contributor.logo : '/icons/default_profile.svg'} height={40} width={40} />
-                      {contributor?.teamLead && <img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={14} width={14} />}
+                      <img
+                        alt="profile"
+                        className="cpt__cnt__cptr__profile"
+                        src={contributor?.logo ?? defaultAvatar}
+                        height={40}
+                        width={40}
+                      />
+                      {contributor?.teamLead && (
+                        <img
+                          alt="lead"
+                          className="cpt__cnt__cptr__pflctr__lead"
+                          src="/icons/badge/team-lead.svg"
+                          height={14}
+                          width={14}
+                        />
+                      )}
                     </div>
                     <div className="cpt__cnt__cptr__dtls">
-                      <div className='cpt__cnt__cptr__dtls__cnt'>
+                      <div className="cpt__cnt__cptr__dtls__cnt">
                         <div className="cpt__cnt__cptr__dtls__name">{contributor?.name}</div>
                         {/* { contributor?.isVerified && <div className='cpt__cnt__dtls--isVerified'>
                           <img alt="profile" className="" src="/icons/verified-check.svg" height={20} width={20} />
@@ -213,49 +257,72 @@ export default function ContributorsPopup(props: any) {
                       </div>
                       <div className="cpt__cnt__cptr__roles">
                         <div>{contributor.teamMemberRoles?.[0]?.role || 'Contributor'}</div>
-                        {contributor.teamMemberRoles?.length > 1 &&
+                        {contributor.teamMemberRoles?.length > 1 && (
                           <div className="cpt__cnt__cptr__roles__count">+{contributor.teamMemberRoles?.length - 1}</div>
-                        }
+                        )}
+                      </div>
                     </div>
                   </div>
-                  </div>
-          );
+                );
               })}
-          {!filteredContributors?.length && <div className="cpc__cnt__nrf">No Contributors found.</div>}
-        </>
+              {!filteredContributors?.length && <div className="cpc__cnt__nrf">No Contributors found.</div>}
+            </>
           )}
-        {isOnlySelectedContributors && (
-          <>
-            {filteredContributors?.map((contributor: any, index: any) => {
-              const isSelected = getIsSelected(contributor);
-              const value = inputRef.current.value.toLowerCase() ?? '';
-              return (
-                <Fragment key={`${contributor} + ${index}`}>
-                  {(contributor?.name.toLowerCase().includes(value.toLowerCase()) && isSelected) && (
-                    <div className="cpt__cnt__cptr">
-                      <input type="checkbox" className="cpt__cnt__cptr__chbox" checked={isSelected} onChange={() => onCheckBoxChange(contributor)} />
-                      <div className="cpt__cnt__cptr__pflctr">
-                        <img alt="profile" className="cpt__cnt__cptr__profile" src={contributor?.logo ? contributor.logo : '/icons/default_profile.svg'} height={40} width={40} />
-                        {contributor?.teamLead && <img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={16} width={16} />}
+          {isOnlySelectedContributors && (
+            <>
+              {filteredContributors?.map((contributor: any, index: any) => {
+                const isSelected = getIsSelected(contributor);
+                const value = inputRef.current.value.toLowerCase() ?? '';
+                const defaultAvatar = getDefaultAvatar(contributor?.name);
+
+                return (
+                  <Fragment key={`${contributor} + ${index}`}>
+                    {contributor?.name.toLowerCase().includes(value.toLowerCase()) && isSelected && (
+                      <div className="cpt__cnt__cptr">
+                        <input
+                          type="checkbox"
+                          className="cpt__cnt__cptr__chbox"
+                          checked={isSelected}
+                          onChange={() => onCheckBoxChange(contributor)}
+                        />
+                        <div className="cpt__cnt__cptr__pflctr">
+                          <img
+                            alt="profile"
+                            className="cpt__cnt__cptr__profile"
+                            src={contributor?.logo ?? defaultAvatar}
+                            height={40}
+                            width={40}
+                          />
+                          {contributor?.teamLead && (
+                            <img
+                              alt="lead"
+                              className="cpt__cnt__cptr__pflctr__lead"
+                              src="/icons/badge/team-lead.svg"
+                              height={16}
+                              width={16}
+                            />
+                          )}
+                        </div>
+                        <div className="cpt__cnt__cptr__dtls">
+                          <div className="cpt__cnt__cptr__dtls__name">{contributor?.name}</div>
+                          <div className="cpt__cnt__cptr__roles">
+                            <div>{contributor.teamMemberRoles?.[0]?.role || 'Contributor'}</div>
+                            {contributor.teamMemberRoles?.length > 1 && (
+                              <div className="cpt__cnt__cptr__roles__count">
+                                +{contributor.teamMemberRoles?.length - 1}
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="cpt__cnt__cptr__dtls">
-                        <div className="cpt__cnt__cptr__dtls__name">{contributor?.name}</div>
-                        <div className="cpt__cnt__cptr__roles">
-                        <div>{contributor.teamMemberRoles?.[0]?.role || 'Contributor'}</div>
-                        {contributor.teamMemberRoles?.length > 1 &&
-                          <div className="cpt__cnt__cptr__roles__count">+{contributor.teamMemberRoles?.length - 1}</div>
-                        }
-                    </div>
-                      </div>
-                    </div>
-                  )}
-                </Fragment>
-              );
-            })}
-            {!tempContributors?.length && <div className="cpc__cnt__nrf">No Contributors found.</div>}
-          </>
-        )}
-      </div>
+                    )}
+                  </Fragment>
+                );
+              })}
+              {!tempContributors?.length && <div className="cpc__cnt__nrf">No Contributors found.</div>}
+            </>
+          )}
+        </div>
       </div>
 
       <style jsx>

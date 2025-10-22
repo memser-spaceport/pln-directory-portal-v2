@@ -29,6 +29,7 @@ interface SearchableSingleSelectProps {
   showClear?: boolean;
   closeImgUrl?: string;
   isError?: boolean;
+  disabled?: boolean;
 }
 
 const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
@@ -53,6 +54,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   showClear,
   closeImgUrl,
   isError = false,
+  disabled = false,
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
@@ -94,7 +96,9 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
       if (searchTerm === '') {
         setFilteredOptions(options);
       } else {
-        setFilteredOptions(options.filter((option) => option[displayKey].toLowerCase().includes(searchTerm.toLowerCase())));
+        setFilteredOptions(
+          options.filter((option) => option[displayKey].toLowerCase().includes(searchTerm.toLowerCase())),
+        );
       }
     }
   };
@@ -148,11 +152,19 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
           </label>
         )}
         <div className="select__cn" ref={containerRef}>
-          {iconKey && selectedOption && <img className="selected__icon" src={selectedOption[iconKey] || defaultImage} alt={selectedOption[displayKey]} />}
+          {iconKey && selectedOption && (
+            <img
+              className="selected__icon"
+              src={selectedOption[iconKey] || defaultImage}
+              alt={selectedOption[displayKey]}
+            />
+          )}
           <input
             id={id}
-            className={`select__search ${iconKey ? 'hasDefaultImg' : ''} ${selectedOption && iconKey && selectedOption[iconKey] ? 'select__icon' : ''} ${
-              (isMandatory && !selectedOption?.[uniqueKey]) || (isMandatory && searchRef.current?.value === '') ? 'select__search--error' : ''
+            className={`select__search ${iconKey && selectedOption ? 'hasDefaultImg' : ''} ${selectedOption && iconKey && selectedOption[iconKey] ? 'select__icon' : ''} ${
+              (isMandatory && !selectedOption?.[uniqueKey]) || (isMandatory && searchRef.current?.value === '')
+                ? 'select__search--error'
+                : ''
             }`}
             ref={searchRef}
             defaultValue={selectedOption ? selectedOption[displayKey] : ''}
@@ -171,6 +183,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
               }
               setShowOptions(false);
             }}
+            disabled={disabled}
           />
           <input ref={inputRef} type="text" hidden defaultValue={defaultSelectedValue} name={name} />
 
@@ -179,32 +192,59 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
               {selectedOption && selectedOption[displayKey] ? (
                 <img onClick={onClear} className="select__reset" src={closeImgUrl} width="16" height="16" alt="close" />
               ) : (
-                <img onClick={onToggleOptions} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />
+                <img
+                  onClick={onToggleOptions}
+                  className="select__arrowimg"
+                  src={arrowImgUrl}
+                  width="10"
+                  height="7"
+                  alt="arrow down"
+                />
               )}
             </>
           ) : arrowImgUrl ? (
-            <img onClick={onToggleOptions} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />
+            <img
+              onClick={onToggleOptions}
+              className="select__arrowimg"
+              src={arrowImgUrl}
+              width="10"
+              height="7"
+              alt="arrow down"
+            />
           ) : (
             ''
           )}
 
           {showOptions && (
             <ul className="select__options">
-              {filteredOptions.length > 0 && ( 
-              <Virtuoso style={{height: '150px'}} data={filteredOptions} itemContent={(_, option: any) => (
-                <li
-                  key={option[uniqueKey]}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleOptionClick(option);
-                  }}
-                  className={`select__options__item ${option[displayKey] === selectedOption?.[displayKey] ? 'select__options__item--selected' : ''}`}
-                >
-                  {iconKey && <img loading='eager' height={24} width={24} className="select__options__item__img" src={option[iconKey] || defaultImage} alt={option[displayKey]} />}
-                  <span> {option[displayKey]}</span>
-                </li>
-              )} />
-            )}
+              {filteredOptions.length > 0 && (
+                <Virtuoso
+                  style={{ height: '150px' }}
+                  data={filteredOptions}
+                  itemContent={(_, option: any) => (
+                    <li
+                      key={option[uniqueKey]}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleOptionClick(option);
+                      }}
+                      className={`select__options__item ${option[displayKey] === selectedOption?.[displayKey] ? 'select__options__item--selected' : ''}`}
+                    >
+                      {iconKey && (
+                        <img
+                          loading="eager"
+                          height={24}
+                          width={24}
+                          className="select__options__item__img"
+                          src={option[iconKey] || defaultImage}
+                          alt={option[displayKey]}
+                        />
+                      )}
+                      <span> {option[displayKey]}</span>
+                    </li>
+                  )}
+                />
+              )}
               {/* {filteredOptions.map((option) => (
                 <li
                   key={option[uniqueKey]}

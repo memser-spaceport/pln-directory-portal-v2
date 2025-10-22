@@ -1,0 +1,31 @@
+.root {
+  bottom: 0;
+  position: absolute;
+
+  width: 100%;
+  height: 24px;
+  padding: 0 10px;
+
+  background-color: rgba(43, 51, 63, 0.6);
+
+  display: flex;
+  align-items: center;
+
+  &:after {
+    content: '';
+    height: 4px;
+    width: 100%;
+    display: block;
+    background-color: rgba(114.9141509434, 132.7028301887, 159.3858490566, 0.75);
+    border-radius: 4px;
+  }
+}
+
+.progress {
+  content: '';
+  width: var(--data-progress);
+  height: 4px;
+  position: absolute;
+  background: linear-gradient(90deg, #1b4dff 0%, #4cee8c 100%);
+  border-radius: 4px;
+}

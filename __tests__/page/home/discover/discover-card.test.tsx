@@ -31,8 +31,8 @@ describe('DiscoverCard', () => {
   });
 
   test('calls function and dispatches event on click', () => {
-    // Mock document.dispatchEvent
-    const dispatchEventSpy = jest.spyOn(document, 'dispatchEvent').mockImplementation(() => true);
+    const handler = jest.fn();
+    document.addEventListener('open-husky-discover', handler);
 
     const { container } = render(<DiscoverCard data={mockData} userInfo={mockUserInfo} />);
     const card = container.querySelector('.discover-card');
@@ -41,13 +41,10 @@ describe('DiscoverCard', () => {
     }
 
     // Verify that document.dispatchEvent was called with the expected event
-    expect(dispatchEventSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        detail: mockData,
-      })
-    );
+    expect(handler).toHaveBeenCalledTimes(1);
+    const event = handler.mock.calls[0][0];
+    expect(event.detail.question).toEqual(mockData.question);
 
-    // Restore original implementation
-    dispatchEventSpy.mockRestore();
+    document.removeEventListener('open-husky-discover', handler);
   });
 });

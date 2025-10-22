@@ -1,0 +1,36 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+.root {
+  display: flex;
+  height: 100%;
+  padding: 4px 12px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 100px;
+  background: linear-gradient(71deg, #427dff 8.43%, #44d5bb 87.45%), #156ff7;
+
+  color: var(--Neutral-White, #fff);
+
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.2px;
+  transition: all 0.2s ease;
+
+  @include media.tablet-landscape {
+    height: 40px;
+    padding: 4px 24px;
+    color: var(--Neutral-White, #fff);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 24px; /* 171.429% */
+  }
+}
+
+.root:hover {
+  filter: brightness(110%);
+}

@@ -2,11 +2,11 @@
 const nextConfig = {
   async redirects() {
     return [
-      {
-        source: '/home',
-        destination: '/',
-        permanent: true,
-      },
+      // {
+      //   source: '/home',
+      //   destination: '/',
+      //   permanent: true,
+      // },
       {
         source: '/irl/lw24-web3',
         destination: 'events/irl?location=Thailand',
@@ -16,13 +16,19 @@ const nextConfig = {
         source: '/irl',
         destination: 'events/irl',
         permanent: true,
-      }
+      },
+      {
+        source: '/signup',
+        destination: '/?dialog=signup',
+        permanent: true,
+      },
     ];
   },
   env: {
     POSTHOG_KEY: process.env.POSTHOG_KEY,
     POSTHOG_HOST: process.env.POSTHOG_HOST,
     DIRECTORY_API_URL: process.env.DIRECTORY_API_URL,
+    FORUM_API_URL: process.env.FORUM_API_URL,
     PROTOSPHERE_URL: process.env.PROTOSPHERE_URL,
     GET_SUPPORT_URL: process.env.GET_SUPPORT_URL,
     PRIVY_AUTH_ID: process.env.PRIVY_AUTH_ID,
@@ -36,10 +42,11 @@ const nextConfig = {
     GOOGLE_SECRET_KEY: process.env.GOOGLE_SECRET_KEY,
     PRIORITY_FEATURED_SECTION: process.env.PRIORITY_FEATURED_SECTION,
     SCHEDULE_ENABLED_LOCATIONS: process.env.SCHEDULE_ENABLED_LOCATIONS,
-    SCHEDULE_BASE_URL: process.env.SCHEDULE_BASE_URL,
     IRL_SUBMIT_FORM_URL: process.env.IRL_SUBMIT_FORM_URL,
     PL_EVENTS_BASE_URL: process.env.PL_EVENTS_BASE_URL,
     PL_EVENTS_SUBMISSION_URL: process.env.PL_EVENTS_SUBMISSION_URL,
+    CUSTOM_FORUM_AUTH_TOKEN: process.env.CUSTOM_FORUM_AUTH_TOKEN,
+    SCHEDULE_BASE_URL: process.env.SCHEDULE_BASE_URL,
   },
   images: {
     remotePatterns: [
@@ -49,9 +56,10 @@ const nextConfig = {
       },
     ],
   },
-  experimental:{
-    serverSourceMaps:false
+  experimental: {
+    serverSourceMaps: false,
   },
+  productionBrowserSourceMaps: true,
 };
 
 export default nextConfig;

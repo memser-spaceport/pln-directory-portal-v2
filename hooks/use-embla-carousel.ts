@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { EmblaOptionsType } from 'embla-carousel';
-import useEmblaCarousel from "embla-carousel-react";
+import useEmblaCarousel from 'embla-carousel-react';
 
 const AUTO_SCROLL_INTERVAL = 10000;
 
@@ -46,11 +46,11 @@ export const useCarousel = (options: EmblaOptionsType & { isPaused?: boolean }) 
     };
 
     startAutoScroll();
-    emblaApi.on("select", updateActiveIndex);
+    emblaApi.on('select', updateActiveIndex);
 
     return () => {
       stopAutoScroll();
-      emblaApi.off("select", updateActiveIndex);
+      emblaApi.off('select', updateActiveIndex);
     };
   }, [emblaApi, options.isPaused]);
 

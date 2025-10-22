@@ -1,35 +1,35 @@
-"use client"
+'use client';
 
-import React, { useState } from "react"
-import Image from "next/image"
-import { Tooltip } from "@/components/core/tooltip/tooltip"
-import { EVENTS } from "@/utils/constants"
-import HostSpeakersList from "../hosts-speakers-list"
-import { useEventsAnalytics } from "@/analytics/events.analytics"
+import React, { useState } from 'react';
+import Image from 'next/image';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { EVENTS } from '@/utils/constants';
+import HostSpeakersList from '../hosts-speakers-list';
+import { useEventsAnalytics } from '@/analytics/events.analytics';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface MembersListProps {
-  members?: any[]
-  userInfo?: any
+  members?: any[];
+  userInfo?: any;
 }
 
-const MembersList: React.FC<MembersListProps> = ({
-  members = [],
-  userInfo,
-}) => {
-  const [hoveredMember, setHoveredMember] = useState<number | null>(null)
+const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => {
+  const [hoveredMember, setHoveredMember] = useState<number | null>(null);
   const analytics = useEventsAnalytics();
 
   if (!members || members.length === 0) {
-    return <div className="no-members">No members available</div>
+    return <div className="no-members">No members available</div>;
   }
 
-  const contributors = members.filter(item => 
-    item.isHost || item.isSpeaker || 
-    (item.events && item.events.some((event: { isHost: any; isSpeaker: any }) => event.isHost || event.isSpeaker))
+  const contributors = members.filter(
+    (item) =>
+      item.isHost ||
+      item.isSpeaker ||
+      (item.events && item.events.some((event: { isHost: any; isSpeaker: any }) => event.isHost || event.isSpeaker)),
   );
 
-  const mobileVisibleMembers = contributors.slice(0, 31)
-  const webVisibleMembers = contributors.slice(0, 154)
+  const mobileVisibleMembers = contributors.slice(0, 31);
+  const webVisibleMembers = contributors.slice(0, 154);
 
   const onCloseContributorsModal = () => {
     analytics.onContributtonModalCloseClicked();
@@ -58,19 +58,21 @@ const MembersList: React.FC<MembersListProps> = ({
         <div className="members-grid mobile-grid">
           {mobileVisibleMembers?.map((member) => {
             const { hostEvents, speakerEvents } = countRoleEvents(member);
+            const defaultAvatar = getDefaultAvatar(member?.member?.name);
+
             return (
               <Tooltip
                 key={`mobile-${member.memberUid}`}
                 trigger={
                   <div
-                    className={`member-avatar ${hoveredMember === member.memberUid ? "hovered" : ""}`}
+                    className={`member-avatar ${hoveredMember === member.memberUid ? 'hovered' : ''}`}
                     onMouseEnter={() => setHoveredMember(member.memberUid)}
                     onMouseLeave={() => setHoveredMember(null)}
                     onClick={() => onContributorClick(member)}
                   >
                     <div className="image-container">
                       <Image
-                        src={member.member?.image?.url || '/icons/default-user-profile.svg'}
+                        src={member.member?.image?.url || defaultAvatar}
                         alt={member.member?.name || 'Unknown'}
                         width={34}
                         height={34}
@@ -82,10 +84,12 @@ const MembersList: React.FC<MembersListProps> = ({
                 content={
                   <div className="tooltip-content">
                     <div>{member.member?.name}</div>
-                      {member.isHost || hostEvents > 0 ? 
-                        <div>As Host {hostEvents > 0 ? `(${hostEvents})` : ''}</div> : null}
-                      {member.isSpeaker || speakerEvents > 0 ? 
-                        <div>As Speaker {speakerEvents > 0 ? `(${speakerEvents})` : ''}</div> : null}
+                    {member.isHost || hostEvents > 0 ? (
+                      <div>As Host {hostEvents > 0 ? `(${hostEvents})` : ''}</div>
+                    ) : null}
+                    {member.isSpeaker || speakerEvents > 0 ? (
+                      <div>As Speaker {speakerEvents > 0 ? `(${speakerEvents})` : ''}</div>
+                    ) : null}
                   </div>
                 }
               />
@@ -94,9 +98,7 @@ const MembersList: React.FC<MembersListProps> = ({
           {contributors.length > 31 && (
             <>
               <div className="member-avatar more-members" onClick={() => onOpenContributorsModal()}>
-                <div className="image-container fallback-avatar-mobile">
-                  +{contributors.length - 31}
-                </div>
+                <div className="image-container fallback-avatar-mobile">+{contributors.length - 31}</div>
               </div>
             </>
           )}
@@ -110,14 +112,14 @@ const MembersList: React.FC<MembersListProps> = ({
                 key={`web-${member.memberUid}`}
                 trigger={
                   <div
-                    className={`member-avatar ${hoveredMember === member.memberUid ? "hovered" : ""}`}
+                    className={`member-avatar ${hoveredMember === member.memberUid ? 'hovered' : ''}`}
                     onMouseEnter={() => setHoveredMember(member.memberUid)}
                     onMouseLeave={() => setHoveredMember(null)}
                     onClick={() => onContributorClick(member)}
                   >
                     <div className="image-container">
                       <Image
-                        src={member.member?.image?.url || '/icons/default-user-profile.svg'}
+                        src={member.member?.image?.url || getDefaultAvatar(member?.member?.name)}
                         alt={member.member?.name || 'Unknown'}
                         width={36}
                         height={36}
@@ -129,10 +131,12 @@ const MembersList: React.FC<MembersListProps> = ({
                 content={
                   <div className="tooltip-content">
                     <div>{member.member?.name}</div>
-                      {member.isHost || hostEvents > 0 ? 
-                        <div>As Host {hostEvents > 0 ? `(${hostEvents})` : ''}</div> : null}
-                      {member.isSpeaker || speakerEvents > 0 ? 
-                        <div>As Speaker {speakerEvents > 0 ? `(${speakerEvents})` : ''}</div> : null}
+                    {member.isHost || hostEvents > 0 ? (
+                      <div>As Host {hostEvents > 0 ? `(${hostEvents})` : ''}</div>
+                    ) : null}
+                    {member.isSpeaker || speakerEvents > 0 ? (
+                      <div>As Speaker {speakerEvents > 0 ? `(${speakerEvents})` : ''}</div>
+                    ) : null}
                   </div>
                 }
               />
@@ -148,7 +152,11 @@ const MembersList: React.FC<MembersListProps> = ({
             </>
           )}
         </div>
-        <HostSpeakersList onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={contributors} />
+        <HostSpeakersList
+          onContributorClickHandler={onContributorClick}
+          onClose={onCloseContributorsModal}
+          contributorsList={contributors}
+        />
       </div>
       <style jsx>{`
         .members-container {
@@ -160,13 +168,13 @@ const MembersList: React.FC<MembersListProps> = ({
         }
 
         .more-members {
-          cursor:pointer;
+          cursor: pointer;
         }
 
         .popover-content {
           padding: 10px;
           border-radius: 10px;
-          background-color: #F1F5F9;
+          background-color: #f1f5f9;
           max-height: 200px;
           overflow-y: auto;
         }
@@ -216,8 +224,8 @@ const MembersList: React.FC<MembersListProps> = ({
           justify-content: center;
           font-size: 12px;
           font-weight: 500;
-          color: #FFFFFF;
-          background-color: #156FF7;
+          color: #ffffff;
+          background-color: #156ff7;
         }
 
         .fallback-avatar-web {
@@ -228,8 +236,8 @@ const MembersList: React.FC<MembersListProps> = ({
           justify-content: center;
           font-size: 14px;
           font-weight: 500;
-          color: #FFFFFF;
-          background-color: #156FF7;
+          color: #ffffff;
+          background-color: #156ff7;
         }
 
         .no-members {
@@ -240,7 +248,7 @@ const MembersList: React.FC<MembersListProps> = ({
 
         .member-name {
           font-size: 0.875rem;
-          color: #0F172A;
+          color: #0f172a;
           font-weight: 500;
           margin: 0;
         }
@@ -249,17 +257,17 @@ const MembersList: React.FC<MembersListProps> = ({
           font-weight: 500;
           font-size: 16px;
           margin-bottom: 0.25rem;
-          color: #0F172A;
+          color: #0f172a;
         }
 
         :global(.member-image) {
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1.5px solid transparent;        
+          border-radius: 50%;
+          object-fit: cover;
+          border: 1.5px solid transparent;
         }
 
         :global(.member-image:hover) {
-          border: 1.5px solid #4EF286;
+          border: 1.5px solid #4ef286;
         }
 
         // :global(button .member-avatar) {
@@ -279,14 +287,14 @@ const MembersList: React.FC<MembersListProps> = ({
           .mobile-grid {
             display: none;
           }
-          
+
           .web-grid {
             display: grid;
           }
         }
       `}</style>
     </>
-  )
-}
+  );
+};
 
-export default MembersList
+export default MembersList;

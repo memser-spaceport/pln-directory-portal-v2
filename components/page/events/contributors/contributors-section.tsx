@@ -38,33 +38,38 @@ export default function ContributorsSection({
   },
   userInfo,
 }: ContributorsSectionProps) {
-  const { onContributeButtonClicked, onContributtonModalCloseClicked, onContributeModalIRLProceedButtonClicked } = useEventsAnalytics();
+  const { onContributeButtonClicked, onContributtonModalCloseClicked, onContributeModalIRLProceedButtonClicked } =
+    useEventsAnalytics();
   const contributeRef = useRef<HTMLDialogElement>(null);
   const onCloseModal = () => {
     if (contributeRef.current) {
-        contributeRef.current.close();
+      contributeRef.current.close();
     }
     onContributtonModalCloseClicked();
   };
 
   const openContributeModal = () => {
     if (contributeRef.current) {
-        contributeRef.current.showModal();
+      contributeRef.current.showModal();
     }
     onContributeButtonClicked();
-  }
+  };
   return (
-    <div
-      id="contributors"
-      className={`contributors-container`}
-    >
+    <div id="contributors" className={`contributors-container`}>
       <div className="contributors-section-container">
         <div className="contributors-header">
           <div>
             <h1 className="contributors-title"> Contributors</h1>
             <p className="contributors-subtitle">Hosts & Speakers</p>
           </div>
-          <ShadowButton buttonColor="#156FF7" shadowColor="#3DFEB1" buttonWidth="121px" onClick={() =>  { openContributeModal(); }}>
+          <ShadowButton
+            buttonColor="#156FF7"
+            shadowColor="#3DFEB1"
+            buttonWidth="121px"
+            onClick={() => {
+              openContributeModal();
+            }}
+          >
             Contribute
           </ShadowButton>
         </div>
@@ -107,9 +112,7 @@ export default function ContributorsSection({
 
       <Modal modalRef={contributeRef} onClose={onCloseModal}>
         <div className="contribute-modal-container">
-          <div className="contribute-modal-header">
-            Ways to contribute
-          </div>
+          <div className="contribute-modal-header">Ways to contribute</div>
           <div className="contribute-modal-video-container">
             <video
               autoPlay
@@ -121,18 +124,32 @@ export default function ContributorsSection({
               controls={false}
             >
               <source src={CONTRIBUTE_MODAL_VIDEO_URL} type="video/webm" />
-                Your browser does not support this video.
-              </video>
+              Your browser does not support this video.
+            </video>
           </div>
           <div className="contribute-modal-content">
             <div className="contribute-modal-content-description">
-            IRL Gatherings thrive when community members contribute in different ways! Here&apos;s how you can be a part of it.
+              IRL Gatherings thrive when community members contribute in different ways! Here&apos;s how you can be a
+              part of it.
             </div>
             <div className="contribute-modal-content-list">
+              <div className="contribute-modal-content-list-item sponsor">
+                <span className="contribute-modal-content-list-item-icon">
+                  <img src="/icons/sponsor_icon.svg" alt="Contribute to a gathering" />
+                  <span>
+                    Sponsor <span className="desktop-view"> -</span>
+                  </span>
+                </span>
+                <div className="contribute-modal-content-list-item-title">
+                  Help make it happen by offering support or resources.
+                </div>
+              </div>
               <div className="contribute-modal-content-list-item speaker">
                 <span className="contribute-modal-content-list-item-icon">
                   <img src="/icons/host_icon.svg" alt="Contribute to a gathering" />
-                  <span>Host <span className="desktop-view"> -</span></span>
+                  <span>
+                    Host <span className="desktop-view"> -</span>
+                  </span>
                 </span>
                 <div className="contribute-modal-content-list-item-title">
                   Plan or organize a gathering for the community.
@@ -141,16 +158,20 @@ export default function ContributorsSection({
               <div className="contribute-modal-content-list-item host">
                 <span className="contribute-modal-content-list-item-icon">
                   <img src="/icons/speaker_icon.svg" alt="Contribute to a gathering" />
-                  <span>Speaker <span className="desktop-view"> -</span></span>
+                  <span>
+                    Speaker <span className="desktop-view"> -</span>
+                  </span>
                 </span>
                 <div className="contribute-modal-content-list-item-title">
-                Share insights and expertise by speaking at an event.
+                  Share insights and expertise by speaking at an event.
                 </div>
               </div>
               <div className="contribute-modal-content-list-item attendee">
                 <span className="contribute-modal-content-list-item-icon">
                   <img src="/icons/attendee_icon.svg" alt="Contribute to a gathering" />
-                  <span>Attendee <span className="desktop-view"> -</span></span>
+                  <span>
+                    Attendee <span className="desktop-view"> -</span>
+                  </span>
                 </span>
                 <div className="contribute-modal-content-list-item-title">
                   Be part of the experience and engage with others.
@@ -159,16 +180,20 @@ export default function ContributorsSection({
             </div>
           </div>
           <div className="contribute-modal-content-description">
-            Once you land on IRL Gatherings, Click “I&apos;m Going” & choose how you&apos;d like to contribute and help make these gatherings valuable for everyone!
+            Once you land on IRL Gatherings, Click “I&apos;m Going” & choose how you&apos;d like to contribute and help
+            make these gatherings valuable for everyone!
           </div>
           <div className="contribute-modal-content-button">
             <button className="contribute-modal-content-button-cancel" onClick={onCloseModal}>
               Cancel
             </button>
-            <button className="contribute-modal-content-button-proceed" onClick={() => {
-              onContributeModalIRLProceedButtonClicked();
-              window.open(PAGE_ROUTES.IRL);
-            }}>
+            <button
+              className="contribute-modal-content-button-proceed"
+              onClick={() => {
+                onContributeModalIRLProceedButtonClicked();
+                window.open(PAGE_ROUTES.IRL);
+              }}
+            >
               Continue to IRL Gatherings
             </button>
           </div>
@@ -202,6 +227,7 @@ export default function ContributorsSection({
           outline: 1px solid #e1e3e6;
           border-radius: 10px;
         }
+
         .section-title-members {
           background-color: #e8f2ff;
         }
@@ -265,19 +291,24 @@ export default function ContributorsSection({
           line-height: 20px;
           letter-spacing: 0px;
         }
+
         .host {
-          border: 1px solid #48B8BD;
+          border: 1px solid #48b8bd;
         }
 
         .speaker {
-          border: 1px solid #D18AFF;
+          border: 1px solid #d18aff;
+        }
+
+        .sponsor {
+          border: 1px solid #8aabff;
         }
 
         .attendee {
-          border: 1px solid #438DEE;
+          border: 1px solid #438dee;
         }
 
-        .contribute-modal-content-title{
+        .contribute-modal-content-title {
           font-weight: 600;
           font-size: 15px;
           line-height: 20px;
@@ -346,13 +377,13 @@ export default function ContributorsSection({
         }
 
         .contribute-modal-container {
-          padding: 20px;
           display: flex;
           flex-direction: column;
           width: 85vw;
+          max-height: 85dvh;
           min-height: 30vh;
           overflow-y: auto;
-          padding: 15px;
+          padding: 0;
           gap: 10px;
         }
 
@@ -362,6 +393,22 @@ export default function ContributorsSection({
           line-height: 32px;
           display: flex;
           gap: 8px;
+          padding: 15px 15px 8px;
+          position: sticky;
+          top: 0;
+          background: #fff;
+          z-index: 0;
+        }
+
+        .contribute-modal-video-container,
+        .contribute-modal-content,
+        .contribute-modal-content-description,
+        .contribute-modal-content-button {
+          padding-inline: 15px;
+        }
+
+        .contribute-modal-content-button {
+          padding-bottom: 15px;
         }
 
         .desktop-view {
@@ -395,17 +442,31 @@ export default function ContributorsSection({
 
           .contribute-modal-container {
             width: 537px;
-            padding: 24px;
             gap: 20px;
           }
 
-           .contribute-modal-content-list-item {
-              flex-direction: row;
-              align-items: flex-start;
+          .contribute-modal-header {
+            padding: 24px 24px 8px;
           }
 
+          .contribute-modal-video-container,
+          .contribute-modal-content,
+          .contribute-modal-content-description,
+          .contribute-modal-content-button {
+            padding-inline: 24px;
+          }
 
-          .contribute-modal-content-button-proceed, .contribute-modal-content-button-cancel {
+          .contribute-modal-content-button {
+            padding-bottom: 24px;
+          }
+
+          .contribute-modal-content-list-item {
+            flex-direction: row;
+            align-items: flex-start;
+          }
+
+          .contribute-modal-content-button-proceed,
+          .contribute-modal-content-button-cancel {
             width: unset;
           }
 

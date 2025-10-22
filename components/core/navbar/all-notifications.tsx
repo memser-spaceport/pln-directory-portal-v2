@@ -12,9 +12,9 @@ const AllNotifications = (props: any) => {
   const pathname = usePathname();
 
   const onSeeAllClickHanlder = () => {
-    if(pathname !== PAGE_ROUTES.NOTIFICATIONS) {
+    if (pathname !== PAGE_ROUTES.NOTIFICATIONS) {
       triggerLoader(true);
-    analytics.onSeeAllNotificationsClicked(getAnalyticsUserInfo(userInfo));
+      analytics.onSeeAllNotificationsClicked(getAnalyticsUserInfo(userInfo));
     }
   };
 
@@ -26,7 +26,7 @@ const AllNotifications = (props: any) => {
         detail: {
           notification,
         },
-      })
+      }),
     );
   };
 
@@ -43,7 +43,11 @@ const AllNotifications = (props: any) => {
         {allNotifications.length > 0 && (
           <div className="allnot__body">
             {allNotifications?.map((notification: any, index: number) => (
-              <button onClick={() => onNotificationClickHandler(notification)} className="allnot__body__ntifn" key={`notification-${index}`}>
+              <button
+                onClick={() => onNotificationClickHandler(notification)}
+                className="allnot__body__ntifn"
+                key={`notification-${index}`}
+              >
                 <NotificationCard notification={notification} />
               </button>
             ))}
@@ -118,7 +122,7 @@ const AllNotifications = (props: any) => {
           }
 
           .allnot__body__ntifn:hover {
-            background-color: #F8FAFC;
+            background-color: #f8fafc;
           }
 
           .allnot__body__ftr {

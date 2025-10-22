@@ -1,0 +1,15 @@
+.root {
+  gap: 4px;
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+
+  padding: 8px 16px;
+  border-radius: 8px 8px 0 0;
+  background-color: var(--background-brand-soft-surface, #F2F5FF);
+
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12px;
+}

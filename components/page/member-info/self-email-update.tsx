@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import Cookies from 'js-cookie';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { decodeToken } from '@/utils/auth.utils';
@@ -47,7 +47,7 @@ function SelfEmailUpdate(props: any) {
           'Content-Type': 'application/json',
         };
         if (newEmail === email) {
-          analytics.onUpdateSameEmailProvided({newEmail, oldEmail:currentEmail})
+          analytics.onUpdateSameEmailProvided({ newEmail, oldEmail: currentEmail });
           triggerLoader(false);
           toast.error('New and current email cannot be same');
           return;
@@ -71,13 +71,13 @@ function SelfEmailUpdate(props: any) {
             domain: process.env.COOKIE_DOMAIN || '',
           });
           document.dispatchEvent(new CustomEvent('app-loader-status'));
-          analytics.onUpdateEmailSuccess({newEmail, oldEmail:currentEmail})
+          analytics.onUpdateEmailSuccess({ newEmail, oldEmail: currentEmail });
           toast.success('Email Updated Successfully');
           window.location.reload();
         }
       } catch (err) {
         const newEmail = e.detail.newEmail;
-        analytics.onUpdateEmailFailure({newEmail, oldEmail:currentEmail})
+        analytics.onUpdateEmailFailure({ newEmail, oldEmail: currentEmail });
         document.dispatchEvent(new CustomEvent('app-loader-status'));
         toast.error('Email Update Failed');
       }
@@ -99,7 +99,7 @@ function SelfEmailUpdate(props: any) {
           </button>
         </div>
         <p className="eu__input">{email}</p>
-        <input name="email" type="email" hidden value={currentEmail} readOnly/>
+        <input name="email" type="email" hidden value={currentEmail} readOnly />
       </div>
       <style jsx>
         {`

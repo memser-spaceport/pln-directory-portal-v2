@@ -10,15 +10,16 @@ export const PAGE_ROUTES = {
   SIGNUP: '/sign-up',
   HUSKY: '/husky/chat',
   EVENTS: '/events',
+  FORUM: '/forum',
 };
 
 export const NAV_OPTIONS = [
-  {
-    name: 'Home',
-    url: PAGE_ROUTES.HOME,
-    selectedLogo: '/icons/home.svg',
-    unSelectedLogo: '/icons/home-deselected.svg',
-  },
+  // {
+  //   name: 'Home',
+  //   url: PAGE_ROUTES.HOME,
+  //   selectedLogo: '/icons/home.svg',
+  //   unSelectedLogo: '/icons/home-deselected.svg',
+  // },
   {
     name: 'Teams',
     url: PAGE_ROUTES.TEAMS,
@@ -48,6 +49,12 @@ export const NAV_OPTIONS = [
     url: PAGE_ROUTES.EVENTS,
     selectedLogo: '/icons/nav-calendar--selected.svg',
     unSelectedLogo: '/icons/nav-calendar.svg',
+  },
+  {
+    name: 'Forum',
+    url: PAGE_ROUTES.FORUM,
+    selectedLogo: '/icons/message.svg',
+    unSelectedLogo: '/icons/message.svg',
   },
 ];
 
@@ -83,7 +90,25 @@ export const EVENTS = {
   UPDATE_IRL_LOCATION_FOLLOWERS: 'update-irl-location-followers',
   RESET_ASK_FORM_VALUES: 'reset-ask-form',
   MARK_MY_PRESENCE_SUBMIT_SUCCESS_POPUP: 'open-mark-my-presence-success',
+  TRIGGER_ADD_EDIT_EXPERIENCE_MODAL: 'trigger-add-edit-experience-modal',
+  TRIGGER_SEE_ALL_EXPERIENCE_MODAL: 'trigger-see-all-experience-modal',
+  TRIGGER_DIALOG_LOADER: 'trigger-dialog-loader',
 };
+
+export const PROFILE_MENU_OPTIONS = [
+  {
+    icon: '/icons/message.svg',
+    name: 'ProtoSphere',
+    type: '_blank',
+    url: process.env.PROTOSPHERE_URL,
+    isExternal: true,
+  },
+];
+
+export const ATTENDEE_TYPE_DATA = [
+  { label: 'Current Attendees', from: 'upcoming' },
+  { label: 'Past Attendees', from: 'past' },
+];
 
 export const HELPER_MENU_OPTIONS = [
   // {
@@ -92,13 +117,6 @@ export const HELPER_MENU_OPTIONS = [
   //   type: 'button',
   //   isExternal: false,
   // },
-  {
-    icon: '/icons/message.svg',
-    name: 'ProtoSphere',
-    type: '_blank',
-    url: process.env.PROTOSPHERE_URL,
-    isExternal: true,
-  },
   {
     icon: '/icons/question-circle-grey.svg',
     name: 'Get Support',
@@ -159,6 +177,11 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_MEMBER_PROFILE_EDIT_FORM: 'settings-member-profile-edit-form',
   SETTINGS_TEAM_PROFILE_EDIT_FORM: 'settings-team-profile-edit-form',
 
+  SETTINGS_RECOMMENDATIONS_PAGE_OPEN_FROM_MAIL: 'settings-recommendations-page-open-from-mail',
+  SETTINGS_RECOMMENDATIONS_SAVE_CLICKED: 'settings-recommendations-save-clicked',
+  SETTINGS_RECOMMENDATIONS_RESET_CLICKED: 'settings-recommendations-reset-clicked',
+  RECOMMENDATION_EMAIL_FEEDBACK_CLICKED: 'recommendation-email-feedback-clicked',
+
   PR_CONRTIBUTIONS_LIST_ITEM_ADD: 'pr-contributions-list-item-add',
   PR_CONRTIBUTIONS_LIST_ITEM_DELETE: 'pr-contributions-list-item-delete',
   PR_CONRTIBUTIONS_LIST_ITEM_ADDPROJECT: 'pr-contributions-list-item-addproject',
@@ -166,6 +189,9 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   MANAGE_TEAMS_MEMBER_TEAM_LEAD_TOGGLE_CHANGE: 'manage-teams-member-team-lead-toggle-change',
   MANAGE_TEAMS_MEMBER_REMOVE: 'manage-teams-member-remove',
   MANAGE_TEAMS_MEMBER_UNDO: 'manage-teams-member-undo',
+
+  SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE: 'settings-subscribe-to-newsletter-change',
+  FORUM_DIGEST_OPTION_SELECTED: 'settings-forum-digest-option-selected',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {
@@ -238,9 +264,9 @@ export const TOAST_MESSAGES = {
   LOGIN_MSG: 'Successfully Logged In',
   LOGGED_IN_MSG: 'You are already logged in',
   SOMETHING_WENT_WRONG: 'Something went wrong',
-  DETAILS_ADDED_SUCCESSFULLY: 'Your details has been added successfully',
+  DETAILS_ADDED_SUCCESSFULLY: 'Your details have been added successfully',
   ATTENDEE_ADDED_SUCCESSFULLY: 'Attendee added successfully',
-  DETAILS_UPDATED_SUCCESSFULLY: 'Your details has been updated successfully',
+  DETAILS_UPDATED_SUCCESSFULLY: 'Your details have been updated successfully',
   ATTENDEE_UPDATED_SUCCESSFULLY: 'Attendee updated successfully',
   ATTENDEE_DELETED_SUCCESSFULLY: 'Attendee deleted successfully',
   FEEDBACK__SUCCESS: 'We will follow up for feedback soon',
@@ -249,6 +275,8 @@ export const TOAST_MESSAGES = {
   INTERACTION_RESTRICTED: 'Action restricted: Try scheduling after some time',
   FEEDBACK__ALREADY__RECORDED: 'Thanks, we have already recorded your feedback',
   SELF_INTERACTION_FORBIDDEN: 'Scheduling office hours with yourself is not allowed',
+  FAILED_TO_LINK_LINKEDIN: 'Failed to link LinkedIn account',
+  EVENT_DELETED_SUCCESSFULLY: 'Event deleted successfully',
 };
 
 export const AUTH_ANALYTICS = {
@@ -314,6 +342,11 @@ export const TEAMS_ANALYTICS_EVENTS = {
   CAROUSEL_PREV_BTN_CLICKED: 'carousel-previous-btn-clicked',
   CAROUSEL_NEXT_BTN_CLICKED: 'carousel-next-btn-clicked',
   CAROUSEL_BTN_CLICKED: 'carousel-btn-clicked',
+  ASK_ACTIONS_MENU_OPEN: 'team-ask-actions-menu-open',
+  ASK_SECTION_TAB_CLICK: 'team-ask-section-tab-click',
+  IS_HOST_TOGGLE_CLICKED: 'team-is-host-toggle-clicked',
+  IS_ACTIVE_TOGGLE_CLICKED: 'team-is-active-toggle-clicked',
+  IS_SPONSOR_TOGGLE_CLICKED: 'team-is-sponsor-toggle-clicked',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
@@ -335,6 +368,9 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_OFFICEHOURS_CLICKED: 'member-officehours-clicked',
   MEMBER_DETAIL_ADD_OFFICEHOURS_CLICKED: 'member-add-officehours-clicked',
   MEMBER_DETAIL_EDIT_OFFICEHOURS_CLICKED: 'member-edit-officehours-clicked',
+  MEMBER_DETAIL_FIX_BROKEN_OFFICEHOURS_LINK_CLICKED: 'member-fix-broken-office-hours-link-clicked',
+  MEMBER_DETAIL_BROKEN_OFFICEHOURS_LINK_BOOK_ATTEMPT_CLICKED: 'member-broken-office-hours-link-book-attempt-clicked',
+  MEMBER_DETAIL_SUBMIT_UPDATED__OFFICEHOURS: 'member-submit-updated-officehours',
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_EDIT: 'member-pr-contributions-edit',
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_ADD: 'member-pr-contributions-add',
   MEMBER_DETAIL_GITHUB_PROJECT_VIEW_ALL_CLICKED: 'member-github-project-view-all-clicked',
@@ -358,6 +394,87 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_BIO_EDIT_RECORD_SAVE: 'member-detail-bio-edit-record-save',
   ON_CLICK_SEE_MORE_BUTTON_IRL_CONTRIBUTIONS: 'on_click_see_more_button_irl_contributions',
   MEMBER_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS: 'member-details-on-click-irl-contributions',
+
+  MEMBER_DETAIL_ADD_EXPERIENCE_CLICKED: 'member_detail_add_experience_clicked',
+  MEMBER_DETAIL_SEE_ALL_EXPERIENCE_CLICKED: 'member_detail_see_all_experience_clicked',
+  MEMBER_DETAIL_EDIT_EXPERIENCE_CLICKED: 'member_detail_edit_experience_clicked',
+  MEMBER_DETAIL_EDIT_EXPERIENCE_SAVE_CLICKED: 'member_detail_edit_experience_save_clicked',
+  MEMBER_DETAIL_ADD_EXPERIENCE_SAVE_CLICKED: 'member_detail_add_experience_save_clicked',
+  MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED: 'member_detail_delete_experience_save_clicked',
+
+  MEMBER_DETAILS_BY_RECOMMENDATION_EMAIL_LINK: 'recommendation-email-connect_clicked',
+  ONBOARDING_EXPLORE_PL_NETWORK_CLICKED: 'onboarding-email-explore-pl-network-clicked',
+  ONBOARDING_WIZARD_OPEN: 'onboarding-wizard-open',
+  ONBOARDING_WIZARD_CLOSE: 'onboarding-wizard-close',
+  ONBOARDING_WIZARD_COMPLETE: 'onboarding-wizard-complete',
+  ONBOARDING_WIZARD_FINISH_CLICKED: 'onboarding-wizard-finish-clicked',
+  ONBOARDING_WIZARD_NEXT_CLICKED: 'onboarding-wizard-next-clicked',
+  ONBOARDING_WIZARD_START_CLICKED: 'onboarding-wizard-start-clicked',
+  ONBOARDING_WIZARD_BROWSE_FILES_CLICKED: 'onboarding-wizard-browse-files-clicked',
+  ONBOARDING_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED: 'onboarding-subscribe-to-recommendations-clicked',
+  ONBOARDING_CLOSE_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED: 'onboarding-close-subscribe-to-recommendations-clicked',
+  ONBOARDING_GO_TO_COMPLETE_PROFILE_CLICKED: 'onboarding-go-to-complete-profile-clicked',
+  ONBOARDING_CLOSE_COMPLETE_PROFILE_CLICKED: 'onboarding-close-complete-profile-clicked',
+  ONBOARDING_CONNECT_LINKEDIN_CLICKED: 'onboarding-connect-linkedin-clicked',
+  ONBOARDING_CONNECT_LINKEDIN_SUCCESS: 'onboarding-connect-linkedin-success',
+  ONBOARDING_CONNECT_LINKEDIN_FAILED: 'onboarding-connect-linkedin-failed',
+
+  INLINE_PROFILE_EDITOR_PROFILE_DETAILS_EDIT_CLICKED: 'inline-profile-editor-profile-details-edit-clicked',
+  INLINE_PROFILE_EDITOR_PROFILE_DETAILS_SAVE_CLICKED: 'inline-profile-editor-profile-details-save-clicked',
+  INLINE_PROFILE_EDITOR_CONTACT_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contact-details-edit-clicked',
+  INLINE_PROFILE_EDITOR_CONTACT_DETAILS_SAVE_CLICKED: 'inline-profile-editor-contact-details-save-clicked',
+
+  INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_ADD_CLICKED: 'inline-profile-editor-experience-details-add-clicked',
+  INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_SAVE_CLICKED: 'inline-profile-editor-experience-details-save-clicked',
+  INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_DELETE_CLICKED: 'inline-profile-editor-experience-details-delete-clicked',
+  INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_EDIT_CLICKED: 'inline-profile-editor-experience-details-edit-clicked',
+
+  INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_ADD_CLICKED: 'inline-profile-editor-contribution-details-add-clicked',
+  INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contribution-details-edit-clicked',
+  INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_DELETE_CLICKED:
+    'inline-profile-editor-contribution-details-delete-clicked',
+  INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_SAVE_CLICKED: 'inline-profile-editor-contribution-details-save-clicked',
+
+  MEMBERS_FILTERS_CHANGE: 'members-filters-change',
+  MEMBERS_OH_FILTER_TOGGLED: 'member-office-hours-filter-toggled',
+  MEMBERS_TOPICS_FILTER_SEARCHED: 'member-topics-filter-searched',
+  MEMBERS_TOPICS_FILTER_SELECTED: 'member-topics-filter-selected',
+  MEMBERS_ROLES_FILTER_SEARCHED: 'member-roles-filter-searched',
+  MEMBERS_ROLES_FILTER_SELECTED: 'member-roles-filter-selected',
+
+  MEMBER_DETAILS_ON_CLICK_BOOK_WITH_OTHER: 'member-detail-members-open-to-connect-button-clicked',
+};
+
+export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {
+  AUTOCOMPLETE_SEARCH: 'unified-search-autocomplete-search-requested',
+  FULL_SEARCH: 'unified-search-search-requested',
+  SEARCH_RESULT_CLICK: 'unified-search-result-clicked',
+  FULL_SEARCH_OPEN: 'unified-search-modal-open',
+  RECENT_SEARCH_CLICK: 'unified-search-recent-clicked',
+  RECENT_SEARCH_DELETE_CLICK: 'unified-search-recent-delete-clicked',
+  AI_CONVERSATION_HISTORY_CLICK: 'unified-search-ai-conversation-history-clicked',
+  AI_CONVERSATION_HISTORY_OPEN_CLICK: 'unified-search-ai-conversation-history-open-clicked',
+};
+
+export const FORUM_ANALYTICS_EVENTS = {
+  TOPIC_CLICKED: 'forum-topic-clicked',
+  SORT_SELECTED: 'forum-sort-selected',
+  CREATE_POST_CLICKED: 'forum-create-post-clicked',
+  CREATE_POST_SUBMIT: 'forum-create-post-submit',
+  CREATE_POST_CANCEL: 'forum-create-post-cancel',
+  POST_CLICKED: 'forum-post-clicked',
+  POST_LIKED: 'forum-post-like-clicked',
+  COMMENT_INPUT_CLICKED: 'forum-comment-input-clicked',
+  POST_COMMENT_SUBMIT: 'forum-post-comment-submit',
+  POST_COMMENT_CANCEL: 'forum-post-comment-cancel',
+  POST_COMMENT_NOTIFICATION_SETTINGS_CLICKED: 'forum-post-comment-notification-settings-clicked',
+  POST_COMMENT_REPLY_CLICKED: 'forum-post-comment-reply-clicked',
+  POST_EDIT_CLICKED: 'forum-post-edit-clicked',
+  EDIT_POST_SUBMIT: 'forum-edit-post-submit',
+  EDIT_POST_CANCEL: 'forum-edit-post-cancel',
+  DIGEST_EMAIL_POST_CLICKED: 'forum-digest-email-post-clicked',
+  COMMENT_NOTIFICATION_EMAIL_LINK_CLICKED: 'forum-comment-notification-email-link-clicked',
+  COMMENT_NOTIFICATION_EMAIL_REPLY_CLICKED: 'forum-comment-notification-email-reply-clicked',
 };
 
 export const IRL_ANALYTICS_EVENTS = {};
@@ -379,6 +496,7 @@ export const HOME_ANALYTICS_EVENTS = {
   DISCOVER_CAROUSEL_ACTIONS_CLICKED: 'discover-carousel-actions-clicked',
   DISCOVER_CARD_CLICKED: 'discover-card-clicked',
   DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked',
+  FEATURED_FILTER_CLICKED: 'home_featured_filter_click',
 };
 
 export const EVENTS_ANALYTICS = {
@@ -402,6 +520,9 @@ export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_CONTRIBUTE_MODAL_IRL_PROCEED_BUTTON_CLICKED: 'events-page-contribute-modal-irl-proceed-button-clicked',
   EVENTS_PAGE_CONTRIBUTING_TEAM_CLICKED: 'events-page-contributing-team-clicked',
   EVENTS_PAGE_CONTRIBUTING_MEMBERS_CLICKED: 'events-page-contributing-members-clicked',
+  UPCOMING_EVENTS_WIDGET_SHOW_ALL_CLICKED: 'onboarding-upcoming-events-widget-show-all-clicked',
+  UPCOMING_EVENTS_WIDGET_DISMISS_CLICKED: 'onboarding-upcoming-events-widget-dismiss-clicked',
+  UPCOMING_EVENTS_WIDGET_ITEM_CLICKED: 'onboarding-upcoming-events-widget-item-clicked',
 };
 
 export const HOME = {
@@ -461,7 +582,8 @@ export const GITHUB_URL_REGEX = /github\.com\/([^/]+)/;
 export const TELEGRAM_URL_REGEX = /t\.me\/([^/]+)/;
 export const EMAIL_REGEX = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})$/;
 
-export const LEARN_MORE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
+export const LEARN_MORE_URL =
+  'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 const DEFAULT_PRIVACY_VISIBILITY = true;
 
 export const PRIVACY_CONSTANTS = {
@@ -506,9 +628,170 @@ export const EVENT_TYPE = {
   PUBLIC: 'PUBLIC',
 };
 
-export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
+export const OH_GUIDELINE_URL =
+  'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.3.0 - Protocol Labs Demo Day Platform',
+    tag: 'New Feature',
+    date: '15, Oct 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day Platform Launch</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Experience</span> - Participating teams can now manage their profiles, upload pitch slides and demo videos, and showcase their fundraising details to potential investors.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor Experience</span> - Accredited investors can browse participating teams, view detailed profiles and pitch materials, and connect with founders directly through the platform.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Event Discovery</span> - Public landing page with event information, and invite request functionality for interested participants.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team Showcase</span> - Browse and filter through participating startups, view their pitch materials, and discover innovative projects building in the Protocol Labs Network.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.2.4 - Directory Search & Filter Enhancements',
+    tag: 'Improvements',
+    date: '25, Sep 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Directory Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Member Filters Refresh</span> - Improved member directory filters with clearer organization and quicker selection to find the right collaborators faster.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Unified Search Results Expansion</span> - Updated unified search experience with smoother usability and a new show more results option to reveal additional matches without losing context.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.2.3 - Available to Connect Badge',
+    tag: 'Improvements',
+    date: '29, Aug 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Connection Status Indicators</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Available to Connect Badge</span> - New visual indicator showing member availability status across member cards, team details, and event attendee lists for easier connection identification.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours Status Display</span> - Enhanced member cards with office hours availability badges showing booking counts and connection status for improved networking discovery.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.2.2 - Enhanced Member Directory Filters',
+    tag: 'Improvements',
+    date: '20, Aug 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Filter Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours Filter</span> - New dedicated filter section to find members offering office hours with option to show only members with office hours available.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Role-Based Filtering</span> - Enhanced roles filter allowing users to search and filter members by specific roles like Co-Founder, Founder, and other positions.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Topic Search Integration</span> - Improved search functionality that integrates topic-based filtering with member expertise areas.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filter Organization</span> - Reorganized filter layout for better usability with clear sections and improved visual hierarchy.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.2.1 - Office Hours Experience Improvements',
+    tag: 'Improvements',
+    date: '15, Aug 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Enhanced Adding/Editing Experience</span> - Improved interface for setting up and managing office hours with better user flow.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Improved Profile Placement</span> - Better positioning and textual descriptions for office hours on member profiles.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Link Status Detection</span> - System now identifies and alerts users when their office hours links aren't working properly.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Email Click Notifications</span> - Users receive notifications when someone clicks through their email for broken office hours links.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Expertise and Interest Fields</span> - Added "I am interested in" and "I can help with" fields to office hours for more meaningful conversations.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.2.0 - Forum Launch & Navigation Updates',
+    tag: 'New Feature',
+    date: '01, Aug 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Platform</span> - New forum for network members to share knowledge, ask questions, and discuss topics with categorized posts (General, Launch, Recruiting, Intros).</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Navigation</span> - Forum added to the main navigation menu for easy access to community discussions.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Email Digest System</span> - Daily and weekly email digests for forum posts with customizable preferences in Account Settings.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Post Management</span> - Create and edit forum posts with topic categorization and comment functionality.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Notification System</span> - Email notifications for post owners and commenters when others reply.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.1.16 - Sign-Up & Verification Enhancements',
+    tag: 'Improvements',
+    date: '08, Jul 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Immediate Profile Access Post Sign-Up</span> - Users can now log in right after signing up, giving them instant access to their profile so they can complete their information without delay.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Streamlined LinkedIn Verification</span> - A simplified flow lets users connect their LinkedIn account during onboarding. Once an admin approves the connection, they automatically receive full access.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.1.15 - Recommendations & Onboarding Enhancements',
+    tag: 'Improvements',
+    date: '02, Jul 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Connection Recommendations Settings</span> - Added a dedicated section in Account Settings that lets users fine-tune and enable AI-powered connection suggestions.</li>
+      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Bi-Monthly Recommendation Emails</span> - Opt-in users now receive connection recommendations via email every two weeks, tailored to their preferences.</li>
+      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Redesigned Sign-Up Form</span> - Introduced a streamlined sign-up experience with an updated layout for quicker and clearer onboarding.</li>
+      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Profile Completeness Highlights</span> - Missing fields on member profiles are now visually highlighted, guiding users to complete their information more easily.</li>
+    </ul>
+    </div>`,
+  },
+  {
+    title: 'Version 4.1.14 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '19, Jun 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Onboarding Wizard</span> - Introduced a step-by-step onboarding wizard to guide users through setting up their profile quickly and easily.</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Inline Profile Editing</span> - Users can now edit profile sections directly on the page without navigating to separate forms.</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Profile Widgets</span> - Added new profile widgets for showcasing upcoming events and personalized recommendations.</li>
+    </ul>
+    </div>`,
+  },
+  {
+    title: 'Version 4.1.13 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '03, Jun 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Unified Search</span> - Introduced a faster, general-purpose search that seamlessly integrates with AI-powered search capabilities.</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">User Contact Visibility</span> - Users can now see what types of contact information are associated with a member without logging in. Actual contact details remain hidden until login</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Performance Optimization</span> - Improved AI Search responsiveness and enhanced infinite scroll performance on several pages</li>
+    </ul>
+    </div>`,
+  },
+  {
+    title: 'Version 4.1.12 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '19, May 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Automatic Profile Pictures</span> - Uniquely generated avatars for user profiles without that don't have custom images</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">New Contribution Type</span> - Added "Sponsor" status to highlight financial support at events and IRL gatherings</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Performance Optimization</span> - Improved load speed and behavior for Members, Team, and Events pages</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Ask Status Management</span> - Team members can now <a style="text-decoration:underline; color:#156ff7" href="https://www.loom.com/share/f78df63772f94a6f97e42dc9f82bcf2d?sid=46fe2314-a2ec-469a-824a-46bb23a46651" target="_blank">update Ask</a> statuses (Fully Addressed, Partially Addressed, No Longer Needed, etc.) and document who provided support and how to improve contribution capture</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Enhanced Member Profiles</span> - Added <a style="text-decoration:underline; color:#156ff7" href="https://www.loom.com/share/a7a44c8914f54f549e22062e94fec66e?sid=ee628226-0183-48a4-973f-1e515c934c5e" target="_blank">new Experience section</a> displaying professional background, past roles, and impact created</li>
+    </ul>
+    </div>`,
+  },
   {
     title: 'Version 4.1.11 - Directory Enhancements',
     tag: 'Improvements',
@@ -933,7 +1216,10 @@ export const tagColors = [
   { name: 'Fixed', color: '#4871D9' },
 ];
 
-export const SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
+export const SOCIAL_IMAGE_URL =
+  'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
+
+export const DEMO_DAY_SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/demoday_v6.png';
 
 export const OFFICE_HOURS_STEPS = {
   MEETING_INITIATED: {
@@ -961,7 +1247,12 @@ export const TROUBLES_INFO = {
   },
 };
 
-export const NOT_SCHEDULED_OPTIONS = ['Link is broken', 'I plan to schedule soon', 'Preferred slot is not available', 'Other'];
+export const NOT_SCHEDULED_OPTIONS = [
+  'Link is broken',
+  'I plan to schedule soon',
+  'Preferred slot is not available',
+  'Other',
+];
 
 export const DIDNTHAPPENEDOPTIONS = [
   {
@@ -985,7 +1276,11 @@ export const DIDNTHAPPENEDOPTIONS = [
   },
 ];
 
-export const TECHNICALISSUESOPTIONS = [{ name: 'Noise or disturbance during the call' }, { name: 'Network issue' }, { name: 'Other' }];
+export const TECHNICALISSUESOPTIONS = [
+  { name: 'Noise or disturbance during the call' },
+  { name: 'Network issue' },
+  { name: 'Other' },
+];
 
 export const NOTIFICATION_TYPES = {
   meetingInitiated: {
@@ -1044,7 +1339,8 @@ export const NOTIFICATION_REFETCH_TIME = 300000;
 
 export const HOME_PAGE_LINKS = {
   FEATURED_REQUEST_URL: 'https://airtable.com/appgb6O7eF6mBEl8t/pagZ15qnE9hcxpuP0/form',
-  FOCUSAREA_PROTOCOL_LABS_VISION_URL: 'https://protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/',
+  FOCUSAREA_PROTOCOL_LABS_VISION_URL:
+    'https://protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/',
 };
 
 export const ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS = ['DIRECTORYADMIN'];
@@ -1165,7 +1461,20 @@ export const IRL_ATTENDEE_FORM_ERRORS = {
   SELECT_GATHERING: 'At least one Gathering should be selected',
 };
 
-export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+export const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
 
 export const IRL_SUBMIT_FORM_LINK = 'https://eventsmanagement.labweek.io/';
 
@@ -1213,66 +1522,64 @@ export const DEFAULT_ASK_TAGS = [
 export const IRL_AIRTABLE_FORM_LINK = 'https://airtable.com/appgb6O7eF6mBEl8t/pagYqoRNnscWBQKSp/form';
 
 export const DEFAULT_PROJECT_TAGS = [
-  { "value": "ai", "label": "AI" },
-  { "value": "ai_x_crypto", "label": "AI x Crypto" },
-  { "value": "bci", "label": "BCI" },
-  { "value": "blockchain_infrastructure", "label": "Blockchain Infrastructure" },
-  { "value": "blockchain_security", "label": "Blockchain Security" },
-  { "value": "capital", "label": "Capital" },
-  { "value": "collaboration", "label": "Collaboration" },
-  { "value": "compute", "label": "Compute" },
-  { "value": "consensus_scalability", "label": "Consensus & Scalability" },
-  { "value": "consultancy", "label": "Consultancy" },
-  { "value": "consumer", "label": "Consumer" },
-  { "value": "creative_services", "label": "Creative Services" },
-  { "value": "dao_tooling", "label": "DAO Tooling" },
-  { "value": "data_tooling", "label": "Data Tooling" },
-  { "value": "defi_fintech", "label": "DeFi/Fintech" },
-  { "value": "decentralized_identity", "label": "Decentralized Identity" },
-  { "value": "decentralized_storage", "label": "Decentralized Storage" },
-  { "value": "desci", "label": "DeSci" },
-  { "value": "developer_tooling", "label": "Developer Tooling" },
-  { "value": "discontinued", "label": "Discontinued" },
-  { "value": "education", "label": "Education" },
-  { "value": "enterprise_solutions", "label": "Enterprise Solutions" },
-  { "value": "events_tooling", "label": "Events Tooling" },
-  { "value": "foundation", "label": "Foundation" },
-  { "value": "frontier_tech", "label": "Frontier Tech" },
-  { "value": "funding_mechanisms", "label": "Funding Mechanisms" },
-  { "value": "gaming_metaverse", "label": "Gaming/Metaverse" },
-  { "value": "governance", "label": "Governance" },
-  { "value": "hardware", "label": "Hardware" },
-  { "value": "hrtech", "label": "HRTech" },
-  { "value": "iot", "label": "IoT" },
-  { "value": "multimedia", "label": "Multimedia" },
-  { "value": "nft", "label": "NFT" },
-  { "value": "productivity", "label": "Productivity" },
-  { "value": "service_providers", "label": "Service Providers" },
-  { "value": "social_networking", "label": "Social Networking" },
-  { "value": "sustainability", "label": "Sustainability" },
-  { "value": "treasury_management", "label": "Treasury Management" },
-  { "value": "verifiable_storage_privacy", "label": "Verifiable Storage & Privacy" },
-  { "value": "vr_ar", "label": "VR/AR" },
-  { "value": "zk_proofs", "label": "ZK Proofs" }
+  { value: 'ai', label: 'AI' },
+  { value: 'ai_x_crypto', label: 'AI x Crypto' },
+  { value: 'bci', label: 'BCI' },
+  { value: 'blockchain_infrastructure', label: 'Blockchain Infrastructure' },
+  { value: 'blockchain_security', label: 'Blockchain Security' },
+  { value: 'capital', label: 'Capital' },
+  { value: 'collaboration', label: 'Collaboration' },
+  { value: 'compute', label: 'Compute' },
+  { value: 'consensus_scalability', label: 'Consensus & Scalability' },
+  { value: 'consultancy', label: 'Consultancy' },
+  { value: 'consumer', label: 'Consumer' },
+  { value: 'creative_services', label: 'Creative Services' },
+  { value: 'dao_tooling', label: 'DAO Tooling' },
+  { value: 'data_tooling', label: 'Data Tooling' },
+  { value: 'defi_fintech', label: 'DeFi/Fintech' },
+  { value: 'decentralized_identity', label: 'Decentralized Identity' },
+  { value: 'decentralized_storage', label: 'Decentralized Storage' },
+  { value: 'desci', label: 'DeSci' },
+  { value: 'developer_tooling', label: 'Developer Tooling' },
+  { value: 'discontinued', label: 'Discontinued' },
+  { value: 'education', label: 'Education' },
+  { value: 'enterprise_solutions', label: 'Enterprise Solutions' },
+  { value: 'events_tooling', label: 'Events Tooling' },
+  { value: 'foundation', label: 'Foundation' },
+  { value: 'frontier_tech', label: 'Frontier Tech' },
+  { value: 'funding_mechanisms', label: 'Funding Mechanisms' },
+  { value: 'gaming_metaverse', label: 'Gaming/Metaverse' },
+  { value: 'governance', label: 'Governance' },
+  { value: 'hardware', label: 'Hardware' },
+  { value: 'hrtech', label: 'HRTech' },
+  { value: 'iot', label: 'IoT' },
+  { value: 'multimedia', label: 'Multimedia' },
+  { value: 'nft', label: 'NFT' },
+  { value: 'productivity', label: 'Productivity' },
+  { value: 'service_providers', label: 'Service Providers' },
+  { value: 'social_networking', label: 'Social Networking' },
+  { value: 'sustainability', label: 'Sustainability' },
+  { value: 'treasury_management', label: 'Treasury Management' },
+  { value: 'verifiable_storage_privacy', label: 'Verifiable Storage & Privacy' },
+  { value: 'vr_ar', label: 'VR/AR' },
+  { value: 'zk_proofs', label: 'ZK Proofs' },
 ];
-
 
 export const PROJECT_README_DEFAULT =
   "## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it's goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n";
 
-
 export const EVENTS_OPTIONS = [
-    { value: 'All', label: 'All' },
-    { value: 'Upcoming', label: 'Upcoming' },
-    { value: 'Past', label: 'Past' }
+  { value: 'All', label: 'All' },
+  { value: 'Upcoming', label: 'Upcoming' },
+  { value: 'Past', label: 'Past' },
 ];
 
-export const IRL_EVENTS_DEFAULT_IMAGE = "https://plabs-assets.s3.us-west-1.amazonaws.com/Default+IRL+event-logo.svg";
+export const IRL_EVENTS_DEFAULT_IMAGE = 'https://plabs-assets.s3.us-west-1.amazonaws.com/Default+IRL+event-logo.svg';
 
-export const EVENTS_SUBSCRIPTION_URL = "https://plnnews.substack.com/subscribe?utm_source=menu&simple=true&next=https%3A%2F%2Fplnnews.substack.com%2F";
+export const EVENTS_SUBSCRIPTION_URL =
+  'https://plnnews.substack.com/subscribe?utm_source=menu&simple=true&next=https%3A%2F%2Fplnnews.substack.com%2F';
 
 export const EVENTS_TEAM_UID = 'cleeky1re000202tx3kex3knn';
-
 
 export const EVENTS_SUBMIT_FORM_TYPES = {
   MARK_PRESENCE: 'mark-presence',
@@ -1281,4 +1588,50 @@ export const EVENTS_SUBMIT_FORM_TYPES = {
   ALL: 'all',
 };
 
-export const CONTRIBUTE_MODAL_VIDEO_URL = "https://plabs-assets.s3.us-west-1.amazonaws.com/IRL+video-Updated.webm";
+export const CONTRIBUTE_MODAL_VIDEO_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/IRL+video-Updated.webm';
+
+export const GROUPS_URL = 'https://protosphere.plnetwork.io/groups';
+
+export const DEMO_DAY_ANALYTICS = {
+  ON_LANDING_PAGE_OPENED: 'demo-day-landing-page-opened',
+  ON_LANDING_TIME_ON_PAGE: 'demo-day-landing-time-on-page',
+  ON_LANDING_LOGIN_BUTTON_CLICKED: 'demo-day-landing-login-button-clicked',
+  ON_LANDING_REQUEST_INVITE_BUTTON_CLICKED: 'demo-day-landing-request-invite-button-clicked',
+  ON_ACCESS_DENIED_MODAL_SHOWN: 'demo-day-access-denied-modal-shown',
+  ON_ACCESS_DENIED_USER_NOT_WHITELISTED_MODAL_SHOWN: 'demo-day-access-denied-user-not-whitelisted-modal-shown',
+  ON_ACCESS_DENIED_REQUEST_INVITE_CLICKED: 'demo-day-access-denied-request-invite-clicked',
+  ON_INVESTOR_PENDING_VIEW_PAGE_OPENED: 'demo-day-investor-pending-view-page-opened',
+  ON_INVESTOR_PENDING_VIEW_GO_TO_INVESTOR_PROFILE_BUTTON_CLICKED:
+    'demo-day-investor-pending-view-go-to-profile-clicked',
+  ON_INVESTOR_PENDING_VIEW_ADD_TO_CALENDAR_BUTTON_CLICKED: 'demo-day-investor-pending-view-add-to-calendar-clicked',
+  ON_INVESTOR_PROFILE_PAGE_OPENED: 'demo-day-investor-profile-page-opened',
+  ON_INVESTOR_PROFILE_EDIT_STARTED: 'demo-day-investor-profile-edit-started',
+  ON_INVESTOR_PROFILE_UPDATED: 'demo-day-investor-profile-updated',
+  ON_FOUNDER_PENDING_VIEW_PAGE_OPENED: 'demo-day-founder-pending-view-page-opened',
+  ON_FOUNDER_TEAM_FUNDRAISING_CARD_CLICKED: 'demo-day-founder-team-fundraising-card-clicked',
+  ON_FOUNDER_EDIT_TEAM_PROFILE_BUTTON_CLICKED: 'demo-day-founder-edit-team-profile-button-clicked',
+  ON_FOUNDER_SAVE_TEAM_DETAILS_CLICKED: 'demo-day-founder-save-team-details-clicked',
+  ON_FOUNDER_CANCEL_TEAM_DETAILS_CLICKED: 'demo-day-founder-cancel-team-details-clicked',
+  ON_FOUNDER_DEMO_MATERIAL_UPLOAD_STARTED: 'demo-day-founder-demo-material-upload-started',
+  ON_FOUNDER_DEMO_MATERIAL_UPLOAD_SUCCESS: 'demo-day-founder-demo-material-upload-success',
+  ON_FOUNDER_DEMO_MATERIAL_UPLOAD_FAILED: 'demo-day-founder-demo-material-upload-failed',
+  ON_FOUNDER_DEMO_MATERIAL_DELETED: 'demo-day-founder-demo-material-deleted',
+  ON_FOUNDER_DEMO_MATERIAL_VIEWED: 'demo-day-founder-demo-material-viewed',
+  ON_ACTIVE_VIEW_PAGE_OPENED: 'demo-day-active-view-page-opened',
+  ON_ACTIVE_VIEW_TIME_ON_PAGE: 'demo-day-active-view-time-on-page',
+  ON_ACTIVE_VIEW_FILTERS_APPLIED: 'demo-day-active-view-filters-applied',
+  ON_ACTIVE_VIEW_TEAM_CARD_CLICKED: 'demo-day-active-view-team-card-clicked',
+  ON_ACTIVE_VIEW_TEAM_PITCH_DECK_VIEWED: 'demo-day-active-view-team-pitch-deck-viewed',
+  ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_VIEWED: 'demo-day-active-view-team-pitch-video-viewed',
+  ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED: 'demo-day-active-view-like-company-clicked',
+  ON_ACTIVE_VIEW_CONNECT_COMPANY_CLICKED: 'demo-day-active-view-connect-company-clicked',
+  ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED: 'demo-day-active-view-invest-company-clicked',
+  ON_ACTIVE_VIEW_REFER_COMPANY_CLICKED: 'demo-day-active-view-refer-company-clicked',
+  ON_ACTIVE_VIEW_INTRO_COMPANY_CLICKED: 'demo-day-active-view-intro-company-clicked',
+  ON_ACTIVE_VIEW_INTRO_COMPANY_CANCEL_CLICKED: 'demo-day-active-view-intro-company-cancel-clicked',
+  ON_ACTIVE_VIEW_INTRO_COMPANY_CONFIRM_CLICKED: 'demo-day-active-view-intro-company-confirm-clicked',
+  ON_INVESTOR_PROFILE_ADD_TEAM_LINK_CLICKED: 'demo-day-investor-profile-add-team-link-clicked',
+  ON_INVESTOR_PROFILE_TEAM_SELECTED: 'demo-day-investor-profile-team-selected',
+  ON_TEAM_PROFILE_READY: 'demo-day-team-profile-ready',
+  ON_PROTOCOL_LABS_LINK_CLICKED: 'demo-day-protocol-labs-link-clicked',
+};

@@ -14,27 +14,51 @@ const MemberProjectExperienceCard = (props: any) => {
   const analytics = useMemberAnalytics();
 
   const onProjectClickHandler = () => {
-    analytics.onProjectClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member), getAnalyticsProjectInfo(experience));
+    analytics.onProjectClicked(
+      getAnalyticsUserInfo(userInfo),
+      getAnalyticsMemberInfo(member),
+      getAnalyticsProjectInfo(experience),
+    );
   };
 
   return (
     <>
       <div className="member-project-experience">
         {!experience?.project?.isDeleted && (
-          <a target='_blank' className="member-project-experience__container" onClick={onProjectClickHandler} href={`${PAGE_ROUTES.PROJECTS}/${experience?.project?.uid}`}>
+          <a
+            target="_blank"
+            className="member-project-experience__container"
+            onClick={onProjectClickHandler}
+            href={`${PAGE_ROUTES.PROJECTS}/${experience?.project?.uid}`}
+          >
             <div className="member-project-experience__container__project">
-              <img className="member-project-experience__container__project__img" loading="lazy" alt="project profile" src={logo} height={40} width={40} />
+              <img
+                className="member-project-experience__container__project__img"
+                loading="lazy"
+                alt="project profile"
+                src={logo}
+                height={40}
+                width={40}
+              />
             </div>
             <div className="member-project-experience__project__desc">
-              <Tooltip asChild trigger={<p className="member-project-experience__project__desc__name">{experience?.project?.name}</p>} content={experience?.project?.name} />
+              <Tooltip
+                asChild
+                trigger={<p className="member-project-experience__project__desc__name">{experience?.project?.name}</p>}
+                content={experience?.project?.name}
+              />
               {experience?.role && <p className="member-project-experience__project__desc__role">{experience?.role}</p>}
               {(experience?.startDate || experience?.endDate) && (
                 <div className="member-project-experience__project__desc__date">
                   {experience?.startDate && <p>{formatDate(experience.startDate)}</p>}
                   {experience.currentProject && <p>{`- Present`}</p>}
                   {!experience.currentProject && experience.endDate && <p>{` - ${formatDate(experience.endDate)}`}</p>}
-                  {experience.endDate && <p>{` (${dateDifference(new Date(experience.startDate), new Date(experience.endDate))})`}</p>}
-                  {!experience.endDate && experience.startDate && <p>{` (${dateDifference(new Date(experience.startDate), new Date())})`}</p>}
+                  {experience.endDate && (
+                    <p>{` (${dateDifference(new Date(experience.startDate), new Date(experience.endDate))})`}</p>
+                  )}
+                  {!experience.endDate && experience.startDate && (
+                    <p>{` (${dateDifference(new Date(experience.startDate), new Date())})`}</p>
+                  )}
                 </div>
               )}
             </div>
@@ -47,7 +71,14 @@ const MemberProjectExperienceCard = (props: any) => {
             trigger={
               <div className="member-project-experience__container">
                 <div className="member-project-experience__container__project">
-                  <img className="member-project-experience__container__project__img" loading="lazy" alt="project profile" src='/icons/deleted-project-logo.svg' height={40} width={40} />
+                  <img
+                    className="member-project-experience__container__project__img"
+                    loading="lazy"
+                    alt="project profile"
+                    src="/icons/deleted-project-logo.svg"
+                    height={40}
+                    width={40}
+                  />
                 </div>
                 <div className="member-project-experience__project__desc">
                   <p className="member-project-experience__project__desc__name">{experience?.project?.name}</p>
@@ -55,8 +86,12 @@ const MemberProjectExperienceCard = (props: any) => {
                   <div className="member-project-experience__project__desc__date">
                     <p>{formatDate(experience.startDate)}</p>
                     {experience.currentProject && <p>{`- Present`}</p>}
-                    {!experience.currentProject && experience.endDate && <p>{` - ${formatDate(experience.endDate)}`}</p>}
-                    {experience.endDate && <p>{` (${dateDifference(new Date(experience.startDate), new Date(experience.endDate))})`}</p>}
+                    {!experience.currentProject && experience.endDate && (
+                      <p>{` - ${formatDate(experience.endDate)}`}</p>
+                    )}
+                    {experience.endDate && (
+                      <p>{` (${dateDifference(new Date(experience.startDate), new Date(experience.endDate))})`}</p>
+                    )}
                     {!experience.endDate && <p>{` (${dateDifference(new Date(experience.startDate), new Date())})`}</p>}
                   </div>
                 </div>
@@ -89,7 +124,7 @@ const MemberProjectExperienceCard = (props: any) => {
           }
 
           .member-project-experience__container__project__img {
-            border-radius:4px;
+            border-radius: 4px;
           }
 
           .member-project-experience__project__desc {

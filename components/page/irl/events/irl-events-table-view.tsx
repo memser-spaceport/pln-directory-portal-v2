@@ -1,15 +1,54 @@
 import { getFormattedDateString } from '@/utils/irl.utils';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import Image from 'next/image';
-import { IRL_EVENTS_DEFAULT_IMAGE } from '@/utils/constants';
+import { IRL_EVENTS_DEFAULT_IMAGE, ADMIN_ROLE } from '@/utils/constants';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { IUserInfo } from '@/types/shared.types';
+import { getAccessLevel } from '@/utils/auth.utils';
 
-const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, handleElementClick, isEventSelected, eventType, isLoggedIn }: any) => {
+interface IrlEventsTableViewProps {
+  index?: number;
+  gathering: any;
+  handleClick: (resources: any, event?: any) => void;
+  isLastContent: boolean;
+  handleElementClick?: (gathering: any) => void;
+  isEventSelected?: boolean;
+  eventType?: boolean;
+  isLoggedIn: boolean;
+  userInfo?: IUserInfo;
+  onDeleteEvent?: (gathering: any) => void;
+  eventsToShow?: any;
+  resources?: any;
+}
+
+const IrlEventsTableView = ({
+  index,
+  gathering,
+  handleClick,
+  isLastContent,
+  handleElementClick,
+  isEventSelected,
+  eventType,
+  isLoggedIn,
+  userInfo,
+  onDeleteEvent,
+}: IrlEventsTableViewProps) => {
   const handleRowClick = (gathering: any) => {
-    if (eventType) {
+    if (eventType && handleElementClick) {
       handleElementClick(gathering);
     }
   };
+
   const website = gathering?.resources?.find((resource: any) => resource?.name?.toLowerCase() === 'website');
+
+  const accessLevel = getAccessLevel(userInfo as IUserInfo, isLoggedIn);
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDeleteEvent) {
+      onDeleteEvent(gathering);
+    }
+  };
 
   return (
     <>
@@ -23,21 +62,49 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           <div className="root__irl__table-header">
             <div className="root__irl__table-col-header">
               <div className="root__irl__table-col__contentName__top">
-                <div>
-                  <img src={gathering?.logo?.url || IRL_EVENTS_DEFAULT_IMAGE} style={{ height: '20px', width: '20px' }} alt="logo" />
+                <div className="root__irl__table-col__contentName__top__left">
+                  <img
+                    src={gathering?.logo?.url || IRL_EVENTS_DEFAULT_IMAGE}
+                    style={{ height: '20px', width: '20px' }}
+                    alt="logo"
+                  />
+                  {website && (
+                    <a
+                      onClick={(e) => e.stopPropagation()}
+                      className="root__irl__table-col__contentName__top__website"
+                      target="_blank"
+                      href={website?.link}
+                    >
+                      {gathering?.name}
+                      <img
+                        className="root__irl__table-col__contentName__top__website__icon"
+                        alt="redirect"
+                        src="/icons/arrow-blue.svg"
+                        height={10}
+                        width={10}
+                      />
+                    </a>
+                  )}
+                  {!website && <div className="root__irl__table-col__contentName__top__title">{gathering.name}</div>}
                 </div>
-                {website && (
-                  <a onClick={(e) => e.stopPropagation()} className="root__irl__table-col__contentName__top__website" target="_blank" href={website?.link}>
-                    {gathering?.name}
-                    <img className="root__irl__table-col__contentName__top__website__icon" alt="redirect" src="/icons/arrow-blue.svg" height={10} width={10} />
-                  </a>
+                {accessLevel === 'advanced' && (
+                  <button
+                    className="root__irl__table-col__contentName__top__delete"
+                    onClick={handleDeleteClick}
+                    title="Delete Event"
+                  >
+                    <img src="/icons/delete.svg" alt="delete" height={16} width={16} />
+                  </button>
                 )}
-                {!website && <div className="root__irl__table-col__contentName__top__title">{gathering.name}</div>}
               </div>
               <div className="root__irl__table-col__contentName__bottom">
                 <div
                   className="root__irl__table-col__contentName__bottom__date"
-                  style={gathering.eventGuests?.length > 0 ? { paddingRight: '10px', marginRight: '10px', borderRight: '1px solid #cbd5e1' } : {}}
+                  style={
+                    gathering.eventGuests?.length > 0
+                      ? { paddingRight: '10px', marginRight: '10px', borderRight: '1px solid #cbd5e1' }
+                      : {}
+                  }
                 >
                   {getFormattedDateString(gathering?.startDate, gathering?.endDate, true)}
                 </div>
@@ -45,28 +112,36 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
                 {gathering.eventGuests?.length > 0 && (
                   <div className="root__irl__table-col__contentName__attendee__list">
                     <span className="root__irl__imgsec__images">
-                      {gathering.eventGuests?.slice(0, 3).map((member: any, index: number) => (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <Image
-                          key={index}
-                          style={{ marginLeft: `-6px` }}
-                          className="root__irl__imgsec__images__img"
-                          src={member?.member?.image?.url || '/icons/default_profile.svg'}
-                          alt="attendee"
-                          height={18}
-                          width={18}
-                        />
-                      ))}
+                      {gathering.eventGuests?.slice(0, 3).map((member: any, index: number) => {
+                        const defaultAvatar = getDefaultAvatar(member?.member?.name);
+
+                        return (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <Image
+                            key={index}
+                            style={{ marginLeft: `-6px` }}
+                            className="root__irl__imgsec__images__img"
+                            src={member?.member?.image?.url || defaultAvatar}
+                            alt="attendee"
+                            height={18}
+                            width={18}
+                          />
+                        );
+                      })}
                     </span>
                     <span className="">
-                      {gathering.eventGuests?.length > 0 ? gathering.eventGuests?.length : ''} {gathering?.eventGuests.length > 1 ? 'Attendees' : 'Attendee'}
+                      {gathering.eventGuests?.length > 0 ? gathering.eventGuests?.length : ''}{' '}
+                      {gathering?.eventGuests.length > 1 ? 'Attendees' : 'Attendee'}
                     </span>
                   </div>
                 )}
               </div>
               <div className="root__irl__table-col__contentName__resSection">
                 {gathering?.resources?.length > 0 && (
-                  <div className="root__irl__table-col__contentRes__viewCnt" onClick={(event) => gathering?.resources?.length > 0 && handleClick(gathering?.resources, event)}>
+                  <div
+                    className="root__irl__table-col__contentRes__viewCnt"
+                    onClick={(event) => gathering?.resources?.length > 0 && handleClick(gathering?.resources, event)}
+                  >
                     <div style={{ display: 'flex' }}>
                       <img src="/images/irl/elements.svg" alt="view" />
                     </div>
@@ -92,7 +167,10 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
             )}
           </div>
         </div>
-        <div className="root__irl__table-col__contentDesc" dangerouslySetInnerHTML={{ __html: gathering?.description }}></div>
+        <div
+          className="root__irl__table-col__contentDesc"
+          dangerouslySetInnerHTML={{ __html: gathering?.description }}
+        ></div>
       </div>
       <style jsx>{`
         .root__irl__table-header {
@@ -110,6 +188,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
         .root__irl__table-col-header {
           display: flex;
           flex-direction: column;
+          width: 100%;
         }
 
         .root__irl__table-row__content {
@@ -175,6 +254,16 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           margin-left: 8px;
         }
 
+        .root__irl__table-col__contentName__top__delete {
+          background-color: transparent;
+          width: 16px;
+          height: 16px;
+        }
+
+        .root__irl__table-col__contentName__top__delete:hover {
+          background-color: #fee2e2;
+        }
+
         .root__irl__table-col__headerName,
         .root__irl__table-col__headerDesc .root__irl__table-col__contentName,
         .root__irl__table-col__contentDesc {
@@ -192,6 +281,12 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
         }
 
         .root__irl__table-col__contentName__top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+
+        .root__irl__table-col__contentName__top__left {
           display: flex;
           flex-direction: row;
           gap: 4px;

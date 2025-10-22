@@ -71,7 +71,10 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_IRL_CARD_CLICKED, params);
   }
 
-  function onFocusAreaTeamsClicked(user: IAnalyticsUserInfo | null | undefined, focusedArea: IAnalyticsFocusArea | null) {
+  function onFocusAreaTeamsClicked(
+    user: IAnalyticsUserInfo | null | undefined,
+    focusedArea: IAnalyticsFocusArea | null,
+  ) {
     const params = {
       user,
       focusedArea,
@@ -79,7 +82,10 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FOCUS_AREA_TEAMS_CLICKED, params);
   }
 
-  function onFocusAreaProjectsClicked(user: IAnalyticsUserInfo | null | undefined, focusedArea: IAnalyticsFocusArea | null) {
+  function onFocusAreaProjectsClicked(
+    user: IAnalyticsUserInfo | null | undefined,
+    focusedArea: IAnalyticsFocusArea | null,
+  ) {
     const params = {
       user,
       focusedArea,
@@ -134,6 +140,12 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FOCUS_AREA_PROTOCOL_LABS_VISION_URL_CLICKED, params);
   }
 
+  function onFeaturedFilterClicked(filter: string) {
+    const params = {
+      filter,
+    };
+    captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_FILTER_CLICKED, params);
+  }
 
   return {
     featuredSubmitRequestClicked,
@@ -150,5 +162,6 @@ export const useHomeAnalytics = () => {
     onMmeberBioPopupViewProfileBtnClicked,
     onFocusAreaProtocolLabsVisionUrlClicked,
     onIrlLocationClicked,
+    onFeaturedFilterClicked,
   };
 };

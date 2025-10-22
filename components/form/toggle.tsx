@@ -22,11 +22,21 @@ const FormToggle: React.FC<ToggleProps> = ({ id, label, name, disabled = false, 
     <>
       <div className="toggle-container">
         {label && <label htmlFor={id}>{label}</label>}
-        <div className={`toggle-switch ${checked === true ? 'checked' : ''} ${disabled ? 'toggle-switch--disabled' : ''}`} onClick={handleToggle}>
+        <div
+          className={`toggle-switch ${checked === true ? 'checked' : ''} ${disabled ? 'toggle-switch--disabled' : ''}`}
+          onClick={handleToggle}
+        >
           <div className="toggle-knob" />
         </div>
       </div>
-      <input checked={checked} type="checkbox" name={name} disabled={disabled} id={id} style={{ width: '0px', height: '0px', visibility: 'hidden' }} />{' '}
+      <input
+        checked={checked}
+        type="checkbox"
+        name={name}
+        disabled={disabled}
+        id={id}
+        style={{ width: '0px', height: '0px', visibility: 'hidden' }}
+      />{' '}
       <style jsx>
         {`
           .toggle-container {

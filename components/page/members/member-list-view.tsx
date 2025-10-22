@@ -6,6 +6,7 @@ import { IMember } from '@/types/members.types';
 import { parseMemberLocation } from '@/utils/member.utils';
 import MemberSkillList from './member-skill-list';
 import Image from 'next/image';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface IMemberListView {
   member: IMember;
@@ -15,18 +16,28 @@ interface IMemberListView {
 const MemberListView = (props: IMemberListView) => {
   const member = props?.member;
   const isUserLoggedIn = props?.isUserLoggedIn;
-  const profileUrl = member?.profile ?? '/icons/default_profile.svg';
   const role = member.mainTeam?.role || 'Contributor';
   const location = parseMemberLocation(member?.location);
   const skills = member?.skills ?? [];
   const isTeamLead = member?.teamLead;
   const isOpenToWork = member?.openToWork;
   const isBorder = isTeamLead || isOpenToWork;
+  const defaultAvatarImage = useDefaultAvatar(member?.name);
+  const profileUrl = member?.profile ?? defaultAvatarImage;
 
   return (
     <>
       <div className="member-list-view">
-        <Image alt='profile'  height={72} width={72} layout='intrinsic' loading='eager' priority={true} className="member-list-view__profile" src={profileUrl}   />
+        <Image
+          alt="profile"
+          height={72}
+          width={72}
+          layout="intrinsic"
+          loading="eager"
+          priority={true}
+          className="member-list-view__profile"
+          src={profileUrl}
+        />
         <div className="member-list-view__details-section">
           <div className="member-list-view__details-section__right">
             <div className="member-list-view__details-section__name-container">
@@ -35,14 +46,30 @@ const MemberListView = (props: IMemberListView) => {
                 {isTeamLead && (
                   <Tooltip
                     asChild
-                    trigger={<img loading="lazy" className="member-list-view__details-section__name-container__badges__team-lead" height={20} width={20} src="/icons/badge/team-lead.svg" />}
+                    trigger={
+                      <img
+                        loading="lazy"
+                        className="member-list-view__details-section__name-container__badges__team-lead"
+                        height={20}
+                        width={20}
+                        src="/icons/badge/team-lead.svg"
+                      />
+                    }
                     content={'Team Lead'}
                   />
                 )}
                 {isOpenToWork && (
                   <Tooltip
                     asChild
-                    trigger={<img loading="lazy" className="member-list-view__details-section__name-container__badges__open-to-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
+                    trigger={
+                      <img
+                        loading="lazy"
+                        className="member-list-view__details-section__name-container__badges__open-to-work"
+                        height={20}
+                        width={20}
+                        src="/icons/badge/open-to-work.svg"
+                      />
+                    }
                     content={'Open To Collaborate'}
                   />
                 )}
@@ -50,12 +77,17 @@ const MemberListView = (props: IMemberListView) => {
             </div>
             <div className="member-list-view__details-section__right__work-details">
               <div className="member-list-view__details-section__right__work-details__team">
-                <p className="member-list-view__details-section__right__work-details__team-name">{member?.teams?.length > 0 ? member?.teams[0].name : '-'}</p>
+                <p className="member-list-view__details-section__right__work-details__team-name">
+                  {member?.teams?.length > 0 ? member?.teams[0].name : '-'}
+                </p>
                 {member?.teams?.length > 2 && (
                   <Tooltip
                     asChild
                     trigger={
-                      <button onClick={(e) => e.preventDefault()} className="member-list-view__details-section__right__work-details__tems-count">
+                      <button
+                        onClick={(e) => e.preventDefault()}
+                        className="member-list-view__details-section__right__work-details__tems-count"
+                      >
                         +{(member?.teams?.length - 1).toString()}
                       </button>
                     }
@@ -63,7 +95,8 @@ const MemberListView = (props: IMemberListView) => {
                       <>
                         {member?.teams?.slice(1, member?.teams?.length).map((team, index) => (
                           <div key={`${team} + ${index}`}>
-                            {team?.name} {index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
+                            {team?.name}{' '}
+                            {index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
                           </div>
                         ))}
                       </>
@@ -98,14 +131,30 @@ const MemberListView = (props: IMemberListView) => {
                   {isTeamLead && (
                     <Tooltip
                       asChild
-                      trigger={<img loading="lazy" className="member-list-view__details-section__name-container__badges__team-lead" height={20} width={20} src="/icons/badge/team-lead.svg" />}
+                      trigger={
+                        <img
+                          loading="lazy"
+                          className="member-list-view__details-section__name-container__badges__team-lead"
+                          height={20}
+                          width={20}
+                          src="/icons/badge/team-lead.svg"
+                        />
+                      }
                       content={'Team Lead'}
                     />
                   )}
                   {isOpenToWork && (
                     <Tooltip
                       asChild
-                      trigger={<img loading="lazy" className="member-list-view__details-section__name-container__badges__open-to-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
+                      trigger={
+                        <img
+                          loading="lazy"
+                          className="member-list-view__details-section__name-container__badges__open-to-work"
+                          height={20}
+                          width={20}
+                          src="/icons/badge/open-to-work.svg"
+                        />
+                      }
                       content={'Open To Collaborat'}
                     />
                   )}
@@ -185,7 +234,7 @@ const MemberListView = (props: IMemberListView) => {
             display: flex;
             align-items: center;
             gap: 5px;
-            padding-top:4px;
+            padding-top: 4px;
           }
 
           .member-list-view__details-section__right__work-details {
@@ -292,8 +341,6 @@ const MemberListView = (props: IMemberListView) => {
               flex-direction: row;
               justify-content: space-between;
             }
-
-
 
             .member-list-view__details-section__right__work-detail__team__role {
               max-width: 400px;

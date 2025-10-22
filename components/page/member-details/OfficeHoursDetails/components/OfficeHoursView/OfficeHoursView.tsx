@@ -1,0 +1,355 @@
+'use client';
+
+import React, { useState } from 'react';
+import { clsx } from 'clsx';
+import { IMember } from '@/types/members.types';
+import { IUserInfo } from '@/types/shared.types';
+import { EditButton } from '@/components/page/member-details/components/EditButton';
+import { OfficeHoursDialog } from '@/components/page/member-details/OfficeHoursDetails/components/OfficeHoursDialog';
+import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
+
+import s from './OfficeHoursView.module.scss';
+import { InvalidOfficeHoursLinkDialog } from '@/components/page/member-details/OfficeHoursDetails/components/InvalidOfficeHoursLinkDialog';
+import { useReportBrokenOfficeHours } from '@/services/members/hooks/useReportBrokenOfficeHours';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
+import {
+  getAnalyticsMemberInfo,
+  getAnalyticsUserInfo,
+  getParsedValue,
+  normalizeOfficeHoursUrl,
+} from '@/utils/common.utils';
+import { useCreateFollowUp } from '@/services/members/hooks/useCreateFollowUp';
+import Cookies from 'js-cookie';
+import { getFollowUps } from '@/services/office-hours.service';
+import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
+import { toast } from '@/components/core/ToastContainer';
+import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
+
+interface Props {
+  member: IMember;
+  isLoggedIn: boolean;
+  userInfo: IUserInfo;
+  isEditable: boolean;
+  showIncomplete: boolean;
+  onEdit: () => void;
+  isOfficeHoursValid: boolean;
+}
+
+export const OfficeHoursView = ({
+  member,
+  isLoggedIn,
+  userInfo,
+  isEditable,
+  showIncomplete,
+  onEdit,
+  isOfficeHoursValid,
+}: Props) => {
+  const [showDialog, setShowDialog] = useState<{ view: 'info' | 'actionable' } | null>(null);
+  const [showInvalidLinkDialog, setShowInvalidLinkDialog] = useState(false);
+  const isOwner = userInfo?.uid === member.id;
+  const hasOfficeHours = !!member.officeHours;
+  const hasInterestedIn = !!member.ohInterest?.length;
+  const hasCanHelpWith = !!member.ohHelpWith?.length;
+  const showPastBookings = !!member?.scheduleMeetingCount && member.scheduleMeetingCount >= 5;
+  const showAlert = !isOfficeHoursValid && isOwner;
+  const showWarning = !showAlert && showIncomplete;
+  const showAddButton = !hasOfficeHours && !showAlert && isEditable;
+  const showUpdateButton = isEditable && !showAlert && hasOfficeHours && (!hasInterestedIn || !hasCanHelpWith);
+  const showAlertUpdateButton = showAlert && isEditable;
+  const { onAddOfficeHourClicked, onEditOfficeHourClicked, onOfficeHourClicked } = useMemberAnalytics();
+  const { mutateAsync: createFollowUp, data } = useCreateFollowUp();
+  const { mutate: reportBrokenLink } = useReportBrokenOfficeHours();
+  const { data: memberPreferences } = useGetMemberPreferences(userInfo?.uid);
+  const shouldShowDialog = memberPreferences?.memberPreferences?.showOfficeHoursDialog !== false;
+
+  const handleScheduleMeeting = () => {
+    if (!hasOfficeHours) return;
+
+    onOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+
+    if (!isOfficeHoursValid) {
+      setShowInvalidLinkDialog(true);
+      reportBrokenLink({ memberId: member.id });
+      return;
+    }
+
+    if (shouldShowDialog) {
+      setShowDialog({ view: 'actionable' });
+    } else {
+      openOfficeHoursLink();
+    }
+  };
+
+  const openOfficeHoursLink = async () => {
+    if (!userInfo.uid || !member.officeHours) {
+      return;
+    }
+
+    const authToken = Cookies.get('authToken') || '';
+
+    const res = await createFollowUp({
+      logInMemberUid: userInfo.uid,
+      authToken: getParsedValue(authToken),
+      data: {
+        data: {},
+        hasFollowUp: true,
+        type: 'SCHEDULE_MEETING',
+        targetMemberUid: member.id,
+      },
+    });
+
+    if (res?.error) {
+      if (res?.error?.data?.message?.includes('yourself is forbidden')) {
+        toast.error(TOAST_MESSAGES.SELF_INTERACTION_FORBIDDEN);
+      }
+
+      if (res?.error?.data?.message?.includes('Interaction with same user within 30 minutes is forbidden')) {
+        toast.error(TOAST_MESSAGES.INTERACTION_RESTRICTED);
+      }
+
+      return;
+    }
+
+    // Normalize URL - add https:// if no protocol is provided
+    const normalizedOfficeHoursUrl = normalizeOfficeHoursUrl(member.officeHours);
+
+    window.open(normalizedOfficeHoursUrl, '_blank');
+
+    const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), 'PENDING,CLOSED');
+
+    if (!allFollowups?.error) {
+      const result = allFollowups?.data ?? [];
+
+      if (result.length > 0) {
+        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, { detail: { notification: result[0] } }));
+        document.dispatchEvent(
+          new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }),
+        );
+      }
+    }
+  };
+
+  const handleDialogContinue = () => {
+    setShowDialog(null);
+    openOfficeHoursLink();
+  };
+
+  function getDesc() {
+    if (!hasOfficeHours) {
+      return (
+        <div>
+          <span>
+            OH are short 15min 1:1 calls to connect about topics of interest or help others with your expertise. Share
+            your calendar. You will also access other members OH.
+          </span>
+          <button type="button" className={s.linkBtn} onClick={() => setShowDialog({ view: 'info' })}>
+            Learn more <LinkIcon />
+          </button>
+        </div>
+      );
+    }
+
+    if (hasOfficeHours) {
+      return (
+        <>
+          <div>
+            <span>{member.name} is available for a short 1:1 call to connect or help — no introduction needed.</span>
+            <button type="button" className={s.linkBtn} onClick={() => setShowDialog({ view: 'info' })}>
+              Learn more <LinkIcon />
+            </button>
+          </div>
+
+          {(!!member?.ohInterest?.length || isEditable) && (
+            <div className={s.keywordsWrapper}>
+              <span className={s.keywordsLabel}>Topics of Interest:</span>
+              <span className={s.badgesWrapper}>
+                {member?.ohInterest?.length ? (
+                  member?.ohInterest?.map((item) => (
+                    <div key={item} className={s.badge}>
+                      {item}
+                    </div>
+                  ))
+                ) : (
+                  <button
+                    type="button"
+                    className={s.addKeywordsBadge}
+                    onClick={() => {
+                      onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+                      onEdit();
+                    }}
+                  >
+                    <AddIcon /> Add keywords
+                  </button>
+                )}
+              </span>
+            </div>
+          )}
+          {(!!member?.ohHelpWith?.length || isEditable) && (
+            <div className={s.keywordsWrapper}>
+              <span className={s.keywordsLabel}>I Can Help With:</span>
+              <span className={s.badgesWrapper}>
+                {member?.ohHelpWith?.length ? (
+                  member?.ohHelpWith?.map((item) => (
+                    <div key={item} className={s.badge}>
+                      {item}
+                    </div>
+                  ))
+                ) : (
+                  <button
+                    type="button"
+                    className={s.addKeywordsBadge}
+                    onClick={() => {
+                      onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+                      onEdit();
+                    }}
+                  >
+                    <AddIcon /> Add keywords
+                  </button>
+                )}
+              </span>
+            </div>
+          )}
+        </>
+      );
+    }
+  }
+
+  function getAlertMessage() {
+    if (!hasOfficeHours) {
+      return (
+        <DataIncomplete className={s.warningMessageText}>
+          Make it easy for others in the network to connect with you — add your Office Hours link to enable quick 1:1
+          conversations.
+        </DataIncomplete>
+      );
+    }
+
+    return (
+      <DataIncomplete className={s.alertMessageText}>
+        Add your expertise and interests to your office hours for more meaningful conversations.
+      </DataIncomplete>
+    );
+  }
+
+  return (
+    <>
+      {showAlert && (
+        <DataIncomplete icon={<AlertIcon />} className={s.incompleteStripAlert}>
+          The Office Hours link you added isn’t working. Update it to allow others to schedule 1:1 calls with you.
+        </DataIncomplete>
+      )}
+      {showWarning && getAlertMessage()}
+      <div
+        className={clsx(s.root, {
+          [s.missingData]: (showIncomplete || showAlert) && isLoggedIn,
+        })}
+      >
+        <div className={s.header}>
+          <h2 className={s.title}>
+            Office Hours{' '}
+            {isOwner && hasOfficeHours && <span className={s.titleHintLabel}>&#8226; Available to connect</span>}
+          </h2>
+          {isLoggedIn && isEditable && !showAlertUpdateButton && !showAddButton && (
+            <EditButton
+              onClick={() => {
+                onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+                onEdit();
+              }}
+            />
+          )}
+        </div>
+
+        <div className={s.content}>
+          <div className={s.officeHoursSection}>
+            <div className={s.col}>
+              <div className={s.description}>{getDesc()}</div>
+            </div>
+            {hasOfficeHours && !showAlert && !isOwner && (
+              <div className={s.primaryButtonWrapper}>
+                <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
+                  Schedule Meeting
+                </button>
+                {showPastBookings && <span className={s.subtext}>{member.scheduleMeetingCount} past bookings</span>}
+              </div>
+            )}
+            {showAddButton && (
+              <button
+                className={s.primaryButton}
+                onClick={() => {
+                  onAddOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+                  onEdit();
+                }}
+              >
+                Add Office Hours <PlusIcon />
+              </button>
+            )}
+            {showAlertUpdateButton && (
+              <button
+                className={clsx(s.primaryButton, s.alertButton)}
+                onClick={() => {
+                  onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+                  onEdit();
+                }}
+              >
+                Update Office Hours
+              </button>
+            )}
+          </div>
+        </div>
+
+        <OfficeHoursDialog
+          isOpen={showDialog !== null}
+          view={showDialog?.view}
+          onClose={() => setShowDialog(null)}
+          onContinue={handleDialogContinue}
+          userInfo={userInfo}
+        />
+        <InvalidOfficeHoursLinkDialog
+          isOpen={showInvalidLinkDialog}
+          onClose={() => setShowInvalidLinkDialog(false)}
+          recipientName={member.name}
+          recipientEmail={member.email}
+          recipientTelegram={member.telegramHandle}
+        />
+      </div>
+    </>
+  );
+};
+
+const PlusIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g>
+      <path
+        d="M18.0312 10C18.0312 10.2238 17.9424 10.4384 17.7841 10.5966C17.6259 10.7549 17.4113 10.8438 17.1875 10.8438H11.8438V16.1875C11.8438 16.4113 11.7549 16.6259 11.5966 16.7841C11.4384 16.9424 11.2238 17.0312 11 17.0312C10.7762 17.0312 10.5616 16.9424 10.4034 16.7841C10.2451 16.6259 10.1562 16.4113 10.1562 16.1875V10.8438H4.8125C4.58872 10.8438 4.37411 10.7549 4.21588 10.5966C4.05764 10.4384 3.96875 10.2238 3.96875 10C3.96875 9.77622 4.05764 9.56161 4.21588 9.40338C4.37411 9.24514 4.58872 9.15625 4.8125 9.15625H10.1562V3.8125C10.1562 3.58872 10.2451 3.37411 10.4034 3.21588C10.5616 3.05764 10.7762 2.96875 11 2.96875C11.2238 2.96875 11.4384 3.05764 11.5966 3.21588C11.7549 3.37411 11.8438 3.58872 11.8438 3.8125V9.15625H17.1875C17.4113 9.15625 17.6259 9.24514 17.7841 9.40338C17.9424 9.56161 18.0312 9.77622 18.0312 10Z"
+        fill="white"
+      />
+    </g>
+  </svg>
+);
+
+const AlertIcon = () => (
+  <svg width="15" height="13" viewBox="0 0 15 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M7.5 0.625C7.88281 0.625 8.23828 0.84375 8.42969 1.17188L14.3359 11.2344C14.5273 11.5898 14.5273 12 14.3359 12.3281C14.1445 12.6836 13.7891 12.875 13.4062 12.875H1.59375C1.18359 12.875 0.828125 12.6836 0.636719 12.3281C0.445312 12 0.445312 11.5898 0.636719 11.2344L6.54297 1.17188C6.73438 0.84375 7.08984 0.625 7.5 0.625ZM7.5 4.125C7.11719 4.125 6.84375 4.42578 6.84375 4.78125V7.84375C6.84375 8.22656 7.11719 8.5 7.5 8.5C7.85547 8.5 8.15625 8.22656 8.15625 7.84375V4.78125C8.15625 4.42578 7.85547 4.125 7.5 4.125ZM8.375 10.25C8.375 9.78516 7.96484 9.375 7.5 9.375C7.00781 9.375 6.625 9.78516 6.625 10.25C6.625 10.7422 7.00781 11.125 7.5 11.125C7.96484 11.125 8.375 10.7422 8.375 10.25Z"
+      fill="#B45309"
+    />
+  </svg>
+);
+
+const AddIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M8 1.25C6.66498 1.25 5.35994 1.64588 4.2499 2.38758C3.13987 3.12928 2.27471 4.18349 1.76382 5.41689C1.25292 6.65029 1.11925 8.00749 1.3797 9.31686C1.64015 10.6262 2.28303 11.829 3.22703 12.773C4.17104 13.717 5.37377 14.3598 6.68314 14.6203C7.99251 14.8808 9.34971 14.7471 10.5831 14.2362C11.8165 13.7253 12.8707 12.8601 13.6124 11.7501C14.3541 10.6401 14.75 9.33502 14.75 8C14.748 6.2104 14.0362 4.49466 12.7708 3.22922C11.5053 1.96378 9.7896 1.25199 8 1.25ZM8 13.25C6.96165 13.25 5.94662 12.9421 5.08326 12.3652C4.2199 11.7883 3.547 10.9684 3.14964 10.0091C2.75228 9.04978 2.64831 7.99418 2.85088 6.97578C3.05345 5.95738 3.55347 5.02191 4.28769 4.28769C5.02192 3.55346 5.95738 3.05345 6.97578 2.85088C7.99418 2.6483 9.04978 2.75227 10.0091 3.14963C10.9684 3.54699 11.7883 4.2199 12.3652 5.08326C12.9421 5.94661 13.25 6.96165 13.25 8C13.2485 9.39193 12.6949 10.7264 11.7107 11.7107C10.7264 12.6949 9.39193 13.2485 8 13.25ZM11.25 8C11.25 8.19891 11.171 8.38968 11.0303 8.53033C10.8897 8.67098 10.6989 8.75 10.5 8.75H8.75V10.5C8.75 10.6989 8.67098 10.8897 8.53033 11.0303C8.38968 11.171 8.19892 11.25 8 11.25C7.80109 11.25 7.61032 11.171 7.46967 11.0303C7.32902 10.8897 7.25 10.6989 7.25 10.5V8.75H5.5C5.30109 8.75 5.11032 8.67098 4.96967 8.53033C4.82902 8.38968 4.75 8.19891 4.75 8C4.75 7.80109 4.82902 7.61032 4.96967 7.46967C5.11032 7.32902 5.30109 7.25 5.5 7.25H7.25V5.5C7.25 5.30109 7.32902 5.11032 7.46967 4.96967C7.61032 4.82902 7.80109 4.75 8 4.75C8.19892 4.75 8.38968 4.82902 8.53033 4.96967C8.67098 5.11032 8.75 5.30109 8.75 5.5V7.25H10.5C10.6989 7.25 10.8897 7.32902 11.0303 7.46967C11.171 7.61032 11.25 7.80109 11.25 8Z"
+      fill="#D97706"
+    />
+  </svg>
+);
+
+const LinkIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M11.1565 3.5V9.1875C11.1565 9.36155 11.0873 9.52847 10.9643 9.65154C10.8412 9.77461 10.6743 9.84375 10.5002 9.84375C10.3262 9.84375 10.1593 9.77461 10.0362 9.65154C9.91311 9.52847 9.84397 9.36155 9.84397 9.1875V5.08594L3.96452 10.9643C3.84123 11.0876 3.67402 11.1568 3.49967 11.1568C3.32532 11.1568 3.15811 11.0876 3.03483 10.9643C2.91155 10.841 2.84229 10.6738 2.84229 10.4995C2.84229 10.3251 2.91155 10.1579 3.03483 10.0346L8.91428 4.15625H4.81272C4.63867 4.15625 4.47175 4.08711 4.34868 3.96404C4.22561 3.84097 4.15647 3.67405 4.15647 3.5C4.15647 3.32595 4.22561 3.15903 4.34868 3.03596C4.47175 2.91289 4.63867 2.84375 4.81272 2.84375H10.5002C10.6743 2.84375 10.8412 2.91289 10.9643 3.03596C11.0873 3.15903 11.1565 3.32595 11.1565 3.5Z"
+      fill="#455468"
+    />
+  </svg>
+);

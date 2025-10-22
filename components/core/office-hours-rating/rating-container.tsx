@@ -33,12 +33,24 @@ const RatingContainer = (props: IRatingContainer) => {
 
   const onCloseClickHandler = async (isUpdateRequired: boolean) => {
     try {
-      if (isUpdateRequired && currentFollowup?.interactionUid && currentFollowup?.uid && currentFollowup?.status != 'CLOSED') {
-        const response = await patchFollowup(authToken, userInfo?.uid ?? '', currentFollowup?.interactionUid ?? '', currentFollowup?.uid ?? '');
+      if (
+        isUpdateRequired &&
+        currentFollowup?.interactionUid &&
+        currentFollowup?.uid &&
+        currentFollowup?.status != 'CLOSED'
+      ) {
+        const response = await patchFollowup(
+          authToken,
+          userInfo?.uid ?? '',
+          currentFollowup?.interactionUid ?? '',
+          currentFollowup?.uid ?? '',
+        );
       }
       setCurrentFollowup(null);
       setCurrentStep('');
-      document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
+      document.dispatchEvent(
+        new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }),
+      );
       if (ratingContainerRef?.current) {
         ratingContainerRef.current.close();
       }
@@ -48,15 +60,17 @@ const RatingContainer = (props: IRatingContainer) => {
   };
 
   const getRecentBooking = async () => {
-    const isShow = getParsedValue(cookies.get("showNotificationPopup") ?? '');
-    if(isShow) {
+    const isShow = getParsedValue(cookies.get('showNotificationPopup') ?? '');
+    if (isShow) {
       const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING');
       const result = response?.data ?? [];
       cookies.remove('showNotificationPopup');
       if (result?.length) {
-      const filtereNotifications = result?.filter((notification: IFollowUp) => notification?.type === "MEETING_SCHEDULED");
+        const filtereNotifications = result?.filter(
+          (notification: IFollowUp) => notification?.type === 'MEETING_SCHEDULED',
+        );
         let currentFollowup = result[0];
-      if(filtereNotifications.length > 0) {
+        if (filtereNotifications.length > 0) {
           currentFollowup = filtereNotifications[0];
         }
         setCurrentStep(currentFollowup.type);
@@ -70,7 +84,9 @@ const RatingContainer = (props: IRatingContainer) => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
+      document.dispatchEvent(
+        new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }),
+      );
       getRecentBooking();
     }
     // try {
@@ -110,6 +126,8 @@ const RatingContainer = (props: IRatingContainer) => {
     }
 
     document.addEventListener(EVENTS.TRIGGER_RATING_POPUP, (e: any) => {
+      console.log(e);
+      console.log(e.detail);
       updateNotification(e?.detail?.notification);
     });
 
@@ -125,12 +143,31 @@ const RatingContainer = (props: IRatingContainer) => {
       <Modal modalRef={ratingContainerRef} onClose={() => onCloseClickHandler(true)}>
         <RegsiterFormLoader />
         {currentStep === OFFICE_HOURS_STEPS.MEETING_INITIATED.name && (
-          <UserConfirmation authToken={authToken} onClose={onCloseClickHandler} userInfo={userInfo} setCurrentStep={setCurrentStep} currentFollowup={currentFollowup} />
+          <UserConfirmation
+            authToken={authToken}
+            onClose={onCloseClickHandler}
+            userInfo={userInfo}
+            setCurrentStep={setCurrentStep}
+            currentFollowup={currentFollowup}
+          />
         )}
-        {currentStep === OFFICE_HOURS_STEPS.NOT_HAPPENED.name && <NotHappened authToken={authToken} userInfo={userInfo} onClose={onCloseClickHandler} currentFollowup={currentFollowup} />}
-        {(currentStep === OFFICE_HOURS_STEPS.MEETING_SCHEDULED.name || currentStep === OFFICE_HOURS_STEPS.MEETING_RESCHEDULED.name) && (
-          <Happened authToken={authToken} userInfo={userInfo} currentFollowup={currentFollowup} onClose={onCloseClickHandler} />
+        {/* {currentStep === OFFICE_HOURS_STEPS.NOT_HAPPENED.name && (
+          <NotHappened
+            authToken={authToken}
+            userInfo={userInfo}
+            onClose={onCloseClickHandler}
+            currentFollowup={currentFollowup}
+          />
         )}
+        {(currentStep === OFFICE_HOURS_STEPS.MEETING_SCHEDULED.name ||
+          currentStep === OFFICE_HOURS_STEPS.MEETING_RESCHEDULED.name) && (
+          <Happened
+            authToken={authToken}
+            userInfo={userInfo}
+            currentFollowup={currentFollowup}
+            onClose={onCloseClickHandler}
+          />
+        )} */}
       </Modal>
     </>
   );

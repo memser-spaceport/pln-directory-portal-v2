@@ -7,7 +7,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { usePrevNextButtons } from '@/hooks/use-prev-next-buttons';
 import { EmblaOptionsType } from 'embla-carousel';
 import { Fragment, SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
-import  Popover from './asks-popover';
+import Popover from './asks-popover';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { Tag } from '@/components/ui/tag';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
@@ -25,33 +25,47 @@ const TeamGridView = (props: ITeamGridView) => {
   const analytics = useTeamAnalytics();
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
-  const carousel: any[] = team?.asks?.map((ask: any) => {
-    return {
-      id: ask?.uid,
-      name: ask?.title,
-      description: ask?.description,
-      tags: ask?.tags,
-    };
-  }) ?? [];
+  // todo - remove ASKS completely as we move to forum
+  // const carousel: any[] =
+  //   team?.asks
+  //     ?.filter((ask) => ask.status !== 'CLOSED')
+  //     .map((ask: any) => {
+  //       return {
+  //         id: ask?.uid,
+  //         name: ask?.title,
+  //         description: ask?.description,
+  //         tags: ask?.tags,
+  //       };
+  //     }) ?? [];
+  const carousel: any[] = [];
 
   const { emblaRef, activeIndex, scrollPrev, scrollNext, setActiveIndex, emblaApi } = useCarousel({
-    slidesToScroll: "auto",
+    slidesToScroll: 'auto',
     loop: true,
-    align: "start",
-    containScroll: "trimSnaps",
+    align: 'start',
+    containScroll: 'trimSnaps',
     isPaused: isTooltipOpen,
   });
 
   const handleClick = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
-  }
+  };
 
   return (
     <>
       <div className="team-grid">
         <div className="team-grid__profile-container">
-          <Image alt='profile' height={72} width={72} layout='intrinsic' loading='eager' priority={true} className="team-grid__profile-container__profile" src={profile} />
+          <Image
+            alt="profile"
+            height={72}
+            width={72}
+            layout="intrinsic"
+            loading="eager"
+            priority={true}
+            className="team-grid__profile-container__profile"
+            src={profile}
+          />
         </div>
         <div className="team-grid__details-container">
           <div className="team-grid__details-container__team-detail">
@@ -68,16 +82,13 @@ const TeamGridView = (props: ITeamGridView) => {
             </div>
           </div>
         </div>
-        {
-          carousel.length > 0 &&
+        {carousel.length > 0 && (
           <div className="embla" onClick={handleClick}>
             <div className="embla__viewport" ref={emblaRef}>
               <div className="embla__container">
                 {carousel.map((item, index) => (
                   <div key={item.id} className="embla__slide__cntr">
-                    <div
-                      className={`embla__slide ${index === activeIndex ? "active" : ""}`}
-                    >
+                    <div className={`embla__slide ${index === activeIndex ? 'active' : ''}`}>
                       <Image
                         alt="left"
                         height={15}
@@ -85,7 +96,7 @@ const TeamGridView = (props: ITeamGridView) => {
                         src="/icons/tabler_message-filled.svg"
                         className="embla__img"
                       />
-                      <div className='hide-tooltip'>
+                      <div className="hide-tooltip">
                         <Popover
                           name={item.name}
                           description={item.description}
@@ -93,69 +104,81 @@ const TeamGridView = (props: ITeamGridView) => {
                           onOpenChange={(isOpen) => setIsTooltipOpen(isOpen)}
                         />
                       </div>
-                      <div className='hide-name'>
-                        {item.name}
-                      </div>
+                      <div className="hide-name">{item.name}</div>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Dash Buttons */}
-              {carousel.length > 1 &&
+              {carousel.length > 1 && (
                 <div className="embla__dashes">
                   {carousel.map((_, index) => (
                     <button
                       key={index}
-                      className={`embla__dash ${index === activeIndex ? "highlighted" : ""
-                        }`}
+                      className={`embla__dash ${index === activeIndex ? 'highlighted' : ''}`}
                       onClick={() => {
                         setActiveIndex(index);
-                        emblaApi?.scrollTo(index); 
+                        emblaApi?.scrollTo(index);
                         analytics.onCarouselButtonClicked();
                       }}
-                    >
-                    </button>
+                    ></button>
                   ))}
                 </div>
-              }
+              )}
             </div>
 
-            {carousel.length > 1 &&
+            {carousel.length > 1 && (
               <>
-                <button className="embla__button embla__button--prev" onClick={(e: any) => { e.stopPropagation(); e.preventDefault(); scrollPrev(); analytics.onCarouselPrevButtonClicked();}}>
-                  <Image alt='left' height={12} width={12} src='/icons/arrow-left-blue.svg' />
+                <button
+                  className="embla__button embla__button--prev"
+                  onClick={(e: any) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    scrollPrev();
+                    analytics.onCarouselPrevButtonClicked();
+                  }}
+                >
+                  <Image alt="left" height={12} width={12} src="/icons/arrow-left-blue.svg" />
                 </button>
-                <button className="embla__button embla__button--next" onClick={(e: any) => { e.stopPropagation(); e.preventDefault(); scrollNext(); analytics.onCarouselNextButtonClicked();}}>
-                  <Image alt='right' height={12} width={12} src='/icons/arrow-right-blue.svg' />
+                <button
+                  className="embla__button embla__button--next"
+                  onClick={(e: any) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    scrollNext();
+                    analytics.onCarouselNextButtonClicked();
+                  }}
+                >
+                  <Image alt="right" height={12} width={12} src="/icons/arrow-right-blue.svg" />
                 </button>
               </>
-            }
+            )}
           </div>
-        }
+        )}
       </div>
       <style jsx>
         {`
-           .embla {
+          .embla {
             position: relative;
             overflow: hidden;
             width: 100%;
             display: flex;
             height: 24px;
-            border-top: 0.4px solid #93C5FD;
+            border-top: 0.4px solid #93c5fd;
             background: linear-gradient(71.47deg, rgba(66, 125, 255, 0.15) 8.43%, rgba(68, 213, 187, 0.15) 87.45%);
             border-radius: 0px 0px 12px 12px;
           }
-            
+
           .tooltip {
             height: 206px;
             width: 304px;
             background-color: #fff;
             overflow: unset;
-            padding: 12px ;
+            padding: 12px;
             gap: 10px;
             border-radius: 12px;
-            border: 1px ;
+            border: 1px;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
             padding: 8px;
           }
@@ -177,9 +200,9 @@ const TeamGridView = (props: ITeamGridView) => {
           }
 
           .embla__dash {
-            background: #93C5FD;
+            background: #93c5fd;
             border: none;
-            color: #93C5FD;
+            color: #93c5fd;
             font-size: 20px;
             cursor: pointer;
             padding: 0;
@@ -190,8 +213,8 @@ const TeamGridView = (props: ITeamGridView) => {
           }
 
           .embla__dash.highlighted {
-            color: #156FF7 !important;
-            background: #156FF7;
+            color: #156ff7 !important;
+            background: #156ff7;
             font-weight: bold;
           }
 
@@ -200,15 +223,15 @@ const TeamGridView = (props: ITeamGridView) => {
             width: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: ${carousel.length < 2 ? "space-around" : "unset"};
+            justify-content: ${carousel.length < 2 ? 'space-around' : 'unset'};
           }
-                  
+
           .embla__container {
             display: flex;
             flex-direction: row;
             width: 100%;
           }
-                  
+
           .embla__slide__cntr {
             min-width: 100%;
             position: relative;
@@ -253,31 +276,32 @@ const TeamGridView = (props: ITeamGridView) => {
             position: relative;
             overflow: hidden;
           }
-                  
+
           .embla__button {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
             z-index: 1;
           }
-                  
+
           .embla__button--prev {
             left: 10px;
             background: transparent;
           }
-                  
+
           .embla__button--next {
             right: 10px;
             background: transparent;
           }
-
 
           .team-grid {
             width: 167.5px;
             height: 168px;
             background-color: #fff;
             border-radius: 12px;
-            box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+            box-shadow:
+              0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+              0px 0px 1px 0px rgba(15, 23, 42, 0.12);
           }
 
           .team-grid:hover {
@@ -302,11 +326,11 @@ const TeamGridView = (props: ITeamGridView) => {
           }
 
           .team-grid__details-container {
-            padding: ${carousel.length > 0 ? " 0 12px 7px 12px" : "0 12px 12px 12px"};
+            padding: ${carousel.length > 0 ? ' 0 12px 7px 12px' : '0 12px 12px 12px'};
             margin-top: 16px;
             display: flex;
             flex-direction: column;
-            gap: ${carousel.length > 0 ? "4px" : "6px"};
+            gap: ${carousel.length > 0 ? '4px' : '6px'};
             text-align: center;
           }
 
@@ -332,9 +356,9 @@ const TeamGridView = (props: ITeamGridView) => {
             font-size: 12px;
             font-weight: 400;
             line-height: 18px;
-            height:  ${carousel.length > 0 ? "36px" : "54px"};
+            height: ${carousel.length > 0 ? '36px' : '54px'};
             display: -webkit-box;
-            -webkit-line-clamp: ${carousel.length > 0 ? "2" : "3"};
+            -webkit-line-clamp: ${carousel.length > 0 ? '2' : '3'};
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -353,7 +377,8 @@ const TeamGridView = (props: ITeamGridView) => {
             display: none;
           }
 
-          .embla__button--prev, .embla__button--next {
+          .embla__button--prev,
+          .embla__button--next {
             display: none;
           }
 
@@ -366,13 +391,14 @@ const TeamGridView = (props: ITeamGridView) => {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 110px; 
+            max-width: 110px;
             position: relative;
             bottom: 3px;
           }
 
           @media (min-width: 1024px) {
-            .embla__button--prev, .embla__button--next {
+            .embla__button--prev,
+            .embla__button--next {
               display: flex;
             }
 
@@ -388,7 +414,7 @@ const TeamGridView = (props: ITeamGridView) => {
               top: 2px;
             }
 
-           .embla {
+            .embla {
               height: 36px;
             }
 
@@ -418,22 +444,22 @@ const TeamGridView = (props: ITeamGridView) => {
             }
 
             .team-grid__details-container {
-              padding: ${carousel.length > 0 ? "0 20px 0px 20px" : "0 20px 20px 20px"};
+              padding: ${carousel.length > 0 ? '0 20px 0px 20px' : '0 20px 20px 20px'};
               margin-top: 38px;
-              margin-bottom: ${carousel.length > 0 ? "7px" : ""};
-              gap: ${carousel.length > 0 ? "0px" : "10px"};
+              margin-bottom: ${carousel.length > 0 ? '7px' : ''};
+              gap: ${carousel.length > 0 ? '0px' : '10px'};
             }
 
             .team-grid__details-container__team-detail {
-              gap: ${carousel.length > 0 ? "3px" : "10px"};
-              border-bottom: ${carousel.length > 0 ? "unset" : "1px solid #e2e8f0"};
+              gap: ${carousel.length > 0 ? '3px' : '10px'};
+              border-bottom: ${carousel.length > 0 ? 'unset' : '1px solid #e2e8f0'};
             }
 
             .team-grid__details-container__team-detail__team-desc {
               font-size: 14px;
               height: 60px;
               line-height: 20px;
-              margin-bottom: ${carousel.length > 0 ? "5px" : "10px"};
+              margin-bottom: ${carousel.length > 0 ? '5px' : '10px'};
             }
 
             .team-grid__tags__mob {

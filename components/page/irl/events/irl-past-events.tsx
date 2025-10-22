@@ -14,6 +14,9 @@ import clip from 'text-clipper';
 import { DOMPurify } from 'isomorphic-dompurify';
 import SearchGatherings from './search-gatherings';
 import Image from 'next/image';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { IUserInfo } from '@/types/shared.types';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface EventDetailsProps {
   eventDetails: {
@@ -24,9 +27,19 @@ interface EventDetailsProps {
   isUpcoming: boolean;
   searchParams: any;
   handleDataNotFound: () => void;
+  userInfo?: IUserInfo;
+  onDeleteEvent: (gathering: any) => void;
 }
 
-const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, handleDataNotFound }: EventDetailsProps) => {
+const IrlPastEvents = ({
+  eventDetails,
+  isLoggedIn,
+  isUpcoming,
+  searchParams,
+  handleDataNotFound,
+  userInfo,
+  onDeleteEvent,
+}: EventDetailsProps) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { updateQueryParams } = useUpdateQueryParams();
@@ -44,6 +57,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
   const [searchText, setSearchText] = useState('');
 
   const eventsToShow = events;
+
+  const accessLevel = getAccessLevel(userInfo as IUserInfo, isLoggedIn);
 
   // Determine the selected event based on searchParams
   let selectedEvent = eventsToShow[0];
@@ -146,7 +161,9 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
   const sanitizedDesc = selectedEvent?.description || '';
   const clippedDesc = clip(sanitizedDesc, 80, { html: true, maxLines: 2 });
 
-  const isEventAvailable = searchParams?.type ? searchParams?.type === 'past' && eventDetails?.pastEvents?.some((event) => event.slugURL === searchParams?.event) : true;
+  const isEventAvailable = searchParams?.type
+    ? searchParams?.type === 'past' && eventDetails?.pastEvents?.some((event) => event.slugURL === searchParams?.event)
+    : true;
 
   useEffect(() => {
     const gathering = eventsToShow.find((event: any) => event.slugURL === searchParams?.event);
@@ -170,7 +187,13 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
               <div className="root__irl__table__header">
                 <div className="root__irl__table-row__header">
                   <div className="root__irl__table-col__headerName">
-                    <SearchGatherings searchParams={searchParams} type="past" eventsToShow={eventsToShow} setExpanded={setExpanded} setItemsToShow={null} />
+                    <SearchGatherings
+                      searchParams={searchParams}
+                      type="past"
+                      eventsToShow={eventsToShow}
+                      setExpanded={setExpanded}
+                      setItemsToShow={null}
+                    />
                   </div>
                   <div className="root__irl__table-col__headerDesc">Description</div>
                 </div>
@@ -186,8 +209,14 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                     eventsToShow={eventsToShow}
                     isLastContent={index === eventsToShow.length - 1}
                     handleElementClick={() => handleElementClick(gathering)}
-                    isEventSelected={searchParams?.event ? searchParams?.event === gathering.slugURL : eventsToShow[0]?.slugURL === gathering.slugURL}
+                    isEventSelected={
+                      searchParams?.event
+                        ? searchParams?.event === gathering.slugURL
+                        : eventsToShow[0]?.slugURL === gathering.slugURL
+                    }
                     eventType={!isUpcoming}
+                    userInfo={userInfo}
+                    onDeleteEvent={onDeleteEvent}
                   />
                 </div>
               ))}
@@ -230,21 +259,27 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                     </div>
                     <div className="root__irl__mobileView__top__cnt__title">
                       {selectedEvent?.name}
-                      <span className="root__irl__mobileView__top__cnt__eventDate--date">{getFormattedDateString(selectedEvent?.startDate, selectedEvent?.endDate)}</span>
+                      <span className="root__irl__mobileView__top__cnt__eventDate--date">
+                        {getFormattedDateString(selectedEvent?.startDate, selectedEvent?.endDate)}
+                      </span>
                       <span className="root__irl__mobileView__top__cnt__eventDate--count">
                         <span className="root__irl__imgsec__images" style={{ paddingLeft: '5px' }}>
-                          {selectedEvent.eventGuests?.slice(0, 3).map((member: any, index: number) => (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <Image
-                              key={index}
-                              style={{ position: 'relative', zIndex: '0', marginLeft: `-6px`, top: '3px' }}
-                              className="root__irl__imgsec__images__img__mob"
-                              src={member?.member?.image?.url || '/icons/default_profile.svg'}
-                              alt="attendee"
-                              height={18}
-                              width={18}
-                            />
-                          ))}
+                          {selectedEvent.eventGuests?.slice(0, 3).map((member: any, index: number) => {
+                            const defaultAvatar = getDefaultAvatar(member?.member?.name);
+
+                            return (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <Image
+                                key={index}
+                                style={{ position: 'relative', zIndex: '0', marginLeft: `-6px`, top: '3px' }}
+                                className="root__irl__imgsec__images__img__mob"
+                                src={member?.member?.image?.url || defaultAvatar}
+                                alt="attendee"
+                                height={18}
+                                width={18}
+                              />
+                            );
+                          })}
                         </span>
                         <span style={{ paddingLeft: '5px' }}>{selectedEvent?.eventGuests?.length}</span>
                       </span>
@@ -284,13 +319,32 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
               <div className="custom-dropdown__menu">
                 <div>
                   <div style={{ paddingBottom: '10px' }}>
-                    <img className="root__irl__search__img" height={16} width={16} src="/icons/search-gray.svg" alt="search" />
-                    <input type="text" placeholder="Search Gatherings" className="custom-dropdown__search" value={searchText} onChange={handleOnChange} />
+                    <img
+                      className="root__irl__search__img"
+                      height={16}
+                      width={16}
+                      src="/icons/search-gray.svg"
+                      alt="search"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Search Gatherings"
+                      className="custom-dropdown__search"
+                      value={searchText}
+                      onChange={handleOnChange}
+                    />
                     <button onClick={handleSearchTextClear}>
-                      <img className="root__irl__search__cls" height={16} width={16} src="/icons/close.svg" alt="close" />
+                      <img
+                        className="root__irl__search__cls"
+                        height={16}
+                        width={16}
+                        src="/icons/close.svg"
+                        alt="close"
+                      />
                     </button>
                   </div>
-                  {eventsToShow?.filter((gathering) => gathering.name.toLowerCase().includes(searchText.toLowerCase())).length === 0 ? (
+                  {eventsToShow?.filter((gathering) => gathering.name.toLowerCase().includes(searchText.toLowerCase()))
+                    .length === 0 ? (
                     <div className="custom-dropdown__item">No data found</div>
                   ) : (
                     <>
@@ -302,32 +356,57 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                             className={`custom-dropdown__item ${gathering.slugURL === searchParams?.event ? 'custom-dropdown__item--active' : ''}`}
                             onClick={() => handleEventSelection(gathering)}
                           >
-                            <div style={{ display: 'flex' }}>
+                            <div style={{ display: 'flex', width: '100%' }}>
                               <div className="root__irl__mobileView__top__cnt">
                                 <div>
-                                  <img src={gathering?.logo?.url} style={{ height: '15px', width: '15px' }} alt="logo" />
+                                  <img
+                                    src={gathering?.logo?.url}
+                                    style={{ height: '15px', width: '15px' }}
+                                    alt="logo"
+                                  />
                                 </div>
                                 <div className="root__irl__mobileView__top__cnt__title">
-                                  {gathering?.name}
-                                  <span className="root__irl__mobileView__top__cnt__eventDate--date">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</span>
-                                  {gathering?.eventGuests?.length > 0 && (
-                                    <span className="root__irl__mobileView__top__cnt__eventDate--count">
-                                      <span className="root__irl__imgsec__images" style={{ paddingLeft: '5px' }}>
-                                        {gathering.eventGuests?.slice(0, 3).map((member: any, index: number) => (
-                                          // eslint-disable-next-line @next/next/no-img-element
-                                          <Image
-                                            key={index}
-                                            style={{ position: 'relative', zIndex: '0', marginLeft: `-6px`, top: '3px' }}
-                                            className="root__irl__imgsec__images__img__mob"
-                                            src={member?.member?.image?.url || '/icons/default_profile.svg'}
-                                            alt="attendee"
-                                            height={15}
-                                            width={15}
-                                          />
-                                        ))}
-                                      </span>
-                                      <span style={{ paddingLeft: '5px' }}>{gathering?.eventGuests?.length}</span>
+                                  <div className="root__irl__mobileView__top__cnt__title__items">
+                                    {gathering?.name}
+                                    <span className="root__irl__mobileView__top__cnt__eventDate--date">
+                                      {getFormattedDateString(gathering?.startDate, gathering?.endDate)}
                                     </span>
+                                    {gathering?.eventGuests?.length > 0 && (
+                                      <span className="root__irl__mobileView__top__cnt__eventDate--count">
+                                        <span className="root__irl__imgsec__images" style={{ paddingLeft: '5px' }}>
+                                          {gathering.eventGuests?.slice(0, 3).map((member: any, index: number) => (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <Image
+                                              key={index}
+                                              style={{
+                                                position: 'relative',
+                                                zIndex: '0',
+                                                marginLeft: `-6px`,
+                                                top: '3px',
+                                              }}
+                                              className="root__irl__imgsec__images__img__mob"
+                                              src={member?.member?.image?.url || '/icons/default_profile.svg'}
+                                              alt="attendee"
+                                              height={15}
+                                              width={15}
+                                            />
+                                          ))}
+                                        </span>
+                                        <span style={{ paddingLeft: '5px' }}>{gathering?.eventGuests?.length}</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                  {accessLevel === 'advanced' && (
+                                    <button
+                                      className="root__irl__mobileView__dropdown__delete__btn"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDeleteEvent(gathering);
+                                      }}
+                                      title="Delete Event"
+                                    >
+                                      <img src="/icons/delete.svg" alt="delete" height={16} width={16} />
+                                    </button>
                                   )}
                                 </div>
                               </div>
@@ -356,7 +435,10 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
               </div>
               {selectedEvent?.resources.length > 0 && (
                 <div className="root__irl__mobileView__body__cnt">
-                  <div className="root__irl__mobileView__body__cnt__contentRes" onClick={(event) => handleClick(selectedEvent?.resources, event)}>
+                  <div
+                    className="root__irl__mobileView__body__cnt__contentRes"
+                    onClick={(event) => handleClick(selectedEvent?.resources, event)}
+                  >
                     <div>
                       <img src="/images/irl/elements.svg" alt="view" />
                     </div>
@@ -626,11 +708,54 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           align-items: center;
         }
 
+        .custom-dropdown__item .root__irl__mobileView__top__cnt {
+          width: 100%;
+        }
+
         .root__irl__mobileView__top__cnt__title {
           font-size: 13px;
           font-weight: 600;
           line-height: 20px;
           text-align: left;
+        }
+
+        .custom-dropdown__item .root__irl__mobileView__top__cnt__title {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+          flex: 1;
+        }
+
+        .root__irl__mobileView__top__cnt__title__items {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .root__irl__mobileView__dropdown__item__header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        }
+
+        .root__irl__mobileView__dropdown__delete__btn {
+          background-color: transparent;
+          border: none;
+          cursor: pointer;
+          padding: 2px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background-color 0.2s ease;
+          margin-left: 8px;
+          flex-shrink: 0;
+        }
+
+        .root__irl__mobileView__dropdown__delete__btn:hover {
+          background-color: #fee2e2;
         }
 
         .root__irl__mobileView__top__cnt__eventDate {
@@ -662,6 +787,18 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           padding: 0px 0px 0px 8px;
           margin: 0px 0px 0px 8px;
           border-left: 1px solid #cbd5e1;
+        }
+
+        .custom-dropdown__item .root__irl__mobileView__top__cnt__eventDate--date {
+          margin: unset;
+          padding: unset;
+          border-left: unset;
+        }
+
+        .custom-dropdown__item .root__irl__mobileView__top__cnt__eventDate--count {
+          margin: unset;
+          padding: unset;
+          border-left: unset;
         }
 
         .root__irl__mobileView__body__title {
@@ -808,7 +945,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
             display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: left;
+            align-items: flex-start;
             border-radius: 12px;
           }
 

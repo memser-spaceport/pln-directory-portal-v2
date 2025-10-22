@@ -5,9 +5,11 @@ on:
   push:
     branches:
       - feat/unit-testing
+      - develop
   pull_request:
     branches:
       - feat/unit-testing
+      - develop
 
 jobs:
   test:
@@ -18,22 +20,22 @@ jobs:
         node-version: [18.x]
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Set up Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
 
-    - name: Install dependencies
-      run: npm install
+      - name: Install dependencies
+        run: npm install
 
-    - name: Run tests with coverage
-      run: npm test -- --coverage
+      - name: Run tests with coverage
+        run: npm test -- --coverage
 
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-report
-        path: coverage
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage

@@ -38,7 +38,15 @@ interface Chat {
 
 // This component represents the Husky AI interface, allowing users to interact with the AI in chat or blog modes.
 
-function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose, searchText, huskySource }: HuskyAiProps) {
+function HuskyAi({
+  mode = 'chat',
+  initialChats = [],
+  isLoggedIn,
+  blogId,
+  onClose,
+  searchText,
+  huskySource,
+}: HuskyAiProps) {
   const [chats, setChats] = useState<Chat[]>(initialChats); // list of chats
   const [isLoading, setLoadingStatus] = useState<boolean>(false); // feedback loading
   const [isAnswerLoading, setAnswerLoadingStatus] = useState<boolean>(false);
@@ -47,8 +55,17 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   const [selectedSource, setSelectedSource] = useState<string>('none'); //currently selected source
   const chatCnRef = useRef<HTMLDivElement>(null);
   // track analytics
-  const { trackUserPrompt, trackAnswerCopy, trackFollowupQuestionClick, trackQuestionEdit, trackRegenerate, trackCopyUrl, trackFeedbackClick, trackAiResponse, trackDisoverHuskyChatStopBtnClicked } =
-    useHuskyAnalytics();
+  const {
+    trackUserPrompt,
+    trackAnswerCopy,
+    trackFollowupQuestionClick,
+    trackQuestionEdit,
+    trackRegenerate,
+    trackCopyUrl,
+    trackFeedbackClick,
+    trackAiResponse,
+    trackDisoverHuskyChatStopBtnClicked,
+  } = useHuskyAnalytics();
   const initialRunRef = useRef(false); // ref for prevent api call second time
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest' | 'close'>(); // daily limit
   const [question, setQuestion] = useState('');
@@ -95,7 +112,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     error,
     stop,
   } = experimental_useObject({
-    api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/contextual`,
+    api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/contextual-tools`,
     headers: {
       'Content-Type': 'application/json',
     },
@@ -109,7 +126,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             name: z.string(),
             directoryLink: z.string(),
             type: z.string(),
-          })
+          }),
         )
         .optional(),
     }),
@@ -404,7 +421,13 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
           <div className="huskyai__footer">
             <div className="huskyai__footer__strip">
               {limitReached && limitReached !== 'close' && (
-                <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} onDialogClose={onClose} type={limitReached} from="husky-chat" />
+                <HuskyLimitStrip
+                  mode="chat"
+                  count={DAILY_CHAT_LIMIT - getChatCount()}
+                  onDialogClose={onClose}
+                  type={limitReached}
+                  from="husky-chat"
+                />
               )}
             </div>
             {chats.length !== 0 && (
@@ -445,7 +468,13 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             {isAnswerLoading && <HuskyAnswerLoader data-testid="blog-answer-loader" />}
             {limitReached && limitReached !== 'close' && (
               <div className="huskyai__cn__strip">
-                <HuskyLimitStrip mode="blog" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} onDialogClose={onClose} from="discover-blog" />
+                <HuskyLimitStrip
+                  mode="blog"
+                  count={DAILY_CHAT_LIMIT - getChatCount()}
+                  type={limitReached}
+                  onDialogClose={onClose}
+                  from="discover-blog"
+                />
               </div>
             )}
           </div>
@@ -454,7 +483,13 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
       {feedbackQandA.answer && feedbackQandA.question && (
         <div className="feedback-popup" data-testid="feedback-popup">
-          <HuskyFeedback forceUserLogin={forceUserLogin} setLoadingStatus={setLoadingStatus} question={feedbackQandA.question} answer={feedbackQandA.answer} onClose={onCloseFeedback} />
+          <HuskyFeedback
+            forceUserLogin={forceUserLogin}
+            setLoadingStatus={setLoadingStatus}
+            question={feedbackQandA.question}
+            answer={feedbackQandA.answer}
+            onClose={onCloseFeedback}
+          />
         </div>
       )}
 
@@ -462,11 +497,11 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
       {/* stop streaming */}
       {isLoadingObject && !isAnswerLoading && mode === 'blog' && (
-        <button onClick={onStopStreaming} title="Stop" className='huskyai_pauseBtn'>
+        <button onClick={onStopStreaming} title="Stop" className="huskyai_pauseBtn">
           <div className="huskyai__pauseStreaming">
             <div className="huskyai__pauseStreaming__loadingCn" />
           </div>
-          <span className='huskyai_pauseBtn__txt'>Stop</span>
+          <span className="huskyai_pauseBtn__txt">Stop</span>
         </button>
       )}
 
@@ -575,15 +610,15 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0px 2.4px 4.8px 0px #5661F640;
+            box-shadow: 0px 2.4px 4.8px 0px #5661f640;
             background-color: #dbeafe;
             border: 1.5px solid #93c5fd;
           }
 
           .huskyai_pauseBtn {
-            outline: 1px solid #156FF7;
+            outline: 1px solid #156ff7;
             box-shadow: 0px 0px 8px 0px #00000040;
-            background: #FFFFFF;
+            background: #ffffff;
             border-radius: 4px;
             cursor: pointer;
             position: absolute;
@@ -602,7 +637,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             font-size: 10px;
             font-weight: 500;
             line-height: 14px;
-            color: #156FF7;
+            color: #156ff7;
           }
 
           @media (min-width: 1024px) {
@@ -638,7 +673,6 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
               line-height: 22px;
               margin-top: 1.5px;
             }
-
           }
         `}
       </style>

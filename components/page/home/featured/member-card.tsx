@@ -7,10 +7,12 @@ import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.uti
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { EVENTS } from '@/utils/constants';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 const MemberCard = (props: any) => {
   const member = props?.member;
-  const profileUrl = member?.profile || '/icons/default_profile.svg';
+  const defaultAvatar = useDefaultAvatar(member.name);
+  const profileUrl = member?.profile || defaultAvatar;
 
   const mainTeam = member?.mainTeam;
   const otherTeams = member?.teams
@@ -34,14 +36,14 @@ const MemberCard = (props: any) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const userInfo = Cookies.get('userInfo') as IUserInfo;
+    const userInfo = Cookies.get('userInfo') as unknown as IUserInfo;
     analytics.onMemberBioSeeMoreClicked({ ...getAnalyticsMemberInfo(member), bio }, getAnalyticsUserInfo(userInfo));
     document.dispatchEvent(
       new CustomEvent(EVENTS.OPEN_MEMBER_BIO_POPUP, {
         detail: {
           member,
         },
-      })
+      }),
     );
   };
 
@@ -50,25 +52,54 @@ const MemberCard = (props: any) => {
       <div className="member">
         <div className="member__profile__cn">
           <div className="member__profile__cn__outer-section">
-            <div data-testid='profile-outline' className={`${isBorder ? 'gradiant-border-rounded' : ''} member__profile__cn__outer-section__inner-circle`}>
-              <img className="member__profile__cn__outer-section__inner-circle__profile" src={profileUrl} alt='member image' />
+            <div
+              data-testid="profile-outline"
+              className={`${isBorder ? 'gradiant-border-rounded' : ''} member__profile__cn__outer-section__inner-circle`}
+            >
+              <img
+                className="member__profile__cn__outer-section__inner-circle__profile"
+                src={profileUrl}
+                alt="member image"
+              />
               {isTeamLead && (
                 <Tooltip
                   asChild
-                  trigger={<img loading="lazy" className="member__profile__cn__outer-section__inner-circle__lead" height={20} width={20} src="/icons/badge/team-lead.svg" alt='team lead' />}
+                  trigger={
+                    <img
+                      loading="lazy"
+                      className="member__profile__cn__outer-section__inner-circle__lead"
+                      height={20}
+                      width={20}
+                      src="/icons/badge/team-lead.svg"
+                      alt="team lead"
+                    />
+                  }
                   content={'Team Lead'}
                 />
               )}
               {isOpenToWork && (
                 <Tooltip
                   asChild
-                  trigger={<img loading="lazy" alt='open to collaborate' className="member__profile__cn__outer-section__inner-circle__opento-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
+                  trigger={
+                    <img
+                      loading="lazy"
+                      alt="open to collaborate"
+                      className="member__profile__cn__outer-section__inner-circle__opento-work"
+                      height={20}
+                      width={20}
+                      src="/icons/badge/open-to-work.svg"
+                    />
+                  }
                   content={'Open To Collaborate'}
                 />
               )}
             </div>
           </div>
-          {isNew && <div data-testid='new badge' className="projectCard__header__badge">New</div>}
+          {isNew && (
+            <div data-testid="new badge" className="projectCard__header__badge">
+              New
+            </div>
+          )}
         </div>
         <div className="member__details">
           <div className="member__details__primary">
@@ -78,14 +109,27 @@ const MemberCard = (props: any) => {
             <div className="member__details__primary__team-name-container">
               <div className="member__details__primary__team-name__wrpr">
                 {/* <p className="member__details__primary__team-name-container__team-name">{member?.teams?.length > 0 ? mainTeam?.name : '-'}</p> */}
-                {mainTeam?.name ? <Tooltip asChild trigger={<p className="member__details__primary__team-name-container__team-name">{mainTeam?.name}</p>} content={mainTeam?.name} /> : '-'}
+                {mainTeam?.name ? (
+                  <Tooltip
+                    asChild
+                    trigger={
+                      <p className="member__details__primary__team-name-container__team-name">{mainTeam?.name}</p>
+                    }
+                    content={mainTeam?.name}
+                  />
+                ) : (
+                  '-'
+                )}
                 {member?.teams?.length > 2 && (
                   <Tooltip
                     side="bottom"
                     align="center"
                     asChild
                     trigger={
-                      <button onClick={(e) => e.preventDefault()} className="member__details__primary__team-name-container__tems-count">
+                      <button
+                        onClick={(e) => e.preventDefault()}
+                        className="member__details__primary__team-name-container__tems-count"
+                      >
                         +{(member?.teams?.length - 1).toString()}
                       </button>
                     }
@@ -390,7 +434,8 @@ const MemberCard = (props: any) => {
           .gradiant-border-rounded {
             border: double 1px transparent;
             border-radius: 50%;
-            background-image: linear-gradient(rgb(248 250 252), rgb(248 250 252)), linear-gradient(to right, #427dff, #44d5bb);
+            background-image:
+              linear-gradient(rgb(248 250 252), rgb(248 250 252)), linear-gradient(to right, #427dff, #44d5bb);
             background-origin: border-box;
             background-clip: content-box, border-box;
           }

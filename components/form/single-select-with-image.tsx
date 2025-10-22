@@ -84,7 +84,6 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({
     };
   }, []);
 
-
   return (
     <>
       <div className="select">
@@ -94,10 +93,18 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({
           </label>
         )}
         <div ref={containerRef} className="select_cn">
-          {(iconKey && selectedOption)  && (selectedOption[iconKey] || defaultIcon) && <img className="selected__icon" height={24} width={24} src={selectedOption[iconKey] || defaultIcon} alt={selectedOption[displayKey]} />}
+          {iconKey && selectedOption && (selectedOption[iconKey] || defaultIcon) && (
+            <img
+              className="selected__icon"
+              height={24}
+              width={24}
+              src={selectedOption[iconKey] || defaultIcon}
+              alt={selectedOption[displayKey]}
+            />
+          )}
           <input
             id={id}
-            className={`select__search ${selectedOption && (iconKey && selectedOption[iconKey])  && (selectedOption[iconKey] || defaultIcon) ? 'select__icon' : ''} `}
+            className={`select__search ${selectedOption && iconKey && selectedOption[iconKey] && (selectedOption[iconKey] || defaultIcon) ? 'select__icon' : ''} `}
             ref={searchRef}
             value={defaultSelectedValue}
             onClick={onSearchFocus}
@@ -105,12 +112,24 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({
             onKeyDown={onKeyDown}
             readOnly
           />
-          {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl}  alt="arrow down" />}
+          {arrowImgUrl && (
+            <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} alt="arrow down" />
+          )}
           {showOptions && (
             <ul className="select__options">
               {filteredOptions?.map((option) => (
-                <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
-                  {(iconKey && selectedOption) && (selectedOption[iconKey] || defaultIcon) && <img className="select__options__item__img" src={option[iconKey] || defaultIcon} alt={option[displayKey]} />}
+                <li
+                  key={option[uniqueKey]}
+                  onClick={() => handleOptionClick(option)}
+                  className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}
+                >
+                  {iconKey && selectedOption && (selectedOption[iconKey] || defaultIcon) && (
+                    <img
+                      className="select__options__item__img"
+                      src={option[iconKey] || defaultIcon}
+                      alt={option[displayKey]}
+                    />
+                  )}
                   <span>{option[displayKey]}</span>
                 </li>
               ))}

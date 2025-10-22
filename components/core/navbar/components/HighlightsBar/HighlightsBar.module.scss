@@ -1,0 +1,28 @@
+@use 'styles/media';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 10px;
+  flex: 1 0 0;
+  background: #156ff7;
+
+  &.secondary {
+    background: linear-gradient(0deg, rgba(238, 189, 108, 0.16) 0%, rgba(238, 189, 108, 0.16) 100%), #fff;
+    box-shadow:
+      0 1px 4px 0 rgba(238, 189, 108, 0.25) inset,
+      0 -1px 4px 0 rgba(238, 189, 108, 0.25) inset;
+  }
+
+  .wrapper {
+    padding: 8px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    @include media.tablet-landscape {
+      padding: 8px 48px;
+    }
+  }
+}

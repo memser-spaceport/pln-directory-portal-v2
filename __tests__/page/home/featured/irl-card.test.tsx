@@ -15,6 +15,7 @@ const mockProps = {
   startDate: '2024-12-02T07:00:00.000Z',
   endDate: '2024-12-10T07:00:00.000Z',
   bannerUrl: '/path/to/banner.jpg',
+  timezone: 'America/Los_Angeles',
 };
 
 describe('IrlCard', () => {
@@ -50,14 +51,14 @@ describe('IrlCard', () => {
   });
 
   it('renders "Joined" for past events', () => {
-    const pastEventProps = { ...mockProps, type:'', endDate: '2023-12-10T07:00:00.000Z' };
+    const pastEventProps = { ...mockProps, type: '', endDate: '2023-12-10T07:00:00.000Z' };
     render(<IrlCard {...pastEventProps} />);
 
     expect(screen.getByText('10 Joined')).toBeInTheDocument();
   });
 
   it('renders "Going" for non invite-only events', () => {
-    const pastEventProps = { ...mockProps, type:'' };
+    const pastEventProps = { ...mockProps, type: '', endDate: '2026-12-10T07:00:00.000Z' };
     render(<IrlCard {...pastEventProps} />);
 
     expect(screen.getByText('10 Going')).toBeInTheDocument();
@@ -74,7 +75,7 @@ describe('IrlCard', () => {
   it('does not render the description if clippedDesc is empty', () => {
     const emptyDescProps = { ...mockProps, description: '' };
     render(<IrlCard {...emptyDescProps} />);
-  
+
     // Expect no description to be rendered
     expect(screen.queryByText('This is a sample event description.')).toBeNull();
   });
@@ -82,7 +83,7 @@ describe('IrlCard', () => {
   it('does not render the attendees badge if attendees is 0', () => {
     const noAttendeesProps = { ...mockProps, attendees: 0, type: '' };
     render(<IrlCard {...noAttendeesProps} />);
-  
+
     // Expect no attendees badge to be rendered
     expect(screen.queryByText(/Going/)).toBeNull();
     expect(screen.queryByText(/Joined/)).toBeNull();

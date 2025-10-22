@@ -1,8 +1,11 @@
-import { Fragment } from "react";
-import { Tooltip } from "@/components/core/tooltip/tooltip";
-import { ITag, ITeam } from "@/types/teams.types";
-import { IMember } from "@/types/members.types";
-import { Tag } from "@/components/ui/tag";
+import { Fragment } from 'react';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { ITag, ITeam } from '@/types/teams.types';
+import { IMember } from '@/types/members.types';
+import { Tag } from '@/components/ui/tag';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { OhBadge } from '@/components/core/OhBadge/OhBadge';
+import { isMemberAvailableToConnect } from '@/utils/member.utils';
 
 interface ITeamMemberCard {
   team: ITeam | undefined;
@@ -13,68 +16,119 @@ interface ITeamMemberCard {
 const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
   const member = props?.member ?? {};
   const team = props?.team;
-  const logo = member?.profile ?? "/icons/default_profile.svg";
-  const memberName = member?.name ?? "";
-  const role = team?.role ?? "";
+  const memberName = member?.name ?? '';
+  const role = team?.role ?? '';
   const skills = member?.skills ?? [];
   const isTeamLead = member?.teamLead;
-  const url = props?.url; 
-  const callback = props?.onCardClick
-  
+  const url = props?.url;
+  const callback = props?.onCardClick;
+  const defaultAvatarImage = useDefaultAvatar(member?.name);
+  const logo = member?.profile || defaultAvatarImage;
+  const isAvailableToConnect = isMemberAvailableToConnect(member);
+
   return (
     <>
-    <a target="_blank" href={url} onClick={() => callback(member)} >
-      <div className="team-members-card">
-        <div className="team-members-card__profile-details">
-          <div className="team-members-card__profile-details__profile">
-            <div className="team-members-card__profile-details__profile-container">
-            {isTeamLead && <Tooltip side="top" asChild trigger={<div><img alt="lead" loading="lazy" className="team-members-card__profile-details__profile-container__lead" height={16} width={16} src="/icons/badge/team-lead.svg"/></div>} content={"Team Lead"}/>}
-            <img loading="lazy" className="team-members-card__profile-details__profile__image" alt="profile" src={logo} width={40} height={40} />
-            </div>
-            <div className="team-members-card__profile-details__profile__name-role">
-              <Tooltip asChild trigger={<h2 className="team-members-card__profile-details__profile__name-role__name">{memberName}</h2>} content={memberName} />
-              <Tooltip asChild trigger={<p className="team-members-card__profile-details__profile__name-role__role">{role}</p>} content={role} />
+      <a target="_blank" href={url} onClick={() => callback(member)}>
+        <div className="team-members-card">
+          <div className="team-members-card__profile-details">
+            <div className="team-members-card__profile-details__profile">
+              <div className="team-members-card__profile-details__profile-container">
+                {isTeamLead && (
+                  <Tooltip
+                    side="top"
+                    asChild
+                    trigger={
+                      <div>
+                        <img
+                          alt="lead"
+                          loading="lazy"
+                          className="team-members-card__profile-details__profile-container__lead"
+                          height={16}
+                          width={16}
+                          src="/icons/badge/team-lead.svg"
+                        />
+                      </div>
+                    }
+                    content={'Team Lead'}
+                  />
+                )}
+                <img
+                  loading="lazy"
+                  className="team-members-card__profile-details__profile__image"
+                  alt="profile"
+                  src={logo}
+                  width={40}
+                  height={40}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null; // prevent infinite loop
+                    e.currentTarget.src = defaultAvatarImage;
+                  }}
+                />
+              </div>
+              <div className="team-members-card__profile-details__profile__name-role">
+                <Tooltip
+                  asChild
+                  trigger={
+                    <h2 className="team-members-card__profile-details__profile__name-role__name">{memberName}</h2>
+                  }
+                  content={memberName}
+                />
+                <Tooltip
+                  asChild
+                  trigger={<p className="team-members-card__profile-details__profile__name-role__role">{role}</p>}
+                  content={role}
+                />
+                {isAvailableToConnect && <OhBadge variant="secondary" />}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Sills */}
-        <div className="team-members-card__profile-deails__skills">
-          {skills?.map((skill: ITag, index: number) => (
-            <Fragment key={`${skill} + ${index}`}>
-              {index < 3 && (
-                <div className="team-members-card__profile-deails__skills__skill">
-                  <Tooltip asChild trigger={ <div><Tag value={skill?.title} /> </div>} content={skill?.title} />
-                </div>
-              )}
-            </Fragment>
-          ))}
-          {skills?.length > 3 && (
-            <Tooltip 
-            asChild
-            trigger = {
-              <div>
-              <Tag value={"+" + (skills?.length - 3).toString()}/>
-              </div>
-            }
-            content={
-              <div>
-                {skills?.slice(3, skills?.length)?.map((skill, index) => (
-                  <div key={`${skill} + ${skill} + ${index}`}>
-                    {skill?.title}{index !== skills?.slice(3, skills?.length - 1)?.length ? "," : ""}
+          {/* Sills */}
+          <div className="team-members-card__profile-deails__skills">
+            {skills?.map((skill: ITag, index: number) => (
+              <Fragment key={`${skill} + ${index}`}>
+                {index < 3 && (
+                  <div className="team-members-card__profile-deails__skills__skill">
+                    <Tooltip
+                      asChild
+                      trigger={
+                        <div>
+                          <Tag value={skill?.title} />{' '}
+                        </div>
+                      }
+                      content={skill?.title}
+                    />
                   </div>
-                ))}
-              </div>
-            }
-            />
-          )}
+                )}
+              </Fragment>
+            ))}
+            {skills?.length > 3 && (
+              <Tooltip
+                asChild
+                trigger={
+                  <div>
+                    <Tag value={'+' + (skills?.length - 3).toString()} />
+                  </div>
+                }
+                content={
+                  <div>
+                    {skills?.slice(3, skills?.length)?.map((skill, index) => (
+                      <div key={`${skill} + ${skill} + ${index}`}>
+                        {skill?.title}
+                        {index !== skills?.slice(3, skills?.length - 1)?.length ? ',' : ''}
+                      </div>
+                    ))}
+                  </div>
+                }
+              />
+            )}
+          </div>
+          <div className="team-members-card__arrow">
+            <button type="button" className="team-members-card__arrow__btn">
+              <img loading="lazy" alt="goto" src="/icons/right-arrow-gray.svg" height={16} width={16} />
+            </button>
+          </div>
         </div>
-        <div className="team-members-card__arrow">
-          <button type="button" className="team-members-card__arrow__btn">
-            <img loading="lazy" alt="goto" src="/icons/right-arrow-gray.svg" height={16} width={16} />
-          </button>
-        </div>
-      </div>
       </a>
 
       <style jsx>
@@ -142,27 +196,32 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
           }
 
           .team-members-card__profile-details__profile__name-role__name {
-            color: #0f172a;
-            font-size: 14px;
-            font-weight: 600;
-            line-height: 20px;
-            overflow: hidden;
             max-width: 100px;
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;
+
+            color: #455468;
+            font-size: 16px;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 18px;
+            letter-spacing: -0.3px;
           }
 
           .team-members-card__profile-details__profile__name-role__role {
-            color: #475569;
-            font-size: 12px;
-            font-weight: 400;
-            line-height: 14px;
             overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
             text-overflow: ellipsis;
+
+            color: #455468;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 14px;
+            letter-spacing: -0.2px;
           }
 
           @media (min-width: 1024px) {

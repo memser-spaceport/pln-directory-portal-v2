@@ -1,0 +1,122 @@
+@use 'styles/media';
+
+.fundraisingDetail {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 40px;
+  background-color: var(--background-neutral-subtle, #F1F5F9);
+  min-height: calc(100vh - 80px);
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.fundraisingDetail__breadcrumb {
+  height: 48px;
+  border-bottom: 1px solid var(--border-neutral-subtle, #E2E8F0);
+  width: 100%;
+  position: sticky;
+  top: var(--app-header-height);
+  z-index: 1;
+  background-color: var(--background-base-white, #fff);
+}
+
+.fundraisingDetail__container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fundraisingDetail__container__header {
+  min-height: 100px;
+}
+
+.fundraisingDetail__container__overview {
+  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  background: var(--background-base-white, #fff);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.fundraisingDetail__container__pitchDeck {
+  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  background: var(--background-base-white, #fff);
+  border-radius: 8px;
+}
+
+.fundraisingDetail__container__videoPitch {
+  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  background: var(--background-base-white, #fff);
+  border-radius: 8px;
+}
+
+.fundraisingDetail__container__funding {
+  min-height: 20px;
+}
+
+.fundraisingDetail__container__focusarea {
+  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  background: var(--background-base-white, #fff);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.fundraisingDetail__container__contact {
+  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  background: var(--background-base-white, #fff);
+  border-radius: 8px;
+}
+
+.fundraisingDetail__container__investors {
+  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  background: var(--background-base-white, #fff);
+  border-radius: 8px;
+  padding: 24px;
+  min-height: 100px;
+}
+
+.fundraisingDetail__container__metrics {
+  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  background: var(--background-base-white, #fff);
+  border-radius: 8px;
+  padding: 24px;
+  min-height: 100px;
+}
+
+.fundraisingDetail__container__timeline {
+  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  background: var(--background-base-white, #fff);
+  border-radius: 8px;
+  padding: 24px;
+  min-height: 100px;
+}
+
+@include media.desktop {
+  .fundraisingDetail {
+    align-items: center;
+  }
+
+  .fundraisingDetail__container {
+    width: 900px;
+  }
+
+  .fundraisingDetail__breadcrumb {
+    display: flex;
+    align-items: center;
+    z-index: 3;
+  }
+}
+
+@include media.mobile-only {
+  .fundraisingDetail__container__overview,
+  .fundraisingDetail__container__pitchDeck,
+  .fundraisingDetail__container__videoPitch,
+  .fundraisingDetail__container__focusarea,
+  .fundraisingDetail__container__contact,
+  .fundraisingDetail__container__investors,
+  .fundraisingDetail__container__metrics,
+  .fundraisingDetail__container__timeline {
+    border-radius: 0;
+    margin: 0 -16px;
+  }
+}

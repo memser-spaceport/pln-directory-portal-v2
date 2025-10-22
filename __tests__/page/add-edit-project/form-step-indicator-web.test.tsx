@@ -4,11 +4,6 @@ import useStepsIndicator from '@/hooks/useStepsIndicator'; // Mock this hook to 
 import { PROJECT_FORM_STEPS } from '@/utils/constants';
 import '@testing-library/jest-dom';
 
-// Mock the PROJECT_FORM_STEPS constant
-jest.mock('@/utils/constants', () => ({
-  PROJECT_FORM_STEPS: ['General', 'Contributors', 'KPIs', 'More Details'],
-}));
-
 // Mock the useStepsIndicator hook
 jest.mock('@/hooks/useStepsIndicator', () => ({
   __esModule: true,
@@ -23,19 +18,18 @@ describe('FormStepIndicatorWeb', () => {
     });
 
     // Render the component
-    render(<FormStepIndicatorWeb steps={undefined} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />);
+    render(
+      <FormStepIndicatorWeb steps={PROJECT_FORM_STEPS} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />,
+    );
 
     // Test that the title contains the current step
-    expect(screen.getByText(/Add Project General/i)).toBeInTheDocument();
-
-    // Test that the description is displayed correctly
-    expect(screen.getByText(/Share your project details/i)).toBeInTheDocument();
+    expect(screen.getByText(PROJECT_FORM_STEPS[0])).toBeInTheDocument();
 
     // Test that the steps are rendered
-    expect(screen.getByText('General')).toBeInTheDocument();
-    expect(screen.getByText('Contributors')).toBeInTheDocument();
-    expect(screen.getByText('KPIs')).toBeInTheDocument();
-    expect(screen.getByText('More Details')).toBeInTheDocument();
+    expect(screen.getByText(PROJECT_FORM_STEPS[0])).toBeInTheDocument();
+    expect(screen.getByText(PROJECT_FORM_STEPS[1])).toBeInTheDocument();
+    expect(screen.getByText(PROJECT_FORM_STEPS[2])).toBeInTheDocument();
+    expect(screen.getByText(PROJECT_FORM_STEPS[3])).toBeInTheDocument();
 
     // Test that the correct icon and step number are rendered
     expect(screen.getByText('1')).toBeInTheDocument(); // For General step
@@ -48,10 +42,12 @@ describe('FormStepIndicatorWeb', () => {
     });
 
     // Render the component again
-    render(<FormStepIndicatorWeb steps={undefined} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />);
+    render(
+      <FormStepIndicatorWeb steps={PROJECT_FORM_STEPS} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />,
+    );
 
     // Test that the title updates with the current step
-    expect(screen.getByText(/Add Project Contributors/i)).toBeInTheDocument();
+    expect(screen.getByTestId('formstep-title').textContent?.includes(PROJECT_FORM_STEPS[1])).toBeTruthy();
 
     // Test the correct step number and active step icon
     expect(screen.getByText('2')).toBeInTheDocument(); // For Contributors step
@@ -62,7 +58,9 @@ describe('FormStepIndicatorWeb', () => {
       currentStep: 'KPIs',
     });
 
-    render(<FormStepIndicatorWeb steps={undefined} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />);
+    render(
+      <FormStepIndicatorWeb steps={PROJECT_FORM_STEPS} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />,
+    );
 
     // Ensure all steps are rendered
     PROJECT_FORM_STEPS.forEach((step, index) => {

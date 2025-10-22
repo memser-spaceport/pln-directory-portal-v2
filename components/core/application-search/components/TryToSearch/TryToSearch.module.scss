@@ -1,0 +1,43 @@
+@use 'styles/mixins';
+@use 'styles/media';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 16px;
+
+  .label {
+    color: #156ff7;
+    font-feature-settings:
+      'liga' off,
+      'clig' off;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 16px;
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    gap: 4px;
+  }
+
+  .suggestionButton {
+    text-align: left;
+    padding: 8px;
+    border-radius: 8px;
+    background: #f8fafc;
+
+    color: #475569;
+    font-feature-settings:
+      'liga' off,
+      'clig' off;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px; /* 142.857% */
+  }
+}

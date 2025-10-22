@@ -14,6 +14,8 @@ import Technologies from './technologies';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 
+import s from './TeamDetails/TeamDetails.module.scss';
+
 interface ITeamDetails {
   team: ITeam;
   userInfo: IUserInfo | undefined;
@@ -28,7 +30,8 @@ const TeamDetails = (props: ITeamDetails) => {
   const userInfo = props?.userInfo;
   const teamId = params?.id;
   const about = team?.longDescription ?? '';
-  const technologies = team?.technologies?.map((item) => ({ name: item?.title, url: getTechnologyImage(item?.title) })) ?? [];
+  const technologies =
+    team?.technologies?.map((item) => ({ name: item?.title, url: getTechnologyImage(item?.title) })) ?? [];
   const hasTeamEditAccess = getHasTeamEditAccess();
 
   const [isTechnologyPopup, setIsTechnologyPopup] = useState(false);
@@ -71,12 +74,26 @@ const TeamDetails = (props: ITeamDetails) => {
         {/* Name and about section */}
         <div className="team-details__profile">
           <div className="team-details__profile__logo-tags-container">
-            <img loading="lazy" alt="team-profile" className="team-details__profile__logo-tags-container__team-logo" src={logo} />
+            <img
+              loading="lazy"
+              alt="team-profile"
+              className="team-details__profile__logo-tags-container__team-logo"
+              src={logo}
+            />
             <div className="team-details__profile__logo-tags-container__name-tagcontainer">
-              <Tooltip asChild trigger={<h1 className="team-details__profile__logo-tags-container__name-tagcontainer__team-name">{teamName}</h1>} content={teamName} />
+              <Tooltip
+                asChild
+                trigger={
+                  <h1 className="team-details__profile__logo-tags-container__name-tagcontainer__team-name">
+                    {teamName}
+                  </h1>
+                }
+                content={teamName}
+              />
               <div className="team-details__profile__logo-tags-container__name-tagcontainer__tags">
                 {/* Tags Mobile */}
                 <div className="team-details__profile__logo-tags-container__name-tagcontainer__tags__mobile">
+                  {team?.isFund && <div className={s.investorTag}>Investment Fund</div>}
                   {tags?.map((tag: ITag, index: number) => (
                     <Fragment key={`${tag} + ${index}`}>
                       {index < 3 && (
@@ -101,7 +118,11 @@ const TeamDetails = (props: ITeamDetails) => {
                       asChild
                       trigger={
                         <div>
-                          <Tag callback={onTagCountClickHandler} variant="primary" value={'+' + (tags?.length - 3).toString()} />{' '}
+                          <Tag
+                            callback={onTagCountClickHandler}
+                            variant="primary"
+                            value={'+' + (tags?.length - 3).toString()}
+                          />{' '}
                         </div>
                       }
                       content={
@@ -118,6 +139,7 @@ const TeamDetails = (props: ITeamDetails) => {
                 </div>
                 {/* Tags web */}
                 <div className="team-details__profile__logo-tags-container__name-tagcontainer__tags__web">
+                  {team?.isFund && <div className={s.investorTag}>Investment Fund</div>}
                   {tags?.map((tag: ITag, index: number) => (
                     <Fragment key={`${tag} + ${index}`}>
                       {index < 5 && (
@@ -140,7 +162,11 @@ const TeamDetails = (props: ITeamDetails) => {
                       asChild
                       trigger={
                         <div>
-                          <Tag callback={onTagCountClickHandler} variant="primary" value={'+' + (tags?.length - 5).toString()} />
+                          <Tag
+                            callback={onTagCountClickHandler}
+                            variant="primary"
+                            value={'+' + (tags?.length - 5).toString()}
+                          />
                         </div>
                       }
                       content={
@@ -172,7 +198,7 @@ const TeamDetails = (props: ITeamDetails) => {
         </div>
 
         {/* About */}
-        <About team={team} userInfo={userInfo} about={about} hasTeamEditAccess={hasTeamEditAccess}/>
+        <About team={team} userInfo={userInfo} about={about} hasTeamEditAccess={hasTeamEditAccess} />
 
         {/* Technology */}
         <Technologies technologies={technologies} team={team} userInfo={userInfo} />
@@ -225,7 +251,6 @@ const TeamDetails = (props: ITeamDetails) => {
                 overflow: hidden;
                 display: -webkit-box;
                 width: fit-content;
-                max-width: 200px;
                 -webkit-line-clamp: 1;
                 -webkit-box-orient: vertical;
                 text-overflow: ellipsis;
@@ -279,8 +304,8 @@ const TeamDetails = (props: ITeamDetails) => {
 
               .team-details__profile__logo-tags-container__name-tagcontainer__team-name {
                 font-size: 24px;
-                max-width: 300px;
                 line-height: 32px;
+                width: 100%
               }
 
               .team-details__profile__logo-tags-container__name-tagcontainer__tags__mobile {

@@ -1,15 +1,9 @@
-"use client"
+'use client';
 
-import { useIrlAnalytics } from "@/analytics/irl.analytics";
-import { PAGE_ROUTES } from "@/utils/constants";
+import { PAGE_ROUTES } from '@/utils/constants';
 
 const IrlHeader = () => {
-   const analytics = useIrlAnalytics();
-   
-    const onViewPlEventsClick = () => {
-      analytics.trackViewPLEventsClick();
-    };
-  
+
   return (
     <>
       <div className="irlheaderCnt">
@@ -21,7 +15,7 @@ const IrlHeader = () => {
             <div className="irlHeader">IRL Gatherings</div>
           </div>
         </div>
-        <div className="irlsubHeader">Choose a destination to view upcoming gatherings, attendees, resources & let the network know about your presence</div>
+        <div className="irlheaderCnt__text">Choose a destination to view upcoming gathering, attendees, resources & let the network know about your presence</div> 
       </div>
       <style jsx>
         {`
@@ -30,16 +24,72 @@ const IrlHeader = () => {
             font-weight: 600;
             line-height: 28px;
             padding-bottom: 5px;
+            color: #374151;
+          }
+
+          .irlheaderCnt__text {
+            font-size: 14px;
+            font-weight: 400;
+            color: #0f172a;
+            margin-top: 8px;
           }
 
           .irlsubHeader {
             font-size: 14px;
             font-weight: 400;
+            display: flex;
+            align-items: center;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            gap: 10px;
+            padding: 15px 12px;
+            position: relative;
+            overflow: visible;
+            margin-top: 14px;
+            background-image: url('/icons/irl.svg');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
           }
+
+          .irlsubHeader::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 8px;
+            padding: 1px;
+            background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+            -webkit-mask:
+              linear-gradient(#fff 0 0) content-box,
+              linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+          }
+
+          .irlsubHeader__text {
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 20px;
+            color: #000000;
+            flex: 1;
+            position: relative;
+            // z-index: 1;
+          }
+
 
           .irlHeaderCntr {
             display: flex;
+            align-items: center;
             justify-content: space-between;
+            gap: 10px;
+          }
+
+          .irlHeaderCntrLeft__left {
+            display: flex;
             align-items: center;
             gap: 10px;
           }
@@ -47,48 +97,24 @@ const IrlHeader = () => {
           .irlHeaderCntrLeft {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 10px;
           }
 
           .irlheaderCnt {
-            padding: 24px 15px 15px 15px;
+            padding: 18px 16px 10px 16px;
           }
 
-          @media (min-width: 360px) {
+
+          @media (min-width: 760px) {
             .irlsubHeader {
-              line-height: 22px;
-            }
-          }
-
-          @media (min-width: 10240px) {
-            .irlsubHeader {
-              line-height: 28px;
-            }
-          }
-
-          @media (max-width: 480px) {
-            .irlHeaderCntr {
-              flex-wrap: wrap;
-              gap: 8px;
-              margin-bottom: 8px;
+              padding: 12px 12px 12px 20px;
+              gap: 10px;
             }
 
-            .irlHeaderCntrRightText__desktop {
-              display: none;
-            }
 
-            .irlHeaderCntrRightText__mobile {
-              display: block;
-            }
-          }
-
-          @media (min-width: 481px) {
-            .irlHeaderCntrRightText__mobile {
-              display: none;
-            }
-
-            .irlHeaderCntrRightText__desktop {
-              display: block;
+            .irlheaderCnt {
+              padding: 24px 5px 15px 5px;
             }
           }
         `}

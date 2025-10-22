@@ -10,7 +10,13 @@ function RoundedTabs({ activeItem, items, onTabSelected }: RoundedTabsProps) {
     <>
       <div className="hc__tab">
         {items.map((item) => (
-          <p key={item} className={`hc__tab__item ${item === activeItem ? 'hc__tab__item--active' : ''}`} onClick={() => onTabSelected(item)}>{item}</p>
+          <p
+            key={item}
+            className={`hc__tab__item ${item === activeItem ? 'hc__tab__item--active' : ''}`}
+            onClick={() => onTabSelected(item)}
+          >
+            {item}
+          </p>
         ))}
       </div>
       <style jsx>

@@ -1,0 +1,50 @@
+@use 'styles/media';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.totalFoundLabel {
+  display: none;
+  color: var(--Neutral-Slate-500, #64748b);
+  text-align: right;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px; /* 133.333% */
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+.divider {
+  display: flex;
+  padding: 4px 16px 10px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
+  align-self: stretch;
+
+  background: #fff;
+  box-shadow: 0 1px 4px 0 #e2e8f0;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  background: var(--Neutral-White);
+  padding-top: 8px;
+  z-index: 1;
+
+  @include media.tablet-landscape {
+    top: 40px;
+  }
+}

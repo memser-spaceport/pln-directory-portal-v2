@@ -1,163 +1,236 @@
+'use client';
+
 import Error from '@/components/core/error';
-import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
-import { RedirectType, redirect } from 'next/navigation';
-import styles from './page.module.css';
-import { BreadCrumb } from '@/components/core/bread-crumb';
-import MemberDetailHeader from '@/components/page/member-details/member-detail-header';
-import MemberProfileLoginStrip from '@/components/page/member-details/member-details-login-strip';
-import ContactDetails from '@/components/page/member-details/contact-details';
-import MemberTeams from '@/components/page/member-details/member-teams';
-import MemberRepositories from '@/components/page/member-details/member-repositories';
-import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { getMember, getMemberUidByAirtableId } from '@/services/members.service';
-import { getAllTeams } from '@/services/teams.service';
-import MemberProjectContribution from '@/components/page/member-details/member-project-contribution';
-import MemberOfficeHours from '@/components/page/member-details/member-office-hours';
-import Bio from '@/components/page/member-details/bio';
+import { ADMIN_ROLE } from '@/utils/constants';
+import styles from './page.module.scss';
+import { getMember } from '@/services/members.service';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
+import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
+import { BioDetails } from '@/components/page/member-details/BioDetails';
+import { ContactDetails } from '@/components/page/member-details/ContactDetails';
+import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
+import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
+import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
+import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
+import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
+import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
+import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
+import { OfficeHoursDetails } from '@/components/page/member-details/OfficeHoursDetails';
+import { InvestorProfileDetails } from '@/components/page/member-details/InvestorProfileDetails';
+import { BackButton } from '@/components/ui/BackButton';
+import React, { useEffect } from 'react';
+import { BookWithOther } from '@/components/page/member-details/BookWithOther';
+import { getMemberListForQuery } from '@/app/actions/members.actions';
+import qs from 'qs';
+import { getAccessLevel } from '@/utils/auth.utils';
+import clsx from 'clsx';
+import { isMemberAvailableToConnect } from '@/utils/member.utils';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
+import { useQuery } from '@tanstack/react-query';
+import { IMember } from '@/types/members.types';
+import { ITeam } from '@/types/teams.types';
 
-const MemberDetails = async ({ params }: { params: any }) => {
-  const memberId = params?.id;
-  const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo,officeHoursFlag } = await getpageData(memberId);
+import MemberPageLoader from './loading';
+import Head from 'next/head';
+import { MembersQueryKeys } from '@/services/members/constants';
 
-  if (redirectMemberId) {
-    redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
+/**
+ * Determines if we should show the investor profile section for third-party users
+ * based on investor profile type and data availability
+ */
+const shouldShowInvestorProfileForThirdParty = (member: IMember, isOwner: boolean, isAdmin: boolean): boolean => {
+  // Always show for owner and admin
+  if (isOwner || isAdmin) {
+    return true;
   }
+
+  const investorProfile = member?.investorProfile;
+  const teams = member?.teams;
+
+  if (!investorProfile?.type) {
+    return false; // No investor profile type
+  }
+
+  // Helper function to check if any angel investor data is provided
+  const hasAngelData = (): boolean => {
+    return !!(
+      (investorProfile.investInStartupStages && investorProfile.investInStartupStages.length > 0) ||
+      (investorProfile.typicalCheckSize && investorProfile.typicalCheckSize?.toString().trim() !== '') ||
+      (investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0)
+    );
+  };
+
+  const investmentTeam = teams?.find((team) => team.investmentTeam);
+
+  switch (investorProfile.type) {
+    case 'ANGEL':
+      // ANGEL type: show section only if at least one angel field is provided
+      return hasAngelData();
+
+    case 'FUND':
+      // FUND type: show section only if investor has a team
+      return !!investmentTeam;
+
+    case 'ANGEL_AND_FUND':
+      // ANGEL_AND_FUND: show section if investor has a team OR if at least one angel field is provided
+      return !!investmentTeam || hasAngelData();
+
+    default:
+      return false; // Unknown type
+  }
+};
+
+const MemberDetails = ({ params }: { params: any }) => {
+  const memberId = params?.id;
+  const userInfo = getParsedValue(Cookies.get('userInfo'));
+  const isAdmin = userInfo && userInfo.roles?.includes(ADMIN_ROLE);
+  const isOwner = userInfo && userInfo.uid === memberId;
+  const isLoggedIn = !!userInfo;
+  const {
+    data: member,
+    isError,
+    isLoading,
+  } = useQuery({
+    queryKey: [MembersQueryKeys.GET_MEMBER, memberId, isLoggedIn, userInfo.uid],
+    queryFn: () =>
+      getMember(
+        memberId,
+        { with: 'image,skills,location,teamMemberRoles.team' },
+        isLoggedIn,
+        userInfo,
+        !isAdmin && !isOwner,
+        true,
+      ),
+    enabled: !!memberId,
+    select: (data) => data?.data?.formattedData,
+  });
+  const { data: availableToConnectCount } = useQuery({
+    queryKey: ['memberList'],
+    queryFn: () => getMemberListForQuery(qs.stringify({ hasOfficeHours: true }), 1, 1, userInfo?.token),
+    enabled: !!userInfo?.token,
+    select: (data) => data?.total,
+  });
+  const isAvailableToConnect = isMemberAvailableToConnect(member);
+  const accessLevel = getAccessLevel(userInfo, isLoggedIn);
+
+  const hasBio = member?.bio?.trim() && member?.bio?.trim() !== '<p><br></p>';
+
+  // Scroll to top when member data is loaded or member ID changes
+  useEffect(() => {
+    if (member && !isLoading) {
+      document.body.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant',
+      });
+    }
+  }, [member, memberId, isLoading]);
 
   if (isError) {
     return <Error />;
   }
 
+  if (isLoading) {
+    return <MemberPageLoader />;
+  }
+
+  if (!member) {
+    return <Error />;
+  }
+
+  function renderPageContent() {
+    if (!member) {
+      return null;
+    }
+
+    switch (member.accessLevel) {
+      case 'L5': {
+        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(member, isOwner, isAdmin);
+
+        return (
+          <>
+            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {showInvestorProfile && (
+              <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            )}
+            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+            <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {!hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+          </>
+        );
+      }
+      default: {
+        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(member, isOwner, isAdmin);
+
+        return (
+          <>
+            <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {member.accessLevel === 'L6' && showInvestorProfile && (
+              <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            )}
+            <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+            <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {member.eventGuests.length > 0 && (
+              <div className={styles?.memberDetail__irlContribution}>
+                <IrlMemberContribution member={member} userInfo={userInfo} />
+              </div>
+            )}
+            <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {!hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+          </>
+        );
+      }
+    }
+  }
+
   return (
-    <div className={styles?.memberDetail}>
-      <div className={styles?.memberDetail__breadcrumb}>
-        <BreadCrumb backLink="/members" directoryName="Members" pageName={member?.name ?? ''} />
+    <>
+      <Head>
+        <title>{`${member?.name} | Protocol Labs Directory`}</title>
+      </Head>
+      <div className={styles?.memberDetail}>
+        <div
+          className={clsx(styles.container, {
+            [styles.singleColumn]: isAvailableToConnect || !isLoggedIn || isOwner,
+          })}
+        >
+          <div className={styles.content}>
+            <BackButton to={`/members`} />
+            <div
+              className={clsx(styles?.memberDetail__container, {
+                [styles.centered]: isAvailableToConnect || isOwner,
+              })}
+            >
+              {renderPageContent()}
+            </div>
+          </div>
+          {!isAvailableToConnect && isLoggedIn && accessLevel === 'advanced' && !isOwner && (
+            <div className={styles.desktopOnly}>
+              <div style={{ visibility: 'hidden' }}>
+                <BackButton to={`/members`} />
+              </div>
+              <BookWithOther count={availableToConnectCount} member={member} />
+            </div>
+          )}
+        </div>
+
+        {userInfo.uid === member.id && (
+          <>
+            <SubscribeToRecommendationsWidget userInfo={userInfo} />
+            <UpcomingEventsWidget userInfo={userInfo} />
+          </>
+        )}
       </div>
-      <div className={styles?.memberDetail__container}>
-        <div>
-          {!isLoggedIn && <MemberProfileLoginStrip member={member} />}
-          <div className={`${styles?.memberDetail__container__header} ${isLoggedIn ? styles?.memberDetail__container__header__isLoggedIn : styles?.memberDetail__container__header__loggedOut}`}>
-            <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            {member?.bio && isLoggedIn && <Bio member={member} userInfo={userInfo}/>}
-          </div>
-        </div>
-        <div className={styles?.memberDetail__container__contact}>
-          {isLoggedIn && <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
-          {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <MemberOfficeHours isLoggedIn={isLoggedIn} member={member} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
-        </div>
-        <div className={styles?.memberDetail__container__teams}>
-          <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
-        </div>
-        {isLoggedIn && (
-          <div className={styles?.memberDetail__projectContribution}>
-            <MemberProjectContribution member={member} userInfo={userInfo} />
-          </div>
-        )}
-        {member.eventGuests.length > 0 && (
-          <div className={styles?.memberDetail__irlContribution}>
-            <IrlMemberContribution member={member} userInfo={userInfo} />
-          </div>
-        )}
-        {isLoggedIn && (
-          <div className={styles?.memberDetail__container__repositories}>
-            <MemberRepositories member={member} userInfo={userInfo} />
-          </div>
-        )}
-      </div>
-    </div>
+    </>
   );
 };
 
 export default MemberDetails;
-
-const getpageData = async (memberId: string) => {
-  const { userInfo, isLoggedIn } = getCookiesFromHeaders();
-  const parsedUserInfo = userInfo;
-  let member: any;
-  let teams: any[];
-  let isError: boolean = false;
-  try {
-    if (AIRTABLE_REGEX.test(memberId)) {
-      const memberUidResponse = await getMemberUidByAirtableId(memberId);
-      if (memberUidResponse?.length == 0 || memberUidResponse?.error) {
-        isError = true;
-        return { isError, isLoggedIn };
-      }
-      const redirectMemberId = memberUidResponse[0]?.uid;
-      return { redirectMemberId, teams: [], member: {}, isLoggedIn };
-    }
-
-    const [memberResponse, memberTeamsResponse] = await Promise.all([
-      getMember(memberId, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, parsedUserInfo),
-      getAllTeams(
-        '',
-        {
-          'teamMemberRoles.member.uid': memberId,
-          select: 'uid,name,logo.url,industryTags.title,teamMemberRoles.role,teamMemberRoles.mainTeam',
-          pagination: false,
-        },
-        0,
-        0
-      ),
-    ]);
-    member = memberResponse?.data?.formattedData;
-    teams = memberTeamsResponse?.data?.formattedData;
-
-    let officeHoursFlag = false;
-    officeHoursFlag = member['officeHours'] ? true : false;
-    if (!isLoggedIn && member['officeHours']) {
-      delete member['officeHours'];
-    }
-
-    if (memberResponse?.error) {
-      isError = true;
-      return { isError, isLoggedIn };
-    }
-    return { member, teams, isLoggedIn, userInfo, officeHoursFlag };
-  } catch (error) {
-    isError = true;
-    return { isError, isLoggedIn };
-  }
-};
-
-interface IGenerateMetadata {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-}
-
-export async function generateMetadata({ params, searchParams }: IGenerateMetadata, parent: any): Promise<any> {
-  const memberId = params?.id;
-  const memberResponse = await getMember(memberId, { with: 'image' });
-  if (memberResponse?.error) {
-    return {
-      title: 'Protocol Labs Directory',
-      description:
-        'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
-      openGraph: {
-        images: [
-          {
-            url: SOCIAL_IMAGE_URL,
-            width: 1280,
-            height: 640,
-            alt: 'Protocol Labs Directory',
-            type: 'image/jpeg',
-          },
-        ],
-      },
-      twitter: {
-        card: 'summary_large_image',
-        images: [SOCIAL_IMAGE_URL],
-      },
-    };
-  }
-  const member = memberResponse?.data?.formattedData;
-  const previousImages = (await parent).openGraph?.images ?? [];
-  return {
-    title: `${member?.name} | Protocol Labs Directory`,
-    openGraph: {
-      type: 'website',
-      url: `${process.env.APPLICATION_BASE_URL}/${PAGE_ROUTES.MEMBERS}/${memberId}`,
-      images: [member?.profile, ...previousImages],
-    },
-  };
-}

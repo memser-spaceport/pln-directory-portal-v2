@@ -1,0 +1,223 @@
+.Button {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  margin: 0;
+  outline: 0;
+  user-select: none;
+}
+
+.Positioner {
+  outline: 0;
+  z-index: 6;
+  min-width: 220px;
+}
+
+.Popup {
+  border-radius: 8px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px 0 rgba(15, 23, 42, 0.16),
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
+
+  box-sizing: border-box;
+  padding-block: 12px;
+  padding-inline: 16px;
+  transform-origin: top right;
+  transition:
+    transform 150ms,
+    opacity 150ms;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  &.mobile {
+    margin: 12px;
+  }
+}
+
+.Arrow {
+  display: flex;
+
+  &[data-side='top'] {
+    bottom: -8px;
+    rotate: 180deg;
+  }
+
+  &[data-side='bottom'] {
+    top: -8px;
+    rotate: 0deg;
+  }
+
+  &[data-side='left'] {
+    right: -13px;
+    rotate: 90deg;
+  }
+
+  &[data-side='right'] {
+    left: -13px;
+    rotate: -90deg;
+  }
+}
+
+.ArrowFill {
+  fill: canvas;
+}
+
+.ArrowOuterStroke {
+  @media (prefers-color-scheme: light) {
+    fill: var(--color-gray-200);
+  }
+}
+
+.ArrowInnerStroke {
+  @media (prefers-color-scheme: dark) {
+    fill: var(--color-gray-300);
+  }
+}
+
+.Item {
+  gap: 8px;
+  outline: 0;
+  cursor: default;
+  user-select: none;
+  display: flex;
+  align-items: center;
+
+  color: #0f172a;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 142.857% */
+
+  &[data-highlighted] {
+    z-index: 0;
+    position: relative;
+    color: var(--color-gray-50);
+  }
+
+  &[data-highlighted]::before {
+    content: '';
+    z-index: -1;
+    position: absolute;
+    inset-block: 0;
+    inset-inline: 0.25rem;
+    border-radius: 0.25rem;
+    background-color: var(--color-gray-900);
+  }
+
+  .itemSub {
+    display: flex;
+    align-items: center;
+    color: #cad3df;
+    font-feature-settings:
+      'liga' off,
+      'clig' off;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 14px; /* 140% */
+    margin-left: auto;
+    gap: 4px;
+    position: relative;
+  }
+
+  &.link {
+    color: #156ff7;
+  }
+}
+
+.SeparatorWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #cad3df;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 14px; /* 140% */
+}
+
+.Separator {
+  height: 1px;
+  background-color: #e2e8f0;
+  flex: 1;
+}
+
+.Avatar {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  vertical-align: middle;
+  border-radius: 100%;
+  user-select: none;
+  font-weight: 500;
+  color: var(--color-gray-900);
+  background-color: var(--color-gray-100);
+  font-size: 1rem;
+  line-height: 1;
+  overflow: hidden;
+  height: 40px;
+  width: 40px;
+}
+
+.Image {
+  object-fit: cover;
+  height: 100%;
+  width: 100%;
+}
+
+.Fallback {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.notificationsCount {
+  background: #ff820e;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  z-index: 2;
+  min-width: 15px;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding-block: 2px;
+  padding-inline: 4px;
+  flex-direction: column;
+  flex-shrink: 0;
+
+  color: #fff;
+  text-align: center;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.NotificationsLabel {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

@@ -72,7 +72,6 @@
   column-gap: 8px;
 }
 
-
 .mbrLoading__container__header__profile__logo {
   width: 48px;
   height: 48px;
@@ -165,7 +164,7 @@
 }
 
 .mbrLoading__container__contacts__ohours {
-  background: #F8FAFC;
+  background: #f8fafc;
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -187,14 +186,14 @@
   width: 28px;
   border-radius: 4px;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  background-color: #e2e8f0; 
+  background-color: #e2e8f0;
 }
 
 .mbrLoading__container__contacts__ohours__left__title {
   height: 28px;
   width: 113px;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  background-color: #e2e8f0; 
+  background-color: #e2e8f0;
 }
 
 .mbrLoading__container__contacts__ohour__right {
@@ -202,7 +201,6 @@
   gap: 16px;
   align-items: center;
 }
-
 
 .mbrLoading__container__contacts__ohour__right__learnMore {
   height: 20px;
@@ -222,12 +220,12 @@
   height: 20px;
   width: 113px;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  background-color: #e2e8f0; 
+  background-color: #e2e8f0;
 }
 
 .mbrLoading__container__teams__container {
   border-radius: 12px;
-  box-shadow: 0px 4px 4px 0px #0F172A0A;
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
 }
 
 @media (min-width: 1024px) {
@@ -239,7 +237,7 @@
     height: 48px;
     width: 100%;
     position: sticky;
-    top: 80px;
+    top: var(--app-header-height);
     display: flex;
     align-items: center;
     background-color: #fff;
@@ -257,7 +255,6 @@
   .mbrLoading__container__header {
     grid-template-columns: 80px auto;
     column-gap: 24px;
-
   }
 
   .mbrLoading__container__header__profile__logo {

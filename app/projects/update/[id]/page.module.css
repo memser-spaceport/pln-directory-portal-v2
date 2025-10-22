@@ -1,29 +1,35 @@
 .editProject__breadcrumb {
-    /* display: none; */
-    height: 48px;
-    border-bottom: 1px solid #e2e8f0;
-    width: 100%;
-    position: sticky;
-    top: 80px;
-    z-index: 1;
-    background-color: #fff;
-  }
-  
-  .editProject {
-    background-color:  #F1F5F9;
-  }
+  /* display: none; */
+  height: 48px;
+  border-bottom: 1px solid #e2e8f0;
+  width: 100%;
+  position: sticky;
+  top: var(--app-header-height);
+  z-index: 1;
+  background-color: #fff;
+}
 
-  .editProject__cnt {
+.editProject {
+  background-color: #f1f5f9;
+  width: 100%;
+  max-width: 1024px;
+  margin: 0 auto;
+}
+
+.editProject__cnt {
+  display: flex;
+  justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .editProject__breadcrumb {
+    height: 48px;
     display: flex;
-    justify-content: center;
+    align-items: center;
   }
-  
-  @media (min-width: 1024px) {
-    .editProject__breadcrumb {
-      display: unset;
-      height: 48px;
-      display: flex;
-      align-items: center;
-    }
-  }
-  
+}
+
+.backBtn {
+  position: sticky;
+  top: var(--app-header-height);
+}

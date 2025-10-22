@@ -1,20 +1,20 @@
-'use client'
+'use client';
 function SettingsAction() {
   return (
     <>
-       <div className="fa">
-          <div className="fa__action">
-            <button className="fa__action__cancel" type="reset">
-              Reset
-            </button>
-            <button className="fa__action__save" type="submit">
-              Save Changes
-            </button>
-          </div>
+      <div className="fa">
+        <div className="fa__action">
+          <button className="fa__action__cancel" type="reset">
+            Reset
+          </button>
+          <button className="fa__action__save" type="submit">
+            Save Changes
+          </button>
         </div>
+      </div>
       <style jsx>
         {`
-         .fa {
+          .fa {
             position: sticky;
             margin: 0;
             width: 100%;

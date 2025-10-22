@@ -1,0 +1,58 @@
+@use '@/styles/mixins';
+@use '@/styles/media';
+
+.root {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  min-width: unset;
+  position: relative;
+  background: linear-gradient(0deg, #f1f5f9 0%, #f1f5f9 100%), #fff;
+  border-radius: 8px;
+  flex: 1;
+
+  @include media.tablet-landscape {
+    min-width: 360px;
+  }
+
+  > input {
+    border-radius: 8px;
+    border: 1px solid #c5ced9;
+
+    outline: none;
+    flex: 1;
+    height: 100%;
+    background: transparent;
+    padding: 10px 72px 10px 8px;
+
+    &:focus-visible {
+      border: 1px solid #156ff7;
+    }
+  }
+
+  &:focus-within {
+    background: #fff;
+  }
+
+  .flushButton {
+    @include mixins.centralize;
+    position: absolute;
+    right: 8px;
+    padding: 4px;
+  }
+
+  .clearButton {
+    @include mixins.centralize;
+
+    top: 0;
+    right: 40px;
+    position: absolute;
+
+    padding: 4px;
+    height: 100%;
+
+    &.singleView {
+      right: 12px;
+    }
+  }
+}

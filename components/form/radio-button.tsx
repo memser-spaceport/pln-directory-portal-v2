@@ -5,15 +5,17 @@ interface RadioButtonProps {
   options: { label: string; value: string }[];
   selectedValue: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
-const RadioButton: React.FC<RadioButtonProps> = ({ name, options, selectedValue, onChange }) => {
+const RadioButton: React.FC<RadioButtonProps> = ({ name, options, selectedValue, onChange, disabled }) => {
   return (
     <>
       <div className="custom-radio-group">
         {options.map((option) => (
           <label key={option.value} className="custom-radio-button">
             <input
+              disabled={disabled}
               type="radio"
               name={name}
               value={option.value}

@@ -2,26 +2,26 @@ import { useEffect, useState } from 'react';
 
 interface CustomLinkDialogProps {
   isOpen: boolean;
-  linkObj: {text:string,url:string};
+  linkObj: { text: string; url: string };
   onRequestClose: () => void;
-//   onSave: () => void;
-    onSave: (text: string, url: string) => void;
+  //   onSave: () => void;
+  onSave: (text: string, url: string) => void;
 }
 
-const CustomLinkDialog = ({ isOpen, onRequestClose, onSave,linkObj }: CustomLinkDialogProps) => {
+const CustomLinkDialog = ({ isOpen, onRequestClose, onSave, linkObj }: CustomLinkDialogProps) => {
   const [url, setUrl] = useState(linkObj?.url ?? '');
   const [text, setText] = useState(linkObj?.text ?? '');
 
   const [error, setError] = useState('');
 
   const validateUrl = (url: string) => {
-    const urlPattern = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/mg
-    
+    const urlPattern =
+      /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/gm;
+
     return !!url.match(urlPattern);
   };
 
   const handleSave = () => {
-    
     if (text === '') {
       setError('Text field cannot be empty');
       return;
@@ -30,7 +30,7 @@ const CustomLinkDialog = ({ isOpen, onRequestClose, onSave,linkObj }: CustomLink
       setError('URL field cannot be empty');
       return;
     }
-    
+
     if (!validateUrl(url)) {
       setError('Please enter a valid URL.');
       return;
@@ -44,11 +44,11 @@ const CustomLinkDialog = ({ isOpen, onRequestClose, onSave,linkObj }: CustomLink
 
   useEffect(() => {
     // if(isOpen){
-        setUrl(linkObj?.url ?? '');
-        setText(linkObj?.text ?? '');
-        setError('');
+    setUrl(linkObj?.url ?? '');
+    setText(linkObj?.text ?? '');
+    setError('');
     // }
-  }, [isOpen,linkObj.url,linkObj.text]);
+  }, [isOpen, linkObj.url, linkObj.text]);
 
   return (
     <>

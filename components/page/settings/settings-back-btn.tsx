@@ -8,19 +8,17 @@ function SettingsBackButton(props: any) {
   const router = useRouter();
 
   const onBackClicked = () => {
-    triggerLoader(true)
-    document.dispatchEvent(new CustomEvent('settings-navigate', {detail: {url: '/settings'}}))
+    triggerLoader(true);
+    document.dispatchEvent(new CustomEvent('settings-navigate', { detail: { url: '/settings' } }));
   };
 
   return (
     <>
       <div className="sb">
-        <div className='sb__link' onClick={onBackClicked}>
-            <img width="16px" height="16px" src='/icons/arrow-left-blue.svg'/>
-            <p>Back</p>
+        <div className="sb__link" onClick={onBackClicked}>
+          <img width="16px" height="16px" src="/icons/arrow-left-blue.svg" />
         </div>
         <p>{title}</p>
-     
       </div>
       <style jsx>
         {`
@@ -28,24 +26,25 @@ function SettingsBackButton(props: any) {
             position: relative;
             width: 100%;
             height: 48px;
-            background:#F1F5F9;
+            background: #fff;
             padding: 8px 16px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 16px;
+            justify-content: flex-start;
+            gap: 12px;
             color: #475569;
+            font-size: 18px;
+            font-style: normal;
             font-weight: 500;
+            line-height: 27px; /* 135% */
+            letter-spacing: -0.4px;
           }
           .sb__link {
-            position:absolute;
-            left: 16px;
-            top: 16px;
             display: flex;
             gap: 4px;
             font-size: 14px;
             font-weight: 500;
-            color: #156FF7;
+            color: #156ff7;
           }
         `}
       </style>

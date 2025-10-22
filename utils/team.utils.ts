@@ -1,43 +1,82 @@
-import { ITag, ITeamListOptions, ITeamResponse, ITeamsSearchParams } from "@/types/teams.types";
-import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from "./common.utils";
-import { URL_QUERY_VALUE_SEPARATOR } from "./constants";
+import { ITag, ITeamListOptions, ITeamResponse, ITeamsSearchParams } from '@/types/teams.types';
+import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
+import { URL_QUERY_VALUE_SEPARATOR } from './constants';
 
 export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
-  const { sort, tags, membershipSources, fundingStage, searchBy, technology, includeFriends, focusAreas, officeHoursOnly, isRecent, isHost, asks } = queryParams;
+  const {
+    sort,
+    tags,
+    membershipSources,
+    fundingStage,
+    searchBy,
+    technology,
+    includeFriends,
+    focusAreas,
+    officeHoursOnly,
+    isRecent,
+    isHost,
+    isSponsor,
+    asks,
+  } = queryParams;
   const sortFromQuery = getSortFromQuery(sort?.toString());
   const sortField = sortFromQuery.field.toLowerCase() + ',default';
 
   return {
     ...(officeHoursOnly ? { officeHours__not: 'null' } : {}),
-    ...(technology ? { "technologies.title__with": stringifyQueryValues(technology) } : {}),
-    ...(membershipSources ? { "membershipSources.title__with": stringifyQueryValues(membershipSources) } : {}),
-    ...(fundingStage ? { "fundingStage.title__with": stringifyQueryValues(fundingStage) } : {}),
-    ...(tags ? { "industryTags.title__with": stringifyQueryValues(tags) } : {}),
+    ...(technology ? { 'technologies.title__with': stringifyQueryValues(technology) } : {}),
+    ...(membershipSources ? { 'membershipSources.title__with': stringifyQueryValues(membershipSources) } : {}),
+    ...(fundingStage ? { 'fundingStage.title__with': stringifyQueryValues(fundingStage) } : {}),
+    ...(tags ? { 'industryTags.title__with': stringifyQueryValues(tags) } : {}),
     ...(includeFriends ? {} : { plnFriend: false }),
     ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
-    ...(focusAreas ? { 'focusAreas': stringifyQueryValues(focusAreas) } : {}),
-    ...(isRecent ? {isRecent:true} : {}),
-    ...(isHost ? {isHost:true} : {}),
-    ...(asks ? { 'askTags': stringifyQueryValues(asks) } : {}),
-    orderBy: `${sortFromQuery.direction === "desc" ? "-" : ""}${sortField}`,
+    ...(focusAreas ? { focusAreas: stringifyQueryValues(focusAreas) } : {}),
+    ...(isRecent ? { isRecent: true } : {}),
+    ...(isHost ? { isHost: true } : {}),
+    ...(isSponsor ? { isSponsor: true } : {}),
+    ...(asks ? { askTags: stringifyQueryValues(asks) } : {}),
+    orderBy: `${sortFromQuery.direction === 'desc' ? '-' : ''}${sortField}`,
   };
 }
 
-export function processFilters(searchParams: ITeamsSearchParams, formattedValuesByFilter: any, formattedAvailableValuesByFilter: any, focusAreaData: any) {
+export function processFilters(
+  searchParams: ITeamsSearchParams,
+  formattedValuesByFilter: any,
+  formattedAvailableValuesByFilter: any,
+  focusAreaData: any,
+) {
   const focusAreaQuery = searchParams?.focusAreas;
   const focusAreaFilters = focusAreaQuery?.split(URL_QUERY_VALUE_SEPARATOR) || [];
-  const selectedFocusAreas = focusAreaFilters.length > 0 ? focusAreaData?.filter((focusArea: any) => focusAreaFilters.includes(focusArea.title)) : [];
+  const selectedFocusAreas =
+    focusAreaFilters.length > 0
+      ? focusAreaData?.filter((focusArea: any) => focusAreaFilters.includes(focusArea.title))
+      : [];
 
   return {
     tags: getTagsFromValues(formattedValuesByFilter?.tags, formattedAvailableValuesByFilter?.tags, searchParams?.tags),
-    membershipSources: getTagsFromValues(formattedValuesByFilter?.membershipSources, formattedAvailableValuesByFilter?.membershipSources, searchParams?.membershipSources),
-    fundingStage: getTagsFromValues(formattedValuesByFilter?.fundingStage, formattedAvailableValuesByFilter?.fundingStage, searchParams?.fundingStage),
-    technology: getTagsFromValues(formattedValuesByFilter?.technology, formattedAvailableValuesByFilter?.technology, searchParams?.technology),
+    membershipSources: getTagsFromValues(
+      formattedValuesByFilter?.membershipSources,
+      formattedAvailableValuesByFilter?.membershipSources,
+      searchParams?.membershipSources,
+    ),
+    fundingStage: getTagsFromValues(
+      formattedValuesByFilter?.fundingStage,
+      formattedAvailableValuesByFilter?.fundingStage,
+      searchParams?.fundingStage,
+    ),
+    technology: getTagsFromValues(
+      formattedValuesByFilter?.technology,
+      formattedAvailableValuesByFilter?.technology,
+      searchParams?.technology,
+    ),
     focusAreas: {
       rawData: focusAreaData,
       selectedFocusAreas,
     },
-    asks: getTagsFromValues(formattedValuesByFilter?.askTags, formattedAvailableValuesByFilter?.askTags, searchParams?.asks),
+    asks: getTagsFromValues(
+      formattedValuesByFilter?.askTags,
+      formattedAvailableValuesByFilter?.askTags,
+      searchParams?.asks,
+    ),
   };
 }
 
@@ -51,12 +90,23 @@ export function getTagsFromValues(allValues: string[], availableValues: string[]
   });
 }
 
+// Helper function to parse currency string to number
+const parseCurrencyToNumber = (currencyString: string): number => {
+  // Remove all non-numeric characters except decimal point
+  const numericString = currencyString.replace(/[^\d.]/g, '');
+
+  // Convert to number
+  const numericValue = parseFloat(numericString);
+
+  // Return 0 if parsing failed
+  return isNaN(numericValue) ? 0 : numericValue;
+};
 
 export function getTeamsListOptions(options: ITeamListOptions) {
-  return { ...options, select: "uid,name,shortDescription,logo.url,industryTags.title,asks", pagination: true };
+  return { ...options, select: 'uid,name,shortDescription,logo.url,industryTags.title,asks', pagination: true };
 }
 
-export function transformTeamApiToFormObj(obj: any){
+export function transformTeamApiToFormObj(obj: any) {
   const output = {
     ...obj.basicInfo,
     ...obj.projectsInfo,
@@ -65,32 +115,32 @@ export function transformTeamApiToFormObj(obj: any){
   };
 
   output.fundingStage = {
-    title: {...output}.fundingStage?.name,
-    uid: {...output}.fundingStage?.id
-  }
+    title: { ...output }.fundingStage?.name,
+    uid: { ...output }.fundingStage?.id,
+  };
 
-  output.membershipSources = {...output}.membershipSources?.map((v:any) => {
+  output.membershipSources = { ...output }.membershipSources?.map((v: any) => {
     return {
       title: v.name,
-      uid: v.id
-    }
-  })
+      uid: v.id,
+    };
+  });
 
-  output.technologies = {...output}.technologies?.map((v:any) => {
+  output.technologies = { ...output }.technologies?.map((v: any) => {
     return {
       title: v.name,
-      uid: v.id
-    }
-  })
-  output.industryTags = {...output}.industryTags?.map((v:any) => {
+      uid: v.id,
+    };
+  });
+  output.industryTags = { ...output }.industryTags?.map((v: any) => {
     return {
       title: v.name,
-      uid: v.id
-    }
-  })
-  
- delete output.teamProfile
- delete output.requestorEmail
+      uid: v.id,
+    };
+  });
+
+  delete output.teamProfile;
+  delete output.requestorEmail;
   return output;
 }
 
@@ -126,8 +176,7 @@ export function transformRawInputsToFormObj(obj: any) {
         }
         membershipSources[membershipSourceIndex][subKey] = obj[key];
       }
-    } 
-    else if (key.startsWith('teamFocusAreas')) {
+    } else if (key.startsWith('teamFocusAreas')) {
       const [focusArea, subKey] = key.split('-');
       const focusAreaIndexMatch = focusArea.match(/\d+$/);
       if (focusAreaIndexMatch) {
@@ -137,9 +186,7 @@ export function transformRawInputsToFormObj(obj: any) {
         }
         teamFocusAreas[focusAreaIndex][subKey] = obj[key];
       }
-    } 
-    
-    else if (key.startsWith('industryTag')) {
+    } else if (key.startsWith('industryTag')) {
       const [industryTag, subKey] = key.split('-');
       const industryTagIndexMatch = industryTag.match(/\d+$/);
       if (industryTagIndexMatch) {
@@ -151,12 +198,52 @@ export function transformRawInputsToFormObj(obj: any) {
       }
     } else if (key.startsWith('rich-text-editor')) {
       result['longDescription'] = obj[key];
+    } else if (key.startsWith('name')) {
+      result['name'] = obj[key].trim();
+    } else if (key.startsWith('investmentFocus')) {
+      if (result.investorProfile) {
+        result.investorProfile.investmentFocus = obj[key] ? JSON.parse(obj[key]) : [];
+      } else {
+        result.investorProfile = {
+          investmentFocus: obj[key] ? JSON.parse(obj[key]) : [],
+        };
+      }
+    } else if (key.startsWith('typicalCheckSize')) {
+      if (result.investorProfile) {
+        result.investorProfile.typicalCheckSize = parseCurrencyToNumber(obj[key]);
+      } else {
+        result.investorProfile = {
+          typicalCheckSize: parseCurrencyToNumber(obj[key]),
+        };
+      }
+    } else if (key.startsWith('isFund')) {
+      result.isFund = obj[key] === 'on';
+    } else if (key.startsWith('investInFundTypes')) {
+      if (result.investorProfile) {
+        result.investorProfile.investInFundTypes = obj[key]
+          ? (JSON.parse(obj[key])?.map((item: any) => item.label) ?? [])
+          : [];
+      } else {
+        result.investorProfile = {
+          investInFundTypes: obj[key] ? (JSON.parse(obj[key])?.map((item: any) => item.label) ?? []) : [],
+        };
+      }
+    } else if (key.startsWith('investInStartupStages')) {
+      if (result.investorProfile) {
+        result.investorProfile.investInStartupStages = obj[key]
+          ? (JSON.parse(obj[key])?.map((item: any) => item.label) ?? [])
+          : [];
+      } else {
+        result.investorProfile = {
+          investInStartupStages: obj[key] ? (JSON.parse(obj[key])?.map((item: any) => item.label) ?? []) : [],
+        };
+      }
     } else {
       result[key] = obj[key];
     }
   }
 
-  result['plnFriend'] = result.plnFriend  === 'on' ? true : false;
+  result['plnFriend'] = result.plnFriend === 'on' ? true : false;
   result.fundingStage = fundingStage;
   result.technologies = Object.values(technologies);
   result.membershipSources = Object.values(membershipSources);
@@ -165,22 +252,21 @@ export function transformRawInputsToFormObj(obj: any) {
   return result;
 }
 
-
 export const getTechnologyImage = (technology: string) => {
-  if (technology === "Filecoin") {
-    return "/icons/technology/filecoin.svg";
-  } else if (technology === "IPFS") {
-    return "/icons/technology/ipfs.svg";
-  } else if (technology === "libp2p") {
-    return "/icons/technology/libp2p.svg";
-  } else if (technology === "IPLD") {
-    return "/icons/technology/ipld.svg";
-  } else if (technology === "drand") {
-    return "/icons/technology/drand.svg";
-  } else if (technology === "FVM") {
-    return "/icons/technology/fvm.svg";
-  } else if (technology === "SourceCred") {
-    return "/icons/technology/sourcecred.svg";
+  if (technology === 'Filecoin') {
+    return '/icons/technology/filecoin.svg';
+  } else if (technology === 'IPFS') {
+    return '/icons/technology/ipfs.svg';
+  } else if (technology === 'libp2p') {
+    return '/icons/technology/libp2p.svg';
+  } else if (technology === 'IPLD') {
+    return '/icons/technology/ipld.svg';
+  } else if (technology === 'drand') {
+    return '/icons/technology/drand.svg';
+  } else if (technology === 'FVM') {
+    return '/icons/technology/fvm.svg';
+  } else if (technology === 'SourceCred') {
+    return '/icons/technology/sourcecred.svg';
   }
 };
 
@@ -194,6 +280,13 @@ export const getTeamInitialValue = (selectedTeam: any, membersDetail: any) => {
       longDescription: selectedTeam.longDescription ?? '',
       officeHours: selectedTeam.officeHours ?? '',
       plnFriend: selectedTeam.plnFriend ?? false,
+      isFund: selectedTeam?.isFund ?? false,
+      investorProfile: {
+        investmentFocus: selectedTeam.investorProfile?.investmentFocus ?? [],
+        typicalCheckSize: selectedTeam.investorProfile?.typicalCheckSize ?? '',
+        investInStartupStages: selectedTeam.investorProfile?.investInStartupStages ?? [],
+        investInFundTypes: selectedTeam.investorProfile?.investInFundTypes ?? [],
+      },
     },
     projectsInfo: {
       technologies: selectedTeam.technologies ?? [],
@@ -214,10 +307,10 @@ export const getTeamInitialValue = (selectedTeam: any, membersDetail: any) => {
       blog: selectedTeam?.blog ?? '',
     },
     memberInfo: {
-      teamMemberRoles: membersDetail
-    } 
-  }
-}
+      teamMemberRoles: membersDetail,
+    },
+  };
+};
 
 export const teamRegisterDefault = {
   basicInfo: {
@@ -242,7 +335,7 @@ export const teamRegisterDefault = {
     telegramHandler: '',
     blog: '',
   },
-}
+};
 
 export function getFormattedDateString(startDate: string, endDate: string) {
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -257,8 +350,8 @@ export function getFormattedDateString(startDate: string, endDate: string) {
     const startMonthName = monthNames[parseInt(startMonth, 10) - 1];
     const endMonthName = monthNames[parseInt(endMonth, 10) - 1];
 
-    const formattedStartYear = startYear.slice(2); 
-    const formattedEndYear = endYear.slice(2); 
+    const formattedStartYear = startYear.slice(2);
+    const formattedEndYear = endYear.slice(2);
 
     if (startDateOnly === endDateOnly) {
       return `${startMonthName} ${formattedStartYear}`;

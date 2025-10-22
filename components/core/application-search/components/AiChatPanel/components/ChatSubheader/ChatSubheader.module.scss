@@ -1,0 +1,43 @@
+@use 'styles/media';
+
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-block: 10px;
+
+  border-bottom: 1px solid #e2e8f0;
+  border-top: 1px solid #e2e8f0;
+}
+
+.title {
+  color: #0f172a;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 166.667% */
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.button {
+  color: #156ff7;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 166.667% */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &.alignRight {
+    @include media.tablet-landscape {
+      margin-left: auto;
+    }
+  }
+}

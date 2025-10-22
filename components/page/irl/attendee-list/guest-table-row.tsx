@@ -1,14 +1,20 @@
 import cookies from 'js-cookie';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
 import { getParsedValue } from '@/utils/common.utils';
 import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES, TOAST_MESSAGES } from '@/utils/constants';
-import { canUserPerformEditAction, getAttendingStartAndEndDate, getFormattedDateString, getTelegramUsername, removeAt } from '@/utils/irl.utils';
+import {
+  canUserPerformEditAction,
+  getAttendingStartAndEndDate,
+  getFormattedDateString,
+  getTelegramUsername,
+  removeAt,
+} from '@/utils/irl.utils';
 import { Tooltip as Popover } from './attendee-popover';
 import EventSummary from './event-summary';
 import GuestDescription from './guest-description';
@@ -18,6 +24,9 @@ import { SyntheticEvent } from 'react';
 import Image from 'next/image';
 import IrlSpeakerTag from '@/components/ui/irl-speaker-tag';
 import IrlHostTag from '@/components/ui/irl-host-tag';
+import IrlSponsorTag from '@/components/ui/irl-sponsor-tag';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface IGuestTableRow {
   guest: IGuest;
@@ -42,7 +51,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
   const guestUid = guest?.memberUid;
   const guestName = guest?.memberName ?? '';
-  const guestLogo = guest?.memberLogo || '/icons/default-user-profile.svg';
+  const guestLogo = guest?.memberLogo || getDefaultAvatar(guest?.memberName);
   const teamUid = guest?.teamUid ?? '';
   const teamName = guest?.teamName ?? '';
   const teamLogo = guest?.teamLogo || '/icons/team-default-profile.svg';
@@ -55,6 +64,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const events = guest?.events ?? [];
   const hostEvents = events?.flatMap((event: IIrlEvent) => event?.hostSubEvents || []);
   const speakerEvents = events?.flatMap((event: IIrlEvent) => event?.speakerSubEvents || []);
+  const sponsorEvents = events?.flatMap((event: IIrlEvent) => event?.sponsorSubEvents || []);
   const formattedEventRange = checkInDate && checkOutDate ? getFormattedDateString(checkInDate, checkOutDate) : '';
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -64,8 +74,10 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const remainingTopics = topics?.slice(topicsNeedToShow, topics?.length)?.map((topic: string) => topic);
   const atRemovedTelegram = removeAt(getTelegramUsername(telegramId));
   const analytics = useIrlAnalytics();
-  const canUserAddAttendees = isAdminInAllEvents && canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const canUserAddAttendees =
+    isAdminInAllEvents && canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const isLoggedIn = props.isLoggedIn;
+  const accessLevel = getAccessLevel(userInfo, isLoggedIn);
   const onLogin = props.onLogin;
   const isEventAvailable = guest.events.filter((event: IIrlEvent) => event.slugURL === newSearchParams.event);
   const onTeamClick = (teamUid: string, teamName: string) => {
@@ -104,13 +116,17 @@ const GuestTableRow = (props: IGuestTableRow) => {
         }
         return;
       }
-      window.open(officeHours, '_blank');
+      setTimeout(() => {
+        window.open(officeHours, '_blank');
+      });
       const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), 'PENDING,CLOSED');
       if (!allFollowups?.error) {
         const result = allFollowups?.data ?? [];
         if (result.length > 0) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, { detail: { notification: result[0] } }));
-          document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
+          document.dispatchEvent(
+            new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }),
+          );
           router.refresh();
         }
       }
@@ -137,14 +153,21 @@ const GuestTableRow = (props: IGuestTableRow) => {
         return { ...team, uid: team?.id };
       }),
       memberUid: guest?.memberUid,
-      additionalInfo: { checkInDate: guest?.additionalInfo?.checkInDate || '', checkOutDate: guest?.additionalInfo?.checkOutDate ?? '' },
+      additionalInfo: {
+        checkInDate: guest?.additionalInfo?.checkInDate || '',
+        checkOutDate: guest?.additionalInfo?.checkOutDate ?? '',
+      },
       topics: guest?.topics,
       reason: guest?.reason,
       telegramId: guest?.telegramId,
       officeHours: guest?.officeHours ?? '',
     };
 
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT, scrollTo: 'officehours-section' } }));
+    document.dispatchEvent(
+      new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
+        detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT, scrollTo: 'officehours-section' },
+      }),
+    );
     analytics.trackGuestListTableAddOfficeHoursClicked(location);
   };
   const onSpeakerEventClick = (event: { name: string; link: string }) => {
@@ -153,6 +176,10 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
   const onHostEventClick = (event: { name: string; link: string }) => {
     analytics.trackHostEventClicked(location, { eventName: event?.name, eventLink: event?.link });
+  };
+
+  const onSponsorEventClick = (event: { name: string; link: string }) => {
+    analytics.trackSponsorEventClicked(location, { eventName: event?.name, eventLink: event?.link });
   };
 
   const onLoginClick = () => {
@@ -167,29 +194,49 @@ const GuestTableRow = (props: IGuestTableRow) => {
           {canUserAddAttendees && (
             <div className="gtr__guestName__checkbox">
               {selectedGuests.includes(guest?.memberUid) && (
-                <button onClick={() => onchangeSelectionStatus(guest?.memberUid)} className="notHappenedCtr__bdy__optnCtr__optn__sltd">
+                <button
+                  onClick={() => onchangeSelectionStatus(guest?.memberUid)}
+                  className="notHappenedCtr__bdy__optnCtr__optn__sltd"
+                >
                   <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
                 </button>
               )}
-              {!selectedGuests.includes(guest?.memberUid) && <button className="notHappenedCtr__bdy__optnCtr__optn__ntsltd" onClick={() => onchangeSelectionStatus(guest.memberUid)}></button>}
+              {!selectedGuests.includes(guest?.memberUid) && (
+                <button
+                  className="notHappenedCtr__bdy__optnCtr__optn__ntsltd"
+                  onClick={() => onchangeSelectionStatus(guest.memberUid)}
+                ></button>
+              )}
             </div>
           )}
           <Link passHref legacyBehavior href={`/members/${guestUid}`}>
             <a target="_blank" className="gtr__guestName__li" onClick={() => onMemberClick(guestUid, guestName)}>
               <div className="gtr__guestName__li__imgWrpr">
-                <Image alt="profile" loading="eager" height={32} width={32} layout="intrinsic" priority={true} className="gtr__guestName__li__img" src={guestLogo} />
+                <Image
+                  alt="profile"
+                  loading="eager"
+                  height={32}
+                  width={32}
+                  layout="intrinsic"
+                  priority={true}
+                  className="gtr__guestName__li__img"
+                  src={guestLogo}
+                />
               </div>
               <div className="gtr__guestName__li__txtWrpr">
                 <div title={guestName} className="gtr__guestName__li__txt ">
                   {guestName}
                 </div>
                 <div className="gtr__guestName__li__info">
-                  {newSearchParams.type === 'past'
-                    ? isEventAvailable[0]?.isSpeaker && <IrlSpeakerTag speakerEvents={speakerEvents} onSpeakerEventClick={onSpeakerEventClick} />
-                    : speakerEvents?.length > 0 && <IrlSpeakerTag speakerEvents={speakerEvents} onSpeakerEventClick={onSpeakerEventClick} />}
-                  {newSearchParams.type === 'past'
-                    ? isEventAvailable[0]?.isHost && <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
-                    : hostEvents?.length > 0 && <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />}
+                      {speakerEvents?.length > 0 && (
+                        <IrlSpeakerTag speakerEvents={speakerEvents} onSpeakerEventClick={onSpeakerEventClick} />
+                      )}
+                     {hostEvents?.length > 0 && (
+                        <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
+                      )}
+                     {sponsorEvents?.length > 0 && (
+                        <IrlSponsorTag sponsorEvents={sponsorEvents} onSponsorEventClick={onSponsorEventClick} />
+                      )}                      
                 </div>
               </div>
             </a>
@@ -201,15 +248,35 @@ const GuestTableRow = (props: IGuestTableRow) => {
             <Link passHref legacyBehavior href={`/teams/${teamUid}`}>
               <a target="_blank" className="gtr__team__link" onClick={() => onTeamClick(teamUid, teamName)}>
                 <div className="gtr__team__link__imgWrpr">
-                  <Image alt="profile" loading="eager" height={32} width={32} layout="intrinsic" priority={true} className="gtr__team__link__img" src={teamLogo} />
+                  <Image
+                    alt="profile"
+                    loading="eager"
+                    height={32}
+                    width={32}
+                    layout="intrinsic"
+                    priority={true}
+                    className="gtr__team__link__img"
+                    src={teamLogo}
+                  />
                 </div>
                 <div>
                   <div title={teamName} className="break-word">
                     {teamName}
                   </div>
                   {newSearchParams.type === 'past'
-                    ? isEventAvailable[0]?.isHost && <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
-                    : hostEvents?.length > 0 && <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />}
+                    ? isEventAvailable[0]?.isHost && (
+                        <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
+                      )
+                    : hostEvents?.length > 0 && (
+                        <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
+                      )}
+                  {newSearchParams.type === 'past'
+                    ? isEventAvailable[0]?.isSponsor && (
+                        <IrlSponsorTag sponsorEvents={sponsorEvents} onSponsorEventClick={onSponsorEventClick} />
+                      )
+                    : sponsorEvents?.length > 0 && (
+                        <IrlSponsorTag sponsorEvents={sponsorEvents} onSponsorEventClick={onSponsorEventClick} />
+                      )}
                 </div>
               </a>
             </Link>
@@ -219,7 +286,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         </div>
 
         {/* Connect */}
-        {isLoggedIn ? (
+        {isLoggedIn && accessLevel === 'advanced' && (
           <div className="gtr__connect">
             {!showTelegram && userInfo.uid === guestUid ? (
               <Tooltip
@@ -228,14 +295,25 @@ const GuestTableRow = (props: IGuestTableRow) => {
                 content={<div className="gtr__connect__pvtTel__tp">Change your privacy settings to display</div>}
                 trigger={
                   <div className="gtr__connect__pvtTel">
-                    <img onClick={(e) => e.preventDefault()} className="cursor-default" src="/icons/telegram-eye.svg" alt="telegram-hidden" loading="lazy" />
+                    <img
+                      onClick={(e) => e.preventDefault()}
+                      className="cursor-default"
+                      src="/icons/telegram-eye.svg"
+                      alt="telegram-hidden"
+                      loading="lazy"
+                    />
                     <span className="gtr__connect__pvtTel__txt">Hidden from public</span>
                   </div>
                 }
               />
             ) : telegramId ? (
               <span className="gtr__connect__tel">
-                <img onClick={(e) => e.preventDefault()} className="cursor-default" src="/icons/telegram-solid.svg" alt="telegram" />
+                <img
+                  onClick={(e) => e.preventDefault()}
+                  className="cursor-default"
+                  src="/icons/telegram-solid.svg"
+                  alt="telegram"
+                />
                 <a
                   target="_blank"
                   title={telegramId}
@@ -258,31 +336,61 @@ const GuestTableRow = (props: IGuestTableRow) => {
             {userInfo.uid === guestUid && !officeHours ? (
               <>
                 {(newSearchParams.type === 'past' || newSearchParams.type === 'upcoming') && (
-                  <button onClick={() => handleAddOfficeHoursClick(canUserAddAttendees ? guest.memberUid : (userInfo.uid as string))} className="gtr__connect__add">
+                  <button
+                    onClick={() =>
+                      handleAddOfficeHoursClick(canUserAddAttendees ? guest.memberUid : (userInfo.uid as string))
+                    }
+                    className="gtr__connect__add"
+                  >
                     <img loading="lazy" src="/icons/add-rounded.svg" height={16} width={16} alt="plus" />
                     <span className="gtr__connect__add__txt">Add Office Hours</span>
-                      <Tooltip
-                        asChild
-                        align="start"
-                        content={
-                          <div className="gtr__connect__add__info">
-                            Please share your calendar link to facilitate scheduling for in-person meetings during the conference. Updating your availability for the conference week allows others to
-                            book time with you for face-to-face connections.
-                          </div>
-                        }
-                        trigger={<img style={{ display: 'flex' }} loading="lazy" src="/icons/info.svg" height={16} width={16} alt="plus" />}
-                      />
-                    </button>
-                  )}
+                    <Tooltip
+                      asChild
+                      align="start"
+                      content={
+                        <div className="gtr__connect__add__info">
+                          Please share your calendar link to facilitate scheduling for in-person meetings during the
+                          conference. Updating your availability for the conference week allows others to book time with
+                          you for face-to-face connections.
+                        </div>
+                      }
+                      trigger={
+                        <img
+                          style={{ display: 'flex' }}
+                          loading="lazy"
+                          src="/icons/info.svg"
+                          height={16}
+                          width={16}
+                          alt="plus"
+                        />
+                      }
+                    />
+                  </button>
+                )}
               </>
             ) : userInfo.uid !== guestUid && officeHours ? (
-              <div className="gtr__connect__book" onClick={() => handleOfficeHoursLinkClick(officeHours, guestUid, guestName)}>
+              <div
+                className="gtr__connect__book"
+                onClick={() => handleOfficeHoursLinkClick(officeHours, guestUid, guestName)}
+              >
                 <img src="/icons/video-cam.svg" height={16} width={16} loading="lazy" alt="cam" />
                 <span className="gtr__connect__book__txt">Book Time</span>
               </div>
             ) : null}
           </div>
-        ) : (
+        )}
+        {isLoggedIn && accessLevel !== 'advanced' && (
+          <div
+            className="gtr__connect__loggedOut__cntr"
+            onClick={(e: SyntheticEvent) => {
+              e.preventDefault();
+            }}
+          >
+            <img src="/icons/video-cam.svg" height={22} width={22} loading="lazy" alt="cam" />
+            <img src="/icons/telegram-rounded.svg" height={22} width={22} loading="lazy" alt="cam" />
+          </div>
+        )}
+        {!isLoggedIn && (
           <div className="gtr__connect__loggedOut">
             <Popover
               asChild
@@ -312,7 +420,11 @@ const GuestTableRow = (props: IGuestTableRow) => {
         {/* Attending */}
         <div className="gtr__attending">
           <div className="gtr__attending__cn">
-            {newSearchParams.type === 'past' ? '' : <div className="gtr__attending__cn__date">{formattedEventRange}</div>}
+            {newSearchParams.type === 'past' ? (
+              ''
+            ) : (
+              <div className="gtr__attending__cn__date">{formattedEventRange}</div>
+            )}
             <div className="gtr__attending__cn__evnt">
               <EventSummary events={eventNames} />
             </div>

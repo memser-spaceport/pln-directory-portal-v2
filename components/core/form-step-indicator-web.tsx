@@ -6,8 +6,8 @@ import { EVENTS, PROJECT_FORM_STEPS } from '@/utils/constants';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
-export function FormStepIndicatorWeb({steps,defaultStep,uniqueKey,title,subTitle}: IFormStepIndicatorProps) {
-  const { currentStep} = useStepsIndicator({ steps, defaultStep, uniqueKey });
+export function FormStepIndicatorWeb({ steps, defaultStep, uniqueKey, title, subTitle }: IFormStepIndicatorProps) {
+  const { currentStep } = useStepsIndicator({ steps, defaultStep, uniqueKey });
   // const { currentStep } = useStepsIndicator({ steps: PROJECT_FORM_STEPS, defaultStep: 'General', uniqueKey: 'add-project' });
 
   const currentStepIndex = steps.findIndex((v: string) => v === currentStep);
@@ -32,7 +32,9 @@ export function FormStepIndicatorWeb({steps,defaultStep,uniqueKey,title,subTitle
     <>
       <div className="formstep">
         <div className="formstep__header">
-          <h1 className="formstep__header__title">{title} - {currentStep}</h1>
+          <h1 className="formstep__header__title" data-testid="formstep-title">
+            {title} - {currentStep}
+          </h1>
 
           <p className="formstep__header__desc">{subTitle}</p>
         </div>
@@ -41,8 +43,20 @@ export function FormStepIndicatorWeb({steps,defaultStep,uniqueKey,title,subTitle
           {steps?.map((step: string, index: number) => (
             <div className="formstep__body__step" key={`${step} + ${index}`}>
               <div className="formstep__body__step__imgc">
-                <img className="formstep__body__step__imgc__img" src={getStepImageSrc(index)} alt="step icon" width="24" height="24" />
-                {currentStepIndex <= index && <p className={`formstep__body__step__imgc__img__count ${(currentStepIndex === index ) ? 'currentStep' : ''}`}>{index + 1}</p>}
+                <img
+                  className="formstep__body__step__imgc__img"
+                  src={getStepImageSrc(index)}
+                  alt="step icon"
+                  width="24"
+                  height="24"
+                />
+                {currentStepIndex <= index && (
+                  <p
+                    className={`formstep__body__step__imgc__img__count ${currentStepIndex === index ? 'currentStep' : ''}`}
+                  >
+                    {index + 1}
+                  </p>
+                )}
               </div>
               <div>{step} </div>
             </div>
@@ -88,7 +102,7 @@ export function FormStepIndicatorWeb({steps,defaultStep,uniqueKey,title,subTitle
           }
 
           .formstep__body__step__imgc {
-          position: relative;
+            position: relative;
             height: 24px;
             width: 24px;
           }
@@ -101,15 +115,15 @@ export function FormStepIndicatorWeb({steps,defaultStep,uniqueKey,title,subTitle
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color:  #475569;
+            color: #475569;
             font-size: 14px;
           }
 
           .currentStep {
-          font-size: 14px;
-          font-weight: 600;
-          line-height: 20px;
-          color: black;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            color: black;
           }
         `}
       </style>

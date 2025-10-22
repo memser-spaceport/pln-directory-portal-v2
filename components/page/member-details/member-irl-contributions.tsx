@@ -25,6 +25,7 @@ interface IEventGuest {
   uid: string;
   isHost: boolean;
   isSpeaker: boolean;
+  isSponsor: boolean;
   event: IEvent;
 }
 
@@ -32,6 +33,7 @@ interface GroupedEvents {
   Attendee: IEvent[];
   Speaker: IEvent[];
   Host: IEvent[];
+  Sponsor: IEvent[];
 }
 
 interface IMemberRepositories {
@@ -51,20 +53,23 @@ const IrlMemberContribution = (props: IMemberRepositories) => {
   const transformData = (array: any[]): GroupedEvents => {
     return array.reduce(
       (acc: GroupedEvents, item) => {
-        if (!item.isSpeaker && !item.isHost) {
+        if (!item.isSpeaker && !item.isHost && !item.isSponsor) {
           acc.Attendee.push(item.event);
         }
 
         if (item.isSpeaker) acc.Speaker.push(item.event);
         if (item.isHost) acc.Host.push(item.event);
+        if (item.isSponsor) acc.Sponsor.push(item.event);
 
         return acc;
       },
-      { Host: [], Speaker: [], Attendee: [] }
+      { Host: [], Speaker: [], Attendee: [], Sponsor: [] },
     );
   };
 
-  const groupedData: GroupedEvents = member ? transformData(sortedEvents) : { Host: [], Speaker: [], Attendee: [] };
+  const groupedData: GroupedEvents = member
+    ? transformData(sortedEvents)
+    : { Host: [], Speaker: [], Attendee: [], Sponsor: [] };
 
   const onClose = () => {
     if (modalRef.current) {
@@ -149,14 +154,19 @@ const IrlMemberContribution = (props: IMemberRepositories) => {
                             }}
                           >
                             <div className="root__irlCrbts__col__event__cnt__title">{details?.name}</div>
-                            <div className="root__irlCrbts__col__event__cnt__date">{getFormattedDateString(details?.startDate, details?.location?.timezone)}</div>
+                            <div className="root__irlCrbts__col__event__cnt__date">
+                              {getFormattedDateString(details?.startDate, details?.location?.timezone)}
+                            </div>
                           </div>
                         }
                       />
                     );
                   })}
                   {additionalCount > 0 && (
-                    <div className="root__irlCrbts__col__event__cnts additional-count" onClick={() => onClickHandler(role)}>
+                    <div
+                      className="root__irlCrbts__col__event__cnts additional-count"
+                      onClick={() => onClickHandler(role)}
+                    >
                       +{additionalCount}
                     </div>
                   )}
@@ -277,7 +287,11 @@ const IrlMemberContribution = (props: IMemberRepositories) => {
 
           .active {
             position: relative;
-            background: linear-gradient(71.47deg, rgba(66, 125, 255, 0.2) 8.43%, rgba(68, 213, 187, 0.2) 87.45%) !important;
+            background: linear-gradient(
+              71.47deg,
+              rgba(66, 125, 255, 0.2) 8.43%,
+              rgba(68, 213, 187, 0.2) 87.45%
+            ) !important;
             border: none !important;
           }
 
@@ -291,7 +305,9 @@ const IrlMemberContribution = (props: IMemberRepositories) => {
             border-radius: 4px;
             border: 1px solid transparent;
             background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
-            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask:
+              linear-gradient(#fff 0 0) padding-box,
+              linear-gradient(#fff 0 0);
             -webkit-mask-composite: destination-out;
             mask-composite: exclude;
             pointer-events: none;

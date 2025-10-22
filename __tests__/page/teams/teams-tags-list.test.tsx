@@ -5,12 +5,7 @@ import TeamsTagsList from '@/components/page/teams/teams-tags-list';
 import { ITag } from '@/types/teams.types';
 
 describe('TeamsTagsList Component', () => {
-  const mockTags: ITag[] = [
-    { title: 'Tag1' },
-    { title: 'Tag2' },
-    { title: 'Tag3' },
-    { title: 'Tag4' },
-  ];
+  const mockTags: ITag[] = [{ title: 'Tag1' }, { title: 'Tag2' }, { title: 'Tag3' }, { title: 'Tag4' }];
 
   it('renders the correct number of tags based on noOfTagsToShow', () => {
     render(<TeamsTagsList tags={mockTags} noOfTagsToShow={2} />);
@@ -38,7 +33,7 @@ describe('TeamsTagsList Component', () => {
       expect(button).toHaveTextContent(tag.title);
     });
   });
- /*  it('displays all additional tags in the tooltip when hovering over the additional tags indicator', () => {
+  /*  it('displays all additional tags in the tooltip when hovering over the additional tags indicator', () => {
     render(<TeamsTagsList tags={mockTags} noOfTagsToShow={2} />);
     const additionalTagsIndicator = screen.getAllByTestId('additional-tags');
     additionalTagsIndicator[0].dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
@@ -47,7 +42,7 @@ describe('TeamsTagsList Component', () => {
       expect(screen.getByText(tag.title)).toBeInTheDocument();
     });
   }); */
-/* 
+  /* 
   
 
   
@@ -56,4 +51,3 @@ describe('TeamsTagsList Component', () => {
 
   */
 });
-

@@ -1,11 +1,11 @@
 import { IPastEvents, IUpcomingEvents } from '@/types/irl.types';
 import { getHeader } from '@/utils/common.utils';
 import { customFetch } from '@/utils/fetch-wrapper';
-import { sortPastEvents, transformMembers } from '@/utils/irl.utils';
+import { transformMembers, sortEvents, parseDateString } from '@/utils/irl.utils';
 import { isError } from 'util';
 
 export const getAllLocations = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations?pagination=false`, {
     cache: 'force-cache',
     next: { tags: ['irl-locations'] },
     method: 'GET',
@@ -17,12 +17,31 @@ export const getAllLocations = async () => {
   }
 
   const result = await response.json();
-  result.sort((a: { priority: number }, b: { priority: number }) => a.priority - b.priority);
+  result.sort((a: { priority: number | null }, b: { priority: number | null }) => {
+    if (a.priority === null && b.priority === null) return 0;
+    if (a.priority === null) return 1;
+    if (b.priority === null) return -1;
+    return a.priority - b.priority;
+  });
 
   const filteredResult = result.filter(
-    (item: { pastEvents: IPastEvents[]; upcomingEvents: IUpcomingEvents[]; }) =>
-      item.pastEvents.length > 0 || item.upcomingEvents.length > 0
+    (item: { pastEvents: IPastEvents[]; upcomingEvents: IUpcomingEvents[] }) =>
+      item.pastEvents.length > 0 || item.upcomingEvents.length > 0,
   );
+
+  filteredResult.forEach((location: any) => {
+    if (location.events && location.events.length > 0) {
+      location.events = sortEvents(location.events, 'all');
+    }
+
+    if (location.pastEvents && location.pastEvents.length > 0) {
+      location.pastEvents = sortEvents(location.pastEvents, 'past');
+    }
+
+    if (location.upcomingEvents && location.upcomingEvents.length > 0) {
+      location.upcomingEvents = sortEvents(location.upcomingEvents, 'upcoming');
+    }
+  });
 
   return filteredResult;
 };
@@ -38,7 +57,40 @@ const fetchGuests = async (url: string, authToken: string) => {
   return await response.json();
 };
 
-export const getGuestsByLocation = async (location: string, searchParams: any, authToken: string, currentEventNames: string[], currentPage = 1, limit = 10) => {
+export const getGuestsByLocation = async (
+  location: string,
+  searchParams: any,
+  authToken: string,
+  currentEventNames: string[],
+  currentPage = 1,
+  limit = 10,
+) => {  
+  // Default to 'upcoming' if no type is specified
+  if (!searchParams?.type || searchParams.type === '' || searchParams.type === 'upcoming') {
+    searchParams = { ...searchParams, type: 'upcoming' };
+  } else if (searchParams.type === 'past') {
+    searchParams = { ...searchParams, type: 'past' };
+  } else {
+    searchParams = { ...searchParams, type: 'upcoming' };
+  }
+  
+  const result = await fetchGuestsWithParams(location, searchParams, authToken, currentEventNames, currentPage, limit);
+
+  if (result.isError) {
+    return { isError: true };
+  }  
+  return result;
+};
+
+// Helper function to fetch guests with parameters
+const fetchGuestsWithParams = async (
+  location: string,
+  searchParams: any,
+  authToken: string,
+  currentEventNames: string[],
+  currentPage: number,
+  limit: number
+) => {
   const urlParams = new URLSearchParams() as any;
 
   // Loop through the searchParams object
@@ -72,7 +124,7 @@ export const deleteEventGuestByLocation = async (location: string, payload: any)
       },
       body: JSON.stringify(payload),
     },
-    true
+    true,
   );
 
   if (!response?.ok) {
@@ -93,7 +145,7 @@ export const createEventGuest = async (locationId: string, payload: any, type: s
         'Content-Type': 'application/json',
       },
     },
-    true
+    true,
   );
 
   if (!response?.ok) {
@@ -113,7 +165,7 @@ export const markMyPresence = async (locationId: string, payload: any, type: str
         'Content-Type': 'application/json',
       },
     },
-    true
+    true,
   );
 
   if (!response?.ok) {
@@ -121,7 +173,6 @@ export const markMyPresence = async (locationId: string, payload: any, type: str
   }
   return { data: response };
 };
-
 
 export const editEventGuest = async (locationId: string, guestUid: string, payload: any, eventType: string) => {
   const response = await customFetch(
@@ -134,7 +185,7 @@ export const editEventGuest = async (locationId: string, guestUid: string, paylo
         'Content-Type': 'application/json',
       },
     },
-    true
+    true,
   );
 
   if (!response?.ok) {
@@ -144,9 +195,9 @@ export const editEventGuest = async (locationId: string, guestUid: string, paylo
   return { data: response };
 };
 
-export const getGuestEvents = async (locationId: string, authToken: string,) => {
+export const getGuestEvents = async (locationId: string, authToken: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/me/events`, {
-    cache: 'force-cache',
+    cache: 'no-store',
     next: { tags: ['irl-guest-events'] },
     method: 'GET',
     headers: getHeader(authToken),
@@ -171,11 +222,14 @@ export const getTopicsByLocation = async (locationId: string, type: string) => {
 };
 
 export const getTopicsAndReasonForUser = async (locationId: string, userId: string, authToken: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${userId}/topics`, {
-    cache: 'no-store',
-    method: 'GET',
-    headers: getHeader(authToken),
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${userId}/topics`,
+    {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(authToken),
+    },
+  );
 
   if (!response.ok) {
     return { isError: true };
@@ -185,11 +239,14 @@ export const getTopicsAndReasonForUser = async (locationId: string, userId: stri
 };
 
 export const getGuestDetail = async (guestId: string, locationId: string, authToken: string, type: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestId}?type=${type}`, {
-    cache: 'no-store',
-    method: 'GET',
-    headers: getHeader(authToken),
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestId}?type=${type}`,
+    {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(authToken),
+    },
+  );
 
   if (!response.ok) {
     return [];
@@ -198,44 +255,45 @@ export const getGuestDetail = async (guestId: string, locationId: string, authTo
   return await response.json();
 };
 
-
 export const getFollowersByLocation = async (locationId: string, authToken: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member-subscriptions?entityUid=${locationId}&isActive=true&pagination=false&select=uid,memberUid,entityUid,entityAction,entityType,isActive,member.image.url,member.name,member.teamMemberRoles.team,member.teamMemberRoles.role,member.teamMemberRoles.mainTeam`, {
-    cache: 'no-store',
-    method: 'GET',
-    headers: getHeader(''),
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/member-subscriptions?entityUid=${locationId}&isActive=true&pagination=false&select=uid,memberUid,entityUid,entityAction,entityType,isActive,member.image.url,member.name,member.ohStatus,member.scheduleMeetingCount,member.officeHours,member.teamMemberRoles.team,member.teamMemberRoles.role,member.teamMemberRoles.mainTeam`,
+    {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(''),
+    },
+  );
 
-  
   if (!response.ok) {
     return {
       isError: true,
     };
   }
-  
+
   const result = await response.json();
 
-
   const formattedData = result?.map((follower: any) => {
-    const teams = follower?.member?.teamMemberRoles?.map((teamMemberRole: any) => ({
-      id: teamMemberRole.team?.uid || '',
-      name: teamMemberRole.team?.name || '',
-      role: teamMemberRole.role || 'Contributor',
-      teamLead: !!teamMemberRole.teamLead,
-      mainTeam: !!teamMemberRole.mainTeam,
-      logo: teamMemberRole?.team?.logo?.url || '',
-    })) || [];
-  
+    const teams =
+      follower?.member?.teamMemberRoles?.map((teamMemberRole: any) => ({
+        id: teamMemberRole.team?.uid || '',
+        name: teamMemberRole.team?.name || '',
+        role: teamMemberRole.role || 'Contributor',
+        teamLead: !!teamMemberRole.teamLead,
+        mainTeam: !!teamMemberRole.mainTeam,
+        logo: teamMemberRole?.team?.logo?.url || '',
+      })) || [];
+
     const teamAndRoles = teams.map((team: any) => ({
       teamTitle: team.name,
       role: team.role,
       teamUid: team.id,
     }));
-  
+
     const teamLead = teams.some((team: any) => team.teamLead);
     // const roles = Array.from(new Set(teams.map((team: any) => team.role)));
     const roles = teams.filter((team: any) => team.mainTeam).map((team: any) => team.role);
-  
+
     return {
       uid: follower?.uid,
       name: follower?.member?.name,
@@ -247,10 +305,28 @@ export const getFollowersByLocation = async (locationId: string, authToken: stri
       logo: follower?.member?.image?.url,
       teamLead: teamLead,
       roles: Array.isArray(roles) ? roles : [],
+      teams,
+      member: follower?.member,
     };
   });
-  
+
   return {
     data: formattedData,
+  };
+};
+
+export const deleteEventLocation = async (locationId: string, eventId: string, authToken: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/events/${eventId}`, {
+    cache: 'no-store',
+    method: 'DELETE',
+    headers: getHeader(authToken),
+  });
+
+  if (!response.ok) {
+    return {
+      isError: true,
+    };
   }
-}
+
+  return await response.json();
+};

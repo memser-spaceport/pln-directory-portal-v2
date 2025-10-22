@@ -7,7 +7,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { DEFAULT_PROJECT_TAGS, EVENTS } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import DeleteConfirmationModal from './delete-confirmation-modal';
 import { useEffect } from 'react';
 
@@ -31,10 +31,9 @@ const Header = (props: IHeader) => {
   const user = props?.user;
   const authToken = props?.authToken;
   const router = useRouter();
-  
 
   const tags = project?.tags?.length ? getTagsLabel(project.tags) : [];
-  
+
   const analytics = useProjectAnalytics();
 
   const onOpenDeleteModal = () => {
@@ -83,7 +82,12 @@ const Header = (props: IHeader) => {
     <>
       <div className="header">
         <div className="header__profile">
-          <img fetchPriority="high" className="header__profile__img" src={project?.logo ?? '/icons/default-project.svg'} alt="logo" />
+          <img
+            fetchPriority="high"
+            className="header__profile__img"
+            src={project?.logo ?? '/icons/default-project.svg'}
+            alt="logo"
+          />
         </div>
         <div className="header__details">
           <div className="header__details__specifics">
@@ -136,11 +140,11 @@ const Header = (props: IHeader) => {
           column-gap: 8px;
         }
 
-        .header__tags__tag{
-            background-color: #f1f5f9;
-            padding: 6px 12px 6px 12px;
-            border-radius: 24px;
-          }
+        .header__tags__tag {
+          background-color: #f1f5f9;
+          padding: 6px 12px 6px 12px;
+          border-radius: 24px;
+        }
 
         button {
           background: none;
@@ -271,7 +275,8 @@ const Header = (props: IHeader) => {
           }
 
           .header__details__specifics__hdr {
-          height: 40px;}
+            height: 40px;
+          }
 
           .header__profile {
             grid-row: span 3 / span 3;

@@ -54,7 +54,13 @@ const TextFieldWithCopyIcon: React.FC<TextFieldProps> = ({
         )}
         <div className="tf__inptcnt">
           <div className="tf__inptcnt__imgcnt">
-            <img height={16} width={16} src="/icons/link-icon.svg" alt="copy-icon" className="tf__inptcnt__imgcnt__icon" />
+            <img
+              height={16}
+              width={16}
+              src="/icons/link-icon.svg"
+              alt="copy-icon"
+              className="tf__inptcnt__imgcnt__icon"
+            />
           </div>
           <input
             ref={inputRef}
@@ -95,8 +101,8 @@ const TextFieldWithCopyIcon: React.FC<TextFieldProps> = ({
             border-radius: 0px 8px 8px 0px;
             outline: none;
             padding-right: ${isDelete ? '35px' : ''};
-            background-color: ${readOnly ? '#F1F5F9': ""};
-            cursor: ${readOnly ? 'not-allowed': ""};
+            background-color: ${readOnly ? '#F1F5F9' : ''};
+            cursor: ${readOnly ? 'not-allowed' : ''};
           }
 
           .tf__inptcnt {
@@ -106,7 +112,7 @@ const TextFieldWithCopyIcon: React.FC<TextFieldProps> = ({
             border: 1px solid red;
             border-radius: 8px;
 
-            border: ${isError || (isMandatory && !enteredValue) ? '1px solid red' : '1px solid lightgrey' };
+            border: ${isError || (isMandatory && !enteredValue) ? '1px solid red' : '1px solid lightgrey'};
           }
 
           .tf__inptcnt__imgcnt {

@@ -1,9 +1,22 @@
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE, EMAIL_REGEX, EVENTS, GITHUB_URL_REGEX, LINKEDIN_URL_REGEX, SORT_OPTIONS, TELEGRAM_URL_REGEX, TWITTER_URL_REGEX } from './constants';
+import {
+  ADMIN_ROLE,
+  EMAIL_REGEX,
+  EVENTS,
+  GITHUB_URL_REGEX,
+  LINKEDIN_URL_REGEX,
+  SORT_OPTIONS,
+  TELEGRAM_URL_REGEX,
+  TWITTER_URL_REGEX,
+} from './constants';
 import { ITeam } from '@/types/teams.types';
-import Cookies from 'js-cookie'
+import Cookies from 'js-cookie';
 export const triggerLoader = (status: boolean) => {
   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_LOADER, { detail: status }));
+};
+
+export const triggerDialogLoader = (status: boolean) => {
+  document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_DIALOG_LOADER, { detail: status }));
 };
 
 export function compareObjsIfSame(obj1: any, obj2: any) {
@@ -11,8 +24,8 @@ export function compareObjsIfSame(obj1: any, obj2: any) {
     return true; // Handles identical values and reference equality for objects and arrays
   }
 
-   // Treat "" and null as equivalent
-   if ((obj1 === "" && obj2 === null) || (obj1 === null && obj2 === "")) {
+  // Treat "" and null as equivalent
+  if ((obj1 === '' && obj2 === null) || (obj1 === null && obj2 === '')) {
     return true;
   }
 
@@ -64,7 +77,6 @@ export const getUserInfoFromLocal = () => {
   }
 };
 
-
 export const getUniqueId = () => {
   const dateString = Date.now().toString(36); // Encodes current timestamp in base 36
   const randomness = Math.random().toString(36).slice(2); // Generates a random string
@@ -82,7 +94,7 @@ export function generateUUID(): string {
 export const getParsedValue = (value: string | undefined) => {
   try {
     if (value) {
-      return JSON.parse(value);
+      return JSON.parse(decodeURIComponent(value));
     }
     return '';
   } catch (error) {
@@ -151,12 +163,12 @@ export const getAnalyticsProjectInfo = (project: any) => {
 };
 
 export const getAnalyticsLocationCardInfo = (location: any) => {
-  if(location?.uid && location.location) {
+  if (location?.uid && location.location) {
     return {
       uid: location.uid,
       name: location.location,
       slugUrl: location.location?.split(',')[0].trim(),
-    }
+    };
   }
 };
 
@@ -181,8 +193,10 @@ export const getQuery = (searchParams: any) => {
     team: searchParams?.team ?? '',
     isHost: searchParams?.isHost ?? '',
     isSpeaker: searchParams?.isSpeaker ?? '',
-    isHostAndSpeaker: searchParams?.isHostAndSpeaker ?? '',
+    isSponsor: searchParams?.isSponsor ?? '',
+    isHostAndSpeakerAndSponsor: searchParams?.isHostAndSpeakerAndSponsor ?? '',
     asks: searchParams?.asks ?? '',
+    searchBy: searchParams?.searchBy ?? '',
   };
 };
 
@@ -242,7 +256,10 @@ export function getSocialLinkUrl(linkContent: string, type: string, url?: string
     twitter: `https://twitter.com/${linkContent}`,
     github: `https://github.com/${linkContent}`,
     telegram: `https://t.me/${linkContent}`,
-    linkedin: type === 'linkedin' && linkContent !== url ? url : `https://www.linkedin.com/search/results/all/?keywords=${linkContent}`,
+    linkedin:
+      type === 'linkedin' && linkContent !== url
+        ? url
+        : `https://www.linkedin.com/search/results/all/?keywords=${linkContent}`,
     discord: 'https://discord.com/app',
   };
   return socialUrls[type] || linkContent;
@@ -260,17 +277,29 @@ export const getProfileFromURL = (handle: string, type: string) => {
 
   const match = regex && handle?.match(regex);
 
-  return match && match[1] ? decodeURIComponent(match[1]).replace(/^@/, '') : type === 'telegram' || type === 'twitter' ? handle?.replace(/^@/, '') : handle;
+  return match && match[1]
+    ? decodeURIComponent(match[1]).replace(/^@/, '')
+    : type === 'telegram' || type === 'twitter'
+      ? handle?.replace(/^@/, '')
+      : handle;
 };
 
-export const sortMemberByRole = (firstMember: { teamLead: number; name: string }, secondMember: { teamLead: number; name: any }) => {
+export const sortMemberByRole = (
+  firstMember: { teamLead: number; name: string },
+  secondMember: { teamLead: number; name: any },
+) => {
   if (secondMember.teamLead - firstMember.teamLead !== 0) {
     return secondMember.teamLead - firstMember.teamLead;
   }
   return firstMember.name.localeCompare(secondMember.name);
 };
 
-export const hasProjectEditAccess = (userInfo: IUserInfo, selectedProject: any, isUserLoggedIn: boolean, teams: any) => {
+export const hasProjectEditAccess = (
+  userInfo: IUserInfo,
+  selectedProject: any,
+  isUserLoggedIn: boolean,
+  teams: any,
+) => {
   try {
     if (!isUserLoggedIn) {
       return false;
@@ -353,7 +382,6 @@ export const calculateTime = (inputDate: any) => {
   }
 };
 
-
 export function removeAtSymbol(str: string) {
   try {
     if (str.startsWith('@')) {
@@ -361,7 +389,7 @@ export function removeAtSymbol(str: string) {
     }
     return str;
   } catch (error) {
-    return str
+    return str;
   }
 }
 
@@ -374,3 +402,27 @@ export function getTelegramUsername(input: string) {
 export const isMobileDevice = () => {
   return /Mobi|Android/i.test(navigator.userAgent);
 };
+
+export const isSkipRecaptcha = () => {
+  return process.env.NEXT_PUBLIC_SKIP_RECAPTCHA_CHECK === 'true';
+};
+
+/**
+ * Normalizes an office hours URL by adding https:// protocol if no protocol is provided
+ * @param url - The URL to normalize
+ * @returns The normalized URL with https:// protocol
+ */
+export const normalizeOfficeHoursUrl = (url: string): string => {
+  if (!url) return url;
+
+  // Check if URL already has a protocol (http:// or https://)
+  if (!url.match(/^https?:\/\//i)) {
+    return `https://${url}`;
+  }
+
+  return url;
+};
+
+export const toTitleCase = (str: string) => {
+  return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+}

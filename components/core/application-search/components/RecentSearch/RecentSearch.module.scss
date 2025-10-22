@@ -1,0 +1,70 @@
+@use 'styles/mixins';
+@use 'styles/media';
+
+$padding-inline: 16px;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+  gap: 8px;
+  padding: 8px 16px;
+
+  .label {
+    color: #64748b;
+    font-feature-settings:
+      'liga' off,
+      'clig' off;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 16px;
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    gap: 4px;
+  }
+
+  .searchItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    padding: 8px;
+    border-radius: 8px;
+    background: #f8fafc;
+    cursor: pointer;
+  }
+
+  .searchItemText {
+    color: #475569;
+    font-feature-settings:
+      'liga' off,
+      'clig' off;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px; /* 142.857% */
+    flex: 1;
+    text-align: left;
+    pointer-events: none;
+  }
+
+  .removeButton {
+    @include mixins.centralize;
+    &:hover {
+      filter: brightness(0.5);
+    }
+  }
+}
+
+.divider {
+  height: 1px;
+  width: 100%;
+  //margin-inline: -$padding-inline;
+  margin-block: 8px;
+  background: #e2e8f0;
+}

@@ -1,0 +1,223 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 176px;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  transition: box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 0 0 2px #156ff740;
+  }
+
+  @include media.tablet-landscape {
+    width: 289px;
+  }
+}
+
+.top {
+  display: flex;
+  height: 50px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  align-self: stretch;
+
+  border-radius: 12px 12px 0 0;
+  background: var(--Member-Card-Gradient, linear-gradient(180deg, #fff 0%, #e2e8f0 100%));
+  position: relative;
+
+  overflow: hidden;
+
+  @include media.tablet-landscape {
+    height: 94px;
+  }
+}
+
+.avatarWrapper {
+  z-index: 1;
+
+  @include media.tablet-landscape {
+    background-image: url('/images/outer-circle.svg');
+    height: 94px;
+    width: 147px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background-repeat: no-repeat;
+    z-index: unset;
+    top: unset;
+    background-position: center;
+  }
+}
+
+.avatar {
+  height: 40px;
+  width: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  object-fit: cover;
+  object-position: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+
+  @include media.tablet-landscape {
+    height: 80px !important;
+    width: 80px;
+    min-width: 80px;
+    min-height: 80px;
+  }
+}
+
+.outerRing {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  //border: 1px solid linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+
+  @include media.tablet-landscape {
+    height: 104px;
+    width: 104px;
+  }
+}
+
+.availableToConnectBadge {
+  @include mixins.ellipse-text;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -8px;
+
+  display: flex;
+  height: 16px;
+  padding: var(--spacing-zero, 0) var(--spacing-4xs, 4px) 0 var(--spacing-4xs, 4px);
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  background: #f2f5ff;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 14px; /* 140% */
+  letter-spacing: -0.2px;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+.detailsSection {
+  display: flex;
+  padding: 16px 16px 24px 16px;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  align-self: stretch;
+  border-radius: 0 0 12px 12px;
+  background: #fff;
+  z-index: 1;
+  position: relative;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.primaryText {
+  @include mixins.ellipse-text;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-align: center;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px; /* 133.333% */
+  letter-spacing: -0.4px;
+  max-width: 144px;
+
+  @include media.tablet-landscape {
+    max-width: 250px;
+  }
+}
+
+.positionDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.secondaryText {
+  @include mixins.ellipse-text;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+  max-width: 144px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  > p {
+    @include mixins.ellipse-text;
+    max-width: 144px;
+  }
+
+  @include media.tablet-landscape {
+    max-width: 250px;
+
+    > p {
+      @include mixins.ellipse-text;
+      max-width: 250px;
+    }
+  }
+}
+
+.locationWrapper {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+.tertiaryText {
+  @include mixins.ellipse-text;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.2px;
+
+  @include mixins.ellipse-text;
+  max-width: 144px;
+
+  @include media.tablet-landscape {
+    max-width: 220px;
+  }
+}

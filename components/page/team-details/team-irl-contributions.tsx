@@ -25,11 +25,13 @@ interface IEvent {
 interface IEventGuest {
   uid: string;
   isHost: boolean;
+  isSponsor: boolean;
   event: IEvent;
 }
 
 interface GroupedEvents {
   Host: IEvent[];
+  Sponsor: IEvent[];
 }
 
 interface ITeamMembers {
@@ -51,14 +53,21 @@ const TeamIrlContributions = (props: ITeamMembers) => {
   const transformData = (event: IEventGuest[]): GroupedEvents => {
     return event.reduce(
       (acc: GroupedEvents, item) => {
-        acc.Host.push(item.event);
+        if (item.isHost) {
+          acc.Host.push(item.event);
+        }
+
+        if (item.isSponsor) {
+          acc.Sponsor.push(item.event);
+        }
+
         return acc;
       },
-      { Host: [] }
+      { Host: [], Sponsor: [] },
     );
   };
 
-  const groupedData: GroupedEvents = team ? transformData(sortedEvents) : { Host: [] };
+  const groupedData: GroupedEvents = team ? transformData(sortedEvents) : { Host: [], Sponsor: [] };
 
   const onClose = () => {
     if (modalRef.current) {
@@ -105,6 +114,8 @@ const TeamIrlContributions = (props: ITeamMembers) => {
     return format(dateInTargetTimezone, 'MMM yyyy', { timeZone });
   };
 
+  console.log(sortedEvents);
+
   return (
     <>
       <div className="root">
@@ -138,14 +149,19 @@ const TeamIrlContributions = (props: ITeamMembers) => {
                             }}
                           >
                             <div className="root__irlCrbts__col__event__cnt__title">{details?.name}</div>
-                            <div className="root__irlCrbts__col__event__cnt__date">{getFormattedDateString(details?.startDate, details?.location?.timeZone)}</div>
+                            <div className="root__irlCrbts__col__event__cnt__date">
+                              {getFormattedDateString(details?.startDate, details?.location?.timeZone)}
+                            </div>
                           </div>
                         }
                       />
                     );
                   })}
                   {additionalCount > 0 && (
-                    <div className="root__irlCrbts__col__event__cnts additional-count" onClick={() => onClickHandler(role)}>
+                    <div
+                      className="root__irlCrbts__col__event__cnts additional-count"
+                      onClick={() => onClickHandler(role)}
+                    >
                       +{additionalCount}
                     </div>
                   )}
@@ -163,7 +179,9 @@ const TeamIrlContributions = (props: ITeamMembers) => {
             .map(([role, events]) => (
               <>
                 <div className="root__irl__modalHeader">
-                  <div className="root__irl__modalHeader__title">Contributions - {role} ({events.length})</div>
+                  <div className="root__irl__modalHeader__title">
+                    Contributions - {role} ({events.length})
+                  </div>
                 </div>
                 <div className="root__irl__popupCntr">
                   {events.map((resource: { link: any; name: any }, index: number) => (
@@ -265,7 +283,11 @@ const TeamIrlContributions = (props: ITeamMembers) => {
 
           .active {
             position: relative;
-            background: linear-gradient(71.47deg, rgba(66, 125, 255, 0.2) 8.43%, rgba(68, 213, 187, 0.2) 87.45%) !important;
+            background: linear-gradient(
+              71.47deg,
+              rgba(66, 125, 255, 0.2) 8.43%,
+              rgba(68, 213, 187, 0.2) 87.45%
+            ) !important;
             border: none !important;
           }
           .active::before {
@@ -278,7 +300,9 @@ const TeamIrlContributions = (props: ITeamMembers) => {
             border-radius: 4px;
             border: 1px solid transparent;
             background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
-            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask:
+              linear-gradient(#fff 0 0) padding-box,
+              linear-gradient(#fff 0 0);
             -webkit-mask-composite: destination-out;
             mask-composite: exclude;
             pointer-events: none;

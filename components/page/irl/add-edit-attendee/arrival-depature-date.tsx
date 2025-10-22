@@ -177,7 +177,10 @@ const ArrivalAndDepatureDate = (props: IArrivalDepatureDateProps) => {
 
         <div className="dtscnt__desc">
           <img src="/icons/info.svg" alt="info" width={16} height={16} />
-          <p className="dtscnt__desc__txt">Please note that your arrival and departure dates must fall within five days before or after the official event dates ({startAndEndDateInfo}).</p>
+          <p className="dtscnt__desc__txt">
+            Please note that your arrival and departure dates must fall within five days before or after the official
+            event dates ({startAndEndDateInfo}).
+          </p>
         </div>
       </div>
 
@@ -248,11 +251,17 @@ const ArrivalAndDepatureDate = (props: IArrivalDepatureDateProps) => {
         }
 
         .dtscnt__dte__arvldte__infield {
-          border: ${dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED) || dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE) ? '1px solid red' : '1px solid lightgrey'};
+          border: ${dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED) ||
+          dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE)
+            ? '1px solid red'
+            : '1px solid lightgrey'};
         }
 
         .dtscnt__dte__deprdte__outfield {
-          border: ${dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.CHECKOUT_DATE_REQUIRED) || dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE) ? '1px solid red' : '1px solid lightgrey'};
+          border: ${dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.CHECKOUT_DATE_REQUIRED) ||
+          dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE)
+            ? '1px solid red'
+            : '1px solid lightgrey'};
         }
 
         .dtscnt__desc {

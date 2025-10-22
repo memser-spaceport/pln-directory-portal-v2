@@ -9,12 +9,19 @@ import useStepsIndicator from '@/hooks/useStepsIndicator';
 import { createParticipantRequest } from '@/services/participants-request.service';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
-import { formInputsToMemberObj, getMemberInfoFormValues, memberRegistrationDefaults, validateBasicForms, validateContributionErrors, validateTeamsAndSkills } from '@/utils/member.utils';
-import { toast } from 'react-toastify';
+import {
+  formInputsToMemberObj,
+  getMemberInfoFormValues,
+  memberRegistrationDefaults,
+  validateBasicForms,
+  validateContributionErrors,
+  validateTeamsAndSkills,
+} from '@/utils/member.utils';
+import { toast } from '@/components/core/ToastContainer';
+import Cookies from 'js-cookie';
 import RegisterActions from '@/components/core/register/register-actions';
 import RegisterSuccess from '@/components/core/register/register-success';
 import { useJoinNetworkAnalytics } from '@/analytics/join-network.analytics';
-
 
 interface RegisterFormProps {
   onCloseForm: () => void;
@@ -58,7 +65,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
       if (formRef.current) {
         const formData = new FormData(formRef.current);
         const formValues = formInputsToMemberObj(Object.fromEntries(formData));
-        analytics.recordMemberJoinNetworkSave("save-click", formValues);
+        analytics.recordMemberJoinNetworkSave('save-click', formValues);
 
         // Upload image if available
         if (formValues.memberProfile && formValues.memberProfile.size > 0) {
@@ -82,21 +89,22 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
           uniqueIdentifier: formValues.email,
           newData: { ...formValues, openToWork: false },
         };
-        const formResult = await createParticipantRequest(bodyData);
+        const authToken = Cookies.get('authToken') || '';
+        const formResult = await createParticipantRequest(bodyData, authToken);
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
         if (formResult.ok) {
           formRef.current.reset();
           setCurrentStep('success');
-          analytics.recordMemberJoinNetworkSave("save-success", bodyData);
+          analytics.recordMemberJoinNetworkSave('save-success', bodyData);
         } else {
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-          analytics.recordMemberJoinNetworkSave("save-error", bodyData);
+          analytics.recordMemberJoinNetworkSave('save-error', bodyData);
         }
       }
     } catch (err) {
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-      analytics.recordMemberJoinNetworkSave("save-error");
+      analytics.recordMemberJoinNetworkSave('save-error');
     }
   };
 
@@ -191,16 +199,30 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
               <MemberBasicInfo initialValues={initialValues.basicInfo} errors={basicErrors} />
             </div>
             <div className={currentStep !== 'contributions' ? 'hidden' : 'form'}>
-              <MemberContributionInfo initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} errors={contributionErrors} />
+              <MemberContributionInfo
+                initialValues={initialValues.contributionInfo}
+                projectsOptions={allData.projects}
+                errors={contributionErrors}
+              />
             </div>
             <div className={currentStep !== 'social' ? 'hidden' : 'form'}>
               <MemberSocialInfo initialValues={initialValues.socialInfo} errors={socialErrors} />
             </div>
             <div className={currentStep !== 'skills' ? 'hidden' : 'form'}>
-              <MemberSkillsInfo initialValues={initialValues.skillsInfo} errors={skillsErrors} teamsOptions={allData.teams} skillsOptions={allData.skills} />
+              <MemberSkillsInfo
+                initialValues={initialValues.skillsInfo}
+                errors={skillsErrors}
+                teamsOptions={allData.teams}
+                skillsOptions={allData.skills}
+              />
             </div>
           </div>
-          <RegisterActions currentStep={currentStep} onCloseForm={onCloseForm} onBackClicked={onBackClicked} onNextClicked={onNextClicked} />
+          <RegisterActions
+            currentStep={currentStep}
+            onCloseForm={onCloseForm}
+            onBackClicked={onBackClicked}
+            onNextClicked={onNextClicked}
+          />
         </form>
       )}
       {currentStep === 'success' && <RegisterSuccess onCloseForm={onCloseForm} />}

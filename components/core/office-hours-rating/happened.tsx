@@ -3,7 +3,7 @@ import TextArea from '@/components/form/text-area';
 import { createFeedBack } from '@/services/office-hours.service';
 import { EVENTS, FEEDBACK_RESPONSE_TYPES, RATINGS, TOAST_MESSAGES, TROUBLES_INFO } from '@/utils/constants';
 import { FormEvent, useEffect, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import TroubleSection from './trouble-section';
 import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
@@ -84,10 +84,7 @@ const Happened = (props: IHappened) => {
       response = FEEDBACK_RESPONSE_TYPES.positive.name;
     }
 
-    const allComments = [
-      ...formattedData?.comments?.technicalIssue,
-      ...formattedData?.comments?.didntHappenedOption,
-    ];
+    const allComments = [...formattedData?.comments?.technicalIssue, ...formattedData?.comments?.didntHappenedOption];
 
     let tempErrors = [];
 
@@ -131,12 +128,20 @@ const Happened = (props: IHappened) => {
         comments: [...filteredComments, ...formattedData?.comments?.userReasons],
         response,
       };
-      analytics.onOfficeHoursFeedbackSubmitted(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
+      analytics.onOfficeHoursFeedbackSubmitted(
+        getAnalyticsUserInfo(userInfo),
+        getAnalyticsNotificationInfo(currentFollowup),
+        feedback,
+      );
       const result = await createFeedBack(userInfo?.uid ?? '', currentFollowup?.uid ?? '', authToken ?? '', feedback);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       if (result?.error) {
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-        analytics.onOfficeHoursFeedbackFailed(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
+        analytics.onOfficeHoursFeedbackFailed(
+          getAnalyticsUserInfo(userInfo),
+          getAnalyticsNotificationInfo(currentFollowup),
+          feedback,
+        );
         if (result?.error?.data?.message?.includes('There is no follow-up')) {
           toast.success(TOAST_MESSAGES.FEEDBACK__ALREADY__RECORDED);
         } else {
@@ -145,8 +150,12 @@ const Happened = (props: IHappened) => {
         onClose(false);
         return;
       }
-      
-      analytics.onOfficeHoursFeedbackSuccess(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
+
+      analytics.onOfficeHoursFeedbackSuccess(
+        getAnalyticsUserInfo(userInfo),
+        getAnalyticsNotificationInfo(currentFollowup),
+        feedback,
+      );
       toast.success(TOAST_MESSAGES.FEEDBACK_THANK);
       onClose(false);
     } catch (error) {
@@ -182,14 +191,13 @@ const Happened = (props: IHappened) => {
         }
       }
 
-      if(key === 'ratingComment' || key.startsWith('didntHappenedReason') || key.startsWith('technnicalIssueReason') ) {
-        if(object[key].trim()) {
+      if (key === 'ratingComment' || key.startsWith('didntHappenedReason') || key.startsWith('technnicalIssueReason')) {
+        if (object[key].trim()) {
           formData?.comments?.userReasons?.push(object[key]);
         }
-
       }
 
-      if (key.startsWith('technicalIssue')  || key.startsWith('didntHappenedOption')) {
+      if (key.startsWith('technicalIssue') || key.startsWith('didntHappenedOption')) {
         if (object[key].trim()) {
           formData?.comments[key?.split('-')[0]]?.push(object[key]);
         }
@@ -232,7 +240,7 @@ const Happened = (props: IHappened) => {
     setTimeout(() => {
       const filterContainer = document.getElementById('happened-form-con');
       if (filterContainer) {
-        filterContainer.scrollTo({top: filterContainer.scrollHeight, left: 0, behavior: "smooth"});
+        filterContainer.scrollTo({ top: filterContainer.scrollHeight, left: 0, behavior: 'smooth' });
       }
     }, 50);
   };
@@ -241,7 +249,7 @@ const Happened = (props: IHappened) => {
     <>
       <div className="hpndC">
         <form noValidate ref={formRef} onSubmit={onFormSubmit}>
-          <div id='happened-form-con' className="hdndC__formc">
+          <div id="happened-form-con" className="hdndC__formc">
             <div className="hpdnC__titleSec">
               <h2 className="hpdnC__titleSec__ttl">{`How was your recent meeting with ${currentFollowup?.interaction?.targetMember?.name}?`}</h2>
             </div>
@@ -262,7 +270,10 @@ const Happened = (props: IHappened) => {
                     type="button"
                     onClick={() => onRatingClickHandler(index + 1)}
                     className={`hdndC__ratingCndr__rating ${ratingInfo?.rating === index + 1 ? 'selected' : ''} `}
-                    style={{ backgroundColor: !isDisable ? rating.backgroundColor : rating.disableColor, pointerEvents: !isDisable ? 'auto' : 'none' }}
+                    style={{
+                      backgroundColor: !isDisable ? rating.backgroundColor : rating.disableColor,
+                      pointerEvents: !isDisable ? 'auto' : 'none',
+                    }}
                     key={`${rating}+${index}`}
                   >
                     {rating.value}
@@ -281,7 +292,13 @@ const Happened = (props: IHappened) => {
               <div className="hdndc__cmt">
                 <div className="hdndc__cmt__ttl">Comment (Optional)</div>
                 <div className="hdndc__cmt__cnt">
-                  <TextArea maxLength={1000} placeholder="Enter comments if you have any" isMandatory={false} name={'ratingComment'} id={'ratingComment'} />
+                  <TextArea
+                    maxLength={1000}
+                    placeholder="Enter comments if you have any"
+                    isMandatory={false}
+                    name={'ratingComment'}
+                    id={'ratingComment'}
+                  />
                 </div>
               </div>
             )}

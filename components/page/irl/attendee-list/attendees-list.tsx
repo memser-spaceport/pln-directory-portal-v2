@@ -13,12 +13,11 @@ import DeleteAttendeesPopup from './delete-attendees-popup';
 import { getParsedValue, triggerLoader } from '@/utils/common.utils';
 import { getGuestEvents, getGuestsByLocation, getTopicsByLocation } from '@/services/irl.service';
 import AttendeeForm from '../add-edit-attendee/attendee-form';
-import NoAttendees from './no-attendees';
 import AttendeeTableHeader from './attendee-table-header';
 import { IUserInfo } from '@/types/shared.types';
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
 import usePagination from '@/hooks/irl/use-pagination';
-import { checkAdminInAllEvents, getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
+import { checkAdminInAllEvents, getFilteredEventsForUser, getGatherings, parseSearchParams } from '@/utils/irl.utils';
 import TableLoader from '@/components/core/table-loader';
 
 interface IAttendeeList {
@@ -45,7 +44,11 @@ const AttendeeList = (props: IAttendeeList) => {
   const searchParams = props?.searchParams;
   const currentEventNames = props?.currentEventNames;
   const locationEvents = props?.locationEvents;
-  const isAdminInAllEvents = checkAdminInAllEvents(searchParams?.type, locationEvents?.upcomingEvents, locationEvents?.pastEvents);
+  const isAdminInAllEvents = checkAdminInAllEvents(
+    searchParams?.type,
+    locationEvents?.upcomingEvents,
+    locationEvents?.pastEvents,
+  );
 
   const defaultTopics = IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
@@ -56,6 +59,7 @@ const AttendeeList = (props: IAttendeeList) => {
   const [iamGoingPopupProps, setIamGoingPopupProps]: any = useState({ isOpen: false, formdata: null, mode: '' });
   const deleteRef = useRef<HTMLDialogElement>(null);
   const router = useRouter();
+  const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';
 
   const [deleteModalOpen, setDeleteModalOpen] = useState({ isOpen: false, type: '' });
 
@@ -71,7 +75,7 @@ const AttendeeList = (props: IAttendeeList) => {
     setSelectedGuests([]);
     setShowFloatingBar(false);
   }, []);
- 
+
   const onCloseDeleteModal = () => {
     deleteRef.current?.close();
     setDeleteModalOpen((prev) => ({ ...prev, isOpen: false }));
@@ -89,7 +93,6 @@ const AttendeeList = (props: IAttendeeList) => {
 
   const getEventDetails = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
-    const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';
 
     if (tableRef.current) {
       tableRef.current.scrollTop = 0;
@@ -97,16 +100,33 @@ const AttendeeList = (props: IAttendeeList) => {
     setPagination({ page: 1, limit: 10 });
 
     const [eventInfo, currentGuestResponse, topics, loggedInUserEvents]: any = await Promise.all([
-      await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken, currentEventNames),
+      await getGuestsByLocation(
+        location?.uid,
+        parseSearchParams(searchParams, eventType === 'past' ? eventDetails?.events?.pastEvents : eventDetails?.events?.upcomingEvents),
+        authToken,
+        currentEventNames,
+      ),
       await getGuestsByLocation(location?.uid, { type: eventType }, authToken, currentEventNames, 1, 1),
       await getTopicsByLocation(location?.uid, eventType),
       await getGuestEvents(location?.uid, authToken),
     ]);
-    const currentGuest = currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests[0] : null;
+    const gatherings = getGatherings(searchParams?.type, eventDetails?.events, iamGoingPopupProps?.from);
+    const currentGuest =
+      currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests[0] : null;
     eventInfo.isUserGoing = currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid;
     eventInfo.topics = topics;
-    eventInfo.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, eventDetails?.events, isLoggedIn, userInfo);
+    eventInfo.eventsForFilter = getFilteredEventsForUser(
+      loggedInUserEvents,
+      gatherings,
+      isLoggedIn,
+      userInfo,
+    );
 
+    // Handle the new return structure with selectedType
+    let finalEventType = eventType;
+    if ((eventInfo as any)?.selectedType) {
+      finalEventType = (eventInfo as any).selectedType;
+    }
     setUpdatedEventDetails((prev) => ({ ...eventInfo, events: prev.events, currentGuest, totalGuests: eventInfo.totalGuests }));
     triggerLoader(false);
     router.refresh();
@@ -114,6 +134,34 @@ const AttendeeList = (props: IAttendeeList) => {
 
   const onIamGoingPopupClose = () => {
     setIamGoingPopupProps({ isOpen: false, formdata: null, mode: '' });
+  };
+
+
+  const handleAttendeesClick = (type: string, e: { stopPropagation: () => void }) => {
+    e.stopPropagation();
+    const currentParams = new URLSearchParams(searchParams);
+    const allowedParams = ['type', 'location'];
+
+    // Remove parameters not in the allowed list
+    for (const [key, value] of Object.entries(searchParams)) {
+      if (!allowedParams.includes(key)) {
+        currentParams.delete(key);
+      }
+    }
+    currentParams.set('type', type);
+    currentParams.delete('event');
+    router.push(`${window.location.pathname}?${currentParams.toString()}`);
+       // updateQueryParams('type', 'upcoming', searchParams);
+       if (searchParams?.type !== type) {
+        triggerLoader(true);
+        // analytics.trackUpcomingEventsDropdownClicked(eventDetails.upcomingEvents);
+      }
+  };
+
+    // Check if any filters are applied
+  const hasFiltersApplied = () => {
+    const filterParams = ['search', 'attending', 'attendees', 'topics', 'sortBy', 'sortDirection'];
+    return filterParams.some(param => searchParams[param]);
   };
 
   useEffect(() => {
@@ -155,9 +203,20 @@ const AttendeeList = (props: IAttendeeList) => {
       setIsAttendeeLoading(true);
       const getEventDetails = async () => {
         const authToken = getParsedValue(Cookies.get('authToken'));
-        const eventInfo: any = await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken, currentEventNames, currentPage, limit);
+        const eventInfo: any = await getGuestsByLocation(
+          location?.uid,
+          parseSearchParams(searchParams, eventType === 'past' ? eventDetails?.events?.pastEvents : eventDetails?.events?.upcomingEvents),
+          authToken,
+          currentEventNames,
+          currentPage,
+          limit,
+        );
         if (eventInfo.totalGuests > 0) {
-          setUpdatedEventDetails((prev) => ({ ...prev, guests: [...prev.guests, ...eventInfo.guests], totalGuests: eventInfo.totalGuests }));
+          setUpdatedEventDetails((prev) => ({
+            ...prev,
+            guests: [...prev.guests, ...eventInfo.guests],
+            totalGuests: eventInfo.totalGuests,
+          }));
         }
         setIsAttendeeLoading(false);
       };
@@ -199,12 +258,23 @@ const AttendeeList = (props: IAttendeeList) => {
       )}
       <div className="attendeeList">
         <div className="attendeeList__toolbar">
-          <Toolbar locationEvents={locationEvents} isAdminInAllEvents={isAdminInAllEvents} location={location} onLogin={onLogin} filteredListLength={updatedEventDetails.totalGuests} eventDetails={updatedEventDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} followers={props.followers}/>
+          <Toolbar
+            locationEvents={locationEvents}
+            isAdminInAllEvents={isAdminInAllEvents}
+            location={location}
+            onLogin={onLogin}
+            filteredListLength={updatedEventDetails.totalGuests}
+            userInfo={userInfo}
+            isLoggedIn={isLoggedIn}
+            followers={props.followers}
+            handleAttendeesClick={handleAttendeesClick}
+            type={searchParams?.type}
+            eventDetails={updatedEventDetails.events}
+          />
         </div>
         <div className="attendeeList__table">
-          {/* {eventDetails?.guests?.length > 0 && ( */}
           <div className={`irl__table table__login`}>
-            <AttendeeTableHeader isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} />
+            {<AttendeeTableHeader isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} eventType={searchParams?.type} />}
             <div ref={tableRef} className={`irl__table__body w-full`}>
               <GuestList
                 userInfo={userInfo}
@@ -219,6 +289,7 @@ const AttendeeList = (props: IAttendeeList) => {
                 searchParams={searchParams}
                 isAdminInAllEvents={isAdminInAllEvents}
                 newSearchParams={newSearchParams}
+                hasFiltersApplied={hasFiltersApplied()}
               />
               {isAttendeeLoading && <TableLoader />}
               <div ref={observerRef} className="scroll-observer"></div>
@@ -231,7 +302,13 @@ const AttendeeList = (props: IAttendeeList) => {
       {/* FLOATING BAR */}
       {showFloaingBar && (
         <div className="irl__floating-bar">
-          <FloatingBar location={location} eventDetails={updatedEventDetails} selectedGuests={selectedGuests} onClose={onCloseFloatingBar} searchParams={searchParams} />
+          <FloatingBar
+            location={location}
+            eventDetails={updatedEventDetails}
+            selectedGuests={selectedGuests}
+            onClose={onCloseFloatingBar}
+            searchParams={searchParams}
+          />
         </div>
       )}
 
@@ -246,6 +323,8 @@ const AttendeeList = (props: IAttendeeList) => {
             type={deleteModalOpen?.type}
             setSelectedGuests={setSelectedGuests}
             getEventDetails={getEventDetails}
+            from={iamGoingPopupProps?.from}
+            searchParams={searchParams}
           />
         )}
       </Modal>
@@ -262,6 +341,13 @@ const AttendeeList = (props: IAttendeeList) => {
           display: flex;
           max-width: 900px;
           flex-direction: column;
+        }
+        .attendeeList__table__header{
+          display: flex;
+          flex-direction: row;
+          gap: 8px;
+          margin-bottom: 8px;
+          cursor: pointer
         }
 
         .irl__floating-bar {
@@ -361,7 +447,7 @@ const AttendeeList = (props: IAttendeeList) => {
           }
 
           .table__login {
-            height: calc(100vh - 170px);
+            height: calc(100vh - 210px);
           }
 
           .table__not-login {

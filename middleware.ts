@@ -34,22 +34,40 @@ export async function middleware(req: NextRequest) {
 
   try {
     if (!refreshTokenFromCookie) {
+      response.cookies.delete('refreshToken');
+      response.cookies.delete('authToken');
+      response.cookies.delete('userInfo');
       return response;
     }
 
     const authToken = authTokenFromCookie?.value.replace(/"/g, '');
     if (authToken) {
-      isValidAuthToken = await checkIsValidToken(authToken as string);
+      const validCheckResponse = await checkIsValidToken(authToken as string);
+
+      // Priority 1: Check for force logout (regardless of active status)
+      // console.log('middleware validCheckResponse', validCheckResponse);
+      if (validCheckResponse?.forceLogout) {
+        console.log('middleware inside middleware forceLogout');
+        response.cookies.delete('refreshToken');
+        response.cookies.delete('authToken');
+        response.cookies.delete('userInfo');
+        return response;
+      }
+
+      // Priority 2: Check if token is active
+      isValidAuthToken = (validCheckResponse && validCheckResponse?.active) || false;
       if (isValidAuthToken) {
+        // console.log('middleware inside isValidAuthToken');
         response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);
         response.headers.set('authToken', authTokenFromCookie?.value as string);
-        response.headers.set('userInfo', userInfo?.value as string);
+        response.headers.set('userInfo', encodeURIComponent(userInfo?.value as string));
         response.headers.set('isLoggedIn', 'true');
         return response;
       }
     }
 
     if ((!authTokenFromCookie || !isValidAuthToken || !userInfo) && refreshTokenFromCookie) {
+      console.log('middleware inside refresh token');
       const renewAccessTokenResponse = await renewAccessToken(refreshTokenFromCookie?.value.replace(/"/g, ''));
       const { accessToken, refreshToken, userInfo } = renewAccessTokenResponse?.data;
 
@@ -70,11 +88,14 @@ export async function middleware(req: NextRequest) {
         });
         response.headers.set('refreshToken', JSON.stringify(refreshToken));
         response.headers.set('authToken', JSON.stringify(accessToken));
-        response.headers.set('userInfo', JSON.stringify(userInfo));
+        response.headers.set('userInfo', encodeURIComponent(JSON.stringify(userInfo)));
         response.headers.set('isLoggedIn', 'true');
         return response;
       }
     } else {
+      response.cookies.delete('refreshToken');
+      response.cookies.delete('authToken');
+      response.cookies.delete('userInfo');
       return response;
     }
   } catch (err) {

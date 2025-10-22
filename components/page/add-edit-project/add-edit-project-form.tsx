@@ -10,7 +10,7 @@ import { ProjectMoreDetails } from './project-more-details';
 import { generalInfoSchema, kpiSchema, projectKpiSchema } from '@/schema/project-form';
 import { saveRegistrationImage } from '@/services/registration.service';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { addProject, updateProject } from '@/services/projects.service';
 import { useRouter } from 'next/navigation';
 import { getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
@@ -67,7 +67,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
     const formData = new FormData(addFormRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
 
-    // formattedData['description'] = content;
+    formattedData['description'] = content;
     if (currentStep === 'General') {
       let errors: string[] = [];
       const result = generalInfoSchema.safeParse(formattedData);
@@ -88,7 +88,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
         }
       }
 
-      if(!formattedData?.tags || formattedData?.tags?.length === 0) {
+      if (!formattedData?.tags || formattedData?.tags?.length === 0) {
         errors.push('Please provide at least one tag');
       }
 
@@ -132,7 +132,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
   const onBackClicked = () => {
     document.body.scrollTop = 0;
     goToPreviousStep();
-  }
+  };
 
   // Handles the form submission
   const onFormSubmitHandler = async (event: SyntheticEvent) => {
@@ -149,7 +149,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
       formattedData = {
         ...formattedData,
         logoUid: projectData?.logoUid,
-      }
+      };
 
       if (type === 'Add') {
         analytics.onProjectAddSaveClicked();
@@ -174,8 +174,8 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
         return;
       }
 
-      delete formattedData["imageFile"];
-      delete formattedData["projectProfile"];
+      delete formattedData['imageFile'];
+      delete formattedData['projectProfile'];
 
       if (type === 'Add') {
         analytics.onProjectAddInitiated(getAnalyticsUserInfo(userInfo), formattedData);
@@ -307,7 +307,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
           const tag = JSON.parse(tagjson);
           result['tags'].push(tag['label']);
         }
-      }else {
+      } else {
         result[key] = object[key];
       }
     }
@@ -356,18 +356,41 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
 
   return (
     <>
-      <form className="add-edit-form" ref={addFormRef} onSubmit={onFormSubmitHandler} noValidate data-testid="add-edit-project-form">
+      <form
+        className="add-edit-form"
+        ref={addFormRef}
+        onSubmit={onFormSubmitHandler}
+        noValidate
+        data-testid="add-edit-project-form"
+      >
         <div className="add-edit-form__container" data-testid="form-container">
-          <div className={`${currentStep === 'General' ? 'add-edit-form__container--general' : 'hidden'}`} data-testid="general-info">
-            <ProjectGeneralInfo errors={generalErrors} project={projectData} longDesc={content} setLongDesc={setContent} />
+          <div
+            className={`${currentStep === 'General' ? 'add-edit-form__container--general' : 'hidden'}`}
+            data-testid="general-info"
+          >
+            <ProjectGeneralInfo
+              errors={generalErrors}
+              project={projectData}
+              longDesc={content}
+              setLongDesc={setContent}
+            />
           </div>
-          <div className={`${currentStep === 'Contributors' ? 'add-edit-form__container--contributors' : 'hidden'}`} data-testid="contributors-info">
+          <div
+            className={`${currentStep === 'Contributors' ? 'add-edit-form__container--contributors' : 'hidden'}`}
+            data-testid="contributors-info"
+          >
             <ProjectContributorsInfo project={projectData} errors={contributorsErrors} />
           </div>
-          <div className={`${currentStep === 'KPIs' ? 'add-edit-form__container--kpis' : 'hidden'}`} data-testid="kpis-info">
+          <div
+            className={`${currentStep === 'KPIs' ? 'add-edit-form__container--kpis' : 'hidden'}`}
+            data-testid="kpis-info"
+          >
             <ProjectKpisInfo project={projectData} errors={kpiErrors} />
           </div>
-          <div className={`${currentStep === 'Additional Details' ? 'add-edit-form__container--more-details' : 'hidden'}`} data-testid="more-details">
+          <div
+            className={`${currentStep === 'Additional Details' ? 'add-edit-form__container--more-details' : 'hidden'}`}
+            data-testid="more-details"
+          >
             <ProjectMoreDetails readMe={projectData?.readMe} />
           </div>
         </div>
@@ -375,7 +398,12 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
         <div className="add-edit-form__opts" data-testid="form-options">
           <div>
             {currentStep === 'General' && (
-              <button onClick={onCancelClickHandler} className="add-edit-form__opts__cancel" type="button" data-testid="cancel-button">
+              <button
+                onClick={onCancelClickHandler}
+                className="add-edit-form__opts__cancel"
+                type="button"
+                data-testid="cancel-button"
+              >
                 Cancel
               </button>
             )}
@@ -384,13 +412,23 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
           <div className="add-edit-form__opts__acts">
             {currentStep !== 'General' && (
               <div>
-                <button type="button" className="add-edit-form__opts__acts__back" onClick={onBackClicked} data-testid="back-button">
+                <button
+                  type="button"
+                  className="add-edit-form__opts__acts__back"
+                  onClick={onBackClicked}
+                  data-testid="back-button"
+                >
                   Back
                 </button>
               </div>
             )}
             {currentStep !== 'Additional Details' && (
-              <button type="button" className="add-edit-form__opts__acts__next" onClick={onNextClicked} data-testid="next-button">
+              <button
+                type="button"
+                className="add-edit-form__opts__acts__next"
+                onClick={onNextClicked}
+                data-testid="next-button"
+              >
                 Next
               </button>
             )}
@@ -437,6 +475,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
             padding: 0 24px;
             display: flex;
             gap: 8px;
+            z-index: 11;
           }
 
           .add-edit-form__opts__acts {

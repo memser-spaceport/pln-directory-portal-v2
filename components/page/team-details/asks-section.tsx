@@ -7,7 +7,7 @@ import { EVENTS } from '@/utils/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo } from '@/utils/common.utils';
 import { Tooltip } from '../../core/tooltip/tooltip';
@@ -17,6 +17,14 @@ interface IAsksSection {
   hasEditAsksAccess: boolean;
   team: any;
 }
+
+const initialSelectedAsk = {
+  title: '',
+  description: '',
+  tags: [],
+  uid: '',
+  teamUid: '',
+};
 
 const AsksSection = (props: IAsksSection) => {
   const initialAsks = props?.asks;
@@ -32,13 +40,7 @@ const AsksSection = (props: IAsksSection) => {
   const [type, setType] = useState('Add');
   const [isAddAsk, setIsAddAsk] = useState(false);
   const [allErrors, setAllErrors]: any = useState([]);
-  const [selectedAsk, setSelectedAsk] = useState({
-    title: '',
-    description: '',
-    tags: [],
-    uid: '',
-    teamUid: '',
-  });
+  const [selectedAsk, setSelectedAsk] = useState(initialSelectedAsk);
 
   const onAddAsksClickHandler = () => {
     setIsAddAsk(true);
@@ -84,7 +86,9 @@ const AsksSection = (props: IAsksSection) => {
       // Fetch data
       const { authToken } = getCookiesFromClient();
       const url = `${process.env.DIRECTORY_API_URL}/v1/teams/${team.id}/ask`;
-      const payload = isAddMode ? { ask: formattedData, teamName: team?.name } : { ask: { ...formattedData, uid: selectedAsk.uid }, teamName: team?.name };
+      const payload = isAddMode
+        ? { ask: formattedData, teamName: team?.name }
+        : { ask: { ...formattedData, uid: selectedAsk.uid }, teamName: team?.name };
 
       const response = await customFetch(
         url,
@@ -96,7 +100,7 @@ const AsksSection = (props: IAsksSection) => {
           },
           body: JSON.stringify(payload),
         },
-        true
+        true,
       );
 
       if (response?.ok) {
@@ -196,10 +200,13 @@ const AsksSection = (props: IAsksSection) => {
           },
           body: JSON.stringify(payload),
         },
-        true
+        true,
       );
       if (response?.ok) {
-        analytics.teamDetailDeleteAskConfirmClicked(getAnalyticsTeamInfo(team), { ...payload.ask, teamName: payload.teamName });
+        analytics.teamDetailDeleteAskConfirmClicked(getAnalyticsTeamInfo(team), {
+          ...payload.ask,
+          teamName: payload.teamName,
+        });
         toast.success('Ask deleted successfully');
         const teamResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams/${team.id}`, {
           cache: 'no-store',
@@ -221,6 +228,7 @@ const AsksSection = (props: IAsksSection) => {
       triggerLoader(false);
     }
   };
+
   return (
     <>
       <div className="asksec">
@@ -233,8 +241,9 @@ const AsksSection = (props: IAsksSection) => {
                 trigger={<img src="/icons/info.svg" height={16} />}
                 content={
                   <p style={{ padding: '8px' }}>
-                    Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise,
-                    networks, or resources to support your project.
+                    Asks are specific requests for help or resources that your team needs to achieve your next
+                    milestones. Use this space to connect with others who can contribute their expertise, networks, or
+                    resources to support your project.
                   </p>
                 }
               />
@@ -251,8 +260,9 @@ const AsksSection = (props: IAsksSection) => {
         {allAsks.length === 0 && (
           <div className="asksec__desc">
             <p className="asksec__desc__txt">
-              Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks,
-              or resources to support your project.
+              Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use
+              this space to connect with others who can contribute their expertise, networks, or resources to support
+              your project.
             </p>
             {hasEditAsksAccess && (
               <button className="asksec__desc__addask" onClick={onAddAsksClickHandler}>
@@ -267,10 +277,12 @@ const AsksSection = (props: IAsksSection) => {
               <div key={`${ask.uid}+${index}`} className="asksec__allasks__ask">
                 <div className="asksec__allasks__ask__hdr">
                   <p className="asksec__allasks__ask__hdr__ttl">{ask.title}</p>
-                  {hasEditAsksAccess && (
-                    <button onClick={() => onEditAskClickHandler(ask)} className="asksec__allasks__ask__hdr__edit">
-                      Edit
-                    </button>
+                  {hasEditAsksAccess && ask.status !== 'CLOSED' && (
+                    <div className="aslsec__allasks__ask__hdr__controls">
+                      <button onClick={() => onEditAskClickHandler(ask)} className="asksec__allasks__ask__hdr__edit">
+                        Edit
+                      </button>
+                    </div>
                   )}
                 </div>
                 <div className="asksec__allasks__ask__cont" dangerouslySetInnerHTML={{ __html: ask.description }} />
@@ -407,6 +419,17 @@ const AsksSection = (props: IAsksSection) => {
             font-size: 14px;
             font-weight: 600;
             line-height: 24px;
+          }
+
+          .aslsec__allasks__ask__hdr__controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+          }
+
+          .aslsec__allasks__ask__hdr__separator {
+            height: 16px;
+            border-right: 1px solid #e2e8f0;
           }
 
           .asksec__allasks__ask__hdr__edit {

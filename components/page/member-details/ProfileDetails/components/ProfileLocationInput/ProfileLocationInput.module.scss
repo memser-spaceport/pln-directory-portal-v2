@@ -1,0 +1,55 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0.25rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  color: #475569;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 166.667% */
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  align-self: stretch;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+  }
+}
+
+.hint {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}

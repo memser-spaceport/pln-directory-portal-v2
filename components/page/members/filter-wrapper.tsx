@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { EVENTS } from '@/utils/constants';
 import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
-import MembersFilter from './members-filter';
+import { MembersFilter } from './MembersFilter';
 
 interface IFilterwrapper {
   filterValues: any;
@@ -43,32 +43,33 @@ export default function FilterWrapper(props: IFilterwrapper) {
       </div>
       <style jsx>
         {`
-        
-        .fw {width: inherit;}
-
-        .fw__web {
-        display: none}
-
-        .fw__mob {
-        position: fixed;
-        top: 0;
-        z-index: 5;
-        height: 100%;
-        width: 100%;
-        }
-
-
-        @media(min-width: 1024px){ 
-         .fw__web {
-          display: unset;
-          width: inherit;
+          .fw {
+            width: inherit;
           }
-         .fw__mob {
-          display: none;
+
+          .fw__web {
+            display: none;
           }
-        }
-      }
-        
+
+          .fw__mob {
+            position: fixed;
+            top: 0;
+            z-index: 6;
+            height: 100%;
+            width: 100%;
+            background-color: #fff;
+          }
+
+          @media (min-width: 1024px) {
+            .fw__web {
+              display: unset;
+              width: inherit;
+            }
+
+            .fw__mob {
+              display: none;
+            }
+          }
         `}
       </style>
 

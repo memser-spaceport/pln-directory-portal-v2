@@ -63,9 +63,11 @@ const FocusArea = (props: IFocusArea) => {
                 setIsExpand(!isExpand);
               }}
               type="submit"
-              className='fa__cn__item__toggleBtn'
+              className="fa__cn__item__toggleBtn"
             >
-              {focusArea?.children.length > 0 && <img alt="expand" src={`${isExpand ? '/icons/down_arrow_blue.svg' : '/icons/right_arrow_blue.svg'}`} />}
+              {focusArea?.children.length > 0 && (
+                <img alt="expand" src={`${isExpand ? '/icons/down_arrow_blue.svg' : '/icons/right_arrow_blue.svg'}`} />
+              )}
             </button>
 
             <div className="fa__cn__item__title">
@@ -74,7 +76,9 @@ const FocusArea = (props: IFocusArea) => {
 
             {focusArea?.teamAncestorFocusAreas?.length > 0 && (
               <div className="w-fit rounded-[2px] bg-[#F1F5F9]">
-                <p className="px-[5px] text-[10px] font-[500] leading-[14px] text-[#475569]">{focusArea?.teamAncestorFocusAreas?.length}</p>
+                <p className="px-[5px] text-[10px] font-[500] leading-[14px] text-[#475569]">
+                  {focusArea?.teamAncestorFocusAreas?.length}
+                </p>
               </div>
             )}
           </div>
@@ -96,7 +100,15 @@ const FocusArea = (props: IFocusArea) => {
               <div className="fa__cn__children">
                 {focusArea?.children?.map((chil: any, index: any) => (
                   <div key={`${index}+ ${chil}`}>
-                    <FocusArea parents={parents} focusAreas={focusAreas} focusArea={chil} description="" isGrandParent={false} selectedItems={selectedItems} onItemClickHandler={onItemClickHandler} />
+                    <FocusArea
+                      parents={parents}
+                      focusAreas={focusAreas}
+                      focusArea={chil}
+                      description=""
+                      isGrandParent={false}
+                      selectedItems={selectedItems}
+                      onItemClickHandler={onItemClickHandler}
+                    />
                   </div>
                 ))}
               </div>
@@ -144,11 +156,11 @@ const FocusArea = (props: IFocusArea) => {
             align-items: center;
             justify-content: center;
             border-radius: 4px;
-            background:transparent;
+            background: transparent;
           }
 
           .fa__cn__item__toggleBtn {
-            background:transparent;
+            background: transparent;
           }
           .fa__cn__item__btn--parent {
             background: #156ff7;

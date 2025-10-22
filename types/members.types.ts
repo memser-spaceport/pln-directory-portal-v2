@@ -15,7 +15,7 @@ export type IMemberListOptions = IListOptions & {
   isHost?: boolean;
   isSpeaker?: boolean;
   isHostAndSpeaker?: boolean;
-  isVerified?:string;
+  isVerified?: string;
 };
 
 export interface IMemberResponse {
@@ -33,6 +33,7 @@ export interface IMemberResponse {
   telegramHandler: string;
   twitterHandler: string;
   officeHours: string;
+  ohStatus: null | 'NOT_FOUND' | 'BROKEN' | 'OK';
   teamLead: boolean;
   teams: ITeamResponse;
   mainTeam: IMemberTeam;
@@ -41,33 +42,132 @@ export interface IMemberResponse {
   repositories: [];
   preferences: {};
   createdAt: string;
-  bio?:string;
+  bio?: string;
 }
+
+export interface IProjectContribution {
+  currentProject: boolean;
+  description: string;
+  endDate: string;
+  memberUid: string;
+  project: {
+    contactEmail: string;
+    createdAt: string;
+    createdBy: string;
+    description: string;
+    isDeleted: boolean;
+    isFeatured: boolean;
+    logoUid: string;
+    lookingForFunding: boolean;
+    maintainingTeamUid: string;
+    name: string;
+    osoProjectName: string;
+    kpis: { key: string; value: string }[];
+    logo: {
+      cid: string;
+      createdAt: string;
+      filename: string;
+      height: number;
+      size: number;
+      thumbnailToUid: null;
+      type: string;
+      uid: string;
+      updatedAt: string;
+      url: string;
+      version: string;
+      width: number;
+    };
+    projectLinks: {
+      url: string;
+      name: string;
+    }[];
+    readMe: string;
+    tagline: string;
+    score: number;
+    tags: string[];
+    uid: string;
+    updatedAt: string;
+  };
+  projectUid: string;
+  role: string;
+  startDate: string;
+  uid: string;
+}
+
+export interface ILinkedinProfile {
+  uid: string;
+  memberUid: string;
+  linkedinProfileId: string;
+  linkedinHandler: null;
+  profileData: {
+    sub: string;
+    name: string;
+    email: string;
+    locale: {
+      country: string;
+      language: string;
+    };
+    picture: string;
+    given_name: string;
+    family_name: string;
+    email_verified: boolean;
+  };
+  isVerified: boolean;
+  verifiedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type InvestorProfileType = 'ANGEL' | 'FUND' | 'ANGEL_AND_FUND';
 
 export interface IMember {
   profile?: string | null;
   id: string;
   name: string;
-  skills: [{ title: string }];
+  skills: [{ uid: string; title: string }];
   teamMemberRoles?: ITeamMemberRole[];
-  projectContributions: [];
+  projectContributions: IProjectContribution[];
   location: IMemberLocation;
   email?: string | null;
   githubHandle?: string | null;
   discordHandle?: string | null;
   telegramHandle?: string | null;
   twitter?: string | null;
+  accessLevel: 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'Rejected' | 'L5' | 'L6';
   officeHours: string | null;
+  ohInterest?: string[] | null;
+  ohHelpWith?: string[] | null;
+  ohStatus?: null | 'NOT_FOUND' | 'BROKEN' | 'OK';
+  scheduleMeetingCount: number | undefined | null;
   teamLead: boolean;
   teams: ITeam[];
   mainTeam: IMemberTeam | null;
   openToWork: boolean;
   linkedinHandle?: string | null;
-  repositories?: [];
+  repositories?:
+    | {
+        createdAt: string;
+        description: null;
+        name: string;
+        updatedAt: string;
+        url: string;
+      }[]
+    | { statusCode: number; message: string };
   preferences: IMemberPreferences;
   bio?: string;
   isVerified?: boolean;
   eventGuests?: [];
+  visibleHandles?: string[];
+  linkedinProfile: ILinkedinProfile;
+  investorProfile?: {
+    type: InvestorProfileType;
+    investInStartupStages: string[];
+    investInFundTypes: string[];
+    typicalCheckSize: string;
+    investmentFocus: string[];
+    secRulesAccepted: boolean;
+    isInvestViaFund: boolean;
+  };
 }
 
 export interface ILoggedoutMember {}
@@ -97,6 +197,7 @@ export interface IMemberTeam {
   role?: string;
   teamLead?: boolean;
   mainTeam?: boolean;
+  logo?: string;
 }
 
 export type TMembersFiltersValues = {
@@ -130,13 +231,14 @@ export interface IMembersSearchParams {
   includeFriends: string;
   viewType?: string;
   openToWork: string;
-  officeHoursOnly: string;
+  hasOfficeHours: string;
   memberRoles: string;
   isRecent: string;
   includeUnVerified: string;
   isHost: string;
   isSpeaker: string;
-  isHostAndSpeaker: string;
+  isSponsor: string;
+  isHostAndSpeakerAndSponsor: string;
 }
 
 export interface IMemberDetailParams {
@@ -151,6 +253,7 @@ export interface IMemberPreferences {
   showTelegram: boolean;
   showGithubHandle: boolean;
   showGithubProjects: boolean;
+  showOfficeHoursDialog?: boolean;
 }
 
 export interface IMemberRepository {

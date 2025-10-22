@@ -1,0 +1,33 @@
+.groupTitle {
+  color: #64748b;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.showAll {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+
+  display: block;
+
+  padding: 4px;
+  margin: 6px auto 0;
+
+  cursor: pointer;
+  color: var(--action-foreground-brand-normal, #1b4dff);
+
+  &:focus {
+    outline: auto;
+  }
+}

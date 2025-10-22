@@ -3,7 +3,7 @@ import useClickedOutside from '@/hooks/useClickedOutside';
 import { EVENTS, JOIN_NETWORK_MENUS, TOAST_MESSAGES } from '@/utils/constants';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useRouter } from 'next/navigation';
 
 export default function JoinNetwork() {
@@ -21,7 +21,7 @@ export default function JoinNetwork() {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
-      setIsOpen(prev=>!prev);
+      setIsOpen((prev) => !prev);
       analytics.onNavJoinNetworkClicked(!isOpen);
     }
   };
@@ -38,7 +38,7 @@ export default function JoinNetwork() {
 
   return (
     <>
-      <div className="jn" ref={joinNetworkRef} >
+      <div className="jn" ref={joinNetworkRef}>
         <button className="jn__btn" onClick={onJoinNetworkClick}>
           <span className="jn__btn__txt">Join the network</span>
           <img loading="lazy" className="jn__btn__icon" src="/icons/dropdown-white.svg" alt="dropdown" />
@@ -78,7 +78,10 @@ export default function JoinNetwork() {
         }
 
         .jn__btn:hover {
-          box-shadow: 0 4px 4px 0 rgba(15, 23, 42, 0.04), 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 0 0 2px rgba(21, 111, 247, 0.25);
+          box-shadow:
+            0 4px 4px 0 rgba(15, 23, 42, 0.04),
+            0 0 1px 0 rgba(15, 23, 42, 0.12),
+            0 0 0 2px rgba(21, 111, 247, 0.25);
           background: linear-gradient(71.47deg, #1a61ff 8.43%, #2cc3ae 87.45%);
         }
 
@@ -97,7 +100,7 @@ export default function JoinNetwork() {
           right: 0;
           width: 190px;
           background-color: #ffffff;
-          box-shadow: 0px 2px 6px 0px #0F172A29;
+          box-shadow: 0px 2px 6px 0px #0f172a29;
           border-radius: 8px;
           padding: 8px;
           display: flex;

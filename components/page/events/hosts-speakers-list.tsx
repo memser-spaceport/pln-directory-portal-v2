@@ -7,6 +7,7 @@ import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS } from '@/utils/constants';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface IHostSpeakersList {
   onClose: () => void;
@@ -17,7 +18,7 @@ interface IHostSpeakersList {
 const HostSpeakersList = (props: IHostSpeakersList) => {
   const onClose = props?.onClose;
   const contributorsList = props?.contributorsList ?? [];
-  const onContributorClickHandler = props?.onContributorClickHandler
+  const onContributorClickHandler = props?.onContributorClickHandler;
   const analytics = useEventsAnalytics();
   const [searchTerm, setSearchTerm] = useState('');
   const contributorsListRef = useRef<HTMLDialogElement>(null);
@@ -37,24 +38,24 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
   const onInputchangeHandler = (event: any) => {
     const searchValue = event?.target.value;
     setSearchTerm(searchValue);
-    
+
     if (!searchValue.trim()) {
       setFilteredContriList(contributorsList);
       return;
     }
-    
+
     const searchTermLower = searchValue.toLowerCase();
-    const filteredMembers = contributorsList?.filter((member: any) => 
-      member?.member?.name?.toLowerCase()?.includes(searchTermLower)
+    const filteredMembers = contributorsList?.filter((member: any) =>
+      member?.member?.name?.toLowerCase()?.includes(searchTermLower),
     );
     setFilteredContriList(filteredMembers);
   };
 
   const onModalCloseClickHandler = () => {
-    setSearchTerm("");
+    setSearchTerm('');
     setFilteredContriList(contributorsList);
     onClose();
-  }
+  };
 
   return (
     <>
@@ -66,42 +67,47 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
               <div className="cm__body__search__icon">
                 <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
               </div>
-              <input 
-                value={searchTerm} 
-                className="cm__body__search__input" 
-                placeholder="Search" 
-                onChange={onInputchangeHandler} 
+              <input
+                value={searchTerm}
+                className="cm__body__search__input"
+                placeholder="Search"
+                onChange={onInputchangeHandler}
               />
               {searchTerm && (
-                <div 
-                  className="cm__body__search__clear-icon" 
+                <div
+                  className="cm__body__search__clear-icon"
                   onClick={() => {
                     setSearchTerm('');
                     setFilteredContriList(contributorsList);
                   }}
                 >
-                  <Image 
-                    src="/icons/close.svg" 
-                    alt="Clear search" 
-                    width={14} 
-                    height={14} 
-                  />
+                  <Image src="/icons/close.svg" alt="Clear search" width={14} height={14} />
                 </div>
               )}
             </div>
           </div>
           <div className="cm__body__contributors">
             {filteredContriList?.map((contributor: any) => {
+              const defaultAvatar = getDefaultAvatar(contributor?.member?.name);
+
               return (
                 <div
                   className="contributor__wrpr"
-                  key={(contributor?.uid)}
+                  key={contributor?.uid}
                   onClick={() => onContributorClickHandler(contributor)}
                 >
                   <div className="contributor">
                     <div className="contributor__info">
                       <div className="contributor__info__imgWrpr">
-                        <Image alt="profile" width={40} height={40} loading='eager' priority={true}  className="contributor__info__img" src={contributor?.member?.image?.url || '/icons/default_profile.svg'}  />
+                        <Image
+                          alt="profile"
+                          width={40}
+                          height={40}
+                          loading="eager"
+                          priority={true}
+                          className="contributor__info__img"
+                          src={contributor?.member?.image?.url || defaultAvatar}
+                        />
                       </div>
                       <div className="contributor__info__name">{contributor?.member?.name}</div>
                     </div>
@@ -112,7 +118,9 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
                 </div>
               );
             })}
-            {filteredContriList.length === 0 && <div className="cm__body__contributors__notFound">No Contributors found.</div>}
+            {filteredContriList.length === 0 && (
+              <div className="cm__body__contributors__notFound">No Contributors found.</div>
+            )}
           </div>
         </div>
       </Modal>

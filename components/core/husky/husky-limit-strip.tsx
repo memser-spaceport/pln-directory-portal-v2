@@ -2,14 +2,14 @@ import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 type HuskyLimitStrip = {
   type: 'warn' | 'info' | 'close' | 'finalRequest';
   count: number;
   onDialogClose?: any;
   mode: 'blog' | 'chat';
-  from: string
+  from: string;
 };
 
 const HuskyLimitStrip = ({ type, count, onDialogClose, mode, from }: HuskyLimitStrip) => {
@@ -67,7 +67,7 @@ const HuskyLimitStrip = ({ type, count, onDialogClose, mode, from }: HuskyLimitS
             )}{' '}
             <span>
               <span onClick={onLoginClickHandler} role="a" className="link">
-                Log in
+                Sign in
               </span>{' '}
               or{' '}
               <span onClick={handleSignUpClick} role="a" className="link">

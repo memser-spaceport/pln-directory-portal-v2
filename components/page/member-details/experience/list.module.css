@@ -1,0 +1,153 @@
+.memberDetail__experience__list {
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  padding: 16px;
+  gap: 8px;
+}
+
+.memberDetail__experience__list__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.memberDetail__experience__header__title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: #64748b;
+}
+
+.memberDetail__experience__list__content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0px 2px 2px 0px #0f172a0a;
+
+  box-shadow: 0px 0px 2px 0px #0f172a29;
+}
+
+.memberDetail__experience__item__detail {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.memberDetail__experience__item__detail__content__wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex: 1;
+}
+
+.memberDetail__experience__item__detail__title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0px;
+  text-align: left;
+}
+
+.memberDetail__experience__item__detail__company {
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 14px;
+  letter-spacing: 1%;
+}
+
+.memberDetail__experience__item__detail__duration {
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 14px;
+  letter-spacing: 1%;
+  color: #475569;
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+}
+
+.memberDetail__experience__item__detail__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.memberDetail__experience__item__detail__location {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: #475569;
+}
+
+.memberDetail__experience__item__detail__duration__dot {
+  color: #475569;
+  width: 4px;
+}
+
+.memberDetail__experience__item__detail__button {
+  background-color: transparent;
+  border: none;
+}
+
+.memberDetail__experience__header__actions {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+}
+
+.memberDetail__experience__item__detail__content__wrapper__image {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.memberDetail__experience__item__detail__content__wrapper__image img {
+  display: block;
+  object-fit: contain;
+}
+
+.memberDetail__experience__item__detail__actions {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.memberDetail__experience__item__detail__description__text {
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.memberDetail__experience__item__detail__description__text a {
+  color: #156ff7;
+  text-decoration: none;
+}
+
+.memberDetail__experience__item__detail__description__text__more {
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #156ff7;
+  cursor: pointer;
+}

@@ -4,13 +4,16 @@
   border-bottom: 1px solid #e2e8f0;
   width: 100%;
   position: sticky;
-  top: 80px;
+  top: var(--app-header-height);
   z-index: 3;
   background-color: #fff;
 }
 
 .addProject {
-  background-color:  #F1F5F9;
+  background-color: #f1f5f9;
+  width: 100%;
+  max-width: 1024px;
+  margin: 0 auto;
 }
 
 .addProject__cnt {
@@ -20,9 +23,13 @@
 
 @media (min-width: 1024px) {
   .addProject__breadcrumb {
-    display: unset;
     height: 48px;
     display: flex;
     align-items: center;
   }
+}
+
+.backBtn {
+  position: sticky;
+  top: var(--app-header-height);
 }

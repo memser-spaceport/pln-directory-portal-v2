@@ -5,11 +5,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MemberSkillsInfo from '../member-info/member-skills-info';
 import MemberContributionInfo from '../member-info/member-contributions-info';
 import MemberSocialInfo from '../member-info/member-social-info';
-import { getMemberInfoFormValues, apiObjsToMemberObj, formInputsToMemberObj, utcDateToDateFieldString, getInitialMemberFormValues } from '@/utils/member.utils';
+import {
+  getMemberInfoFormValues,
+  apiObjsToMemberObj,
+  formInputsToMemberObj,
+  utcDateToDateFieldString,
+  getInitialMemberFormValues,
+} from '@/utils/member.utils';
 import SingleSelect from '@/components/form/single-select';
 import { useRouter } from 'next/navigation';
 import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { updateMember } from '@/services/members.service';
 import Cookies from 'js-cookie';
 import { validateLocation } from '@/services/location.service';
@@ -32,16 +38,39 @@ interface ManageMembersSettingsProps {
   isVerifiedFlag: string;
 }
 
-function ManageMembersSettings({ members = [], preferences = {}, selectedMember = {}, viewType = 'profile', userInfo, isVerifiedFlag }: ManageMembersSettingsProps) {
-  const steps = [{ name: 'basic', label:"BASIC" }, { name: 'skills', label:"SKILLS" }, { name: 'contributions', label:"CONTRIBUTIONS" }, { name: 'social', label:"SOCIAL" }];
-  const profileTypeOptions = [{ name: 'profile', label:"Profile" }, { name: 'privacy', label:"Privacy" }];
-  const membersVerificationOptions = [{ name: 'Verified', value: 'true' }, { name: 'Un-Verified', value: 'false' }];
+function ManageMembersSettings({
+  members = [],
+  preferences = {},
+  selectedMember = {},
+  viewType = 'profile',
+  userInfo,
+  isVerifiedFlag,
+}: ManageMembersSettingsProps) {
+  const steps = [
+    { name: 'basic', label: 'BASIC' },
+    { name: 'skills', label: 'SKILLS' },
+    { name: 'contributions', label: 'CONTRIBUTIONS' },
+    { name: 'social', label: 'SOCIAL' },
+  ];
+  const profileTypeOptions = [
+    { name: 'profile', label: 'Profile' },
+    { name: 'privacy', label: 'Privacy' },
+  ];
+  const membersVerificationOptions = [
+    { name: 'Verified', value: 'true' },
+    { name: 'Un-Verified', value: 'false' },
+  ];
   const selectedProfileType = { name: viewType, label: viewType?.charAt(0)?.toUpperCase() + viewType?.slice(1) };
-  const [activeTab, setActiveTab] = useState({ name: 'basic', label:"BASIC" });
+  const [activeTab, setActiveTab] = useState({ name: 'basic', label: 'BASIC' });
   const formRef = useRef<HTMLFormElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
-  const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
+  const [errors, setErrors] = useState<any>({
+    basicErrors: [],
+    socialErrors: [],
+    contributionErrors: {},
+    skillsErrors: [],
+  });
   const tabsWithError = {
     basic: errors.basicErrors.length > 0,
     skills: errors.skillsErrors.length > 0,
@@ -55,8 +84,8 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
   const handleTabClick = (v: string) => {
     analytics.recordMemberProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
-    setActiveTab({ name: v , label: v.toUpperCase()})
-  }
+    setActiveTab({ name: v, label: v.toUpperCase() });
+  };
 
   const onMemberChanged = (member: any) => {
     const uid = member?.id;
@@ -82,7 +111,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
   const onVerifiedFlagChange = (item: any) => {
     window.location.href = `/settings/members?viewType=${selectedProfileType.name}&isVerified=${item.value}`;
-  }
+  };
 
   const onResetForm = async (e?: any) => {
     const isSame = onFormChange();
@@ -153,7 +182,11 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         if (imgEle) {
           imgEle.value = image.url;
         }
-      } else if (selectedMember?.image?.uid && selectedMember?.image?.url && formattedInputValues.imageFile === selectedMember?.image?.url) {
+      } else if (
+        selectedMember?.image?.uid &&
+        selectedMember?.image?.url &&
+        formattedInputValues.imageFile === selectedMember?.image?.url
+      ) {
         formattedInputValues.imageUid = selectedMember?.image?.uid;
       }
 
@@ -175,7 +208,10 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       const { data, isError, errorMessage, errorData } = await updateMember(selectedMember.uid, payload, authToken);
       triggerLoader(false);
       if (isError) {
-        if (errorData?.message && errorData?.message === 'Email already exists. Please try again with a different email') {
+        if (
+          errorData?.message &&
+          errorData?.message === 'Email already exists. Please try again with a different email'
+        ) {
           toast.error('Email already exists. Please try again with a different email');
         } else {
           toast.error('Member updated failed. Something went wrong, please try again later');
@@ -314,7 +350,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
       router.push(`/settings/members?id=${selectedMember.uid}&viewType=${item.name}&isVerified=${isVerifiedFlag}`);
     },
-    [viewType, selectedMember, isVerifiedFlag]
+    [viewType, selectedMember, isVerifiedFlag],
   );
 
   useEffect(() => {
@@ -368,7 +404,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
                 onItemSelect={(item: any) => onVerifiedFlagChange(item)}
                 displayKey="name"
                 options={membersVerificationOptions}
-                selectedOption={membersVerificationOptions.find(v => v.value === isVerifiedFlag)}
+                selectedOption={membersVerificationOptions.find((v) => v.value === isVerifiedFlag)}
                 id="manage-teams-settings-verified"
               />
             </div>
@@ -403,7 +439,12 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           {viewType === 'profile' && (
             <div className="ms__tab">
               <div className="ms__tab__desktop">
-                <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps} />
+                <Tabs
+                  errorInfo={tabsWithError}
+                  activeTab={activeTab.name}
+                  onTabClick={(v) => handleTabClick(v)}
+                  tabs={steps}
+                />
               </div>
               <div className="ms__tab__mobile">
                 <SingleSelect
@@ -423,13 +464,28 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           <form noValidate onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms__content">
             <div className="ms__content__cn">
               <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-                <MemberBasicInfo isAdminEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} isVerifiedFlag={isVerifiedFlag}/>
+                <MemberBasicInfo
+                  isAdminEdit={true}
+                  errors={errors.basicErrors}
+                  initialValues={initialValues.basicInfo}
+                  isVerifiedFlag={isVerifiedFlag}
+                />
               </div>
               <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
-                <MemberSkillsInfo isEdit={true} errors={errors.skillsErrors} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />
+                <MemberSkillsInfo
+                  isEdit={true}
+                  errors={errors.skillsErrors}
+                  initialValues={initialValues.skillsInfo}
+                  skillsOptions={allData.skills}
+                  teamsOptions={allData.teams}
+                />
               </div>
               <div className={`${activeTab.name !== 'contributions' ? 'hidden' : 'contribution'}`}>
-                <MemberContributionInfo errors={errors.contributionErrors} initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} />
+                <MemberContributionInfo
+                  errors={errors.contributionErrors}
+                  initialValues={initialValues.contributionInfo}
+                  projectsOptions={allData.projects}
+                />
               </div>
               <div className={`${activeTab.name !== 'social' ? 'hidden' : ''}`}>
                 <MemberSocialInfo initialValues={initialValues.socialInfo} />
@@ -480,7 +536,10 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
                 {Object.keys(errors.contributionErrors).map((v: string, i) => (
                   <ul key={`contrib-${v}`}>
                     {errors.contributionErrors[v].map((item: any, index: any) => (
-                      <li className="error__item__list__msg" key={`${v}-${index}`}>{`Project ${Number(v) + 1} - ${item}`}</li>
+                      <li
+                        className="error__item__list__msg"
+                        key={`${v}-${index}`}
+                      >{`Project ${Number(v) + 1} - ${item}`}</li>
                     ))}
                   </ul>
                 ))}
@@ -545,8 +604,8 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           }
           .ms__head {
             background: white;
-            position: sticky;
-            top: 128px;
+            //position: sticky;
+            //top: 128px;
             z-index: 3;
             padding-bottom: 8px;
           }
@@ -629,8 +688,8 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
               border: 1px solid #e2e8f0;
             }
             .ms__head {
-              top: 128.5px;
-              padding-bottom: 0px;
+              //top: var(--app-header-height);
+              padding-bottom: 0;
             }
             .ms__member-selection {
               padding: 8px 16px;

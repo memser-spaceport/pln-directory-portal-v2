@@ -60,7 +60,7 @@ const IrlMobileHeader = (props: IIrlHeaderProps) => {
           isOpen: true,
           type: 'self-delete',
         },
-      })
+      }),
     );
   };
 
@@ -83,17 +83,29 @@ const IrlMobileHeader = (props: IIrlHeaderProps) => {
         return { ...team, uid: team?.id };
       }),
       memberUid: updatedUser?.memberUid,
-      additionalInfo: { checkInDate: updatedUser?.additionalInfo?.checkInDate || '', checkOutDate: updatedUser?.additionalInfo?.checkOutDate ?? '' },
+      additionalInfo: {
+        checkInDate: updatedUser?.additionalInfo?.checkInDate || '',
+        checkOutDate: updatedUser?.additionalInfo?.checkOutDate ?? '',
+      },
       topics: updatedUser?.topics,
       reason: updatedUser?.reason,
       telegramId: updatedUser?.telegramId,
       officeHours: updatedUser?.officeHours ?? '',
     };
 
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
+    document.dispatchEvent(
+      new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
+        detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT },
+      }),
+    );
   };
 
-  const inPastEvents = type ? type === 'past' : guestDetails?.pastEvents && guestDetails?.pastEvents.length > 0 && guestDetails.upcomingEvents && guestDetails?.upcomingEvents?.length === 0;
+  const inPastEvents = type
+    ? type === 'past'
+    : guestDetails?.pastEvents &&
+      guestDetails?.pastEvents.length > 0 &&
+      guestDetails.upcomingEvents &&
+      guestDetails?.upcomingEvents?.length === 0;
   const inPastEventsAndHaveEvents = inPastEvents && guestDetails?.pastEvents && guestDetails?.pastEvents.length > 0;
   const onLoginClick = () => {
     router.push(`${window.location.pathname}${window.location.search}#login`);
@@ -116,9 +128,18 @@ const IrlMobileHeader = (props: IIrlHeaderProps) => {
   return (
     <>
       <div className="irlMobileHeader">
-        <FollowButton eventLocationSummary={eventLocationSummary} userInfo={userInfo} followProperties={followProperties} />
-        {isUserGoing && isUserLoggedIn && (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents))&& (
-          <IrlEditResponse isEdit={isEdit} onEditResponseClick={onEditResponseClick} onEditDetailsClicked={onEditDetailsClicked} onRemoveFromGatherings={onRemoveFromGatherings} />
+        <FollowButton
+          eventLocationSummary={eventLocationSummary}
+          userInfo={userInfo}
+          followProperties={followProperties}
+        />
+        {isUserGoing && isUserLoggedIn && (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) && (
+          <IrlEditResponse
+            isEdit={isEdit}
+            onEditResponseClick={onEditResponseClick}
+            onEditDetailsClicked={onEditDetailsClicked}
+            onRemoveFromGatherings={onRemoveFromGatherings}
+          />
         )}
         {!isUserLoggedIn && !inPastEvents && (
           <button onClick={onLoginClick} className="irlMobileHeader__followingBtn">
@@ -138,25 +159,24 @@ const IrlMobileHeader = (props: IIrlHeaderProps) => {
           }
 
           .irlMobileHeader__followingBtn {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 8px;
-              border-radius: 8px;
-              border: 1px solid #cbd5e1;
-              padding: 10px 24px;
-              font-size: 14px;
-              font-weight: 500;
-              height: 40px;
-              cursor: pointer;
-              background: #156ff7;
-              color: #fff;
-            }
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            height: 40px;
+            cursor: pointer;
+            background: #156ff7;
+            color: #fff;
+          }
 
-            .irlMobileHeader__followingBtn:hover {
-              background: #1d4ed8;
-            }
-
+          .irlMobileHeader__followingBtn:hover {
+            background: #1d4ed8;
+          }
         `}
       </style>
     </>

@@ -27,13 +27,27 @@ function RelatedResults({ actions }: RelatedResultsProps) {
         </div>
         <div className="related-results__cn">
           {actions.map((action: any, index: number) => (
-            <a target="_blank" href={action.directoryLink} onClick={() => onActionCardClicked(action)} className="related-results__cn__item" key={index}>
+            <a
+              target="_blank"
+              href={action.directoryLink}
+              onClick={() => onActionCardClicked(action)}
+              className="related-results__cn__item"
+              key={index}
+            >
               <div className="related-results__cn__item__wrpr">
                 <div className="actions__cn__item__name__iconWrpr">
-                  {action.type?.toLowerCase() === 'member' && <img className="actions__cn__item__name__icon" src="/icons/husky/husky-member.svg" alt="icon" />}
-                  {action.type?.toLowerCase() === 'team' && <img className="actions__cn__item__name__icon" src="/icons/husky/husky-team.svg" alt="icon" />}
-                  {action.type?.toLowerCase() === 'project' && <img className="actions__cn__item__name__icon" src="/icons/husky/husky-project.svg" alt="icon" />}
-                  {action.type?.toLowerCase() === 'event' && <img className="actions__cn__item__name__icon" src="/icons/husky/husky-event.svg" alt="icon" />}
+                  {action.type?.toLowerCase() === 'member' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/husky/husky-member.svg" alt="icon" />
+                  )}
+                  {action.type?.toLowerCase() === 'team' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/husky/husky-team.svg" alt="icon" />
+                  )}
+                  {action.type?.toLowerCase() === 'project' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/husky/husky-project.svg" alt="icon" />
+                  )}
+                  {action.type?.toLowerCase() === 'event' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/husky/husky-event.svg" alt="icon" />
+                  )}
                 </div>
                 <div className="related-results__cn__item__content">
                   <p className="related-results__cn__item__name">
@@ -62,7 +76,7 @@ function RelatedResults({ actions }: RelatedResultsProps) {
           }
 
           .action-type {
-            font-size: 14px;
+            font-size: 12px;
             text-transform: capitalize;
             width: fit-content;
             color: #0f172a;
@@ -95,8 +109,8 @@ function RelatedResults({ actions }: RelatedResultsProps) {
           }
           .related-results__cn__item {
             background: #fff;
-            height: 88px;
-            padding: 20px;
+            //height: 88px;
+            padding: 16px;
             border-radius: 8px;
             width: 100%;
             display: flex;
@@ -107,6 +121,7 @@ function RelatedResults({ actions }: RelatedResultsProps) {
           }
 
           .related-results__cn__item__content {
+            overflow: hidden;
             width: 100%;
           }
 
@@ -118,17 +133,16 @@ function RelatedResults({ actions }: RelatedResultsProps) {
           }
 
           .related-results__cn__item__name {
-            font-size: 18px;
+            font-size: 14px;
             line-height: 28px;
             font-weight: 600;
-            display: flex;
             gap: 6px;
             color: #0f172a;
             text-transform: capitalize;
             white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
-            width: 90%;
+            //width: 90%;
             display: block;
           }
 

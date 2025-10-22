@@ -14,13 +14,16 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata, ResolvingMetadata } from 'next';
 import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.css';
-import { BreadCrumb } from '@/components/core/bread-crumb';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
-import AsksSection from '@/components/page/team-details/asks-section';
+import { BackButton } from '@/components/ui/BackButton';
+import React from 'react';
+import { InvestorProfileView } from '@/components/page/member-details/InvestorProfileDetails/components/InvestorProfileView';
+import { clsx } from 'clsx';
+import s from '@/components/page/member-details/InvestorProfileDetails/InvestorProfileDetails.module.scss';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
@@ -37,7 +40,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
     isNotFound,
     officeHoursFlag,
     hasEditAsksAccess,
-    isLoggedInMemberPartOfTeam
+    isLoggedInMemberPartOfTeam,
   } = await getPageData(teamId);
 
   if (redirectTeamUid) {
@@ -51,31 +54,43 @@ async function Page({ params }: { params: ITeamDetailParams }) {
   return (
     <>
       <div className={styles?.teamDetail}>
-        <div className={styles?.teamDetail__breadcrumb}>
-          <BreadCrumb backLink="/teams" directoryName="Teams" pageName={team?.name ?? ''} />
-        </div>
+        <BackButton to={`/teams`} />
         <div className={styles?.teamDetail__container}>
           {/* Details */}
           <div className={styles?.teamDetail__Container__details}>
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
-          {/* Asks */}
-          {!hasEditAsksAccess && team?.asks.length > 0 && (
-            <div className={styles.teamDetail__Container__asks}>
-              <AsksSection team={team} asks={team?.asks ?? []} hasEditAsksAccess={hasEditAsksAccess ?? false} />
-            </div>
-          )}
 
-          {hasEditAsksAccess && (
-            <div className={styles.teamDetail__Container__asks}>
-              <AsksSection team={team} asks={team?.asks ?? []} hasEditAsksAccess={hasEditAsksAccess ?? false} />
+          {isLoggedIn && team.investorProfile && (
+            <div className={clsx(s.root)}>
+              <InvestorProfileView
+                investmentFocusAreas={team?.investorProfile?.investmentFocus}
+                typicalCheckSize={team?.investorProfile?.typicalCheckSize}
+                isLoggedIn={isLoggedIn}
+                userInfo={userInfo}
+                isEditable={false}
+                showIncomplete={false}
+                secRulesAccepted
+                investInStartupStages={team?.investorProfile?.investInStartupStages}
+                investInFundTypes={team?.investorProfile?.investInFundTypes}
+                type={'ANGEL'}
+                hideHeader
+              />
             </div>
           )}
 
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>
             <ContactInfo team={team} userInfo={userInfo} />
-            {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <TeamOfficeHours isLoggedIn={isLoggedIn} team={team} userInfo={userInfo} officeHoursFlag={officeHoursFlag} isLoggedInMemberPartOfTeam={isLoggedInMemberPartOfTeam}/>}
+            {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && (
+              <TeamOfficeHours
+                isLoggedIn={isLoggedIn}
+                team={team}
+                userInfo={userInfo}
+                officeHoursFlag={officeHoursFlag}
+                isLoggedInMemberPartOfTeam={isLoggedInMemberPartOfTeam}
+              />
+            )}
           </div>
           {/* Funding */}
           {team?.fundingStage || team?.membershipSources?.length ? (
@@ -102,7 +117,13 @@ async function Page({ params }: { params: ITeamDetailParams }) {
 
           {/* Projects */}
           <div className={styles?.teamDetail__container__projects}>
-            <Projects isLoggedIn={isLoggedIn} projects={teamProjectList} team={team} userInfo={userInfo} hasProjectsEditAccess={hasProjectsEditAccess} />
+            <Projects
+              isLoggedIn={isLoggedIn}
+              projects={teamProjectList}
+              team={team}
+              userInfo={userInfo}
+              hasProjectsEditAccess={hasProjectsEditAccess}
+            />
           </div>
         </div>
       </div>
@@ -159,18 +180,21 @@ async function getPageData(teamId: string) {
     }
 
     const [teamResponse, teamMembersResponse, focusAreaResponse] = await Promise.all([
-      getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks' }),
+      getTeam(teamId, {
+        with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks',
+      }),
       getMembers(
         {
           'teamMemberRoles.team.uid': teamId,
           isVerified: 'all',
-          select: 'uid,name,isVerified,image.url,skills.title,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
+          select:
+            'uid,name,isVerified,image.url,officeHours,ohStatus,skills.title,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
           pagination: false,
         },
         teamId,
         0,
         0,
-        isLoggedIn
+        isLoggedIn,
       ),
       getFocusAreas('Team', {}),
     ]);
@@ -185,7 +209,7 @@ async function getPageData(teamId: string) {
           pagination: false,
         },
         0,
-        0
+        0,
       );
       if (!allTeams?.error) {
         memberTeams = allTeams?.data?.formattedData ?? [];
@@ -205,7 +229,9 @@ async function getPageData(teamId: string) {
     }
 
     members = teamMembersResponse?.data?.formattedData?.sort(sortMemberByRole);
-    hasEditAsksAccess = members.some((member: any) => member.id === userInfo.uid) || (Array.isArray(userInfo?.roles) ? userInfo?.roles?.includes(ADMIN_ROLE) : false);
+    hasEditAsksAccess =
+      members.some((member: any) => member.id === userInfo.uid) ||
+      (Array.isArray(userInfo?.roles) ? userInfo?.roles?.includes(ADMIN_ROLE) : false);
     focusAreas = focusAreaResponse.data;
     focusAreas = focusAreas.filter((data: IFocusArea) => !data.parentUid);
     const maintainingProjects = team?.maintainingProjects?.map((project: any) => {
@@ -224,19 +250,32 @@ async function getPageData(teamId: string) {
       }
     }
     teamProjectList = [...maintainingProjects, ...contributingProjects];
-    teamProjectList = teamProjectList?.map((project: any) => {
-      return {
-        ...project,
-        hasEditAccess: hasProjectEditAccess(userInfo, project, isLoggedIn, memberTeams),
-      };
-    });
+    teamProjectList = teamProjectList
+      ?.filter((project) => !project.isDeleted)
+      .map((project: any) => {
+        return {
+          ...project,
+          hasEditAccess: hasProjectEditAccess(userInfo, project, isLoggedIn, memberTeams),
+        };
+      });
     if (userInfo?.roles && userInfo?.roles?.length && userInfo?.roles?.includes(ADMIN_ROLE) && authToken) {
       hasProjectsEditAccess = true;
     }
     if (hasProjectsEditAccess) {
       team.logoUid = team.logoUid;
     }
-    return { team, members, focusAreas, isLoggedIn, userInfo, teamProjectList, hasProjectsEditAccess, officeHoursFlag, hasEditAsksAccess, isLoggedInMemberPartOfTeam };
+    return {
+      team,
+      members,
+      focusAreas,
+      isLoggedIn,
+      userInfo,
+      teamProjectList,
+      hasProjectsEditAccess,
+      officeHoursFlag,
+      hasEditAsksAccess,
+      isLoggedInMemberPartOfTeam,
+    };
   } catch (error: any) {
     console.error(error);
     isNotFound = true;
@@ -248,9 +287,14 @@ type IGenerateMetadata = {
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
 };
-export async function generateMetadata({ params, searchParams }: IGenerateMetadata, parent: ResolvingMetadata): Promise<Metadata> {
+export async function generateMetadata(
+  { params, searchParams }: IGenerateMetadata,
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
   const teamId = params.id;
-  const teamResonse = await getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member' });
+  const teamResonse = await getTeam(teamId, {
+    with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member',
+  });
   if (teamResonse?.error) {
     return {
       title: 'Protocol Labs Directory',

@@ -6,8 +6,6 @@ import AddEditProjectForm from './add-edit-project-form';
 import FormStepIndicatorMob from '../../core/form-step-indicator-mob';
 import { FormStepIndicatorWeb } from '../../core/form-step-indicator-web';
 import { PROJECT_FORM_STEPS } from '@/utils/constants';
-import AddEditTeamContainer from '../add-edit-team/add-edit-team-container';
-import { SUB_TITLE, SUBMIT_A_TEAM_PAGE_TITLE, TEAM_FORM_STEPS } from '@/utils/constants/team-constants';
 
 interface IAddEditProjectContainerProps {
   project: IProjectResponse;
@@ -27,11 +25,23 @@ export default function AddEditProjectContainer(props: any): JSX.Element {
     <>
       <div className="add-edit-project">
         <div className="add-edit-project__indicator--mobile">
-          <FormStepIndicatorMob steps={PROJECT_FORM_STEPS} defaultStep={PROJECT_FORM_STEPS[0]} uniqueKey={'add-project'} title='Add Project' subTitle='Share your project details'/>
+          <FormStepIndicatorMob
+            steps={PROJECT_FORM_STEPS}
+            defaultStep={PROJECT_FORM_STEPS[0]}
+            uniqueKey={'add-project'}
+            title="Add Project"
+            subTitle="Share your project details"
+          />
         </div>
 
         <div className="add-edit-project__indicator--web">
-          <FormStepIndicatorWeb steps={PROJECT_FORM_STEPS} defaultStep={PROJECT_FORM_STEPS[0]} uniqueKey={'add-project'} title='Add Project' subTitle='Share your project details'/>
+          <FormStepIndicatorWeb
+            steps={PROJECT_FORM_STEPS}
+            defaultStep={PROJECT_FORM_STEPS[0]}
+            uniqueKey={'add-project'}
+            title="Add Project"
+            subTitle="Share your project details"
+          />
         </div>
 
         <div className="add-edit-project__form-container">
@@ -53,8 +63,8 @@ export default function AddEditProjectContainer(props: any): JSX.Element {
             .add-edit-project {
               display: flex;
               gap: 24px;
-              padding: 24px;
-              width: unset;
+              padding: 0;
+              width: 100%;
             }
 
             .add-edit-project__indicator--mobile {
@@ -70,7 +80,7 @@ export default function AddEditProjectContainer(props: any): JSX.Element {
               background-color: white;
               padding: 24px 20px 29px 20px;
               position: sticky;
-              top: 140px;
+              top: calc(var(--app-header-height) + 64px);
             }
           }
         `}

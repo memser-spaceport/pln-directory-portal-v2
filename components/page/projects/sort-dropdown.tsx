@@ -1,4 +1,3 @@
-
 const SortByDropdown = (props: any) => {
   const sortByRef = props.sortByRef;
   const sortBy = props?.sortBy;
@@ -20,8 +19,16 @@ const SortByDropdown = (props: any) => {
           <div className="dropdown__options">
             {sortOptions?.map((option: any, index: number) => (
               <div className="dropdown__option__container" key={`${option} + ${index}`}>
-                <button className={`dropdown__option__container__option ${option.name === sortBy ? 'dropdown__option__container__option__selected' : ''}`} onClick={() => onSortItemClick(option)}>
-                  <img loading="lazy" src={option?.name === sortBy ? option?.selectedIcon : option?.deselectIcon} height={20} width={20} />
+                <button
+                  className={`dropdown__option__container__option ${option.name === sortBy ? 'dropdown__option__container__option__selected' : ''}`}
+                  onClick={() => onSortItemClick(option)}
+                >
+                  <img
+                    loading="lazy"
+                    src={option?.name === sortBy ? option?.selectedIcon : option?.deselectIcon}
+                    height={20}
+                    width={20}
+                  />
                   {option?.label}
                 </button>
               </div>
@@ -32,7 +39,7 @@ const SortByDropdown = (props: any) => {
       <style jsx>
         {`
           .dropdown {
-            position: relative;            
+            position: relative;
           }
 
           .dropdown__option__container__option {
@@ -87,7 +94,9 @@ const SortByDropdown = (props: any) => {
 
           .dropdown__btn:focus {
             border: 1px solid #156ff7;
-            box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16), 0px 0px 0px 2px rgba(21, 111, 247, 0.25);
+            box-shadow:
+              0px 1px 2px 0px rgba(15, 23, 42, 0.16),
+              0px 0px 0px 2px rgba(21, 111, 247, 0.25);
           }
 
           .dropdown__btn__name {

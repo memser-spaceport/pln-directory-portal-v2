@@ -26,7 +26,9 @@ describe('AdditionalDetails', () => {
     const authToken = 'your-auth-token'; // Replace 'your-auth-token' with your authToken value
     const user = {}; // Replace {} with your user object
 
-    render(<AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />);
+    render(
+      <AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />,
+    );
     expect(screen.getByText('Additional Details')).toBeInTheDocument();
   });
 
@@ -44,7 +46,9 @@ describe('AdditionalDetails', () => {
         MdPreview: jest.fn(() => <div>Mocked MdEditor Component</div>),
       };
     });
-    render(<AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />);
+    render(
+      <AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />,
+    );
     expect(screen.getByText('Edit')).toBeInTheDocument();
   });
 
@@ -63,7 +67,9 @@ describe('AdditionalDetails', () => {
         MdPreview: jest.fn(() => <div>Mocked MdEditor Component</div>),
       };
     });
-    render(<AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />);
+    render(
+      <AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />,
+    );
     expect(screen.queryByText('Edit')).not.toBeInTheDocument();
   });
 
@@ -81,7 +87,9 @@ describe('AdditionalDetails', () => {
         MdPreview: jest.fn(() => <div>Mocked MdEditor Component</div>),
       };
     });
-    render(<AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />);
+    render(
+      <AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />,
+    );
     expect(screen.queryByText('Edit')).not.toBeInTheDocument();
   });
 
@@ -98,7 +106,9 @@ describe('AdditionalDetails', () => {
         MdPreview: jest.fn(() => <div>Mocked MdEditor Component</div>),
       };
     });
-    render(<AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />);
+    render(
+      <AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />,
+    );
     expect(screen.queryByText('Edit')).not.toBeInTheDocument();
   });
 
@@ -117,7 +127,9 @@ describe('AdditionalDetails', () => {
       };
     });
 
-    render(<AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />);
+    render(
+      <AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />,
+    );
     const button = screen.getByText('Edit');
     fireEvent.click(button);
 
@@ -132,7 +144,7 @@ describe('AdditionalDetails', () => {
       readMe: 'This is a sample readme',
     };
     const userHasEditRights = true;
-    const authToken  = 'your-auth-token';
+    const authToken = 'your-auth-token';
     const user = {};
 
     // Mock the ChildComponent
@@ -142,24 +154,25 @@ describe('AdditionalDetails', () => {
       };
     });
 
-    render(<AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />);
+    render(
+      <AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />,
+    );
     const button = screen.getByText('Edit');
     fireEvent.click(button);
     expect(screen.queryByText('Edit')).not.toBeInTheDocument();
     const cancelButton = screen.getByText('Cancel');
-    
+
     fireEvent.click(cancelButton);
     expect(screen.queryByText('Save')).not.toBeInTheDocument();
     expect(screen.queryByText('Cancel')).not.toBeInTheDocument();
-  }
-  );
+  });
   it('should trigger save button action', async () => {
     const project = {
       isDeleted: false,
       readMe: 'This is a sample readme',
     };
     const userHasEditRights = true;
-    const authToken  = 'your-auth-token';
+    const authToken = 'your-auth-token';
     const user = {};
 
     // Mock the ChildComponent
@@ -169,20 +182,21 @@ describe('AdditionalDetails', () => {
       };
     });
 
-    render(<AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />);
+    render(
+      <AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />,
+    );
     const button = screen.getByText('Edit');
     fireEvent.click(button);
     expect(screen.queryByText('Edit')).not.toBeInTheDocument();
     const saveButton = screen.getByText('Save');
-    
+
     fireEvent.click(saveButton);
     await waitFor(() => {
       expect(screen.queryByText('Save')).not.toBeInTheDocument();
       expect(screen.queryByText('Cancel')).not.toBeInTheDocument();
       // expect(screen.queryByText('Additional Details updated successfully.')).toBeInTheDocument();
     });
-  }
-  );
+  });
 
   it('should have Click here when the user is the team lead', async () => {
     const userInfo = {
@@ -194,14 +208,14 @@ describe('AdditionalDetails', () => {
       },
     };
     const userHasEditRights = true;
-    const authToken
-      = 'your-auth-token';
+    const authToken = 'your-auth-token';
     const user = userInfo;
-    render(<AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />);
+    render(
+      <AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />,
+    );
     expect(screen.queryByText('No additional details added.')).toBeInTheDocument();
     expect(screen.queryByText('Click Here')).toBeInTheDocument();
   });
-
 
   it('should not have Click here when the user is not the team lead', async () => {
     const userInfo = {
@@ -212,31 +226,30 @@ describe('AdditionalDetails', () => {
         uid: 'team3',
       },
     };
-    const userHasEditRights = true;
-    const authToken
-      = 'your-auth-token';
+    const userHasEditRights = false;
+    const authToken = 'your-auth-token';
     const user = userInfo;
-    render(<AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />);
+    render(
+      <AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />,
+    );
     expect(screen.queryByText('No additional details added.')).toBeInTheDocument();
     expect(screen.queryByText('Click Here')).not.toBeInTheDocument();
   });
 
   it('should return false when there is exception while validating if the user is team lead or not', async () => {
     const userInfo = {
-      leadingTeams: {},
+      leadingTeams: [],
     };
     const project = {
       maintainingTeam: [],
     };
-    const userHasEditRights = true;
-    const authToken
-      = 'your-auth-token';
+    const userHasEditRights = false;
+    const authToken = 'your-auth-token';
     const user = userInfo;
-    render(<AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />);
+    render(
+      <AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />,
+    );
     expect(screen.queryByText('No additional details added.')).toBeInTheDocument();
     expect(screen.queryByText('Click Here')).not.toBeInTheDocument();
- 
   });
- 
 });
-

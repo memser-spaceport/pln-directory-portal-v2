@@ -1,12 +1,24 @@
-import { IMember, IMemberListOptions, IMemberPreferences, IMemberResponse, IMembersSearchParams, ITeamMemberRole } from '@/types/members.types';
-import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
+import {
+  IMember,
+  IMemberListOptions,
+  IMemberPreferences,
+  IMemberResponse,
+  IMembersSearchParams,
+  ITeamMemberRole,
+} from '@/types/members.types';
+import { getParsedValue, getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from './constants';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { validateLocation } from '@/services/location.service';
+import Cookies from 'js-cookie';
 
-
-export const getFormattedFilters = (searchParams: IMembersSearchParams, rawFilters: any, availableFilters: any, isLoggedIn: boolean) => {
+export const getFormattedFilters = (
+  searchParams: IMembersSearchParams,
+  rawFilters: any,
+  availableFilters: any,
+  isLoggedIn: boolean,
+) => {
   const restricedKeys = ['region', 'country', 'metroArea'];
   const formattedFilters: any = {
     memberRoles: [],
@@ -21,30 +33,31 @@ export const getFormattedFilters = (searchParams: IMembersSearchParams, rawFilte
     region: availableFilters.regions,
     country: availableFilters.countries,
     metroArea: availableFilters.cities,
-    memberRoles: []
-  }
+    memberRoles: [],
+  };
 
-   Object.keys(formattedFilters).forEach((key: string) => {
-     const values = formattedFilters[key];
-     formattedFilters[key] = values.map((value: string) => {
+  Object.keys(formattedFilters).forEach((key: string) => {
+    const values = formattedFilters[key];
+    formattedFilters[key] = values.map((value: string) => {
       const isAvailable = formattedAvailableFilters[key as keyof typeof formattedAvailableFilters].includes(value);
       const isRestricted = !isLoggedIn && restricedKeys.includes(key);
       return {
         value: value,
-        selected:  searchParams[key as keyof IMembersSearchParams] ? searchParams[key as keyof IMembersSearchParams]?.split('|')?.includes(value) : false,
-        disabled:  !isAvailable ? true: isRestricted  //isLoggedIn ? formattedAvailableFilters[key as keyof typeof formattedAvailableFilters].includes(value) ? false : true : restricedKeys.includes(key)
-      }
-     })
-   })
+        selected: searchParams[key as keyof IMembersSearchParams]
+          ? searchParams[key as keyof IMembersSearchParams]?.split('|')?.includes(value)
+          : false,
+        disabled: !isAvailable ? true : isRestricted, //isLoggedIn ? formattedAvailableFilters[key as keyof typeof formattedAvailableFilters].includes(value) ? false : true : restricedKeys.includes(key)
+      };
+    });
+  });
 
-   formattedFilters.isIncludeFriends = searchParams['includeFriends'] === 'true' || false;
-   formattedFilters.isRecent = searchParams['isRecent'] === 'true' || false;
-   formattedFilters.isOpenToWork = searchParams['openToWork'] === 'true' || false;
-   formattedFilters.isOfficeHoursOnly = searchParams['officeHoursOnly'] === 'true' || false;
-  
+  formattedFilters.isIncludeFriends = searchParams['includeFriends'] === 'true' || false;
+  formattedFilters.isRecent = searchParams['isRecent'] === 'true' || false;
+  formattedFilters.isOpenToWork = searchParams['openToWork'] === 'true' || false;
+  formattedFilters.isOfficeHoursOnly = searchParams['hasOfficeHours'] === 'true' || false;
 
-   return formattedFilters;
-}
+  return formattedFilters;
+};
 
 export const parseMemberDetails = (members: IMemberResponse[], teamId: string, isLoggedIn: boolean) => {
   return members?.map((member: IMemberResponse): IMember => {
@@ -52,7 +65,9 @@ export const parseMemberDetails = (members: IMemberResponse[], teamId: string, i
     if (teamId) {
       parsedMember = {
         ...member,
-        teamMemberRoles: member.teamMemberRoles?.filter((teamMemberRole: ITeamMemberRole) => teamMemberRole.team?.uid === teamId),
+        teamMemberRoles: member.teamMemberRoles?.filter(
+          (teamMemberRole: ITeamMemberRole) => teamMemberRole.team?.uid === teamId,
+        ),
       };
     }
     const teams =
@@ -71,6 +86,7 @@ export const parseMemberDetails = (members: IMemberResponse[], teamId: string, i
       name: parsedMember.name,
       profile: parsedMember.image?.url || null,
       officeHours: parsedMember.officeHours || null,
+      ohStatus: parsedMember.ohStatus,
       skills: parsedMember.skills || [],
       teamLead,
       // projectContributions: parsedMember.projectContributions ?? null,
@@ -184,30 +200,48 @@ export const dateDifference = (date1: any, date2: any) => {
 };
 
 export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): IMemberListOptions {
-  const { sort, searchBy, skills, region, country, metroArea, officeHoursOnly, includeFriends, openToWork, memberRoles, isRecent, includeUnVerified, isHost, isSpeaker, isHostAndSpeaker } = queryParams;
+  const {
+    sort,
+    // searchBy,
+    // skills,
+    // region,
+    // country,
+    // metroArea,
+    hasOfficeHours,
+    includeFriends,
+    // openToWork,
+    memberRoles,
+    // isRecent,
+    includeUnVerified,
+    // isHost,
+    // isSpeaker,
+    // isSponsor,
+    // isHostAndSpeakerAndSponsor,
+  } = queryParams;
 
   const sortFromQuery = getSortFromQuery(sort?.toString());
   const sortField = sortFromQuery.field.toLowerCase();
 
   return {
-    ...(officeHoursOnly ? { officeHours__not: 'null' } : {}),
-    ...(skills ? { 'skills.title__with': stringifyQueryValues(skills) } : {}),
-    ...(region
-      ? {
-          'location.continent__with': stringifyQueryValues(region),
-        }
-      : {}),
-    ...(country ? { 'location.country__with': stringifyQueryValues(country) } : {}),
-    ...(metroArea ? { 'location.city__with': stringifyQueryValues(metroArea) } : {}),
-    ...(includeFriends ? {isVerified: 'all'} : { plnFriend: false, isVerified: 'true' }),
-    ...(openToWork ? { openToWork: true } : {}),
-    ...(isRecent ? { isRecent: true } : {}),
-    ...(isHost ? { isHost: true } : {}),
-    ...(isSpeaker ? { isSpeaker: true } : {}),
-    ...(isHostAndSpeaker ? { isHostAndSpeaker: true } : {}),
-    ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
+    ...(hasOfficeHours ? { hasOfficeHours: true } : {}),
+    // ...(skills ? { 'skills.title__with': stringifyQueryValues(skills) } : {}),
+    // ...(region
+    //   ? {
+    //       'location.continent__with': stringifyQueryValues(region),
+    //     }
+    //   : {}),
+    // ...(country ? { 'location.country__with': stringifyQueryValues(country) } : {}),
+    // ...(metroArea ? { 'location.city__with': stringifyQueryValues(metroArea) } : {}),
+    ...(includeFriends ? { includePlnFriend: true } : {}),
+    // ...(openToWork ? { openToWork: true } : {}),
+    // ...(isRecent ? { isRecent: true } : {}),
+    // ...(isHost ? { isHost: true } : {}),
+    // ...(isSponsor ? { isSponsor: true } : {}),
+    // ...(isSpeaker ? { isSpeaker: true } : {}),
+    // ...(isHostAndSpeakerAndSponsor ? { isHostAndSpeakerAndSponsor: true } : {}),
+    // ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
     ...(memberRoles ? { memberRoles: stringifyQueryValues(memberRoles) } : {}),
-   /*  ...(includeUnVerified ? { isVerified: 'all' } : {}), */
+    /*  ...(includeUnVerified ? { isVerified: 'all' } : {}), */
     orderBy: `${sortFromQuery.direction === 'desc' ? '-' : ''}${sortField}`,
   };
 }
@@ -218,6 +252,7 @@ export function getMembersListOptions(options: IMemberListOptions) {
     pagination: true,
     select:
       'uid,name,openToWork,isRecent,isVerified,image.url,location.metroArea,location.country,location.region,location.city,skills.title,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
+    // 'uid,name,isVerified,image.url,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
   };
 }
 
@@ -226,12 +261,18 @@ export const getUniqueFilters = (members: IMemberResponse[]) => {
     (values: any, member) => {
       const skills = getUniqueFilterValues(
         values?.skills,
-        member?.skills?.map((skill: { title: string }) => skill.title)
+        member?.skills?.map((skill: { title: string }) => skill.title),
       );
 
-      const region = getUniqueFilterValues(values?.region, member?.location?.continent ? [member?.location?.continent] : []);
+      const region = getUniqueFilterValues(
+        values?.region,
+        member?.location?.continent ? [member?.location?.continent] : [],
+      );
 
-      const country = getUniqueFilterValues(values?.country, member?.location?.country ? [member?.location?.country] : []);
+      const country = getUniqueFilterValues(
+        values?.country,
+        member?.location?.country ? [member?.location?.country] : [],
+      );
 
       const metroArea = getUniqueFilterValues(values.metroArea, member?.location?.city ? [member?.location?.city] : []);
 
@@ -242,7 +283,7 @@ export const getUniqueFilters = (members: IMemberResponse[]) => {
       region: [],
       country: [],
       metroArea: [],
-    }
+    },
   );
 
   Object.values(filtersValues).forEach((value: any) => value?.sort());
@@ -250,7 +291,12 @@ export const getUniqueFilters = (members: IMemberResponse[]) => {
   return filtersValues;
 };
 
-export function getTagsFromValues(allValues: string[], availableValues: string[], queryValues: string | string[] = [], isUserLoggedIn: boolean) {
+export function getTagsFromValues(
+  allValues: string[],
+  availableValues: string[],
+  queryValues: string | string[] = [],
+  isUserLoggedIn: boolean,
+) {
   const queryValuesArr = Array.isArray(queryValues) ? queryValues : queryValues.split(URL_QUERY_VALUE_SEPARATOR);
   return allValues?.map((value) => {
     const selected = isUserLoggedIn ? queryValuesArr.includes(value) : false;
@@ -278,9 +324,24 @@ export const parseMemberFilters = (filtersValues: any, query: any, isUserLoggedI
 
   const formattedData = {
     skills: getTagsFromValues(parsedValuesByFilter.skills, parsedAvailableValuesByFilter.skills, query?.skills, true),
-    region: getTagsFromValues(parsedValuesByFilter.region, parsedAvailableValuesByFilter.region, query?.region, isUserLoggedIn),
-    country: getTagsFromValues(parsedValuesByFilter.country, parsedAvailableValuesByFilter.country, query?.country, isUserLoggedIn),
-    metroArea: getTagsFromValues(parsedValuesByFilter.metroArea, parsedAvailableValuesByFilter.metroArea, query?.metroArea, isUserLoggedIn),
+    region: getTagsFromValues(
+      parsedValuesByFilter.region,
+      parsedAvailableValuesByFilter.region,
+      query?.region,
+      isUserLoggedIn,
+    ),
+    country: getTagsFromValues(
+      parsedValuesByFilter.country,
+      parsedAvailableValuesByFilter.country,
+      query?.country,
+      isUserLoggedIn,
+    ),
+    metroArea: getTagsFromValues(
+      parsedValuesByFilter.metroArea,
+      parsedAvailableValuesByFilter.metroArea,
+      query?.metroArea,
+      isUserLoggedIn,
+    ),
     memberRoles: getRoleTagsFromValues(roleValues, query.memberRoles),
   };
 
@@ -300,13 +361,16 @@ export const getMemberInfoFormValues = async () => {
   const teamsData = await teamsInfo.json();
   const projectsData = await projectsInfo.json();
   const skillsData = await skillsInfo.json();
+
   return {
-    teams: teamsData
-      ?.teams?.map((d: any) => {
+    teams: teamsData?.teams
+      ?.map((d: any) => {
         return {
           teamUid: d.uid,
           teamTitle: d.name,
+          investorProfile: d.investorProfile,
           role: '',
+          logo: d.logo?.url,
         };
       })
       .sort((a: any, b: any) => a.teamTitle - b.teamTitle),
@@ -392,7 +456,9 @@ export function apiObjsToMemberObj(obj: any) {
         startDate: c.startDate,
         description: c.description,
         currentProject: c.currentProject,
-        ...(c.currentProject === false && { endDate: new Date(Date.UTC(endDateYear, endDateMonth + 1, 0)).toISOString() }),
+        ...(c.currentProject === false && {
+          endDate: new Date(Date.UTC(endDateYear, endDateMonth + 1, 0)).toISOString(),
+        }),
       };
     }),
     skills: obj.skillsInfo.skills.map((sk: any) => {
@@ -401,9 +467,9 @@ export function apiObjsToMemberObj(obj: any) {
         uid: sk.id,
       };
     }),
-    teamOrProjectURL:obj?.skillsInfo?.teamOrProjectURL,
+    teamOrProjectURL: obj?.skillsInfo?.teamOrProjectURL,
     teamAndRoles: obj.skillsInfo.teamsAndRoles,
-    openToWork: obj?.skillsInfo?.openToWork ?? false
+    openToWork: obj?.skillsInfo?.openToWork ?? false,
   };
 
   if (!formatted.imageFile) {
@@ -466,8 +532,8 @@ export function formInputsToMemberObj(obj: any) {
     }
   }
 
-  result['openToWork'] = result.openToWork  === 'on' ? true : false;
-  result['plnFriend'] = result.plnFriend  === 'on' ? true : false;
+  result['openToWork'] = result.openToWork === 'on' ? true : false;
+  result['plnFriend'] = result.plnFriend === 'on' ? true : false;
   result.teamAndRoles = Object.values(teamAndRoles);
   result.projectContributions = Object.values(projectContributions);
   result.skills = Object.values(skills);
@@ -480,7 +546,7 @@ export function formInputsToMemberObj(obj: any) {
     if (v['endDate'] === '' || v['endDate'] === null || !v['endDate']) {
       delete v['endDate'];
     } else {
-      v['endDate'] = v.endDate
+      v['endDate'] = v.endDate;
     }
 
     return v;
@@ -491,8 +557,8 @@ export function formInputsToMemberObj(obj: any) {
     result['plnStartDate'] = null;
   }
 
-    result['bio'] = result['rich-text-editor']?.trim() || '';
-    delete result['rich-text-editor'];
+  result['bio'] = result['rich-text-editor']?.trim() || '';
+  delete result['rich-text-editor'];
   return result;
 }
 
@@ -500,7 +566,7 @@ export const memberRegistrationDefaults = {
   skillsInfo: {
     teamsAndRoles: [],
     skills: [],
-    teamOrProjectURL:''
+    teamOrProjectURL: '',
   },
   contributionInfo: [],
   basicInfo: {
@@ -525,12 +591,12 @@ export const memberRegistrationDefaults = {
 };
 
 export const getInitialMemberFormValues = (selectedMember: any) => {
-  return{
+  return {
     skillsInfo: {
       teamsAndRoles: selectedMember.teamMemberRoles ?? [],
       skills: selectedMember.skills ?? [],
       openToWork: selectedMember?.openToWork ?? false,
-      teamOrProjectURL: selectedMember?.teamOrProjectURL ?? ''
+      teamOrProjectURL: selectedMember?.teamOrProjectURL ?? '',
     },
     contributionInfo: selectedMember?.projectContributions ?? [],
     basicInfo: {
@@ -553,8 +619,8 @@ export const getInitialMemberFormValues = (selectedMember: any) => {
       officeHours: selectedMember?.officeHours ?? '',
       moreDetails: selectedMember?.moreDetails ?? '',
     },
-  }
-}
+  };
+};
 
 export const validateTeamsAndSkills = async (formattedData: any) => {
   const errors: string[] = [];
@@ -651,7 +717,7 @@ export function getFormattedDateString(startDate: string, endDate: string) {
     const startMonthName = monthNames[parseInt(startMonth, 10) - 1];
     const endMonthName = monthNames[parseInt(endMonth, 10) - 1];
 
-    const formattedStartYear = startYear.slice(2); 
+    const formattedStartYear = startYear.slice(2);
     const formattedEndYear = endYear.slice(2);
 
     if (startDateOnly === endDateOnly) {
@@ -668,7 +734,6 @@ export function getFormattedDateString(startDate: string, endDate: string) {
   }
 }
 
-
 export function handleHostAndSpeaker(options: any) {
   if (options?.isHostAndSpeaker && options?.isHostAndSpeaker === true) {
     delete options.isHostAndSpeaker;
@@ -677,17 +742,45 @@ export function handleHostAndSpeaker(options: any) {
   }
 }
 
+export function getVisibleSocialHandles(member: any): string[] {
+  const fieldMap: Record<string, [string, string]> = {
+    email: ['email', 'showEmail'],
+    github: ['githubHandle', 'showGithubHandle'],
+    discord: ['discordHandle', 'showDiscord'],
+    twitter: ['twitter', 'showTwitter'],
+    linkedin: ['linkedinHandle', 'showLinkedin'],
+    telegram: ['telegramHandle', 'showTelegram'],
+  };
+
+  const result: string[] = [];
+
+  for (const friendlyName in fieldMap) {
+    const [dataKey, prefKey] = fieldMap[friendlyName];
+    if (member[dataKey] && (member.preferences?.[prefKey] ?? true)) {
+      result.push(friendlyName);
+    }
+  }
+
+  if (member.officeHours) {
+    result.push('officeHours');
+  }
+
+  return result;
+}
+
 export const parseMemberDetailsForTeams = (members: IMemberResponse[], teamId: string) => {
   return members?.map((member: IMemberResponse): IMember => {
     let parsedMember = { ...member };
     if (teamId) {
       parsedMember = {
         ...member,
-        teamMemberRoles: member.teamMemberRoles?.filter((teamMemberRole: ITeamMemberRole) => teamMemberRole.team?.uid === teamId),
+        teamMemberRoles: member.teamMemberRoles?.filter(
+          (teamMemberRole: ITeamMemberRole) => teamMemberRole.team?.uid === teamId,
+        ),
       };
     }
 
-    const teams ={
+    const teams = {
       teamUid: parsedMember.teamMemberRoles[0]?.team?.uid || '',
       memberUid: parsedMember?.uid || '',
       role: parsedMember.teamMemberRoles[0]?.role || 'Contributor',
@@ -706,3 +799,33 @@ export const parseMemberDetailsForTeams = (members: IMemberResponse[], teamId: s
     return data;
   });
 };
+
+export function updateMemberInfoCookie(url: string) {
+  try {
+    const existingUserInfo = Cookies.get('userInfo');
+    const parsedUserInfo = getParsedValue(existingUserInfo);
+
+    if (parsedUserInfo) {
+      const updatedUserInfo = {
+        ...parsedUserInfo,
+        profileImageUrl: url,
+      };
+
+      Cookies.set('userInfo', JSON.stringify(updatedUserInfo), {
+        path: '/',
+      });
+    }
+  } catch (error) {
+    console.error('Failed to update userInfo cookie:', error);
+  }
+}
+
+export function isMemberAvailableToConnect(member: any) {
+  return (
+    !!member?.officeHours &&
+    (member.ohStatus === 'OK' ||
+      member?.ohStatus === 'NOT_FOUND' ||
+      member?.ohStatus === null ||
+      member?.ohStatus === 'BROKEN')
+  );
+}

@@ -4,7 +4,7 @@ import FilterCount from '../../ui/filter-count';
 import ViewType from '../../ui/view-type';
 import useClickedOutside from '../../../hooks/useClickedOutside';
 import useUpdateQueryParams from '../../../hooks/useUpdateQueryParams';
-import { ChangeEvent, FormEventHandler, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { EVENTS, VIEW_TYPE_OPTIONS } from '@/utils/constants';
 import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
 import SortByDropdown from './sort-dropdown';
@@ -67,7 +67,7 @@ const ProjectsToolbar = (props: any) => {
 
   const onClearSearchClicked = () => {
     setSearchInput('');
-    if(searchParams["searchBy"]) {
+    if (searchParams['searchBy']) {
       triggerLoader(true);
     }
     updateQueryParams('searchBy', '', searchParams);
@@ -100,7 +100,7 @@ const ProjectsToolbar = (props: any) => {
   };
 
   const onSortOptionClickHandler = (option: any) => {
-    if(option.name !== searchParams['sort']) {
+    if (option.name !== searchParams['sort']) {
       triggerLoader(true);
     }
     if (option.name === SORT_OPTIONS.ASCENDING || option.name === SORT_OPTIONS.DESCENDING) {
@@ -141,11 +141,17 @@ const ProjectsToolbar = (props: any) => {
                 name="searchBy"
                 className="toolbar__left__search-container__searchfrm__input"
                 placeholder="Search for a Project"
-                onFocus={(e) => e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)}
+                onFocus={(e) =>
+                  e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)
+                }
               />
               <div className="toolbar__left__search-container__searchfrm__optns">
                 {searchInput && (
-                  <button type="button" onClick={onClearSearchClicked} className="toolbar__left__search-container__searchfrm__optns__clrbtn">
+                  <button
+                    type="button"
+                    onClick={onClearSearchClicked}
+                    className="toolbar__left__search-container__searchfrm__optns__clrbtn"
+                  >
                     <Image loading="lazy" alt="close" src="/icons/close-gray.svg" height={16} width={16} />
                   </button>
                 )}
@@ -160,14 +166,27 @@ const ProjectsToolbar = (props: any) => {
         <div className="toolbar__right">
           <div className="toolbar__right__mobile">
             <button className="toolbar__right__mobile__sort-by" onClick={onSortClickHandler}>
-              {sortBy === SORT_OPTIONS.ASCENDING && <img alt="sort" src="/icons/ascending-gray.svg" height={20} width={20} />}
-              {sortBy === SORT_OPTIONS.DESCENDING && <img alt="sort" src="/icons/descending-gray.svg" height={20} width={20} />}
-              {sortBy === SORT_OPTIONS.DEFAULT && <img alt="sort" src="/icons/star-outline-gray.svg" height={20} width={20} />}
+              {sortBy === SORT_OPTIONS.ASCENDING && (
+                <img alt="sort" src="/icons/ascending-gray.svg" height={20} width={20} />
+              )}
+              {sortBy === SORT_OPTIONS.DESCENDING && (
+                <img alt="sort" src="/icons/descending-gray.svg" height={20} width={20} />
+              )}
+              {sortBy === SORT_OPTIONS.DEFAULT && (
+                <img alt="sort" src="/icons/star-outline-gray.svg" height={20} width={20} />
+              )}
             </button>
           </div>
           <div className="toolbar__right__web">
             <p className="toolbar__right__web__sort">Sort by:</p>
-            <SortByDropdown isSortOpen={isSortBy} sortOptions={PROJECT_SORT_ICONS} sortByRef={sortByRef} sortBy={sortBy} onSortClick={onSortClick} onSortItemClick={onSortOptionClickHandler} />
+            <SortByDropdown
+              isSortOpen={isSortBy}
+              sortOptions={PROJECT_SORT_ICONS}
+              sortByRef={sortByRef}
+              sortBy={sortBy}
+              onSortClick={onSortClick}
+              onSortItemClick={onSortOptionClickHandler}
+            />
           </div>
           <ViewType callback={onViewtypeClickHandler} view={view} />
         </div>
@@ -180,6 +199,7 @@ const ProjectsToolbar = (props: any) => {
             justify-content: space-between;
             height: 40px;
             gap: 8px;
+            width: 100%;
           }
 
           .toolbar__left {
@@ -218,6 +238,7 @@ const ProjectsToolbar = (props: any) => {
             background: #fff;
             box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
             background: #fff;
+            display: none;
           }
 
           .toolbar__left__search-container__searchfrm {
@@ -361,7 +382,9 @@ const ProjectsToolbar = (props: any) => {
 
             .toolbar__right__web__sort-by:focus {
               border: 1px solid #156ff7;
-              box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16), 0px 0px 0px 2px rgba(21, 111, 247, 0.25);
+              box-shadow:
+                0px 1px 2px 0px rgba(15, 23, 42, 0.16),
+                0px 0px 0px 2px rgba(21, 111, 247, 0.25);
             }
 
             .toolbar__right__web__sort-by__name {

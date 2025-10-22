@@ -1,0 +1,82 @@
+@use 'styles/media.scss';
+
+.root {
+  margin-top: 24px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 167.5px;
+  height: 166px;
+  background: #fff;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+
+  .header {
+    height: 33px;
+    background: linear-gradient(180deg, #fff 0%, #e2e8f0 205.47%);
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    position: absolute;
+    top: 13px;
+    z-index: 1;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .body {
+    flex: 1;
+    padding: 18px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+
+    > span:not(:first-child) {
+      width: 100%;
+    }
+  }
+
+  .title {
+    margin: 0 auto;
+  }
+
+  .desc {
+    width: 100%;
+  }
+
+  .tags {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    padding: 0 12px 12px;
+
+    .tag {
+      border-radius: 20px;
+    }
+  }
+
+  @include media.tablet-landscape {
+    width: 289px;
+    height: 289px;
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      position: absolute;
+    }
+
+    .header {
+      height: 94px;
+    }
+
+    .tags {
+      margin-top: auto;
+    }
+  }
+}

@@ -1,0 +1,30 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.label {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+
+  color: #0f172a;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+}
+
+.hint {
+  color: var(--Neutral-Slate-600, #475569);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 14px; /* 116.667% */
+  letter-spacing: 0.12px;
+  margin-top: 8px;
+}

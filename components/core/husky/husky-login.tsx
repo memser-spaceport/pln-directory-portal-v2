@@ -1,4 +1,4 @@
-import { useHuskyAnalytics } from "@/analytics/husky.analytics";
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
 // This component renders a login popup for the Husky application.
 // It tracks user login actions and provides options to dismiss or log in.
@@ -25,23 +25,24 @@ function HuskyLogin({ onLoginBoxClose, onLoginClick }: HuskyLoginProps) {
         <div className="login-popup__box">
           <h3 className="login-popup__box__title">Login to continue using Husky</h3>
           <p className="login-popup__box__desc">
-            Husky is purpose built to improve your speed & quality of learning about the Protocol Labs innovation network. Login or Join us to become part of this growing network
+            Husky is purpose built to improve your speed & quality of learning about the Protocol Labs innovation
+            network. Login or Join us to become part of this growing network
           </p>
           <div className="login-popup__box__actions">
             <div className="login-popup__box__actions__left">
-              <button 
-                type="button" 
-                onClick={onLoginBoxClose} 
-                className="login-popup__box__actions__left__dismiss" 
+              <button
+                type="button"
+                onClick={onLoginBoxClose}
+                className="login-popup__box__actions__left__dismiss"
                 data-testid="dismiss-button"
               >
                 Dismiss
               </button>
             </div>
             <div className="login-popup__box__actions__right">
-              <button 
-                onClick={onLoginBtnClicked} 
-                className="login-popup__box__actions__right__login" 
+              <button
+                onClick={onLoginBtnClicked}
+                className="login-popup__box__actions__right__login"
                 data-testid="login-button"
               >
                 Login
@@ -51,10 +52,8 @@ function HuskyLogin({ onLoginBoxClose, onLoginClick }: HuskyLoginProps) {
         </div>
       </div>
       <style jsx>
-        {
-
-            `
-             .login-popup {
+        {`
+          .login-popup {
             width: 100%;
             height: 100%;
             position: absolute;
@@ -147,7 +146,7 @@ function HuskyLogin({ onLoginBoxClose, onLoginClick }: HuskyLoginProps) {
             font-size: 14px;
             font-weight: 500;
           }
-             @media (min-width: 1024px) {
+          @media (min-width: 1024px) {
             .login-popup__box__actions {
               display: flex;
               justify-content: space-between;
@@ -167,9 +166,7 @@ function HuskyLogin({ onLoginBoxClose, onLoginClick }: HuskyLoginProps) {
               width: unset;
             }
           }
-            
-            `
-        }
+        `}
       </style>
     </>
   );

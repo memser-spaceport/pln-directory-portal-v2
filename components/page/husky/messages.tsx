@@ -23,7 +23,17 @@ interface MessagesProps {
   threadId?: string;
 }
 
-const Messages: React.FC<MessagesProps> = ({ messages, onFollowupClicked, isAnswerLoading, onFeedback, onRegenerate, onQuestionEdit, onCopyAnswer, isLoadingObject, threadId }) => {
+const Messages: React.FC<MessagesProps> = ({
+  messages,
+  onFollowupClicked,
+  isAnswerLoading,
+  onFeedback,
+  onRegenerate,
+  onQuestionEdit,
+  onCopyAnswer,
+  isLoadingObject,
+  threadId,
+}) => {
   return (
     <>
       <div className="chat__messages">
@@ -46,7 +56,7 @@ const Messages: React.FC<MessagesProps> = ({ messages, onFollowupClicked, isAnsw
       </div>
       <style jsx>{`
         .chat__messages {
-          padding: 10px;
+          //padding: 10px;
           display: flex;
           flex-direction: column;
           gap: 16px;
@@ -54,7 +64,7 @@ const Messages: React.FC<MessagesProps> = ({ messages, onFollowupClicked, isAnsw
 
         @media (min-width: 1024px) {
           .chat__messages {
-            padding: 20px;
+            //padding: 20px;
           }
         }
       `}</style>

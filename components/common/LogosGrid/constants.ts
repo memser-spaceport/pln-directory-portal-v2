@@ -1,0 +1,82 @@
+export const LOGOS = [
+  '/icons/demoday/landing/logos/Protocol Labs.svg',
+  '/icons/demoday/landing/logos/A16zcrypto.svg',
+  '/icons/demoday/landing/logos/Coinbase.svg',
+  '/icons/demoday/landing/logos/HashKey.svg',
+  '/icons/demoday/landing/logos/BlueYard.svg',
+
+  '/icons/demoday/landing/logos/Multicoin.svg',
+  '/icons/demoday/landing/logos/PolychainCapital.svg',
+  '/icons/demoday/landing/logos/Y.svg',
+  '/icons/demoday/landing/logos/PanteraCapital.svg',
+  '/icons/demoday/landing/logos/GreyCroft.svg',
+
+  '/icons/demoday/landing/logos/KleinerPerkins.svg',
+  '/icons/demoday/landing/logos/Redpoint.svg',
+  '/icons/demoday/landing/logos/UnionVentures.svg',
+  '/icons/demoday/landing/logos/Venrock.svg',
+  '/icons/demoday/landing/logos/Galaxy.svg',
+
+  '/icons/demoday/landing/logos/InsightPartners.svg',
+  '/icons/demoday/landing/logos/JuanBenet.svg',
+  '/icons/demoday/landing/logos/BalajiSrinivasan.svg',
+  '/icons/demoday/landing/logos/VitalikButerin.svg',
+  '/icons/demoday/landing/logos/AnatolyYakovenko.svg',
+  '/icons/demoday/landing/logos/DigitalCurrency.svg',
+
+  '/icons/demoday/landing/logos/FenbushiCapital.svg',
+  '/icons/demoday/landing/logos/Hashed.svg',
+  '/icons/demoday/landing/logos/TribeCapital.svg',
+  '/icons/demoday/landing/logos/Jump.svg',
+  '/icons/demoday/landing/logos/Sosv.svg',
+
+  '/icons/demoday/landing/logos/CoinFund.svg',
+  '/icons/demoday/landing/logos/Amber.svg',
+  '/icons/demoday/landing/logos/AngelList.svg',
+  '/icons/demoday/landing/logos/AnimocaBrands.svg',
+  '/icons/demoday/landing/logos/DelphiVentures.svg',
+
+  '/icons/demoday/landing/logos/GGVCapital.svg',
+  '/icons/demoday/landing/logos/IOSGVentures.svg',
+  '/icons/demoday/landing/logos/Republic.svg',
+  '/icons/demoday/landing/logos/SolanaVentures.svg',
+  '/icons/demoday/landing/logos/Spartan.svg',
+
+  '/icons/demoday/landing/logos/SVAngel.svg',
+  '/icons/demoday/landing/logos/ElectricCapital.svg',
+  '/icons/demoday/landing/logos/OrangeDAO.svg',
+  '/icons/demoday/landing/logos/Alliance.svg',
+  '/icons/demoday/landing/logos/BigBrainHolding.svg',
+
+  '/icons/demoday/landing/logos/Collabcurrency.svg',
+  '/icons/demoday/landing/logos/Mesh.svg',
+  '/icons/demoday/landing/logos/Placeholder.svg',
+  '/icons/demoday/landing/logos/ShimaCapital.svg',
+  '/icons/demoday/landing/logos/NorthZone.svg',
+
+  '/icons/demoday/landing/logos/FJLabs.svg',
+  '/icons/demoday/landing/logos/Dialectic.svg',
+  '/icons/demoday/landing/logos/Arca.svg',
+  '/icons/demoday/landing/logos/Borderless.svg',
+  '/icons/demoday/landing/logos/MechanismCapital.svg',
+
+  '/icons/demoday/landing/logos/HiveMind.svg',
+  '/icons/demoday/landing/logos/FabricVentures.svg',
+  '/icons/demoday/landing/logos/Framework.svg',
+  '/icons/demoday/landing/logos/JustinKan.svg',
+  '/icons/demoday/landing/logos/ChrisLarsen.svg',
+
+  '/icons/demoday/landing/logos/GSR.svg',
+  '/icons/demoday/landing/logos/Techstars.svg',
+  '/icons/demoday/landing/logos/LongHashVentures.svg',
+  '/icons/demoday/landing/logos/Eniac.svg',
+  '/icons/demoday/landing/logos/LDCapital.svg',
+
+  '/icons/demoday/landing/logos/NIV.svg',
+  '/icons/demoday/landing/logos/LightspeedAction.svg',
+  '/icons/demoday/landing/logos/CmtDigital.svg',
+  '/icons/demoday/landing/logos/Archetype.svg',
+  '/icons/demoday/landing/logos/KrakenVentures.svg',
+
+  '/icons/demoday/landing/logos/OutlinerVentures.svg',
+];

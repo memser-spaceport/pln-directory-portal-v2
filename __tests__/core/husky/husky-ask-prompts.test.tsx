@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import HuskyAskPrompts from '@/components/core/husky/husky-ask-prompts';
-import { getIrlPrompts, getProjectsPrompts, getTeamPrompts } from '@/services/home.service';
+import { getIrlPrompts, getProjectsPrompts, getTeamPrompts } from '@/services/discovery.service';
 
 // Mock the service functions
-jest.mock('@/services/home.service', () => ({
+jest.mock('@/services/discovery.service', () => ({
   getIrlPrompts: jest.fn(),
   getProjectsPrompts: jest.fn(),
   getTeamPrompts: jest.fn(),
@@ -30,9 +30,15 @@ describe('HuskyAskPrompts', () => {
   });
 
   test('displays prompts based on selected topic', async () => {
-    (getTeamPrompts as jest.Mock).mockResolvedValue([{ name: 'Team A', logo: '/path/to/logo', relatedQuestions: ['Question 1', 'Question 2'] }]);
-    (getProjectsPrompts as jest.Mock).mockResolvedValue([{ name: 'Project A', logo: '/path/to/logo', relatedQuestions: ['Question 3', 'Question 4'] }]);
-    (getIrlPrompts as jest.Mock).mockResolvedValue([{ name: 'IRL A', logo: '/path/to/logo', relatedQuestions: ['Question 5', 'Question 6'] }]);
+    (getTeamPrompts as jest.Mock).mockResolvedValue([
+      { name: 'Team A', logo: '/path/to/logo', relatedQuestions: ['Question 1', 'Question 2'] },
+    ]);
+    (getProjectsPrompts as jest.Mock).mockResolvedValue([
+      { name: 'Project A', logo: '/path/to/logo', relatedQuestions: ['Question 3', 'Question 4'] },
+    ]);
+    (getIrlPrompts as jest.Mock).mockResolvedValue([
+      { name: 'IRL A', logo: '/path/to/logo', relatedQuestions: ['Question 5', 'Question 6'] },
+    ]);
 
     render(<HuskyAskPrompts suggestionTopicSelected="teams" onPromptItemClicked={mockOnPromptItemClicked} />);
 
@@ -44,7 +50,10 @@ describe('HuskyAskPrompts', () => {
   });
 
   test('filters prompts based on search input', async () => {
-    (getTeamPrompts as jest.Mock).mockResolvedValue([{ name: 'Team A', logo: '/path/to/logo', relatedQuestions: ['Question 1', 'Question 2'] }, { name: 'Team B', logo: '/path/to/logo', relatedQuestions: ['Question 3', 'Question 4'] }]);
+    (getTeamPrompts as jest.Mock).mockResolvedValue([
+      { name: 'Team A', logo: '/path/to/logo', relatedQuestions: ['Question 1', 'Question 2'] },
+      { name: 'Team B', logo: '/path/to/logo', relatedQuestions: ['Question 3', 'Question 4'] },
+    ]);
     render(<HuskyAskPrompts suggestionTopicSelected="teams" onPromptItemClicked={mockOnPromptItemClicked} />);
 
     await waitFor(() => {
@@ -61,7 +70,9 @@ describe('HuskyAskPrompts', () => {
   });
 
   test('calls onPromptItemClicked when a related question is clicked', async () => {
-    (getTeamPrompts as jest.Mock).mockResolvedValue([{ name: 'Team A', logo: '/path/to/logo', relatedQuestions: ['Question 1', 'Question 2'] }]);
+    (getTeamPrompts as jest.Mock).mockResolvedValue([
+      { name: 'Team A', logo: '/path/to/logo', relatedQuestions: ['Question 1', 'Question 2'] },
+    ]);
     render(<HuskyAskPrompts suggestionTopicSelected="teams" onPromptItemClicked={mockOnPromptItemClicked} />);
 
     await waitFor(() => {
@@ -73,8 +84,10 @@ describe('HuskyAskPrompts', () => {
   });
 
   test('displays no results found when no prompts match the search', async () => {
-    window.innerWidth = 1024;
-    (getTeamPrompts as jest.Mock).mockResolvedValue([{ name: 'Team A', logo: '/path/to/logo', relatedQuestions: ['Question 1', 'Question 2'] }]);
+    // window.innerWidth = 1024;
+    (getTeamPrompts as jest.Mock).mockResolvedValue([
+      { name: 'Team A', logo: '/path/to/logo', relatedQuestions: ['Question 1', 'Question 2'] },
+    ]);
     render(<HuskyAskPrompts suggestionTopicSelected="teams" onPromptItemClicked={mockOnPromptItemClicked} />);
 
     await waitFor(() => {
@@ -90,4 +103,3 @@ describe('HuskyAskPrompts', () => {
 
   // Additional tests for edge cases can be added here
 });
-

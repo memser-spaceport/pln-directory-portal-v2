@@ -6,18 +6,28 @@ import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { getFormattedDateString, abbreviateString } from '@/utils/irl.utils';
 import IrlUpcomingEvents from './irl-upcoming-events';
 import IrlPastEvents from './irl-past-events';
-import { triggerLoader } from '@/utils/common.utils';
+import { triggerLoader, toTitleCase } from '@/utils/common.utils';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ILocationDetails } from '@/types/irl.types';
 import Image from 'next/image';
-import { EVENTS, EVENTS_OPTIONS, IAM_GOING_POPUP_MODES, IRL_AIRTABLE_FORM_LINK, IRL_SUBMIT_FORM_LINK } from '@/utils/constants';
+import {
+  EVENTS,
+  EVENTS_OPTIONS,
+  IAM_GOING_POPUP_MODES,
+  IRL_AIRTABLE_FORM_LINK,
+  IRL_SUBMIT_FORM_LINK,
+  TOAST_MESSAGES,
+} from '@/utils/constants';
 import IrlAllEvents from './irl-all-events';
 import { IUserInfo } from '@/types/shared.types';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import IrlEditResponse from './irl-edit-response';
 import Link from 'next/link';
 import Dropdown from '../../../form/dropdown';
+import DeleteEventModal from './delete-event-modal';
+import { deleteEventLocation } from '@/services/irl.service';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 
 interface IIrlEvents {
   searchParams: any;
@@ -41,19 +51,30 @@ const IrlEvents = (props: IIrlEvents) => {
   const isUserLoggedIn = props?.isLoggedIn;
   const [isEdit, seIsEdit] = useState(false);
 
+  // Centralized delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const searchParam = useSearchParams();
-  const type = searchParam.get('type');
+  const type = searchParam?.get('type');
 
   const editResponseRef = useRef<HTMLButtonElement>(null);
   const guestDetails = props?.guestDetails;
   const isUserGoing = guestDetails?.isUserGoing;
   const updatedUser = guestDetails?.currentGuest ?? null;
-  const irlLocation = (searchParams?.location?.toLowerCase() || locationDetails?.[0]?.location?.toLowerCase())?.split(',')[0];
+  const irlLocation = (searchParams?.location?.toLowerCase() || locationDetails?.[0]?.location?.toLowerCase())?.split(
+    ',',
+  )[0];
+  const selectedLocation = locationDetails?.find(
+    (location) => location.location?.toLowerCase() === irlLocation?.toLowerCase(),
+  );
   const scheduleEnabledLocations = process.env.SCHEDULE_ENABLED_LOCATIONS?.split(',');
   const isScheduleEnabled = scheduleEnabledLocations?.includes(irlLocation) || false;
   const updatedIrlLocation = abbreviateString(irlLocation);
 
-  const isEventAvailable = searchParams?.type === 'past' && eventDetails?.pastEvents?.some((event) => event.slugURL === searchParams?.event);
+  const isEventAvailable =
+    searchParams?.type === 'past' && eventDetails?.pastEvents?.some((event) => event.slugURL === searchParams?.event);
 
   const searchType = searchParams?.type;
   function getEventType(searchType: string, eventDetails: ILocationDetails) {
@@ -97,17 +118,25 @@ const IrlEvents = (props: IIrlEvents) => {
   };
 
   const onViewScheduleClick = () => {
-    analytics.trackViewScheduleClick({ location: irlLocation, link: `${process.env.SCHEDULE_BASE_URL}/${updatedIrlLocation}/calendar` });
+    analytics.trackViewScheduleClick({
+      location: irlLocation,
+      link: `${process.env.PL_EVENTS_BASE_URL}/program?location=${encodeURIComponent(toTitleCase(irlLocation))}`,
+    });
   };
 
   const onSubmitEventClick = () => {
-    analytics.trackSubmitEventClick({ location: irlLocation, link: `${process.env.SCHEDULE_BASE_URL}/${updatedIrlLocation}/calendar` });
+    analytics.trackSubmitEventClick({
+      location: irlLocation,
+      link: `${process.env.IRL_SUBMIT_FORM_URL}/add`,
+    });
   };
 
   const onManageEventClick = () => {
     analytics.trackManageEventsClicked({
       location: irlLocation,
-      link: isScheduleEnabled ? `${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}/events/manage` : IRL_AIRTABLE_FORM_LINK,
+      link: isScheduleEnabled
+        ? `${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}/events/manage`
+        : IRL_AIRTABLE_FORM_LINK,
     });
   };
   const handleAllGathering = () => {
@@ -170,16 +199,27 @@ const IrlEvents = (props: IIrlEvents) => {
     }
     analytics.trackAdditionalResourceSeeMoreButtonClicked(eventDetails.resources);
   };
-  const inPastEvents = type ? type === 'past' : eventDetails?.pastEvents && eventDetails?.pastEvents.length > 0 && eventDetails.upcomingEvents && eventDetails?.upcomingEvents?.length === 0;
+  const inPastEvents = type
+    ? type === 'past'
+    : eventDetails?.pastEvents &&
+      eventDetails?.pastEvents.length > 0 &&
+      eventDetails.upcomingEvents &&
+      eventDetails?.upcomingEvents?.length === 0;
 
   // Open Attendee Details Popup to add guest
   const onIAmGoingClick = () => {
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: { member: props.userInfo }, mode: IAM_GOING_POPUP_MODES.ADD } }));
+    document.dispatchEvent(
+      new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
+        detail: { isOpen: true, formdata: { member: props.userInfo }, mode: IAM_GOING_POPUP_MODES.ADD },
+      }),
+    );
     analytics.trackImGoingBtnClick(location);
   };
 
   const onIamGoingPopupClose = () => {
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: false, formdata: null, mode: '' } }));
+    document.dispatchEvent(
+      new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: false, formdata: null, mode: '' } }),
+    );
   };
 
   function getFormattedDate(events: any) {
@@ -220,8 +260,14 @@ const IrlEvents = (props: IIrlEvents) => {
 
   function handleDataNotFound() {
     const currentParams = new URLSearchParams(searchParams);
-    currentParams.set('location', searchParams?.location ? searchParams?.location : eventDetails?.location?.split(',')[0].trim());
-    if ((eventDetails.upcomingEvents.length > 0 && eventDetails.pastEvents.length > 0) || (eventDetails.upcomingEvents.length !== 0 && eventDetails.pastEvents.length === 0)) {
+    currentParams.set(
+      'location',
+      searchParams?.location ? searchParams?.location : eventDetails?.location?.split(',')[0].trim(),
+    );
+    if (
+      (eventDetails.upcomingEvents.length > 0 && eventDetails.pastEvents.length > 0) ||
+      (eventDetails.upcomingEvents.length !== 0 && eventDetails.pastEvents.length === 0)
+    ) {
       currentParams.set('type', 'upcoming');
       currentParams.delete('event');
     } else if (eventDetails.upcomingEvents.length === 0 && eventDetails.pastEvents.length !== 0) {
@@ -246,24 +292,98 @@ const IrlEvents = (props: IIrlEvents) => {
     }
   };
 
+  // Centralized delete event handlers
+  const handleDeleteEvent = (gathering: any) => {
+    setEventToDelete(gathering);
+    setShowDeleteModal(true);
+    analytics.trackEventDeleteClicked(gathering);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!eventToDelete) return;
+    const toast = (await import('react-toastify')).toast;
+
+    setIsDeleting(true);
+    try {
+      const { authToken } = getCookiesFromClient();
+      const response = await deleteEventLocation(
+        selectedLocation?.uid as string,
+        eventToDelete?.uid as string,
+        authToken as string,
+      );
+
+      if (response?.isError) {
+        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        return;
+      }
+
+      // Track analytics
+      analytics.trackEventDeleteConfirmed(eventToDelete);
+
+      // Close modal and show success message
+      setShowDeleteModal(false);
+      setEventToDelete(null);
+      toast.success(TOAST_MESSAGES.EVENT_DELETED_SUCCESSFULLY);
+
+      // Clear event query parameter from URL and refresh the page
+      const currentParams = new URLSearchParams(searchParams);
+      if (currentParams.has('event')) {
+        currentParams.delete('event');
+        window.location.href = `${window.location.pathname}?${currentParams.toString()}`;
+      } else {
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+      // Handle error - show toast notification or error message
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (!isDeleting) {
+      // Track cancellation if there was an event to delete
+      if (eventToDelete) {
+        analytics.trackEventDeleteCancelled(eventToDelete);
+      }
+      setShowDeleteModal(false);
+      setEventToDelete(null);
+    }
+  };
+
   return (
     <>
       <div className="root">
         <div className="root__irl">
-          {eventDetails.upcomingEvents.length !== 0 && eventDetails.pastEvents.length !== 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) ? (
+          {eventDetails?.upcomingEvents.length !== 0 &&
+          eventDetails?.pastEvents.length !== 0 &&
+          (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) ? (
             <div className="root__dropdown__events">
               <Dropdown
                 arrowImgUrl="/icons/arrow-down.svg"
                 options={EVENTS_OPTIONS.map((option) => ({
                   ...option,
-                  count: option.value === 'All' ? eventDetails?.events?.length : option.value === 'Upcoming' ? eventDetails?.upcomingEvents?.length : eventDetails?.pastEvents?.length,
+                  count:
+                    option.value === 'All'
+                      ? eventDetails?.events?.length
+                      : option.value === 'Upcoming'
+                        ? eventDetails?.upcomingEvents?.length
+                        : eventDetails?.pastEvents?.length,
                 }))}
                 selectedOption={{ value: selectedEventType, label: formattedEventType }}
                 onItemSelect={(option) => handleEventsDropdownChange(option?.value)}
                 uniqueKey="value"
                 displayKey="label"
                 id="events-options-filter"
-                count={formattedEventType === 'All' ? eventDetails?.events?.length : formattedEventType === 'Upcoming' ? eventDetails?.upcomingEvents?.length : eventDetails?.pastEvents?.length}
+                count={
+                  formattedEventType === 'All'
+                    ? eventDetails?.events?.length
+                    : formattedEventType === 'Upcoming'
+                      ? eventDetails?.upcomingEvents?.length
+                      : eventDetails?.pastEvents?.length
+                }
               />
             </div>
           ) : (
@@ -272,7 +392,9 @@ const IrlEvents = (props: IIrlEvents) => {
                 <div className="root__irl__events__section">
                   <div className="root__irl__events__upcoming-only">Upcoming Events</div>
                   <div className="root__irl__event__count">
-                    <div className="root__irl__events__upcoming-only--active">{eventDetails?.upcomingEvents?.length}</div>
+                    <div className="root__irl__events__upcoming-only--active">
+                      {eventDetails?.upcomingEvents?.length}
+                    </div>
                   </div>
                 </div>
               )}
@@ -291,7 +413,11 @@ const IrlEvents = (props: IIrlEvents) => {
             <div className="root__events">
               <div className={`root__irl__events__toggleSection`}>
                 <div className="root__submit__list__view">List View</div>
-                <Link legacyBehavior target="_blank" href={`${process.env.SCHEDULE_BASE_URL}/${updatedIrlLocation}/calendar`}>
+                <Link
+                  legacyBehavior
+                  target="_blank"
+                  href={`${process.env.PL_EVENTS_BASE_URL}/program?location=${encodeURIComponent(toTitleCase(irlLocation))}`}
+                >
                   <a target="_blank" className="root__schedule" onClick={onViewScheduleClick}>
                     {/* <img src="/icons/calendar-white.svg" height={16} width={16} className="root__schedule__img" alt="calendar" /> */}
                     Schedule View
@@ -299,17 +425,32 @@ const IrlEvents = (props: IIrlEvents) => {
                 </Link>
               </div>
 
+              {/* TODO: Remove this once the new design is confirmed */}
               <div className="root__manage__events">
-                <Link href={`${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}`} legacyBehavior target="_blank">
+                {/* TODO: Remove this once the new submit form is deployed */}
+                {/* <Link href={`${process.env.IRL_SUBMIT_FORM_URL}?location=${updatedIrlLocation}`} legacyBehavior target="_blank"> */}
+                <Link href={`${process.env.IRL_SUBMIT_FORM_URL}/add`} legacyBehavior target="_blank">
                   <a target="_blank" className="root__submit" onClick={onSubmitEventClick}>
                     <img src="/icons/doc.svg" height={16} width={16} className="root__submit__img" alt="calendar" />
                     Submit an event
                   </a>
                 </Link>
 
-                <Link href={`${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}/events/manage`} legacyBehavior target="_blank">
+                {/* TODO: Remove this once the new submit form is deployed */}
+                {/* <Link href={`${process.env.IRL_SUBMIT_FORM_URL}/events/manage?location=${updatedIrlLocation}`} legacyBehavior target="_blank"> */}
+                <Link
+                  href={`${process.env.IRL_SUBMIT_FORM_URL}?location=${updatedIrlLocation}&status=${encodeURIComponent('my events')}`}
+                  legacyBehavior
+                  target="_blank"
+                >
                   <a target="_blank" className="root__submit" onClick={onManageEventClick}>
-                    <img src="/icons/settings-blue.svg" height={16} width={16} className="root__submit__img" alt="calendar" />
+                    <img
+                      src="/icons/settings-blue.svg"
+                      height={16}
+                      width={16}
+                      className="root__submit__img"
+                      alt="calendar"
+                    />
                     Manage
                   </a>
                 </Link>
@@ -349,7 +490,8 @@ const IrlEvents = (props: IIrlEvents) => {
           </div> */}
         </div>
         <div className="mob">
-          {((searchParams?.type === 'past' && eventDetails?.upcomingEvents?.length > 0) || (searchParams?.type === 'upcoming' && eventDetails?.pastEvents?.length > 0)) &&
+          {((searchParams?.type === 'past' && eventDetails?.upcomingEvents?.length > 0) ||
+            (searchParams?.type === 'upcoming' && eventDetails?.pastEvents?.length > 0)) &&
           !(eventDetails?.upcomingEvents?.length !== 0 && eventDetails?.pastEvents?.length !== 0) ? (
             <div className="root__irl__table__no-data">
               <div>
@@ -365,7 +507,15 @@ const IrlEvents = (props: IIrlEvents) => {
           ) : (
             <>
               {eventType === 'all' && eventDetails?.events?.length > 0 && (
-                <IrlAllEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={false} searchParams={searchParams} handleDataNotFound={() => handleDataNotFound()} />
+                <IrlAllEvents
+                  eventDetails={eventDetails}
+                  isLoggedIn={isLoggedIn}
+                  isUpcoming={false}
+                  searchParams={searchParams}
+                  handleDataNotFound={() => handleDataNotFound()}
+                  userInfo={props.userInfo}
+                  onDeleteEvent={handleDeleteEvent}
+                />
               )}
               {eventType === 'upcoming' && eventDetails?.upcomingEvents?.length > 0 && (
                 <IrlUpcomingEvents
@@ -374,48 +524,62 @@ const IrlEvents = (props: IIrlEvents) => {
                   isUpcoming={eventType === 'upcoming'}
                   searchParams={searchParams}
                   handleDataNotFound={() => handleDataNotFound()}
+                  userInfo={props.userInfo}
+                  onDeleteEvent={handleDeleteEvent}
                 />
               )}
 
               {eventType === 'past' && eventDetails?.pastEvents?.length > 0 && (
-                <IrlPastEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={false} searchParams={searchParams} handleDataNotFound={() => handleDataNotFound()} />
+                <IrlPastEvents
+                  eventDetails={eventDetails}
+                  isLoggedIn={isLoggedIn}
+                  isUpcoming={false}
+                  searchParams={searchParams}
+                  handleDataNotFound={() => handleDataNotFound()}
+                  userInfo={props.userInfo}
+                  onDeleteEvent={handleDeleteEvent}
+                />
               )}
 
-              {eventDetails?.resources?.length > 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) && (
-                <div className={`${searchParams?.type === 'past' ? 'root__irl__addResWrpr' : ''}`}>
-                  <div className="root__irl__addRes">
-                    <div className="root__irl__addRes__cnt">
-                      <div className="root__irl__addRes__cnt__icon">📋</div>
-                      <div>Additional Resources</div>
-                    </div>
-
-                    <div className="root__irl__addRes__cntr">
-                      <div className="root__irl__addRes__cntr__resource">
-                        {eventDetails?.resources?.slice(0, 3).map((resource: any, index: number) => (
-                          <div key={index} className="root__irl__addRes__cntr__resCnt">
-                            <div style={{ display: 'flex' }} onClick={() => handleAdditionalResourceClicked(resource)}>
-                              <img src="/icons/hyper-link.svg" alt="icon" />
-                            </div>
-                            <a href={resource?.link} target="_blank">
-                              {resource?.type}
-                            </a>
-                            <div>
-                              <img src="/icons/arrow-blue.svg" alt="arrow icon" />
-                            </div>
-                          </div>
-                        ))}
+              {eventDetails?.resources?.length > 0 &&
+                (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) && (
+                  <div className={`${searchParams?.type === 'past' ? 'root__irl__addResWrpr' : ''}`}>
+                    <div className="root__irl__addRes">
+                      <div className="root__irl__addRes__cnt">
+                        <div className="root__irl__addRes__cnt__icon">📋</div>
+                        <div>Additional Resources</div>
                       </div>
 
-                      {eventDetails?.resources?.length > 3 && (
-                        <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
-                          <div>+{eventDetails?.resources?.length - 3}</div>
-                          <div>more</div>
+                      <div className="root__irl__addRes__cntr">
+                        <div className="root__irl__addRes__cntr__resource">
+                          {eventDetails?.resources?.slice(0, 3).map((resource: any, index: number) => (
+                            <div key={index} className="root__irl__addRes__cntr__resCnt">
+                              <div
+                                style={{ display: 'flex' }}
+                                onClick={() => handleAdditionalResourceClicked(resource)}
+                              >
+                                <img src="/icons/hyper-link.svg" alt="icon" />
+                              </div>
+                              <a href={resource?.link} target="_blank">
+                                {resource?.type}
+                              </a>
+                              <div>
+                                <img src="/icons/arrow-blue.svg" alt="arrow icon" />
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      )}
+
+                        {eventDetails?.resources?.length > 3 && (
+                          <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
+                            <div>+{eventDetails?.resources?.length - 3}</div>
+                            <div>more</div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
             </>
           )}
           <Modal modalRef={addResRef} onClose={onCloseModal}>
@@ -493,6 +657,13 @@ const IrlEvents = (props: IIrlEvents) => {
           </div>
         </div>
       </div> */}
+      <DeleteEventModal
+        isOpen={showDeleteModal}
+        eventName={eventToDelete?.name || ''}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+      />
       <style jsx>{`
         .root {
           color: #0f172a;

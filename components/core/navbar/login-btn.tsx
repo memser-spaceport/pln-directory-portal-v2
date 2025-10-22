@@ -1,51 +1,76 @@
 'use client';
 
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
-import { TOAST_MESSAGES } from '@/utils/constants';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { TOAST_MESSAGES, DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import Cookies from 'js-cookie';
-import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { useRouter, usePathname } from 'next/navigation';
+import { toast } from '@/components/core/ToastContainer';
+import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { getParsedValue } from '@/utils/common.utils';
+import { IUserInfo } from '@/types/shared.types';
 
-const LoginBtn = () => {
+import s from './LoginButton.module.scss';
+import { PropsWithChildren } from 'react';
+
+interface Props {
+  className?: string;
+}
+
+const LoginBtn = (props: PropsWithChildren<Props>) => {
+  const { className, children } = props;
+
   const authAnalytics = useAuthAnalytics();
+  const demoDayAnalytics = useDemoDayAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
   const router = useRouter();
+  const pathname = usePathname();
 
   const onLoginClickHandler = () => {
     authAnalytics.onLoginBtnClicked();
+
+    // Track demo day login button click if on demo day page
+    if (pathname === '/demoday') {
+      const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+
+      // PostHog analytics
+      demoDayAnalytics.onLandingLoginButtonClicked();
+
+      // Custom analytics event
+      const loginButtonEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_LANDING_LOGIN_BUTTON_CLICKED,
+        distinctId: userInfo?.email || 'anonymous',
+        properties: {
+          userId: userInfo?.uid || null,
+          userEmail: userInfo?.email || null,
+          userName: userInfo?.name || null,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          source: 'header',
+        },
+      };
+
+      reportAnalytics.mutate(loginButtonEvent);
+    }
+
     const userInfo = Cookies.get('userInfo');
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
-      if(window.location.pathname === '/sign-up'){
+      if (window.location.pathname === '/sign-up') {
         router.push(`/#login`);
       } else {
         router.push(`${window.location.pathname}${window.location.search}#login`);
       }
     }
   };
+
   return (
     <>
-      <button className="loginBtn" onClick={onLoginClickHandler}>
-        Login
+      <button className={className || s.root} onClick={onLoginClickHandler}>
+        {children || 'Sign in'}
       </button>
-      <style jsx>{`
-        .loginBtn {
-          background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
-          box-shadow: 0px 1px 1px 0px #07080829;
-          padding: 8px 12px;
-          color: #ffffff;
-          font-size: 14px;
-          line-height: 24px;
-          font-weight: 600;
-          border-radius: 100px;
-        }
-
-        .loginBtn:hover {
-          box-shadow: 0 4px 4px 0 rgba(15, 23, 42, 0.04), 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 0 0 2px rgba(21, 111, 247, 0.25);
-          background: linear-gradient(71.47deg, #1a61ff 8.43%, #2cc3ae 87.45%);
-        }
-      `}</style>
     </>
   );
 };

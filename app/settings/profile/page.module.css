@@ -1,4 +1,3 @@
-
 .ps {
   position: relative;
   background: white;
@@ -6,15 +5,15 @@
 
 .ps__backbtn {
   position: sticky;
-  top: 80px;
+  top: var(--app-header-height);
   width: 100%;
-  height:48px;
+  height: 48px;
   z-index: 3;
 }
 .ps__breadcrumbs {
   display: flex;
   position: sticky;
-  top: 80px;
+  top: var(--app-header-height);
   padding: 0 16px;
   width: 100%;
   background: white;
@@ -31,7 +30,7 @@
   padding: 0 16px;
   padding-top: 16px;
   gap: 6px;
-  color: #156FF7;
+  color: #156ff7;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;

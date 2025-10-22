@@ -1,10 +1,7 @@
-'use client'
+'use client';
 
-import Error from "@/components/core/error"
+import Error from '@/components/core/error';
 
- 
 export default function GlobalError() {
-  return (
-    <Error/>
-  )
+  return <Error />;
 }

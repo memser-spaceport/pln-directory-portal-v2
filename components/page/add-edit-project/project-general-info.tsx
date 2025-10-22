@@ -1,13 +1,11 @@
 import CustomToggle from '@/components/form/custom-toggle';
-import MultiSelect from '@/components/form/multi-select';
 import MultiSelectWithSearch from '@/components/form/multi-select-with-search';
-import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
-import TextEditor from '@/components/ui/text-editor';
 import { IProjectLinks, IProjectResponse } from '@/types/project.types';
 import { DEFAULT_PROJECT_TAGS } from '@/utils/constants';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 
 interface ProjectBasicInfoProps {
   errors: string[];
@@ -19,7 +17,7 @@ interface ProjectBasicInfoProps {
 function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
   const errors = props.errors;
   const project = props.project;
-  
+
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string>(project?.logo);
 
@@ -31,10 +29,10 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
     return DEFAULT_PROJECT_TAGS.filter((tag) => {
       return props.project?.tags.some((t) => t.toLowerCase() === tag.label.toLowerCase());
     });
-  }
+  };
 
   const tags = props.project?.tags?.length > 0 ? generateMultiSelectTags() : [];
-  
+
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -102,33 +100,75 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
               <label htmlFor="Project-image-upload" className="projectinfo__form__user__profile">
                 {!profileImage && <img width="24" height="24" alt="project-logo" src="/icons/add-logo.svg" />}
                 {!profileImage && <span className="projectinfo__form__user__profile__text">Add project logo</span>}
-                {profileImage && <img className="projectinfo__form__user__profile__preview" src={profileImage} alt="user profile" width="95" height="95" />}
+                {profileImage && (
+                  <img
+                    className="projectinfo__form__user__profile__preview"
+                    src={profileImage}
+                    alt="user profile"
+                    width="95"
+                    height="95"
+                  />
+                )}
                 {profileImage && (
                   <span className="projectinfo__form__user__profile__actions">
-                    <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                    <img onPointerDown={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
+                    <img
+                      width="32"
+                      height="32"
+                      title="Change profile image"
+                      alt="change image"
+                      src="/icons/recycle.svg"
+                    />
+                    <img
+                      onPointerDown={onDeleteImage}
+                      width="32"
+                      height="32"
+                      title="Delete profile image"
+                      alt="delete image"
+                      src="/icons/trash.svg"
+                    />
                   </span>
                 )}
               </label>
-              <input readOnly id="team-info-basic-image" value={profileImage} hidden name="imageFile"  />
-              <input onChange={onImageUpload} id="Project-image-upload" name="projectProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
+              <input readOnly id="team-info-basic-image" value={profileImage} hidden name="imageFile" />
+              <input
+                onChange={onImageUpload}
+                id="Project-image-upload"
+                name="projectProfile"
+                ref={uploadImageRef}
+                hidden
+                type="file"
+                accept="image/png, image/jpeg"
+              />
 
               <p className="profileInfo__mob">
                 <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-                <span className="profileInfo__mob__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
+                <span className="profileInfo__mob__text">
+                  Please upload a image in PNG or JPEG format with file size less than 4MB
+                </span>
               </p>
             </div>
 
             {/* Name */}
             <div className="projectinfo__form__item">
-              <TextField maxLength={64} isMandatory={true} id="add-project-name" label="Project Name*" defaultValue={project.name} name="name" type="text" placeholder="Enter Project Name Here" />
+              <TextField
+                maxLength={64}
+                isMandatory={true}
+                id="add-project-name"
+                label="Project Name*"
+                defaultValue={project.name}
+                name="name"
+                type="text"
+                placeholder="Enter Project Name Here"
+              />
             </div>
           </div>
 
           {/* INFO */}
           <p className="profileInfo__web">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="profileInfo__web__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
+            <span className="profileInfo__web__text">
+              Please upload a image in PNG or JPEG format with file size less than 4MB
+            </span>
           </p>
 
           {/* Tag line */}
@@ -146,25 +186,27 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
           </div>
 
           {/* Tags */}
-          <MultiSelectWithSearch 
+          <MultiSelectWithSearch
             label="Tags"
             mandatory={true}
-            options={DEFAULT_PROJECT_TAGS} 
-            selectedOptions={tags} 
-            onChange={() => {}} 
+            options={DEFAULT_PROJECT_TAGS}
+            selectedOptions={tags}
+            onChange={() => {}}
           />
           <p className="profileInfo__web">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="profileInfo__web__text">Add tags to your project to help other network members & teams connect with you.</span>
+            <span className="profileInfo__web__text">
+              Add tags to your project to help other network members & teams connect with you.
+            </span>
           </p>
 
-          {
-            <label className={`tf__label`}>
-              Long Description*
-            </label>
-          }
+          {<label className={`tf__label`}>Long Description*</label>}
           <div className="projectinfo__form__item__description">
-          <TextEditor text={props?.longDesc} setContent={props.setLongDesc} id='register-project-longDescription'/>
+            <RichTextEditor
+              value={props?.longDesc}
+              onChange={props.setLongDesc}
+              id="register-project-longDescription"
+            />
             {/* <TextArea
               defaultValue={project.description}
               maxLength={1000}
@@ -186,7 +228,11 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
                     <div>PROJECT {index + 1}</div>
                     <div className="msf__tr__links__link__cn__delete">
                       {index !== 0 && (
-                        <button className="msf__tr__links__link__cn__delete__btn" onClick={() => onDeleteProjectLink(index)} type="button">
+                        <button
+                          className="msf__tr__links__link__cn__delete__btn"
+                          onClick={() => onDeleteProjectLink(index)}
+                          type="button"
+                        >
                           <Image src="/icons/delete-brown.svg" alt="delete team role" width="12" height="12" />
                         </button>
                       )}
@@ -226,7 +272,8 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
                 <div className="msf__tr__add">
                   <div className="msf__tr__add__btn" onClick={onAddProjectLink}>
                     <Image src="/icons/add.svg" width="16" height="16" alt="Add New" />
-                    <div className="msf__tr__add__btn__addText">Add project URL </div> <div className="msf__tr__add__btn__maxText">(max 3)</div>
+                    <div className="msf__tr__add__btn__addText">Add project URL </div>{' '}
+                    <div className="msf__tr__add__btn__maxText">(max 3)</div>
                   </div>
                 </div>
               )}
@@ -235,25 +282,42 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
 
           {/* Contact email */}
           <div className="projectinfo__form__item__contactEmail">
-            <TextField defaultValue={project.contactEmail} id="register-Project-email" label="Contact Email" name="contactEmail" type="email" placeholder="Enter Email Address" />
+            <TextField
+              defaultValue={project.contactEmail}
+              id="register-Project-email"
+              label="Contact Email"
+              name="contactEmail"
+              type="email"
+              placeholder="Enter Email Address"
+            />
           </div>
 
           <div className="projectinfo__form__item__lookingf">
-            <CustomToggle defaultChecked={project?.lookingForFunding} name={`lookingForFunding`} id={`project-register-raising-funds`} onChange={() => {}} />
-            <div className="projectinfo__form__item__lookingf__qus">Are you currently looking to raise funds for your project?</div>
+            <CustomToggle
+              defaultChecked={project?.lookingForFunding}
+              name={`lookingForFunding`}
+              id={`project-register-raising-funds`}
+              onChange={() => {}}
+            />
+            <div className="projectinfo__form__item__lookingf__qus">
+              Are you currently looking to raise funds for your project?
+            </div>
 
             {/* Funding info */}
           </div>
           <p className="functiongInfo">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="fundingInfo__text">Enabling this implies you are raising funds to support your project. You will be approached by investors who are interested in your project</span>
+            <span className="fundingInfo__text">
+              Enabling this implies you are raising funds to support your project. You will be approached by investors
+              who are interested in your project
+            </span>
           </p>
           <div></div>
         </div>
       </div>
       <style jsx>
         {`
-        .tf__label {
+          .tf__label {
             font-weight: 600;
             font-size: 14px;
             margin-top: 20px;

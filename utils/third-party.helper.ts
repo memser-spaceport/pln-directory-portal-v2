@@ -3,19 +3,32 @@ import { getParsedValue } from './common.utils';
 import { z } from 'zod';
 
 export const clearAllAuthCookies = () => {
-  Cookies.remove('directory_idToken');
-  Cookies.remove('verified', { path: '/', domain: process.env.COOKIE_DOMAIN || '' });
-  Cookies.remove('directory_isEmailVerification');
-  Cookies.remove('authToken', { path: '/', domain: process.env.COOKIE_DOMAIN || '' });
-  Cookies.remove('refreshToken', { path: '/', domain: process.env.COOKIE_DOMAIN || '' });
-  Cookies.remove('userInfo', { path: '/', domain: process.env.COOKIE_DOMAIN || '' });
-  Cookies.remove('page_params', { path: '/', domain: process.env.COOKIE_DOMAIN || '' });
-  Cookies.remove('privy-token');
-  Cookies.remove('privy-session');
-  Cookies.remove('authLinkedAccounts');
-  Cookies.remove('lastNotificationCall');
-  Cookies.remove('privy-refresh-token');
+  removeCookie('directory_idToken');
+  removeCookie('verified');
+  removeCookie('directory_isEmailVerification');
+  removeCookie('authToken');
+  removeCookie('refreshToken');
+  removeCookie('userInfo');
+  removeCookie('page_params');
+  removeCookie('privy-token');
+  removeCookie('privy-session');
+  removeCookie('authLinkedAccounts');
+  removeCookie('lastNotificationCall');
+  removeCookie('privy-refresh-token');
   localStorage.clear();
+};
+
+export const removeCookie = (name: string) => {
+  // Remove cookie without domain (scoped to current subdomain)
+  Cookies.remove(name, { path: '/' });
+
+  // Remove cookie with domain (shared across subdomains, if defined)
+  if (process.env.COOKIE_DOMAIN) {
+    Cookies.remove(name, {
+      path: '/',
+      domain: process.env.COOKIE_DOMAIN,
+    });
+  }
 };
 
 export const getUserInfo = () => {
@@ -49,4 +62,4 @@ export const getCookiesFromClient = () => {
   const refreshToken = Cookies.get('refreshToken')?.replace(/"/g, '');
   const userInfo = getUserInfo();
   return { authToken, refreshToken, userInfo };
-}
+};

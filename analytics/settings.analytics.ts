@@ -30,7 +30,7 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_SIDE_MENU_CLICK, params);
   }
 
-  function recordManageTeamsTeamChange(team: any , user: IAnalyticsUserInfo | null){
+  function recordManageTeamsTeamChange(team: any, user: IAnalyticsUserInfo | null) {
     const params = {
       ...team,
       user,
@@ -38,8 +38,7 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MANAGE_TEAMS_TEAM_CHANGE, params);
   }
 
-
-  function recordManageTeamSave(type: string, user: IAnalyticsUserInfo | null, payload?: any){
+  function recordManageTeamSave(type: string, user: IAnalyticsUserInfo | null, payload?: any) {
     const params = {
       type,
       user,
@@ -48,7 +47,7 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MANAGE_TEAMS_SAVE, params);
   }
 
-  function recordManageMembersMemberChange(member: any , user: IAnalyticsUserInfo | null){
+  function recordManageMembersMemberChange(member: any, user: IAnalyticsUserInfo | null) {
     const params = {
       ...member,
       user,
@@ -56,7 +55,7 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MANAGE_MEMBERS_MEMBER_CHANGE, params);
   }
 
-  function recordManageMemberSave(type: string, user: IAnalyticsUserInfo | null, payload?: any){
+  function recordManageMemberSave(type: string, user: IAnalyticsUserInfo | null, payload?: any) {
     const params = {
       type,
       user,
@@ -65,7 +64,7 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MANAGE_MEMBERS_SAVE, params);
   }
 
-  function recordMemberProfileSave(type: string, user: IAnalyticsUserInfo | null, payload?: any){
+  function recordMemberProfileSave(type: string, user: IAnalyticsUserInfo | null, payload?: any) {
     const params = {
       type,
       user,
@@ -74,34 +73,34 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_PROFILE_SAVE, params);
   }
 
-  function recordMemberEmailAdminEditClick(email: string, user: IAnalyticsUserInfo | null){
+  function recordMemberEmailAdminEditClick(email: string, user: IAnalyticsUserInfo | null) {
     const params = {
       email,
-      user
+      user,
     };
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_CLICK, params);
   }
 
-  function recordMemberEmailAdminEditCancel(email: string, user: IAnalyticsUserInfo | null){
+  function recordMemberEmailAdminEditCancel(email: string, user: IAnalyticsUserInfo | null) {
     const params = {
       email,
-      user
+      user,
     };
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_CANCEL, params);
   }
 
-  function recordMemberEmailAdminEditSuccess(user: IAnalyticsUserInfo | null){
+  function recordMemberEmailAdminEditSuccess(user: IAnalyticsUserInfo | null) {
     const params = {
-      user
+      user,
     };
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_SUCCESS, params);
   }
 
-  function recordMemberPreferenceChange(type: string, user: IAnalyticsUserInfo | null, payload?:any) {
+  function recordMemberPreferenceChange(type: string, user: IAnalyticsUserInfo | null, payload?: any) {
     const params = {
       type,
       user,
-      ...payload
+      ...payload,
     };
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_USER_PREFERENCES, params);
   }
@@ -109,73 +108,96 @@ export const useSettingsAnalytics = () => {
   function recordMemberPreferenceReset(user: IAnalyticsUserInfo | null) {
     const params = {
       user,
-      name: "reset",
-      value: true
+      name: 'reset',
+      value: true,
     };
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_USER_PREFERENCES_RESET, params);
   }
 
-  function recordMemberProfileFormEdit(user: IAnalyticsUserInfo | null, tabName: string){
+  function recordMemberProfileFormEdit(user: IAnalyticsUserInfo | null, tabName: string) {
     const params = {
       user,
-      name: tabName
+      name: tabName,
     };
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_PROFILE_EDIT_FORM, params);
   }
 
-
-  function recordUserProfileFormEdit(user: IAnalyticsUserInfo | null, tabName: string){
+  function recordUserProfileFormEdit(user: IAnalyticsUserInfo | null, tabName: string) {
     const params = {
       user,
-      name: tabName
+      name: tabName,
     };
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_USER_PROFILE_EDIT_FORM, params);
   }
 
-  function recordTeamProfileFormEdit(user: IAnalyticsUserInfo | null, tabName: string){
+  function recordTeamProfileFormEdit(user: IAnalyticsUserInfo | null, tabName: string) {
     const params = {
       user,
-      itemName: tabName
+      itemName: tabName,
     };
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_TEAM_PROFILE_EDIT_FORM, params);
   }
 
-  function recordMemberProjectContributionAdd(type: string, user:IAnalyticsUserInfo|null) {
+  function recordMemberProjectContributionAdd(type: string, user: IAnalyticsUserInfo | null) {
     const params = {
       user,
-      type
+      type,
     };
     captureEvent(SETTINGS_ANALYTICS_EVENTS.PR_CONRTIBUTIONS_LIST_ITEM_ADD, params);
   }
 
-  function recordMemberProjectContributionDelete(type: string, user:IAnalyticsUserInfo|null) {
+  function recordMemberProjectContributionDelete(type: string, user: IAnalyticsUserInfo | null) {
     const params = {
       user,
-      type
+      type,
     };
     captureEvent(SETTINGS_ANALYTICS_EVENTS.PR_CONRTIBUTIONS_LIST_ITEM_DELETE, params);
   }
 
-  function recordMemberProjectContributionAddProject(type: string, user:IAnalyticsUserInfo|null) {
+  function recordMemberProjectContributionAddProject(type: string, user: IAnalyticsUserInfo | null) {
     const params = {
       user,
-      type
+      type,
     };
     captureEvent(SETTINGS_ANALYTICS_EVENTS.PR_CONRTIBUTIONS_LIST_ITEM_ADDPROJECT, params);
   }
 
-  function recordManageTeamsMemberTeamLeadToggleChange(params:any) {
+  function recordManageTeamsMemberTeamLeadToggleChange(params: any) {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.MANAGE_TEAMS_MEMBER_TEAM_LEAD_TOGGLE_CHANGE, params);
   }
 
-  function recordManageTeamsMemberRemove(params:any) {
+  function recordManageTeamsMemberRemove(params: any) {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.MANAGE_TEAMS_MEMBER_REMOVE, params);
   }
 
-  function recordManageTeamsMemberUndo(params:any) {
+  function recordManageTeamsMemberUndo(params: any) {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.MANAGE_TEAMS_MEMBER_UNDO, params);
   }
-  
+
+  function onRecommendationsPageOpenFromMail(params: any) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_RECOMMENDATIONS_PAGE_OPEN_FROM_MAIL, params);
+  }
+
+  function onRecommendationsSettingsSaveClicked(params: any) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_RECOMMENDATIONS_SAVE_CLICKED, params);
+  }
+
+  function onRecommendationsSettingsResetClicked() {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_RECOMMENDATIONS_RESET_CLICKED);
+  }
+
+  function onRecommendationEmailFeedbackClicked(params: any) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.RECOMMENDATION_EMAIL_FEEDBACK_CLICKED, params);
+  }
+
+  function onForumDigestOptionSelect(params: any) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.FORUM_DIGEST_OPTION_SELECTED, params);
+  }
+
+  function onSubscribeToPlNewsletterChange(params: Record<any, boolean>) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE, params);
+  }
+
   return {
     recordSettingsSideMenuClick,
     recordManageTeamsTeamChange,
@@ -195,6 +217,12 @@ export const useSettingsAnalytics = () => {
     recordMemberProjectContributionAddProject,
     recordManageTeamsMemberTeamLeadToggleChange,
     recordManageTeamsMemberRemove,
-    recordManageTeamsMemberUndo
+    recordManageTeamsMemberUndo,
+    onRecommendationsPageOpenFromMail,
+    onRecommendationsSettingsSaveClicked,
+    onRecommendationsSettingsResetClicked,
+    onRecommendationEmailFeedbackClicked,
+    onForumDigestOptionSelect,
+    onSubscribeToPlNewsletterChange,
   };
 };

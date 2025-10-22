@@ -11,7 +11,9 @@ import LinkAuthAccounts from './link-auth-accounts';
 import SelfEmailUpdate from './self-email-update';
 import AdminEmailUpdate from './admin-email-update';
 import Toggle from '@/components/ui/toogle';
-import TextEditor from '@/components/ui/text-editor';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import Image from 'next/image';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 
 interface MemberBasicInfoProps {
   errors: string[];
@@ -34,6 +36,12 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const [profileImage, setProfileImage] = useState<string>('');
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
   const [bio, setBio] = useState(initialValues.bio ?? '');
+  const isShowDefaultImage = !profileImage && !savedImage;
+
+  /**
+   * Generate default avatar image based on the member name.
+   */
+  const defaultAvatarImage = useDefaultAvatar(initialValues?.name);
 
   /**
    * Handles image upload and sets the profile image state.
@@ -98,21 +106,51 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
         </ul>
         <div className="memberinfo__form">
           <div className="memberinfo__form__user">
-            <label htmlFor="member-image-upload" className="memberinfo__form__user__profile" data-testid="profile-image-upload">
-              {!profileImage && !savedImage && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
-              {!profileImage && !savedImage && <span className="memberinfo__form__user__profile__text">Add Image</span>}
-              {(profileImage || savedImage) && (
-                <img className="memberinfo__form__user__profile__preview" src={formImage} data-testid="profile-image-preview" alt="user profile" width="95" height="95" />
-              )}
-              {(profileImage || savedImage) && (
-                <span className="memberinfo__form__user__profile__actions">
-                  <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                  <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
-                </span>
-              )}
+            <label
+              htmlFor="member-image-upload"
+              className="memberinfo__form__user__profile"
+              data-testid="profile-image-upload"
+            >
+              <div className="memberinfo__form__user__profile_avatar">
+                <Image
+                  className="memberinfo__form__user__profile__preview"
+                  src={isShowDefaultImage ? defaultAvatarImage : formImage}
+                  data-testid="profile-image-preview"
+                  alt="user profile"
+                  fill
+                />
+              </div>
+              <span className="memberinfo__form__user__profile__actions">
+                <Image
+                  width="32"
+                  height="32"
+                  title="Change profile image"
+                  alt="change image"
+                  src="/icons/recycle.svg"
+                />
+                {(profileImage || savedImage) && (
+                  <Image
+                    onClick={onDeleteImage}
+                    width="32"
+                    height="32"
+                    title="Delete profile image"
+                    alt="delete image"
+                    src="/icons/trash.svg"
+                  />
+                )}
+              </span>
             </label>
             <input type="text" readOnly value={formImage} id="member-info-basic-image" hidden name="imageFile" />
-            <input data-testid="member-image-upload" onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
+            <input
+              data-testid="member-image-upload"
+              onChange={onImageUpload}
+              id="member-image-upload"
+              name="memberProfile"
+              ref={uploadImageRef}
+              hidden
+              type="file"
+              accept="image/png, image/jpeg"
+            />
             <div className="memberinfo__form__item">
               <TextField
                 pattern="^[a-zA-Z\s]*$"
@@ -122,7 +160,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
                 label="Name*"
                 defaultValue={initialValues?.name}
                 name="name"
-                type="text" 
+                type="text"
                 placeholder="Enter your full name"
                 data-testid="member-name-input"
               />
@@ -134,18 +172,42 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             </div>} */}
           </div>
           <p className="info">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+            <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
           </p>
-          {isAdminEdit && <div className={`memberinfo__form__plnFriend__toggle ${props?.isVerifiedFlag === "true" ? " " : "unverified-bg"
-            }`}
-          >
-            <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
-            <p className="memberinfo__form__plnFriend__toggle__label">Are you friends of PL?</p>
-            {props?.isVerifiedFlag == "true"
-              ? <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
-              : <Toggle id="pl-friend" height="16px" width="28px" isChecked={true} callback={onTogglePlnFriend} disabled={true} />
-            }
-          </div>}
+          {isAdminEdit && (
+            <div
+              className={`memberinfo__form__plnFriend__toggle ${props?.isVerifiedFlag === 'true' ? ' ' : 'unverified-bg'}`}
+            >
+              <input
+                type="checkbox"
+                readOnly
+                checked={isPlnFriend}
+                id="member-info-pln-friend"
+                hidden
+                name="plnFriend"
+              />
+              <p className="memberinfo__form__plnFriend__toggle__label">Are you friends of PL?</p>
+              {props?.isVerifiedFlag == 'true' ? (
+                <Toggle
+                  id="pl-friend"
+                  height="16px"
+                  width="28px"
+                  isChecked={isPlnFriend}
+                  callback={onTogglePlnFriend}
+                />
+              ) : (
+                <Toggle
+                  id="pl-friend"
+                  height="16px"
+                  width="28px"
+                  isChecked={true}
+                  callback={onTogglePlnFriend}
+                  disabled={true}
+                />
+              )}
+            </div>
+          )}
           {!isMemberSelfEdit && !isAdminEdit && (
             <div className="memberinfo__form__item">
               <TextField
@@ -170,8 +232,8 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
           )}
           <div className="memberinfo__form__item">
             <label className={`memberinfo__form__bio__label`}>Bio</label>
-            <div className='memberinfo__form__bio__editor'>
-              <TextEditor text={bio} setContent={setBio} id='members-bio' maxLength={2000} isToolbarSticky={false}/>
+            <div className="memberinfo__form__bio__editor">
+              <RichTextEditor value={bio} onChange={setBio} />
             </div>
           </div>
 
@@ -198,7 +260,9 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             />
             <p className="info">
               <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-              <span className="info__text">Please share location details to receive invitations for the network events happening in your area.</span>
+              <span className="info__text">
+                Please share location details to receive invitations for the network events happening in your area.
+              </span>
             </p>
           </div>
 
@@ -213,7 +277,15 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
                 placeholder="Enter state or province"
                 data-testid="member-state-input"
               />
-              <TextField defaultValue={initialValues.country} id="register-member-country" label="Country" name="country" type="text" placeholder="Enter country" data-testid="member-country-input" />
+              <TextField
+                defaultValue={initialValues.country}
+                id="register-member-country"
+                label="Country"
+                name="country"
+                type="text"
+                placeholder="Enter country"
+                data-testid="member-country-input"
+              />
             </div>
           </div>
         </div>
@@ -271,19 +343,26 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             cursor: pointer;
             position: relative;
           }
+          .memberinfo__form__user__profile_avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+          }
           .memberinfo__form__user__profile__actions {
             display: flex;
             gap: 10px;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
+            align-items: flex-end;
+            justify-content: space-between;
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            inset: 0;
             border-radius: 50%;
-            background: rgb(0, 0, 0, 0.4);
+            background: rgb(0, 0, 0, 0.2);
+
+            > img:hover {
+              filter: brightness(120%);
+            }
           }
 
           .memberinfo__form__user__profile__preview {
@@ -307,7 +386,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
           }
 
           .memberinfo__form__bio__editor {
-            padding-top: 12px;          
+            padding-top: 12px;
           }
 
           .memberinfo__form__bio__label {
@@ -315,25 +394,25 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             font-size: 14px;
             margin-bottom: 12px;
           }
-            
+
           .memberinfo__form__plnFriend__toggle {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 8px 8px 8px 12px;
-            background-color: #DBEAFE;
-            border: 1px solid #E2E8F0;
+            background-color: #dbeafe;
+            border: 1px solid #e2e8f0;
             margin-top: 20px;
             border-radius: 8px;
           }
           .unverified-bg {
-            background-color: #E2E8F0;
+            background-color: #e2e8f0;
           }
           .memberinfo__form__plnFriend__toggle__label {
             font-size: 14px;
             font-weight: 400;
             line-height: 20px;
-            color: #0F172A;
+            color: #0f172a;
           }
         `}
       </style>

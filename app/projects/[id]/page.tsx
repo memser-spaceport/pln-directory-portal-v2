@@ -1,4 +1,3 @@
-import { BreadCrumb } from '@/components/core/bread-crumb';
 import Error from '@/components/core/error';
 import { AdditionalDetails } from '@/components/page/project-details/additional-details';
 import ContactInfos from '@/components/page/project-details/contact-infos';
@@ -19,11 +18,15 @@ import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata, ResolvingMetadata } from 'next';
 import ProjectStats from '@/components/page/project-details/stats';
+import { BackButton } from '@/components/ui/BackButton';
+import React from 'react';
 
 export default async function ProjectDetails({ params }: any) {
   const projectId = params?.id;
-  const { isError, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken, osoInfo } = await getPageData(projectId);
-  const showProjectStats = osoInfo?.forkCount > 0 || osoInfo?.starCount > 0 || osoInfo?.repositoryCount > 0 || osoInfo?.contributorCount > 0;
+  const { isError, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken, osoInfo } =
+    await getPageData(projectId);
+  const showProjectStats =
+    osoInfo?.forkCount > 0 || osoInfo?.starCount > 0 || osoInfo?.repositoryCount > 0 || osoInfo?.contributorCount > 0;
 
   if (isError) {
     return <Error />;
@@ -31,59 +34,83 @@ export default async function ProjectDetails({ params }: any) {
 
   return (
     <div className={styles.project}>
-      <div className={styles.project__breadcrumb}>
-        <BreadCrumb backLink="/projects" directoryName="Projects" pageName={project?.name ?? ''} />
-      </div>
       <div className={styles.project__container}>
-        <div className={styles.project__container__details}>
-          <div className={styles.project__container__details__primary}>
-            <Header project={project} userHasEditRights={hasEditAccess} userHasDeleteRights={hasDeleteAccess} user={userInfo} authToken={authToken} />
-            <Description description={project?.description} project={project} userHasEditRights={hasEditAccess} user={userInfo} />
-          </div>
-
-          {project?.projectLinks?.length > 0 && (
-            <div className={styles.project__container__details__links}>
-              <Hyperlinks project={project} user={userInfo} />
+        <div>
+          <BackButton to={`/projects`} />
+          <div className={styles.project__container__details}>
+            <div className={styles.project__container__details__primary}>
+              <Header
+                project={project}
+                userHasEditRights={hasEditAccess}
+                userHasDeleteRights={hasDeleteAccess}
+                user={userInfo}
+                authToken={authToken}
+              />
+              <Description
+                description={project?.description}
+                project={project}
+                userHasEditRights={hasEditAccess}
+                user={userInfo}
+              />
             </div>
-          )}
 
-          {/* Focus Areas */}
-          {project?.projectFocusAreas && project?.projectFocusAreas?.length > 0 && focusAreas && focusAreas?.length > 0 && (
-            <div className={styles?.project__container__details__focusarea}>
-              <SelectedFocusAreas focusAreas={focusAreas} selectedFocusAreas={project.projectFocusAreas} />
+            {project?.projectLinks?.length > 0 && (
+              <div className={styles.project__container__details__links}>
+                <Hyperlinks project={project} user={userInfo} />
+              </div>
+            )}
+
+            {/* Focus Areas */}
+            {project?.projectFocusAreas &&
+              project?.projectFocusAreas?.length > 0 &&
+              focusAreas &&
+              focusAreas?.length > 0 && (
+                <div className={styles?.project__container__details__focusarea}>
+                  <SelectedFocusAreas focusAreas={focusAreas} selectedFocusAreas={project.projectFocusAreas} />
+                </div>
+              )}
+
+            {project?.kpis.length > 0 && (
+              <div className={styles.project__container__details__kpis}>
+                <KPIs kpis={project?.kpis} />
+              </div>
+            )}
+
+            {showProjectStats && (
+              <div className={styles.project__container__details__stats}>
+                <ProjectStats stats={osoInfo} />
+              </div>
+            )}
+
+            <div className={styles.project__container__details__additionalDetails}>
+              <AdditionalDetails
+                project={project}
+                userHasEditRights={hasEditAccess}
+                authToken={authToken}
+                user={userInfo}
+              />
             </div>
-          )}
-
-          {project?.kpis.length > 0 && (
-            <div className={styles.project__container__details__kpis}>
-              <KPIs kpis={project?.kpis} />
-            </div>
-          )}
-
-          {showProjectStats && (
-            <div className={styles.project__container__details__stats}>
-              <ProjectStats stats={osoInfo} />
-            </div>
-          )}
-
-          <div className={styles.project__container__details__additionalDetails}>
-            <AdditionalDetails project={project} userHasEditRights={hasEditAccess} authToken={authToken} user={userInfo} />
           </div>
         </div>
-        <div className={styles.project__container__info}>
-          {project?.contributors?.length > 0 && (
-            <div className={styles.project__container__info__contributors}>
-              <Contributors project={project} contributors={project?.contributors} user={userInfo} />
-            </div>
-          )}
-          <div className={styles.project__container__info__teams}>
-            <TeamsInvolved project={project} user={userInfo} />
+        <div>
+          <div style={{ visibility: 'hidden' }}>
+            <BackButton to={`/projects`} />
           </div>
-          {project?.contactEmail && (
-            <div className={styles.project__container__info__contacts}>
-              <ContactInfos contactEmail={project?.contactEmail} />
+          <div className={styles.project__container__info}>
+            {project?.contributors?.length > 0 && (
+              <div className={styles.project__container__info__contributors}>
+                <Contributors project={project} contributors={project?.contributors} user={userInfo} />
+              </div>
+            )}
+            <div className={styles.project__container__info__teams}>
+              <TeamsInvolved project={project} user={userInfo} />
             </div>
-          )}
+            {project?.contactEmail && (
+              <div className={styles.project__container__info__contacts}>
+                <ContactInfos contactEmail={project?.contactEmail} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -101,7 +128,10 @@ const getPageData = async (projectId: string) => {
   let focusAreas: IFocusArea[] = [];
 
   try {
-    const [projectResponse, focusAreaResponse] = await Promise.all([getProject(projectId, {}), getFocusAreas('Project', {})]);
+    const [projectResponse, focusAreaResponse] = await Promise.all([
+      getProject(projectId, {}),
+      getFocusAreas('Project', {}),
+    ]);
     if (projectResponse?.error || focusAreaResponse?.error) {
       return {
         isError: true,
@@ -123,7 +153,7 @@ const getPageData = async (projectId: string) => {
           pagination: false,
         },
         0,
-        0
+        0,
       );
       if (!allTeams?.error) {
         loggedInMemberTeams = allTeams?.data?.formattedData ?? [];
@@ -172,7 +202,10 @@ type IGenerateMetadata = {
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
 };
-export async function generateMetadata({ params, searchParams }: IGenerateMetadata, parent: ResolvingMetadata): Promise<Metadata> {
+export async function generateMetadata(
+  { params, searchParams }: IGenerateMetadata,
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
   const projectId = params.id;
   const projectResponse = await getProject(projectId, {});
   if (projectResponse?.error) {

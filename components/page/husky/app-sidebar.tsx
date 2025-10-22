@@ -48,7 +48,7 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
       analytics.trackDeleteThread(thread.threadId, thread.title);
       handleDeleteModalOpen(thread);
     },
-    [thread, handleDeleteModalOpen]
+    [thread, handleDeleteModalOpen],
   );
 
   const handleShareClick = useCallback(
@@ -61,17 +61,25 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
       }, 1500);
       analytics.trackThreadShareClicked({ threadId: thread.threadId, title: thread.title });
     },
-    [thread, analytics]
+    [thread, analytics],
   );
 
   return (
-    <li key={thread.threadId} data-active={isActive} className="sidebar__body__history__list__ul__li" onClick={handleClick}>
+    <li
+      key={thread.threadId}
+      data-active={isActive}
+      className="sidebar__body__history__list__ul__li"
+      onClick={handleClick}
+    >
       <span className="sidebar__body__history__list__ul__li__text">{thread.title}</span>
       <div className="sidebar__body__history__list__ul__li__actions">
         <button onClick={handleDeleteClick} className="sidebar__body__history__list__ul__li__actions__button">
           <img width={20} height={20} src="/icons/delete-icon.svg" alt="delete" />
         </button>
-        <button onClick={handleShareClick} className="sidebar__body__history__list__ul__li__actions__button share-button">
+        <button
+          onClick={handleShareClick}
+          className="sidebar__body__history__list__ul__li__actions__button share-button"
+        >
           <img width={20} height={20} src="/icons/share-blue.svg" alt="share" />
           {copied && <span className="copied-tooltip">Copied!</span>}
         </button>
@@ -306,7 +314,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           lastMonth: IThread[];
           [year: number]: IThread[];
         },
-        chat: IThread
+        chat: IThread,
       ) => {
         const chatDate = new Date(chat.createdAt);
         const chatYear = getYear(chatDate);
@@ -333,7 +341,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         yesterday: [],
         lastWeek: [],
         lastMonth: [],
-      }
+      },
     );
   }, []);
 
@@ -368,12 +376,12 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
       }
     };
 
-     // Detect if the user is on macOS
-     const detectMac = () => {
-       setIsMac(/Mac/i.test(navigator.userAgent));
-     };
-     
-     detectMac();
+    // Detect if the user is on macOS
+    const detectMac = () => {
+      setIsMac(/Mac/i.test(navigator.userAgent));
+    };
+
+    detectMac();
 
     document.addEventListener('refresh-husky-history', handleRefreshHistory as EventListener);
     document.addEventListener('delete-thread', handleDeleteThread as EventListener);
@@ -412,17 +420,30 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
               {isLoading ? (
                 <SkeletonLoader />
               ) : history.length === 0 ? (
-                <div className="sidebar__body__history__list__empty">Your conversations will appear here once you start chatting!</div>
+                <div className="sidebar__body__history__list__empty">
+                  Your conversations will appear here once you start chatting!
+                </div>
               ) : (
                 <ul className="sidebar__body__history__list__ul">
                   {orderedKeys.map((key) =>
                     groupedChats[key as keyof typeof groupedChats]?.length > 0 ? (
                       <React.Fragment key={key}>
                         <div className="sidebar__body__history__list__ul__title">
-                          {key === 'lastWeek' ? 'Last 7 days' : key === 'lastMonth' ? 'Last 30 days' : key === 'today' ? 'Today' : key === 'yesterday' ? 'Yesterday' : key}
+                          {key === 'lastWeek'
+                            ? 'Last 7 days'
+                            : key === 'lastMonth'
+                              ? 'Last 30 days'
+                              : key === 'today'
+                                ? 'Today'
+                                : key === 'yesterday'
+                                  ? 'Yesterday'
+                                  : key}
                         </div>
                         {groupedChats[key as keyof typeof groupedChats]
-                          .sort((a: IThread, b: IThread) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Sort by createdAt (newest first)
+                          .sort(
+                            (a: IThread, b: IThread) =>
+                              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+                          ) // Sort by createdAt (newest first)
                           .map((chat: IThread) => (
                             <ThreadItem
                               isActive={chat.threadId === id}
@@ -434,7 +455,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             />
                           ))}
                       </React.Fragment>
-                    ) : null
+                    ) : null,
                   )}
                 </ul>
               )}
@@ -443,16 +464,10 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         </div>
         <div data-state={state} className="sidebar__footer">
           <div className="sidebar__footer__shortcut">
-            <div className="sidebar__footer__shortcut__key">
-              {isMac ? '⌘' : 'Ctrl'}
-            </div>
+            <div className="sidebar__footer__shortcut__key">{isMac ? '⌘' : 'Ctrl'}</div>
             <span className="sidebar__footer__shortcut__plus">+</span>
-            <div className="sidebar__footer__shortcut__key">
-              B
-            </div>
-            <span className="sidebar__footer__shortcut__text">
-              to expand/collapse
-            </span>
+            <div className="sidebar__footer__shortcut__key">B</div>
+            <span className="sidebar__footer__shortcut__text">to expand/collapse</span>
           </div>
           <button className="sidebar__footer__toggleSidebar" onClick={handleSidebarToggle}>
             <img src="/icons/sidenav-close.svg" alt="toggle sidebar" />
@@ -460,7 +475,12 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         </div>
       </Sidebar>
       <Modal modalRef={deleteModalRef} onClose={handleDeleteModalClose}>
-        <DeleteModal isOpen={isDeleteModalOpen} onClose={handleDeleteModalClose} onDelete={handleDeleteThread} modalRef={deleteModalRef} />
+        <DeleteModal
+          isOpen={isDeleteModalOpen}
+          onClose={handleDeleteModalClose}
+          onDelete={handleDeleteThread}
+          modalRef={deleteModalRef}
+        />
       </Modal>
       <style jsx>{`
         .sidebar__header {
@@ -600,9 +620,9 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           align-items: center;
           gap: 4px;
         }
-        
+
         .sidebar__footer__shortcut__key {
-          border: 0.5px solid #CBD5E1;
+          border: 0.5px solid #cbd5e1;
           border-radius: 3px;
           padding: 0 4px;
           font-size: 10px;
@@ -619,13 +639,13 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           height: 16px;
           padding: 0 4px;
         }
-        
+
         .sidebar__footer__shortcut__key:last-of-type {
           width: 16px;
           height: 16px;
           padding: 0;
         }
-        
+
         .sidebar__footer__shortcut__text {
           font-size: 10px;
           color: #64748b;
@@ -708,7 +728,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             justify-content: center;
             padding: 0;
           }
-          
+
           .sidebar__footer[data-state='collapsed'] .sidebar__footer__shortcut {
             display: none;
           }
@@ -765,7 +785,17 @@ const SkeletonLoader = () => (
 );
 
 // Extracted DeleteModal component
-const DeleteModal = ({ isOpen, onClose, onDelete, modalRef }: { isOpen: boolean; onClose: () => void; onDelete: () => void; modalRef: React.RefObject<HTMLDialogElement> }) => {
+const DeleteModal = ({
+  isOpen,
+  onClose,
+  onDelete,
+  modalRef,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onDelete: () => void;
+  modalRef: React.RefObject<HTMLDialogElement>;
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -874,6 +904,5 @@ const DeleteModal = ({ isOpen, onClose, onDelete, modalRef }: { isOpen: boolean;
     </div>
   );
 };
-
 
 export default AppSidebar;

@@ -10,9 +10,20 @@ interface TextAreaProps {
   id: string;
   defaultValue?: string;
   maxLength?: number;
+  disabled?: boolean;
 }
 
-const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '', onChange, isMandatory, placeholder, maxLength }) => {
+const TextArea: React.FC<TextAreaProps> = ({
+  label,
+  id,
+  name,
+  defaultValue = '',
+  onChange,
+  isMandatory,
+  placeholder,
+  maxLength,
+  disabled,
+}) => {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const onTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     if (onChange) {
@@ -37,6 +48,7 @@ const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '',
           defaultValue={defaultValue}
           required={isMandatory}
           maxLength={maxLength}
+          disabled={disabled}
         />
       </div>
       <style jsx>

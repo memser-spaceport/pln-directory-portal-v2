@@ -28,7 +28,7 @@ const OfficeHoursMultiSelect = (props: any) => {
 
   const onContainerClickHandler = () => {
     setShowOptions(!showOptions);
-    if(onMultiSelectedClick) {
+    if (onMultiSelectedClick) {
       onMultiSelectedClick();
     }
   };
@@ -47,7 +47,12 @@ const OfficeHoursMultiSelect = (props: any) => {
     <>
       <div className="ohms">
         <div ref={containerRef} className="ohms__selectcon" onClick={onContainerClickHandler}>
-          <input readOnly placeholder="Select reason" value={selectedItem} className="ohms__selectcon__selectedoptn"></input>
+          <input
+            readOnly
+            placeholder="Select reason"
+            value={selectedItem}
+            className="ohms__selectcon__selectedoptn"
+          ></input>
           <img alt="dropdown" className="ohms__selectcon__dropdown" src="/icons/arrow-down.svg" width={10} height={7} />
 
           {showOptions && (

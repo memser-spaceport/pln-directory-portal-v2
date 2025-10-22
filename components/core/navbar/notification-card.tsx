@@ -1,13 +1,15 @@
 import { IFollowUp } from '@/types/officehours.types';
 import { calculateTime } from '@/utils/common.utils';
 import { NOTIFICATION_TYPES } from '@/utils/constants';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface INotification {
   notification: IFollowUp;
 }
 const NotificationCard = (props: INotification) => {
   const notification = props?.notification;
-  const profile = notification?.interaction?.targetMember?.image?.url ?? '/icons/default_profile.svg';
+  const defaultAvatarImage = useDefaultAvatar(notification?.interaction?.targetMember?.name);
+  const profile = notification?.interaction?.targetMember?.image?.url ?? defaultAvatarImage;
 
   const text = getTitle(notification) ?? '';
   const daysAgo = calculateTime(notification?.createdAt);
@@ -15,7 +17,10 @@ const NotificationCard = (props: INotification) => {
   function getTitle(notification: any) {
     if (notification?.type === NOTIFICATION_TYPES.meetingInitiated.name) {
       return `Did you schedule Office Hours with ${notification?.interaction?.targetMember?.name}?`;
-    } else if(notification?.type === NOTIFICATION_TYPES.meetingScheduled.name || notification?.type === NOTIFICATION_TYPES.meetingRescheduled.name) {
+    } else if (
+      notification?.type === NOTIFICATION_TYPES.meetingScheduled.name ||
+      notification?.type === NOTIFICATION_TYPES.meetingRescheduled.name
+    ) {
       return `How was your recent meeting with ${notification?.interaction?.targetMember?.name}?`;
     }
   }
@@ -29,7 +34,7 @@ const NotificationCard = (props: INotification) => {
 
         <div className="noticrd__cnt">
           <div className="noticrd__cnt__ttl" dangerouslySetInnerHTML={{ __html: text }}></div>
-          <div className='noticrd__cnt__date'>{daysAgo}</div>
+          <div className="noticrd__cnt__date">{daysAgo}</div>
         </div>
       </div>
 
@@ -50,7 +55,7 @@ const NotificationCard = (props: INotification) => {
             text-align: left;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 4px;
           }
 
           .noticrd__cnt__ttl {
@@ -60,13 +65,11 @@ const NotificationCard = (props: INotification) => {
           }
 
           .noticrd__cnt__date {
-          font-size: 14px;
-          font-weight: 500;
-          line-height: 20px;
-          color: #64748B;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
+            color: #64748b;
           }
-
-
         `}
       </style>
     </>

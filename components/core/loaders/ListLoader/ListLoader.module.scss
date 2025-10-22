@@ -1,0 +1,85 @@
+@use 'styles/media.scss';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  position: relative;
+  padding: 20px;
+
+  .desktop {
+    display: none;
+    align-items: center;
+    gap: 20px;
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+    }
+
+    .header {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tags {
+      margin-left: auto;
+    }
+  }
+
+  .mobile {
+    display: flex;
+    flex-direction: column;
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+    }
+
+    .header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .body {
+      display: flex;
+      flex-direction: row;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .tags {
+      margin-top: 12px;
+      padding: 0;
+    }
+  }
+
+  .tags {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    padding: 0 12px 12px;
+
+    .tag {
+      border-radius: 20px;
+    }
+  }
+
+  @include media.tablet-landscape {
+    .mobile {
+      display: none;
+    }
+
+    .desktop {
+      display: flex;
+    }
+  }
+}

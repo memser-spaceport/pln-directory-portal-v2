@@ -1,13 +1,9 @@
 // __tests__/FormStepIndicatorMob.test.tsx
 import { render, screen } from '@testing-library/react';
 import FormStepIndicatorMob from '@/components/core/form-step-indicator-mob';
-import useStepsIndicator from '@/hooks/useStepsIndicator';  // Mock this hook to control its output
+import useStepsIndicator from '@/hooks/useStepsIndicator'; // Mock this hook to control its output
 import '@testing-library/jest-dom';
-
-// Mock the PROJECT_FORM_STEPS constant
-jest.mock('@/utils/constants', () => ({
-  PROJECT_FORM_STEPS: ['General', 'Contributors', 'KPIs', 'More Details'],  // Example steps
-}));
+import { PROJECT_FORM_STEPS } from '@/utils/constants';
 
 // Mock the useStepsIndicator hook
 jest.mock('@/hooks/useStepsIndicator', () => ({
@@ -23,7 +19,15 @@ describe('FormStepIndicatorMob', () => {
     });
 
     // Render the component
-    render(<FormStepIndicatorMob steps={undefined} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />);
+    render(
+      <FormStepIndicatorMob
+        steps={PROJECT_FORM_STEPS}
+        defaultStep={''}
+        uniqueKey={''}
+        title={'Add Project'}
+        subTitle={'Share your project details'}
+      />,
+    );
 
     // Test that the current step is rendered correctly
     expect(screen.getByText('General')).toBeInTheDocument();
@@ -44,7 +48,9 @@ describe('FormStepIndicatorMob', () => {
       currentStep: 'Contributors',
     });
 
-    render(<FormStepIndicatorMob />);
+    render(
+      <FormStepIndicatorMob steps={PROJECT_FORM_STEPS} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />,
+    );
 
     // Verify the correct step info is shown (Step 2 of 3)
     expect(screen.getByText('Step 2 of 4')).toBeInTheDocument();

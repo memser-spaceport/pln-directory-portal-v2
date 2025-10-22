@@ -4,6 +4,7 @@ import { IAnalyticsTeamInfo, IAnalyticsUserInfo } from '@/types/shared.types';
 import { MEMBER_ANALYTICS_EVENTS } from '@/utils/constants';
 import { getUserInfo } from '@/utils/third-party.helper';
 import { usePostHog } from 'posthog-js/react';
+import { OnboardingWizardStep } from '@/services/onboarding/store';
 
 export const useMemberAnalytics = () => {
   const postHogProps = usePostHog();
@@ -47,6 +48,10 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_OFFICEHOURS_CLICKED, params);
   }
 
+  function onSubmitUpdatedOfficeHours(payload: any) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_SUBMIT_UPDATED__OFFICEHOURS, payload);
+  }
+
   function onProjectContributionEditClicked(member: IMember) {
     const params = {
       ...member,
@@ -87,7 +92,20 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_PROFILE_CLICKED, params);
   }
 
-  function onSocialProfileLinkClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, type: string, link: string) {
+  function onAddExperienceClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
+    const params = {
+      user,
+      ...member,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_ADD_EXPERIENCE_CLICKED, params);
+  }
+
+  function onSocialProfileLinkClicked(
+    user: IAnalyticsUserInfo | null,
+    member: IAnalyticsMemberInfo | null,
+    type: string,
+    link: string,
+  ) {
     const params = {
       user,
       ...member,
@@ -114,7 +132,11 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_TEAMS_SEE_ALL_CLICKED, params);
   }
 
-  function onTeamClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, team: IAnalyticsTeamInfo | null) {
+  function onTeamClicked(
+    user: IAnalyticsUserInfo | null,
+    member: IAnalyticsMemberInfo | null,
+    team: IAnalyticsTeamInfo | null,
+  ) {
     const params = {
       user,
       ...member,
@@ -131,7 +153,11 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_SEE_ALL_CLICKED, params);
   }
 
-  function onProjectClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, project: IAnalyticsProjectInfo | null) {
+  function onProjectClicked(
+    user: IAnalyticsUserInfo | null,
+    member: IAnalyticsMemberInfo | null,
+    project: IAnalyticsProjectInfo | null,
+  ) {
     const params = {
       user,
       ...member,
@@ -265,63 +291,66 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_LIST_CLOSE_FILTER_PANEL_CLICKED, params);
   }
 
-  function onMemberEditBySelf(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null,) {
+  function onMemberEditBySelf(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
     const params = {
       user,
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_BY_SELF, params);
   }
 
-  function onMemberEditByAdmin(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null,) {
+  function onMemberEditByAdmin(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
     const params = {
       user,
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_BY_ADMIN, params);
   }
 
-  
-  function onMemberDetailsBioReadMoreClicked(member: IAnalyticsMemberInfo | null,) {
+  function onMemberDetailsBioReadMoreClicked(member: IAnalyticsMemberInfo | null) {
     const params = {
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_READ_MORE_CLICKED, params);
   }
 
-  
-  function onMemberDetailsBioReadLessClicked(member: IAnalyticsMemberInfo | null,) {
+  function onMemberDetailsBioReadLessClicked(member: IAnalyticsMemberInfo | null) {
     const params = {
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_READ_LESS_CLICKED, params);
   }
 
-  function onMemberDetailsBioEditClicked(member: IAnalyticsMemberInfo | null,user: IAnalyticsUserInfo | null) {
+  function onMemberDetailsBioEditClicked(member: IAnalyticsMemberInfo | null, user: IAnalyticsUserInfo | null) {
     const params = {
       user,
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_CLICKED, params);
   }
 
-  function onMemberDetailsBioEditCancelClicked(member: IAnalyticsMemberInfo | null,user: IAnalyticsUserInfo | null) {
+  function onMemberDetailsBioEditCancelClicked(member: IAnalyticsMemberInfo | null, user: IAnalyticsUserInfo | null) {
     const params = {
       user,
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_CANCEL_CLICKED, params);
   }
 
-  function onMemberDetailsBioEditSaveClicked(member: IAnalyticsMemberInfo | null,user: IAnalyticsUserInfo | null) {
+  function onMemberDetailsBioEditSaveClicked(member: IAnalyticsMemberInfo | null, user: IAnalyticsUserInfo | null) {
     const params = {
       user,
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_SAVE_CLICKED, params);
   }
 
-  function recordBioSave(type: string,member: IAnalyticsMemberInfo | null, user: IAnalyticsUserInfo | null, payload?: any){
+  function recordBioSave(
+    type: string,
+    member: IAnalyticsMemberInfo | null,
+    user: IAnalyticsUserInfo | null,
+    payload?: any,
+  ) {
     const params = {
       type,
       user,
@@ -331,18 +360,231 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_RECORD_SAVE, params);
   }
 
-  function onClickSeeMoreIrlContribution(user: IAnalyticsUserInfo | null){
+  function onClickSeeMoreIrlContribution(user: IAnalyticsUserInfo | null) {
     const params = {
       user,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.ON_CLICK_SEE_MORE_BUTTON_IRL_CONTRIBUTIONS, params);
   }
 
-  function onClickEventIrlContribution(user: IAnalyticsUserInfo | null){
+  function onClickEventIrlContribution(user: IAnalyticsUserInfo | null) {
     const params = {
       user,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS, params);
+  }
+
+  function onEditExperienceSaveClicked(
+    user: IAnalyticsUserInfo | null,
+    member: IAnalyticsMemberInfo | null,
+    experience: any,
+    status: string,
+  ) {
+    const params = {
+      user,
+      ...member,
+      experience,
+      status,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_EXPERIENCE_SAVE_CLICKED, params);
+  }
+
+  function onAddExperienceSaveClicked(
+    user: IAnalyticsUserInfo | null,
+    member: IAnalyticsMemberInfo | null,
+    experience: any,
+    status: string,
+  ) {
+    const params = {
+      user,
+      ...member,
+      experience,
+      status,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_ADD_EXPERIENCE_SAVE_CLICKED, params);
+  }
+
+  function onDeleteExperienceSaveClicked(
+    user: IAnalyticsUserInfo | null,
+    member: IAnalyticsMemberInfo | null,
+    experience: any,
+    status: string,
+  ) {
+    const params = {
+      user,
+      ...member,
+      experience,
+      status,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED, params);
+  }
+
+  function onExplorePlNetworkCLicked(params: Record<string, string | null>) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_EXPLORE_PL_NETWORK_CLICKED, params);
+  }
+
+  function onOpenProfileByRecommendationEmailLink(
+    utmSource: string,
+    utmMedium: string,
+    utmCode: string,
+    recommendedMember: string,
+    targetId: string,
+    targetEmail: string,
+  ) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_BY_RECOMMENDATION_EMAIL_LINK, {
+      utmSource,
+      utmMedium,
+      utmCode,
+      recommendedMember,
+      targetId,
+      targetEmail,
+    });
+  }
+
+  function onOnboardingWizardOpen() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_OPEN);
+  }
+
+  function onOnboardingWizardClose(step: OnboardingWizardStep) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_CLOSE, {
+      step,
+    });
+  }
+
+  function onOnboardingWizardComplete() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_COMPLETE);
+  }
+
+  function onOnboardingWizardFinishClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_FINISH_CLICKED);
+  }
+
+  function onOnboardingWizardNextClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_NEXT_CLICKED);
+  }
+
+  function onOnboardingWizardStartClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_START_CLICKED);
+  }
+
+  function onOnboardingWizardBrowseFilesClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_START_CLICKED);
+  }
+
+  function onSubscribeToRecommendationsClicked(element: 'bar' | 'widget') {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED, {
+      element,
+    });
+  }
+
+  function onCloseSubscribeToRecommendationsClicked(element: 'bar' | 'widget') {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CLOSE_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED, {
+      element,
+    });
+  }
+
+  function onGoToCompleteProfileClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_GO_TO_COMPLETE_PROFILE_CLICKED);
+  }
+
+  function onCloseCompleteProfileClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CLOSE_COMPLETE_PROFILE_CLICKED);
+  }
+
+  function onEditProfileDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_PROFILE_DETAILS_EDIT_CLICKED);
+  }
+
+  function onSaveProfileDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_PROFILE_DETAILS_SAVE_CLICKED);
+  }
+
+  function onEditContactDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTACT_DETAILS_EDIT_CLICKED);
+  }
+
+  function onSaveContactDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTACT_DETAILS_SAVE_CLICKED);
+  }
+
+  function onAddExperienceDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_ADD_CLICKED);
+  }
+
+  function onEditExperienceDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_EDIT_CLICKED);
+  }
+
+  function onDeleteExperienceDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_DELETE_CLICKED);
+  }
+
+  function onSaveExperienceDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_SAVE_CLICKED);
+  }
+
+  function onAddContributionDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_ADD_CLICKED);
+  }
+
+  function onEditContributionDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_EDIT_CLICKED);
+  }
+
+  function onDeleteContributionDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_DELETE_CLICKED);
+  }
+
+  function onSaveContributionDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_SAVE_CLICKED);
+  }
+
+  function onConnectLinkedInClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CONNECT_LINKEDIN_CLICKED);
+  }
+
+  function onSuccessLinkedInVerification() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CONNECT_LINKEDIN_SUCCESS);
+  }
+
+  function onErrorLinkedInVerification() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CONNECT_LINKEDIN_FAILED);
+  }
+
+  function onFixBrokenOfficeHoursLinkClicked(params: Record<string, string | null>) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_FIX_BROKEN_OFFICEHOURS_LINK_CLICKED, params);
+  }
+
+  function onBrokenOfficeHoursLinkBookAttemptClicked(params: Record<string, string | null>) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BROKEN_OFFICEHOURS_LINK_BOOK_ATTEMPT_CLICKED, params);
+  }
+
+  function onMembersFiltersChange(filters: URLSearchParams) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_FILTERS_CHANGE, filters);
+  }
+
+  function onMembersOHFilterToggled(params: { page: string; option: string; value: string }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_OH_FILTER_TOGGLED, params);
+  }
+
+  function onMembersTopicsFilterSearched(params: { page: string; searchText: string }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_TOPICS_FILTER_SEARCHED, params);
+  }
+
+  function onMembersTopicsFilterSelected(params: { page: string; topics: string[] }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_TOPICS_FILTER_SELECTED, params);
+  }
+
+  function onMembersRolesFilterSearched(params: { page: string; searchText: string }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_ROLES_FILTER_SEARCHED, params);
+  }
+
+  function onMembersRolesFilterSelected(params: { page: string; roles: string[] }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_ROLES_FILTER_SELECTED, params);
+  }
+
+  function onClickBookWithOther(params: any) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_ON_CLICK_BOOK_WITH_OTHER, params);
   }
 
   return {
@@ -383,6 +625,48 @@ export const useMemberAnalytics = () => {
     onClickSeeMoreIrlContribution,
     onClickEventIrlContribution,
     onAddOfficeHourClicked,
-    onEditOfficeHourClicked
+    onEditOfficeHourClicked,
+    onAddExperienceClicked,
+    onEditExperienceSaveClicked,
+    onAddExperienceSaveClicked,
+    onDeleteExperienceSaveClicked,
+    onOpenProfileByRecommendationEmailLink,
+    onOnboardingWizardOpen,
+    onOnboardingWizardClose,
+    onOnboardingWizardComplete,
+    onSubscribeToRecommendationsClicked,
+    onCloseSubscribeToRecommendationsClicked,
+    onGoToCompleteProfileClicked,
+    onCloseCompleteProfileClicked,
+    onEditProfileDetailsClicked,
+    onSaveProfileDetailsClicked,
+    onEditContactDetailsClicked,
+    onSaveContactDetailsClicked,
+    onAddExperienceDetailsClicked,
+    onDeleteExperienceDetailsClicked,
+    onSaveExperienceDetailsClicked,
+    onEditExperienceDetailsClicked,
+    onAddContributionDetailsClicked,
+    onSaveContributionDetailsClicked,
+    onDeleteContributionDetailsClicked,
+    onEditContributionDetailsClicked,
+    onOnboardingWizardFinishClicked,
+    onOnboardingWizardNextClicked,
+    onOnboardingWizardStartClicked,
+    onOnboardingWizardBrowseFilesClicked,
+    onConnectLinkedInClicked,
+    onExplorePlNetworkCLicked,
+    onSuccessLinkedInVerification,
+    onErrorLinkedInVerification,
+    onSubmitUpdatedOfficeHours,
+    onFixBrokenOfficeHoursLinkClicked,
+    onBrokenOfficeHoursLinkBookAttemptClicked,
+    onMembersFiltersChange,
+    onMembersOHFilterToggled,
+    onMembersTopicsFilterSearched,
+    onMembersTopicsFilterSelected,
+    onMembersRolesFilterSearched,
+    onMembersRolesFilterSelected,
+    onClickBookWithOther,
   };
 };

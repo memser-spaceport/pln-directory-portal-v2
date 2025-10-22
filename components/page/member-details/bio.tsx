@@ -1,20 +1,20 @@
 'use client';
 
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import TextEditor from '@/components/ui/text-editor';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { useState } from 'react';
 import clip from 'text-clipper';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { updateMember, updateMemberBio } from '@/services/members.service';
 import { ADMIN_ROLE } from '@/utils/constants';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 
 const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
   const contentLength = 1000;
-  
+
   const [content, setContent] = useState(member?.bio ?? '');
   const isOwner = userInfo?.uid === member.id;
   const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
@@ -85,14 +85,14 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
       //   participantType: 'MEMBER',
       //   referenceUid: member.id,
       //   uniqueIdentifier: member.email,
-      //   newData: { name: member.name, 
+      //   newData: { name: member.name,
       //     imageUid: member.imageUid,
       //     email: member.email, teamAndRoles: member.teamAndRoles, projectContributions: copymember.projectContributions, skills: member.skills, bio: content },
       // };
 
       const payload = {
-        bio: content
-      }
+        bio: content,
+      };
 
       const rawToken = Cookies.get('authToken');
       if (!rawToken) {
@@ -102,7 +102,10 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
       const { data, isError, errorMessage, errorData } = await updateMemberBio(member.id, payload, authToken);
       triggerLoader(false);
       if (isError) {
-        if (errorData?.message && errorData?.message === 'Email already exists. Please try again with different email') {
+        if (
+          errorData?.message &&
+          errorData?.message === 'Email already exists. Please try again with different email'
+        ) {
           toast.error('Email already exists. Please try again with different email');
         } else {
           toast.error('Member updated failed. Something went wrong, please try again later');
@@ -152,30 +155,30 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
               <button className="bioCn__content__show-more" onClick={onShowMoreClickHandler}>
                 show more{' '}
                 <span className="bioCn__content__show-more__icon">
-                      <Image src="/icons/chevron-up.svg" alt="Edit" height={12} width={12} />
-                    </span>
+                  <Image src="/icons/chevron-up.svg" alt="Edit" height={12} width={12} />
+                </span>
               </button>
             )}
             {content?.length > contentLength && content === clippedContent && (
               <button className="bioCn__content__show-less" onClick={onShowLessClickHandler}>
                 show less
                 <span className="bioCn__content__show-more__icon">
-                      <Image src="/icons/showless.svg" alt="Edit" height={12} width={12} />
-                    </span>
+                  <Image src="/icons/showless.svg" alt="Edit" height={12} width={12} />
+                </span>
               </button>
             )}
           </div>
         )}
         {showEditor && (
           <div className="bioCn__content">
-            <TextEditor text={content} setContent={setContent} />
+            <RichTextEditor id="member-bio" value={content} onChange={setContent} />
           </div>
         )}
       </div>
 
       <style jsx>{`
         .bioCn {
-          border-top: 1px solid #cbd5e1;
+          //border-top: 1px solid #cbd5e1;
           padding: 16px;
         }
 
@@ -194,9 +197,9 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
           color: #000000;
           display: inline;
           overflow: hidden;
-            position: relative;
-            // word-wrap: break-word; /* Allow long words to be broken and wrapped */
-            // word-break: break-all;
+          position: relative;
+          // word-wrap: break-word; /* Allow long words to be broken and wrapped */
+          // word-break: break-all;
         }
 
         .bioCn__ttl__header__edit {
@@ -231,14 +234,14 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
           align-items: center;
           padding-bottom: 16px;
         }
-          .bioCn__content__show-more__icon {
-            top: 2px;
-            position: relative;
-            width: 12px;
-            height: 12px;
-            display: inline-block;
-            margin-left: 4px;
-          }
+        .bioCn__content__show-more__icon {
+          top: 2px;
+          position: relative;
+          width: 12px;
+          height: 12px;
+          display: inline-block;
+          margin-left: 4px;
+        }
 
         @media (min-width: 1024px) {
           .bioCn {

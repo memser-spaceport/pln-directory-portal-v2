@@ -15,6 +15,7 @@ import FocusAreaFilter from '@/components/core/focus-area-filter/focus-area-filt
 import { useDebounce } from '@/hooks/useDebounce';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import TagContainer from '@/components/ui/tag-container';
+import { FiltersSearch } from '@/components/page/projects/FiltersSearch';
 
 const ProjectFilter = (props: any) => {
   //props
@@ -32,14 +33,14 @@ const ProjectFilter = (props: any) => {
   const projectTeamRef = useRef<HTMLInputElement>(null);
   const projectPaneRef = useRef<HTMLDivElement>(null);
   const analytics = useProjectAnalytics();
-  
+
   const tagsFilters = DEFAULT_PROJECT_TAGS.map((tag) => {
     return {
       value: tag.label,
       selected: searchParams['tags']?.split(',').includes(tag.label) ?? false,
       disabled: !props?.filters?.tags?.some((filterTag: any) => filterTag.value === tag.label),
-    }});
-
+    };
+  });
 
   //state
   const [searchResult, setSearchResult] = useState<any[]>(props?.initialTeams ?? []);
@@ -63,10 +64,10 @@ const ProjectFilter = (props: any) => {
 
   const onClearAllClicked = () => {
     if (apliedFiltersCount > 0) {
-      setSearchText("");
+      setSearchText('');
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
-      const clearQuery = ['team', 'funding', 'focusAreas', 'isRecent','tags'];
+      const clearQuery = ['team', 'funding', 'focusAreas', 'isRecent', 'tags', 'searchBy'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           triggerLoader(true);
@@ -77,8 +78,7 @@ const ProjectFilter = (props: any) => {
       const query = search ? `?${search}` : '';
       analytics.onProjectFilterCleared(getAnalyticsUserInfo(userInfo));
       router.push(`${pathname}/${query}`);
-      router.refresh()
-      
+      router.refresh();
     }
   };
 
@@ -116,7 +116,7 @@ const ProjectFilter = (props: any) => {
     // setSelectedOption(team);
     setSearchText(team?.label);
 
-    if(team.value !== searchParams["team"]) {
+    if (team.value !== searchParams['team']) {
       triggerLoader(true);
     }
 
@@ -156,12 +156,11 @@ const ProjectFilter = (props: any) => {
     }
   }, [debouncedSearchText]);
 
-
   const onClear = () => {
     setSearchText('');
-    updateQueryParams("team", "", searchParams);
+    updateQueryParams('team', '', searchParams);
     findTeamsByName('');
-  }
+  };
 
   const onTagClickHandler = (key: string, value: string, isSelected: boolean) => {
     triggerLoader(true);
@@ -183,11 +182,11 @@ const ProjectFilter = (props: any) => {
     analytics.onProjectFilterApplied(getAnalyticsUserInfo(userInfo), {
       tags: tags,
     });
-  }
+  };
 
   useEffect(() => {
-    setSearchText(selectedTeam?.label)
-  }, [router, searchParams])
+    setSearchText(selectedTeam?.label);
+  }, [router, searchParams]);
 
   return (
     <>
@@ -205,7 +204,8 @@ const ProjectFilter = (props: any) => {
           </button>
         </div>
         <div className="project-filter__body">
-        <div className="project-filter__body__raisingfund">
+          <FiltersSearch searchParams={searchParams} userInfo={userInfo} />
+          <div className="project-filter__body__raisingfund">
             <div className="project-filter__body__raisingfund__wrpr">
               <h3 className="project-filter__body__raisingfund__title">New Projects</h3>
             </div>
@@ -250,20 +250,20 @@ const ProjectFilter = (props: any) => {
               onInputBlur={onAutocompleteBlur}
               paneRef={projectPaneRef}
               onClear={onClear}
-              isClear={(searchText || selectedTeam?.logo) ? true : false}
+              isClear={searchText || selectedTeam?.logo ? true : false}
             />
           </div>
           <div>
             <TagContainer
-                        page={PAGE_ROUTES.PROJECTS}
-                        label="Tags"
-                        isUserLoggedIn={userInfo}
-                        name="tags"
-                        items={tagsFilters ?? []}
-                        onTagClickHandler={onTagClickHandler}
-                        initialCount={10}
-                        userInfo={userInfo}
-                      />
+              page={PAGE_ROUTES.PROJECTS}
+              label="Tags"
+              isUserLoggedIn={userInfo}
+              name="tags"
+              items={tagsFilters ?? []}
+              onTagClickHandler={onTagClickHandler}
+              initialCount={10}
+              userInfo={userInfo}
+            />
           </div>
         </div>
         <div className="project-filter__footer">

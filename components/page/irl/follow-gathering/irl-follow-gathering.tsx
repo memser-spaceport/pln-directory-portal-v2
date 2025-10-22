@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { IUserInfo } from "@/types/shared.types";
-import FollowSection from "./follow-section";
-import { ILocationDetails } from "@/types/irl.types";
-import { checkAdminInAllEvents } from "@/utils/irl.utils";
-import { useCallback } from "react";
-import { TOAST_MESSAGES } from "@/utils/constants";
-import router from "next/router";
+import { IUserInfo } from '@/types/shared.types';
+import FollowSection from './follow-section';
+import { ILocationDetails } from '@/types/irl.types';
+import { checkAdminInAllEvents } from '@/utils/irl.utils';
+import { useCallback } from 'react';
+import { TOAST_MESSAGES } from '@/utils/constants';
+import router from 'next/router';
 import Cookies from 'js-cookie';
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
 
 interface IrlFollowGatheringProps {
   searchParams: any;
@@ -29,7 +29,11 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
   const isLoggedIn = props.isLoggedIn;
   const topicsAndReason = props.topicsAndReasonResponse;
 
-  const isAdminInAllEvents = checkAdminInAllEvents(searchParams?.type, locationEvents?.upcomingEvents, locationEvents?.pastEvents);
+  const isAdminInAllEvents = checkAdminInAllEvents(
+    searchParams?.type,
+    locationEvents?.upcomingEvents,
+    locationEvents?.pastEvents,
+  );
   const onLogin = useCallback(async () => {
     const toast = (await import('react-toastify')).toast;
     if (Cookies.get('refreshToken')) {
@@ -39,16 +43,28 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
       router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
     }
   }, [router]);
-  
+
   return (
     <>
       <div className="root">
-          <FollowSection topicsAndReason={topicsAndReason} searchParams={props.searchParams} userInfo={props.userInfo} followers={props.followers} eventLocationSummary={props.eventLocationSummary} locationEvents={eventDetails} eventDetails={eventDetails} onLogin={onLogin} isLoggedIn={isLoggedIn} isAdminInAllEvents={isAdminInAllEvents} guestDetails={props.guestDetails} />
+        <FollowSection
+          topicsAndReason={topicsAndReason}
+          searchParams={props.searchParams}
+          userInfo={props.userInfo}
+          followers={props.followers}
+          eventLocationSummary={props.eventLocationSummary}
+          locationEvents={eventDetails}
+          eventDetails={eventDetails}
+          onLogin={onLogin}
+          isLoggedIn={isLoggedIn}
+          isAdminInAllEvents={isAdminInAllEvents}
+          guestDetails={props.guestDetails}
+        />
       </div>
 
       <style jsx>{`
         .root {
-          background-color: #DBEAFE;
+          background-color: #dbeafe;
           display: flex;
         }
 
@@ -80,12 +96,12 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
 
         @media (min-width: 2560px) {
           .root {
-            width: 2240px; 
+            width: 2240px;
           }
         }
       `}</style>
     </>
-  )
-}
+  );
+};
 
 export default IrlFollowGathering;

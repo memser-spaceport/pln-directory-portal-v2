@@ -1,26 +1,34 @@
 'use client';
 import Tabs from '@/components/ui/tabs';
 import MemberBasicInfo from '../member-info/member-basic-info';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import MemberSkillsInfo from '../member-info/member-skills-info';
 import MemberContributionInfo from '../member-info/member-contributions-info';
 import MemberSocialInfo from '../member-info/member-social-info';
-import { compareObjects, getMemberInfoFormValues, apiObjsToMemberObj, formInputsToMemberObj, utcDateToDateFieldString, getInitialMemberFormValues } from '@/utils/member.utils';
+import {
+  getMemberInfoFormValues,
+  apiObjsToMemberObj,
+  formInputsToMemberObj,
+  getInitialMemberFormValues,
+  updateMemberInfoCookie,
+} from '@/utils/member.utils';
 import SettingsAction from './actions';
 import SingleSelect from '@/components/form/single-select';
 import Cookies from 'js-cookie';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { updateMember } from '@/services/members.service';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
-import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { validateLocation } from '@/services/location.service';
 import Modal from '@/components/core/modal';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import AlertMessage from './alert-message';
+import { useUserStore } from '@/services/members/store';
+import { useQueryClient } from '@tanstack/react-query';
+import { MembersQueryKeys } from '@/services/members/constants';
 
 interface MemberSettingsProps {
   memberInfo: any;
@@ -28,14 +36,25 @@ interface MemberSettingsProps {
 }
 
 function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
-  const steps = [{ name: 'basic', label:"BASIC" }, { name: 'skills', label:"SKILLS" }, { name: 'contributions', label:"CONTRIBUTIONS" }, { name: 'social', label:"SOCIAL" }];
-  const [activeTab, setActiveTab] = useState({ name: 'basic', label:"BASIC" });
+  const steps = [
+    { name: 'basic', label: 'BASIC' },
+    { name: 'skills', label: 'SKILLS' },
+    { name: 'contributions', label: 'CONTRIBUTIONS' },
+    { name: 'social', label: 'SOCIAL' },
+  ];
+  const [activeTab, setActiveTab] = useState({ name: 'basic', label: 'BASIC' });
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
   const router = useRouter();
+  const searchParams = useSearchParams();
   const formRef = useRef<HTMLFormElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
-  const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
-
+  const [errors, setErrors] = useState<any>({
+    basicErrors: [],
+    socialErrors: [],
+    contributionErrors: {},
+    skillsErrors: [],
+  });
+  const queryClient = useQueryClient();
   const [allErrors, setAllErrors] = useState<any[]>([]);
   const tabsWithError = {
     basic: errors.basicErrors.length > 0,
@@ -45,6 +64,9 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   };
   const initialValues = useMemo(() => getInitialMemberFormValues(memberInfo), [memberInfo]);
   const analytics = useSettingsAnalytics();
+  const {
+    actions: { setProfileImage },
+  } = useUserStore();
 
   const handleTabClick = (v: string) => {
     analytics.recordUserProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
@@ -219,8 +241,17 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         if (imgEle) {
           imgEle.value = image.url;
         }
-      } else if (memberInfo?.image?.uid && memberInfo?.image?.url && formattedForms.imageFile === memberInfo?.image?.url) {
+        updateMemberInfoCookie(image.url);
+        setProfileImage(image.url);
+      } else if (
+        memberInfo?.image?.uid &&
+        memberInfo?.image?.url &&
+        formattedForms.imageFile === memberInfo?.image?.url
+      ) {
         formattedForms.imageUid = memberInfo?.image?.uid;
+      } else {
+        setProfileImage(null);
+        updateMemberInfoCookie('');
       }
 
       delete formattedForms.memberProfile;
@@ -248,6 +279,12 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         triggerLoader(false);
         toast.success('Profile has been updated successfully');
         analytics.recordManageMemberSave('save-success', getAnalyticsUserInfo(userInfo), bodyData);
+        queryClient.invalidateQueries({
+          queryKey: [MembersQueryKeys.GET_MEMBER],
+        });
+        queryClient.invalidateQueries({
+          queryKey: [MembersQueryKeys.GET_NOTIFICATIONS_SETTINGS],
+        });
         router.refresh();
       } else {
         triggerLoader(false);
@@ -313,12 +350,30 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
     };
   }, [initialValues]);
 
+  useLayoutEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab) {
+      setActiveTab({ name: tab, label: tab.toUpperCase() });
+
+      // Remove 'tab' param from URL without reloading the page
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('tab');
+
+      router.replace(`?${params.toString()}`);
+    }
+  }, [router, searchParams]);
+
   return (
     <>
       <form ref={formRef} onSubmit={onFormSubmitted} onReset={onResetForm} className="ms" noValidate>
         <div className="ms__tab">
           <div className="ms__tab__desktop">
-            <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps} />
+            <Tabs
+              errorInfo={tabsWithError}
+              activeTab={activeTab.name}
+              onTabClick={(v) => handleTabClick(v)}
+              tabs={steps}
+            />
           </div>
           <div className="ms__tab__mobile">
             <SingleSelect
@@ -334,13 +389,28 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         </div>
         <div className="ms__content">
           <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-            <MemberBasicInfo errors={errors.basicErrors} uid={memberInfo.uid} isMemberSelfEdit={true} initialValues={initialValues.basicInfo} />
+            <MemberBasicInfo
+              errors={errors.basicErrors}
+              uid={memberInfo.uid}
+              isMemberSelfEdit={true}
+              initialValues={initialValues.basicInfo}
+            />
           </div>
           <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
-            <MemberSkillsInfo errors={errors.skillsErrors} isEdit={true} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />
+            <MemberSkillsInfo
+              errors={errors.skillsErrors}
+              isEdit={true}
+              initialValues={initialValues.skillsInfo}
+              skillsOptions={allData.skills}
+              teamsOptions={allData.teams}
+            />
           </div>
           <div className={`${activeTab.name !== 'contributions' ? 'hidden' : ''}`}>
-            <MemberContributionInfo errors={errors.contributionErrors} initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} />
+            <MemberContributionInfo
+              errors={errors.contributionErrors}
+              initialValues={initialValues.contributionInfo}
+              projectsOptions={allData.projects}
+            />
           </div>
           <div className={`${activeTab.name !== 'social' ? 'hidden' : ''}`}>
             <MemberSocialInfo initialValues={initialValues.socialInfo} />
@@ -387,7 +457,10 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
                 {Object.keys(errors.contributionErrors).map((v: string, i) => (
                   <ul key={`contrib-${v}`}>
                     {errors.contributionErrors[v].map((item: any, index: any) => (
-                      <li className="error__item__list__msg" key={`${v}-${index}`}>{`Project ${Number(v) + 1} - ${item}`}</li>
+                      <li
+                        className="error__item__list__msg"
+                        key={`${v}-${index}`}
+                      >{`Project ${Number(v) + 1} - ${item}`}</li>
                     ))}
                   </ul>
                 ))}

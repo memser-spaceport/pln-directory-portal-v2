@@ -18,23 +18,51 @@ describe('HuskyFeedback Component', () => {
   });
 
   test('renders feedback form', () => {
-    render(<HuskyFeedback onClose={mockOnClose} question="Test Question" answer="Test Answer" setLoadingStatus={mockSetLoadingStatus} forceUserLogin={mockForceUserLogin} />);
+    render(
+      <HuskyFeedback
+        onClose={mockOnClose}
+        question="Test Question"
+        answer="Test Answer"
+        setLoadingStatus={mockSetLoadingStatus}
+        forceUserLogin={mockForceUserLogin}
+      />,
+    );
     expect(screen.getByText(/How useful was this response?/i)).not.toBeNull();
   });
 
   test('handles rating button click', () => {
-    render(<HuskyFeedback onClose={mockOnClose} question="Test Question" answer="Test Answer" setLoadingStatus={mockSetLoadingStatus} forceUserLogin={mockForceUserLogin} />);
+    render(
+      <HuskyFeedback
+        onClose={mockOnClose}
+        question="Test Question"
+        answer="Test Answer"
+        setLoadingStatus={mockSetLoadingStatus}
+        forceUserLogin={mockForceUserLogin}
+      />,
+    );
     const ratingButton = screen.getByTestId('rating-button-1');
     fireEvent.click(ratingButton);
     expect(ratingButton).toHaveClass('selected');
   });
 
+  // Husky dialog is disabled for now accross the app
+  test.skip('calls forceUserLogin when login is required', async () => {
+    (getUserCredentialsInfo as jest.Mock).mockResolvedValue({
+      isLoginRequired: true,
+      newAuthToken: 'token',
+      newUserInfo: null,
+    });
 
-  test('calls forceUserLogin when login is required', async () => {
-    (getUserCredentialsInfo as jest.Mock).mockResolvedValue({ isLoginRequired: true, newAuthToken: 'token', newUserInfo: null });
+    render(
+      <HuskyFeedback
+        onClose={mockOnClose}
+        question="Test Question"
+        answer="Test Answer"
+        setLoadingStatus={mockSetLoadingStatus}
+        forceUserLogin={mockForceUserLogin}
+      />,
+    );
 
-    render(<HuskyFeedback onClose={mockOnClose} question="Test Question" answer="Test Answer" setLoadingStatus={mockSetLoadingStatus} forceUserLogin={mockForceUserLogin} />);
-    
     fireEvent.click(screen.getByTestId('submit-button'));
 
     await waitFor(() => expect(mockForceUserLogin).toHaveBeenCalled());
@@ -42,4 +70,3 @@ describe('HuskyFeedback Component', () => {
 
   // Additional tests for edge cases can be added here
 });
-

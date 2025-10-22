@@ -1,0 +1,19 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.body {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 24px;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+  }
+}

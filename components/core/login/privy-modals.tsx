@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { decodeToken } from '@/utils/auth.utils';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { User } from '@privy-io/react-auth';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
@@ -11,12 +11,29 @@ import { createLogoutChannel } from './broadcast-channel';
 import { deletePrivyUser } from '@/services/auth.service';
 import { triggerLoader } from '@/utils/common.utils';
 import { getFollowUps } from '@/services/office-hours.service';
+import { usePostHog } from 'posthog-js/react';
+import { getDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 function PrivyModals() {
-  const { getAccessToken, linkEmail, linkGithub, linkGoogle, linkWallet, login, logout, ready, unlinkEmail, updateEmail, user, PRIVY_CUSTOM_EVENTS } = usePrivyWrapper();
+  const {
+    getAccessToken,
+    linkEmail,
+    linkGithub,
+    linkGoogle,
+    linkWallet,
+    login,
+    logout,
+    ready,
+    unlinkEmail,
+    updateEmail,
+    user,
+    PRIVY_CUSTOM_EVENTS,
+  } = usePrivyWrapper();
   const analytics = useAuthAnalytics();
+  const postHogProps = usePostHog();
   const [linkAccountKey, setLinkAccountKey] = useState('');
   const router = useRouter();
+  const pathname = usePathname();
 
   const clearPrivyParams = () => {
     const queryString = window.location.search.substring(1);
@@ -48,31 +65,34 @@ function PrivyModals() {
     return linkedAccounts.filter((v: any) => v !== '').join(',');
   };
 
-  const loginInUser = (output: any) => {
+  const loginInUser = async (output: any) => {
     clearPrivyParams();
-  
+
     const showSuccessMessage = () => {
       setLinkAccountKey('');
       toast.success(TOAST_MESSAGES.LOGIN_MSG);
       Cookies.set('showNotificationPopup', JSON.stringify(true));
-      document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
+      document.dispatchEvent(
+        new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }),
+      );
     };
-  
-    if (output.userInfo?.isFirstTimeLogin) {
-      showSuccessMessage();
-      window.location.href = '/settings/profile';
-      return;
-    }
-  
-    // For subsequent logins
+
     showSuccessMessage();
-    
+
+    if (pathname === '/demoday' && output?.userInfo?.uid) {
+      const res = await getDemoDayState(output.userInfo.uid);
+      if (res?.access === 'none') {
+        document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'rejected_access_level' }));
+
+        return;
+      }
+    }
+
     // Reload the page after a delay
     setTimeout(() => {
       window.location.reload();
     }, 500);
   };
-  
 
   const saveTokensAndUserInfo = (output: any, user: User) => {
     const authLinkedAccounts = getLinkedAccounts(user);
@@ -100,6 +120,11 @@ function PrivyModals() {
       expires: new Date(refreshTokenExpiry.exp * 1000),
       path: '/',
       domain: process.env.COOKIE_DOMAIN || '',
+    });
+    postHogProps.identify(output?.userInfo?.uid, {
+      email: output?.userInfo?.email,
+      name: output?.userInfo?.name,
+      uid: output?.userInfo?.uid,
     });
   };
 
@@ -157,6 +182,14 @@ function PrivyModals() {
         return;
       }
 
+      if (response.status === 403) {
+        triggerLoader(false);
+        document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'rejected_access_level' }));
+        setLinkAccountKey('');
+        await logout();
+        return;
+      }
+
       if (response.ok) {
         const result = await response.json();
         if (result?.isEmailChanged) {
@@ -173,7 +206,7 @@ function PrivyModals() {
           const formattedResult = structuredClone(result);
           delete formattedResult.userInfo.isFirstTimeLogin;
           saveTokensAndUserInfo(formattedResult, user as User);
-          loginInUser(result);
+          await loginInUser(result);
           analytics.onDirectoryLoginSuccess();
         }
       }
@@ -221,7 +254,9 @@ function PrivyModals() {
           await initDirectoryLogin();
         } else {
           triggerLoader(true);
-          document.dispatchEvent(new CustomEvent('directory-update-email', { detail: { newEmail: linkedAccount.address } }));
+          document.dispatchEvent(
+            new CustomEvent('directory-update-email', { detail: { newEmail: linkedAccount.address } }),
+          );
         }
       } else if (linkMethod === 'github') {
         document.dispatchEvent(new CustomEvent('new-auth-accounts', { detail: authLinkedAccounts }));
@@ -248,7 +283,11 @@ function PrivyModals() {
 
       if (!userInfo && !accessToken && !refreshToken) {
         analytics.onAccountLinkError({ type: 'loggedout', error: e?.detail?.error });
-        if (e?.detail?.error === 'linked_to_another_user' || e?.detail?.error === 'exited_link_flow' || e?.detail?.error === 'invalid_credentials') {
+        if (
+          e?.detail?.error === 'linked_to_another_user' ||
+          e?.detail?.error === 'exited_link_flow' ||
+          e?.detail?.error === 'invalid_credentials'
+        ) {
           try {
             await deleteUser(e?.detail?.error);
           } catch (err) {
@@ -267,8 +306,20 @@ function PrivyModals() {
     }
     async function initPrivyLogin() {
       const stateUid = localStorage.getItem('stateUid');
+      const prefillEmail = localStorage.getItem('prefillEmail');
+
       if (stateUid) {
-        login();
+        login(
+          prefillEmail
+            ? {
+                prefill: {
+                  type: 'email',
+                  value: prefillEmail,
+                },
+                loginMethods: ['email'],
+              }
+            : undefined,
+        );
       }
     }
     function addAccountToPrivy(e: CustomEvent) {

@@ -6,7 +6,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS, FEEDBACK_RESPONSE_TYPES, NOT_SCHEDULED_OPTIONS, TOAST_MESSAGES } from '@/utils/constants';
 import { FormEvent, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 interface INotHappened {
   onClose: (isUpdateRequired: boolean) => void;
@@ -68,14 +68,26 @@ const NotHappened = (props: INotHappened) => {
         comments: reasons,
         response: FEEDBACK_RESPONSE_TYPES.negative.name,
       };
-      analytics.onOfficeHoursFeedbackSubmitted(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
-      const result = await createFeedBack(userInfo?.uid ?? "", currentFollowup?.uid ?? "", authToken ?? '', feedback);
+      analytics.onOfficeHoursFeedbackSubmitted(
+        getAnalyticsUserInfo(userInfo),
+        getAnalyticsNotificationInfo(currentFollowup),
+        feedback,
+      );
+      const result = await createFeedBack(userInfo?.uid ?? '', currentFollowup?.uid ?? '', authToken ?? '', feedback);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       if (!result.error) {
-        analytics.onOfficeHoursFeedbackSuccess(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
+        analytics.onOfficeHoursFeedbackSuccess(
+          getAnalyticsUserInfo(userInfo),
+          getAnalyticsNotificationInfo(currentFollowup),
+          feedback,
+        );
         toast.success(TOAST_MESSAGES.FEEDBACK_THANK);
       } else {
-        analytics.onOfficeHoursFeedbackFailed(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
+        analytics.onOfficeHoursFeedbackFailed(
+          getAnalyticsUserInfo(userInfo),
+          getAnalyticsNotificationInfo(currentFollowup),
+          feedback,
+        );
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
       }
       onClose(false);
@@ -112,18 +124,31 @@ const NotHappened = (props: INotHappened) => {
               <div key={`${index}+ ${index}`} className="notHappenedCtr__bdy__optnCtr">
                 <div className="notHappenedCtr__bdy__optnCtr__optn">
                   {selectedReasons.includes(option) && (
-                    <button className="notHappenedCtr__bdy__optnCtr__optn__sltd" onClick={() => onReasonClickHandler(option, 'Remove')}>
-                      <img  src="/icons/right-white.svg" />
+                    <button
+                      className="notHappenedCtr__bdy__optnCtr__optn__sltd"
+                      onClick={() => onReasonClickHandler(option, 'Remove')}
+                    >
+                      <img src="/icons/right-white.svg" />
                     </button>
                   )}
-                  {!selectedReasons.includes(option) && <button className="notHappenedCtr__bdy__optnCtr__optn__ntsltd" onClick={() => onReasonClickHandler(option, 'Add')}></button>}
+                  {!selectedReasons.includes(option) && (
+                    <button
+                      className="notHappenedCtr__bdy__optnCtr__optn__ntsltd"
+                      onClick={() => onReasonClickHandler(option, 'Add')}
+                    ></button>
+                  )}
                   <div className="notHappenedCtr__bdy__optnCtr__optn__name">{option}</div>
                 </div>
                 {option === 'Other' && selectedReasons?.includes('Other') && (
                   <div className="notHappenedCtr__bdy__optnCtr__othrc">
                     <div className="notHappenedCtr__bdy__optnCtr__othrc__ttl">Specify other reason(s)*</div>
                     <div className="notHappenedCtr__bdy__optnCtr__othrc__rson">
-                      <TextArea isMandatory={selectedReasons.includes('Other')} maxLength={1000} name={'reason'} id={'reason'} />
+                      <TextArea
+                        isMandatory={selectedReasons.includes('Other')}
+                        maxLength={1000}
+                        name={'reason'}
+                        id={'reason'}
+                      />
                     </div>
                   </div>
                 )}

@@ -1,10 +1,11 @@
 'use server';
 
 import validateCaptcha from '@/services/google-recaptcha.service';
-import { createParticipantRequest } from '@/services/participants-request.service';
+import { createMemberRequest, createParticipantRequest } from '@/services/participants-request.service';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { checkEmailDuplicate, formatFormDataToApi, validateSignUpForm } from '@/services/sign-up.service';
 import { cookies } from 'next/headers';
+import { isSkipRecaptcha } from '@/utils/common.utils';
 
 /**
  * Handles the sign-up form submission action.
@@ -24,7 +25,7 @@ import { cookies } from 'next/headers';
  *
  * @throws {Error} If an error occurs during the form submission process.
  */
-export async function signUpFormAction(data: any, recaptchaToken: string) {
+export async function signUpFormAction(data: any, recaptchaToken: string | undefined) {
   try {
     // const formData = Object.fromEntries(data.entries());
     // console.log(formData);
@@ -40,16 +41,17 @@ export async function signUpFormAction(data: any, recaptchaToken: string) {
 
     // let formattedObj;
     // formattedObj = formatFormDataToApi(formData,cookiesValue);
+    if (!isSkipRecaptcha()) {
+      if (recaptchaToken) {
+        const isCaptchaVerified = await validateCaptcha(recaptchaToken);
 
-    if (recaptchaToken) {
-      const isCaptchaVerified = await validateCaptcha(recaptchaToken);
-
-      if (isCaptchaVerified && !isCaptchaVerified.success) {
-        console.error(`Captcha verification failed while adding subscriber for user: ${data.email}`);
-        return { success: false, message: 'Captcha verification failed.' };
+        if (isCaptchaVerified && !isCaptchaVerified.success) {
+          console.error(`Captcha verification failed while adding subscriber for user: ${data.email}`);
+          return { success: false, message: 'Captcha verification failed.' };
+        }
+      } else {
+        return { success: false, message: 'Captcha token not found.' };
       }
-    } else {
-      return { success: false, message: 'Captcha token not found.' };
     }
 
     // let errors: any = validateSignUpForm(formattedObj);
@@ -92,13 +94,14 @@ export async function signUpFormAction(data: any, recaptchaToken: string) {
       newData: { ...data, openToWork: false },
     };
 
-    const formResult = await createParticipantRequest(bodyData);
+    const formResult = await createMemberRequest(bodyData);
 
     // Returns the form submission result
     if (formResult.ok) {
-      return { success: true, message: 'Form submitted successfully!' };
+      return { success: true, message: 'Form submitted successfully!', data: await formResult.json() };
     } else {
-      return { success: false, message: 'Form submission failed!' };
+      const error = await formResult.json();
+      return { success: false, message: error?.message || 'Form submission failed!' };
     }
     //   }
     // }

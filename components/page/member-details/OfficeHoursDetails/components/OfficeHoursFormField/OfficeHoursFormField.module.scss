@@ -1,0 +1,178 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.labelWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.label {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.validationStatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+
+  &.valid {
+    color: #059669;
+  }
+
+  &.invalid {
+    color: #dc2626;
+  }
+}
+
+.validatingText {
+  color: #6b7280;
+}
+
+.validText {
+  color: #059669;
+}
+
+.invalidText {
+  color: #dc2626;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 32px 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #111827;
+  background: #fff;
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  &:hover:not(:focus) {
+    border-color: #9ca3af;
+  }
+
+  &.validating {
+    border-color: #6b7280;
+    background: #f9fafb;
+  }
+
+  &.valid {
+    border-color: #059669;
+
+    &:focus {
+      border-color: #059669;
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+    }
+  }
+
+  &.error {
+    border-color: #ff3838;
+    color: #ff3838;
+
+    &:focus {
+      border-color: #ff3838;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+  }
+
+  &::placeholder {
+    color: #afbaca;
+    font-size: 14px;
+  }
+}
+
+.description {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.errorMessage {
+  color: var(--foreground-error-secondary, #ff3838);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.successMessage {
+  color: var(--action-foreground-success-active, #0a9952);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.loader {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  position: relative;
+  animation: rotate 1s linear infinite;
+}
+
+.loader::before {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid #6b7280;
+  animation: prixClipFix 1s linear infinite;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes prixClipFix {
+  0% {
+    clip-path: polygon(50% 50%, 0 0, 0 0, 0 0, 0 0, 0 0);
+  }
+  25% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 0, 100% 0, 100% 0);
+  }
+  50% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 100% 100%, 100% 100%);
+  }
+  75% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 100%);
+  }
+  100% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 0);
+  }
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.checkIcon {
+  position: absolute;
+  right: 16px;
+  top: 15px;
+}

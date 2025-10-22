@@ -8,6 +8,7 @@ import { getUniqueEvents } from '@/utils/irl.utils';
 interface IAttendeeTableHeader {
   isLoggedIn: boolean;
   eventDetails: any;
+  eventType: string;
 }
 
 const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
@@ -18,7 +19,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
   const events = getUniqueEvents(eventDetails?.eventsForFilter ?? []);
   const topics = eventDetails?.topics ?? [];
   const searchParams = useSearchParams();
-  const eventType = searchParams.get('type');
+  const eventType = props?.eventType;
 
   const router = useRouter();
 
@@ -32,12 +33,13 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
   const reverseRoleMapping: { [key: string]: string } = {
     hosts: 'Hosts only',
     speakers: 'Speakers only',
-    hostsAndSpeakers: 'Hosts & speakers',
+    sponsors: 'Sponsors only',
+    hostsAndSpeakersAndSponsors: 'Hosts, speakers & sponsors',
   } as any;
   const attendeeTypeParams = searchParams.get('attendees');
   const attendeeTypeItems = attendeeTypeParams ? attendeeTypeParams.split(URL_QUERY_VALUE_SEPARATOR) : [];
   const selectedAttendeeTypes = attendeeTypeItems.map((role) => reverseRoleMapping[role]).filter(Boolean);
-  const attendeeTypeFilterItems = ['Hosts only', 'Speakers only', 'Hosts & speakers'];
+  const attendeeTypeFilterItems = ['Hosts only', 'Speakers only', 'Sponsors only', 'Hosts, speakers & sponsors'];
 
   const eventsFilterProps = useFloatingSelect({
     items: events,
@@ -181,7 +183,8 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
     const roleMapping = {
       'Hosts only': 'hosts',
       'Speakers only': 'speakers',
-      'Hosts & speakers': 'hostsAndSpeakers',
+      'Sponsors only': 'sponsors',
+      'Hosts, speakers & sponsors': 'hostsAndSpeakersAndSponsors',
     } as any;
 
     const queryParams = new URLSearchParams(searchParams);
@@ -292,7 +295,11 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
             </div>
             {attendeeTypeFilterProps?.isPaneActive && (
               <div className="tbl__hdr__attending__multiselect">
-                <FloatingMultiSelect {...attendeeTypeFilterProps} items={attendeeTypeFilterItems} onFilter={onFilterByAttendeeType} />
+                <FloatingMultiSelect
+                  {...attendeeTypeFilterProps}
+                  items={attendeeTypeFilterItems}
+                  onFilter={onFilterByAttendeeType}
+                />
               </div>
             )}
           </div>
@@ -309,7 +316,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
         <div className="tbl__hdr__attending">
           Attending
-          {events?.length > 0 && eventType !== 'past' && (
+          {events?.length > 0 && eventType && (
             <>
               <div className="tbl__hdr__attending__filter">
                 <button className="tbl__hdr__attending__filter__btn" onClick={onEventsFilterclicked}>
@@ -365,7 +372,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
           .tbl__hdr {
             position: sticky;
             top: 0;
-            z-index: 2;
+            z-index: 1;
             display: flex;
             min-height: 54px;
             border-radius: 8px 8px 0px 0px;

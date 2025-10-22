@@ -17,11 +17,15 @@ const AttendeeOptions = (props: IAttendeeOptions) => {
     setTimeout(() => {
       setIsCloseClicked(false);
     }, 60000);
-  }
+  };
 
   return (
     <>
-      {isCloseClicked && <button className='atndform__optns__cls' onClick={onCloseClickHandler}>Confirm Close?</button>}
+      {isCloseClicked && (
+        <button className="atndform__optns__cls" onClick={onCloseClickHandler}>
+          Confirm Close?
+        </button>
+      )}
       {!isCloseClicked && (
         <button type="button" className="atndform__optns__cls" onClick={onCloseClicked}>
           Close

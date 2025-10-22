@@ -1,0 +1,1 @@
+export { EditBioForm } from './EditBioForm';

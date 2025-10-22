@@ -1,17 +1,16 @@
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import CustomCheckbox from '@/components/form/custom-checkbox';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE, EVENT_TYPE, EVENTS_SUBMIT_FORM_TYPES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
-import { getFormattedDateString } from '@/utils/irl.utils';
+import { ADMIN_ROLE, EVENT_TYPE, EVENTS_SUBMIT_FORM_TYPES, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
+import { filterUpcomingGatherings, getFormattedDateString } from '@/utils/irl.utils';
 import { SetStateAction, useEffect, useState } from 'react';
 import ParticipationDetails from './participation-details';
-import HiddenField from '@/components/form/hidden-field';
-import { IIrlAttendeeFormErrors, IIrlEvent, IIrlGathering, IIrlLocation } from '@/types/irl.types';
-import { log } from 'console';
+import { IIrlAttendeeFormErrors, IIrlEvent, IIrlLocation } from '@/types/irl.types';
 
 interface IGatherings {
   selectedLocation: IIrlLocation;
   gatherings: IIrlEvent[];
+  eventType: string;
   userInfo: IUserInfo | null;
   errors: IIrlAttendeeFormErrors;
   initialValues: any;
@@ -19,22 +18,27 @@ interface IGatherings {
   setErrors: SetStateAction<any>;
   loggedInUserInfo: IUserInfo | null;
   isVerifiedMember: any;
-  eventType: string;
   from?: string;
+  mode: string;
 }
 
 const Gatherings = (props: IGatherings) => {
   const selectedLocation = props?.selectedLocation ?? '';
+  const mode = props?.mode;
   const gatherings = props?.gatherings ?? [];
+  const eventType = props?.eventType;
+  const from = props?.from ?? '';
+  
+  // Determine if we should show all gatherings or filter them
+  const shouldShowAllGatherings = mode === IAM_GOING_POPUP_MODES.ADMINADD || from === 'list' || eventType === 'past';
+  
   const userInfo = props?.userInfo;
   const loggedInUserInfo = props?.loggedInUserInfo;
   const errors = props?.errors;
   const initialValues = props?.initialValues;
   const guests = props?.guests;
   const isVerifiedMember = props?.isVerifiedMember;
-  const eventType = props?.eventType;
-  const from = props?.from ?? '';
-  const isLoggedInUserEventDetails =  userInfo?.uid === loggedInUserInfo?.uid;
+  const isLoggedInUserEventDetails = userInfo?.uid === loggedInUserInfo?.uid;
 
   const isAdmin = Array.isArray(loggedInUserInfo?.roles) && loggedInUserInfo?.roles.includes(ADMIN_ROLE);
 
@@ -51,7 +55,10 @@ const Gatherings = (props: IGatherings) => {
       if (isAlreadySelected) {
         return prev.filter((item) => item.uid !== gathering.uid);
       } else {
-        return [...prev, { ...gathering, hostSubEvents: [], speakerSubEvents: [], logo: gathering?.logo?.url }];
+        return [
+          ...prev,
+          { ...gathering, hostSubEvents: [], speakerSubEvents: [], sponsorSubEvents: [], logo: gathering?.logo?.url },
+        ];
       }
     });
   };
@@ -71,29 +78,55 @@ const Gatherings = (props: IGatherings) => {
               <span className="gatrs__ttl__mantry">*</span>
             </p>
           </div>
-          <div className={`gatrs__all__gths ${errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING) && !selectedGatherings?.length ? 'error' : ''}`}>
+          <div
+            className={`gatrs__all__gths ${errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING) && !selectedGatherings?.length ? 'error' : ''}`}
+          >
             {gatherings?.map((gathering: any, index: number) => {
               const isBooked = getIsAlreadyBooked(gathering);
-              // 
+              //
               // const isAllEventEditable = eventType === 'past' && from === 'list' && (isAdmin || isLoggedInUserEventDetails);
-              const isAllEventEditable = eventType === 'past' && (isAdmin || isLoggedInUserEventDetails);
-              const isEventDisabled = isAllEventEditable?!isAllEventEditable:isBooked;
+              const isAllEventEditable = isAdmin || isLoggedInUserEventDetails;
+              const isEventDisabled = isAllEventEditable ? !isAllEventEditable : isBooked;
+              
+              // Determine if this gathering should be visible based on filtering logic
+              const shouldShowGathering = shouldShowAllGatherings || filterUpcomingGatherings(gathering);
+              
               return (
-                <div key={`${gathering.uid} - ${index}`} className={`gatrs__all__gatr  ${isEventDisabled ? 'disable' : ''}`}>
+                <div
+                  key={`${gathering.uid} - ${index}`}
+                  className={`gatrs__all__gatr  ${isEventDisabled ? 'disable' : ''}`}
+                  style={{ display: shouldShowGathering ? 'flex' : 'none' }}
+                >
                   <div className={`gatrs__all__gatr__ckbox`}>
                     {gathering?.type === EVENT_TYPE.INVITE_ONLY && isBooked && (
-                    <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isEventDisabled} />
+                      <CustomCheckbox
+                        onSelect={() => onGatheringSelectClickHandler(gathering)}
+                        name={`events${index}-uid`}
+                        value={gathering.uid}
+                        initialValue={isBooked}
+                        disabled={isEventDisabled}
+                      />
                     )}
 
                     {gathering?.type === EVENT_TYPE.INVITE_ONLY && !isBooked && isAdmin && (
-                      <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isEventDisabled} />
+                      <CustomCheckbox
+                        onSelect={() => onGatheringSelectClickHandler(gathering)}
+                        name={`events${index}-uid`}
+                        value={gathering.uid}
+                        initialValue={isBooked}
+                        disabled={isEventDisabled}
+                      />
                     )}
 
-                    {
-                      gathering?.type != EVENT_TYPE.INVITE_ONLY && (
-                        <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isEventDisabled}/>
-                      )
-                    }
+                    {gathering?.type != EVENT_TYPE.INVITE_ONLY && (
+                      <CustomCheckbox
+                        onSelect={() => onGatheringSelectClickHandler(gathering)}
+                        name={`events${index}-uid`}
+                        value={gathering.uid}
+                        initialValue={isBooked}
+                        disabled={isEventDisabled}
+                      />
+                    )}
 
                     {/* {eventType === 'past'
                       ? gathering?.type != EVENT_TYPE.INVITE_ONLY && (
@@ -103,20 +136,33 @@ const Gatherings = (props: IGatherings) => {
                         <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isEventDisabled} />
                       )
                     } */}
-
                   </div>
-                  <div className={`${index + 1 < gatherings.length ? 'gatrs__all__gatr__bb' : ''} gatrs__all__gatr__dteandname`}>
-                    <div className="gatrs__all__gatr__dteandname__dat">{getFormattedDateString(gathering.startDate, gathering.endDate)}</div>
+                  <div
+                    className={`${index + 1 < gatherings.length ? 'gatrs__all__gatr__bb' : ''} gatrs__all__gatr__dteandname`}
+                  >
+                    <div className="gatrs__all__gatr__dteandname__dat">
+                      {getFormattedDateString(gathering.startDate, gathering.endDate)}
+                    </div>
                     <div className="gatrs__all__gatr__dteandname__nmesec">
-                      <img className="gatrs__all__gatr__dteandname__nmesec__logo" height={20} width={20} src={gathering?.logo?.url ? gathering?.logo?.url : '/icons/irl-event-default-logo.svg'} />
+                      <img
+                        className="gatrs__all__gatr__dteandname__nmesec__logo"
+                        height={20}
+                        width={20}
+                        src={gathering?.logo?.url ? gathering?.logo?.url : '/icons/irl-event-default-logo.svg'}
+                      />
                       <span className="gatrs__all__gatr__dteandname__nmesec__name">{gathering?.name}</span>
 
                       {gathering?.type === EVENT_TYPE.INVITE_ONLY && (
                         <Tooltip
                           content={'This is an invite only event'}
-                        trigger={
-                          <img className='gatrs__all__gatr__dteandname__nmesec__invite-only' src="/icons/invite-only-circle.svg" height={16} width={16} />
-                        }
+                          trigger={
+                            <img
+                              className="gatrs__all__gatr__dteandname__nmesec__invite-only"
+                              src="/icons/invite-only-circle.svg"
+                              height={16}
+                              width={16}
+                            />
+                          }
                           asChild
                         />
                       )}
@@ -128,11 +174,20 @@ const Gatherings = (props: IGatherings) => {
           </div>
         </div>
 
-        {/* Host and speaker details */}
+        {/* Host, speaker and sponsor details */}
 
-        {selectedGatherings.length > 0 && (
+        {(shouldShowAllGatherings ? selectedGatherings.length > 0 : selectedGatherings.filter((gathering: any) => filterUpcomingGatherings(gathering)).length > 0) && (
           <div>
-            <ParticipationDetails isVerifiedMember={isVerifiedMember} errors={errors} selectedGatherings={selectedGatherings} setSelectedGatherings={setSelectedGatherings} />
+            <ParticipationDetails
+              isVerifiedMember={isVerifiedMember}
+              errors={errors}
+              selectedGatherings={selectedGatherings}
+              setSelectedGatherings={setSelectedGatherings}
+              shouldShowAllGatherings={shouldShowAllGatherings}
+              eventType={eventType}
+              from={from}
+              mode={mode}
+            />
           </div>
         )}
       </div>

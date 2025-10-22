@@ -24,10 +24,22 @@ const ProjectCard = (props: any) => {
           <div className="projectCard__header__avatars">
             {contributors.map((contributor: any, index: number) => {
               if (index < 2) {
-                return <img title="Contributor" key={contributor?.id} width={24} height={24} src={contributor.logo} alt="contributor" className="projectCard__header__avatar" />;
+                return (
+                  <img
+                    title="Contributor"
+                    key={contributor?.id}
+                    width={24}
+                    height={24}
+                    src={contributor.logo}
+                    alt="contributor"
+                    className="projectCard__header__avatar"
+                  />
+                );
               }
             })}
-            {contributors.length > 2 && <div className="projectCard__header__avatars__more">+{contributors.length - 2}</div>}
+            {contributors.length > 2 && (
+              <div className="projectCard__header__avatars__more">+{contributors.length - 2}</div>
+            )}
           </div>
         </div>
         <div className="projectCard__content">
@@ -56,7 +68,9 @@ const ProjectCard = (props: any) => {
           width: 100%;
           height: 290px;
           border-radius: 12px;
-          box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
+          box-shadow:
+            0px 4px 4px 0px #0f172a0a,
+            0px 0px 1px 0px #0f172a1f;
           background-color: white;
           display: flex;
           flex-direction: column;

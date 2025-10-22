@@ -9,22 +9,21 @@ import { useEffect, useRef, useState } from 'react';
 interface IOfficeHours {
   initialValues: any;
   scrollTo: string;
-  userInfo: IUserInfo  | null;
+  userInfo: IUserInfo | null;
   location: IIrlLocation;
 }
 
 const OfficeHours = (props: IOfficeHours) => {
-
   const initialValues = props?.initialValues;
   const scrollTo = props?.scrollTo;
-  const userInfo  = props?.userInfo;
+  const userInfo = props?.userInfo;
   const location = props?.location;
 
   const analytics = useIrlAnalytics();
 
   const officeHoursRef: any = useRef(null);
 
-  const [officeHours, setOfficeHours] = useState("");
+  const [officeHours, setOfficeHours] = useState('');
   const [isFocusNote, setIsFocusNote] = useState(false);
 
   const handleOHGuidlineClick = () => {
@@ -41,7 +40,7 @@ const OfficeHours = (props: IOfficeHours) => {
 
   useEffect(() => {
     function handler(e: any) {
-      setOfficeHours(e?.detail?.officeHours || "");
+      setOfficeHours(e?.detail?.officeHours || '');
     }
     document.addEventListener(EVENTS.UPDATE_OFFICE_HOURS, (e: any) => {
       handler(e);
@@ -56,27 +55,25 @@ const OfficeHours = (props: IOfficeHours) => {
 
   useEffect(() => {
     if (initialValues) {
-      setOfficeHours(initialValues?.officeHours ?? "");
+      setOfficeHours(initialValues?.officeHours ?? '');
     } else {
-      setOfficeHours("");
+      setOfficeHours('');
       setIsFocusNote(false);
     }
-  }, [initialValues])
+  }, [initialValues]);
 
   useEffect(() => {
-    if(scrollTo === "officehours-section") {
+    if (scrollTo === 'officehours-section') {
       if (officeHoursRef.current) {
         officeHoursRef.current.focus();
       }
     }
-  }, [])
+  }, []);
 
   return (
     <>
       <div className="details__cn__oh">
-        <div className="label details__cn__oh__label">
-          Office Hours
-        </div>
+        <div className="label details__cn__oh__label">Office Hours</div>
         <input
           type="text"
           name="officeHours"
@@ -92,8 +89,9 @@ const OfficeHours = (props: IOfficeHours) => {
         <div className="details__cn__oh__info">
           <img src="/icons/info.svg" alt="info" width={16} height={16} />
           <p className="details__cn__oh__info__text">
-            Please share your calendar link to facilitate scheduling for in-person meetings during the conference. Updating your availability for the conference week allows others to book time with
-            you for face-to-face connections.
+            Please share your calendar link to facilitate scheduling for in-person meetings during the conference.
+            Updating your availability for the conference week allows others to book time with you for face-to-face
+            connections.
             <Link href={OH_GUIDELINE_URL} legacyBehavior>
               <a target="_blank" className="details__cn__oh__info__text__link" onClick={handleOHGuidlineClick}>
                 &nbsp;Click Here&nbsp;
@@ -105,7 +103,9 @@ const OfficeHours = (props: IOfficeHours) => {
         {isFocusNote && (
           <div className="details__cn__oh__warning hidden-message" id="oh-message">
             <img src="/icons/info-yellow.svg" alt="info" width={16} height={16} />
-            <p className="details__cn__oh__warning__msg">Any changes made here will also update your directory profile&apos;s Office Hours link.</p>
+            <p className="details__cn__oh__warning__msg">
+              Any changes made here will also update your directory profile&apos;s Office Hours link.
+            </p>
           </div>
         )}
       </div>

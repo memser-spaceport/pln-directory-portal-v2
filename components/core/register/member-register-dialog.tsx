@@ -18,7 +18,7 @@ function MemberRegisterDialog() {
   const onCloseRegister = () => {
     if (dialogRef.current) {
       dialogRef.current.close();
-      setFormStatus(false)
+      setFormStatus(false);
     }
   };
 
@@ -26,7 +26,7 @@ function MemberRegisterDialog() {
     function dialogHandler(e: any) {
       if (dialogRef.current) {
         dialogRef.current.showModal();
-        setFormStatus(true)
+        setFormStatus(true);
       }
     }
     document.addEventListener(EVENTS.OPEN_MEMBER_REGISTER_DIALOG, dialogHandler);

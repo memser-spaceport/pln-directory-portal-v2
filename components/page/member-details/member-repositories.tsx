@@ -44,7 +44,9 @@ const MemberRepositories = (props: IMemberRepositories) => {
         <div className="member-repo">
           {Array.isArray(repositories) && (
             <div className="member-repo__header">
-              <h2 className="member-repo__title">Repositories {repositories && Array.isArray(repositories) ? `(${repositories?.length})` : ''}</h2>
+              <h2 className="member-repo__title">
+                Repositories {repositories && Array.isArray(repositories) ? `(${repositories?.length})` : ''}
+              </h2>
               {repositories?.length > 3 && Array.isArray(repositories) && (
                 <button className="member-repo__header__seeall-btn" onClick={onSeeAllClickHandler}>
                   See all
@@ -68,7 +70,9 @@ const MemberRepositories = (props: IMemberRepositories) => {
                 {itemsToShow?.map((repository: any, index: number) => {
                   return (
                     <Fragment key={`${repository}+${index}`}>
-                      <div className={`member-repo__repo-container__repo ${itemsToShow.length - 1 !== index ? 'member-repo__repo-container__repo__border-set' : ''}`}>
+                      <div
+                        className={`member-repo__repo-container__repo ${itemsToShow.length - 1 !== index ? 'member-repo__repo-container__repo__border-set' : ''}`}
+                      >
                         <MemberDetailsRepoCard repo={repository} userInfo={userInfo} memebr={member} />
                       </div>
                     </Fragment>
@@ -113,7 +117,7 @@ const MemberRepositories = (props: IMemberRepositories) => {
             display: flex;
             justify-content: space-between;
           }
-          
+
           .member-repo__header-unable > h2 {
             margin-bottom: 8px;
           }

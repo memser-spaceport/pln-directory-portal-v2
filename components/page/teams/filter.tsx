@@ -2,8 +2,8 @@
 
 import { IFilterSelectedItem, IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems, ITeamsSearchParams } from '@/types/teams.types';
-import { DEFAULT_ASK_TAGS, EVENTS, FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { EVENTS, FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { useRouter } from 'next/navigation';
 import FilterCount from '../../ui/filter-count';
 import Toggle from '../../ui/toogle';
 import TagContainer from '../tag-container';
@@ -13,6 +13,7 @@ import Image from 'next/image';
 import FocusAreaFilter from '../../core/focus-area-filter/focus-area-filter';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { FiltersSearch } from '@/components/page/teams/FiltersSearch';
 
 export interface ITeamFilterWeb {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -30,13 +31,23 @@ const Filter = (props: ITeamFilterWeb) => {
   const filterValues = props?.filterValues;
   const userInfo = props?.userInfo;
   const searchParams = props?.searchParams;
-  
+
   const selectedItems: any = {
-    tags: filterValues?.tags.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
-    membershipSources: filterValues?.membershipSources?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
-    fundingStage: filterValues?.fundingStage?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
-    technology: filterValues?.technology?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
-    asks: filterValues?.asks?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
+    tags: filterValues?.tags
+      .filter((item: IFilterSelectedItem) => item?.selected)
+      .map((item: IFilterSelectedItem) => item.value),
+    membershipSources: filterValues?.membershipSources
+      ?.filter((item: IFilterSelectedItem) => item?.selected)
+      .map((item: IFilterSelectedItem) => item.value),
+    fundingStage: filterValues?.fundingStage
+      ?.filter((item: IFilterSelectedItem) => item?.selected)
+      .map((item: IFilterSelectedItem) => item.value),
+    technology: filterValues?.technology
+      ?.filter((item: IFilterSelectedItem) => item?.selected)
+      .map((item: IFilterSelectedItem) => item.value),
+    asks: filterValues?.asks
+      ?.filter((item: IFilterSelectedItem) => item?.selected)
+      .map((item: IFilterSelectedItem) => item.value),
   };
 
   const router = useRouter();
@@ -47,9 +58,10 @@ const Filter = (props: ITeamFilterWeb) => {
   const includeOfficeHours = searchParams['officeHoursOnly'] === 'true' || false;
   const isRecent = searchParams['isRecent'] === 'true' || false;
   const isHost = searchParams['isHost'] === 'true' || false;
+  const isSponsor = searchParams['isSponsor'] === 'true' || false;
   const query = getQuery(searchParams);
   const apliedFiltersCount = getFilterCount(query);
-  
+
   const onIncludeFriendsToggle = () => {
     triggerLoader(true);
     if (searchParams?.page) {
@@ -78,6 +90,7 @@ const Filter = (props: ITeamFilterWeb) => {
 
   const onIsHostToggle = () => {
     triggerLoader(true);
+    analytics.onIsHostToggleClicked();
     if (searchParams?.page) {
       searchParams.page = '1';
     }
@@ -86,21 +99,35 @@ const Filter = (props: ITeamFilterWeb) => {
       return;
     }
     updateQueryParams('isHost', '', searchParams);
-  }
+  };
 
-  const onIsActiveToggle = () => {
+  const onIsSponsorToggle = () => {
     triggerLoader(true);
+    analytics.onIsSponsorToggleClicked();
     if (searchParams?.page) {
       searchParams.page = '1';
     }
-    
+    if (!isSponsor) {
+      updateQueryParams('isSponsor', 'true', searchParams);
+      return;
+    }
+    updateQueryParams('isSponsor', '', searchParams);
+  };
+
+  const onIsActiveToggle = () => {
+    triggerLoader(true);
+    analytics.onIsActiveToggleClicked();
+    if (searchParams?.page) {
+      searchParams.page = '1';
+    }
+
     const newIsActive = query.asks === 'all' ? '' : 'all';
     if (!query.asks) {
       updateQueryParams('asks', newIsActive, searchParams);
       return;
     }
     updateQueryParams('asks', newIsActive, searchParams);
-  }
+  };
 
   const onOfficeHoursToogle = () => {
     triggerLoader(true);
@@ -130,7 +157,7 @@ const Filter = (props: ITeamFilterWeb) => {
       updateQueryParams(key, currentTags.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
       analytics.onFilterApplied(from, value);
       return;
-    } catch (error) { }
+    } catch (error) {}
   };
 
   const onClearAllClicked = () => {
@@ -139,7 +166,20 @@ const Filter = (props: ITeamFilterWeb) => {
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
       analytics.onClearAllFiltersClicked(getAnalyticsUserInfo(userInfo));
-      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly', 'isRecent', 'isHost', 'asks'];
+      const clearQuery = [
+        'tags',
+        'membershipSources',
+        'fundingStage',
+        'technology',
+        'includeFriends',
+        'focusAreas',
+        'officeHoursOnly',
+        'isRecent',
+        'isHost',
+        'isSponsor',
+        'asks',
+        'searchBy',
+      ];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           current.delete(query);
@@ -148,7 +188,7 @@ const Filter = (props: ITeamFilterWeb) => {
       const search = current.toString();
       const query = search ? `?${search}` : '';
       router.push(`${pathname}/${query}`);
-      router.refresh()
+      router.refresh();
     }
   };
 
@@ -181,6 +221,8 @@ const Filter = (props: ITeamFilterWeb) => {
 
         {/* Body */}
         <div className="team-filter__body">
+          <FiltersSearch searchParams={searchParams} userInfo={userInfo} />
+
           <div className="team-filter__body__ohonly">
             <h3 className="team-filter__body__ohonly__title">Only Show Teams with Office Hours</h3>
             <div className="team-filter__body__ohonly__toogle">
@@ -204,13 +246,19 @@ const Filter = (props: ITeamFilterWeb) => {
           {/* Border line */}
           <div className="team-filter__bl"></div>
 
-          <div className='team-filter__body__event'>
+          <div className="team-filter__body__event">
             <p className="team-filter__body__ttl">Contributions</p>
             {/* New member filter */}
             <div className="team-filter__body__host">
               <h3 className="team-filter__body__host__title">Host</h3>
               <div className="pe__body__topic__select__toggle">
                 <Toggle height="16px" width="28px" callback={onIsHostToggle} isChecked={isHost} />
+              </div>
+            </div>
+            <div className="team-filter__body__sponsor">
+              <h3 className="team-filter__body__sponsor__title">Sponsor</h3>
+              <div className="pe__body__topic__select__toggle">
+                <Toggle height="16px" width="28px" callback={onIsSponsorToggle} isChecked={isSponsor} />
               </div>
             </div>
           </div>
@@ -220,52 +268,60 @@ const Filter = (props: ITeamFilterWeb) => {
 
           <FocusAreaFilter
             title="Focus Area"
-            uniqueKey={FOCUS_AREAS_FILTER_KEYS.teams as "teamAncestorFocusAreas" | "projectAncestorFocusAreas"}
+            uniqueKey={FOCUS_AREAS_FILTER_KEYS.teams as 'teamAncestorFocusAreas' | 'projectAncestorFocusAreas'}
             focusAreaRawData={filterValues?.focusAreas?.rawData}
             selectedItems={filterValues?.focusAreas?.selectedFocusAreas}
             searchParams={searchParams}
           />
 
           {/* Border line */}
-          <div className="team-filter__bl"></div>
-          {filterValues?.asks && filterValues.asks.length > 0 &&
-            <TagContainer
-              page={PAGE_ROUTES.TEAMS}
-              label="Asks"
-              name="asks"
-              items={filterValues?.asks ?? []}
-              onTagClickHandler={onTagClickHandler}
-              initialCount={18}
-              userInfo={userInfo}
-              info="Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project."
-              toggleTitle='Show all asks'
-              IsToggleActive={query.asks === 'all'}
-              onIsActiveToggle={onIsActiveToggle}
-            />
-          }
+          {/*<div className="team-filter__bl"></div>*/}
+          {/*{filterValues?.asks && filterValues.asks.length > 0 && (*/}
+          {/*  <TagContainer*/}
+          {/*    page={PAGE_ROUTES.TEAMS}*/}
+          {/*    label="Asks"*/}
+          {/*    name="asks"*/}
+          {/*    items={filterValues?.asks ?? []}*/}
+          {/*    onTagClickHandler={onTagClickHandler}*/}
+          {/*    initialCount={18}*/}
+          {/*    userInfo={userInfo}*/}
+          {/*    info="Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project."*/}
+          {/*    toggleTitle="Show all asks"*/}
+          {/*    IsToggleActive={query.asks === 'all'}*/}
+          {/*    onIsActiveToggle={onIsActiveToggle}*/}
+          {/*  />*/}
+          {/*)}*/}
 
-          {filterValues?.asks && (filterValues?.asks?.length ?? 0) < 1 &&
+          {filterValues?.asks && (filterValues?.asks?.length ?? 0) < 1 && (
             <>
-              <div className='tags-container__title'>
+              <div className="tags-container__title">
                 Asks
                 <Tooltip
                   asChild
                   trigger={
-                    <Image alt='left' height={16} width={16} src='/icons/info.svg' style={{ marginLeft: "5px" }} />
+                    <Image alt="left" height={16} width={16} src="/icons/info.svg" style={{ marginLeft: '5px' }} />
                   }
-                  content={'Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project.'}
+                  content={
+                    'Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project.'
+                  }
                 />
               </div>
-              <div className="team-filter__no-data">
-                No open asks or requests at this time
-              </div>
+              <div className="team-filter__no-data">No open asks or requests at this time</div>
             </>
-          }
+          )}
 
           {/* Border line */}
           <div className="team-filter__bl"></div>
 
-          <TagContainer page={PAGE_ROUTES.TEAMS} label="Tags" name="tags" items={filterValues?.tags ?? []} onTagClickHandler={onTagClickHandler} initialCount={10} userInfo={userInfo} />
+          <TagContainer
+            page={PAGE_ROUTES.TEAMS}
+            label="Tags"
+            name="tags"
+            items={filterValues?.tags ?? []}
+            onTagClickHandler={onTagClickHandler}
+            initialCount={10}
+            userInfo={userInfo}
+          />
           <div className="team-filter__bl"></div>
           <TagContainer
             page={PAGE_ROUTES.TEAMS}
@@ -279,7 +335,7 @@ const Filter = (props: ITeamFilterWeb) => {
           <div className="team-filter__bl"></div>
           <TagContainer
             page={PAGE_ROUTES.TEAMS}
-            label="Funding Stage"
+            label="Company Stage"
             name="fundingStage"
             items={filterValues?.fundingStage ?? []}
             onTagClickHandler={onTagClickHandler}
@@ -313,7 +369,6 @@ const Filter = (props: ITeamFilterWeb) => {
         {`
           button {
             background: none;
-            border: none;
             border: none;
           }
           .team-filter {
@@ -390,15 +445,17 @@ const Filter = (props: ITeamFilterWeb) => {
           }
 
           .team-filter__body__ohonly {
-            margin-top: 20px;
-            padding: 16px 0px 0px 0px;
+            padding: 0;
             display: flex;
             align-items: center;
             gap: 12px;
             justify-content: space-between;
           }
 
-          .team-filter__body__includes, .team-filter__body__recent, .team-filter__body__host{
+          .team-filter__body__includes,
+          .team-filter__body__recent,
+          .team-filter__body__host,
+          .team-filter__body__sponsor {
             // padding: 0px 0px 16px 0px;
             display: flex;
             align-items: center;
@@ -406,7 +463,10 @@ const Filter = (props: ITeamFilterWeb) => {
             justify-content: space-between;
           }
 
-          .team-filter__body__includes__title, .team-filter__body__recent__title, .team-filter__body__host__title {
+          .team-filter__body__includes__title,
+          .team-filter__body__recent__title,
+          .team-filter__body__host__title,
+          .team-filter__body__sponsor__title {
             color: #475569;
             font-size: 14px;
             font-weight: 400;

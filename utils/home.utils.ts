@@ -55,7 +55,7 @@ export const getFormattedEvents = (events: any) => {
       bannerUrl: event?.banner?.url,
       description: event?.description,
       location: event?.location?.location,
-      timezone:  event?.location?.timezone,
+      timezone: event?.location?.timezone,
       startDate: event?.startDate,
       endDate: event?.endDate,
       createdAt: event?.createdAt,
@@ -73,15 +73,15 @@ export const getFormattedLocations = (location: any) => {
       category: 'location',
       location: loc.location,
       flag: loc.flag,
-      icon: loc.icon, 
+      icon: loc.icon,
       resources: loc.resources ?? [],
       priority: loc.priority,
       pastEvents: loc.pastEvents,
       upcomingEvents: loc.upcomingEvents,
       followers: loc.subscribers,
     };
-  })
-}
+  });
+};
 
 export const getformattedMembers = (members: IMemberResponse[]) => {
   return members?.map((member: IMemberResponse): IMember => {
@@ -177,21 +177,25 @@ export function formatDiscoverData(discoverData: any) {
 }
 
 export function formatFeaturedData(featuredData: any) {
+  if (!featuredData) {
+    return [];
+  }
+
   const priorities = (process.env.PRIORITY_FEATURED_SECTION || '').split('|').map((item: any, index: any) => {
     const [key, value] = item.split(':');
-    return { key, value, order: index };  
+    return { key, value, order: index };
   });
-  
+
   const prioritizedData = [...featuredData].sort((a, b) => {
-    const aPriority = priorities.find(p => a.category === p.key && (a.location === p.value || a.name === p.value));
-    const bPriority = priorities.find(p => b.category === p.key && (b.location === p.value || b.name === p.value));
-  
+    const aPriority = priorities.find((p) => a.category === p.key && (a.location === p.value || a.name === p.value));
+    const bPriority = priorities.find((p) => b.category === p.key && (b.location === p.value || b.name === p.value));
+
     if (aPriority && bPriority) {
-      return aPriority.order - bPriority.order; 
+      return aPriority.order - bPriority.order;
     }
-    if (aPriority && !bPriority) return -1; 
-    if (!aPriority && bPriority) return 1; 
-    return 0;  
+    if (aPriority && !bPriority) return -1;
+    if (!aPriority && bPriority) return 1;
+    return 0;
   });
 
   return prioritizedData;

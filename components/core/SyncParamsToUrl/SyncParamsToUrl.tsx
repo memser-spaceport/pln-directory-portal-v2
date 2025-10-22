@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useCallback } from 'react';
-import { useFilterStore } from '@/services/members/store';
+import { useFilterStore, setFilterAnalyticsCallback } from '@/services/members/store';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useDebounce } from 'react-use';
 import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/constants/filters';
@@ -45,6 +45,12 @@ export function SyncParamsToUrl({ debounceTime = 700 }: { debounceTime?: number 
   const isInitialLoad = useRef(true);
   const lastSyncedParams = useRef<string>('');
   const lastAnalyticsParams = useRef<string>('');
+
+  // Set analytics callback once on mount
+  useEffect(() => {
+    setFilterAnalyticsCallback(onMembersFiltersChange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   // Function to update URL
   const updateUrl = useCallback(
@@ -108,29 +114,13 @@ export function SyncParamsToUrl({ debounceTime = 700 }: { debounceTime?: number 
     [params],
   );
 
-  // Debounce analytics event to prevent excessive firing
-  useDebounce(
-    () => {
-      // Only fire analytics if:
-      // 1. Not the initial load, AND
-      // 2. The params have actually changed from the last analytics event
-      const currentParamsString = filterTrackedParams(params).toString();
-      if (!isInitialLoad.current && lastAnalyticsParams.current !== currentParamsString) {
-        onMembersFiltersChange(params);
-        lastAnalyticsParams.current = currentParamsString;
-      }
-    },
-    debounceTime,
-    [params],
-  );
-
-  // Track initial load state and set initial analytics params
+  // Mark initial load as complete after first render
   useEffect(() => {
     if (isInitialLoad.current) {
       isInitialLoad.current = false;
       lastAnalyticsParams.current = filterTrackedParams(params).toString();
     }
-  }, [params]);
+  }, []);
 
   return null;
 }

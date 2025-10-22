@@ -64,9 +64,8 @@ export function useInfiniteMembersList(
       pages: [{ items: initialData.items, total: initialData.total }],
       pageParams: [1],
     },
-    enabled: (query) => {
-      return !!(query.state.data?.pageParams?.[0] && query.state.data?.pageParams?.[0] > 1);
-    },
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 
   useEffect(() => {

@@ -30,6 +30,7 @@ interface MediaPreviewProps {
   teamUid?: string;
   previewImageUrl?: string;
   previewImageSmallUrl?: string;
+  videoPoster?: string;
 }
 
 const ExpandIcon = () => (
@@ -71,6 +72,7 @@ export const MediaPreview = ({
   teamUid,
   previewImageUrl,
   previewImageSmallUrl,
+  videoPoster,
 }: MediaPreviewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -179,7 +181,7 @@ export const MediaPreview = ({
     if (type === 'video') {
       return (
         <div className={s.videoPreviewContainer}>
-          <video src={url} className={s.previewMedia} muted playsInline preload="metadata" />
+          <video src={url} className={s.previewMedia} muted playsInline preload="metadata" poster={videoPoster} />
           <div className={s.videoOverlay}>
             <div className={s.playIcon}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

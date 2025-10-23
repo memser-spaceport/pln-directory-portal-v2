@@ -191,16 +191,24 @@
   justify-content: center;
 
   color: var(--foreground-neutral-secondary, #455468);
-  font-size: 16px;
+  font-size: 12px;
   font-style: normal;
   font-weight: 500;
-  line-height: 24px; /* 150% */
+  line-height: 16px; /* 150% */
   letter-spacing: -0.3px;
 
   span, a {
     display: flex;
     align-items: center;
     gap: 2px;
+  }
+
+  @include media.tablet-landscape {
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 24px; /* 150% */
+    letter-spacing: -0.3px;
   }
 }
 

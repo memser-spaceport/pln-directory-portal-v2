@@ -155,6 +155,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 
+  word-break: break-word;
+
   &.truncated {
     /* Add space for the "Show more" button at the end */
     padding-right: 80px;

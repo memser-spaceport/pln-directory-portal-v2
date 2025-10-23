@@ -150,7 +150,7 @@
   align-items: center;
   gap: 2px;
   height: 24px;
-  padding: 2px 8px;
+  padding: 2px 4px;
   background: transparent;
   border: none;
   border-radius: 6px;
@@ -159,6 +159,12 @@
   font-family: 'Inter', sans-serif;
   white-space: nowrap;
   flex-shrink: 0;
+  font-size: 12px;
+
+  @include media.tablet-landscape {
+    padding: 2px 8px;
+    font-size: 14px;
+  }
 
   &:hover:not(.active) {
     background: rgba(255, 255, 255, 0.5);

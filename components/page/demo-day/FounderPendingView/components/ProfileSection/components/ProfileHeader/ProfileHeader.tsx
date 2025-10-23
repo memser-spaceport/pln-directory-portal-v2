@@ -33,7 +33,7 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
   const founderItemsRef = useRef<(HTMLAnchorElement | null)[]>([]);
   const dividerRef = useRef<HTMLDivElement>(null);
   const moreTagRef = useRef<HTMLDivElement>(null);
-  const [visibleFoundersCount, setVisibleFoundersCount] = useState(4);
+  const [visibleFoundersCount, setVisibleFoundersCount] = useState<number | null>(null); // null = measuring phase
 
   // Helper function to format funding stage
   const formatFundingStage = (stage: string) => {
@@ -75,53 +75,73 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
       const container = foundersContainerRef.current;
       if (!container) return;
 
-      // Get actual measured dimensions from rendered elements
-      const firstFounderItem = founderItemsRef.current[0];
-      const divider = dividerRef.current;
-      const moreTag = moreTagRef.current;
+      // Get the parent container width (memberDetails) instead of the empty foundersInfo
+      const parentContainer = container.parentElement;
+      if (!parentContainer) return;
 
-      if (!firstFounderItem) return;
-
-      const containerWidth = container.offsetWidth;
-
-      // Measure actual widths from DOM elements
-      const founderItemWidth = firstFounderItem.offsetWidth;
-      const dividerWidth = divider ? divider.offsetWidth : 0;
-      const moreTagWidth = moreTag ? moreTag.offsetWidth : 0;
+      const containerWidth = parentContainer.offsetWidth;
 
       // Get gap from computed styles
-      const containerStyles = window.getComputedStyle(container);
-      const gapWidth = parseFloat(containerStyles.gap) || 16;
+      const gapWidth = 16; // Fixed gap from SCSS
 
+      // Get divider width
+      const divider = dividerRef.current;
+      const dividerWidth = divider ? divider.offsetWidth : 1;
+
+      // Get more tag width
+      const moreTag = moreTagRef.current;
+      const moreTagWidth = moreTag ? moreTag.offsetWidth : 50;
+
+      let totalWidthUsed = 0;
       let count = 0;
 
-      // Try to fit founders one by one
-      for (let i = 1; i <= Math.min(founders.length, 4); i++) {
-        const itemsWidth = i * founderItemWidth;
-        const dividersWidth = (i - 1) * dividerWidth;
-        const gapsWidth = (i - 1) * gapWidth;
+      // Maximum 4 founders can be shown
+      const maxFounders = Math.min(founders.length, 4);
 
-        // If there are more founders, reserve space for the "+X" tag
-        const needsMoreTag = founders.length > i;
+      // Try to fit founders one by one, considering individual widths
+      for (let i = 0; i < maxFounders; i++) {
+        const founderItem = founderItemsRef.current[i];
+        if (!founderItem) {
+          // If item not rendered yet, stop here
+          break;
+        }
+
+        const itemWidth = founderItem.offsetWidth;
+
+        // Add divider width if this isn't the first item
+        const currentDividerWidth = i > 0 ? dividerWidth : 0;
+        // Add gap width if this isn't the first item
+        const currentGapWidth = i > 0 ? gapWidth : 0;
+
+        // If there are more founders after this one, reserve space for the "+X" tag
+        const needsMoreTag = founders.length > i + 1;
         const moreTagSpace = needsMoreTag ? moreTagWidth + dividerWidth + gapWidth : 0;
 
-        const totalWidth = itemsWidth + dividersWidth + gapsWidth + moreTagSpace;
+        const widthNeeded = itemWidth + currentDividerWidth + currentGapWidth;
+        const potentialTotalWidth = totalWidthUsed + widthNeeded + moreTagSpace;
 
-        if (totalWidth <= containerWidth) {
-          count = i;
+        if (potentialTotalWidth <= containerWidth) {
+          totalWidthUsed += widthNeeded;
+          count = i + 1;
         } else {
           break;
         }
       }
 
       // Ensure at least 1 founder is shown if there are any
-      setVisibleFoundersCount(Math.max(1, count));
+      const newCount = Math.max(1, count - 1);
+
+      // Only update if count changed to prevent infinite loops
+      if (newCount !== visibleFoundersCount) {
+        setVisibleFoundersCount(newCount);
+        // setIsCalculated(true);
+      }
     };
 
-    // Wait for initial render to complete before measuring
+    // Initial calculation - use longer timeout to ensure DOM is ready
     const timeoutId = setTimeout(() => {
       calculateVisibleFounders();
-    }, 0);
+    }, 200);
 
     // Recalculate on resize
     const resizeObserver = new ResizeObserver(() => {
@@ -134,7 +154,7 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
       clearTimeout(timeoutId);
       resizeObserver.disconnect();
     };
-  }, [founders]);
+  }, [founders, visibleFoundersCount]);
 
   return (
     <div className={s.profileHeader}>
@@ -182,20 +202,24 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
 
         {/* Founders Info */}
         {founders && founders.length > 0 && (
-          <div className={s.foundersInfo} ref={foundersContainerRef}>
-            {founders.slice(0, visibleFoundersCount).map((founder, index) => (
-              <React.Fragment key={founder.uid}>
-                {index > 0 && <div className={s.founderDivider} ref={index === 1 ? dividerRef : null} />}
+          <div style={{ position: 'relative' }}>
+            {/* Hidden measurement container - renders ALL founders for measurement */}
+            <div
+              style={{
+                height: 0,
+                overflow: 'hidden',
+                pointerEvents: 'none',
+              }}
+            >
+              {founders.map((founder, index) => (
                 <Link
+                  key={`measure-${founder.uid}`}
                   href={`/members/${founder.uid}`}
-                  target="_blank"
                   className={s.founderItem}
                   ref={(el) => {
-                    founderItemsRef.current[index] = el;
+                    if (el) founderItemsRef.current[index] = el as any;
                   }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
+                  style={{ display: 'inline-flex' }}
                 >
                   <div
                     className={s.founderAvatar}
@@ -210,16 +234,45 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
                     <div className={s.founderRole}>{founder.role || 'Co-Founder'}</div>
                   </div>
                 </Link>
-              </React.Fragment>
-            ))}
-            {founders.length > visibleFoundersCount && (
-              <>
-                <div className={s.founderDivider} />
-                <div className={s.moreFoundersTag} ref={moreTagRef}>
-                  +{founders.length - visibleFoundersCount}
-                </div>
-              </>
-            )}
+              ))}
+            </div>
+
+            {/* Visible container - only renders calculated count */}
+            <div className={s.foundersInfo} ref={foundersContainerRef}>
+              {visibleFoundersCount !== null &&
+                founders.slice(0, visibleFoundersCount).map((founder, index) => (
+                  <React.Fragment key={founder.uid}>
+                    {index > 0 && <div className={s.founderDivider} />}
+                    <Link
+                      href={`/members/${founder.uid}`}
+                      target="_blank"
+                      className={s.founderItem}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                    >
+                      <div
+                        className={s.founderAvatar}
+                        style={{
+                          backgroundImage: founder.image?.url
+                            ? `url('${founder.image.url}')`
+                            : `url('${getDefaultAvatar(founder.name)}')`,
+                        }}
+                      />
+                      <div className={s.founderText}>
+                        <div className={s.founderName}>{founder.name}</div>
+                        <div className={s.founderRole}>{founder.role || 'Co-Founder'}</div>
+                      </div>
+                    </Link>
+                  </React.Fragment>
+                ))}
+              {visibleFoundersCount !== null && founders.length > visibleFoundersCount && (
+                <>
+                  <div className={s.founderDivider} />
+                  <div className={s.moreFoundersTag}>+{founders.length - visibleFoundersCount}</div>
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>

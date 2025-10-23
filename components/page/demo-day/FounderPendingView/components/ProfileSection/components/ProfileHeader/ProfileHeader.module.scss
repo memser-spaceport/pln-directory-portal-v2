@@ -1,9 +1,11 @@
 @use 'styles/media';
+@use 'styles/mixins';
 
 .profileHeader {
   display: flex;
   gap: 20px;
   align-items: flex-start;
+  width: 100%;
 
   @include media.mobile-only {
     gap: 12px;
@@ -162,6 +164,9 @@
   gap: 16px;
   align-items: center;
   margin-top: 4px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  min-width: 0;
 
   @include media.mobile-only {
     flex-wrap: wrap;
@@ -206,6 +211,9 @@
   letter-spacing: -0.2px;
   color: #455468;
   transition: color 0.2s ease;
+
+  @include mixins.ellipse-text;
+  max-width: 240px;
 }
 
 .founderRole {

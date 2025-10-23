@@ -12,7 +12,7 @@ export const SupportSection = () => {
             pldemoday@protocol.ai
           </a>
           <br />
-          (Typical response time: within 24 hrs)
+          (Typical response time: 1hr during EST business hrs)
         </p>
       </div>
     </div>

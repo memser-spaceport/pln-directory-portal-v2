@@ -1636,4 +1636,5 @@ export const DEMO_DAY_ANALYTICS = {
   ON_PROTOCOL_LABS_LINK_CLICKED: 'demo-day-protocol-labs-link-clicked',
   ON_CONFIDENTIALITY_MODAL_SUBMITTED: 'demo-day-confidentiality-modal-submitted',
   ON_CONFIDENTIALITY_MODAL_CLOSED: 'demo-day-confidentiality-modal-closed',
+  ON_ACTIVE_VIEW_WELCOME_VIDEO_VIEWED: 'demo-day-active-view-welcome-video-viewed',
 };

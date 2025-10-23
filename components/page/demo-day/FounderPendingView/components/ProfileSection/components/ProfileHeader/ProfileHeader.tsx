@@ -27,7 +27,7 @@ interface ProfileHeaderProps {
 }
 
 export const ProfileHeader = (props: ProfileHeaderProps) => {
-  const { uid, image, name, description, fundingStage, tags, founders: _founders, classes } = props;
+  const { uid, image, name, description, fundingStage, tags, founders, classes } = props;
 
   const foundersContainerRef = useRef<HTMLDivElement>(null);
   const founderItemsRef = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -66,15 +66,6 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
       </>
     );
   };
-
-  const founders = useMemo(() => {
-    if (!_founders) return [];
-
-    return new Array(10).fill(0).map(() => ({
-      ..._founders[0],
-      uid: Math.random().toString(36).substring(2, 15),
-    }));
-  }, [_founders]);
 
   // Calculate how many founders can fit in the available space
   useEffect(() => {
@@ -194,12 +185,7 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
           <div className={s.foundersInfo} ref={foundersContainerRef}>
             {founders.slice(0, visibleFoundersCount).map((founder, index) => (
               <React.Fragment key={founder.uid}>
-                {index > 0 && (
-                  <div
-                    className={s.founderDivider}
-                    ref={index === 1 ? dividerRef : null}
-                  />
-                )}
+                {index > 0 && <div className={s.founderDivider} ref={index === 1 ? dividerRef : null} />}
                 <Link
                   href={`/members/${founder.uid}`}
                   target="_blank"

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 
@@ -108,38 +108,38 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
         {/* Founders Info */}
         {founders && founders.length > 0 && (
           <div className={s.foundersInfo}>
-            {new Array(8)
-              .fill(0)
-              .map(() => ({
-                ...founders[0],
-                uid: Math.random().toString(36).substring(2, 15),
-              }))
-              .map((founder, index) => (
-                <React.Fragment key={founder.uid}>
-                  {index > 0 && <div className={s.founderDivider} />}
-                  <Link
-                    href={`/members/${founder.uid}`}
-                    target="_blank"
-                    className={s.founderItem}
-                    onClick={(e) => {
-                      e.stopPropagation();
+            {founders.slice(0, 4).map((founder, index) => (
+              <React.Fragment key={founder.uid}>
+                {index > 0 && <div className={s.founderDivider} />}
+                <Link
+                  href={`/members/${founder.uid}`}
+                  target="_blank"
+                  className={s.founderItem}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <div
+                    className={s.founderAvatar}
+                    style={{
+                      backgroundImage: founder.image?.url
+                        ? `url('${founder.image.url}')`
+                        : `url('${getDefaultAvatar(founder.name)}')`,
                     }}
-                  >
-                    <div
-                      className={s.founderAvatar}
-                      style={{
-                        backgroundImage: founder.image?.url
-                          ? `url('${founder.image.url}')`
-                          : `url('${getDefaultAvatar(founder.name)}')`,
-                      }}
-                    />
-                    <div className={s.founderText}>
-                      <div className={s.founderName}>{founder.name}</div>
-                      <div className={s.founderRole}>{founder.role || 'Co-Founder'}</div>
-                    </div>
-                  </Link>
-                </React.Fragment>
-              ))}
+                  />
+                  <div className={s.founderText}>
+                    <div className={s.founderName}>{founder.name}</div>
+                    <div className={s.founderRole}>{founder.role || 'Co-Founder'}</div>
+                  </div>
+                </Link>
+              </React.Fragment>
+            ))}
+            {founders.length > 4 && (
+              <>
+                <div className={s.founderDivider} />
+                <div className={s.moreFoundersTag}>+{founders.length - 4}</div>
+              </>
+            )}
           </div>
         )}
       </div>

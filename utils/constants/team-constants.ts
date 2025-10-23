@@ -11,4 +11,4 @@ export const STEP_INDICATOR_KEY = 'submit-team';
 export const MAX_ASKS_NUMBER = 3;
 
 export const PITCH_DECK_URL = 'https://pl-directory-images-dev.s3.us-west-1.amazonaws.com/demo_day_preview.png';
-export const PITCH_VIDEO_URL = 'https://pl-directory-images-dev.s3.us-west-1.amazonaws.com/demo_day_video.mp4';
+export const PITCH_VIDEO_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/demo_day_video.mp4';

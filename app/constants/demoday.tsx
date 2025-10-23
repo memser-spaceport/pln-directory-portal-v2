@@ -25,7 +25,7 @@ export const faqItems = [
             <FaqLink href={PROTOCOL_LABS_LINK}>Protocol Labs (PL)</FaqLink> network. A pre-selected batch of
             high-quality startups will deliver pitches, in a fully asynchronous environment.
           </span>,
-          'Attendees will have access to single-slide company summaries and 3-min video pitches through our online platform which will go live on Oct 23, 11:00 UTC.',
+          'Attendees will have access to single-slide company summaries and 3-min video pitches through our online platform which will go live on Oct 23, 16:00 UTC.',
           "Attendees can directly connect with companies they're interested in by clicking buttons that will automatically send emails on their behalf. Alternatively, the founder's email address and Telegram handle will be available for direct outreach.",
         ]}
       />

@@ -305,7 +305,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         founders={team.founders}
         uid={team?.team?.uid}
         classes={{
-          name: s.teamName
+          name: s.teamName,
         }}
       />
 

@@ -7,7 +7,7 @@ import { TeamsList } from '@/components/page/demo-day/ActiveView/components/Team
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
 import { Alert } from '@/components/page/demo-day/shared/Alert';
 import { MediaPreview } from '../../../FounderPendingView/components/MediaPreview';
-import { PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
+import { PITCH_VIDEO_POSTER, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
@@ -77,7 +77,7 @@ export const Content = () => {
             <span>
               {data?.teamsCount} Team{(data?.teamsCount ?? 0) > 1 ? 's' : ''}
             </span>
-            {data?.investorsCount && data?.investorsCount > 200 ? (
+            {data?.investorsCount && data?.investorsCount > 100 ? (
               <>
                 &nbsp;&bull;&nbsp;
                 <Link href={`/members?isInvestor=true`}>
@@ -90,6 +90,7 @@ export const Content = () => {
           <div className={s.videoWrapper}>
             <MediaPreview
               url={PITCH_VIDEO_URL}
+              videoPoster={PITCH_VIDEO_POSTER}
               type="video"
               title="Pitch Video"
               showMetadata={false}

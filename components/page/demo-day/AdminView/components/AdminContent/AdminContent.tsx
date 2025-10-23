@@ -39,7 +39,7 @@ export const AdminContent = ({ isDirectoryAdmin }: { isDirectoryAdmin: boolean }
             <span>
               {profiles?.length} Team{(profiles?.length ?? 0) > 1 ? 's' : ''}
             </span>
-            {demoDayData?.investorsCount && demoDayData?.investorsCount > 200 ? (
+            {demoDayData?.investorsCount && demoDayData?.investorsCount > 100 ? (
               <>
                 &nbsp;&bull;&nbsp;
                 <Link href={`/members?isInvestor=true`}>

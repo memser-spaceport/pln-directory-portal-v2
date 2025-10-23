@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 
@@ -108,7 +108,7 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
         {/* Founders Info */}
         {founders && founders.length > 0 && (
           <div className={s.foundersInfo}>
-            {founders.map((founder, index) => (
+            {founders.slice(0, 4).map((founder, index) => (
               <React.Fragment key={founder.uid}>
                 {index > 0 && <div className={s.founderDivider} />}
                 <Link
@@ -134,6 +134,12 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
                 </Link>
               </React.Fragment>
             ))}
+            {founders.length > 4 && (
+              <>
+                <div className={s.founderDivider} />
+                <div className={s.moreFoundersTag}>+{founders.length - 4}</div>
+              </>
+            )}
           </div>
         )}
       </div>

@@ -138,6 +138,10 @@ const RatingContainer = (props: IRatingContainer) => {
     };
   }, []);
 
+  if (currentStep !== OFFICE_HOURS_STEPS.MEETING_INITIATED.name) {
+    return null;
+  }
+
   return (
     <>
       <Modal modalRef={ratingContainerRef} onClose={() => onCloseClickHandler(true)}>

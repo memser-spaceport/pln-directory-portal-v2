@@ -1,6 +1,8 @@
 # Directory Frontend
 
-This is the frontend for the Directory application, uses [Next.js](https://nextjs.org/) framework and is bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+This is the frontend for the Directory application, uses  [Next.js](https://nextjs.org/) framework and is bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+Link to the [index repo](https://github.com/memser-spaceport/protocol-labs-directory)
+
 
 ## Next.js Version
 

@@ -6,9 +6,46 @@ import { format } from 'date-fns-tz';
 import { TeamsList } from '@/components/page/demo-day/ActiveView/components/TeamsList';
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
 import { Alert } from '@/components/page/demo-day/shared/Alert';
+import { MediaPreview } from '../../../FounderPendingView/components/MediaPreview';
+import { PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
+import { IUserInfo } from '@/types/shared.types';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
 export const Content = () => {
   const { data } = useGetDemoDayState();
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { onActiveViewWelcomeVideoViewed } = useDemoDayAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
+
+  const handleWelcomeVideoViewClicked = () => {
+    if (userInfo?.email) {
+      // PostHog analytics via hook
+      onActiveViewWelcomeVideoViewed({
+        videoUrl: PITCH_VIDEO_URL,
+        pageContext: 'active-view',
+      });
+
+      // Direct API analytics event
+      const welcomeVideoEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_WELCOME_VIDEO_VIEWED,
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          pageContext: 'active-view',
+        },
+      };
+
+      reportAnalytics.mutate(welcomeVideoEvent);
+    }
+  };
 
   return (
     <div className={s.root}>
@@ -50,9 +87,15 @@ export const Content = () => {
               </>
             ) : null}
           </div>
-          {/*<div className={s.videoWrapper}>
-            <MediaPreview url={PITCH_VIDEO_URL} type="video" title="Pitch Video" showMetadata={false} />
-          </div>*/}
+          <div className={s.videoWrapper}>
+            <MediaPreview
+              url={PITCH_VIDEO_URL}
+              type="video"
+              title="Pitch Video"
+              showMetadata={false}
+              onView={handleWelcomeVideoViewClicked}
+            />
+          </div>
           {/*<ProfileContent pitchDeckUrl={PITCH_DECK_URL} videoUrl={PITCH_VIDEO_URL} />*/}
 
           <Alert>

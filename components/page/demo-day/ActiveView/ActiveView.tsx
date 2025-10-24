@@ -22,13 +22,18 @@ export const ActiveView = () => {
   const reportAnalytics = useReportAnalyticsEvent();
 
   // Page view analytics - triggers only once on mount
-  useDemoDayPageViewAnalytics('onActiveViewPageOpened', DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_PAGE_OPENED, '/demoday', {
-    demoDayTitle: demoDayData?.title,
-    demoDayDate: demoDayData?.date,
-    demoDayStatus: demoDayData?.status,
-    teamsCount: demoDayData?.teamsCount,
-    investorsCount: demoDayData?.investorsCount,
-  });
+  useDemoDayPageViewAnalytics(
+    'onActiveViewPageOpened',
+    DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_PAGE_OPENED,
+    '/demoday/active',
+    {
+      demoDayTitle: demoDayData?.title,
+      demoDayDate: demoDayData?.date,
+      demoDayStatus: demoDayData?.status,
+      teamsCount: demoDayData?.teamsCount,
+      investorsCount: demoDayData?.investorsCount,
+    },
+  );
 
   // Time on page tracking
   useTimeOnPage({
@@ -42,7 +47,7 @@ export const ActiveView = () => {
             userId: userInfo.uid,
             userEmail: userInfo.email,
             userName: userInfo.name,
-            path: '/demoday',
+            path: '/demoday/active',
             timestamp: new Date().toISOString(),
             timeSpent: timeSpent,
             eventId: sessionId,

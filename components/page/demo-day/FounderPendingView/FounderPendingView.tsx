@@ -14,12 +14,12 @@ export const FounderPendingView = () => {
   useDemoDayPageViewAnalytics(
     'onFounderPendingViewPageOpened',
     'founder_pending_view_page_opened',
-    '/demoday',
+    '/demoday/founder',
     {
       demoDayTitle: data?.title,
       demoDayDate: data?.date,
       demoDayStatus: data?.status,
-    }
+    },
   );
 
   return (

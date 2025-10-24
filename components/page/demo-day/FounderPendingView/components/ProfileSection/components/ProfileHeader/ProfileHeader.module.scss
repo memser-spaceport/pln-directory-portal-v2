@@ -161,7 +161,7 @@
 // Founders Info Section
 .foundersInfo {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
   margin-top: 4px;
   flex-wrap: nowrap;
@@ -176,7 +176,7 @@
 
 .founderItem {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   flex-shrink: 0;
   text-decoration: none;
@@ -218,7 +218,7 @@
 .founderRole {
   font-family: 'Inter', sans-serif;
   font-weight: 400;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 18px;
   color: #64748b;
 }

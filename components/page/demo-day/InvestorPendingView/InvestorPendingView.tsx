@@ -32,27 +32,36 @@ export const InvestorPendingView = () => {
 
   // Function to check if investor profile is complete
   const isInvestorProfileComplete = useMemo(() => {
+    if (['L2', 'L3', 'L4'].includes(userInfo?.accessLevel || '')) {
+      return true;
+    }
+
     if (!memberData?.memberInfo?.investorProfile) {
       return false;
     }
 
     const { investorProfile, teamMemberRoles } = memberData.memberInfo;
-    const investmentTeams = teamMemberRoles?.filter((tmr: { investmentTeam: boolean }) => tmr.investmentTeam) ?? [];
+    const investmentTeams =
+      teamMemberRoles?.filter(
+        (tmr: { investmentTeam: boolean; team: { isFund: boolean } }) => tmr.investmentTeam && tmr.team?.isFund,
+      ) ?? [];
 
-    // Check if all required fields are populated
-    // const hasInvestmentFocus = investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0;
+    const hasInvestmentFocus = investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0;
     const hasTypicalCheckSize = investorProfile.typicalCheckSize && investorProfile.typicalCheckSize > 0;
-    // const hasSecRulesAccepted = investorProfile.secRulesAccepted === true;
+    const hasInvestInStartupStages =
+      investorProfile.investInStartupStages && investorProfile.investInStartupStages.length > 0;
+    const hasInvestmentTeams = investmentTeams?.length > 0;
+    const hasAnyInvestorProfileData = hasInvestmentFocus || hasTypicalCheckSize || hasInvestInStartupStages;
 
     if (investorProfile.type === 'ANGEL') {
-      return hasTypicalCheckSize;
+      return hasAnyInvestorProfileData;
     }
 
     if (investorProfile.type === 'ANGEL_AND_FUND') {
-      return investmentTeams.length > 0 && hasTypicalCheckSize;
+      return hasInvestmentTeams && hasAnyInvestorProfileData;
     }
 
-    return !!investmentTeams.length;
+    return hasInvestmentTeams;
   }, [memberData]);
 
   // Determine current step based on profile completion and calendar added

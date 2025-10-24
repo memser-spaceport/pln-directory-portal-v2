@@ -520,7 +520,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     >
                       {team.invested ? (
                         <>
-                          💰 Invested in Company
+                          💰 Invest in Company
                           <CheckIcon />
                         </>
                       ) : (

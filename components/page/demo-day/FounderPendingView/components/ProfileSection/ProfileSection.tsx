@@ -226,7 +226,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
               >
                 {data?.invested ? (
                   <>
-                    💰 Invested in Company
+                    💰 Invest in Company
                     <CheckIcon />
                   </>
                 ) : (

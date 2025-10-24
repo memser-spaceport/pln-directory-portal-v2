@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import { clsx } from 'clsx';
 import Cookies from 'js-cookie';
@@ -16,11 +17,12 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { IUserInfo } from '@/types/shared.types';
 import { useTimeOnPage } from '@/hooks/useTimeOnPage';
+import { DemoDayState } from '@/app/actions/demo-day.actions';
 
 import s from './Landing.module.scss';
 
-export function Landing() {
-  const { data } = useGetDemoDayState();
+export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDayState }) {
+  const { data } = useGetDemoDayState(initialDemoDayState);
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
   // Analytics hooks
@@ -83,7 +85,7 @@ export function Landing() {
   };
 
   return (
-    <LandingBase>
+    <LandingBase initialDemoDayState={initialDemoDayState}>
       <div className={s.root}>
         {!userInfo && <LoginBtn className={clsx(s.btn, s.loginButton)}>Already Approved? Log In</LoginBtn>}
 

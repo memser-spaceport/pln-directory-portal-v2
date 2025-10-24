@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { FounderPendingView } from '@/components/page/demo-day/FounderPendingView';
-import { LoadingView } from '@/components/page/demo-day/components/LoadingView';
 
 export default function FounderPage() {
   const router = useRouter();
@@ -24,12 +23,12 @@ export default function FounderPage() {
 
   // Show loading state while checking access
   if (!data) {
-    return <LoadingView />;
+    return null;
   }
 
   // If access is not FOUNDER, the useEffect will redirect
   if (data?.access !== 'FOUNDER') {
-    return <LoadingView />;
+    return null;
   }
 
   return <FounderPendingView />;

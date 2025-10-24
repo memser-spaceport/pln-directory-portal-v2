@@ -829,3 +829,36 @@ export function isMemberAvailableToConnect(member: any) {
       member?.ohStatus === 'BROKEN')
   );
 }
+
+export function checkInvestorProfileComplete(memberInfo: any, userInfo: any): boolean {
+  if (['L2', 'L3', 'L4'].includes(userInfo?.accessLevel || '')) {
+    return true;
+  }
+
+  if (!memberInfo?.investorProfile) {
+    return false;
+  }
+
+  const { investorProfile, teamMemberRoles } = memberInfo;
+  const investmentTeams =
+    teamMemberRoles?.filter(
+      (tmr: { investmentTeam: boolean; team: { isFund: boolean } }) => tmr.investmentTeam && tmr.team?.isFund,
+    ) ?? [];
+
+  const hasInvestmentFocus = investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0;
+  const hasTypicalCheckSize = investorProfile.typicalCheckSize && investorProfile.typicalCheckSize > 0;
+  const hasInvestInStartupStages =
+    investorProfile.investInStartupStages && investorProfile.investInStartupStages.length > 0;
+  const hasInvestmentTeams = investmentTeams?.length > 0;
+  const hasAnyInvestorProfileData = hasInvestmentFocus || hasTypicalCheckSize || hasInvestInStartupStages;
+
+  if (investorProfile.type === 'ANGEL') {
+    return hasAnyInvestorProfileData;
+  }
+
+  if (investorProfile.type === 'ANGEL_AND_FUND') {
+    return hasInvestmentTeams && hasAnyInvestorProfileData;
+  }
+
+  return hasInvestmentTeams;
+}

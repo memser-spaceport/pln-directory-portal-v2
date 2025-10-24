@@ -1,36 +1,55 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
+import { redirect } from 'next/navigation';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { getDemoDayState, getMemberInfo } from '@/app/actions/demo-day.actions';
+import { checkInvestorProfileComplete } from '@/utils/member.utils';
 import { InvestorPendingView } from '@/components/page/demo-day/InvestorPendingView';
-import { LoadingView } from '@/components/page/demo-day/components/LoadingView';
 
-export default function InvestorPage() {
-  const router = useRouter();
-  const { data } = useGetDemoDayState();
+export default async function InvestorPage() {
+  const { userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
+  const parsedUserInfo = userInfo;
 
-  useEffect(() => {
-    if (data?.access !== 'INVESTOR') {
-      router.replace('/demoday');
-      return;
-    }
-
-    if (data?.status === 'NONE' || data?.status === 'COMPLETED') {
-      router.replace('/demoday');
-      return;
-    }
-  }, [data?.access, data?.status, router]);
-
-  // Show loading state while checking access
-  if (!data) {
-    return <LoadingView />;
+  if (!isLoggedIn || !parsedUserInfo?.uid) {
+    redirect('/demoday');
   }
 
-  // If access is not INVESTOR, the useEffect will redirect
-  if (data?.access !== 'INVESTOR') {
-    return <LoadingView />;
+  // Fetch demo day state on server side
+  const demoDayResult = await getDemoDayState(parsedUserInfo.uid, authToken);
+
+  if (demoDayResult?.isError) {
+    redirect('/demoday');
   }
 
-  return <InvestorPendingView />;
+  const demoDayState = demoDayResult?.data;
+
+  if (!demoDayState) {
+    redirect('/demoday');
+  }
+
+  if (demoDayState.access !== 'INVESTOR') {
+    redirect('/demoday');
+  }
+
+  if (demoDayState.status === 'NONE' || demoDayState.status === 'COMPLETED') {
+    redirect('/demoday');
+  }
+
+  let memberResult = null;
+
+  // Server-side redirect logic for completed investor profiles when demo day is active
+  if (demoDayState.status === 'ACTIVE') {
+    try {
+      memberResult = await getMemberInfo(parsedUserInfo.uid, authToken);
+
+      if (!memberResult?.isError && memberResult?.data) {
+        const isInvestorProfileComplete = checkInvestorProfileComplete(memberResult.data, parsedUserInfo);
+        if (isInvestorProfileComplete) {
+          redirect('/demoday/active');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking investor profile completion:', error);
+    }
+  }
+
+  return <InvestorPendingView initialDemoDayState={demoDayState} initialMemberData={memberResult?.data} />;
 }

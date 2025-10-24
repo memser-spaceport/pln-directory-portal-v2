@@ -1,5 +1,8 @@
+'use client';
+
 import React, { useEffect, useMemo } from 'react';
 import { getParsedValue } from '@/utils/common.utils';
+import { checkInvestorProfileComplete } from '@/utils/member.utils';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { useMember } from '@/services/members/hooks/useMember';
@@ -10,17 +13,18 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { LandingBase } from '../LandingBase';
-import { useRouter } from 'next/navigation';
-import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
-import { LoadingView } from '../components/LoadingView';
+import { DemoDayState } from '@/app/actions/demo-day.actions';
 
-export const InvestorPendingView = () => {
+interface InvestorPendingViewProps {
+  initialDemoDayState?: DemoDayState;
+  initialMemberData?: any;
+}
+
+export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: InvestorPendingViewProps) => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
-  const { data: memberData } = useMember(userInfo?.uid);
+  const { data: loadedMemberData } = useMember(userInfo?.uid);
+  const memberData = loadedMemberData?.memberInfo || initialMemberData;
   const { data: engagementData } = useGetEngagement();
-  const { data } = useGetDemoDayState();
-  const router = useRouter();
-  const isDemoDayActive = data?.status === 'ACTIVE';
 
   // Analytics hooks
   const {
@@ -30,39 +34,10 @@ export const InvestorPendingView = () => {
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
 
-  // Function to check if investor profile is complete
+  // Check if investor profile is complete
   const isInvestorProfileComplete = useMemo(() => {
-    if (['L2', 'L3', 'L4'].includes(userInfo?.accessLevel || '')) {
-      return true;
-    }
-
-    if (!memberData?.memberInfo?.investorProfile) {
-      return false;
-    }
-
-    const { investorProfile, teamMemberRoles } = memberData.memberInfo;
-    const investmentTeams =
-      teamMemberRoles?.filter(
-        (tmr: { investmentTeam: boolean; team: { isFund: boolean } }) => tmr.investmentTeam && tmr.team?.isFund,
-      ) ?? [];
-
-    const hasInvestmentFocus = investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0;
-    const hasTypicalCheckSize = investorProfile.typicalCheckSize && investorProfile.typicalCheckSize > 0;
-    const hasInvestInStartupStages =
-      investorProfile.investInStartupStages && investorProfile.investInStartupStages.length > 0;
-    const hasInvestmentTeams = investmentTeams?.length > 0;
-    const hasAnyInvestorProfileData = hasInvestmentFocus || hasTypicalCheckSize || hasInvestInStartupStages;
-
-    if (investorProfile.type === 'ANGEL') {
-      return hasAnyInvestorProfileData;
-    }
-
-    if (investorProfile.type === 'ANGEL_AND_FUND') {
-      return hasInvestmentTeams && hasAnyInvestorProfileData;
-    }
-
-    return hasInvestmentTeams;
-  }, [memberData]);
+    return checkInvestorProfileComplete(memberData, userInfo);
+  }, [memberData, userInfo]);
 
   // Determine current step based on profile completion and calendar added
   const currentStep = useMemo(() => {
@@ -81,12 +56,6 @@ export const InvestorPendingView = () => {
 
     return 3; // Profile complete and calendar added, ready for Demo Day
   }, [isInvestorProfileComplete, engagementData?.calendarAdded]);
-
-  useEffect(() => {
-    if (isInvestorProfileComplete && isDemoDayActive) {
-      router.replace('/demoday/active');
-    }
-  }, [isInvestorProfileComplete, isDemoDayActive]);
 
   // Page view analytics - triggers only once on mount
   useDemoDayPageViewAnalytics(
@@ -175,13 +144,10 @@ export const InvestorPendingView = () => {
     reportAnalytics.mutate(buttonClickEvent);
   };
 
-  if (!data || (isDemoDayActive && isInvestorProfileComplete)) {
-    return <LoadingView />;
-  }
-
   return (
-    <LandingBase>
+    <LandingBase initialDemoDayState={initialDemoDayState}>
       <InvestorStepper
+        initialDemoDayState={initialDemoDayState}
         currentStep={currentStep}
         onFillProfile={handleFillProfile}
         onAddToCalendar={handleAddToCalendar}

@@ -161,7 +161,7 @@
 // Founders Info Section
 .foundersInfo {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
   margin-top: 4px;
   flex-wrap: nowrap;
@@ -176,7 +176,6 @@
 
 .founderItem {
   display: flex;
-  gap: 8px;
   gap: 8px;
   align-items: center;
   flex-shrink: 0;
@@ -214,7 +213,6 @@
   transition: color 0.2s ease;
 
   @include mixins.ellipse-text;
-  max-width: 240px;
 }
 
 .founderRole {

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useEffect } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 
@@ -31,9 +31,40 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
 
   const foundersContainerRef = useRef<HTMLDivElement>(null);
   const founderItemsRef = useRef<(HTMLAnchorElement | null)[]>([]);
-  const dividerRef = useRef<HTMLDivElement>(null);
-  const moreTagRef = useRef<HTMLDivElement>(null);
-  const [visibleFoundersCount, setVisibleFoundersCount] = useState<number | null>(null); // null = measuring phase
+  const visibleFoundersCount = 4;
+
+  const maxFounderNameWidth = useMemo(() => {
+    if (!founders || founders.length <= 2) return 260;
+
+    const allWidth = 740;
+    const minNameWidth = 80;
+    const avatarWidth = 32;
+    const gapBetweenItems = 8;
+    const gapWithinItem = 8;
+    const dividerWidth = 1;
+
+    const effectiveFounderCount = Math.min(founders.length, 4);
+
+    let fixedSpace = 0;
+
+    fixedSpace += effectiveFounderCount * avatarWidth;
+    fixedSpace += effectiveFounderCount * gapWithinItem;
+    fixedSpace += (effectiveFounderCount - 1) * gapBetweenItems;
+
+    if (effectiveFounderCount > 1) {
+      fixedSpace += (effectiveFounderCount - 1) * dividerWidth;
+    }
+
+    if (founders.length > 4) {
+      const moreTagWidth = 80;
+      fixedSpace += moreTagWidth + gapBetweenItems;
+    }
+
+    const remainingSpace = allWidth - fixedSpace;
+    const widthPerFounder = remainingSpace / effectiveFounderCount;
+
+    return Math.floor(Math.max(minNameWidth, widthPerFounder));
+  }, [founders]);
 
   // Helper function to format funding stage
   const formatFundingStage = (stage: string) => {
@@ -66,95 +97,6 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
       </>
     );
   };
-
-  // Calculate how many founders can fit in the available space
-  useEffect(() => {
-    if (!foundersContainerRef.current || !founders || founders.length === 0) return;
-
-    const calculateVisibleFounders = () => {
-      const container = foundersContainerRef.current;
-      if (!container) return;
-
-      // Get the parent container width (memberDetails) instead of the empty foundersInfo
-      const parentContainer = container.parentElement;
-      if (!parentContainer) return;
-
-      const containerWidth = parentContainer.offsetWidth;
-
-      // Get gap from computed styles
-      const gapWidth = 16; // Fixed gap from SCSS
-
-      // Get divider width
-      const divider = dividerRef.current;
-      const dividerWidth = divider ? divider.offsetWidth : 1;
-
-      // Get more tag width
-      const moreTag = moreTagRef.current;
-      const moreTagWidth = moreTag ? moreTag.offsetWidth : 50;
-
-      let totalWidthUsed = 0;
-      let count = 0;
-
-      // Maximum 4 founders can be shown
-      const maxFounders = Math.min(founders.length, 4);
-
-      // Try to fit founders one by one, considering individual widths
-      for (let i = 0; i < maxFounders; i++) {
-        const founderItem = founderItemsRef.current[i];
-        if (!founderItem) {
-          // If item not rendered yet, stop here
-          break;
-        }
-
-        const itemWidth = founderItem.offsetWidth;
-
-        // Add divider width if this isn't the first item
-        const currentDividerWidth = i > 0 ? dividerWidth : 0;
-        // Add gap width if this isn't the first item
-        const currentGapWidth = i > 0 ? gapWidth : 0;
-
-        // If there are more founders after this one, reserve space for the "+X" tag
-        const needsMoreTag = founders.length > i + 1;
-        const moreTagSpace = needsMoreTag ? moreTagWidth + dividerWidth + gapWidth : 0;
-
-        const widthNeeded = itemWidth + currentDividerWidth + currentGapWidth;
-        const potentialTotalWidth = totalWidthUsed + widthNeeded + moreTagSpace;
-
-        if (potentialTotalWidth <= containerWidth) {
-          totalWidthUsed += widthNeeded;
-          count = i + 1;
-        } else {
-          break;
-        }
-      }
-
-      // Ensure at least 1 founder is shown if there are any
-      const newCount = Math.max(1, count - 1);
-
-      // Only update if count changed to prevent infinite loops
-      if (newCount !== visibleFoundersCount) {
-        setVisibleFoundersCount(newCount);
-        // setIsCalculated(true);
-      }
-    };
-
-    // Initial calculation - use longer timeout to ensure DOM is ready
-    const timeoutId = setTimeout(() => {
-      calculateVisibleFounders();
-    }, 200);
-
-    // Recalculate on resize
-    const resizeObserver = new ResizeObserver(() => {
-      calculateVisibleFounders();
-    });
-
-    resizeObserver.observe(foundersContainerRef.current);
-
-    return () => {
-      clearTimeout(timeoutId);
-      resizeObserver.disconnect();
-    };
-  }, [founders, visibleFoundersCount]);
 
   return (
     <div className={s.profileHeader}>
@@ -230,7 +172,9 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
                     }}
                   />
                   <div className={s.founderText}>
-                    <div className={s.founderName}>{founder.name}</div>
+                    <div className={s.founderName} style={{ maxWidth: `${maxFounderNameWidth}px` }}>
+                      {founder.name}
+                    </div>
                     <div className={s.founderRole}>{founder.role || 'Co-Founder'}</div>
                   </div>
                 </Link>
@@ -260,7 +204,9 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
                         }}
                       />
                       <div className={s.founderText}>
-                        <div className={s.founderName}>{founder.name}</div>
+                        <div className={s.founderName} style={{ maxWidth: `${maxFounderNameWidth}px` }}>
+                          {founder.name}
+                        </div>
                         <div className={s.founderRole}>{founder.role || 'Co-Founder'}</div>
                       </div>
                     </Link>

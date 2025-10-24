@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { SyncParamsToUrl } from '@/components/core/SyncParamsToUrl';
@@ -13,10 +15,18 @@ import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { DemoDayState } from '@/app/actions/demo-day.actions';
 
-export const ActiveView = () => {
-  const { data: demoDayData } = useGetDemoDayState();
+interface ActiveViewProps {
+  initialDemoDayState?: DemoDayState;
+}
+
+export const ActiveView = ({ initialDemoDayState }: ActiveViewProps) => {
+  const { data: loadedDemoDayData } = useGetDemoDayState(initialDemoDayState);
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+
+  // Use initial data if available, otherwise use data from hook
+  const demoDayData = initialDemoDayState || loadedDemoDayData;
 
   // Analytics hooks
   const reportAnalytics = useReportAnalyticsEvent();

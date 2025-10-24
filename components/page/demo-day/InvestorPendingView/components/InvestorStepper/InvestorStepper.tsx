@@ -4,9 +4,11 @@ import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState
 import clsx from 'clsx';
 import { AddToCalendarModal } from '../AddToCalendarModal';
 import Link from 'next/link';
+import { DemoDayState } from '@/app/actions/demo-day.actions';
 
 interface StepperProps {
   currentStep: number;
+  initialDemoDayState?: DemoDayState;
   onFillProfile?: () => void;
   onAddToCalendar?: () => void;
   onGoToDemoDay?: () => void;
@@ -23,12 +25,14 @@ interface StepData {
 
 export const InvestorStepper: React.FC<StepperProps> = ({
   currentStep,
+  initialDemoDayState,
   onFillProfile,
   onAddToCalendar,
   onGoToDemoDay,
 }) => {
-  const { data } = useGetDemoDayState();
+  const { data: loadedDemoDayState } = useGetDemoDayState();
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const data = loadedDemoDayState || initialDemoDayState;
 
   const handleAddToCalendarClick = () => {
     onAddToCalendar?.();
@@ -192,7 +196,7 @@ const CalendarIcon = () => (
         filterUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB"
       >
-        <feFlood flood-opacity="0" result="BackgroundImageFix" />
+        <feFlood floodOpacity="0" result="BackgroundImageFix" />
         <feColorMatrix
           in="SourceAlpha"
           type="matrix"
@@ -235,9 +239,9 @@ const GoToDemoDayIcon = ({ color = '#1B4DFF' }: { color?: string }) => (
         width="24"
         height="24"
         filterUnits="userSpaceOnUse"
-        color-interpolation-filters="sRGB"
+        colorInterpolationFilters="sRGB"
       >
-        <feFlood flood-opacity="0" result="BackgroundImageFix" />
+        <feFlood floodOpacity="0" result="BackgroundImageFix" />
         <feColorMatrix
           in="SourceAlpha"
           type="matrix"

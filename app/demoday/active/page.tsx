@@ -1,29 +1,32 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { getDemoDayState } from '@/app/actions/demo-day.actions';
+import { IUserInfo } from '@/types/shared.types';
+import { redirect } from 'next/navigation';
 import { ActiveView } from '@/components/page/demo-day/ActiveView';
-import { LoadingView } from '@/components/page/demo-day/components/LoadingView';
 
-export default function ActivePage() {
-  const router = useRouter();
-  const { data } = useGetDemoDayState();
+export default async function ActivePage() {
+  const { userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
+  const parsedUserInfo: IUserInfo = userInfo;
 
-  useEffect(() => {
-    if (data?.access === 'none' || data?.status !== 'ACTIVE') {
-      router.replace('/demoday');
-      return;
+  // Fetch demo day state on the server side
+  let demoDayState = null;
+
+  if (isLoggedIn && parsedUserInfo?.uid) {
+    try {
+      const demoDayResult = await getDemoDayState(parsedUserInfo.uid, authToken);
+
+      demoDayState = demoDayResult?.data || null;
+    } catch (error) {
+      console.error('Error fetching demo day data:', error);
     }
-  }, [data?.access, data?.status, router]);
-
-  if (!data) {
-    return <LoadingView />;
   }
 
-  if (data?.access === 'none' || data?.status !== 'ACTIVE') {
-    return <LoadingView />;
+  // Server-side redirect logic
+  if (demoDayState) {
+    if (demoDayState.access === 'none' || demoDayState.status !== 'ACTIVE') {
+      redirect('/demoday');
+    }
   }
 
-  return <ActiveView />;
+  return <ActiveView initialDemoDayState={demoDayState || undefined} />;
 }

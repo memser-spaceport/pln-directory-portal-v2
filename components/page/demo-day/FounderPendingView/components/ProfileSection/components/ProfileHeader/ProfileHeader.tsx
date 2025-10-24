@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useRef } from 'react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 
@@ -28,6 +28,43 @@ interface ProfileHeaderProps {
 
 export const ProfileHeader = (props: ProfileHeaderProps) => {
   const { uid, image, name, description, fundingStage, tags, founders, classes } = props;
+
+  const foundersContainerRef = useRef<HTMLDivElement>(null);
+  const founderItemsRef = useRef<(HTMLAnchorElement | null)[]>([]);
+  const visibleFoundersCount = 4;
+
+  const maxFounderNameWidth = useMemo(() => {
+    if (!founders || founders.length <= 2) return 260;
+
+    const allWidth = 740;
+    const minNameWidth = 80;
+    const avatarWidth = 32;
+    const gapBetweenItems = 8;
+    const gapWithinItem = 8;
+    const dividerWidth = 1;
+
+    const effectiveFounderCount = Math.min(founders.length, 4);
+
+    let fixedSpace = 0;
+
+    fixedSpace += effectiveFounderCount * avatarWidth;
+    fixedSpace += effectiveFounderCount * gapWithinItem;
+    fixedSpace += (effectiveFounderCount - 1) * gapBetweenItems;
+
+    if (effectiveFounderCount > 1) {
+      fixedSpace += (effectiveFounderCount - 1) * dividerWidth;
+    }
+
+    if (founders.length > 4) {
+      const moreTagWidth = 80;
+      fixedSpace += moreTagWidth + gapBetweenItems;
+    }
+
+    const remainingSpace = allWidth - fixedSpace;
+    const widthPerFounder = remainingSpace / effectiveFounderCount;
+
+    return Math.floor(Math.max(minNameWidth, widthPerFounder));
+  }, [founders]);
 
   // Helper function to format funding stage
   const formatFundingStage = (stage: string) => {
@@ -107,17 +144,24 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
 
         {/* Founders Info */}
         {founders && founders.length > 0 && (
-          <div className={s.foundersInfo}>
-            {founders.map((founder, index) => (
-              <React.Fragment key={founder.uid}>
-                {index > 0 && <div className={s.founderDivider} />}
+          <div style={{ position: 'relative' }}>
+            {/* Hidden measurement container - renders ALL founders for measurement */}
+            <div
+              style={{
+                height: 0,
+                overflow: 'hidden',
+                pointerEvents: 'none',
+              }}
+            >
+              {founders.map((founder, index) => (
                 <Link
+                  key={`measure-${founder.uid}`}
                   href={`/members/${founder.uid}`}
-                  target="_blank"
                   className={s.founderItem}
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  ref={(el) => {
+                    if (el) founderItemsRef.current[index] = el as any;
                   }}
+                  style={{ display: 'inline-flex' }}
                 >
                   <div
                     className={s.founderAvatar}
@@ -128,12 +172,53 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
                     }}
                   />
                   <div className={s.founderText}>
-                    <div className={s.founderName}>{founder.name}</div>
+                    <div className={s.founderName} style={{ maxWidth: `${maxFounderNameWidth}px` }}>
+                      {founder.name}
+                    </div>
                     <div className={s.founderRole}>{founder.role || 'Co-Founder'}</div>
                   </div>
                 </Link>
-              </React.Fragment>
-            ))}
+              ))}
+            </div>
+
+            {/* Visible container - only renders calculated count */}
+            <div className={s.foundersInfo} ref={foundersContainerRef}>
+              {visibleFoundersCount !== null &&
+                founders.slice(0, visibleFoundersCount).map((founder, index) => (
+                  <React.Fragment key={founder.uid}>
+                    {index > 0 && <div className={s.founderDivider} />}
+                    <Link
+                      href={`/members/${founder.uid}`}
+                      target="_blank"
+                      className={s.founderItem}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                    >
+                      <div
+                        className={s.founderAvatar}
+                        style={{
+                          backgroundImage: founder.image?.url
+                            ? `url('${founder.image.url}')`
+                            : `url('${getDefaultAvatar(founder.name)}')`,
+                        }}
+                      />
+                      <div className={s.founderText}>
+                        <div className={s.founderName} style={{ maxWidth: `${maxFounderNameWidth}px` }}>
+                          {founder.name}
+                        </div>
+                        <div className={s.founderRole}>{founder.role || 'Co-Founder'}</div>
+                      </div>
+                    </Link>
+                  </React.Fragment>
+                ))}
+              {visibleFoundersCount !== null && founders.length > visibleFoundersCount && (
+                <>
+                  <div className={s.founderDivider} />
+                  <div className={s.moreFoundersTag}>+{founders.length - visibleFoundersCount}</div>
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -32,6 +32,10 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PENDING_VIEW_ADD_TO_CALENDAR_BUTTON_CLICKED);
   }
 
+  function onInvestorPendingViewGoToDemoDayButtonClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PENDING_VIEW_GO_TO_DEMO_DAY_BUTTON_CLICKED);
+  }
+
   function onInvestorProfilePageOpened(eventParams = {}) {
     captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_PAGE_OPENED, eventParams);
   }
@@ -182,6 +186,7 @@ export const useDemoDayAnalytics = () => {
     onInvestorPendingViewPageOpened,
     onInvestorPendingViewGoToInvestorProfileButtonClicked,
     onInvestorPendingViewAddToCalendarButtonClicked,
+    onInvestorPendingViewGoToDemoDayButtonClicked,
     onInvestorProfilePageOpened,
     onInvestorProfileEditStarted,
     onInvestorProfileUpdated,

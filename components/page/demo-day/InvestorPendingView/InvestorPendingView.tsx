@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+'use client';
+
+import React, { useEffect, useMemo } from 'react';
 import { getParsedValue } from '@/utils/common.utils';
+import { checkInvestorProfileComplete } from '@/utils/member.utils';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
-import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useGetEngagement } from '@/services/demo-day/hooks/useGetEngagement';
 import { InvestorStepper } from './components/InvestorStepper';
@@ -12,43 +13,31 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { LandingBase } from '../LandingBase';
+import { DemoDayState } from '@/app/actions/demo-day.actions';
 
-export const InvestorPendingView = () => {
+interface InvestorPendingViewProps {
+  initialDemoDayState?: DemoDayState;
+  initialMemberData?: any;
+}
+
+export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: InvestorPendingViewProps) => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
-  const router = useRouter();
-  const { data } = useGetDemoDayState();
-  const { data: memberData } = useMember(userInfo?.uid);
+  const { data: loadedMemberData } = useMember(userInfo?.uid);
+  const memberData = loadedMemberData?.memberInfo || initialMemberData;
   const { data: engagementData } = useGetEngagement();
 
   // Analytics hooks
-  const { onInvestorPendingViewGoToInvestorProfileButtonClicked, onInvestorPendingViewAddToCalendarButtonClicked } =
-    useDemoDayAnalytics();
+  const {
+    onInvestorPendingViewGoToInvestorProfileButtonClicked,
+    onInvestorPendingViewAddToCalendarButtonClicked,
+    onInvestorPendingViewGoToDemoDayButtonClicked,
+  } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
 
-  // Function to check if investor profile is complete
+  // Check if investor profile is complete
   const isInvestorProfileComplete = useMemo(() => {
-    if (!memberData?.memberInfo?.investorProfile) {
-      return false;
-    }
-
-    const { investorProfile, teamMemberRoles } = memberData.memberInfo;
-    const investmentTeams = teamMemberRoles?.filter((tmr: { investmentTeam: boolean }) => tmr.investmentTeam) ?? [];
-
-    // Check if all required fields are populated
-    // const hasInvestmentFocus = investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0;
-    const hasTypicalCheckSize = investorProfile.typicalCheckSize && investorProfile.typicalCheckSize > 0;
-    // const hasSecRulesAccepted = investorProfile.secRulesAccepted === true;
-
-    if (investorProfile.type === 'ANGEL') {
-      return hasTypicalCheckSize;
-    }
-
-    if (investorProfile.type === 'ANGEL_AND_FUND') {
-      return investmentTeams.length > 0 && hasTypicalCheckSize;
-    }
-
-    return !!investmentTeams.length;
-  }, [memberData]);
+    return checkInvestorProfileComplete(memberData, userInfo);
+  }, [memberData, userInfo]);
 
   // Determine current step based on profile completion and calendar added
   const currentStep = useMemo(() => {
@@ -72,7 +61,7 @@ export const InvestorPendingView = () => {
   useDemoDayPageViewAnalytics(
     'onInvestorPendingViewPageOpened',
     DEMO_DAY_ANALYTICS.ON_INVESTOR_PENDING_VIEW_PAGE_OPENED,
-    '/demoday',
+    '/demoday/investor',
     {
       currentStep: currentStep,
       isProfileComplete: isInvestorProfileComplete,
@@ -94,7 +83,7 @@ export const InvestorPendingView = () => {
         userId: userInfo.uid,
         userEmail: userInfo.email,
         userName: userInfo.name,
-        path: '/demoday',
+        path: '/demoday/investor',
         timestamp: new Date().toISOString(),
         currentStep: currentStep,
         targetPath: `/members/${userInfo.uid}`,
@@ -122,7 +111,31 @@ export const InvestorPendingView = () => {
         userId: userInfo.uid,
         userEmail: userInfo.email,
         userName: userInfo.name,
-        path: '/demoday',
+        path: '/demoday/investor',
+        timestamp: new Date().toISOString(),
+        currentStep: currentStep,
+      },
+    };
+
+    reportAnalytics.mutate(buttonClickEvent);
+  };
+
+  const handleGoToDemoDay = () => {
+    if (!userInfo?.email) {
+      return;
+    }
+
+    // Report button click analytics
+    onInvestorPendingViewGoToDemoDayButtonClicked();
+
+    const buttonClickEvent: TrackEventDto = {
+      name: DEMO_DAY_ANALYTICS.ON_INVESTOR_PENDING_VIEW_GO_TO_DEMO_DAY_BUTTON_CLICKED,
+      distinctId: userInfo.email,
+      properties: {
+        userId: userInfo.uid,
+        userEmail: userInfo.email,
+        userName: userInfo.name,
+        path: '/demoday/investor',
         timestamp: new Date().toISOString(),
         currentStep: currentStep,
       },
@@ -132,11 +145,13 @@ export const InvestorPendingView = () => {
   };
 
   return (
-    <LandingBase>
+    <LandingBase initialDemoDayState={initialDemoDayState}>
       <InvestorStepper
+        initialDemoDayState={initialDemoDayState}
         currentStep={currentStep}
         onFillProfile={handleFillProfile}
         onAddToCalendar={handleAddToCalendar}
+        onGoToDemoDay={handleGoToDemoDay}
       />
     </LandingBase>
   );

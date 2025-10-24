@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { SyncParamsToUrl } from '@/components/core/SyncParamsToUrl';
@@ -13,22 +15,35 @@ import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { DemoDayState } from '@/app/actions/demo-day.actions';
 
-export const ActiveView = () => {
-  const { data: demoDayData } = useGetDemoDayState();
+interface ActiveViewProps {
+  initialDemoDayState?: DemoDayState;
+}
+
+export const ActiveView = ({ initialDemoDayState }: ActiveViewProps) => {
+  const { data: loadedDemoDayData } = useGetDemoDayState(initialDemoDayState);
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+
+  // Use initial data if available, otherwise use data from hook
+  const demoDayData = loadedDemoDayData || initialDemoDayState;
 
   // Analytics hooks
   const reportAnalytics = useReportAnalyticsEvent();
 
   // Page view analytics - triggers only once on mount
-  useDemoDayPageViewAnalytics('onActiveViewPageOpened', DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_PAGE_OPENED, '/demoday', {
-    demoDayTitle: demoDayData?.title,
-    demoDayDate: demoDayData?.date,
-    demoDayStatus: demoDayData?.status,
-    teamsCount: demoDayData?.teamsCount,
-    investorsCount: demoDayData?.investorsCount,
-  });
+  useDemoDayPageViewAnalytics(
+    'onActiveViewPageOpened',
+    DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_PAGE_OPENED,
+    '/demoday/active',
+    {
+      demoDayTitle: demoDayData?.title,
+      demoDayDate: demoDayData?.date,
+      demoDayStatus: demoDayData?.status,
+      teamsCount: demoDayData?.teamsCount,
+      investorsCount: demoDayData?.investorsCount,
+    },
+  );
 
   // Time on page tracking
   useTimeOnPage({
@@ -42,7 +57,7 @@ export const ActiveView = () => {
             userId: userInfo.uid,
             userEmail: userInfo.email,
             userName: userInfo.name,
-            path: '/demoday',
+            path: '/demoday/active',
             timestamp: new Date().toISOString(),
             timeSpent: timeSpent,
             eventId: sessionId,

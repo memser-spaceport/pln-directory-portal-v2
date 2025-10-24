@@ -3,11 +3,15 @@ import s from './InvestorStepper.module.scss';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import clsx from 'clsx';
 import { AddToCalendarModal } from '../AddToCalendarModal';
+import Link from 'next/link';
+import { DemoDayState } from '@/app/actions/demo-day.actions';
 
 interface StepperProps {
   currentStep: number;
+  initialDemoDayState?: DemoDayState;
   onFillProfile?: () => void;
   onAddToCalendar?: () => void;
+  onGoToDemoDay?: () => void;
 }
 
 interface StepData {
@@ -19,13 +23,24 @@ interface StepData {
   height?: number;
 }
 
-export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillProfile, onAddToCalendar }) => {
-  const { data } = useGetDemoDayState();
+export const InvestorStepper: React.FC<StepperProps> = ({
+  currentStep,
+  initialDemoDayState,
+  onFillProfile,
+  onAddToCalendar,
+  onGoToDemoDay,
+}) => {
+  const { data: loadedDemoDayState } = useGetDemoDayState();
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const data = loadedDemoDayState || initialDemoDayState;
 
   const handleAddToCalendarClick = () => {
     onAddToCalendar?.();
     setIsCalendarModalOpen(true);
+  };
+
+  const handleGoToDemoDayClick = () => {
+    onGoToDemoDay?.();
   };
 
   // Format the date for Step 3 description
@@ -42,12 +57,16 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
     return `${month} ${day} at ${time} UTC`;
   };
 
+  // Check if demoday is active
+  const isDemoDayActive = data?.status === 'ACTIVE';
+
   const eventDateFormatted = data?.date ? formatEventDate(data.date) : '12:00 UTC, Oct 25';
 
   // Determine Step 2 status and description
   const step2Status = currentStep > 2 ? 'completed' : currentStep === 2 ? 'current' : 'pending';
-  const step2Description =
-    step2Status === 'completed'
+  const step2Description = isDemoDayActive
+    ? `You're all set for Demo Day!`
+    : step2Status === 'completed'
       ? `You're all set for Demo Day! Return to this page on ${eventDateFormatted} to join the event.`
       : `Return to this page on ${eventDateFormatted} to join the event.`;
 
@@ -55,7 +74,20 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
   const step1Status = currentStep > 1 ? 'completed' : currentStep === 1 ? 'current' : 'pending';
   const step1ButtonClass = step1Status === 'completed' ? s.secondaryButton : s.primaryButton;
   const step2ButtonClass =
-    step1Status === 'completed' && step2Status !== 'completed' ? s.primaryButton : s.secondaryButton;
+    step1Status === 'completed' && (isDemoDayActive || step2Status !== 'completed')
+      ? s.primaryButton
+      : s.secondaryButton;
+
+  // Step 2 children based on demoday status
+  const step2Children = isDemoDayActive ? (
+    <Link href="/demoday/active" className={step2ButtonClass} onClick={handleGoToDemoDayClick}>
+      <GoToDemoDayIcon color={step1Status === 'completed' ? 'white' : '#1B4DFF'} /> Go to Demo Day
+    </Link>
+  ) : (
+    <button className={step2ButtonClass} onClick={handleAddToCalendarClick}>
+      <CalendarIcon /> Add to your Calendar
+    </button>
+  );
 
   const steps: StepData[] = [
     {
@@ -68,7 +100,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
     {
       id: 1,
       title: 'Step 1',
-      description: 'Complete your investor profile',
+      description: "Complete your investor profile: shared with founders when you're introduced",
       status: step1Status,
       children: (
         <button className={step1ButtonClass} onClick={onFillProfile}>
@@ -82,11 +114,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({ currentStep, onFillPro
       title: 'Step 2',
       description: step2Description,
       status: step2Status,
-      children: (
-        <button className={step2ButtonClass} onClick={handleAddToCalendarClick}>
-          <CalendarIcon /> Add to your Calendar
-        </button>
-      ),
+      children: step2Children,
       height: 120,
     },
   ];
@@ -168,7 +196,7 @@ const CalendarIcon = () => (
         filterUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB"
       >
-        <feFlood flood-opacity="0" result="BackgroundImageFix" />
+        <feFlood floodOpacity="0" result="BackgroundImageFix" />
         <feColorMatrix
           in="SourceAlpha"
           type="matrix"
@@ -192,5 +220,50 @@ const CompletedIcon = () => (
       d="M10.5 1.875C8.89303 1.875 7.32214 2.35152 5.986 3.24431C4.64985 4.1371 3.60844 5.40605 2.99348 6.8907C2.37852 8.37535 2.21762 10.009 2.53112 11.5851C2.84463 13.1612 3.61846 14.6089 4.75476 15.7452C5.89106 16.8815 7.3388 17.6554 8.9149 17.9689C10.491 18.2824 12.1247 18.1215 13.6093 17.5065C15.094 16.8916 16.3629 15.8502 17.2557 14.514C18.1485 13.1779 18.625 11.607 18.625 10C18.6227 7.84581 17.766 5.78051 16.2427 4.25727C14.7195 2.73403 12.6542 1.87727 10.5 1.875ZM14.0672 8.56719L9.69219 12.9422C9.63415 13.0003 9.56522 13.0464 9.48934 13.0779C9.41347 13.1093 9.33214 13.1255 9.25 13.1255C9.16787 13.1255 9.08654 13.1093 9.01067 13.0779C8.93479 13.0464 8.86586 13.0003 8.80782 12.9422L6.93282 11.0672C6.81554 10.9499 6.74966 10.7909 6.74966 10.625C6.74966 10.4591 6.81554 10.3001 6.93282 10.1828C7.05009 10.0655 7.20915 9.99965 7.375 9.99965C7.54086 9.99965 7.69992 10.0655 7.81719 10.1828L9.25 11.6164L13.1828 7.68281C13.2409 7.62474 13.3098 7.57868 13.3857 7.54725C13.4616 7.51583 13.5429 7.49965 13.625 7.49965C13.7071 7.49965 13.7884 7.51583 13.8643 7.54725C13.9402 7.57868 14.0091 7.62474 14.0672 7.68281C14.1253 7.74088 14.1713 7.80982 14.2027 7.88569C14.2342 7.96156 14.2504 8.04288 14.2504 8.125C14.2504 8.20712 14.2342 8.28844 14.2027 8.36431C14.1713 8.44018 14.1253 8.50912 14.0672 8.56719Z"
       fill="#1B4DFF"
     />
+  </svg>
+);
+
+const GoToDemoDayIcon = ({ color = '#1B4DFF' }: { color?: string }) => (
+  <svg width="22" height="23" viewBox="0 0 22 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g filter="url(#filter0_dd_10958_40759)">
+      <path
+        d="M17.4563 5.56043L11.2688 2.17348C11.062 2.05968 10.8298 2 10.5938 2C10.3577 2 10.1255 2.05968 9.91875 2.17348L3.73125 5.56043C3.50985 5.68158 3.32513 5.86007 3.19647 6.07718C3.0678 6.2943 2.99994 6.54204 3 6.79442V13.5177C2.99994 13.7701 3.0678 14.0178 3.19647 14.2349C3.32513 14.4521 3.50985 14.6305 3.73125 14.7517L9.91875 18.1386C10.1255 18.2526 10.3577 18.3123 10.5938 18.3123C10.8298 18.3123 11.062 18.2526 11.2688 18.1386L17.4563 14.7517C17.6777 14.6305 17.8624 14.4521 17.991 14.2349C18.1197 14.0178 18.1876 13.7701 18.1875 13.5177V6.79442C18.1876 6.54204 18.1197 6.2943 17.991 6.07718C17.8624 5.86007 17.6777 5.68158 17.4563 5.56043ZM16.5 13.3511L10.5938 16.5854L4.6875 13.3511V6.96106L10.5938 3.72668L16.5 6.96106V13.3511Z"
+        fill={color}
+      />
+    </g>
+    <defs>
+      <filter
+        id="filter0_dd_10958_40759"
+        x="-1.40625"
+        y="-0.843933"
+        width="24"
+        height="24"
+        filterUnits="userSpaceOnUse"
+        colorInterpolationFilters="sRGB"
+      >
+        <feFlood floodOpacity="0" result="BackgroundImageFix" />
+        <feColorMatrix
+          in="SourceAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          result="hardAlpha"
+        />
+        <feOffset dy="1" />
+        <feGaussianBlur stdDeviation="1" />
+        <feColorMatrix type="matrix" values="0 0 0 0 0.054902 0 0 0 0 0.0588235 0 0 0 0 0.0666667 0 0 0 0.06 0" />
+        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_10958_40759" />
+        <feColorMatrix
+          in="SourceAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          result="hardAlpha"
+        />
+        <feOffset dy="1" />
+        <feGaussianBlur stdDeviation="1.5" />
+        <feColorMatrix type="matrix" values="0 0 0 0 0.054902 0 0 0 0 0.0588235 0 0 0 0 0.0666667 0 0 0 0.12 0" />
+        <feBlend mode="normal" in2="effect1_dropShadow_10958_40759" result="effect2_dropShadow_10958_40759" />
+        <feBlend mode="normal" in="SourceGraphic" in2="effect2_dropShadow_10958_40759" result="shape" />
+      </filter>
+    </defs>
   </svg>
 );

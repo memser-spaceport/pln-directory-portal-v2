@@ -8,15 +8,21 @@ import { LogosGrid } from '@/components/common/LogosGrid';
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
 import { CountdownComponent } from '@/components/common/Countdown';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
+import { DemoDayState } from '@/app/actions/demo-day.actions';
 
 import { Footer } from './components/Footer';
 
 import s from './LandingBase.module.scss';
 
-export function LandingBase(props: PropsWithChildren) {
-  const { children } = props;
+interface LandingBaseProps {
+  initialDemoDayState?: DemoDayState;
+}
 
-  const { data } = useGetDemoDayState();
+export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
+  const { children, initialDemoDayState } = props;
+
+  const { data: loadedDemoDayData } = useGetDemoDayState(initialDemoDayState);
+  const data = loadedDemoDayData || initialDemoDayState;
 
   return (
     <div className={s.root}>
@@ -29,7 +35,7 @@ export function LandingBase(props: PropsWithChildren) {
               <CountdownComponent targetDate={data?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />
             </div>
 
-            <PageTitle />
+            <PageTitle initialDemoDayState={initialDemoDayState} />
           </div>
 
           {children}

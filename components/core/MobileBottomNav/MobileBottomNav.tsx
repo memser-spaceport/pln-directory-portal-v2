@@ -122,7 +122,7 @@ export function MobileBottomNav() {
               if (
                 item.href === '/demoday' &&
                 (!demoDayState ||
-                  (demoDayState.access === 'none' && demoDayState.status === 'NONE') ||
+                  demoDayState.status === 'NONE' ||
                   (demoDayState.access === 'none' && demoDayState.status === 'COMPLETED'))
               ) {
                 return false;

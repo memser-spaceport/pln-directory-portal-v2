@@ -1,9 +1,11 @@
 @use 'styles/media';
+@use 'styles/mixins';
 
 .profileHeader {
   display: flex;
   gap: 20px;
   align-items: flex-start;
+  width: 100%;
 
   @include media.mobile-only {
     gap: 12px;
@@ -162,19 +164,23 @@
   gap: 10px;
   align-items: center;
   margin-top: 4px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  min-width: 0;
 
   @include media.mobile-only {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
   }
 }
 
 .founderItem {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   flex-shrink: 0;
+  text-decoration: none;
+  transition: all 0.2s ease;
 
   &:hover .founderName {
     color: #1b4dff;
@@ -182,8 +188,8 @@
 }
 
 .founderAvatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 9999px;
   background-size: cover;
   background-position: 50% 50%;
@@ -201,30 +207,47 @@
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   font-size: 14px;
-  line-height: 24px;
-  letter-spacing: -0.3px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
   color: #455468;
+  transition: color 0.2s ease;
+
+  @include mixins.ellipse-text;
 }
 
 .founderRole {
   font-family: 'Inter', sans-serif;
   font-weight: 400;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 18px;
-  letter-spacing: -0.2px;
-  color: #455468;
+  color: #64748b;
 }
 
 .founderDivider {
   width: 1px;
-  height: 40px;
-  background: #0e0f11;
-  opacity: 0.1;
+  height: 38px;
+  background: #d7dfe9;
   flex-shrink: 0;
 
   @include media.mobile-only {
     display: none;
   }
+}
+
+.moreFoundersTag {
+  display: flex;
+  padding: 4px 10px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 24px;
+  background: rgba(14, 15, 17, 0.06);
+  color: #455468;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  flex-shrink: 0;
 }
 
 .externalLinkIcon {

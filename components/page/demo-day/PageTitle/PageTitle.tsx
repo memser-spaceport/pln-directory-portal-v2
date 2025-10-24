@@ -15,7 +15,7 @@ interface PageTitleProps {
 export function PageTitle(props: PageTitleProps) {
   const { size = 'large', showDate = true, initialDemoDayState } = props;
   const { data: loadedDemoDayData } = useGetDemoDayState(initialDemoDayState);
-  const data = initialDemoDayState || loadedDemoDayData;
+  const data = loadedDemoDayData || initialDemoDayState;
 
   const { date } = data || {};
 

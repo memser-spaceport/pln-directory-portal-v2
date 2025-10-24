@@ -26,7 +26,7 @@ export const ActiveView = ({ initialDemoDayState }: ActiveViewProps) => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
   // Use initial data if available, otherwise use data from hook
-  const demoDayData = initialDemoDayState || loadedDemoDayData;
+  const demoDayData = loadedDemoDayData || initialDemoDayState;
 
   // Analytics hooks
   const reportAnalytics = useReportAnalyticsEvent();

@@ -22,7 +22,7 @@ export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
   const { children, initialDemoDayState } = props;
 
   const { data: loadedDemoDayData } = useGetDemoDayState(initialDemoDayState);
-  const data = initialDemoDayState || loadedDemoDayData;
+  const data = loadedDemoDayData || initialDemoDayState;
 
   return (
     <div className={s.root}>

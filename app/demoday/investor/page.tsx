@@ -37,17 +37,13 @@ export default async function InvestorPage() {
 
   // Server-side redirect logic for completed investor profiles when demo day is active
   if (demoDayState.status === 'ACTIVE') {
-    try {
-      memberResult = await getMemberInfo(parsedUserInfo.uid, authToken);
+    memberResult = await getMemberInfo(parsedUserInfo.uid, authToken);
 
-      if (!memberResult?.isError && memberResult?.data) {
-        const isInvestorProfileComplete = checkInvestorProfileComplete(memberResult.data, parsedUserInfo);
-        if (isInvestorProfileComplete) {
-          redirect('/demoday/active');
-        }
+    if (!memberResult?.isError && memberResult?.data) {
+      const isInvestorProfileComplete = checkInvestorProfileComplete(memberResult.data, parsedUserInfo);
+      if (isInvestorProfileComplete) {
+        redirect('/demoday/active');
       }
-    } catch (error) {
-      console.error('Error checking investor profile completion:', error);
     }
   }
 

@@ -132,7 +132,6 @@
   align-self: stretch;
   border-radius: 0 0 12px 12px;
   background: #fff;
-  z-index: 1;
   position: relative;
 }
 
@@ -162,6 +161,11 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+}
+
+.teamName {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .secondaryText {

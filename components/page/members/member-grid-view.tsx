@@ -84,7 +84,9 @@ const MemberGridView = (props: IMemberGridView) => {
             <h3 className={s.primaryText}>{member?.name}</h3>
             <div className={s.positionDetails}>
               <div className={s.secondaryText}>
-                {member?.teams?.length > 0 ? mainTeam?.name : '-'}{' '}
+                <span className={s.teamName} title={mainTeam?.name}>
+                  {member?.teams?.length > 0 ? mainTeam?.name : '-'}{' '}
+                </span>
                 <span>
                   {member?.teams?.length > 2 && (
                     <Tooltip

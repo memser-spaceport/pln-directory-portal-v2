@@ -41,11 +41,12 @@ export async function getDemoDayState(memberUid?: string) {
   return data;
 }
 
-export function useGetDemoDayState() {
+export function useGetDemoDayState(initialData?: any) {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
   return useQuery({
     queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATE, userInfo?.uid],
     queryFn: () => getDemoDayState(userInfo.uid),
+    initialData,
   });
 }

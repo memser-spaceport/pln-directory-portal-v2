@@ -11,7 +11,11 @@ export default async function ActivePage() {
   // Fetch demo day state on the server side
   let demoDayState = null;
 
-  if (isLoggedIn && parsedUserInfo?.uid) {
+  if (!isLoggedIn || !parsedUserInfo?.uid) {
+    redirect('/demoday');
+  }
+
+  if (parsedUserInfo?.uid) {
     try {
       const demoDayResult = await getDemoDayState(parsedUserInfo.uid, authToken);
 

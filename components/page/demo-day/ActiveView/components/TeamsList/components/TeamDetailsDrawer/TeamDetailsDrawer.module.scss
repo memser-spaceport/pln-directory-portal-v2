@@ -19,7 +19,7 @@
 .drawerContainer {
   background: white;
   width: 780px;
-  height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -348,8 +348,9 @@
   flex-wrap: wrap;
 
   @media (max-width: 720px) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
-    flex-direction: column;
 
     .primaryButton,
     .secondaryButton {

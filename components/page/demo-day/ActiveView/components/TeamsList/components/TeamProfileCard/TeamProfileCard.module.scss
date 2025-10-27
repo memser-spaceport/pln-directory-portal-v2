@@ -36,15 +36,17 @@
 }
 
 .actions {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   justify-content: flex-end;
-  gap: 16px;
+  gap: 8px;
   width: 100%;
 
   @include media.tablet-landscape {
+    display: flex;
     flex-direction: row;
+    gap: 16px;
   }
 }
 
@@ -62,11 +64,15 @@
   box-shadow: 0 -1px 4px 0 var(--transparent-brand-8, rgba(27, 77, 255, 0.08)) inset;
 
   color: var(--action-foreground-brand-inverted_normal, #1b4dff);
-  font-size: 14px;
+  font-size: 12px;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+
+  @include media.tablet-landscape {
+    font-size: 14px;
+  }
 
   &:disabled {
     opacity: 0.5;

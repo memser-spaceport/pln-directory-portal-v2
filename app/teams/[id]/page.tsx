@@ -51,6 +51,15 @@ async function Page({ params }: { params: ITeamDetailParams }) {
     return <Error />;
   }
 
+  function hasInvestorData() {
+    return (
+      team.investorProfile?.investmentFocus?.length ||
+      team.investorProfile?.investInStartupStages?.length ||
+      team.investorProfile?.investInFundTypes?.length ||
+      team.investorProfile?.typicalCheckSize
+    );
+  }
+
   return (
     <>
       <div className={styles?.teamDetail}>
@@ -61,7 +70,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
 
-          {isLoggedIn && team.investorProfile && (
+          {isLoggedIn && team.investorProfile && !!hasInvestorData() && (
             <div className={clsx(s.root)}>
               <InvestorProfileView
                 investmentFocusAreas={team?.investorProfile?.investmentFocus}

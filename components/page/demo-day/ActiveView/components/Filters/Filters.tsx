@@ -135,7 +135,7 @@ export const Filters = () => {
     }
 
     if (referredCount > 0) {
-      options.push({ id: 'referral', name: 'Intros', count: referredCount });
+      options.push({ id: 'referral', name: 'Intros made', count: referredCount });
     }
 
     return options;

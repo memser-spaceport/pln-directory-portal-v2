@@ -1,4 +1,5 @@
 @use 'styles/media';
+@use 'styles/mixins';
 
 .profileCard {
   display: flex;
@@ -105,10 +106,15 @@
 }
 
 .editButtonContainer {
+  display: none;
   position: absolute;
   top: 20px;
   right: 20px;
   z-index: 1;
+
+  @include media.tablet-landscape {
+    display: block;
+  }
 }
 
 .drawerEditButton {
@@ -185,5 +191,9 @@
 }
 
 .teamName {
-  padding-right: 110px;
+  @include media.tablet-landscape {
+    padding-right: 110px;
+  }
+
+  @include mixins.clampLines(2);
 }

@@ -87,8 +87,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
   return (
     <LandingBase initialDemoDayState={initialDemoDayState}>
       <div className={s.root}>
-        {!userInfo && <LoginBtn className={clsx(s.btn, s.loginButton)}>Already Approved? Log In</LoginBtn>}
-
+        {' '}
         <a
           href={INVITE_FORM_URL}
           target="_blank"
@@ -96,8 +95,11 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
           className={s.link}
           onClick={handleRequestInviteClick}
         >
-          <button className={clsx(s.btn, s.primaryButton)}>Register</button>
+          <button className={clsx(s.btn, s.registerButton, userInfo ? s.primaryButton : s.secondaryButton)}>
+            Register
+          </button>
         </a>
+        {!userInfo && <LoginBtn className={clsx(s.btn, s.primaryButton)}>Already Approved? Log In</LoginBtn>}
       </div>
     </LandingBase>
   );

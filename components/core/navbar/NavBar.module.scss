@@ -51,9 +51,17 @@ $text-color: #475569;
   flex: 1;
 }
 
+.menuItem {
+  display: none;
+
+  @include media.tablet-landscape {
+    display: initial;
+  }
+}
+
 .Trigger {
   box-sizing: border-box;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
@@ -76,10 +84,6 @@ $text-color: #475569;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 142.857% */
-
-  @include media.tablet-landscape {
-    display: flex;
-  }
 
   @media (hover: hover) {
     &:hover {

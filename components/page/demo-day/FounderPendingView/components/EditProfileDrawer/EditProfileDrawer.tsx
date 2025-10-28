@@ -6,7 +6,7 @@ import { SuccessAlert } from '../SuccessAlert';
 import s from './EditProfileDrawer.module.scss';
 import { clsx } from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue } from '@/utils/common.utils';
+import { getParsedValue, getSocialLinkUrl } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import Link from 'next/link';
@@ -510,6 +510,42 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
                   <p className={s.drawerMemberDescription}>{data?.team.shortDescription}</p>
                 </div>
                 <div className={s.drawerTagList}>
+                  {data?.team?.website && (
+                    <>
+                      <a
+                        href={getSocialLinkUrl(data.team.website, 'website')}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={s.drawerWebsiteTag}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path
+                            d="M8 14.5C11.5899 14.5 14.5 11.5899 14.5 8C14.5 4.41015 11.5899 1.5 8 1.5C4.41015 1.5 1.5 4.41015 1.5 8C1.5 11.5899 4.41015 14.5 8 14.5Z"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M1.5 8H14.5"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M8 1.5C9.65685 3.34315 10.5 5.66667 10.5 8C10.5 10.3333 9.65685 12.6569 8 14.5C6.34315 12.6569 5.5 10.3333 5.5 8C5.5 5.66667 6.34315 3.34315 8 1.5Z"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        {data.team.website}
+                      </a>
+                      <div className={s.drawerTagDivider} />
+                    </>
+                  )}
                   <div className={s.drawerStageTag}>Stage: {data?.team?.fundingStage?.title}</div>
                   <div className={s.drawerTagDivider} />
                   {data?.team.industryTags.map((tag) => (

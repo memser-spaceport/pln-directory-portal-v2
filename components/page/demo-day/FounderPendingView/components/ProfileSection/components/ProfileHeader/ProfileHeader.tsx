@@ -116,7 +116,7 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
             <h2 className={clsx(s.memberName, classes?.name)}>
               {name}{' '}
               {uid && (
-                <Link className={s.externalLinkIcon} href={`/teams/${uid}`} target="_blank">
+                <Link className={s.externalLinkIcon} href={`/teams/${uid}?backTo=/demoday`} target="_blank">
                   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                     <path
                       d="M13.5 4.5L4.5 13.5M13.5 4.5H8.25M13.5 4.5V9.75"

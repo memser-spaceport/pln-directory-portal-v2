@@ -81,7 +81,7 @@ function Navbar(props: Readonly<INavbar>) {
         <Link href="/home" onClick={onNavbarApplogoClicked} className={s.logoWrapper}>
           <AppLogo />
         </Link>
-        <NavigationMenu.Item>
+        <NavigationMenu.Item className={s.menuItem}>
           <NavigationMenu.Trigger className={s.Trigger}>
             <DirectoryIcon /> Directory
             <NavigationMenu.Icon className={s.Icon}>
@@ -108,17 +108,17 @@ function Navbar(props: Readonly<INavbar>) {
             </ul>
           </NavigationMenu.Content>
         </NavigationMenu.Item>
-        <NavigationMenu.Item>
+        <NavigationMenu.Item className={s.menuItem}>
           <Link className={s.Trigger} href="/events" onClick={() => onNavItemClickHandler('/events', 'Events')}>
             <EventsIcon /> Events
           </Link>
         </NavigationMenu.Item>
-        <NavigationMenu.Item>
+        <NavigationMenu.Item className={s.menuItem}>
           <Link className={s.Trigger} href="/forum?cid=0" onClick={() => onNavItemClickHandler('/forum', 'Forum')}>
             <ForumIcon /> Forum
           </Link>
         </NavigationMenu.Item>
-        <NavigationMenu.Item>
+        <NavigationMenu.Item className={s.menuItem}>
           <Link className={s.Trigger} href="/demoday" onClick={() => onNavItemClickHandler('/demoday', 'Demo Day')}>
             <DemoDayIcon /> Demo Day
           </Link>

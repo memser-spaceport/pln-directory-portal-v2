@@ -28,6 +28,7 @@ interface EditProfileFormData {
   shortDescription: string;
   tags: { value: string; label: string }[];
   fundingStage: { value: string; label: string } | null;
+  website: string;
 }
 
 interface Props {
@@ -65,6 +66,7 @@ const schema = yup.object().shape({
       label: yup.string().required('Company Stage is required'),
     })
     .nullable(),
+  website: yup.string().defined(),
 });
 
 export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props) => {
@@ -116,6 +118,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
       fundingStage: profileData?.team?.fundingStage
         ? formatFundingStageForForm(profileData.team.fundingStage.uid)
         : null,
+      website: profileData?.team?.website || '',
     },
     resolver: yupResolver(schema),
   });
@@ -131,6 +134,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
         fundingStage: profileData.team?.fundingStage
           ? formatFundingStageForForm(profileData.team.fundingStage.uid)
           : null,
+        website: profileData.team?.website || '',
       });
     }
   }, [profileData, methods]);
@@ -152,6 +156,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
         industryTags: formData.tags.map((t) => t.value),
         fundingStage: formData.fundingStage?.value || profileData?.team?.fundingStage?.uid || '',
         logo: image || profileData?.team.logo?.uid,
+        website: formData.website,
         teamUid: isDirectoryAdmin ? profileDataProp?.teamUid : undefined, // Include teamUid if editing another team (admin)
       };
 
@@ -274,6 +279,10 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
               placeholder="Select your current company stage"
               options={options.fundingStageOptions}
             />
+          </div>
+
+          <div className={s.row}>
+            <FormField name="website" label="Website" placeholder="Enter your website URL" />
           </div>
         </div>
       </form>

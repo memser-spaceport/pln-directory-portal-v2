@@ -17,6 +17,7 @@ export type TeamProfile = {
     name: string;
     shortDescription: string;
     uid: string;
+    website?: string;
   };
   teamUid: string;
   uid: string;

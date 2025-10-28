@@ -42,6 +42,7 @@ export type FundraisingProfile = {
       title: string;
     };
     logo: { uid: string; url: string } | null;
+    website?: string;
   };
   onePagerUploadUid: string | null;
   onePagerUpload: UploadInfo | null;

@@ -3,6 +3,7 @@ import { clsx } from 'clsx';
 import Link from 'next/link';
 
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { getSocialLinkUrl } from '@/utils/common.utils';
 
 import s from './ProfileHeader.module.scss';
 
@@ -21,13 +22,14 @@ interface ProfileHeaderProps {
   fundingStage?: string;
   tags: string[];
   founders?: Founder[];
+  website?: string;
   classes?: {
     name?: string;
   };
 }
 
 export const ProfileHeader = (props: ProfileHeaderProps) => {
-  const { uid, image, name, description, fundingStage, tags, founders, classes } = props;
+  const { uid, image, name, description, fundingStage, tags, founders, website, classes } = props;
 
   const foundersContainerRef = useRef<HTMLDivElement>(null);
   const founderItemsRef = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -133,6 +135,42 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
           <p className={s.memberDescription}>{description}</p>
         </div>
         <div className={s.tagList}>
+          {website && (
+            <>
+              <a
+                href={getSocialLinkUrl(website, 'website')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={s.websiteTag}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M8 14.5C11.5899 14.5 14.5 11.5899 14.5 8C14.5 4.41015 11.5899 1.5 8 1.5C4.41015 1.5 1.5 4.41015 1.5 8C1.5 11.5899 4.41015 14.5 8 14.5Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M1.5 8H14.5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M8 1.5C9.65685 3.34315 10.5 5.66667 10.5 8C10.5 10.3333 9.65685 12.6569 8 14.5C6.34315 12.6569 5.5 10.3333 5.5 8C5.5 5.66667 6.34315 3.34315 8 1.5Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                {website}
+              </a>
+              <div className={s.tagDivider} />
+            </>
+          )}
           <div className={s.stageTag}>Stage: {fundingStage ? formatFundingStage(fundingStage) : 'Not specified'}</div>
           {tags && tags.length > 0 && (
             <>

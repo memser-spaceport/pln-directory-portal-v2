@@ -292,6 +292,31 @@
   color: #455468;
 }
 
+.drawerWebsiteTag {
+  background: rgba(27, 77, 255, 0.04);
+  border-radius: 9999px;
+  padding: 2px 8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #4174ff;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  text-decoration: none;
+  transition: background 0.2s ease;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.08);
+  }
+}
+
 .teamMembersSection {
   background: white;
   display: flex;

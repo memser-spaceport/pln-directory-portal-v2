@@ -391,7 +391,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         >
           {team.invested ? (
             <>
-              💰 Invested in Company
+              💰 Invest in Company
               <CheckIcon />
             </>
           ) : (

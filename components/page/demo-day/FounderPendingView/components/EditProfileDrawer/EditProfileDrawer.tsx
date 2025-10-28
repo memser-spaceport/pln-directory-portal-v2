@@ -695,7 +695,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
           >
             {team?.invested ? (
               <>
-                💰 Invested in Company
+                💰 Invest in Company
                 <CheckIcon />
               </>
             ) : (

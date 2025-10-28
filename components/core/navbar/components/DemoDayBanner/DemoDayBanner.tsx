@@ -23,10 +23,14 @@ export function DemoDayBanner() {
   const getOrdinalSuffix = (day: number) => {
     if (day > 3 && day < 21) return 'th';
     switch (day % 10) {
-      case 1: return 'st';
-      case 2: return 'nd';
-      case 3: return 'rd';
-      default: return 'th';
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
     }
   };
 
@@ -43,7 +47,7 @@ export function DemoDayBanner() {
   return (
     <HighlightsBar>
       <div className={s.root}>
-        PL F25 Demo Day is now live and available for async viewing now through November 6.{' '}
+        PL F25 Demo Day is now live with async viewing available through November 6.{' '}
         <Link href="/demoday" className={s.link}>
           Learn more
         </Link>

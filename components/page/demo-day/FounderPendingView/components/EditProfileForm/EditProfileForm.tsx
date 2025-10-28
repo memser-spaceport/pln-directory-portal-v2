@@ -21,6 +21,7 @@ import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hook
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { ADMIN_ROLE, DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
 interface EditProfileFormData {
   image: File | null;
@@ -276,6 +277,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
             />
           </div>
         </div>
+        <EditFormMobileControls />
       </form>
     </FormProvider>
   );

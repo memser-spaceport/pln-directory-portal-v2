@@ -5,7 +5,7 @@
   min-height: 20px;
   background: var(--Neutral-White);
   border-radius: 8px;
-  padding: 16px;
+  //padding: 16px;
   position: relative;
 
   display: flex;
@@ -188,16 +188,22 @@
 
 .drawerMemberName {
   color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 24px;
+  font-size: 16px;
   font-style: normal;
   font-weight: 600;
-  line-height: 34px; /* 141.667% */
-  letter-spacing: -0.4px;
   display: flex;
   gap: 4px;
   align-items: center;
   justify-content: flex-start;
   word-break: break-word;
+
+  @include media.tablet-landscape {
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 34px; /* 141.667% */
+    letter-spacing: -0.4px;
+  }
 }
 
 .externalLinkIcon {
@@ -644,15 +650,24 @@
 }
 
 .drawerFooter {
-  display: flex;
-  gap: 16px;
-  height: 72px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  min-height: 72px;
   align-items: center;
   justify-content: flex-end;
-  padding: 0 20px;
+  padding: 20px;
   width: 100%;
   flex-shrink: 0;
   border-top: 1px solid rgba(27, 56, 96, 0.12);
+
+  @include media.tablet-landscape {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    height: 72px;
+    padding: 0 20px;
+  }
 }
 
 .actions {
@@ -677,11 +692,16 @@
   box-shadow: 0 -1px 4px 0 var(--transparent-brand-8, rgba(27, 77, 255, 0.08)) inset;
 
   color: var(--action-foreground-brand-inverted_normal, #1b4dff);
-  font-size: 14px;
+  font-size: 12px;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+
+  @include media.tablet-landscape {
+    font-size: 14px;
+  }
+
 
   &:disabled {
     opacity: 0.5;

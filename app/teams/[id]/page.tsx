@@ -25,8 +25,9 @@ import { InvestorProfileView } from '@/components/page/member-details/InvestorPr
 import { clsx } from 'clsx';
 import s from '@/components/page/member-details/InvestorProfileDetails/InvestorProfileDetails.module.scss';
 
-async function Page({ params }: { params: ITeamDetailParams }) {
+async function Page({ params, searchParams }: { params: ITeamDetailParams; searchParams: { backTo?: string } }) {
   const teamId: string = params?.id;
+  const backTo = searchParams?.backTo || '/teams';
   const {
     team,
     members,
@@ -51,17 +52,26 @@ async function Page({ params }: { params: ITeamDetailParams }) {
     return <Error />;
   }
 
+  function hasInvestorData() {
+    return (
+      team.investorProfile?.investmentFocus?.length ||
+      team.investorProfile?.investInStartupStages?.length ||
+      team.investorProfile?.investInFundTypes?.length ||
+      team.investorProfile?.typicalCheckSize
+    );
+  }
+
   return (
     <>
       <div className={styles?.teamDetail}>
-        <BackButton to={`/teams`} />
+        <BackButton to={backTo} />
         <div className={styles?.teamDetail__container}>
           {/* Details */}
           <div className={styles?.teamDetail__Container__details}>
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
 
-          {isLoggedIn && team.investorProfile && (
+          {isLoggedIn && team.investorProfile && !!hasInvestorData() && (
             <div className={clsx(s.root)}>
               <InvestorProfileView
                 investmentFocusAreas={team?.investorProfile?.investmentFocus}

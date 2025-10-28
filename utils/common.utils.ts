@@ -262,6 +262,15 @@ export function getSocialLinkUrl(linkContent: string, type: string, url?: string
         : `https://www.linkedin.com/search/results/all/?keywords=${linkContent}`,
     discord: 'https://discord.com/app',
   };
+
+  // For website type, ensure protocol is present
+  if (type === 'website') {
+    if (!linkContent.startsWith('http://') && !linkContent.startsWith('https://')) {
+      return `https://${linkContent}`;
+    }
+    return linkContent;
+  }
+
   return socialUrls[type] || linkContent;
 }
 

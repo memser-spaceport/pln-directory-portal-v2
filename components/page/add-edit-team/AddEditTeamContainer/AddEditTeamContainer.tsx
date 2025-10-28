@@ -81,8 +81,8 @@ export function AddEditTeamContainer(props: Props) {
         type="primary"
         isModal={false}
         isOpen={showModal}
-        title="New Investment Fund Team Added"
-        message="Your new investment fund team has been added successfully."
+        title="New Team Added"
+        message="Your new team has been added successfully."
         cancelText="Submit Another Team"
         confirmText="See it on Your Profile"
         onCancel={() => {

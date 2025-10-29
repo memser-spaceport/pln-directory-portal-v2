@@ -7,32 +7,38 @@ import { clsx } from 'clsx';
 interface Props {
   name: string;
   label?: string;
+  helperText?: string;
   variant?: 'primary' | 'secondary';
 }
 
-export const FormSwitch = ({ name, label, variant = 'primary' }: Props) => {
+export const FormSwitch = ({ name, label, helperText, variant = 'primary' }: Props) => {
   const { watch, setValue } = useFormContext();
   const values = watch();
   const val = values[name];
 
   return (
-    <label
-      className={clsx(s.Label, {
+    <div
+      className={clsx(s.Container, {
         [s.secondary]: variant === 'secondary',
       })}
     >
-      {label}
-      <Switch.Root
-        defaultChecked
-        className={s.Switch}
-        checked={val}
-        onCheckedChange={() => setValue(name, !val, { shouldValidate: true, shouldDirty: true })}
-      >
-        <Switch.Thumb className={s.Thumb}>
-          <div className={s.dot} />
-        </Switch.Thumb>
-      </Switch.Root>
-    </label>
+      <div className={s.SwitchWrap}>
+        <Switch.Root
+          defaultChecked
+          className={s.Switch}
+          checked={val}
+          onCheckedChange={() => setValue(name, !val, { shouldValidate: true, shouldDirty: true })}
+        >
+          <Switch.Thumb className={s.Thumb}>
+            <div className={s.dot} />
+          </Switch.Thumb>
+        </Switch.Root>
+      </div>
+      <div className={s.TextContent}>
+        {label && <div className={s.Label}>{label}</div>}
+        {helperText && <div className={s.HelperText}>{helperText}</div>}
+      </div>
+    </div>
   );
 };
 

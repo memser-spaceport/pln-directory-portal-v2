@@ -23,6 +23,7 @@ import { useGetTeam } from '@/services/teams/hooks/useGetTeam';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import Link from 'next/link';
+import { FormSwitch } from '@/components/form/FormSwitch';
 
 interface Props {
   onClose: () => void;
@@ -43,6 +44,7 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
           }
         : undefined,
       role: initialData?.role ?? '',
+      mainTeam: initialData?.mainTeam ?? false,
     },
     resolver: yupResolver(editTeamSchema),
   });
@@ -212,6 +214,13 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
           <div className={s.row}>
             <FormField name="role" label="Role" placeholder="Enter your title/role" />
           </div>
+          <div className={s.row}>
+            <FormSwitch
+              name="mainTeam"
+              label="Make this my primary team"
+              helperText="Your primary team is shown on your profile and used as the default across the network."
+            />
+          </div>
           {!isNew && (
             <>
               <button className={s.deleteBtn} type="button" onClick={() => setIsOpenDelete(true)}>
@@ -254,11 +263,15 @@ export function formatPayload(
 
   if (isNew) {
     teams = [
-      ...memberInfo.teamMemberRoles,
+      ...memberInfo.teamMemberRoles.map((item: any) => ({
+        ...item,
+        mainTeam: formData.mainTeam ? false : item.mainTeam,
+      })),
       {
         role: formData.role,
         teamTitle: formData.name.label,
         teamUid: formData.name.value,
+        mainTeam: formData.mainTeam,
       },
     ];
   } else if (isDelete) {
@@ -271,10 +284,15 @@ export function formatPayload(
           role: formData.role,
           teamTitle: formData.name.label,
           teamUid: formData.name.value,
+          mainTeam: formData.mainTeam,
         };
       }
 
-      return item;
+      // If the current team is being set as main, set all other teams to false
+      return {
+        ...item,
+        mainTeam: formData.mainTeam ? false : item.mainTeam,
+      };
     });
   }
 

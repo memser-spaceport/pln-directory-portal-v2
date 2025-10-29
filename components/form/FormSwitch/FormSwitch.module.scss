@@ -1,25 +1,10 @@
 @use 'styles/media';
 @use 'styles/mixins';
 
-.Label {
-  color: #475569;
-  font-feature-settings:
-    'liga' off,
-    'clig' off;
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 20px; /* 166.667% */
+.Container {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  justify-content: space-between;
-
-  @include media.tablet-landscape {
-    width: unset;
-    justify-content: flex-start;
-  }
+  gap: 12px;
+  align-items: flex-start;
 
   &.secondary {
     .Switch {
@@ -27,6 +12,39 @@
       background-image: linear-gradient(to right, #3d4a5c 35%, var(--Neutral-Slate-200) 65%);
     }
   }
+}
+
+.SwitchWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 2px 0;
+}
+
+.TextContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.Label {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.HelperText {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #455468;
 }
 
 .Switch {

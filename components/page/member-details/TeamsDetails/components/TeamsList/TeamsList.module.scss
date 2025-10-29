@@ -102,6 +102,11 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+}
+
+.tags {
+  flex: 1;
 }
 
 .row {
@@ -123,4 +128,22 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.primaryTeamBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgba(27, 77, 255, 0.16);
+  width: fit-content;
+
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #4174ff;
+  white-space: nowrap;
 }

@@ -2,11 +2,11 @@
 @use 'styles/mixins';
 
 .body {
-  display: grid;
+  display: flex;
   padding: 16px 16px 92px;
   flex-direction: column;
   align-items: flex-start;
-  grid-gap: 8px;
+  gap: 8px;
   align-self: stretch;
   border-radius: 16px;
   background: #FFF;
@@ -22,7 +22,7 @@
     padding: 32px;
     max-height: unset;
     overflow: unset;
-    grid-gap: 24px;
+    gap: 24px;
 
     img {
       display: block;
@@ -393,6 +393,7 @@
   align-items: center;
   gap: 16px;
   flex: 1;
+  overflow: hidden;
 }
 
 .fundAvatar {

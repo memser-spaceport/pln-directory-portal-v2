@@ -137,6 +137,13 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
     }
   };
 
+  const teamsOptions =
+    member.teams?.map((tmr) => ({
+      value: tmr.id,
+      label: tmr.name ?? '',
+      role: tmr.role,
+    })) ?? [];
+
   return (
     <FormProvider {...methods}>
       <form
@@ -168,22 +175,18 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           )}
 
           {/* Primary Team Section */}
-          <div className={s.row}>
-            <FormSelect
-              name="primaryTeam"
-              placeholder="Select your primary team"
-              backLabel="Teams"
-              label="Primary Team"
-              options={
-                member.teams?.map((tmr) => ({
-                  value: tmr.id,
-                  label: tmr.name ?? '',
-                  role: tmr.role,
-                })) ?? []
-              }
-              description="Your primary team is shown on your profile and used as the default across the network."
-            />
-          </div>
+          {!!teamsOptions?.length && (
+            <div className={s.row}>
+              <FormSelect
+                name="primaryTeam"
+                placeholder="Select your primary team"
+                backLabel="Teams"
+                label="Primary Team"
+                options={teamsOptions}
+                description="Your primary team is shown on your profile and used as the default across the network."
+              />
+            </div>
+          )}
 
           {selectedPrimaryTeam && (
             <div className={s.row}>

@@ -117,7 +117,7 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
           <div className={s.memberNameContainer}>
             <Link
               className={clsx(s.memberName, classes?.name)}
-              href={`/teams/${uid}?backTo=/demoday`}
+              href={`/teams/${uid}?backTo=/demoday/active`}
               target="_blank"
               onClick={(e) => {
                 e.stopPropagation();

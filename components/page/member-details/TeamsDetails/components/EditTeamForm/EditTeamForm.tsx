@@ -23,7 +23,6 @@ import { useGetTeam } from '@/services/teams/hooks/useGetTeam';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import Link from 'next/link';
-import { FormSwitch } from '@/components/form/FormSwitch';
 
 interface Props {
   onClose: () => void;
@@ -53,7 +52,7 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
   const { data } = useMemberFormOptions();
   const [isOpenDelete, setIsOpenDelete] = React.useState(false);
   const { data: memberData } = useMember(member.id);
-  const { mutateAsync, isPending } = useUpdateMember();
+  const { mutateAsync } = useUpdateMember();
 
   const onSubmit = async (formData: TEditTeamForm) => {
     if (!memberData) {
@@ -213,13 +212,6 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
           </div>
           <div className={s.row}>
             <FormField name="role" label="Role" placeholder="Enter your title/role" />
-          </div>
-          <div className={s.row}>
-            <FormSwitch
-              name="mainTeam"
-              label="Make this my primary team"
-              helperText="Your primary team is shown on your profile and used as the default across the network."
-            />
           </div>
           {!isNew && (
             <>

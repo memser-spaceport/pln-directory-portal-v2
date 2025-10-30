@@ -181,6 +181,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
                   role: tmr.role,
                 })) ?? []
               }
+              description="Your primary team is shown on your profile and used as the default across the network."
             />
           </div>
 

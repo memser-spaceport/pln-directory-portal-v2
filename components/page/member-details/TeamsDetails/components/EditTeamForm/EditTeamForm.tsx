@@ -216,15 +216,15 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
           {!isNew && (
             <>
               <button className={s.deleteBtn} type="button" onClick={() => setIsOpenDelete(true)}>
-                <DeleteIcon /> Delete Team
+                <DeleteIcon /> Remove Team
               </button>
               <ConfirmDialog
-                title="Delete Team"
-                desc="Are you sure you want to delete selected team?"
+                title="Remove Team"
+                desc="Are you sure you want to remove selected team?"
                 isOpen={isOpenDelete}
                 onClose={() => setIsOpenDelete(false)}
                 onConfirm={onDelete}
-                confirmTitle="Delete"
+                confirmTitle="Remove"
               />
             </>
           )}

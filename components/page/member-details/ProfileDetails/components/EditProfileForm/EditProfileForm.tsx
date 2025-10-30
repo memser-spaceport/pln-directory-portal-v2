@@ -181,7 +181,6 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
                   role: tmr.role,
                 })) ?? []
               }
-              description="Manage additional teams/roles in Teams section below."
             />
           </div>
 
@@ -190,6 +189,12 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
               <FormField name="primaryTeamRole" label="Role in Primary Team" placeholder="Enter your role" />
             </div>
           )}
+
+          {/* Info message */}
+          <div className={s.infoBlock}>
+            <InfoIcon />
+            <span className={s.infoText}>Manage teams in the Teams section below</span>
+          </div>
         </div>
         <EditFormMobileControls />
       </form>

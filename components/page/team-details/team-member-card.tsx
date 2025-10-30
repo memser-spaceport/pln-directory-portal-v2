@@ -196,7 +196,6 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
           }
 
           .team-members-card__profile-details__profile__name-role__name {
-            max-width: 100px;
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;

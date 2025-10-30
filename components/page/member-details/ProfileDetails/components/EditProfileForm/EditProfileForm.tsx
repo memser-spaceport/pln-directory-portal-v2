@@ -195,10 +195,12 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           )}
 
           {/* Info message */}
-          <div className={s.infoBlock}>
-            <InfoIcon />
-            <span className={s.infoText}>Manage teams in the Teams section below</span>
-          </div>
+          {!!teamsOptions?.length && (
+            <div className={s.infoBlock}>
+              <InfoIcon />
+              <span className={s.infoText}>Manage teams in the Teams section below</span>
+            </div>
+          )}
         </div>
         <EditFormMobileControls />
       </form>

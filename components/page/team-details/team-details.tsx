@@ -13,6 +13,9 @@ import About from './about';
 import Technologies from './technologies';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { deleteTeam } from '@/services/teams.service';
+import Cookies from 'js-cookie';
+import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 
 import s from './TeamDetails/TeamDetails.module.scss';
 
@@ -33,8 +36,11 @@ const TeamDetails = (props: ITeamDetails) => {
   const technologies =
     team?.technologies?.map((item) => ({ name: item?.title, url: getTechnologyImage(item?.title) })) ?? [];
   const hasTeamEditAccess = getHasTeamEditAccess();
+  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
 
   const [isTechnologyPopup, setIsTechnologyPopup] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const analytics = useTeamAnalytics();
 
   const router = useRouter();
@@ -62,6 +68,43 @@ const TeamDetails = (props: ITeamDetails) => {
     }
     triggerLoader(true);
     router.push(`/settings/teams?id=${team?.id}`);
+  };
+
+  const onDeleteTeamClickHandler = () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      const authToken = Cookies.get('authToken');
+      if (!authToken) {
+        alert('Authentication token not found');
+        setIsDeleting(false);
+        return;
+      }
+
+      const result = await deleteTeam(team?.id, JSON.parse(authToken));
+
+      if (result?.isError) {
+        alert(`Failed to delete team: ${result.errorMessage}`);
+        setIsDeleting(false);
+        return;
+      }
+
+      // Success - redirect to teams page
+      setIsDeleteModalOpen(false);
+      triggerLoader(true);
+      router.push('/teams');
+    } catch (error) {
+      console.error('Error deleting team:', error);
+      alert('An error occurred while deleting the team');
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteModalOpen(false);
   };
 
   useEffect(() => {
@@ -185,17 +228,40 @@ const TeamDetails = (props: ITeamDetails) => {
             </div>
           </div>
 
-          {hasTeamEditAccess && (
-            <button className="team-details__profile__edit" onClick={onEditTeamClickHandler}>
-              <Image src="/icons/edit.svg" alt="Edit" height={16} width={16} />
-              Edit Team
-            </button>
-          )}
+          <div className="team-details__profile__actions">
+            {hasTeamEditAccess && (
+              <button className="team-details__profile__edit" onClick={onEditTeamClickHandler}>
+                <Image src="/icons/edit.svg" alt="Edit" height={16} width={16} />
+                Edit Team
+              </button>
+            )}
+
+            {isAdmin && (
+              <button
+                className="team-details__profile__delete"
+                onClick={onDeleteTeamClickHandler}
+                disabled={isDeleting}
+              >
+                <Image src="/icons/trash.svg" alt="Delete" height={16} width={16} />
+                Delete Team
+              </button>
+            )}
+          </div>
 
           {/* <button className="team-details__profile__notification">
             <img loading="lazy" alt="notification" src="/icons/notification.svg" height={40} width={40} />
           </button> */}
         </div>
+
+        <ConfirmDialog
+          isOpen={isDeleteModalOpen}
+          title="Confirm Delete"
+          desc={`Are you sure you want to delete the team ${teamName}?`}
+          onClose={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+          confirmTitle="Delete"
+          disabled={isDeleting}
+        />
 
         {/* About */}
         <About team={team} userInfo={userInfo} about={about} hasTeamEditAccess={hasTeamEditAccess} />
@@ -274,6 +340,12 @@ const TeamDetails = (props: ITeamDetails) => {
                 background-color: inherit;
             }
 
+            .team-details__profile__actions {
+              display: flex;
+              gap: 12px;
+              align-items: center;
+            }
+
             .team-details__profile__edit {
             display: flex;
             font-size: 14px;
@@ -284,7 +356,28 @@ const TeamDetails = (props: ITeamDetails) => {
             background: none;
             border: none;
             white-space: nowrap;
-            gap: 8px;}
+            gap: 8px;
+            cursor: pointer;
+            }
+
+            .team-details__profile__delete {
+            display: flex;
+            font-size: 14px;
+            font-weight: 500;
+            color: #DC2626;
+            align-items: center;
+            height: fit-content;
+            background: none;
+            border: none;
+            white-space: nowrap;
+            gap: 8px;
+            cursor: pointer;
+            }
+
+            .team-details__profile__delete:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+            }
 
             @media(min-width: 1024px) {
               .team-details {

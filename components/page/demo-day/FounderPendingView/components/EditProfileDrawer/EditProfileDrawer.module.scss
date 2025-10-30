@@ -204,12 +204,16 @@
     line-height: 34px; /* 141.667% */
     letter-spacing: -0.4px;
   }
+
+  &:hover {
+    color: #1b4dff;
+  }
 }
 
 .externalLinkIcon {
   width: 18px;
   height: 18px;
-  color: #1b4dff;
+  color: currentColor;
   flex-shrink: 0;
   display: inline-flex;
 }

@@ -115,10 +115,10 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
       <div className={s.memberDetails}>
         <div className={s.memberInfo}>
           <div className={s.memberNameContainer}>
-            <h2 className={clsx(s.memberName, classes?.name)}>
+            <Link className={clsx(s.memberName, classes?.name)} href={`/teams/${uid}?backTo=/demoday`} target="_blank">
               {name}{' '}
               {uid && (
-                <Link className={s.externalLinkIcon} href={`/teams/${uid}?backTo=/demoday`} target="_blank">
+                <span className={s.externalLinkIcon}>
                   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                     <path
                       d="M13.5 4.5L4.5 13.5M13.5 4.5H8.25M13.5 4.5V9.75"
@@ -128,9 +128,9 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
                       strokeLinejoin="round"
                     />
                   </svg>
-                </Link>
+                </span>
               )}
-            </h2>
+            </Link>
           </div>
           <p className={s.memberDescription}>{description}</p>
         </div>

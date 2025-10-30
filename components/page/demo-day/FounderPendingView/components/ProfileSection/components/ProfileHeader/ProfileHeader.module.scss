@@ -76,6 +76,10 @@
     line-height: 28px;
     letter-spacing: -0.3px;
   }
+
+  &:hover {
+    color: #1b4dff;
+  }
 }
 
 .memberDescription {
@@ -286,7 +290,7 @@
 .externalLinkIcon {
   width: 18px;
   height: 18px;
-  color: #1b4dff;
+  color: currentColor;
   flex-shrink: 0;
   display: inline-flex;
 }

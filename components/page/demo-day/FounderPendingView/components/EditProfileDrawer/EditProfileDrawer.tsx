@@ -487,9 +487,9 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
               <div className={s.drawerMemberDetails}>
                 <div className={s.drawerMemberInfo}>
                   <div className={s.drawerTitleContainer}>
-                    <h2 className={s.drawerMemberName}>
+                    <Link className={s.drawerMemberName} href={`/teams/${data?.team.uid}`} target="_blank">
                       {data?.team.name}
-                      <Link className={s.externalLinkIcon} href={`/teams/${data?.team.uid}`} target="_blank">
+                      <span className={s.externalLinkIcon}>
                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                           <path
                             d="M13.5 4.5L4.5 13.5M13.5 4.5H8.25M13.5 4.5V9.75"
@@ -499,8 +499,8 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
                             strokeLinejoin="round"
                           />
                         </svg>
-                      </Link>
-                    </h2>
+                      </span>
+                    </Link>
 
                     <button className={s.drawerEditButton} onClick={handleEditClick}>
                       <EditIcon />

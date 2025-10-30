@@ -52,6 +52,8 @@
 }
 
 .secondaryButton {
+  white-space: nowrap;
+
   display: flex;
   padding: 8px var(--global-size-size-125, 10px);
   justify-content: center;

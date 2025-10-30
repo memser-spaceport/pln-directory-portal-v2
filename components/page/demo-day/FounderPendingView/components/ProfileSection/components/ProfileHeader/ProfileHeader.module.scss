@@ -76,6 +76,10 @@
     line-height: 28px;
     letter-spacing: -0.3px;
   }
+
+  &:hover {
+    color: #1b4dff;
+  }
 }
 
 .memberDescription {
@@ -151,6 +155,39 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+
+  @include media.mobile-only {
+    font-size: 12px;
+    line-height: 16px;
+  }
+}
+
+.websiteTag {
+  display: flex;
+  padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: rgba(27, 77, 255, 0.04);
+
+  color: #4174ff;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-decoration: none;
+  transition: background 0.2s ease;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.08);
+  }
 
   @include media.mobile-only {
     font-size: 12px;
@@ -253,7 +290,7 @@
 .externalLinkIcon {
   width: 18px;
   height: 18px;
-  color: #1b4dff;
+  color: currentColor;
   flex-shrink: 0;
   display: inline-flex;
 }

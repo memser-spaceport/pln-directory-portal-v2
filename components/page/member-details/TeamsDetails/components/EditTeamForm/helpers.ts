@@ -12,4 +12,5 @@ export const editTeamSchema = yup.object().shape({
     },
   }),
   role: yup.string().defined(),
+  mainTeam: yup.boolean().defined(),
 });

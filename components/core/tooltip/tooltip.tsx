@@ -1,4 +1,5 @@
 'use client';
+import clsx from 'clsx';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { ReactNode, useRef, useState } from 'react';
 import styles from './tooltip.module.css';
@@ -12,18 +13,22 @@ interface ITooptip {
   side?: 'top' | 'right' | 'bottom' | 'left';
   sideOffset?: number;
   align?: 'start' | 'center' | 'end';
+  className?: string;
 }
 
-export function Tooltip({
-  trigger,
-  triggerClassName = '',
-  content,
-  asChild = false,
-  side = 'bottom',
-  sideOffset = 8,
-  align = 'start',
-}: ITooptip) {
-  const [isOpen, setIsOpen] = useState(false);
+export function Tooltip(props: ITooptip) {
+  const {
+    trigger,
+    triggerClassName = '',
+    content,
+    asChild = false,
+    side = 'bottom',
+    sideOffset = 8,
+    align = 'start',
+    className,
+  } = props;
+
+  const [isOpen, setIsOpen] = useState(true);
   const tooltipRef = useRef(null);
 
   const onClickandHoverHandler = (e: any) => {
@@ -39,7 +44,7 @@ export function Tooltip({
 
   return (
     <>
-      <div className={styles.tooltip__trigger__mob}>
+      <div className={clsx(styles.tooltip__trigger__mob, className)}>
         <TooltipPrimitive.Provider delayDuration={0} disableHoverableContent={false}>
           <TooltipPrimitive.Root open={isOpen}>
             <TooltipPrimitive.Trigger

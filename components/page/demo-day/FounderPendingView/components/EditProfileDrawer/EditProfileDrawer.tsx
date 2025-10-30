@@ -6,7 +6,7 @@ import { SuccessAlert } from '../SuccessAlert';
 import s from './EditProfileDrawer.module.scss';
 import { clsx } from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue } from '@/utils/common.utils';
+import { getParsedValue, getSocialLinkUrl } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import Link from 'next/link';
@@ -487,9 +487,9 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
               <div className={s.drawerMemberDetails}>
                 <div className={s.drawerMemberInfo}>
                   <div className={s.drawerTitleContainer}>
-                    <h2 className={s.drawerMemberName}>
+                    <Link className={s.drawerMemberName} href={`/teams/${data?.team.uid}`} target="_blank">
                       {data?.team.name}
-                      <Link className={s.externalLinkIcon} href={`/teams/${data?.team.uid}`} target="_blank">
+                      <span className={s.externalLinkIcon}>
                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                           <path
                             d="M13.5 4.5L4.5 13.5M13.5 4.5H8.25M13.5 4.5V9.75"
@@ -499,8 +499,8 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
                             strokeLinejoin="round"
                           />
                         </svg>
-                      </Link>
-                    </h2>
+                      </span>
+                    </Link>
 
                     <button className={s.drawerEditButton} onClick={handleEditClick}>
                       <EditIcon />
@@ -510,6 +510,42 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
                   <p className={s.drawerMemberDescription}>{data?.team.shortDescription}</p>
                 </div>
                 <div className={s.drawerTagList}>
+                  {data?.team?.website && (
+                    <>
+                      <a
+                        href={getSocialLinkUrl(data.team.website, 'website')}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={s.drawerWebsiteTag}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path
+                            d="M8 14.5C11.5899 14.5 14.5 11.5899 14.5 8C14.5 4.41015 11.5899 1.5 8 1.5C4.41015 1.5 1.5 4.41015 1.5 8C1.5 11.5899 4.41015 14.5 8 14.5Z"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M1.5 8H14.5"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M8 1.5C9.65685 3.34315 10.5 5.66667 10.5 8C10.5 10.3333 9.65685 12.6569 8 14.5C6.34315 12.6569 5.5 10.3333 5.5 8C5.5 5.66667 6.34315 3.34315 8 1.5Z"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        {data.team.website}
+                      </a>
+                      <div className={s.drawerTagDivider} />
+                    </>
+                  )}
                   <div className={s.drawerStageTag}>Stage: {data?.team?.fundingStage?.title}</div>
                   <div className={s.drawerTagDivider} />
                   {data?.team.industryTags.map((tag) => (

@@ -51,6 +51,7 @@ export const TeamsList = ({ isEditable, onAdd, onEdit, member }: Props) => {
                   <div className={s.secondaryLabel}>{item.role}</div>
                 </div>
               </div>
+              <div className={s.tags}>{item.mainTeam && <div className={s.primaryTeamBadge}>Primary Team</div>}</div>
               {isEditable && (
                 <button className={s.editBtn} onClick={() => onEdit(item)}>
                   <EditIcon />

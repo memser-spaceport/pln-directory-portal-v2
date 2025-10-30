@@ -16,4 +16,14 @@ export const editProfileSchema = yup.object().shape({
   city: yup.string().defined(),
   skills: yup.array().defined(),
   openToCollaborate: yup.boolean().defined(),
+  primaryTeam: yup
+    .object()
+    .shape({
+      value: yup.string().defined(),
+      label: yup.string().defined(),
+      role: yup.string().defined(),
+    })
+    .nullable()
+    .defined(),
+  primaryTeamRole: yup.string().defined(),
 });

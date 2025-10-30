@@ -1,8 +1,8 @@
+import clsx from 'clsx';
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import s from './EditFormMobileControls.module.scss';
-import clsx from 'clsx';
 
 export const EditFormMobileControls = () => {
   const {

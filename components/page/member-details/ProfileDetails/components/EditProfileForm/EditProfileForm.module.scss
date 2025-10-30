@@ -26,3 +26,22 @@
   gap: 16px;
   width: 100%;
 }
+
+.infoBlock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  width: 100%;
+}
+
+.infoText {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #64748b;
+}

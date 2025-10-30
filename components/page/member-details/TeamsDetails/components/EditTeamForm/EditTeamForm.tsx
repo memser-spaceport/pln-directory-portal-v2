@@ -43,6 +43,7 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
           }
         : undefined,
       role: initialData?.role ?? '',
+      mainTeam: initialData?.mainTeam ?? false,
     },
     resolver: yupResolver(editTeamSchema),
   });
@@ -51,7 +52,7 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
   const { data } = useMemberFormOptions();
   const [isOpenDelete, setIsOpenDelete] = React.useState(false);
   const { data: memberData } = useMember(member.id);
-  const { mutateAsync, isPending } = useUpdateMember();
+  const { mutateAsync } = useUpdateMember();
 
   const onSubmit = async (formData: TEditTeamForm) => {
     if (!memberData) {
@@ -215,15 +216,15 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
           {!isNew && (
             <>
               <button className={s.deleteBtn} type="button" onClick={() => setIsOpenDelete(true)}>
-                <DeleteIcon /> Delete Team
+                <DeleteIcon /> Remove Team
               </button>
               <ConfirmDialog
-                title="Delete Team"
-                desc="Are you sure you want to delete selected team?"
+                title="Remove Team"
+                desc="Are you sure you want to remove selected team?"
                 isOpen={isOpenDelete}
                 onClose={() => setIsOpenDelete(false)}
                 onConfirm={onDelete}
-                confirmTitle="Delete"
+                confirmTitle="Remove"
               />
             </>
           )}
@@ -254,11 +255,15 @@ export function formatPayload(
 
   if (isNew) {
     teams = [
-      ...memberInfo.teamMemberRoles,
+      ...memberInfo.teamMemberRoles.map((item: any) => ({
+        ...item,
+        mainTeam: formData.mainTeam ? false : item.mainTeam,
+      })),
       {
         role: formData.role,
         teamTitle: formData.name.label,
         teamUid: formData.name.value,
+        mainTeam: formData.mainTeam,
       },
     ];
   } else if (isDelete) {
@@ -271,10 +276,15 @@ export function formatPayload(
           role: formData.role,
           teamTitle: formData.name.label,
           teamUid: formData.name.value,
+          mainTeam: formData.mainTeam,
         };
       }
 
-      return item;
+      // If the current team is being set as main, set all other teams to false
+      return {
+        ...item,
+        mainTeam: formData.mainTeam ? false : item.mainTeam,
+      };
     });
   }
 

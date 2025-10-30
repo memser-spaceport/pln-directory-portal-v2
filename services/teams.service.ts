@@ -258,26 +258,3 @@ export const searchTeamsByName = async (searchTerm: string) => {
     return { label: item.name, value: item.uid, logo: item.logo?.url };
   });
 };
-
-export const deleteTeam = async (teamUid: string, authToken: string) => {
-  const result = await fetch(`${teamsAPI}/${teamUid}`, {
-    cache: 'no-store',
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${authToken}`,
-    },
-  });
-
-  if (!result.ok) {
-    return {
-      isError: true,
-      status: result.status,
-      errorMessage: result.statusText,
-    };
-  }
-
-  return {
-    success: true,
-  };
-};

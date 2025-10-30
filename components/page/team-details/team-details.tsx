@@ -13,7 +13,7 @@ import About from './about';
 import Technologies from './technologies';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { deleteTeam } from '@/services/teams.service';
+import { deleteTeam } from '@/app/actions/teams.actions';
 import Cookies from 'js-cookie';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 
@@ -96,6 +96,7 @@ const TeamDetails = (props: ITeamDetails) => {
       setIsDeleteModalOpen(false);
       triggerLoader(true);
       router.push('/teams');
+      router.refresh();
     } catch (error) {
       console.error('Error deleting team:', error);
       alert('An error occurred while deleting the team');

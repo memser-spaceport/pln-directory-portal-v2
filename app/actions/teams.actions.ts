@@ -3,6 +3,7 @@
 import { ITeamResponse } from '@/types/teams.types';
 import { getHeader } from '@/utils/common.utils';
 import { ITEMS_PER_PAGE } from '@/utils/constants';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 const teamsAPI = `${process.env.DIRECTORY_API_URL}/v1/teams`;
 
@@ -32,4 +33,40 @@ export const getTeamList = async (queryParams: any, currentPage = 1, limit = ITE
     };
   });
   return { data: formattedData, totalItems: result?.count };
+};
+
+export const deleteTeam = async (teamUid: string, authToken: string) => {
+  try {
+    const result = await fetch(`${teamsAPI}/${teamUid}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+
+    if (!result.ok) {
+      return {
+        isError: true,
+        status: result.status,
+        errorMessage: result.statusText,
+      };
+    }
+
+    // Revalidate cache to refresh team data
+    revalidateTag('team-list');
+    revalidateTag('team-detail');
+    revalidateTag('team-filters');
+    revalidatePath('/teams');
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error('Error deleting team:', error);
+    return {
+      isError: true,
+      errorMessage: 'Failed to delete team',
+    };
+  }
 };

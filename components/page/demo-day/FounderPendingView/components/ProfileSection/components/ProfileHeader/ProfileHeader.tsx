@@ -115,7 +115,14 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
       <div className={s.memberDetails}>
         <div className={s.memberInfo}>
           <div className={s.memberNameContainer}>
-            <Link className={clsx(s.memberName, classes?.name)} href={`/teams/${uid}?backTo=/demoday`} target="_blank">
+            <Link
+              className={clsx(s.memberName, classes?.name)}
+              href={`/teams/${uid}?backTo=/demoday`}
+              target="_blank"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
               {name}{' '}
               {uid && (
                 <span className={s.externalLinkIcon}>
@@ -142,6 +149,7 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={s.websiteTag}
+                onClick={(e) => e.stopPropagation()}
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path

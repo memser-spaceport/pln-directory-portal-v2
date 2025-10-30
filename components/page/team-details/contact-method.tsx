@@ -11,7 +11,7 @@ interface IContactMethod {
 const ContactMethod = (props: IContactMethod) => {
   const contactMethod = props?.contactMethod;
   const isEmail = validateEmail(contactMethod);
-  const type = isEmail ? 'email' : '';
+  const type = isEmail ? 'email' : 'website';
   const callback = props?.callback;
   return (
     <>

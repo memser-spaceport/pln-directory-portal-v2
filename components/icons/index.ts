@@ -3,6 +3,7 @@ export * from './EditIcon';
 export * from './CloseIcon';
 export * from './CheckIcon';
 export * from './SearchIcon';
+export * from './ArrowBackIcon';
 export * from './InfoCircleIcon';
 export * from './ErrorCircleIcon';
 export * from './ArrowUpRightIcon';

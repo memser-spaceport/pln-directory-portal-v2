@@ -28,7 +28,7 @@ export function Tooltip(props: ITooptip) {
     className,
   } = props;
 
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const tooltipRef = useRef(null);
 
   const onClickandHoverHandler = (e: any) => {

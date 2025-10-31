@@ -93,7 +93,7 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
     reportAnalytics.mutate(buttonClickEvent);
 
     // Open in new tab
-    window.open(`/members/${userInfo.uid}`, '_blank');
+    window.open(`/members/${userInfo.uid}?backTo=/demoday/investor`, '_blank');
   };
 
   const handleAddToCalendar = () => {

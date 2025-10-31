@@ -1,6 +1,7 @@
 import { IUserInfo } from '@/types/shared.types';
 import {
   ADMIN_ROLE,
+  DISCORD_URL_REGEX,
   EMAIL_REGEX,
   EVENTS,
   GITHUB_URL_REGEX,
@@ -280,6 +281,7 @@ export const getProfileFromURL = (handle: string, type: string) => {
     twitter: TWITTER_URL_REGEX,
     telegram: TELEGRAM_URL_REGEX,
     github: GITHUB_URL_REGEX,
+    discord: DISCORD_URL_REGEX,
   };
 
   const regex = urlRegexMap[type];

@@ -196,7 +196,6 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
           }
 
           .team-members-card__profile-details__profile__name-role__name {
-            max-width: 100px;
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;
@@ -227,7 +226,7 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
           @media (min-width: 1024px) {
             .team-members-card {
               display: grid;
-              grid-template-columns: 8fr 8fr 0.5fr;
+              grid-template-columns: 8fr 4fr 0.5fr;
             }
 
             .team-members-card__profile-deails__skills {
@@ -236,7 +235,7 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
             }
 
             .team-members-card__profile-details__profile__name-role {
-              max-width: 300px;
+              max-width: 400px;
             }
             .team-members-card__arrow {
               grid-column: 3;

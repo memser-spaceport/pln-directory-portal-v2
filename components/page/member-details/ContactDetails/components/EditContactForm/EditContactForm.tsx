@@ -10,6 +10,7 @@ import Image from 'next/image';
 import { omit } from 'lodash';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
+import { getProfileFromURL } from '@/utils/common.utils';
 
 import s from './EditContactForm.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
@@ -187,23 +188,23 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
           </div>
           <div className={s.row}>
             <Image src={getLogoByProvider('telegram')} alt="Telegram" height={24} width={24} />
-            <FormField name="telegram" label="Telegram" placeholder="Enter Telegram handle" />
+            <FormField name="telegram" label="Telegram" placeholder="eg., @username or https://t.me/username" />
           </div>
           <div className={s.row}>
             <Image src={getLogoByProvider('github')} alt="Github" height={24} width={24} />
-            <FormField name="github" label="Github" placeholder="Enter Github handle" />
+            <FormField name="github" label="Github" placeholder="eg., username or https://github.com/username" />
           </div>
           <div className={s.row}>
             <Image src={getLogoByProvider('linkedin')} alt="Linkedin" height={24} width={24} />
-            <FormField name="linkedin" label="LinkedIn" placeholder="eg.,https://linkedin.com/in/jbenetcs" />
+            <FormField name="linkedin" label="LinkedIn" placeholder="eg., jbenetcs or https://linkedin.com/in/jbenetcs" />
           </div>
           <div className={s.row}>
             <Image src={getLogoByProvider('discord')} alt="Discord" height={24} width={24} />
-            <FormField name="discord" label="Discord" placeholder="eg.,name#1234" />
+            <FormField name="discord" label="Discord" placeholder="eg., username or https://discord.com/users/username" />
           </div>
           <div className={s.row}>
             <Image src={getLogoByProvider('twitter')} alt="Twitter" height={24} width={24} />
-            <FormField name="twitter" label="Twitter" placeholder="eg.,@protocollabs" />
+            <FormField name="twitter" label="Twitter" placeholder="eg., @protocollabs or https://twitter.com/protocollabs" />
           </div>
           <div className={clsx(s.row, s.center)}>
             <div className={s.switchLabelWrapper}>
@@ -249,6 +250,13 @@ function getLogoByProvider(provider: string): string {
 }
 
 function formatPayload(memberInfo: any, formData: TEditContactForm, isAdmin: boolean) {
+  // Normalize social handles - extract handles from URLs if provided
+  const normalizedTwitter = formData.twitter ? getProfileFromURL(formData.twitter, 'twitter') : formData.twitter;
+  const normalizedLinkedin = formData.linkedin ? getProfileFromURL(formData.linkedin, 'linkedin') : formData.linkedin;
+  const normalizedDiscord = formData.discord ? getProfileFromURL(formData.discord, 'discord') : formData.discord;
+  const normalizedGithub = formData.github ? getProfileFromURL(formData.github, 'github') : formData.github;
+  const normalizedTelegram = formData.telegram ? getProfileFromURL(formData.telegram, 'telegram') : formData.telegram;
+
   return {
     imageUid: memberInfo.imageUid,
     name: memberInfo.name,
@@ -258,11 +266,11 @@ function formatPayload(memberInfo: any, formData: TEditContactForm, isAdmin: boo
     region: memberInfo?.location?.region || '',
     country: memberInfo?.location?.country || '',
     teamOrProjectURL: memberInfo.teamOrProjectURL,
-    linkedinHandler: formData.linkedin,
-    discordHandler: formData.discord,
-    twitterHandler: formData.twitter,
-    githubHandler: formData.github,
-    telegramHandler: formData.telegram,
+    linkedinHandler: normalizedLinkedin,
+    discordHandler: normalizedDiscord,
+    twitterHandler: normalizedTwitter,
+    githubHandler: normalizedGithub,
+    telegramHandler: normalizedTelegram,
     moreDetails: memberInfo.moreDetails,
     openToWork: memberInfo.openToWork,
     plnFriend: memberInfo.plnFriend,

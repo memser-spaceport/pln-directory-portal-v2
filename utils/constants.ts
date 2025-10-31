@@ -577,9 +577,10 @@ export const ADMIN_ROLE = 'DIRECTORYADMIN';
 
 export const AIRTABLE_REGEX = /^rec[A-Za-z0-9]{14}/;
 export const LINKEDIN_URL_REGEX = /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|profile|company)\/([a-zA-Z0-9-_]+)/;
-export const TWITTER_URL_REGEX = /twitter\.com\/([^/]+)/;
+export const TWITTER_URL_REGEX = /(?:twitter|x)\.com\/([^/]+)/;
 export const GITHUB_URL_REGEX = /github\.com\/([^/]+)/;
 export const TELEGRAM_URL_REGEX = /t\.me\/([^/]+)/;
+export const DISCORD_URL_REGEX = /discord\.(?:com|gg)\/(?:users\/)?([^/\s]+)/;
 export const EMAIL_REGEX = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})$/;
 
 export const LEARN_MORE_URL =

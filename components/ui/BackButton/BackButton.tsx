@@ -2,7 +2,7 @@
 
 import React from 'react';
 import s from './BackButton.module.scss';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { clsx } from 'clsx';
 
 export const BackButton = ({
@@ -15,12 +15,18 @@ export const BackButton = ({
   forceTo?: boolean;
 }) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const backTo = searchParams.get('backTo');
+
   return (
     <div className={clsx(s.subheader, className)}>
       <button
         className={s.backBtn}
         onClick={() => {
-          if (window.history.length > 1 && !forceTo) {
+          // Check if backTo query parameter exists
+          if (backTo) {
+            router.push(backTo);
+          } else if (window.history.length > 1 && !forceTo) {
             router.back();
           } else {
             router.push(to); // fallback route

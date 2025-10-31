@@ -40,6 +40,10 @@ export const useAuthAnalytics = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_PRIVY_LOGIN_SUCCESS, { ...privyUser });
   };
 
+  const onPrivyLoginFailure = (error: any) => {
+    captureEvent(AUTH_ANALYTICS.AUTH_PRIVY_LOGIN_FAILURE, { ...error });
+  };
+
   const onDirectoryLoginInit = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_DIRECTORY_LOGIN_INIT, { ...privyUser });
   };
@@ -96,6 +100,7 @@ export const useAuthAnalytics = () => {
     onPrivyUnlinkEmail,
     onPrivyUserDelete,
     onPrivyLoginSuccess,
+    onPrivyLoginFailure,
     onDirectoryLoginInit,
     onDirectoryLoginSuccess,
     onDirectoryLoginFailure,

@@ -272,8 +272,8 @@ function PrivyModals() {
     }
 
     function handlePrivyLoginError(e: CustomEvent) {
+      analytics.onPrivyLoginFailure(e.detail);
       triggerLoader(false);
-      console.log('Privy login error');
     }
 
     async function handlePrivyLinkError(e: any) {

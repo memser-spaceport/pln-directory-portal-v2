@@ -27,4 +27,3 @@ export const RandomizationAlert: React.FC = () => {
     </div>
   );
 };
-

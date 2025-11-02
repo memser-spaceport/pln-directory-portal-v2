@@ -94,7 +94,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
       const fetchGuestDetails = async () => {
         try {
           triggerLoader(true);
-          let result = await getGuestDetail(selectedMember.uid ?? '', location.uid, authToken, from ||eventType);
+          let result = await getGuestDetail(selectedMember.uid ?? '', location.uid, authToken, from || eventType);
           const userGoingEvents = result?.map((e: any) => ({
             uid: e?.event?.uid,
             isHost: e?.isHost,
@@ -120,14 +120,14 @@ const AttendeeDetails = (props: IAttendeeForm) => {
               formData['topicsAndReason'] = topicsAndReasonResponse;
             }
 
-              setFormInitialValues(formData);
+            setFormInitialValues(formData);
           } else {
             const formData: any = {};
             if (!topicsAndReasonResponse.isError) {
               formData['topicsAndReason'] = topicsAndReasonResponse;
             }
             updateMemberDetails(true);
-              setFormInitialValues(formData);
+            setFormInitialValues(formData);
             return;
           }
         } catch (error) {

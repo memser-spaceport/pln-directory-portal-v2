@@ -22,7 +22,17 @@ interface UploadedFile {
   previewUrl?: string;
 }
 
-export const FileUploader: React.FC<FileUploaderProps> = ({ title, description, supportedFormats, maxFiles, maxFileSize, onUpload, disabled = false, className, showVideoPreview = false }) => {
+export const FileUploader: React.FC<FileUploaderProps> = ({
+  title,
+  description,
+  supportedFormats,
+  maxFiles,
+  maxFileSize,
+  onUpload,
+  disabled = false,
+  className,
+  showVideoPreview = false,
+}) => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -178,7 +188,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ title, description, 
           Upload
         </button>
 
-        <input ref={fileInputRef} type="file" className={s.hiddenInput} onChange={handleFileInputChange} accept={acceptedTypes} multiple={maxFiles > 1} disabled={disabled} />
+        <input
+          ref={fileInputRef}
+          type="file"
+          className={s.hiddenInput}
+          onChange={handleFileInputChange}
+          accept={acceptedTypes}
+          multiple={maxFiles > 1}
+          disabled={disabled}
+        />
       </div>
 
       {uploadedFiles.length > 0 && (
@@ -187,13 +205,24 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ title, description, 
             <div key={uploadedFile.id} className={clsx(s.fileItem, { [s.withPreview]: uploadedFile.previewUrl })}>
               {uploadedFile.previewUrl && (
                 <div className={s.videoPreviewContainer}>
-                  <video src={uploadedFile.previewUrl} className={s.videoPreview} muted playsInline preload="metadata" />
+                  <video
+                    src={uploadedFile.previewUrl}
+                    className={s.videoPreview}
+                    muted
+                    playsInline
+                    preload="metadata"
+                  />
                   <div className={s.videoOverlay}>
                     <div className={s.playIcon}>
                       <PlayIcon />
                     </div>
                   </div>
-                  <button type="button" className={s.removeButtonOverlay} onClick={() => removeFile(uploadedFile.id)} aria-label={`Remove ${uploadedFile.file.name}`}>
+                  <button
+                    type="button"
+                    className={s.removeButtonOverlay}
+                    onClick={() => removeFile(uploadedFile.id)}
+                    aria-label={`Remove ${uploadedFile.file.name}`}
+                  >
                     <CloseIcon />
                   </button>
                 </div>
@@ -204,7 +233,12 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ title, description, 
                     <div className={s.fileName}>{uploadedFile.file.name}</div>
                     <div className={s.fileSize}>{formatFileSize(uploadedFile.file.size)}</div>
                   </div>
-                  <button type="button" className={s.removeButton} onClick={() => removeFile(uploadedFile.id)} aria-label={`Remove ${uploadedFile.file.name}`}>
+                  <button
+                    type="button"
+                    className={s.removeButton}
+                    onClick={() => removeFile(uploadedFile.id)}
+                    aria-label={`Remove ${uploadedFile.file.name}`}
+                  >
                     <CloseIcon />
                   </button>
                 </>

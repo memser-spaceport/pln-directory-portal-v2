@@ -137,30 +137,30 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
             Follow
           </button>
         )}
-      <Modal modalRef={dialogRef} onClose={onCloseModal}>
-        <div className="popup__cnt">
-          <div className="popup__cnt__header"> Wait! You&apos;re about to miss out…</div>
-          <div className="popup__cnt__body">
-            You&apos;ll stop receiving updates about exciting events happening in {eventLocationSummary.name}. Stay
-            connected to never miss out!
-          </div>
+        <Modal modalRef={dialogRef} onClose={onCloseModal}>
+          <div className="popup__cnt">
+            <div className="popup__cnt__header"> Wait! You&apos;re about to miss out…</div>
+            <div className="popup__cnt__body">
+              You&apos;ll stop receiving updates about exciting events happening in {eventLocationSummary.name}. Stay
+              connected to never miss out!
+            </div>
 
-          <div className="popup__footer">
-            <button onClick={onCloseModal} className="popup__footer__cancel">
-              Cancel
-            </button>
-            <button
-              onClick={() => {
-                onCloseModal();
-                onUnFollowbtnClicked(eventLocationSummary.uid);
-              }}
-              className={`popup__footer__confirm `}
-            >
-              Unfollow
-            </button>
+            <div className="popup__footer">
+              <button onClick={onCloseModal} className="popup__footer__cancel">
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  onCloseModal();
+                  onUnFollowbtnClicked(eventLocationSummary.uid);
+                }}
+                className={`popup__footer__confirm `}
+              >
+                Unfollow
+              </button>
+            </div>
           </div>
-        </div>
-      </Modal>
+        </Modal>
       </div>
       <style jsx>
         {`
@@ -287,7 +287,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
             .followRoot {
               width: fit-content;
             }
-              
+
             .followRoot__unfollow__popup {
               display: flex;
               width: 90vw;

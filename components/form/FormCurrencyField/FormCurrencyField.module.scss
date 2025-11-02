@@ -17,7 +17,9 @@
 
 .label {
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -39,14 +41,14 @@
   gap: 8px;
   align-self: stretch;
   border-radius: 8px;
-  border: 1px solid rgba(203, 213, 225, 0.50);
-  background: #FFF;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  background: #fff;
   outline: none;
 
   &:focus-within {
     border-radius: 8px;
-    background: #FFF;
-    border: 1px solid #5E718D !important;
+    background: #fff;
+    border: 1px solid #5e718d !important;
     box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12) !important;
   }
 
@@ -73,7 +75,7 @@
 
 .inputElement {
   @include mixins.placeholder {
-    color: #CBD5E1;
+    color: #cbd5e1;
   }
   padding: 10px 12px;
   flex: 1;
@@ -91,23 +93,27 @@
 }
 
 .fieldDescription {
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 10px;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 200% */
-  color: #878B94;
+  color: #878b94;
   margin-top: 0.25rem;
 
   &[data-focused] {
-    color: #A0BEFF;
+    color: #a0beff;
   }
 }
 
 .errorMsg {
   font-size: 10px;
   color: var(--action-border-error-focus);
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 200% */

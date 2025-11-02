@@ -15,4 +15,3 @@ export const Alert: React.FC<AlertProps> = ({ children }) => {
     </div>
   );
 };
-

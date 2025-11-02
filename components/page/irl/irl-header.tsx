@@ -3,7 +3,6 @@
 import { PAGE_ROUTES } from '@/utils/constants';
 
 const IrlHeader = () => {
-
   return (
     <>
       <div className="irlheaderCnt">
@@ -15,7 +14,10 @@ const IrlHeader = () => {
             <div className="irlHeader">IRL Gatherings</div>
           </div>
         </div>
-        <div className="irlheaderCnt__text">Choose a destination to view upcoming gathering, attendees, resources & let the network know about your presence</div> 
+        <div className="irlheaderCnt__text">
+          Choose a destination to view upcoming gathering, attendees, resources & let the network know about your
+          presence
+        </div>
       </div>
       <style jsx>
         {`
@@ -80,7 +82,6 @@ const IrlHeader = () => {
             // z-index: 1;
           }
 
-
           .irlHeaderCntr {
             display: flex;
             align-items: center;
@@ -105,13 +106,11 @@ const IrlHeader = () => {
             padding: 18px 16px 10px 16px;
           }
 
-
           @media (min-width: 760px) {
             .irlsubHeader {
               padding: 12px 12px 12px 20px;
               gap: 10px;
             }
-
 
             .irlheaderCnt {
               padding: 24px 5px 15px 5px;

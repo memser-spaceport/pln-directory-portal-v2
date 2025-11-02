@@ -30,11 +30,7 @@ export const SecRulesCheckbox: React.FC<Props> = ({ checked, onChange, onTrigger
         <div className={s.col}>
           <div className={s.primary}>
             I&apos;m an accredited investor under{' '}
-            <Link
-              target="_blank"
-              href={SEC_RULES_URL}
-              className={s.link}
-            >
+            <Link target="_blank" href={SEC_RULES_URL} className={s.link}>
               SEC rules <ExternalLinkIcon />
             </Link>
           </div>

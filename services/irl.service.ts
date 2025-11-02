@@ -64,7 +64,7 @@ export const getGuestsByLocation = async (
   currentEventNames: string[],
   currentPage = 1,
   limit = 10,
-) => {  
+) => {
   // Default to 'upcoming' if no type is specified
   if (!searchParams?.type || searchParams.type === '' || searchParams.type === 'upcoming') {
     searchParams = { ...searchParams, type: 'upcoming' };
@@ -73,12 +73,12 @@ export const getGuestsByLocation = async (
   } else {
     searchParams = { ...searchParams, type: 'upcoming' };
   }
-  
+
   const result = await fetchGuestsWithParams(location, searchParams, authToken, currentEventNames, currentPage, limit);
 
   if (result.isError) {
     return { isError: true };
-  }  
+  }
   return result;
 };
 
@@ -89,7 +89,7 @@ const fetchGuestsWithParams = async (
   authToken: string,
   currentEventNames: string[],
   currentPage: number,
-  limit: number
+  limit: number,
 ) => {
   const urlParams = new URLSearchParams() as any;
 

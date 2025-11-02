@@ -121,4 +121,3 @@ export const useTeamsSorting = ({ userTeams, otherTeams, sortBy }: UseTeamsSorti
     allGroupsWithCounts,
   };
 };
-

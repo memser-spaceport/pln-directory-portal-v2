@@ -61,9 +61,9 @@ export function createAnalyticsEventsBatch(events: TrackEventDto[]): BatchTrackD
  */
 export function createEventsForUser(
   distinctId: string,
-  eventConfigs: Array<{ name: string; properties?: Record<string, any> }>
+  eventConfigs: Array<{ name: string; properties?: Record<string, any> }>,
 ): TrackEventDto[] {
-  return eventConfigs.map(config => ({
+  return eventConfigs.map((config) => ({
     name: config.name,
     distinctId,
     properties: config.properties,

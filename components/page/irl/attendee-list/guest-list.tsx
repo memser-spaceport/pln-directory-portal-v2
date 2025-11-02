@@ -99,15 +99,23 @@ const GuestList = (props: IGuestList) => {
     }
   }, [selectedGuests]);
 
-
-  if(events?.upcomingEvents?.length > 0 && events?.pastEvents?.length === 0 && filteredList.length === 0 && !hasFiltersApplied) {
+  if (
+    events?.upcomingEvents?.length > 0 &&
+    events?.pastEvents?.length === 0 &&
+    filteredList.length === 0 &&
+    !hasFiltersApplied
+  ) {
     return (
       <>
         <div className="guestList__empty__current">
           <img width={182} height={118} src="/images/irl/attendees.svg" alt="attendees empty" />
           <p className="guestList__empty__current__text">You could be one of the very first to join!</p>
           <p className="guestList__empty__current__text__secondary">Claim your spot as one of the pioneers</p>
-          {filteredGatherings?.length > 0 && <button onClick={onRegisterToday} className="guestList__empty__current__button">Register Today</button>}
+          {filteredGatherings?.length > 0 && (
+            <button onClick={onRegisterToday} className="guestList__empty__current__button">
+              Register Today
+            </button>
+          )}
         </div>
         <style jsx>{`
           .guestList__empty__current {
@@ -123,7 +131,7 @@ const GuestList = (props: IGuestList) => {
             font-size: 16px;
             line-height: 20px;
             letter-spacing: 0.01em;
-            color: #0F172A;
+            color: #0f172a;
             margin-top: 24px;
           }
 
@@ -137,14 +145,14 @@ const GuestList = (props: IGuestList) => {
           }
 
           .guestList__empty__current__button {
-            background: #156FF7;
-            border: 1px solid #CBD5E1;
-            box-shadow: 0px 1px 1px 0px #0F172A14;
+            background: #156ff7;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0px 1px 1px 0px #0f172a14;
             font-weight: 500;
             font-size: 14px;
             line-height: 20px;
             letter-spacing: 0px;
-            color: #FFFFFF;
+            color: #ffffff;
             height: 40px;
             border-radius: 8px;
             padding: 9px 16px;
@@ -159,14 +167,15 @@ const GuestList = (props: IGuestList) => {
     );
   }
 
-  if(filteredList.length === 0 && !hasFiltersApplied) {
+  if (filteredList.length === 0 && !hasFiltersApplied) {
     return (
       <>
         <div className="guestList__empty__current">
           <img width={182} height={118} src="/images/irl/attendees.svg" alt="attendees empty" />
-          <p className="guestList__empty__current__text">Registration is opening up! Be among the first to sign up{' '}</p>
+          <p className="guestList__empty__current__text">Registration is opening up! Be among the first to sign up </p>
           <p className="guestList__empty__current__text__secondary">Check out who has attended in the past</p>
-          <button onClick={onViewPastAttendees} className="guestList__empty__current__button">View Past Attendees
+          <button onClick={onViewPastAttendees} className="guestList__empty__current__button">
+            View Past Attendees
             <img src="/images/irl/attendees-avatar-group.svg" alt="avatar group" />
           </button>
         </div>
@@ -184,7 +193,7 @@ const GuestList = (props: IGuestList) => {
             font-size: 16px;
             line-height: 20px;
             letter-spacing: 0.01em;
-            color: #0F172A;
+            color: #0f172a;
             margin-top: 24px;
           }
 
@@ -198,14 +207,14 @@ const GuestList = (props: IGuestList) => {
           }
 
           .guestList__empty__current__button {
-            background: #156FF7;
-            border: 1px solid #CBD5E1;
-            box-shadow: 0px 1px 1px 0px #0F172A14;
+            background: #156ff7;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0px 1px 1px 0px #0f172a14;
             font-weight: 500;
             font-size: 14px;
             line-height: 20px;
             letter-spacing: 0px;
-            color: #FFFFFF;
+            color: #ffffff;
             height: 40px;
             border-radius: 8px;
             padding: 9px 16px;

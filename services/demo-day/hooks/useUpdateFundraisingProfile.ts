@@ -11,7 +11,9 @@ interface UpdateFundraisingProfileData {
   teamUid?: string; // Optional team UID for admin edits
 }
 
-async function updateFundraisingProfile(data: UpdateFundraisingProfileData): Promise<{ success: boolean; teamUid?: string }> {
+async function updateFundraisingProfile(
+  data: UpdateFundraisingProfileData,
+): Promise<{ success: boolean; teamUid?: string }> {
   const { teamUid, ...bodyData } = data;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint

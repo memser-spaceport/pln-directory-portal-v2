@@ -13,13 +13,13 @@
   min-width: 0;
   min-height: 38px;
 
-  background: var(--background-base-white, #FFF);
+  background: var(--background-base-white, #fff);
   box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
   border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
 
   &:hover,
   &:focus-within {
-    border-color: #5E718D;
+    border-color: #5e718d;
     box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
   }
 }

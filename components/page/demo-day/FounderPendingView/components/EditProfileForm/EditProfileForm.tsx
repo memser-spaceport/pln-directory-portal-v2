@@ -1,27 +1,32 @@
-import React, { useMemo } from 'react';
+import * as yup from 'yup';
+import Cookies from 'js-cookie';
+import { toast } from 'react-toastify';
+import React, { useEffect, useMemo } from 'react';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
+
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
 import { ProfileImageInput } from '@/components/page/member-details/ProfileDetails/components/ProfileImageInput';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import s from './EditProfileForm.module.scss';
 import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { useUpdateFundraisingProfile } from '@/services/demo-day/hooks/useUpdateFundraisingProfile';
 import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { saveRegistrationImage } from '@/services/registration.service';
-import { toast } from 'react-toastify';
 import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
 import { ADMIN_ROLE, DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
+
+import { IndustryFundingOpts } from './type';
+import { getFormDataFromProfile } from './utils/getFormDataFromProfile';
+
+import s from './EditProfileForm.module.scss';
 
 interface EditProfileFormData {
   image: File | null;
@@ -82,7 +87,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
   const currentUserInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const isDirectoryAdmin = currentUserInfo?.roles?.includes(ADMIN_ROLE);
 
-  const options = useMemo(() => {
+  const options: IndustryFundingOpts = useMemo(() => {
     if (!data) {
       return {
         industryTagsOptions: [],
@@ -104,41 +109,19 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
     };
   }, [data]);
 
-  // Helper function to format Company Stage for form
-  const formatFundingStageForForm = (stage: string) => {
-    const option = options?.fundingStageOptions?.find((opt: { value: string }) => opt.value === stage);
-    return option || null;
-  };
-
   const methods = useForm<EditProfileFormData>({
-    defaultValues: {
-      image: null,
-      name: profileData?.team?.name || '',
-      shortDescription: profileData?.team?.shortDescription || '',
-      tags: profileData?.team?.industryTags?.map((tag) => ({ value: tag.uid, label: tag.title })) || [],
-      fundingStage: profileData?.team?.fundingStage
-        ? formatFundingStageForForm(profileData.team.fundingStage.uid)
-        : null,
-      website: profileData?.team?.website || '',
-    },
+    defaultValues: getFormDataFromProfile(profileData, options),
     resolver: yupResolver(schema),
   });
 
   // Reset form when profile data changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (profileData) {
-      methods.reset({
-        image: null,
-        name: profileData.team?.name || '',
-        shortDescription: profileData.team?.shortDescription || '',
-        tags: profileData.team?.industryTags?.map((tag) => ({ value: tag.uid, label: tag.title })) || [],
-        fundingStage: profileData.team?.fundingStage
-          ? formatFundingStageForForm(profileData.team.fundingStage.uid)
-          : null,
-        website: profileData.team?.website || '',
-      });
+      const formData = getFormDataFromProfile(profileData, options);
+
+      methods.reset(formData);
     }
-  }, [profileData, methods]);
+  }, [profileData, methods, options]);
 
   const { handleSubmit, reset } = methods;
 

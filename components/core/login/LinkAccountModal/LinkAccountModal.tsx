@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { toast } from '@/components/core/ToastContainer';
 import { reportLinkIssue } from '@/services/auth.service';
+import { useAuthAnalytics } from '@/analytics/auth.analytics';
 
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
@@ -19,10 +20,14 @@ interface Props {
 export function LinkAccountModal(props: Props) {
   const { open, toggleOpen } = props;
 
+  const { onLinkAccountSubmitClicked, onLinkAccountCancelClicked } = useAuthAnalytics();
+
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
 
   const submit = async () => {
+    onLinkAccountSubmitClicked();
+
     try {
       await reportLinkIssue({
         email,
@@ -33,6 +38,11 @@ export function LinkAccountModal(props: Props) {
     } catch (error) {
       toast.error('An error occurred while submitting the form. Please try again later.');
     }
+  };
+
+  const cancel = () => {
+    onLinkAccountCancelClicked();
+    toggleOpen();
   };
 
   return (
@@ -72,7 +82,7 @@ export function LinkAccountModal(props: Props) {
         </div>
 
         <div className={s.footer}>
-          <Button className={s.btn} style="border" onClick={toggleOpen}>
+          <Button className={s.btn} style="border" onClick={cancel}>
             Cancel
           </Button>
           <Button className={s.btn} onClick={submit} disabled={!email || !name}>

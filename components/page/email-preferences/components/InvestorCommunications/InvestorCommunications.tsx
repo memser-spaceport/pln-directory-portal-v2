@@ -30,6 +30,7 @@ export const InvestorCommunications = ({
     const _payload = {
       investorInvitesEnabled: checked,
       investorDealflowEnabled: data.investorDealflowEnabled,
+      showInvestorProfileOnMemberPage: data.showInvestorProfileOnMemberPage,
     };
 
     mutate({
@@ -46,6 +47,24 @@ export const InvestorCommunications = ({
     const _payload = {
       investorDealflowEnabled: checked,
       investorInvitesEnabled: data.investorInvitesEnabled,
+      showInvestorProfileOnMemberPage: data.showInvestorProfileOnMemberPage,
+    };
+
+    mutate({
+      uid: userInfo.uid,
+      payload: _payload,
+    });
+  };
+
+  const handleShowInvestorProfileChange = (checked: boolean) => {
+    if (!userInfo.uid || !data) {
+      return;
+    }
+
+    const _payload = {
+      showInvestorProfileOnMemberPage: checked,
+      investorInvitesEnabled: data.investorInvitesEnabled,
+      investorDealflowEnabled: data.investorDealflowEnabled,
     };
 
     mutate({
@@ -90,6 +109,25 @@ export const InvestorCommunications = ({
             </Switch.Root>
           </label>
           <div className={s.desc}>I would like to receive dealflow intros & digests relevant to me.</div>
+        </div>
+
+        <div className={s.toggleSection}>
+          <label className={clsx(s.Label, s.toggle)}>
+            Show Investor Profile on my public member page
+            <Switch.Root
+              className={s.Switch}
+              checked={data?.showInvestorProfileOnMemberPage}
+              onCheckedChange={handleShowInvestorProfileChange}
+            >
+              <Switch.Thumb className={s.Thumb}>
+                <div className={s.dot} />
+              </Switch.Thumb>
+            </Switch.Root>
+          </label>
+          <div className={s.desc}>
+            Toggle to make your investor information visible to other network members and eligible for Demo Day
+            invitations.
+          </div>
         </div>
       </div>
     </div>

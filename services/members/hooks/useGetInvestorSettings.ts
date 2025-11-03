@@ -5,6 +5,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 export type InvestorSettings = {
   investorInvitesEnabled: boolean;
   investorDealflowEnabled: boolean;
+  showInvestorProfileOnMemberPage: boolean;
   memberUid: string;
 };
 

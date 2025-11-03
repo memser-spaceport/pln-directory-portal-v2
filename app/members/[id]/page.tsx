@@ -34,15 +34,27 @@ import { ITeam } from '@/types/teams.types';
 import MemberPageLoader from './loading';
 import Head from 'next/head';
 import { MembersQueryKeys } from '@/services/members/constants';
+import { useGetInvestorSettings } from '@/services/members/hooks/useGetInvestorSettings';
 
 /**
  * Determines if we should show the investor profile section for third-party users
- * based on investor profile type and data availability
+ * based on investor profile type, data availability, and privacy settings
  */
-const shouldShowInvestorProfileForThirdParty = (member: IMember, isOwner: boolean, isAdmin: boolean): boolean => {
+const shouldShowInvestorProfileForThirdParty = (
+  member: IMember,
+  isOwner: boolean,
+  isAdmin: boolean,
+  showInvestorProfileOnMemberPage?: boolean,
+): boolean => {
   // Always show for owner and admin
   if (isOwner || isAdmin) {
     return true;
+  }
+
+  // Check privacy setting - if explicitly set to false, hide for third-party users
+  // If null or undefined, treat as true (default behavior for backward compatibility)
+  if (showInvestorProfileOnMemberPage === false) {
+    return false;
   }
 
   const investorProfile = member?.investorProfile;
@@ -105,6 +117,14 @@ const MemberDetails = ({ params }: { params: any }) => {
     enabled: !!memberId,
     select: (data) => data?.data?.formattedData,
   });
+
+  // Fetch investor settings to check visibility preference
+  const { data: investorSettings } = useGetInvestorSettings(memberId, {
+    investorInvitesEnabled: false,
+    investorDealflowEnabled: false,
+    showInvestorProfileOnMemberPage: true, // Default to true for backward compatibility
+    memberUid: memberId,
+  });
   const { data: availableToConnectCount } = useQuery({
     queryKey: ['memberList'],
     queryFn: () => getMemberListForQuery(qs.stringify({ hasOfficeHours: true }), 1, 1, userInfo?.token),
@@ -146,13 +166,23 @@ const MemberDetails = ({ params }: { params: any }) => {
 
     switch (member.accessLevel) {
       case 'L5': {
-        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(member, isOwner, isAdmin);
+        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
+          member,
+          isOwner,
+          isAdmin,
+          investorSettings?.showInvestorProfileOnMemberPage,
+        );
 
         return (
           <>
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {showInvestorProfile && (
-              <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+              <InvestorProfileDetails
+                userInfo={userInfo}
+                member={member}
+                isLoggedIn={isLoggedIn}
+                showInvestorProfileOnMemberPage={investorSettings?.showInvestorProfileOnMemberPage}
+              />
             )}
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
@@ -163,14 +193,24 @@ const MemberDetails = ({ params }: { params: any }) => {
         );
       }
       default: {
-        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(member, isOwner, isAdmin);
+        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
+          member,
+          isOwner,
+          isAdmin,
+          investorSettings?.showInvestorProfileOnMemberPage,
+        );
 
         return (
           <>
             <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {member.accessLevel === 'L6' && showInvestorProfile && (
-              <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+              <InvestorProfileDetails
+                userInfo={userInfo}
+                member={member}
+                isLoggedIn={isLoggedIn}
+                showInvestorProfileOnMemberPage={investorSettings?.showInvestorProfileOnMemberPage}
+              />
             )}
             <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />

@@ -18,50 +18,26 @@ interface Props {
   member: IMember;
   isLoggedIn: boolean;
   userInfo: IUserInfo;
+  showInvestorProfileOnMemberPage?: boolean;
 }
 
 /**
- * Determines if we need to show incomplete data warning based on investor profile type and data completeness
+ * Determines if we need to show incomplete data warning
+ * Only shows warning if showInvestorProfileOnMemberPage is null (not set)
  */
-const shouldShowIncompleteDataWarning = (member: IMember): boolean => {
-  const investorProfile = member?.investorProfile;
-  const teams = member?.teams;
-
-  if (!investorProfile?.type) {
-    return true; // No type selected
-  }
-
-  // Helper function to check if angel investor data is empty
-  const isAngelDataEmpty = (): boolean => {
-    return (
-      (!investorProfile.investInStartupStages || investorProfile.investInStartupStages.length === 0) &&
-      (!investorProfile.typicalCheckSize || investorProfile.typicalCheckSize?.toString().trim() === '') &&
-      (!investorProfile.investmentFocus || investorProfile.investmentFocus.length === 0)
-    );
-  };
-
-  const investmentTeam = teams?.find((team) => team.investmentTeam);
-
-  switch (investorProfile.type) {
-    case 'ANGEL':
-      // ANGEL type: show warning if all angel values are empty
-      return isAngelDataEmpty();
-
-    case 'FUND':
-      // FUND type: show warning if no team
-      return !investmentTeam;
-
-    case 'ANGEL_AND_FUND':
-      // ANGEL_AND_FUND: show warning if no team OR if all angel values are empty
-      return !investmentTeam || isAngelDataEmpty();
-
-    default:
-      return true; // Unknown type
-  }
+const shouldShowIncompleteDataWarning = (showInvestorProfileOnMemberPage?: boolean): boolean => {
+  // Show warning only if the setting is null/undefined (not set yet)
+  return showInvestorProfileOnMemberPage === null || showInvestorProfileOnMemberPage === undefined;
 };
 
-export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
+export const InvestorProfileDetails = ({
+  isLoggedIn,
+  userInfo,
+  member,
+  showInvestorProfileOnMemberPage,
+}: Props) => {
   const [editView, setEditView] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
@@ -71,7 +47,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
   const reportAnalytics = useReportAnalyticsEvent();
 
   // Use the new function to determine if we should show incomplete data warning
-  const showWarningUseCaseA = shouldShowIncompleteDataWarning(member);
+  const showWarningUseCaseA = shouldShowIncompleteDataWarning(showInvestorProfileOnMemberPage);
   const showIncomplete = !editView && isOwner && showWarningUseCaseA;
 
   // Determine if user has any investor profile data for visibility logic
@@ -96,7 +72,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
           path: `/members/${member.id}`,
           timestamp: new Date().toISOString(),
           currentInvestorProfileType: member?.investorProfile?.type || null,
-          isProfileComplete: !shouldShowIncompleteDataWarning(member),
+          isProfileComplete: !shouldShowIncompleteDataWarning(showInvestorProfileOnMemberPage),
         },
       };
 
@@ -112,6 +88,11 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
 
   // user view, we hide section if no investor profile
   if (!isEditable && !hasInvestorProfile) {
+    return null;
+  }
+
+  // Hide section if user clicked "Not an Investor"
+  if (isHidden) {
     return null;
   }
 
@@ -138,6 +119,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
           onEdit={handleEditStart}
           type={member.investorProfile?.type}
           member={member}
+          onHideSection={() => setIsHidden(true)}
         />
       )}
     </div>

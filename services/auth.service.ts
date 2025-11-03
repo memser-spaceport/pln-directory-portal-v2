@@ -56,3 +56,13 @@ export const deletePrivyUser = async (token: string, userId: string) => {
     body: JSON.stringify({ token: token }),
   });
 };
+
+export const reportLinkIssue = async (data: { name: string; email: string }) => {
+  return await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth/report-link-issue`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+};

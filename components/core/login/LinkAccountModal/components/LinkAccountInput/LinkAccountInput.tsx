@@ -1,11 +1,11 @@
-import { HTMLAttributes } from 'react';
+import { InputHTMLAttributes } from 'react';
 import { Input } from '@/components/common/Input';
 
 import s from './LinkAccountInput.module.scss';
 
 interface Props {
   label: string;
-  input?: HTMLAttributes<HTMLInputElement>;
+  input: InputHTMLAttributes<HTMLInputElement>;
 }
 
 export function LinkAccountInput(props: Props) {

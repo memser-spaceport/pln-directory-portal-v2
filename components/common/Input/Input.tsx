@@ -1,9 +1,9 @@
 import { clsx } from 'clsx';
-import { HTMLAttributes } from 'react';
+import { HTMLAttributes, InputHTMLAttributes } from 'react';
 
 import s from './Input.module.scss';
 
-export function Input(props: HTMLAttributes<HTMLInputElement>) {
+export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   const { className, ...rest } = props;
 
   return (

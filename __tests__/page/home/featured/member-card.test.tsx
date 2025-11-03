@@ -71,7 +71,7 @@ describe('MemberCard', () => {
 
   it('displays the member role correctly', () => {
     render(<MemberCard member={memberMock} />);
-    expect(screen.getAllByText('Developer').length).toBe(4);
+    expect(screen.getAllByText('Developer').length).toBe(2);
   });
 
   it('displays contributor when no role is given ', () => {

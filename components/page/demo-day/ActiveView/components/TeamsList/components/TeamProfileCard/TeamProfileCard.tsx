@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader';
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
@@ -14,6 +14,7 @@ import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { ReferCompanyModal } from '../ReferCompanyModal';
 import { clsx } from 'clsx';
+import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
@@ -37,10 +38,10 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   // Analytics hooks
   const {
     onActiveViewTeamCardClicked,
+    onActiveViewTeamCardViewed,
     onActiveViewLikeCompanyClicked,
     onActiveViewConnectCompanyClicked,
     onActiveViewInvestCompanyClicked,
-    onActiveViewReferCompanyClicked,
     onActiveViewIntroCompanyClicked,
     onActiveViewIntroCompanyCancelClicked,
     onActiveViewIntroCompanyConfirmClicked,
@@ -65,6 +66,23 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     foundersCount: team.founders?.length || 0,
     founderNames: team.founders?.map((f) => f.name),
     hasLogo: !!team.team?.logo?.url,
+  });
+
+  // Handle card visibility tracking
+  const handleCardVisible = useCallback(() => {
+    if (!userInfo?.email) return;
+
+    const analyticsData = getTeamAnalyticsData();
+
+    // PostHog analytics
+    onActiveViewTeamCardViewed(analyticsData);
+  }, [userInfo, team, onActiveViewTeamCardViewed, reportAnalytics]);
+
+  // Track card visibility using Intersection Observer
+  const cardRef = useCardVisibilityTracking<HTMLDivElement>({
+    onVisible: handleCardVisible,
+    threshold: 0.5, // Track when 50% of the card is visible
+    trackOnce: true, // Track only once per page load
   });
 
   const handleCardClick = () => {
@@ -289,7 +307,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   }, [team.description]);
 
   return (
-    <div className={s.profileCard} onClick={handleCardClick}>
+    <div ref={cardRef} className={s.profileCard} onClick={handleCardClick}>
       <div className={s.editButtonContainer}>
         <div className={s.drawerEditButton}>
           {canEdit ? <EditIcon /> : <EyeIcon />}

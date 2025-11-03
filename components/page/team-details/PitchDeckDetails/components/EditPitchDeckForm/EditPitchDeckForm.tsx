@@ -12,7 +12,7 @@ import * as yup from 'yup';
 
 import s from './EditPitchDeckForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { ITeam } from '@/types/teams.types';
 
 interface Props {

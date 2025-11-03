@@ -1,10 +1,10 @@
 import * as yup from 'yup';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
 import React, { useEffect, useMemo } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { toast } from '@/components/core/ToastContainer';
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
 import { ProfileImageInput } from '@/components/page/member-details/ProfileDetails/components/ProfileImageInput';

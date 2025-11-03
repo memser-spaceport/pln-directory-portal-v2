@@ -479,7 +479,8 @@ export const transformGuestDetail = (result: any, gatherings: any) => {
 };
 export function checkAdminInAllEvents(searchType: any, upcomingEvents: any, pastEvents: any) {
   // If type is specified (past or upcoming), check if user can admin that specific type
-  if (searchType === 'upcoming' ||
+  if (
+    searchType === 'upcoming' ||
     (upcomingEvents && upcomingEvents.length > 0 && pastEvents && pastEvents.length === 0)
   ) {
     return true;
@@ -489,13 +490,13 @@ export function checkAdminInAllEvents(searchType: any, upcomingEvents: any, past
   ) {
     return true;
   }
-  
+
   // If no type is specified (empty), allow admin access if there are any events
   // This enables the "Member" button to show when type parameter is empty
   if (!searchType || searchType === '') {
     return (upcomingEvents && upcomingEvents.length > 0) || (pastEvents && pastEvents.length > 0);
   }
-  
+
   return false;
 }
 
@@ -635,23 +636,19 @@ export function compareEventDates(eventA: any, eventB: any, type: 'upcoming' | '
   }
 }
 
-
 export const filterUpcomingGatherings = (gathering: any) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-    const eventEndDate = new Date(gathering?.endDate);
-    eventEndDate.setHours(0, 0, 0, 0);
-    return eventEndDate >= today;
-}
+  const eventEndDate = new Date(gathering?.endDate);
+  eventEndDate.setHours(0, 0, 0, 0);
+  return eventEndDate >= today;
+};
 
 export function getGatherings(type: string, events: any, from: string): IIrlEvent[] {
   if (!events) return [];
-  
+
   // Determine event type with from parameter taking priority
-  const shouldReturnPastEvents = from === 'past' || 
-    (from !== 'upcoming' && type === 'past');
-  
-  return shouldReturnPastEvents 
-    ? (events.pastEvents ?? [])
-    : (events.upcomingEvents ?? []);
+  const shouldReturnPastEvents = from === 'past' || (from !== 'upcoming' && type === 'past');
+
+  return shouldReturnPastEvents ? (events.pastEvents ?? []) : (events.upcomingEvents ?? []);
 }

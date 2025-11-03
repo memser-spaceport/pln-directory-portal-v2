@@ -43,4 +43,3 @@ export const getStageGroupLabel = (stageGroup: string): string => {
       return '';
   }
 };
-

@@ -2,7 +2,6 @@
 @use 'styles/mixins';
 
 .root {
-
   &.missingData {
     //border-radius: 8px;
     //border: 1px solid #FDE68A;
@@ -33,7 +32,8 @@
   gap: 3px;
 }
 
-.content {}
+.content {
+}
 
 .section {
   padding: 16px;
@@ -41,7 +41,7 @@
   align-items: flex-start;
 
   border-radius: 12px;
-  background: var(--Neutral-Slate-50, #F8FAFC);
+  background: var(--Neutral-Slate-50, #f8fafc);
 
   display: grid;
   grid-template-columns: 1fr;
@@ -62,7 +62,9 @@
 
 .fieldLabel {
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -70,8 +72,10 @@
 }
 
 .fieldValue {
-  color: #0F172A;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #0f172a;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
@@ -90,9 +94,11 @@
   align-items: center;
   gap: 4px;
   border-radius: 4px;
-  background: var(--background-brand-soft-surface, #F2F5FF);
-  color: var(--text-brand-primary, #1B4DFF);
-  font-feature-settings: 'liga' off, 'clig' off;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--text-brand-primary, #1b4dff);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -111,16 +117,16 @@
   border-radius: 50%;
 
   &.enabled {
-    background-color: #10B981;
+    background-color: #10b981;
   }
 
   &.disabled {
-    background-color: #6B7280;
+    background-color: #6b7280;
   }
 }
 
 .emptyState {
-  color: #6B7280;
+  color: #6b7280;
   font-style: italic;
   font-size: 14px;
 }
@@ -128,13 +134,15 @@
 .warningContainer {
   padding: 16px;
   border-radius: 8px;
-  background: var(--background-brand-soft-surface, #F2F5FF);
-  border: 1px solid var(--border-brand-subtle, #AEBFFF);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
 }
 
 .warningTitle {
-  color: #1B4DFF;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #1b4dff;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 16px;
   font-style: normal;
   font-weight: 600;
@@ -144,7 +152,9 @@
 
 .warningDescription {
   color: #475569;
-  font-feature-settings: 'liga' off, 'clig' off;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
@@ -153,7 +163,7 @@
 }
 
 .incompleteStrip {
-  color: var(--foreground-warning-secondary, #D97706);
+  color: var(--foreground-warning-secondary, #d97706);
 }
 
 .keywordsWrapper {
@@ -238,5 +248,3 @@
     filter: brightness(1.1);
   }
 }
-
-

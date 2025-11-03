@@ -2,7 +2,10 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 import { IUserInfo } from '@/types/shared.types';
-import { TEditInvestorProfileForm, TEditInvestorProfileFormTeam } from '@/components/page/member-details/InvestorProfileDetails/types';
+import {
+  TEditInvestorProfileForm,
+  TEditInvestorProfileFormTeam,
+} from '@/components/page/member-details/InvestorProfileDetails/types';
 import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
 import { EditOfficeHoursMobileControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursMobileControls';
 import * as yup from 'yup';

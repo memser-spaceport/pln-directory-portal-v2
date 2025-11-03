@@ -34,17 +34,17 @@
   }
 
   &.primary {
-    background: #1B4DFF;
-    border-color: #1B4DFF;
+    background: #1b4dff;
+    border-color: #1b4dff;
 
     &:hover:not(:disabled) {
-      background: #0F3CD9;
-      border-color: #0F3CD9;
+      background: #0f3cd9;
+      border-color: #0f3cd9;
     }
 
     &:active:not(:disabled) {
-      background: #1B4DFF;
-      border-color: #1B4DFF;
+      background: #1b4dff;
+      border-color: #1b4dff;
     }
   }
 }
@@ -54,12 +54,12 @@
   background: white;
 
   &.primary {
-    color: #1B4DFF;
-    border-color: #1B4DFF;
+    color: #1b4dff;
+    border-color: #1b4dff;
 
     &:hover:not(:disabled) {
-      background: #E8EDFF;
-      border-color: #0F3CD9;
+      background: #e8edff;
+      border-color: #0f3cd9;
     }
 
     &:active:not(:disabled) {
@@ -142,5 +142,3 @@
   border-radius: 12px;
   padding: 17px 20px;
 }
-
-

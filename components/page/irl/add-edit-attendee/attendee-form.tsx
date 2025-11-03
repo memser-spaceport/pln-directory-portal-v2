@@ -386,7 +386,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       }
     }
     // Only set formInitialValues if props.formData exists and formInitialValues is not already set
-      setFormInitialValues(props?.formData);
+    setFormInitialValues(props?.formData);
   }, []);
 
   const onCloseClickHandler = () => {

@@ -26,7 +26,7 @@
 .clearButton {
   background: none;
   border: none;
-  color: #156FF7;
+  color: #156ff7;
   font-size: 12px;
   font-weight: 500;
   line-height: 20px;
@@ -87,14 +87,14 @@
   position: relative;
   flex: 1;
   height: 4px;
-  background: #E2E8F0;
+  background: #e2e8f0;
   border-radius: 2px;
 }
 
 .sliderRange {
   position: absolute;
   height: 100%;
-  background: #156FF7;
+  background: #156ff7;
   border-radius: 2px;
 }
 
@@ -102,8 +102,8 @@
   position: absolute;
   width: 16px;
   height: 16px;
-  background: #156FF7;
-  border: 2px solid #FFFFFF;
+  background: #156ff7;
+  border: 2px solid #ffffff;
   border-radius: 50%;
   cursor: grab;
   transition: all 0.2s ease;
@@ -127,7 +127,7 @@
 }
 
 .rangeInfo {
-  color: #64748B;
+  color: #64748b;
   font-size: 12px;
   font-weight: 400;
   line-height: 16px;
@@ -151,12 +151,12 @@
   user-select: none;
 
   border-radius: var(--corner-radius-Full-round, 9999px);
-  background: var(--background-neutral-subtle, #F0F3F9);
+  background: var(--background-neutral-subtle, #f0f3f9);
 }
 
 .Indicator {
   border-radius: 0.25rem;
-  background: var(--action-background-brand-focus, #4A72FF);
+  background: var(--action-background-brand-focus, #4a72ff);
   user-select: none;
 }
 
@@ -165,12 +165,14 @@
   width: 1rem;
   height: 1rem;
   border-radius: 100%;
-  border: 3px solid var(--action-background-brand-focus, #4A72FF);
+  border: 3px solid var(--action-background-brand-focus, #4a72ff);
   background-color: #fff;
   outline: 1px solid var(--color-gray-300);
   user-select: none;
   z-index: 1;
-  box-shadow: 0 4px 6px -1px var(--transparent-dark-12, rgba(14, 15, 17, 0.12)), 0 2px 4px -1px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  box-shadow:
+    0 4px 6px -1px var(--transparent-dark-12, rgba(14, 15, 17, 0.12)),
+    0 2px 4px -1px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 
   &:has(:focus-visible) {
     outline: 2px solid var(--color-blue);

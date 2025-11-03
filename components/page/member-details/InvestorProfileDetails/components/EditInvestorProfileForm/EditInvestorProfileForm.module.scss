@@ -9,7 +9,7 @@
   gap: 8px;
   align-self: stretch;
   border-radius: 16px;
-  background: #FFF;
+  background: #fff;
 
   overflow: auto;
   max-height: calc(100dvh - 56px);
@@ -172,8 +172,10 @@
   gap: 1rem;
   width: fit-content;
 
-  color: #0F172A;
-  font-feature-settings: 'liga' off, 'clig' off;
+  color: #0f172a;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -232,11 +234,11 @@
   }
 
   &[data-checked] {
-    background-color: #156FF7;
+    background-color: #156ff7;
   }
 
   &:focus-visible {
-    outline: 2px solid #156FF7;
+    outline: 2px solid #156ff7;
     outline-offset: 2px;
   }
 }
@@ -280,7 +282,7 @@
 .teamLogo {
   @include mixins.centralize;
   border-radius: var(--corner-radius-xsm, 4px);
-  border: 1px solid var(--border-brand-xsubtle, #E8EDFF);
+  border: 1px solid var(--border-brand-xsubtle, #e8edff);
 
   width: 24px;
   height: 24px;
@@ -305,7 +307,7 @@
 }
 
 .linkIcon {
-  color: var(--foreground-brand-primary, #1B4DFF);
+  color: var(--foreground-brand-primary, #1b4dff);
   line-height: 12px;
 }
 
@@ -356,7 +358,7 @@
   align-self: stretch;
   border-radius: var(--corner-radius-xl, 12px);
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  background: var(--action-background-base-white, #FFF);
+  background: var(--action-background-base-white, #fff);
 
   section {
     display: flex;
@@ -374,7 +376,7 @@
 
 .secondaryLabel {
   .link {
-    color: var(--foreground-brand-primary, #1B4DFF);
+    color: var(--foreground-brand-primary, #1b4dff);
   }
 }
 
@@ -465,4 +467,3 @@
     border-radius: 4px;
   }
 }
-

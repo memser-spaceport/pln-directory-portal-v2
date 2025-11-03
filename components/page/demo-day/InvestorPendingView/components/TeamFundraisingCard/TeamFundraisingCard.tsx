@@ -3,7 +3,13 @@ import s from './TeamFundraisingCard.module.scss';
 
 const ExpandIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M10.4 5.6L16 0M16 0H11.2M16 0V4.8M5.6 10.4L0 16M0 16H4.8M0 16V11.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M10.4 5.6L16 0M16 0H11.2M16 0V4.8M5.6 10.4L0 16M0 16H4.8M0 16V11.2"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
@@ -51,11 +57,17 @@ export const TeamFundraisingCard = ({ onPitchDeckClick, onVideoClick }: TeamFund
             <div className={s.textContent}>
               <div className={s.paragraph}>
                 <h3 className={s.cardTitle}>PL Demo Day</h3>
-                <p className={s.cardDescription}>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                <p className={s.cardDescription}>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+                  dolore magna aliqua.
+                </p>
               </div>
               <div className={s.paragraph}>
                 <h4 className={s.subtitle}>Subtitle</h4>
-                <p className={s.cardDescription}>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                <p className={s.cardDescription}>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+                  dolore magna aliqua.
+                </p>
               </div>
             </div>
           </div>

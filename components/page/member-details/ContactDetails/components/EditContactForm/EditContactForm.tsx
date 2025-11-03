@@ -196,15 +196,27 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
           </div>
           <div className={s.row}>
             <Image src={getLogoByProvider('linkedin')} alt="Linkedin" height={24} width={24} />
-            <FormField name="linkedin" label="LinkedIn" placeholder="eg., jbenetcs or https://linkedin.com/in/jbenetcs" />
+            <FormField
+              name="linkedin"
+              label="LinkedIn"
+              placeholder="eg., jbenetcs or https://linkedin.com/in/jbenetcs"
+            />
           </div>
           <div className={s.row}>
             <Image src={getLogoByProvider('discord')} alt="Discord" height={24} width={24} />
-            <FormField name="discord" label="Discord" placeholder="eg., username or https://discord.com/users/username" />
+            <FormField
+              name="discord"
+              label="Discord"
+              placeholder="eg., username or https://discord.com/users/username"
+            />
           </div>
           <div className={s.row}>
             <Image src={getLogoByProvider('twitter')} alt="Twitter" height={24} width={24} />
-            <FormField name="twitter" label="Twitter" placeholder="eg., @protocollabs or https://twitter.com/protocollabs" />
+            <FormField
+              name="twitter"
+              label="Twitter"
+              placeholder="eg., @protocollabs or https://twitter.com/protocollabs"
+            />
           </div>
           <div className={clsx(s.row, s.center)}>
             <div className={s.switchLabelWrapper}>

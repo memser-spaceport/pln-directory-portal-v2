@@ -14,4 +14,3 @@ export const InvestorProfileField: React.FC<Props> = ({ label, children }) => {
     </div>
   );
 };
-

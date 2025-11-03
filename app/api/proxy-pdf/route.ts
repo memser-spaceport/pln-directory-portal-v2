@@ -7,10 +7,7 @@ export async function GET(request: NextRequest) {
     const pdfUrl = searchParams.get('url');
 
     if (!pdfUrl) {
-      return NextResponse.json(
-        { error: 'URL parameter is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'URL parameter is required' }, { status: 400 });
     }
 
     // Validate that the URL is a valid URL
@@ -18,10 +15,7 @@ export async function GET(request: NextRequest) {
     try {
       validatedUrl = new URL(pdfUrl);
     } catch (error) {
-      return NextResponse.json(
-        { error: 'Invalid URL provided' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid URL provided' }, { status: 400 });
     }
 
     // Optional: Add URL validation for security (whitelist domains if needed)
@@ -44,19 +38,16 @@ export async function GET(request: NextRequest) {
     if (!response.ok) {
       return NextResponse.json(
         { error: `Failed to fetch PDF: ${response.status} ${response.statusText}` },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
     // Get the content type from the response
     const contentType = response.headers.get('content-type') || 'application/pdf';
-    
+
     // Validate that it's actually a PDF
     if (!contentType.includes('application/pdf') && !contentType.includes('application/octet-stream')) {
-      return NextResponse.json(
-        { error: 'The requested resource is not a PDF file' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'The requested resource is not a PDF file' }, { status: 400 });
     }
 
     // Get the PDF content as a buffer
@@ -76,10 +67,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('PDF proxy error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error while fetching PDF' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error while fetching PDF' }, { status: 500 });
   }
 }
 

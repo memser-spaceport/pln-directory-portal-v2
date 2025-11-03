@@ -87,7 +87,7 @@ const IrlLocation = (props: IrlLocation) => {
   const setSearchParams = (locationDetail: any, currentParams: URLSearchParams, searchParams: any) => {
     // Only set the location parameter, remove all other parameters
     currentParams.set('location', locationDetail?.location?.split(',')[0].trim());
-    
+
     // Remove type and event parameters to keep URL clean
     currentParams.delete('type');
     currentParams.delete('event');
@@ -95,7 +95,7 @@ const IrlLocation = (props: IrlLocation) => {
 
   const handleCardClick = (locationDetail: any) => {
     const currentParams = new URLSearchParams();
-    
+
     setSearchParams(locationDetail, currentParams, searchParams);
 
     const locationChanged = locationDetail?.location?.split(',')[0].trim() !== searchParams?.location;

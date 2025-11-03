@@ -152,6 +152,10 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_WELCOME_VIDEO_VIEWED, eventParams);
   }
 
+  function onActiveViewTeamCardViewed(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_CARD_VIEWED, eventParams);
+  }
+
   function onLandingPageOpened(eventParams = {}) {
     captureEvent(DEMO_DAY_ANALYTICS.ON_LANDING_PAGE_OPENED, eventParams);
   }
@@ -204,6 +208,7 @@ export const useDemoDayAnalytics = () => {
     onActiveViewTimeOnPage,
     onActiveViewFiltersApplied,
     onActiveViewTeamCardClicked,
+    onActiveViewTeamCardViewed,
     onActiveViewTeamPitchDeckViewed,
     onActiveViewTeamPitchVideoViewed,
     onActiveViewLikeCompanyClicked,

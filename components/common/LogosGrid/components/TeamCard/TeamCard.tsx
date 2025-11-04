@@ -51,7 +51,7 @@ export function TeamCard(props: Props) {
 
         <div className={s.description}>{shortDescription}</div>
 
-        <a href={website} className={s.website} target="_blank" rel="noopener noreferrer">
+        <a href={cardUrl} className={s.website} target="_blank" rel="noopener noreferrer">
           <GlobeIcon className={s.globe} />
           <div className={s.link}>{website}</div>
         </a>

@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   padding-bottom: 40px;
-  background-color: var(--background-neutral-subtle, #F1F5F9);
+  background-color: var(--background-neutral-subtle, #f1f5f9);
   min-height: calc(100vh - 80px);
   max-width: 900px;
   width: 100%;
@@ -13,7 +13,7 @@
 
 .fundraisingDetail__breadcrumb {
   height: 48px;
-  border-bottom: 1px solid var(--border-neutral-subtle, #E2E8F0);
+  border-bottom: 1px solid var(--border-neutral-subtle, #e2e8f0);
   width: 100%;
   position: sticky;
   top: var(--app-header-height);

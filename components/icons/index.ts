@@ -8,4 +8,5 @@ export * from './InfoCircleIcon';
 export * from './ErrorCircleIcon';
 export * from './ArrowUpRightIcon';
 export * from './SuccessCircleIcon';
+export * from './WarningCircleIcon';
 export * from './InfoCircleIconOutlined';

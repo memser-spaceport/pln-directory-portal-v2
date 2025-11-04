@@ -349,13 +349,13 @@ const ParticipationDetails = (props: IParticipationDetails) => {
               const isHostSubEvents = selectedGathering?.hostSubEvents?.length > 0;
               const isSpeakerSubEvents = selectedGathering?.speakerSubEvents?.length > 0;
               const isSponsorSubEvents = selectedGathering?.sponsorSubEvents?.length > 0;
-              
+
               // Determine if this gathering should be visible based on filtering logic
               const shouldShowGathering = shouldShowAllGatherings || filterUpcomingGatherings(selectedGathering);
-              
+
               return (
-                <div 
-                  className="ptndtls__cnt__pptdtls__pptdtlcnt" 
+                <div
+                  className="ptndtls__cnt__pptdtls__pptdtlcnt"
                   key={`${selectedGathering.uid} + ${index}`}
                   style={{ display: shouldShowGathering ? 'block' : 'none' }}
                 >

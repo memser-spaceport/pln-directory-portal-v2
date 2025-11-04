@@ -115,4 +115,3 @@ export const TeamsListHeader: React.FC<TeamsListHeaderProps> = ({
     </div>
   );
 };
-

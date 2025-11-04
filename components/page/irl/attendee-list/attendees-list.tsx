@@ -102,7 +102,10 @@ const AttendeeList = (props: IAttendeeList) => {
     const [eventInfo, currentGuestResponse, topics, loggedInUserEvents]: any = await Promise.all([
       await getGuestsByLocation(
         location?.uid,
-        parseSearchParams(searchParams, eventType === 'past' ? eventDetails?.events?.pastEvents : eventDetails?.events?.upcomingEvents),
+        parseSearchParams(
+          searchParams,
+          eventType === 'past' ? eventDetails?.events?.pastEvents : eventDetails?.events?.upcomingEvents,
+        ),
         authToken,
         currentEventNames,
       ),
@@ -115,19 +118,19 @@ const AttendeeList = (props: IAttendeeList) => {
       currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests[0] : null;
     eventInfo.isUserGoing = currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid;
     eventInfo.topics = topics;
-    eventInfo.eventsForFilter = getFilteredEventsForUser(
-      loggedInUserEvents,
-      gatherings,
-      isLoggedIn,
-      userInfo,
-    );
+    eventInfo.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, gatherings, isLoggedIn, userInfo);
 
     // Handle the new return structure with selectedType
     let finalEventType = eventType;
     if ((eventInfo as any)?.selectedType) {
       finalEventType = (eventInfo as any).selectedType;
     }
-    setUpdatedEventDetails((prev) => ({ ...eventInfo, events: prev.events, currentGuest, totalGuests: eventInfo.totalGuests }));
+    setUpdatedEventDetails((prev) => ({
+      ...eventInfo,
+      events: prev.events,
+      currentGuest,
+      totalGuests: eventInfo.totalGuests,
+    }));
     triggerLoader(false);
     router.refresh();
   };
@@ -135,7 +138,6 @@ const AttendeeList = (props: IAttendeeList) => {
   const onIamGoingPopupClose = () => {
     setIamGoingPopupProps({ isOpen: false, formdata: null, mode: '' });
   };
-
 
   const handleAttendeesClick = (type: string, e: { stopPropagation: () => void }) => {
     e.stopPropagation();
@@ -151,17 +153,17 @@ const AttendeeList = (props: IAttendeeList) => {
     currentParams.set('type', type);
     currentParams.delete('event');
     router.push(`${window.location.pathname}?${currentParams.toString()}`);
-       // updateQueryParams('type', 'upcoming', searchParams);
-       if (searchParams?.type !== type) {
-        triggerLoader(true);
-        // analytics.trackUpcomingEventsDropdownClicked(eventDetails.upcomingEvents);
-      }
+    // updateQueryParams('type', 'upcoming', searchParams);
+    if (searchParams?.type !== type) {
+      triggerLoader(true);
+      // analytics.trackUpcomingEventsDropdownClicked(eventDetails.upcomingEvents);
+    }
   };
 
-    // Check if any filters are applied
+  // Check if any filters are applied
   const hasFiltersApplied = () => {
     const filterParams = ['search', 'attending', 'attendees', 'topics', 'sortBy', 'sortDirection'];
-    return filterParams.some(param => searchParams[param]);
+    return filterParams.some((param) => searchParams[param]);
   };
 
   useEffect(() => {
@@ -205,7 +207,10 @@ const AttendeeList = (props: IAttendeeList) => {
         const authToken = getParsedValue(Cookies.get('authToken'));
         const eventInfo: any = await getGuestsByLocation(
           location?.uid,
-          parseSearchParams(searchParams, eventType === 'past' ? eventDetails?.events?.pastEvents : eventDetails?.events?.upcomingEvents),
+          parseSearchParams(
+            searchParams,
+            eventType === 'past' ? eventDetails?.events?.pastEvents : eventDetails?.events?.upcomingEvents,
+          ),
           authToken,
           currentEventNames,
           currentPage,
@@ -274,7 +279,13 @@ const AttendeeList = (props: IAttendeeList) => {
         </div>
         <div className="attendeeList__table">
           <div className={`irl__table table__login`}>
-            {<AttendeeTableHeader isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} eventType={searchParams?.type} />}
+            {
+              <AttendeeTableHeader
+                isLoggedIn={isLoggedIn}
+                eventDetails={updatedEventDetails}
+                eventType={searchParams?.type}
+              />
+            }
             <div ref={tableRef} className={`irl__table__body w-full`}>
               <GuestList
                 userInfo={userInfo}
@@ -342,12 +353,12 @@ const AttendeeList = (props: IAttendeeList) => {
           max-width: 900px;
           flex-direction: column;
         }
-        .attendeeList__table__header{
+        .attendeeList__table__header {
           display: flex;
           flex-direction: row;
           gap: 8px;
           margin-bottom: 8px;
-          cursor: pointer
+          cursor: pointer;
         }
 
         .irl__floating-bar {

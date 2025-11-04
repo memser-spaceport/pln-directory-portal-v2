@@ -80,7 +80,7 @@
   flex-shrink: 0;
   align-self: stretch;
   overflow: auto;
-  max-height: calc(100dvh - 182px);
+  max-height: calc(100dvh - 200px);
 }
 
 .option {
@@ -106,5 +106,5 @@
 
 .notFound {
   padding: 8px 20px;
-  border-top: 1px solid var(--Border-border-light,#e2e8f0);
+  border-top: 1px solid var(--Border-border-light, #e2e8f0);
 }

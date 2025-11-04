@@ -40,6 +40,10 @@ export const useAuthAnalytics = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_PRIVY_LOGIN_SUCCESS, { ...privyUser });
   };
 
+  const onPrivyLoginFailure = (error: any) => {
+    captureEvent(AUTH_ANALYTICS.AUTH_PRIVY_LOGIN_FAILURE, { ...error });
+  };
+
   const onDirectoryLoginInit = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_DIRECTORY_LOGIN_INIT, { ...privyUser });
   };
@@ -88,6 +92,14 @@ export const useAuthAnalytics = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD, { ...privyUser });
   };
 
+  const onLinkAccountSubmitClicked = () => {
+    captureEvent(AUTH_ANALYTICS.AUTH_LINK_ACCOUNT_SUBMIT_CLICKED);
+  };
+
+  const onLinkAccountCancelClicked = () => {
+    captureEvent(AUTH_ANALYTICS.AUTH_LINK_ACCOUNT_CANCEL_CLICKED);
+  };
+
   return {
     onLoginBtnClicked,
     onProceedToLogin,
@@ -96,6 +108,7 @@ export const useAuthAnalytics = () => {
     onPrivyUnlinkEmail,
     onPrivyUserDelete,
     onPrivyLoginSuccess,
+    onPrivyLoginFailure,
     onDirectoryLoginInit,
     onDirectoryLoginSuccess,
     onDirectoryLoginFailure,
@@ -106,5 +119,7 @@ export const useAuthAnalytics = () => {
     onUpdateEmailFailure,
     onUpdateSameEmailProvided,
     onSignUpBtnClicked,
+    onLinkAccountSubmitClicked,
+    onLinkAccountCancelClicked,
   };
 };

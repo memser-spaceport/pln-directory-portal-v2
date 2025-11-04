@@ -340,7 +340,7 @@
 
   box-shadow: 0 -1px 4px 0 var(--transparent-brand-8, rgba(27, 77, 255, 0.08)) inset;
 
-  color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -357,16 +357,18 @@
 
   border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  background: var(--action-background-brand-normal, #1B4DFF);
+  background: var(--action-background-brand-normal, #1b4dff);
 
   /* Button/primay/fill */
-  box-shadow: 0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  box-shadow:
+    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
 
-  color: var(--action-foreground-base-inverted_white, #FFF);
+  color: var(--action-foreground-base-inverted_white, #fff);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
 }
-

@@ -27,18 +27,33 @@ export default function PdfViewer({ fileUrl, isPreview = false }: PdfViewerProps
     <div className={`${s.pdfViewerContainer} ${isPreview ? s.previewMode : ''}`}>
       <div className={s.documentContainer}>
         <Document file={fileUrl} onLoadSuccess={onDocumentLoadSuccess}>
-          <Page pageNumber={pageNumber} width={undefined} height={undefined} scale={1} renderTextLayer={!isPreview} renderAnnotationLayer={!isPreview} />
+          <Page
+            pageNumber={pageNumber}
+            width={undefined}
+            height={undefined}
+            scale={1}
+            renderTextLayer={!isPreview}
+            renderAnnotationLayer={!isPreview}
+          />
         </Document>
       </div>
       {numPages && numPages > 1 && !isPreview && (
         <div className={s.navigationContainer}>
-          <button className={s.navButton} onClick={() => setPageNumber(Math.max(1, pageNumber - 1))} disabled={pageNumber <= 1}>
+          <button
+            className={s.navButton}
+            onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
+            disabled={pageNumber <= 1}
+          >
             Previous
           </button>
           <p className={s.pageInfo}>
             Page {pageNumber} of {numPages}
           </p>
-          <button className={s.navButton} onClick={() => setPageNumber(Math.min(numPages, pageNumber + 1))} disabled={pageNumber >= numPages}>
+          <button
+            className={s.navButton}
+            onClick={() => setPageNumber(Math.min(numPages, pageNumber + 1))}
+            disabled={pageNumber >= numPages}
+          >
             Next
           </button>
         </div>

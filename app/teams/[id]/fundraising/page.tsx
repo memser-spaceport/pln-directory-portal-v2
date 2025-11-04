@@ -21,7 +21,17 @@ import { VideoPitchDetails } from '@/components/page/team-details/VideoPitchDeta
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
-  const { team, members, focusAreas, isLoggedIn, userInfo, redirectTeamUid, isError, isNotFound, isLoggedInMemberPartOfTeam } = await getPageData(teamId);
+  const {
+    team,
+    members,
+    focusAreas,
+    isLoggedIn,
+    userInfo,
+    redirectTeamUid,
+    isError,
+    isNotFound,
+    isLoggedInMemberPartOfTeam,
+  } = await getPageData(teamId);
 
   if (redirectTeamUid) {
     redirect(`/teams/${redirectTeamUid}/fundraising`, RedirectType.replace);
@@ -120,7 +130,9 @@ async function getPageData(teamId: string) {
     }
 
     const [teamResponse, teamMembersResponse, focusAreaResponse] = await Promise.all([
-      getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks' }),
+      getTeam(teamId, {
+        with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks',
+      }),
       getMembers(
         {
           'teamMemberRoles.team.uid': teamId,
@@ -178,9 +190,14 @@ type IGenerateMetadata = {
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
-export async function generateMetadata({ params, searchParams }: IGenerateMetadata, parent: ResolvingMetadata): Promise<Metadata> {
+export async function generateMetadata(
+  { params, searchParams }: IGenerateMetadata,
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
   const teamId = params.id;
-  const teamResponse = await getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member' });
+  const teamResponse = await getTeam(teamId, {
+    with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member',
+  });
   if (teamResponse?.error) {
     return {
       title: 'Protocol Labs Directory',

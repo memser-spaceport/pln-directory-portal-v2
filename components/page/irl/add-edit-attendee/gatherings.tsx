@@ -1,7 +1,13 @@
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import CustomCheckbox from '@/components/form/custom-checkbox';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE, EVENT_TYPE, EVENTS_SUBMIT_FORM_TYPES, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
+import {
+  ADMIN_ROLE,
+  EVENT_TYPE,
+  EVENTS_SUBMIT_FORM_TYPES,
+  IAM_GOING_POPUP_MODES,
+  IRL_ATTENDEE_FORM_ERRORS,
+} from '@/utils/constants';
 import { filterUpcomingGatherings, getFormattedDateString } from '@/utils/irl.utils';
 import { SetStateAction, useEffect, useState } from 'react';
 import ParticipationDetails from './participation-details';
@@ -28,10 +34,10 @@ const Gatherings = (props: IGatherings) => {
   const gatherings = props?.gatherings ?? [];
   const eventType = props?.eventType;
   const from = props?.from ?? '';
-  
+
   // Determine if we should show all gatherings or filter them
   const shouldShowAllGatherings = mode === IAM_GOING_POPUP_MODES.ADMINADD || from === 'list' || eventType === 'past';
-  
+
   const userInfo = props?.userInfo;
   const loggedInUserInfo = props?.loggedInUserInfo;
   const errors = props?.errors;
@@ -87,10 +93,10 @@ const Gatherings = (props: IGatherings) => {
               // const isAllEventEditable = eventType === 'past' && from === 'list' && (isAdmin || isLoggedInUserEventDetails);
               const isAllEventEditable = isAdmin || isLoggedInUserEventDetails;
               const isEventDisabled = isAllEventEditable ? !isAllEventEditable : isBooked;
-              
+
               // Determine if this gathering should be visible based on filtering logic
               const shouldShowGathering = shouldShowAllGatherings || filterUpcomingGatherings(gathering);
-              
+
               return (
                 <div
                   key={`${gathering.uid} - ${index}`}
@@ -176,7 +182,9 @@ const Gatherings = (props: IGatherings) => {
 
         {/* Host, speaker and sponsor details */}
 
-        {(shouldShowAllGatherings ? selectedGatherings.length > 0 : selectedGatherings.filter((gathering: any) => filterUpcomingGatherings(gathering)).length > 0) && (
+        {(shouldShowAllGatherings
+          ? selectedGatherings.length > 0
+          : selectedGatherings.filter((gathering: any) => filterUpcomingGatherings(gathering)).length > 0) && (
           <div>
             <ParticipationDetails
               isVerifiedMember={isVerifiedMember}

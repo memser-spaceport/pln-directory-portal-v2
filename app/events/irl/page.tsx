@@ -86,9 +86,11 @@ export default async function Page({ searchParams }: any) {
             guestDetails={guestDetails}
           />
         </section>
-        {eventDetails?.resources?.length > 0 && <section className={styles.irlGatherings__additionalResources}>
-          <AddtionalResources eventDetails={eventDetails} searchParams={searchParams} isLoggedIn={isLoggedIn} />
-        </section>}
+        {eventDetails?.resources?.length > 0 && (
+          <section className={styles.irlGatherings__additionalResources}>
+            <AddtionalResources eventDetails={eventDetails} searchParams={searchParams} isLoggedIn={isLoggedIn} />
+          </section>
+        )}
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
           <AttendeeList
@@ -165,7 +167,7 @@ const getPageData = async (searchParams: any) => {
 
     // Determine event type and fetch event guest data
     const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';
-    
+
     if (!eventType) {
       if (eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0) {
         searchParams.type = 'past';
@@ -179,12 +181,12 @@ const getPageData = async (searchParams: any) => {
     }
 
     const currentEvents =
-    searchParams.type === 'upcoming'
-      ? eventDetails?.upcomingEvents
-      : searchParams.type === 'past'
-        ? eventDetails?.pastEvents
-        : eventDetails?.events;
-    const currentEventNames = currentEvents?.map((item: any) => item.name); 
+      searchParams.type === 'upcoming'
+        ? eventDetails?.upcomingEvents
+        : searchParams.type === 'past'
+          ? eventDetails?.pastEvents
+          : eventDetails?.events;
+    const currentEventNames = currentEvents?.map((item: any) => item.name);
 
     // Proceed with API calls only after currentEventNames is set
     const [events, currentGuestResponse, topics, loggedInUserEvents, followersResponse] = await Promise.all([
@@ -210,7 +212,7 @@ const getPageData = async (searchParams: any) => {
       });
     }
     let guestDetails = events as any;
-    
+
     // Handle the new return structure with selectedType
     let finalEventType = eventType;
     if ((events as any)?.selectedType) {
@@ -222,10 +224,12 @@ const getPageData = async (searchParams: any) => {
       finalEventType === 'past' || (eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0)
         ? eventDetails.pastEvents
         : eventDetails.upcomingEvents;
-    guestDetails.events = {upcomingEvents: eventDetails.upcomingEvents, pastEvents: eventDetails.pastEvents};
+    guestDetails.events = { upcomingEvents: eventDetails.upcomingEvents, pastEvents: eventDetails.pastEvents };
 
     guestDetails.currentGuest =
-      !currentGuestResponse?.isError && (currentGuestResponse as any)?.guests?.[0]?.memberUid === userInfo?.uid ? (currentGuestResponse as any).guests[0] : null;
+      !currentGuestResponse?.isError && (currentGuestResponse as any)?.guests?.[0]?.memberUid === userInfo?.uid
+        ? (currentGuestResponse as any).guests[0]
+        : null;
     guestDetails.isUserGoing = selectedTypeEvents?.some((event: any) =>
       loggedInUserEvents?.some((userEvent: any) => userEvent?.uid === event?.uid),
     );

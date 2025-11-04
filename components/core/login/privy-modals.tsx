@@ -1,3 +1,4 @@
+import { useToggle } from 'react-use';
 import { useEffect, useState } from 'react';
 import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
 import { usePathname, useRouter } from 'next/navigation';
@@ -10,9 +11,11 @@ import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createLogoutChannel } from './broadcast-channel';
 import { deletePrivyUser } from '@/services/auth.service';
 import { triggerLoader } from '@/utils/common.utils';
-import { getFollowUps } from '@/services/office-hours.service';
+
 import { usePostHog } from 'posthog-js/react';
 import { getDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
+
+import { LinkAccountModal } from './LinkAccountModal';
 
 function PrivyModals() {
   const {
@@ -34,6 +37,8 @@ function PrivyModals() {
   const [linkAccountKey, setLinkAccountKey] = useState('');
   const router = useRouter();
   const pathname = usePathname();
+
+  const [linkAccountModalOpen, toggleLinkAccountModalOpen] = useToggle(false);
 
   const clearPrivyParams = () => {
     const queryString = window.location.search.substring(1);
@@ -272,8 +277,13 @@ function PrivyModals() {
     }
 
     function handlePrivyLoginError(e: CustomEvent) {
+      analytics.onPrivyLoginFailure(e.detail);
       triggerLoader(false);
-      console.log('Privy login error');
+
+      if (e.detail.error === 'linked_to_another_user') {
+        logout();
+        toggleLinkAccountModalOpen();
+      }
     }
 
     async function handlePrivyLinkError(e: any) {
@@ -304,6 +314,7 @@ function PrivyModals() {
         analytics.onAccountLinkError({ type: 'loggedin', error: e?.detail?.error });
       }
     }
+
     async function initPrivyLogin() {
       const stateUid = localStorage.getItem('stateUid');
       const prefillEmail = localStorage.getItem('prefillEmail');
@@ -322,10 +333,12 @@ function PrivyModals() {
         );
       }
     }
+
     function addAccountToPrivy(e: CustomEvent) {
       analytics.onPrivyAccountLink({ account: e?.detail });
       setLinkAccountKey(e.detail);
     }
+
     async function handlePrivyLogout() {
       Cookies.remove('authLinkedAccounts');
       await logout();
@@ -382,6 +395,7 @@ function PrivyModals() {
 
   return (
     <>
+      <LinkAccountModal open={linkAccountModalOpen} toggleOpen={toggleLinkAccountModalOpen} />
       <style jsx global>
         {`
           #privy-modal-content {

@@ -315,11 +315,13 @@
 }
 
 .errorMsg {
-   font-size: 10px;
-   color: var(--action-border-error-focus);
-   font-feature-settings: 'liga' off, 'clig' off;
-   font-style: normal;
-   font-weight: 500;
-   line-height: 20px; /* 200% */
-   margin-top: 0.25rem;
- }
+  font-size: 10px;
+  color: var(--action-border-error-focus);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 200% */
+  margin-top: 0.25rem;
+}

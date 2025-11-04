@@ -10,6 +10,7 @@ export const investInVcFundsOptions = [
   { label: 'Fund-of-funds', value: 'fund-of-funds' },
 ];
 
-export const SEC_RULES_URL = 'https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated-3';
+export const SEC_RULES_URL =
+  'https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated-3';
 export const EMAIL_SETTINGS_URL = '/settings/email';
 export const TEAMS_ADD_URL = '/teams/add';

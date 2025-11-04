@@ -52,8 +52,7 @@ const FollowSection = (props: IFollowSectionProps) => {
   const filteredGatherings = upcomingEvents.filter((gathering: any) => filterUpcomingGatherings(gathering));
   // Check if user has any upcoming events (events they can edit)
   const userHasUpcomingEvents = updatedUser?.events?.some((event: any) => filterUpcomingGatherings(event)) ?? false;
-  const inPastEvents = type === 'past' || 
-    (pastEvents?.length > 0 && upcomingEvents?.length === 0);
+  const inPastEvents = type === 'past' || (pastEvents?.length > 0 && upcomingEvents?.length === 0);
   const inPastEventsAndHaveEvents = inPastEvents && pastEvents?.length > 0;
   const onLogin = props.onLogin;
   const isUserLoggedIn = props?.isLoggedIn;
@@ -63,7 +62,8 @@ const FollowSection = (props: IFollowSectionProps) => {
     isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const topicsAndReason = props?.topicsAndReason;
   const accessLevel = getAccessLevel(userInfo, isUserLoggedIn);
-  const scheduleURL = locationEvents?.additionalInfo?.schedule_url || 
+  const scheduleURL =
+    locationEvents?.additionalInfo?.schedule_url ||
     `${process.env.SCHEDULE_BASE_URL}/program?location=${encodeURIComponent(eventLocationSummary.name)}`;
 
   // Helper functions
@@ -71,7 +71,6 @@ const FollowSection = (props: IFollowSectionProps) => {
     followers: followers ?? [],
     isFollowing: followers?.some((follower) => follower.memberUid === userInfo?.uid) ?? false,
   });
-
 
   const getFollowerCountText = () => {
     const count = followProperties.followers.length;
@@ -108,59 +107,57 @@ const FollowSection = (props: IFollowSectionProps) => {
 
   const onAddMemberClick = () => {
     if (upcomingEvents?.length === 0) {
-    analytics.trackGuestListAddNewMemberBtnClicked({
-      ...location,
-      option: 'past_attendees',
-      action: 'add_to_past_attendees'
-    });
-    document.dispatchEvent(
-      new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
-        detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD, from: 'past' },
-      }),
-    );
-  setIsAddMemberDropdownOpen(false);
-  }
-  else if (pastEvents?.length === 0) {
-    analytics.trackGuestListAddNewMemberBtnClicked({
-      ...location,
-      option: 'upcoming_attendees',
-      action: 'add_to_upcoming_attendees'
-    });
-        document.dispatchEvent(
-      new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
-        detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD, from: 'upcoming' },
-      }),
-    );
-  setIsAddMemberDropdownOpen(false);
-  }
-  else {
-    const isOpening = !isAddMemberDropdownOpen;
-    setIsAddMemberDropdownOpen((prev) => !prev);
-    
-    if (isOpening) {
       analytics.trackGuestListAddNewMemberBtnClicked({
         ...location,
-        action: 'dropdown_opened'
+        option: 'past_attendees',
+        action: 'add_to_past_attendees',
       });
+      document.dispatchEvent(
+        new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
+          detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD, from: 'past' },
+        }),
+      );
+      setIsAddMemberDropdownOpen(false);
+    } else if (pastEvents?.length === 0) {
+      analytics.trackGuestListAddNewMemberBtnClicked({
+        ...location,
+        option: 'upcoming_attendees',
+        action: 'add_to_upcoming_attendees',
+      });
+      document.dispatchEvent(
+        new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
+          detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD, from: 'upcoming' },
+        }),
+      );
+      setIsAddMemberDropdownOpen(false);
+    } else {
+      const isOpening = !isAddMemberDropdownOpen;
+      setIsAddMemberDropdownOpen((prev) => !prev);
+
+      if (isOpening) {
+        analytics.trackGuestListAddNewMemberBtnClicked({
+          ...location,
+          action: 'dropdown_opened',
+        });
+      }
     }
-  }
-};
+  };
 
   const onHandleAttendeesClick = (from: string) => {
     if (from === 'upcoming') {
       analytics.trackGuestListAddNewMemberBtnClicked({
         ...location,
         option: 'current_attendees',
-        action: 'add_to_current_attendees'
+        action: 'add_to_current_attendees',
       });
     } else if (from === 'past') {
       analytics.trackGuestListAddNewMemberBtnClicked({
         ...location,
         option: 'past_attendees',
-        action: 'add_to_past_attendees'
+        action: 'add_to_past_attendees',
       });
     }
-    
+
     document.dispatchEvent(
       new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
         detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD, from: from },
@@ -317,23 +314,39 @@ const FollowSection = (props: IFollowSectionProps) => {
                   alt="flag"
                   style={{ width: '17px', height: '17px' }}
                 />{' '}
-                <span style={{ textTransform: 'capitalize' }}>{eventLocationSummary.name}{' '}</span>
+                <span style={{ textTransform: 'capitalize' }}>{eventLocationSummary.name} </span>
               </span>
             </div>
           </div>
         </div>
 
         <div className="toolbar__actionCn">
-          <Link 
-            href={scheduleURL} 
-            target="_blank" 
+          <Link
+            href={scheduleURL}
+            target="_blank"
             className="toolbar__actionCn__scheduleBtn"
             onClick={() => analytics.trackViewScheduleClick(location)}
           >
-            <img className="toolbar__actionCn__scheduleBtn__calendarIcon" src="/icons/calendar.svg" width={18} height={18} alt="schedule" />
+            <img
+              className="toolbar__actionCn__scheduleBtn__calendarIcon"
+              src="/icons/calendar.svg"
+              width={18}
+              height={18}
+              alt="schedule"
+            />
             Schedule
-            {totalEvents > 0 && <span className="toolbar__actionCn__scheduleBtn__scheduleText">({totalEvents > 1 ? `${totalEvents} events` : `${totalEvents} event`})</span>}
-            <img className="toolbar__actionCn__scheduleBtn__arrowIcon" src="/icons/arrow-blue.svg" alt="arrow icon" width={10} height={10} />
+            {totalEvents > 0 && (
+              <span className="toolbar__actionCn__scheduleBtn__scheduleText">
+                ({totalEvents > 1 ? `${totalEvents} events` : `${totalEvents} event`})
+              </span>
+            )}
+            <img
+              className="toolbar__actionCn__scheduleBtn__arrowIcon"
+              src="/icons/arrow-blue.svg"
+              alt="arrow icon"
+              width={10}
+              height={10}
+            />
           </Link>
 
           <div className="toolbar__actionCn__buttons">
@@ -352,34 +365,52 @@ const FollowSection = (props: IFollowSectionProps) => {
                   </button>
                   {isAddMemberDropdownOpen && (
                     <div className="toolbar__actionCn__add__list">
-                      <button className="toolbar__actionCn__add__list__item" onClick={()=> onHandleAttendeesClick("upcoming")}>
+                      <button
+                        className="toolbar__actionCn__add__list__item"
+                        onClick={() => onHandleAttendeesClick('upcoming')}
+                      >
                         Add to Current Attendees
                       </button>
-                      <button className="toolbar__actionCn__add__list__item" onClick={()=> onHandleAttendeesClick("past")}>
+                      <button
+                        className="toolbar__actionCn__add__list__item"
+                        onClick={() => onHandleAttendeesClick('past')}
+                      >
                         Add to Past Attendees
                       </button>
                     </div>
-                 )}
+                  )}
                 </div>
               </div>
             )}
-            {isUserLoggedIn && !canUserAddAttendees && type === 'past' && !isUserGoing && accessLevel === 'advanced' && (
-              <button onClick={() => onIAmGoingClick('mark-presence')} className="toolbar__actionCn__imGoingBtn">
-                Claim Attendance
-              </button>
-            )}
-            {((isUserLoggedIn && !inPastEvents && accessLevel === 'advanced') && (!isUserGoing || (isUserGoing && filteredGatherings?.length > 0)) && !userHasUpcomingEvents && filteredGatherings?.length > 0) && (
-              <button onClick={() => onIAmGoingClick('upcoming')} className="toolbar__actionCn__imGoingBtn">
-                I&apos;m Going
-              </button>
-            )} 
+            {isUserLoggedIn &&
+              !canUserAddAttendees &&
+              type === 'past' &&
+              !isUserGoing &&
+              accessLevel === 'advanced' && (
+                <button onClick={() => onIAmGoingClick('mark-presence')} className="toolbar__actionCn__imGoingBtn">
+                  Claim Attendance
+                </button>
+              )}
+            {isUserLoggedIn &&
+              !inPastEvents &&
+              accessLevel === 'advanced' &&
+              (!isUserGoing || (isUserGoing && filteredGatherings?.length > 0)) &&
+              !userHasUpcomingEvents &&
+              filteredGatherings?.length > 0 && (
+                <button onClick={() => onIAmGoingClick('upcoming')} className="toolbar__actionCn__imGoingBtn">
+                  I&apos;m Going
+                </button>
+              )}
             {!isUserLoggedIn && (
               <button onClick={onLoginClick} className="toolbar__actionCn__login">
                 Login to Respond
               </button>
-            )} 
-            {isUserGoing && isUserLoggedIn && (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) && accessLevel === 'advanced' && userHasUpcomingEvents &&
-               (
+            )}
+            {isUserGoing &&
+              isUserLoggedIn &&
+              (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) &&
+              accessLevel === 'advanced' &&
+              userHasUpcomingEvents && (
                 <div className="toolbar__actionCn__edit__wrpr">
                   <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
                     <img src="/icons/edit-white.svg" alt="arrow" width={18} height={18} />
@@ -398,9 +429,9 @@ const FollowSection = (props: IFollowSectionProps) => {
                   )}
                 </div>
               )}
-            </div>
           </div>
         </div>
+      </div>
       <PresenceRequestSuccess />
       <style jsx>
         {`
@@ -483,8 +514,6 @@ const FollowSection = (props: IFollowSectionProps) => {
             gap: 4px;
           }
 
-
-
           .toolbar__actionCn {
             display: flex;
             gap: 8px;
@@ -534,7 +563,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             font-size: 14px;
             line-height: 28px;
             text-align: left;
-            color: #0F172A;
+            color: #0f172a;
             cursor: pointer;
             padding: 4px 8px;
             white-space: nowrap;
@@ -651,44 +680,42 @@ const FollowSection = (props: IFollowSectionProps) => {
             align-items: center;
           }
 
+          .root__irl__mobileView {
+            display: flex;
+            width: 90vw;
+            max-height: 70vh;
+            overflow-y: auto;
+          }
 
-            .root__irl__mobileView {
-              display: flex;
-              width: 90vw;
-              max-height: 70vh;
-              overflow-y: auto;
-            }
+          .toolbar {
+            flex-direction: row;
+            flex-wrap: wrap;
+          }
+          .toolbar__hdr {
+            flex: 1;
+            align-items: center;
+          }
+          .toolbar__search {
+            flex-basis: 100%;
+          }
+          .toolbar__actionCn__edit__list {
+            right: 0px;
+            left: unset;
+          }
+          .toolbar__actionCn__add__list {
+            left: 0px;
+            right: unset;
+          }
 
-            .toolbar {
-              flex-direction: row;
-              flex-wrap: wrap;
-            }
-            .toolbar__hdr {
-              flex: 1;
-              align-items: center;
-            }
-            .toolbar__search {
-              flex-basis: 100%;
-            }
-            .toolbar__actionCn__edit__list {
-              right: 0px;
-              left: unset;
-            }
-            .toolbar__actionCn__add__list {
-              left: 0px;
-              right: unset;
-            }
-
-            .toolbar__actionCn__webView,
-            .toolbar__actionCn__webView__follCnt {
-              display: none;
-            }
+          .toolbar__actionCn__webView,
+          .toolbar__actionCn__webView__follCnt {
+            display: none;
+          }
 
           @media (min-width: 768px) {
             .root__irl__follwcnt {
               width: 100%;
             }
-
 
             .root__irl__follwcnt__imgsec {
               display: flex;
@@ -781,10 +808,9 @@ const FollowSection = (props: IFollowSectionProps) => {
             }
 
             .toolbar__actionCn__buttons {
-               justify-content: flex-end;
-               width: fit-content;
+              justify-content: flex-end;
+              width: fit-content;
             }
-
           }
         `}
       </style>
@@ -794,8 +820,8 @@ const FollowSection = (props: IFollowSectionProps) => {
           display: ${isShrunk ? 'flex' : 'none'};
           align-items: center;
           justify-content: center;
-          border: 1px solid #CBD5E1;
-          background: #FFFFFF;
+          border: 1px solid #cbd5e1;
+          background: #ffffff;
           height: 40px;
           padding: 10px 12px;
           font-weight: 400;
@@ -804,9 +830,9 @@ const FollowSection = (props: IFollowSectionProps) => {
           letter-spacing: 0px;
           border-radius: 8px;
           cursor: pointer;
-          color: #0F172A;
+          color: #0f172a;
           text-decoration: none;
-          box-shadow: 0px 1px 1px 0px #0F172A14;
+          box-shadow: 0px 1px 1px 0px #0f172a14;
           width: 100%;
         }
 

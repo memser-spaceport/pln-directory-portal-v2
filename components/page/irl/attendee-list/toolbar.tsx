@@ -89,36 +89,48 @@ const Toolbar = (props: IToolbar) => {
       <div className="toolbar">
         <span className="toolbar__hdr">
           <span className="toolbar__hdr__count">
-            <span className="toolbar__hdr__count__text">{type === 'past'
-                ? `Past Attendees (${filteredListLength})`
-                : `Attendees (${filteredListLength})`}
-              </span>
-            {
-              (eventDetails?.upcomingEvents?.length > 0 && eventDetails?.pastEvents?.length > 0) && (
-                <div className="toolbar__hdr__dropdown" ref={dropdownRef} onClick={() => setIsShowAttendeeListPopup((prev) => !prev)}>
+            <span className="toolbar__hdr__count__text">
+              {type === 'past' ? `Past Attendees (${filteredListLength})` : `Attendees (${filteredListLength})`}
+            </span>
+            {eventDetails?.upcomingEvents?.length > 0 && eventDetails?.pastEvents?.length > 0 && (
+              <div
+                className="toolbar__hdr__dropdown"
+                ref={dropdownRef}
+                onClick={() => setIsShowAttendeeListPopup((prev) => !prev)}
+              >
                 <img src="/icons/irl/arrow-down-white.svg" alt="dropdown" />
                 {isShowAttendeeListPopup && (
                   <div className="toolbar__dropdown__attendee__type">
                     <div className="toolbar__dropdown__attendee__type__body">
-                    {ATTENDEE_TYPE_DATA.map((item: any) => (
-                      <div className="toolbar__dropdown__attendee__type__body__item" key={item.from} onClick={() => onHandleAttendeesClick(item.from)}>
-                        <input type="radio" name="attendees" value={item.from} checked={type === item.from || ((type === null || type === undefined) && item.from === 'upcoming')} />
-                        <label className="toolbar__dropdown__attendee__type__body__item__label">
-                          {item.label}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+                      {ATTENDEE_TYPE_DATA.map((item: any) => (
+                        <div
+                          className="toolbar__dropdown__attendee__type__body__item"
+                          key={item.from}
+                          onClick={() => onHandleAttendeesClick(item.from)}
+                        >
+                          <input
+                            type="radio"
+                            name="attendees"
+                            value={item.from}
+                            checked={
+                              type === item.from || ((type === null || type === undefined) && item.from === 'upcoming')
+                            }
+                          />
+                          <label className="toolbar__dropdown__attendee__type__body__item__label">{item.label}</label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
-              )
-            }
+            )}
           </span>
         </span>
-        {<div className="toolbar__search">
-          <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
-        </div>}
+        {
+          <div className="toolbar__search">
+            <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
+          </div>
+        }
       </div>
       <style jsx>
         {`

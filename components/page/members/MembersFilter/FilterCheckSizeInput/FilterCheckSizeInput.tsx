@@ -203,7 +203,7 @@ export function FilterCheckSizeInput({
   return (
     <div className={styles.container}>
       <label className={styles.label}>{label}</label>
-      
+
       <div className={styles.inputGroup}>
         <label className={styles.inputLabel}>Minimum</label>
         <input
@@ -236,4 +236,3 @@ export function FilterCheckSizeInput({
     </div>
   );
 }
-

@@ -62,7 +62,7 @@
 }
 
 .memberName {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 24px;
   font-style: normal;
   font-weight: 600;
@@ -202,7 +202,7 @@
 }
 
 .cardTitle {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 20px;
   font-style: normal;
   font-weight: 600;
@@ -240,7 +240,7 @@
 }
 
 .videoTitle {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   text-align: center;
   font-size: 40px;
   font-style: normal;
@@ -281,7 +281,9 @@
   background: white;
   border: 1px solid rgba(14, 15, 17, 0.16);
   border-radius: 50%;
-  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.08), 0px -2px 8px 0px inset rgba(14, 15, 17, 0.02);
+  box-shadow:
+    0px 1px 2px 0px rgba(14, 15, 17, 0.08),
+    0px -2px 8px 0px inset rgba(14, 15, 17, 0.02);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -291,7 +293,9 @@
 
   .mediaCard:hover & {
     transform: translate(-50%, calc(-50% + 0.5px)) scale(1.05);
-    box-shadow: 0px 2px 4px 0px rgba(14, 15, 17, 0.12), 0px -2px 8px 0px inset rgba(14, 15, 17, 0.02);
+    box-shadow:
+      0px 2px 4px 0px rgba(14, 15, 17, 0.12),
+      0px -2px 8px 0px inset rgba(14, 15, 17, 0.02);
   }
 
   @include media.mobile-only {

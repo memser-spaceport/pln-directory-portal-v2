@@ -88,4 +88,3 @@ export const useTeamsFiltering = ({ teams, searchTerm, params, isUserFounder }: 
     selectedActivities,
   };
 };
-

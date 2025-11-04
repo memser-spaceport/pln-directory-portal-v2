@@ -2,14 +2,17 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 import { IUserInfo } from '@/types/shared.types';
-import { TEditInvestorProfileForm, TEditInvestorProfileFormTeam } from '@/components/page/member-details/InvestorProfileDetails/types';
+import {
+  TEditInvestorProfileForm,
+  TEditInvestorProfileFormTeam,
+} from '@/components/page/member-details/InvestorProfileDetails/types';
 import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
 import { EditOfficeHoursMobileControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursMobileControls';
 import * as yup from 'yup';
 
 import s from './EditVideoPitchForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { ITeam } from '@/types/teams.types';
 
 interface Props {

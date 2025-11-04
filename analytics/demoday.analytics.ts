@@ -172,6 +172,10 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_LANDING_TEAM_CARD_CLICKED, eventParams);
   }
 
+  function onLandingTeamWebsiteClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_LANDING_TEAM_WEBSITE_CLICKED, eventParams);
+  }
+
   function onAccessDeniedModalShown(eventParams = {}) {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACCESS_DENIED_MODAL_SHOWN, eventParams);
   }
@@ -189,6 +193,7 @@ export const useDemoDayAnalytics = () => {
     onLandingLoginButtonClicked,
     onLandingRequestInviteButtonClicked,
     onLandingTeamCardClicked,
+    onLandingTeamWebsiteClicked,
     onAccessDeniedModalShown,
     onAccessDeniedUserNotWhitelistedModalShown,
     onAccessDeniedRequestInviteClicked,

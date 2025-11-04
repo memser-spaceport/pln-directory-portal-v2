@@ -98,7 +98,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
           {userInfo ? (
             <button className={clsx(s.btn, s.primaryButton)}>Register</button>
           ) : (
-            <span>Can’t login yet? Register here</span>
+            <span>Not registered? Register here</span>
           )}
         </a>
       </div>

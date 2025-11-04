@@ -14,6 +14,7 @@ import { ITeam } from '@/types/teams.types';
 import { formatUSD } from '@/utils/formatUSD';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
 import { useUpdateInvestorSettings } from '@/services/members/hooks/useUpdateInvestorSettings';
+import { useUpdateMemberInvestorSettings } from '@/services/members/hooks/useUpdateMemberInvestorSettings';
 
 interface Props {
   isLoggedIn: boolean;
@@ -50,19 +51,18 @@ export const InvestorProfileView = ({
   isInvestor,
 }: Props) => {
   const investmentTeams = member?.teams.filter((team) => team.investmentTeam) ?? [];
-  const { mutate: updateInvestorSettings } = useUpdateInvestorSettings();
+  const { mutate: updateMemberInvestorSettings } = useUpdateMemberInvestorSettings();
 
   const handleAddDetails = () => {
     if (!member?.id) return;
 
-    // Set showInvestorProfileOnMemberPage to true
-    updateInvestorSettings({
+    const _payload = {
+      isInvestor: true,
+    };
+
+    updateMemberInvestorSettings({
       uid: member.id,
-      payload: {
-        showInvestorProfileOnMemberPage: true,
-        investorInvitesEnabled: true,
-        investorDealflowEnabled: true,
-      },
+      payload: _payload,
     });
 
     // Open edit form
@@ -72,14 +72,13 @@ export const InvestorProfileView = ({
   const handleNotAnInvestor = () => {
     if (!member?.id) return;
 
-    // Set showInvestorProfileOnMemberPage to false
-    updateInvestorSettings({
+    const _payload = {
+      isInvestor: false,
+    };
+
+    updateMemberInvestorSettings({
       uid: member.id,
-      payload: {
-        showInvestorProfileOnMemberPage: false,
-        investorInvitesEnabled: false,
-        investorDealflowEnabled: false,
-      },
+      payload: _payload,
     });
 
     // Hide the section

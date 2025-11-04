@@ -29,8 +29,6 @@ export const InvestorCommunications = ({
   const { mutate: updateMemberInvestorSettings } = useUpdateMemberInvestorSettings();
   const { data: memberInvestorSettings } = useGetMemberInvestorSettings(userInfo.uid, initialMemberInvestorSettings);
 
-  console.log({ data, initialData, memberInvestorSettings });
-
   const handleInvestorEventsChange = (checked: boolean) => {
     if (!userInfo.uid || !data) {
       return;

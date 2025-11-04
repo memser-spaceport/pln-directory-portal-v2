@@ -134,7 +134,7 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
       <style jsx>
         {`
           .team-members-card {
-            padding: 16px;
+            padding: 12px;
             align-items: center;
             width: 100%;
             cursor: pointer;
@@ -206,6 +206,8 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
             font-weight: 500;
             line-height: 18px;
             letter-spacing: -0.3px;
+
+            max-width: 250px;
           }
 
           .team-members-card__profile-details__profile__name-role__role {

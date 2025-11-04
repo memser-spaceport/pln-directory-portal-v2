@@ -34,63 +34,23 @@ import { ITeam } from '@/types/teams.types';
 import MemberPageLoader from './loading';
 import Head from 'next/head';
 import { MembersQueryKeys } from '@/services/members/constants';
-import { useGetInvestorSettings } from '@/services/members/hooks/useGetInvestorSettings';
+import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 
-/**
- * Determines if we should show the investor profile section for third-party users
- * based on investor profile type, data availability, and privacy settings
- */
 const shouldShowInvestorProfileForThirdParty = (
   member: IMember,
   isOwner: boolean,
   isAdmin: boolean,
-  showInvestorProfileOnMemberPage?: boolean,
+  isInvestor?: boolean,
 ): boolean => {
-  // Always show for owner and admin
-  if (isOwner || isAdmin) {
-    return true;
-  }
-
-  // Check privacy setting - if explicitly set to false, hide for third-party users
-  // If null or undefined, treat as true (default behavior for backward compatibility)
-  if (showInvestorProfileOnMemberPage === false) {
+  if (!isOwner && !isAdmin) {
     return false;
   }
 
-  const investorProfile = member?.investorProfile;
-  const teams = member?.teams;
-
-  if (!investorProfile?.type) {
-    return false; // No investor profile type
+  if (isInvestor === null || isInvestor) {
+    return true;
   }
 
-  // Helper function to check if any angel investor data is provided
-  const hasAngelData = (): boolean => {
-    return !!(
-      (investorProfile.investInStartupStages && investorProfile.investInStartupStages.length > 0) ||
-      (investorProfile.typicalCheckSize && investorProfile.typicalCheckSize?.toString().trim() !== '') ||
-      (investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0)
-    );
-  };
-
-  const investmentTeam = teams?.find((team) => team.investmentTeam);
-
-  switch (investorProfile.type) {
-    case 'ANGEL':
-      // ANGEL type: show section only if at least one angel field is provided
-      return hasAngelData();
-
-    case 'FUND':
-      // FUND type: show section only if investor has a team
-      return !!investmentTeam;
-
-    case 'ANGEL_AND_FUND':
-      // ANGEL_AND_FUND: show section if investor has a team OR if at least one angel field is provided
-      return !!investmentTeam || hasAngelData();
-
-    default:
-      return false; // Unknown type
-  }
+  return false;
 };
 
 const MemberDetails = ({ params }: { params: any }) => {
@@ -119,12 +79,7 @@ const MemberDetails = ({ params }: { params: any }) => {
   });
 
   // Fetch investor settings to check visibility preference
-  const { data: investorSettings } = useGetInvestorSettings(memberId, {
-    investorInvitesEnabled: false,
-    investorDealflowEnabled: false,
-    showInvestorProfileOnMemberPage: true, // Default to true for backward compatibility
-    memberUid: memberId,
-  });
+  const { data: memberInvestorSettings } = useGetMemberInvestorSettings(memberId);
   const { data: availableToConnectCount } = useQuery({
     queryKey: ['memberList'],
     queryFn: () => getMemberListForQuery(qs.stringify({ hasOfficeHours: true }), 1, 1, userInfo?.token),
@@ -170,7 +125,7 @@ const MemberDetails = ({ params }: { params: any }) => {
           member,
           isOwner,
           isAdmin,
-          investorSettings?.showInvestorProfileOnMemberPage,
+          memberInvestorSettings?.isInvestor,
         );
 
         return (
@@ -181,7 +136,7 @@ const MemberDetails = ({ params }: { params: any }) => {
                 userInfo={userInfo}
                 member={member}
                 isLoggedIn={isLoggedIn}
-                showInvestorProfileOnMemberPage={investorSettings?.showInvestorProfileOnMemberPage}
+                isInvestor={memberInvestorSettings?.isInvestor}
               />
             )}
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
@@ -197,19 +152,19 @@ const MemberDetails = ({ params }: { params: any }) => {
           member,
           isOwner,
           isAdmin,
-          investorSettings?.showInvestorProfileOnMemberPage,
+          memberInvestorSettings?.isInvestor,
         );
 
         return (
           <>
             <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            {member.accessLevel === 'L6' && showInvestorProfile && (
+            {showInvestorProfile && (
               <InvestorProfileDetails
                 userInfo={userInfo}
                 member={member}
                 isLoggedIn={isLoggedIn}
-                showInvestorProfileOnMemberPage={investorSettings?.showInvestorProfileOnMemberPage}
+                isInvestor={memberInvestorSettings?.isInvestor}
               />
             )}
             <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />

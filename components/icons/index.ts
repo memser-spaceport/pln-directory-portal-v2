@@ -1,5 +1,6 @@
 export * from './MenuIcon';
 export * from './EditIcon';
+export * from './GlobeIcon';
 export * from './CloseIcon';
 export * from './CheckIcon';
 export * from './SearchIcon';

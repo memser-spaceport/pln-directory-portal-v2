@@ -35,6 +35,8 @@ export function LinkAccountModal(props: Props) {
       });
 
       toggleOpen();
+
+      toast.success('Thanks! We\'ve received your information and will be in touch soon.');
     } catch (error) {
       toast.error('An error occurred while submitting the form. Please try again later.');
     }

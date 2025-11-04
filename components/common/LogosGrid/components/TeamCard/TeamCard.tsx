@@ -1,11 +1,11 @@
 import Image from 'next/image';
-import Link from 'next/link';
 
 import { GlobeIcon } from '@/components/icons';
 import { isLink } from '@/utils/third-party.helper';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 import s from './TeamCard.module.scss';
+import { getSocialLinkUrl } from '@/utils/common.utils';
 
 interface Props {
   team: {
@@ -25,7 +25,7 @@ export function TeamCard(props: Props) {
   const { onLandingTeamCardClicked } = useDemoDayAnalytics();
 
   const isValidWebsite = isLink(website);
-  const cardUrl = isValidWebsite ? website : `https://directory.plnetwork.io/teams/${uid}`;
+  const cardUrl = isValidWebsite ? getSocialLinkUrl(website, 'website') : `https://directory.plnetwork.io/teams/${uid}`;
 
   const handleCardClick = () => {
     onLandingTeamCardClicked({

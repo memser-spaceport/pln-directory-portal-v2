@@ -66,7 +66,7 @@ export const Content = () => {
                 [Early Access]
               </div>
             )}
-            <PageTitle size="small" showDate={false} />
+            <PageTitle size="small" />
           </div>
 
           <div className={s.stats}>

@@ -29,7 +29,7 @@ export const AdminContent = ({ isDirectoryAdmin }: { isDirectoryAdmin: boolean }
             >
               [Demo Day Prep]
             </div>
-            <PageTitle size="small" showDate={false} />
+            <PageTitle size="small" />
           </div>
           <div className={s.stats}>
             <span>

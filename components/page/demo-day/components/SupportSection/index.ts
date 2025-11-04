@@ -1,2 +1,1 @@
 export { SupportSection } from './SupportSection';
-

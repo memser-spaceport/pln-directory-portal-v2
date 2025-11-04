@@ -15,13 +15,7 @@ interface CountdownRendererProps {
   completed: boolean;
 }
 
-const CountdownRenderer: React.FC<CountdownRendererProps> = ({
-  days,
-  hours,
-  minutes,
-  seconds,
-  completed,
-}) => {
+const CountdownRenderer: React.FC<CountdownRendererProps> = ({ days, hours, minutes, seconds, completed }) => {
   if (completed) {
     return (
       <div className={s.root}>
@@ -82,18 +76,6 @@ const CountdownRenderer: React.FC<CountdownRendererProps> = ({
   );
 };
 
-export const CountdownComponent: React.FC<CountdownComponentProps> = ({
-  targetDate,
-  title,
-}) => {
-  return (
-    <Countdown
-      date={targetDate}
-      renderer={(props) => (
-        <CountdownRenderer
-          {...props}
-        />
-      )}
-    />
-  );
+export const CountdownComponent: React.FC<CountdownComponentProps> = ({ targetDate, title }) => {
+  return <Countdown date={targetDate} renderer={(props) => <CountdownRenderer {...props} />} />;
 };

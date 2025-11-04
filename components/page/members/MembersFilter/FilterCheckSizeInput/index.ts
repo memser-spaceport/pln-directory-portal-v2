@@ -1,2 +1,1 @@
 export { FilterCheckSizeInput } from './FilterCheckSizeInput';
-

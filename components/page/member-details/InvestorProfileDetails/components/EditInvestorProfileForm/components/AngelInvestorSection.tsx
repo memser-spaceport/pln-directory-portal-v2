@@ -26,12 +26,8 @@ export const AngelInvestorSection: React.FC<Props> = ({
           <h3>Your Angel Investor Profile</h3>
         </div>
       )}
-      
-      <SecRulesCheckbox
-        checked={secRulesAccepted}
-        onChange={onSecRulesChange}
-        onTrigger={onTrigger}
-      />
+
+      <SecRulesCheckbox checked={secRulesAccepted} onChange={onSecRulesChange} onTrigger={onTrigger} />
 
       {secRulesAccepted && (
         <>

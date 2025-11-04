@@ -3,5 +3,5 @@ export const formatUSD = new Intl.NumberFormat('en-us', {
   style: 'currency',
   // notation: 'compact',
   minimumFractionDigits: 0,
-  maximumFractionDigits: 2
+  maximumFractionDigits: 2,
 });

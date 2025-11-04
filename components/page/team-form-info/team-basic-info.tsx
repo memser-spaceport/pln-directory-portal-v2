@@ -110,7 +110,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
       document.removeEventListener('reset-team-register-form', resetHandler);
     };
   }, [initialValues]);
-  
+
   return (
     <>
       <div className="teaminfo__form">

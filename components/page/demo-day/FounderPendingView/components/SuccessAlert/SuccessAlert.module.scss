@@ -19,7 +19,7 @@
 .alert {
   border-radius: var(--corner-radius-xl, 12px);
   border: 1px solid var(--border-success-subtle, rgba(4, 135, 70, 0.32));
-  background: var(--background-success-soft-surface, rgba(10, 153, 82, 0.10));
+  background: var(--background-success-soft-surface, rgba(10, 153, 82, 0.1));
 
   /* Shadow/xs */
   box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
@@ -59,7 +59,7 @@
 }
 
 .message {
-  color: var(--foreground-success-secondary, #11A75C);
+  color: var(--foreground-success-secondary, #11a75c);
   font-size: 16px;
   font-style: normal;
   font-weight: 500;

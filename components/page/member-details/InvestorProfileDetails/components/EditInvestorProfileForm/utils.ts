@@ -6,7 +6,7 @@ export const formatNumberToCurrency = (value?: string | number): string => {
 
   // Convert to number if it's a string
   const numericValue = typeof value === 'string' ? parseFloat(value) : value;
-  
+
   // Return empty string if not a valid number
   if (isNaN(numericValue)) return '';
 

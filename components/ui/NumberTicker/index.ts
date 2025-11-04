@@ -1,2 +1,1 @@
 export { NumberTicker } from './NumberTicker';
-

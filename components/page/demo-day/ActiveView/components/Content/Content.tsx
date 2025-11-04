@@ -66,14 +66,14 @@ export const Content = () => {
                 [Early Access]
               </div>
             )}
-            <PageTitle size="small" showDate={false} />
+            <PageTitle size="small" />
           </div>
 
           <div className={s.stats}>
-            <span>
+            {/* <span>
               <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, hh:mm aa (zzz)') : ''}
             </span>
-            &nbsp;&bull;&nbsp;
+            &nbsp;&bull;&nbsp; */}
             <span>
               {data?.teamsCount} Team{(data?.teamsCount ?? 0) > 1 ? 's' : ''}
             </span>

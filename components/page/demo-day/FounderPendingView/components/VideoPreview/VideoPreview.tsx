@@ -44,9 +44,22 @@ const PlayButton = () => (
       fill="white"
     />
     <defs>
-      <filter id="filter0_d_7495_53865" x="40.9369" y="66.5204" width="206.573" height="206.573" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <filter
+        id="filter0_d_7495_53865"
+        x="40.9369"
+        y="66.5204"
+        width="206.573"
+        height="206.573"
+        filterUnits="userSpaceOnUse"
+        color-interpolation-filters="sRGB"
+      >
         <feFlood floodOpacity="0" result="BackgroundImageFix" />
-        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+        <feColorMatrix
+          in="SourceAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          result="hardAlpha"
+        />
         <feOffset dy="25.5836" />
         <feGaussianBlur stdDeviation="23.7562" />
         <feComposite in2="hardAlpha" operator="out" />

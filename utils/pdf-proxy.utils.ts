@@ -7,12 +7,12 @@ export function createPdfProxyUrl(originalUrl: string): string {
   if (!originalUrl) {
     return '';
   }
-  
+
   // If the URL is already a proxy URL, return it as is
   if (originalUrl.startsWith('/api/proxy-pdf')) {
     return originalUrl;
   }
-  
+
   return `/api/proxy-pdf?url=${encodeURIComponent(originalUrl)}`;
 }
 
@@ -23,7 +23,7 @@ export function createPdfProxyUrl(originalUrl: string): string {
  */
 export function isPdfUrl(url: string): boolean {
   if (!url) return false;
-  
+
   const lowercaseUrl = url.toLowerCase();
   return lowercaseUrl.includes('.pdf') || lowercaseUrl.includes('pdf');
 }

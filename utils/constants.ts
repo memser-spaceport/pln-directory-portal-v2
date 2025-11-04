@@ -298,6 +298,8 @@ export const AUTH_ANALYTICS = {
   AUTH_SETTINGS_EMAIL_UPDATE_FAILED: 'AUTH_SETTINGS_EMAIL_UPDATE_FAILED',
   AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD: 'AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD',
   AUTH_SIGN_UP_BTN_CLICKED: 'AUTH_SIGN_UP_BTN_CLICKED',
+  AUTH_LINK_ACCOUNT_SUBMIT_CLICKED: 'AUTH_LINK_ACCOUNT_SUBMIT_CLICKED',
+  AUTH_LINK_ACCOUNT_CANCEL_CLICKED: 'AUTH_LINK_ACCOUNT_CANCEL_CLICKED',
 };
 
 export const TEAMS_ANALYTICS_EVENTS = {
@@ -1599,6 +1601,8 @@ export const DEMO_DAY_ANALYTICS = {
   ON_LANDING_TIME_ON_PAGE: 'demo-day-landing-time-on-page',
   ON_LANDING_LOGIN_BUTTON_CLICKED: 'demo-day-landing-login-button-clicked',
   ON_LANDING_REQUEST_INVITE_BUTTON_CLICKED: 'demo-day-landing-request-invite-button-clicked',
+  ON_LANDING_TEAM_CARD_CLICKED: 'demo-day-landing-team-card-clicked',
+  ON_LANDING_TEAM_WEBSITE_CLICKED: 'demo-day-landing-team-website-clicked',
   ON_ACCESS_DENIED_MODAL_SHOWN: 'demo-day-access-denied-modal-shown',
   ON_ACCESS_DENIED_USER_NOT_WHITELISTED_MODAL_SHOWN: 'demo-day-access-denied-user-not-whitelisted-modal-shown',
   ON_ACCESS_DENIED_REQUEST_INVITE_CLICKED: 'demo-day-access-denied-request-invite-clicked',

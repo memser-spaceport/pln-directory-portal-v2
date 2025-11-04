@@ -28,7 +28,7 @@
   z-index: 0;
 
   border-radius: 8px;
-  background: #FFF;
+  background: #fff;
   box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 }
 
@@ -113,7 +113,7 @@
 }
 
 .dateLabel {
-  color: rgba(0, 0, 0, 0.50);
+  color: rgba(0, 0, 0, 0.5);
   text-align: center;
   font-size: 14px;
   font-style: normal;
@@ -197,7 +197,8 @@
   line-height: 16px; /* 150% */
   letter-spacing: -0.3px;
 
-  span, a {
+  span,
+  a {
     display: flex;
     align-items: center;
     gap: 2px;

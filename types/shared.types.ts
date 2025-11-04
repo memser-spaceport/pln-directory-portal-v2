@@ -11,6 +11,7 @@ export interface IUserInfo {
   accessLevel?: 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'L5' | 'L6' | 'Rejected';
   mainTeamName?: string;
 }
+
 export interface Option {
   label: string;
   value: string;

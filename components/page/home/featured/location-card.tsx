@@ -163,7 +163,7 @@ const LocationCard = (props: any) => {
           <div className="LocationCard__content__top">
             <div className="LocationCard__content__heading">Discover gatherings happening in</div>
             <div className="LocationCard__content__ttl">
-                <img src={flag || '/images/irl/defaultFlag.svg'} alt="flag" style={{ width: '20px', height: '20px' }} />
+              <img src={flag || '/images/irl/defaultFlag.svg'} alt="flag" style={{ width: '20px', height: '20px' }} />
               <div className="LocationCard__content__name">{location}</div>
             </div>
           </div>

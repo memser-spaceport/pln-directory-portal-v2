@@ -73,8 +73,9 @@ const AddtionalResources = (props: any) => {
         </div>
       )}
 
-        <Modal modalRef={addResRef} onClose={onCloseModal}>
-          {isModalOpen && <div className="irl__addRes__popup">
+      <Modal modalRef={addResRef} onClose={onCloseModal}>
+        {isModalOpen && (
+          <div className="irl__addRes__popup">
             <div className="irl__modalHeader">
               <div className="irl__modalHeader__title">Additional Resources</div>
               <div className="irl__modalHeader__count">({eventDetails?.resources?.length})</div>
@@ -94,8 +95,9 @@ const AddtionalResources = (props: any) => {
                 </div>
               ))}
             </div>
-          </div>}
-        </Modal>
+          </div>
+        )}
+      </Modal>
       <style jsx>{`
         /* Mobile styles (default) */
         .irl__addRes {
@@ -106,7 +108,7 @@ const AddtionalResources = (props: any) => {
           text-align: left;
           align-items: ${!isLoggedIn ? 'center' : 'unset'};
           padding: 20px 14px;
-          border-block: 1px solid #CBD5E1;
+          border-block: 1px solid #cbd5e1;
           min-height: 36px;
         }
 
@@ -152,7 +154,7 @@ const AddtionalResources = (props: any) => {
         }
 
         /* Hide tags beyond the 2nd on mobile (default) */
-        .irl__addRes__cntr__resCnt:nth-child(n+3) {
+        .irl__addRes__cntr__resCnt:nth-child(n + 3) {
           display: none;
         }
 
@@ -183,7 +185,7 @@ const AddtionalResources = (props: any) => {
         .irl__showMore__count {
           font-size: 0; /* Hide the original text */
         }
-        
+
         .irl__showMore__count::before {
           content: '+${eventDetails?.resources?.length - 2}';
           font-size: 13px;
@@ -216,7 +218,7 @@ const AddtionalResources = (props: any) => {
           display: flex;
           flex-direction: column;
           overflow-y: auto;
-          margin-top : 34px;
+          margin-top: 34px;
           padding-right: 10px;
         }
 
@@ -266,11 +268,11 @@ const AddtionalResources = (props: any) => {
           }
 
           /* Show up to 4 tags on desktop, hide beyond the 4th */
-          .irl__addRes__cntr__resCnt:nth-child(n+3) {
+          .irl__addRes__cntr__resCnt:nth-child(n + 3) {
             display: flex;
           }
-          
-          .irl__addRes__cntr__resCnt:nth-child(n+5) {
+
+          .irl__addRes__cntr__resCnt:nth-child(n + 5) {
             display: none;
           }
 

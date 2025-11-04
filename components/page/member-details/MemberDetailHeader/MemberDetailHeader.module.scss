@@ -64,7 +64,6 @@
   letter-spacing: -0.2px;
 }
 
-
 .header {
   display: grid;
   color: #000;
@@ -174,7 +173,6 @@
   padding: 1px 8px;
 }
 
-
 @media (min-width: 1024px) {
   .header {
     grid-template-columns: 80px auto;
@@ -220,7 +218,7 @@
   border-radius: var(--corner-radius-Full-round, 9999px);
   background: var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
 
-  color: var(--foreground-brand-secondary_inverted, #4174FF);
+  color: var(--foreground-brand-secondary_inverted, #4174ff);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;

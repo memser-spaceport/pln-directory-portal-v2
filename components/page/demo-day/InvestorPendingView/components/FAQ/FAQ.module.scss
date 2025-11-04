@@ -87,12 +87,12 @@
 }
 
 .questionLetter {
-  color: var(--foreground-brand-primary, #1B4DFF);
+  color: var(--foreground-brand-primary, #1b4dff);
 }
 
 .questionText {
   flex: 1;
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   transition: color 0.2s ease;
 
   .questionButton:hover & {

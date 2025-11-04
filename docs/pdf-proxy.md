@@ -15,12 +15,14 @@ We've implemented a Next.js API route that acts as a proxy server to fetch PDFs 
 ### Components
 
 1. **API Route**: `/app/api/proxy-pdf/route.ts`
+
    - Handles GET requests with a `url` parameter
    - Fetches the PDF from the external URL
    - Returns the PDF content with appropriate headers
    - Includes security validations and error handling
 
 2. **Utility Functions**: `/utils/pdf-proxy.utils.ts`
+
    - `createPdfProxyUrl(originalUrl)`: Creates a proxy URL for a given PDF URL
    - `isPdfUrl(url)`: Checks if a URL points to a PDF file
 
@@ -57,6 +59,7 @@ The proxy API accepts the following parameters:
   - `url` (required): The URL-encoded original PDF URL
 
 Example:
+
 ```
 /api/proxy-pdf?url=https%3A%2F%2Fexample.com%2Fdocument.pdf
 ```
@@ -77,16 +80,14 @@ To restrict which domains can be proxied, uncomment and configure the domain whi
 ```typescript
 const allowedDomains = ['trusted-domain.com', 'another-trusted-domain.com'];
 if (!allowedDomains.includes(validatedUrl.hostname)) {
-  return NextResponse.json(
-    { error: 'Domain not allowed' },
-    { status: 403 }
-  );
+  return NextResponse.json({ error: 'Domain not allowed' }, { status: 403 });
 }
 ```
 
 ### Caching
 
 The proxy includes cache headers to improve performance:
+
 - `Cache-Control: public, max-age=3600` (1 hour cache)
 
 ## Error Handling
@@ -103,12 +104,14 @@ The proxy handles various error scenarios:
 ## Testing
 
 Tests are included in `__tests__/utils/pdf-proxy.utils.test.ts` to verify:
+
 - Proxy URL creation
 - URL encoding
 - Edge cases (empty URLs, already proxied URLs)
 - PDF URL detection
 
 Run tests with:
+
 ```bash
 npm test -- __tests__/utils/pdf-proxy.utils.test.ts
 ```
@@ -122,6 +125,7 @@ npm test -- __tests__/utils/pdf-proxy.utils.test.ts
 ## Browser Compatibility
 
 This solution works with all modern browsers and is compatible with:
+
 - react-pdf library
 - iframe PDF display
 - Any other PDF viewing solution that accepts URLs

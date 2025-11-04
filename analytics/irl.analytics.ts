@@ -85,7 +85,7 @@ export const useIrlAnalytics = () => {
     IRL_EVENT_DELETE_CLICKED: 'irl-event-delete-clicked',
     IRL_EVENT_DELETE_CONFIRMED: 'irl-event-delete-confirmed',
     IRL_EVENT_DELETE_CANCELLED: 'irl-event-delete-cancelled',
-    
+
     IRL_GUEST_LIST_REGISTER_TODAY_CLICKED: 'irl-guest-list-register-today-clicked',
     IRL_GUEST_LIST_VIEW_PAST_ATTENDEES_CLICKED: 'irl-guest-list-view-past-attendees-clicked',
   };
@@ -629,7 +629,7 @@ export const useIrlAnalytics = () => {
     const params = {
       locationUid: location?.uid,
       locationName: location?.name,
-      source: 'guest_list_empty_state'
+      source: 'guest_list_empty_state',
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_REGISTER_TODAY_CLICKED, { ...params });
   }
@@ -638,7 +638,7 @@ export const useIrlAnalytics = () => {
     const params = {
       locationUid: location?.uid,
       locationName: location?.name,
-      source: 'guest_list_empty_state'
+      source: 'guest_list_empty_state',
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_VIEW_PAST_ATTENDEES_CLICKED, { ...params });
   }

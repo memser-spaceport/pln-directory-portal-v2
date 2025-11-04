@@ -5,19 +5,19 @@
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0B';
-  
+
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   const size = bytes / Math.pow(k, i);
-  
+
   // Format to 1 decimal place for sizes >= 1KB, no decimals for bytes
   const formattedSize = i === 0 ? size.toString() : size.toFixed(1);
-  
+
   // Remove unnecessary .0
   const cleanSize = formattedSize.replace(/\.0$/, '');
-  
+
   return `${cleanSize}${sizes[i]}`;
 }
 

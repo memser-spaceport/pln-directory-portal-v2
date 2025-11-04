@@ -63,4 +63,3 @@ export const TeamsListError: React.FC<TeamsListErrorProps> = ({
     </div>
   );
 };
-

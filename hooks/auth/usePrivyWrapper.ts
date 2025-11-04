@@ -32,6 +32,10 @@ function usePrivyWrapper() {
       document.dispatchEvent(new CustomEvent(PRIVY_CUSTOM_EVENTS.AUTH_LOGIN_SUCCESS, { detail: { user } }));
     },
     onError: (error) => {
+      if (error === 'linked_to_another_user') {
+        // Remove the Privy error modal for 'linked_to_another_user' error
+        document.getElementById('privy-dialog')?.remove();
+      }
       document.dispatchEvent(new CustomEvent(PRIVY_CUSTOM_EVENTS.AUTH_LOGIN_ERROR, { detail: { error } }));
     },
   });

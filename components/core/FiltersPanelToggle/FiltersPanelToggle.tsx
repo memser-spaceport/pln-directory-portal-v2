@@ -13,7 +13,7 @@ interface Props {
 }
 
 export const FiltersPanelToggle = (props: Props) => {
-  const { label, paramKey, onChange } = props
+  const { label, paramKey, onChange } = props;
 
   const { params, setParam } = useFilterStore();
   const checked = params.get(paramKey) === 'true';

@@ -21,23 +21,23 @@ export const InvestorFilterToggle = ({ label, paramKey }: Props) => {
 
   const handleChange = () => {
     const newValue = checked ? undefined : 'true';
-    
+
     // Report analytics
-    onMembersOHFilterToggled({ 
-      page: 'Members', 
-      option: paramKey, 
-      value: checked ? 'false' : 'true' 
+    onMembersOHFilterToggled({
+      page: 'Members',
+      option: paramKey,
+      value: checked ? 'false' : 'true',
     });
-    
+
     // Set the main investor parameter
     setParam(paramKey, newValue);
-    
+
     // If turning off the investor filter, clear investor-specific filters
     if (checked) {
       // Clear typical check size filters
       setParam('minTypicalCheckSize', undefined);
       setParam('maxTypicalCheckSize', undefined);
-      
+
       // Clear investment focus filter
       setParam('investmentFocus', undefined);
     }

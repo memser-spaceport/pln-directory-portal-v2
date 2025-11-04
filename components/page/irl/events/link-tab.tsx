@@ -3,7 +3,12 @@ const LinkTab = (props: any) => {
   const { resource, handleAdditionalResourceClicked } = props;
   return (
     <div className="link__tab">
-      <a className="link__tab__text" href={resource?.link} target="_blank" onClick={() => handleAdditionalResourceClicked(resource)}>
+      <a
+        className="link__tab__text"
+        href={resource?.link}
+        target="_blank"
+        onClick={() => handleAdditionalResourceClicked(resource)}
+      >
         {resource?.type}
       </a>
       <div>

@@ -80,4 +80,3 @@ export const FiltersDrawer: React.FC<FiltersDrawerProps> = ({ isOpen, onClose })
     </AnimatePresence>
   );
 };
-

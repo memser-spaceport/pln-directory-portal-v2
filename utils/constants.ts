@@ -1601,6 +1601,7 @@ export const DEMO_DAY_ANALYTICS = {
   ON_LANDING_TIME_ON_PAGE: 'demo-day-landing-time-on-page',
   ON_LANDING_LOGIN_BUTTON_CLICKED: 'demo-day-landing-login-button-clicked',
   ON_LANDING_REQUEST_INVITE_BUTTON_CLICKED: 'demo-day-landing-request-invite-button-clicked',
+  ON_LANDING_TEAM_CARD_CLICKED: 'demo-day-landing-team-card-clicked',
   ON_ACCESS_DENIED_MODAL_SHOWN: 'demo-day-access-denied-modal-shown',
   ON_ACCESS_DENIED_USER_NOT_WHITELISTED_MODAL_SHOWN: 'demo-day-access-denied-user-not-whitelisted-modal-shown',
   ON_ACCESS_DENIED_REQUEST_INVITE_CLICKED: 'demo-day-access-denied-request-invite-clicked',

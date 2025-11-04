@@ -1,6 +1,7 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { MembersQueryKeys } from '@/services/members/constants';
+import Cookies from 'js-cookie';
 
 export type MemberInvestorSettings = {
   isInvestor: boolean;
@@ -31,10 +32,12 @@ async function fetcher(uid: string | undefined): Promise<MemberInvestorSettings>
 }
 
 export function useGetMemberInvestorSettings(uid: string | undefined, initialData?: MemberInvestorSettings) {
+  const authToken = Cookies.get('authToken') || '';
+
   return useQuery({
     queryKey: [MembersQueryKeys.GET_MEMBER_INVESTOR_SETTINGS, uid],
     queryFn: () => fetcher(uid),
-    enabled: Boolean(uid),
+    enabled: Boolean(uid) && Boolean(authToken),
     initialData,
     placeholderData: keepPreviousData,
   });

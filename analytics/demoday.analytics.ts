@@ -88,6 +88,10 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_VIEWED, eventParams);
   }
 
+  function onFounderPendingViewWebsiteLinkClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_PENDING_VIEW_WEBSITE_LINK_CLICKED, eventParams);
+  }
+
   function onActiveViewPageOpened(eventParams = {}) {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_PAGE_OPENED, eventParams);
   }
@@ -204,6 +208,7 @@ export const useDemoDayAnalytics = () => {
     onFounderDemoMaterialUploadFailed,
     onFounderDemoMaterialDeleted,
     onFounderDemoMaterialViewed,
+    onFounderPendingViewWebsiteLinkClicked,
     onActiveViewPageOpened,
     onActiveViewTimeOnPage,
     onActiveViewFiltersApplied,

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 
 import { ProfileImageInput } from '@/components/page/member-details/ProfileDetails/components/ProfileImageInput';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -47,11 +47,12 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         team: {
           value: member.mainTeam.id,
           label: member.mainTeam.name || '',
+          role: member.mainTeam.role || '',
         },
         role: member.mainTeam.role || '',
       };
     }
-    return { team: undefined, role: '' };
+    return { team: null, role: '' };
   }, [member.mainTeam]);
 
   const methods = useForm<TEditProfileForm>({
@@ -76,10 +77,14 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const { handleSubmit, reset, watch, setValue } = methods;
   const { mutateAsync } = useUpdateMember();
   const { data: memberData } = useMember(member.id);
-  const { onSaveProfileDetailsClicked } = useMemberAnalytics();
+  const { onSaveProfileDetailsClicked, onPrimaryTeamChanged } = useMemberAnalytics();
 
   // Watch primaryTeam to show/hide role field
   const selectedPrimaryTeam = watch('primaryTeam');
+
+  // Store initial primary team to track changes
+  const initialPrimaryTeamRef = useRef(mainTeamData.team);
+  const initialPrimaryTeamRoleRef = useRef(mainTeamData.role);
 
   // Update role when primary team changes
   useEffect(() => {
@@ -94,6 +99,20 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
 
   const onSubmit = async (formData: TEditProfileForm) => {
     onSaveProfileDetailsClicked();
+
+    // Track primary team change if it has changed
+    const hasTeamChanged =
+      initialPrimaryTeamRef.current?.value !== formData.primaryTeam?.value ||
+      initialPrimaryTeamRoleRef.current !== formData.primaryTeamRole;
+
+    if (hasTeamChanged) {
+      onPrimaryTeamChanged({
+        previousTeam: initialPrimaryTeamRef.current,
+        newTeam: formData.primaryTeam,
+        previousRole: initialPrimaryTeamRoleRef.current,
+        newRole: formData.primaryTeamRole,
+      });
+    }
 
     if (!memberData) {
       return;

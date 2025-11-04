@@ -422,6 +422,7 @@ export const MEMBER_ANALYTICS_EVENTS = {
 
   INLINE_PROFILE_EDITOR_PROFILE_DETAILS_EDIT_CLICKED: 'inline-profile-editor-profile-details-edit-clicked',
   INLINE_PROFILE_EDITOR_PROFILE_DETAILS_SAVE_CLICKED: 'inline-profile-editor-profile-details-save-clicked',
+  INLINE_PROFILE_EDITOR_PRIMARY_TEAM_CHANGED: 'inline-profile-editor-primary-team-changed',
   INLINE_PROFILE_EDITOR_CONTACT_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contact-details-edit-clicked',
   INLINE_PROFILE_EDITOR_CONTACT_DETAILS_SAVE_CLICKED: 'inline-profile-editor-contact-details-save-clicked',
 
@@ -1641,4 +1642,5 @@ export const DEMO_DAY_ANALYTICS = {
   ON_CONFIDENTIALITY_MODAL_CLOSED: 'demo-day-confidentiality-modal-closed',
   ON_ACTIVE_VIEW_WELCOME_VIDEO_VIEWED: 'demo-day-active-view-welcome-video-viewed',
   ON_ACTIVE_VIEW_TEAM_CARD_VIEWED: 'demo-day-active-view-team-card-viewed',
+  ON_FOUNDER_PENDING_VIEW_WEBSITE_LINK_CLICKED: 'demo-day-founder-pending-view-website-link-clicked',
 };

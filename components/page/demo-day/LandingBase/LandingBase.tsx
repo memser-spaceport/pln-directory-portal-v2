@@ -1,12 +1,9 @@
 import React, { PropsWithChildren } from 'react';
 
-import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
-
 import { faqItems } from '@/app/constants/demoday';
 
 import { LogosGrid } from '@/components/common/LogosGrid';
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
-import { CountdownComponent } from '@/components/common/Countdown';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 
@@ -21,35 +18,26 @@ interface LandingBaseProps {
 export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
   const { children, initialDemoDayState } = props;
 
-  const { data: loadedDemoDayData } = useGetDemoDayState(initialDemoDayState);
-  const data = loadedDemoDayData || initialDemoDayState;
-
   return (
     <div className={s.root}>
       <div className={s.eventHeader}>
         {/* Main content */}
         <div className={s.content}>
           <div className={s.mainContent}>
-            {/* Countdown section */}
-            <div className={s.countdownSection}>
-              <CountdownComponent targetDate={data?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />
-            </div>
-
             <PageTitle initialDemoDayState={initialDemoDayState} />
           </div>
 
           {children}
 
-          <LogosGrid />
-          <FAQ items={faqItems} />
-
           <div className={s.reachOut}>
-            Reach out to us on{' '}
+            Questions? Contact us at{' '}
             <a href="mailto:pldemoday@protocol.ai" className={s.email}>
               pldemoday@protocol.ai
-            </a>{' '}
-            for any other questions.
+            </a>
           </div>
+
+          <LogosGrid />
+          <FAQ items={faqItems} />
 
           <Footer />
         </div>

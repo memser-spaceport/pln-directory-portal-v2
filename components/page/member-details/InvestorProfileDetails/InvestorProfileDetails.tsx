@@ -18,12 +18,14 @@ interface Props {
   member: IMember;
   isLoggedIn: boolean;
   userInfo: IUserInfo;
+  isInvestor?: boolean | null;
 }
 
 /**
- * Determines if we need to show incomplete data warning based on investor profile type and data completeness
+ * Determines if we need to show incomplete data warning
+ * Only shows warning if showInvestorProfileOnMemberPage is null (not set)
  */
-const shouldShowIncompleteDataWarning = (member: IMember): boolean => {
+const shouldShowIncompleteDataWarning = (member?: IMember): boolean => {
   const investorProfile = member?.investorProfile;
   const teams = member?.teams;
 
@@ -60,8 +62,9 @@ const shouldShowIncompleteDataWarning = (member: IMember): boolean => {
   }
 };
 
-export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
+export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member, isInvestor }: Props) => {
   const [editView, setEditView] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
@@ -72,7 +75,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
 
   // Use the new function to determine if we should show incomplete data warning
   const showWarningUseCaseA = shouldShowIncompleteDataWarning(member);
-  const showIncomplete = !editView && isOwner && showWarningUseCaseA;
+  const showIncomplete = (!editView && isOwner && showWarningUseCaseA) || isInvestor === null;
 
   // Determine if user has any investor profile data for visibility logic
   const hasInvestorProfile = !!member?.investorProfile?.type;
@@ -96,7 +99,6 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
           path: `/members/${member.id}`,
           timestamp: new Date().toISOString(),
           currentInvestorProfileType: member?.investorProfile?.type || null,
-          isProfileComplete: !shouldShowIncompleteDataWarning(member),
         },
       };
 
@@ -112,6 +114,11 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
 
   // user view, we hide section if no investor profile
   if (!isEditable && !hasInvestorProfile) {
+    return null;
+  }
+
+  // Hide section if user clicked "Not an Investor"
+  if (isHidden) {
     return null;
   }
 
@@ -138,6 +145,8 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
           onEdit={handleEditStart}
           type={member.investorProfile?.type}
           member={member}
+          onHideSection={() => setIsHidden(true)}
+          isInvestor={isInvestor}
         />
       )}
     </div>

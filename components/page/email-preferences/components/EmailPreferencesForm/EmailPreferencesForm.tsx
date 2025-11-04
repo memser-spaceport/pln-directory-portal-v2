@@ -10,6 +10,7 @@ import { Newsletter } from '@/components/page/email-preferences/components/Newsl
 import { InvestorCommunications } from '@/components/page/email-preferences/components/InvestorCommunications';
 import { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import { InvestorSettings } from '@/services/members/hooks/useGetInvestorSettings';
+import { MemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { getMemberInfo } from '@/services/members.service';
 
 interface Props {
@@ -18,6 +19,7 @@ interface Props {
   initialData: {
     settings: ForumDigestSettings;
     investorSettings: InvestorSettings;
+    memberInvestorSettings?: MemberInvestorSettings;
     memberInfo: Awaited<ReturnType<typeof getMemberInfo>>;
   };
 }
@@ -52,7 +54,11 @@ export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
           <Newsletter userInfo={userInfo} initialData={initialData.memberInfo} />
         </>
       )}
-      <InvestorCommunications userInfo={userInfo} initialData={initialData.investorSettings} />
+      <InvestorCommunications
+        userInfo={userInfo}
+        initialData={initialData.investorSettings}
+        initialMemberInvestorSettings={initialData.memberInvestorSettings}
+      />
     </div>
   );
 };

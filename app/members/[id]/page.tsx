@@ -34,51 +34,23 @@ import { ITeam } from '@/types/teams.types';
 import MemberPageLoader from './loading';
 import Head from 'next/head';
 import { MembersQueryKeys } from '@/services/members/constants';
+import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 
-/**
- * Determines if we should show the investor profile section for third-party users
- * based on investor profile type and data availability
- */
-const shouldShowInvestorProfileForThirdParty = (member: IMember, isOwner: boolean, isAdmin: boolean): boolean => {
-  // Always show for owner and admin
-  if (isOwner || isAdmin) {
+const shouldShowInvestorProfileForThirdParty = (
+  member: IMember,
+  isOwner: boolean,
+  isAdmin: boolean,
+  isInvestor?: boolean,
+): boolean => {
+  if (!isOwner && !isAdmin) {
+    return false;
+  }
+
+  if (isInvestor === null || isInvestor) {
     return true;
   }
 
-  const investorProfile = member?.investorProfile;
-  const teams = member?.teams;
-
-  if (!investorProfile?.type) {
-    return false; // No investor profile type
-  }
-
-  // Helper function to check if any angel investor data is provided
-  const hasAngelData = (): boolean => {
-    return !!(
-      (investorProfile.investInStartupStages && investorProfile.investInStartupStages.length > 0) ||
-      (investorProfile.typicalCheckSize && investorProfile.typicalCheckSize?.toString().trim() !== '') ||
-      (investorProfile.investmentFocus && investorProfile.investmentFocus.length > 0)
-    );
-  };
-
-  const investmentTeam = teams?.find((team) => team.investmentTeam);
-
-  switch (investorProfile.type) {
-    case 'ANGEL':
-      // ANGEL type: show section only if at least one angel field is provided
-      return hasAngelData();
-
-    case 'FUND':
-      // FUND type: show section only if investor has a team
-      return !!investmentTeam;
-
-    case 'ANGEL_AND_FUND':
-      // ANGEL_AND_FUND: show section if investor has a team OR if at least one angel field is provided
-      return !!investmentTeam || hasAngelData();
-
-    default:
-      return false; // Unknown type
-  }
+  return false;
 };
 
 const MemberDetails = ({ params }: { params: any }) => {
@@ -105,6 +77,9 @@ const MemberDetails = ({ params }: { params: any }) => {
     enabled: !!memberId,
     select: (data) => data?.data?.formattedData,
   });
+
+  // Fetch investor settings to check visibility preference
+  const { data: memberInvestorSettings } = useGetMemberInvestorSettings(memberId);
   const { data: availableToConnectCount } = useQuery({
     queryKey: ['memberList'],
     queryFn: () => getMemberListForQuery(qs.stringify({ hasOfficeHours: true }), 1, 1, userInfo?.token),
@@ -146,13 +121,23 @@ const MemberDetails = ({ params }: { params: any }) => {
 
     switch (member.accessLevel) {
       case 'L5': {
-        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(member, isOwner, isAdmin);
+        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
+          member,
+          isOwner,
+          isAdmin,
+          memberInvestorSettings?.isInvestor,
+        );
 
         return (
           <>
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {showInvestorProfile && (
-              <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+              <InvestorProfileDetails
+                userInfo={userInfo}
+                member={member}
+                isLoggedIn={isLoggedIn}
+                isInvestor={memberInvestorSettings?.isInvestor}
+              />
             )}
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
@@ -163,14 +148,24 @@ const MemberDetails = ({ params }: { params: any }) => {
         );
       }
       default: {
-        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(member, isOwner, isAdmin);
+        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
+          member,
+          isOwner,
+          isAdmin,
+          memberInvestorSettings?.isInvestor,
+        );
 
         return (
           <>
             <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            {member.accessLevel === 'L6' && showInvestorProfile && (
-              <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {showInvestorProfile && (
+              <InvestorProfileDetails
+                userInfo={userInfo}
+                member={member}
+                isLoggedIn={isLoggedIn}
+                isInvestor={memberInvestorSettings?.isInvestor}
+              />
             )}
             <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />

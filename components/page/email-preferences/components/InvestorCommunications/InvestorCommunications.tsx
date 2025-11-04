@@ -6,21 +6,28 @@ import s from './InvestorCommunications.module.scss';
 import { IUserInfo } from '@/types/shared.types';
 import { clsx } from 'clsx';
 import { Switch } from '@base-ui-components/react/switch';
-import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { InvestorSettings, useGetInvestorSettings } from '@/services/members/hooks/useGetInvestorSettings';
 import { useUpdateInvestorSettings } from '@/services/members/hooks/useUpdateInvestorSettings';
+import {
+  MemberInvestorSettings,
+  useGetMemberInvestorSettings,
+} from '@/services/members/hooks/useGetMemberInvestorSettings';
+import { useUpdateMemberInvestorSettings } from '@/services/members/hooks/useUpdateMemberInvestorSettings';
 
 export const InvestorCommunications = ({
   userInfo,
   initialData,
+  initialMemberInvestorSettings,
 }: {
   userInfo: IUserInfo;
   initialData: InvestorSettings;
+  initialMemberInvestorSettings?: MemberInvestorSettings;
 }) => {
   const { mutate } = useUpdateInvestorSettings();
   const { data } = useGetInvestorSettings(userInfo.uid, initialData);
 
-  console.log({ data, initialData });
+  const { mutate: updateMemberInvestorSettings } = useUpdateMemberInvestorSettings();
+  const { data: memberInvestorSettings } = useGetMemberInvestorSettings(userInfo.uid, initialMemberInvestorSettings);
 
   const handleInvestorEventsChange = (checked: boolean) => {
     if (!userInfo.uid || !data) {
@@ -54,10 +61,44 @@ export const InvestorCommunications = ({
     });
   };
 
+  const handleShowInvestorProfileChange = (checked: boolean) => {
+    if (!userInfo.uid) {
+      return;
+    }
+
+    const _payload = {
+      isInvestor: checked,
+    };
+
+    updateMemberInvestorSettings({
+      uid: userInfo.uid,
+      payload: _payload,
+    });
+  };
+
   return (
     <div className={s.root}>
       <div className={s.header}>Investor Communications</div>
       <div className={s.content}>
+        <div className={s.toggleSection}>
+          <label className={clsx(s.Label, s.toggle)}>
+            Show Investor Profile on my public member page
+            <Switch.Root
+              className={s.Switch}
+              checked={memberInvestorSettings?.isInvestor}
+              onCheckedChange={handleShowInvestorProfileChange}
+            >
+              <Switch.Thumb className={s.Thumb}>
+                <div className={s.dot} />
+              </Switch.Thumb>
+            </Switch.Root>
+          </label>
+          <div className={s.desc}>
+            Toggle to make your investor information visible to other network members and eligible for Demo Day
+            invitations.
+          </div>
+        </div>
+
         <div className={s.toggleSection}>
           <label className={clsx(s.Label, s.toggle)}>
             Invitations to investor & founder events

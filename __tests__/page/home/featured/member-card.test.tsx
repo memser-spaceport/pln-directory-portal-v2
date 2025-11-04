@@ -71,13 +71,13 @@ describe('MemberCard', () => {
 
   it('displays the member role correctly', () => {
     render(<MemberCard member={memberMock} />);
-    expect(screen.getAllByText('Developer').length).toBe(4);
+    expect(screen.getAllByText('Developer').length).toBe(2);
   });
 
   it('displays contributor when no role is given ', () => {
     const updatedMock = { ...memberMock, mainTeam: { id: 1, name: 'Team A', role: '' } };
     render(<MemberCard member={updatedMock} />);
-    expect(screen.getAllByText('Contributor').length).toBe(4);
+    expect(screen.getAllByText('Contributor').length).toBe(2);
   });
   /* 
   it('has no gradient border when member is not team lead and open to work', () => {

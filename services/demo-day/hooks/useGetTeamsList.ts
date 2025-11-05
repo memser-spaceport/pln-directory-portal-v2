@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
+import Cookies from 'js-cookie';
 
 export type TeamProfile = {
   createdAt: string;
@@ -63,8 +64,11 @@ async function fetcher(): Promise<TeamsListResponse> {
 }
 
 export function useGetTeamsList() {
+  const authToken = Cookies.get('authToken') || '';
+
   return useQuery({
     queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST],
     queryFn: fetcher,
+    enabled: Boolean(authToken),
   });
 }

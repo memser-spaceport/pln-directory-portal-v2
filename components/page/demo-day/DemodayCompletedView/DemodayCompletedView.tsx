@@ -14,9 +14,12 @@ import { faqItems, PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from '@/app/co
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 
 import s from './DemodayCompletedView.module.scss';
+import { IUserInfo } from '@/types/shared.types';
 
 interface DemodayCompletedViewProps {
   initialDemoDayState?: DemoDayState;
+  isLoggedIn?: boolean;
+  userInfo?: IUserInfo;
 }
 
 const InfoIcon = () => (
@@ -31,9 +34,13 @@ const InfoIcon = () => (
   </svg>
 );
 
-export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({ initialDemoDayState }) => {
-  const { data: demoDayData } = useGetDemoDayState(initialDemoDayState);
+export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
+  initialDemoDayState,
+  isLoggedIn,
+  userInfo,
+}) => {
   const { data: teams, isLoading: teamsLoading } = useGetTeamsList();
+  const showFeedbackOption = isLoggedIn && initialDemoDayState?.access && initialDemoDayState?.access !== 'none';
 
   // Get top 9 teams for display
   const displayTeams = teams?.slice(0, 9) || [];
@@ -66,12 +73,16 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({ init
               </Button>
             </Link>
             <div className={s.links}>
-              <Link href="/members" className={s.linkButton}>
-                Give Feedback <ChatIcon />
-              </Link>
-              <Link href="/demoday" className={s.linkButton}>
-                Keep your profile updated <EditIcon />
-              </Link>
+              {showFeedbackOption && (
+                <Link href="/members" className={s.linkButton}>
+                  Give Feedback <ChatIcon />
+                </Link>
+              )}
+              {isLoggedIn && userInfo && (
+                <Link href={`/members/${userInfo?.uid}`} className={s.linkButton}>
+                  Keep your profile updated <EditIcon />
+                </Link>
+              )}
             </div>
           </div>
         </section>

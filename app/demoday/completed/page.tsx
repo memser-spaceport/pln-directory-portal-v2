@@ -16,5 +16,5 @@ export default async function CompletedPage() {
     redirect('/demoday');
   }
 
-  return <DemodayCompletedView initialDemoDayState={demoDayState} />;
+  return <DemodayCompletedView initialDemoDayState={demoDayState} isLoggedIn={isLoggedIn} userInfo={userInfo} />;
 }

@@ -1647,4 +1647,8 @@ export const DEMO_DAY_ANALYTICS = {
   ON_ACTIVE_VIEW_WELCOME_VIDEO_VIEWED: 'demo-day-active-view-welcome-video-viewed',
   ON_ACTIVE_VIEW_TEAM_CARD_VIEWED: 'demo-day-active-view-team-card-viewed',
   ON_FOUNDER_PENDING_VIEW_WEBSITE_LINK_CLICKED: 'demo-day-founder-pending-view-website-link-clicked',
+  ON_COMPLETED_VIEW_APPLY_FOR_NEXT_DEMO_DAY_CLICKED: 'demo-day-completed-view-apply-for-next-demo-day-clicked',
+  ON_COMPLETED_VIEW_GIVE_FEEDBACK_CLICKED: 'demo-day-completed-view-give-feedback-clicked',
+  ON_COMPLETED_VIEW_KEEP_PROFILE_UPDATED_CLICKED: 'demo-day-completed-view-keep-profile-updated-clicked',
+  ON_COMPLETED_VIEW_FEEDBACK_SUBMITTED: 'demo-day-completed-view-feedback-submitted',
 };

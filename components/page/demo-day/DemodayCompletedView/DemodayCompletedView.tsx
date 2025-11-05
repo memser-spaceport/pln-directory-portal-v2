@@ -6,16 +6,16 @@ import Link from 'next/link';
 import { Button } from '@/components/common/Button';
 import { LogosGrid } from '@/components/common/LogosGrid';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
-import { Footer } from '@/components/page/demo-day/LandingBase/components/Footer';
 import { TeamCard } from '@/components/common/LogosGrid/components/TeamCard';
 import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
-import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { faqItems, PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from '@/app/constants/demoday';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { FeedbackDialog } from './components/FeedbackDialog';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 import s from './DemodayCompletedView.module.scss';
 import { IUserInfo } from '@/types/shared.types';
+import { toast } from '@/components/core/ToastContainer';
 
 interface DemodayCompletedViewProps {
   initialDemoDayState?: DemoDayState;
@@ -43,6 +43,11 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
   const { data: teams, isLoading: teamsLoading } = useGetTeamsList();
   const showFeedbackOption = isLoggedIn && initialDemoDayState?.access && initialDemoDayState?.access !== 'none';
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const {
+    onCompletedViewApplyForNextDemoDayClicked,
+    onCompletedViewGiveFeedbackClicked,
+    onCompletedViewKeepProfileUpdatedClicked,
+  } = useDemoDayAnalytics();
 
   // Get top 9 teams for display
   const displayTeams = teams?.slice(0, 9) || [];
@@ -50,6 +55,20 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
   const handleFeedbackSuccess = () => {
     // You can add a success toast notification here if needed
     console.log('Feedback submitted successfully!');
+    toast.success('Feedback submitted successfully!');
+  };
+
+  const handleApplyForNextDemoDayClick = () => {
+    onCompletedViewApplyForNextDemoDayClicked();
+  };
+
+  const handleGiveFeedbackClick = () => {
+    onCompletedViewGiveFeedbackClicked();
+    setIsFeedbackDialogOpen(true);
+  };
+
+  const handleKeepProfileUpdatedClick = () => {
+    onCompletedViewKeepProfileUpdatedClicked();
   };
 
   return (
@@ -74,19 +93,23 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           </div>
 
           <div className={s.buttons}>
-            <Link href="/teams">
+            <Link href="/teams" onClick={handleApplyForNextDemoDayClick}>
               <Button size="l" style="fill" variant="primary">
                 Apply for next Demo Day <ArrowRight />
               </Button>
             </Link>
             <div className={s.links}>
               {showFeedbackOption && (
-                <button onClick={() => setIsFeedbackDialogOpen(true)} className={s.linkButton}>
+                <button onClick={handleGiveFeedbackClick} className={s.linkButton}>
                   Give Feedback <ChatIcon />
                 </button>
               )}
               {isLoggedIn && userInfo && (
-                <Link href={`/members/${userInfo?.uid}`} className={s.linkButton}>
+                <Link
+                  href={`/members/${userInfo?.uid}`}
+                  className={s.linkButton}
+                  onClick={handleKeepProfileUpdatedClick}
+                >
                   Keep your profile updated <EditIcon />
                 </Link>
               )}

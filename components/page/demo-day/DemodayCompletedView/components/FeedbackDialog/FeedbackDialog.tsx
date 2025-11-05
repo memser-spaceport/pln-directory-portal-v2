@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { useSubmitDemoDayFeedback } from '@/services/demo-day/hooks/useSubmitDemoDayFeedback';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 import s from './FeedbackDialog.module.scss';
 
@@ -58,6 +59,7 @@ export const FeedbackDialog: React.FC<FeedbackDialogProps> = ({ isOpen, onClose,
   });
 
   const { mutate: submitFeedback, isPending } = useSubmitDemoDayFeedback();
+  const { onCompletedViewFeedbackSubmitted } = useDemoDayAnalytics();
 
   const selectedRating = watch('rating');
 
@@ -87,6 +89,9 @@ export const FeedbackDialog: React.FC<FeedbackDialogProps> = ({ isOpen, onClose,
 
     submitFeedback(payload, {
       onSuccess: () => {
+        // Track analytics event with rating
+        onCompletedViewFeedbackSubmitted({ rating: data.rating });
+
         reset();
         onClose();
         if (onSuccess) {

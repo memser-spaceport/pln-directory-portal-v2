@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 
 import { Button } from '@/components/common/Button';
@@ -12,6 +12,7 @@ import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { faqItems, PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from '@/app/constants/demoday';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
+import { FeedbackDialog } from './components/FeedbackDialog';
 
 import s from './DemodayCompletedView.module.scss';
 import { IUserInfo } from '@/types/shared.types';
@@ -41,9 +42,15 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
 }) => {
   const { data: teams, isLoading: teamsLoading } = useGetTeamsList();
   const showFeedbackOption = isLoggedIn && initialDemoDayState?.access && initialDemoDayState?.access !== 'none';
+  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
 
   // Get top 9 teams for display
   const displayTeams = teams?.slice(0, 9) || [];
+
+  const handleFeedbackSuccess = () => {
+    // You can add a success toast notification here if needed
+    console.log('Feedback submitted successfully!');
+  };
 
   return (
     <div className={s.root}>
@@ -74,9 +81,9 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
             </Link>
             <div className={s.links}>
               {showFeedbackOption && (
-                <Link href="/members" className={s.linkButton}>
+                <button onClick={() => setIsFeedbackDialogOpen(true)} className={s.linkButton}>
                   Give Feedback <ChatIcon />
-                </Link>
+                </button>
               )}
               {isLoggedIn && userInfo && (
                 <Link href={`/members/${userInfo?.uid}`} className={s.linkButton}>
@@ -165,6 +172,13 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           </div>
         </footer>
       </div>
+
+      {/* Feedback Dialog */}
+      <FeedbackDialog
+        isOpen={isFeedbackDialogOpen}
+        onClose={() => setIsFeedbackDialogOpen(false)}
+        onSuccess={handleFeedbackSuccess}
+      />
     </div>
   );
 };

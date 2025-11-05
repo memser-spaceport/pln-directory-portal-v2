@@ -87,7 +87,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
   return (
     <LandingBase initialDemoDayState={initialDemoDayState}>
       <div className={s.root}>
-        {!userInfo && <LoginBtn className={clsx(s.btn, s.primaryButton)}>Log In</LoginBtn>}
+        {!userInfo && <LoginBtn className={clsx(s.btn, s.primaryButton)}>Already approved? Log in</LoginBtn>}
         <a
           href={INVITE_FORM_URL}
           target="_blank"

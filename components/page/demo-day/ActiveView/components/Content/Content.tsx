@@ -66,26 +66,29 @@ export const Content = () => {
                 [Early Access]
               </div>
             )}
-            <PageTitle size="small" />
-          </div>
-
-          <div className={s.stats}>
-            {/* <span>
+            <PageTitle
+              size="small"
+              subtitle={
+                <div className={s.stats}>
+                  {/* <span>
               <CalendarIcon /> {data?.date ? format(data.date, 'dd MMM yyyy, hh:mm aa (zzz)') : ''}
             </span>
             &nbsp;&bull;&nbsp; */}
-            <span>
-              {data?.teamsCount} Team{(data?.teamsCount ?? 0) > 1 ? 's' : ''}
-            </span>
-            {data?.investorsCount && data?.investorsCount > 100 ? (
-              <>
-                &nbsp;&bull;&nbsp;
-                <Link href={`/members?isInvestor=true`}>
-                  {data?.investorsCount} Investor{(data?.investorsCount ?? 0) > 1 ? 's' : ''}
-                  <LinkIcon />
-                </Link>
-              </>
-            ) : null}
+                  <span>
+                    {data?.teamsCount} Team{(data?.teamsCount ?? 0) > 1 ? 's' : ''}
+                  </span>
+                  {data?.investorsCount && data?.investorsCount > 100 ? (
+                    <>
+                      &nbsp;&bull;&nbsp;
+                      <Link href={`/members?isInvestor=true`}>
+                        {data?.investorsCount} Investor{(data?.investorsCount ?? 0) > 1 ? 's' : ''}
+                        <LinkIcon />
+                      </Link>
+                    </>
+                  ) : null}
+                </div>
+              }
+            />
           </div>
           <div className={s.videoWrapper}>
             <MediaPreview

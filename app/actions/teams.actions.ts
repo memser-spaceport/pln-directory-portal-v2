@@ -6,17 +6,18 @@ import { ITEMS_PER_PAGE } from '@/utils/constants';
 import { revalidatePath, revalidateTag } from 'next/cache';
 
 const teamsAPI = `${process.env.DIRECTORY_API_URL}/v1/teams`;
+const teamsSearchAPI = `${process.env.DIRECTORY_API_URL}/v1/teams-search`;
 
-export const getTeamList = async (queryParams: any, currentPage = 1, limit = ITEMS_PER_PAGE) => {
+export const getTeamList = async (query: string, currentPage = 1, limit = ITEMS_PER_PAGE) => {
   const requestOptions: RequestInit = {
     method: 'GET',
     headers: getHeader(''),
-    cache: 'force-cache',
     next: { tags: ['team-list'] },
   };
+
   const response = await fetch(
-    `${teamsAPI}?page=${currentPage}&limit=${limit}&${new URLSearchParams(queryParams)}`,
-    requestOptions,
+    `${teamsSearchAPI}?page=${currentPage}&limit=${limit}&${query}`,
+    requestOptions
   );
   const result = await response.json();
   if (!response?.ok) {

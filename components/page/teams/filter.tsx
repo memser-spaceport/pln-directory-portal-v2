@@ -14,6 +14,10 @@ import FocusAreaFilter from '../../core/focus-area-filter/focus-area-filter';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { FiltersSearch } from '@/components/page/teams/FiltersSearch';
+import { FilterCheckSizeInput } from '@/components/common/FilterCheckSizeInput/FilterCheckSizeInput';
+import { FilterTagInput } from '@/components/form/FilterTagInput/FilterTagInput';
+import { useTeamsFilterStore } from '@/services/teams/store';
+import { useEffect } from 'react';
 
 export interface ITeamFilterWeb {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -53,14 +57,35 @@ const Filter = (props: ITeamFilterWeb) => {
   const router = useRouter();
   const { updateQueryParams } = useUpdateQueryParams();
   const analytics = useTeamAnalytics();
+  const { params, setParam, setAllParams } = useTeamsFilterStore();
 
   const includeFriends = searchParams['includeFriends'] === 'true' || false;
   const includeOfficeHours = searchParams['officeHoursOnly'] === 'true' || false;
   const isRecent = searchParams['isRecent'] === 'true' || false;
   const isHost = searchParams['isHost'] === 'true' || false;
   const isSponsor = searchParams['isSponsor'] === 'true' || false;
+  const isFund = searchParams['isFund'] === 'true' || false;
   const query = getQuery(searchParams);
   const apliedFiltersCount = getFilterCount(query);
+
+  // Sync URL params with filter store
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    setAllParams(urlParams);
+  }, [searchParams, setAllParams]);
+
+  // Sync filter store params back to URL
+  useEffect(() => {
+    const paramsString = params.toString();
+    const currentSearch = window.location.search.replace(/^\?/, '');
+
+    if (paramsString !== currentSearch) {
+      const pathname = window.location.pathname;
+      const query = paramsString ? `?${paramsString}` : '';
+      router.push(`${pathname}${query}`);
+      router.refresh();
+    }
+  }, [params, router]);
 
   const onIncludeFriendsToggle = () => {
     triggerLoader(true);
@@ -142,6 +167,30 @@ const Filter = (props: ITeamFilterWeb) => {
     updateQueryParams('officeHoursOnly', '', searchParams);
   };
 
+  const onFundToggle = (newValue: boolean) => {
+    triggerLoader(true);
+    if (searchParams?.page) {
+      searchParams.page = '1';
+    }
+
+    if (newValue) {
+      updateQueryParams('isFund', 'true', searchParams);
+    } else {
+      // Clear fund-specific filters when toggle is turned off
+      const current = new URLSearchParams(Object.entries(searchParams));
+      current.delete('isFund');
+      current.delete('minTypicalCheckSize');
+      current.delete('maxTypicalCheckSize');
+      current.delete('investmentFocus');
+
+      const pathname = window.location.pathname;
+      const search = current.toString();
+      const query = search ? `?${search}` : '';
+      router.push(`${pathname}${query}`);
+      router.refresh();
+    }
+  };
+
   const onTagClickHandler = async (key: string, value: string, selected: boolean, from?: string) => {
     triggerLoader(true);
     if (searchParams?.page) {
@@ -179,6 +228,10 @@ const Filter = (props: ITeamFilterWeb) => {
         'isSponsor',
         'asks',
         'searchBy',
+        'isFund',
+        'minTypicalCheckSize',
+        'maxTypicalCheckSize',
+        'investmentFocus',
       ];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
@@ -352,6 +405,41 @@ const Filter = (props: ITeamFilterWeb) => {
             initialCount={10}
             userInfo={userInfo}
           />
+
+          {/* Border line */}
+          <div className="team-filter__bl"></div>
+
+          {/* Investment Funds Section */}
+          <div className="team-filter__body__investment">
+            <p className="team-filter__body__ttl">Investment Funds</p>
+            <div className="team-filter__body__fund">
+              <h3 className="team-filter__body__fund__title">Show all funds</h3>
+              <div className="pe__body__topic__select__toggle">
+                <Toggle height="16px" width="28px" callback={() => onFundToggle(!isFund)} isChecked={isFund} />
+              </div>
+            </div>
+
+            <FilterCheckSizeInput
+              label="Typical Check Size"
+              minParamName="minTypicalCheckSize"
+              maxParamName="maxTypicalCheckSize"
+              allowedRange={{
+                min: 0,
+                max: 5000000,
+              }}
+              disabled={!isFund}
+              params={params}
+              setParam={setParam}
+            />
+
+            <FilterTagInput
+              selectLabel="Investment Focus"
+              paramKey="investmentFocus"
+              disabled={!isFund}
+              params={params}
+              setParam={setParam}
+            />
+          </div>
         </div>
 
         {/* Footer */}
@@ -382,7 +470,8 @@ const Filter = (props: ITeamFilterWeb) => {
             height: 100%;
           }
 
-          .team-filter__body__event {
+          .team-filter__body__event,
+          .team-filter__body__investment {
             display: flex;
             gap: 20px;
             flex-direction: column;
@@ -455,7 +544,8 @@ const Filter = (props: ITeamFilterWeb) => {
           .team-filter__body__includes,
           .team-filter__body__recent,
           .team-filter__body__host,
-          .team-filter__body__sponsor {
+          .team-filter__body__sponsor,
+          .team-filter__body__fund {
             // padding: 0px 0px 16px 0px;
             display: flex;
             align-items: center;
@@ -466,7 +556,8 @@ const Filter = (props: ITeamFilterWeb) => {
           .team-filter__body__includes__title,
           .team-filter__body__recent__title,
           .team-filter__body__host__title,
-          .team-filter__body__sponsor__title {
+          .team-filter__body__sponsor__title,
+          .team-filter__body__fund__title {
             color: #475569;
             font-size: 14px;
             font-weight: 400;
@@ -536,16 +627,14 @@ const Filter = (props: ITeamFilterWeb) => {
             }
 
             .team-filter__body {
-              padding: 0px 34px 10px 34px;
-            }
-            .team-filter__header__closebtn {
-              display: none;
-            }
-            .team-filter__body {
+              padding: 0px 34px 100px 34px;
               margin-bottom: 50px;
               width: 100%;
               overflow-x: hidden;
               height: calc(100dvh - 140px);
+            }
+            .team-filter__header__closebtn {
+              display: none;
             }
 
             .team-filter__footer {

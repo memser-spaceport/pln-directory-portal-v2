@@ -1,5 +1,5 @@
-import { ITag, ITeamListOptions, ITeamResponse, ITeamsSearchParams } from '@/types/teams.types';
-import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
+import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
+import { getSortFromQuery, stringifyQueryValues } from './common.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from './constants';
 
 export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
@@ -17,6 +17,10 @@ export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
     isHost,
     isSponsor,
     asks,
+    isFund,
+    minTypicalCheckSize,
+    maxTypicalCheckSize,
+    investmentFocus,
   } = queryParams;
   const sortFromQuery = getSortFromQuery(sort?.toString());
   const sortField = sortFromQuery.field.toLowerCase() + ',default';
@@ -34,6 +38,10 @@ export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
     ...(isHost ? { isHost: true } : {}),
     ...(isSponsor ? { isSponsor: true } : {}),
     ...(asks ? { askTags: stringifyQueryValues(asks) } : {}),
+    ...(isFund ? { isFund: true } : {}),
+    ...(minTypicalCheckSize ? { minTypicalCheckSize: stringifyQueryValues(minTypicalCheckSize) } : {}),
+    ...(maxTypicalCheckSize ? { maxTypicalCheckSize: stringifyQueryValues(maxTypicalCheckSize) } : {}),
+    ...(investmentFocus ? { investmentFocus: stringifyQueryValues(investmentFocus) } : {}),
     orderBy: `${sortFromQuery.direction === 'desc' ? '-' : ''}${sortField}`,
   };
 }

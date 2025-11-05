@@ -16,6 +16,8 @@ interface Props {
   placeholder?: string;
   disabled?: boolean;
   isRequired?: boolean;
+  params?: URLSearchParams;
+  setParam?: (key: string, value?: string) => void;
 }
 
 export const FilterTagInput = ({
@@ -26,9 +28,15 @@ export const FilterTagInput = ({
   disabled = false,
   isRequired = false,
   warning = false,
+  params: externalParams,
+  setParam: externalSetParam,
 }: Props) => {
   const [inputText, setInputText] = useState('');
-  const { params, setParam } = useFilterStore();
+  const membersStore = useFilterStore();
+
+  // Use external params/setParam if provided, otherwise use members store
+  const params = externalParams || membersStore.params;
+  const setParam = externalSetParam || membersStore.setParam;
 
   // Get initial values from URL parameters
   const getInitialValues = () => {

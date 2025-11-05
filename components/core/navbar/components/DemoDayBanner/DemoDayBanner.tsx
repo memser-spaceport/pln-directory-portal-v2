@@ -47,7 +47,7 @@ export function DemoDayBanner() {
   return (
     <HighlightsBar>
       <div className={s.root}>
-        PL F25 Demo Day is now live with async viewing available through November 6.{' '}
+        PL F25 Demo Day is now live with async viewing available through November 7.{' '}
         <Link href="/demoday" className={s.link}>
           Learn more
         </Link>

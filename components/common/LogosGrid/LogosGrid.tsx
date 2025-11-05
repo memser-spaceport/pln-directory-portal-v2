@@ -1,13 +1,9 @@
 import clsx from 'clsx';
-import { useMemo } from 'react';
-import shuffle from 'lodash/shuffle';
 import { useToggle } from 'react-use';
 
 import { Button } from '@/components/common/Button';
 
-import TEAMS from './teams.json';
-
-import { TeamCard } from './components/TeamCard';
+import { LOGOS } from './constants';
 
 import s from './LogosGrid.module.scss';
 
@@ -20,11 +16,9 @@ export function LogosGrid(props: Props) {
 
   const [showAll, toggleShowAll] = useToggle(false);
 
-  const teams = useMemo(() => shuffle(TEAMS), [])
-
   return (
     <div className={clsx(s.root, className)}>
-      <div className={s.header}>Teams featured in this Demo Day</div>
+      <div className={s.header}>Teams featured in past demo days raised from top VCs and Angel Investors</div>
 
       <div
         className={clsx(s.gridContainer, {
@@ -32,14 +26,22 @@ export function LogosGrid(props: Props) {
         })}
       >
         <div className={s.grid}>
-          {teams.map((team) => (
-            <TeamCard key={team.name} team={team} />
+          {LOGOS.map((icon) => (
+            <div key={icon} className={s.cell}>
+              <img
+                src={icon}
+                className={s.logo}
+                alt={icon.replace('/icons/demoday/landing/logos/', '').replace('.svg', '')}
+              />
+            </div>
           ))}
         </div>
+
+        <div className={s.bottomShadow} />
       </div>
 
       <Button style="border" className={s.btn} onClick={toggleShowAll}>
-        {showAll ? 'Hide' : 'Show'} All Teams
+        Show {showAll ? 'Less' : 'More'}
       </Button>
     </div>
   );

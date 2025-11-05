@@ -48,36 +48,60 @@ $transition-duration: 0.5s;
 }
 
 .grid {
-  gap: 20px;
+  gap: 22px;
   display: grid;
-  grid-template-columns: repeat(1, minmax(0, 286px));
-  grid-template-rows: repeat(auto-fit, minmax(0, 148px));
-
+  flex-shrink: 0;
   transition: max-height $transition-duration ease;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 
-  margin: 0 auto;
-  max-height: 494px;
-  width: fit-content;
+  width: 100%;
+  max-height: 380px;
   overflow: hidden;
 
   .expanded & {
-    max-height: 4700px;
+    max-height: 2000px;
   }
 
-  @include media.tablet-portrait {
-    grid-template-columns: repeat(2, minmax(0, 286px));
+  @include media.desktop {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
 
     .expanded & {
-      max-height: 2400px;
+      max-height: 1000px;
     }
   }
+}
 
-  @include media.tablet-landscape {
-    grid-template-columns: repeat(3, minmax(0, 286px));
 
-    .expanded & {
-      max-height: 1700px;
-    }
+.cell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  max-width: 75%;
+  max-height: 75%;
+
+  @include media.mobile-only {
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
+
+.bottomShadow {
+  bottom: 0;
+  position: absolute;
+
+  transition: height $transition-duration ease;
+
+  width: 100%;
+  height: 150px;
+
+  background: linear-gradient(transparent, #fff 100%);
+
+  .expanded & {
+    height: 0;
   }
 }
 

@@ -99,39 +99,45 @@ export const InvestorCommunications = ({
           </div>
         </div>
 
-        <div className={s.toggleSection}>
-          <label className={clsx(s.Label, s.toggle)}>
-            Invitations to investor & founder events
-            <Switch.Root
-              // defaultChecked
-              className={s.Switch}
-              checked={data?.investorInvitesEnabled}
-              onCheckedChange={handleInvestorEventsChange}
-            >
-              <Switch.Thumb className={s.Thumb}>
-                <div className={s.dot} />
-              </Switch.Thumb>
-            </Switch.Root>
-          </label>
-          <div className={s.desc}>I would like to receive invitations to investor and founder focused PL events.</div>
-        </div>
+        {(userInfo.accessLevel === 'L5' || userInfo.accessLevel === 'L6') && (
+          <>
+            <div className={s.toggleSection}>
+              <label className={clsx(s.Label, s.toggle)}>
+                Invitations to investor & founder events
+                <Switch.Root
+                  // defaultChecked
+                  className={s.Switch}
+                  checked={data?.investorInvitesEnabled}
+                  onCheckedChange={handleInvestorEventsChange}
+                >
+                  <Switch.Thumb className={s.Thumb}>
+                    <div className={s.dot} />
+                  </Switch.Thumb>
+                </Switch.Root>
+              </label>
+              <div className={s.desc}>
+                I would like to receive invitations to investor and founder focused PL events.
+              </div>
+            </div>
 
-        <div className={s.toggleSection}>
-          <label className={clsx(s.Label, s.toggle)}>
-            Dealflow intros & digests
-            <Switch.Root
-              // defaultChecked={initialData?.investorDealflowEnabled}
-              className={s.Switch}
-              checked={data?.investorDealflowEnabled}
-              onCheckedChange={handleDealflowDigestsChange}
-            >
-              <Switch.Thumb className={s.Thumb}>
-                <div className={s.dot} />
-              </Switch.Thumb>
-            </Switch.Root>
-          </label>
-          <div className={s.desc}>I would like to receive dealflow intros & digests relevant to me.</div>
-        </div>
+            <div className={s.toggleSection}>
+              <label className={clsx(s.Label, s.toggle)}>
+                Dealflow intros & digests
+                <Switch.Root
+                  // defaultChecked={initialData?.investorDealflowEnabled}
+                  className={s.Switch}
+                  checked={data?.investorDealflowEnabled}
+                  onCheckedChange={handleDealflowDigestsChange}
+                >
+                  <Switch.Thumb className={s.Thumb}>
+                    <div className={s.dot} />
+                  </Switch.Thumb>
+                </Switch.Root>
+              </label>
+              <div className={s.desc}>I would like to receive dealflow intros & digests relevant to me.</div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

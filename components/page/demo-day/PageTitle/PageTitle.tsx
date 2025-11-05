@@ -9,10 +9,11 @@ import s from './PageTitle.module.scss';
 interface PageTitleProps {
   size?: 'small' | 'large';
   initialDemoDayState?: DemoDayState;
+  subtitle?: React.ReactNode;
 }
 
 export function PageTitle(props: PageTitleProps) {
-  const { size = 'large', initialDemoDayState } = props;
+  const { size = 'large', initialDemoDayState, subtitle = '' } = props;
   const { data: loadedDemoDayData } = useGetDemoDayState(initialDemoDayState);
   const data = loadedDemoDayData || initialDemoDayState;
 
@@ -24,6 +25,7 @@ export function PageTitle(props: PageTitleProps) {
         <br />
         Review teams asynchronously, with direct contact available in-platform.
         <br />
+        {subtitle}
         <br />
         <b>Demo Day closes November 7, 2025 @ 10:00 PM PT</b>
       </p>

@@ -2,16 +2,18 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useToggle } from 'react-use';
+import clsx from 'clsx';
 
 import { Button } from '@/components/common/Button';
 import { LogosGrid } from '@/components/common/LogosGrid';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import { TeamCard } from '@/components/common/LogosGrid/components/TeamCard';
-import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
 import { faqItems, PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from '@/app/constants/demoday';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { FeedbackDialog } from './components/FeedbackDialog';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import teamsData from '@/components/common/LogosGrid/teams.json';
 
 import s from './DemodayCompletedView.module.scss';
 import { IUserInfo } from '@/types/shared.types';
@@ -40,17 +42,17 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
   isLoggedIn,
   userInfo,
 }) => {
-  const { data: teams, isLoading: teamsLoading } = useGetTeamsList();
   const showFeedbackOption = isLoggedIn && initialDemoDayState?.access && initialDemoDayState?.access !== 'none';
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const [showAllTeams, toggleShowAllTeams] = useToggle(false);
   const {
     onCompletedViewApplyForNextDemoDayClicked,
     onCompletedViewGiveFeedbackClicked,
     onCompletedViewKeepProfileUpdatedClicked,
   } = useDemoDayAnalytics();
 
-  // Get top 9 teams for display
-  const displayTeams = teams?.slice(0, 9) || [];
+  // Use static teams data from teams.json
+  const displayTeams = teamsData;
 
   const handleFeedbackSuccess = () => {
     // You can add a success toast notification here if needed
@@ -127,36 +129,39 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
         {/* Teams Section */}
         <section className={s.sectionTeams}>
           <div className={s.subtitle}>
-            <h2 className={s.label}>28 Teams That Presented</h2>
+            <h2 className={s.label}>{displayTeams.length} Teams That Presented</h2>
             <p className={s.supportingText}>Innovative startups across AI, web3, crypto, robotics, and neurotech</p>
           </div>
           <div className={s.cards}>
-            <div className={s.cardsGrid}>
-              {teamsLoading ? (
-                <div className={s.loading}>Loading teams...</div>
-              ) : displayTeams.length > 0 ? (
-                displayTeams.map((teamProfile) => (
-                  <TeamCard
-                    key={teamProfile.uid}
-                    team={{
-                      uid: teamProfile.team.uid,
-                      name: teamProfile.team.name,
-                      logo: teamProfile.team.logo.url,
-                      stage: teamProfile.team.fundingStage.title,
-                      website: teamProfile.team.website || '',
-                      shortDescription: teamProfile.team.shortDescription,
-                    }}
-                  />
-                ))
-              ) : (
-                <div className={s.noTeams}>No teams available</div>
-              )}
+            <div
+              className={clsx(s.cardsGridContainer, {
+                [s.expanded]: showAllTeams,
+              })}
+            >
+              <div className={s.cardsGrid}>
+                {displayTeams.length > 0 ? (
+                  displayTeams.map((team) => (
+                    <TeamCard
+                      key={team.uid}
+                      team={{
+                        uid: team.uid,
+                        name: team.name,
+                        logo: team.logo,
+                        stage: team.stage,
+                        website: team.website || '',
+                        shortDescription: team.shortDescription,
+                      }}
+                    />
+                  ))
+                ) : (
+                  <div className={s.noTeams}>No teams available</div>
+                )}
+              </div>
+              <div className={s.bottomShadow} />
             </div>
-            <Link href="/teams">
-              <Button size="s" style="border">
-                Show All Teams
-              </Button>
-            </Link>
+            <Button size="s" style="border" onClick={toggleShowAllTeams}>
+              Show {showAllTeams ? 'Less' : 'All'} Teams
+            </Button>
           </div>
         </section>
 

@@ -132,7 +132,7 @@ export const InvestorProfileView = ({
           </div>
         ) : (
           <DataIncomplete className={s.incompleteStrip}>
-            Add investor details to be eligible for demo day participation
+            Update investor details to be eligible for demo day participation.
           </DataIncomplete>
         ))}
 

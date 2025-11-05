@@ -22,23 +22,33 @@ export function TeamCard(props: Props) {
   const { team } = props;
   const { uid, name, logo, stage, website, shortDescription } = team;
 
-  const { onLandingTeamCardClicked } = useDemoDayAnalytics();
+  const { onLandingTeamCardClicked, onLandingTeamWebsiteClicked } = useDemoDayAnalytics();
 
-  const isValidWebsite = isLink(website);
-  const cardUrl = isValidWebsite ? getSocialLinkUrl(website, 'website') : `https://directory.plnetwork.io/teams/${uid}`;
+  const websiteLink = website.split(' ')[0];
+  const isValidWebsite = isLink(websiteLink);
+  const teamPageUrl = `https://directory.plnetwork.io/teams/${uid}`;
+  const websiteUrl = isValidWebsite ? getSocialLinkUrl(websiteLink, 'website') : null;
 
   const handleCardClick = () => {
     onLandingTeamCardClicked({
       teamUid: uid,
       teamName: name,
       teamWebsite: website,
-      isValidWebsite,
-      destinationUrl: cardUrl,
+      destinationUrl: teamPageUrl,
+    });
+  };
+
+  const handleWebsiteClick = () => {
+    onLandingTeamWebsiteClicked({
+      teamUid: uid,
+      teamName: name,
+      teamWebsite: website,
+      destinationUrl: websiteUrl,
     });
   };
 
   return (
-    <a href={cardUrl} target="_blank" rel="noopener noreferrer" onClick={handleCardClick} className={s.root}>
+    <a href={teamPageUrl} target="_blank" rel="noopener noreferrer" onClick={handleCardClick} className={s.root}>
       <div>
         <Image src={logo} alt={`${name} logo`} width={32} height={32} />
       </div>
@@ -51,7 +61,13 @@ export function TeamCard(props: Props) {
 
         <div className={s.description}>{shortDescription}</div>
 
-        <a href={cardUrl} className={s.website} target="_blank" rel="noopener noreferrer">
+        <a
+          href={websiteUrl || teamPageUrl}
+          className={s.website}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={handleWebsiteClick}
+        >
           <GlobeIcon className={s.globe} />
           <div className={s.link}>{website}</div>
         </a>

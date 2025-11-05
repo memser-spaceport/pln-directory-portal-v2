@@ -25,7 +25,7 @@ export function PageTitle(props: PageTitleProps) {
         Review teams asynchronously, with direct contact available in-platform.
         <br />
         <br />
-        <b>Demo Day closes November 6, 2025 @ 5:00 PM PT</b>
+        <b>Demo Day closes November 7, 2025 @ 10:00 PM PT</b>
       </p>
     </div>
   );

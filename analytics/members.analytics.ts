@@ -499,6 +499,15 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_PROFILE_DETAILS_SAVE_CLICKED);
   }
 
+  function onPrimaryTeamChanged(params: {
+    previousTeam?: { value: string; label: string; role: string } | null;
+    newTeam?: { value: string; label: string; role: string } | null;
+    previousRole?: string;
+    newRole?: string;
+  }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_PRIMARY_TEAM_CHANGED, params);
+  }
+
   function onEditContactDetailsClicked() {
     captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTACT_DETAILS_EDIT_CLICKED);
   }
@@ -640,6 +649,7 @@ export const useMemberAnalytics = () => {
     onCloseCompleteProfileClicked,
     onEditProfileDetailsClicked,
     onSaveProfileDetailsClicked,
+    onPrimaryTeamChanged,
     onEditContactDetailsClicked,
     onSaveContactDetailsClicked,
     onAddExperienceDetailsClicked,

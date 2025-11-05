@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { getSocialLinkUrl } from '@/utils/common.utils';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 import s from './ProfileHeader.module.scss';
 
@@ -34,6 +35,8 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
   const foundersContainerRef = useRef<HTMLDivElement>(null);
   const founderItemsRef = useRef<(HTMLAnchorElement | null)[]>([]);
   const visibleFoundersCount = 4;
+
+  const { onFounderPendingViewWebsiteLinkClicked } = useDemoDayAnalytics();
 
   const maxFounderNameWidth = useMemo(() => {
     if (!founders || founders.length <= 2) return 260;
@@ -149,7 +152,14 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={s.websiteTag}
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFounderPendingViewWebsiteLinkClicked({
+                    teamUid: uid,
+                    teamName: name,
+                    websiteUrl: website,
+                  });
+                }}
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path

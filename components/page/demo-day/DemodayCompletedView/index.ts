@@ -1,0 +1,2 @@
+export { DemodayCompletedView } from './DemodayCompletedView';
+

@@ -14,6 +14,9 @@ const DIRECTORY_LINK =
 const DESCRIPTION_LINK =
   'https://www.protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/';
 
+export const PRIVACY_POLICY_URL = 'https://drive.google.com/file/d/1RIAyMlyuLYnipa6W_YBzcJ6hDzfH7yW3/view';
+export const TERMS_AND_CONDITIONS_URL = 'https://drive.google.com/file/d/1MjOF66asddB_hsg7Jc-7Oxk6L1EvYHxk/view';
+
 export const faqItems = [
   {
     question: 'What is Protocol Labs F25 Demo Day?',

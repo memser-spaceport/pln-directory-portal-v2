@@ -11,6 +11,7 @@ interface Props extends Omit<HTMLAttributes<HTMLButtonElement>, 'style'> {
   variant?: 'primary' | 'secondary' | 'error';
   size?: 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl';
   disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 export function Button(props: Props) {

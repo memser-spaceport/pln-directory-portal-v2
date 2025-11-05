@@ -192,6 +192,22 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACCESS_DENIED_REQUEST_INVITE_CLICKED, eventParams);
   }
 
+  function onCompletedViewApplyForNextDemoDayClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_APPLY_FOR_NEXT_DEMO_DAY_CLICKED);
+  }
+
+  function onCompletedViewGiveFeedbackClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_GIVE_FEEDBACK_CLICKED);
+  }
+
+  function onCompletedViewKeepProfileUpdatedClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_KEEP_PROFILE_UPDATED_CLICKED);
+  }
+
+  function onCompletedViewFeedbackSubmitted(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_FEEDBACK_SUBMITTED, eventParams);
+  }
+
   return {
     onLandingPageOpened,
     onLandingLoginButtonClicked,
@@ -236,5 +252,9 @@ export const useDemoDayAnalytics = () => {
     onActiveViewWelcomeVideoViewed,
     onConfidentialityModalSubmitted,
     onConfidentialityModalClosed,
+    onCompletedViewApplyForNextDemoDayClicked,
+    onCompletedViewGiveFeedbackClicked,
+    onCompletedViewKeepProfileUpdatedClicked,
+    onCompletedViewFeedbackSubmitted,
   };
 };

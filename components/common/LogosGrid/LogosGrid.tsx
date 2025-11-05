@@ -40,7 +40,7 @@ export function LogosGrid(props: Props) {
         <div className={s.bottomShadow} />
       </div>
 
-      <Button style="border" className={s.btn} onClick={toggleShowAll}>
+      <Button size="s" style="border" className={s.btn} onClick={toggleShowAll}>
         Show {showAll ? 'Less' : 'More'}
       </Button>
     </div>

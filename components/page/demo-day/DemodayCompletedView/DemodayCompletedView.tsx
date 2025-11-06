@@ -43,7 +43,8 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
   isLoggedIn,
   userInfo,
 }) => {
-  const showFeedbackOption = isLoggedIn && initialDemoDayState?.access && initialDemoDayState?.access !== 'none';
+  const showFeedbackOption =
+    isLoggedIn && initialDemoDayState?.access && initialDemoDayState?.access?.toUpperCase() === 'INVESTOR';
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [showAllTeams, toggleShowAllTeams] = useToggle(false);
   const {

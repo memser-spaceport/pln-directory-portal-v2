@@ -129,7 +129,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
             A curated showcase of frontier teams in AI, crypto, robotics, and neurotech.
           </p>
           <div className={s.divider} />
-          <h3 className={s.timelineTitle}>PL W26 Demo Day · Q1'26</h3>
+          <h3 className={s.timelineTitle}>PL W26 Demo Day · Q1&apos;26</h3>
           <p className={s.timelineDescription}>
             A curated showcase of frontier teams in AI, crypto, robotics, and neurotech.
           </p>

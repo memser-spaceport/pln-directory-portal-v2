@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { useToggle } from 'react-use';
 
 import { Button } from '@/components/common/Button';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 import { LOGOS } from './constants';
 
@@ -15,6 +16,12 @@ export function LogosGrid(props: Props) {
   const { className } = props;
 
   const [showAll, toggleShowAll] = useToggle(false);
+  const { onActiveViewShowMoreLogosClicked } = useDemoDayAnalytics();
+
+  const handleShowMoreClick = () => {
+    onActiveViewShowMoreLogosClicked();
+    toggleShowAll();
+  };
 
   return (
     <div className={clsx(s.root, className)}>
@@ -40,7 +47,7 @@ export function LogosGrid(props: Props) {
         <div className={s.bottomShadow} />
       </div>
 
-      <Button size="s" style="border" className={s.btn} onClick={toggleShowAll}>
+      <Button size="s" style="border" className={s.btn} onClick={handleShowMoreClick}>
         Show {showAll ? 'Less' : 'More'}
       </Button>
     </div>

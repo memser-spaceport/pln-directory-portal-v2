@@ -9,7 +9,7 @@ import { Button } from '@/components/common/Button';
 import { LogosGrid } from '@/components/common/LogosGrid';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import { TeamCard } from '@/components/common/LogosGrid/components/TeamCard';
-import { faqItems, PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from '@/app/constants/demoday';
+import { faqCompletedItems, PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from '@/app/constants/demoday';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { FeedbackDialog } from './components/FeedbackDialog';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
@@ -18,7 +18,7 @@ import teamsData from '@/components/common/LogosGrid/teams.json';
 import s from './DemodayCompletedView.module.scss';
 import { IUserInfo } from '@/types/shared.types';
 import { toast } from '@/components/core/ToastContainer';
-import { INVITE_FORM_URL } from '@/constants/demoDay';
+import { APPLY_FOR_NEXT_DEMO_DAY_URL, FOUNDERS_FORGE_URL } from '@/constants/demoDay';
 
 interface DemodayCompletedViewProps {
   initialDemoDayState?: DemoDayState;
@@ -98,7 +98,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
 
           <div className={s.buttons}>
             <Link
-              href={INVITE_FORM_URL}
+              href={APPLY_FOR_NEXT_DEMO_DAY_URL}
               onClick={handleApplyForNextDemoDayClick}
               target="_blank"
               rel="noopener noreferrer"
@@ -134,13 +134,20 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           </div>
           <h3 className={s.timelineTitle}>PL Founders Forge · Dec 10th 2025</h3>
           <p className={s.timelineDescription}>
-            A curated showcase of frontier teams in AI, crypto, robotics, and neurotech.
+            Explore 10 teams after they present during the{' '}
+            <a
+              href={FOUNDERS_FORGE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={s.timelineDescriptionLink}
+            >
+              Build Week in UAE
+            </a>
+            .
           </p>
           <div className={s.divider} />
           <h3 className={s.timelineTitle}>PL W26 Demo Day · Q1&apos;26</h3>
-          <p className={s.timelineDescription}>
-            A curated showcase of frontier teams in AI, crypto, robotics, and neurotech.
-          </p>
+          <p className={s.timelineDescription}>Explore 28 teams across AI, Web3, crypto, robotics, and neurotech</p>
         </section>
 
         <section className={s.sectionTimeline}>
@@ -203,7 +210,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
         <section className={s.sectionFaq}>
           <FAQ
             title="Frequently Asked Questions"
-            items={faqItems}
+            items={faqCompletedItems}
             subtitle={
               <p className={s.infoText}>
                 Reach out to us on{' '}

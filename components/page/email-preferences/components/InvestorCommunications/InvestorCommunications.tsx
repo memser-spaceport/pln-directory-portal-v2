@@ -13,6 +13,7 @@ import {
   useGetMemberInvestorSettings,
 } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { useUpdateMemberInvestorSettings } from '@/services/members/hooks/useUpdateMemberInvestorSettings';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 export const InvestorCommunications = ({
   userInfo,
@@ -28,6 +29,7 @@ export const InvestorCommunications = ({
 
   const { mutate: updateMemberInvestorSettings } = useUpdateMemberInvestorSettings();
   const { data: memberInvestorSettings } = useGetMemberInvestorSettings(userInfo.uid, initialMemberInvestorSettings);
+  const { onInvestorCommunicationsSettingsUpdated } = useDemoDayAnalytics();
 
   const handleInvestorEventsChange = (checked: boolean) => {
     if (!userInfo.uid || !data) {
@@ -69,6 +71,8 @@ export const InvestorCommunications = ({
     const _payload = {
       isInvestor: checked,
     };
+
+    onInvestorCommunicationsSettingsUpdated({ setting: 'isInvestor', value: checked });
 
     updateMemberInvestorSettings({
       uid: userInfo.uid,

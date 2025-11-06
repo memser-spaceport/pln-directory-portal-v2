@@ -313,7 +313,13 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
       // Report successful profile update analytics
       if (userInfo?.email) {
         // PostHog analytics
-        onInvestorProfileUpdated();
+        onInvestorProfileUpdated({
+          hasInvestmentFocus: formData.investmentFocusAreas?.length > 0,
+          hasTypicalCheckSize: !!formData.typicalCheckSize,
+          secRulesAccepted: formData.secRulesAccepted,
+          isInvestViaFund: formData.isInvestViaFund,
+          fieldsUpdated: Object.keys(formData).filter((key) => formData[key as keyof typeof formData] !== undefined),
+        });
 
         // Custom analytics event
         const profileUpdatedEvent: TrackEventDto = {

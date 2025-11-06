@@ -44,8 +44,8 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_EDIT_STARTED);
   }
 
-  function onInvestorProfileUpdated() {
-    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_UPDATED);
+  function onInvestorProfileUpdated(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_UPDATED, eventParams);
   }
 
   function onFounderPendingViewPageOpened(eventParams = {}) {
@@ -208,6 +208,22 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_FEEDBACK_SUBMITTED, eventParams);
   }
 
+  function onActiveViewShowMoreLogosClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_SHOW_MORE_LOGOS_CLICKED);
+  }
+
+  function onInvestorProfileAddDetailsClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_ADD_DETAILS_CLICKED);
+  }
+
+  function onInvestorProfileNotAnInvestorClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_NOT_AN_INVESTOR_CLICKED);
+  }
+
+  function onInvestorCommunicationsSettingsUpdated(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_COMMUNICATIONS_SETTINGS_UPDATED, eventParams);
+  }
+
   return {
     onLandingPageOpened,
     onLandingLoginButtonClicked,
@@ -256,5 +272,9 @@ export const useDemoDayAnalytics = () => {
     onCompletedViewGiveFeedbackClicked,
     onCompletedViewKeepProfileUpdatedClicked,
     onCompletedViewFeedbackSubmitted,
+    onActiveViewShowMoreLogosClicked,
+    onInvestorProfileAddDetailsClicked,
+    onInvestorProfileNotAnInvestorClicked,
+    onInvestorCommunicationsSettingsUpdated,
   };
 };

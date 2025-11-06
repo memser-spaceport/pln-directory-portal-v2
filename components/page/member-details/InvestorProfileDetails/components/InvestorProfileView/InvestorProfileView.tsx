@@ -16,6 +16,7 @@ import { DataIncomplete } from '@/components/page/member-details/DataIncomplete'
 import { useUpdateInvestorSettings } from '@/services/members/hooks/useUpdateInvestorSettings';
 import { useUpdateMemberInvestorSettings } from '@/services/members/hooks/useUpdateMemberInvestorSettings';
 import { toast } from '@/components/core/ToastContainer';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 interface Props {
   isLoggedIn: boolean;
@@ -53,9 +54,12 @@ export const InvestorProfileView = ({
 }: Props) => {
   const investmentTeams = member?.teams.filter((team) => team.investmentTeam) ?? [];
   const { mutate: updateMemberInvestorSettings } = useUpdateMemberInvestorSettings();
+  const { onInvestorProfileAddDetailsClicked, onInvestorProfileNotAnInvestorClicked } = useDemoDayAnalytics();
 
   const handleAddDetails = () => {
     if (!member?.id) return;
+
+    onInvestorProfileAddDetailsClicked();
 
     const _payload = {
       isInvestor: true,
@@ -78,6 +82,8 @@ export const InvestorProfileView = ({
 
   const handleNotAnInvestor = () => {
     if (!member?.id) return;
+
+    onInvestorProfileNotAnInvestorClicked();
 
     const _payload = {
       isInvestor: false,

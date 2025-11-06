@@ -18,6 +18,7 @@ import teamsData from '@/components/common/LogosGrid/teams.json';
 import s from './DemodayCompletedView.module.scss';
 import { IUserInfo } from '@/types/shared.types';
 import { toast } from '@/components/core/ToastContainer';
+import { INVITE_FORM_URL } from '@/constants/demoDay';
 
 interface DemodayCompletedViewProps {
   initialDemoDayState?: DemoDayState;
@@ -95,7 +96,12 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           </div>
 
           <div className={s.buttons}>
-            <Link href="/teams" onClick={handleApplyForNextDemoDayClick}>
+            <Link
+              href={INVITE_FORM_URL}
+              onClick={handleApplyForNextDemoDayClick}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Button size="l" style="fill" variant="primary">
                 Apply for next Demo Day <ArrowRight />
               </Button>
@@ -108,7 +114,8 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
               )}
               {isLoggedIn && userInfo && (
                 <Link
-                  href={`/members/${userInfo?.uid}`}
+                  target="_blank"
+                  href={`/members/${userInfo?.uid}?backTo=/demoday/completed`}
                   className={s.linkButton}
                   onClick={handleKeepProfileUpdatedClick}
                 >

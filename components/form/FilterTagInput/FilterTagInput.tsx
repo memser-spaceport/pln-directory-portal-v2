@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Field } from '@base-ui-components/react/field';
 import clsx from 'clsx';
 import { uniq } from 'lodash';
-import { useFilterStore } from '@/services/members/store';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
 import s from './FilterTagInput.module.scss';
@@ -16,8 +15,8 @@ interface Props {
   placeholder?: string;
   disabled?: boolean;
   isRequired?: boolean;
-  params?: URLSearchParams;
-  setParam?: (key: string, value?: string) => void;
+  params: URLSearchParams;
+  setParam: (key: string, value?: string) => void;
 }
 
 export const FilterTagInput = ({
@@ -28,15 +27,10 @@ export const FilterTagInput = ({
   disabled = false,
   isRequired = false,
   warning = false,
-  params: externalParams,
-  setParam: externalSetParam,
+  params,
+  setParam,
 }: Props) => {
   const [inputText, setInputText] = useState('');
-  const membersStore = useFilterStore();
-
-  // Use external params/setParam if provided, otherwise use members store
-  const params = externalParams || membersStore.params;
-  const setParam = externalSetParam || membersStore.setParam;
 
   // Get initial values from URL parameters
   const getInitialValues = () => {

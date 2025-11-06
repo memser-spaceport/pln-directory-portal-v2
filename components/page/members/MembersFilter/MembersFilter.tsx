@@ -144,6 +144,8 @@ export const MembersFilter = (props: IMembersFilter) => {
             selectLabel="Investment Focus"
             paramKey="investmentFocus"
             disabled={!params.get('isInvestor')}
+            params={params}
+            setParam={setParam}
           />
         </FilterSection>
       </div>

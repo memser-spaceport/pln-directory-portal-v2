@@ -24,7 +24,7 @@ import { FilterCheckboxListWithSearch } from './FilterCheckboxListWithSearch';
 import s from './MembersFilter.module.scss';
 import { InvestorFilterToggle } from '@/components/core/InvestorFilterToggle';
 import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
-import { FilterCheckSizeInput } from '@/components/page/members/MembersFilter/FilterCheckSizeInput';
+import { FilterCheckSizeInput } from '@/components/common/FilterCheckSizeInput';
 import { FilterTagInput } from '@/components/form/FilterTagInput';
 
 export interface IMembersFilter {

@@ -3,7 +3,6 @@
 import { IFilterSelectedItem, IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems, ITeamsSearchParams } from '@/types/teams.types';
 import { EVENTS, FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import { useRouter } from 'next/navigation';
 import FilterCount from '../../ui/filter-count';
 import Toggle from '../../ui/toogle';
 import TagContainer from '../tag-container';
@@ -17,7 +16,6 @@ import { FiltersSearch } from '@/components/page/teams/FiltersSearch';
 import { FilterCheckSizeInput } from '@/components/common/FilterCheckSizeInput/FilterCheckSizeInput';
 import { FilterTagInput } from '@/components/form/FilterTagInput/FilterTagInput';
 import { useTeamsFilterStore } from '@/services/teams/store';
-import { useEffect } from 'react';
 
 export interface ITeamFilterWeb {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -54,10 +52,9 @@ const Filter = (props: ITeamFilterWeb) => {
       .map((item: IFilterSelectedItem) => item.value),
   };
 
-  const router = useRouter();
   const { updateQueryParams } = useUpdateQueryParams();
   const analytics = useTeamAnalytics();
-  const { params, setParam, setAllParams } = useTeamsFilterStore();
+  const { params, setParam, clearParams } = useTeamsFilterStore();
 
   const includeFriends = searchParams['includeFriends'] === 'true' || false;
   const includeOfficeHours = searchParams['officeHoursOnly'] === 'true' || false;
@@ -67,25 +64,6 @@ const Filter = (props: ITeamFilterWeb) => {
   const isFund = searchParams['isFund'] === 'true' || false;
   const query = getQuery(searchParams);
   const apliedFiltersCount = getFilterCount(query);
-
-  // Sync URL params with filter store
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    setAllParams(urlParams);
-  }, [searchParams, setAllParams]);
-
-  // Sync filter store params back to URL
-  useEffect(() => {
-    const paramsString = params.toString();
-    const currentSearch = window.location.search.replace(/^\?/, '');
-
-    if (paramsString !== currentSearch) {
-      const pathname = window.location.pathname;
-      const query = paramsString ? `?${paramsString}` : '';
-      router.push(`${pathname}${query}`);
-      router.refresh();
-    }
-  }, [params, router]);
 
   const onIncludeFriendsToggle = () => {
     triggerLoader(true);
@@ -174,20 +152,13 @@ const Filter = (props: ITeamFilterWeb) => {
     }
 
     if (newValue) {
-      updateQueryParams('isFund', 'true', searchParams);
+      setParam('isFund', 'true');
     } else {
       // Clear fund-specific filters when toggle is turned off
-      const current = new URLSearchParams(Object.entries(searchParams));
-      current.delete('isFund');
-      current.delete('minTypicalCheckSize');
-      current.delete('maxTypicalCheckSize');
-      current.delete('investmentFocus');
-
-      const pathname = window.location.pathname;
-      const search = current.toString();
-      const query = search ? `?${search}` : '';
-      router.push(`${pathname}${query}`);
-      router.refresh();
+      setParam('isFund', undefined);
+      setParam('minTypicalCheckSize', undefined);
+      setParam('maxTypicalCheckSize', undefined);
+      setParam('investmentFocus', undefined);
     }
   };
 
@@ -212,36 +183,8 @@ const Filter = (props: ITeamFilterWeb) => {
   const onClearAllClicked = () => {
     if (apliedFiltersCount > 0) {
       triggerLoader(true);
-      const current = new URLSearchParams(Object.entries(searchParams));
-      const pathname = window?.location?.pathname;
       analytics.onClearAllFiltersClicked(getAnalyticsUserInfo(userInfo));
-      const clearQuery = [
-        'tags',
-        'membershipSources',
-        'fundingStage',
-        'technology',
-        'includeFriends',
-        'focusAreas',
-        'officeHoursOnly',
-        'isRecent',
-        'isHost',
-        'isSponsor',
-        'asks',
-        'searchBy',
-        'isFund',
-        'minTypicalCheckSize',
-        'maxTypicalCheckSize',
-        'investmentFocus',
-      ];
-      clearQuery.forEach((query) => {
-        if (current.has(query)) {
-          current.delete(query);
-        }
-      });
-      const search = current.toString();
-      const query = search ? `?${search}` : '';
-      router.push(`${pathname}/${query}`);
-      router.refresh();
+      clearParams();
     }
   };
 

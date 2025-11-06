@@ -1,7 +1,4 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
-import { useFilterStore } from '@/services/members/store';
 import styles from './FilterCheckSizeInput.module.scss';
 
 interface Props {
@@ -13,8 +10,8 @@ interface Props {
     max: number;
   };
   disabled?: boolean;
-  params?: URLSearchParams;
-  setParam?: (key: string, value?: string) => void;
+  params: URLSearchParams;
+  setParam: (key: string, value?: string) => void;
 }
 
 export function FilterCheckSizeInput({
@@ -23,15 +20,9 @@ export function FilterCheckSizeInput({
   maxParamName,
   allowedRange,
   disabled = false,
-  params: externalParams,
-  setParam: externalSetParam,
+  params,
+  setParam,
 }: Props) {
-  const membersStore = useFilterStore();
-
-  // Use external params/setParam if provided, otherwise use members store
-  const params = externalParams || membersStore.params;
-  const setParam = externalSetParam || membersStore.setParam;
-
   // Get current values from URL parameters
   const currentMinParam = params.get(minParamName) || '';
   const currentMaxParam = params.get(maxParamName) || '';

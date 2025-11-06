@@ -134,6 +134,8 @@ export const MembersFilter = (props: IMembersFilter) => {
               max: 5000000,
             }}
             disabled={!params.get('isInvestor')}
+            params={params}
+            setParam={setParam}
           />
 
           <FilterDivider />

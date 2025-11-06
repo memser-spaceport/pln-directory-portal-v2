@@ -20,7 +20,10 @@ export const Signup = () => {
 
   const handleSignUpClick = () => {
     analytics.onSignUpBtnClicked();
-    router.replace('/sign-up');
+    // Preserve current page URL as returnTo parameter
+    const currentPath = window.location.pathname + window.location.search;
+    const returnTo = encodeURIComponent(currentPath);
+    router.replace(`/sign-up?returnTo=${returnTo}`);
   };
 
   const handleClose = useCallback(() => {

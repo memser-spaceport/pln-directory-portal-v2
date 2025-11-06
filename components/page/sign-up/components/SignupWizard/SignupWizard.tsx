@@ -5,7 +5,7 @@ import { clsx } from 'clsx';
 import Image from 'next/image';
 import Cookies from 'js-cookie';
 import Script from 'next/script';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import Illustration from '@/components/page/onboarding/components/Illustartion/Illustration';
@@ -36,6 +36,7 @@ interface Props {
 
 export const SignupWizard = ({ onClose }: Props) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const analytics = useSignUpAnalytics();
   const methods = useForm<SignupForm>({
     defaultValues: {
@@ -58,6 +59,9 @@ export const SignupWizard = ({ onClose }: Props) => {
   const { subscribe, agreed } = watch();
 
   const { mutateAsync } = useSignup();
+
+  // Get returnTo parameter from URL
+  const returnTo = searchParams.get('returnTo');
 
   const onSubmit = async (formData: SignupForm) => {
     const reCAPTCHAToken = await getRecaptchaToken();
@@ -151,7 +155,8 @@ export const SignupWizard = ({ onClose }: Props) => {
               if (onClose) {
                 onClose();
               } else {
-                router.replace('/');
+                // Navigate back to the returnTo URL or home page
+                router.replace(returnTo || '/');
               }
             }}
           >

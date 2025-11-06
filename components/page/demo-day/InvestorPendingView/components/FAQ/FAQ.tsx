@@ -13,6 +13,7 @@ interface FAQItem {
 interface FAQProps {
   title?: string;
   items: FAQItem[];
+  subtitle?: ReactNode;
 }
 
 const ChevronDownIcon = () => (
@@ -27,7 +28,7 @@ const ChevronDownIcon = () => (
   </svg>
 );
 
-export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', items }) => {
+export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', items, subtitle }) => {
   // Initialize with all items expanded by default
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(
     () => new Set(Array.from({ length: items.length }, (_, i) => i)),
@@ -48,6 +49,7 @@ export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', 
   return (
     <div className={s.faqContainer}>
       <h2 className={s.title}>{title}</h2>
+      {subtitle && <div className={s.subtitle}>{subtitle}</div>}
       <div className={s.divider} />
       <div className={s.itemsContainer}>
         {items.map((item, index) => (

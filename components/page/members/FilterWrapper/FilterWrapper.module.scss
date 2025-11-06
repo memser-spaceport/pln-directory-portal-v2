@@ -1,0 +1,10 @@
+@use 'styles/media';
+
+.root {
+  width: inherit;
+  display: none;
+
+  @include media.breakpoint-1024 {
+    display: block;
+  }
+}

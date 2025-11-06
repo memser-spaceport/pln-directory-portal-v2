@@ -1,0 +1,68 @@
+@use 'styles/media';
+
+.root {
+  width: 100%;
+  margin-bottom: 10px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+  padding: 12px 16px;
+  z-index: 3;
+  background: #f1f5f9;
+
+  @include media.breakpoint-1024 {
+    display: none;
+  }
+}
+
+.title {
+  font-size: 24px;
+  line-height: 40px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.count {
+  font-size: 14px;
+  font-weight: 400;
+  color: #64748b;
+}
+
+.member {
+  cursor: pointer;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 176px);
+  justify-content: center;
+  row-gap: 24px;
+  column-gap: 16px;
+  width: 100%;
+  padding: 8px 0;
+
+  @include media.breakpoint-1024 {
+    grid-template-columns: repeat(auto-fit, 289px);
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 8px;
+
+  @include media.breakpoint-1024 {
+    padding: 0 20px;
+  }
+}
+
+.listMember {
+  margin: 0 16px;
+}

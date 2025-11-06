@@ -72,7 +72,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #11A75C;
+  background: #1B4DFF;
   transform: translateY(-1px);
 }
 
@@ -160,17 +160,16 @@
 }
 
 .linkButton {
-  color: var(--foreground-brand-secondary_inverted, #4174ff);
+  color: var(--foreground-brand-secondary_inverted, #1B4DFF);
   font-size: 14px;
+  font-family: Inter, sans-serif !important;
   font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.2px;
   text-decoration: none;
   transition: opacity 0.2s ease;
-  border-bottom: 1px solid #4174ff;
+  border-bottom: 1px solid #1B4DFF;
   background: none;
-  border: none;
-  border-bottom: 1px solid #4174ff;
   cursor: pointer;
   padding: 0;
   display: flex;

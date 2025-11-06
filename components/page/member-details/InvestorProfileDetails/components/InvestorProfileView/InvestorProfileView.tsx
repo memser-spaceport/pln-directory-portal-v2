@@ -15,6 +15,7 @@ import { formatUSD } from '@/utils/formatUSD';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
 import { useUpdateInvestorSettings } from '@/services/members/hooks/useUpdateInvestorSettings';
 import { useUpdateMemberInvestorSettings } from '@/services/members/hooks/useUpdateMemberInvestorSettings';
+import { toast } from '@/components/core/ToastContainer';
 
 interface Props {
   isLoggedIn: boolean;
@@ -60,13 +61,19 @@ export const InvestorProfileView = ({
       isInvestor: true,
     };
 
-    updateMemberInvestorSettings({
-      uid: member.id,
-      payload: _payload,
-    });
-
-    // Open edit form
-    onEdit?.();
+    updateMemberInvestorSettings(
+      {
+        uid: member.id,
+        payload: _payload,
+      },
+      {
+        onSuccess: () => {
+          toast.info('Investor profile settings updated successfully');
+          // Open edit form
+          onEdit?.();
+        },
+      },
+    );
   };
 
   const handleNotAnInvestor = () => {
@@ -76,13 +83,19 @@ export const InvestorProfileView = ({
       isInvestor: false,
     };
 
-    updateMemberInvestorSettings({
-      uid: member.id,
-      payload: _payload,
-    });
-
-    // Hide the section
-    onHideSection?.();
+    updateMemberInvestorSettings(
+      {
+        uid: member.id,
+        payload: _payload,
+      },
+      {
+        onSuccess: () => {
+          toast.info('Investor section hidden. You can re-enable it anytime in Account Settings → Email Preferences.');
+          // Hide the section
+          onHideSection?.();
+        },
+      },
+    );
   };
 
   return (

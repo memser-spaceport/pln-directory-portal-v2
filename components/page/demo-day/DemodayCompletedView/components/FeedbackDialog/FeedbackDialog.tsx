@@ -72,19 +72,10 @@ export const FeedbackDialog: React.FC<FeedbackDialogProps> = ({ isOpen, onClose,
       return;
     }
 
-    // Combine qualityFeedback and improvementSuggestions into a single comment
-    const commentParts: string[] = [];
-    if (data.qualityFeedback) {
-      commentParts.push(`Quality: ${data.qualityFeedback}`);
-    }
-    if (data.improvementSuggestions) {
-      commentParts.push(`Improvements: ${data.improvementSuggestions}`);
-    }
-
     const payload = {
       rating: data.rating,
-      comment: commentParts.length > 0 ? commentParts.join('\n\n') : undefined,
-      issues: [], // Can be extended later if needed
+      qualityComments: data.qualityFeedback,
+      improvementComments: data.improvementSuggestions,
     };
 
     submitFeedback(payload, {
@@ -206,7 +197,14 @@ export const FeedbackDialog: React.FC<FeedbackDialogProps> = ({ isOpen, onClose,
             {/* Footer Actions */}
             <div className={s.footer}>
               <div className={s.actions}>
-                <Button type="button" style="border" variant="primary" size="m" onClick={handleCancel} disabled={isPending}>
+                <Button
+                  type="button"
+                  style="border"
+                  variant="primary"
+                  size="m"
+                  onClick={handleCancel}
+                  disabled={isPending}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" style="fill" variant="primary" size="m" disabled={isPending}>

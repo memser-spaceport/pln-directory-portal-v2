@@ -22,8 +22,7 @@
     z-index: 10;
 
     @include media.tablet-landscape {
-      padding: 16px;
-
+      padding: 16px !important;
       position: relative;
       inset: unset;
       z-index: unset;

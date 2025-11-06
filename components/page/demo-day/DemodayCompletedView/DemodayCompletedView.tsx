@@ -81,15 +81,15 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           <div className={s.titleContainer}>
             <div className={s.overline}>
               <div className={s.badgeDot} />
-              <span className={s.overlineText}>COMPLETED</span>
+              <span className={s.overlineText}>Upcoming Demo Day</span>
               <div className={s.break} />
-              <span className={s.overlineText}>NOV 7, 2025</span>
+              <span className={s.overlineText}>Dec 10, 2025</span>
             </div>
             <div className={s.headline}>
-              <h1 className={s.title}>PL F25 Demo Day</h1>
+              <h1 className={s.title}>PL Demo Day</h1>
               <p className={s.body}>
-                We showcased 28 innovative teams from Pre-Seed to Series A+ across AI, web3, crypto, robotics, and
-                neurotech.
+                PL Demo Day is a concentrated virtual event featuring the most promising, pre-selected batch of
+                high-quality teams that will deliver pitches, in a fully asynchronous environment.
               </p>
             </div>
           </div>
@@ -119,6 +119,32 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           </div>
         </section>
 
+        {/* Demo Days Timeline Section */}
+        <section className={s.sectionTimeline}>
+          <div className={s.statusBadge} data-status="upcoming">
+            Upcoming
+          </div>
+          <h3 className={s.timelineTitle}>PL Founders Forge · Dec 10th 2025</h3>
+          <p className={s.timelineDescription}>
+            A curated showcase of frontier teams in AI, crypto, robotics, and neurotech.
+          </p>
+          <div className={s.divider} />
+          <h3 className={s.timelineTitle}>PL W26 Demo Day · Q1'26</h3>
+          <p className={s.timelineDescription}>
+            A curated showcase of frontier teams in AI, crypto, robotics, and neurotech.
+          </p>
+        </section>
+
+        <section className={s.sectionTimeline}>
+          <div className={s.statusBadge} data-status="completed">
+            Completed
+          </div>
+          <h3 className={s.timelineTitle}>PL F25 Demo Day</h3>
+          <p className={s.timelineDescription}>
+            Showcased 28 teams from Pre-Seed to Series A+ across AI, neurotech, robotics, web3, and crypto.
+          </p>
+        </section>
+
         {/* Partners Section */}
         <section className={s.sectionPartners}>
           <div className={s.logosButtonContainer}>
@@ -127,7 +153,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
         </section>
 
         {/* Teams Section */}
-        <section className={s.sectionTeams}>
+        <section className={s.sectionTeams} style={{ display: 'none' }}>
           <div className={s.subtitle}>
             <h2 className={s.label}>{displayTeams.length} Teams That Presented</h2>
             <p className={s.supportingText}>Innovative startups across AI, web3, crypto, robotics, and neurotech</p>
@@ -167,10 +193,10 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
 
         {/* FAQ Section */}
         <section className={s.sectionFaq}>
-          <FAQ title="Frequently Asked Questions" items={faqItems} />
-          <div className={s.info}>
-            <div className={s.infoContent}>
-              <InfoIcon />
+          <FAQ
+            title="Frequently Asked Questions"
+            items={faqItems}
+            subtitle={
               <p className={s.infoText}>
                 Reach out to us on{' '}
                 <a href="mailto:demoday@protocol.ai" className={s.infoLink}>
@@ -178,8 +204,8 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
                 </a>{' '}
                 for any other questions.
               </p>
-            </div>
-          </div>
+            }
+          />
         </section>
 
         {/* Footer */}

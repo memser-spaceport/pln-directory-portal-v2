@@ -10,16 +10,21 @@ import s from './LogosGrid.module.scss';
 
 interface Props {
   className?: string;
+  source?: 'active' | 'completed';
 }
 
 export function LogosGrid(props: Props) {
-  const { className } = props;
+  const { className, source = 'active' } = props;
 
   const [showAll, toggleShowAll] = useToggle(false);
-  const { onActiveViewShowMoreLogosClicked } = useDemoDayAnalytics();
+  const { onActiveViewShowMoreLogosClicked, onCompletedViewShowMoreLogosClicked } = useDemoDayAnalytics();
 
   const handleShowMoreClick = () => {
-    onActiveViewShowMoreLogosClicked();
+    if (source === 'completed') {
+      onCompletedViewShowMoreLogosClicked();
+    } else {
+      onActiveViewShowMoreLogosClicked();
+    }
     toggleShowAll();
   };
 

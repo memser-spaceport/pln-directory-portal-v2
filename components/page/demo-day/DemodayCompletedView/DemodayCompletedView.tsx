@@ -51,6 +51,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
     onCompletedViewApplyForNextDemoDayClicked,
     onCompletedViewGiveFeedbackClicked,
     onCompletedViewKeepProfileUpdatedClicked,
+    onCompletedViewShowMoreTeamsClicked,
   } = useDemoDayAnalytics();
 
   // Use static teams data from teams.json
@@ -73,6 +74,11 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
 
   const handleKeepProfileUpdatedClick = () => {
     onCompletedViewKeepProfileUpdatedClicked();
+  };
+
+  const handleShowMoreTeamsClick = () => {
+    onCompletedViewShowMoreTeamsClicked();
+    toggleShowAllTeams();
   };
 
   return (
@@ -163,7 +169,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
         {/* Partners Section */}
         <section className={s.sectionPartners}>
           <div className={s.logosButtonContainer}>
-            <LogosGrid />
+            <LogosGrid source="completed" />
           </div>
         </section>
 
@@ -200,7 +206,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
               </div>
               <div className={s.bottomShadow} />
             </div>
-            <Button size="s" style="border" onClick={toggleShowAllTeams}>
+            <Button size="s" style="border" onClick={handleShowMoreTeamsClick}>
               Show {showAllTeams ? 'Less' : 'All'} Teams
             </Button>
           </div>

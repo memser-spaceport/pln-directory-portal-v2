@@ -17,7 +17,7 @@ export function DemoDayBanner() {
     return null;
   }
 
-  const { date } = data || {};
+  const { date, status } = data || {};
 
   // Format date with ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
   const getOrdinalSuffix = (day: number) => {
@@ -44,10 +44,15 @@ export function DemoDayBanner() {
       })()
     : 'October 23rd';
 
+  const msg =
+    status === 'COMPLETED'
+      ? 'Upcoming: PL Demo Day Founders Forge starts December 10th.'
+      : 'PL F25 Demo Day is now live with async viewing available through November 7.';
+
   return (
     <HighlightsBar>
       <div className={s.root}>
-        PL F25 Demo Day is now live with async viewing available through November 7.{' '}
+        {msg}{' '}
         <Link href="/demoday" className={s.link}>
           Learn more
         </Link>

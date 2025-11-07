@@ -304,11 +304,25 @@
     line-height: 22px;
     letter-spacing: -0.2px;
   }
+
+  .link {
+    color: var(--action-foreground-neutral-normal, #455468);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px; /* 142.857% */
+    letter-spacing: -0.2px;
+  }
 }
 
 .linkIcon {
   color: var(--foreground-brand-primary, #1b4dff);
   line-height: 12px;
+}
+
+.ctaBlock.ctaBlock {
+  border-radius: 12px;
+  background: var(--background-neutral-soft-surface, #F9FAFB);
 }
 
 .cta {
@@ -324,6 +338,7 @@
   .col {
     display: flex;
     flex-direction: column;
+    gap: 4px;
   }
 
   .ctaLink {

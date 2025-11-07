@@ -32,6 +32,7 @@ import { useMember } from '@/services/members/hooks/useMember';
 import { findPreferredTeam } from './utils/findPreferredTeam';
 import { AddTeamDrawer } from './components/AddTeamDrawer/AddTeamDrawer';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
+import clsx from 'clsx';
 
 interface Props {
   onClose: () => void;
@@ -312,7 +313,13 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
       // Report successful profile update analytics
       if (userInfo?.email) {
         // PostHog analytics
-        onInvestorProfileUpdated();
+        onInvestorProfileUpdated({
+          hasInvestmentFocus: formData.investmentFocusAreas?.length > 0,
+          hasTypicalCheckSize: !!formData.typicalCheckSize,
+          secRulesAccepted: formData.secRulesAccepted,
+          isInvestViaFund: formData.isInvestViaFund,
+          fieldsUpdated: Object.keys(formData).filter((key) => formData[key as keyof typeof formData] !== undefined),
+        });
 
         // Custom analytics event
         const profileUpdatedEvent: TrackEventDto = {
@@ -600,16 +607,17 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
           </div>
 
           {secRulesAccepted && (
-            <div className={s.block}>
+            <div className={clsx(s.block, s.ctaBlock)}>
               <Link href="/settings/email" target="_blank" className={s.cta}>
                 <div className={s.ctaIcon}>
                   <InfoIcon />
                 </div>
                 <div className={s.col}>
-                  <div className={s.ctaLink}>
-                    Manage your investor communications <LinkIcon />
-                  </div>
-                  <p>Email preferences for event invites, deal flow intros, and digests.</p>
+                  <div className={s.ctaLink}>Manage your investor settings</div>
+                  <p>Update demo day invites and investor profile visibility in Account Settings → </p>
+                  <p className={s.link}>
+                    Email Preferences <LinkIcon />
+                  </p>
                 </div>
               </Link>
             </div>

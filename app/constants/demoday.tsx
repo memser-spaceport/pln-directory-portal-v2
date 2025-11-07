@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { INVITE_FORM_URL } from '@/constants/demoDay';
+import { APPLY_FOR_NEXT_DEMO_DAY_URL, INVITE_FORM_URL } from '@/constants/demoDay';
 
 import { FaqLink } from '@/components/page/demo-day/LandingBase/components/FaqLink';
 import { FaqBulletList } from '@/components/page/demo-day/LandingBase/components/FaqBulletList';
@@ -13,6 +13,9 @@ const DIRECTORY_LINK =
   'https://www.protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/';
 const DESCRIPTION_LINK =
   'https://www.protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/';
+
+export const PRIVACY_POLICY_URL = 'https://drive.google.com/file/d/1RIAyMlyuLYnipa6W_YBzcJ6hDzfH7yW3/view';
+export const TERMS_AND_CONDITIONS_URL = 'https://drive.google.com/file/d/1MjOF66asddB_hsg7Jc-7Oxk6L1EvYHxk/view';
 
 export const faqItems = [
   {
@@ -39,6 +42,60 @@ export const faqItems = [
           'PL F25 Demo Day is an invite-only event for investors. Invitations are being sent to a vetted list of angel investors and VCs.',
           <span key={1}>
             If you think you should attend, <FaqLink href={INVITE_FORM_URL}>Register</FaqLink>.
+          </span>,
+        ]}
+      />
+    ),
+  },
+  {
+    question: 'How can I learn more about projects in the Protocol Labs network?',
+    answer: (
+      <FaqBulletList
+        items={[
+          <span key={1}>
+            Read about the vision, mission and focus areas of Protocol Labs{' '}
+            <FaqLink href={DESCRIPTION_LINK}>here</FaqLink>.
+          </span>,
+          <span key={2}>
+            Explore <FaqLink href="/members">members</FaqLink> and <FaqLink href="/teams">teams</FaqLink> in LabOS.
+          </span>,
+          <span key={3}>
+            Latest updates can be found on our social channels: <FaqLink href={X_LINK}>X</FaqLink>
+            {', '}
+            <FaqLink href={LINKEDIN_LINK}>LinkedIn</FaqLink> & <FaqLink href={YOUTUBE_LINK}>Youtube</FaqLink>.
+          </span>,
+        ]}
+      />
+    ),
+  },
+];
+
+export const faqCompletedItems = [
+  {
+    question: 'What is Protocol Labs Demo Day?',
+    answer: (
+      <FaqBulletList
+        items={[
+          <span key={1}>
+            PL Demo Day is a concentrated virtual event featuring the most promising teams from across the{' '}
+            <FaqLink href={PROTOCOL_LABS_LINK}>Protocol Labs (PL)</FaqLink> network. A pre-selected batch of
+            high-quality startups will deliver pitches, in a fully asynchronous environment.
+          </span>,
+          'Attendees will have access to single-slide company summaries and 3-min video pitches through our online platform.',
+          "Attendees can directly connect with companies they're interested in by clicking buttons that will automatically send intro emails on their behalf. Alternatively, the founder's email address and Telegram handle will be available for direct outreach.",
+        ]}
+      />
+    ),
+  },
+  {
+    question: 'Who can attend?',
+    answer: (
+      <FaqBulletList
+        items={[
+          'PL Demo Day is an invite-only event for investors. Invitations are being sent to a vetted list of angel investors and VCs.',
+          <span key={1}>
+            If you are an investor and would like to attend the next demo day, you can{' '}
+            <FaqLink href={APPLY_FOR_NEXT_DEMO_DAY_URL}>apply here</FaqLink>.
           </span>,
         ]}
       />

@@ -16,7 +16,7 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
     redirect(`/${params ? `?${params}` : '?'}&returnTo=settings-email#login`);
   }
 
-  const [settingResponse, investorSettingsResponse, memberInfo] = await Promise.all([
+  const [settingResponse, investorSettingsResponse, memberInvestorSettingsResponse, memberInfo] = await Promise.all([
     fetch(`${process.env.DIRECTORY_API_URL}/v1/notification/settings/${userInfo.uid}/forum`, {
       headers: {
         contentType: 'application/json',
@@ -24,6 +24,12 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
       },
     }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/notification/settings/${userInfo.uid}/investor`, {
+      headers: {
+        contentType: 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+    }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${userInfo.uid}/investor-settings`, {
       headers: {
         contentType: 'application/json',
         Authorization: `Bearer ${authToken}`,
@@ -38,6 +44,9 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
 
   const settings = await settingResponse.json();
   const investorSettings = await investorSettingsResponse.json();
+  const memberInvestorSettings = memberInvestorSettingsResponse.ok
+    ? await memberInvestorSettingsResponse.json()
+    : undefined;
   const roles = userInfo.roles ?? [];
   const isAdmin = roles.includes('DIRECTORYADMIN');
   const leadingTeams = userInfo.leadingTeams ?? [];
@@ -65,6 +74,7 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
               initialData={{
                 settings,
                 investorSettings,
+                memberInvestorSettings,
                 memberInfo,
               }}
             />

@@ -27,12 +27,12 @@ export default async function Page() {
 
   // Server-side redirect logic (moved from client component)
   if (demoDayState) {
-    // Conditions that should redirect to /members
-    if (demoDayState.access === 'none' && demoDayState.status === 'NONE') {
-      redirect('/members');
+    if (demoDayState.status === 'COMPLETED') {
+      redirect('/demoday/completed');
     }
 
-    if (demoDayState.access === 'none' && demoDayState.status === 'COMPLETED') {
+    // Conditions that should redirect to /members
+    if (demoDayState.access === 'none' && demoDayState.status === 'NONE') {
       redirect('/members');
     }
 

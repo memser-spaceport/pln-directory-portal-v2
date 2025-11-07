@@ -44,8 +44,8 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_EDIT_STARTED);
   }
 
-  function onInvestorProfileUpdated() {
-    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_UPDATED);
+  function onInvestorProfileUpdated(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_UPDATED, eventParams);
   }
 
   function onFounderPendingViewPageOpened(eventParams = {}) {
@@ -192,6 +192,46 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACCESS_DENIED_REQUEST_INVITE_CLICKED, eventParams);
   }
 
+  function onCompletedViewApplyForNextDemoDayClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_APPLY_FOR_NEXT_DEMO_DAY_CLICKED);
+  }
+
+  function onCompletedViewGiveFeedbackClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_GIVE_FEEDBACK_CLICKED);
+  }
+
+  function onCompletedViewKeepProfileUpdatedClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_KEEP_PROFILE_UPDATED_CLICKED);
+  }
+
+  function onCompletedViewFeedbackSubmitted(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_FEEDBACK_SUBMITTED, eventParams);
+  }
+
+  function onCompletedViewShowMoreLogosClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_SHOW_MORE_LOGOS_CLICKED);
+  }
+
+  function onCompletedViewShowMoreTeamsClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_SHOW_MORE_TEAMS_CLICKED);
+  }
+
+  function onActiveViewShowMoreLogosClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_SHOW_MORE_LOGOS_CLICKED);
+  }
+
+  function onInvestorProfileAddDetailsClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_ADD_DETAILS_CLICKED);
+  }
+
+  function onInvestorProfileNotAnInvestorClicked() {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_NOT_AN_INVESTOR_CLICKED);
+  }
+
+  function onInvestorCommunicationsSettingsUpdated(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_COMMUNICATIONS_SETTINGS_UPDATED, eventParams);
+  }
+
   return {
     onLandingPageOpened,
     onLandingLoginButtonClicked,
@@ -236,5 +276,15 @@ export const useDemoDayAnalytics = () => {
     onActiveViewWelcomeVideoViewed,
     onConfidentialityModalSubmitted,
     onConfidentialityModalClosed,
+    onCompletedViewApplyForNextDemoDayClicked,
+    onCompletedViewGiveFeedbackClicked,
+    onCompletedViewKeepProfileUpdatedClicked,
+    onCompletedViewFeedbackSubmitted,
+    onCompletedViewShowMoreLogosClicked,
+    onCompletedViewShowMoreTeamsClicked,
+    onActiveViewShowMoreLogosClicked,
+    onInvestorProfileAddDetailsClicked,
+    onInvestorProfileNotAnInvestorClicked,
+    onInvestorCommunicationsSettingsUpdated,
   };
 };

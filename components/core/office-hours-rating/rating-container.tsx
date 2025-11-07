@@ -87,7 +87,7 @@ const RatingContainer = (props: IRatingContainer) => {
       document.dispatchEvent(
         new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }),
       );
-      getRecentBooking();
+      // getRecentBooking();
     }
     // try {
     //   if (isLoggedIn) {
@@ -138,7 +138,7 @@ const RatingContainer = (props: IRatingContainer) => {
     };
   }, []);
 
-  if (currentStep !== OFFICE_HOURS_STEPS.MEETING_INITIATED.name) {
+  if (!currentStep) {
     return null;
   }
 
@@ -155,7 +155,7 @@ const RatingContainer = (props: IRatingContainer) => {
             currentFollowup={currentFollowup}
           />
         )}
-        {/* {currentStep === OFFICE_HOURS_STEPS.NOT_HAPPENED.name && (
+        {currentStep === OFFICE_HOURS_STEPS.NOT_HAPPENED.name && (
           <NotHappened
             authToken={authToken}
             userInfo={userInfo}
@@ -171,7 +171,7 @@ const RatingContainer = (props: IRatingContainer) => {
             currentFollowup={currentFollowup}
             onClose={onCloseClickHandler}
           />
-        )} */}
+        )}
       </Modal>
     </>
   );

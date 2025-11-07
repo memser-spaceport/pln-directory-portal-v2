@@ -85,13 +85,17 @@ export async function signUpFormAction(data: any, recaptchaToken: string | undef
     //     formattedObj.memberProfile && delete formattedObj.memberProfile;
     //     formattedObj.imageFile && delete formattedObj.imageFile;
 
-    // Create registration request
+    // Priority: use signUpSource from data (if provided), otherwise fall back to utm_source cookie
+    const signUpSource = data.signUpSource || cookies().get('utm_source')?.value || '';
+
     const bodyData = {
       participantType: 'MEMBER',
       status: 'PENDING',
       requesterEmailId: data.email,
       uniqueIdentifier: data.email,
-      newData: { ...data, openToWork: false },
+      newData: { ...data,
+        signUpSource: signUpSource,
+        openToWork: false },
     };
 
     const formResult = await createMemberRequest(bodyData);

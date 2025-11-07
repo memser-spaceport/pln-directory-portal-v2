@@ -132,9 +132,9 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           <div className={s.statusBadge} data-status="upcoming">
             Upcoming
           </div>
-          <h3 className={s.timelineTitle}>PL Founders Forge · Dec 10th 2025</h3>
+          <h3 className={s.timelineTitle}>PL Demo Day Founders Forge · Dec 10th 2025</h3>
           <p className={s.timelineDescription}>
-            Explore 10 teams after they present during the{' '}
+            Explore 10 pioneering teams asynchronously after they live pitch at{' '}
             <a
               href={FOUNDERS_FORGE_URL}
               target="_blank"
@@ -146,15 +146,15 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
             .
           </p>
           <div className={s.divider} />
-          <h3 className={s.timelineTitle}>PL W26 Demo Day · Q1&apos;26</h3>
-          <p className={s.timelineDescription}>Explore 28 teams across AI, Web3, crypto, robotics, and neurotech</p>
+          <h3 className={s.timelineTitle}>PL Demo Day W26 · Q1&apos;26</h3>
+          <p className={s.timelineDescription}>Explore 20+ teams across AI, Web3, crypto, robotics, and neurotech.</p>
         </section>
 
         <section className={s.sectionTimeline}>
           <div className={s.statusBadge} data-status="completed">
             Completed
           </div>
-          <h3 className={s.timelineTitle}>PL F25 Demo Day</h3>
+          <h3 className={s.timelineTitle}>PL Demo Day F25</h3>
           <p className={s.timelineDescription}>
             Showcased 28 teams from Pre-Seed to Series A+ across AI, neurotech, robotics, web3, and crypto.
           </p>

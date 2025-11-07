@@ -1651,6 +1651,8 @@ export const DEMO_DAY_ANALYTICS = {
   ON_COMPLETED_VIEW_GIVE_FEEDBACK_CLICKED: 'demo-day-completed-view-give-feedback-clicked',
   ON_COMPLETED_VIEW_KEEP_PROFILE_UPDATED_CLICKED: 'demo-day-completed-view-keep-profile-updated-clicked',
   ON_COMPLETED_VIEW_FEEDBACK_SUBMITTED: 'demo-day-completed-view-feedback-submitted',
+  ON_COMPLETED_VIEW_SHOW_MORE_LOGOS_CLICKED: 'demo-day-completed-view-show-more-logos-clicked',
+  ON_COMPLETED_VIEW_SHOW_MORE_TEAMS_CLICKED: 'demo-day-completed-view-show-more-teams-clicked',
   ON_ACTIVE_VIEW_SHOW_MORE_LOGOS_CLICKED: 'demo-day-active-view-show-more-logos-clicked',
   ON_INVESTOR_PROFILE_ADD_DETAILS_CLICKED: 'demo-day-investor-profile-add-details-clicked',
   ON_INVESTOR_PROFILE_NOT_AN_INVESTOR_CLICKED: 'demo-day-investor-profile-not-an-investor-clicked',

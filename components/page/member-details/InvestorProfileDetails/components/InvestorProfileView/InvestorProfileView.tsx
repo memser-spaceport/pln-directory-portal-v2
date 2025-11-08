@@ -17,6 +17,7 @@ import { useUpdateInvestorSettings } from '@/services/members/hooks/useUpdateInv
 import { useUpdateMemberInvestorSettings } from '@/services/members/hooks/useUpdateMemberInvestorSettings';
 import { toast } from '@/components/core/ToastContainer';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { isInvestor as isInvestorAccess } from '@/utils/isInvestor';
 
 interface Props {
   isLoggedIn: boolean;
@@ -96,18 +97,19 @@ export const InvestorProfileView = ({
       },
       {
         onSuccess: () => {
-          toast.info('Investor section hidden. You can re-enable it anytime in Account Settings → Email Preferences.');
           // Hide the section
           onHideSection?.();
         },
       },
     );
+
+    toast.info('Investor section hidden. You can re-enable it anytime in Account Settings → Email Preferences.');
   };
 
   return (
     <>
       {showIncomplete &&
-        (isInvestor === null ? (
+        (isInvestor === null && !isInvestorAccess(member?.accessLevel || '') ? (
           <div className={s.incompleteWarning}>
             <div className={s.warningContent}>
               <div className={s.warningIcon}>

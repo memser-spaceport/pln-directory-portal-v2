@@ -32,9 +32,10 @@ import s from './SignupWizard.module.scss';
 
 interface Props {
   onClose?: () => void;
+  signUpSource?: string;
 }
 
-export const SignupWizard = ({ onClose }: Props) => {
+export const SignupWizard = ({ onClose, signUpSource }: Props) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const analytics = useSignUpAnalytics();
@@ -106,7 +107,10 @@ export const SignupWizard = ({ onClose }: Props) => {
       payload.teamAndRoles = [{ teamUid: formData.teamOrProject.uid, teamTitle: formData.teamOrProject.name }];
     }
 
-    if (source) {
+    // Use signUpSource prop if provided, otherwise fall back to UTM source
+    if (signUpSource) {
+      payload.signUpSource = signUpSource;
+    } else if (source) {
       payload.signUpSource = source;
     }
     if (medium) {

@@ -1,18 +1,40 @@
 .root {
   --toastify-toast-min-height: 32px;
 
+  --toast-default-width: 320px;
+
   top: 0;
   margin-top: calc(var(--app-header-height) + 10px);
 
+  min-width: var(--toast-default-width);
+  max-width: min(500px, 90vw);
+  width: fit-content;
+
+  gap: 12px;
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+
   @media only screen and (max-width: 480px) {
     padding-inline: 16px;
+
+    gap: 8px;
+
+    right: 0;
+    left: unset;
   }
 
   :global(.Toastify__toast) {
+    width: var(--toast-default-width);
+
     padding: 0;
     box-shadow: none;
     overflow: visible;
     background: transparent;
+
+    margin-bottom: 0px;
+
+    max-width: 100%;
   }
 
   :global(.Toastify__toast-body) {

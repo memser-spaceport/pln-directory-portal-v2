@@ -9,3 +9,4 @@ export { createFilterStore } from './createFilterStore';
 export { useFilterCount } from './useFilterCount';
 export type { FilterState, FilterStoreConfig } from './types';
 export type { UseFilterCountConfig } from './useFilterCount';
+export type { FilterOption } from './commonTypes';

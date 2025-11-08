@@ -103,7 +103,11 @@ export const InvestorProfileView = ({
       },
     );
 
-    toast.info('Investor section hidden. You can re-enable it anytime in Account Settings → Email Preferences.');
+    toast.info('Investor section hidden. You can re-enable it anytime in Account Settings → Email Preferences.', {
+      style: {
+        width: 450,
+      },
+    });
   };
 
   return (

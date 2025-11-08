@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { createFilterStore } from '@/services/filters';
 
 interface UserState {
   readonly profileImage: string | null;
@@ -14,58 +15,44 @@ export const useUserStore = create<UserState>((set) => ({
   },
 }));
 
-interface FilterState {
-  params: URLSearchParams;
-  setParam: (key: string, value?: string) => void;
-  clearParams: () => void;
-  setAllParams: (params: URLSearchParams) => void;
-  _clearImmediate: boolean; // Internal flag to signal immediate clear
-}
+// Legacy analytics callback support for backward compatibility
+let legacyAnalyticsCallback: ((params: URLSearchParams) => void) | undefined;
 
-// Store analytics callback outside of Zustand state to avoid re-renders
-let analyticsCallback: ((params: URLSearchParams) => void) | undefined;
-let analyticsDebounceTimer: NodeJS.Timeout | undefined;
-
+/**
+ * Set analytics callback for filter changes
+ * @deprecated Use the onFilterChange config in createFilterStore instead
+ * This is kept for backward compatibility with SyncParamsToUrl component
+ */
 export const setFilterAnalyticsCallback = (callback: (params: URLSearchParams) => void) => {
-  analyticsCallback = callback;
+  legacyAnalyticsCallback = callback;
 };
 
-// Debounced analytics call to ensure it only fires once per batch of changes
-const callAnalyticsDebounced = (params: URLSearchParams) => {
-  if (analyticsDebounceTimer) {
-    clearTimeout(analyticsDebounceTimer);
-  }
-
-  analyticsDebounceTimer = setTimeout(() => {
-    if (analyticsCallback) {
-      analyticsCallback(params);
-    }
-  }, 300); // 300ms debounce
-};
-
-export const useFilterStore = create<FilterState>((set, get) => ({
-  params: new URLSearchParams(),
-  _clearImmediate: false,
-  setParam: (key, value) => {
-    const next = new URLSearchParams(get().params);
-    if (value === undefined) next.delete(key);
-    else next.set(key, value);
-    set({ params: next, _clearImmediate: false });
-
-    // Call analytics callback with debounce
-    callAnalyticsDebounced(next);
-  },
-  clearParams: () => {
-    const next = new URLSearchParams();
-    set({ params: next, _clearImmediate: true });
-
-    // Call analytics callback immediately for clear (no debounce)
-    if (analyticsCallback) {
-      if (analyticsDebounceTimer) {
-        clearTimeout(analyticsDebounceTimer);
-      }
-      analyticsCallback(next);
+/**
+ * Members Filter Store
+ *
+ * Uses the generic filter store factory with members-specific configuration.
+ * Maintains backward compatibility with existing code.
+ */
+export const useFilterStore = createFilterStore({
+  namespace: 'members',
+  trackedParams: [
+    'topics',
+    'roles',
+    'hasOfficeHours',
+    'sort',
+    'search',
+    'isInvestor',
+    'investmentFocus',
+    'minTypicalCheckSize',
+    'maxTypicalCheckSize',
+    'includeFriends',
+    'searchRoles',
+  ],
+  onFilterChange: (key, value, allParams) => {
+    // Call legacy callback if set (for backward compatibility)
+    if (legacyAnalyticsCallback) {
+      legacyAnalyticsCallback(allParams);
     }
   },
-  setAllParams: (params) => set({ params, _clearImmediate: false }),
-}));
+  analyticsDebounceMs: 300,
+});

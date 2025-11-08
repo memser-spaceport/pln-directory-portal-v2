@@ -1,10 +1,9 @@
 import React from 'react';
 import { clsx } from 'clsx';
-import isFunction from 'lodash/isFunction';
 import s from '@/components/page/members/MembersFilter/MembersFilter.module.scss';
-import { Switch } from '@base-ui-components/react/switch';
 import { useFilterStore } from '@/services/members/store';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { GenericFilterToggle } from '@/components/common/filters/GenericFilterToggle';
 
 interface Props {
   label: React.ReactNode;
@@ -12,30 +11,50 @@ interface Props {
   onChange?: (checked: boolean) => void;
 }
 
+/**
+ * FiltersPanelToggle - Member-specific toggle component
+ *
+ * Now uses GenericFilterToggle under the hood with member analytics.
+ * Maintains backward compatibility with existing code.
+ *
+ * @example
+ * ```tsx
+ * <FiltersPanelToggle
+ *   label="Show Office Hours"
+ *   paramKey="hasOfficeHours"
+ *   onChange={(checked) => console.log('Changed:', checked)}
+ * />
+ * ```
+ */
 export const FiltersPanelToggle = (props: Props) => {
   const { label, paramKey, onChange } = props;
-
-  const { params, setParam } = useFilterStore();
-  const checked = params.get(paramKey) === 'true';
+  const { params } = useFilterStore();
   const { onMembersOHFilterToggled } = useMemberAnalytics();
 
-  const handleChange = () => {
-    onMembersOHFilterToggled({ page: 'Members', option: paramKey, value: checked ? 'false' : 'true' });
-    setParam(paramKey, checked ? undefined : 'true');
+  const checked = params.get(paramKey) === 'true';
 
-    if (isFunction(onChange)) {
-      onChange(!checked);
+  // Wrap onChange to include analytics
+  const handleChange = (newChecked: boolean) => {
+    // Track analytics
+    onMembersOHFilterToggled({
+      page: 'Members',
+      option: paramKey,
+      value: newChecked ? 'true' : 'false',
+    });
+
+    // Call original onChange if provided
+    if (onChange) {
+      onChange(newChecked);
     }
   };
 
   return (
-    <label className={clsx(s.Label, s.toggle)}>
-      {label}
-      <Switch.Root className={s.Switch} checked={checked} onCheckedChange={handleChange}>
-        <Switch.Thumb className={s.Thumb}>
-          <div className={s.dot} />
-        </Switch.Thumb>
-      </Switch.Root>
-    </label>
+    <GenericFilterToggle
+      label={label}
+      paramKey={paramKey}
+      filterStore={useFilterStore}
+      onChange={handleChange}
+      className={clsx(s.Label, s.toggle)}
+    />
   );
 };

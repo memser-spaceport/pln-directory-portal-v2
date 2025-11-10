@@ -54,3 +54,48 @@
 .icon {
   margin-bottom: 2px;
 }
+
+.positioner {
+  z-index: 1000;
+}
+
+.popup {
+  background: var(--background-base-white, #fff);
+  border-radius: 12px;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 8px;
+  min-width: 160px;
+  outline: none;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #455468;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+  outline: none;
+
+  &:hover {
+    background: var(--background-neutral-subtle, #f8f9fa);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+}
+
+.menuItemActive {
+  color: #1b4dff;
+  background: var(--background-brand-subtle, #f2f5ff);
+}

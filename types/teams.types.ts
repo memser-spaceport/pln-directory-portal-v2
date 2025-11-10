@@ -16,6 +16,10 @@ export interface ITeamsSearchParams {
   isHost: string;
   isSponsor: string;
   asks?: string;
+  isFund?: string;
+  minTypicalCheckSize?: string;
+  maxTypicalCheckSize?: string;
+  investmentFocus?: string;
 }
 
 export interface ITeamFilterSelectedItems {

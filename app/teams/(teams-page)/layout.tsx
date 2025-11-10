@@ -2,9 +2,16 @@ import { ReactNode } from 'react';
 import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
+import { FiltersHydrator } from '@/components/core/teams/FiltersHydrator/FiltersHydrator';
+import { SyncParamsToUrl } from '@/components/core/teams/SyncParamsToUrl/SyncParamsToUrl';
 
 export default function Layout({ filters, content }: { filters: ReactNode; content: ReactNode }) {
-  return <DashboardPagesLayout filters={filters} content={content} />;
+  return (
+    <FiltersHydrator>
+      <SyncParamsToUrl />
+      <DashboardPagesLayout filters={filters} content={content} />
+    </FiltersHydrator>
+  );
 }
 
 export const metadata: Metadata = {

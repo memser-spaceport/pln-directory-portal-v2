@@ -4,7 +4,6 @@ import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import Error from '@/components/core/error';
 import MembersToolbar from '@/components/page/members/members-toolbar';
-import EmptyResult from '@/components/core/empty-result';
 import { INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
 import MemberInfiniteList from '@/components/page/members/member-infinite-list';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
@@ -54,6 +53,7 @@ const getPageData = async (searchParams: Record<string, string>) => {
       ...searchParams,
       roles: searchParams.roles?.split('|'),
       topics: searchParams.topics?.split('|') || '',
+      investmentFocus: searchParams.investmentFocus?.split('|').filter(Boolean),
       sort: searchParams.sort
         ?.split(',')
         .map((s) => s.toLowerCase())

@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Field } from '@base-ui-components/react/field';
 import clsx from 'clsx';
 import { uniq } from 'lodash';
-import { useFilterStore } from '@/services/members/store';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
 import s from './FilterTagInput.module.scss';
@@ -16,6 +15,8 @@ interface Props {
   placeholder?: string;
   disabled?: boolean;
   isRequired?: boolean;
+  params: URLSearchParams;
+  setParam: (key: string, value?: string) => void;
 }
 
 export const FilterTagInput = ({
@@ -26,9 +27,10 @@ export const FilterTagInput = ({
   disabled = false,
   isRequired = false,
   warning = false,
+  params,
+  setParam,
 }: Props) => {
   const [inputText, setInputText] = useState('');
-  const { params, setParam } = useFilterStore();
 
   // Get initial values from URL parameters
   const getInitialValues = () => {
@@ -43,21 +45,17 @@ export const FilterTagInput = ({
   // Track the current parameter value to detect changes
   const currentParamValue = params.get(paramKey) || '';
 
-  // Sync local state with URL parameters when they change
+  // Sync local state with URL parameters when they change (only from external changes)
   useEffect(() => {
     const currentValues = currentParamValue ? currentParamValue.split(URL_QUERY_VALUE_SEPARATOR).filter(Boolean) : [];
-    setTags(currentValues);
-  }, [currentParamValue]);
+    const currentTags = tags.join(URL_QUERY_VALUE_SEPARATOR);
+    const newTags = currentValues.join(URL_QUERY_VALUE_SEPARATOR);
 
-  // Update URL parameters when tags change
-  useEffect(() => {
-    if (tags.length > 0) {
-      const values = tags.join(URL_QUERY_VALUE_SEPARATOR);
-      setParam(paramKey, values);
-    } else {
-      setParam(paramKey, undefined);
+    // Only update if the values are different to prevent infinite loop
+    if (currentTags !== newTags) {
+      setTags(currentValues);
     }
-  }, [tags, paramKey, setParam]);
+  }, [currentParamValue]); // Removed tags from dependencies to break the loop
 
   const handleAddTag = useCallback(
     (newTag: string) => {
@@ -75,15 +73,33 @@ export const FilterTagInput = ({
         .map((i) => i.trim())
         .filter(Boolean);
 
-      setTags((prev) => uniq([...prev, ...parsedInput]));
+      const newTags = uniq([...tags, ...parsedInput]);
+      setTags(newTags);
+
+      // Update URL params
+      const values = newTags.join(URL_QUERY_VALUE_SEPARATOR);
+      setParam(paramKey, values);
+
       setInputText('');
     },
-    [tags],
+    [tags, paramKey, setParam],
   );
 
-  const handleRemoveTag = useCallback((tagToRemove: string) => {
-    setTags((prev) => prev.filter((tag) => tag !== tagToRemove));
-  }, []);
+  const handleRemoveTag = useCallback(
+    (tagToRemove: string) => {
+      const newTags = tags.filter((tag) => tag !== tagToRemove);
+      setTags(newTags);
+
+      // Update URL params
+      if (newTags.length > 0) {
+        const values = newTags.join(URL_QUERY_VALUE_SEPARATOR);
+        setParam(paramKey, values);
+      } else {
+        setParam(paramKey, undefined);
+      }
+    },
+    [tags, paramKey, setParam],
+  );
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {

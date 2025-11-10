@@ -1,13 +1,13 @@
-import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
+import { ITeamsSearchParams } from '@/types/teams.types';
 import { INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { getTeamsListOptions, getTeamsOptionsFromQuery } from '@/utils/team.utils';
 import EmptyResult from '../../../../components/core/empty-result';
 import Error from '../../../../components/core/error';
 import TeamsToolbar from '../../../../components/page/teams/teams-toolbar';
 import styles from './page.module.css';
 import TeamList from '@/components/page/teams/team-list';
 import { getTeamList } from '@/app/actions/teams.actions';
+import qs from 'qs';
 
 async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
@@ -41,10 +41,13 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
   let totalTeams = 0;
 
   try {
-    const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
-    const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
+    // handle investmentFocus as array
+    const query = qs.stringify({
+      ...searchParams,
+      investmentFocus: searchParams.investmentFocus?.split('|').filter(Boolean),
+    });
 
-    const teamListResponse = await getTeamList(listOptions, 1, INITIAL_ITEMS_PER_PAGE);
+    const teamListResponse = await getTeamList(query, 1, INITIAL_ITEMS_PER_PAGE);
 
     if (teamListResponse?.isError) {
       isError = true;

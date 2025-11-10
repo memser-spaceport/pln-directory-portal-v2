@@ -24,7 +24,7 @@ import { FilterCheckboxListWithSearch } from './FilterCheckboxListWithSearch';
 import s from './MembersFilter.module.scss';
 import { InvestorFilterToggle } from '@/components/core/InvestorFilterToggle';
 import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
-import { FilterCheckSizeInput } from '@/components/page/members/MembersFilter/FilterCheckSizeInput';
+import { FilterCheckSizeInput } from '@/components/common/FilterCheckSizeInput';
 import { FilterTagInput } from '@/components/form/FilterTagInput';
 
 export interface IMembersFilter {
@@ -134,6 +134,8 @@ export const MembersFilter = (props: IMembersFilter) => {
               max: 5000000,
             }}
             disabled={!params.get('isInvestor')}
+            params={params}
+            setParam={setParam}
           />
 
           <FilterDivider />
@@ -142,6 +144,8 @@ export const MembersFilter = (props: IMembersFilter) => {
             selectLabel="Investment Focus"
             paramKey="investmentFocus"
             disabled={!params.get('isInvestor')}
+            params={params}
+            setParam={setParam}
           />
         </FilterSection>
       </div>

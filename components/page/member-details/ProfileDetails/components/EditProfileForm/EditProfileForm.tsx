@@ -194,31 +194,28 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           )}
 
           {/* Primary Team Section */}
-          {!!teamsOptions?.length && (
-            <div className={s.row}>
-              <FormSelect
-                name="primaryTeam"
-                placeholder="Select your primary team"
-                backLabel="Teams"
-                label="Primary Team"
-                options={teamsOptions}
-                description="Your primary team is shown on your profile and used as the default across the network."
-              />
-            </div>
-          )}
-
-          {selectedPrimaryTeam && (
-            <div className={s.row}>
-              <FormField name="primaryTeamRole" label="Role in Primary Team" placeholder="Enter your role" />
-            </div>
-          )}
-
-          {/* Info message */}
-          {!!teamsOptions?.length && (
-            <div className={s.infoBlock}>
-              <InfoIcon />
-              <span className={s.infoText}>Manage teams in the Teams section below</span>
-            </div>
+          {teamsOptions?.length > 1 && (
+            <>
+              <div className={s.row}>
+                <FormSelect
+                  name="primaryTeam"
+                  placeholder="Select your primary team"
+                  backLabel="Teams"
+                  label="Primary Team"
+                  options={teamsOptions}
+                  description="Your primary team is shown on your profile and used as the default across the network."
+                />
+              </div>
+              {selectedPrimaryTeam && (
+                <div className={s.row}>
+                  <FormField name="primaryTeamRole" label="Role in Primary Team" placeholder="Enter your role" />
+                </div>
+              )}
+              <div className={s.infoBlock}>
+                <InfoIcon />
+                <span className={s.infoText}>Manage teams in the Teams section below</span>
+              </div>
+            </>
           )}
         </div>
         <EditFormMobileControls />

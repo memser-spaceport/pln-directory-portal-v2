@@ -17,7 +17,7 @@
     box-shadow: 0 0 0 2px #156ff740;
   }
 
-  @include media.tablet-landscape {
+  @include media.breakpoint-1024 {
     width: 289px;
   }
 }
@@ -36,7 +36,7 @@
 
   overflow: hidden;
 
-  @include media.tablet-landscape {
+  @include media.breakpoint-1024 {
     height: 94px;
   }
 }
@@ -44,7 +44,7 @@
 .avatarWrapper {
   z-index: 1;
 
-  @include media.tablet-landscape {
+  @include media.breakpoint-1024 {
     background-image: url('/images/outer-circle.svg');
     height: 94px;
     width: 147px;
@@ -70,7 +70,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 50%;
 
-  @include media.tablet-landscape {
+  @include media.breakpoint-1024 {
     height: 80px !important;
     width: 80px;
     min-width: 80px;
@@ -89,7 +89,7 @@
   border: 1px solid #e2e8f0;
   //border: 1px solid linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
 
-  @include media.tablet-landscape {
+  @include media.breakpoint-1024 {
     height: 104px;
     width: 104px;
   }
@@ -118,7 +118,7 @@
   line-height: 14px; /* 140% */
   letter-spacing: -0.2px;
 
-  @include media.tablet-landscape {
+  @include media.breakpoint-1024 {
     display: flex;
   }
 }
@@ -152,7 +152,7 @@
   letter-spacing: -0.4px;
   max-width: 144px;
 
-  @include media.tablet-landscape {
+  @include media.breakpoint-1024 {
     max-width: 250px;
   }
 }
@@ -188,7 +188,7 @@
     max-width: 144px;
   }
 
-  @include media.tablet-landscape {
+  @include media.breakpoint-1024 {
     max-width: 250px;
 
     > p {
@@ -204,7 +204,7 @@
   justify-content: center;
   gap: 4px;
 
-  @include media.tablet-landscape {
+  @include media.breakpoint-1024 {
     display: flex;
   }
 }
@@ -221,7 +221,7 @@
   @include mixins.ellipse-text;
   max-width: 144px;
 
-  @include media.tablet-landscape {
+  @include media.breakpoint-1024 {
     max-width: 220px;
   }
 }

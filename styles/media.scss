@@ -4,6 +4,8 @@ $breakpoint-sm: 640;
 // >= tablet-portrait <
 $breakpoint-md: 960;
 
+$breakpoint-1024: 1024;
+
 // >= tablet-landscape <
 $breakpoint-lg: 1200;
 
@@ -71,6 +73,12 @@ $breakpoint-full-hd: 1920;
 
 @mixin retina {
   @media (min-width: #{$breakpoint-full-hd + 1}px) {
+    @content;
+  }
+}
+
+@mixin breakpoint-1024 {
+  @media (min-width: #{$breakpoint-1024}px) {
     @content;
   }
 }

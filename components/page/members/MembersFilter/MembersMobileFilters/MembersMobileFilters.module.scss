@@ -7,7 +7,7 @@
   padding-inline: 12px;
   margin-bottom: 12px;
 
-  @include media.tablet-landscape {
+  @include media.breakpoint-1024 {
     display: none;
   }
 }

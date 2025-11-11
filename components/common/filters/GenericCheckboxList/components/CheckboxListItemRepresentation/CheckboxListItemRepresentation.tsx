@@ -1,4 +1,5 @@
 import isNumber from 'lodash/isNumber';
+import { clsx } from 'clsx';
 
 import { Checkbox } from '@/components/common/Checkbox';
 
@@ -8,17 +9,22 @@ type Props = {
   label: string;
   count?: number;
   checked: boolean;
+  disabled?: boolean;
   onClick: () => void;
 };
 
 export function CheckboxListItemRepresentation(props: Props) {
-  const { label, count, checked, onClick } = props;
+  const { label, count, checked, disabled, onClick } = props;
 
   return (
-    <div className={s.root} onClick={onClick}>
+    <div
+      className={clsx(s.root, { [s.disabled]: disabled })}
+      onClick={onClick}
+    >
       <div className={s.content}>
         <Checkbox
           checked={checked}
+          disabled={disabled}
           classes={{
             root: s.checkbox,
           }}

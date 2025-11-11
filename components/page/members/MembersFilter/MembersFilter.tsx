@@ -19,7 +19,7 @@ import { CalendarIcon } from '@/components/icons';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 
 import { FilterSearch } from './FilterSearch';
-import { FilterSection } from './FilterSection';
+import { FilterSection } from '@/components/common/filters/FilterSection';
 import { FilterCheckboxListWithSearch } from './FilterCheckboxListWithSearch';
 
 import s from './MembersFilter.module.scss';

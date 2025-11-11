@@ -13,17 +13,28 @@ type Props = {
 export function CheckboxListItem(props: Props) {
   const { item, values, paramKey, setValue } = props;
 
-  const { value, label, count } = item;
+  const { value, label, count, disabled } = item;
 
   const checked = useMemo(() => {
     return !!values?.some(({ value: val }) => val === value);
   }, [value, values]);
 
   function onClick() {
+    // Don't allow interaction if disabled
+    if (disabled) return;
+
     const newValue = checked ? values.filter(({ value: val }) => val !== value) : [...values, item];
 
     setValue(paramKey, newValue, { shouldValidate: true, shouldDirty: true });
   }
 
-  return <CheckboxListItemRepresentation label={label} count={count} checked={checked} onClick={onClick} />;
+  return (
+    <CheckboxListItemRepresentation
+      label={label}
+      count={count}
+      checked={checked}
+      disabled={disabled}
+      onClick={onClick}
+    />
+  );
 }

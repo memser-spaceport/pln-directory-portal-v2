@@ -1,9 +1,8 @@
 'use client';
 import { IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems, ITeamsSearchParams } from '@/types/teams.types';
-import Filter from './filter';
-import { useEffect, useState } from 'react';
-import { EVENTS } from '@/utils/constants';
+import { TeamsFilter } from './TeamsFilter';
+import { useEffect } from 'react';
 import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 
@@ -13,21 +12,18 @@ interface IFilterwrapper {
   searchParams: ITeamsSearchParams;
 }
 
+/**
+ * FilterWrapper - Teams filter container
+ *
+ * Now uses the new TeamsFilter component with modern generic infrastructure.
+ * Mobile version is handled by TeamsFilter using FiltersSidePanel which is responsive.
+ */
 export default function FilterWrapper(props: IFilterwrapper) {
   const filterValues = props?.filterValues;
   const searchParams = props?.searchParams;
   const userInfo = props?.userInfo;
 
-  const [isMobileFilter, setIsMobileFilter] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    document.addEventListener(EVENTS.SHOW_FILTER, (e: any) => {
-      setIsMobileFilter(e.detail);
-    });
-
-    document.removeEventListener(EVENTS.SHOW_FILTER, () => {});
-  }, []);
 
   useEffect(() => {
     triggerLoader(false);
@@ -35,48 +31,19 @@ export default function FilterWrapper(props: IFilterwrapper) {
 
   return (
     <div className="fw">
-      {isMobileFilter && (
-        <div className="fw__mob">
-          <Filter filterValues={filterValues} searchParams={searchParams} userInfo={userInfo} />
-        </div>
-      )}
       <div className="fw__web">
-        <Filter filterValues={filterValues} searchParams={searchParams} userInfo={userInfo} />
+        <TeamsFilter filterValues={filterValues} searchParams={searchParams} userInfo={userInfo} />
       </div>
       <style jsx>
         {`
           .fw {
             width: inherit;
+            height: inherit;
           }
 
           .fw__web {
-            display: none;
-          }
-
-          .fw__mob {
-            position: fixed;
-            top: 0;
-            z-index: 6;
-            height: 100%;
-            width: 100%;
-          }
-
-          @media (min-width: 1024px) {
-            .fw__web {
-              display: unset;
-              width: inherit;
-            }
-            .fw__mob {
-              display: none;
-            }
-          }
-        `}
-      </style>
-
-      <style jsx global>
-        {`
-          html {
-            overflow: ${isMobileFilter ? 'hidden' : 'auto'};
+            width: inherit;
+            height: inherit;
           }
         `}
       </style>

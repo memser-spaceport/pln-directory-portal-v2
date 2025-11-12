@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { FormField } from '@/components/form/FormField';
+import { useCreateTeamRequest } from '@/services/teams/hooks/useCreateTeamRequest';
 
 import s from './AddTeamModal.module.scss';
 
@@ -23,10 +24,14 @@ const addTeamSchema = yup.object({
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit?: (data: AddTeamFormData) => void;
+  requesterEmailId: string;
+  onSuccess?: () => void;
 }
 
-export const AddTeamModal = ({ isOpen, onClose, onSubmit }: Props) => {
+export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: Props) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutateAsync } = useCreateTeamRequest();
+
   const methods = useForm<AddTeamFormData>({
     defaultValues: {
       teamName: '',
@@ -38,19 +43,34 @@ export const AddTeamModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const { handleSubmit, reset } = methods;
 
   const handleFormSubmit = async (data: AddTeamFormData) => {
-    // TODO: Call add team mutation here
-    console.log('Form submitted:', data);
+    if (isSubmitting) return;
 
-    if (onSubmit) {
-      onSubmit(data);
+    setIsSubmitting(true);
+
+    try {
+      await mutateAsync({
+        requesterEmailId,
+        teamName: data.teamName,
+        websiteAddress: data.websiteAddress,
+      });
+
+      // Reset form and close modal
+      reset();
+      onClose();
+
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      console.error('Failed to submit team request:', error);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Reset form and close modal
-    reset();
-    onClose();
   };
 
   const handleClose = () => {
+    if (isSubmitting) return;
     reset();
     onClose();
   };
@@ -86,11 +106,11 @@ export const AddTeamModal = ({ isOpen, onClose, onSubmit }: Props) => {
 
             {/* Footer */}
             <div className={s.footer}>
-              <Button type="button" style="border" onClick={handleClose}>
+              <Button type="button" style="border" onClick={handleClose} disabled={isSubmitting}>
                 Cancel
               </Button>
-              <Button type="submit" style="fill">
-                Add Team
+              <Button type="submit" style="fill" disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting...' : 'Add Team'}
               </Button>
             </div>
           </form>

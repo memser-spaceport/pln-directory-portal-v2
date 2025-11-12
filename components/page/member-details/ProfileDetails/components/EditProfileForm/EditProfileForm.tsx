@@ -263,9 +263,10 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
       <AddTeamModal
         isOpen={isAddTeamModalOpen}
         onClose={() => setIsAddTeamModalOpen(false)}
-        onSubmit={(data) => {
-          // TODO: Add team mutation will be added later
-          console.log('Add team data:', data);
+        requesterEmailId={userInfo.email}
+        onSuccess={() => {
+          // Refresh the page to show the new team
+          router.refresh();
         }}
       />
     </FormProvider>

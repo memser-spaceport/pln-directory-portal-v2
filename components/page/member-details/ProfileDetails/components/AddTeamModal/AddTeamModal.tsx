@@ -12,12 +12,12 @@ import s from './AddTeamModal.module.scss';
 
 interface AddTeamFormData {
   teamName: string;
-  role: string;
+  websiteAddress: string;
 }
 
 const addTeamSchema = yup.object({
   teamName: yup.string().required('Team name is required'),
-  role: yup.string().required('Role is required'),
+  websiteAddress: yup.string().required('Website address is required'),
 });
 
 interface Props {
@@ -30,7 +30,7 @@ export const AddTeamModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const methods = useForm<AddTeamFormData>({
     defaultValues: {
       teamName: '',
-      role: '',
+      websiteAddress: '',
     },
     resolver: yupResolver(addTeamSchema),
   });
@@ -66,7 +66,7 @@ export const AddTeamModal = ({ isOpen, onClose, onSubmit }: Props) => {
         {/* Header */}
         <div className={s.header}>
           <h2 className={s.title}>Add Your Team</h2>
-          <p className={s.subtitle}>Tell us about your team and your role.</p>
+          <p className={s.subtitle}>Enter your team&apos;s details below.</p>
         </div>
 
         {/* Form */}
@@ -75,7 +75,13 @@ export const AddTeamModal = ({ isOpen, onClose, onSubmit }: Props) => {
             <div className={s.formContent}>
               <FormField name="teamName" label="Team Name" placeholder="Enter team name" isRequired />
 
-              <FormField name="role" label="Your Role" placeholder="Enter your role" isRequired />
+              <FormField
+                name="websiteAddress"
+                label="Website Address"
+                description="Paste a URL (LinkedIn, company website, etc.)"
+                placeholder="Enter website address"
+                isRequired
+              />
             </div>
 
             {/* Footer */}

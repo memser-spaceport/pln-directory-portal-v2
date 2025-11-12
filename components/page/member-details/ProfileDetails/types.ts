@@ -7,5 +7,5 @@ export interface TEditProfileForm {
   skills: { [key: string]: any }[];
   openToCollaborate: boolean;
   primaryTeam: { value: string; label: string; role?: string } | null;
-  primaryTeamRole: string;
+  primaryTeamRole: string | null;
 }

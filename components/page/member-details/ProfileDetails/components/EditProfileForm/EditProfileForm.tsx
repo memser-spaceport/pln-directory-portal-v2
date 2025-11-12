@@ -31,6 +31,7 @@ import { FormSelect } from '@/components/form/FormSelect';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { AddTeamModal } from '@/components/page/member-details/ProfileDetails/components/AddTeamModal';
+import { useUpdateMemberSelfRole } from '@/services/members/hooks/useUpdateMemberSelfRole';
 
 interface Props {
   onClose: () => void;
@@ -59,6 +60,8 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
     return { team: null, role: '' };
   }, [member.mainTeam]);
 
+  console.log({ r: member.role, mainTeamData });
+
   const methods = useForm<TEditProfileForm>({
     defaultValues: {
       image: null,
@@ -74,12 +77,13 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         })) ?? [],
       openToCollaborate: member.openToWork,
       primaryTeam: mainTeamData.team,
-      primaryTeamRole: mainTeamData.role,
+      primaryTeamRole: mainTeamData.team ? mainTeamData.role : member.role,
     },
     resolver: yupResolver(editProfileSchema),
   });
   const { handleSubmit, reset, watch, setValue } = methods;
   const { mutateAsync } = useUpdateMember();
+  const { mutateAsync: updateSelfRole } = useUpdateMemberSelfRole();
   const { data: memberData } = useMember(member.id);
   const { onSaveProfileDetailsClicked, onPrimaryTeamChanged } = useMemberAnalytics();
 
@@ -88,7 +92,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
 
   // Store initial primary team to track changes
   const initialPrimaryTeamRef = useRef(mainTeamData.team);
-  const initialPrimaryTeamRoleRef = useRef(mainTeamData.role);
+  const initialPrimaryTeamRoleRef = useRef(mainTeamData.team ? mainTeamData.role : member.role);
 
   // Update role when primary team changes
   useEffect(() => {
@@ -96,8 +100,6 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
       if (selectedPrimaryTeam.role) {
         setValue('primaryTeamRole', selectedPrimaryTeam.role || '');
       }
-    } else {
-      setValue('primaryTeamRole', '');
     }
   }, [selectedPrimaryTeam, member.teamMemberRoles, setValue]);
 
@@ -108,6 +110,17 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
     const hasTeamChanged =
       initialPrimaryTeamRef.current?.value !== formData.primaryTeam?.value ||
       initialPrimaryTeamRoleRef.current !== formData.primaryTeamRole;
+
+    if (
+      !formData.primaryTeam &&
+      formData.primaryTeamRole &&
+      initialPrimaryTeamRoleRef.current !== formData.primaryTeamRole
+    ) {
+      await updateSelfRole({
+        memberUid: member.id,
+        role: formData.primaryTeamRole,
+      });
+    }
 
     if (hasTeamChanged) {
       onPrimaryTeamChanged({
@@ -284,21 +297,30 @@ function formatPayload(memberInfo: any, formData: TEditProfileForm) {
   let updatedTeamAndRoles = memberInfo.teamMemberRoles;
 
   if (formData.primaryTeam) {
-    // Update all teams: set mainTeam to true for selected primary team, false for others
-    // Also update the role for the primary team
-    updatedTeamAndRoles = memberInfo.teamMemberRoles?.map((tmr: any) => {
-      if (tmr.teamUid === formData.primaryTeam?.value) {
+    const isUpdate = memberInfo.teamMemberRoles.some((tmr: any) => tmr.teamUid === formData.primaryTeam?.value);
+
+    if (isUpdate) {
+      updatedTeamAndRoles = memberInfo.teamMemberRoles?.map((tmr: any) => {
+        if (tmr.teamUid === formData.primaryTeam?.value) {
+          return {
+            ...tmr,
+            role: formData.primaryTeamRole || tmr.role,
+            mainTeam: true,
+          };
+        }
         return {
           ...tmr,
-          role: formData.primaryTeamRole || tmr.role,
-          mainTeam: true,
+          mainTeam: false,
         };
-      }
-      return {
-        ...tmr,
-        mainTeam: false,
-      };
-    });
+      });
+    } else {
+      updatedTeamAndRoles.push({
+        teamUid: formData.primaryTeam?.value,
+        teamTitle: formData.primaryTeam?.label,
+        role: formData.primaryTeamRole || '',
+        mainTeam: true,
+      });
+    }
   } else {
     // If no primary team selected, set all to false
     updatedTeamAndRoles = memberInfo.teamMemberRoles?.map((tmr: any) => ({

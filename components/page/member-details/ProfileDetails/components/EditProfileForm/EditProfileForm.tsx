@@ -28,6 +28,8 @@ import { EditFormMobileControls } from '@/components/page/member-details/compone
 import { MAX_NAME_LENGTH } from '@/constants/profile';
 import { isInvestor } from '@/utils/isInvestor';
 import { FormSelect } from '@/components/form/FormSelect';
+import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
+import ImageWithFallback from '@/components/common/ImageWithFallback';
 
 interface Props {
   onClose: () => void;
@@ -156,6 +158,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
     }
   };
 
+  const { data } = useMemberFormOptions();
   const teamsOptions =
     member.teams?.map((tmr) => ({
       value: tmr.id,
@@ -193,26 +196,60 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
             </div>
           )}
 
-          {/* Primary Team Section */}
-          {teamsOptions?.length > 1 && (
-            <>
-              <div className={s.row}>
-                <FormSelect
-                  name="primaryTeam"
-                  placeholder="Select your primary team"
-                  backLabel="Teams"
-                  label="Primary Team"
-                  options={teamsOptions}
-                  description="Your primary team is shown on your profile and used as the default across the network."
-                />
-              </div>
-            </>
-          )}
-          {selectedPrimaryTeam && (
-            <div className={s.row}>
-              <FormField name="primaryTeamRole" label="Role in Primary Team" placeholder="Enter your role" />
+          <div className={s.column}>
+            <div className={s.inputsLabel}>Primary Role & Team</div>
+            <div className={s.inputsWrapper}>
+              <FormField name="primaryTeamRole" placeholder="Enter your primary role" />
+              <span>@</span>
+              <FormSelect
+                name="primaryTeam"
+                placeholder="Select your primary team"
+                backLabel="Teams"
+                options={
+                  data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                    value: item.teamUid,
+                    label: item.teamTitle,
+                    originalObject: item,
+                  })) ?? []
+                }
+                renderOption={({ option, label, description }) => {
+                  return (
+                    <div className={s.teamOption}>
+                      <ImageWithFallback
+                        width={24}
+                        height={24}
+                        alt={option.label}
+                        className={s.optImg}
+                        fallbackSrc="/icons/camera.svg"
+                        src={option.originalObject.logo}
+                      />
+                      <div>
+                        {label}
+                        {description}
+                      </div>
+                    </div>
+                  );
+                }}
+                isStickyNoData
+                notFoundContent={
+                  <div className={s.secondaryLabel}>
+                    Not able to find your project or team?
+                    <button
+                      type="button"
+                      className={s.link}
+                      onClick={() => {
+                        // handleAddTeamLinkClick();
+                        // setIsAddTeamDrawerOpen(true);
+                      }}
+                    >
+                      Add your team
+                    </button>
+                  </div>
+                }
+              />
             </div>
-          )}
+            <div className={s.description}>Add your title and organization so others can connect with you.</div>
+          </div>
           <div className={s.infoBlock}>
             <InfoIcon />
             <span className={s.infoText}>Manage teams in the Teams section below</span>

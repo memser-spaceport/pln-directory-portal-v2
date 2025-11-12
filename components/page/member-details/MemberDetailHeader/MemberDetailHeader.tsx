@@ -22,6 +22,7 @@ import { EditButton } from '@/components/page/member-details/components/EditButt
 import { shouldShowInvestorTag } from './utils/shouldShowInvestorTag';
 
 import s from './MemberDetailHeader.module.scss';
+import { Button } from '@/components/common/Button';
 
 interface IMemberDetailHeader {
   member: IMember;
@@ -34,7 +35,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const member = props?.member;
   const name = member?.name ?? '';
   const isLoggedIn = props?.isLoggedIn;
-  const role = member?.mainTeam?.role || 'Contributor';
+  const role = member?.mainTeam?.role;
   const location = parseMemberLocation(member?.location);
   const isTeamLead = member?.teamLead;
   const isOpenToWork = member?.openToWork;
@@ -125,14 +126,27 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
                   <div className={clsx(s.divider, s.desktopOnly)} />
                 </>
               )}
-              <CustomTooltip trigger={<p className={s.role}>{role}</p>} content={role} />
+              {role ? (
+                <CustomTooltip trigger={<p className={s.role}>{role}</p>} content={role} />
+              ) : isOwner || isAdmin ? (
+                <button className={s.addButton} type="button" onClick={onEdit}>
+                  + Your Role
+                </button>
+              ) : null}
+
               {isLoggedIn && (
                 <>
                   <div className={s.divider} />
-                  <div className={s.location}>
-                    <LocationIcon />
-                    <p className={s.locationName}>{location}</p>
-                  </div>
+                  {(isOwner || isAdmin) && !location ? (
+                    <button className={s.addButton} type="button" onClick={onEdit}>
+                      + Your Location
+                    </button>
+                  ) : (
+                    <div className={s.location}>
+                      <LocationIcon />
+                      <p className={s.locationName}>{location ? location : 'Unknown'}</p>
+                    </div>
+                  )}
                 </>
               )}
             </div>

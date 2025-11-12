@@ -29,6 +29,9 @@ import { MAX_NAME_LENGTH } from '@/constants/profile';
 import { TERMS_OF_SERVICE_AND_PRIVACY_URL } from './constants';
 
 import s from './SignupWizard.module.scss';
+import { FormSelect } from '@/components/form/FormSelect';
+import ImageWithFallback from '@/components/common/ImageWithFallback';
+import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 
 interface Props {
   onClose?: () => void;
@@ -37,6 +40,7 @@ interface Props {
 
 export const SignupWizard = ({ onClose, signUpSource }: Props) => {
   const router = useRouter();
+  const { data } = useMemberFormOptions();
   const searchParams = useSearchParams();
   const analytics = useSignUpAnalytics();
   const methods = useForm<SignupForm>({
@@ -180,26 +184,81 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                 <div className={s.row}>
                   <FormField name="email" label="Email*" placeholder="Enter email" />
                 </div>
-                <div className={s.row}>
-                  <Field.Root className={s.field}>
-                    <Field.Label className={s.label}>Select a Team or a Project you are associated with</Field.Label>
-                    <SearchWithSuggestions
-                      addNew={{
-                        enable: true,
-                        title: 'Not able to find your project or team?',
-                        actionString: 'Share URL',
-                        iconURL: '/icons/sign-up/share.svg',
-                        placeHolderText: 'Enter or paste URL here',
+
+                <div className={s.column}>
+                  <div className={s.inputsLabel}>Add Role & Team</div>
+                  <div className={s.inputsWrapper}>
+                    <FormField name="role" placeholder="Enter your primary role" />
+                    <span>@</span>
+                    <FormSelect
+                      name="teamOrProject"
+                      placeholder="Select your primary team"
+                      backLabel="Teams"
+                      options={
+                        data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                          value: item.teamUid,
+                          label: item.teamTitle,
+                          originalObject: item,
+                        })) ?? []
+                      }
+                      renderOption={({ option, label, description }) => {
+                        return (
+                          <div className={s.teamOption}>
+                            <ImageWithFallback
+                              width={24}
+                              height={24}
+                              alt={option.label}
+                              className={s.optImg}
+                              fallbackSrc="/icons/camera.svg"
+                              src={option.originalObject.logo}
+                            />
+                            <div>
+                              {label}
+                              {description}
+                            </div>
+                          </div>
+                        );
                       }}
-                      id={'search-team-and-project'}
-                      name={'search-team-and-project'}
-                      placeHolder="Enter a name of your team or project"
-                      onSelect={(suggestion) => {
-                        setValue('teamOrProject', suggestion, { shouldValidate: true });
-                      }}
+                      isStickyNoData
+                      notFoundContent={
+                        <div className={s.secondaryLabel}>
+                          Not able to find your project or team?
+                          <button
+                            type="button"
+                            className={s.link}
+                            onClick={() => {
+                              // setIsAddTeamModalOpen(true);
+                            }}
+                          >
+                            Add your team
+                          </button>
+                        </div>
+                      }
                     />
-                  </Field.Root>
+                  </div>
+                  <div className={s.description}>Add your title and organization so others can connect with you.</div>
                 </div>
+
+                {/*<div className={s.row}>*/}
+                {/*  <Field.Root className={s.field}>*/}
+                {/*    <Field.Label className={s.label}>Select a Team or a Project you are associated with</Field.Label>*/}
+                {/*    <SearchWithSuggestions*/}
+                {/*      addNew={{*/}
+                {/*        enable: true,*/}
+                {/*        title: 'Not able to find your project or team?',*/}
+                {/*        actionString: 'Share URL',*/}
+                {/*        iconURL: '/icons/sign-up/share.svg',*/}
+                {/*        placeHolderText: 'Enter or paste URL here',*/}
+                {/*      }}*/}
+                {/*      id={'search-team-and-project'}*/}
+                {/*      name={'search-team-and-project'}*/}
+                {/*      placeHolder="Enter a name of your team or project"*/}
+                {/*      onSelect={(suggestion) => {*/}
+                {/*        setValue('teamOrProject', suggestion, { shouldValidate: true });*/}
+                {/*      }}*/}
+                {/*    />*/}
+                {/*  </Field.Root>*/}
+                {/*</div>*/}
                 <div className={s.col}>
                   <label className={s.Label}>
                     <Checkbox

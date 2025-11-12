@@ -60,8 +60,6 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
     return { team: null, role: '' };
   }, [member.mainTeam]);
 
-  console.log({ r: member.role, mainTeamData });
-
   const methods = useForm<TEditProfileForm>({
     defaultValues: {
       image: null,

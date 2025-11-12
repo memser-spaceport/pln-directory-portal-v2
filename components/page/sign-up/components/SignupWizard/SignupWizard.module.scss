@@ -249,6 +249,72 @@
   animation: prixClipFix 2s linear forwards infinite;
 }
 
+.column {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.inputsLabel {
+  color: #475569;
+  font-feature-settings:
+          'liga' off,
+          'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 166.667% */
+  margin-bottom: 0.25rem;
+}
+
+.inputsWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.description {
+  margin-top: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.teamOption {
+  gap: 12px;
+  display: flex;
+  align-items: center;
+
+  cursor: pointer;
+
+  .optImg {
+    display: block;
+    border-radius: 4px;
+  }
+}
+
+.secondaryLabel {
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  .link {
+    color: var(--foreground-brand-primary, #1B4DFF);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+  }
+}
+
 @keyframes rotate {
   100% {
     transform: rotate(360deg);

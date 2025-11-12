@@ -35,7 +35,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const member = props?.member;
   const name = member?.name ?? '';
   const isLoggedIn = props?.isLoggedIn;
-  const role = member?.mainTeam?.role;
+  const role = member?.mainTeam?.role ?? member.role;
   const location = parseMemberLocation(member?.location);
   const isTeamLead = member?.teamLead;
   const isOpenToWork = member?.openToWork;

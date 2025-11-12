@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ProfileImageInput } from '@/components/page/member-details/ProfileDetails/components/ProfileImageInput';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -30,6 +30,7 @@ import { isInvestor } from '@/utils/isInvestor';
 import { FormSelect } from '@/components/form/FormSelect';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
+import { AddTeamModal } from '@/components/page/member-details/ProfileDetails/components/AddTeamModal';
 
 interface Props {
   onClose: () => void;
@@ -40,6 +41,7 @@ interface Props {
 export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
   const { actions } = useUserStore();
+  const [isAddTeamModalOpen, setIsAddTeamModalOpen] = useState(false);
 
   // Find the main team from member.mainTeam or teamMemberRoles
   const mainTeamData = useMemo(() => {
@@ -238,8 +240,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
                       type="button"
                       className={s.link}
                       onClick={() => {
-                        // handleAddTeamLinkClick();
-                        // setIsAddTeamDrawerOpen(true);
+                        setIsAddTeamModalOpen(true);
                       }}
                     >
                       Add your team
@@ -257,6 +258,16 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         </div>
         <EditFormMobileControls />
       </form>
+
+      {/* Add Team Modal */}
+      <AddTeamModal
+        isOpen={isAddTeamModalOpen}
+        onClose={() => setIsAddTeamModalOpen(false)}
+        onSubmit={(data) => {
+          // TODO: Add team mutation will be added later
+          console.log('Add team data:', data);
+        }}
+      />
     </FormProvider>
   );
 };

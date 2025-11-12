@@ -143,6 +143,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
       newData: {
         ...formatPayload(memberData.memberInfo, formData),
         imageUid: image ? image : memberData.memberInfo.imageUid,
+        role: formData.primaryTeamRole,
       },
     };
 
@@ -161,12 +162,6 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   };
 
   const { data } = useMemberFormOptions();
-  const teamsOptions =
-    member.teams?.map((tmr) => ({
-      value: tmr.id,
-      label: tmr.name ?? '',
-      role: tmr.role,
-    })) ?? [];
 
   return (
     <FormProvider {...methods}>
@@ -263,7 +258,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
       <AddTeamModal
         isOpen={isAddTeamModalOpen}
         onClose={() => setIsAddTeamModalOpen(false)}
-        requesterEmailId={userInfo.email}
+        requesterEmailId={userInfo.email!}
         onSuccess={() => {
           // Refresh the page to show the new team
           router.refresh();

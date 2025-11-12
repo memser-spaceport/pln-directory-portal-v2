@@ -501,7 +501,7 @@ export const useMemberAnalytics = () => {
 
   function onPrimaryTeamChanged(params: {
     previousTeam?: { value: string; label: string; role: string } | null;
-    newTeam?: { value: string; label: string; role: string } | null;
+    newTeam?: { value: string; label: string; role?: string } | null;
     previousRole?: string;
     newRole?: string;
   }) {

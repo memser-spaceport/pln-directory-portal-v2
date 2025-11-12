@@ -18,7 +18,7 @@ interface AddTeamFormData {
 
 const addTeamSchema = yup.object({
   teamName: yup.string().required('Team name is required'),
-  websiteAddress: yup.string().required('Website address is required'),
+  websiteAddress: yup.string().defined(),
 });
 
 interface Props {
@@ -100,7 +100,6 @@ export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: P
                 label="Website Address"
                 description="Paste a URL (LinkedIn, company website, etc.)"
                 placeholder="Enter website address"
-                isRequired
               />
             </div>
 

@@ -24,7 +24,7 @@ import Image from 'next/image';
 
 export interface TeamsFilterProps {
   filterValues: ITeamFilterSelectedItems | undefined;
-  userInfo: IUserInfo;
+  userInfo?: IUserInfo;
   searchParams: any;
   onClose?: () => void;
 }

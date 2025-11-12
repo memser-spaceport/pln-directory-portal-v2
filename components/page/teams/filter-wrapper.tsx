@@ -13,10 +13,10 @@ interface IFilterwrapper {
 }
 
 /**
- * FilterWrapper - Teams filter container
+ * FilterWrapper - Teams filter container (Desktop only)
  *
- * Now uses the new TeamsFilter component with modern generic infrastructure.
- * Mobile version is handled by TeamsFilter using FiltersSidePanel which is responsive.
+ * Displays desktop filter in sidebar. Mobile filter is handled by
+ * TeamsMobileFilters component in team-list.tsx using Dialog.
  */
 export default function FilterWrapper(props: IFilterwrapper) {
   const filterValues = props?.filterValues;
@@ -34,6 +34,7 @@ export default function FilterWrapper(props: IFilterwrapper) {
       <div className="fw__web">
         <TeamsFilter filterValues={filterValues} searchParams={searchParams} userInfo={userInfo} />
       </div>
+
       <style jsx>
         {`
           .fw {
@@ -42,8 +43,15 @@ export default function FilterWrapper(props: IFilterwrapper) {
           }
 
           .fw__web {
-            width: inherit;
-            height: inherit;
+            display: none;
+          }
+
+          @media (min-width: 1024px) {
+            .fw__web {
+              display: unset;
+              width: inherit;
+              height: inherit;
+            }
           }
         `}
       </style>

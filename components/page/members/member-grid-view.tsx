@@ -85,7 +85,7 @@ const MemberGridView = (props: IMemberGridView) => {
             <div className={s.positionDetails}>
               <div className={s.secondaryText}>
                 <span className={s.teamName} title={mainTeam?.name}>
-                  {member?.teams?.length > 0 ? mainTeam?.name : '-'}{' '}
+                  {member?.teams?.length > 0 ? mainTeam?.name : 'Team Not Provided'}{' '}
                 </span>
                 <span>
                   {member?.teams?.length > 2 && (

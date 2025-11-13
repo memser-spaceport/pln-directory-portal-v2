@@ -1,8 +1,72 @@
-.header {
+.root {
+  display: flex;
+  padding: var(--spacing-md, 16px);
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md, 16px);
+  width: 100%;
+
+  border-radius: var(--corner-radius-xl, 12px);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--action-background-base-white, #FFF);
+}
+
+.headerButton {
+  display: flex;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  outline: none;
+
+  &:hover {
+    .headerText {
+      color: #1b4dff;
+    }
+  }
+}
+
+.headerContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.plusIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: #1b4dff;
+}
+
+.headerText {
+  flex: 1;
   font-size: 16px;
   font-weight: 500;
   line-height: 24px;
   letter-spacing: -0.3px;
+  color: #0a0c11;
+  transition: color 0.2s ease;
+}
+
+.chevronIcon {
+  flex-shrink: 0;
+  width: 18.182px;
+  height: 18.182px;
+  color: #afbaca;
+  transition: transform 0.2s ease;
+  margin-top: 1.818px;
+
+  &.chevronExpanded {
+    transform: rotate(0deg);
+  }
+
+  &:not(.chevronExpanded) {
+    transform: rotate(180deg);
+  }
 }
 
 .delimiter {
@@ -10,4 +74,11 @@
   min-height: 1px;
   height: 1px;
   background-color: rgba(27, 56, 96, 0.12);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
 }

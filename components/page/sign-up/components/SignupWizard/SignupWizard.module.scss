@@ -25,6 +25,7 @@
   padding-inline: 16px;
   padding-top: clamp(12px, 4vw, 24px);
   gap: clamp(8px, 3vh, 32px);
+  padding-bottom: 24px;
 
   @include media.tablet-landscape {
     align-items: center;
@@ -269,9 +270,14 @@
 
 .inputsWrapper {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 12px;
   width: 100%;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+  }
 }
 
 .description {

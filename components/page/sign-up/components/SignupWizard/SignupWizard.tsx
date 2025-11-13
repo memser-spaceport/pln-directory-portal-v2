@@ -15,14 +15,11 @@ import { SignupForm } from '@/components/page/sign-up/components/SignupWizard/ty
 import { signupSchema } from '@/components/page/sign-up/components/SignupWizard/helpers';
 import { FormField } from '@/components/form/FormField';
 import { ProfileImageInput } from '@/components/page/sign-up/components/ProfileImageInput';
-import { Field } from '@base-ui-components/react/field';
 import { getRecaptchaToken } from '@/services/google-recaptcha.service';
 import { toast } from '@/components/core/ToastContainer';
 import { isSkipRecaptcha } from '@/utils/common.utils';
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
-import SearchWithSuggestions from '@/components/form/suggestions';
-import { useSignup, useSignupV2 } from '@/services/signup/hooks/useSignup';
-import { GROUP_TYPES } from '@/utils/constants';
+import { useSignupV2 } from '@/services/signup/hooks/useSignup';
 import { Checkbox } from '@/components/common/Checkbox';
 import { MAX_NAME_LENGTH } from '@/constants/profile';
 
@@ -152,9 +149,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
 
     if (res.success) {
       analytics.recordSignUpSave('submit-clicked-success', formData);
-      // toast.success('Thank you for signing up! Your profile is currently under review. You’ll receive an email as soon as it’s approved.');
 
-      // todo - use case C
       router.replace(
         `${window.location.origin}/members/${res.data.uid}?prefillEmail=${encodeURIComponent(formData.email)}&returnTo=members-${res.data.uid}#login`,
       );

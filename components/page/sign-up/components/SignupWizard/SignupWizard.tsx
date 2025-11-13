@@ -106,15 +106,26 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       newData.imageUrl = image.url;
     }
 
-    // Build the team object
+    // Build the team/project object
     let team: { uid?: string; name?: string; website?: string } = {};
     let isTeamNew = false;
+    let project: { projectUid: string } | null = null;
 
     if (formData.teamOrProject) {
       isTeamNew = false;
-      team = {
-        uid: formData.teamOrProject.value,
-      };
+
+      // Check if it's a team or project
+      if (formData.teamOrProject.type === 'project') {
+        // For projects, we'll use projectContributions
+        project = {
+          projectUid: formData.teamOrProject.value,
+        };
+      } else {
+        // For teams, use the team object
+        team = {
+          uid: formData.teamOrProject.value,
+        };
+      }
     } else if (formData.teamName) {
       isTeamNew = true;
       team = {
@@ -128,7 +139,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       uniqueIdentifier: formData.email,
       role: formData.role || '',
       isTeamNew,
-      team,
+      ...(project ? { project } : { team }),
       newData,
     };
 
@@ -211,15 +222,24 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                         <span>@</span>
                         <FormSelect
                           name="teamOrProject"
-                          placeholder="Select your primary team"
-                          backLabel="Teams"
-                          options={
-                            data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                          placeholder="Search or add a team"
+                          backLabel="Teams & Projects"
+                          options={[
+                            ...(data?.teams?.map((item: { teamUid: string; teamTitle: string; logo?: string }) => ({
                               value: item.teamUid,
                               label: item.teamTitle,
+                              type: 'team' as const,
                               originalObject: item,
-                            })) ?? []
-                          }
+                            })) ?? []),
+                            ...(data?.projects?.map(
+                              (item: { projectUid: string; projectName: string; projectLogo?: string }) => ({
+                                value: item.projectUid,
+                                label: item.projectName,
+                                type: 'project' as const,
+                                originalObject: item,
+                              }),
+                            ) ?? []),
+                          ].sort((a, b) => a.label.localeCompare(b.label))}
                           renderOption={({ option, label, description }) => {
                             return (
                               <div className={s.teamOption}>
@@ -229,12 +249,15 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                                   alt={option.label}
                                   className={s.optImg}
                                   fallbackSrc="/icons/camera.svg"
-                                  src={option.originalObject.logo}
+                                  src={option.originalObject.logo || option.originalObject.projectLogo}
                                 />
-                                <div>
+                                <div className={s.optionContent}>
                                   {label}
                                   {description}
                                 </div>
+                                <span className={s.badge} data-type={option.type}>
+                                  {option.type === 'team' ? 'Team' : 'Project'}
+                                </span>
                               </div>
                             );
                           }}
@@ -256,9 +279,6 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                           }
                         />
                       </div>
-                      <div className={s.description}>
-                        Add your title and organization so others can connect with you.
-                      </div>
                     </>
                   ) : (
                     <div className={s.col}>
@@ -276,9 +296,6 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                               setValue('websiteAddress', '', { shouldValidate: true });
                             }}
                           />
-                        </div>
-                        <div className={s.description}>
-                          Add your title and organization so others can connect with you.
                         </div>
                       </div>
                     </div>
@@ -346,7 +363,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                 >
                   {isSubmitting ? (
                     <>
-                      <LoaderIcon /> <span>Creating profile</span>
+                      <div className={s.loader} /> <span>Creating profile</span>
                     </>
                   ) : (
                     <>Create profile</>
@@ -364,5 +381,3 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     </>
   );
 };
-
-const LoaderIcon = () => <div className={s.loader} />;

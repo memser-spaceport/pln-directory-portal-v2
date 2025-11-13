@@ -1,1 +1,1 @@
-export type Option = { label: string; value: string; description?: string; originalObject?: any };
+export type Option = { label: string; value: string; description?: string; originalObject?: any; type?: string };

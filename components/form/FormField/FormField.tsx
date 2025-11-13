@@ -77,7 +77,7 @@ export const FormField = ({
             {...rest}
           />
         </div>
-        {clearable && val && (
+        {clearable && onClear && (
           <button type="button" className={s.clearButton} onClick={handleClear} aria-label="Clear">
             <ClearIcon />
           </button>

@@ -204,6 +204,9 @@ export function AddTeamDrawer(props: Props) {
                   onChange={(e) => setValue('role', e.target.value, { shouldValidate: true })}
                 />
               </FormField>
+            </Section>
+
+            <Section header="Add Investor Profile">
               <div className={s.isFund}>
                 <input
                   name="isFund"
@@ -215,71 +218,66 @@ export function AddTeamDrawer(props: Props) {
                 />
                 <label htmlFor="team-investment-fund">This team is an investment fund.</label>
               </div>
+              <FormField name="startupStages" className={hiddenClass}>
+                <MultiSelect
+                  options={fundingStageOptions}
+                  selectedOptions={startupStages}
+                  onAdd={(item) =>
+                    setValue('startupStages', startupStageHandlers.addItem(item), { shouldValidate: true })
+                  }
+                  onRemove={(item) =>
+                    setValue('startupStages', startupStageHandlers.removeItem(item), { shouldValidate: true })
+                  }
+                  uniqueKey="label"
+                  displayKey="label"
+                  label={<Label>Startup stage(s) you invest in?</Label>}
+                  placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
+                  closeImgUrl="/icons/close.svg"
+                  arrowImgUrl="/icons/arrow-down.svg"
+                />
+              </FormField>
+
+              <FormField name="checkSize" className={hiddenClass}>
+                <CurrencyInput
+                  defaultValue={checkSize}
+                  label="Typical Check Size"
+                  name="typicalCheckSize"
+                  placeholder="E.g. $250.000"
+                  variant="secondary"
+                  onChange={(value) => setValue('checkSize', value, { shouldValidate: true })}
+                />
+              </FormField>
+
+              <FormField name="investmentFocus" className={hiddenClass}>
+                <TagsInput
+                  defaultValue={investmentFocus}
+                  selectLabel="Add Investment Focus"
+                  name="investmentFocus"
+                  placeholder="Add Keywords. E.g. AI, Staking, Governance, etc."
+                  variant="secondary"
+                  onChange={(tags) => setValue('investmentFocus', tags, { shouldValidate: true })}
+                />
+              </FormField>
+
+              <FormField name="fundTypes" className={hiddenClass}>
+                <MultiSelect
+                  options={INVEST_IN_VC_FUNDS_OPTIONS}
+                  selectedOptions={fundTypes}
+                  onAdd={(item) => setValue('fundTypes', fundTypeHandlers.addItem(item), { shouldValidate: true })}
+                  onRemove={(item) =>
+                    setValue('fundTypes', fundTypeHandlers.removeItem(item), { shouldValidate: true })
+                  }
+                  uniqueKey="label"
+                  displayKey="label"
+                  label={<Label>Type of fund(s) you invest in?</Label>}
+                  placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
+                  closeImgUrl="/icons/close.svg"
+                  arrowImgUrl="/icons/arrow-down.svg"
+                />
+              </FormField>
             </Section>
 
-            {isInvestmentFund && (
-              <Section header="Add Investor Profile">
-                <FormField name="startupStages" className={hiddenClass}>
-                  <MultiSelect
-                    options={fundingStageOptions}
-                    selectedOptions={startupStages}
-                    onAdd={(item) =>
-                      setValue('startupStages', startupStageHandlers.addItem(item), { shouldValidate: true })
-                    }
-                    onRemove={(item) =>
-                      setValue('startupStages', startupStageHandlers.removeItem(item), { shouldValidate: true })
-                    }
-                    uniqueKey="label"
-                    displayKey="label"
-                    label={<Label>Startup stage(s) you invest in?</Label>}
-                    placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
-                    closeImgUrl="/icons/close.svg"
-                    arrowImgUrl="/icons/arrow-down.svg"
-                  />
-                </FormField>
-
-                <FormField name="checkSize" className={hiddenClass}>
-                  <CurrencyInput
-                    defaultValue={checkSize}
-                    label="Typical Check Size"
-                    name="typicalCheckSize"
-                    placeholder="E.g. $250.000"
-                    variant="secondary"
-                    onChange={(value) => setValue('checkSize', value, { shouldValidate: true })}
-                  />
-                </FormField>
-
-                <FormField name="investmentFocus" className={hiddenClass}>
-                  <TagsInput
-                    defaultValue={investmentFocus}
-                    selectLabel="Add Investment Focus"
-                    name="investmentFocus"
-                    placeholder="Add Keywords. E.g. AI, Staking, Governance, etc."
-                    variant="secondary"
-                    onChange={(tags) => setValue('investmentFocus', tags, { shouldValidate: true })}
-                  />
-                </FormField>
-
-                <FormField name="fundTypes" className={hiddenClass}>
-                  <MultiSelect
-                    options={INVEST_IN_VC_FUNDS_OPTIONS}
-                    selectedOptions={fundTypes}
-                    onAdd={(item) => setValue('fundTypes', fundTypeHandlers.addItem(item), { shouldValidate: true })}
-                    onRemove={(item) =>
-                      setValue('fundTypes', fundTypeHandlers.removeItem(item), { shouldValidate: true })
-                    }
-                    uniqueKey="label"
-                    displayKey="label"
-                    label={<Label>Type of fund(s) you invest in?</Label>}
-                    placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
-                    closeImgUrl="/icons/close.svg"
-                    arrowImgUrl="/icons/arrow-down.svg"
-                  />
-                </FormField>
-              </Section>
-            )}
-
-            <Section header="Add Additional Details">
+            <Section header="Add Additional Details" defaultExpanded={false}>
               <FormField name="description">
                 <TextField
                   value={description}

@@ -21,6 +21,9 @@ interface SignupV2Params {
     name?: string;
     website?: string;
   };
+  project: {
+    projectUid?: string;
+  };
   newData: {
     name: string;
     email: string;
@@ -44,6 +47,7 @@ async function mutationV2(params: SignupV2Params) {
     role: params.role,
     isTeamNew: params.isTeamNew,
     team: params.team,
+    project: params.project,
     newData: params.newData,
     ...(params.signUpSource && { signUpSource: params.signUpSource }),
     ...(params.signUpMedium && { signUpMedium: params.signUpMedium }),

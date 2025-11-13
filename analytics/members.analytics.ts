@@ -501,9 +501,9 @@ export const useMemberAnalytics = () => {
 
   function onPrimaryTeamChanged(params: {
     previousTeam?: { value: string; label: string; role: string } | null;
-    newTeam?: { value: string; label: string; role: string } | null;
-    previousRole?: string;
-    newRole?: string;
+    newTeam?: { value: string; label: string; role?: string } | null;
+    previousRole?: string | null;
+    newRole?: string | null;
   }) {
     captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_PRIMARY_TEAM_CHANGED, params);
   }

@@ -15,6 +15,8 @@ interface Props extends PropsWithChildren {
   isRequired?: boolean;
   onClick?: () => void;
   max?: number;
+  clearable?: boolean;
+  onClear?: () => void;
 }
 
 export const FormField = ({
@@ -26,16 +28,26 @@ export const FormField = ({
   children,
   isRequired,
   max,
+  clearable,
+  onClear,
   ...rest
 }: Props) => {
   const {
     register,
     formState: { errors },
     watch,
+    setValue,
   } = useFormContext();
   const val = watch(name);
 
   useScrollIntoViewOnFocus<HTMLInputElement>({ id: name });
+
+  const handleClear = () => {
+    setValue(name, '', { shouldValidate: true });
+    if (onClear) {
+      onClear();
+    }
+  };
 
   return (
     <Field.Root className={s.field}>
@@ -65,6 +77,11 @@ export const FormField = ({
             {...rest}
           />
         </div>
+        {clearable && val && (
+          <button type="button" className={s.clearButton} onClick={handleClear} aria-label="Clear">
+            <ClearIcon />
+          </button>
+        )}
         {children}
       </div>
       <div className={s.sub}>
@@ -86,3 +103,15 @@ export const FormField = ({
     </Field.Root>
   );
 };
+
+const ClearIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M15 5L5 15M5 5L15 15"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);

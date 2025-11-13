@@ -152,7 +152,7 @@ export const parseMemberLocation = (location: any) => {
     return country;
   }
 
-  return 'Not provided';
+  return 'Unknown';
 };
 
 export const formatDate = (dateString: string) => {

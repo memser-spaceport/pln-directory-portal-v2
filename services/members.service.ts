@@ -177,6 +177,7 @@ export const getMember = async (
   member = {
     id: result.uid,
     name: result.name,
+    role: result.role,
     email: result.email,
     bio: result.bio,
     imageUid: result.image?.uid,

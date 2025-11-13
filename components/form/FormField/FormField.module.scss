@@ -125,3 +125,29 @@
   letter-spacing: -0.2px;
   margin-top: 0.25rem;
 }
+
+.clearButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #94a3b8;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    color: #64748b;
+  }
+
+  &:active {
+    color: #475569;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}

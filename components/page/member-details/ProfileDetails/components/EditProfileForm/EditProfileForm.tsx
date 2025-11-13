@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ProfileImageInput } from '@/components/page/member-details/ProfileDetails/components/ProfileImageInput';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -28,6 +28,10 @@ import { EditFormMobileControls } from '@/components/page/member-details/compone
 import { MAX_NAME_LENGTH } from '@/constants/profile';
 import { isInvestor } from '@/utils/isInvestor';
 import { FormSelect } from '@/components/form/FormSelect';
+import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
+import ImageWithFallback from '@/components/common/ImageWithFallback';
+import { AddTeamModal } from '@/components/page/member-details/ProfileDetails/components/AddTeamModal';
+import { useUpdateMemberSelfRole } from '@/services/members/hooks/useUpdateMemberSelfRole';
 
 interface Props {
   onClose: () => void;
@@ -38,6 +42,7 @@ interface Props {
 export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
   const { actions } = useUserStore();
+  const [isAddTeamModalOpen, setIsAddTeamModalOpen] = useState(false);
 
   // Find the main team from member.mainTeam or teamMemberRoles
   const mainTeamData = useMemo(() => {
@@ -70,12 +75,13 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         })) ?? [],
       openToCollaborate: member.openToWork,
       primaryTeam: mainTeamData.team,
-      primaryTeamRole: mainTeamData.role,
+      primaryTeamRole: mainTeamData.team ? mainTeamData.role : member.role,
     },
     resolver: yupResolver(editProfileSchema),
   });
   const { handleSubmit, reset, watch, setValue } = methods;
   const { mutateAsync } = useUpdateMember();
+  const { mutateAsync: updateSelfRole } = useUpdateMemberSelfRole();
   const { data: memberData } = useMember(member.id);
   const { onSaveProfileDetailsClicked, onPrimaryTeamChanged } = useMemberAnalytics();
 
@@ -84,7 +90,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
 
   // Store initial primary team to track changes
   const initialPrimaryTeamRef = useRef(mainTeamData.team);
-  const initialPrimaryTeamRoleRef = useRef(mainTeamData.role);
+  const initialPrimaryTeamRoleRef = useRef(mainTeamData.team ? mainTeamData.role : member.role);
 
   // Update role when primary team changes
   useEffect(() => {
@@ -92,8 +98,6 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
       if (selectedPrimaryTeam.role) {
         setValue('primaryTeamRole', selectedPrimaryTeam.role || '');
       }
-    } else {
-      setValue('primaryTeamRole', '');
     }
   }, [selectedPrimaryTeam, member.teamMemberRoles, setValue]);
 
@@ -104,6 +108,17 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
     const hasTeamChanged =
       initialPrimaryTeamRef.current?.value !== formData.primaryTeam?.value ||
       initialPrimaryTeamRoleRef.current !== formData.primaryTeamRole;
+
+    if (
+      !formData.primaryTeam &&
+      formData.primaryTeamRole &&
+      initialPrimaryTeamRoleRef.current !== formData.primaryTeamRole
+    ) {
+      await updateSelfRole({
+        memberUid: member.id,
+        role: formData.primaryTeamRole,
+      });
+    }
 
     if (hasTeamChanged) {
       onPrimaryTeamChanged({
@@ -139,6 +154,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
       newData: {
         ...formatPayload(memberData.memberInfo, formData),
         imageUid: image ? image : memberData.memberInfo.imageUid,
+        role: formData.primaryTeamRole,
       },
     };
 
@@ -156,12 +172,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
     }
   };
 
-  const teamsOptions =
-    member.teams?.map((tmr) => ({
-      value: tmr.id,
-      label: tmr.name ?? '',
-      role: tmr.role,
-    })) ?? [];
+  const { data } = useMemberFormOptions();
 
   return (
     <FormProvider {...methods}>
@@ -193,26 +204,59 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
             </div>
           )}
 
-          {/* Primary Team Section */}
-          {teamsOptions?.length > 1 && (
-            <>
-              <div className={s.row}>
-                <FormSelect
-                  name="primaryTeam"
-                  placeholder="Select your primary team"
-                  backLabel="Teams"
-                  label="Primary Team"
-                  options={teamsOptions}
-                  description="Your primary team is shown on your profile and used as the default across the network."
-                />
-              </div>
-            </>
-          )}
-          {selectedPrimaryTeam && (
-            <div className={s.row}>
-              <FormField name="primaryTeamRole" label="Role in Primary Team" placeholder="Enter your role" />
+          <div className={s.column}>
+            <div className={s.inputsLabel}>Primary Role & Team</div>
+            <div className={s.inputsWrapper}>
+              <FormField name="primaryTeamRole" placeholder="Enter your primary role" />
+              <span>@</span>
+              <FormSelect
+                name="primaryTeam"
+                placeholder="Select your primary team"
+                backLabel="Teams"
+                options={
+                  data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                    value: item.teamUid,
+                    label: item.teamTitle,
+                    originalObject: item,
+                  })) ?? []
+                }
+                renderOption={({ option, label, description }) => {
+                  return (
+                    <div className={s.teamOption}>
+                      <ImageWithFallback
+                        width={24}
+                        height={24}
+                        alt={option.label}
+                        className={s.optImg}
+                        fallbackSrc="/icons/camera.svg"
+                        src={option.originalObject.logo}
+                      />
+                      <div>
+                        {label}
+                        {description}
+                      </div>
+                    </div>
+                  );
+                }}
+                isStickyNoData
+                notFoundContent={
+                  <div className={s.secondaryLabel}>
+                    Not able to find your project or team?
+                    <button
+                      type="button"
+                      className={s.link}
+                      onClick={() => {
+                        setIsAddTeamModalOpen(true);
+                      }}
+                    >
+                      Add your team
+                    </button>
+                  </div>
+                }
+              />
             </div>
-          )}
+            <div className={s.description}>Add your title and organization so others can connect with you.</div>
+          </div>
           <div className={s.infoBlock}>
             <InfoIcon />
             <span className={s.infoText}>Manage teams in the Teams section below</span>
@@ -220,6 +264,17 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         </div>
         <EditFormMobileControls />
       </form>
+
+      {/* Add Team Modal */}
+      <AddTeamModal
+        isOpen={isAddTeamModalOpen}
+        onClose={() => setIsAddTeamModalOpen(false)}
+        requesterEmailId={userInfo.email!}
+        onSuccess={() => {
+          // Refresh the page to show the new team
+          router.refresh();
+        }}
+      />
     </FormProvider>
   );
 };
@@ -240,21 +295,30 @@ function formatPayload(memberInfo: any, formData: TEditProfileForm) {
   let updatedTeamAndRoles = memberInfo.teamMemberRoles;
 
   if (formData.primaryTeam) {
-    // Update all teams: set mainTeam to true for selected primary team, false for others
-    // Also update the role for the primary team
-    updatedTeamAndRoles = memberInfo.teamMemberRoles?.map((tmr: any) => {
-      if (tmr.teamUid === formData.primaryTeam?.value) {
+    const isUpdate = memberInfo.teamMemberRoles.some((tmr: any) => tmr.teamUid === formData.primaryTeam?.value);
+
+    if (isUpdate) {
+      updatedTeamAndRoles = memberInfo.teamMemberRoles?.map((tmr: any) => {
+        if (tmr.teamUid === formData.primaryTeam?.value) {
+          return {
+            ...tmr,
+            role: formData.primaryTeamRole || tmr.role,
+            mainTeam: true,
+          };
+        }
         return {
           ...tmr,
-          role: formData.primaryTeamRole || tmr.role,
-          mainTeam: true,
+          mainTeam: false,
         };
-      }
-      return {
-        ...tmr,
-        mainTeam: false,
-      };
-    });
+      });
+    } else {
+      updatedTeamAndRoles.push({
+        teamUid: formData.primaryTeam?.value,
+        teamTitle: formData.primaryTeam?.label,
+        role: formData.primaryTeamRole || '',
+        mainTeam: true,
+      });
+    }
   } else {
     // If no primary team selected, set all to false
     updatedTeamAndRoles = memberInfo.teamMemberRoles?.map((tmr: any) => ({

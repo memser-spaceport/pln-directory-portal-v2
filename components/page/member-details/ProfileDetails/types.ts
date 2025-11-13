@@ -6,6 +6,6 @@ export interface TEditProfileForm {
   city: string;
   skills: { [key: string]: any }[];
   openToCollaborate: boolean;
-  primaryTeam: { value: string; label: string; role: string } | null;
-  primaryTeamRole: string;
+  primaryTeam: { value: string; label: string; role?: string } | null;
+  primaryTeamRole: string | null;
 }

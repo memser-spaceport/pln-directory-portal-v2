@@ -294,12 +294,39 @@
   gap: 12px;
   display: flex;
   align-items: center;
+  width: 100%;
 
   cursor: pointer;
 
   .optImg {
     display: block;
     border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .optionContent {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .badge {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    letter-spacing: -0.2px;
+
+    &[data-type='team'] {
+      background-color: rgba(27, 77, 255, 0.08);
+      color: #1b4dff;
+    }
+
+    &[data-type='project'] {
+      background-color: rgba(16, 185, 129, 0.08);
+      color: #10b981;
+    }
   }
 }
 

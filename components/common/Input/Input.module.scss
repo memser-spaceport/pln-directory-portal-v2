@@ -2,10 +2,12 @@
 @use '@/styles/media';
 
 .root {
+  gap: 10px;
   display: flex;
   align-items: center;
   position: relative;
   flex: 1 1 auto;
+  padding: 0 10px;
 
   width: 100%;
   min-width: 0;
@@ -17,7 +19,10 @@
   box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
   border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
 
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 
   &:hover,
   &:focus-within {
@@ -30,7 +35,6 @@
     flex: 1 1 auto;
     height: 100%;
 
-    padding: 0 40px 0 10px;
     font-size: 14px !important;
 
     border: 0 !important;

@@ -8,8 +8,9 @@ import { useFilterStore } from '@/services/members/store';
 import { useGetRoles } from '@/services/members/hooks/useGetRoles';
 import { useGetTopics } from '@/services/members/hooks/useGetTopics';
 import { useGetMembersFilterCount } from '@/components/page/members/hooks/useGetMembersFilterCount';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
-import { IUserInfo } from '@/types/shared.types';
+import { IAnalyticsUserInfo, IUserInfo } from '@/types/shared.types';
 import { FiltersPanelToggle } from '@/components/core/FiltersPanelToggle';
 import { InvestorFilterToggle } from '@/components/core/InvestorFilterToggle';
 import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
@@ -19,7 +20,7 @@ import { CalendarIcon } from '@/components/icons';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 
 import { FilterSearch } from './FilterSearch';
-import { FilterSection } from './FilterSection';
+import { FilterSection } from '@/components/common/filters/FilterSection';
 import { FilterCheckboxListWithSearch } from './FilterCheckboxListWithSearch';
 
 import s from './MembersFilter.module.scss';
@@ -40,9 +41,49 @@ export const MembersFilter = (props: IMembersFilter) => {
   const { setParam, clearParams, params } = useFilterStore();
   const appliedFiltersCount = useGetMembersFilterCount();
   const [shouldClearTopicsSearch, setShouldClearTopicsSearch] = useState(false);
+  const analytics = useMemberAnalytics();
+
+  // Wrap clearParams to include analytics
+  const handleClearParams = () => {
+    analytics.onClearAllClicked('Members', params.toString(), userInfo as IAnalyticsUserInfo);
+    clearParams();
+  };
+
+  // Wrap onClose to include analytics for "Apply filters" button
+  const handleClose = () => {
+    analytics.onShowFilterResultClicked(userInfo as IAnalyticsUserInfo);
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  // Analytics callbacks for Topics filter
+  const handleTopicsChange = (key: string, values: string[]) => {
+    analytics.onMembersTopicsFilterSelected({ page: 'Members', topics: values });
+  };
+
+  const handleTopicsSearch = (searchText: string) => {
+    analytics.onMembersTopicsFilterSearched({ page: 'Members', searchText });
+  };
+
+  // Analytics callbacks for Roles filter
+  const handleRolesChange = (key: string, values: string[]) => {
+    analytics.onMembersRolesFilterSelected({ page: 'Members', roles: values });
+  };
+
+  const handleRolesSearch = (searchText: string) => {
+    analytics.onMembersRolesFilterSearched({ page: 'Members', searchText });
+  };
+
+  const handleRolesSelectAll = (wasChecked: boolean) => {
+    // Only track analytics when selecting all, not when deselecting
+    if (!wasChecked) {
+      analytics.onMemberRoleFilterSelectAllClicked(userInfo as IAnalyticsUserInfo);
+    }
+  };
 
   return (
-    <FiltersSidePanel onClose={onClose} clearParams={clearParams} appliedFiltersCount={appliedFiltersCount}>
+    <FiltersSidePanel onClose={handleClose} clearParams={handleClearParams} appliedFiltersCount={appliedFiltersCount}>
       {isAdmin && (
         <FilterSection>
           <FilterSearch label="Search for a member" placeholder="E.g. John Smith" />
@@ -80,6 +121,8 @@ export const MembersFilter = (props: IMembersFilter) => {
           useGetDataHook={useGetTopics}
           defaultItemsToShow={0}
           shouldClearSearch={shouldClearTopicsSearch}
+          onChange={handleTopicsChange}
+          onSearch={handleTopicsSearch}
         />
       </FilterSection>
 
@@ -90,6 +133,9 @@ export const MembersFilter = (props: IMembersFilter) => {
           placeholder="E.g. Founder, VP Marketing..."
           useGetDataHook={useGetRoles}
           defaultItemsToShow={4}
+          onChange={handleRolesChange}
+          onSearch={handleRolesSearch}
+          onSelectAll={handleRolesSelectAll}
         />
       </FilterSection>
 

@@ -1,4 +1,5 @@
 import React, { PropsWithChildren } from 'react';
+import { clsx } from 'clsx';
 
 import { Button } from '@/components/common/Button';
 import FilterCount from '@/components/ui/filter-count';
@@ -9,13 +10,14 @@ interface Props {
   onClose?: () => void;
   clearParams: () => void;
   appliedFiltersCount: number;
+  className?: string;
 }
 
 export function FiltersSidePanel(props: PropsWithChildren<Props>) {
-  const { onClose, clearParams, children, appliedFiltersCount } = props;
+  const { onClose, clearParams, children, appliedFiltersCount, className } = props;
 
   return (
-    <div className={s.root}>
+    <div className={clsx(s.root, className)}>
       <div className={s.header}>
         <h2 className={s.headerTitle}>
           Filters

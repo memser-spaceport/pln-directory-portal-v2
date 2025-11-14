@@ -1,0 +1,8 @@
+@use 'styles/media';
+
+.root {
+  @include media.breakpoint-1024 {
+    position: fixed;
+    width: inherit;
+  }
+}

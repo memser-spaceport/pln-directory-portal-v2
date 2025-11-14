@@ -13,17 +13,21 @@ import { ListLoader } from '@/components/core/loaders/ListLoader';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useInfiniteTeamsList } from '@/services/teams/hooks/useInfiniteTeamsList';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { TeamsMobileFilters } from './TeamsMobileFilters';
 
 interface ITeamList {
   totalTeams: number;
   searchParams: ITeamsSearchParams;
   children: any;
 }
+
 const TeamList = (props: any) => {
   const allTeams = props?.teams ?? [];
   const userInfo = props?.userInfo;
   const searchParams = props?.searchParams;
   const totalTeams = props?.totalTeams;
+  const filterValues = props.filterValues;
+
   const accessLevel = getAccessLevel(userInfo, true);
 
   const analytics = useTeamAnalytics();
@@ -53,6 +57,7 @@ const TeamList = (props: any) => {
         <h1 className="team-list__titlesec__title">Teams</h1>{' '}
         <div className="team-list__title__count">({totalTeams})</div>
       </div>
+      <TeamsMobileFilters userInfo={userInfo} searchParams={searchParams} filterValues={filterValues} />
       <InfiniteScroll
         scrollableTarget="body"
         loader={null}

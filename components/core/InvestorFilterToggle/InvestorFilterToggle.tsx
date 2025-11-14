@@ -1,9 +1,9 @@
 import React from 'react';
 import { clsx } from 'clsx';
 import s from '@/components/page/members/MembersFilter/MembersFilter.module.scss';
-import { Switch } from '@base-ui-components/react/switch';
 import { useFilterStore } from '@/services/members/store';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { GenericFilterToggle } from '@/components/common/filters/GenericFilterToggle';
 
 interface Props {
   label: string;
@@ -11,46 +11,52 @@ interface Props {
 }
 
 /**
- * Specialized toggle component for the investor filter that automatically
- * clears investor-specific filters when turned off
+ * InvestorFilterToggle - Specialized toggle for investor filter
+ *
+ * Automatically clears investor-specific filters (check size, investment focus)
+ * when the main investor toggle is turned off. Uses GenericFilterToggle under the hood.
+ *
+ * @example
+ * ```tsx
+ * <InvestorFilterToggle
+ *   label="Show all Investors"
+ *   paramKey="isInvestor"
+ * />
+ * ```
  */
 export const InvestorFilterToggle = ({ label, paramKey }: Props) => {
-  const { params, setParam } = useFilterStore();
-  const checked = params.get(paramKey) === 'true';
+  const { params } = useFilterStore();
   const { onMembersOHFilterToggled } = useMemberAnalytics();
 
-  const handleChange = () => {
-    const newValue = checked ? undefined : 'true';
+  const checked = params.get(paramKey) === 'true';
 
-    // Report analytics
+  // Handle analytics
+  const handleChange = (newChecked: boolean) => {
     onMembersOHFilterToggled({
       page: 'Members',
       option: paramKey,
-      value: checked ? 'false' : 'true',
+      value: newChecked ? 'true' : 'false',
     });
+  };
 
-    // Set the main investor parameter
-    setParam(paramKey, newValue);
-
-    // If turning off the investor filter, clear investor-specific filters
-    if (checked) {
-      // Clear typical check size filters
+  // Clear related filters when turning OFF the investor toggle
+  const handleBeforeChange = (isCurrentlyChecked: boolean, setParam: (key: string, value?: string) => void) => {
+    if (isCurrentlyChecked) {
+      // Turning OFF - clear investor-specific filters
       setParam('minTypicalCheckSize', undefined);
       setParam('maxTypicalCheckSize', undefined);
-
-      // Clear investment focus filter
       setParam('investmentFocus', undefined);
     }
   };
 
   return (
-    <label className={clsx(s.Label, s.toggle)}>
-      {label}
-      <Switch.Root className={s.Switch} checked={checked} onCheckedChange={handleChange}>
-        <Switch.Thumb className={s.Thumb}>
-          <div className={s.dot} />
-        </Switch.Thumb>
-      </Switch.Root>
-    </label>
+    <GenericFilterToggle
+      label={label}
+      paramKey={paramKey}
+      filterStore={useFilterStore}
+      onChange={handleChange}
+      onBeforeChange={handleBeforeChange}
+      className={clsx(s.Label, s.toggle)}
+    />
   );
 };

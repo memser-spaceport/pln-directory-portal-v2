@@ -1,18 +1,16 @@
-import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
-import { INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
+import { ITeamsSearchParams } from '@/types/teams.types';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { getTeamsListOptions, getTeamsOptionsFromQuery } from '@/utils/team.utils';
 import EmptyResult from '../../../../components/core/empty-result';
 import Error from '../../../../components/core/error';
 import TeamsToolbar from '../../../../components/page/teams/teams-toolbar';
 import styles from './page.module.css';
 import TeamList from '@/components/page/teams/team-list';
-import { getTeamList } from '@/app/actions/teams.actions';
+import { getTeamsPageData } from '@/app/teams/(teams-page)/getTeamsPageData';
 
 async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
 
-  const { teams, isError, totalTeams } = await getPageData(searchParams);
+  const { teams, isError, totalTeams, filterValues } = await getPageData(searchParams);
 
   if (isError) {
     return <Error />;
@@ -25,7 +23,13 @@ async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
       </div>
       <div className={styles.team__right__teamslist}>
         {teams?.length >= 0 && (
-          <TeamList teams={teams} totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />
+          <TeamList
+            teams={teams}
+            totalTeams={totalTeams}
+            searchParams={searchParams}
+            userInfo={userInfo}
+            filterValues={filterValues}
+          />
         )}
         {teams?.length === 0 && <EmptyResult />}
       </div>
@@ -36,28 +40,5 @@ async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
 export default Page;
 
 const getPageData = async (searchParams: ITeamsSearchParams) => {
-  let teams = [];
-  let isError = false;
-  let totalTeams = 0;
-
-  try {
-    const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
-    const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
-
-    const teamListResponse = await getTeamList(listOptions, 1, INITIAL_ITEMS_PER_PAGE);
-
-    if (teamListResponse?.isError) {
-      isError = true;
-      return { isError };
-    }
-
-    teams = teamListResponse.data;
-    totalTeams = teamListResponse?.totalItems;
-
-    return JSON.parse(JSON.stringify({ isError, totalTeams, teams }));
-  } catch (error: unknown) {
-    isError = true;
-    console.error('Error in getting teams page content data', error);
-    return { isError };
-  }
+  return getTeamsPageData(searchParams);
 };

@@ -10,12 +10,11 @@ type FundingStageItem = {
  * Get available funding stages for filtering
  *
  * Transforms server-side filter data into FilterOption format for GenericCheckboxList.
- * This is NOT a React hook - it's a factory function that creates a data hook.
  *
  * @param fundingStages - Funding stages data from server
  * @returns Hook function compatible with GenericCheckboxList's useGetDataHook prop
  */
-export function useGetFundingStages(fundingStages: FundingStageItem[] | undefined) {
+export function getFundingStagesGetter(fundingStages: FundingStageItem[] | undefined) {
   return (input: string): { data?: FilterOption[] } => {
     if (!fundingStages || fundingStages.length === 0) {
       return { data: [] };

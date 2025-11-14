@@ -10,12 +10,11 @@ type TagItem = {
  * Get available team tags (industry tags) for filtering
  *
  * Transforms server-side filter data into FilterOption format for GenericCheckboxList.
- * This is NOT a React hook - it's a factory function that creates a data hook.
  *
  * @param tags - Tags data from server
  * @returns Hook function compatible with GenericCheckboxList's useGetDataHook prop
  */
-export function useGetTeamTags(tags: TagItem[] | undefined) {
+export function getTeamTagsGetter(tags: TagItem[] | undefined) {
   return (input: string): { data?: FilterOption[] } => {
     if (!tags || tags.length === 0) {
       return { data: [] };

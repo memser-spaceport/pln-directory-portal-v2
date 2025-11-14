@@ -10,12 +10,11 @@ type MembershipSourceItem = {
  * Get available membership sources for filtering
  *
  * Transforms server-side filter data into FilterOption format for GenericCheckboxList.
- * This is NOT a React hook - it's a factory function that creates a data hook.
  *
  * @param membershipSources - Membership sources data from server
  * @returns Hook function compatible with GenericCheckboxList's useGetDataHook prop
  */
-export function useGetMembershipSources(membershipSources: MembershipSourceItem[] | undefined) {
+export function getMembershipSourcesGetter(membershipSources: MembershipSourceItem[] | undefined) {
   return (input: string): { data?: FilterOption[] } => {
     if (!membershipSources || membershipSources.length === 0) {
       return { data: [] };

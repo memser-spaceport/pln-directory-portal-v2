@@ -3,16 +3,15 @@
 import React from 'react';
 import { IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems } from '@/types/teams.types';
-import { FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES } from '@/utils/constants';
+import { FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
 
 import {
-  useTeamFilterStore,
-  useTeamFilterCount,
-  useGetTeamTags,
-  useGetMembershipSources,
-  useGetFundingStages,
-  useGetTechnologies,
-} from '@/services/teams';
+  getTeamTagsGetter,
+  getTechnologiesGetter,
+  getFundingStagesGetter,
+  getMembershipSourcesGetter,
+} from '@/services/teams/utils';
+import { useTeamFilterStore, useTeamFilterCount } from '@/services/teams';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { GenericFilterToggle } from '@/components/common/filters/GenericFilterToggle';
@@ -43,10 +42,10 @@ export function TeamsFilter(props: TeamsFilterProps) {
 
   // Create data hooks at the top level (not conditionally)
   // These factory functions return data hooks that can be passed to GenericCheckboxList
-  const getTeamTags = useGetTeamTags(filterValues?.tags);
-  const getMembershipSources = useGetMembershipSources(filterValues?.membershipSources);
-  const getFundingStages = useGetFundingStages(filterValues?.fundingStage);
-  const getTechnologies = useGetTechnologies(filterValues?.technology);
+  const getTeamTags = getTeamTagsGetter(filterValues?.tags);
+  const getMembershipSources = getMembershipSourcesGetter(filterValues?.membershipSources);
+  const getFundingStages = getFundingStagesGetter(filterValues?.fundingStage);
+  const getTechnologies = getTechnologiesGetter(filterValues?.technology);
 
   return (
     <FiltersSidePanel onClose={onClose} clearParams={clearParams} appliedFiltersCount={appliedFiltersCount}>

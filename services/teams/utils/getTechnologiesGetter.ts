@@ -10,12 +10,11 @@ type TechnologyItem = {
  * Get available technologies for filtering
  *
  * Transforms server-side filter data into FilterOption format for GenericCheckboxList.
- * This is NOT a React hook - it's a factory function that creates a data hook.
  *
  * @param technologies - Technologies data from server
  * @returns Hook function compatible with GenericCheckboxList's useGetDataHook prop
  */
-export function useGetTechnologies(technologies: TechnologyItem[] | undefined) {
+export function getTechnologiesGetter(technologies: TechnologyItem[] | undefined) {
   return (input: string): { data?: FilterOption[] } => {
     if (!technologies || technologies.length === 0) {
       return { data: [] };

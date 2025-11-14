@@ -21,7 +21,6 @@ import IrlErrorPage from '@/components/core/irl-error-page';
 import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 import IrlFollowGathering from '@/components/page/irl/follow-gathering/irl-follow-gathering';
 import IrlHuskyIntegration from '@/components/page/irl/irl-husky/irl-husky-integration';
-import AddtionalResources from '@/components/page/irl/events/addtional-resources';
 
 export default async function Page({ searchParams }: any) {
   const {
@@ -86,11 +85,6 @@ export default async function Page({ searchParams }: any) {
             guestDetails={guestDetails}
           />
         </section>
-        {eventDetails?.resources?.length > 0 && (
-          <section className={styles.irlGatherings__additionalResources}>
-            <AddtionalResources eventDetails={eventDetails} searchParams={searchParams} isLoggedIn={isLoggedIn} />
-          </section>
-        )}
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
           <AttendeeList

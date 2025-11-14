@@ -8,6 +8,7 @@ import { IAnalyticsGuestLocation } from '@/types/irl.types';
 import Search from './search';
 import { triggerLoader } from '@/utils/common.utils';
 import { ATTENDEE_TYPE_DATA } from '@/utils/constants';
+import AddtionalResources from '../events/addtional-resources';
 interface IToolbar {
   onLogin: () => void;
   userInfo: IUserInfo;
@@ -127,8 +128,17 @@ const Toolbar = (props: IToolbar) => {
           </span>
         </span>
         {
-          <div className="toolbar__search">
-            <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
+          <div className="toolbar__search__container">
+            <div className="toolbar__search">
+              <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
+            </div>
+            {props.locationEvents?.resources?.length > 0 && (
+               <AddtionalResources 
+                eventDetails={props.locationEvents} 
+                searchParams={Object.fromEntries(searchParams.entries())} 
+                isLoggedIn={props.isLoggedIn} 
+               />
+            )}
           </div>
         }
       </div>
@@ -155,8 +165,17 @@ const Toolbar = (props: IToolbar) => {
               gap: 8px;
             }
             }
-          .toolbar__search {
+          .toolbar__search__container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
             width: 100%;
+          }
+          .toolbar__search {
+            flex: 1;
+            min-width: 200px;
           }
           .toolbar__hdr {
             font-size: 18px;
@@ -464,10 +483,15 @@ const Toolbar = (props: IToolbar) => {
               justify-content: flex-end;
               flex: unset;
             }
+            .toolbar__search__container {
+              width: auto;
+              flex: 1;
+              order: 3; /* Search comes last */
+            }
             .toolbar__search {
               width: 300px;
+              flex: 0 0 300px;
               flex-basis: unset;
-              order: 3; /* Search comes last */
             }
             .toolbar__actionCn__edit__list {
               right: 0px;
@@ -484,8 +508,17 @@ const Toolbar = (props: IToolbar) => {
               flex-direction: row;
               flex-wrap: wrap;
             }
+            .toolbar__search__container {
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              gap: 8px;
+              width: auto;
+              flex: 1;
+            }
             .toolbar__search {
               width: 300px;
+              flex: 0 0 300px;
               flex-basis: unset;
             }
           }
@@ -501,8 +534,17 @@ const Toolbar = (props: IToolbar) => {
               padding: 0px;
               gap: 18px;
             }
+            .toolbar__search__container {
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              gap: 18px;
+              width: auto;
+              flex: 1;
+            }
             .toolbar__search {
               width: 300px;
+              flex: 0 0 300px;
               flex-basis: unset;
             }
             .toolbar__hdr {

@@ -107,8 +107,8 @@ const AddtionalResources = (props: any) => {
           line-height: 20px;
           text-align: left;
           align-items: ${!isLoggedIn ? 'center' : 'unset'};
-          padding: 20px 14px;
-          border-block: 1px solid #cbd5e1;
+          // padding: 20px 14px;
+          // border-block: 1px solid #cbd5e1;
           min-height: 36px;
         }
 
@@ -229,7 +229,7 @@ const AddtionalResources = (props: any) => {
           width: 100%;
           height: 48px;
           padding: 14px 0px;
-          border-bottom: 1px solid #cbd5e1;
+          // border-bottom: 1px solid #cbd5e1;
           color: #156ff7;
         }
 
@@ -285,6 +285,12 @@ const AddtionalResources = (props: any) => {
           .irl__showMore__count::before {
             content: '+${eventDetails?.resources?.length - 4}';
             font-size: 13px;
+          }
+        }
+
+        @media (max-width: 690px) {
+          .irl__addRes {
+            margin-top: 12px;
           }
         }
       `}</style>

@@ -121,6 +121,7 @@ export interface ILinkedinProfile {
 export type InvestorProfileType = 'ANGEL' | 'FUND' | 'ANGEL_AND_FUND';
 
 export interface IMember {
+  role?: string | null;
   profile?: string | null;
   id: string;
   name: string;

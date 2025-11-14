@@ -21,9 +21,9 @@ export const editProfileSchema = yup.object().shape({
     .shape({
       value: yup.string().defined(),
       label: yup.string().defined(),
-      role: yup.string().defined(),
+      // role: yup.string().defined(),
     })
     .nullable()
     .defined(),
-  primaryTeamRole: yup.string().defined(),
+  primaryTeamRole: yup.string().defined().nullable(),
 });

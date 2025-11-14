@@ -3,7 +3,7 @@ import { IMembersSearchParams } from '@/types/members.types';
 import { getFormattedFilters, getMembersOptionsFromQuery, getRoleTagsFromValues } from '@/utils/member.utils';
 import { getFilterValuesForQuery, getMemberRoles } from '@/services/members.service';
 import Error from '@/components/core/error';
-import FilterWrapper from '@/components/page/members/filter-wrapper';
+import FilterWrapper from '@/components/page/members/FilterWrapper';
 
 async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import Image from 'next/image';
 import Cookies from 'js-cookie';
@@ -15,20 +15,20 @@ import { SignupForm } from '@/components/page/sign-up/components/SignupWizard/ty
 import { signupSchema } from '@/components/page/sign-up/components/SignupWizard/helpers';
 import { FormField } from '@/components/form/FormField';
 import { ProfileImageInput } from '@/components/page/sign-up/components/ProfileImageInput';
-import { Field } from '@base-ui-components/react/field';
 import { getRecaptchaToken } from '@/services/google-recaptcha.service';
 import { toast } from '@/components/core/ToastContainer';
 import { isSkipRecaptcha } from '@/utils/common.utils';
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
-import SearchWithSuggestions from '@/components/form/suggestions';
-import { useSignup } from '@/services/signup/hooks/useSignup';
-import { GROUP_TYPES } from '@/utils/constants';
+import { useSignupV2 } from '@/services/signup/hooks/useSignup';
 import { Checkbox } from '@/components/common/Checkbox';
 import { MAX_NAME_LENGTH } from '@/constants/profile';
 
 import { TERMS_OF_SERVICE_AND_PRIVACY_URL } from './constants';
 
 import s from './SignupWizard.module.scss';
+import { FormSelect } from '@/components/form/FormSelect';
+import ImageWithFallback from '@/components/common/ImageWithFallback';
+import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 
 interface Props {
   onClose?: () => void;
@@ -37,18 +37,24 @@ interface Props {
 
 export const SignupWizard = ({ onClose, signUpSource }: Props) => {
   const router = useRouter();
+  const { data } = useMemberFormOptions();
   const searchParams = useSearchParams();
   const analytics = useSignUpAnalytics();
+  const [isAddingTeam, setIsAddingTeam] = useState(false);
+
   const methods = useForm<SignupForm>({
     defaultValues: {
       name: '',
       email: '',
       image: null,
-      teamOrProject: '',
+      teamOrProject: null,
+      teamName: '',
+      websiteAddress: '',
       subscribe: true,
       agreed: true,
     },
     mode: 'all',
+    // @ts-ignore
     resolver: yupResolver(signupSchema),
   });
   const {
@@ -59,7 +65,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
   } = methods;
   const { subscribe, agreed } = watch();
 
-  const { mutateAsync } = useSignup();
+  const { mutateAsync } = useSignupV2();
 
   // Get returnTo parameter from URL
   const returnTo = searchParams.get('returnTo');
@@ -80,13 +86,6 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     const source = Cookies.get('utm_source') ?? '';
     const medium = Cookies.get('utm_medium') ?? '';
 
-    const payload: Record<string, any> = {
-      name: formData.name,
-      email: formData.email,
-      isSubscribedToNewsletter: formData.subscribe,
-      isUserConsent: formData.agreed,
-    };
-
     let image;
 
     if (formData.image) {
@@ -94,18 +93,55 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       image = imgResponse?.image;
     }
 
+    // Build the newData object
+    const newData: Record<string, any> = {
+      name: formData.name,
+      email: formData.email,
+      isSubscribedToNewsletter: formData.subscribe,
+      isUserConsent: formData.agreed,
+    };
+
     if (image) {
-      payload.imageUid = image.uid;
-      payload.imageUrl = image.url;
+      newData.imageUid = image.uid;
+      newData.imageUrl = image.url;
     }
 
-    if (typeof formData.teamOrProject === 'string') {
-      payload.teamOrProjectURL = formData.teamOrProject;
-    } else if (formData.teamOrProject.group === GROUP_TYPES.PROJECT) {
-      payload.projectContributions = [{ projectUid: formData.teamOrProject.uid }];
-    } else if (formData.teamOrProject.group === GROUP_TYPES.TEAM) {
-      payload.teamAndRoles = [{ teamUid: formData.teamOrProject.uid, teamTitle: formData.teamOrProject.name }];
+    // Build the team/project object
+    let team: { uid?: string; name?: string; website?: string } = {};
+    let isTeamNew = false;
+    let project: { projectUid: string } | null = null;
+
+    if (formData.teamOrProject) {
+      isTeamNew = false;
+
+      // Check if it's a team or project
+      if (formData.teamOrProject.type === 'project') {
+        // For projects, we'll use projectContributions
+        project = {
+          projectUid: formData.teamOrProject.value,
+        };
+      } else {
+        // For teams, use the team object
+        team = {
+          uid: formData.teamOrProject.value,
+        };
+      }
+    } else if (formData.teamName) {
+      isTeamNew = true;
+      team = {
+        name: formData.teamName,
+        ...(formData.websiteAddress && { website: formData.websiteAddress }),
+      };
     }
+
+    // Build the payload for useSignupV2
+    const payload: any = {
+      uniqueIdentifier: formData.email,
+      role: formData.role || '',
+      isTeamNew,
+      ...(project ? { project } : { team }),
+      newData,
+    };
 
     // Use signUpSource prop if provided, otherwise fall back to UTM source
     if (signUpSource) {
@@ -120,18 +156,13 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       payload.signUpCampaign = campaign;
     }
 
-    const res = await mutateAsync({
-      payload,
-      reCAPTCHAToken: reCAPTCHAToken.token,
-    });
+    const res = await mutateAsync(payload);
 
     if (res.success) {
       analytics.recordSignUpSave('submit-clicked-success', formData);
-      // toast.success('Thank you for signing up! Your profile is currently under review. You’ll receive an email as soon as it’s approved.');
 
-      // todo - use case C
       router.replace(
-        `${window.location.origin}/members/${res.data.uid}?prefillEmail=${encodeURIComponent(payload.email)}&returnTo=members-${res.data.uid}#login`,
+        `${window.location.origin}/members/${res.data.uid}?prefillEmail=${encodeURIComponent(formData.email)}&returnTo=members-${res.data.uid}#login`,
       );
 
       setTimeout(() => {
@@ -170,6 +201,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
             <Illustration />
           </div>
           <FormProvider {...methods}>
+            {/* @ts-ignore */}
             <form className={clsx(s.root)} noValidate onSubmit={handleSubmit(onSubmit)}>
               <div className={s.content}>
                 <div className={s.title}>Join the PL Network</div>
@@ -180,26 +212,122 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                 <div className={s.row}>
                   <FormField name="email" label="Email*" placeholder="Enter email" />
                 </div>
-                <div className={s.row}>
-                  <Field.Root className={s.field}>
-                    <Field.Label className={s.label}>Select a Team or a Project you are associated with</Field.Label>
-                    <SearchWithSuggestions
-                      addNew={{
-                        enable: true,
-                        title: 'Not able to find your project or team?',
-                        actionString: 'Share URL',
-                        iconURL: '/icons/sign-up/share.svg',
-                        placeHolderText: 'Enter or paste URL here',
-                      }}
-                      id={'search-team-and-project'}
-                      name={'search-team-and-project'}
-                      placeHolder="Enter a name of your team or project"
-                      onSelect={(suggestion) => {
-                        setValue('teamOrProject', suggestion, { shouldValidate: true });
-                      }}
-                    />
-                  </Field.Root>
+
+                <div className={s.column}>
+                  <div className={s.inputsLabel}>Add Role & Team</div>
+                  {!isAddingTeam ? (
+                    <>
+                      <div className={s.inputsWrapper}>
+                        <FormField name="role" placeholder="Enter your primary role" />
+                        <span>@</span>
+                        <FormSelect
+                          name="teamOrProject"
+                          placeholder="Search or add a team"
+                          backLabel="Teams & Projects"
+                          options={[
+                            ...(data?.teams?.map((item: { teamUid: string; teamTitle: string; logo?: string }) => ({
+                              value: item.teamUid,
+                              label: item.teamTitle,
+                              type: 'team' as const,
+                              originalObject: item,
+                            })) ?? []),
+                            ...(data?.projects?.map(
+                              (item: { projectUid: string; projectName: string; projectLogo?: string }) => ({
+                                value: item.projectUid,
+                                label: item.projectName,
+                                type: 'project' as const,
+                                originalObject: item,
+                              }),
+                            ) ?? []),
+                          ].sort((a, b) => a.label.localeCompare(b.label))}
+                          renderOption={({ option, label, description }) => {
+                            return (
+                              <div className={s.teamOption}>
+                                <ImageWithFallback
+                                  width={24}
+                                  height={24}
+                                  alt={option.label}
+                                  className={s.optImg}
+                                  fallbackSrc="/icons/camera.svg"
+                                  src={option.originalObject.logo || option.originalObject.projectLogo}
+                                />
+                                <div className={s.optionContent}>
+                                  {label}
+                                  {description}
+                                </div>
+                                <span className={s.badge} data-type={option.type}>
+                                  {option.type === 'team' ? 'Team' : 'Project'}
+                                </span>
+                              </div>
+                            );
+                          }}
+                          isStickyNoData
+                          notFoundContent={
+                            <div className={s.secondaryLabel}>
+                              Not able to find your project or team?
+                              <button
+                                type="button"
+                                className={s.link}
+                                onClick={() => {
+                                  setIsAddingTeam(true);
+                                  setValue('teamOrProject', null, { shouldValidate: true });
+                                }}
+                              >
+                                Add your team
+                              </button>
+                            </div>
+                          }
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className={s.col}>
+                      <div className={s.column}>
+                        <div className={s.inputsWrapper}>
+                          <FormField name="role" placeholder="Enter your primary role" />
+                          <span>@</span>
+                          <FormField
+                            name="teamName"
+                            placeholder="Enter team name"
+                            clearable
+                            onClear={() => {
+                              setIsAddingTeam(false);
+                              setValue('teamName', '', { shouldValidate: true });
+                              setValue('websiteAddress', '', { shouldValidate: true });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {isAddingTeam && (
+                  <div className={s.row}>
+                    <FormField name="websiteAddress" placeholder="Enter website address" label="Website address" />
+                  </div>
+                )}
+
+                {/*<div className={s.row}>*/}
+                {/*  <Field.Root className={s.field}>*/}
+                {/*    <Field.Label className={s.label}>Select a Team or a Project you are associated with</Field.Label>*/}
+                {/*    <SearchWithSuggestions*/}
+                {/*      addNew={{*/}
+                {/*        enable: true,*/}
+                {/*        title: 'Not able to find your project or team?',*/}
+                {/*        actionString: 'Share URL',*/}
+                {/*        iconURL: '/icons/sign-up/share.svg',*/}
+                {/*        placeHolderText: 'Enter or paste URL here',*/}
+                {/*      }}*/}
+                {/*      id={'search-team-and-project'}*/}
+                {/*      name={'search-team-and-project'}*/}
+                {/*      placeHolder="Enter a name of your team or project"*/}
+                {/*      onSelect={(suggestion) => {*/}
+                {/*        setValue('teamOrProject', suggestion, { shouldValidate: true });*/}
+                {/*      }}*/}
+                {/*    />*/}
+                {/*  </Field.Root>*/}
+                {/*</div>*/}
                 <div className={s.col}>
                   <label className={s.Label}>
                     <Checkbox
@@ -235,7 +363,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                 >
                   {isSubmitting ? (
                     <>
-                      <LoaderIcon /> <span>Creating profile</span>
+                      <div className={s.loader} /> <span>Creating profile</span>
                     </>
                   ) : (
                     <>Create profile</>
@@ -253,5 +381,3 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     </>
   );
 };
-
-const LoaderIcon = () => <div className={s.loader} />;

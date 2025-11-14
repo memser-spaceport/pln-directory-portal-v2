@@ -180,69 +180,6 @@ export function AddTeamDrawer(props: Props) {
                   />
                 </FormField>
               </div>
-
-              <FormField name="role">
-                <TextField
-                  value={role || ''}
-                  defaultValue={role || ''}
-                  isError={!!errors['role']}
-                  name="role"
-                  type="text"
-                  label={<Label>Role</Label>}
-                  placeholder="Enter your role"
-                  onChange={(e) => setValue('role', e.target.value, { shouldValidate: true })}
-                />
-              </FormField>
-
-              <FormField name="description">
-                <TextField
-                  value={description}
-                  defaultValue={description}
-                  isError={!!errors['description']}
-                  name="description"
-                  type="description"
-                  label={<Label mandatory>Short Description</Label>}
-                  placeholder="Enter short description here"
-                  onChange={(e) => setValue('description', e.target.value, { shouldValidate: true })}
-                />
-                <div className={s.subLabel}>150 characters max.</div>
-              </FormField>
-
-              <FormField name="fundingStage">
-                <SingleSelect
-                  id=""
-                  uniqueKey="id"
-                  displayKey="name"
-                  placeholder="Select company stage"
-                  options={formOptions?.fundingStage || []}
-                  selectedOption={fundingStage}
-                  onItemSelect={(opt) => setValue('fundingStage', opt as Option, { shouldValidate: true })}
-                  arrowImgUrl="/icons/arrow-down.svg"
-                  label={<Label mandatory>Company Stage</Label>}
-                />
-              </FormField>
-
-              <FormField name="industryTags">
-                <MultiSelect
-                  options={formOptions?.industryTags || []}
-                  selectedOptions={industryTags}
-                  onAdd={(item) =>
-                    setValue('industryTags', tagHandlers.addItem(item as Option), { shouldValidate: true })
-                  }
-                  onRemove={(item) =>
-                    setValue('industryTags', tagHandlers.removeItem(item as Option), { shouldValidate: true })
-                  }
-                  uniqueKey="id"
-                  displayKey="name"
-                  label={<Label mandatory>Industry Tags</Label>}
-                  placeholder="Search or select industry tags"
-                  closeImgUrl="/icons/close.svg"
-                  arrowImgUrl="/icons/arrow-down.svg"
-                />
-              </FormField>
-            </Section>
-
-            <Section header="Contact Details">
               <FormField name="website">
                 <TextField
                   value={website}
@@ -255,22 +192,21 @@ export function AddTeamDrawer(props: Props) {
                   onChange={(e) => setValue('website', e.target.value, { shouldValidate: true })}
                 />
               </FormField>
-
-              <FormField name="contactMethod">
+              <FormField name="role">
                 <TextField
-                  value={contactMethod}
-                  defaultValue={contactMethod}
-                  isError={!!errors['contactMethod']}
-                  name="contactMethod"
+                  value={role || ''}
+                  defaultValue={role || ''}
+                  isError={!!errors['role']}
+                  name="role"
                   type="text"
-                  label={<Label mandatory>Preferred method of contact</Label>}
-                  placeholder="Enter method of contact"
-                  onChange={(e) => setValue('contactMethod', e.target.value, { shouldValidate: true })}
+                  label={<Label>Role</Label>}
+                  placeholder="Enter your role"
+                  onChange={(e) => setValue('role', e.target.value, { shouldValidate: true })}
                 />
               </FormField>
             </Section>
 
-            <Section header="Investor Profile" delimiter={false}>
+            <Section header="Add Investor Profile">
               <div className={s.isFund}>
                 <input
                   name="isFund"
@@ -282,7 +218,6 @@ export function AddTeamDrawer(props: Props) {
                 />
                 <label htmlFor="team-investment-fund">This team is an investment fund.</label>
               </div>
-
               <FormField name="startupStages" className={hiddenClass}>
                 <MultiSelect
                   options={fundingStageOptions}
@@ -338,6 +273,65 @@ export function AddTeamDrawer(props: Props) {
                   placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
                   closeImgUrl="/icons/close.svg"
                   arrowImgUrl="/icons/arrow-down.svg"
+                />
+              </FormField>
+            </Section>
+
+            <Section header="Add Additional Details" defaultExpanded={false}>
+              <FormField name="description">
+                <TextField
+                  value={description}
+                  defaultValue={description}
+                  isError={!!errors['description']}
+                  name="description"
+                  type="description"
+                  label={<Label>Short Description</Label>}
+                  placeholder="Enter short description here"
+                  onChange={(e) => setValue('description', e.target.value, { shouldValidate: true })}
+                />
+                <div className={s.subLabel}>150 characters max.</div>
+              </FormField>
+              <FormField name="fundingStage">
+                <SingleSelect
+                  id=""
+                  uniqueKey="id"
+                  displayKey="name"
+                  placeholder="Select company stage"
+                  options={formOptions?.fundingStage || []}
+                  selectedOption={fundingStage}
+                  onItemSelect={(opt) => setValue('fundingStage', opt as Option, { shouldValidate: true })}
+                  arrowImgUrl="/icons/arrow-down.svg"
+                  label={<Label>Company Stage / Type</Label>}
+                />
+              </FormField>
+              <FormField name="industryTags">
+                <MultiSelect
+                  options={formOptions?.industryTags || []}
+                  selectedOptions={industryTags}
+                  onAdd={(item) =>
+                    setValue('industryTags', tagHandlers.addItem(item as Option), { shouldValidate: true })
+                  }
+                  onRemove={(item) =>
+                    setValue('industryTags', tagHandlers.removeItem(item as Option), { shouldValidate: true })
+                  }
+                  uniqueKey="id"
+                  displayKey="name"
+                  label={<Label>Industry Tags</Label>}
+                  placeholder="Search or select industry tags"
+                  closeImgUrl="/icons/close.svg"
+                  arrowImgUrl="/icons/arrow-down.svg"
+                />
+              </FormField>
+              <FormField name="contactMethod">
+                <TextField
+                  value={contactMethod}
+                  defaultValue={contactMethod}
+                  isError={!!errors['contactMethod']}
+                  name="contactMethod"
+                  type="text"
+                  label={<Label>Preferred method of contact</Label>}
+                  placeholder="Enter method of contact"
+                  onChange={(e) => setValue('contactMethod', e.target.value, { shouldValidate: true })}
                 />
               </FormField>
             </Section>

@@ -12,10 +12,11 @@ interface Props {
   selected: FilterOption[];
   paramKey: string;
   setValue: (key: string, vals: FilterOption[], params: Record<string, boolean>) => void;
+  onSelectAll?: (wasChecked: boolean) => void;
 }
 
 export function SelectAll(props: Props) {
-  const { data, selected, paramKey, setValue } = props;
+  const { data, selected, paramKey, setValue, onSelectAll } = props;
 
   const count = useMemo(
     () =>
@@ -36,7 +37,11 @@ export function SelectAll(props: Props) {
     const newValue = checked ? [] : uniqBy([...selected, ...data], 'value');
 
     setValue(paramKey, newValue, { shouldValidate: true, shouldDirty: true });
-  }, [data, checked, selected]);
+
+    if (onSelectAll) {
+      onSelectAll(checked);
+    }
+  }, [data, checked, selected, paramKey, setValue, onSelectAll]);
 
   if (isEmpty(data) && isEmpty(selected)) {
     return null;

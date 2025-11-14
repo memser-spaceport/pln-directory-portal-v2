@@ -33,9 +33,5 @@ export const useTeamFilterStore = createFilterStore({
     'sort',                  // Sort order
     'page',                  // Page number
   ],
-  onFilterChange: (key, value, allParams) => {
-    // Analytics will be integrated when we refactor the teams filter
-    // For now, this is a placeholder
-    console.log('Team filter changed:', key, value);
-  },
+  onFilterChange: (key, value, allParams) => {},
 });

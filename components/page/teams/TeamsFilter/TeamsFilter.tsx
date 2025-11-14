@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
-import { IUserInfo } from '@/types/shared.types';
+import last from 'lodash/last';
+import isEmpty from 'lodash/isEmpty';
+import { IAnalyticsUserInfo, IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems } from '@/types/teams.types';
 import { FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
 
@@ -20,6 +22,7 @@ import { FiltersSearch } from '@/components/page/teams/FiltersSearch';
 import FocusAreaFilter from '@/components/core/focus-area-filter/focus-area-filter';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import Image from 'next/image';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 
 export interface TeamsFilterProps {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -39,6 +42,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
 
   const { clearParams } = useTeamFilterStore();
   const appliedFiltersCount = useTeamFilterCount();
+  const analytics = useTeamAnalytics();
 
   // Create data hooks at the top level (not conditionally)
   // These factory functions return data hooks that can be passed to GenericCheckboxList
@@ -47,8 +51,22 @@ export function TeamsFilter(props: TeamsFilterProps) {
   const getFundingStages = getFundingStagesGetter(filterValues?.fundingStage);
   const getTechnologies = getTechnologiesGetter(filterValues?.technology);
 
+  // Wrap clearParams to include analytics
+  const handleClearParams = () => {
+    analytics.onClearAllFiltersClicked(userInfo as IAnalyticsUserInfo);
+    clearParams();
+  };
+
+  // Wrap onClose to include analytics for "Apply filters" button
+  const handleClose = () => {
+    analytics.onTeamShowFilterResultClicked();
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
-    <FiltersSidePanel onClose={onClose} clearParams={clearParams} appliedFiltersCount={appliedFiltersCount}>
+    <FiltersSidePanel onClose={handleClose} clearParams={handleClearParams} appliedFiltersCount={appliedFiltersCount}>
       <FilterSection title="Team Search">
         <FiltersSearch searchParams={searchParams} userInfo={userInfo} />
       </FilterSection>
@@ -58,22 +76,43 @@ export function TeamsFilter(props: TeamsFilterProps) {
           label="Only Show Teams with Office Hours"
           paramKey="officeHoursOnly"
           filterStore={useTeamFilterStore}
+          onChange={(checked) => {
+            if (checked) analytics.onOfficeHoursSelected();
+          }}
         />
         <GenericFilterToggle
           label="Include Friends of Protocol Labs"
           paramKey="includeFriends"
           filterStore={useTeamFilterStore}
+          onChange={(checked) => {
+            if (checked) analytics.onFriendsOfProtocolSelected();
+          }}
         />
-        <GenericFilterToggle label="New Teams" paramKey="isRecent" filterStore={useTeamFilterStore} />
+        <GenericFilterToggle
+          label="New Teams"
+          paramKey="isRecent"
+          filterStore={useTeamFilterStore}
+          onChange={() => analytics.onIsActiveToggleClicked()}
+        />
       </FilterSection>
 
       {/* Contributions */}
       <FilterSection title="Contributions">
-        <GenericFilterToggle label="Host" paramKey="isHost" filterStore={useTeamFilterStore} />
+        <GenericFilterToggle
+          label="Host"
+          paramKey="isHost"
+          filterStore={useTeamFilterStore}
+          onChange={() => analytics.onIsHostToggleClicked()}
+        />
 
         <div style={{ marginTop: '16px' }} />
 
-        <GenericFilterToggle label="Sponsor" paramKey="isSponsor" filterStore={useTeamFilterStore} />
+        <GenericFilterToggle
+          label="Sponsor"
+          paramKey="isSponsor"
+          filterStore={useTeamFilterStore}
+          onChange={() => analytics.onIsSponsorToggleClicked()}
+        />
       </FilterSection>
 
       {/* Focus Area */}
@@ -99,6 +138,12 @@ export function TeamsFilter(props: TeamsFilterProps) {
             filterStore={useTeamFilterStore}
             useGetDataHook={getTeamTags}
             defaultItemsToShow={5}
+            onChange={(key, values) => {
+              if (!isEmpty(values)) {
+                const latestValue = last(values) || '';
+                analytics.onFilterApplied('tags', latestValue);
+              }
+            }}
           />
         </FilterSection>
       )}
@@ -113,6 +158,12 @@ export function TeamsFilter(props: TeamsFilterProps) {
             filterStore={useTeamFilterStore}
             useGetDataHook={getMembershipSources}
             defaultItemsToShow={5}
+            onChange={(key, values) => {
+              if (!isEmpty(values)) {
+                const latestValue = last(values) || '';
+                analytics.onFilterApplied('membershipSources', latestValue);
+              }
+            }}
           />
         </FilterSection>
       )}
@@ -127,6 +178,12 @@ export function TeamsFilter(props: TeamsFilterProps) {
             filterStore={useTeamFilterStore}
             useGetDataHook={getFundingStages}
             defaultItemsToShow={5}
+            onChange={(key, values) => {
+              if (!isEmpty(values)) {
+                const latestValue = last(values) || '';
+                analytics.onFilterApplied('fundingStage', latestValue);
+              }
+            }}
           />
         </FilterSection>
       )}
@@ -141,6 +198,12 @@ export function TeamsFilter(props: TeamsFilterProps) {
             filterStore={useTeamFilterStore}
             useGetDataHook={getTechnologies}
             defaultItemsToShow={5}
+            onChange={(key, values) => {
+              if (!isEmpty(values)) {
+                const latestValue = last(values) || '';
+                analytics.onFilterApplied('technology', latestValue);
+              }
+            }}
           />
         </FilterSection>
       )}

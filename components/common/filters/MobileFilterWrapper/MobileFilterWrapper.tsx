@@ -39,6 +39,11 @@ export interface MobileFilterWrapperProps {
    * Render function for filter content
    */
   renderFilter: (onClose: () => void) => ReactNode;
+
+  /**
+   * Optional callback when filter panel is closed via X button or swipe
+   */
+  onFilterClose?: () => void;
 }
 
 /**
@@ -72,6 +77,7 @@ export function MobileFilterWrapper({
   sortOptions,
   onSortChange,
   renderFilter,
+  onFilterClose,
 }: MobileFilterWrapperProps) {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
@@ -83,8 +89,20 @@ export function MobileFilterWrapper({
     setIsFilterDrawerOpen(false);
   };
 
+  const handleCloseWithCallback = () => {
+    if (onFilterClose) {
+      onFilterClose();
+    }
+    setIsFilterDrawerOpen(false);
+  };
+
   const swipeHandlers = useSwipeable({
-    onSwipedDown: () => setIsFilterDrawerOpen(false),
+    onSwipedDown: () => {
+      if (onFilterClose) {
+        onFilterClose();
+      }
+      setIsFilterDrawerOpen(false);
+    },
   });
 
   return (
@@ -130,9 +148,9 @@ export function MobileFilterWrapper({
             <div className={s.dialogHandle} {...swipeHandlers} />
             <div className={s.dialogHeader} {...swipeHandlers}>
               <Dialog.Title className={s.dialogTitle}>Filters</Dialog.Title>
-              <Dialog.Close className={s.dialogClose}>
+              <button className={s.dialogClose} onClick={handleCloseWithCallback}>
                 <CloseIcon />
-              </Dialog.Close>
+              </button>
             </div>
             <div className={s.dialogContent}>{renderFilter(handleCloseFilterDrawer)}</div>
           </Dialog.Popup>

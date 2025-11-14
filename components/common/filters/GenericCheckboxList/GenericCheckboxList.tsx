@@ -54,6 +54,18 @@ export interface GenericCheckboxListProps {
   onChange?: (paramKey: string, values: string[]) => void;
 
   /**
+   * Optional callback when search input changes
+   * @param searchQuery - The search query string
+   */
+  onSearch?: (searchQuery: string) => void;
+
+  /**
+   * Optional callback when "Select All" is clicked
+   * @param wasChecked - Whether the items were checked before clicking (true = deselecting, false = selecting)
+   */
+  onSelectAll?: (wasChecked: boolean) => void;
+
+  /**
    * Flag to clear search input (external control)
    */
   shouldClearSearch?: boolean;
@@ -105,11 +117,21 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     useGetDataHook,
     defaultItemsToShow,
     onChange,
+    onSearch,
+    onSelectAll,
     shouldClearSearch,
     className,
   } = props;
 
   const [searchValue, setSearchValue] = useState('');
+
+  // Handle search change with optional callback
+  const handleSearchChange = (value: string) => {
+    setSearchValue(value);
+    if (onSearch) {
+      onSearch(value);
+    }
+  };
 
   const { params, setParam } = filterStore();
 
@@ -201,14 +223,22 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
             flushBtn: s.flushBtn,
             clearBtn: s.clearBtn,
           }}
-          onChange={setSearchValue}
+          onChange={handleSearchChange}
           placeholder={placeholder}
           hideFlushIconOnValueInput
           clearIcon={<CloseIcon color="#64748b" />}
           flushIcon={<SearchIcon color="#64748b" className={s.searchIcon} />}
         />
         <div className={s.list}>
-          {!!searchValue && <SelectAll data={data} paramKey={paramKey} setValue={setValue} selected={selectedValues} />}
+          {!!searchValue && (
+            <SelectAll
+              data={data}
+              paramKey={paramKey}
+              setValue={setValue}
+              selected={selectedValues}
+              onSelectAll={onSelectAll}
+            />
+          )}
           {itemsToRender.map((item) => {
             return (
               <CheckboxListItem

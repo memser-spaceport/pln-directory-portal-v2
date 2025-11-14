@@ -1,7 +1,6 @@
 import React from 'react';
 import { FilterOption } from '@/services/filters/commonTypes';
 import { useFilterStore } from '@/services/members/store';
-import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { GenericCheckboxList } from '@/components/common/filters/GenericCheckboxList';
 
 interface Props {
@@ -11,6 +10,9 @@ interface Props {
   defaultItemsToShow: number;
   useGetDataHook: (input: string, limit?: number) => { data?: FilterOption[] };
   shouldClearSearch?: boolean;
+  onChange?: (paramKey: string, values: string[]) => void;
+  onSearch?: (searchText: string) => void;
+  onSelectAll?: (wasChecked: boolean) => void;
 }
 
 /**
@@ -31,17 +33,7 @@ interface Props {
  * ```
  */
 export function FilterCheckboxListWithSearch(props: Props) {
-  const { label, paramKey, placeholder, useGetDataHook, defaultItemsToShow, shouldClearSearch } = props;
-  const { onMembersTopicsFilterSelected, onMembersRolesFilterSelected } = useMemberAnalytics();
-
-  // Handle analytics when values change
-  const handleChange = (key: string, values: string[]) => {
-    if (key === 'topics') {
-      onMembersTopicsFilterSelected({ page: 'Members', topics: values });
-    } else if (key === 'roles') {
-      onMembersRolesFilterSelected({ page: 'Members', roles: values });
-    }
-  };
+  const { label, paramKey, placeholder, useGetDataHook, defaultItemsToShow, shouldClearSearch, onChange, onSearch, onSelectAll } = props;
 
   return (
     <GenericCheckboxList
@@ -52,7 +44,9 @@ export function FilterCheckboxListWithSearch(props: Props) {
       useGetDataHook={useGetDataHook}
       defaultItemsToShow={defaultItemsToShow}
       shouldClearSearch={shouldClearSearch}
-      onChange={handleChange}
+      onChange={onChange}
+      onSearch={onSearch}
+      onSelectAll={onSelectAll}
     />
   );
 }

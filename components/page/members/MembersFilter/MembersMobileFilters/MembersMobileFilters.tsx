@@ -5,6 +5,8 @@ import { useFilterStore } from '@/services/members/store';
 import { MembersFilter } from '@/components/page/members/MembersFilter';
 import { useGetMembersFilterCount } from '@/components/page/members/hooks/useGetMembersFilterCount';
 import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWrapper';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { IAnalyticsUserInfo } from '@/types/shared.types';
 
 interface MembersMobileFiltersProps {
   filterValues?: any;
@@ -27,6 +29,7 @@ export const MembersMobileFilters = ({
   const { params, setParam } = useFilterStore();
   const currentSort = params.get('sort') || SORT_OPTIONS.ASCENDING;
   const filterCount = useGetMembersFilterCount();
+  const analytics = useMemberAnalytics();
 
   const sortOptions = [
     { value: SORT_OPTIONS.ASCENDING, label: 'A-Z (Ascending)' },
@@ -37,12 +40,17 @@ export const MembersMobileFilters = ({
     setParam('sort', sortOption);
   };
 
+  const handleFilterClose = () => {
+    analytics.onFilterCloseClicked(userInfo as IAnalyticsUserInfo);
+  };
+
   return (
     <MobileFilterWrapper
       filterCount={filterCount}
       currentSort={currentSort}
       sortOptions={sortOptions}
       onSortChange={handleSortChange}
+      onFilterClose={handleFilterClose}
       renderFilter={(onClose) => (
         <MembersFilter
           filterValues={filterValues}

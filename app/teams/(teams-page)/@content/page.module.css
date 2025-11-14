@@ -12,7 +12,7 @@
   padding: 16px;
   border-bottom: 1px solid #e2e8f0;
   background: #fff;
-  display: none; /* Hidden on mobile - TeamsMobileFilters is used instead */
+  display: none;
 }
 
 .team__right__teamslist {
@@ -27,7 +27,7 @@
   }
 
   .team__right__toolbar {
-    display: flex; /* Show on desktop */
+    display: flex;
     height: 60px;
     padding: 10px 40px;
     border: none;

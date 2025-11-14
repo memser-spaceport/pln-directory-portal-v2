@@ -50,8 +50,11 @@ export function TeamsFilter(props: TeamsFilterProps) {
 
   return (
     <FiltersSidePanel onClose={onClose} clearParams={clearParams} appliedFiltersCount={appliedFiltersCount}>
-      <FilterSection>
+      <FilterSection title="Team Search">
         <FiltersSearch searchParams={searchParams} userInfo={userInfo} />
+      </FilterSection>
+
+      <FilterSection>
         <GenericFilterToggle
           label="Only Show Teams with Office Hours"
           paramKey="officeHoursOnly"

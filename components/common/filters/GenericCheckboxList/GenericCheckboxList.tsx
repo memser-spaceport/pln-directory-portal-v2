@@ -16,7 +16,9 @@ export interface GenericCheckboxListProps {
   /**
    * Label displayed above the search input
    */
-  label: string;
+  label?: string;
+
+  hint?: React.ReactNode;
 
   /**
    * URL parameter key to manage
@@ -74,6 +76,8 @@ export interface GenericCheckboxListProps {
    * Custom class name for the container
    */
   className?: string;
+
+  hideSearch?: boolean;
 }
 
 /**
@@ -111,6 +115,7 @@ export interface GenericCheckboxListProps {
 export function GenericCheckboxList(props: GenericCheckboxListProps) {
   const {
     label,
+    hint,
     paramKey,
     filterStore,
     placeholder,
@@ -121,6 +126,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     onSelectAll,
     shouldClearSearch,
     className,
+    hideSearch,
   } = props;
 
   const [searchValue, setSearchValue] = useState('');
@@ -135,6 +141,9 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
 
   const { params, setParam } = filterStore();
 
+  // Fetch data based on search
+  const { data = [] } = useGetDataHook(searchValue);
+
   // Get initial values from URL parameters
   const selectedValues = useMemo(() => {
     const paramValue = params.get(paramKey);
@@ -142,12 +151,9 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
 
     return paramValue.split(URL_QUERY_VALUE_SEPARATOR).map((value) => ({
       value: value.trim(),
-      label: value.trim(),
+      label: data?.find((item) => item.value === value.trim())?.label || value.trim(),
     }));
-  }, [params, paramKey]);
-
-  // Fetch data based on search
-  const { data = [] } = useGetDataHook(searchValue);
+  }, [params, paramKey, data]);
 
   // Merge backend data with selected values
   const itemsToRender = useGetMergedItemsToRender({
@@ -210,25 +216,28 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
   return (
     <FormProvider {...methods}>
       <div className={className}>
-        <div className={s.label}>{label}</div>
-        <DebouncedInput
-          value={searchValue}
-          ids={{
-            root: '',
-            input: '',
-          }}
-          classes={{
-            root: s.inputRoot,
-            input: s.input,
-            flushBtn: s.flushBtn,
-            clearBtn: s.clearBtn,
-          }}
-          onChange={handleSearchChange}
-          placeholder={placeholder}
-          hideFlushIconOnValueInput
-          clearIcon={<CloseIcon color="#64748b" />}
-          flushIcon={<SearchIcon color="#64748b" className={s.searchIcon} />}
-        />
+        {label && <div className={s.label}>{label}</div>}
+        {hint && <div className={s.hint}>{hint}</div>}
+        {!hideSearch && (
+          <DebouncedInput
+            value={searchValue}
+            ids={{
+              root: '',
+              input: '',
+            }}
+            classes={{
+              root: s.inputRoot,
+              input: s.input,
+              flushBtn: s.flushBtn,
+              clearBtn: s.clearBtn,
+            }}
+            onChange={handleSearchChange}
+            placeholder={placeholder}
+            hideFlushIconOnValueInput
+            clearIcon={<CloseIcon color="#64748b" />}
+            flushIcon={<SearchIcon color="#64748b" className={s.searchIcon} />}
+          />
+        )}
         <div className={s.list}>
           {!!searchValue && (
             <SelectAll

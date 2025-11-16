@@ -1,13 +1,14 @@
 'use client';
 
 import React from 'react';
-import { useFilterStore } from '@/services/members/store';
+import { FilterState } from '@/services/filters/types';
 import { GenericRangeInput } from '@/components/common/filters/GenericRangeInput';
 
 interface Props {
   label: string;
   minParamName: string;
   maxParamName: string;
+  filterStore: () => FilterState;
   allowedRange: {
     min: number;
     max: number;
@@ -36,6 +37,7 @@ export function FilterCheckSizeInput({
   label,
   minParamName,
   maxParamName,
+  filterStore,
   allowedRange,
   formatValue,
   disabled = false,
@@ -45,7 +47,7 @@ export function FilterCheckSizeInput({
       label={label}
       minParamName={minParamName}
       maxParamName={maxParamName}
-      filterStore={useFilterStore}
+      filterStore={filterStore}
       allowedRange={allowedRange}
       formatValue={formatValue}
       disabled={disabled}

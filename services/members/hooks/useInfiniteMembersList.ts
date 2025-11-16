@@ -20,6 +20,7 @@ async function infiniteFetcher(searchParams: MembersListQueryParams['searchParam
       ?.split(',')
       .map((s: string) => s.toLowerCase())
       .join(':'),
+    investmentFocus: searchParams.investmentFocus?.split('|').filter(Boolean),
   });
 
   return await getMemberListForQuery(query, page, ITEMS_PER_PAGE, authToken);

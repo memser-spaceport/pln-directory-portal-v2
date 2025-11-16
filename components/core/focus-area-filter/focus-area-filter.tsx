@@ -139,7 +139,7 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
   return (
     <>
       <div className="faf">
-        <div className="faf__ttls">
+        {/* <div className="faf__ttls">
           <h2 className="faf__ttls__ttl">{title}</h2>
           <button className="faf__ttls__ttl__btn" onClick={onHelpActiveClick}>
             <Image
@@ -149,7 +149,7 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
               alt="help"
             />
           </button>
-        </div>
+        </div> */}
         <div className="faf__fa">
           {focusAreas?.map((focusArea: IFocusArea, index: number) => (
             <div key={`${focusArea} + ${index}`} className="">

@@ -9,6 +9,8 @@ import { getTeamListFilters } from '@/services/teams.service';
 import { getFocusAreas } from '@/services/common.service';
 import { DEFAULT_ASK_TAGS, INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
 import { getTeamList } from '@/app/actions/teams.actions';
+import qs from 'qs';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 export const getTeamsPageData = async (searchParams: ITeamsSearchParams) => {
   let teams = [];
@@ -17,14 +19,21 @@ export const getTeamsPageData = async (searchParams: ITeamsSearchParams) => {
   let filterValues;
 
   try {
+    const { authToken } = getCookiesFromHeaders();
     const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
     const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
 
-    const teamListResponse = await getTeamList(listOptions, 1, INITIAL_ITEMS_PER_PAGE);
+    const query = qs.stringify({
+      ...searchParams,
+      investmentFocus: searchParams.investmentFocus?.split('|').filter(Boolean),
+      tiers: searchParams.tiers?.split('|').filter(Boolean),
+    });
+
+    const teamListResponse = await getTeamList(query, 1, INITIAL_ITEMS_PER_PAGE, authToken);
 
     const [teamListFiltersResponse, teamListFiltersForOptionsResponse, focusAreaResponse] = await Promise.all([
-      getTeamListFilters({}),
-      getTeamListFilters(listOptions),
+      getTeamListFilters({}, authToken),
+      getTeamListFilters(listOptions, authToken),
       getFocusAreas('Team', parseFocusAreasParams(searchParams)),
     ]);
 

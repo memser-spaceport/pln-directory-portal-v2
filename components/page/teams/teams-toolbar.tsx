@@ -235,7 +235,6 @@ const TeamsToolbar = (props: IToolbar) => {
               </div>
             )}
           </div>
-          <ViewType callback={onViewtypeClickHandler} view={view} />
         </div>
       </div>
 

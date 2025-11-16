@@ -8,6 +8,15 @@
   margin-bottom: 8px;
 }
 
+.hint {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
+  margin-bottom: 8px;
+}
+
 .inputRoot {
   width: 100%;
   min-width: 0;

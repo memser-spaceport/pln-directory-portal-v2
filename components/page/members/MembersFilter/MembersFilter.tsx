@@ -148,6 +148,7 @@ export const MembersFilter = (props: IMembersFilter) => {
           label="Typical Check Size"
           minParamName="minTypicalCheckSize"
           maxParamName="maxTypicalCheckSize"
+          filterStore={useFilterStore}
           allowedRange={{
             min: 0,
             max: 5000000,
@@ -160,6 +161,7 @@ export const MembersFilter = (props: IMembersFilter) => {
         <FilterTagInput
           selectLabel="Investment Focus"
           paramKey="investmentFocus"
+          filterStore={useFilterStore}
           disabled={!params.get('isInvestor')}
         />
       </FilterSection>

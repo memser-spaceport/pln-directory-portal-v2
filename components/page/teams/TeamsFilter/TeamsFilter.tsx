@@ -5,24 +5,26 @@ import last from 'lodash/last';
 import isEmpty from 'lodash/isEmpty';
 import { IAnalyticsUserInfo, IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems } from '@/types/teams.types';
-import { FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
+import { ADMIN_ROLE, FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
 
 import {
   getTeamTagsGetter,
   getTechnologiesGetter,
   getFundingStagesGetter,
   getMembershipSourcesGetter,
+  getTiersGetter,
 } from '@/services/teams/utils';
 import { useTeamFilterStore, useTeamFilterCount } from '@/services/teams';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { FilterSection } from '@/components/common/filters/FilterSection';
-import { GenericFilterToggle } from '@/components/common/filters/GenericFilterToggle';
 import { GenericCheckboxList } from '@/components/common/filters/GenericCheckboxList';
 import { FiltersSearch } from '@/components/page/teams/FiltersSearch';
 import FocusAreaFilter from '@/components/core/focus-area-filter/focus-area-filter';
-import { Tooltip } from '@/components/core/tooltip/tooltip';
-import Image from 'next/image';
+import { FundFilterToggle } from '@/components/core/FundFilterToggle';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
+import { FilterCheckSizeInput } from '@/components/page/members/MembersFilter/FilterCheckSizeInput';
+import { FilterTagInput } from '@/components/form/FilterTagInput';
+import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
 
 export interface TeamsFilterProps {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -40,16 +42,18 @@ export interface TeamsFilterProps {
 export function TeamsFilter(props: TeamsFilterProps) {
   const { filterValues, userInfo, searchParams, onClose } = props;
 
-  const { clearParams } = useTeamFilterStore();
+  const { clearParams, params } = useTeamFilterStore();
   const appliedFiltersCount = useTeamFilterCount();
   const analytics = useTeamAnalytics();
+  const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
+  const isTierViewer = isDirectoryAdmin || !!userInfo?.isTierViewer;
 
   // Create data hooks at the top level (not conditionally)
   // These factory functions return data hooks that can be passed to GenericCheckboxList
   const getTeamTags = getTeamTagsGetter(filterValues?.tags);
   const getMembershipSources = getMembershipSourcesGetter(filterValues?.membershipSources);
   const getFundingStages = getFundingStagesGetter(filterValues?.fundingStage);
-  const getTechnologies = getTechnologiesGetter(filterValues?.technology);
+  const getTiers = getTiersGetter(filterValues?.tiers);
 
   // Wrap clearParams to include analytics
   const handleClearParams = () => {
@@ -67,53 +71,49 @@ export function TeamsFilter(props: TeamsFilterProps) {
 
   return (
     <FiltersSidePanel onClose={handleClose} clearParams={handleClearParams} appliedFiltersCount={appliedFiltersCount}>
-      <FilterSection title="Team Search">
-        <FiltersSearch searchParams={searchParams} userInfo={userInfo} />
-      </FilterSection>
+      {isDirectoryAdmin && (
+        <FilterSection title="Team Search">
+          <FiltersSearch searchParams={searchParams} userInfo={userInfo} />
+        </FilterSection>
+      )}
 
-      <FilterSection>
-        <GenericFilterToggle
-          label="Only Show Teams with Office Hours"
-          paramKey="officeHoursOnly"
-          filterStore={useTeamFilterStore}
-          onChange={(checked) => {
-            if (checked) analytics.onOfficeHoursSelected();
-          }}
-        />
-        <GenericFilterToggle
-          label="Include Friends of Protocol Labs"
-          paramKey="includeFriends"
-          filterStore={useTeamFilterStore}
-          onChange={(checked) => {
-            if (checked) analytics.onFriendsOfProtocolSelected();
-          }}
-        />
-        <GenericFilterToggle
-          label="New Teams"
-          paramKey="isRecent"
-          filterStore={useTeamFilterStore}
-          onChange={() => analytics.onIsActiveToggleClicked()}
-        />
-      </FilterSection>
+      {/* Membership Source */}
+      {isDirectoryAdmin && filterValues?.membershipSources && filterValues.membershipSources.length > 0 && (
+        <FilterSection title="Membership Source">
+          <GenericCheckboxList
+            label="Search membership sources"
+            paramKey="membershipSources"
+            placeholder="E.g. Direct..."
+            filterStore={useTeamFilterStore}
+            useGetDataHook={getMembershipSources}
+            defaultItemsToShow={5}
+            onChange={(key, values) => {
+              if (!isEmpty(values)) {
+                const latestValue = last(values) || '';
+                analytics.onFilterApplied('membershipSources', latestValue);
+              }
+            }}
+          />
+        </FilterSection>
+      )}
 
-      {/* Contributions */}
-      <FilterSection title="Contributions">
-        <GenericFilterToggle
-          label="Host"
-          paramKey="isHost"
-          filterStore={useTeamFilterStore}
-          onChange={() => analytics.onIsHostToggleClicked()}
-        />
-
-        <div style={{ marginTop: '16px' }} />
-
-        <GenericFilterToggle
-          label="Sponsor"
-          paramKey="isSponsor"
-          filterStore={useTeamFilterStore}
-          onChange={() => analytics.onIsSponsorToggleClicked()}
-        />
-      </FilterSection>
+      {isTierViewer && (
+        <FilterSection title="Tier">
+          <GenericCheckboxList
+            hint={
+              <div>
+                Higher number = higher <br /> membership level
+              </div>
+            }
+            paramKey="tiers"
+            placeholder="E.g. Tier 1, Tier 2..."
+            filterStore={useTeamFilterStore}
+            useGetDataHook={getTiers}
+            defaultItemsToShow={5}
+            hideSearch
+          />
+        </FilterSection>
+      )}
 
       {/* Focus Area */}
       {filterValues?.focusAreas && (
@@ -148,84 +148,54 @@ export function TeamsFilter(props: TeamsFilterProps) {
         </FilterSection>
       )}
 
-      {/* Membership Source */}
-      {filterValues?.membershipSources && filterValues.membershipSources.length > 0 && (
-        <FilterSection title="Membership Source">
-          <GenericCheckboxList
-            label="Search membership sources"
-            paramKey="membershipSources"
-            placeholder="E.g. Direct..."
-            filterStore={useTeamFilterStore}
-            useGetDataHook={getMembershipSources}
-            defaultItemsToShow={5}
-            onChange={(key, values) => {
-              if (!isEmpty(values)) {
-                const latestValue = last(values) || '';
-                analytics.onFilterApplied('membershipSources', latestValue);
-              }
-            }}
-          />
-        </FilterSection>
-      )}
-
-      {/* Funding Stage */}
+      {/* Company Stage */}
       {filterValues?.fundingStage && filterValues.fundingStage.length > 0 && (
-        <FilterSection title="Funding Stage">
+        <FilterSection title="Company Stage">
           <GenericCheckboxList
-            label="Search funding stages"
             paramKey="fundingStage"
             placeholder="E.g. Seed, Series A..."
             filterStore={useTeamFilterStore}
             useGetDataHook={getFundingStages}
-            defaultItemsToShow={5}
+            defaultItemsToShow={10}
             onChange={(key, values) => {
               if (!isEmpty(values)) {
                 const latestValue = last(values) || '';
                 analytics.onFilterApplied('fundingStage', latestValue);
               }
             }}
+            hideSearch
           />
         </FilterSection>
       )}
 
-      {/* Technology */}
-      {filterValues?.technology && filterValues.technology.length > 0 && (
-        <FilterSection title="Technology">
-          <GenericCheckboxList
-            label="Search technologies"
-            paramKey="technology"
-            placeholder="E.g. IPFS, Filecoin..."
-            filterStore={useTeamFilterStore}
-            useGetDataHook={getTechnologies}
-            defaultItemsToShow={5}
-            onChange={(key, values) => {
-              if (!isEmpty(values)) {
-                const latestValue = last(values) || '';
-                analytics.onFilterApplied('technology', latestValue);
-              }
-            }}
-          />
-        </FilterSection>
-      )}
+      {/* Typical Check Size & Investment Focus */}
+      <FilterSection title="Investment Funds">
+        <FundFilterToggle label="Show all funds" paramKey="isFund" />
 
-      {/* Asks */}
-      {filterValues?.asks && (filterValues?.asks?.length ?? 0) < 1 && (
-        <FilterSection>
-          <div className="tags-container__title">
-            Asks
-            <Tooltip
-              asChild
-              trigger={<Image alt="info" height={16} width={16} src="/icons/info.svg" style={{ marginLeft: '5px' }} />}
-              content={
-                'Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project.'
-              }
-            />
-          </div>
-          <div style={{ padding: '12px 0', color: '#64748B', fontSize: '14px' }}>
-            No open asks or requests at this time
-          </div>
-        </FilterSection>
-      )}
+        <FilterDivider />
+
+        <FilterCheckSizeInput
+          label="Typical Check Size"
+          minParamName="minTypicalCheckSize"
+          maxParamName="maxTypicalCheckSize"
+          filterStore={useTeamFilterStore}
+          allowedRange={{
+            min: 0,
+            max: 5000000,
+          }}
+          disabled={!params.get('isFund')}
+        />
+
+        <FilterDivider />
+
+        <FilterTagInput
+          selectLabel="Investment Focus"
+          paramKey="investmentFocus"
+          filterStore={useTeamFilterStore}
+          placeholder="E.g. AI, Staking, Governance"
+          disabled={!params.get('isFund')}
+        />
+      </FilterSection>
     </FiltersSidePanel>
   );
 }

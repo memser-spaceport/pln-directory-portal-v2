@@ -3,16 +3,16 @@
 import { ITag, ITeam } from '@/types/teams.types';
 import TeamsTagsList from './teams-tags-list';
 import Image from 'next/image';
-import useEmblaCarousel from 'embla-carousel-react';
-import { usePrevNextButtons } from '@/hooks/use-prev-next-buttons';
-import { EmblaOptionsType } from 'embla-carousel';
-import { Fragment, SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Popover from './asks-popover';
-import * as TooltipPrimitive from '@radix-ui/react-tooltip';
-import { Tag } from '@/components/ui/tag';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { useCarousel } from '@/hooks/use-embla-carousel';
+import { IUserInfo } from '@/types/shared.types';
+import { ADMIN_ROLE } from '@/utils/constants';
+import { getTierColor } from '@/utils/team.utils';
+
 interface ITeamGridView {
+  userInfo?: IUserInfo;
   team: ITeam;
   viewType: string;
 }
@@ -21,23 +21,16 @@ const TeamGridView = (props: ITeamGridView) => {
   const profile = team?.logo ?? '/icons/team-default-profile.svg';
   const teamName = team?.name;
   const description = team?.shortDescription;
-  const tags = team?.industryTags ?? [];
   const analytics = useTeamAnalytics();
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
-
-  // todo - remove ASKS completely as we move to forum
-  // const carousel: any[] =
-  //   team?.asks
-  //     ?.filter((ask) => ask.status !== 'CLOSED')
-  //     .map((ask: any) => {
-  //       return {
-  //         id: ask?.uid,
-  //         name: ask?.title,
-  //         description: ask?.description,
-  //         tags: ask?.tags,
-  //       };
-  //     }) ?? [];
   const carousel: any[] = [];
+  const isTierViewer = props?.userInfo?.isTierViewer || props?.userInfo?.roles?.includes(ADMIN_ROLE);
+  const tags = useMemo(() => {
+    if (isTierViewer && typeof team?.tier === 'number') {
+      return [{ title: `Tier ${team?.tier}`, color: getTierColor(team?.tier) } as ITag, ...(team?.industryTags ?? [])];
+    }
+    return team?.industryTags;
+  }, [team?.industryTags, isTierViewer, team.tier]);
 
   const { emblaRef, activeIndex, scrollPrev, scrollNext, setActiveIndex, emblaApi } = useCarousel({
     slidesToScroll: 'auto',

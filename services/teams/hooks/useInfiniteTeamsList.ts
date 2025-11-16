@@ -4,14 +4,20 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { ITEMS_PER_PAGE, TOAST_MESSAGES } from '@/utils/constants';
 import { TeamsListQueryParams } from '@/services/teams/types';
 import { TeamsQueryKeys } from '@/services/teams/constants';
-import { getTeamsListOptions, getTeamsOptionsFromQuery } from '@/utils/team.utils';
-import { ITeam, ITeamListOptions } from '@/types/teams.types';
+import { ITeam } from '@/types/teams.types';
 import { getTeamList } from '@/app/actions/teams.actions';
+import qs from 'qs';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 
 async function infiniteFetcher(searchParams: TeamsListQueryParams['searchParams'], page: number) {
-  const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
-  const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
-  const res = await getTeamList(listOptions, page);
+  const { authToken } = getCookiesFromClient();
+  const query = qs.stringify({
+    ...searchParams,
+    investmentFocus: searchParams.investmentFocus?.split('|').filter(Boolean),
+    tiers: searchParams.tiers?.split('|').filter(Boolean),
+  });
+
+  const res = await getTeamList(query, page, ITEMS_PER_PAGE, authToken);
 
   return {
     items: res.data,

@@ -120,7 +120,7 @@ export function AddTeamDrawer(props: Props) {
     }
 
     props.onClose();
-    toast.success('Team submitted successfully');
+    toast.success(`Your ${newData?.name} has been successfully added!`);
   });
 
   const onSubmit = async (data: any) => {

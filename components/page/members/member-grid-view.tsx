@@ -109,7 +109,7 @@ const MemberGridView = (props: IMemberGridView) => {
                   )}
                 </span>
               </div>
-              <p className={s.secondaryText}>{role}</p>
+              <p className={s.secondaryText}>{role}&nbsp;</p>
             </div>
             {isUserLoggedIn && (
               <>

@@ -23,7 +23,7 @@ export const createTeamSchema = yup.object({
   role: yup.string().notRequired(),
   fundingStage: yup.mixed<Option>(),
   industryTags: yup.array().of(yup.mixed<Option>().defined()).defined(),
-  website: yup.string().required('Required field'),
+  website: yup.string(),
   contactMethod: yup.string(),
   isInvestmentFund: yup.boolean().default(false),
   fundTypes: yup

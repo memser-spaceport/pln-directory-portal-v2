@@ -211,7 +211,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
               <span>@</span>
               <FormSelect
                 name="primaryTeam"
-                placeholder="Select your primary team"
+                placeholder="Search or add a team"
                 backLabel="Teams"
                 options={
                   data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({

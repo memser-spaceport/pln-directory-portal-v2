@@ -139,7 +139,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       uniqueIdentifier: formData.email,
       role: formData.role || '',
       isTeamNew,
-      ...(project ? { project } : { team }),
+      ...(project ? { project } : formData.teamName ? { team } : {}),
       newData,
     };
 

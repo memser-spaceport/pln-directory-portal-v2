@@ -129,16 +129,6 @@ export const FocusAreaFilter = (props: IFocusAreaFilter) => {
     }
   };
 
-  const onHelpActiveClick = () => {
-    setIsHelpActive(!isHelpActive);
-    if (!isHelpActive) {
-      analytics.onTeamFocusAreaHelpClicked({
-        page: pageName,
-        user: getAnalyticsUserInfo(user),
-      });
-    }
-  };
-
   return (
     <div className={s.root}>
       <div className={s.focusAreasList}>

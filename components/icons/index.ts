@@ -4,6 +4,7 @@ export * from './EditIcon';
 export * from './GlobeIcon';
 export * from './CloseIcon';
 export * from './CheckIcon';
+export * from './MinusIcon';
 export * from './SearchIcon';
 export * from './CalendarIcon';
 export * from './ArrowBackIcon';

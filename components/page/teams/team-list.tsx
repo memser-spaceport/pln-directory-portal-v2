@@ -13,21 +13,24 @@ import { ListLoader } from '@/components/core/loaders/ListLoader';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useInfiniteTeamsList } from '@/services/teams/hooks/useInfiniteTeamsList';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { TeamsMobileFilters } from './TeamsMobileFilters';
 
 interface ITeamList {
   totalTeams: number;
   searchParams: ITeamsSearchParams;
   children: any;
 }
+
 const TeamList = (props: any) => {
   const allTeams = props?.teams ?? [];
   const userInfo = props?.userInfo;
   const searchParams = props?.searchParams;
   const totalTeams = props?.totalTeams;
+  const filterValues = props.filterValues;
+
   const accessLevel = getAccessLevel(userInfo, true);
 
   const analytics = useTeamAnalytics();
-  const viewType = searchParams['viewType'] || VIEW_TYPE_OPTIONS.GRID;
 
   const onTeamClickHandler = (e: any, team: ITeam) => {
     if (!e.ctrlKey) {
@@ -45,7 +48,7 @@ const TeamList = (props: any) => {
     },
   );
 
-  const Loader = VIEW_TYPE_OPTIONS.GRID === viewType ? CardsLoader : ListLoader;
+  const Loader = CardsLoader;
 
   return (
     <div className="team-list">
@@ -53,6 +56,7 @@ const TeamList = (props: any) => {
         <h1 className="team-list__titlesec__title">Teams</h1>{' '}
         <div className="team-list__title__count">({totalTeams})</div>
       </div>
+      <TeamsMobileFilters userInfo={userInfo} searchParams={searchParams} filterValues={filterValues} />
       <InfiniteScroll
         scrollableTarget="body"
         loader={null}
@@ -61,14 +65,14 @@ const TeamList = (props: any) => {
         next={fetchNextPage}
         style={{ overflow: 'unset' }}
       >
-        <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid' : 'team-list__list'}`}>
+        <div className="team-list__grid">
           {userInfo && accessLevel === 'advanced' && data?.length > 0 && (
-            <TeamAddCard userInfo={userInfo} viewType={viewType} />
+            <TeamAddCard userInfo={userInfo} viewType={VIEW_TYPE_OPTIONS.GRID} />
           )}
           {data?.map((team: ITeam, index: number) => (
             <div
               key={`teamitem-${team.id}-${index}`}
-              className={`team-list__team ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid__team' : 'team-list__list__team'}`}
+              className="team-list__team team-list__grid__team"
               onClick={(e) => onTeamClickHandler(e, team)}
             >
               <Link
@@ -78,8 +82,7 @@ const TeamList = (props: any) => {
                   if (e.defaultPrevented) return;
                 }}
               >
-                {VIEW_TYPE_OPTIONS.GRID === viewType && <TeamGridView team={team} viewType={viewType} />}
-                {VIEW_TYPE_OPTIONS.LIST === viewType && <TeamListView team={team} viewType={viewType} />}
+                <TeamGridView userInfo={userInfo} team={team} viewType={VIEW_TYPE_OPTIONS.GRID} />
               </Link>
             </div>
           ))}

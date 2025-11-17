@@ -1,13 +1,14 @@
 import React, { useMemo } from 'react';
 import { useGetMembersFilterCount } from '@/components/page/members/hooks/useGetMembersFilterCount';
-import s from '@/components/page/members/MembersFilter/MembersFilter.module.scss';
-import FilterCount from '@/components/ui/filter-count';
 import { FilterSection } from '@/components/page/members/MembersFilter/FilterSection';
 import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
 import { FilterList, FilterOption } from './components/FilterList';
 import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
 import { useFilterStore } from '@/services/members/store';
 import { SupportSection } from '@/components/page/demo-day/components/SupportSection';
+import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
+
+import s from './Filters.module.scss';
 
 export const Filters = () => {
   const appliedFiltersCount = useGetMembersFilterCount();
@@ -142,62 +143,49 @@ export const Filters = () => {
   }, [teams]);
 
   return (
-    <div className={s.root}>
-      <div className={s.header}>
-        <h2 className={s.title}>
-          Filters
-          {appliedFiltersCount > 0 && <FilterCount count={appliedFiltersCount} />}
-        </h2>
-        <button className={s.cleaarAllButton} onClick={clearParams}>
-          Clear all
-        </button>
-      </div>
-
-      {/* Body */}
-      <div className={s.body}>
-        {activityOptions.length > 0 && (
-          <FilterSection title="My Activity">
-            <FilterList
-              options={activityOptions}
-              paramName="activity"
-              showAllLabel=""
-              placeholder=""
-              emptyMessage=""
-              hideSearch
-            />
-          </FilterSection>
-        )}
-
-        <FilterSection title="Team Search">
-          <FilterSearch placeholder="Search for a team" />
-        </FilterSection>
-
-        <FilterSection title="Industry">
+    <FiltersSidePanel clearParams={clearParams} appliedFiltersCount={appliedFiltersCount} className={s.root}>
+      {activityOptions.length > 0 && (
+        <FilterSection title="My Activity">
           <FilterList
-            options={industryOptions}
-            paramName="industry"
-            showAllLabel="Show All Industries"
-            placeholder="E.g. AI, DePIN, Web3, etc."
-            emptyMessage={teamsLoading ? 'Loading industries...' : 'No industries found'}
-            initialDisplayCount={6}
-            useScrollOnly
-          />
-        </FilterSection>
-
-        <FilterSection title="Stage/Type">
-          <FilterList
+            options={activityOptions}
+            paramName="activity"
+            showAllLabel=""
+            placeholder=""
+            emptyMessage=""
             hideSearch
-            options={stageOptions}
-            paramName="stage"
-            showAllLabel="Show All Stages"
-            placeholder="E.g. Seed, Pre-Seed, etc."
-            emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
           />
         </FilterSection>
+      )}
 
-        {/* Support Section */}
-        <SupportSection />
-      </div>
+      <FilterSection title="Team Search">
+        <FilterSearch placeholder="Search for a team" />
+      </FilterSection>
+
+      <FilterSection title="Industry">
+        <FilterList
+          options={industryOptions}
+          paramName="industry"
+          showAllLabel="Show All Industries"
+          placeholder="E.g. AI, DePIN, Web3, etc."
+          emptyMessage={teamsLoading ? 'Loading industries...' : 'No industries found'}
+          initialDisplayCount={6}
+          useScrollOnly
+        />
+      </FilterSection>
+
+      <FilterSection title="Stage/Type">
+        <FilterList
+          hideSearch
+          options={stageOptions}
+          paramName="stage"
+          showAllLabel="Show All Stages"
+          placeholder="E.g. Seed, Pre-Seed, etc."
+          emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
+        />
+      </FilterSection>
+
+      {/* Support Section */}
+      <SupportSection />
 
       {/*<div className={s.footer}>*/}
       {/*  <button className={s.secondaryBtn} onClick={clearParams}>*/}
@@ -208,6 +196,6 @@ export const Filters = () => {
       {/*    Apply filters*/}
       {/*  </button>*/}
       {/*</div>*/}
-    </div>
+    </FiltersSidePanel>
   );
 };

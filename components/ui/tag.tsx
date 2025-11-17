@@ -9,6 +9,7 @@ interface TagProps {
   tagsLength?: number;
   keyValue?: string;
   from?: string;
+  color?: string;
 }
 
 export function Tag(props: Readonly<TagProps>) {
@@ -21,6 +22,7 @@ export function Tag(props: Readonly<TagProps>) {
   const tagsLength = props?.tagsLength ?? 3;
   const keyValue = props?.keyValue ?? '';
   const from = props?.from ?? '';
+  const color = props?.color ?? '#f1f5f9';
 
   const getTagStyle = () => {
     if (variant === 'secondary') {
@@ -88,7 +90,7 @@ export function Tag(props: Readonly<TagProps>) {
             font-size: 12px;
             font-weight: 500;
             line-height: 14px;
-            background-color: #f1f5f9;
+            background: ${color ?? '#f1f5f9'};
             cursor: default;
             white-space: nowrap;
             overflow: hidden;
@@ -99,7 +101,6 @@ export function Tag(props: Readonly<TagProps>) {
 
           .tag-primary {
             align-items: flex-start;
-            background: #f1f5f9;
             border: none;
             max-width: 66px;
             white-space: nowrap;
@@ -109,6 +110,7 @@ export function Tag(props: Readonly<TagProps>) {
             display: inline-block;
             cursor: default;
             color: #475569;
+            background: ${color ?? '#f1f5f9'};
           }
 
           .tag-md {

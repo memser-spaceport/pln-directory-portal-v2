@@ -23,7 +23,7 @@ const TeamsTagsList = (props: any) => {
               asChild
               trigger={
                 <div className="tagsContainer__tag" data-testid={`tag-${index}`}>
-                  <Tag value={tag?.title} variant="primary" tagsLength={tags?.length} />{' '}
+                  <Tag value={tag?.title} variant="primary" tagsLength={tags?.length} color={tag?.color} />{' '}
                 </div>
               }
               content={tag?.title}

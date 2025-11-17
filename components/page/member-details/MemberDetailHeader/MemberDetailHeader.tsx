@@ -84,7 +84,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
               <CustomTooltip trigger={<h1 className={s.specificsName}>{name}</h1>} content={name} />
             </div>
             <div className={s.roleAndLocation}>
-              {member?.teams?.[0]?.name && (
+              {member?.teams?.length > 0 ? (
                 <>
                   <div className={s.teams}>
                     <CustomTooltip
@@ -125,6 +125,8 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
                   </div>
                   <div className={clsx(s.divider, s.desktopOnly)} />
                 </>
+              ) : (
+                <span className={s.teamLinkEmpty}>Team Not Provided</span>
               )}
               {role ? (
                 <CustomTooltip trigger={<p className={s.role}>{role}</p>} content={role} />
@@ -137,7 +139,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
               {isLoggedIn && (
                 <>
                   <div className={s.divider} />
-                  {(isOwner || isAdmin) && !location ? (
+                  {(isOwner || isAdmin) && location === 'Unknown' ? (
                     <button className={s.addButton} type="button" onClick={onEdit}>
                       + Your Location
                     </button>

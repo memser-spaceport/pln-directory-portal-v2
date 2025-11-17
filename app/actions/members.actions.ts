@@ -20,11 +20,13 @@ export const getMemberListForQuery = async (query: string, currentPage: number, 
   const result = await response.json();
 
   const formattedMembers: any = result?.members?.map((member: any) => {
+    console.log(member);
+
     const teams =
       member?.teamMemberRoles?.map((teamMemberRole: any) => ({
         id: teamMemberRole.team?.uid || '',
         name: teamMemberRole.team?.name || '',
-        role: teamMemberRole.role || 'Contributor',
+        role: teamMemberRole.role || '',
         teamLead: !!teamMemberRole.teamLead,
         mainTeam: !!teamMemberRole.mainTeam,
       })) || [];
@@ -45,6 +47,7 @@ export const getMemberListForQuery = async (query: string, currentPage: number, 
       teamLead,
       isVerified: member.isVerified || false,
       openToWork: member.openToWork || false,
+      role: member.role || '',
     };
   });
   return {

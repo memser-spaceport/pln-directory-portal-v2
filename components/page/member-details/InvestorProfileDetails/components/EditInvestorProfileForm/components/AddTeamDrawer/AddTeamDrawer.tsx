@@ -180,18 +180,6 @@ export function AddTeamDrawer(props: Props) {
                   />
                 </FormField>
               </div>
-              <FormField name="website">
-                <TextField
-                  value={website}
-                  defaultValue={website}
-                  isError={!!errors['website']}
-                  name="website"
-                  type="text"
-                  label={<Label>Website address</Label>}
-                  placeholder="Enter website"
-                  onChange={(e) => setValue('website', e.target.value, { shouldValidate: true })}
-                />
-              </FormField>
               <FormField name="role">
                 <TextField
                   value={role || ''}
@@ -202,6 +190,18 @@ export function AddTeamDrawer(props: Props) {
                   label={<Label>Role</Label>}
                   placeholder="Enter your role"
                   onChange={(e) => setValue('role', e.target.value, { shouldValidate: true })}
+                />
+              </FormField>
+              <FormField name="website">
+                <TextField
+                  value={website}
+                  defaultValue={website}
+                  isError={!!errors['website']}
+                  name="website"
+                  type="text"
+                  label={<Label>Website address</Label>}
+                  placeholder="Enter website"
+                  onChange={(e) => setValue('website', e.target.value, { shouldValidate: true })}
                 />
               </FormField>
             </Section>

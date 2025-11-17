@@ -139,7 +139,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
               {isLoggedIn && (
                 <>
                   <div className={s.divider} />
-                  {(isOwner || isAdmin) && !location ? (
+                  {(isOwner || isAdmin) && location === 'Unknown' ? (
                     <button className={s.addButton} type="button" onClick={onEdit}>
                       + Your Location
                     </button>

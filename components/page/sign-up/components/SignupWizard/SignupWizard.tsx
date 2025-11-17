@@ -207,10 +207,10 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                 <div className={s.title}>Join the PL Network</div>
                 <div className={s.row}>
                   <ProfileImageInput />
-                  <FormField name="name" label="Name*" placeholder="Enter name" max={MAX_NAME_LENGTH} />
+                  <FormField name="name" label="Name" isRequired placeholder="Enter your name" max={MAX_NAME_LENGTH} />
                 </div>
                 <div className={s.row}>
-                  <FormField name="email" label="Email*" placeholder="Enter email" />
+                  <FormField name="email" label="Email" isRequired placeholder="Enter your email" />
                 </div>
 
                 <div className={s.column}>
@@ -265,6 +265,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                           notFoundContent={
                             <div className={s.secondaryLabel}>
                               Not able to find your project or team?
+                              <br />
                               <button
                                 type="button"
                                 className={s.link}
@@ -304,7 +305,12 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
 
                 {isAddingTeam && (
                   <div className={s.row}>
-                    <FormField name="websiteAddress" placeholder="Enter website address" label="Website address" />
+                    <FormField
+                      name="websiteAddress"
+                      placeholder="Enter website address"
+                      label="Website address"
+                      isRequired
+                    />
                   </div>
                 )}
 

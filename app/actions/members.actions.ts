@@ -26,7 +26,7 @@ export const getMemberListForQuery = async (query: string, currentPage: number, 
       member?.teamMemberRoles?.map((teamMemberRole: any) => ({
         id: teamMemberRole.team?.uid || '',
         name: teamMemberRole.team?.name || '',
-        role: teamMemberRole.role || member.role || '',
+        role: teamMemberRole.role || '',
         teamLead: !!teamMemberRole.teamLead,
         mainTeam: !!teamMemberRole.mainTeam,
       })) || [];
@@ -47,6 +47,7 @@ export const getMemberListForQuery = async (query: string, currentPage: number, 
       teamLead,
       isVerified: member.isVerified || false,
       openToWork: member.openToWork || false,
+      role: member.role || '',
     };
   });
   return {

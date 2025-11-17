@@ -77,6 +77,7 @@ export function processFilters(
       formattedAvailableValuesByFilter?.askTags,
       searchParams?.asks,
     ),
+    tiers: getTiersFromValues(formattedValuesByFilter?.tiers, searchParams?.tiers),
   };
 }
 
@@ -87,6 +88,14 @@ export function getTagsFromValues(allValues: string[], availableValues: string[]
     const available = availableValues.includes(value);
     const disabled = !selected && !available;
     return { value, selected, disabled };
+  });
+}
+
+export function getTiersFromValues(allValues: { tier: string; count: number }[], queryValues: string | string[] = []) {
+  const queryValuesArr = Array.isArray(queryValues) ? queryValues : queryValues.split(URL_QUERY_VALUE_SEPARATOR);
+  return allValues?.map((value) => {
+    const selected = queryValuesArr.includes(value.tier);
+    return { value: value.tier, selected, disabled: false, count: value.count };
   });
 }
 
@@ -365,6 +374,18 @@ export function getFormattedDateString(startDate: string, endDate: string) {
   } catch {
     return '';
   }
+}
+
+export function getTierColor(tier: number): string {
+  const tierColors: Record<number, string> = {
+    0: '#d9d2e9',
+    1: '#fce5cd',
+    2: '#ead1dc',
+    3: '#d9ead3',
+    4: '#d9d2e9',
+  };
+
+  return tierColors[tier] || '#d9d2e9'; // Default to tier 0/4 color if tier not found
 }
 
 export function parseFocusAreasParams(queryParams: any) {

@@ -108,7 +108,7 @@ export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: P
               <Button type="button" style="border" onClick={handleClose} disabled={isSubmitting}>
                 Cancel
               </Button>
-              <Button type="submit" style="fill" disabled={isSubmitting}>
+              <Button type="submit" style="fill" disabled={isSubmitting || !methods.formState.isValid}>
                 {isSubmitting ? 'Submitting...' : 'Add Team'}
               </Button>
             </div>

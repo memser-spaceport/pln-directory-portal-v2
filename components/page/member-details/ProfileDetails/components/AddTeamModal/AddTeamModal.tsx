@@ -16,9 +16,22 @@ interface AddTeamFormData {
   websiteAddress: string;
 }
 
+// URL validation regex that accepts URLs with or without protocol
+const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+
 const addTeamSchema = yup.object({
   teamName: yup.string().required('Team name is required'),
-  websiteAddress: yup.string().defined(),
+  websiteAddress: yup
+    .string()
+    .defined()
+    .when('teamName', {
+      is: (teamName: string) => teamName && teamName.trim().length > 0,
+      then: (schema) =>
+        schema
+          .required('Website is required when adding a new team')
+          .matches(urlRegex, 'Please enter a valid URL'),
+      otherwise: (schema) => schema.optional(),
+    }),
 });
 
 interface Props {

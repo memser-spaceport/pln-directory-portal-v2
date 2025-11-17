@@ -255,7 +255,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
                 }
               />
             </div>
-            <div className={s.description}>Add your title and organization so others can connect with you.</div>
+            <div className={s.description}>Add your role and team so others can connect with you.</div>
           </div>
           <div className={s.infoBlock}>
             <InfoIcon />

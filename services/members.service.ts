@@ -161,7 +161,7 @@ export const getMember = async (
       return {
         id: teamMemberRole?.team?.uid || '',
         name: teamMemberRole?.team?.name || '',
-        role: teamMemberRole?.role || 'Contributor',
+        role: teamMemberRole?.role || '',
         teamLead: !!teamMemberRole?.teamLead,
         mainTeam: !!teamMemberRole?.mainTeam,
         logo: teamMemberRole?.team?.logo?.url ?? '',

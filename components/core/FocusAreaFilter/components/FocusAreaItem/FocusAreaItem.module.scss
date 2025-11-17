@@ -1,0 +1,110 @@
+@use '@/styles/media';
+
+.button {
+  outline: none;
+  background: inherit;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.7;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 1;
+  }
+}
+
+.itemContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkboxButton {
+  display: flex;
+  height: 20px;
+  width: 20px;
+  min-width: 20px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+
+  &.default {
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+  }
+
+  &.isSelected {
+    background-color: #156ff7;
+  }
+
+  &.isParent {
+    background-color: #156ff7;
+  }
+}
+
+.expandButton {
+  min-height: 16px;
+  min-width: 16px;
+
+  &.disabled {
+    pointer-events: none;
+  }
+}
+
+.textContainer {
+  display: flex;
+  gap: 6px;
+}
+
+.title {
+  word-break: break-word;
+  font-size: 12px;
+  line-height: 14px;
+
+  &.textShade {
+    color: #94a3b8;
+  }
+}
+
+.count {
+  margin-left: 6px;
+  width: fit-content;
+  border-radius: 2px;
+  background-color: #f1f5f9;
+  padding: 0 5px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
+  color: #475569;
+}
+
+.descriptionContainer {
+  margin-top: 12px;
+  border-radius: 4px;
+  background-color: #f1f5f9;
+  padding: 8px;
+}
+
+.description {
+  word-break: break-word;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 17px;
+  color: #475569;
+}
+
+.childrenContainer {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: 26px;
+}

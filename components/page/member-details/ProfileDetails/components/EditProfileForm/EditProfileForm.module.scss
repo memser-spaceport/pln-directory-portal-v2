@@ -28,22 +28,24 @@
 }
 
 .infoBlock {
+  width: 100%;
+
   display: flex;
+  padding: 16px;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  width: 100%;
+
+  border-radius: 12px;
+  background: var(--background-neutral-soft-surface, #F9FAFB);
 }
 
 .infoText {
-  font-family: 'Inter', sans-serif;
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
+  font-style: normal;
   font-weight: 400;
-  line-height: 20px;
-  color: #64748b;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: 0.14px;
 }
 
 .column {

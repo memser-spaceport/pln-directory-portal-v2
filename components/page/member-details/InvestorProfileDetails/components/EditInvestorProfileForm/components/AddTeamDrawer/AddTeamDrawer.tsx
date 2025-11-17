@@ -187,7 +187,7 @@ export function AddTeamDrawer(props: Props) {
                   isError={!!errors['website']}
                   name="website"
                   type="text"
-                  label={<Label mandatory>Website address</Label>}
+                  label={<Label>Website address</Label>}
                   placeholder="Enter website"
                   onChange={(e) => setValue('website', e.target.value, { shouldValidate: true })}
                 />

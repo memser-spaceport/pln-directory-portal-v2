@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { clsx } from 'clsx';
 import Image from 'next/image';
 import Cookies from 'js-cookie';
@@ -61,11 +61,19 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     handleSubmit,
     setValue,
     watch,
+    trigger,
     formState: { isSubmitting, isValid, submitCount },
   } = methods;
   const { subscribe, agreed } = watch();
 
   const { mutateAsync } = useSignupV2();
+
+  // Re-validate when switching between modes, but only after first submit attempt
+  useEffect(() => {
+    if (submitCount > 0) {
+      trigger(['teamName', 'websiteAddress']);
+    }
+  }, [isAddingTeam, trigger, submitCount]);
 
   // Get returnTo parameter from URL
   const returnTo = searchParams.get('returnTo');
@@ -139,7 +147,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       uniqueIdentifier: formData.email,
       role: formData.role || '',
       isTeamNew,
-      ...(project ? { project } : { team }),
+      ...(project ? { project } : formData.teamName ? { team } : {}),
       newData,
     };
 
@@ -207,10 +215,10 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                 <div className={s.title}>Join the PL Network</div>
                 <div className={s.row}>
                   <ProfileImageInput />
-                  <FormField name="name" label="Name*" placeholder="Enter name" max={MAX_NAME_LENGTH} />
+                  <FormField name="name" label="Name" isRequired placeholder="Enter your name" max={MAX_NAME_LENGTH} />
                 </div>
                 <div className={s.row}>
-                  <FormField name="email" label="Email*" placeholder="Enter email" />
+                  <FormField name="email" label="Email" isRequired placeholder="Enter your email" />
                 </div>
 
                 <div className={s.column}>
@@ -265,6 +273,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                           notFoundContent={
                             <div className={s.secondaryLabel}>
                               Not able to find your project or team?
+                              <br />
                               <button
                                 type="button"
                                 className={s.link}
@@ -304,7 +313,12 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
 
                 {isAddingTeam && (
                   <div className={s.row}>
-                    <FormField name="websiteAddress" placeholder="Enter website address" label="Website address" />
+                    <FormField
+                      name="websiteAddress"
+                      placeholder="Enter website address"
+                      label="Website address"
+                      isRequired
+                    />
                   </div>
                 )}
 

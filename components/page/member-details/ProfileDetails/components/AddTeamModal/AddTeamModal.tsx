@@ -16,9 +16,22 @@ interface AddTeamFormData {
   websiteAddress: string;
 }
 
+// URL validation regex that accepts URLs with or without protocol
+const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+
 const addTeamSchema = yup.object({
   teamName: yup.string().required('Team name is required'),
-  websiteAddress: yup.string().defined(),
+  websiteAddress: yup
+    .string()
+    .optional()
+    .defined()
+    .test('is-valid-url', 'Please enter a valid URL', function (value) {
+      // Only validate if the field is populated
+      if (!value || value.trim().length === 0) {
+        return true; // Valid if empty
+      }
+      return urlRegex.test(value); // Validate URL format if populated
+    }),
 });
 
 interface Props {
@@ -108,7 +121,7 @@ export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: P
               <Button type="button" style="border" onClick={handleClose} disabled={isSubmitting}>
                 Cancel
               </Button>
-              <Button type="submit" style="fill" disabled={isSubmitting}>
+              <Button type="submit" style="fill" disabled={isSubmitting || !methods.formState.isValid}>
                 {isSubmitting ? 'Submitting...' : 'Add Team'}
               </Button>
             </div>

@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useRef, useState } from 'react';
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
@@ -6,6 +6,7 @@ import { ITeamsSearchParams } from '@/types/teams.types';
 import { IUserInfo } from '@/types/shared.types';
 import { Input } from '@/components/common/Input';
 import { CloseIcon, SearchIcon } from '@/components/icons';
+import { useTeamFilterStore } from '@/services/teams';
 
 import s from './FiltersSearch.module.scss';
 
@@ -22,6 +23,15 @@ export const FiltersSearch = (props: Props) => {
   const [searchInput, setSearchInput] = useState(searchBy);
   const analytics = useTeamAnalytics();
   const { updateQueryParams } = useUpdateQueryParams();
+  const { params, setParam } = useTeamFilterStore();
+
+  useEffect(() => {
+    const storeSearchBy = params.get('searchBy') || '';
+    const urlSearchBy = searchBy || '';
+
+    const currentSearchBy = storeSearchBy || urlSearchBy;
+    setSearchInput(currentSearchBy);
+  }, [searchBy, params]);
 
   /**
    * Handles the input change event for the search field.
@@ -45,6 +55,8 @@ export const FiltersSearch = (props: Props) => {
     if (searchParams?.page) {
       searchParams.page = '1';
     }
+
+    setParam('searchBy', searchInput);
     updateQueryParams('searchBy', searchInput, searchParams);
   };
 
@@ -53,6 +65,8 @@ export const FiltersSearch = (props: Props) => {
    */
   const onClearSearchClicked = () => {
     setSearchInput('');
+
+    setParam('searchBy', undefined);
     updateQueryParams('searchBy', '', searchParams);
   };
 

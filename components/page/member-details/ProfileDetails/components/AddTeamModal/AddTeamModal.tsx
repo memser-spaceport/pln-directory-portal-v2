@@ -23,14 +23,14 @@ const addTeamSchema = yup.object({
   teamName: yup.string().required('Team name is required'),
   websiteAddress: yup
     .string()
+    .optional()
     .defined()
-    .when('teamName', {
-      is: (teamName: string) => teamName && teamName.trim().length > 0,
-      then: (schema) =>
-        schema
-          .required('Website is required when adding a new team')
-          .matches(urlRegex, 'Please enter a valid URL'),
-      otherwise: (schema) => schema.optional(),
+    .test('is-valid-url', 'Please enter a valid URL', function (value) {
+      // Only validate if the field is populated
+      if (!value || value.trim().length === 0) {
+        return true; // Valid if empty
+      }
+      return urlRegex.test(value); // Validate URL format if populated
     }),
 });
 

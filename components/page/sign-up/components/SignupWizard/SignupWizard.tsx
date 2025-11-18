@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { clsx } from 'clsx';
 import Image from 'next/image';
 import Cookies from 'js-cookie';
@@ -61,11 +61,19 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     handleSubmit,
     setValue,
     watch,
+    trigger,
     formState: { isSubmitting, isValid, submitCount },
   } = methods;
   const { subscribe, agreed } = watch();
 
   const { mutateAsync } = useSignupV2();
+
+  // Re-validate when switching between modes, but only after first submit attempt
+  useEffect(() => {
+    if (submitCount > 0) {
+      trigger(['teamName', 'websiteAddress']);
+    }
+  }, [isAddingTeam, trigger, submitCount]);
 
   // Get returnTo parameter from URL
   const returnTo = searchParams.get('returnTo');

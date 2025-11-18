@@ -19,7 +19,7 @@ import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { GenericCheckboxList } from '@/components/common/filters/GenericCheckboxList';
 import { FiltersSearch } from '@/components/page/teams/FiltersSearch';
-import FocusAreaFilter from '@/components/core/focus-area-filter/focus-area-filter';
+import { FocusAreaFilter } from '@/components/core/FocusAreaFilter';
 import { FundFilterToggle } from '@/components/core/FundFilterToggle';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { FilterCheckSizeInput } from '@/components/page/members/MembersFilter/FilterCheckSizeInput';

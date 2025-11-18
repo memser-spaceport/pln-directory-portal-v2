@@ -126,7 +126,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
                   <div className={clsx(s.divider, s.desktopOnly)} />
                 </>
               ) : (
-                <span className={s.teamLinkEmpty}>Team Not Provided</span>
+                !isAdmin && !isOwner && <span className={s.teamLinkEmpty}>Team Not Provided</span>
               )}
               {role ? (
                 <CustomTooltip trigger={<p className={s.role}>{role}</p>} content={role} />

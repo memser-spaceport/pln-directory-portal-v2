@@ -33,7 +33,7 @@ export function Checkbox(props: Props) {
     >
       {(checked || indeterminate) && (
         <BaseCheckbox.Indicator className={clsx(s.indicator, classes?.indicator)}>
-          {checked ? <CheckIcon className={s.icon} /> : <MinusIcon />}
+          {indeterminate ? <MinusIcon /> : <CheckIcon className={s.icon} />}
         </BaseCheckbox.Indicator>
       )}
     </BaseCheckbox.Root>

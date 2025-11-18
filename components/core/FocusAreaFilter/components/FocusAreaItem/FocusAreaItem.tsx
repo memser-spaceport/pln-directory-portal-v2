@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
 import { IFocusArea } from '@/types/shared.types';
+import { CaretRightIcon } from '@/components/icons';
+import { CheckboxListItemRepresentation } from '@/components/common/filters/GenericCheckboxList/components/CheckboxListItemRepresentation';
 
 import s from './FocusAreaItem.module.scss';
 
@@ -25,50 +27,33 @@ export const FocusAreaItem = (props: FocusArea) => {
   const isHelpActive = props?.isHelpActive;
   const uniqueKey = props?.uniqueKey;
   const router = useRouter();
+  const isParent = parents.some((parent) => parent.uid === currentItem.uid);
 
   const assignedItemsLength = currentItem?.[uniqueKey]?.length;
-  const isChildrensAvailable = hasSelectedItems(currentItem);
+  const areChildrenAvailable = hasSelectedItems(currentItem);
   const isSelectedItem = getIsSelectedItem(currentItem);
-  const [isExpand, setIsExpand] = useState((isSelectedItem && isChildrensAvailable) || false);
+  const [expanded, setExpanded] = useState((isSelectedItem && areChildrenAvailable) || false);
 
   useEffect(() => {
     if (isParent) {
-      setIsExpand(true);
+      setExpanded(true);
     } else {
-      setIsExpand(isSelectedItem && isChildrensAvailable);
+      setExpanded(isSelectedItem && areChildrenAvailable);
     }
   }, [router]);
 
-  const isParent = parents.some((parent) => parent.uid === currentItem.uid);
   const onCheckboxClickHandler = () => {
-    if (isChildrensAvailable) {
-      setIsExpand(true);
+    if (areChildrenAvailable) {
+      setExpanded(true);
     } else {
-      setIsExpand(isSelectedItem && isChildrensAvailable);
+      setExpanded(isSelectedItem && areChildrenAvailable);
     }
     onItemClickHandler(currentItem);
   };
 
-  const getIcon = () => {
-    if (isParent) {
-      return '/icons/minus-white.svg';
-    }
-    return '/icons/right-white.svg';
-  };
-
-  /**
-   * Gets the CSS class for the checkbox button based on its state.
-   * @returns CSS class name
-   */
-  const getCheckboxStyle = () => {
-    if (isParent) return s.isParent;
-    if (isSelectedItem) return s.isSelected;
-    return s.default;
-  };
-
   const onExpandClickHandler = () => {
     if (assignedItemsLength > 0) {
-      setIsExpand(!isExpand);
+      setExpanded(!expanded);
     }
   };
 
@@ -84,46 +69,35 @@ export const FocusAreaItem = (props: FocusArea) => {
     return selectedItems.some((item) => item.parentUid === cItem.uid || item.uid === cItem.uid);
   }
 
-  const getExpandIcon = () => {
-    if (!isChildrensAvailable) {
-      return '/icons/right-arrow-gray-shaded.svg';
-    }
-    if (isExpand) {
-      return '/icons/chevron-down-blue.svg';
-    }
-    return '/icons/chevron-right-grey.svg';
-  };
+  const expandControl = (areChildrenAvailable || isGrandParent) && (
+    <button
+      disabled={!areChildrenAvailable}
+      className={clsx(s.expandButton, { [s.disabled]: !areChildrenAvailable })}
+      onClick={(e) => {
+        e.stopPropagation();
+        onExpandClickHandler();
+      }}
+      title={expanded ? 'Collapse' : 'Expand'}
+    >
+      <CaretRightIcon
+        className={clsx(s.expandIcon, {
+          [s.expanded]: expanded,
+        })}
+      />
+    </button>
+  );
 
   return (
-    <div className={s.itemContainer}>
-      <div className={s.item}>
-        <button
-          disabled={assignedItemsLength === 0}
-          className={clsx(s.button, s.checkboxButton, getCheckboxStyle())}
-          onClick={onCheckboxClickHandler}
-          title={currentItem.title}
-        >
-          {(isParent || isSelectedItem) && <Image height={16} width={16} alt="mode" src={getIcon()} />}
-        </button>
-
-        {(isChildrensAvailable || isGrandParent) && (
-          <button
-            disabled={!isChildrensAvailable}
-            className={clsx(s.button, s.expandButton, { [s.disabled]: !isChildrensAvailable })}
-            onClick={onExpandClickHandler}
-            title={isExpand ? 'Collapse' : 'Expand'}
-          >
-            <Image height={16} width={16} alt="expand" src={getExpandIcon()} />
-          </button>
-        )}
-
-        <div className={s.textContainer}>
-          <p className={clsx(s.title, { [s.textShade]: assignedItemsLength === 0 })}>
-            {currentItem.title}
-            <span className={s.count}>{assignedItemsLength}</span>
-          </p>
-        </div>
-      </div>
+    <div className={s.root}>
+      <CheckboxListItemRepresentation
+        label={currentItem.title}
+        count={assignedItemsLength}
+        checked={isSelectedItem}
+        indeterminate={isParent}
+        disabled={assignedItemsLength === 0}
+        ctrlEl={expandControl}
+        onClick={onCheckboxClickHandler}
+      />
 
       {isHelpActive && isGrandParent && currentItem?.description && (
         <div className={s.descriptionContainer}>
@@ -131,7 +105,7 @@ export const FocusAreaItem = (props: FocusArea) => {
         </div>
       )}
 
-      {isExpand && (
+      {expanded && (
         <div className={s.childrenContainer}>
           {currentItem?.children?.map(
             (child: IFocusArea, index: number) =>

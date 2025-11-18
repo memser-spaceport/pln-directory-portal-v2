@@ -22,7 +22,6 @@ interface IFocusAreaFilter {
 export const FocusAreaFilter = (props: IFocusAreaFilter) => {
   const focusAreas = props.focusAreaRawData?.filter((focusArea: IFocusArea) => !focusArea.parentUid);
 
-  const title = props?.title;
   const uniqueKey = props?.uniqueKey;
   const pageName = getPageName(uniqueKey);
   const selectedItems = props?.selectedItems ?? [];

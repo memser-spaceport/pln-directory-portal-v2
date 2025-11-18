@@ -8,6 +8,7 @@ export * from './MinusIcon';
 export * from './SearchIcon';
 export * from './CalendarIcon';
 export * from './ArrowBackIcon';
+export * from './CaretRightIcon';
 export * from './InfoCircleIcon';
 export * from './ErrorCircleIcon';
 export * from './ChevronDownIcon';

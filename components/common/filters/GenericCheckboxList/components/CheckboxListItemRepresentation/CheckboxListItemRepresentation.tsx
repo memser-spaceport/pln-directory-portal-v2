@@ -1,5 +1,6 @@
-import isNumber from 'lodash/isNumber';
 import { clsx } from 'clsx';
+import { ReactNode } from 'react';
+import isNumber from 'lodash/isNumber';
 
 import { Checkbox } from '@/components/common/Checkbox';
 
@@ -10,25 +11,26 @@ type Props = {
   count?: number;
   checked: boolean;
   disabled?: boolean;
+  indeterminate?: boolean;
+  ctrlEl?: ReactNode;
   onClick: () => void;
 };
 
 export function CheckboxListItemRepresentation(props: Props) {
-  const { label, count, checked, disabled, onClick } = props;
+  const { label, count, ctrlEl, checked, disabled, indeterminate, onClick } = props;
 
   return (
-    <div
-      className={clsx(s.root, { [s.disabled]: disabled })}
-      onClick={onClick}
-    >
+    <div className={clsx(s.root, { [s.disabled]: disabled })} onClick={onClick}>
       <div className={s.content}>
         <Checkbox
           checked={checked}
           disabled={disabled}
+          indeterminate={indeterminate}
           classes={{
             root: s.checkbox,
           }}
         />
+        {ctrlEl}
         {label}
       </div>
       {isNumber(count) && <div className={s.badge}>{count}</div>}

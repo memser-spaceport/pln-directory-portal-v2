@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList';
 import { Button } from '@/components/common/Button';
 import { DemoDayCard } from '@/components/common/DemoDayCard';
-import { APPLY_FOR_NEXT_DEMO_DAY_URL } from '@/constants/demoDay';
+import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
 
 import s from './DemoDayListPage.module.scss';
 import { IUserInfo } from '@/types/shared.types';
+import { IMember } from '@/types/members.types';
 import { LogosGrid } from '@/components/common/LogosGrid';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import { faqCompletedItems } from '@/app/constants/demoday';
@@ -37,11 +38,13 @@ const EditIcon = () => (
 type Props = {
   isLoggedIn?: boolean;
   userInfo?: IUserInfo;
+  memberData?: IMember | null;
 };
 
-export const DemoDayListPage = ({ isLoggedIn, userInfo }: Props) => {
+export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => {
   const { data: demoDays, isLoading } = useGetDemoDaysList();
   const [showAll, setShowAll] = useState(false);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
   const displayedDemoDays = showAll ? demoDays : demoDays?.slice(0, 3);
 
@@ -67,11 +70,15 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo }: Props) => {
               </div>
             </div>
             <div className={s.buttons}>
-              <Link href={APPLY_FOR_NEXT_DEMO_DAY_URL} target="_blank" rel="noopener noreferrer">
-                <Button size="l" style="fill" variant="primary" className={s.applyButton}>
-                  Apply for Founders Forge <ArrowRight />
-                </Button>
-              </Link>
+              <Button
+                size="l"
+                style="fill"
+                variant="primary"
+                className={s.applyButton}
+                onClick={() => setIsApplyModalOpen(true)}
+              >
+                Apply for Founders Forge <ArrowRight />
+              </Button>
               <div className={s.links}>
                 {isLoggedIn && userInfo && (
                   <Link target="_blank" href={`/members/${userInfo?.uid}?backTo=/demoday`} className={s.linkButton}>
@@ -153,6 +160,13 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo }: Props) => {
           </div>
         </footer>
       </div>
+
+      <ApplyForDemoDayModal
+        isOpen={isApplyModalOpen}
+        onClose={() => setIsApplyModalOpen(false)}
+        userInfo={userInfo}
+        memberData={memberData}
+      />
     </div>
   );
 };

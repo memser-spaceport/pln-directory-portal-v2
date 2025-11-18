@@ -3,15 +3,23 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import s from './Modal.module.scss';
+import clsx from 'clsx';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
   closeOnBackdropClick?: boolean;
+  overlayClassname?: string;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, closeOnBackdropClick = true }) => {
+export const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  children,
+  closeOnBackdropClick = true,
+  overlayClassname,
+}) => {
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (closeOnBackdropClick && e.target === e.currentTarget) {
       onClose();
@@ -22,7 +30,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, closeOn
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className={s.overlay}
+          className={clsx(s.overlay, overlayClassname)}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

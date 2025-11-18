@@ -10,19 +10,13 @@ import { Button } from '@/components/common/Button';
 import { useApplyForDemoDay, ApplyForDemoDayPayload } from '@/services/demo-day/hooks/useApplyForDemoDay';
 import { IUserInfo } from '@/types/shared.types';
 import { IMember } from '@/types/members.types';
+import Image from 'next/image';
 
 import s from './ApplyForDemoDayModal.module.scss';
 import { FormSelect } from '@/components/form/FormSelect';
-import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { Checkbox } from '@base-ui-components/react/checkbox';
-import {
-  CheckIcon,
-  ExternalLinkIcon,
-} from '@/components/page/member-details/InvestorProfileDetails/components/EditInvestorProfileForm/icons';
-import Link from 'next/link';
-
-const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+import { CheckIcon } from '@/components/page/member-details/InvestorProfileDetails/components/EditInvestorProfileForm/icons';
 
 const applySchema = yup.object({
   name: yup.string().required('Name is required'),
@@ -174,13 +168,12 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({ isOpen, onClose, userInf
                     renderOption={({ option, label, description }) => {
                       return (
                         <div className={s.teamOption}>
-                          <ImageWithFallback
+                          <Image
                             width={24}
                             height={24}
                             alt={option.label}
                             className={s.optImg}
-                            fallbackSrc="/icons/camera.svg"
-                            src={option.originalObject.logo || option.originalObject.projectLogo}
+                            src={option.originalObject.logo || option.originalObject.projectLogo || '/icons/camera.svg'}
                           />
                           <div className={s.optionContent}>
                             {label}

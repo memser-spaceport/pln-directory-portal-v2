@@ -131,13 +131,13 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
             title="Frequently Asked Questions"
             items={faqCompletedItems}
             subtitle={
-              <p className={s.infoText}>
+              <div className={s.infoText}>
                 Reach out to us on{' '}
                 <a href="mailto:demoday@protocol.ai" className={s.infoLink}>
                   demoday@protocol.ai
                 </a>{' '}
                 for any other questions.
-              </p>
+              </div>
             }
           />
         </section>

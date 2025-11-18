@@ -138,8 +138,6 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({ isOpen, onClose, userInf
                 isRequired
               />
 
-              <FormField name="role" label="Your Role" placeholder="e.g., CEO, CTO, Founder" isRequired />
-
               <div className={s.column}>
                 <div className={s.inputsLabel}>Add Role & Team</div>
                 <div className={s.inputsWrapper}>

@@ -11,7 +11,7 @@ import { Autocomplete } from '@/components/ui/autocomplete';
 import { getTeam, searchTeamsByName } from '@/services/teams.service';
 import Image from 'next/image';
 import { DEFAULT_PROJECT_TAGS, EVENTS, FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES } from '@/utils/constants';
-import FocusAreaFilter from '@/components/core/focus-area-filter/focus-area-filter';
+import { FocusAreaFilter } from '@/components/core/FocusAreaFilter';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import TagContainer from '@/components/ui/tag-container';

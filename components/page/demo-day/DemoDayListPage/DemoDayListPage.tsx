@@ -2,13 +2,16 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { format } from 'date-fns';
 import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList';
 import { Button } from '@/components/common/Button';
+import { DemoDayCard } from '@/components/common/DemoDayCard';
 import { APPLY_FOR_NEXT_DEMO_DAY_URL } from '@/constants/demoDay';
 
 import s from './DemoDayListPage.module.scss';
 import { IUserInfo } from '@/types/shared.types';
+import { LogosGrid } from '@/components/common/LogosGrid';
+import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
+import { faqCompletedItems } from '@/app/constants/demoday';
 
 const ArrowRight = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -30,21 +33,6 @@ const EditIcon = () => (
     />
   </svg>
 );
-
-const getStatusBadgeProps = (status: string) => {
-  switch (status) {
-    case 'UPCOMING':
-      return { label: 'Upcoming', className: s.badgeUpcoming };
-    case 'ACTIVE':
-      return { label: 'Active', className: s.badgeActive };
-    case 'COMPLETED':
-      return { label: 'Completed', className: s.badgeCompleted };
-    case 'ARCHIVED':
-      return { label: 'Archived', className: s.badgeArchived };
-    default:
-      return { label: status, className: s.badgeDefault };
-  }
-};
 
 type Props = {
   isLoggedIn?: boolean;
@@ -100,25 +88,16 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo }: Props) => {
               {isLoading ? (
                 <div className={s.loading}>Loading demo days...</div>
               ) : displayedDemoDays && displayedDemoDays.length > 0 ? (
-                displayedDemoDays.map((demoDay) => {
-                  const badgeProps = getStatusBadgeProps(demoDay.status);
-                  const formattedDate = format(new Date(demoDay.date), 'MMMM d, yyyy');
-
-                  return (
-                    <Link href={`/demoday/${demoDay.uid}`} key={demoDay.uid} className={s.card}>
-                      <div className={s.cardContent}>
-                        <div className={s.eventInfo}>
-                          <div className={s.cardOverline}>
-                            <span className={`${s.badge} ${badgeProps.className}`}>{badgeProps.label}</span>
-                            <span className={s.date}>{formattedDate}</span>
-                          </div>
-                          <h3 className={s.cardTitle}>{demoDay.title}</h3>
-                          <p className={s.cardDescription}>{demoDay.description}</p>
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })
+                displayedDemoDays.map((demoDay) => (
+                  <DemoDayCard
+                    key={demoDay.uid}
+                    uid={demoDay.uid}
+                    title={demoDay.title}
+                    description={demoDay.description}
+                    date={demoDay.date}
+                    status={demoDay.status}
+                  />
+                ))
               ) : (
                 <div className={s.empty}>No demo days available</div>
               )}
@@ -133,38 +112,36 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo }: Props) => {
         </section>
 
         {/* Partners Section */}
-        <section className={s.partnersSection}>
-          <div className={s.subtitle}>
-            <p className={s.label}>Backed by leading investors and industry pioneers</p>
+        <section className={s.sectionPartners}>
+          <div className={s.logosButtonContainer}>
+            <LogosGrid source="completed" />
           </div>
-          <div className={s.logosAndButton}>
-            <div className={s.logos}>
-              <div className={s.logoText}>a16z crypto</div>
-              <div className={s.logoText}>Coinbase Ventures</div>
-              <div className={s.logoText}>HashKey Capital</div>
-              <div className={s.logoText}>Polychain</div>
-              <div className={s.logoText}>Multicoin Capital</div>
-              <div className={s.logoText}>Union Square Ventures</div>
-              <div className={s.logoText}>Pantera Capital</div>
-              <div className={s.logoText}>Digital Currency Group</div>
-              <div className={s.logoText}>Protocol Labs</div>
-              <div className={s.logoText}>Juan Benet</div>
-              <div className={s.logoText}>Balaji Srinivasan</div>
-              <div className={s.logoText}>Vitalik Buterin</div>
-              <div className={s.logoText}>Anatoly Yakovenko</div>
-            </div>
-            <Link href="/members?hasOfficeHours=true" className={s.partnersLink}>
-              <Button size="m" variant="secondary">
-                View All
-              </Button>
-            </Link>
-          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className={s.sectionFaq}>
+          <FAQ
+            title="Frequently Asked Questions"
+            items={faqCompletedItems}
+            subtitle={
+              <p className={s.infoText}>
+                Reach out to us on{' '}
+                <a href="mailto:demoday@protocol.ai" className={s.infoLink}>
+                  demoday@protocol.ai
+                </a>{' '}
+                for any other questions.
+              </p>
+            }
+          />
         </section>
 
         {/* Footer */}
         <footer className={s.footer}>
           <div className={s.bottom}>
-            <p className={s.labelText}>© 2025 Protocol Labs. All rights reserved.</p>
+            <p className={s.labelText}>
+              © 2025 Protocol Labs. All content is provided by the founders. Protocol Labs Demo Day organizers do not
+              endorse or recommend any investment.
+            </p>
             <div className={s.footerButtons}>
               <Link href="/privacy" className={s.footerLink}>
                 Privacy Policy

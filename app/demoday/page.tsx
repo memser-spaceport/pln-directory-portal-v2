@@ -1,9 +1,7 @@
+import { DemoDayListPage } from '@/components/page/demo-day/DemoDayListPage';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { IUserInfo } from '@/types/shared.types';
 
 export default async function Page() {
-  const { userInfo, authToken } = getCookiesFromHeaders();
-  const parsedUserInfo: IUserInfo = userInfo;
-
-  return <div>main page list of all demo days</div>;
+  const { userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
+  return <DemoDayListPage isLoggedIn={isLoggedIn} userInfo={userInfo} />;
 }

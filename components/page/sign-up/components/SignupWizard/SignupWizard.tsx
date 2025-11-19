@@ -54,6 +54,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       agreed: true,
     },
     mode: 'all',
+    context: { isAddingTeam },
     // @ts-ignore
     resolver: yupResolver(signupSchema),
   });
@@ -67,13 +68,6 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
   const { subscribe, agreed } = watch();
 
   const { mutateAsync } = useSignupV2();
-
-  // Re-validate when switching between modes, but only after first submit attempt
-  useEffect(() => {
-    if (submitCount > 0) {
-      trigger(['teamName', 'websiteAddress']);
-    }
-  }, [isAddingTeam, trigger, submitCount]);
 
   // Get returnTo parameter from URL
   const returnTo = searchParams.get('returnTo');
@@ -370,11 +364,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                   and will not be available to any individuals or entities outside the network.
                 </p>
 
-                <button
-                  type="submit"
-                  className={s.actionButton}
-                  disabled={isSubmitting || !agreed || (submitCount > 0 && !isValid)}
-                >
+                <button type="submit" className={s.actionButton} disabled={isSubmitting || !agreed || !isValid}>
                   {isSubmitting ? (
                     <>
                       <div className={s.loader} /> <span>Creating profile</span>

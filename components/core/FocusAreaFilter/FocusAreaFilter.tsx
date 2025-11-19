@@ -1,14 +1,15 @@
+import { useState } from 'react';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { IFocusArea } from '@/types/shared.types';
-import { FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import FocusAreaItem from './filter-focus-are-item';
-import Image from 'next/image';
-import { getUserInfo } from '@/utils/third-party.helper';
-import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { ITeamsSearchParams } from '@/types/teams.types';
+import { FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { getUserInfo } from '@/utils/third-party.helper';
+
+import { FocusAreaItem } from './components/FocusAreaItem';
+
+import s from './FocusAreaFilter.module.scss';
 
 interface IFocusAreaFilter {
   uniqueKey: 'teamAncestorFocusAreas' | 'projectAncestorFocusAreas';
@@ -18,10 +19,9 @@ interface IFocusAreaFilter {
   searchParams: ITeamsSearchParams;
 }
 
-const FocusAreaFilter = (props: IFocusAreaFilter) => {
+export const FocusAreaFilter = (props: IFocusAreaFilter) => {
   const focusAreas = props.focusAreaRawData?.filter((focusArea: IFocusArea) => !focusArea.parentUid);
 
-  const title = props?.title;
   const uniqueKey = props?.uniqueKey;
   const pageName = getPageName(uniqueKey);
   const selectedItems = props?.selectedItems ?? [];
@@ -61,6 +61,7 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
 
   function findChildrens(node: IFocusArea) {
     const children: IFocusArea[] = [];
+
     function findChildrenRecursive(currentNode: IFocusArea) {
       if (currentNode.children && currentNode.children.length > 0) {
         currentNode.children.forEach((child: IFocusArea) => {
@@ -69,6 +70,7 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
         });
       }
     }
+
     findChildrenRecursive(node);
     return children;
   }
@@ -126,85 +128,22 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
     }
   };
 
-  const onHelpActiveClick = () => {
-    setIsHelpActive(!isHelpActive);
-    if (!isHelpActive) {
-      analytics.onTeamFocusAreaHelpClicked({
-        page: pageName,
-        user: getAnalyticsUserInfo(user),
-      });
-    }
-  };
-
   return (
-    <>
-      <div className="faf">
-        {/* <div className="faf__ttls">
-          <h2 className="faf__ttls__ttl">{title}</h2>
-          <button className="faf__ttls__ttl__btn" onClick={onHelpActiveClick}>
-            <Image
-              height={16}
-              width={16}
-              src={isHelpActive ? '/icons/help-active.svg' : '/icons/help-inactive.svg'}
-              alt="help"
-            />
-          </button>
-        </div> */}
-        <div className="faf__fa">
-          {focusAreas?.map((focusArea: IFocusArea, index: number) => (
-            <div key={`${focusArea} + ${index}`} className="">
-              <FocusAreaItem
-                isHelpActive={isHelpActive}
-                parents={parents}
-                item={focusArea}
-                uniqueKey={uniqueKey}
-                selectedItems={selectedItems}
-                isGrandParent={true}
-                onItemClickHandler={onItemClickHandler}
-              />
-            </div>
-          ))}
-        </div>
+    <div className={s.root}>
+      <div className={s.focusAreasList}>
+        {focusAreas?.map((focusArea: IFocusArea, index: number) => (
+          <FocusAreaItem
+            key={`${focusArea.uid}-${index}`}
+            isHelpActive={isHelpActive}
+            parents={parents}
+            item={focusArea}
+            uniqueKey={uniqueKey}
+            selectedItems={selectedItems}
+            isGrandParent={true}
+            onItemClickHandler={onItemClickHandler}
+          />
+        ))}
       </div>
-
-      <style jsx>
-        {`
-          button {
-            border: none;
-            outline: none;
-            background-color: inherit;
-          }
-          .faf {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-          }
-
-          .faf__ttls {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-          }
-
-          .faf__ttls__ttl {
-            font-size: 14px;
-            font-weight: 600;
-            line-height: 20px;
-          }
-
-          .faf__ttls__ttl__btn {
-            height: 16px;
-          }
-
-          .faf__fa {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-          }
-        `}
-      </style>
-    </>
+    </div>
   );
 };
-
-export default FocusAreaFilter;

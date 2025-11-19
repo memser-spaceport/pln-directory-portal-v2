@@ -32,16 +32,7 @@
   padding: 4px;
   position: relative;
   max-width: calc(98vw - 10px);
-
-  // Inner border
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 12px;
-    border: 1px solid rgba(27, 56, 96, 0.12);
-    pointer-events: none;
-  }
+  border: 1px solid rgba(27, 56, 96, 0.12);
 
   @include media.mobile-only {
     width: 100%;

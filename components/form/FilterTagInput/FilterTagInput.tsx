@@ -17,6 +17,7 @@ interface Props {
   placeholder?: string;
   disabled?: boolean;
   isRequired?: boolean;
+  onChange?: (tags: string[]) => void;
 }
 
 export const FilterTagInput = ({
@@ -28,6 +29,7 @@ export const FilterTagInput = ({
   disabled = false,
   isRequired = false,
   warning = false,
+  onChange,
 }: Props) => {
   const [inputText, setInputText] = useState('');
   const { params, setParam } = filterStore();
@@ -59,7 +61,11 @@ export const FilterTagInput = ({
     } else {
       setParam(paramKey, undefined);
     }
-  }, [tags, paramKey, setParam]);
+
+    if (onChange) {
+      onChange(tags);
+    }
+  }, [tags, paramKey, setParam, onChange]);
 
   const handleAddTag = useCallback(
     (newTag: string) => {

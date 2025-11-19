@@ -33,7 +33,7 @@ export const useTeamFilterStore = createFilterStore({
     'maxTypicalCheckSize', // Maximum typical check size
 
     // Search
-    'search', // Search query
+    'searchBy', // Team name search
 
     // Sorting/Pagination
     'sort', // Sort order

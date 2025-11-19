@@ -17,7 +17,7 @@ function DemoDayDemoShowcasePage() {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const { data } = useGetDemoDayState();
-  const hasAccess = isDirectoryAdmin || data?.isDemoDayAdmin || data?.access === 'FOUNDER';
+  const hasAccess = isDirectoryAdmin || data?.isDemoDayAdmin;
 
   useEffect(() => {
     // Redirect non-admins to regular demo day page

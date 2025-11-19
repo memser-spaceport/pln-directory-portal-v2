@@ -14,6 +14,7 @@ import {
   getMembershipSourcesGetter,
   getTiersGetter,
 } from '@/services/teams/utils';
+import Image from 'next/image';
 import { useTeamFilterStore, useTeamFilterCount } from '@/services/teams';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { FilterSection } from '@/components/common/filters/FilterSection';
@@ -98,7 +99,10 @@ export function TeamsFilter(props: TeamsFilterProps) {
       )}
 
       {isTierViewer && (
-        <FilterSection title="Tier">
+        <FilterSection
+          title="Tiers"
+          titleIcon={<Image src="/icons/stack-blue.svg" alt="stack" width={18} height={20} />}
+        >
           <GenericCheckboxList
             hint={
               <div>

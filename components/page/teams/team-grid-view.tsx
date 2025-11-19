@@ -9,7 +9,6 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { useCarousel } from '@/hooks/use-embla-carousel';
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
-import { getTierColor } from '@/utils/team.utils';
 
 interface ITeamGridView {
   userInfo?: IUserInfo;
@@ -27,7 +26,13 @@ const TeamGridView = (props: ITeamGridView) => {
   const isTierViewer = props?.userInfo?.isTierViewer || props?.userInfo?.roles?.includes(ADMIN_ROLE);
   const tags = useMemo(() => {
     if (isTierViewer && typeof team?.tier === 'number') {
-      return [{ title: `Tier ${team?.tier}`, color: getTierColor(team?.tier) } as ITag, ...(team?.industryTags ?? [])];
+      return [
+        {
+          title: `Tier ${team?.tier}`,
+          icon: <Image src="/icons/stack.svg" alt="stack" width={14} height={12} />,
+        } as ITag,
+        ...(team?.industryTags ?? []),
+      ];
     }
     return team?.industryTags;
   }, [team?.industryTags, isTierViewer, team.tier]);

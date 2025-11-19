@@ -9,6 +9,7 @@ interface TagProps {
   tagsLength?: number;
   keyValue?: string;
   from?: string;
+  icon?: React.ReactNode;
   color?: string;
 }
 
@@ -23,6 +24,7 @@ export function Tag(props: Readonly<TagProps>) {
   const keyValue = props?.keyValue ?? '';
   const from = props?.from ?? '';
   const color = props?.color ?? '#f1f5f9';
+  const icon = props?.icon;
 
   const getTagStyle = () => {
     if (variant === 'secondary') {
@@ -56,6 +58,7 @@ export function Tag(props: Readonly<TagProps>) {
         onClick={callback && onTagClickHandler}
         disabled={disabled}
       >
+        {icon ? <div className="tag__icon">{icon}</div> : null}
         {value}
       </button>
       <style jsx>
@@ -69,6 +72,7 @@ export function Tag(props: Readonly<TagProps>) {
             display: flex;
             padding: 6px 10px;
             align-items: flex-start;
+            justify-content: center;
             border-radius: 24px;
             font-size: 12px;
             font-weight: 500;
@@ -95,7 +99,6 @@ export function Tag(props: Readonly<TagProps>) {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            display: inline-block;
             max-width: 80px;
           }
 
@@ -111,6 +114,7 @@ export function Tag(props: Readonly<TagProps>) {
             cursor: default;
             color: #475569;
             background: ${color ?? '#f1f5f9'};
+            padding: 2px 6px;
           }
 
           .tag-md {
@@ -146,13 +150,19 @@ export function Tag(props: Readonly<TagProps>) {
             text-align: left;
           }
 
+          .tag__icon {
+            display: inline-block;
+            margin-right: 2px;
+            height: 14px;
+          }
+
           @media (min-width: 1024px) {
             .tag-default {
               max-width: 150px;
             }
 
             .tag-primary {
-              max-width: 60px;
+              max-width: 68px;
             }
 
             .tag-md {

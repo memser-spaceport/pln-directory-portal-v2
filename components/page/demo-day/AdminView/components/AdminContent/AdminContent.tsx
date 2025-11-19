@@ -3,12 +3,13 @@ import s from '@/components/page/demo-day/FounderPendingView/FounderPendingView.
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useGetAllFundraisingProfiles } from '@/services/demo-day/hooks/useGetAllFundraisingProfiles';
 import Link from 'next/link';
-import { format } from 'date-fns-tz';
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
 import { AdminTeamsList } from '../AdminTeamsList';
 import { Alert } from '@/components/page/demo-day/shared/Alert';
+import { MediaPreview } from '../../../FounderPendingView/components/MediaPreview';
+import { PITCH_VIDEO_POSTER, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
 
-export const AdminContent = ({ isDirectoryAdmin }: { isDirectoryAdmin: boolean }) => {
+export const AdminContent = ({ isDirectoryAdmin, label = 'Demo Day Prep' }: { isDirectoryAdmin: boolean, label?: string }) => {
   const { data: demoDayData } = useGetDemoDayState();
   const { data: profiles, isLoading } = useGetAllFundraisingProfiles();
 
@@ -27,19 +28,37 @@ export const AdminContent = ({ isDirectoryAdmin }: { isDirectoryAdmin: boolean }
                 textAlign: 'center',
               }}
             >
-              [Demo Day Prep]
+              [{label}]
             </div>
-            <PageTitle size="small" subtitle={
-              <div className={s.stats}>
-                <span>
-                  {demoDayData?.teamsCount} Team{(demoDayData?.teamsCount ?? 0) > 1 ? 's' : ''}
-                </span>
-              </div>
-            } />
+            <PageTitle
+              size="small"
+              subtitle={
+                <div className={s.stats}>
+                  <span>
+                    {demoDayData?.teamsCount} Team{(demoDayData?.teamsCount ?? 0) > 1 ? 's' : ''}
+                  </span>
+                  {demoDayData?.investorsCount && demoDayData?.investorsCount > 100 ? (
+                    <>
+                      &nbsp;&bull;&nbsp;
+                      <Link href={`/members?isInvestor=true`}>
+                        {demoDayData?.investorsCount} Investor{(demoDayData?.investorsCount ?? 0) > 1 ? 's' : ''}
+                        <LinkIcon />
+                      </Link>
+                    </>
+                  ) : null}
+                </div>
+              }
+            />
           </div>
-          {/*<div className={s.videoWrapper}>
-            <MediaPreview url={PITCH_VIDEO_URL} type="video" title="Pitch Video" showMetadata={false} />
-          </div>*/}
+          <div className={s.videoWrapper}>
+            <MediaPreview
+              url={PITCH_VIDEO_URL}
+              videoPoster={PITCH_VIDEO_POSTER}
+              type="video"
+              title="Pitch Video"
+              showMetadata={false}
+            />
+          </div>
 
           <Alert>
             <p>

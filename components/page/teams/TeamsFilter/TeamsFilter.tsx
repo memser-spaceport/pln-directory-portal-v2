@@ -81,7 +81,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
       {isDirectoryAdmin && filterValues?.membershipSources && filterValues.membershipSources.length > 0 && (
         <FilterSection title="Membership Source">
           <GenericCheckboxList
-            label="Search membership sources"
+            label="Search or select membership source"
             paramKey="membershipSources"
             placeholder="E.g. Direct..."
             filterStore={useTeamFilterStore}

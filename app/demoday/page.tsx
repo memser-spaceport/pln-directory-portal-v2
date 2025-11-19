@@ -13,5 +13,5 @@ export default async function Page() {
     }
   }
 
-  return <DemoDayListPage isLoggedIn={isLoggedIn} userInfo={userInfo} memberData={memberData} />;
+  return <DemoDayListPage isLoggedIn={isLoggedIn} userInfo={userInfo} memberData={memberData?.data} />;
 }

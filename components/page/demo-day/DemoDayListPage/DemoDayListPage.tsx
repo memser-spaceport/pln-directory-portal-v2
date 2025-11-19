@@ -111,8 +111,14 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
             </div>
 
             {demoDays && demoDays.length > 3 && (
-              <Button size="m" variant="secondary" onClick={() => setShowAll(!showAll)} className={s.showMoreButton}>
-                {showAll ? 'Show Less' : 'Show More'}
+              <Button
+                size="m"
+                style="border"
+                variant="secondary"
+                onClick={() => setShowAll(!showAll)}
+                className={s.showMoreButton}
+              >
+                {showAll ? 'Show Less' : 'Show All'}
               </Button>
             )}
           </div>

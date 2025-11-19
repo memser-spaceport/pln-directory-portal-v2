@@ -8,10 +8,52 @@ import { AdminTeamsList } from '../AdminTeamsList';
 import { Alert } from '@/components/page/demo-day/shared/Alert';
 import { MediaPreview } from '../../../FounderPendingView/components/MediaPreview';
 import { PITCH_VIDEO_POSTER, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
+import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { IUserInfo } from '@/types/shared.types';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
-export const AdminContent = ({ isDirectoryAdmin, label = 'Demo Day Prep' }: { isDirectoryAdmin: boolean, label?: string }) => {
+export const AdminContent = ({
+  isDirectoryAdmin,
+  label = 'Demo Day Prep',
+}: {
+  isDirectoryAdmin: boolean;
+  label?: string;
+}) => {
   const { data: demoDayData } = useGetDemoDayState();
   const { data: profiles, isLoading } = useGetAllFundraisingProfiles();
+
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { onActiveViewWelcomeVideoViewed } = useDemoDayAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
+
+  const handleWelcomeVideoViewClicked = () => {
+    if (userInfo?.email) {
+      // PostHog analytics via hook
+      onActiveViewWelcomeVideoViewed({
+        videoUrl: PITCH_VIDEO_URL,
+        pageContext: 'active-view',
+      });
+
+      // Direct API analytics event
+      const welcomeVideoEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_WELCOME_VIDEO_VIEWED,
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          pageContext: 'active-view',
+        },
+      };
+
+      reportAnalytics.mutate(welcomeVideoEvent);
+    }
+  };
 
   return (
     <div className={s.root}>
@@ -57,6 +99,7 @@ export const AdminContent = ({ isDirectoryAdmin, label = 'Demo Day Prep' }: { is
               type="video"
               title="Pitch Video"
               showMetadata={false}
+              onView={handleWelcomeVideoViewClicked}
             />
           </div>
 

@@ -33,7 +33,13 @@ const TeamDetails = (props: ITeamDetails) => {
   const isTierViewer = userInfo?.isTierViewer || userInfo?.roles?.includes(ADMIN_ROLE);
   const tags = useMemo(() => {
     if (isTierViewer && typeof team?.tier === 'number') {
-      return [{ title: `Tier ${team?.tier}`, color: getTierColor(team?.tier) } as ITag, ...(team?.industryTags ?? [])];
+      return [
+        {
+          title: `Tier ${team?.tier}`,
+          icon: <Image src="/icons/stack.svg" alt="stack" width={16} height={14} />,
+        } as ITag,
+        ...(team?.industryTags ?? []),
+      ];
     }
     return team?.industryTags;
   }, [team?.industryTags, isTierViewer, team.tier]);
@@ -203,7 +209,7 @@ const TeamDetails = (props: ITeamDetails) => {
                             asChild
                             trigger={
                               <div>
-                                <Tag value={tag?.title} color={tag?.color} />{' '}
+                                <Tag value={tag?.title} color={tag?.color} icon={tag?.icon} />{' '}
                               </div>
                             }
                             content={tag?.title}

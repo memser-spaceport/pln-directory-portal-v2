@@ -31,7 +31,7 @@
   border-radius: 12px;
   padding: 4px;
   position: relative;
-  max-width: 98vw;
+  max-width: calc(98vw - 10px);
 
   // Inner border
   &::before {
@@ -47,7 +47,7 @@
     width: 100%;
     overflow-x: auto;
     flex-wrap: nowrap;
-    max-width: 98vw;
+    max-width: calc(98vw - 10px);
 
     // Hide scrollbar
     &::-webkit-scrollbar {
@@ -136,7 +136,7 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 98vw;
+  max-width: calc(98vw - 10px);
 }
 
 .filterButton {

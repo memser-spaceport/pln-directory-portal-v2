@@ -31,9 +31,8 @@ export const getTeamsPageData = async (searchParams: ITeamsSearchParams) => {
 
     const teamListResponse = await getTeamList(query, 1, INITIAL_ITEMS_PER_PAGE, authToken);
 
-    const [teamListFiltersResponse, teamListFiltersForOptionsResponse, focusAreaResponse] = await Promise.all([
+    const [teamListFiltersResponse, focusAreaResponse] = await Promise.all([
       getTeamListFilters({}, authToken),
-      getTeamListFilters(listOptions, authToken),
       getFocusAreas('Team', parseFocusAreasParams(searchParams)),
     ]);
 
@@ -46,12 +45,7 @@ export const getTeamsPageData = async (searchParams: ITeamsSearchParams) => {
       ];
     }
 
-    if (
-      teamListResponse?.isError ||
-      teamListFiltersResponse?.isError ||
-      teamListFiltersForOptionsResponse?.isError ||
-      focusAreaResponse?.error
-    ) {
+    if (teamListResponse?.isError || teamListFiltersResponse?.isError || focusAreaResponse?.error) {
       isError = true;
       return { isError };
     }
@@ -59,7 +53,7 @@ export const getTeamsPageData = async (searchParams: ITeamsSearchParams) => {
     filterValues = processFilters(
       searchParams,
       teamListFiltersResponse?.data,
-      teamListFiltersForOptionsResponse?.data,
+      teamListFiltersResponse?.data,
       focusAreaResponse?.data,
     );
 

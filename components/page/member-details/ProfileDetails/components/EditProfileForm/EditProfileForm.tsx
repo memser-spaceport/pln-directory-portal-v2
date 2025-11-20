@@ -43,6 +43,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
   const { actions } = useUserStore();
   const [isAddTeamModalOpen, setIsAddTeamModalOpen] = useState(false);
+  const [newlyAddedTeamName, setNewlyAddedTeamName] = useState<string | null>(null);
 
   // Find the main team from member.mainTeam or teamMemberRoles
   const mainTeamData = useMemo(() => {
@@ -186,6 +187,30 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
 
   const { data } = useMemberFormOptions();
 
+  // Auto-select newly added team when it becomes available in the options
+  useEffect(() => {
+    if (newlyAddedTeamName && data?.teams) {
+      const newTeam = data.teams.find(
+        (team: { teamUid: string; teamTitle: string }) =>
+          team.teamTitle.toLowerCase() === newlyAddedTeamName.toLowerCase(),
+      );
+
+      if (newTeam) {
+        setValue(
+          'primaryTeam',
+          {
+            value: newTeam.teamUid,
+            label: newTeam.teamTitle,
+            // @ts-ignore
+            originalObject: newTeam,
+          },
+          { shouldValidate: true, shouldDirty: true },
+        );
+        setNewlyAddedTeamName(null); // Clear the flag
+      }
+    }
+  }, [data?.teams, newlyAddedTeamName, setValue]);
+
   return (
     <FormProvider {...methods}>
       <form
@@ -282,7 +307,9 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         isOpen={isAddTeamModalOpen}
         onClose={() => setIsAddTeamModalOpen(false)}
         requesterEmailId={userInfo.email!}
-        onSuccess={() => {
+        onSuccess={(teamName: string) => {
+          // Store the newly added team name to auto-select it when data refreshes
+          setNewlyAddedTeamName(teamName);
           // Refresh the page to show the new team
           router.refresh();
         }}

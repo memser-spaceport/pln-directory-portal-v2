@@ -38,7 +38,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   requesterEmailId: string;
-  onSuccess?: () => void;
+  onSuccess?: (teamName: string) => void;
 }
 
 export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: Props) => {
@@ -67,14 +67,14 @@ export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: P
         websiteAddress: data.websiteAddress,
       });
 
+      // Call onSuccess callback with team name before closing
+      if (onSuccess) {
+        onSuccess(data.teamName);
+      }
+
       // Reset form and close modal
       reset();
       onClose();
-
-      // Call onSuccess callback if provided
-      if (onSuccess) {
-        onSuccess();
-      }
     } catch (error) {
       console.error('Failed to submit team request:', error);
     } finally {

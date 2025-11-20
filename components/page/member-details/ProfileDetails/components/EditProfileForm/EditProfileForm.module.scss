@@ -123,5 +123,5 @@
 .optionContent {
   @include mixins.ellipse-text;
   flex: 1;
-  min-width: 0;
+  max-width: 260px;
 }

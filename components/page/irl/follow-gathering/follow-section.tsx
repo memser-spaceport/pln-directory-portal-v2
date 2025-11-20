@@ -588,6 +588,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             gap: 8px;
             border-radius: 8px;
             border: 1px solid #cbd5e1;
+            font-family: 'Inter', sans-serif;
             font-size: 14px;
             font-weight: 500;
             line-height: 20px;

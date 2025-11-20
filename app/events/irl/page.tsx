@@ -57,7 +57,17 @@ export default async function Page({ searchParams }: any) {
         {/* Locations */}
         <section className={styles.irlGatheings__locations}>
           <IrlLocation locationDetails={locationDetails} searchParams={searchParams} />
+          {eventDetails?.resources?.length > 0 && (
+            <div className={`${styles.irlGatherings__additionalResources} ${styles.irlGatherings__additionalResources__web}`}>
+              <AddtionalResources eventDetails={eventDetails} searchParams={searchParams} isLoggedIn={isLoggedIn} />
+            </div>
+          )}
         </section>
+        {eventDetails?.resources?.length > 0 && (
+          <section className={`${styles.irlGatherings__additionalResources} ${styles.irlGatherings__additionalResources__mobile}`}>
+            <AddtionalResources eventDetails={eventDetails} searchParams={searchParams} isLoggedIn={isLoggedIn} />
+          </section>
+        )}
         {/* Events */}
         {/* <section className={styles.irlGatherings__events}>
           <IrlEvents
@@ -86,11 +96,6 @@ export default async function Page({ searchParams }: any) {
             guestDetails={guestDetails}
           />
         </section>
-        {eventDetails?.resources?.length > 0 && (
-          <section className={styles.irlGatherings__additionalResources}>
-            <AddtionalResources eventDetails={eventDetails} searchParams={searchParams} isLoggedIn={isLoggedIn} />
-          </section>
-        )}
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
           <AttendeeList

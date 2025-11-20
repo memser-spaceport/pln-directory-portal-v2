@@ -5,11 +5,12 @@ import { getHeader } from '@/utils/common.utils';
 const teamsAPI = `${process.env.DIRECTORY_API_URL}/v1/teams`;
 
 // get all teams filters
-export const getTeamListFilters = async (options: any, authToken: string) => {
+export const getTeamListFilters = async (options: any, authToken: string, userId: string) => {
   const queries = {
     ...options,
     pagination: false,
     select: 'industryTags.title,membershipSources.title,fundingStage.title,technologies.title',
+    uid: userId,
   } as any;
 
   const requestOptions: RequestInit = {

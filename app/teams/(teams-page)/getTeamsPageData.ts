@@ -19,7 +19,7 @@ export const getTeamsPageData = async (searchParams: ITeamsSearchParams) => {
   let filterValues;
 
   try {
-    const { authToken } = getCookiesFromHeaders();
+    const { authToken, userInfo } = getCookiesFromHeaders();
     const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
     const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
 
@@ -32,7 +32,7 @@ export const getTeamsPageData = async (searchParams: ITeamsSearchParams) => {
     const teamListResponse = await getTeamList(query, 1, INITIAL_ITEMS_PER_PAGE, authToken);
 
     const [teamListFiltersResponse, focusAreaResponse] = await Promise.all([
-      getTeamListFilters({}, authToken),
+      getTeamListFilters({}, authToken, userInfo?.uid || ''),
       getFocusAreas('Team', parseFocusAreasParams(searchParams)),
     ]);
 

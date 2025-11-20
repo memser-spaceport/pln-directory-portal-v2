@@ -57,8 +57,20 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         role: member.mainTeam.role || '',
       };
     }
+
+    if (member.teams.length === 1) {
+      return {
+        team: {
+          value: member.teams[0].id,
+          label: member.teams[0].name || '',
+          role: member.role || '',
+        },
+        role: member.role || '',
+      };
+    }
+
     return { team: null, role: '' };
-  }, [member.mainTeam]);
+  }, [member.mainTeam?.id, member.mainTeam?.name, member.mainTeam?.role, member.role, member.teams]);
 
   const methods = useForm<TEditProfileForm>({
     defaultValues: {
@@ -231,7 +243,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
                         fallbackSrc="/icons/camera.svg"
                         src={option.originalObject.logo}
                       />
-                      <div>
+                      <div className={s.optionContent}>
                         {label}
                         {description}
                       </div>
@@ -241,7 +253,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
                 isStickyNoData
                 notFoundContent={
                   <div className={s.secondaryLabel}>
-                    Not able to find your project or team?
+                    Not able to find your project or team?{' '}
                     <button
                       type="button"
                       className={s.link}

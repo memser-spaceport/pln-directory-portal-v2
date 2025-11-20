@@ -3,7 +3,12 @@ import { PAGE_ROUTES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-const Error = () => {
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const Error = ({ title = 'Oh snap! Something went wrong!', description = 'Please try again later.' }: Props) => {
   const router = useRouter();
 
   useEffect(() => {
@@ -23,7 +28,7 @@ const Error = () => {
             />
           </div>
           <div className="error-container__content__message">
-            <h2 className="error-container__content__message__title">Oh snap! Something went wrong!</h2>
+            <h2 className="error-container__content__message__title">{title}</h2>
             <p className="error-container__content__message__desc">
               The page you&apos;re looking for doesn&apos;t exists or has been removed. Please try searching on
               the&nbsp;
@@ -66,9 +71,10 @@ const Error = () => {
 
             .error-container__content {
                 display: flex;
-                width: 320px;
+                width: 480px;
                 color: #fff;
                 flex-direction: column;
+                align-items: center;
                 gap: 10px;
             }
 
@@ -86,7 +92,7 @@ const Error = () => {
 
             .error-container__content__message {
                 display: flex;
-                width: 320px;
+                width: 100%;
                 font-size: 14px;
                 line-height: 20px;
                 text-align: center;

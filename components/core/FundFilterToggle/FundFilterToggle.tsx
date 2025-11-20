@@ -4,6 +4,7 @@ import s from '@/components/page/members/MembersFilter/MembersFilter.module.scss
 import { useTeamFilterStore } from '@/services/teams';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { GenericFilterToggle } from '@/components/common/filters/GenericFilterToggle';
+import { triggerLoader } from '@/utils/common.utils';
 
 interface Props {
   label: string;
@@ -25,13 +26,10 @@ interface Props {
  * ```
  */
 export const FundFilterToggle = ({ label, paramKey }: Props) => {
-  const { params } = useTeamFilterStore();
   const analytics = useTeamAnalytics();
 
-  const checked = params.get(paramKey) === 'true';
-
-  // Handle analytics
   const handleChange = (newChecked: boolean) => {
+    triggerLoader(true);
     analytics.onFilterApplied('isFund', newChecked ? 'true' : 'false');
   };
 

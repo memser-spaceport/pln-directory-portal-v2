@@ -10,7 +10,6 @@ export const getTeamListFilters = async (options: any, authToken: string, userId
     ...options,
     pagination: false,
     select: 'industryTags.title,membershipSources.title,fundingStage.title,technologies.title',
-    uid: userId,
   } as any;
 
   const requestOptions: RequestInit = {
@@ -21,7 +20,7 @@ export const getTeamListFilters = async (options: any, authToken: string, userId
     },
   };
 
-  const response = await fetch(`${teamsAPI}/filters?${new URLSearchParams(queries)}`, requestOptions);
+  const response = await fetch(`${teamsAPI}/filters?v=${userId}&${new URLSearchParams(queries)}`, requestOptions);
   const result = await response.json();
   if (!response?.ok) {
     return { isError: true };

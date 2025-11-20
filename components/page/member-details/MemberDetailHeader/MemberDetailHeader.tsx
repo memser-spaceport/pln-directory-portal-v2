@@ -14,7 +14,7 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useRecommendationLinkAnalyticsReport } from '@/services/members/hooks/useRecommendationLinkAnalyticsReport';
 
 import { Tag } from '@/components/ui/tag';
-import { IMember } from '@/types/members.types';
+import { IMember, IMemberTeam } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
@@ -23,6 +23,7 @@ import { shouldShowInvestorTag } from './utils/shouldShowInvestorTag';
 
 import s from './MemberDetailHeader.module.scss';
 import { Button } from '@/components/common/Button';
+import { ITeam } from '@/types/teams.types';
 
 interface IMemberDetailHeader {
   member: IMember;
@@ -45,11 +46,14 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
 
   const showInvestorTag = shouldShowInvestorTag(member);
 
-  const mainTeam = member?.mainTeam;
+  let mainTeam: IMemberTeam | ITeam | null = member?.mainTeam;
   const otherTeams = member.teams
     ?.filter((team) => team.id !== mainTeam?.id)
     .map((team) => team.name)
     .sort();
+  mainTeam = !mainTeam && member?.teams.length === 1 ? member.teams[0] : mainTeam;
+
+  console.log(member?.teams);
 
   const isOwner = userInfo?.uid === member.id;
   const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);

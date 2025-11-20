@@ -111,7 +111,7 @@ const MemberDetails = ({ params }: { params: any }) => {
   }
 
   if (!member) {
-    return <Error />;
+    return <Error title="This member doesn't exist or isn't approved yet" description="Member not found" />;
   }
 
   function renderPageContent() {

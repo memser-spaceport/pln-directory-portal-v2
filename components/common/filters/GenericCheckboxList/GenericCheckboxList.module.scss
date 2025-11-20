@@ -1,0 +1,62 @@
+.label {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  margin-bottom: 8px;
+}
+
+.hint {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
+  margin-bottom: 8px;
+}
+
+.inputRoot {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
+
+  &:hover,
+  &:focus-within {
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+}
+
+.inputRoot .input {
+  padding: 0 40px 0 10px;
+  font-size: 14px !important;
+  border: 0px !important;
+}
+
+.flushBtn {
+  top: 6px;
+}
+
+.searchIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.clearBtn {
+  top: 3px;
+  right: 4px !important;
+}
+
+.list {
+  max-height: 192px;
+  overflow: auto;
+
+  margin-top: 8px;
+  padding-right: 4px;
+}

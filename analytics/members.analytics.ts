@@ -501,9 +501,9 @@ export const useMemberAnalytics = () => {
 
   function onPrimaryTeamChanged(params: {
     previousTeam?: { value: string; label: string; role: string } | null;
-    newTeam?: { value: string; label: string; role: string } | null;
-    previousRole?: string;
-    newRole?: string;
+    newTeam?: { value: string; label: string; role?: string } | null;
+    previousRole?: string | null;
+    newRole?: string | null;
   }) {
     captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_PRIMARY_TEAM_CHANGED, params);
   }
@@ -596,6 +596,53 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_ON_CLICK_BOOK_WITH_OTHER, params);
   }
 
+  function onAddYourRoleClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
+    const params = {
+      user,
+      ...member,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_ADD_YOUR_ROLE_CLICKED, params);
+  }
+
+  function onAddYourLocationClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
+    const params = {
+      user,
+      ...member,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_ADD_YOUR_LOCATION_CLICKED, params);
+  }
+
+  function onAddTeamDropdownClicked(context: 'profile-edit' | 'signup') {
+    const eventName =
+      context === 'profile-edit'
+        ? MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_ADD_TEAM_DROPDOWN_CLICKED
+        : MEMBER_ANALYTICS_EVENTS.SIGNUP_ADD_TEAM_DROPDOWN_CLICKED;
+    captureEvent(eventName, { context });
+  }
+
+  function onAddTeamModalCancel(teamName: string) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_ADD_TEAM_MODAL_CANCEL, { teamName });
+  }
+
+  function onAddTeamModalSubmit(teamName: string, websiteAddress?: string) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_ADD_TEAM_MODAL_SUBMIT, {
+      teamName,
+      websiteAddress,
+      hasWebsite: !!websiteAddress,
+    });
+  }
+
+  function onPrimaryRoleSelected(role: string) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_PRIMARY_ROLE_SELECTED, { role });
+  }
+
+  function onPrimaryTeamSelected(teamName: string, teamUid: string) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_PRIMARY_TEAM_SELECTED, {
+      teamName,
+      teamUid,
+    });
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -678,5 +725,12 @@ export const useMemberAnalytics = () => {
     onMembersRolesFilterSearched,
     onMembersRolesFilterSelected,
     onClickBookWithOther,
+    onAddYourRoleClicked,
+    onAddYourLocationClicked,
+    onAddTeamDropdownClicked,
+    onAddTeamModalCancel,
+    onAddTeamModalSubmit,
+    onPrimaryRoleSelected,
+    onPrimaryTeamSelected,
   };
 };

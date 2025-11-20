@@ -3,10 +3,8 @@ import styles from './page.module.scss';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import Error from '@/components/core/error';
-import MembersToolbar from '@/components/page/members/members-toolbar';
-import EmptyResult from '@/components/core/empty-result';
 import { INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
-import MemberInfiniteList from '@/components/page/members/member-infinite-list';
+import MemberInfiniteList from '@/components/page/members/MemberInfiniteList';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
 import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/constants/filters';
@@ -23,9 +21,6 @@ async function Page({ searchParams }: { searchParams: Record<string, string> }) 
 
   return (
     <div className={styles.members__right__content}>
-      <div className={styles.members__right__toolbar}>
-        <MembersToolbar searchParams={searchParams} totalTeams={totalMembers} userInfo={parsedUserDetails} />
-      </div>
       <div className={styles.members__right__membersList} style={{ flex: 1 }}>
         <MemberInfiniteList
           isUserLoggedIn={isLoggedIn}

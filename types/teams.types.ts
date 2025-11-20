@@ -16,6 +16,11 @@ export interface ITeamsSearchParams {
   isHost: string;
   isSponsor: string;
   asks?: string;
+  isFund?: string;
+  minTypicalCheckSize?: string;
+  maxTypicalCheckSize?: string;
+  investmentFocus?: string;
+  tiers?: string;
 }
 
 export interface ITeamFilterSelectedItems {
@@ -25,6 +30,7 @@ export interface ITeamFilterSelectedItems {
   technology: { selected: boolean; value: string; disabled: boolean }[];
   focusAreas: any;
   asks: { selected: boolean; value: string; disabled: boolean }[];
+  tiers: { value: string; count: number; selected: boolean; disabled: boolean }[];
 }
 
 export type ITeamListOptions = IListOptions & {
@@ -39,6 +45,7 @@ export type ITeamListOptions = IListOptions & {
 
 export interface ITeamResponse {
   uid?: string;
+  tier?: string | number;
   logo?: { url: string | null };
   name?: string | null;
   shortDescription?: string | null;
@@ -61,6 +68,8 @@ export interface ITeamResponse {
 
 export interface ITag {
   title: string;
+  color?: string;
+  icon?: React.ReactNode;
 }
 
 export interface ITeamAsk {
@@ -80,6 +89,7 @@ export interface ITeamAsk {
 }
 
 export interface ITeam {
+  tier?: string | number;
   asks: ITeamAsk[];
   role?: string;
   id: string;

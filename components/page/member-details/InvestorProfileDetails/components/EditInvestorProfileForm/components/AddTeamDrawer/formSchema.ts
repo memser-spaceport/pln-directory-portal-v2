@@ -18,13 +18,13 @@ export const createTeamSchema = yup.object({
       const { isValid } = await validatePariticipantsEmail(value, ENROLLMENT_TYPE.TEAM);
       return isBoolean(isValid) ? isValid : true;
     }),
-  description: yup.string().required('Required field').max(150, 'Description is too long'),
+  description: yup.string().max(150, 'Description is too long'),
   image: yup.mixed<File>().notRequired(),
   role: yup.string().notRequired(),
-  fundingStage: yup.mixed<Option>().defined().required('Required field'),
-  industryTags: yup.array().of(yup.mixed<Option>().defined()).defined().min(1, 'Select at least one tag'),
-  website: yup.string().required('Required field'),
-  contactMethod: yup.string().required('Required field'),
+  fundingStage: yup.mixed<Option>(),
+  industryTags: yup.array().of(yup.mixed<Option>().defined()).defined(),
+  website: yup.string(),
+  contactMethod: yup.string(),
   isInvestmentFund: yup.boolean().default(false),
   fundTypes: yup
     .array()

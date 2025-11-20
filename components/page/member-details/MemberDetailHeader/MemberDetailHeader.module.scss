@@ -13,6 +13,15 @@
   gap: 2px;
 }
 
+.teamLinkEmpty {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
 .moreTeamsButton {
   display: flex;
   padding: var(--spacing-5xs, 2px) var(--spacing-3xs, 6px);
@@ -219,6 +228,15 @@
   background: var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
 
   color: var(--foreground-brand-secondary_inverted, #4174ff);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+.addButton {
+  color: var(--action-foreground-warning-normal, #D97706);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;

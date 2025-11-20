@@ -14,7 +14,7 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useRecommendationLinkAnalyticsReport } from '@/services/members/hooks/useRecommendationLinkAnalyticsReport';
 
 import { Tag } from '@/components/ui/tag';
-import { IMember } from '@/types/members.types';
+import { IMember, IMemberTeam } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
@@ -22,6 +22,8 @@ import { EditButton } from '@/components/page/member-details/components/EditButt
 import { shouldShowInvestorTag } from './utils/shouldShowInvestorTag';
 
 import s from './MemberDetailHeader.module.scss';
+import { Button } from '@/components/common/Button';
+import { ITeam } from '@/types/teams.types';
 
 interface IMemberDetailHeader {
   member: IMember;
@@ -34,7 +36,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const member = props?.member;
   const name = member?.name ?? '';
   const isLoggedIn = props?.isLoggedIn;
-  const role = member?.mainTeam?.role || 'Contributor';
+  const role = member?.mainTeam?.role ?? member.role;
   const location = parseMemberLocation(member?.location);
   const isTeamLead = member?.teamLead;
   const isOpenToWork = member?.openToWork;
@@ -44,11 +46,12 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
 
   const showInvestorTag = shouldShowInvestorTag(member);
 
-  const mainTeam = member?.mainTeam;
+  let mainTeam: IMemberTeam | ITeam | null = member?.mainTeam;
   const otherTeams = member.teams
     ?.filter((team) => team.id !== mainTeam?.id)
     .map((team) => team.name)
     .sort();
+  mainTeam = !mainTeam && member?.teams.length === 1 ? member.teams[0] : mainTeam;
 
   const isOwner = userInfo?.uid === member.id;
   const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
@@ -83,7 +86,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
               <CustomTooltip trigger={<h1 className={s.specificsName}>{name}</h1>} content={name} />
             </div>
             <div className={s.roleAndLocation}>
-              {member?.teams?.[0]?.name && (
+              {member?.teams?.length > 0 ? (
                 <>
                   <div className={s.teams}>
                     <CustomTooltip
@@ -124,15 +127,50 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
                   </div>
                   <div className={clsx(s.divider, s.desktopOnly)} />
                 </>
+              ) : (
+                !isAdmin && !isOwner && <span className={s.teamLinkEmpty}>Team Not Provided</span>
               )}
-              <CustomTooltip trigger={<p className={s.role}>{role}</p>} content={role} />
+              {role ? (
+                <CustomTooltip trigger={<p className={s.role}>{role}</p>} content={role} />
+              ) : isOwner || isAdmin ? (
+                <button
+                  className={s.addButton}
+                  type="button"
+                  onClick={() => {
+                    analytics.onAddYourRoleClicked(
+                      getAnalyticsUserInfo(userInfo),
+                      getAnalyticsMemberInfo(member),
+                    );
+                    onEdit();
+                  }}
+                >
+                  + Your Role
+                </button>
+              ) : null}
+
               {isLoggedIn && (
                 <>
                   <div className={s.divider} />
-                  <div className={s.location}>
-                    <LocationIcon />
-                    <p className={s.locationName}>{location}</p>
-                  </div>
+                  {(isOwner || isAdmin) && location === 'Unknown' ? (
+                    <button
+                      className={s.addButton}
+                      type="button"
+                      onClick={() => {
+                        analytics.onAddYourLocationClicked(
+                          getAnalyticsUserInfo(userInfo),
+                          getAnalyticsMemberInfo(member),
+                        );
+                        onEdit();
+                      }}
+                    >
+                      + Your Location
+                    </button>
+                  ) : (
+                    <div className={s.location}>
+                      <LocationIcon />
+                      <p className={s.locationName}>{location ? location : 'Unknown'}</p>
+                    </div>
+                  )}
                 </>
               )}
             </div>

@@ -1,0 +1,91 @@
+@use 'styles/media';
+@use 'styles/mixins.scss';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  position: static;
+  border-right: 1px solid #e2e8f0;
+  background: #fff;
+  width: inherit;
+  z-index: 3;
+  height: inherit;
+
+  @include media.breakpoint-1024 {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.header {
+  display: none;
+  padding: 20px 34px;
+  width: 100%;
+  justify-content: space-between;
+  border-bottom: 1px solid #cbd5e1;
+
+  @include media.breakpoint-1024 {
+    display: flex;
+  }
+}
+
+.headerTitle {
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clearAllBtn {
+  display: none;
+
+  @include media.breakpoint-1024 {
+    display: unset;
+    border: none;
+    background: none;
+    color: #156ff7;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 20px;
+  }
+}
+
+.body {
+  padding: 20px 10px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: calc(100dvh - 141px);
+  overflow: auto;
+
+  @include mixins.hide-scrollbar;
+
+  @include media.breakpoint-1024 {
+    min-height: calc(100dvh - 141px);
+  }
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  background: #fff;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 72px;
+  padding: var(--spacing-sm, 12px) var(--spacing-lg, 20px) var(--spacing-lg, 20px) var(--spacing-lg, 20px);
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--spacing-xs, 10px);
+  border-top: 1px solid #cbd5e1;
+
+  @include media.breakpoint-1024 {
+    display: none;
+  }
+}

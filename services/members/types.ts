@@ -1,3 +1,5 @@
+import { FilterOption } from '@/services/filters/commonTypes';
+
 export type MembersListQueryParams = {
   searchParams: any;
 };
@@ -26,8 +28,8 @@ export type MemberProfileStatus = {
   completeness: number;
 };
 
-export type Option = {
-  value: string;
-  label: string;
-  count?: number;
-};
+/**
+ * @deprecated Use FilterOption from @/services/filters/commonTypes instead
+ * Kept for backward compatibility
+ */
+export type Option = FilterOption;

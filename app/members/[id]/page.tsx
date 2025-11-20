@@ -29,7 +29,8 @@ import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useQuery } from '@tanstack/react-query';
 import { IMember } from '@/types/members.types';
-import { ITeam } from '@/types/teams.types';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { AccountCreatedView } from '@/components/page/member-details/AccountCreatedView';
 
 import MemberPageLoader from './loading';
 import Head from 'next/head';
@@ -55,10 +56,18 @@ const shouldShowInvestorProfileForThirdParty = (
 
 const MemberDetails = ({ params }: { params: any }) => {
   const memberId = params?.id;
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const userInfo = getParsedValue(Cookies.get('userInfo'));
   const isAdmin = userInfo && userInfo.roles?.includes(ADMIN_ROLE);
   const isOwner = userInfo && userInfo.uid === memberId;
   const isLoggedIn = !!userInfo;
+
+  // Check for prefillEmail and returnTo parameters
+  const prefillEmail = searchParams.get('prefillEmail');
+  const returnTo = searchParams.get('returnTo');
+  const shouldShowAccountCreated = !isLoggedIn && prefillEmail && returnTo;
   const {
     data: member,
     isError,
@@ -102,6 +111,17 @@ const MemberDetails = ({ params }: { params: any }) => {
     }
   }, [member, memberId, isLoading]);
 
+  // Handle login click from AccountCreatedView
+  const handleLoginClick = () => {
+    // Stay on the same page and add #login hash
+    router.push(`${window.location.pathname}${window.location.search}#login`);
+  };
+
+  // Show AccountCreatedView if user is not logged in and has prefillEmail and returnTo params
+  if (shouldShowAccountCreated) {
+    return <AccountCreatedView onLoginClick={handleLoginClick} />;
+  }
+
   if (isError) {
     return <Error />;
   }
@@ -111,7 +131,7 @@ const MemberDetails = ({ params }: { params: any }) => {
   }
 
   if (!member) {
-    return <Error />;
+    return <Error title="This member doesn't exist or isn't approved yet" description="Member not found" />;
   }
 
   function renderPageContent() {

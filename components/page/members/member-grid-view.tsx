@@ -24,7 +24,7 @@ const MemberGridView = (props: IMemberGridView) => {
     .filter((team) => !team.mainTeam)
     .map((team) => team.name)
     .sort();
-  const role = member.mainTeam?.role || 'Contributor';
+  const role = member.mainTeam?.role || member?.role || '';
   const location = parseMemberLocation(member?.location);
   const isTeamLead = member?.teamLead;
   const isBorder = isTeamLead;
@@ -85,7 +85,7 @@ const MemberGridView = (props: IMemberGridView) => {
             <div className={s.positionDetails}>
               <div className={s.secondaryText}>
                 <span className={s.teamName} title={mainTeam?.name}>
-                  {member?.teams?.length > 0 ? mainTeam?.name : '-'}{' '}
+                  {member?.teams?.length > 0 ? mainTeam?.name : 'Team Not Provided'}{' '}
                 </span>
                 <span>
                   {member?.teams?.length > 2 && (
@@ -109,7 +109,7 @@ const MemberGridView = (props: IMemberGridView) => {
                   )}
                 </span>
               </div>
-              <p className={s.secondaryText}>{role}</p>
+              <p className={s.secondaryText}>{role}&nbsp;</p>
             </div>
             {isUserLoggedIn && (
               <>

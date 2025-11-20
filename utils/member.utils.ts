@@ -152,7 +152,7 @@ export const parseMemberLocation = (location: any) => {
     return country;
   }
 
-  return 'Not provided';
+  return 'Unknown';
 };
 
 export const formatDate = (dateString: string) => {
@@ -823,7 +823,7 @@ export function updateMemberInfoCookie(url: string) {
 export function isMemberAvailableToConnect(member: any) {
   return (
     !!member?.officeHours &&
-    (member.ohStatus === 'OK' ||
+    (member?.ohStatus === 'OK' ||
       member?.ohStatus === 'NOT_FOUND' ||
       member?.ohStatus === null ||
       member?.ohStatus === 'BROKEN')

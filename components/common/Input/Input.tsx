@@ -1,14 +1,23 @@
 import { clsx } from 'clsx';
-import { HTMLAttributes, InputHTMLAttributes } from 'react';
+import { forwardRef, InputHTMLAttributes, ReactNode } from 'react';
 
 import s from './Input.module.scss';
 
-export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
-  const { className, ...rest } = props;
+interface Props extends InputHTMLAttributes<HTMLInputElement> {
+  startIcon?: ReactNode;
+  endIcon?: ReactNode;
+}
+
+export const Input = forwardRef<HTMLInputElement, Props>((props, ref) => {
+  const { startIcon, endIcon, className, ...rest } = props;
 
   return (
     <div className={clsx(s.root, className)}>
-      <input {...rest} className={s.input} />
+      {startIcon}
+      <input {...rest} className={s.input} ref={ref} />
+      {endIcon}
     </div>
   );
-}
+});
+
+Input.displayName = 'Input';

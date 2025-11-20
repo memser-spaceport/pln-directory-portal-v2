@@ -161,7 +161,7 @@ export const getMember = async (
       return {
         id: teamMemberRole?.team?.uid || '',
         name: teamMemberRole?.team?.name || '',
-        role: teamMemberRole?.role || 'Contributor',
+        role: teamMemberRole?.role || '',
         teamLead: !!teamMemberRole?.teamLead,
         mainTeam: !!teamMemberRole?.mainTeam,
         logo: teamMemberRole?.team?.logo?.url ?? '',
@@ -177,6 +177,7 @@ export const getMember = async (
   member = {
     id: result.uid,
     name: result.name,
+    role: result.role,
     email: result.email,
     bio: result.bio,
     imageUid: result.image?.uid,

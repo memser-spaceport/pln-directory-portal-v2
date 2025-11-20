@@ -25,6 +25,7 @@
   padding-inline: 16px;
   padding-top: clamp(12px, 4vw, 24px);
   gap: clamp(8px, 3vh, 32px);
+  padding-bottom: 24px;
 
   @include media.tablet-landscape {
     align-items: center;
@@ -247,6 +248,105 @@
   border-radius: 50%;
   border: 2px solid #fff;
   animation: prixClipFix 2s linear forwards infinite;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.inputsLabel {
+  color: #475569;
+  font-feature-settings:
+          'liga' off,
+          'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 166.667% */
+  margin-bottom: 0.25rem;
+}
+
+.inputsWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+  }
+}
+
+.description {
+  margin-top: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.teamOption {
+  gap: 12px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  cursor: pointer;
+
+  .optImg {
+    display: block;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .optionContent {
+    @include mixins.ellipse-text;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .badge {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    letter-spacing: -0.2px;
+
+    &[data-type='team'] {
+      background-color: rgba(27, 77, 255, 0.08);
+      color: #1b4dff;
+    }
+
+    &[data-type='project'] {
+      background-color: rgba(16, 185, 129, 0.08);
+      color: #10b981;
+    }
+  }
+}
+
+.secondaryLabel {
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  .link {
+    color: var(--foreground-brand-primary, #1B4DFF);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+  }
 }
 
 @keyframes rotate {

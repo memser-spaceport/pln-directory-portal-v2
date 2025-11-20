@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Field } from '@base-ui-components/react/field';
 import clsx from 'clsx';
 import { uniq } from 'lodash';
-import { useFilterStore } from '@/services/members/store';
+import { FilterState } from '@/services/filters/types';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
 import s from './FilterTagInput.module.scss';
@@ -10,25 +10,29 @@ import s from './FilterTagInput.module.scss';
 interface Props {
   options?: { value: string; label: string }[];
   paramKey: string;
+  filterStore: () => FilterState;
   isColorfulBadges?: boolean;
   selectLabel: string;
   warning?: boolean;
   placeholder?: string;
   disabled?: boolean;
   isRequired?: boolean;
+  onChange?: (tags: string[]) => void;
 }
 
 export const FilterTagInput = ({
   selectLabel,
   paramKey,
+  filterStore,
   isColorfulBadges = true,
   placeholder = 'Add keyword',
   disabled = false,
   isRequired = false,
   warning = false,
+  onChange,
 }: Props) => {
   const [inputText, setInputText] = useState('');
-  const { params, setParam } = useFilterStore();
+  const { params, setParam } = filterStore();
 
   // Get initial values from URL parameters
   const getInitialValues = () => {
@@ -57,7 +61,11 @@ export const FilterTagInput = ({
     } else {
       setParam(paramKey, undefined);
     }
-  }, [tags, paramKey, setParam]);
+
+    if (onChange) {
+      onChange(tags);
+    }
+  }, [tags, paramKey, setParam, onChange]);
 
   const handleAddTag = useCallback(
     (newTag: string) => {

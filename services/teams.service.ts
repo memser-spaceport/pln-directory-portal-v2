@@ -5,7 +5,7 @@ import { getHeader } from '@/utils/common.utils';
 const teamsAPI = `${process.env.DIRECTORY_API_URL}/v1/teams`;
 
 // get all teams filters
-export const getTeamListFilters = async (options: any) => {
+export const getTeamListFilters = async (options: any, authToken: string) => {
   const queries = {
     ...options,
     pagination: false,
@@ -14,8 +14,7 @@ export const getTeamListFilters = async (options: any) => {
 
   const requestOptions: RequestInit = {
     method: 'GET',
-    headers: getHeader(''),
-    cache: 'force-cache',
+    headers: getHeader(authToken),
     next: {
       tags: ['team-filters'],
     },
@@ -36,6 +35,7 @@ export const getTeamListFilters = async (options: any) => {
     membershipSources: result?.membershipSources || [],
     technology: result?.technologies || [],
     askTags: asks || [],
+    tiers: result?.tiers || null,
   };
 
   return { data: formattedData };
@@ -156,6 +156,7 @@ export const getTeam = async (
     asks: result?.asks ?? [],
     investorProfile: result?.investorProfile,
     isFund: result?.isFund,
+    tier: result?.tier,
   };
   return { data: { formatedData } };
 };

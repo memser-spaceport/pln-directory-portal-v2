@@ -5,10 +5,10 @@ import { Tag } from '@/components/ui/tag';
 import { IUserInfo } from '@/types/shared.types';
 import { ITag, ITeam } from '@/types/teams.types';
 import { ADMIN_ROLE } from '@/utils/constants';
-import { getTechnologyImage } from '@/utils/team.utils';
+import { getTechnologyImage, getTierColor } from '@/utils/team.utils';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import About from './about';
 import Technologies from './technologies';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
@@ -29,8 +29,20 @@ const TeamDetails = (props: ITeamDetails) => {
   const team = props?.team;
   const logo = team?.logo ?? '/icons/team-default-profile.svg';
   const teamName = team?.name ?? '';
-  const tags = team?.industryTags ?? [];
   const userInfo = props?.userInfo;
+  const isTierViewer = userInfo?.isTierViewer || userInfo?.roles?.includes(ADMIN_ROLE);
+  const tags = useMemo(() => {
+    if (isTierViewer && typeof team?.tier === 'number') {
+      return [
+        {
+          title: `Tier ${team?.tier}`,
+          icon: <Image src="/icons/stack.svg" alt="stack" width={16} height={14} />,
+        } as ITag,
+        ...(team?.industryTags ?? []),
+      ];
+    }
+    return team?.industryTags;
+  }, [team?.industryTags, isTierViewer, team.tier]);
   const teamId = params?.id;
   const about = team?.longDescription ?? '';
   const technologies =
@@ -147,7 +159,12 @@ const TeamDetails = (props: ITeamDetails) => {
                               asChild
                               trigger={
                                 <div>
-                                  <Tag value={tag?.title} variant="primary" tagsLength={tags?.length} />{' '}
+                                  <Tag
+                                    value={tag?.title}
+                                    variant="primary"
+                                    tagsLength={tags?.length}
+                                    color={tag?.color}
+                                  />{' '}
                                 </div>
                               }
                               content={tag?.title}
@@ -157,7 +174,7 @@ const TeamDetails = (props: ITeamDetails) => {
                       )}
                     </Fragment>
                   ))}
-                  {tags?.length > 3 && (
+                  {tags?.length && tags?.length > 3 && (
                     <Tooltip
                       asChild
                       trigger={
@@ -192,7 +209,7 @@ const TeamDetails = (props: ITeamDetails) => {
                             asChild
                             trigger={
                               <div>
-                                <Tag value={tag?.title} />{' '}
+                                <Tag value={tag?.title} color={tag?.color} icon={tag?.icon} />{' '}
                               </div>
                             }
                             content={tag?.title}
@@ -201,7 +218,7 @@ const TeamDetails = (props: ITeamDetails) => {
                       )}
                     </Fragment>
                   ))}
-                  {tags?.length > 5 && (
+                  {tags?.length && tags?.length > 5 && (
                     <Tooltip
                       asChild
                       trigger={

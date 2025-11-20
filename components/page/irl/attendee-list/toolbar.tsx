@@ -222,6 +222,7 @@ const Toolbar = (props: IToolbar) => {
           }
   
           .toolbar__dropdown__attendee__type__body__item__label {
+            font-family: 'Inter', sans-serif;
             font-size: 14px;
             font-weight: 400;
             line-height: 100%;

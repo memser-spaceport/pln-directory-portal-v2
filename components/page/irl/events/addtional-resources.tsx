@@ -52,6 +52,10 @@ const AddtionalResources = (props: any) => {
     <>
       {(searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) && (
         <div className={`${searchParams?.type === 'past' ? 'irl__addResWrpr' : ''}`}>
+          <div className="irl__addRes__header">
+            <img src="/images/quick-link.png" alt="icon" className="irl__addRes__header__icon" />
+            <span className="irl__addRes__header__text">Quick Links for {eventDetails?.location?.split(',')[0]?.trim() || 'Location'}</span>
+          </div>
           <div className="irl__addRes">
             <div className="irl__addRes__cntr">
               <div className="irl__addRes__cntr__resource">
@@ -60,14 +64,15 @@ const AddtionalResources = (props: any) => {
                     <LinkTab resource={resource} handleAdditionalResourceClicked={handleAdditionalResourceClicked} />
                   </div>
                 ))}
+                {eventDetails?.resources?.length > 2 && (
+                  <div className="irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
+                    <div className="irl__showMore__count">
+                      +{eventDetails?.resources?.length - 2}
+                    </div>
+                    <div>more</div>
+                  </div>
+                )}
               </div>
-
-              {eventDetails?.resources?.length > 2 && (
-                <div className="irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
-                  <div className="irl__showMore__count">+{eventDetails?.resources?.length - 2}</div>
-                  <div>more</div>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -100,6 +105,27 @@ const AddtionalResources = (props: any) => {
       </Modal>
       <style jsx>{`
         /* Mobile styles (default) */
+        .irl__addRes__header {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .irl__addRes__header__icon {
+          width: 13px;
+          height: 18px;
+          object-fit: contain;
+        }
+
+        .irl__addRes__header__text {
+          font-family: 'Inter', sans-serif;
+          font-size: 14px;
+          font-weight: 600;
+          line-height: 20px;
+          color: #0F172A;
+        }
+
         .irl__addRes {
           display: flex;
           flex-direction: row;
@@ -107,8 +133,8 @@ const AddtionalResources = (props: any) => {
           line-height: 20px;
           text-align: left;
           align-items: ${!isLoggedIn ? 'center' : 'unset'};
-          padding: 20px 14px;
-          border-block: 1px solid #cbd5e1;
+          padding-top: 10px;
+          // border-block: 1px solid #cbd5e1;
           min-height: 36px;
         }
 
@@ -141,6 +167,7 @@ const AddtionalResources = (props: any) => {
           flex-direction: row;
           flex-wrap: wrap;
           gap: 8px;
+          align-items: center;
         }
 
         .irl__addRes__cntr__resCnt {
@@ -150,7 +177,7 @@ const AddtionalResources = (props: any) => {
           justify-content: center;
           align-items: center;
           height: 24px;
-          max-width: 120px;
+          max-width: 320px;
         }
 
         /* Hide tags beyond the 2nd on mobile (default) */
@@ -159,8 +186,8 @@ const AddtionalResources = (props: any) => {
         }
 
         .irl__addRes__cntr__resCnt__showMore {
-          display: flex;
-          flex-direction: unset;
+          display: ${eventDetails?.resources?.length > 2 ? 'flex' : 'none'};
+          flex-direction: row;
           border: 1.5px solid rgba(226, 232, 240, 1);
           background-color: #fff;
           font-size: 13px;
@@ -174,11 +201,7 @@ const AddtionalResources = (props: any) => {
           border-radius: 6px;
           color: #156ff7;
           cursor: pointer;
-        }
 
-        /* Hide show more button on mobile when there are 2 or fewer tags */
-        .irl__addRes__cntr__resCnt__showMore {
-          display: ${eventDetails?.resources?.length > 2 ? 'flex' : 'none'};
         }
 
         /* Mobile count calculation - show count for tags beyond 2 */
@@ -194,13 +217,13 @@ const AddtionalResources = (props: any) => {
         .irl__modalHeader {
           display: flex;
           flex-direction: row;
-          gap: 8px;
+          gap: 4px;
           position: absolute;
           width: 100%;
         }
 
         .irl__modalHeader__title {
-          font-size: 24px;
+          font-size: 22px;
           font-weight: 700;
           line-height: 32px;
           text-align: left;
@@ -237,12 +260,23 @@ const AddtionalResources = (props: any) => {
           border-bottom: none;
         }
 
+        @media (min-width: 375px) {
+          .irl__modalHeader__title {
+            font-size: 24px;
+          }
+        }
+        
+        @media (min-width: 425px) {
+          .irl__modalHeader {
+            gap: 8px;
+          }
+        }
+
         /* Desktop styles (1024px and above) */
         @media (min-width: 1024px) {
           .irl__addRes {
             width: unset;
             border-block: unset;
-            padding: 16px 0px;
           }
 
           .irl__addRes__popup {
@@ -264,7 +298,7 @@ const AddtionalResources = (props: any) => {
           }
 
           .irl__addRes__cntr__resCnt {
-            max-width: 150px;
+            max-width: 190px;
           }
 
           /* Show up to 4 tags on desktop, hide beyond the 4th */

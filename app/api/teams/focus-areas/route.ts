@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const paramsObj = Object.fromEntries(searchParams.entries());
 
-    // Fetch focus areas
+    // Fetch focus areas for teams
     const result = await getFocusAreas('Team', parseFocusAreasParams(paramsObj));
 
     if (result?.error) {

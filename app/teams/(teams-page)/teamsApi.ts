@@ -107,7 +107,6 @@ export const fetchFiltersData = async (): Promise<FilterDataResponse> => {
  */
 export const fetchFocusAreas = async (searchParams: ITeamsSearchParams): Promise<FocusAreasResponse> => {
   const params = new URLSearchParams();
-  params.set('type', 'Team');
 
   // Add other params from searchParams
   Object.entries(searchParams).forEach(([key, value]) => {

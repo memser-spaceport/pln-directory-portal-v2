@@ -10,7 +10,7 @@ import { getTeamsPageData } from '@/app/teams/(teams-page)/getTeamsPageData';
 async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
 
-  const { teams, isError, totalTeams, filterValues } = await getPageData(searchParams);
+  const { teams, isError, totalTeams = 0, filterValues } = await getPageData(searchParams);
 
   if (isError) {
     return <Error />;

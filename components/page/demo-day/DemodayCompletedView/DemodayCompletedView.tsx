@@ -138,7 +138,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           <div className={s.statusBadge} data-status="upcoming">
             Upcoming
           </div>
-          <h3 className={s.timelineTitle}>PL Demo Day Founders Forge · Dec 10th 2025</h3>
+          <h3 className={s.timelineTitle}>PL_Genesis Accelerator Demo Day · Dec 10th 2025</h3>
           <p className={s.timelineDescription}>
             Explore 10 pioneering teams asynchronously after they live pitch at{' '}
             <a

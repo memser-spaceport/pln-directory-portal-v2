@@ -27,7 +27,7 @@ export function PageTitle(props: PageTitleProps) {
         <br />
         {subtitle}
         <br />
-        <b>Demo Day closes November 7, 2025 @ 10:00 PM PT</b>
+        <b>F25 Demo Day closed on Nov 7th at 10:00 PM PST</b>
       </p>
     </div>
   );

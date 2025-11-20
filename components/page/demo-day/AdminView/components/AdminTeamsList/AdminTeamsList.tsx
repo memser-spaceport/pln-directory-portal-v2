@@ -3,6 +3,7 @@ import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { useFilterStore } from '@/services/members/store';
 import { TeamProfileCard } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamProfileCard';
 import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamDetailsDrawer';
+import { AdminFiltersDrawer } from './components/AdminFiltersDrawer';
 import { TeamsListLoading } from '@/components/page/demo-day/shared/TeamsListStates';
 import s from '@/components/page/demo-day/ActiveView/components/TeamsList/TeamsList.module.scss';
 import { getParsedValue } from '@/utils/common.utils';
@@ -133,6 +134,9 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
         scrollPosition={scrollPositionRef.current}
         isAdmin={isDirectoryAdmin}
       />
+
+      {/* Filters Drawer */}
+      <AdminFiltersDrawer isOpen={isFiltersDrawerOpen} onClose={() => setIsFiltersDrawerOpen(false)} />
     </div>
   );
 };

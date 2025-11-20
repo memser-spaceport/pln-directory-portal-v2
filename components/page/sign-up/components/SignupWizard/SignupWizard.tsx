@@ -29,6 +29,7 @@ import s from './SignupWizard.module.scss';
 import { FormSelect } from '@/components/form/FormSelect';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   onClose?: () => void;
@@ -40,6 +41,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
   const { data } = useMemberFormOptions();
   const searchParams = useSearchParams();
   const analytics = useSignUpAnalytics();
+  const memberAnalytics = useMemberAnalytics();
   const [isAddingTeam, setIsAddingTeam] = useState(false);
 
   const methods = useForm<SignupForm>({
@@ -272,6 +274,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                                 type="button"
                                 className={s.link}
                                 onClick={() => {
+                                  memberAnalytics.onAddTeamDropdownClicked('signup');
                                   setIsAddingTeam(true);
                                   setValue('teamOrProject', null, { shouldValidate: true });
                                 }}

@@ -31,21 +31,14 @@
   border-radius: 12px;
   padding: 4px;
   position: relative;
-
-  // Inner border
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 12px;
-    border: 1px solid rgba(27, 56, 96, 0.12);
-    pointer-events: none;
-  }
+  max-width: calc(98vw - 10px);
+  border: 1px solid rgba(27, 56, 96, 0.12);
 
   @include media.mobile-only {
     width: 100%;
     overflow-x: auto;
     flex-wrap: nowrap;
+    max-width: calc(98vw - 10px);
 
     // Hide scrollbar
     &::-webkit-scrollbar {
@@ -134,6 +127,7 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  max-width: calc(98vw - 10px);
 }
 
 .filterButton {

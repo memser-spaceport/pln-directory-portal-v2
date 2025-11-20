@@ -7,6 +7,7 @@ import Error from '../../../../components/core/error';
 import FilterWrapper from '../../../../components/page/teams/filter-wrapper';
 import { fetchFiltersData, fetchFocusAreas } from '../teamsApi';
 import { processFilters } from '@/utils/team.utils';
+import { useMemo } from 'react';
 
 interface FiltersContentProps {
   searchParams: ITeamsSearchParams;
@@ -14,7 +15,7 @@ interface FiltersContentProps {
 }
 
 export default function FiltersContent({ searchParams, userInfo }: FiltersContentProps) {
-  // Fetch filters data
+  // Fetch filters data (static doesn't change based on searchParams)
   const {
     data: filtersData,
     isLoading: isLoadingFilters,
@@ -22,56 +23,59 @@ export default function FiltersContent({ searchParams, userInfo }: FiltersConten
   } = useQuery({
     queryKey: ['teams', 'filters'],
     queryFn: () => fetchFiltersData(),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    staleTime: Infinity, // Never refetch - filter options are static
+    gcTime: Infinity, // Keep in cache forever
   });
 
-  // Fetch focus areas
+  // Fetch focus areas (static initial load, not dependent on current filters)
   const {
     data: focusAreasData,
     isLoading: isLoadingFocusAreas,
     isError: isFocusAreasError,
   } = useQuery({
-    queryKey: ['teams', 'focus-areas', searchParams],
-    queryFn: () => fetchFocusAreas(searchParams),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    queryKey: ['teams', 'focus-areas-initial'],
+    queryFn: () => fetchFocusAreas({} as ITeamsSearchParams), // Fetch all focus areas without filters
+    staleTime: Infinity, // Never refetch - focus area structure is static
+    gcTime: Infinity, // Keep in cache forever
   });
 
-  const isLoading = isLoadingFilters || isLoadingFocusAreas;
+  // Process filter values - memoized to avoid recalculation
+  // Must be called before any conditional returns (React hooks rule)
+  const filterValues = useMemo(() => {
+    if (!filtersData || !focusAreasData) return null;
+
+    const processed = processFilters(searchParams, filtersData, filtersData, focusAreasData.data);
+
+    // Handle 'all' asks selection
+    if (searchParams?.asks === 'all') {
+      processed.asks.forEach((ask) => {
+        if (!ask.disabled) {
+          ask.selected = true;
+        }
+      });
+    }
+
+    return processed;
+  }, [searchParams, filtersData, focusAreasData]);
+
   const isError = isFiltersError || isFocusAreasError;
 
   if (isError) {
     return <Error />;
   }
 
-  // Process filter values
-  let filterValues;
-  if (filtersData && focusAreasData) {
-    filterValues = processFilters(
-      searchParams,
-      filtersData,
-      filtersData,
-      focusAreasData.data
-    );
-
-    // Handle 'all' asks selection
-    if (searchParams?.asks === 'all') {
-      filterValues.asks.forEach((ask) => {
-        if (!ask.disabled) {
-          ask.selected = true;
-        }
-      });
-    }
-  }
-
-  // Show loading skeleton or placeholder
-  if (isLoading || !filterValues) {
+  // Only show loading on an initial load, not when searchParams change
+  if (isLoadingFilters || isLoadingFocusAreas) {
     return (
       <div style={{ padding: '20px' }}>
         <p>Loading filters...</p>
       </div>
     );
+  }
+
+  // If data is loaded but filterValues is null (shouldn't happen)
+  if (!filterValues) {
+    return null;
   }
 
   return <FilterWrapper searchParams={searchParams} filterValues={filterValues} userInfo={userInfo!} />;

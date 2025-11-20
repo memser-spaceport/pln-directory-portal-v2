@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { toast } from '@/components/core/ToastContainer';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { ITEMS_PER_PAGE, TOAST_MESSAGES } from '@/utils/constants';
 import { TeamsListQueryParams } from '@/services/teams/types';
 import { TeamsQueryKeys } from '@/services/teams/constants';
@@ -38,8 +38,6 @@ export function useInfiniteTeamsList(
     initialData: QueryData;
   },
 ) {
-  const queryClient = useQueryClient();
-
   const {
     isRefetching,
     data,
@@ -64,33 +62,9 @@ export function useInfiniteTeamsList(
       pages: [{ items: initialData.items, total: initialData.total }],
       pageParams: [1],
     },
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
   });
-
-  useEffect(() => {
-    if (!hasNextPage) return;
-
-    queryClient.fetchInfiniteQuery({
-      queryKey: [TeamsQueryKeys.GET_TEAMS_LIST, queryParams.searchParams],
-      queryFn: ({ pageParam = 2 }) => {
-        return infiniteFetcher(queryParams.searchParams, pageParam);
-      },
-      initialPageParam: 2,
-      getNextPageParam: (data: unknown, allPages: unknown, lastPageParam: number) => {
-        return lastPageParam + 2;
-      },
-    });
-
-    queryClient.fetchInfiniteQuery({
-      queryKey: [TeamsQueryKeys.GET_TEAMS_LIST, queryParams.searchParams],
-      queryFn: ({ pageParam = 3 }) => {
-        return infiniteFetcher(queryParams.searchParams, pageParam);
-      },
-      initialPageParam: 3,
-      getNextPageParam: (data: unknown, allPages: unknown, lastPageParam: number) => {
-        return lastPageParam + 3;
-      },
-    });
-  }, [hasNextPage, queryParams.searchParams, queryClient]);
 
   useEffect(() => {
     if (isError && error) {

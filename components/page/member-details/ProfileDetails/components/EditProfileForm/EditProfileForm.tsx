@@ -243,7 +243,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
                         fallbackSrc="/icons/camera.svg"
                         src={option.originalObject.logo}
                       />
-                      <div>
+                      <div className={s.optionContent}>
                         {label}
                         {description}
                       </div>

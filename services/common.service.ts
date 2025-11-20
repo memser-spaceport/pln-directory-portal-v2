@@ -3,6 +3,7 @@ export const getFocusAreas = async (type: string, queryParams: any) => {
 
   const response = await fetch(url, {
     method: 'GET',
+    cache: 'force-cache',
     next: { tags: ['focus-areas'] },
     headers: {
       'Content-Type': 'application/json',

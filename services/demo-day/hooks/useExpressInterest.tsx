@@ -46,7 +46,7 @@ export function useExpressInterest(teamName?: string) {
   return useMutation<boolean, Error, ExpressInterestData>({
     mutationFn: expressInterest,
     onSuccess: (_, variables) => {
-      const { interestType } = variables;
+      const { interestType, isPrepDemoDay } = variables;
       let title = '';
 
       switch (interestType) {
@@ -70,7 +70,11 @@ export function useExpressInterest(teamName?: string) {
         <div>
           <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{title}</span>
           <br />
-          <span style={{ fontSize: '14px' }}>We sent an email to let them know.</span>
+          <span style={{ fontSize: '14px' }}>
+            {isPrepDemoDay
+              ? `Emails aren't sent to founders in showcase mode.`
+              : 'We sent an email to let them know.'}
+          </span>
         </div>,
         {
           style: {

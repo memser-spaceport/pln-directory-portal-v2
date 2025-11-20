@@ -6,11 +6,11 @@ export const getTeamsFormOptions = async () => {
     technologiesResponse,
     focusAreaResponse,
   ] = await Promise.all([
-    fetch(`${process.env.DIRECTORY_API_URL}/v1/membership-sources`, { method: 'GET' }),
-    fetch(`${process.env.DIRECTORY_API_URL}/v1/funding-stages?pagination=false`, { method: 'GET' }),
-    fetch(`${process.env.DIRECTORY_API_URL}/v1/industry-tags?pagination=false`, { method: 'GET' }),
-    fetch(`${process.env.DIRECTORY_API_URL}/v1/technologies?pagination=false`, { method: 'GET' }),
-    fetch(`${process.env.DIRECTORY_API_URL}/v1/focus-areas`, { method: 'GET' }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/membership-sources`, { method: 'GET', cache: 'force-cache', }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/funding-stages?pagination=false`, { method: 'GET', cache: 'force-cache' }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/industry-tags?pagination=false`, { method: 'GET', cache: 'force-cache' }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/technologies?pagination=false`, { method: 'GET', cache: 'force-cache' }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/focus-areas`, { method: 'GET', cache: 'force-cache', }),
   ]);
 
   const membershipSources = await membershipSourcesResponse.json();

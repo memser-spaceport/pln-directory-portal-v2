@@ -96,10 +96,17 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const { mutateAsync } = useUpdateMember();
   const { mutateAsync: updateSelfRole } = useUpdateMemberSelfRole();
   const { data: memberData } = useMember(member.id);
-  const { onSaveProfileDetailsClicked, onPrimaryTeamChanged } = useMemberAnalytics();
+  const {
+    onSaveProfileDetailsClicked,
+    onPrimaryTeamChanged,
+    onAddTeamDropdownClicked,
+    onPrimaryRoleSelected,
+    onPrimaryTeamSelected,
+  } = useMemberAnalytics();
 
   // Watch primaryTeam to show/hide role field
   const selectedPrimaryTeam = watch('primaryTeam');
+  const selectedPrimaryTeamRole = watch('primaryTeamRole');
 
   // Store initial primary team to track changes
   const initialPrimaryTeamRef = useRef(mainTeamData.team);
@@ -211,6 +218,20 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
     }
   }, [data?.teams, newlyAddedTeamName, setValue]);
 
+  // Track primary role selection
+  useEffect(() => {
+    if (selectedPrimaryTeamRole && selectedPrimaryTeamRole !== initialPrimaryTeamRoleRef.current) {
+      onPrimaryRoleSelected(selectedPrimaryTeamRole);
+    }
+  }, [selectedPrimaryTeamRole, onPrimaryRoleSelected]);
+
+  // Track primary team selection
+  useEffect(() => {
+    if (selectedPrimaryTeam && selectedPrimaryTeam.value !== initialPrimaryTeamRef.current?.value) {
+      onPrimaryTeamSelected(selectedPrimaryTeam.label, selectedPrimaryTeam.value);
+    }
+  }, [selectedPrimaryTeam, onPrimaryTeamSelected]);
+
   return (
     <FormProvider {...methods}>
       <form
@@ -283,6 +304,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
                       type="button"
                       className={s.link}
                       onClick={() => {
+                        onAddTeamDropdownClicked('profile-edit');
                         setIsAddTeamModalOpen(true);
                       }}
                     >

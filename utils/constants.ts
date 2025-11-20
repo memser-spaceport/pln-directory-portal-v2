@@ -447,6 +447,18 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBERS_ROLES_FILTER_SELECTED: 'member-roles-filter-selected',
 
   MEMBER_DETAILS_ON_CLICK_BOOK_WITH_OTHER: 'member-detail-members-open-to-connect-button-clicked',
+
+  // Profile edit actions
+  MEMBER_DETAIL_ADD_YOUR_ROLE_CLICKED: 'member-detail-add-your-role-clicked',
+  MEMBER_DETAIL_ADD_YOUR_LOCATION_CLICKED: 'member-detail-add-your-location-clicked',
+  MEMBER_DETAIL_ADD_TEAM_DROPDOWN_CLICKED: 'member-detail-add-team-dropdown-clicked',
+  MEMBER_DETAIL_ADD_TEAM_MODAL_CANCEL: 'member-detail-add-team-modal-cancel',
+  MEMBER_DETAIL_ADD_TEAM_MODAL_SUBMIT: 'member-detail-add-team-modal-submit',
+  MEMBER_DETAIL_PRIMARY_ROLE_SELECTED: 'member-detail-primary-role-selected',
+  MEMBER_DETAIL_PRIMARY_TEAM_SELECTED: 'member-detail-primary-team-selected',
+
+  // Signup actions
+  SIGNUP_ADD_TEAM_DROPDOWN_CLICKED: 'signup-add-team-dropdown-clicked',
 };
 
 export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {

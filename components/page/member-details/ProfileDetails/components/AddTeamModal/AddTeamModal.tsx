@@ -8,6 +8,7 @@ import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { FormField } from '@/components/form/FormField';
 import { useCreateTeamRequest } from '@/services/teams/hooks/useCreateTeamRequest';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 import s from './AddTeamModal.module.scss';
 
@@ -44,6 +45,7 @@ interface Props {
 export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { mutateAsync } = useCreateTeamRequest();
+  const analytics = useMemberAnalytics();
 
   const methods = useForm<AddTeamFormData>({
     defaultValues: {
@@ -67,6 +69,9 @@ export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: P
         websiteAddress: data.websiteAddress,
       });
 
+      // Track successful submission
+      analytics.onAddTeamModalSubmit(data.teamName, data.websiteAddress);
+
       // Call onSuccess callback with team name before closing
       if (onSuccess) {
         onSuccess(data.teamName);
@@ -84,6 +89,13 @@ export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: P
 
   const handleClose = () => {
     if (isSubmitting) return;
+
+    // Track cancel if form has data
+    const formValues = methods.getValues();
+    if (formValues.teamName) {
+      analytics.onAddTeamModalCancel(formValues.teamName);
+    }
+
     reset();
     onClose();
   };

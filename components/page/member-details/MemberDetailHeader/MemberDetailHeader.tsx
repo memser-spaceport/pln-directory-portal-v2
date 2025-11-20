@@ -53,8 +53,6 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
     .sort();
   mainTeam = !mainTeam && member?.teams.length === 1 ? member.teams[0] : mainTeam;
 
-  console.log(member?.teams);
-
   const isOwner = userInfo?.uid === member.id;
   const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
   const defaultAvatarImage = useDefaultAvatar(member?.name);
@@ -135,7 +133,17 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
               {role ? (
                 <CustomTooltip trigger={<p className={s.role}>{role}</p>} content={role} />
               ) : isOwner || isAdmin ? (
-                <button className={s.addButton} type="button" onClick={onEdit}>
+                <button
+                  className={s.addButton}
+                  type="button"
+                  onClick={() => {
+                    analytics.onAddYourRoleClicked(
+                      getAnalyticsUserInfo(userInfo),
+                      getAnalyticsMemberInfo(member),
+                    );
+                    onEdit();
+                  }}
+                >
                   + Your Role
                 </button>
               ) : null}
@@ -144,7 +152,17 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
                 <>
                   <div className={s.divider} />
                   {(isOwner || isAdmin) && location === 'Unknown' ? (
-                    <button className={s.addButton} type="button" onClick={onEdit}>
+                    <button
+                      className={s.addButton}
+                      type="button"
+                      onClick={() => {
+                        analytics.onAddYourLocationClicked(
+                          getAnalyticsUserInfo(userInfo),
+                          getAnalyticsMemberInfo(member),
+                        );
+                        onEdit();
+                      }}
+                    >
                       + Your Location
                     </button>
                   ) : (

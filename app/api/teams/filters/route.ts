@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getTeamListFilters } from '@/services/teams.service';
 import { DEFAULT_ASK_TAGS } from '@/utils/constants';
 import { cookies } from 'next/headers';
+import { getParsedValue } from '@/utils/common.utils';
 
 export async function GET(request: NextRequest) {
   try {
     // Get auth token from cookies
     const cookieStore = await cookies();
-    const authToken = cookieStore.get('authToken')?.value || '';
+    const authToken = getParsedValue(cookieStore.get('authToken')?.value);
 
     // Fetch filter data
     const result = await getTeamListFilters({}, authToken);

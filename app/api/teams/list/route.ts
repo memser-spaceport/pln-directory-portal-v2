@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getTeamList } from '@/app/actions/teams.actions';
 import { INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
 import { cookies } from 'next/headers';
+import { getParsedValue } from '@/utils/common.utils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
 
     // Get auth token from cookies
     const cookieStore = await cookies();
-    const authToken = cookieStore.get('authToken')?.value || '';
+    const authToken = getParsedValue(cookieStore.get('authToken')?.value);
 
     // Fetch teams list
     const result = await getTeamList(query, 1, INITIAL_ITEMS_PER_PAGE, authToken);

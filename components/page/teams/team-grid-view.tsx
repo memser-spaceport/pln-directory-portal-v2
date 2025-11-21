@@ -27,7 +27,7 @@ const TeamGridView = (props: ITeamGridView) => {
   const isTierViewer = props?.userInfo?.isTierViewer || props?.userInfo?.roles?.includes(ADMIN_ROLE);
   const tags = useMemo(() => {
     const tier = getTeamTier(team);
-    if (isTierViewer && tier) {
+    if (isTierViewer && typeof tier === 'number') {
       return [
         {
           title: `Tier ${tier}`,

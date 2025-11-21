@@ -33,7 +33,7 @@ const TeamDetails = (props: ITeamDetails) => {
   const isTierViewer = userInfo?.isTierViewer || userInfo?.roles?.includes(ADMIN_ROLE);
   const tags = useMemo(() => {
     const tier = getTeamTier(team);
-    if (isTierViewer && tier) {
+    if (isTierViewer && typeof tier === 'number') {
       return [
         {
           title: `Tier ${tier}`,

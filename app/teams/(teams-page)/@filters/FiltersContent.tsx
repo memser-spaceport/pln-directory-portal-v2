@@ -8,6 +8,7 @@ import FilterWrapper from '../../../../components/page/teams/filter-wrapper';
 import { fetchFiltersData, fetchFocusAreas } from '../teamsApi';
 import { processFilters } from '@/utils/team.utils';
 import { useMemo } from 'react';
+import { FiltersPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout';
 
 interface FiltersContentProps {
   searchParams: ITeamsSearchParams;
@@ -66,11 +67,7 @@ export default function FiltersContent({ searchParams, userInfo }: FiltersConten
 
   // Only show loading on an initial load, not when searchParams change
   if (isLoadingFilters || isLoadingFocusAreas) {
-    return (
-      <div style={{ padding: '20px' }}>
-        <p>Loading filters...</p>
-      </div>
-    );
+    return <FiltersPanelSkeletonLoader />;
   }
 
   // If data is loaded but filterValues is null (shouldn't happen)

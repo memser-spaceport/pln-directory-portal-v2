@@ -12,6 +12,7 @@ import { fetchTeamsList, fetchFiltersData, fetchFocusAreas } from '../teamsApi';
 import { processFilters } from '@/utils/team.utils';
 import { useEffect } from 'react';
 import { triggerLoader } from '@/utils/common.utils';
+import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
 
 interface TeamsContentProps {
   searchParams: ITeamsSearchParams;
@@ -71,6 +72,10 @@ export default function TeamsContent({ searchParams, userInfo }: TeamsContentPro
     return <Error />;
   }
 
+  if (isLoading) {
+    return <ContentPanelSkeletonLoader />;
+  }
+
   // Process filter values
   let filterValues;
   if (filtersData && focusAreasData) {
@@ -100,12 +105,7 @@ export default function TeamsContent({ searchParams, userInfo }: TeamsContentPro
         <TeamsToolbar totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />
       </div>
       <div className={styles.team__right__teamslist}>
-        {isLoading ? (
-          <div className={styles.loadingState}>
-            <div className={styles.spinner}></div>
-            <p>Loading teams...</p>
-          </div>
-        ) : teams.length > 0 ? (
+        {teams.length > 0 ? (
           <TeamList
             teams={teams}
             totalTeams={totalTeams}

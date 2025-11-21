@@ -1,6 +1,7 @@
 import { ITeamMemberRole } from '@/types/members.types';
 import { ITeamResponse } from '@/types/teams.types';
 import { getHeader } from '@/utils/common.utils';
+import { getTeamTier } from '@/utils/team.utils';
 
 const teamsAPI = `${process.env.DIRECTORY_API_URL}/v1/teams`;
 
@@ -156,7 +157,7 @@ export const getTeam = async (
     asks: result?.asks ?? [],
     investorProfile: result?.investorProfile,
     isFund: result?.isFund,
-    tier: result?.tier,
+    tier: getTeamTier(result),
   };
   return { data: { formatedData } };
 };

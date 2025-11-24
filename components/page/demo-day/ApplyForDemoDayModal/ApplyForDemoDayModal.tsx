@@ -4,6 +4,7 @@ import React from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import Cookies from 'js-cookie';
 import { Modal } from '@/components/common/Modal';
 import { FormField } from '@/components/form/FormField';
 import { Button } from '@/components/common/Button';
@@ -35,6 +36,7 @@ interface Props {
   userInfo?: IUserInfo | null;
   memberData?: IMember | null;
   demoDaySlug: string;
+  onSuccessUnauthenticated?: () => void;
 }
 
 const PencilIcon = () => (
@@ -56,7 +58,14 @@ const CloseIcon = () => (
   </svg>
 );
 
-export const ApplyForDemoDayModal: React.FC<Props> = ({ isOpen, onClose, userInfo, memberData, demoDaySlug }) => {
+export const ApplyForDemoDayModal: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  userInfo,
+  memberData,
+  demoDaySlug,
+  onSuccessUnauthenticated,
+}) => {
   const { mutateAsync, isPending } = useApplyForDemoDay(demoDaySlug);
   const { data } = useMemberFormOptions();
 
@@ -85,9 +94,18 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({ isOpen, onClose, userInf
 
   const onSubmit = async (data: ApplyFormData) => {
     try {
+      // Check if user is authenticated BEFORE submitting
+      const authToken = Cookies.get('authToken');
+      const isAuthenticated = Boolean(authToken);
+
       await mutateAsync(data as ApplyForDemoDayPayload);
       reset();
       onClose();
+
+      // Trigger success modal for non-authenticated users
+      if (!isAuthenticated && onSuccessUnauthenticated) {
+        onSuccessUnauthenticated();
+      }
     } catch (error) {
       console.error('Failed to submit application:', error);
     }

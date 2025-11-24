@@ -6,6 +6,7 @@ import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList
 import { Button } from '@/components/common/Button';
 import { DemoDayCard } from '@/components/common/DemoDayCard';
 import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
+import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
 
 import s from './DemoDayListPage.module.scss';
 import { IUserInfo } from '@/types/shared.types';
@@ -45,6 +46,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
   const { data: demoDays, isLoading } = useGetDemoDaysList();
   const [showAll, setShowAll] = useState(false);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Find the demo day with REGISTRATION_OPEN status
   const registrationOpenDemoDay = demoDays?.find((dd) => dd.status === 'REGISTRATION_OPEN');
@@ -179,8 +181,11 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
           userInfo={userInfo}
           memberData={memberData}
           demoDaySlug={registrationOpenDemoDay.slugURL}
+          onSuccessUnauthenticated={() => setShowSuccessModal(true)}
         />
       )}
+
+      <AccountCreatedSuccessModal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} />
     </div>
   );
 };

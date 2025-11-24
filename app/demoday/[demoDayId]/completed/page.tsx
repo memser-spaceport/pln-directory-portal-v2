@@ -13,7 +13,7 @@ export default async function CompletedPage({ params }: { params: { demoDayId: s
   const demoDayState = demoDayResult?.data;
 
   if (demoDayState?.status !== 'COMPLETED') {
-    redirect('/demoday');
+    redirect(`/demoday/${params.demoDayId}`);
   }
 
   return <DemodayCompletedView initialDemoDayState={demoDayState} isLoggedIn={isLoggedIn} userInfo={userInfo} />;

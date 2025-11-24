@@ -7,7 +7,6 @@ import { NavigationMenu } from '@base-ui-components/react';
 import { Menu } from '@base-ui-components/react/menu';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
-import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 const TeamsIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -198,8 +197,6 @@ export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
 
-  const { data: demoDayState } = useGetDemoDayState();
-
   // Check if current path is a directory page
   const isDirectoryActive = directoryItems.some((item) => pathname.startsWith(item.href));
 
@@ -239,27 +236,14 @@ export function MobileBottomNav() {
           </NavigationMenu.Item>
 
           {/* Other Nav Items */}
-          {navItems
-            .filter((item) => {
-              if (
-                item.href === '/demoday' &&
-                (!demoDayState ||
-                  demoDayState.status === 'NONE' ||
-                  (demoDayState.access === 'none' && demoDayState.status === 'COMPLETED'))
-              ) {
-                return false;
-              }
-
-              return true;
-            })
-            .map(({ href, label, icon: Icon }) => (
-              <NavigationMenu.Item key={href}>
-                <Link href={href} className={clsx(styles.item, pathname === href && styles.itemActive)}>
-                  <Icon />
-                  <span>{label}</span>
-                </Link>
-              </NavigationMenu.Item>
-            ))}
+          {navItems.map(({ href, label, icon: Icon }) => (
+            <NavigationMenu.Item key={href}>
+              <Link href={href} className={clsx(styles.item, pathname === href && styles.itemActive)}>
+                <Icon />
+                <span>{label}</span>
+              </Link>
+            </NavigationMenu.Item>
+          ))}
         </NavigationMenu.List>
       </NavigationMenu.Root>
     </div>

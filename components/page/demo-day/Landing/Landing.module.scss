@@ -12,6 +12,10 @@
   @include media.tablet-portrait {
     gap: 16px;
   }
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+  }
 }
 
 .btn {
@@ -53,6 +57,10 @@
     0px 1px 3px 0px inset rgba(255, 255, 255, 0.32),
     0px 4px 6px 0px inset rgba(255, 255, 255, 0.06),
     0px 1px 5px 0px rgba(27, 77, 255, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 
   color: #fff;
 
@@ -61,15 +69,19 @@
   }
 }
 
+.secondaryButton {
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
+}
+
 .link {
-  color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
   font-size: 14px;
   font-weight: 400;
   line-height: 20px;
   letter-spacing: -0.2px;
 
   text-decoration: underline;
-  text-underline-offset: .3em;
+  text-underline-offset: 0.3em;
 }
 
 .registerButton {

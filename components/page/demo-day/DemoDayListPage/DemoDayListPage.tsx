@@ -60,12 +60,12 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
         <section className={s.heroSection}>
           <div className={s.section1}>
             <div className={s.title}>
-              <div className={s.overline}>
+              {/* <div className={s.overline}>
                 <div className={s.dot} />
                 <span className={s.overlineText}>UPCOMING DEMO DAY</span>
                 <span className={s.break}>•</span>
                 <span className={s.overlineText}>DEC 10, 2025</span>
-              </div>
+              </div> */}
               <div className={s.headline}>
                 <h1 className={s.headlineTitle}>PL Demo Day</h1>
                 <p className={s.headlineBody}>
@@ -83,7 +83,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
                   className={s.applyButton}
                   onClick={() => setIsApplyModalOpen(true)}
                 >
-                  Apply for {registrationOpenDemoDay.title} <ArrowRight />
+                  Apply for next Demo Day <ArrowRight />
                 </Button>
               )}
               <div className={s.links}>

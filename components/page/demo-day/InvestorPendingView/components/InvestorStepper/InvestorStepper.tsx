@@ -80,7 +80,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({
 
   // Step 2 children based on demoday status
   const step2Children = isDemoDayActive ? (
-    <Link href="/demoday/active" className={step2ButtonClass} onClick={handleGoToDemoDayClick}>
+    <Link href={`/demoday/${data?.slugURL}/active`} className={step2ButtonClass} onClick={handleGoToDemoDayClick}>
       <GoToDemoDayIcon color={step1Status === 'completed' ? 'white' : '#1B4DFF'} /> Go to Demo Day
     </Link>
   ) : (

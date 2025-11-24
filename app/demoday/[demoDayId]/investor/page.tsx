@@ -9,28 +9,28 @@ export default async function InvestorPage({ params }: { params: { demoDayId: st
   const parsedUserInfo = userInfo;
 
   if (!isLoggedIn || !parsedUserInfo?.uid) {
-    redirect('/demoday');
+    redirect(`/demoday/${params.demoDayId}`);
   }
 
   // Fetch demo day state on server side
   const demoDayResult = await getDemoDayState(params.demoDayId, parsedUserInfo.uid, authToken);
 
   if (demoDayResult?.isError) {
-    redirect('/demoday');
+    redirect(`/demoday/${params.demoDayId}`);
   }
 
   const demoDayState = demoDayResult?.data;
 
   if (!demoDayState) {
-    redirect('/demoday');
+    redirect(`/demoday/${params.demoDayId}`);
   }
 
   if (demoDayState.access !== 'INVESTOR') {
-    redirect('/demoday');
+    redirect(`/demoday/${params.demoDayId}`);
   }
 
   if (demoDayState.status === 'NONE' || demoDayState.status === 'COMPLETED') {
-    redirect('/demoday');
+    redirect(`/demoday/${params.demoDayId}`);
   }
 
   let memberResult = null;
@@ -42,7 +42,7 @@ export default async function InvestorPage({ params }: { params: { demoDayId: st
     if (!memberResult?.isError && memberResult?.data) {
       const isInvestorProfileComplete = checkInvestorProfileComplete(memberResult.data, parsedUserInfo);
       if (isInvestorProfileComplete) {
-        redirect('/demoday/active');
+        redirect(`/demoday/${params.demoDayId}/active`);
       }
     }
   }

@@ -4,7 +4,6 @@ import { clsx } from 'clsx';
 import Cookies from 'js-cookie';
 import { useParams } from 'next/navigation';
 
-import { INVITE_FORM_URL } from '@/constants/demoDay';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
 import { getParsedValue } from '@/utils/common.utils';
@@ -93,12 +92,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
 
     reportAnalytics.mutate(requestInviteEvent);
 
-    // Open modal for logged in users, redirect for non-logged in users
-    if (userInfo) {
-      setIsApplyModalOpen(true);
-    } else {
-      window.open(INVITE_FORM_URL, '_blank', 'noopener,noreferrer');
-    }
+    setIsApplyModalOpen(true);
   };
 
   return (
@@ -116,17 +110,20 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
         }
       >
         <div className={s.root}>
-          {!userInfo ? (
-            <LoginBtn className={clsx(s.btn, s.primaryButton)}>Already approved? Log in</LoginBtn>
-          ) : (
-            <button className={clsx(s.btn, s.primaryButton)} onClick={handleApplyClick}>
-              {userInfo ? 'Apply' : 'Not registered? Register here'}
-            </button>
-          )}
+          {!userInfo && <LoginBtn className={clsx(s.btn, s.secondaryButton)}>Already approved? Log in</LoginBtn>}
+          <button className={clsx(s.btn, s.primaryButton)} onClick={handleApplyClick} disabled={data?.isPending}>
+            {data?.isPending ? (
+              <>
+                You have applied <CheckIcon />
+              </>
+            ) : (
+              'Apply'
+            )}
+          </button>
         </div>
       </LandingBase>
 
-      {userInfo && demoDaySlug && (
+      {demoDaySlug && (
         <ApplyForDemoDayModal
           isOpen={isApplyModalOpen}
           onClose={() => setIsApplyModalOpen(false)}
@@ -141,3 +138,15 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
     </>
   );
 }
+
+const CheckIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M13.3332 4L5.99984 11.3333L2.6665 8"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);

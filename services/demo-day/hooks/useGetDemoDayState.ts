@@ -15,6 +15,7 @@ type DemoDayState = {
   status: 'NONE' | 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
   isDemoDayAdmin: boolean;
   isEarlyAccess?: boolean;
+  isPending?: boolean;
 
   confidentialityAccepted: boolean;
 
@@ -23,6 +24,10 @@ type DemoDayState = {
 };
 
 export async function getDemoDayState(demoDaySlug: string, memberUid?: string) {
+  if (!demoDaySlug) {
+    return null;
+  }
+
   const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDaySlug}${memberUid ? `?memberUid=${memberUid}` : ''}`;
 
   const response = await customFetch(

@@ -12,7 +12,7 @@ export default async function ActivePage({ params }: { params: { demoDayId: stri
   let demoDayState = null;
 
   if (!isLoggedIn || !parsedUserInfo?.uid) {
-    redirect('/demoday');
+    redirect(`/demoday/${params.demoDayId}`);
   }
 
   if (parsedUserInfo?.uid) {
@@ -28,7 +28,7 @@ export default async function ActivePage({ params }: { params: { demoDayId: stri
   // Server-side redirect logic
   if (demoDayState) {
     if (demoDayState.access === 'none' || demoDayState.status !== 'ACTIVE') {
-      redirect('/demoday');
+      redirect(`/demoday/${params.demoDayId}`);
     }
   }
 

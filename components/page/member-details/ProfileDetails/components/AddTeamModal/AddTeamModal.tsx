@@ -8,6 +8,7 @@ import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { FormField } from '@/components/form/FormField';
 import { useCreateTeamRequest } from '@/services/teams/hooks/useCreateTeamRequest';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 import s from './AddTeamModal.module.scss';
 
@@ -38,12 +39,13 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   requesterEmailId: string;
-  onSuccess?: () => void;
+  onSuccess?: (teamName: string) => void;
 }
 
 export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { mutateAsync } = useCreateTeamRequest();
+  const analytics = useMemberAnalytics();
 
   const methods = useForm<AddTeamFormData>({
     defaultValues: {
@@ -67,14 +69,17 @@ export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: P
         websiteAddress: data.websiteAddress,
       });
 
+      // Track successful submission
+      analytics.onAddTeamModalSubmit(data.teamName, data.websiteAddress);
+
+      // Call onSuccess callback with team name before closing
+      if (onSuccess) {
+        onSuccess(data.teamName);
+      }
+
       // Reset form and close modal
       reset();
       onClose();
-
-      // Call onSuccess callback if provided
-      if (onSuccess) {
-        onSuccess();
-      }
     } catch (error) {
       console.error('Failed to submit team request:', error);
     } finally {
@@ -84,6 +89,13 @@ export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: P
 
   const handleClose = () => {
     if (isSubmitting) return;
+
+    // Track cancel if form has data
+    const formValues = methods.getValues();
+    if (formValues.teamName) {
+      analytics.onAddTeamModalCancel(formValues.teamName);
+    }
+
     reset();
     onClose();
   };

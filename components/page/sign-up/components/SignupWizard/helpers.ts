@@ -13,19 +13,28 @@ export const signupSchema = yup.object().shape({
   teamName: yup
     .string()
     .optional()
-    .when('teamOrProject', {
-      is: (val: any) => !val,
-      then: (schema) => schema.required('Team name is required'),
-      otherwise: (schema) => schema.optional(),
+    .test({
+      test: (value, context) => {
+        if (context.options.context?.isAddingTeam) {
+          return !!value;
+        }
+
+        return true;
+      },
+      message: 'Team name is required',
     }),
   websiteAddress: yup
     .string()
     .optional()
-    .when('teamOrProject', {
-      is: (val: any) => !val,
-      then: (schema) =>
-        schema.required('Website is required when adding a new team').matches(urlRegex, 'Please enter a valid URL'),
-      otherwise: (schema) => schema.optional(),
+    .test({
+      test: (value, context) => {
+        if (context.options.context?.isAddingTeam) {
+          return !!value;
+        }
+
+        return true;
+      },
+      message: 'Website is required when adding a new team',
     }),
   subscribe: yup.boolean().required('Required'),
   agreed: yup.boolean().isTrue().required('Required'),

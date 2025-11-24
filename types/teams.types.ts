@@ -69,6 +69,7 @@ export interface ITeamResponse {
 export interface ITag {
   title: string;
   color?: string;
+  icon?: React.ReactNode;
 }
 
 export interface ITeamAsk {

@@ -6,14 +6,15 @@ import isEmpty from 'lodash/isEmpty';
 import { IAnalyticsUserInfo, IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems } from '@/types/teams.types';
 import { ADMIN_ROLE, FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
+import { triggerLoader } from '@/utils/common.utils';
 
 import {
   getTeamTagsGetter,
-  getTechnologiesGetter,
   getFundingStagesGetter,
   getMembershipSourcesGetter,
   getTiersGetter,
 } from '@/services/teams/utils';
+import Image from 'next/image';
 import { useTeamFilterStore, useTeamFilterCount } from '@/services/teams';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { FilterSection } from '@/components/common/filters/FilterSection';
@@ -23,8 +24,8 @@ import { FocusAreaFilter } from '@/components/core/FocusAreaFilter';
 import { FundFilterToggle } from '@/components/core/FundFilterToggle';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { FilterCheckSizeInput } from '@/components/page/members/MembersFilter/FilterCheckSizeInput';
-import { FilterTagInput } from '@/components/form/FilterTagInput';
 import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
+import { InvestmentFocusFilter } from '@/components/page/teams/TeamsFilter/components/InvestmentFocusFilter';
 
 export interface TeamsFilterProps {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -81,13 +82,14 @@ export function TeamsFilter(props: TeamsFilterProps) {
       {isDirectoryAdmin && filterValues?.membershipSources && filterValues.membershipSources.length > 0 && (
         <FilterSection title="Membership Source">
           <GenericCheckboxList
-            label="Search membership sources"
+            label="Search or select membership source"
             paramKey="membershipSources"
             placeholder="E.g. Direct..."
             filterStore={useTeamFilterStore}
             useGetDataHook={getMembershipSources}
             defaultItemsToShow={5}
             onChange={(key, values) => {
+              triggerLoader(true);
               if (!isEmpty(values)) {
                 const latestValue = last(values) || '';
                 analytics.onFilterApplied('membershipSources', latestValue);
@@ -98,7 +100,10 @@ export function TeamsFilter(props: TeamsFilterProps) {
       )}
 
       {isTierViewer && (
-        <FilterSection title="Tier">
+        <FilterSection
+          title="Tiers"
+          titleIcon={<Image src="/icons/stack-blue.svg" alt="stack" width={18} height={20} />}
+        >
           <GenericCheckboxList
             hint={
               <div>
@@ -111,6 +116,9 @@ export function TeamsFilter(props: TeamsFilterProps) {
             useGetDataHook={getTiers}
             defaultItemsToShow={5}
             hideSearch
+            onChange={() => {
+              triggerLoader(true);
+            }}
           />
         </FilterSection>
       )}
@@ -132,13 +140,14 @@ export function TeamsFilter(props: TeamsFilterProps) {
       {filterValues?.tags && filterValues.tags.length > 0 && (
         <FilterSection title="Tags">
           <GenericCheckboxList
-            label="Search tags"
+            label="Search or select industry tags"
             paramKey="tags"
-            placeholder="E.g. AI, Web3..."
+            placeholder="E.g. AI, DeSci, Neurotech"
             filterStore={useTeamFilterStore}
             useGetDataHook={getTeamTags}
             defaultItemsToShow={5}
             onChange={(key, values) => {
+              triggerLoader(true);
               if (!isEmpty(values)) {
                 const latestValue = last(values) || '';
                 analytics.onFilterApplied('tags', latestValue);
@@ -158,6 +167,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
             useGetDataHook={getFundingStages}
             defaultItemsToShow={10}
             onChange={(key, values) => {
+              triggerLoader(true);
               if (!isEmpty(values)) {
                 const latestValue = last(values) || '';
                 analytics.onFilterApplied('fundingStage', latestValue);
@@ -184,17 +194,14 @@ export function TeamsFilter(props: TeamsFilterProps) {
             max: 5000000,
           }}
           disabled={!params.get('isFund')}
+          onChange={() => {
+            triggerLoader(true);
+          }}
         />
 
         <FilterDivider />
 
-        <FilterTagInput
-          selectLabel="Investment Focus"
-          paramKey="investmentFocus"
-          filterStore={useTeamFilterStore}
-          placeholder="E.g. AI, Staking, Governance"
-          disabled={!params.get('isFund')}
-        />
+        <InvestmentFocusFilter />
       </FilterSection>
     </FiltersSidePanel>
   );

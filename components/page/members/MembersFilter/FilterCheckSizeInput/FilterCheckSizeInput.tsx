@@ -15,6 +15,7 @@ interface Props {
   };
   formatValue?: (value: number) => string;
   disabled?: boolean;
+  onChange?: (minValue: string | undefined, maxValue: string | undefined) => void;
 }
 
 /**
@@ -41,6 +42,7 @@ export function FilterCheckSizeInput({
   allowedRange,
   formatValue,
   disabled = false,
+  onChange,
 }: Props) {
   return (
     <GenericRangeInput
@@ -51,6 +53,7 @@ export function FilterCheckSizeInput({
       allowedRange={allowedRange}
       formatValue={formatValue}
       disabled={disabled}
+      onChange={onChange}
     />
   );
 }

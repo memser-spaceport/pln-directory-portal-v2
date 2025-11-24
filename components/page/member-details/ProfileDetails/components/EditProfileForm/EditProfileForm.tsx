@@ -43,6 +43,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
   const { actions } = useUserStore();
   const [isAddTeamModalOpen, setIsAddTeamModalOpen] = useState(false);
+  const [newlyAddedTeamName, setNewlyAddedTeamName] = useState<string | null>(null);
 
   // Find the main team from member.mainTeam or teamMemberRoles
   const mainTeamData = useMemo(() => {
@@ -57,8 +58,20 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         role: member.mainTeam.role || '',
       };
     }
+
+    if (member.teams.length === 1) {
+      return {
+        team: {
+          value: member.teams[0].id,
+          label: member.teams[0].name || '',
+          role: member.role || '',
+        },
+        role: member.role || '',
+      };
+    }
+
     return { team: null, role: '' };
-  }, [member.mainTeam]);
+  }, [member.mainTeam?.id, member.mainTeam?.name, member.mainTeam?.role, member.role, member.teams]);
 
   const methods = useForm<TEditProfileForm>({
     defaultValues: {
@@ -83,10 +96,17 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const { mutateAsync } = useUpdateMember();
   const { mutateAsync: updateSelfRole } = useUpdateMemberSelfRole();
   const { data: memberData } = useMember(member.id);
-  const { onSaveProfileDetailsClicked, onPrimaryTeamChanged } = useMemberAnalytics();
+  const {
+    onSaveProfileDetailsClicked,
+    onPrimaryTeamChanged,
+    onAddTeamDropdownClicked,
+    onPrimaryRoleSelected,
+    onPrimaryTeamSelected,
+  } = useMemberAnalytics();
 
   // Watch primaryTeam to show/hide role field
   const selectedPrimaryTeam = watch('primaryTeam');
+  const selectedPrimaryTeamRole = watch('primaryTeamRole');
 
   // Store initial primary team to track changes
   const initialPrimaryTeamRef = useRef(mainTeamData.team);
@@ -174,6 +194,44 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
 
   const { data } = useMemberFormOptions();
 
+  // Auto-select newly added team when it becomes available in the options
+  useEffect(() => {
+    if (newlyAddedTeamName && data?.teams) {
+      const newTeam = data.teams.find(
+        (team: { teamUid: string; teamTitle: string }) =>
+          team.teamTitle.toLowerCase() === newlyAddedTeamName.toLowerCase(),
+      );
+
+      if (newTeam) {
+        setValue(
+          'primaryTeam',
+          {
+            value: newTeam.teamUid,
+            label: newTeam.teamTitle,
+            // @ts-ignore
+            originalObject: newTeam,
+          },
+          { shouldValidate: true, shouldDirty: true },
+        );
+        setNewlyAddedTeamName(null); // Clear the flag
+      }
+    }
+  }, [data?.teams, newlyAddedTeamName, setValue]);
+
+  // Track primary role selection
+  useEffect(() => {
+    if (selectedPrimaryTeamRole && selectedPrimaryTeamRole !== initialPrimaryTeamRoleRef.current) {
+      onPrimaryRoleSelected(selectedPrimaryTeamRole);
+    }
+  }, [selectedPrimaryTeamRole, onPrimaryRoleSelected]);
+
+  // Track primary team selection
+  useEffect(() => {
+    if (selectedPrimaryTeam && selectedPrimaryTeam.value !== initialPrimaryTeamRef.current?.value) {
+      onPrimaryTeamSelected(selectedPrimaryTeam.label, selectedPrimaryTeam.value);
+    }
+  }, [selectedPrimaryTeam, onPrimaryTeamSelected]);
+
   return (
     <FormProvider {...methods}>
       <form
@@ -231,7 +289,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
                         fallbackSrc="/icons/camera.svg"
                         src={option.originalObject.logo}
                       />
-                      <div>
+                      <div className={s.optionContent}>
                         {label}
                         {description}
                       </div>
@@ -241,11 +299,12 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
                 isStickyNoData
                 notFoundContent={
                   <div className={s.secondaryLabel}>
-                    Not able to find your project or team?
+                    Not able to find your project or team?{' '}
                     <button
                       type="button"
                       className={s.link}
                       onClick={() => {
+                        onAddTeamDropdownClicked('profile-edit');
                         setIsAddTeamModalOpen(true);
                       }}
                     >
@@ -270,7 +329,9 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         isOpen={isAddTeamModalOpen}
         onClose={() => setIsAddTeamModalOpen(false)}
         requesterEmailId={userInfo.email!}
-        onSuccess={() => {
+        onSuccess={(teamName: string) => {
+          // Store the newly added team name to auto-select it when data refreshes
+          setNewlyAddedTeamName(teamName);
           // Refresh the page to show the new team
           router.refresh();
         }}

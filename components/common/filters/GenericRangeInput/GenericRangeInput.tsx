@@ -41,6 +41,13 @@ export interface GenericRangeInputProps {
   formatValue?: (value: number) => string;
 
   /**
+   * Optional callback when range values change
+   * @param minValue - New minimum value (or undefined if cleared)
+   * @param maxValue - New maximum value (or undefined if cleared)
+   */
+  onChange?: (minValue: string | undefined, maxValue: string | undefined) => void;
+
+  /**
    * Disabled state
    */
   disabled?: boolean;
@@ -87,6 +94,7 @@ export function GenericRangeInput(props: GenericRangeInputProps) {
     filterStore,
     allowedRange,
     formatValue,
+    onChange,
     disabled = false,
     className,
   } = props;
@@ -159,8 +167,13 @@ export function GenericRangeInput(props: GenericRangeInputProps) {
 
   // Apply minimum value to URL parameter
   const applyMinValue = () => {
+    const maxParamValue = params.get(maxParamName)|| undefined
+
     if (minValue === '') {
       setParam(minParamName, undefined);
+      if (onChange) {
+        onChange(undefined, maxParamValue);
+      }
       return;
     }
 
@@ -168,6 +181,9 @@ export function GenericRangeInput(props: GenericRangeInputProps) {
     if (isNaN(numericValue)) {
       setMinValue('');
       setParam(minParamName, undefined);
+      if (onChange) {
+        onChange(undefined, maxParamValue);
+      }
       return;
     }
 
@@ -177,6 +193,9 @@ export function GenericRangeInput(props: GenericRangeInputProps) {
     if (clampedValue === allowedRange.min) {
       setParam(minParamName, undefined);
       setMinValue('');
+      if (onChange) {
+        onChange(undefined, maxParamValue);
+      }
     } else {
       setParam(minParamName, clampedValue.toString());
       setMinValue(clampedValue.toString());
@@ -187,6 +206,17 @@ export function GenericRangeInput(props: GenericRangeInputProps) {
         if (!isNaN(currentMax) && currentMax < clampedValue) {
           setMaxValue('');
           setParam(maxParamName, undefined);
+          if (onChange) {
+            onChange(clampedValue.toString(), undefined);
+          }
+        } else {
+          if (onChange) {
+            onChange(clampedValue.toString(), maxParamValue);
+          }
+        }
+      } else {
+        if (onChange) {
+          onChange(clampedValue.toString(), maxParamValue);
         }
       }
     }
@@ -194,8 +224,13 @@ export function GenericRangeInput(props: GenericRangeInputProps) {
 
   // Apply maximum value to URL parameter
   const applyMaxValue = () => {
+    const minParamValue = params.get(minParamName) || undefined
+
     if (maxValue === '') {
       setParam(maxParamName, undefined);
+      if (onChange) {
+        onChange(minParamValue, undefined);
+      }
       return;
     }
 
@@ -203,6 +238,9 @@ export function GenericRangeInput(props: GenericRangeInputProps) {
     if (isNaN(numericValue)) {
       setMaxValue('');
       setParam(maxParamName, undefined);
+      if (onChange) {
+        onChange(minParamValue, undefined);
+      }
       return;
     }
 
@@ -216,6 +254,9 @@ export function GenericRangeInput(props: GenericRangeInputProps) {
         // Clear maximum if it's less than minimum
         setMaxValue('');
         setParam(maxParamName, undefined);
+        if (onChange) {
+          onChange(minParamValue, undefined);
+        }
         return;
       }
     }
@@ -223,9 +264,15 @@ export function GenericRangeInput(props: GenericRangeInputProps) {
     if (clampedValue === allowedRange.max) {
       setParam(maxParamName, undefined);
       setMaxValue('');
+      if (onChange) {
+        onChange(minParamValue, undefined);
+      }
     } else {
       setParam(maxParamName, clampedValue.toString());
       setMaxValue(clampedValue.toString());
+      if (onChange) {
+        onChange(minParamValue, clampedValue.toString());
+      }
     }
   };
 

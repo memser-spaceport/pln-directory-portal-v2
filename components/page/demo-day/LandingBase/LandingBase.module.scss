@@ -48,12 +48,8 @@
 .mainContent {
   display: flex;
   flex-direction: column;
-  gap: 56px;
+  gap: 24px;
   align-items: center;
-
-  @include media.mobile-only {
-    gap: 35px;
-  }
 }
 
 .reachOut {

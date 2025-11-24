@@ -15,6 +15,7 @@ import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { LandingBase } from '../LandingBase';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { CountdownComponent } from '@/components/common/Countdown';
+import { DemoDayInfoRow } from '@/components/common/DemoDayInfoRow';
 
 interface InvestorPendingViewProps {
   initialDemoDayState?: DemoDayState;
@@ -150,6 +151,14 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
       initialDemoDayState={initialDemoDayState}
       countdown={
         <CountdownComponent targetDate={initialDemoDayState?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />
+      }
+      information={
+        <DemoDayInfoRow
+          date={initialDemoDayState?.date}
+          teamsCount={initialDemoDayState?.teamsCount}
+          investorsCount={initialDemoDayState?.investorsCount}
+          showInvestorsLink={true}
+        />
       }
     >
       <InvestorStepper

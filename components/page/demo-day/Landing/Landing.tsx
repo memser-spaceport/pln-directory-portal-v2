@@ -21,9 +21,10 @@ import { useTimeOnPage } from '@/hooks/useTimeOnPage';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
 import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
+import { DemoDayInfoRow } from '@/components/common/DemoDayInfoRow';
+import { CountdownComponent } from '@/components/common/Countdown';
 
 import s from './Landing.module.scss';
-import { CountdownComponent } from '@/components/common/Countdown';
 
 export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDayState }) {
   const { data } = useGetDemoDayState(initialDemoDayState);
@@ -105,6 +106,14 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
       <LandingBase
         initialDemoDayState={initialDemoDayState}
         countdown={<CountdownComponent targetDate={data?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />}
+        information={
+          <DemoDayInfoRow
+            date={data?.date}
+            teamsCount={data?.teamsCount}
+            investorsCount={data?.investorsCount}
+            showInvestorsLink={true}
+          />
+        }
       >
         <div className={s.root}>
           {!userInfo ? (

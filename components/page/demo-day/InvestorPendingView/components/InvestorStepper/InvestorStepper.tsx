@@ -124,8 +124,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({
       <div className={s.stepperCard}>
         {/* Title Section */}
         <div className={s.titleSection}>
-          <h3 className={s.title}>You&apos;re invited to Demo Day.</h3>
-          <p className={s.subtitle}>Follow these steps to secure your access:</p>
+          <h3 className={s.title}>Follow these steps to secure your access:</h3>
         </div>
 
         {/* Vertical Stepper */}

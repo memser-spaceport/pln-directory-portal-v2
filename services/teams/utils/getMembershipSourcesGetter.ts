@@ -1,11 +1,5 @@
 import { FilterOption } from '@/services/filters';
-
-type MembershipSourceItem = {
-  selected: boolean;
-  value: string;
-  disabled: boolean;
-  count: number;
-};
+import { CheckboxFilterOption } from '@/types/teams.types';
 
 /**
  * Get available membership sources for filtering
@@ -15,7 +9,7 @@ type MembershipSourceItem = {
  * @param membershipSources - Membership sources data from server
  * @returns Hook function compatible with GenericCheckboxList's useGetDataHook prop
  */
-export function getMembershipSourcesGetter(membershipSources: MembershipSourceItem[] | undefined) {
+export function getMembershipSourcesGetter(membershipSources?: CheckboxFilterOption[]) {
   return (input: string): { data?: FilterOption[] } => {
     if (!membershipSources || membershipSources.length === 0) {
       return { data: [] };

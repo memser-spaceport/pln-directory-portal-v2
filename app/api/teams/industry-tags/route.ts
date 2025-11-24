@@ -1,8 +1,8 @@
-import { getMembershipSource } from '@/services/common.service';
+import { getIndustryTags } from '@/services/common.service';
 import { getTeamFilterRouterWithOptionCounters } from '@/utils/team.utils';
 
 export const GET = getTeamFilterRouterWithOptionCounters({
-  serviceFn: getMembershipSource,
+  serviceFn: getIndustryTags,
   entityType: 'Team',
-  errorMessage: 'Failed to fetch membership source',
+  errorMessage: 'Failed to fetch industry tags',
 });

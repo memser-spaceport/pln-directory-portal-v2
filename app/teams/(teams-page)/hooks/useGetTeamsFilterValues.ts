@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { ITeamsSearchParams } from '@/types/teams.types';
-import { fetchFiltersData, fetchFocusAreas, fetchMembershipSource } from '../teamsApi';
+import { fetchFiltersData, fetchFocusAreas, fetchIndustryTags, fetchMembershipSource } from '../teamsApi';
 import { processFilters } from '@/utils/team.utils';
 
 export function useTeamsFilters(searchParams: ITeamsSearchParams) {
@@ -37,9 +37,20 @@ export function useTeamsFilters(searchParams: ITeamsSearchParams) {
     isError: isMembershipSourceError,
   } = useQuery({
     queryKey: ['teams', 'membership-source'],
-    queryFn: () => fetchMembershipSource({} as ITeamsSearchParams), // Fetch all focus areas without filters
-    staleTime: Infinity,
-    gcTime: Infinity,
+    queryFn: () => fetchMembershipSource(searchParams),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+
+  const {
+    data: industryTags,
+    isLoading: isLoadingIndustryTags,
+    isError: isIndustryTagsError,
+  } = useQuery({
+    queryKey: ['teams', 'industry-tags'],
+    queryFn: () => fetchIndustryTags(searchParams),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   // Process filter values
@@ -52,6 +63,7 @@ export function useTeamsFilters(searchParams: ITeamsSearchParams) {
       formattedAvailableValuesByFilter: filtersData,
       focusAreaData: focusAreasData.data,
       membershipSourceData: membershipSourceData?.data || [],
+      industryTags: industryTags?.data || [],
     });
 
     // Handle 'all' asks selection
@@ -64,11 +76,11 @@ export function useTeamsFilters(searchParams: ITeamsSearchParams) {
     }
 
     return processed;
-  }, [searchParams, filtersData, focusAreasData, membershipSourceData]);
+  }, [industryTags, searchParams, filtersData, focusAreasData, membershipSourceData]);
 
   return {
     filterValues,
-    isLoading: isLoadingFilters || isLoadingFocusAreas || isLoadingMembershipSourceData,
-    isError: isFiltersError || isFocusAreasError || isMembershipSourceError,
+    isLoading: isLoadingFilters || isLoadingFocusAreas || isLoadingMembershipSourceData || isLoadingIndustryTags,
+    isError: isFiltersError || isFocusAreasError || isMembershipSourceError || isIndustryTagsError,
   };
 }

@@ -1,4 +1,5 @@
 import { FilterOption } from '@/services/filters';
+import { CheckboxFilterOption } from '@/types/teams.types';
 
 type TagItem = {
   selected: boolean;
@@ -14,7 +15,7 @@ type TagItem = {
  * @param tags - Tags data from server
  * @returns Hook function compatible with GenericCheckboxList's useGetDataHook prop
  */
-export function getTeamTagsGetter(tags: TagItem[] | undefined) {
+export function getTeamTagsGetter(tags?: CheckboxFilterOption[]) {
   return (input: string): { data?: FilterOption[] } => {
     if (!tags || tags.length === 0) {
       return { data: [] };
@@ -29,6 +30,7 @@ export function getTeamTagsGetter(tags: TagItem[] | undefined) {
       value: tag.value,
       label: tag.value,
       disabled: tag.disabled,
+      count: tag.count,
     }));
 
     return { data };

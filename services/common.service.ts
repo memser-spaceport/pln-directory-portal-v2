@@ -1,4 +1,13 @@
-async function handleResponse(response: Response) {
+async function fetchData(url: string, tag: string) {
+  const response = await fetch(url, {
+    method: 'GET',
+    cache: 'force-cache',
+    next: { tags: [tag] },
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
   if (!response?.ok) {
     return {
       error: {
@@ -12,32 +21,20 @@ async function handleResponse(response: Response) {
   };
 }
 
-export const getFocusAreas = async (type: string, queryParams: any) => {
+export async function getFocusAreas(type: string, queryParams: any) {
   const url = `${process.env.DIRECTORY_API_URL}/v1/focus-areas?type=${type}&${new URLSearchParams(queryParams)}`;
 
-  const response = await fetch(url, {
-    method: 'GET',
-    cache: 'force-cache',
-    next: { tags: ['focus-areas'] },
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  return await fetchData(url, 'focus-areas');
+}
 
-  return handleResponse(response);
-};
-
-export const getMembershipSource = async (type: string, queryParams: any) => {
+export async function getMembershipSource(type: string, queryParams: any) {
   const url = `${process.env.DIRECTORY_API_URL}/v1/membership-sources?type=${type}&${new URLSearchParams(queryParams)}`;
 
-  const response = await fetch(url, {
-    method: 'GET',
-    cache: 'force-cache',
-    next: { tags: ['membership-source'] },
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  return await fetchData(url, 'membership-source');
+}
 
-  return handleResponse(response);
-};
+export async function getIndustryTags(type: string, queryParams: any) {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/industry-tags?type=${type}&${new URLSearchParams(queryParams)}`;
+
+  return await fetchData(url, 'industry-tags');
+}

@@ -16,7 +16,7 @@ export function DemoDayBanner() {
   return (
     <HighlightsBar>
       <div className={s.root}>
-        Upcoming: PL_Genesis Accelerator Demo Day starts December 10th.
+        Upcoming: PL_Genesis Accelerator Demo Day starts in January 2026.
         <Link href="/demoday" className={s.link}>
           Learn more
         </Link>

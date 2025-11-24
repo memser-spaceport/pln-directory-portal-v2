@@ -388,6 +388,10 @@ export function getTierColor(tier: number): string {
   return tierColors[tier] || '#d9d2e9'; // Default to tier 0/4 color if tier not found
 }
 
+export function getTeamTier(team: { tier?: number | string | null }): number | string | undefined {
+  return typeof team?.tier === 'number' && team?.tier >= 0 && team?.tier <= 4 ? team?.tier : undefined;
+}
+
 export function parseFocusAreasParams(queryParams: any) {
   const modifiedParams = { ...queryParams };
 

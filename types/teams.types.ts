@@ -23,13 +23,20 @@ export interface ITeamsSearchParams {
   tiers?: string;
 }
 
+export interface CheckboxFilterOption {
+  selected: boolean;
+  value: string;
+  disabled: boolean;
+  count?: number;
+}
+
 export interface ITeamFilterSelectedItems {
-  tags: { selected: boolean; value: string; disabled: boolean }[];
-  membershipSources: { selected: boolean; value: string; disabled: boolean }[];
-  fundingStage: { selected: boolean; value: string; disabled: boolean }[];
-  technology: { selected: boolean; value: string; disabled: boolean }[];
+  tags: CheckboxFilterOption[];
+  membershipSources: CheckboxFilterOption[];
+  fundingStage: CheckboxFilterOption[];
+  technology: CheckboxFilterOption[];
   focusAreas: any;
-  asks: { selected: boolean; value: string; disabled: boolean }[];
+  asks: CheckboxFilterOption[];
   tiers: { value: string; count: number; selected: boolean; disabled: boolean }[];
 }
 

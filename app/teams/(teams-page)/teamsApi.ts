@@ -128,3 +128,30 @@ export const fetchFocusAreas = async (searchParams: ITeamsSearchParams): Promise
 
   return response.json();
 };
+
+/**
+ * Fetch membership source from API
+ */
+export const fetchMembershipSource = async (searchParams: ITeamsSearchParams): Promise<FocusAreasResponse> => {
+  const params = new URLSearchParams();
+
+  // Add other params from searchParams
+  Object.entries(searchParams).forEach(([key, value]) => {
+    if (value && key !== 'page' && key !== 'limit') {
+      params.set(key, String(value));
+    }
+  });
+
+  const response = await fetch(
+    `/api/teams/membership-source?${params.toString()}`,
+    {
+      credentials: 'include',
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch focus areas');
+  }
+
+  return response.json();
+};

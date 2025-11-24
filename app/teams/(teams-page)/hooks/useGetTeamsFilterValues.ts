@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { ITeamsSearchParams } from '@/types/teams.types';
-import { fetchFiltersData, fetchFocusAreas } from '../teamsApi';
+import { fetchFiltersData, fetchFocusAreas, fetchMembershipSource } from '../teamsApi';
 import { processFilters } from '@/utils/team.utils';
 
 export function useTeamsFilters(searchParams: ITeamsSearchParams) {
@@ -31,16 +31,28 @@ export function useTeamsFilters(searchParams: ITeamsSearchParams) {
     gcTime: 10 * 60 * 1000,
   });
 
+  const {
+    data: membershipSourceData,
+    isLoading: isLoadingMembershipSourceData,
+    isError: isMembershipSourceError,
+  } = useQuery({
+    queryKey: ['teams', 'membership-source'],
+    queryFn: () => fetchMembershipSource({} as ITeamsSearchParams), // Fetch all focus areas without filters
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+
   // Process filter values
   const filterValues = useMemo(() => {
     if (!filtersData || !focusAreasData) return null;
 
-    const processed = processFilters(
+    const processed = processFilters({
       searchParams,
-      filtersData,
-      filtersData,
-      focusAreasData.data
-    );
+      formattedValuesByFilter: filtersData,
+      formattedAvailableValuesByFilter: filtersData,
+      focusAreaData: focusAreasData.data,
+      membershipSourceData: membershipSourceData?.data || [],
+    });
 
     // Handle 'all' asks selection
     if (searchParams?.asks === 'all') {
@@ -52,11 +64,11 @@ export function useTeamsFilters(searchParams: ITeamsSearchParams) {
     }
 
     return processed;
-  }, [searchParams, filtersData, focusAreasData]);
+  }, [searchParams, filtersData, focusAreasData, membershipSourceData]);
 
   return {
     filterValues,
-    isLoading: isLoadingFilters || isLoadingFocusAreas,
-    isError: isFiltersError || isFocusAreasError,
+    isLoading: isLoadingFilters || isLoadingFocusAreas || isLoadingMembershipSourceData,
+    isError: isFiltersError || isFocusAreasError || isMembershipSourceError,
   };
 }

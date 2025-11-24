@@ -4,6 +4,7 @@ type MembershipSourceItem = {
   selected: boolean;
   value: string;
   disabled: boolean;
+  count: number;
 };
 
 /**
@@ -29,6 +30,7 @@ export function getMembershipSourcesGetter(membershipSources: MembershipSourceIt
       value: source.value,
       label: source.value,
       disabled: source.disabled,
+      count: source.count,
     }));
 
     return { data };

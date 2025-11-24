@@ -1,5 +1,7 @@
-import { ITag, ITeamListOptions, ITeamResponse, ITeamsSearchParams } from '@/types/teams.types';
-import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
+import map from 'lodash/map';
+import reduce from 'lodash/reduce';
+import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
+import { getSortFromQuery, stringifyQueryValues } from './common.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from './constants';
 
 export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
@@ -38,12 +40,17 @@ export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
   };
 }
 
-export function processFilters(
-  searchParams: ITeamsSearchParams,
-  formattedValuesByFilter: any,
-  formattedAvailableValuesByFilter: any,
-  focusAreaData: any,
-) {
+type Input = {
+  searchParams: ITeamsSearchParams;
+  formattedValuesByFilter: any;
+  formattedAvailableValuesByFilter: any;
+  focusAreaData: any;
+  membershipSourceData: any;
+};
+
+export function processFilters(input: Input) {
+  const { searchParams, formattedValuesByFilter, formattedAvailableValuesByFilter, focusAreaData } = input;
+
   const focusAreaQuery = searchParams?.focusAreas;
   const focusAreaFilters = focusAreaQuery?.split(URL_QUERY_VALUE_SEPARATOR) || [];
   const selectedFocusAreas =
@@ -53,11 +60,7 @@ export function processFilters(
 
   return {
     tags: getTagsFromValues(formattedValuesByFilter?.tags, formattedAvailableValuesByFilter?.tags, searchParams?.tags),
-    membershipSources: getTagsFromValues(
-      formattedValuesByFilter?.membershipSources,
-      formattedAvailableValuesByFilter?.membershipSources,
-      searchParams?.membershipSources,
-    ),
+    membershipSources: formatMembershipSourceFilterOptions(input),
     fundingStage: getTagsFromValues(
       formattedValuesByFilter?.fundingStage,
       formattedAvailableValuesByFilter?.fundingStage,
@@ -81,12 +84,41 @@ export function processFilters(
   };
 }
 
+function formatMembershipSourceFilterOptions(input: Input) {
+  const { searchParams, formattedValuesByFilter, formattedAvailableValuesByFilter, membershipSourceData } = input;
+
+  const formattedData = reduce(
+    membershipSourceData,
+    (acc: Record<string, any>, opt) => {
+      acc[opt.title] = opt;
+
+      return acc;
+    },
+    {},
+  );
+
+  const options = getTagsFromValues(
+    formattedValuesByFilter?.membershipSources,
+    formattedAvailableValuesByFilter?.membershipSources,
+    searchParams?.membershipSources,
+  );
+
+  const result = map(options, (opt) => ({
+    ...opt,
+    count: formattedData[opt.value]?.teams?.length || 0,
+  }));
+
+  return result;
+}
+
 export function getTagsFromValues(allValues: string[], availableValues: string[], queryValues: string | string[] = []) {
   const queryValuesArr = Array.isArray(queryValues) ? queryValues : queryValues.split(URL_QUERY_VALUE_SEPARATOR);
+
   return allValues.map((value) => {
     const selected = queryValuesArr.includes(value);
     const available = availableValues.includes(value);
     const disabled = !selected && !available;
+
     return { value, selected, disabled };
   });
 }
@@ -95,6 +127,7 @@ export function getTiersFromValues(allValues: { tier: string; count: number }[],
   const queryValuesArr = Array.isArray(queryValues) ? queryValues : queryValues.split(URL_QUERY_VALUE_SEPARATOR);
   return allValues?.map((value) => {
     const selected = queryValuesArr.includes(value.tier);
+
     return { value: value.tier, selected, disabled: false, count: value.count };
   });
 }

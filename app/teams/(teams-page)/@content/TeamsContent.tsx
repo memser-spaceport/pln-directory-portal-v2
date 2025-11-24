@@ -12,7 +12,7 @@ import { fetchTeamsList } from '../teamsApi';
 import { useEffect } from 'react';
 import { triggerLoader } from '@/utils/common.utils';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
-import { useTeamsFilters } from '../hooks/useTeamsFilters';
+import { useTeamsFilters } from '../hooks/useGetTeamsFilterValues';
 
 interface TeamsContentProps {
   searchParams: ITeamsSearchParams;

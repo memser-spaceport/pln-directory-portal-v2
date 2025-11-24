@@ -5,7 +5,7 @@ import { IUserInfo } from '@/types/shared.types';
 import Error from '../../../../components/core/error';
 import FilterWrapper from '../../../../components/page/teams/filter-wrapper';
 import { FiltersPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout';
-import { useTeamsFilters } from '../hooks/useTeamsFilters';
+import { useTeamsFilters } from '../hooks/useGetTeamsFilterValues';
 
 interface FiltersContentProps {
   searchParams: ITeamsSearchParams;

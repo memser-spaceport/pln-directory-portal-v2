@@ -1,11 +1,12 @@
 import { ITeamMemberRole } from '@/types/members.types';
 import { ITeamResponse } from '@/types/teams.types';
 import { getHeader } from '@/utils/common.utils';
+import { getTeamTier } from '@/utils/team.utils';
 
 const teamsAPI = `${process.env.DIRECTORY_API_URL}/v1/teams`;
 
 // get all teams filters
-export const getTeamListFilters = async (options: any, authToken: string) => {
+export const getTeamListFilters = async (options: any, authToken: string, userId: string) => {
   const queries = {
     ...options,
     pagination: false,
@@ -20,7 +21,7 @@ export const getTeamListFilters = async (options: any, authToken: string) => {
     },
   };
 
-  const response = await fetch(`${teamsAPI}/filters?${new URLSearchParams(queries)}`, requestOptions);
+  const response = await fetch(`${teamsAPI}/filters?v=${userId}&${new URLSearchParams(queries)}`, requestOptions);
   const result = await response.json();
   if (!response?.ok) {
     return { isError: true };
@@ -156,7 +157,7 @@ export const getTeam = async (
     asks: result?.asks ?? [],
     investorProfile: result?.investorProfile,
     isFund: result?.isFund,
-    tier: result?.tier,
+    tier: getTeamTier(result),
   };
   return { data: { formatedData } };
 };

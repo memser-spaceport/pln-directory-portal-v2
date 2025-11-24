@@ -8,6 +8,7 @@ import MemberInfiniteList from '@/components/page/members/MemberInfiniteList';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
 import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/constants/filters';
+import MembersToolbar from '@/components/page/members/members-toolbar';
 
 async function Page({ searchParams }: { searchParams: Record<string, string> }) {
   const { userInfo } = getCookiesFromHeaders();
@@ -21,6 +22,9 @@ async function Page({ searchParams }: { searchParams: Record<string, string> }) 
 
   return (
     <div className={styles.members__right__content}>
+      <div className={styles.members__right__toolbar}>
+        <MembersToolbar searchParams={searchParams} totalMembers={totalMembers} userInfo={parsedUserDetails} />
+      </div>
       <div className={styles.members__right__membersList} style={{ flex: 1 }}>
         <MemberInfiniteList
           isUserLoggedIn={isLoggedIn}

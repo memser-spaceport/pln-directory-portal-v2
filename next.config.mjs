@@ -19,7 +19,7 @@ const nextConfig = {
       },
       {
         source: '/signup',
-        destination: '/?dialog=signup',
+        destination: '/sign-up',
         permanent: true,
       },
     ];

@@ -7,6 +7,7 @@ import {
 } from '@/services/demo-day/fundraising-profile.service';
 import { uploadToS3 } from '@/utils/s3-upload.utils';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
+import { useParams } from 'next/navigation';
 
 export type UploadType = 'video' | 'onePager';
 
@@ -22,7 +23,7 @@ export interface DirectS3UploadResponse {
   data: any; // FundraisingProfile
 }
 
-async function directS3Upload(params: DirectS3UploadParams): Promise<DirectS3UploadResponse> {
+async function directS3Upload(demoDayId: string, params: DirectS3UploadParams): Promise<DirectS3UploadResponse> {
   const { file, uploadType, teamUid, onProgress } = params;
 
   try {
@@ -31,7 +32,7 @@ async function directS3Upload(params: DirectS3UploadParams): Promise<DirectS3Upl
     let presignedUrl: string;
 
     if (uploadType === 'video') {
-      const result = await getVideoUploadUrl({
+      const result = await getVideoUploadUrl(demoDayId, {
         filename: file.name,
         filesize: file.size,
         mimetype: file.type,
@@ -40,7 +41,7 @@ async function directS3Upload(params: DirectS3UploadParams): Promise<DirectS3Upl
       uploadUid = result.uploadUid;
       presignedUrl = result.presignedUrl;
     } else if (uploadType === 'onePager') {
-      const result = await getOnePagerUploadUrl({
+      const result = await getOnePagerUploadUrl(demoDayId, {
         filename: file.name,
         filesize: file.size,
         mimetype: file.type,
@@ -61,12 +62,12 @@ async function directS3Upload(params: DirectS3UploadParams): Promise<DirectS3Upl
     let result: DirectS3UploadResponse;
 
     if (uploadType === 'video') {
-      result = await confirmVideoUpload({
+      result = await confirmVideoUpload(demoDayId, {
         uploadUid,
         teamUid,
       });
     } else if (uploadType === 'onePager') {
-      result = await confirmOnePagerUpload({
+      result = await confirmOnePagerUpload(demoDayId, {
         uploadUid,
         teamUid,
       });
@@ -92,9 +93,11 @@ async function directS3Upload(params: DirectS3UploadParams): Promise<DirectS3Upl
 
 export function useDirectS3Upload() {
   const queryClient = useQueryClient();
+  const params = useParams();
+  const demoDayId = params.demoDayId as string;
 
   return useMutation({
-    mutationFn: directS3Upload,
+    mutationFn: (data: DirectS3UploadParams) => directS3Upload(demoDayId, data),
     onSuccess: (_, variables) => {
       // Invalidate and refetch the fundraising profile data
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });

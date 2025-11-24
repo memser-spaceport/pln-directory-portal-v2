@@ -87,12 +87,6 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
         {/* Hero Section */}
         <section className={s.heroSection}>
           <div className={s.titleContainer}>
-            <div className={s.overline}>
-              <div className={s.badgeDot} />
-              <span className={s.overlineText}>Upcoming Demo Day</span>
-              <div className={s.break} />
-              <span className={s.overlineText}>Dec 10, 2025</span>
-            </div>
             <div className={s.headline}>
               <h1 className={s.title}>PL Demo Day</h1>
               <p className={s.body}>
@@ -138,7 +132,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           <div className={s.statusBadge} data-status="upcoming">
             Upcoming
           </div>
-          <h3 className={s.timelineTitle}>PL_Genesis Accelerator Demo Day · Dec 10th 2025</h3>
+          <h3 className={s.timelineTitle}>PL_Genesis Accelerator Demo Day · January 2026</h3>
           <p className={s.timelineDescription}>
             Explore 10 pioneering teams asynchronously after they live pitch at{' '}
             <a

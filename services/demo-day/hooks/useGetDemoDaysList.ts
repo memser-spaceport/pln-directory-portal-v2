@@ -2,32 +2,19 @@ import { useQuery } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 
-export type DemoDayListItem = {
-  uid: string;
-  title: string;
-  description: string;
+export type DemoDayListResponse = {
+  access: 'none';
+  confidentialityAccepted: boolean;
   date: string;
-  status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
-  teamsCount: number;
-  investorsCount: number;
-};
-
-type DemoDayListResponse = {
-  createdAt: string;
-  deletedAt: string | null;
   description: string;
-  endDate: string;
-  isDeleted: boolean;
-  shortDescription: string;
+  investorsCount: number;
   slugURL: string;
-  startDate: string;
-  status: DemoDayListItem['status'];
+  status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED' | 'REGISTRATION_OPEN';
+  teamsCount: number;
   title: string;
-  uid: string;
-  updatedAt: string;
 };
 
-async function fetcher(): Promise<DemoDayListItem[]> {
+async function fetcher(): Promise<DemoDayListResponse[]> {
   const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days`;
 
   const response = await customFetch(url, { method: 'GET' }, false);
@@ -38,15 +25,7 @@ async function fetcher(): Promise<DemoDayListItem[]> {
 
   const data: DemoDayListResponse[] = await response.json();
 
-  return data.map((item) => ({
-    uid: item.uid,
-    title: item.title,
-    description: item.description,
-    date: item.startDate,
-    status: item.status,
-    teamsCount: 0,
-    investorsCount: 0,
-  }));
+  return data;
 }
 
 export function useGetDemoDaysList() {

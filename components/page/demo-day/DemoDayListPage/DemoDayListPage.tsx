@@ -97,8 +97,8 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
               ) : displayedDemoDays && displayedDemoDays.length > 0 ? (
                 displayedDemoDays.map((demoDay) => (
                   <DemoDayCard
-                    key={demoDay.uid}
-                    uid={demoDay.uid}
+                    key={demoDay.slugURL}
+                    slug={demoDay.slugURL}
                     title={demoDay.title}
                     description={demoDay.description}
                     date={demoDay.date}

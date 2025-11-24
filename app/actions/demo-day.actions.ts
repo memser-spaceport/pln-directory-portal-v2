@@ -16,8 +16,8 @@ export type DemoDayState = {
   teamsCount: number;
 };
 
-export const getDemoDayState = async (memberUid?: string, authToken?: string) => {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current${memberUid ? `?memberUid=${memberUid}` : ''}`;
+export const getDemoDayState = async (slug: string, memberUid?: string, authToken?: string) => {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${slug}${memberUid ? `?memberUid=${memberUid}` : ''}`;
 
   const response = await fetch(url, {
     method: 'GET',

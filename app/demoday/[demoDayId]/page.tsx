@@ -15,7 +15,7 @@ export default async function DemoDayLandingPage({ params }: { params: { demoDay
 
   try {
     const [demoDayResult, memberResult] = await Promise.all([
-      getDemoDayState(parsedUserInfo.uid, authToken),
+      getDemoDayState(params.demoDayId, parsedUserInfo.uid, authToken),
       parsedUserInfo.uid ? getMemberInfo(parsedUserInfo.uid, authToken) : null,
     ]);
 

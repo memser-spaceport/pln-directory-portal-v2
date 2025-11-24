@@ -4,7 +4,7 @@ import { getDemoDayState, getMemberInfo } from '@/app/actions/demo-day.actions';
 import { checkInvestorProfileComplete } from '@/utils/member.utils';
 import { InvestorPendingView } from '@/components/page/demo-day/InvestorPendingView';
 
-export default async function InvestorPage() {
+export default async function InvestorPage({ params }: { params: { demoDayId: string } }) {
   const { userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
   const parsedUserInfo = userInfo;
 
@@ -13,7 +13,7 @@ export default async function InvestorPage() {
   }
 
   // Fetch demo day state on server side
-  const demoDayResult = await getDemoDayState(parsedUserInfo.uid, authToken);
+  const demoDayResult = await getDemoDayState(params.demoDayId, parsedUserInfo.uid, authToken);
 
   if (demoDayResult?.isError) {
     redirect('/demoday');

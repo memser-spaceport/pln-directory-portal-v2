@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 
 import s from './DemoDayCard.module.scss';
+import { DemoDayListResponse } from '@/services/demo-day/hooks/useGetDemoDaysList';
 
-type DemoDayStatus = 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
+type DemoDayStatus = DemoDayListResponse['status'];
 
 export type DemoDayCardProps = {
-  uid: string;
+  slug: string;
   title: string;
   description: string;
   date: string;
@@ -76,6 +77,11 @@ const getStatusConfig = (status: DemoDayStatus) => {
         label: 'Archived',
         className: s.badgeArchived,
       };
+    case 'REGISTRATION_OPEN':
+      return {
+        label: 'Registration Open',
+        className: s.badgeUpcoming,
+      };
     default:
       return {
         label: status,
@@ -84,12 +90,12 @@ const getStatusConfig = (status: DemoDayStatus) => {
   }
 };
 
-export const DemoDayCard: React.FC<DemoDayCardProps> = ({ uid, title, description, date, status, className }) => {
+export const DemoDayCard: React.FC<DemoDayCardProps> = ({ slug, title, description, date, status, className }) => {
   const statusConfig = getStatusConfig(status);
   const formattedDate = format(new Date(date), 'dd MMM yyyy');
 
   return (
-    <Link href={`/demoday/${uid}`} className={`${s.card} ${className || ''}`}>
+    <Link href={`/demoday/${slug}`} className={`${s.card} ${className || ''}`}>
       <div className={s.cardContent}>
         <div className={s.eventInfo}>
           <div className={s.overline}>

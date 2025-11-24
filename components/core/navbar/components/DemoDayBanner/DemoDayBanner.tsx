@@ -46,7 +46,7 @@ export function DemoDayBanner() {
 
   const msg =
     status === 'COMPLETED'
-      ? 'Upcoming: PL_Genesis Accelerator Demo Day starts December 10th.'
+      ? 'Upcoming: PL_Genesis Accelerator Demo Day starts in January 2026.'
       : 'PL F25 Demo Day is now live with async viewing available through November 7.';
 
   return (

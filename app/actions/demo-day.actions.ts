@@ -8,7 +8,7 @@ export type DemoDayState = {
   date: string;
   title: string;
   description: string;
-  status: 'NONE' | 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
+  status: 'NONE' | 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED' | 'REGISTRATION_OPEN';
   isDemoDayAdmin: boolean;
   isEarlyAccess?: boolean;
   confidentialityAccepted: boolean;

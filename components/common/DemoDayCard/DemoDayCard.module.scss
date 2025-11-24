@@ -14,6 +14,11 @@
     background: var(--background-base-white, #FFF);
     box-shadow: 0 10px 15px -3px var(--transparent-dark-12, rgba(14, 15, 17, 0.12)), 0 4px 6px -2px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
   }
+
+  &.nonClickable {
+    cursor: default;
+    pointer-events: none;
+  }
 }
 
 .cardContent {

@@ -14,6 +14,7 @@ import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hook
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { LandingBase } from '../LandingBase';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
+import { CountdownComponent } from '@/components/common/Countdown';
 
 interface InvestorPendingViewProps {
   initialDemoDayState?: DemoDayState;
@@ -145,7 +146,12 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
   };
 
   return (
-    <LandingBase initialDemoDayState={initialDemoDayState}>
+    <LandingBase
+      initialDemoDayState={initialDemoDayState}
+      countdown={
+        <CountdownComponent targetDate={initialDemoDayState?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />
+      }
+    >
       <InvestorStepper
         initialDemoDayState={initialDemoDayState}
         currentStep={currentStep}

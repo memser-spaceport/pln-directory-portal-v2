@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 
 import s from './DemoDayCard.module.scss';
 import { DemoDayListResponse } from '@/services/demo-day/hooks/useGetDemoDaysList';
+import clsx from 'clsx';
 
 type DemoDayStatus = DemoDayListResponse['status'];
 
@@ -95,7 +96,17 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = ({ slug, title, descripti
   const formattedDate = format(new Date(date), 'dd MMM yyyy');
 
   return (
-    <Link href={`/demoday/${slug}`} className={`${s.card} ${className || ''}`}>
+    <Link
+      href={`/demoday/${slug}`}
+      className={clsx(`${s.card} ${className || ''}`, {
+        [s.nonClickable]: status === 'UPCOMING',
+      })}
+      onClick={(e) => {
+        if (status === 'UPCOMING') {
+          e.preventDefault();
+        }
+      }}
+    >
       <div className={s.cardContent}>
         <div className={s.eventInfo}>
           <div className={s.overline}>
@@ -110,6 +121,7 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = ({ slug, title, descripti
           </div>
           <h3 className={s.title}>{title}</h3>
           <p className={s.description}>{description}</p>
+          <div>More Info </div>
         </div>
       </div>
     </Link>

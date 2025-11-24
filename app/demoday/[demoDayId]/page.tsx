@@ -42,11 +42,17 @@ export default async function DemoDayLandingPage({ params }: { params: { demoDay
     }
 
     // Conditions that should redirect to specific routes
-    if (demoDayState.access === 'FOUNDER' && demoDayState.status === 'UPCOMING') {
+    if (
+      demoDayState.access === 'FOUNDER' &&
+      (demoDayState.status === 'UPCOMING' || demoDayState.status === 'REGISTRATION_OPEN')
+    ) {
       redirect(`/demoday/${params.demoDayId}/founder`);
     }
 
-    if (demoDayState.access === 'INVESTOR' && demoDayState.status === 'UPCOMING') {
+    if (
+      demoDayState.access === 'INVESTOR' &&
+      (demoDayState.status === 'UPCOMING' || demoDayState.status === 'REGISTRATION_OPEN')
+    ) {
       redirect(`/demoday/${params.demoDayId}/investor`);
     }
 

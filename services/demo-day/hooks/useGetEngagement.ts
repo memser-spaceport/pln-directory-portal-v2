@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 
@@ -6,8 +7,8 @@ export type EngagementData = {
   calendarAdded: boolean;
 };
 
-async function fetcher(): Promise<EngagementData> {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/engagement`;
+async function fetcher(demoDayId: string): Promise<EngagementData> {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/engagement`;
 
   const response = await customFetch(
     url,
@@ -26,8 +27,12 @@ async function fetcher(): Promise<EngagementData> {
 }
 
 export function useGetEngagement() {
+  const params = useParams();
+  const demoDayId = params.demoDayId as string;
+
   return useQuery({
-    queryKey: [DemoDayQueryKeys.GET_ENGAGEMENT],
-    queryFn: fetcher,
+    queryKey: [DemoDayQueryKeys.GET_ENGAGEMENT, demoDayId],
+    queryFn: () => fetcher(demoDayId),
+    enabled: !!demoDayId,
   });
 }

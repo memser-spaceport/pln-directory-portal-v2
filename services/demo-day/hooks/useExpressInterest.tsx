@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { toast } from '@/components/core/ToastContainer/utils/toast';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
@@ -18,8 +19,8 @@ interface ExpressInterestData {
   referralData?: ReferralData;
 }
 
-async function expressInterest(data: ExpressInterestData): Promise<boolean> {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/express-interest`;
+async function expressInterest(demoDayId: string, data: ExpressInterestData): Promise<boolean> {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/express-interest`;
 
   const response = await customFetch(
     url,
@@ -42,9 +43,11 @@ async function expressInterest(data: ExpressInterestData): Promise<boolean> {
 
 export function useExpressInterest(teamName?: string) {
   const queryClient = useQueryClient();
+  const params = useParams();
+  const demoDayId = params.demoDayId as string;
 
   return useMutation<boolean, Error, ExpressInterestData>({
-    mutationFn: expressInterest,
+    mutationFn: (data: ExpressInterestData) => expressInterest(demoDayId, data),
     onSuccess: (_, variables) => {
       const { interestType, isPrepDemoDay } = variables;
       let title = '';
@@ -85,10 +88,10 @@ export function useExpressInterest(teamName?: string) {
       );
 
       // Invalidate caches to refetch the updated data with new flags
-      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST] });
-      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
-      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES] });
-      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATS] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE, demoDayId] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATS, demoDayId] });
     },
     onError: (error) => {
       toast.error('Connection request failed. Please try again.', {

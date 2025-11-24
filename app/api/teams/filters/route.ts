@@ -9,23 +9,18 @@ export async function GET(request: NextRequest) {
     // Get auth token from cookies
     const cookieStore = await cookies();
     const authToken = getParsedValue(cookieStore.get('authToken')?.value);
+    const userInfo = getParsedValue(cookieStore.get('userInfo')?.value);
 
     // Fetch filter data
-    const result = await getTeamListFilters({}, authToken);
+    const result = await getTeamListFilters({}, authToken, userInfo?.uid || '');
 
     if (result?.isError) {
-      return NextResponse.json(
-        { error: 'Failed to fetch filters' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to fetch filters' }, { status: 500 });
     }
 
     // Process askTags with defaults
     let askTags = result?.data?.askTags || [];
-    askTags = [
-      ...askTags,
-      ...DEFAULT_ASK_TAGS.filter((defaultTag) => !askTags.includes(defaultTag)),
-    ];
+    askTags = [...askTags, ...DEFAULT_ASK_TAGS.filter((defaultTag) => !askTags.includes(defaultTag))];
 
     return NextResponse.json({
       tags: result?.data?.tags || [],
@@ -37,9 +32,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching filters:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,9 +1,9 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import Cookies from 'js-cookie';
+import { useParams } from 'next/navigation';
 
-import { INVITE_FORM_URL } from '@/constants/demoDay';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
 import { getParsedValue } from '@/utils/common.utils';
@@ -18,12 +18,21 @@ import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hook
 import { IUserInfo } from '@/types/shared.types';
 import { useTimeOnPage } from '@/hooks/useTimeOnPage';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
+import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
+import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
+import { DemoDayInfoRow } from '@/components/common/DemoDayInfoRow';
+import { CountdownComponent } from '@/components/common/Countdown';
 
 import s from './Landing.module.scss';
 
 export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDayState }) {
   const { data } = useGetDemoDayState(initialDemoDayState);
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const params = useParams();
+  const demoDaySlug = params?.demoDayId as string;
+
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Analytics hooks
   const { onLandingRequestInviteButtonClicked } = useDemoDayAnalytics();
@@ -62,7 +71,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
     reportInterval: 30000, // Report every 30 seconds
   });
 
-  const handleRequestInviteClick = () => {
+  const handleApplyClick = () => {
     // PostHog analytics
     onLandingRequestInviteButtonClicked();
 
@@ -82,26 +91,62 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
     };
 
     reportAnalytics.mutate(requestInviteEvent);
+
+    setIsApplyModalOpen(true);
   };
 
   return (
-    <LandingBase initialDemoDayState={initialDemoDayState}>
-      <div className={s.root}>
-        {!userInfo && <LoginBtn className={clsx(s.btn, s.primaryButton)}>Already approved? Log in</LoginBtn>}
-        <a
-          href={INVITE_FORM_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={s.link}
-          onClick={handleRequestInviteClick}
-        >
-          {userInfo ? (
-            <button className={clsx(s.btn, s.primaryButton)}>Register</button>
-          ) : (
-            <span>Not registered? Register here</span>
-          )}
-        </a>
-      </div>
-    </LandingBase>
+    <>
+      <LandingBase
+        initialDemoDayState={initialDemoDayState}
+        countdown={<CountdownComponent targetDate={data?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />}
+        information={
+          <DemoDayInfoRow
+            date={data?.date}
+            teamsCount={data?.teamsCount}
+            investorsCount={data?.investorsCount}
+            showInvestorsLink={true}
+          />
+        }
+      >
+        <div className={s.root}>
+          {!userInfo && <LoginBtn className={clsx(s.btn, s.secondaryButton)}>Already approved? Log in</LoginBtn>}
+          <button className={clsx(s.btn, s.primaryButton)} onClick={handleApplyClick} disabled={data?.isPending}>
+            {data?.isPending ? (
+              <>
+                You have applied <CheckIcon />
+              </>
+            ) : (
+              'Apply'
+            )}
+          </button>
+        </div>
+      </LandingBase>
+
+      {demoDaySlug && (
+        <ApplyForDemoDayModal
+          isOpen={isApplyModalOpen}
+          onClose={() => setIsApplyModalOpen(false)}
+          userInfo={userInfo}
+          memberData={null}
+          demoDaySlug={demoDaySlug}
+          onSuccessUnauthenticated={() => setShowSuccessModal(true)}
+        />
+      )}
+
+      <AccountCreatedSuccessModal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} />
+    </>
   );
 }
+
+const CheckIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M13.3332 4L5.99984 11.3333L2.6665 8"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);

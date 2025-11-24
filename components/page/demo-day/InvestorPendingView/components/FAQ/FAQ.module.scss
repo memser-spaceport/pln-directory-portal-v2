@@ -9,7 +9,7 @@
   flex-direction: column;
 
   @include media.mobile-only {
-    padding: 32px 16px 0;
+    padding: 32px 0 0;
   }
 }
 

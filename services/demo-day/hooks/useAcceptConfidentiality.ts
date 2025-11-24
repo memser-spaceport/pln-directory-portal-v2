@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 
@@ -6,8 +7,8 @@ interface AcceptConfidentialityData {
   accepted: boolean;
 }
 
-async function acceptConfidentiality(data: AcceptConfidentialityData): Promise<boolean> {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/confidentiality-policy`;
+async function acceptConfidentiality(demoDayId: string, data: AcceptConfidentialityData): Promise<boolean> {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/confidentiality-policy`;
 
   const response = await customFetch(
     url,
@@ -30,9 +31,11 @@ async function acceptConfidentiality(data: AcceptConfidentialityData): Promise<b
 
 export function useAcceptConfidentiality() {
   const queryClient = useQueryClient();
+  const params = useParams();
+  const demoDayId = params.demoDayId as string;
 
   return useMutation<boolean, Error, AcceptConfidentialityData>({
-    mutationFn: acceptConfidentiality,
+    mutationFn: (data: AcceptConfidentialityData) => acceptConfidentiality(demoDayId, data),
     onSuccess: () => {
       // Invalidate demo day state to refetch and close the modal
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATE] });

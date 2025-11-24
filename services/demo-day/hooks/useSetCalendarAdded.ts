@@ -1,9 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 
-async function setCalendarAdded(): Promise<boolean> {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/engagement/calendar-added`;
+async function setCalendarAdded(demoDayId: string): Promise<boolean> {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/engagement/calendar-added`;
 
   const response = await customFetch(
     url,
@@ -26,12 +27,14 @@ async function setCalendarAdded(): Promise<boolean> {
 
 export function useSetCalendarAdded() {
   const queryClient = useQueryClient();
+  const params = useParams();
+  const demoDayId = params.demoDayId as string;
 
   return useMutation({
-    mutationFn: setCalendarAdded,
+    mutationFn: () => setCalendarAdded(demoDayId),
     onSuccess: () => {
       // Invalidate engagement query to refetch the updated data
-      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ENGAGEMENT] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ENGAGEMENT, demoDayId] });
     },
     onError: (error) => {
       console.error('Failed to set calendar added flag:', error);

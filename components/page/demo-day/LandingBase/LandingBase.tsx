@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react';
+import React, { PropsWithChildren, ReactNode } from 'react';
 
 import { faqItems } from '@/app/constants/demoday';
 
@@ -13,10 +13,12 @@ import s from './LandingBase.module.scss';
 
 interface LandingBaseProps {
   initialDemoDayState?: DemoDayState;
+  countdown?: ReactNode;
+  information?: ReactNode;
 }
 
 export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
-  const { children, initialDemoDayState } = props;
+  const { children, initialDemoDayState, countdown, information } = props;
 
   return (
     <div className={s.root}>
@@ -24,7 +26,9 @@ export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
         {/* Main content */}
         <div className={s.content}>
           <div className={s.mainContent}>
+            {countdown}
             <PageTitle initialDemoDayState={initialDemoDayState} />
+            {information}
           </div>
 
           {children}

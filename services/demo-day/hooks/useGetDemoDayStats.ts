@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 
@@ -9,9 +10,8 @@ export type DemoDayStats = {
   total: number;
 };
 
-async function fetcher(): Promise<DemoDayStats> {
-  // TODO: Replace with actual API endpoint when backend is ready
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/express-interest/stats`;
+async function fetcher(demoDayId: string): Promise<DemoDayStats> {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/express-interest/stats`;
 
   const response = await customFetch(
     url,
@@ -43,10 +43,13 @@ async function fetcher(): Promise<DemoDayStats> {
 }
 
 export function useGetDemoDayStats(enabled: boolean = true) {
+  const params = useParams();
+  const demoDayId = params.demoDayId as string;
+
   return useQuery({
-    queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATS],
-    queryFn: fetcher,
-    enabled, // Only fetch when enabled
+    queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATS, demoDayId],
+    queryFn: () => fetcher(demoDayId),
+    enabled: enabled && !!demoDayId, // Only fetch when enabled and demoDayId exists
     refetchInterval: enabled ? 15000 : false, // Only refetch every 15 seconds when enabled
     refetchIntervalInBackground: true, // Continue refetching even when tab is not focused
     staleTime: 10000, // Consider data stale after 10 seconds

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 
@@ -63,8 +64,8 @@ export type FundraisingProfile = {
   invested: boolean;
 };
 
-async function fetcher() {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile`;
+async function fetcher(demoDayId: string) {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile`;
 
   const response = await customFetch(
     url,
@@ -84,9 +85,12 @@ async function fetcher() {
 }
 
 export function useGetFundraisingProfile(enabled: boolean = true) {
+  const params = useParams();
+  const demoDayId = params.demoDayId as string;
+
   return useQuery({
-    queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE],
-    queryFn: fetcher,
-    enabled,
+    queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE, demoDayId],
+    queryFn: () => fetcher(demoDayId),
+    enabled: enabled && !!demoDayId,
   });
 }

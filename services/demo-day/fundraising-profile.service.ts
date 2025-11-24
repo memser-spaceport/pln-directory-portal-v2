@@ -67,13 +67,13 @@ export interface UploadOnePagerPreviewResponse {
 /**
  * Get presigned upload URL for video upload
  */
-export async function getVideoUploadUrl(params: GetVideoUploadUrlParams): Promise<GetVideoUploadUrlResponse> {
+export async function getVideoUploadUrl(demoDayId: string, params: GetVideoUploadUrlParams): Promise<GetVideoUploadUrlResponse> {
   const { filename, filesize, mimetype, teamUid } = params;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
   const url = teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/current/teams/${teamUid}/fundraising-profile/video/upload-url`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/video/upload-url`;
+    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/video/upload-url`
+    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile/video/upload-url`;
 
   const response = await customFetch(
     url,
@@ -102,13 +102,13 @@ export async function getVideoUploadUrl(params: GetVideoUploadUrlParams): Promis
 /**
  * Confirm video upload completion
  */
-export async function confirmVideoUpload(params: ConfirmVideoUploadParams): Promise<ConfirmVideoUploadResponse> {
+export async function confirmVideoUpload(demoDayId: string, params: ConfirmVideoUploadParams): Promise<ConfirmVideoUploadResponse> {
   const { uploadUid, teamUid } = params;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
   const url = teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/current/teams/${teamUid}/fundraising-profile/video/confirm`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/video/confirm`;
+    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/video/confirm`
+    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile/video/confirm`;
 
   const response = await customFetch(
     url,
@@ -135,13 +135,13 @@ export async function confirmVideoUpload(params: ConfirmVideoUploadParams): Prom
 /**
  * Get presigned upload URL for one-pager upload
  */
-export async function getOnePagerUploadUrl(params: GetOnePagerUploadUrlParams): Promise<GetOnePagerUploadUrlResponse> {
+export async function getOnePagerUploadUrl(demoDayId: string, params: GetOnePagerUploadUrlParams): Promise<GetOnePagerUploadUrlResponse> {
   const { filename, filesize, mimetype, teamUid } = params;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
   const url = teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/current/teams/${teamUid}/fundraising-profile/one-pager/upload-url`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/one-pager/upload-url`;
+    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/one-pager/upload-url`
+    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile/one-pager/upload-url`;
 
   const response = await customFetch(
     url,
@@ -171,14 +171,15 @@ export async function getOnePagerUploadUrl(params: GetOnePagerUploadUrlParams): 
  * Confirm one-pager upload completion
  */
 export async function confirmOnePagerUpload(
+  demoDayId: string,
   params: ConfirmOnePagerUploadParams,
 ): Promise<ConfirmOnePagerUploadResponse> {
   const { uploadUid, teamUid } = params;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
   const url = teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/current/teams/${teamUid}/fundraising-profile/one-pager/confirm`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/one-pager/confirm`;
+    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/one-pager/confirm`
+    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile/one-pager/confirm`;
 
   const response = await customFetch(
     url,
@@ -206,14 +207,15 @@ export async function confirmOnePagerUpload(
  * Upload preview image for one-pager
  */
 export async function uploadOnePagerPreview(
+  demoDayId: string,
   params: UploadOnePagerPreviewParams,
 ): Promise<UploadOnePagerPreviewResponse> {
   const { previewImage, previewImageSmall, teamUid } = params;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
   const url = teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/current/teams/${teamUid}/fundraising-profile/one-pager/preview`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profile/one-pager/preview`;
+    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/one-pager/preview`
+    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile/one-pager/preview`;
 
   const formData = new FormData();
   formData.append('previewImage', previewImage);

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
@@ -43,8 +44,8 @@ export type TeamProfile = {
 
 export type TeamsListResponse = TeamProfile[];
 
-async function fetcher(): Promise<TeamsListResponse> {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current/fundraising-profiles`;
+async function fetcher(demoDayId: string): Promise<TeamsListResponse> {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profiles`;
 
   const response = await customFetch(
     url,
@@ -65,10 +66,12 @@ async function fetcher(): Promise<TeamsListResponse> {
 
 export function useGetTeamsList() {
   const authToken = Cookies.get('authToken') || '';
+  const params = useParams();
+  const demoDayId = params.demoDayId as string;
 
   return useQuery({
-    queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST],
-    queryFn: fetcher,
-    enabled: Boolean(authToken),
+    queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId],
+    queryFn: () => fetcher(demoDayId),
+    enabled: Boolean(authToken) && !!demoDayId,
   });
 }

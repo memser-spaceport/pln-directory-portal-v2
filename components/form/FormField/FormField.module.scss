@@ -59,6 +59,11 @@
       color: var(--action-border-error-focus);
     }
   }
+
+  &:has(input:disabled) {
+    background: rgba(203, 213, 225, 0.1);
+    cursor: not-allowed;
+  }
 }
 
 .inputContent {
@@ -79,6 +84,12 @@
   background: transparent;
   outline: none;
   color: #455468;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    background: rgba(203, 213, 225, 0.1);
+  }
 }
 
 .errorMsg {

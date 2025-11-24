@@ -1,3 +1,6 @@
+@use 'styles/mixins';
+@use 'styles/media';
+
 .overlay {
   position: fixed;
   top: 0;
@@ -9,15 +12,20 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  padding: 16px;
+  padding: 16px 12px;
   background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
   backdrop-filter: blur(15px);
+  overflow-y: auto;
+
+  @include media.tablet-landscape {
+    padding: 24px;
+  }
 }
 
 .modalContainer {
   position: relative;
-  max-height: 90vh;
-  overflow-y: auto;
+  //height: 100%;
+
   width: 100%;
   max-width: 600px;
 }

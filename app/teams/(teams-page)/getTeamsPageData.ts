@@ -14,25 +14,22 @@ type FetchMode = 'filtersOnly' | 'withTeams';
  * @param searchParams - URL search parameters
  * @param mode - 'filtersOnly' fetches only filter data, 'withTeams' fetches teams plus filters
  */
-export const getTeamsPageData = async (
-  searchParams: ITeamsSearchParams,
-  mode: FetchMode = 'withTeams'
-) => {
+export const getTeamsPageData = async (searchParams: ITeamsSearchParams, mode: FetchMode = 'withTeams') => {
   let teams = [];
   let isError = false;
   let totalTeams = 0;
   let filterValues;
 
   try {
-    const { authToken } = getCookiesFromHeaders();
+    const { authToken, userInfo } = getCookiesFromHeaders();
 
     // Prepare API calls based on mode
     const apiCalls: Promise<any>[] = [];
 
     // Always fetch filter-related data
     apiCalls.push(
-      getTeamListFilters({}, authToken),
-      getFocusAreas('Team', parseFocusAreasParams(searchParams))
+      getTeamListFilters({}, authToken, userInfo?.uid || ''),
+      getFocusAreas('Team', parseFocusAreasParams(searchParams)),
     );
 
     // Only fetch a team list if the mode is 'withTeams'

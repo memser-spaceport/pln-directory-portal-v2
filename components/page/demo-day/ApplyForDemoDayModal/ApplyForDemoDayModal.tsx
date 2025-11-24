@@ -69,6 +69,10 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   const { mutateAsync, isPending } = useApplyForDemoDay(demoDaySlug);
   const { data } = useMemberFormOptions();
 
+  // Check if user is authenticated
+  const authToken = Cookies.get('authToken');
+  const isAuthenticated = Boolean(authToken);
+
   const methods = useForm<ApplyFormData>({
     defaultValues: {
       email: memberData?.email || userInfo?.email || '',
@@ -94,10 +98,6 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
 
   const onSubmit = async (data: ApplyFormData) => {
     try {
-      // Check if user is authenticated BEFORE submitting
-      const authToken = Cookies.get('authToken');
-      const isAuthenticated = Boolean(authToken);
-
       await mutateAsync(data as ApplyForDemoDayPayload);
       reset();
       onClose();
@@ -146,9 +146,21 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
 
           <FormProvider {...methods}>
             <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
-              <FormField name="email" label="Email Address" placeholder="Enter your email" isRequired />
+              <FormField
+                name="email"
+                label="Email Address"
+                placeholder="Enter your email"
+                isRequired
+                disabled={isAuthenticated}
+              />
 
-              <FormField name="name" label="Full Name" placeholder="Enter your full name" isRequired />
+              <FormField
+                name="name"
+                label="Full Name"
+                placeholder="Enter your full name"
+                isRequired
+                disabled={isAuthenticated}
+              />
 
               <FormField
                 name="linkedin"

@@ -1,5 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
+import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
+import { customFetch } from '@/utils/fetch-wrapper';
 
 export type ApplyForDemoDayPayload = {
   name: string;
@@ -10,35 +12,35 @@ export type ApplyForDemoDayPayload = {
   isInvestor: boolean;
 };
 
-async function mutation(payload: ApplyForDemoDayPayload) {
-  // TODO: Replace with actual API endpoint when backend is ready
-  // const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/demo-days/applications`, {
-  //   method: 'POST',
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //   },
-  //   credentials: 'include',
-  //   body: JSON.stringify(payload),
-  // });
-  //
-  // if (!response?.ok) {
-  //   throw new Error('Failed to submit application');
-  // }
-  //
-  // return await response.json();
+async function mutation(demoDaySlug: string, payload: ApplyForDemoDayPayload) {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDaySlug}/investor-application`;
 
-  // Mock implementation for now
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log('Demo Day Application submitted:', payload);
-      resolve({ success: true, message: 'Application submitted successfully' });
-    }, 1000);
-  });
+  // Check if user is authenticated
+  const authToken = Cookies.get('authToken');
+  const isAuthenticated = Boolean(authToken);
+
+  const response = await customFetch(
+    url,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+    isAuthenticated, // Only include auth token if user is logged in
+  );
+
+  if (!response?.ok) {
+    throw new Error('Failed to submit application');
+  }
+
+  return await response.json();
 }
 
-export function useApplyForDemoDay() {
+export function useApplyForDemoDay(demoDaySlug: string) {
   return useMutation({
-    mutationFn: mutation,
+    mutationFn: (payload: ApplyForDemoDayPayload) => mutation(demoDaySlug, payload),
     onSuccess: () => {
       toast.success('Your application has been submitted successfully!');
     },

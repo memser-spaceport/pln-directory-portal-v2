@@ -22,7 +22,7 @@ const applySchema = yup.object({
   name: yup.string().required('Name is required'),
   email: yup.string().email('Must be a valid email').required('Email is required'),
   linkedin: yup.string().required('Required'),
-  teamOrProject: yup.string().required('Required'),
+  teamOrProject: yup.mixed<string | Record<string, string>>().defined().nullable(),
   role: yup.string().required('Role is required'),
   isInvestor: yup.boolean().defined(),
 });
@@ -34,6 +34,7 @@ interface Props {
   onClose: () => void;
   userInfo?: IUserInfo | null;
   memberData?: IMember | null;
+  demoDaySlug: string;
 }
 
 const PencilIcon = () => (
@@ -55,8 +56,8 @@ const CloseIcon = () => (
   </svg>
 );
 
-export const ApplyForDemoDayModal: React.FC<Props> = ({ isOpen, onClose, userInfo, memberData }) => {
-  const { mutateAsync, isPending } = useApplyForDemoDay();
+export const ApplyForDemoDayModal: React.FC<Props> = ({ isOpen, onClose, userInfo, memberData, demoDaySlug }) => {
+  const { mutateAsync, isPending } = useApplyForDemoDay(demoDaySlug);
   const { data } = useMemberFormOptions();
 
   const methods = useForm<ApplyFormData>({

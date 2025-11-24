@@ -46,6 +46,9 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
   const [showAll, setShowAll] = useState(false);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
+  // Find the demo day with REGISTRATION_OPEN status
+  const registrationOpenDemoDay = demoDays?.find((dd) => dd.status === 'REGISTRATION_OPEN');
+
   const displayedDemoDays = showAll ? demoDays : demoDays?.slice(0, 3);
 
   return (
@@ -70,15 +73,17 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
               </div>
             </div>
             <div className={s.buttons}>
-              <Button
-                size="l"
-                style="fill"
-                variant="primary"
-                className={s.applyButton}
-                onClick={() => setIsApplyModalOpen(true)}
-              >
-                Apply for Founders Forge <ArrowRight />
-              </Button>
+              {registrationOpenDemoDay && (
+                <Button
+                  size="l"
+                  style="fill"
+                  variant="primary"
+                  className={s.applyButton}
+                  onClick={() => setIsApplyModalOpen(true)}
+                >
+                  Apply for {registrationOpenDemoDay.title} <ArrowRight />
+                </Button>
+              )}
               <div className={s.links}>
                 {isLoggedIn && userInfo && (
                   <Link target="_blank" href={`/members/${userInfo?.uid}?backTo=/demoday`} className={s.linkButton}>
@@ -167,12 +172,15 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
         </footer>
       </div>
 
-      <ApplyForDemoDayModal
-        isOpen={isApplyModalOpen}
-        onClose={() => setIsApplyModalOpen(false)}
-        userInfo={userInfo}
-        memberData={memberData}
-      />
+      {registrationOpenDemoDay && (
+        <ApplyForDemoDayModal
+          isOpen={isApplyModalOpen}
+          onClose={() => setIsApplyModalOpen(false)}
+          userInfo={userInfo}
+          memberData={memberData}
+          demoDaySlug={registrationOpenDemoDay.slugURL}
+        />
+      )}
     </div>
   );
 };

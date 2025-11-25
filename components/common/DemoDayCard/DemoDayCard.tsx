@@ -13,6 +13,7 @@ export type DemoDayCardProps = {
   title: string;
   description: string;
   date: string;
+  approximateStartDate?: string;
   status: DemoDayStatus;
   className?: string;
 };
@@ -91,9 +92,17 @@ const getStatusConfig = (status: DemoDayStatus) => {
   }
 };
 
-export const DemoDayCard: React.FC<DemoDayCardProps> = ({ slug, title, description, date, status, className }) => {
+export const DemoDayCard: React.FC<DemoDayCardProps> = ({
+  slug,
+  title,
+  description,
+  date,
+  approximateStartDate,
+  status,
+  className,
+}) => {
   const statusConfig = getStatusConfig(status);
-  const formattedDate = format(new Date(date), 'dd MMM yyyy');
+  const formattedDate = approximateStartDate || format(new Date(date), 'dd MMM yyyy');
   const showMore = status !== 'UPCOMING';
 
   const handleDescriptionClick = (e: React.MouseEvent<HTMLParagraphElement>) => {

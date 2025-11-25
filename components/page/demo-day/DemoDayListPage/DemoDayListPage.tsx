@@ -48,7 +48,14 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Find the demo day with REGISTRATION_OPEN status
+  // Find demo days with REGISTRATION_OPEN or ACTIVE status
+  const applicableDemoDays = demoDays?.filter((dd) => dd.status === 'REGISTRATION_OPEN' || dd.status === 'ACTIVE');
+
+  // Only show button if there's exactly 1 applicable demo day
+  const shouldShowApplyButton = applicableDemoDays && applicableDemoDays.length === 1;
+  const nextDemoDay = shouldShowApplyButton ? applicableDemoDays[0] : null;
+
+  // Keep for backward compatibility
   const registrationOpenDemoDay = demoDays?.find((dd) => dd.status === 'REGISTRATION_OPEN');
 
   const displayedDemoDays = showAll ? demoDays : demoDays?.slice(0, 3);
@@ -75,7 +82,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
               </div>
             </div>
             <div className={s.buttons}>
-              {registrationOpenDemoDay && (
+              {shouldShowApplyButton && nextDemoDay && (
                 <Button
                   size="l"
                   style="fill"
@@ -109,6 +116,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
                     title={demoDay.title}
                     description={demoDay.description}
                     date={demoDay.date}
+                    approximateStartDate={demoDay.approximateStartDate}
                     status={demoDay.status}
                   />
                 ))
@@ -174,24 +182,24 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
         </footer>
       </div>
 
-      {registrationOpenDemoDay && (
+      {nextDemoDay && (
         <ApplyForDemoDayModal
           isOpen={isApplyModalOpen}
           onClose={() => setIsApplyModalOpen(false)}
           userInfo={userInfo}
           memberData={memberData}
-          demoDaySlug={registrationOpenDemoDay.slugURL}
+          demoDaySlug={nextDemoDay.slugURL}
           demoDayData={{
             uid: '',
-            access: registrationOpenDemoDay.access,
-            date: registrationOpenDemoDay.date,
-            title: registrationOpenDemoDay.title,
-            description: registrationOpenDemoDay.description,
-            status: registrationOpenDemoDay.status,
+            access: nextDemoDay.access,
+            date: nextDemoDay.date,
+            title: nextDemoDay.title,
+            description: nextDemoDay.description,
+            status: nextDemoDay.status,
             isDemoDayAdmin: false,
-            confidentialityAccepted: registrationOpenDemoDay.confidentialityAccepted,
-            investorsCount: registrationOpenDemoDay.investorsCount,
-            teamsCount: registrationOpenDemoDay.teamsCount,
+            confidentialityAccepted: nextDemoDay.confidentialityAccepted,
+            investorsCount: nextDemoDay.investorsCount,
+            teamsCount: nextDemoDay.teamsCount,
           }}
           onSuccessUnauthenticated={() => setShowSuccessModal(true)}
         />

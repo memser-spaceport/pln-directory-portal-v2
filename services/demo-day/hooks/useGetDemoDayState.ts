@@ -16,7 +16,7 @@ type DemoDayState = {
   isDemoDayAdmin: boolean;
   isEarlyAccess?: boolean;
   isPending?: boolean;
-
+  approximateStartDate?: string;
   confidentialityAccepted: boolean;
 
   investorsCount: number;

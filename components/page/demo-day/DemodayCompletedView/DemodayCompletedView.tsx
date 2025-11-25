@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useToggle } from 'react-use';
 import clsx from 'clsx';
@@ -18,8 +18,11 @@ import teamsData from '@/components/common/LogosGrid/teams.json';
 import s from './DemodayCompletedView.module.scss';
 import { IUserInfo } from '@/types/shared.types';
 import { toast } from '@/components/core/ToastContainer';
-import { APPLY_FOR_NEXT_DEMO_DAY_URL, FOUNDERS_FORGE_URL } from '@/constants/demoDay';
+import { APPLY_FOR_NEXT_DEMO_DAY_URL } from '@/constants/demoDay';
 import { format } from 'date-fns';
+import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList';
+import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
+import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
 
 interface DemodayCompletedViewProps {
   initialDemoDayState?: DemoDayState;
@@ -48,12 +51,31 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
     isLoggedIn && initialDemoDayState?.access && initialDemoDayState?.access?.toUpperCase() === 'INVESTOR';
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [showAllTeams, toggleShowAllTeams] = useToggle(false);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
   const {
     onCompletedViewApplyForNextDemoDayClicked,
     onCompletedViewGiveFeedbackClicked,
     onCompletedViewKeepProfileUpdatedClicked,
     onCompletedViewShowMoreTeamsClicked,
   } = useDemoDayAnalytics();
+
+  // Fetch demo days list
+  const { data: demoDays } = useGetDemoDaysList();
+
+  // Find next demo day with REGISTRATION_OPEN or ACTIVE status
+  const nextDemoDay = useMemo(() => {
+    if (!demoDays) return null;
+
+    // First try to find REGISTRATION_OPEN
+    const registrationOpen = demoDays.find((dd) => dd.status === 'REGISTRATION_OPEN');
+    if (registrationOpen) return registrationOpen;
+
+    // If not found, try to find ACTIVE
+    const active = demoDays.find((dd) => dd.status === 'ACTIVE');
+    return active || null;
+  }, [demoDays]);
 
   // Use static teams data from teams.json
   const displayTeams = teamsData;
@@ -66,6 +88,11 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
 
   const handleApplyForNextDemoDayClick = () => {
     onCompletedViewApplyForNextDemoDayClicked();
+
+    // If we have a next demo day, open the modal
+    if (nextDemoDay) {
+      setIsApplyModalOpen(true);
+    }
   };
 
   const handleGiveFeedbackClick = () => {
@@ -103,16 +130,22 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           </div>
 
           <div className={s.buttons}>
-            <Link
-              href={APPLY_FOR_NEXT_DEMO_DAY_URL}
-              onClick={handleApplyForNextDemoDayClick}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button size="l" style="fill" variant="primary">
+            {nextDemoDay ? (
+              <Button size="l" style="fill" variant="primary" onClick={handleApplyForNextDemoDayClick}>
                 Apply for next Demo Day <ArrowRight />
               </Button>
-            </Link>
+            ) : (
+              <Link
+                href={APPLY_FOR_NEXT_DEMO_DAY_URL}
+                onClick={handleApplyForNextDemoDayClick}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button size="l" style="fill" variant="primary">
+                  Apply for next Demo Day <ArrowRight />
+                </Button>
+              </Link>
+            )}
             <div className={s.links}>
               {showFeedbackOption && (
                 <button onClick={handleGiveFeedbackClick} className={s.linkButton}>
@@ -254,6 +287,32 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
         onClose={() => setIsFeedbackDialogOpen(false)}
         onSuccess={handleFeedbackSuccess}
       />
+
+      {/* Apply for Demo Day Modal */}
+      {nextDemoDay && (
+        <ApplyForDemoDayModal
+          isOpen={isApplyModalOpen}
+          onClose={() => setIsApplyModalOpen(false)}
+          userInfo={userInfo}
+          memberData={null}
+          demoDaySlug={nextDemoDay.slugURL}
+          demoDayData={{
+            uid: '',
+            access: nextDemoDay.access,
+            date: nextDemoDay.date,
+            title: nextDemoDay.title,
+            description: nextDemoDay.description,
+            status: nextDemoDay.status,
+            isDemoDayAdmin: false,
+            confidentialityAccepted: nextDemoDay.confidentialityAccepted,
+            investorsCount: nextDemoDay.investorsCount,
+            teamsCount: nextDemoDay.teamsCount,
+          }}
+          onSuccessUnauthenticated={() => setShowSuccessModal(true)}
+        />
+      )}
+
+      <AccountCreatedSuccessModal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} />
     </div>
   );
 };

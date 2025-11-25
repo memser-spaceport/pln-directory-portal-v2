@@ -12,6 +12,7 @@ type DemoDayState = {
   date: string;
   title: string;
   description: string;
+  shortDescription: string;
   status: 'NONE' | 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
   isDemoDayAdmin: boolean;
   isEarlyAccess?: boolean;

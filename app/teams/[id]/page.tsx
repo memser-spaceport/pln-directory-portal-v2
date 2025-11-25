@@ -71,7 +71,7 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
 
-          {isLoggedIn && team.investorProfile && !!hasInvestorData() && (
+          {isLoggedIn && team?.isFund && team.investorProfile && !!hasInvestorData() && (
             <div className={clsx(s.root)}>
               <InvestorProfileView
                 investmentFocusAreas={team?.investorProfile?.investmentFocus}

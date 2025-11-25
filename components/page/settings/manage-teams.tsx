@@ -183,12 +183,12 @@ function ManageTeamsSettings(props: any) {
         triggerLoader(false);
         return;
       }
-
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       formValues.longDescription = content;
       formValues.teamMemberRoles = teamMembers.map((member: any) => member.teams);
       const formattedInputValues = transformRawInputsToFormObj(formValues);
+      formattedInputValues.isFund = isInvestmentFund;
       analytics.recordManageTeamSave('save-click', getAnalyticsUserInfo(userInfo), formattedInputValues);
       const basicInfoErrors: any = await validateBasicInfo({ ...formattedInputValues });
       const projectInfoErrors: any = await validateProjectsInfo({ ...formattedInputValues });

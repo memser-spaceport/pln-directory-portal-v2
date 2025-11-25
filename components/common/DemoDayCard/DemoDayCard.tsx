@@ -13,6 +13,7 @@ export type DemoDayCardProps = {
   title: string;
   description: string;
   date: string;
+  approximateStartDate?: string;
   status: DemoDayStatus;
   className?: string;
 };
@@ -91,10 +92,26 @@ const getStatusConfig = (status: DemoDayStatus) => {
   }
 };
 
-export const DemoDayCard: React.FC<DemoDayCardProps> = ({ slug, title, description, date, status, className }) => {
+export const DemoDayCard: React.FC<DemoDayCardProps> = ({
+  slug,
+  title,
+  description,
+  date,
+  approximateStartDate,
+  status,
+  className,
+}) => {
   const statusConfig = getStatusConfig(status);
-  const formattedDate = format(new Date(date), 'dd MMM yyyy');
+  const formattedDate = approximateStartDate || format(new Date(date), 'dd MMM yyyy');
   const showMore = status !== 'UPCOMING';
+
+  const handleDescriptionClick = (e: React.MouseEvent<HTMLParagraphElement>) => {
+    // Check if the clicked element is a link
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'A') {
+      e.stopPropagation();
+    }
+  };
 
   return (
     <Link
@@ -121,7 +138,11 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = ({ slug, title, descripti
             </div>
           </div>
           <h3 className={s.title}>{title}</h3>
-          <p className={s.description}>{description}</p>
+          <p
+            className={s.description}
+            dangerouslySetInnerHTML={{ __html: description }}
+            onClick={handleDescriptionClick}
+          />
           {showMore && (
             <div className={s.more}>
               More Info{' '}

@@ -12,6 +12,7 @@ export type DemoDayListResponse = {
   status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED' | 'REGISTRATION_OPEN';
   teamsCount: number;
   title: string;
+  approximateStartDate?: string;
 };
 
 async function fetcher(): Promise<DemoDayListResponse[]> {

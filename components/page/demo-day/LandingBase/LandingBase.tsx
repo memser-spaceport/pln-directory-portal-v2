@@ -41,7 +41,7 @@ export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
           </div>
 
           <LogosGrid />
-          <FAQ items={faqItems} />
+          <FAQ items={faqItems} demoDaySlug={initialDemoDayState?.uid} />
 
           <Footer />
         </div>

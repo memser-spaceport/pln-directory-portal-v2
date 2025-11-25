@@ -130,6 +130,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
           userInfo={userInfo}
           memberData={null}
           demoDaySlug={demoDaySlug}
+          demoDayData={data}
           onSuccessUnauthenticated={() => setShowSuccessModal(true)}
         />
       )}

@@ -14,6 +14,7 @@ export type DemoDayState = {
   confidentialityAccepted: boolean;
   investorsCount: number;
   teamsCount: number;
+  approximateStartDate?: string;
 };
 
 export const getDemoDayState = async (slug: string, memberUid?: string, authToken?: string) => {

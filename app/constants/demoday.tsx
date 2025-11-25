@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 import { APPLY_FOR_NEXT_DEMO_DAY_URL, INVITE_FORM_URL } from '@/constants/demoDay';
 
 import { FaqLink } from '@/components/page/demo-day/LandingBase/components/FaqLink';
 import { FaqBulletList } from '@/components/page/demo-day/LandingBase/components/FaqBulletList';
+
+export interface FAQItem {
+  question: string;
+  answer: ReactNode;
+}
 
 const PROTOCOL_LABS_LINK = 'https://protocol.ai/';
 const X_LINK = 'https://x.com/protocollabs';
@@ -123,3 +128,21 @@ export const faqCompletedItems = [
     ),
   },
 ];
+
+// Demo day specific FAQ items mapped by slug
+export const demoDayFaqMap: Record<string, FAQItem[]> = {
+  // Example: Add specific FAQ for a demo day by its slug
+  // 'pl-f25-demo-day': [
+  //   {
+  //     question: 'What is PL F25 Demo Day?',
+  //     answer: (
+  //       <FaqBulletList
+  //         items={[
+  //           'This is a custom FAQ for PL F25 Demo Day.',
+  //           'It will override the default FAQ items.',
+  //         ]}
+  //       />
+  //     ),
+  //   },
+  // ],
+};

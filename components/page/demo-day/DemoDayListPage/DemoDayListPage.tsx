@@ -109,17 +109,19 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
               {isLoading ? (
                 <div className={s.loading}>Loading demo days...</div>
               ) : displayedDemoDays && displayedDemoDays.length > 0 ? (
-                displayedDemoDays.map((demoDay) => (
-                  <DemoDayCard
-                    key={demoDay.slugURL}
-                    slug={demoDay.slugURL}
-                    title={demoDay.title}
-                    description={demoDay.description}
-                    date={demoDay.date}
-                    approximateStartDate={demoDay.approximateStartDate}
-                    status={demoDay.status}
-                  />
-                ))
+                displayedDemoDays
+                  .filter((demoDay) => demoDay.status !== 'ARCHIVED')
+                  .map((demoDay) => (
+                    <DemoDayCard
+                      key={demoDay.slugURL}
+                      slug={demoDay.slugURL}
+                      title={demoDay.title}
+                      description={demoDay.shortDescription || demoDay.description}
+                      date={demoDay.date}
+                      approximateStartDate={demoDay.approximateStartDate}
+                      status={demoDay.status}
+                    />
+                  ))
               ) : (
                 <div className={s.empty}>No demo days available</div>
               )}

@@ -19,6 +19,7 @@ import s from './DemodayCompletedView.module.scss';
 import { IUserInfo } from '@/types/shared.types';
 import { toast } from '@/components/core/ToastContainer';
 import { APPLY_FOR_NEXT_DEMO_DAY_URL, FOUNDERS_FORGE_URL } from '@/constants/demoDay';
+import { format } from 'date-fns';
 
 interface DemodayCompletedViewProps {
   initialDemoDayState?: DemoDayState;
@@ -87,12 +88,17 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
         {/* Hero Section */}
         <section className={s.heroSection}>
           <div className={s.titleContainer}>
+            <div className={s.overline}>
+              <div className={s.dot} />
+              <span className={s.overlineText}>COMPLETED</span>
+              <span className={s.break} />
+              <span className={s.overlineText}>
+                {initialDemoDayState?.date ? format(new Date(initialDemoDayState?.date), 'MMM dd, yyyy') : ''}
+              </span>
+            </div>
             <div className={s.headline}>
-              <h1 className={s.title}>PL Demo Day</h1>
-              <p className={s.body}>
-                PL Demo Day is a concentrated virtual event featuring the most promising, pre-selected batch of
-                high-quality teams that will deliver pitches, in a fully asynchronous environment.
-              </p>
+              <h1 className={s.title}>{initialDemoDayState?.title}</h1>
+              <p className={s.body} dangerouslySetInnerHTML={{ __html: initialDemoDayState?.description || '' }} />
             </div>
           </div>
 

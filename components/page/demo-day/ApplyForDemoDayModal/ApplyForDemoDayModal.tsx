@@ -5,6 +5,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Cookies from 'js-cookie';
+import { format } from 'date-fns';
 import { Modal } from '@/components/common/Modal';
 import { FormField } from '@/components/form/FormField';
 import { Button } from '@/components/common/Button';
@@ -18,6 +19,7 @@ import { FormSelect } from '@/components/form/FormSelect';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { Checkbox } from '@base-ui-components/react/checkbox';
 import { CheckIcon } from '@/components/page/member-details/InvestorProfileDetails/components/EditInvestorProfileForm/icons';
+import { DemoDayState } from '@/app/actions/demo-day.actions';
 
 const applySchema = yup.object({
   name: yup.string().required('Name is required'),
@@ -36,6 +38,7 @@ interface Props {
   userInfo?: IUserInfo | null;
   memberData?: IMember | null;
   demoDaySlug: string;
+  demoDayData?: DemoDayState | null;
   onSuccessUnauthenticated?: () => void;
 }
 
@@ -58,12 +61,46 @@ const CloseIcon = () => (
   </svg>
 );
 
+const CalendarIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M11.0833 2.33331H2.91667C2.27233 2.33331 1.75 2.85565 1.75 3.49998V11.6666C1.75 12.311 2.27233 12.8333 2.91667 12.8333H11.0833C11.7277 12.8333 12.25 12.311 12.25 11.6666V3.49998C12.25 2.85565 11.7277 2.33331 11.0833 2.33331Z"
+      stroke="currentColor"
+      strokeWidth="1.16667"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M9.33331 1.16669V3.50002"
+      stroke="currentColor"
+      strokeWidth="1.16667"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M4.66669 1.16669V3.50002"
+      stroke="currentColor"
+      strokeWidth="1.16667"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M1.75 5.83331H12.25"
+      stroke="currentColor"
+      strokeWidth="1.16667"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 export const ApplyForDemoDayModal: React.FC<Props> = ({
   isOpen,
   onClose,
   userInfo,
   memberData,
   demoDaySlug,
+  demoDayData,
   onSuccessUnauthenticated,
 }) => {
   const { mutateAsync, isPending } = useApplyForDemoDay(demoDaySlug);
@@ -129,19 +166,25 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
           </div>
 
           <div className={s.text}>
-            <h2 className={s.title}>PL Demo Day Application</h2>
-            <p className={s.body}>
-              The information you provide will help us confirm your investor profile and ensure the event remains
-              relevant and valuable for both founders and participant teams.
-            </p>
-            <p className={s.bodySecondary}>
-              By submitting this form, you agree to our{' '}
-              <a href="https://drive.google.com/file/d/1RIAyMlyuLYnipa6W_YBzcJ6hDzfH7yW3/view" target="_blank">
-                Privacy Policy
-              </a>{' '}
-              and{' '}
-              <a href="https://drive.google.com/file/d/1MjOF66asddB_hsg7Jc-7Oxk6L1EvYHxk/view">Terms & Conditions</a>.
-            </p>
+            <h2 className={s.title}>
+              Application for {demoDayData?.title || 'PL Demo Day'}
+            </h2>
+
+            {demoDayData?.date && (
+              <div className={s.dateInfo}>
+                <div className={s.dateLabel}>
+                  <CalendarIcon />
+                  <span>Date & Time:</span>
+                </div>
+                <span className={s.dateValue}>
+                  {format(new Date(demoDayData.date), 'dd MMMM, yyyy, h:mm a')}
+                </span>
+              </div>
+            )}
+
+            {demoDayData?.description && (
+              <p className={s.description} dangerouslySetInnerHTML={{ __html: demoDayData.description }} />
+            )}
           </div>
 
           <FormProvider {...methods}>
@@ -242,6 +285,24 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                   </div>
                 </div>
               </label>
+
+              <div className={s.bottomText}>
+                <p className={s.body}>
+                  The information you provide will help us confirm your investor profile and ensure the event remains
+                  relevant and valuable for both founders and participant teams.
+                </p>
+                <p className={s.bodySecondary}>
+                  By submitting this form, you agree to our{' '}
+                  <a href="https://drive.google.com/file/d/1RIAyMlyuLYnipa6W_YBzcJ6hDzfH7yW3/view" target="_blank">
+                    Privacy Policy
+                  </a>{' '}
+                  and{' '}
+                  <a href="https://drive.google.com/file/d/1MjOF66asddB_hsg7Jc-7Oxk6L1EvYHxk/view" target="_blank">
+                    Terms & Conditions
+                  </a>
+                  .
+                </p>
+              </div>
 
               <div className={s.footer}>
                 <Button type="button" size="m" variant="secondary" style="border" onClick={handleClose}>

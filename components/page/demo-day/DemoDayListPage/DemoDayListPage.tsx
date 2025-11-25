@@ -181,6 +181,18 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
           userInfo={userInfo}
           memberData={memberData}
           demoDaySlug={registrationOpenDemoDay.slugURL}
+          demoDayData={{
+            uid: '',
+            access: registrationOpenDemoDay.access,
+            date: registrationOpenDemoDay.date,
+            title: registrationOpenDemoDay.title,
+            description: registrationOpenDemoDay.description,
+            status: registrationOpenDemoDay.status,
+            isDemoDayAdmin: false,
+            confidentialityAccepted: registrationOpenDemoDay.confidentialityAccepted,
+            investorsCount: registrationOpenDemoDay.investorsCount,
+            teamsCount: registrationOpenDemoDay.teamsCount,
+          }}
           onSuccessUnauthenticated={() => setShowSuccessModal(true)}
         />
       )}

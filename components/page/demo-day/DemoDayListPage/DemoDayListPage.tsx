@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList';
 import { Button } from '@/components/common/Button';
@@ -55,10 +55,13 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
   const shouldShowApplyButton = applicableDemoDays && applicableDemoDays.length === 1;
   const nextDemoDay = shouldShowApplyButton ? applicableDemoDays[0] : null;
 
-  // Keep for backward compatibility
-  const registrationOpenDemoDay = demoDays?.find((dd) => dd.status === 'REGISTRATION_OPEN');
+  const displayedDemoDays = useMemo(() => {
+    if (!demoDays) return [];
 
-  const displayedDemoDays = showAll ? demoDays : demoDays?.slice(0, 3);
+    // Filter out archived demo days
+    const visibleDemoDays = demoDays.filter((demoDay) => demoDay.status !== 'ARCHIVED');
+    return showAll ? visibleDemoDays : visibleDemoDays?.slice(0, 3);
+  }, [demoDays, showAll]);
 
   return (
     <div className={s.root}>
@@ -109,19 +112,17 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
               {isLoading ? (
                 <div className={s.loading}>Loading demo days...</div>
               ) : displayedDemoDays && displayedDemoDays.length > 0 ? (
-                displayedDemoDays
-                  .filter((demoDay) => demoDay.status !== 'ARCHIVED')
-                  .map((demoDay) => (
-                    <DemoDayCard
-                      key={demoDay.slugURL}
-                      slug={demoDay.slugURL}
-                      title={demoDay.title}
-                      description={demoDay.shortDescription || demoDay.description}
-                      date={demoDay.date}
-                      approximateStartDate={demoDay.approximateStartDate}
-                      status={demoDay.status}
-                    />
-                  ))
+                displayedDemoDays.map((demoDay) => (
+                  <DemoDayCard
+                    key={demoDay.slugURL}
+                    slug={demoDay.slugURL}
+                    title={demoDay.title}
+                    description={demoDay.shortDescription || demoDay.description}
+                    date={demoDay.date}
+                    approximateStartDate={demoDay.approximateStartDate}
+                    status={demoDay.status}
+                  />
+                ))
               ) : (
                 <div className={s.empty}>No demo days available</div>
               )}

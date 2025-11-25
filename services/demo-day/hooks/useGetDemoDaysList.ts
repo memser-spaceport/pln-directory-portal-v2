@@ -7,6 +7,7 @@ export type DemoDayListResponse = {
   confidentialityAccepted: boolean;
   date: string;
   description: string;
+  shortDescription: string;
   investorsCount: number;
   slugURL: string;
   status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED' | 'REGISTRATION_OPEN';

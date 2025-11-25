@@ -133,38 +133,38 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           </div>
         </section>
 
-        {/* Demo Days Timeline Section */}
-        <section className={s.sectionTimeline}>
-          <div className={s.statusBadge} data-status="upcoming">
-            Upcoming
-          </div>
-          <h3 className={s.timelineTitle}>PL_Genesis Accelerator Demo Day · January 2026</h3>
-          <p className={s.timelineDescription}>
-            Explore 10 pioneering teams asynchronously after they live pitch at{' '}
-            <a
-              href={FOUNDERS_FORGE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={s.timelineDescriptionLink}
-            >
-              Build Week in UAE
-            </a>
-            .
-          </p>
-          <div className={s.divider} />
-          <h3 className={s.timelineTitle}>PL Demo Day W26 · Q1&apos;26</h3>
-          <p className={s.timelineDescription}>Explore 20+ teams across AI, Web3, crypto, robotics, and neurotech.</p>
-        </section>
+        {/*/!* Demo Days Timeline Section *!/*/}
+        {/*<section className={s.sectionTimeline}>*/}
+        {/*  <div className={s.statusBadge} data-status="upcoming">*/}
+        {/*    Upcoming*/}
+        {/*  </div>*/}
+        {/*  <h3 className={s.timelineTitle}>PL_Genesis Accelerator Demo Day · January 2026</h3>*/}
+        {/*  <p className={s.timelineDescription}>*/}
+        {/*    Explore 10 pioneering teams asynchronously after they live pitch at{' '}*/}
+        {/*    <a*/}
+        {/*      href={FOUNDERS_FORGE_URL}*/}
+        {/*      target="_blank"*/}
+        {/*      rel="noopener noreferrer"*/}
+        {/*      className={s.timelineDescriptionLink}*/}
+        {/*    >*/}
+        {/*      Build Week in UAE*/}
+        {/*    </a>*/}
+        {/*    .*/}
+        {/*  </p>*/}
+        {/*  <div className={s.divider} />*/}
+        {/*  <h3 className={s.timelineTitle}>PL Demo Day W26 · Q1&apos;26</h3>*/}
+        {/*  <p className={s.timelineDescription}>Explore 20+ teams across AI, Web3, crypto, robotics, and neurotech.</p>*/}
+        {/*</section>*/}
 
-        <section className={s.sectionTimeline}>
-          <div className={s.statusBadge} data-status="completed">
-            Completed
-          </div>
-          <h3 className={s.timelineTitle}>PL Demo Day F25</h3>
-          <p className={s.timelineDescription}>
-            Showcased 28 teams from Pre-Seed to Series A+ across AI, neurotech, robotics, web3, and crypto.
-          </p>
-        </section>
+        {/*<section className={s.sectionTimeline}>*/}
+        {/*  <div className={s.statusBadge} data-status="completed">*/}
+        {/*    Completed*/}
+        {/*  </div>*/}
+        {/*  <h3 className={s.timelineTitle}>PL Demo Day F25</h3>*/}
+        {/*  <p className={s.timelineDescription}>*/}
+        {/*    Showcased 28 teams from Pre-Seed to Series A+ across AI, neurotech, robotics, web3, and crypto.*/}
+        {/*  </p>*/}
+        {/*</section>*/}
 
         {/* Partners Section */}
         <section className={s.sectionPartners}>

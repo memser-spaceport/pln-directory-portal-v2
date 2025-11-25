@@ -250,6 +250,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           <FAQ
             title="Frequently Asked Questions"
             items={faqCompletedItems}
+            demoDaySlug={initialDemoDayState?.uid}
             subtitle={
               <p className={s.infoText}>
                 Reach out to us on{' '}

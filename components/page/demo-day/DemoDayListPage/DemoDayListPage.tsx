@@ -151,6 +151,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
           <FAQ
             title="Frequently Asked Questions"
             items={faqCompletedItems}
+            demoDaySlug={null}
             subtitle={
               <div className={s.infoText}>
                 Reach out to us on{' '}

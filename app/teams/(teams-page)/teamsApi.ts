@@ -151,3 +151,7 @@ export async function fetchMembershipSource(searchParams: ITeamsSearchParams): P
 export async function fetchIndustryTags(searchParams: ITeamsSearchParams): Promise<TeamsCountResponse> {
   return fetchFilterData('industry-tags', searchParams, 'Failed to fetch industry tags');
 }
+
+export async function fetchFundingStages(searchParams: ITeamsSearchParams): Promise<TeamsCountResponse> {
+  return fetchFilterData('funding-stages', searchParams, 'Failed to fetch funding stages');
+}

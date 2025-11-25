@@ -50,6 +50,7 @@ type Input = {
   focusAreaData: any;
   membershipSourceData: OptionWithTeams[];
   industryTags: OptionWithTeams[];
+  fundingStages: OptionWithTeams[];
 };
 
 export function processFilters(input: Input) {
@@ -65,11 +66,7 @@ export function processFilters(input: Input) {
   return {
     tags: formatIndustryTagFilterOptions(input),
     membershipSources: formatMembershipSourceFilterOptions(input),
-    fundingStage: getTagsFromValues(
-      formattedValuesByFilter?.fundingStage,
-      formattedAvailableValuesByFilter?.fundingStage,
-      searchParams?.fundingStage,
-    ),
+    fundingStage: formatFundingStageFilterOptions(input),
     technology: getTagsFromValues(
       formattedValuesByFilter?.technology,
       formattedAvailableValuesByFilter?.technology,
@@ -132,6 +129,17 @@ function formatIndustryTagFilterOptions(input: Input) {
     formattedValuesByFilter?.tags,
     formattedAvailableValuesByFilter?.tags,
     searchParams?.tags,
+  );
+}
+
+function formatFundingStageFilterOptions(input: Input) {
+  const { searchParams, formattedValuesByFilter, formattedAvailableValuesByFilter, fundingStages } = input;
+
+  return formatFilterOptionsWithCounts(
+    fundingStages,
+    formattedValuesByFilter?.fundingStage,
+    formattedAvailableValuesByFilter?.fundingStage,
+    searchParams?.fundingStage,
   );
 }
 

@@ -1,3 +1,4 @@
+import isEmpty from 'lodash/isEmpty';
 import { FilterOption } from '@/services/filters';
 
 /**
@@ -50,20 +51,20 @@ interface FilterGetterOptions<T extends BaseFilterItem> {
  * }
  * ```
  */
-export function createFilterGetter<T extends BaseFilterItem>(
-  items: T[] | undefined,
-  options?: FilterGetterOptions<T>
-) {
+export function createFilterGetter<T extends BaseFilterItem>(items: T[] | undefined, options?: FilterGetterOptions<T>) {
   const { formatLabel = (item: T) => item.value } = options || {};
 
   return (input: string): { data?: FilterOption[] } => {
-    if (!items || items.length === 0) {
+    if (!items || isEmpty(items)) {
       return { data: [] };
     }
 
     // Filter by search input (case-insensitive)
     const filtered = items.filter((item) => {
-      if (!input) return true;
+      if (!input) {
+        return true;
+      }
+
       return item.value.toLowerCase().includes(input.toLowerCase());
     });
 

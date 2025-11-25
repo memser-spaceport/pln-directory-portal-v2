@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { ITeamsSearchParams } from '@/types/teams.types';
-import { fetchFiltersData, fetchFocusAreas, fetchIndustryTags, fetchMembershipSource } from '../teamsApi';
+import { fetchFiltersData, fetchFocusAreas, fetchFundingStages, fetchIndustryTags, fetchMembershipSource } from '../teamsApi';
 import { processFilters } from '@/utils/team.utils';
 
 export function useTeamsFilters(searchParams: ITeamsSearchParams) {
@@ -53,6 +53,17 @@ export function useTeamsFilters(searchParams: ITeamsSearchParams) {
     gcTime: 10 * 60 * 1000,
   });
 
+  const {
+    data: fundingStages,
+    isLoading: isLoadingFundingStages,
+    isError: isFundingStagesError,
+  } = useQuery({
+    queryKey: ['teams', 'funding-stages'],
+    queryFn: () => fetchFundingStages(searchParams),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+
   // Process filter values
   const filterValues = useMemo(() => {
     if (!filtersData || !focusAreasData) return null;
@@ -64,6 +75,7 @@ export function useTeamsFilters(searchParams: ITeamsSearchParams) {
       focusAreaData: focusAreasData.data,
       membershipSourceData: membershipSourceData?.data || [],
       industryTags: industryTags?.data || [],
+      fundingStages: fundingStages?.data || [],
     });
 
     // Handle 'all' asks selection
@@ -76,11 +88,11 @@ export function useTeamsFilters(searchParams: ITeamsSearchParams) {
     }
 
     return processed;
-  }, [industryTags, searchParams, filtersData, focusAreasData, membershipSourceData]);
+  }, [fundingStages, industryTags, searchParams, filtersData, focusAreasData, membershipSourceData]);
 
   return {
     filterValues,
-    isLoading: isLoadingFilters || isLoadingFocusAreas || isLoadingMembershipSourceData || isLoadingIndustryTags,
-    isError: isFiltersError || isFocusAreasError || isMembershipSourceError || isIndustryTagsError,
+    isLoading: isLoadingFilters || isLoadingFocusAreas || isLoadingMembershipSourceData || isLoadingIndustryTags || isLoadingFundingStages,
+    isError: isFiltersError || isFocusAreasError || isMembershipSourceError || isIndustryTagsError || isFundingStagesError,
   };
 }

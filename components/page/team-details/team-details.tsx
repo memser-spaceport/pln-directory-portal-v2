@@ -175,7 +175,7 @@ const TeamDetails = (props: ITeamDetails) => {
                       )}
                     </Fragment>
                   ))}
-                  {tags?.length && tags?.length > 3 && (
+                  {!!tags?.length && tags?.length > 3 && (
                     <Tooltip
                       asChild
                       trigger={

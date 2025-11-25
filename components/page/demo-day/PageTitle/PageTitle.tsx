@@ -22,7 +22,7 @@ export function PageTitle(props: PageTitleProps) {
       <h1 className={`${s.title} ${size === 'small' && s.small}`}>{data?.title || 'PL F25 Demo Day'}</h1>
       <p
         className={`${s.description} ${size === 'small' && s.small}`}
-        dangerouslySetInnerHTML={{ __html: data?.description || '' }}
+        dangerouslySetInnerHTML={{ __html: data?.shortDescription || data?.description || '' }}
       />
     </div>
   );

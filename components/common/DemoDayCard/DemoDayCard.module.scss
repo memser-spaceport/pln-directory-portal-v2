@@ -162,6 +162,16 @@
   font-style: normal;
   font-weight: 400;
   line-height: 20px; /* 142.857% */
+
+  a {
+    color: #1B4DFF;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+      color: #1a45e6;
+    }
+  }
 }
 
 .more {

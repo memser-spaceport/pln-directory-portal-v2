@@ -96,6 +96,14 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = ({ slug, title, descripti
   const formattedDate = format(new Date(date), 'dd MMM yyyy');
   const showMore = status !== 'UPCOMING';
 
+  const handleDescriptionClick = (e: React.MouseEvent<HTMLParagraphElement>) => {
+    // Check if the clicked element is a link
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'A') {
+      e.stopPropagation();
+    }
+  };
+
   return (
     <Link
       href={`/demoday/${slug}`}
@@ -121,7 +129,11 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = ({ slug, title, descripti
             </div>
           </div>
           <h3 className={s.title}>{title}</h3>
-          <p className={s.description}>{description}</p>
+          <p
+            className={s.description}
+            dangerouslySetInnerHTML={{ __html: description }}
+            onClick={handleDescriptionClick}
+          />
           {showMore && (
             <div className={s.more}>
               More Info{' '}

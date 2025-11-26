@@ -84,7 +84,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
                 </p>
               </div>
             </div>
-            <div className={s.buttons}>
+            <div className={s.buttons} style={{ display: 'none' }}>
               {shouldShowApplyButton && nextDemoDay && (
                 <Button
                   size="l"

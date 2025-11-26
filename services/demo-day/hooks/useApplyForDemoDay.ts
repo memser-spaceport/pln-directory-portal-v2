@@ -8,8 +8,17 @@ export type ApplyForDemoDayPayload = {
   email: string;
   linkedin: string;
   role: string;
-  teamOrProject: string;
+  teamOrProject?: string | { value: string; type: 'team' | 'project' };
   isInvestor: boolean;
+  isTeamNew?: boolean;
+  team?: {
+    uid?: string;
+    name?: string;
+    website?: string;
+  };
+  project?: {
+    projectUid: string;
+  };
 };
 
 async function mutation(demoDaySlug: string, payload: ApplyForDemoDayPayload) {

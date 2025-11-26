@@ -306,15 +306,30 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+}
 
-  .link {
-    color: var(--foreground-brand-primary, #1B4DFF);
-    font-size: 14px;
-    font-style: normal;
-    font-weight: 500;
-    line-height: 20px;
-    letter-spacing: -0.2px;
+.link {
+  color: var(--foreground-brand-primary, #1B4DFF);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
   }
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .Label {

@@ -176,7 +176,15 @@
 
 .more {
   display: flex;
+  padding: 8px var(--global-size-size-125, 10px);
+  justify-content: center;
   align-items: center;
+  border-radius: var(--corner-radius-md, 8px);
+  border: 1px solid var(--action-foreground-brand-normal, #1B4DFF);
+  background: var(--action-background-base-white, #FFF);
+  box-shadow: 0 2px 8px 0 var(--transparent-brand-4, rgba(27, 77, 255, 0.04)) inset, 0 1px 4px 0 var(--transparent-brand-24, rgba(27, 77, 255, 0.24));
+
+  width: fit-content;
   gap: 4px;
   color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
   font-size: 14px;

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -20,15 +20,37 @@ import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOpti
 import { Checkbox } from '@base-ui-components/react/checkbox';
 import { CheckIcon } from '@/components/page/member-details/InvestorProfileDetails/components/EditInvestorProfileForm/icons';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
+import ImageWithFallback from '@/components/common/ImageWithFallback';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
-const applySchema = yup.object({
-  name: yup.string().required('Name is required'),
-  email: yup.string().email('Must be a valid email').required('Email is required'),
-  linkedin: yup.string().required('Required'),
-  teamOrProject: yup.mixed<string | Record<string, string>>().defined().nullable(),
-  role: yup.string().required('Role is required'),
-  isInvestor: yup.boolean().defined(),
-});
+const applySchema = yup.object().shape(
+  {
+    name: yup.string().required('Name is required'),
+    email: yup.string().email('Must be a valid email').required('Email is required'),
+    linkedin: yup.string().required('Required'),
+    teamOrProject: yup.mixed<string | Record<string, string>>().when('teamName', {
+      is: (teamName: string) => !teamName,
+      then: (schema) => schema.defined().nullable(),
+      otherwise: (schema) => schema.nullable(),
+    }),
+    teamName: yup.string().when('teamOrProject', {
+      is: (teamOrProject: any) => !teamOrProject,
+      then: (schema) => schema.nullable(),
+      otherwise: (schema) => schema.nullable(),
+    }),
+    websiteAddress: yup.string().when('teamName', {
+      is: (teamName: string) => Boolean(teamName),
+      then: (schema) => schema.required('Website address is required when adding a new team'),
+      otherwise: (schema) => schema.nullable(),
+    }),
+    role: yup.string().required('Role is required'),
+    isInvestor: yup.boolean().defined(),
+  },
+  [
+    ['teamOrProject', 'teamName'],
+    ['teamName', 'websiteAddress'],
+  ],
+);
 
 type ApplyFormData = yup.InferType<typeof applySchema>;
 
@@ -105,6 +127,8 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
 }) => {
   const { mutateAsync, isPending } = useApplyForDemoDay(demoDaySlug);
   const { data } = useMemberFormOptions();
+  const memberAnalytics = useMemberAnalytics();
+  const [isAddingTeam, setIsAddingTeam] = useState(false);
 
   // Check if user is authenticated
   const authToken = Cookies.get('authToken');
@@ -116,9 +140,13 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
       name: memberData?.name || userInfo?.name || '',
       linkedin: memberData?.linkedinHandle || '',
       teamOrProject: memberData?.mainTeam?.name || '',
+      teamName: '',
+      websiteAddress: '',
       role: memberData?.role || '',
       isInvestor: false,
     },
+    context: { isAddingTeam },
+    // @ts-ignore
     resolver: yupResolver(applySchema),
     mode: 'onBlur',
   });
@@ -133,10 +161,50 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
 
   const isInvestor = watch('isInvestor');
 
-  const onSubmit = async (data: ApplyFormData) => {
+  const onSubmit = async (formData: ApplyFormData) => {
     try {
-      await mutateAsync(data as ApplyForDemoDayPayload);
+      // Build the team/project object
+      let team: { uid?: string; name?: string; website?: string } = {};
+      let isTeamNew = false;
+      let project: { projectUid: string } | null = null;
+
+      if (formData.teamOrProject) {
+        isTeamNew = false;
+
+        // Check if it's a team or project
+        if (typeof formData.teamOrProject === 'object' && formData.teamOrProject.type === 'project') {
+          // For projects, we'll use projectContributions
+          project = {
+            projectUid: formData.teamOrProject.value,
+          };
+        } else if (typeof formData.teamOrProject === 'object') {
+          // For teams, use the team object
+          team = {
+            uid: formData.teamOrProject.value,
+          };
+        }
+      } else if (formData.teamName) {
+        isTeamNew = true;
+        team = {
+          name: formData.teamName,
+          ...(formData.websiteAddress && { website: formData.websiteAddress }),
+        };
+      }
+
+      // Build the payload
+      const payload: ApplyForDemoDayPayload = {
+        name: formData.name,
+        email: formData.email,
+        linkedin: formData.linkedin,
+        role: formData.role,
+        isInvestor: formData.isInvestor,
+        isTeamNew,
+        ...(project ? { project } : formData.teamName || (team && Object.keys(team).length > 0) ? { team } : {}),
+      };
+
+      await mutateAsync(payload);
       reset();
+      setIsAddingTeam(false);
       onClose();
 
       // Trigger success modal for non-authenticated users
@@ -150,6 +218,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
 
   const handleClose = () => {
     reset();
+    setIsAddingTeam(false);
     onClose();
   };
 
@@ -166,9 +235,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
           </div>
 
           <div className={s.text}>
-            <h2 className={s.title}>
-              Application for {demoDayData?.title || 'PL Demo Day'}
-            </h2>
+            <h2 className={s.title}>Application for {demoDayData?.title || 'PL Demo Day'}</h2>
 
             {demoDayData?.date && (
               <div className={s.dateInfo}>
@@ -176,9 +243,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                   <CalendarIcon />
                   <span>Date & Time:</span>
                 </div>
-                <span className={s.dateValue}>
-                  {format(new Date(demoDayData.date), 'dd MMMM, yyyy, h:mm a')}
-                </span>
+                <span className={s.dateValue}>{format(new Date(demoDayData.date), 'dd MMMM, yyyy, h:mm a')}</span>
               </div>
             )}
 
@@ -188,6 +253,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
           </div>
 
           <FormProvider {...methods}>
+            {/* @ts-ignore */}
             <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
               <FormField
                 name="email"
@@ -214,52 +280,102 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
 
               <div className={s.column}>
                 <div className={s.inputsLabel}>Add Role & Team</div>
-                <div className={s.inputsWrapper}>
-                  <FormField name="role" placeholder="Enter your primary role" />
-                  <span>@</span>
-                  <FormSelect
-                    name="teamOrProject"
-                    placeholder="Search or add a team"
-                    backLabel="Teams & Projects"
-                    options={[
-                      ...(data?.teams?.map((item: { teamUid: string; teamTitle: string; logo?: string }) => ({
-                        value: item.teamUid,
-                        label: item.teamTitle,
-                        type: 'team' as const,
-                        originalObject: item,
-                      })) ?? []),
-                      ...(data?.projects?.map(
-                        (item: { projectUid: string; projectName: string; projectLogo?: string }) => ({
-                          value: item.projectUid,
-                          label: item.projectName,
-                          type: 'project' as const,
-                          originalObject: item,
-                        }),
-                      ) ?? []),
-                    ].sort((a, b) => a.label.localeCompare(b.label))}
-                    renderOption={({ option, label, description }) => {
-                      return (
-                        <div className={s.teamOption}>
-                          <Image
-                            width={24}
-                            height={24}
-                            alt={option.label}
-                            className={s.optImg}
-                            src={option.originalObject.logo || option.originalObject.projectLogo || '/icons/camera.svg'}
-                          />
-                          <div className={s.optionContent}>
-                            {label}
-                            {description}
+                {!isAddingTeam ? (
+                  <>
+                    <div className={s.inputsWrapper}>
+                      <FormField name="role" placeholder="Enter your primary role" />
+                      <span>@</span>
+                      <FormSelect
+                        name="teamOrProject"
+                        placeholder="Search or add a team"
+                        backLabel="Teams & Projects"
+                        options={[
+                          ...(data?.teams?.map((item: { teamUid: string; teamTitle: string; logo?: string }) => ({
+                            value: item.teamUid,
+                            label: item.teamTitle,
+                            type: 'team' as const,
+                            originalObject: item,
+                          })) ?? []),
+                          ...(data?.projects?.map(
+                            (item: { projectUid: string; projectName: string; projectLogo?: string }) => ({
+                              value: item.projectUid,
+                              label: item.projectName,
+                              type: 'project' as const,
+                              originalObject: item,
+                            }),
+                          ) ?? []),
+                        ].sort((a, b) => a.label.localeCompare(b.label))}
+                        renderOption={({ option, label, description }) => {
+                          return (
+                            <div className={s.teamOption}>
+                              <ImageWithFallback
+                                width={24}
+                                height={24}
+                                alt={option.label}
+                                className={s.optImg}
+                                fallbackSrc="/icons/camera.svg"
+                                src={option.originalObject.logo || option.originalObject.projectLogo}
+                              />
+                              <div className={s.optionContent}>
+                                {label}
+                                {description}
+                              </div>
+                              <span className={s.badge} data-type={option.type}>
+                                {option.type === 'team' ? 'Team' : 'Project'}
+                              </span>
+                            </div>
+                          );
+                        }}
+                        isStickyNoData
+                        notFoundContent={
+                          <div className={s.secondaryLabel}>
+                            Not able to find your project or team?
+                            <br />
+                            <button
+                              type="button"
+                              className={s.link}
+                              onClick={() => {
+                                setIsAddingTeam(true);
+                                setValue('teamOrProject', undefined, { shouldValidate: true });
+                              }}
+                            >
+                              Add your team
+                            </button>
                           </div>
-                          <span className={s.badge} data-type={option.type}>
-                            {option.type === 'team' ? 'Team' : 'Project'}
-                          </span>
-                        </div>
-                      );
-                    }}
-                  />
-                </div>
+                        }
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className={s.col}>
+                    <div className={s.column}>
+                      <div className={s.inputsWrapper}>
+                        <FormField name="role" placeholder="Enter your primary role" />
+                        <span>@</span>
+                        <FormField
+                          name="teamName"
+                          placeholder="Enter team name"
+                          clearable
+                          onClear={() => {
+                            setIsAddingTeam(false);
+                            setValue('teamName', '', { shouldValidate: true });
+                            setValue('websiteAddress', '', { shouldValidate: true });
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {isAddingTeam && (
+                <FormField
+                  name="websiteAddress"
+                  placeholder="Enter website address"
+                  label="Website address"
+                  isRequired
+                />
+              )}
 
               <label className={s.Label}>
                 <Checkbox.Root

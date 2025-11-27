@@ -12,7 +12,6 @@ import { Button } from '@/components/common/Button';
 import { useApplyForDemoDay, ApplyForDemoDayPayload } from '@/services/demo-day/hooks/useApplyForDemoDay';
 import { IUserInfo } from '@/types/shared.types';
 import { IMember, IMemberTeam } from '@/types/members.types';
-import Image from 'next/image';
 
 import s from './ApplyForDemoDayModal.module.scss';
 import { FormSelect } from '@/components/form/FormSelect';
@@ -23,7 +22,6 @@ import { DemoDayState } from '@/app/actions/demo-day.actions';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { ITeam } from '@/types/teams.types';
-import { useMember } from '@/services/members/hooks/useMember';
 import { useQuery } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { getMember } from '@/services/members.service';
@@ -158,7 +156,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   });
 
   let mainTeam: IMemberTeam | ITeam | null = member?.mainTeam;
-  mainTeam = !mainTeam && memberData?.teams.length === 1 ? memberData.teams[0] : mainTeam;
+  mainTeam = !mainTeam && memberData?.teams?.length === 1 ? memberData.teams[0] : mainTeam;
 
   const methods = useForm<ApplyFormData>({
     defaultValues: {
@@ -200,7 +198,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         teamName: '',
         websiteAddress: '',
         role: member.role ?? mainTeam?.role ?? '',
-        isInvestor: member.investorProfile.secRulesAccepted ?? false,
+        isInvestor: member.investorProfile?.secRulesAccepted ?? false,
       });
     }
   }, [member, mainTeam, userInfo, reset]);

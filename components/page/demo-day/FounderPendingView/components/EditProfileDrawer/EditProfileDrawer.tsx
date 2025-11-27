@@ -649,13 +649,9 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             onViewed: handleDemoMaterialViewed,
           }}
           companyFundraiseParagraph={
-            <CompanyFundraiseParagraph
-              paragraph={data?.description}
-              editable={true}
-              teamUid={isDirectoryAdmin ? data?.teamUid : undefined}
-            />
+            <CompanyFundraiseParagraph paragraph={data?.description} editable={true} teamUid={data?.teamUid} />
           }
-          teamUid={isDirectoryAdmin ? data?.teamUid : undefined}
+          teamUid={data?.teamUid}
         />
       </div>
 

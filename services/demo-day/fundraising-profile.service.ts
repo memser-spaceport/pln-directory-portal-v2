@@ -67,13 +67,14 @@ export interface UploadOnePagerPreviewResponse {
 /**
  * Get presigned upload URL for video upload
  */
-export async function getVideoUploadUrl(demoDayId: string, params: GetVideoUploadUrlParams): Promise<GetVideoUploadUrlResponse> {
+export async function getVideoUploadUrl(
+  demoDayId: string,
+  params: GetVideoUploadUrlParams,
+): Promise<GetVideoUploadUrlResponse> {
   const { filename, filesize, mimetype, teamUid } = params;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
-  const url = teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/video/upload-url`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile/video/upload-url`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/video/upload-url`;
 
   const response = await customFetch(
     url,
@@ -102,13 +103,14 @@ export async function getVideoUploadUrl(demoDayId: string, params: GetVideoUploa
 /**
  * Confirm video upload completion
  */
-export async function confirmVideoUpload(demoDayId: string, params: ConfirmVideoUploadParams): Promise<ConfirmVideoUploadResponse> {
+export async function confirmVideoUpload(
+  demoDayId: string,
+  params: ConfirmVideoUploadParams,
+): Promise<ConfirmVideoUploadResponse> {
   const { uploadUid, teamUid } = params;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
-  const url = teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/video/confirm`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile/video/confirm`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/video/confirm`;
 
   const response = await customFetch(
     url,
@@ -135,13 +137,14 @@ export async function confirmVideoUpload(demoDayId: string, params: ConfirmVideo
 /**
  * Get presigned upload URL for one-pager upload
  */
-export async function getOnePagerUploadUrl(demoDayId: string, params: GetOnePagerUploadUrlParams): Promise<GetOnePagerUploadUrlResponse> {
+export async function getOnePagerUploadUrl(
+  demoDayId: string,
+  params: GetOnePagerUploadUrlParams,
+): Promise<GetOnePagerUploadUrlResponse> {
   const { filename, filesize, mimetype, teamUid } = params;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
-  const url = teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/one-pager/upload-url`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile/one-pager/upload-url`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/one-pager/upload-url`;
 
   const response = await customFetch(
     url,
@@ -177,9 +180,7 @@ export async function confirmOnePagerUpload(
   const { uploadUid, teamUid } = params;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
-  const url = teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/one-pager/confirm`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile/one-pager/confirm`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/one-pager/confirm`;
 
   const response = await customFetch(
     url,
@@ -213,9 +214,7 @@ export async function uploadOnePagerPreview(
   const { previewImage, previewImageSmall, teamUid } = params;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
-  const url = teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/one-pager/preview`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile/one-pager/preview`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/one-pager/preview`;
 
   const formData = new FormData();
   formData.append('previewImage', previewImage);

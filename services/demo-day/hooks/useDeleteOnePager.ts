@@ -14,9 +14,7 @@ interface DeleteOnePagerParams {
 
 async function deleteOnePager(demoDayId: string, params?: DeleteOnePagerParams): Promise<DeleteOnePagerResponse> {
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
-  const url = params?.teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/${demoDayId}/teams/${params.teamUid}/fundraising-profile/one-pager`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile/one-pager`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/teams/${params?.teamUid}/fundraising-profile/one-pager`;
 
   const response = await customFetch(
     url,

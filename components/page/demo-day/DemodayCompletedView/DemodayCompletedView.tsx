@@ -18,7 +18,6 @@ import teamsData from '@/components/common/LogosGrid/teams.json';
 import s from './DemodayCompletedView.module.scss';
 import { IUserInfo } from '@/types/shared.types';
 import { toast } from '@/components/core/ToastContainer';
-import { APPLY_FOR_NEXT_DEMO_DAY_URL } from '@/constants/demoDay';
 import { format } from 'date-fns';
 import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList';
 import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
@@ -88,11 +87,6 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
 
   const handleApplyForNextDemoDayClick = () => {
     onCompletedViewApplyForNextDemoDayClicked();
-
-    // If we have a next demo day, open the modal
-    if (nextDemoDay) {
-      setIsApplyModalOpen(true);
-    }
   };
 
   const handleGiveFeedbackClick = () => {
@@ -130,22 +124,11 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           </div>
 
           <div className={s.buttons}>
-            {nextDemoDay ? (
-              <Button size="l" style="fill" variant="primary" onClick={handleApplyForNextDemoDayClick}>
-                Apply for next Demo Day <ArrowRight />
+            <Link href="/demoday" onClick={handleApplyForNextDemoDayClick}>
+              <Button size="l" style="fill" variant="primary">
+                View upcoming Demo Days <ArrowRight />
               </Button>
-            ) : (
-              <Link
-                href={APPLY_FOR_NEXT_DEMO_DAY_URL}
-                onClick={handleApplyForNextDemoDayClick}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button size="l" style="fill" variant="primary">
-                  Apply for next Demo Day <ArrowRight />
-                </Button>
-              </Link>
-            )}
+            </Link>
             <div className={s.links}>
               {showFeedbackOption && (
                 <button onClick={handleGiveFeedbackClick} className={s.linkButton}>

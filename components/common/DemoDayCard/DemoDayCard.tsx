@@ -82,7 +82,7 @@ const getStatusConfig = (status: DemoDayStatus) => {
     case 'REGISTRATION_OPEN':
       return {
         label: 'Registration Open',
-        className: s.badgeUpcoming,
+        className: s.badgeRegistrationOpen,
       };
     default:
       return {

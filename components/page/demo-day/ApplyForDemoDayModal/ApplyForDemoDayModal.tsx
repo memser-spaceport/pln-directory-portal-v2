@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -11,7 +11,7 @@ import { FormField } from '@/components/form/FormField';
 import { Button } from '@/components/common/Button';
 import { useApplyForDemoDay, ApplyForDemoDayPayload } from '@/services/demo-day/hooks/useApplyForDemoDay';
 import { IUserInfo } from '@/types/shared.types';
-import { IMember } from '@/types/members.types';
+import { IMember, IMemberTeam } from '@/types/members.types';
 import Image from 'next/image';
 
 import s from './ApplyForDemoDayModal.module.scss';
@@ -22,12 +22,17 @@ import { CheckIcon } from '@/components/page/member-details/InvestorProfileDetai
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { ITeam } from '@/types/teams.types';
+import { useMember } from '@/services/members/hooks/useMember';
+import { useQuery } from '@tanstack/react-query';
+import { MembersQueryKeys } from '@/services/members/constants';
+import { getMember } from '@/services/members.service';
 
 const applySchema = yup.object().shape(
   {
     name: yup.string().required('Name is required'),
     email: yup.string().email('Must be a valid email').required('Email is required'),
-    linkedin: yup.string().required('Required'),
+    linkedin: yup.string().defined(),
     teamOrProject: yup.mixed<string | Record<string, string>>().when('teamName', {
       is: (teamName: string) => !teamName,
       then: (schema) => schema.defined().nullable(),
@@ -43,8 +48,11 @@ const applySchema = yup.object().shape(
       then: (schema) => schema.required('Website address is required when adding a new team'),
       otherwise: (schema) => schema.nullable(),
     }),
-    role: yup.string().required('Role is required'),
-    isInvestor: yup.boolean().defined(),
+    role: yup.string().defined(),
+    isInvestor: yup
+      .boolean()
+      .oneOf([true], 'You must confirm that you are an accredited investor')
+      .required('You must confirm that you are an accredited investor'),
   },
   [
     ['teamOrProject', 'teamName'],
@@ -134,15 +142,34 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   const authToken = Cookies.get('authToken');
   const isAuthenticated = Boolean(authToken);
 
+  const { data: member } = useQuery({
+    queryKey: [MembersQueryKeys.GET_MEMBER, userInfo?.uid, !!userInfo, userInfo?.uid],
+    queryFn: () =>
+      getMember(
+        userInfo?.uid ?? '',
+        { with: 'image,skills,location,teamMemberRoles.team' },
+        !!userInfo,
+        userInfo,
+        true,
+        true,
+      ),
+    enabled: !!userInfo?.uid,
+    select: (data) => data?.data?.formattedData,
+  });
+
+  let mainTeam: IMemberTeam | ITeam | null = member?.mainTeam;
+  mainTeam = !mainTeam && memberData?.teams.length === 1 ? memberData.teams[0] : mainTeam;
+
   const methods = useForm<ApplyFormData>({
     defaultValues: {
       email: memberData?.email || userInfo?.email || '',
       name: memberData?.name || userInfo?.name || '',
       linkedin: memberData?.linkedinHandle || '',
-      teamOrProject: memberData?.mainTeam?.name || '',
+      // @ts-ignore
+      teamOrProject: mainTeam ? { value: mainTeam.id, label: mainTeam.name, type: 'team' } : '',
       teamName: '',
       websiteAddress: '',
-      role: memberData?.role || '',
+      role: member?.role ?? mainTeam?.role ?? '',
       isInvestor: false,
     },
     context: { isAddingTeam },
@@ -156,10 +183,27 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     reset,
     watch,
     setValue,
-    // formState: { errors },
+    formState: { errors },
   } = methods;
 
   const isInvestor = watch('isInvestor');
+
+  // Reinitialize form when member data is fetched
+  useEffect(() => {
+    if (member) {
+      reset({
+        email: member.email || userInfo?.email || '',
+        name: member.name || userInfo?.name || '',
+        linkedin: member.linkedinHandle || '',
+        // @ts-ignore
+        teamOrProject: mainTeam ? { value: mainTeam.id, label: mainTeam.name, type: 'team' } : null,
+        teamName: '',
+        websiteAddress: '',
+        role: member.role ?? mainTeam?.role ?? '',
+        isInvestor: member.investorProfile.secRulesAccepted ?? false,
+      });
+    }
+  }, [member, mainTeam, userInfo, reset]);
 
   const onSubmit = async (formData: ApplyFormData) => {
     try {
@@ -271,12 +315,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                 disabled={isAuthenticated}
               />
 
-              <FormField
-                name="linkedin"
-                label="LinkedIn profile"
-                placeholder="Enter link to your LinkedIn profile"
-                isRequired
-              />
+              <FormField name="linkedin" label="LinkedIn profile" placeholder="Enter link to your LinkedIn profile" />
 
               <div className={s.column}>
                 <div className={s.inputsLabel}>Add Role & Team</div>
@@ -399,6 +438,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                     dealer, or advisor. I agree that I am solely responsible for my own compliance with securities laws
                     and for conducting my own due diligence.
                   </div>
+                  {errors.isInvestor && <div className={s.errorMessage}>{errors.isInvestor.message}</div>}
                 </div>
               </label>
 

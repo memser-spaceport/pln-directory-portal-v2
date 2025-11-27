@@ -1,6 +1,11 @@
-import { ITag, ITeamListOptions, ITeamResponse, ITeamsSearchParams } from '@/types/teams.types';
-import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
+import map from 'lodash/map';
+import reduce from 'lodash/reduce';
+import isFunction from 'lodash/isFunction';
+import { NextResponse } from 'next/server';
+import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
+import { getSortFromQuery, stringifyQueryValues } from './common.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from './constants';
+import { OptionWithTeams } from '@/app/teams/(teams-page)/teamsApi';
 
 export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
   const {
@@ -38,12 +43,19 @@ export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
   };
 }
 
-export function processFilters(
-  searchParams: ITeamsSearchParams,
-  formattedValuesByFilter: any,
-  formattedAvailableValuesByFilter: any,
-  focusAreaData: any,
-) {
+type Input = {
+  searchParams: ITeamsSearchParams;
+  formattedValuesByFilter: any;
+  formattedAvailableValuesByFilter: any;
+  focusAreaData: any;
+  membershipSourceData: OptionWithTeams[];
+  industryTags: OptionWithTeams[];
+  fundingStages: OptionWithTeams[];
+};
+
+export function processFilters(input: Input) {
+  const { searchParams, formattedValuesByFilter, formattedAvailableValuesByFilter, focusAreaData } = input;
+
   const focusAreaQuery = searchParams?.focusAreas;
   const focusAreaFilters = focusAreaQuery?.split(URL_QUERY_VALUE_SEPARATOR) || [];
   const selectedFocusAreas =
@@ -52,17 +64,9 @@ export function processFilters(
       : [];
 
   return {
-    tags: getTagsFromValues(formattedValuesByFilter?.tags, formattedAvailableValuesByFilter?.tags, searchParams?.tags),
-    membershipSources: getTagsFromValues(
-      formattedValuesByFilter?.membershipSources,
-      formattedAvailableValuesByFilter?.membershipSources,
-      searchParams?.membershipSources,
-    ),
-    fundingStage: getTagsFromValues(
-      formattedValuesByFilter?.fundingStage,
-      formattedAvailableValuesByFilter?.fundingStage,
-      searchParams?.fundingStage,
-    ),
+    tags: formatIndustryTagFilterOptions(input),
+    membershipSources: formatMembershipSourceFilterOptions(input),
+    fundingStage: formatFundingStageFilterOptions(input),
     technology: getTagsFromValues(
       formattedValuesByFilter?.technology,
       formattedAvailableValuesByFilter?.technology,
@@ -81,12 +85,72 @@ export function processFilters(
   };
 }
 
+function formatFilterOptionsWithCounts(
+  optionsData: OptionWithTeams[],
+  formattedValues: string[],
+  availableValues: string[],
+  queryValues?: string | string[],
+) {
+  const formattedData = reduce(
+    optionsData,
+    (acc: Record<string, OptionWithTeams>, opt) => {
+      acc[opt.title] = opt;
+      return acc;
+    },
+    {},
+  );
+
+  const options = getTagsFromValues(formattedValues, availableValues, queryValues);
+
+  const result = map(options, (opt) => ({
+    ...opt,
+    count: formattedData[opt.value]?.teams?.length || 0,
+  }));
+
+  return result;
+}
+
+function formatMembershipSourceFilterOptions(input: Input) {
+  const { searchParams, formattedValuesByFilter, formattedAvailableValuesByFilter, membershipSourceData } = input;
+
+  return formatFilterOptionsWithCounts(
+    membershipSourceData,
+    formattedValuesByFilter?.membershipSources,
+    formattedAvailableValuesByFilter?.membershipSources,
+    searchParams?.membershipSources,
+  );
+}
+
+function formatIndustryTagFilterOptions(input: Input) {
+  const { searchParams, formattedValuesByFilter, formattedAvailableValuesByFilter, industryTags } = input;
+
+  return formatFilterOptionsWithCounts(
+    industryTags,
+    formattedValuesByFilter?.tags,
+    formattedAvailableValuesByFilter?.tags,
+    searchParams?.tags,
+  );
+}
+
+function formatFundingStageFilterOptions(input: Input) {
+  const { searchParams, formattedValuesByFilter, formattedAvailableValuesByFilter, fundingStages } = input;
+
+  return formatFilterOptionsWithCounts(
+    fundingStages,
+    formattedValuesByFilter?.fundingStage,
+    formattedAvailableValuesByFilter?.fundingStage,
+    searchParams?.fundingStage,
+  );
+}
+
 export function getTagsFromValues(allValues: string[], availableValues: string[], queryValues: string | string[] = []) {
   const queryValuesArr = Array.isArray(queryValues) ? queryValues : queryValues.split(URL_QUERY_VALUE_SEPARATOR);
+
   return allValues.map((value) => {
     const selected = queryValuesArr.includes(value);
     const available = availableValues.includes(value);
     const disabled = !selected && !available;
+
     return { value, selected, disabled };
   });
 }
@@ -95,6 +159,7 @@ export function getTiersFromValues(allValues: { tier: string; count: number }[],
   const queryValuesArr = Array.isArray(queryValues) ? queryValues : queryValues.split(URL_QUERY_VALUE_SEPARATOR);
   return allValues?.map((value) => {
     const selected = queryValuesArr.includes(value.tier);
+
     return { value: value.tier, selected, disabled: false, count: value.count };
   });
 }
@@ -405,4 +470,62 @@ export function parseFocusAreasParams(queryParams: any) {
   }
 
   return modifiedParams;
+}
+
+/**
+ * Creates a generic GET route handler for team filter endpoints
+ *
+ * This factory function reduces boilerplate by extracting common logic from routes like:
+ * - /api/teams/focus-areas
+ * - /api/teams/membership-source
+ * - /api/teams/tags
+ *
+ * @param options Configuration options for the route handler
+ * @param options.serviceFn - The service function to call (e.g., getFocusAreas, getMembershipSource)
+ * @param options.entityType - The entity type to pass to the service function (e.g., 'Team', 'Project')
+ * @param options.errorMessage - Custom error message for failures
+ * @param options.parseParams - Optional custom param parser
+ * @returns Next.js route handler function
+ *
+ * @example
+ * ```typescript
+ * export const GET = getTeamFilterRouterWithOptionCounters({
+ *   serviceFn: getFocusAreas,
+ *   entityType: 'Team',
+ *   errorMessage: 'Failed to fetch focus areas',
+ * });
+ * ```
+ */
+export function getTeamFilterRouterWithOptionCounters(options: {
+  serviceFn: (type: string, params: any) => Promise<{ data?: any; error?: any }>;
+  entityType: string;
+  errorMessage: string;
+  parseParams?: (params: any) => any;
+}) {
+  const { serviceFn, entityType, errorMessage, parseParams } = options;
+
+  return async function GET(request: any) {
+    try {
+      const searchParams = request.nextUrl.searchParams;
+      let paramsObj = Object.fromEntries(searchParams.entries());
+
+      // Parse and fetch data using the provided service function
+      if (isFunction(parseParams)) {
+        paramsObj = parseParams(paramsObj);
+      }
+
+      const result = await serviceFn(entityType, paramsObj);
+
+      if (result?.error) {
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
+      }
+
+      return NextResponse.json({
+        data: result?.data || [],
+      });
+    } catch (error) {
+      console.error(`${errorMessage}:`, error);
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+  };
 }

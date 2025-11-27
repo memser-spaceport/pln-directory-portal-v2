@@ -8,12 +8,7 @@ import { ITeamFilterSelectedItems } from '@/types/teams.types';
 import { ADMIN_ROLE, FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
 import { triggerLoader } from '@/utils/common.utils';
 
-import {
-  getTeamTagsGetter,
-  getFundingStagesGetter,
-  getMembershipSourcesGetter,
-  getTiersGetter,
-} from '@/services/teams/utils';
+import { createFilterGetter } from '@/services/teams/utils/createFilterGetter';
 import Image from 'next/image';
 import { useTeamFilterStore, useTeamFilterCount } from '@/services/teams';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
@@ -51,10 +46,12 @@ export function TeamsFilter(props: TeamsFilterProps) {
 
   // Create data hooks at the top level (not conditionally)
   // These factory functions return data hooks that can be passed to GenericCheckboxList
-  const getTeamTags = getTeamTagsGetter(filterValues?.tags);
-  const getMembershipSources = getMembershipSourcesGetter(filterValues?.membershipSources);
-  const getFundingStages = getFundingStagesGetter(filterValues?.fundingStage);
-  const getTiers = getTiersGetter(filterValues?.tiers);
+  const getTeamTags = createFilterGetter(filterValues?.tags);
+  const getMembershipSources = createFilterGetter(filterValues?.membershipSources);
+  const getFundingStages = createFilterGetter(filterValues?.fundingStage);
+  const getTiers = createFilterGetter(filterValues?.tiers, {
+    formatLabel: (tier) => `Tier ${tier.value}`,
+  });
 
   // Wrap clearParams to include analytics
   const handleClearParams = () => {

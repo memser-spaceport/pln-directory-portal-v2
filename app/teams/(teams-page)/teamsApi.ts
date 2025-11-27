@@ -46,12 +46,22 @@ export interface FilterDataResponse {
 }
 
 export interface FocusAreasResponse {
-  data: Array<{
+  data: {
     uid: string;
     title: string;
     description?: string;
     parent?: string;
-  }>;
+  }[];
+}
+
+export interface OptionWithTeams {
+  uid: string;
+  title: string;
+  teams: unknown[];
+}
+
+export interface TeamsCountResponse {
+  data: OptionWithTeams[];
 }
 
 /**
@@ -66,13 +76,10 @@ export const fetchTeamsList = async (searchParams: ITeamsSearchParams): Promise<
     tiers: searchParams.tiers?.split('|').filter(Boolean),
   });
 
-  const response = await fetch(
-    `/api/teams/list?${query}`,
-    {
-      headers: getHeaders(authToken),
-      credentials: 'include',
-    }
-  );
+  const response = await fetch(`/api/teams/list?${query}`, {
+    headers: getHeaders(authToken),
+    credentials: 'include',
+  });
 
   if (!response.ok) {
     throw new Error('Failed to fetch teams list');
@@ -87,13 +94,10 @@ export const fetchTeamsList = async (searchParams: ITeamsSearchParams): Promise<
 export const fetchFiltersData = async (): Promise<FilterDataResponse> => {
   const authToken = getAuthToken();
 
-  const response = await fetch(
-    `/api/teams/filters`,
-    {
-      headers: getHeaders(authToken),
-      credentials: 'include',
-    }
-  );
+  const response = await fetch(`/api/teams/filters`, {
+    headers: getHeaders(authToken),
+    credentials: 'include',
+  });
 
   if (!response.ok) {
     throw new Error('Failed to fetch filters data');
@@ -103,28 +107,51 @@ export const fetchFiltersData = async (): Promise<FilterDataResponse> => {
 };
 
 /**
- * Fetch focus areas from API
+ * Generic function to fetch filter-related data from API endpoints
+ * Reduces duplication across similar fetch functions
+ *
+ * @param endpoint - API endpoint path (e.g., 'focus-areas', 'membership-source')
+ * @param searchParams - Search parameters to include in the request
+ * @param errorMessage - Custom error message if request fails
+ * @returns Promise with the API response data
  */
-export const fetchFocusAreas = async (searchParams: ITeamsSearchParams): Promise<FocusAreasResponse> => {
+const fetchFilterData = async <T = FocusAreasResponse>(
+  endpoint: string,
+  searchParams: ITeamsSearchParams,
+  errorMessage: string,
+): Promise<T> => {
   const params = new URLSearchParams();
 
-  // Add other params from searchParams
+  // Add params from searchParams, excluding pagination params
   Object.entries(searchParams).forEach(([key, value]) => {
     if (value && key !== 'page' && key !== 'limit') {
       params.set(key, String(value));
     }
   });
 
-  const response = await fetch(
-    `/api/teams/focus-areas?${params.toString()}`,
-    {
-      credentials: 'include',
-    }
-  );
+  const response = await fetch(`/api/teams/${endpoint}?${params.toString()}`, {
+    credentials: 'include',
+  });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch focus areas');
+    throw new Error(errorMessage);
   }
 
   return response.json();
 };
+
+export async function fetchFocusAreas(searchParams: ITeamsSearchParams): Promise<FocusAreasResponse> {
+  return fetchFilterData('focus-areas', searchParams, 'Failed to fetch focus areas');
+}
+
+export async function fetchMembershipSource(searchParams: ITeamsSearchParams): Promise<TeamsCountResponse> {
+  return fetchFilterData('membership-source', searchParams, 'Failed to fetch membership source');
+}
+
+export async function fetchIndustryTags(searchParams: ITeamsSearchParams): Promise<TeamsCountResponse> {
+  return fetchFilterData('industry-tags', searchParams, 'Failed to fetch industry tags');
+}
+
+export async function fetchFundingStages(searchParams: ITeamsSearchParams): Promise<TeamsCountResponse> {
+  return fetchFilterData('funding-stages', searchParams, 'Failed to fetch funding stages');
+}

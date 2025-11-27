@@ -18,14 +18,6 @@ interface Props {
 export function SelectAll(props: Props) {
   const { data, selected, paramKey, setValue, onSelectAll } = props;
 
-  const count = useMemo(
-    () =>
-      [...data, ...selected].reduce((acc, { count }) => {
-        return acc + (count || 0);
-      }, 0),
-    [data, selected],
-  );
-
   const checked = useMemo(() => {
     const dataValues = map(data, 'value');
     const selectedValues = map(selected, 'value');
@@ -47,12 +39,5 @@ export function SelectAll(props: Props) {
     return null;
   }
 
-  return (
-    <CheckboxListItemRepresentation
-      count={count}
-      checked={checked}
-      label="Select all matching options"
-      onClick={onClick}
-    />
-  );
+  return <CheckboxListItemRepresentation checked={checked} label="Select all matching options" onClick={onClick} />;
 }

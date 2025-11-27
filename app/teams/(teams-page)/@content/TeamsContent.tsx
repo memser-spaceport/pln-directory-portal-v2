@@ -8,11 +8,11 @@ import Error from '../../../../components/core/error';
 import TeamsToolbar from '../../../../components/page/teams/teams-toolbar';
 import TeamList from '@/components/page/teams/team-list';
 import styles from './page.module.css';
-import { fetchTeamsList, fetchFiltersData, fetchFocusAreas } from '../teamsApi';
-import { processFilters } from '@/utils/team.utils';
+import { fetchTeamsList } from '../teamsApi';
 import { useEffect } from 'react';
 import { triggerLoader } from '@/utils/common.utils';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
+import { useTeamsFilters } from '../hooks/useGetTeamsFilterValues';
 
 interface TeamsContentProps {
   searchParams: ITeamsSearchParams;
@@ -20,6 +20,9 @@ interface TeamsContentProps {
 }
 
 export default function TeamsContent({ searchParams, userInfo }: TeamsContentProps) {
+  // Use the shared hook for filters
+  const { filterValues, isLoading: isLoadingFilters, isError: isFiltersError } = useTeamsFilters(searchParams);
+
   // Fetch teams list
   const {
     data: teamsData,
@@ -32,32 +35,8 @@ export default function TeamsContent({ searchParams, userInfo }: TeamsContentPro
     gcTime: 60000, // Keep in cache for 60 seconds
   });
 
-  // Fetch filters data
-  const {
-    data: filtersData,
-    isLoading: isLoadingFilters,
-    isError: isFiltersError,
-  } = useQuery({
-    queryKey: ['teams', 'filters'],
-    queryFn: () => fetchFiltersData(),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-  });
-
-  // Fetch focus areas
-  const {
-    data: focusAreasData,
-    isLoading: isLoadingFocusAreas,
-    isError: isFocusAreasError,
-  } = useQuery({
-    queryKey: ['teams', 'focus-areas', searchParams],
-    queryFn: () => fetchFocusAreas(searchParams),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-  });
-
-  const isLoading = isLoadingTeams || isLoadingFilters || isLoadingFocusAreas;
-  const isError = isTeamsError || isFiltersError || isFocusAreasError;
+  const isLoading = isLoadingTeams || isLoadingFilters;
+  const isError = isTeamsError || isFiltersError;
 
   // Manage loader visibility
   useEffect(() => {
@@ -74,26 +53,6 @@ export default function TeamsContent({ searchParams, userInfo }: TeamsContentPro
 
   if (isLoading) {
     return <ContentPanelSkeletonLoader />;
-  }
-
-  // Process filter values
-  let filterValues;
-  if (filtersData && focusAreasData) {
-    filterValues = processFilters(
-      searchParams,
-      filtersData,
-      filtersData,
-      focusAreasData.data
-    );
-
-    // Handle 'all' asks selection
-    if (searchParams?.asks === 'all') {
-      filterValues.asks.forEach((ask) => {
-        if (!ask.disabled) {
-          ask.selected = true;
-        }
-      });
-    }
   }
 
   const teams = teamsData?.teams || [];

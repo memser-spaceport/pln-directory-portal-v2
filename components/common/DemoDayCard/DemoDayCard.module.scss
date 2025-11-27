@@ -61,30 +61,44 @@
 }
 
 .badgeUpcoming {
-  background: rgba(27, 77, 255, 0.02);
-  border-color: #aebfff;
-  color: #4174ff;
+  border-color: transparent;
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  color: #455468;
+
+  svg {
+    color: #455468;
+  }
+}
+
+.badgeRegistrationOpen {
+  border-color: transparent;
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-brand-4, rgba(27, 77, 255, 0.04));
+  color: #4174FF;
 
   svg {
     color: #4174ff;
   }
 }
 
+
 .badgeActive {
-  background: rgba(16, 185, 129, 0.02);
-  border-color: #aebfff;
-  color: #4174ff;
+  border-color: transparent;
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--background-error-soft-surface, rgba(255, 56, 56, 0.08));
+  color: #FF3838;
 
   svg {
-    color: #4174ff;
+    color: #FF3838;
   }
 }
 
 .badgeCompleted {
-  border-color: #e5e8eb;
+  border-color: transparent;
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--background-success-soft-surface, rgba(10, 153, 82, 0.10));
   color: #11A75C;
-  border: 1px solid var(--border-success-subtle, rgba(4, 135, 70, 0.32));
-  background: var(--background-base-white, #FFF);
 
   svg {
     color: #11A75C;

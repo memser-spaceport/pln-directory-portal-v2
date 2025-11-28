@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
+import Cookies from 'js-cookie';
 
 export type DemoDayListResponse = {
   access: 'none';
@@ -17,9 +18,10 @@ export type DemoDayListResponse = {
 };
 
 async function fetcher(): Promise<DemoDayListResponse[]> {
+  const isAuthenticated = Boolean(Cookies.get('authToken'));
   const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days`;
 
-  const response = await customFetch(url, { method: 'GET' }, false);
+  const response = await customFetch(url, { method: 'GET' }, isAuthenticated);
 
   if (!response?.ok) {
     throw new Error('Failed to fetch demo days list');

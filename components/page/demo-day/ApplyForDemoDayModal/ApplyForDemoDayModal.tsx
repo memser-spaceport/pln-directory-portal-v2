@@ -25,6 +25,9 @@ import { ITeam } from '@/types/teams.types';
 import { useQuery } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { getMember } from '@/services/members.service';
+import { isValid } from 'zod';
+import { toast } from '@/components/core/ToastContainer';
+import { useRouter } from 'next/navigation';
 
 const applySchema = yup.object().shape(
   {
@@ -131,9 +134,9 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   demoDayData,
   onSuccessUnauthenticated,
 }) => {
+  const router = useRouter();
   const { mutateAsync, isPending } = useApplyForDemoDay(demoDaySlug);
   const { data } = useMemberFormOptions();
-  const memberAnalytics = useMemberAnalytics();
   const [isAddingTeam, setIsAddingTeam] = useState(false);
 
   // Check if user is authenticated
@@ -181,7 +184,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     reset,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, isValid },
   } = methods;
 
   const isInvestor = watch('isInvestor');
@@ -244,14 +247,28 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         ...(project ? { project } : formData.teamName || (team && Object.keys(team).length > 0) ? { team } : {}),
       };
 
-      await mutateAsync(payload);
-      reset();
-      setIsAddingTeam(false);
-      onClose();
+      debugger;
+      const res = await mutateAsync(payload);
 
-      // Trigger success modal for non-authenticated users
-      if (!isAuthenticated && onSuccessUnauthenticated) {
-        onSuccessUnauthenticated();
+      if (res) {
+        // Trigger success modal for non-authenticated users
+        if (!isAuthenticated && onSuccessUnauthenticated) {
+          router.replace(`${window.location.pathname}?prefillEmail=${encodeURIComponent(formData.email)}#login`);
+        }
+
+        setTimeout(() => {
+          if (onClose) {
+            reset();
+            setIsAddingTeam(false);
+            onClose();
+          }
+        }, 700);
+      } else {
+        if (res?.message) {
+          toast.error(res?.message);
+        } else {
+          toast.error('Something went wrong. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Failed to submit application:', error);
@@ -462,7 +479,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                 <Button type="button" size="m" variant="secondary" style="border" onClick={handleClose}>
                   Cancel
                 </Button>
-                <Button type="submit" size="m" style="fill" variant="primary" disabled={isPending}>
+                <Button type="submit" size="m" style="fill" variant="primary" disabled={isPending || !isValid}>
                   {isPending ? 'Submitting...' : 'Submit Application'}
                 </Button>
               </div>

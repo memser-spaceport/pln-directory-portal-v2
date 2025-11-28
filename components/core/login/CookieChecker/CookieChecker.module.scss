@@ -1,0 +1,94 @@
+.dialog {
+  background: white;
+  border-radius: 8px;
+  border: none;
+  width: 656px;
+  margin: auto;
+  outline: none;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.content {
+  padding: 24px;
+}
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 8px;
+  width: 100%;
+}
+
+.title {
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+}
+
+.closeButton {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.text {
+  font-weight: 400;
+  padding: 10px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.actions {
+  background: white;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 0 0 8px 8px;
+  width: 100%;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.loginButton {
+  padding: 8px 24px;
+  border-radius: 8px;
+  border: 1px solid #156ff7;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: #156ff7;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #1254cc;
+  }
+}
+
+@media (min-width: 1024px) {
+  .actions {
+    justify-content: flex-end;
+  }
+
+  .loginButton {
+    width: 86px;
+  }
+
+  .text {
+    text-align: left;
+    width: 600px;
+  }
+}

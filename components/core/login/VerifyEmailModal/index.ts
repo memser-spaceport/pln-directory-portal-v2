@@ -1,0 +1,1 @@
+export { VerifyEmailModal } from './VerifyEmailModal';

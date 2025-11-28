@@ -10,7 +10,7 @@ import { useRef, useState } from 'react';
 import { Tooltip } from '../tooltip/tooltip';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { toast } from '@/components/core/ToastContainer';
-import { createLogoutChannel } from '../login/broadcast-channel';
+import { createLogoutChannel } from '../login/BroadcastChannel';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';

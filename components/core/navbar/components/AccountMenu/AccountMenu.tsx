@@ -10,7 +10,7 @@ import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
-import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
+import { createLogoutChannel } from '@/components/core/login/BroadcastChannel';
 import { usePostHog } from 'posthog-js/react';
 
 import s from './AccountMenu.module.scss';

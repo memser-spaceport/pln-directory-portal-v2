@@ -5,7 +5,6 @@ import { getParsedValue } from './common.utils';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from './constants';
 import { clearAllAuthCookies } from './third-party.helper';
-import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
 
 const getAuthInfoFromCookie = () => {
   const userInfo = getParsedValue(Cookies.get('userInfo'));

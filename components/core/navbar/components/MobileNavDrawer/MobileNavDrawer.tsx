@@ -8,7 +8,7 @@ import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { toast } from '@/components/core/ToastContainer';
-import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
+import { createLogoutChannel } from '@/components/core/login/BroadcastChannel';
 import LoginBtn from '../../login-btn';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { usePostHog } from 'posthog-js/react';

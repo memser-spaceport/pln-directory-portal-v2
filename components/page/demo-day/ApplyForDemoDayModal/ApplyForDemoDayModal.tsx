@@ -449,7 +449,9 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                   <CalendarIcon />
                   <span>Date & Time:</span>
                 </div>
-                <span className={s.dateValue}>{format(new Date(demoDayData.date), 'dd MMMM, yyyy, h:mm a')}</span>
+                <span className={s.dateValue}>
+                  {format(new Date(demoDayData.date), "dd MMMM, yyyy, h:mm a 'GMT'xxx")}
+                </span>
               </div>
             )}
 

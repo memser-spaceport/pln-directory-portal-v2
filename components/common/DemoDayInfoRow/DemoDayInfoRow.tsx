@@ -9,6 +9,7 @@ interface DemoDayInfoRowProps {
   teamsCount?: number;
   investorsCount?: number;
   showInvestorsLink?: boolean;
+  approximateStartDate?: string;
 }
 
 const CalendarIcon = () => (
@@ -56,8 +57,13 @@ export const DemoDayInfoRow: React.FC<DemoDayInfoRowProps> = ({
   teamsCount,
   investorsCount,
   showInvestorsLink = false,
+  approximateStartDate,
 }) => {
-  const formattedDate = date ? format(new Date(date), 'MMM dd, yyyy, HH:mm') : null;
+  const formattedDate = approximateStartDate
+    ? approximateStartDate
+    : date
+      ? format(new Date(date), 'MMM dd, yyyy, HH:mm')
+      : null;
 
   return (
     <div className={s.container}>

@@ -22,12 +22,13 @@ import { DemoDayState } from '@/app/actions/demo-day.actions';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { ITeam } from '@/types/teams.types';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { getMember } from '@/services/members.service';
 import { isValid } from 'zod';
 import { toast } from '@/components/core/ToastContainer';
 import { useRouter } from 'next/navigation';
+import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 
 const applySchema = yup.object().shape(
   {
@@ -135,15 +136,25 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   onSuccessUnauthenticated,
 }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useApplyForDemoDay(demoDaySlug);
   const { data } = useMemberFormOptions();
+  const memberAnalytics = useMemberAnalytics();
   const [isAddingTeam, setIsAddingTeam] = useState(false);
+  const [hasAutoSubmitted, setHasAutoSubmitted] = useState(false);
+  const [minLoaderTime, setMinLoaderTime] = useState<number | null>(null);
+  const [showLoader, setShowLoader] = useState(false);
+  const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
 
   // Check if user is authenticated
   const authToken = Cookies.get('authToken');
   const isAuthenticated = Boolean(authToken);
 
-  const { data: member } = useQuery({
+  const {
+    data: member,
+    isLoading: isMemberLoading,
+    isFetching: isMemberFetching,
+  } = useQuery({
     queryKey: [MembersQueryKeys.GET_MEMBER, userInfo?.uid, !!userInfo, userInfo?.uid],
     queryFn: () =>
       getMember(
@@ -154,9 +165,34 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         true,
         true,
       ),
-    enabled: !!userInfo?.uid,
+    enabled: !!userInfo?.uid && isOpen,
     select: (data) => data?.data?.formattedData,
   });
+
+  // Track when loading starts to ensure minimum 3 second loader display
+  useEffect(() => {
+    if ((isMemberLoading || isMemberFetching) && minLoaderTime === null) {
+      setMinLoaderTime(Date.now());
+      setShowLoader(true);
+    }
+  }, [isMemberLoading, isMemberFetching, minLoaderTime]);
+
+  // Hide loader only after minimum 3 seconds have passed (but not if auto-submitting)
+  useEffect(() => {
+    if (!isMemberLoading && !isMemberFetching && minLoaderTime !== null && showLoader && !isAutoSubmitting) {
+      const elapsedTime = Date.now() - minLoaderTime;
+      const remainingTime = Math.max(0, 3000 - elapsedTime);
+
+      if (remainingTime > 0) {
+        const timer = setTimeout(() => {
+          setShowLoader(false);
+        }, remainingTime);
+        return () => clearTimeout(timer);
+      } else {
+        setShowLoader(false);
+      }
+    }
+  }, [isMemberLoading, isMemberFetching, minLoaderTime, showLoader, isAutoSubmitting]);
 
   let mainTeam: IMemberTeam | ITeam | null = member?.mainTeam;
   mainTeam = !mainTeam && memberData?.teams?.length === 1 ? memberData.teams[0] : mainTeam;
@@ -206,6 +242,98 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     }
   }, [member, mainTeam, userInfo, reset]);
 
+  // Auto-submit if all required fields are available
+  useEffect(() => {
+    const autoSubmit = async () => {
+      if (
+        !hasAutoSubmitted &&
+        member &&
+        !isMemberLoading &&
+        !isMemberFetching &&
+        member.email &&
+        member.name &&
+        member.investorProfile?.secRulesAccepted &&
+        isOpen &&
+        minLoaderTime !== null
+      ) {
+        setHasAutoSubmitted(true);
+        setIsAutoSubmitting(true);  // ✅ Mark as auto-submitting to keep loader visible
+
+        // Calculate remaining time to show loader for at least 3 seconds
+        const elapsedTime = Date.now() - minLoaderTime;
+        const remainingTime = Math.max(0, 3000 - elapsedTime);
+
+        // Wait for minimum loader time
+        if (remainingTime > 0) {
+          await new Promise((resolve) => setTimeout(resolve, remainingTime));
+        }
+
+        // Build the payload
+        let team: { uid?: string; name?: string; website?: string } = {};
+        let isTeamNew = false;
+        let project: { projectUid: string } | null = null;
+
+        if (mainTeam) {
+          team = {
+            uid: mainTeam.id,
+          };
+        }
+
+        const payload: ApplyForDemoDayPayload = {
+          name: member.name,
+          email: member.email,
+          linkedin: member.linkedinHandle || '',
+          role: member.role ?? mainTeam?.role ?? '',
+          isInvestor: true,
+          isTeamNew,
+          ...(team && Object.keys(team).length > 0 ? { team } : {}),
+        };
+
+        try {
+          await mutateAsync(payload);
+
+          // Invalidate demo day state queries
+          await queryClient.invalidateQueries({
+            queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATE],
+          });
+
+          reset();
+          setIsAddingTeam(false);
+          setMinLoaderTime(null);
+          setIsAutoSubmitting(false);  // ✅ Reset auto-submitting state
+          onClose();
+
+          // Trigger success modal for non-authenticated users
+          if (!isAuthenticated && onSuccessUnauthenticated) {
+            onSuccessUnauthenticated();
+          }
+        } catch (error) {
+          console.error('Auto-submit failed:', error);
+          // Reset flags on error so user can try again
+          setHasAutoSubmitted(false);
+          setMinLoaderTime(null);
+          setIsAutoSubmitting(false);  // ✅ Reset auto-submitting state on error
+        }
+      }
+    };
+
+    autoSubmit();
+  }, [
+    hasAutoSubmitted,
+    member,
+    mainTeam,
+    isMemberLoading,
+    isMemberFetching,
+    mutateAsync,
+    queryClient,
+    reset,
+    onClose,
+    isAuthenticated,
+    onSuccessUnauthenticated,
+    isOpen,
+    minLoaderTime,
+  ]);
+
   const onSubmit = async (formData: ApplyFormData) => {
     try {
       // Build the team/project object
@@ -247,10 +375,14 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         ...(project ? { project } : formData.teamName || (team && Object.keys(team).length > 0) ? { team } : {}),
       };
 
-      debugger;
       const res = await mutateAsync(payload);
 
       if (res) {
+        // Invalidate demo day state queries
+        await queryClient.invalidateQueries({
+          queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATE],
+        });
+
         // Trigger success modal for non-authenticated users
         if (!isAuthenticated && onSuccessUnauthenticated) {
           router.replace(`${window.location.pathname}?prefillEmail=${encodeURIComponent(formData.email)}#login`);
@@ -260,6 +392,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
           if (onClose) {
             reset();
             setIsAddingTeam(false);
+            setMinLoaderTime(null);
             onClose();
           }
         }, 700);
@@ -278,6 +411,10 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   const handleClose = () => {
     reset();
     setIsAddingTeam(false);
+    setHasAutoSubmitted(false);
+    setMinLoaderTime(null);
+    setShowLoader(false);
+    setIsAutoSubmitting(false);
     onClose();
   };
 
@@ -311,7 +448,15 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
             )}
           </div>
 
-          <FormProvider {...methods}>
+          {showLoader || isAutoSubmitting ? (
+            <div className={s.loaderContainer}>
+              <div className={s.loader} />
+              <p className={s.loaderText}>
+                {isAutoSubmitting ? 'Submitting your application...' : 'Loading your information...'}
+              </p>
+            </div>
+          ) : (
+            <FormProvider {...methods}>
             {/* @ts-ignore */}
             <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
               <FormField
@@ -485,6 +630,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
               </div>
             </form>
           </FormProvider>
+          )}
         </div>
       </div>
     </Modal>

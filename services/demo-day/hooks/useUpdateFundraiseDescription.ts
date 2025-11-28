@@ -12,9 +12,7 @@ async function updateFundraiseDescription(demoDayId: string, data: UpdateFundrai
   const { description, teamUid } = data;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
-  const url = teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/description`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile/description`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/description`;
 
   const response = await customFetch(
     url,

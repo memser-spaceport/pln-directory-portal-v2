@@ -28,6 +28,16 @@ async function mutation(demoDaySlug: string, payload: ApplyForDemoDayPayload) {
   const authToken = Cookies.get('authToken');
   const isAuthenticated = Boolean(authToken);
 
+  // Transform payload to match an API expected format
+  const apiPayload = {
+    name: payload.name,
+    email: payload.email,
+    linkedinProfile: payload.linkedin,
+    role: payload.role,
+    teamUid: payload.team?.uid || '',
+    isAccreditedInvestor: payload.isInvestor,
+  };
+
   const response = await customFetch(
     url,
     {
@@ -35,7 +45,7 @@ async function mutation(demoDaySlug: string, payload: ApplyForDemoDayPayload) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(apiPayload),
     },
     isAuthenticated, // Only include auth token if user is logged in
   );

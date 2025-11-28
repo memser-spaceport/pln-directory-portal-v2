@@ -14,9 +14,7 @@ interface DeleteVideoParams {
 
 async function deleteVideo(demoDayId: string, params?: DeleteVideoParams): Promise<DeleteVideoResponse> {
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
-  const url = params?.teamUid
-    ? `${process.env.DIRECTORY_API_URL}/v1/admin/demo-days/${demoDayId}/teams/${params.teamUid}/fundraising-profile/video`
-    : `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/fundraising-profile/video`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/teams/${params?.teamUid}/fundraising-profile/video`;
 
   const response = await customFetch(
     url,

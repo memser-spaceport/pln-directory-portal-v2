@@ -22,6 +22,7 @@ import { format } from 'date-fns';
 import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList';
 import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
 import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
+import { DemoDayPageSkeleton } from '@/components/page/demo-day/DemoDayPageSkeleton';
 
 interface DemodayCompletedViewProps {
   initialDemoDayState?: DemoDayState;
@@ -61,7 +62,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
   } = useDemoDayAnalytics();
 
   // Fetch demo days list
-  const { data: demoDays } = useGetDemoDaysList();
+  const { data: demoDays, isLoading } = useGetDemoDaysList();
 
   // Find next demo day with REGISTRATION_OPEN or ACTIVE status
   const nextDemoDay = useMemo(() => {
@@ -102,6 +103,11 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
     onCompletedViewShowMoreTeamsClicked();
     toggleShowAllTeams();
   };
+
+  // Show skeleton loader while loading
+  if (isLoading) {
+    return <DemoDayPageSkeleton />;
+  }
 
   return (
     <div className={s.root}>

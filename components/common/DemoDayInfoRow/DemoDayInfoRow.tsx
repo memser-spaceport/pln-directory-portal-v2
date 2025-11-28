@@ -20,27 +20,9 @@ const CalendarIcon = () => (
       strokeLinecap="round"
       strokeLinejoin="round"
     />
-    <path
-      d="M12 1.5V4.5"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M6 1.5V4.5"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M2.25 7.5H15.75"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+    <path d="M12 1.5V4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M6 1.5V4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M2.25 7.5H15.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -107,7 +89,7 @@ export const DemoDayInfoRow: React.FC<DemoDayInfoRowProps> = ({
       {investorsCount !== undefined && (
         <>
           {showInvestorsLink ? (
-            <Link href="/members?role=investor" className={s.link}>
+            <Link href="/members?isInvestor=true" className={s.link}>
               <span className={s.text}>{investorsCount} Investors</span>
               <ArrowUpRightIcon />
             </Link>
@@ -121,4 +103,3 @@ export const DemoDayInfoRow: React.FC<DemoDayInfoRowProps> = ({
     </div>
   );
 };
-

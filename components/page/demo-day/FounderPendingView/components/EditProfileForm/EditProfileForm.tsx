@@ -141,7 +141,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
         fundingStage: formData.fundingStage?.value || profileData?.team?.fundingStage?.uid || '',
         logo: image || profileData?.team.logo?.uid,
         website: formData.website,
-        teamUid: isDirectoryAdmin ? profileDataProp?.teamUid : undefined, // Include teamUid if editing another team (admin)
+        teamUid: profileDataProp?.teamUid,
       };
 
       await updateProfileMutation.mutateAsync(updateData);

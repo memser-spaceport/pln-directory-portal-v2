@@ -114,6 +114,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
         }
         information={
           <DemoDayInfoRow
+            approximateStartDate={data?.approximateStartDate}
             date={data?.date}
             teamsCount={data?.teamsCount}
             investorsCount={data?.investorsCount}

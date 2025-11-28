@@ -31,6 +31,8 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const params = useParams();
   const demoDaySlug = params?.demoDayId as string;
+  const showCountdown =
+    data?.status === 'UPCOMING' || data?.status === 'REGISTRATION_OPEN' || data?.status === 'EARLY_ACCESS';
 
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -105,7 +107,11 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
     <>
       <LandingBase
         initialDemoDayState={initialDemoDayState}
-        countdown={<CountdownComponent targetDate={data?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />}
+        countdown={
+          showCountdown && (
+            <CountdownComponent targetDate={data?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />
+          )
+        }
         information={
           <DemoDayInfoRow
             date={data?.date}

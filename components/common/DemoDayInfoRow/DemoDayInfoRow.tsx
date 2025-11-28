@@ -89,7 +89,7 @@ export const DemoDayInfoRow: React.FC<DemoDayInfoRowProps> = ({
       {investorsCount !== undefined && (
         <>
           {showInvestorsLink ? (
-            <Link href="/members?isInvestor=true" className={s.link}>
+            <Link href="/members?isInvestor=true" className={s.link} target="_blank">
               <span className={s.text}>{investorsCount} Investors</span>
               <ArrowUpRightIcon />
             </Link>

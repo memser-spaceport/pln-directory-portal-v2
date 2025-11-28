@@ -13,10 +13,10 @@ import { AuthInfo } from '../AuthInfo';
 const PRIVY_CONFIG = {
   appearance: {
     theme: 'light' as const,
-    accentColor: '#676FFF',
+    accentColor: '#676FFF' as `#${string}`,
     landingHeader: 'PL Member Login',
   },
-  loginMethods: ['email', 'google', 'github', 'wallet'] as const,
+  loginMethods: ['email', 'google', 'github', 'wallet'] as ('email' | 'google' | 'github' | 'wallet')[],
 };
 
 /**

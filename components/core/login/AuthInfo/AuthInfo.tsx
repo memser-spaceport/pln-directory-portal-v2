@@ -6,6 +6,7 @@ import { useAsync } from 'react-use';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createStateUid } from '@/services/auth.service';
 import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
+import { authEvents } from '@/hooks/auth/authEvents';
 
 import { LoadingSpinner } from './components/LoadingSpinner';
 
@@ -49,7 +50,7 @@ export function AuthInfo() {
         localStorage.setItem('prefillEmail', onboardingEmail);
       }
 
-      document.dispatchEvent(new CustomEvent('privy-init-login'));
+      authEvents.emit('auth:init-login');
       router.push(`${window.location.pathname}${window.location.search}`);
     } catch (err) {
       console.log('Login Failed', err);

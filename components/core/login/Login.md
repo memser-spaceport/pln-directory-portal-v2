@@ -10,7 +10,6 @@ This document describes the authentication flow and architecture for the Protoco
 |  +------------+  +--------------+  +----------------------------+ |
 |  |  AuthBox   |  |BroadcastChan |  |      CookieChecker         | |
 |  |(dynamic)   |  |(dynamic)     |  |      (dynamic)             | |
-|  +------------+  +--------------+  +----------------------------+ |
 +-------------------------------------------------------------------+
 ```
 
@@ -21,13 +20,19 @@ components/core/login/
 ├── AuthBox/              # Main auth wrapper with PrivyProvider
 ├── AuthInfo/             # Login initialization & loading UI
 ├── AuthInvalidUser/      # Error modal handler
-├── BroadcastChannel/     # Cross-tab logout synchronization
+├── BroadcastChannel/     # Cross-tab logout synchronization (with fallback)
 ├── CookieChecker/        # Session expiry detection
 ├── LinkAccountModal/     # Account linking assistance modal
 ├── PrivyModals/          # Main auth event handler
 ├── UserInfoChecker/      # User info sync component
 ├── VerifyEmailModal/     # Error modal UI
 └── index.ts              # Barrel exports
+
+hooks/auth/
+├── authEvents.ts         # Typed event emitter for auth events
+├── authStatus.ts         # Auth status utilities (non-hook)
+├── useAuthTokens.ts      # Token/cookie management hook
+└── usePrivyWrapper.ts    # Privy SDK wrapper hook
 ```
 
 ## Login Flow
@@ -55,19 +60,19 @@ const isLoginPopup = hash === '#login';
 3. Logs out any existing Privy session
 4. Creates a `stateUid` via API call to `/v1/auth/state`
 5. Stores `stateUid` in localStorage
-6. Dispatches `privy-init-login` custom event
+6. Emits `auth:init-login` typed event
 
 ```typescript
 localStorage.clear();
 await logout();
 const response = await createStateUid();
 localStorage.setItem('stateUid', result);
-document.dispatchEvent(new CustomEvent('privy-init-login'));
+authEvents.emit('auth:init-login');
 ```
 
 ### Step 3: Privy Modal Opens
 
-`PrivyModals` listens for the `privy-init-login` event and opens Privy's authentication modal.
+`PrivyModals` listens for the `auth:init-login` event and opens Privy's authentication modal.
 
 **File:** `PrivyModals/PrivyModals.tsx`
 
@@ -80,6 +85,9 @@ function handleInitLogin() {
     login(prefillEmail ? { prefill: { type: 'email', value: prefillEmail } } : undefined);
   }
 }
+
+// Register listener
+authEvents.on('auth:init-login', handleInitLogin);
 ```
 
 ### Step 4: User Authenticates
@@ -92,13 +100,26 @@ User completes authentication via one of:
 
 ### Step 5: Privy Login Success
 
-After successful Privy authentication, the `AUTH_LOGIN_SUCCESS` event fires.
+After successful Privy authentication, the `usePrivyWrapper` hook emits `auth:login-success`.
+
+**File:** `hooks/auth/usePrivyWrapper.ts`
+
+```typescript
+const { login } = useLogin({
+  onComplete: (user) => {
+    authEvents.emit('auth:login-success', { user });
+  },
+  onError: (error) => {
+    authEvents.emit('auth:login-error', { error });
+  },
+});
+```
 
 **File:** `PrivyModals/PrivyModals.tsx`
 
 ```typescript
-async function handleLoginSuccess(e: CustomEvent) {
-  const { user: privyUser } = e.detail;
+async function handleLoginSuccess(data: { user: any }) {
+  const privyUser = data.user;
 
   // Require email linking if not present
   if (!privyUser?.email?.address) {
@@ -109,27 +130,51 @@ async function handleLoginSuccess(e: CustomEvent) {
   // Proceed to directory login
   await initDirectoryLogin();
 }
+
+// Register listener
+authEvents.on('auth:login-success', handleLoginSuccess);
 ```
 
 ### Step 6: Directory Token Exchange
 
-Exchange Privy token for directory tokens.
+Exchange Privy token for directory tokens with retry support.
+
+**File:** `services/auth.service.ts`
+
+```typescript
+export const exchangeToken = async (
+  privyToken: string,
+  stateUid: string,
+  retries = 3
+): Promise<TokenExchangeResult> => {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const response = await fetch(`${DIRECTORY_API_URL}/v1/auth/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        exchangeRequestToken: privyToken,
+        exchangeRequestId: stateUid,
+        grantType: 'token_exchange',
+      }),
+    });
+    // Retry on 5xx, return immediately on 4xx
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { ok: response.ok, data: response.ok ? await response.json() : null, status: response.status };
+    }
+    await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt))); // Exponential backoff
+  }
+  return { ok: false, data: null, status: 500 };
+};
+```
 
 **File:** `PrivyModals/PrivyModals.tsx`
 
 ```typescript
 const initDirectoryLogin = async () => {
   const privyToken = await getAccessToken();
+  const stateUid = localStorage.getItem('stateUid') || '';
 
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth/token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      exchangeRequestToken: privyToken,
-      exchangeRequestId: localStorage.getItem('stateUid'),
-      grantType: 'token_exchange',
-    }),
-  });
+  const response = await exchangeToken(privyToken, stateUid);
 
   // Handle response...
 };
@@ -161,7 +206,8 @@ Show success toast and reload page.
 const loginUser = async (output) => {
   clearPrivyParams();
   showLoginSuccess();
-  setTimeout(() => window.location.reload(), 500);
+  router.refresh();
+  setTimeout(() => window.location.reload(), 300);
 };
 ```
 
@@ -180,10 +226,10 @@ User clicks "Sign in"
          |
          v
 +------------------+
-|    AuthInfo      |  Creates stateUid, dispatches event
+|    AuthInfo      |  Creates stateUid, emits auth:init-login
 +--------+---------+
          |
-         v  'privy-init-login' event
+         v  authEvents.emit('auth:init-login')
 +------------------+
 |   PrivyModals    |  Opens Privy modal
 +--------+---------+
@@ -193,7 +239,7 @@ User clicks "Sign in"
 |      Privy       |  Returns user + token
 +--------+---------+
          |
-         v  AUTH_LOGIN_SUCCESS event
+         v  authEvents.emit('auth:login-success')
 +------------------+
 |   PrivyModals    |  Exchanges token with directory API
 +--------+---------+
@@ -213,14 +259,62 @@ User clicks "Sign in"
 |-----------|---------------|
 | `AuthBox` | Wraps app in PrivyProvider, detects #login hash |
 | `AuthInfo` | Login initialization, creates stateUid, shows loader |
-| `PrivyModals` | Handles all Privy events, token exchange with directory API |
+| `PrivyModals` | Handles all auth events, token exchange with directory API |
 | `AuthInvalidUser` | Displays error modals for auth failures |
 | `VerifyEmailModal` | UI for error modals (regular + access denied variants) |
 | `LinkAccountModal` | Help modal for account linking issues |
 | `useAuthTokens` | Cookie management, token saving, PostHog identification |
-| `BroadcastChannel` | Syncs logout across browser tabs |
+| `usePrivyWrapper` | Wraps Privy hooks, emits typed auth events |
+| `BroadcastChannel` | Syncs logout across browser tabs (with localStorage fallback) |
 | `CookieChecker` | Detects expired sessions, prompts re-login |
 | `UserInfoChecker` | Syncs user info changes |
+
+## Typed Event System
+
+The auth system uses a typed event emitter (`authEvents`) for type-safe event handling.
+
+**File:** `hooks/auth/authEvents.ts`
+
+```typescript
+export interface AuthEventMap {
+  'auth:init-login': void;
+  'auth:login-success': { user: any };
+  'auth:login-error': { error: string };
+  'auth:link-success': { user: any; linkMethod: string; linkedAccount: any };
+  'auth:link-error': { error: string };
+  'auth:invalid-email': AuthErrorCode;
+  'auth:link-account': LinkMethod;
+  'auth:logout': void;
+  'auth:logout-success': void;
+  'auth:update-email': { newEmail: string };
+  'auth:new-accounts': string;
+}
+
+// Usage - Emitting events
+authEvents.emit('auth:login-success', { user });
+authEvents.emit('auth:logout');
+
+// Usage - Listening to events
+const unsubscribe = authEvents.on('auth:login-success', (data) => {
+  console.log(data.user); // Typed!
+});
+// Cleanup
+unsubscribe();
+```
+
+## Auth Status Utilities
+
+**File:** `hooks/auth/authStatus.ts`
+
+```typescript
+export const authStatus = {
+  isLoggedIn: () => Boolean(Cookies.get('userInfo') || Cookies.get('authToken')),
+  getUserInfo: (): IUserInfo | null => { ... },
+};
+
+// Usage in event handlers (non-React context)
+const isLoggedIn = authStatus.isLoggedIn();
+```
 
 ## Error Handling
 
@@ -238,11 +332,13 @@ User clicks "Sign in"
 ### Error Flow
 
 ```typescript
-// PrivyModals handles errors via 'auth-invalid-email' event
-document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: errorCode }));
+// PrivyModals emits error via typed event
+authEvents.emit('auth:invalid-email', 'unexpected_error');
 
-// AuthInvalidUser listens and shows appropriate modal
-document.addEventListener('auth-invalid-email', handleInvalidEmail);
+// AuthInvalidUser listens
+authEvents.on('auth:invalid-email', (errorCode) => {
+  showErrorModal(errorCode);
+});
 ```
 
 ## Cookies Reference
@@ -254,21 +350,55 @@ document.addEventListener('auth-invalid-email', handleInvalidEmail);
 | `userInfo` | User profile data | Token expiry |
 | `authLinkedAccounts` | Linked OAuth providers | Token expiry |
 
-## Custom Events
+## Typed Auth Events
 
-| Event | Dispatched By | Handled By |
-|-------|---------------|------------|
-| `privy-init-login` | AuthInfo | PrivyModals |
-| `auth-invalid-email` | PrivyModals | AuthInvalidUser |
-| `auth-link-account` | Settings page | PrivyModals |
-| `init-privy-logout` | Logout button | PrivyModals |
-| `directory-update-email` | PrivyModals | Settings page |
-| `new-auth-accounts` | PrivyModals | Settings page |
+| Event | Payload | Emitted By | Handled By |
+|-------|---------|------------|------------|
+| `auth:init-login` | `void` | AuthInfo | PrivyModals |
+| `auth:login-success` | `{ user }` | usePrivyWrapper | PrivyModals |
+| `auth:login-error` | `{ error }` | usePrivyWrapper | PrivyModals |
+| `auth:link-success` | `{ user, linkMethod, linkedAccount }` | usePrivyWrapper | PrivyModals |
+| `auth:link-error` | `{ error }` | usePrivyWrapper | PrivyModals |
+| `auth:invalid-email` | `AuthErrorCode` | PrivyModals | AuthInvalidUser |
+| `auth:link-account` | `LinkMethod` | Settings pages | PrivyModals |
+| `auth:logout` | `void` | Logout buttons | PrivyModals |
+| `auth:logout-success` | `void` | usePrivyWrapper | PrivyModals |
+| `auth:update-email` | `{ newEmail }` | PrivyModals | Settings pages |
+| `auth:new-accounts` | `string` | PrivyModals | Settings pages |
+
+## BroadcastChannel with Fallback
+
+**File:** `BroadcastChannel/BroadcastChannel.tsx`
+
+The BroadcastChannel component syncs logout across browser tabs. It includes a localStorage fallback for browsers without BroadcastChannel support.
+
+```typescript
+// Helper function for broadcasting logout
+export const broadcastLogout = () => {
+  const channel = createLogoutChannel();
+  if (channel) {
+    channel.postMessage('logout');
+    if (channel instanceof BroadcastChannel) {
+      channel.close();
+    }
+  }
+};
+
+// Fallback for unsupported browsers
+class LocalStorageFallback {
+  postMessage(message: string) {
+    localStorage.setItem(this.key, message);
+    localStorage.removeItem(this.key); // Triggers storage event
+  }
+}
+```
 
 ## Related Files
 
-- `hooks/auth/usePrivyWrapper.ts` - Privy SDK wrapper
+- `hooks/auth/usePrivyWrapper.ts` - Privy SDK wrapper, emits auth events
 - `hooks/auth/useAuthTokens.ts` - Token management
-- `services/auth.service.ts` - Auth API calls
+- `hooks/auth/authEvents.ts` - Typed event emitter
+- `hooks/auth/authStatus.ts` - Auth status utilities
+- `services/auth.service.ts` - Auth API calls (with retry support)
 - `analytics/auth.analytics.ts` - Auth event tracking
 - `utils/auth.utils.ts` - Token decoding utilities

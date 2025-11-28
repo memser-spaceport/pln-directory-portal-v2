@@ -9,18 +9,17 @@ import Cookies from 'js-cookie';
 import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
 import { useAuthTokens, getLinkedAccounts } from '@/hooks/auth/useAuthTokens';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
-import { deletePrivyUser } from '@/services/auth.service';
+import { deletePrivyUser, exchangeToken } from '@/services/auth.service';
 import { triggerLoader } from '@/utils/common.utils';
 import { toast } from '@/components/core/ToastContainer';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { getDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
-import { createLogoutChannel } from '../BroadcastChannel';
+import { broadcastLogout } from '../BroadcastChannel';
 import { LinkAccountModal } from '../LinkAccountModal';
+import { authStatus } from '@/hooks/auth/authStatus';
+import { authEvents, AuthErrorCode, LinkMethod } from '@/hooks/auth/authEvents';
 
 import './PrivyModals.scss';
-
-// Account linking methods mapped to their handler functions
-type LinkMethod = 'github' | 'google' | 'siwe' | 'email' | 'updateEmail';
 
 /**
  * PrivyModals - Handles authentication events and modals
@@ -49,7 +48,6 @@ export function PrivyModals() {
     unlinkEmail,
     updateEmail,
     user,
-    PRIVY_CUSTOM_EVENTS,
   } = usePrivyWrapper();
 
   // Custom hooks
@@ -82,14 +80,14 @@ export function PrivyModals() {
   // ============================================
 
   const deleteUser = useCallback(
-    async (errorCode: string) => {
+    async (errorCode: AuthErrorCode) => {
       analytics.onPrivyUserDelete({ ...user, type: 'init' });
       const token = (await getAccessToken()) as string;
       await deletePrivyUser(token, user?.id as string);
       analytics.onPrivyUserDelete({ type: 'success' });
       setLinkAccountKey('');
       await logout();
-      document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: errorCode }));
+      authEvents.emit('auth:invalid-email', errorCode);
     },
     [analytics, getAccessToken, logout, user]
   );
@@ -108,10 +106,10 @@ export function PrivyModals() {
         await deleteUser('');
       } else {
         await logout();
-        document.dispatchEvent(new CustomEvent('auth-invalid-email'));
+        authEvents.emit('auth:invalid-email', '');
       }
     } catch {
-      document.dispatchEvent(new CustomEvent('auth-invalid-email'));
+      authEvents.emit('auth:invalid-email', '');
     }
   }, [analytics, deleteUser, logout, unlinkEmail, user]);
 
@@ -137,35 +135,32 @@ export function PrivyModals() {
       if (pathname === '/demoday' && output?.userInfo?.uid) {
         const res = await getDemoDayState(output.userInfo.uid);
         if (res?.access === 'none') {
-          document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'rejected_access_level' }));
+          authEvents.emit('auth:invalid-email', 'rejected_access_level');
           return;
         }
       }
 
-      setTimeout(() => window.location.reload(), 500);
+      // Use router.refresh() instead of hard reload for better UX
+      router.refresh();
+      // Small delay to ensure cookies are set before refresh completes
+      setTimeout(() => window.location.reload(), 300);
     },
-    [clearPrivyParams, pathname, showLoginSuccess]
+    [clearPrivyParams, pathname, router, showLoginSuccess]
   );
 
   const initDirectoryLogin = useCallback(async () => {
     try {
       triggerLoader(true);
       const privyToken = await getAccessToken();
+      const stateUid = localStorage.getItem('stateUid') || '';
 
-      const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth/token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          exchangeRequestToken: privyToken,
-          exchangeRequestId: localStorage.getItem('stateUid'),
-          grantType: 'token_exchange',
-        }),
-      });
+      // Use centralized token exchange with retry support
+      const response = await exchangeToken(privyToken as string, stateUid);
 
       // Handle errors
       if (response.status === 500 || response.status === 401) {
         triggerLoader(false);
-        document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'unexpected_error' }));
+        authEvents.emit('auth:invalid-email', 'unexpected_error');
         setLinkAccountKey('');
         await logout();
         return;
@@ -173,17 +168,17 @@ export function PrivyModals() {
 
       if (response.status === 403) {
         triggerLoader(false);
-        document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'rejected_access_level' }));
+        authEvents.emit('auth:invalid-email', 'rejected_access_level');
         setLinkAccountKey('');
         await logout();
         return;
       }
 
       // Handle success
-      if (response.ok) {
-        const result = await response.json();
+      if (response.ok && response.data) {
+        const result = response.data;
 
-        if (result?.isDeleteAccount && user) {
+        if (result.isDeleteAccount && user) {
           if (user?.linkedAccounts?.length > 1) {
             await unlinkEmail(user?.email?.address as string);
             await deleteUser('email-changed');
@@ -209,7 +204,7 @@ export function PrivyModals() {
       }
     } catch {
       triggerLoader(false);
-      document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'unexpected_error' }));
+      authEvents.emit('auth:invalid-email', 'unexpected_error');
       setLinkAccountKey('');
       await logout();
     }
@@ -231,8 +226,8 @@ export function PrivyModals() {
 
   useEffect(() => {
     // Login success handler
-    async function handleLoginSuccess(e: CustomEvent) {
-      const { user: privyUser } = e.detail;
+    async function handleLoginSuccess(data: { user: any }) {
+      const privyUser = data.user;
       analytics.onPrivyLoginSuccess(privyUser);
 
       // Require email linking if not present
@@ -249,14 +244,14 @@ export function PrivyModals() {
     }
 
     // Account link success handler
-    async function handleLinkSuccess(e: CustomEvent) {
-      const { linkMethod, linkedAccount, user: privyUser } = e.detail;
+    async function handleLinkSuccess(data: { user: any; linkMethod: string; linkedAccount: any }) {
+      const { linkMethod, linkedAccount, user: privyUser } = data;
       const authLinkedAccounts = getLinkedAccounts(privyUser);
 
       analytics.onPrivyLinkSuccess({ linkMethod, linkedAccount, authLinkedAccounts });
 
       if (linkMethod === 'email') {
-        const isLoggedIn = Cookies.get('userInfo') || Cookies.get('accessToken') || Cookies.get('refreshToken');
+        const isLoggedIn = authStatus.isLoggedIn();
 
         if (!isLoggedIn) {
           const stateUid = localStorage.getItem('stateUid');
@@ -264,13 +259,11 @@ export function PrivyModals() {
           await initDirectoryLogin();
         } else {
           triggerLoader(true);
-          document.dispatchEvent(
-            new CustomEvent('directory-update-email', { detail: { newEmail: linkedAccount.address } })
-          );
+          authEvents.emit('auth:update-email', { newEmail: linkedAccount.address });
         }
       } else {
         // Handle social account linking
-        document.dispatchEvent(new CustomEvent('new-auth-accounts', { detail: authLinkedAccounts }));
+        authEvents.emit('auth:new-accounts', authLinkedAccounts);
 
         const successMessages: Record<string, string> = {
           github: 'Github linked successfully',
@@ -287,20 +280,20 @@ export function PrivyModals() {
     }
 
     // Login error handler
-    function handleLoginError(e: CustomEvent) {
-      analytics.onPrivyLoginFailure(e.detail);
+    function handleLoginError(data: { error: string }) {
+      analytics.onPrivyLoginFailure(data);
       triggerLoader(false);
 
-      if (e.detail.error === 'linked_to_another_user') {
+      if (data.error === 'linked_to_another_user') {
         logout();
         toggleLinkAccountModalOpen();
       }
     }
 
     // Link error handler
-    async function handleLinkError(e: CustomEvent) {
-      const isLoggedIn = Cookies.get('userInfo') || Cookies.get('accessToken') || Cookies.get('refreshToken');
-      const error = e.detail?.error;
+    async function handleLinkError(data: { error: string }) {
+      const isLoggedIn = authStatus.isLoggedIn();
+      const error = data.error as AuthErrorCode;
 
       if (!isLoggedIn) {
         analytics.onAccountLinkError({ type: 'loggedout', error });
@@ -312,13 +305,13 @@ export function PrivyModals() {
             await deleteUser(error);
           } catch {
             triggerLoader(false);
-            document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: error }));
+            authEvents.emit('auth:invalid-email', error);
           }
         } else {
           await logout();
           setLinkAccountKey('');
           triggerLoader(false);
-          document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'unexpected_error' }));
+          authEvents.emit('auth:invalid-email', 'unexpected_error');
         }
       } else {
         analytics.onAccountLinkError({ type: 'loggedin', error });
@@ -340,9 +333,9 @@ export function PrivyModals() {
     }
 
     // Add account handler
-    function handleAddAccount(e: CustomEvent) {
-      analytics.onPrivyAccountLink({ account: e.detail });
-      setLinkAccountKey(e.detail);
+    function handleAddAccount(method: LinkMethod) {
+      analytics.onPrivyAccountLink({ account: method });
+      setLinkAccountKey(method);
     }
 
     // Logout handler
@@ -357,33 +350,27 @@ export function PrivyModals() {
       if (isDirectory) {
         localStorage.clear();
         toast.info(TOAST_MESSAGES.LOGOUT_MSG);
-        createLogoutChannel().postMessage('logout');
+        broadcastLogout();
       }
     }
 
-    // Register event listeners
-    const events = [
-      ['privy-init-login', handleInitLogin],
-      ['auth-link-account', handleAddAccount],
-      ['init-privy-logout', handleLogout],
-      [PRIVY_CUSTOM_EVENTS.AUTH_LOGIN_SUCCESS, handleLoginSuccess],
-      [PRIVY_CUSTOM_EVENTS.AUTH_LINK_ACCOUNT_SUCCESS, handleLinkSuccess],
-      [PRIVY_CUSTOM_EVENTS.AUTH_LOGIN_ERROR, handleLoginError],
-      [PRIVY_CUSTOM_EVENTS.AUTH_LINK_ERROR, handleLinkError],
-      ['privy-logout-success', handleLogoutSuccess],
-    ] as const;
-
-    events.forEach(([event, handler]) => {
-      document.addEventListener(event, handler as EventListener);
-    });
+    // Register typed event listeners using authEvents.on()
+    const unsubscribers = [
+      authEvents.on('auth:init-login', handleInitLogin),
+      authEvents.on('auth:link-account', handleAddAccount),
+      authEvents.on('auth:logout', handleLogout),
+      authEvents.on('auth:login-success', handleLoginSuccess),
+      authEvents.on('auth:link-success', handleLinkSuccess),
+      authEvents.on('auth:login-error', handleLoginError),
+      authEvents.on('auth:link-error', handleLinkError),
+      authEvents.on('auth:logout-success', handleLogoutSuccess),
+    ];
 
     return () => {
-      events.forEach(([event, handler]) => {
-        document.removeEventListener(event, handler as EventListener);
-      });
+      // Cleanup all subscriptions
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
   }, [
-    PRIVY_CUSTOM_EVENTS,
     analytics,
     deleteUser,
     initDirectoryLogin,
@@ -409,7 +396,7 @@ export function PrivyModals() {
       updateEmail: updateEmail,
     };
 
-    const method = linkMethods[linkAccountKey as LinkMethod];
+    const method = linkMethods[linkAccountKey];
     if (method) {
       method();
       setLinkAccountKey('');

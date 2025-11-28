@@ -7,7 +7,8 @@ import { usePostHog } from 'posthog-js/react';
 
 import { useMember } from '@/services/members/hooks/useMember';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
-import { createLogoutChannel } from '../BroadcastChannel';
+import { authEvents } from '@/hooks/auth/authEvents';
+import { broadcastLogout } from '../BroadcastChannel';
 import { IUserInfo } from '@/types/shared.types';
 
 interface UserInfoCheckerProps {
@@ -29,8 +30,8 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
 
   const handleLogout = useCallback(() => {
     clearAllAuthCookies();
-    document.dispatchEvent(new CustomEvent('init-privy-logout'));
-    createLogoutChannel()?.postMessage('logout');
+    authEvents.emit('auth:logout');
+    broadcastLogout();
     postHog.reset();
   }, [postHog]);
 

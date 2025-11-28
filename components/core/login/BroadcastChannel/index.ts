@@ -1,1 +1,1 @@
-export { BroadcastChannel, createLogoutChannel, logoutAllTabs } from './BroadcastChannel';
+export { BroadcastChannel, createLogoutChannel, logoutAllTabs, broadcastLogout } from './BroadcastChannel';

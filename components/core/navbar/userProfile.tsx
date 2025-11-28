@@ -10,7 +10,8 @@ import { useRef, useState } from 'react';
 import { Tooltip } from '../tooltip/tooltip';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { toast } from '@/components/core/ToastContainer';
-import { createLogoutChannel } from '../login/BroadcastChannel';
+import { broadcastLogout } from '../login/BroadcastChannel';
+import { authEvents } from '@/hooks/auth/authEvents';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -40,9 +41,9 @@ export default function UserProfile(props: Readonly<IProfile>) {
   const onLogoutHandler = () => {
     setIsDropdown(false);
     clearAllAuthCookies();
-    document.dispatchEvent(new CustomEvent('init-privy-logout'));
+    authEvents.emit('auth:logout');
     toast.success(TOAST_MESSAGES.LOGOUT_MSG);
-    createLogoutChannel().postMessage('logout');
+    broadcastLogout();
     postHogProps.reset();
   };
 

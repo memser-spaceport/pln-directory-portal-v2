@@ -17,6 +17,7 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
+import { authEvents } from '@/hooks/auth/authEvents';
 import { toast } from '@/components/core/ToastContainer';
 import { updateUserDirectoryEmail } from '@/services/members.service';
 import { decodeToken } from '@/utils/auth.utils';
@@ -114,13 +115,13 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
       return;
     }
 
-    document.dispatchEvent(new CustomEvent('auth-link-account', { detail: 'updateEmail' }));
+    authEvents.emit('auth:link-account', 'updateEmail');
   };
 
   useEffect(() => {
-    async function updateUserEmail(e: any) {
+    async function updateUserEmail(data: { newEmail: string }) {
       try {
-        const newEmail = e.detail.newEmail;
+        const { newEmail } = data;
         const oldAccessToken = Cookies.get('authToken');
         if (!oldAccessToken) {
           return;
@@ -157,18 +158,15 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
           toast.success('Email Updated Successfully');
           window.location.reload();
         }
-      } catch (err) {
-        const newEmail = e.detail.newEmail;
-        analytics.onUpdateEmailFailure({ newEmail, oldEmail: member.email });
+      } catch {
+        analytics.onUpdateEmailFailure({ newEmail: data.newEmail, oldEmail: member.email });
         document.dispatchEvent(new CustomEvent('app-loader-status'));
         toast.error('Email Update Failed');
       }
     }
 
-    document.addEventListener('directory-update-email', updateUserEmail);
-    return function () {
-      document.removeEventListener('directory-update-email', updateUserEmail);
-    };
+    const unsubscribe = authEvents.on('auth:update-email', updateUserEmail);
+    return unsubscribe;
   }, []);
 
   return (

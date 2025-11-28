@@ -33,7 +33,17 @@ import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 const applySchema = yup.object().shape(
   {
     name: yup.string().required('Name is required'),
-    email: yup.string().email('Must be a valid email').required('Email is required'),
+    email: yup
+      .string()
+      .email('Must be a valid email')
+      .test('domain-has-dot', 'Email domain must contain a dot (e.g., example.com)', (value) => {
+        if (!value) return true; // Let required() handle empty values
+        const emailParts = value.split('@');
+        if (emailParts.length !== 2) return false;
+        const domain = emailParts[1];
+        return domain.includes('.');
+      })
+      .required('Email is required'),
     linkedin: yup.string().defined(),
     teamOrProject: yup.mixed<string | Record<string, string>>().when('teamName', {
       is: (teamName: string) => !teamName,
@@ -257,7 +267,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         minLoaderTime !== null
       ) {
         setHasAutoSubmitted(true);
-        setIsAutoSubmitting(true);  // ✅ Mark as auto-submitting to keep loader visible
+        setIsAutoSubmitting(true); // ✅ Mark as auto-submitting to keep loader visible
 
         // Calculate remaining time to show loader for at least 3 seconds
         const elapsedTime = Date.now() - minLoaderTime;
@@ -300,7 +310,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
           reset();
           setIsAddingTeam(false);
           setMinLoaderTime(null);
-          setIsAutoSubmitting(false);  // ✅ Reset auto-submitting state
+          setIsAutoSubmitting(false); // ✅ Reset auto-submitting state
           onClose();
 
           // Trigger success modal for non-authenticated users
@@ -312,7 +322,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
           // Reset flags on error so user can try again
           setHasAutoSubmitted(false);
           setMinLoaderTime(null);
-          setIsAutoSubmitting(false);  // ✅ Reset auto-submitting state on error
+          setIsAutoSubmitting(false); // ✅ Reset auto-submitting state on error
         }
       }
     };
@@ -457,179 +467,179 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
             </div>
           ) : (
             <FormProvider {...methods}>
-            {/* @ts-ignore */}
-            <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
-              <FormField
-                name="email"
-                label="Email Address"
-                placeholder="Enter your email"
-                isRequired
-                disabled={isAuthenticated}
-              />
+              {/* @ts-ignore */}
+              <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
+                <FormField
+                  name="email"
+                  label="Email Address"
+                  placeholder="Enter your email"
+                  isRequired
+                  disabled={isAuthenticated}
+                />
 
-              <FormField
-                name="name"
-                label="Full Name"
-                placeholder="Enter your full name"
-                isRequired
-                disabled={isAuthenticated}
-              />
+                <FormField
+                  name="name"
+                  label="Full Name"
+                  placeholder="Enter your full name"
+                  isRequired
+                  disabled={isAuthenticated}
+                />
 
-              <FormField name="linkedin" label="LinkedIn profile" placeholder="Enter link to your LinkedIn profile" />
+                <FormField name="linkedin" label="LinkedIn profile" placeholder="Enter link to your LinkedIn profile" />
 
-              <div className={s.column}>
-                <div className={s.inputsLabel}>Add Role & Team</div>
-                {!isAddingTeam ? (
-                  <>
-                    <div className={s.inputsWrapper}>
-                      <FormField name="role" placeholder="Enter your primary role" />
-                      <span>@</span>
-                      <FormSelect
-                        name="teamOrProject"
-                        placeholder="Search or add a team"
-                        backLabel="Teams & Projects"
-                        options={[
-                          ...(data?.teams?.map((item: { teamUid: string; teamTitle: string; logo?: string }) => ({
-                            value: item.teamUid,
-                            label: item.teamTitle,
-                            type: 'team' as const,
-                            originalObject: item,
-                          })) ?? []),
-                          ...(data?.projects?.map(
-                            (item: { projectUid: string; projectName: string; projectLogo?: string }) => ({
-                              value: item.projectUid,
-                              label: item.projectName,
-                              type: 'project' as const,
-                              originalObject: item,
-                            }),
-                          ) ?? []),
-                        ].sort((a, b) => a.label.localeCompare(b.label))}
-                        renderOption={({ option, label, description }) => {
-                          return (
-                            <div className={s.teamOption}>
-                              <ImageWithFallback
-                                width={24}
-                                height={24}
-                                alt={option.label}
-                                className={s.optImg}
-                                fallbackSrc="/icons/camera.svg"
-                                src={option.originalObject.logo || option.originalObject.projectLogo}
-                              />
-                              <div className={s.optionContent}>
-                                {label}
-                                {description}
-                              </div>
-                              <span className={s.badge} data-type={option.type}>
-                                {option.type === 'team' ? 'Team' : 'Project'}
-                              </span>
-                            </div>
-                          );
-                        }}
-                        isStickyNoData
-                        notFoundContent={
-                          <div className={s.secondaryLabel}>
-                            Not able to find your project or team?
-                            <br />
-                            <button
-                              type="button"
-                              className={s.link}
-                              onClick={() => {
-                                setIsAddingTeam(true);
-                                setValue('teamOrProject', undefined, { shouldValidate: true });
-                              }}
-                            >
-                              Add your team
-                            </button>
-                          </div>
-                        }
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <div className={s.col}>
-                    <div className={s.column}>
+                <div className={s.column}>
+                  <div className={s.inputsLabel}>Role & Organization/Fund Name</div>
+                  {!isAddingTeam ? (
+                    <>
                       <div className={s.inputsWrapper}>
                         <FormField name="role" placeholder="Enter your primary role" />
                         <span>@</span>
-                        <FormField
-                          name="teamName"
-                          placeholder="Enter team name"
-                          clearable
-                          onClear={() => {
-                            setIsAddingTeam(false);
-                            setValue('teamName', '', { shouldValidate: true });
-                            setValue('websiteAddress', '', { shouldValidate: true });
+                        <FormSelect
+                          name="teamOrProject"
+                          placeholder="Search or add a team"
+                          backLabel="Teams & Projects"
+                          options={[
+                            ...(data?.teams?.map((item: { teamUid: string; teamTitle: string; logo?: string }) => ({
+                              value: item.teamUid,
+                              label: item.teamTitle,
+                              type: 'team' as const,
+                              originalObject: item,
+                            })) ?? []),
+                            ...(data?.projects?.map(
+                              (item: { projectUid: string; projectName: string; projectLogo?: string }) => ({
+                                value: item.projectUid,
+                                label: item.projectName,
+                                type: 'project' as const,
+                                originalObject: item,
+                              }),
+                            ) ?? []),
+                          ].sort((a, b) => a.label.localeCompare(b.label))}
+                          renderOption={({ option, label, description }) => {
+                            return (
+                              <div className={s.teamOption}>
+                                <ImageWithFallback
+                                  width={24}
+                                  height={24}
+                                  alt={option.label}
+                                  className={s.optImg}
+                                  fallbackSrc="/icons/camera.svg"
+                                  src={option.originalObject.logo || option.originalObject.projectLogo}
+                                />
+                                <div className={s.optionContent}>
+                                  {label}
+                                  {description}
+                                </div>
+                                <span className={s.badge} data-type={option.type}>
+                                  {option.type === 'team' ? 'Team' : 'Project'}
+                                </span>
+                              </div>
+                            );
                           }}
+                          isStickyNoData
+                          notFoundContent={
+                            <div className={s.secondaryLabel}>
+                              Not able to find your project or team?
+                              <br />
+                              <button
+                                type="button"
+                                className={s.link}
+                                onClick={() => {
+                                  setIsAddingTeam(true);
+                                  setValue('teamOrProject', undefined, { shouldValidate: true });
+                                }}
+                              >
+                                Add your team
+                              </button>
+                            </div>
+                          }
                         />
                       </div>
+                    </>
+                  ) : (
+                    <div className={s.col}>
+                      <div className={s.column}>
+                        <div className={s.inputsWrapper}>
+                          <FormField name="role" placeholder="Enter your primary role" />
+                          <span>@</span>
+                          <FormField
+                            name="teamName"
+                            placeholder="Enter team name"
+                            clearable
+                            onClear={() => {
+                              setIsAddingTeam(false);
+                              setValue('teamName', '', { shouldValidate: true });
+                              setValue('websiteAddress', '', { shouldValidate: true });
+                            }}
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-
-              {isAddingTeam && (
-                <FormField
-                  name="websiteAddress"
-                  placeholder="Enter website address"
-                  label="Website address"
-                  isRequired
-                />
-              )}
-
-              <label className={s.Label}>
-                <Checkbox.Root
-                  className={s.Checkbox}
-                  checked={isInvestor}
-                  onCheckedChange={(v: boolean) => {
-                    setValue('isInvestor', v, { shouldValidate: true, shouldDirty: true });
-                  }}
-                >
-                  <Checkbox.Indicator className={s.Indicator}>
-                    <CheckIcon className={s.Icon} />
-                  </Checkbox.Indicator>
-                </Checkbox.Root>
-                <div className={s.col}>
-                  <div className={s.primary}>
-                    I am an “accredited investor” under Rule 501(a) of the Securities Act of 1933, or I represent a
-                    VC/fund or institutional investor.
-                  </div>
-                  <div className={s.secondary}>
-                    I understand that Polaris does not endorse or recommend any investments, and is not a broker,
-                    dealer, or advisor. I agree that I am solely responsible for my own compliance with securities laws
-                    and for conducting my own due diligence.
-                  </div>
-                  {errors.isInvestor && <div className={s.errorMessage}>{errors.isInvestor.message}</div>}
+                  )}
                 </div>
-              </label>
 
-              <div className={s.bottomText}>
-                <p className={s.body}>
-                  The information you provide will help us confirm your investor profile and ensure the event remains
-                  relevant and valuable for both founders and participant teams.
-                </p>
-                <p className={s.bodySecondary}>
-                  By submitting this form, you agree to our{' '}
-                  <a href="https://drive.google.com/file/d/1RIAyMlyuLYnipa6W_YBzcJ6hDzfH7yW3/view" target="_blank">
-                    Privacy Policy
-                  </a>{' '}
-                  and{' '}
-                  <a href="https://drive.google.com/file/d/1MjOF66asddB_hsg7Jc-7Oxk6L1EvYHxk/view" target="_blank">
-                    Terms & Conditions
-                  </a>
-                  .
-                </p>
-              </div>
+                {isAddingTeam && (
+                  <FormField
+                    name="websiteAddress"
+                    placeholder="Enter website address"
+                    label="Website address"
+                    isRequired
+                  />
+                )}
 
-              <div className={s.footer}>
-                <Button type="button" size="m" variant="secondary" style="border" onClick={handleClose}>
-                  Cancel
-                </Button>
-                <Button type="submit" size="m" style="fill" variant="primary" disabled={isPending || !isValid}>
-                  {isPending ? 'Submitting...' : 'Submit Application'}
-                </Button>
-              </div>
-            </form>
-          </FormProvider>
+                <label className={s.Label}>
+                  <Checkbox.Root
+                    className={s.Checkbox}
+                    checked={isInvestor}
+                    onCheckedChange={(v: boolean) => {
+                      setValue('isInvestor', v, { shouldValidate: true, shouldDirty: true });
+                    }}
+                  >
+                    <Checkbox.Indicator className={s.Indicator}>
+                      <CheckIcon className={s.Icon} />
+                    </Checkbox.Indicator>
+                  </Checkbox.Root>
+                  <div className={s.col}>
+                    <div className={s.primary}>
+                      I am an “accredited investor” under Rule 501(a) of the Securities Act of 1933, or I represent a
+                      VC/fund or institutional investor.
+                    </div>
+                    <div className={s.secondary}>
+                      I understand that Polaris does not endorse or recommend any investments, and is not a broker,
+                      dealer, or advisor. I agree that I am solely responsible for my own compliance with securities
+                      laws and for conducting my own due diligence.
+                    </div>
+                    {errors.isInvestor && <div className={s.errorMessage}>{errors.isInvestor.message}</div>}
+                  </div>
+                </label>
+
+                <div className={s.bottomText}>
+                  <p className={s.body}>
+                    The information you provide will help us confirm your investor profile and ensure the event remains
+                    relevant and valuable for both founders and participant teams.
+                  </p>
+                  <p className={s.bodySecondary}>
+                    By submitting this form, you agree to our{' '}
+                    <a href="https://drive.google.com/file/d/1RIAyMlyuLYnipa6W_YBzcJ6hDzfH7yW3/view" target="_blank">
+                      Privacy Policy
+                    </a>{' '}
+                    and{' '}
+                    <a href="https://drive.google.com/file/d/1MjOF66asddB_hsg7Jc-7Oxk6L1EvYHxk/view" target="_blank">
+                      Terms & Conditions
+                    </a>
+                    .
+                  </p>
+                </div>
+
+                <div className={s.footer}>
+                  <Button type="button" size="m" variant="secondary" style="border" onClick={handleClose}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" size="m" style="fill" variant="primary" disabled={isPending || !isValid}>
+                    {isPending ? 'Submitting...' : 'Submit'}
+                  </Button>
+                </div>
+              </form>
+            </FormProvider>
           )}
         </div>
       </div>

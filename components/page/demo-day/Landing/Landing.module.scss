@@ -67,6 +67,12 @@
   &:hover {
     background: #1a45e6;
   }
+
+  &:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
 }
 
 .secondaryButton {

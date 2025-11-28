@@ -22,11 +22,12 @@ import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDay
 import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
 import { DemoDayInfoRow } from '@/components/common/DemoDayInfoRow';
 import { CountdownComponent } from '@/components/common/Countdown';
+import { DemoDayPageSkeleton } from '@/components/page/demo-day/DemoDayPageSkeleton';
 
 import s from './Landing.module.scss';
 
 export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDayState }) {
-  const { data } = useGetDemoDayState(initialDemoDayState);
+  const { data, isLoading } = useGetDemoDayState(initialDemoDayState);
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const params = useParams();
   const demoDaySlug = params?.demoDayId as string;
@@ -94,6 +95,11 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
 
     setIsApplyModalOpen(true);
   };
+
+  // Show skeleton loader while loading
+  if (isLoading) {
+    return <DemoDayPageSkeleton />;
+  }
 
   return (
     <>

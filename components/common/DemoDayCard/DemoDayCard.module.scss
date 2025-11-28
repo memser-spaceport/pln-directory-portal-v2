@@ -17,7 +17,8 @@
 
   &.nonClickable {
     cursor: default;
-    pointer-events: none;
+    border: 1px solid rgba(14, 15, 17, 0.16);
+    box-shadow: none;
   }
 }
 

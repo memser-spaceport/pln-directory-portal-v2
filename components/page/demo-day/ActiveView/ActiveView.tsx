@@ -16,13 +16,14 @@ import { IUserInfo } from '@/types/shared.types';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
+import { DemoDayPageSkeleton } from '@/components/page/demo-day/DemoDayPageSkeleton';
 
 interface ActiveViewProps {
   initialDemoDayState?: DemoDayState;
 }
 
 export const ActiveView = ({ initialDemoDayState }: ActiveViewProps) => {
-  const { data: loadedDemoDayData } = useGetDemoDayState(initialDemoDayState);
+  const { data: loadedDemoDayData, isLoading } = useGetDemoDayState(initialDemoDayState);
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
   // Use initial data if available, otherwise use data from hook
@@ -71,6 +72,11 @@ export const ActiveView = ({ initialDemoDayState }: ActiveViewProps) => {
     },
     reportInterval: 30000, // Report every 30 seconds
   });
+
+  // Show skeleton loader while loading
+  if (isLoading) {
+    return <DemoDayPageSkeleton />;
+  }
 
   return (
     <FiltersHydrator>

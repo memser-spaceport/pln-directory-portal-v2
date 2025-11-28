@@ -21,6 +21,7 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { FilterCheckSizeInput } from '@/components/page/members/MembersFilter/FilterCheckSizeInput';
 import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
 import { InvestmentFocusFilter } from '@/components/page/teams/TeamsFilter/components/InvestmentFocusFilter';
+import { getTierLabel } from '@/utils/team.utils';
 
 export interface TeamsFilterProps {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -50,7 +51,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
   const getMembershipSources = createFilterGetter(filterValues?.membershipSources);
   const getFundingStages = createFilterGetter(filterValues?.fundingStage);
   const getTiers = createFilterGetter(filterValues?.tiers, {
-    formatLabel: (tier) => `Tier ${tier.value}`,
+    formatLabel: (tier) => getTierLabel(tier.value),
   });
 
   // Wrap clearParams to include analytics
@@ -111,7 +112,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
             placeholder="E.g. Tier 1, Tier 2..."
             filterStore={useTeamFilterStore}
             useGetDataHook={getTiers}
-            defaultItemsToShow={5}
+            defaultItemsToShow={6}
             hideSearch
             onChange={() => {
               triggerLoader(true);

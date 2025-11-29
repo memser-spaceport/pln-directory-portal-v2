@@ -1,5 +1,5 @@
 import { useLinkAccount, useLogin, usePrivy, useLogout, useUpdateAccount } from '@privy-io/react-auth';
-import { authEvents } from './authEvents';
+import { authEvents } from '../utils';
 
 function usePrivyWrapper() {
   const { authenticated, unlinkEmail, ready, linkGoogle, linkWallet, user, getAccessToken } = usePrivy();

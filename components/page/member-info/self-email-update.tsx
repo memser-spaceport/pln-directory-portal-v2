@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { updateUserDirectoryEmail } from '@/services/members.service';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { getUserInfo } from '@/utils/third-party.helper';
-import { authEvents } from '@/hooks/auth/authEvents';
+import { authEvents } from '@/components/core/login/utils';
 function SelfEmailUpdate(props: any) {
   const email = props.email;
   const uid = props.uid;

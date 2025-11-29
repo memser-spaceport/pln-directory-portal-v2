@@ -6,8 +6,7 @@ import { User } from '@privy-io/react-auth';
 import { usePathname, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
-import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
-import { useAuthTokens, getLinkedAccounts } from '@/hooks/auth/useAuthTokens';
+import { usePrivyWrapper, useAuthTokens, getLinkedAccounts } from '../../hooks';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { deletePrivyUser, exchangeToken } from '@/services/auth.service';
 import { triggerLoader } from '@/utils/common.utils';
@@ -16,8 +15,7 @@ import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { getDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { broadcastLogout } from '../BroadcastChannel';
 import { LinkAccountModal } from '../LinkAccountModal';
-import { authStatus } from '@/hooks/auth/authStatus';
-import { authEvents, AuthErrorCode, LinkMethod } from '@/hooks/auth/authEvents';
+import { authStatus, authEvents, AuthErrorCode, LinkMethod } from '../../utils';
 
 import './PrivyModals.scss';
 

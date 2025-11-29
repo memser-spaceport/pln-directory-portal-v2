@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import AuthInfo from '@/components/core/login/auth-info';
+import { AuthInfo } from '@/components/core/login';
 import { useRouter } from 'next/navigation';
-import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
+import { usePrivyWrapper } from '@/components/core/login/hooks';
 import { createStateUid } from '@/services/auth.service';
 
 // Mocking necessary hooks and functions
@@ -10,11 +10,11 @@ jest.mock('next/navigation', () => ({
   useSearchParams: jest.fn(),
 }));
 
-jest.mock('@/hooks/auth/usePrivyWrapper', () =>
-  jest.fn(() => ({
+jest.mock('@/components/core/login/hooks/usePrivyWrapper', () => ({
+  default: jest.fn(() => ({
     logout: jest.fn(),
   })),
-);
+}));
 
 jest.mock('@/services/auth.service', () => ({
   createStateUid: jest.fn(),

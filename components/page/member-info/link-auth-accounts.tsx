@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import { decodeToken } from '@/utils/auth.utils';
-import { authEvents, LinkMethod } from '@/hooks/auth/authEvents';
+import { authEvents, LinkMethod } from '@/components/core/login/utils';
 
 function LinkAuthAccounts() {
   const [userLinkedAccounts, setUserLinkedAccounts] = useState<any>([]);

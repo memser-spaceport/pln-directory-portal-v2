@@ -10,8 +10,8 @@ import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
-import { broadcastLogout } from '@/components/core/login/BroadcastChannel';
-import { authEvents } from '@/hooks/auth/authEvents';
+import { broadcastLogout } from '@/components/core/login/components/BroadcastChannel';
+import { authEvents } from '@/components/core/login/utils';
 import { usePostHog } from 'posthog-js/react';
 
 import s from './AccountMenu.module.scss';

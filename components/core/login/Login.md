@@ -17,22 +17,26 @@ This document describes the authentication flow and architecture for the Protoco
 
 ```
 components/core/login/
-├── AuthBox/              # Main auth wrapper with PrivyProvider
-├── AuthInfo/             # Login initialization & loading UI
-├── AuthInvalidUser/      # Error modal handler
-├── BroadcastChannel/     # Cross-tab logout synchronization (with fallback)
-├── CookieChecker/        # Session expiry detection
-├── LinkAccountModal/     # Account linking assistance modal
-├── PrivyModals/          # Main auth event handler
-├── UserInfoChecker/      # User info sync component
-├── VerifyEmailModal/     # Error modal UI
+├── components/           # Auth UI components
+│   ├── AuthBox/          # Main auth wrapper with PrivyProvider
+│   ├── AuthInfo/         # Login initialization & loading UI
+│   ├── AuthInvalidUser/  # Error modal handler
+│   ├── BroadcastChannel/ # Cross-tab logout synchronization (with fallback)
+│   ├── CookieChecker/    # Session expiry detection
+│   ├── LinkAccountModal/ # Account linking assistance modal
+│   ├── PrivyModals/      # Main auth event handler
+│   ├── UserInfoChecker/  # User info sync component
+│   └── VerifyEmailModal/ # Error modal UI
+├── hooks/                # Auth-related React hooks
+│   ├── useAuthTokens.ts  # Token/cookie management hook
+│   ├── usePrivyWrapper.ts # Privy SDK wrapper hook
+│   └── index.ts          # Barrel exports
+├── utils/                # Auth utilities (non-hooks)
+│   ├── authEvents.ts     # Typed event emitter for auth events
+│   ├── authStatus.ts     # Auth status utilities
+│   └── index.ts          # Barrel exports
+├── Login.md              # This documentation file
 └── index.ts              # Barrel exports
-
-hooks/auth/
-├── authEvents.ts         # Typed event emitter for auth events
-├── authStatus.ts         # Auth status utilities (non-hook)
-├── useAuthTokens.ts      # Token/cookie management hook
-└── usePrivyWrapper.ts    # Privy SDK wrapper hook
 ```
 
 ## Login Flow
@@ -395,10 +399,10 @@ class LocalStorageFallback {
 
 ## Related Files
 
-- `hooks/auth/usePrivyWrapper.ts` - Privy SDK wrapper, emits auth events
-- `hooks/auth/useAuthTokens.ts` - Token management
-- `hooks/auth/authEvents.ts` - Typed event emitter
-- `hooks/auth/authStatus.ts` - Auth status utilities
+- `components/core/login/hooks/usePrivyWrapper.ts` - Privy SDK wrapper, emits auth events
+- `components/core/login/hooks/useAuthTokens.ts` - Token management
+- `components/core/login/utils/authEvents.ts` - Typed event emitter
+- `components/core/login/utils/authStatus.ts` - Auth status utilities
 - `services/auth.service.ts` - Auth API calls (with retry support)
 - `analytics/auth.analytics.ts` - Auth event tracking
 - `utils/auth.utils.ts` - Token decoding utilities

@@ -7,7 +7,7 @@ import { usePostHog } from 'posthog-js/react';
 
 import { useMember } from '@/services/members/hooks/useMember';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
-import { authEvents } from '@/hooks/auth/authEvents';
+import { authEvents } from '@/components/core/login/utils';
 import { broadcastLogout } from '../BroadcastChannel';
 import { IUserInfo } from '@/types/shared.types';
 

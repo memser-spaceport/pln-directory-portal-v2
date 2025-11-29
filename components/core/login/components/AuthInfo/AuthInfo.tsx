@@ -5,8 +5,8 @@ import { useAsync } from 'react-use';
 
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createStateUid } from '@/services/auth.service';
-import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
-import { authEvents } from '@/hooks/auth/authEvents';
+import { usePrivyWrapper } from '../../hooks';
+import { authEvents } from '../../utils';
 
 import { LoadingSpinner } from './components/LoadingSpinner';
 

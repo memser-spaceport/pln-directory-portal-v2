@@ -142,3 +142,89 @@
   border-radius: 12px;
   padding: 17px 20px;
 }
+
+.link {
+  background: transparent;
+  border: none;
+  padding: 0;
+
+  min-width: 0;
+  width: fit-content;
+
+  &.primary {
+    color: #1b4dff;
+
+    &:hover:not(:disabled) {
+      color: #0f3cd9;
+    }
+
+    &:active:not(:disabled) {
+      color: #1b4dff;
+    }
+  }
+
+  &.secondary {
+    color: #6b7280;
+
+    &:hover:not(:disabled) {
+      color: #374151;
+    }
+
+    &:active:not(:disabled) {
+      color: #6b7280;
+    }
+  }
+
+  &.success {
+    color: #0a9952;
+
+    &:hover:not(:disabled) {
+      color: #087f44;
+    }
+
+    &:active:not(:disabled) {
+      color: #0a9952;
+    }
+  }
+
+  &.warning {
+    color: #d97706;
+
+    &:hover:not(:disabled) {
+      color: #b45309;
+    }
+
+    &:active:not(:disabled) {
+      color: #d97706;
+    }
+  }
+
+  &.error {
+    color: #dc2626;
+
+    &:hover:not(:disabled) {
+      color: #b91c1c;
+    }
+
+    &:active:not(:disabled) {
+      color: #dc2626;
+    }
+  }
+
+  &.light {
+    color: rgba(255, 255, 255, 0.8);
+
+    &:hover:not(:disabled) {
+      color: rgba(255, 255, 255, 1);
+    }
+
+    &:active:not(:disabled) {
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+
+  &.underline {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}

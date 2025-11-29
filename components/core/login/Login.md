@@ -257,6 +257,302 @@ User clicks "Sign in"
    Page reload --> User logged in
 ```
 
+---
+
+## Logout Flow
+
+```
+User clicks "Logout"
+        |
+        v
+clearAllAuthCookies()
+        |
+        v
+authEvents.emit('auth:logout')
+        |
+        v
++------------------+
+|   PrivyModals    |  Receives event, calls Privy logout
++--------+---------+
+         |
+         v  await logout()
++------------------+
+| usePrivyWrapper  |  Privy logout succeeds
++--------+---------+
+         |
+         v  authEvents.emit('auth:logout-success')
++------------------+
+|   PrivyModals    |  Cleanup & broadcast
++--------+---------+
+         |
+         +---> localStorage.clear()
+         +---> toast.info()
+         +---> broadcastLogout()
+         +---> postHog.reset()
+         |
+         v
++------------------+
+| BroadcastChannel |  Sends 'logout' to other tabs
++------------------+
+         |
+         v
++------------------+
+|   Other Tabs     |  Clear session & reload
++------------------+
+```
+
+---
+
+## Account Linking Flow
+
+```
+User clicks "Link account" (GitHub/Google/Wallet)
+        |
+        v
+authEvents.emit('auth:link-account', method)
+        |
+        v
++------------------+
+|   PrivyModals    |  Receives event, sets linkAccountKey
++--------+---------+
+         |
+         v  setLinkAccountKey(method)
++------------------+
+|  useEffect       |  Detects linkAccountKey change
++--------+---------+
+         |
+         v  linkGithub() / linkGoogle() / linkWallet()
++------------------+
+|      Privy       |  Opens OAuth/Wallet modal
++--------+---------+
+         |
+         v  User authorizes
++------------------+
+| usePrivyWrapper  |  Link succeeds
++--------+---------+
+         |
+         v  authEvents.emit('auth:link-success', { user, linkMethod, linkedAccount })
++------------------+
+|   PrivyModals    |  Handle link success
++--------+---------+
+         |
+         +---> If email: Check if logged in
+         |     - Not logged in: initDirectoryLogin()
+         |     - Logged in: emit 'auth:update-email'
+         |
+         +---> If social (GitHub/Google/Wallet):
+         |     - emit 'auth:new-accounts'
+         |     - Show success toast
+         |
+         v
++------------------+
+| Settings Pages   |  Listen to 'auth:new-accounts'
++--------+---------+
+         |
+         v  Update linked accounts cookie
+         |  Update UI to show linked status
+```
+
+---
+
+## Email Update Flow
+
+```
+User updates email in settings
+        |
+        v
+authEvents.emit('auth:link-account', 'updateEmail')
+        |
+        v
++------------------+
+|   PrivyModals    |  Opens Privy email update modal
++--------+---------+
+         |
+         v  User enters new email
++------------------+
+| usePrivyWrapper  |  Email link succeeds
++--------+---------+
+         |
+         v  authEvents.emit('auth:link-success', { linkedAccount: { address: newEmail } })
++------------------+
+|   PrivyModals    |  Detect email link success
++--------+---------+
+         |
+         v  authEvents.emit('auth:update-email', { newEmail })
++------------------+
+| Settings Pages   |  Listen to 'auth:update-email'
++--------+---------+
+         |
+         v  Call updateUserDirectoryEmail() API
+         |  Receive new tokens
+         |  Update cookies (authToken, refreshToken, userInfo)
+         |  Show success toast
+         |  Reload page
+```
+
+---
+
+## Error Flow
+
+```
+Login/Link Error Occurs
+        |
+        v
+authEvents.emit('auth:login-error', { error })
+  OR
+authEvents.emit('auth:link-error', { error })
+        |
+        v
++------------------+
+|   PrivyModals    |  Handle error
++--------+---------+
+         |
+         +---> If 'linked_to_another_user':
+         |     - logout()
+         |     - Open LinkAccountModal
+         |
+         +---> If logged out + recoverable error:
+         |     - deleteUser(errorCode)
+         |     - emit 'auth:invalid-email'
+         |
+         +---> If logged out + non-recoverable:
+         |     - logout()
+         |     - emit 'auth:invalid-email', 'unexpected_error'
+         |
+         v
++------------------+
+| AuthInvalidUser  |  Listen to 'auth:invalid-email'
++--------+---------+
+         |
+         v  Show error modal based on errorCode
+         |  - unexpected_error
+         |  - rejected_access_level
+         |  - linked_to_another_user
+         |  - exited_link_flow
+         |  - invalid_credentials
+         |  - email-changed
+```
+
+---
+
+## Cross-Tab Logout Flow
+
+```
+User logs out in Tab A
+        |
+        v
+broadcastLogout()
+        |
+        v
++------------------+
+| BroadcastChannel |  Send 'logout' message
+|   (Tab A)        |
++--------+---------+
+         |
+         v  BroadcastChannel / localStorage event
++------------------+
+| BroadcastChannel |  Receive 'logout' message
+|   (Tab B, C...)  |
++--------+---------+
+         |
+         v  onmessage handler
+         |  localStorage.clear()
+         |  clearAllAuthCookies()
+         |  window.location.reload()
+```
+
+---
+
+## Session Expiry Flow
+
+```
+User navigates with expired cookies
+        |
+        v
++------------------+
+|  CookieChecker   |  Detects authToken/refreshToken expired
++--------+---------+
+         |
+         v  Expired tokens detected
+         |  clearAllAuthCookies()
+         |  router.push('/#login?expired=true')
+         |
+         v
++------------------+
+|     AuthBox      |  Detects #login hash
++--------+---------+
+         |
+         v  Renders AuthInfo
+         |  User sees login modal
+```
+
+---
+
+## User Info Sync Flow
+
+```
+App loads with logged-in user
+        |
+        v
++------------------+
+| UserInfoChecker  |  Fetch member data from API
++--------+---------+
+         |
+         v  Compare server data with cookie
+         |
+         +---> accessLevel changed?
+         |     - Update userInfo cookie
+         |     - router.refresh()
+         |
+         +---> accessLevel === 'Rejected'?
+         |     - clearAllAuthCookies()
+         |     - emit 'auth:logout'
+         |     - broadcastLogout()
+         |     - postHog.reset()
+         |
+         +---> name or imageUrl changed?
+         |     - Update userInfo cookie
+         |     - router.refresh()
+```
+
+---
+
+## Email-Changed Account Deletion Flow
+
+```
+Token exchange detects email mismatch
+        |
+        v
++------------------+
+|  exchangeToken   |  Returns { isDeleteAccount: true }
++--------+---------+
+         |
+         v
++------------------+
+|   PrivyModals    |  initDirectoryLogin detects isDeleteAccount
++--------+---------+
+         |
+         v  Check linked accounts
+         |
+         +---> Multiple accounts linked?
+         |     - unlinkEmail(currentEmail)
+         |     - deletePrivyUser()
+         |     - emit 'auth:invalid-email', 'email-changed'
+         |
+         +---> Only one account?
+         |     - deletePrivyUser()
+         |     - emit 'auth:invalid-email', 'email-changed'
+         |
+         v
++------------------+
+| AuthInvalidUser  |  Show 'email-changed' error modal
++------------------+
+         |
+         v  User prompted to re-login
+```
+
+---
+
 ## Component Responsibilities
 
 | Component | Responsibility |

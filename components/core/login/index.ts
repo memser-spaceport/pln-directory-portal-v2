@@ -1,12 +1,14 @@
 // Main auth components
 export { AuthBox } from './components/AuthBox';
 export { AuthInfo } from './components/AuthInfo';
-export { AuthInvalidUser } from './components/AuthInvalidUser';
 
-// Modal components
+// Flow components
 export { PrivyModals } from './components/PrivyModals';
-export { LinkAccountModal } from './components/LinkAccountModal';
-export { VerifyEmailModal } from './components/VerifyEmailModal';
+
+// Error components
+export { AuthInvalidUser } from './components/errors/AuthInvalidUser';
+export { LinkAccountModal } from './components/errors/LinkAccountModal';
+export { VerifyEmailModal } from './components/errors/VerifyEmailModal';
 
 // Utility components
 export { BroadcastChannel, createLogoutChannel, logoutAllTabs } from './components/BroadcastChannel';

@@ -14,7 +14,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { getDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { broadcastLogout } from '../BroadcastChannel';
-import { LinkAccountModal } from '../LinkAccountModal';
+import { LinkAccountModal } from '../errors/LinkAccountModal';
 import { authStatus, authEvents, AuthErrorCode, LinkMethod } from '../../utils';
 
 import './PrivyModals.scss';

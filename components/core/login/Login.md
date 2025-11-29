@@ -18,15 +18,16 @@ This document describes the authentication flow and architecture for the Protoco
 ```
 components/core/login/
 ├── components/           # Auth UI components
+│   ├── errors/           # Error-related components
+│   │   ├── AuthInvalidUser/  # Error modal handler
+│   │   ├── LinkAccountModal/ # Account linking error modal
+│   │   └── VerifyEmailModal/ # Error modal UI
 │   ├── AuthBox/          # Main auth wrapper with PrivyProvider
 │   ├── AuthInfo/         # Login initialization & loading UI
-│   ├── AuthInvalidUser/  # Error modal handler
 │   ├── BroadcastChannel/ # Cross-tab logout synchronization (with fallback)
 │   ├── CookieChecker/    # Session expiry detection
-│   ├── LinkAccountModal/ # Account linking assistance modal
 │   ├── PrivyModals/      # Main auth event handler
-│   ├── UserInfoChecker/  # User info sync component
-│   └── VerifyEmailModal/ # Error modal UI
+│   └── UserInfoChecker/  # User info sync component
 ├── hooks/                # Auth-related React hooks
 │   ├── useAuthTokens.ts  # Token/cookie management hook
 │   ├── usePrivyWrapper.ts # Privy SDK wrapper hook

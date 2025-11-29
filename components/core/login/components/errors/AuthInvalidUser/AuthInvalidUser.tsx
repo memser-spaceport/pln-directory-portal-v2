@@ -11,6 +11,7 @@ import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hook
 import { INVITE_FORM_URL } from '@/constants/demoDay';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
+import { authEvents, AuthErrorCode } from '../../../utils/authEvents';
 
 interface ModalContent {
   title: string;
@@ -108,9 +109,7 @@ export function AuthInvalidUser() {
   };
 
   useEffect(() => {
-    function handleInvalidEmail(e: CustomEvent) {
-      const errorType = e?.detail;
-
+    function handleInvalidEmail(errorType: AuthErrorCode) {
       if (errorType) {
         router.refresh();
 
@@ -134,10 +133,8 @@ export function AuthInvalidUser() {
       handleModalOpen();
     }
 
-    document.addEventListener('auth-invalid-email', handleInvalidEmail as EventListener);
-    return () => {
-      document.removeEventListener('auth-invalid-email', handleInvalidEmail as EventListener);
-    };
+    const unsubscribe = authEvents.on('auth:invalid-email', handleInvalidEmail);
+    return unsubscribe;
   }, [pathname, onAccessDeniedModalShown, onAccessDeniedUserNotWhitelistedModalShown, reportAnalytics, router]);
 
   return <VerifyEmailModal dialogRef={dialogRef} content={content} handleModalClose={handleModalClose} />;

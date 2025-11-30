@@ -121,10 +121,11 @@ export const updateTeam = async (payload: any, authToken: string, teamUid: strin
 export const getTeam = async (
   id: string,
   options: string | string[][] | Record<string, string> | URLSearchParams | undefined,
+  authToken?: string,
 ) => {
   const requestOPtions: RequestInit = {
     method: 'GET',
-    headers: getHeader(''),
+    headers: getHeader(authToken || ''),
     cache: 'default',
     next: { tags: ['team-detail'] },
   };
@@ -187,11 +188,11 @@ export const getTeamsForProject = async () => {
   return { data: formattedData };
 };
 
-export const getTeamInfo = async (teamUid: string) => {
+export const getTeamInfo = async (teamUid: string, authToken?: string) => {
   const response = await fetch(`${teamsAPI}/${teamUid}`, {
     cache: 'no-store',
     method: 'GET',
-    headers: getHeader(''),
+    headers: getHeader(authToken || ''),
   });
   if (!response?.ok) {
     return { isError: true };

@@ -9,7 +9,7 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { useCarousel } from '@/hooks/use-embla-carousel';
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
-import { getTeamTier } from '@/utils/team.utils';
+import { getTeamTier, getTierLabel } from '@/utils/team.utils';
 
 interface ITeamGridView {
   userInfo?: IUserInfo;
@@ -30,7 +30,7 @@ const TeamGridView = (props: ITeamGridView) => {
     if (isTierViewer && typeof tier === 'number') {
       return [
         {
-          title: `Tier ${tier}`,
+          title: getTierLabel(tier),
           icon: <Image src="/icons/stack.svg" alt="stack" width={14} height={12} />,
         } as ITag,
         ...(team?.industryTags ?? []),

@@ -14,6 +14,7 @@ import { sortMemberByRole } from '@/utils/common.utils';
 
 const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLead: boolean, isAdmin: boolean) => {
   const dpResult = await getTeamsInfoForDp();
+  const { authToken } = getCookiesFromHeaders();
   let selectedTeam;
   let membersDetail;
   let allMembers;
@@ -27,7 +28,7 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
   }
   // const teamResult = await getTeamInfo(selectedTeamId ?? teams[0].id);
   const [teamResult, teamMembersResponse, allMembersResponse] = await Promise.all([
-    getTeamInfo(selectedTeamId ?? teams[0].id),
+    getTeamInfo(selectedTeamId ?? teams[0].id, authToken),
     getMemberRolesForTeam(
       {
         'teamMemberRoles.team.uid': selectedTeamId ?? teams[0].id,

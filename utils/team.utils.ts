@@ -453,8 +453,21 @@ export function getTierColor(tier: number): string {
   return tierColors[tier] || '#d9d2e9'; // Default to tier 0/4 color if tier not found
 }
 
+export function getTierLabel(tier: number | string): string {
+  const tierLabels: Record<string, string> = {
+    '0': 'Tier 0',
+    '1': 'Tier 1',
+    '2': 'Tier 2',
+    '3': 'Tier 3',
+    '4': 'Tier 4',
+    '-1': 'Tier N/A',
+  };
+
+  return tierLabels[String(tier)] || 'Tier ?';
+}
+
 export function getTeamTier(team: { tier?: number | string | null }): number | string | undefined {
-  return typeof team?.tier === 'number' && team?.tier >= 0 && team?.tier <= 4 ? team?.tier : undefined;
+  return typeof team?.tier === 'number' && team?.tier <= 4 ? team?.tier : undefined;
 }
 
 export function parseFocusAreasParams(queryParams: any) {

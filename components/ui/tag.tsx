@@ -105,7 +105,7 @@ export function Tag(props: Readonly<TagProps>) {
           .tag-primary {
             align-items: flex-start;
             border: none;
-            max-width: 66px;
+            max-width: 74px;
             white-space: nowrap;
             border: 1px solid #f1f5f9;
             overflow: hidden;
@@ -114,7 +114,7 @@ export function Tag(props: Readonly<TagProps>) {
             cursor: default;
             color: #475569;
             background: ${color ?? '#f1f5f9'};
-            padding: 2px 6px;
+            padding: 2px 5px;
           }
 
           .tag-md {
@@ -162,7 +162,7 @@ export function Tag(props: Readonly<TagProps>) {
             }
 
             .tag-primary {
-              max-width: 68px;
+              max-width: 74px;
             }
 
             .tag-md {

@@ -46,7 +46,7 @@ interface FilterGetterOptions<T extends BaseFilterItem> {
  * // With custom label formatting
  * export function getTiersGetter(tiers?: TierItem[]) {
  *   return createFilterGetter(tiers, {
- *     formatLabel: (tier) => `Tier ${tier.value}`
+ *     formatLabel: (tier) => getTierLabel(tier.value)
  *   });
  * }
  * ```

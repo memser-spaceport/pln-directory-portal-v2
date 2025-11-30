@@ -190,9 +190,13 @@ async function getPageData(teamId: string) {
     }
 
     const [teamResponse, teamMembersResponse, focusAreaResponse] = await Promise.all([
-      getTeam(teamId, {
-        with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks',
-      }),
+      getTeam(
+        teamId,
+        {
+          with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks',
+        },
+        authToken,
+      ),
       getMembers(
         {
           'teamMemberRoles.team.uid': teamId,

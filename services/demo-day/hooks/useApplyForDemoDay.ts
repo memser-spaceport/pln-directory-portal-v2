@@ -30,6 +30,7 @@ async function mutation(demoDaySlug: string, payload: ApplyForDemoDayPayload) {
 
   // Transform payload to match an API expected format
   const apiPayload = {
+    ...payload,
     name: payload.name,
     email: payload.email,
     linkedinProfile: payload.linkedin,

@@ -29,6 +29,7 @@ import { isValid } from 'zod';
 import { toast } from '@/components/core/ToastContainer';
 import { useRouter } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
+import clsx from 'clsx';
 
 const applySchema = yup.object().shape(
   {
@@ -436,29 +437,20 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         </button>
 
         <div className={s.content}>
-          <div className={s.icon}>
-            <PencilIcon />
-          </div>
-
           <div className={s.text}>
             <h2 className={s.title}>Application for {demoDayData?.title || 'PL Demo Day'}</h2>
-
             {demoDayData?.date && (
               <div className={s.dateInfo}>
-                <div className={s.dateLabel}>
-                  <CalendarIcon />
-                  <span>Date & Time:</span>
-                </div>
                 <span className={s.dateValue}>
                   {format(new Date(demoDayData.date), "dd MMMM, yyyy, h:mm a 'GMT'xxx")}
                 </span>
               </div>
             )}
-
-            {demoDayData?.description && (
-              <p className={s.description} dangerouslySetInnerHTML={{ __html: demoDayData.description }} />
-            )}
           </div>
+
+          {demoDayData?.description && (
+            <p className={s.description} dangerouslySetInnerHTML={{ __html: demoDayData.description }} />
+          )}
 
           {showLoader || isAutoSubmitting ? (
             <div className={s.loaderContainer}>
@@ -601,14 +593,12 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                     </Checkbox.Indicator>
                   </Checkbox.Root>
                   <div className={s.col}>
-                    <div className={s.primary}>
-                      I am an “accredited investor” under Rule 501(a) of the Securities Act of 1933, or I represent a
-                      VC/fund or institutional investor.
-                    </div>
+                    <div className={clsx(s.primary, s.required)}>Accredited investor confirmation</div>
                     <div className={s.secondary}>
-                      I understand that Polaris does not endorse or recommend any investments, and is not a broker,
-                      dealer, or advisor. I agree that I am solely responsible for my own compliance with securities
-                      laws and for conducting my own due diligence.
+                      I am an “accredited investor” under Rule 501(a) of the Securities Act of 1933, or I represent a
+                      VC/fund or institutional investor. I understand that Polaris does not endorse or recommend any
+                      investments, and is not a broker, dealer, or advisor. I agree that I am solely responsible for my
+                      own compliance with securities laws and for conducting my own due diligence.
                     </div>
                     {errors.isInvestor && <div className={s.errorMessage}>{errors.isInvestor.message}</div>}
                   </div>

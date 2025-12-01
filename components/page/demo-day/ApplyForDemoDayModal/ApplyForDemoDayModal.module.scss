@@ -71,13 +71,14 @@
 .text {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  text-align: center;
+  text-align: left;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
 .title {
+  text-align: left;
   color: var(--foreground-neutral-primary, #0A0C11);
-  text-align: center;
   font-size: 20px;
   font-style: normal;
   font-weight: 500;
@@ -86,12 +87,12 @@
 }
 
 .dateInfo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #455468;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 157.143% */
+  letter-spacing: -0.2px;
 }
 
 .dateLabel {
@@ -116,12 +117,14 @@
 }
 
 .description {
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 22px;
-  color: #455468;
   margin: 0;
   text-align: left;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 157.143% */
+  letter-spacing: -0.2px;
 
   a {
     color: #1B4DFF;
@@ -142,7 +145,7 @@
 
 .body {
   color: var(--foreground-neutral-secondary, #455468);
-  text-align: center;
+  text-align: left;
   font-size: 12px;
   font-style: normal;
   font-weight: 400;
@@ -152,7 +155,7 @@
 
 .bodySecondary {
   color: var(--foreground-neutral-secondary, #455468);
-  text-align: center;
+  text-align: left;
   font-size: 12px;
   font-style: normal;
   font-weight: 400;
@@ -195,12 +198,9 @@
 
 .footer {
   display: flex;
+  justify-content: space-between;
   gap: 8px;
   padding-top: 4px;
-
-  button {
-    flex: 1;
-  }
 
   @media (max-width: 768px) {
     flex-direction: column-reverse;
@@ -358,6 +358,13 @@
 
     > a {
       text-decoration: underline;
+    }
+
+    &.required {
+      &::after {
+        content: '*';
+        color: red;
+      }
     }
   }
 

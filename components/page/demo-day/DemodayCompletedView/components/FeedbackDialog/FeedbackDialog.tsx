@@ -102,7 +102,7 @@ export const FeedbackDialog: React.FC<FeedbackDialogProps> = ({ isOpen, onClose,
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleCancel}>
+    <Modal isOpen={isOpen} onClose={handleCancel} overlayClassname={s.overlay}>
       <div className={s.dialog}>
         <button className={s.closeButton} onClick={handleCancel} type="button">
           <CloseIcon />

@@ -99,7 +99,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
   };
 
   // Show skeleton loader while loading
-  if (isLoading) {
+  if (isLoading || !data) {
     return <DemoDayPageSkeleton />;
   }
 

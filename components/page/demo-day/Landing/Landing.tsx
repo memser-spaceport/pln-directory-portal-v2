@@ -1,8 +1,8 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 import Cookies from 'js-cookie';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
@@ -30,12 +30,20 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
   const { data, isLoading } = useGetDemoDayState(initialDemoDayState);
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const params = useParams();
+  const searchParams = useSearchParams();
   const demoDaySlug = params?.demoDayId as string;
   const showCountdown =
     data?.status === 'UPCOMING' || data?.status === 'REGISTRATION_OPEN' || data?.status === 'EARLY_ACCESS';
 
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Auto-open modal if dialog=applyToDemoday query param is present
+  useEffect(() => {
+    if (searchParams.get('dialog') === 'applyToDemoday') {
+      setIsApplyModalOpen(true);
+    }
+  }, [searchParams]);
 
   // Analytics hooks
   const { onLandingRequestInviteButtonClicked } = useDemoDayAnalytics();

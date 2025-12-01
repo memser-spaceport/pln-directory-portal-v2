@@ -415,7 +415,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         }
       }
     } catch (error) {
-      console.error('Failed to submit application:', error);
+      console.error('Failed to submit application', error);
     }
   };
 

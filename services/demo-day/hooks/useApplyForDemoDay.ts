@@ -52,7 +52,16 @@ async function mutation(demoDaySlug: string, payload: ApplyForDemoDayPayload) {
   );
 
   if (!response?.ok) {
-    throw new Error('Failed to submit application');
+    let errorMessage = 'Please try again.';
+
+    try {
+      const res = await response?.json();
+      errorMessage = res?.message || errorMessage;
+    } catch (e) {
+      // If JSON parsing fails, use default error message
+    }
+
+    throw new Error(`Failed to submit application. ${errorMessage}`);
   }
 
   return await response.json();

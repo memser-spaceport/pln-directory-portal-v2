@@ -23,6 +23,7 @@ import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList
 import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
 import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
 import { DemoDayPageSkeleton } from '@/components/page/demo-day/DemoDayPageSkeleton';
+import { isDemoDayParticipantInvestor } from '@/utils/member.utils';
 
 interface DemodayCompletedViewProps {
   initialDemoDayState?: DemoDayState;
@@ -50,7 +51,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
   const showFeedbackOption =
     isLoggedIn &&
     initialDemoDayState?.access &&
-    (initialDemoDayState?.access?.toUpperCase() === 'INVESTOR' ||
+    (isDemoDayParticipantInvestor(initialDemoDayState?.access) ||
       initialDemoDayState?.access?.toUpperCase() === 'FOUNDER');
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [showAllTeams, toggleShowAllTeams] = useToggle(false);

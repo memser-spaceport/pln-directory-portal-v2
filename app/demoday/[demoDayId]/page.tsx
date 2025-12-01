@@ -2,7 +2,7 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDemoDayState, getMemberInfo } from '@/app/actions/demo-day.actions';
 import { IUserInfo } from '@/types/shared.types';
 import { redirect } from 'next/navigation';
-import { checkInvestorProfileComplete } from '@/utils/member.utils';
+import { checkInvestorProfileComplete, isDemoDayParticipantInvestor } from '@/utils/member.utils';
 import { Landing } from '@/components/page/demo-day/Landing';
 
 export default async function DemoDayLandingPage({ params }: { params: { demoDayId: string } }) {
@@ -37,7 +37,10 @@ export default async function DemoDayLandingPage({ params }: { params: { demoDay
       redirect('/members');
     }
 
-    if ((demoDayState.access === 'FOUNDER' || demoDayState.access === 'INVESTOR') && demoDayState.status === 'NONE') {
+    if (
+      (demoDayState.access === 'FOUNDER' || isDemoDayParticipantInvestor(demoDayState.access)) &&
+      demoDayState.status === 'NONE'
+    ) {
       redirect('/members');
     }
 
@@ -50,7 +53,7 @@ export default async function DemoDayLandingPage({ params }: { params: { demoDay
     }
 
     if (
-      demoDayState.access === 'INVESTOR' &&
+      isDemoDayParticipantInvestor(demoDayState.access) &&
       (demoDayState.status === 'UPCOMING' || demoDayState.status === 'REGISTRATION_OPEN')
     ) {
       redirect(`/demoday/${params.demoDayId}/investor`);
@@ -60,7 +63,7 @@ export default async function DemoDayLandingPage({ params }: { params: { demoDay
       redirect(`/demoday/${params.demoDayId}/active`);
     }
 
-    if (demoDayState.access === 'INVESTOR' && demoDayState.status === 'ACTIVE') {
+    if (isDemoDayParticipantInvestor(demoDayState.access) && demoDayState.status === 'ACTIVE') {
       const isInvestorProfileComplete = checkInvestorProfileComplete(memberData, parsedUserInfo);
       if (isInvestorProfileComplete) {
         redirect(`/demoday/${params.demoDayId}/active`);

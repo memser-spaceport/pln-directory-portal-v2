@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDemoDayState, getMemberInfo } from '@/app/actions/demo-day.actions';
-import { checkInvestorProfileComplete } from '@/utils/member.utils';
+import { checkInvestorProfileComplete, isDemoDayParticipantInvestor } from '@/utils/member.utils';
 import { InvestorPendingView } from '@/components/page/demo-day/InvestorPendingView';
 
 export default async function InvestorPage({ params }: { params: { demoDayId: string } }) {
@@ -25,7 +25,7 @@ export default async function InvestorPage({ params }: { params: { demoDayId: st
     redirect(`/demoday/${params.demoDayId}`);
   }
 
-  if (demoDayState.access !== 'INVESTOR') {
+  if (!isDemoDayParticipantInvestor(demoDayState.access)) {
     redirect(`/demoday/${params.demoDayId}`);
   }
 

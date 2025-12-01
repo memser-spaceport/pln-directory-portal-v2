@@ -8,7 +8,7 @@ import { useParams } from 'next/navigation';
 
 type DemoDayState = {
   uid: string;
-  access: 'none' | 'INVESTOR' | 'FOUNDER';
+  access: 'none' | 'INVESTOR' | 'SUPPORT' | 'FOUNDER';
   date: string;
   title: string;
   description: string;

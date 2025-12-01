@@ -4,7 +4,7 @@ import { getHeader } from '@/utils/common.utils';
 
 export type DemoDayState = {
   uid: string;
-  access: 'none' | 'INVESTOR' | 'FOUNDER';
+  access: 'none' | 'INVESTOR' | 'SUPPORT' | 'FOUNDER';
   date: string;
   title: string;
   description: string;

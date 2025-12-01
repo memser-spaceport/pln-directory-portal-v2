@@ -374,6 +374,8 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         };
       }
 
+      debugger;
+
       // Build the payload
       const payload: ApplyForDemoDayPayload = {
         name: formData.name,

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList';
 import { Button } from '@/components/common/Button';
 import { DemoDayCard } from '@/components/common/DemoDayCard';
@@ -43,10 +44,18 @@ type Props = {
 };
 
 export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => {
+  const searchParams = useSearchParams();
   const { data: demoDays, isLoading } = useGetDemoDaysList();
   const [showAll, setShowAll] = useState(false);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Auto-open modal if dialog=applyToDemoday query param is present
+  useEffect(() => {
+    if (searchParams.get('dialog') === 'applyToDemoday') {
+      setIsApplyModalOpen(true);
+    }
+  }, [searchParams]);
 
   // Find demo days with REGISTRATION_OPEN or ACTIVE status
   const applicableDemoDays = demoDays?.filter((dd) => dd.status === 'REGISTRATION_OPEN' || dd.status === 'ACTIVE');

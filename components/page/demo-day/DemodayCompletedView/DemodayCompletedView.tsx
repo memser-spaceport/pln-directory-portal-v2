@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useToggle } from 'react-use';
 import clsx from 'clsx';
+import { useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/common/Button';
 import { LogosGrid } from '@/components/common/LogosGrid';
@@ -48,6 +49,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
   isLoggedIn,
   userInfo,
 }) => {
+  const searchParams = useSearchParams();
   const showFeedbackOption =
     isLoggedIn &&
     initialDemoDayState?.access &&
@@ -67,6 +69,13 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
 
   // Fetch demo days list
   const { data: demoDays, isLoading } = useGetDemoDaysList();
+
+  // Auto-open modal if dialog=applyToDemoday query param is present
+  useEffect(() => {
+    if (searchParams.get('dialog') === 'applyToDemoday') {
+      setIsApplyModalOpen(true);
+    }
+  }, [searchParams]);
 
   // Find next demo day with REGISTRATION_OPEN or ACTIVE status
   const nextDemoDay = useMemo(() => {

@@ -219,7 +219,7 @@ const TeamDetails = (props: ITeamDetails) => {
                       )}
                     </Fragment>
                   ))}
-                  {tags?.length && tags?.length > 5 && (
+                  {!!tags?.length && tags?.length > 5 && (
                     <Tooltip
                       asChild
                       trigger={

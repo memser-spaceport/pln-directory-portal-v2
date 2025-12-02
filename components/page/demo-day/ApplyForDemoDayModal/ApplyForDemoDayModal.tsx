@@ -27,7 +27,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { getMember } from '@/services/members.service';
 import { isValid } from 'zod';
 import { toast } from '@/components/core/ToastContainer';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import clsx from 'clsx';
 
@@ -85,55 +85,9 @@ interface Props {
   onSuccessUnauthenticated?: () => void;
 }
 
-const PencilIcon = () => (
-  <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M0 26C0 11.6406 11.6406 0 26 0C40.3594 0 52 11.6406 52 26C52 40.3594 40.3594 52 26 52C11.6406 52 0 40.3594 0 26Z"
-      fill="#F2F5FF"
-    />
-    <path
-      d="M38.415 19.1714L32.8288 13.5864C32.643 13.4007 32.4225 13.2533 32.1799 13.1528C31.9372 13.0522 31.6771 13.0005 31.4144 13.0005C31.1517 13.0005 30.8916 13.0522 30.6489 13.1528C30.4062 13.2533 30.1857 13.4007 30 13.5864L14.5863 29.0002C14.3997 29.1852 14.2519 29.4055 14.1512 29.6482C14.0506 29.8909 13.9992 30.1512 14 30.4139V36.0002C14 36.5306 14.2107 37.0393 14.5858 37.4144C14.9609 37.7895 15.4696 38.0002 16 38.0002H37C37.2652 38.0002 37.5196 37.8948 37.7071 37.7073C37.8947 37.5198 38 37.2654 38 37.0002C38 36.735 37.8947 36.4806 37.7071 36.2931C37.5196 36.1055 37.2652 36.0002 37 36.0002H24.415L38.415 22.0002C38.6008 21.8145 38.7481 21.594 38.8487 21.3513C38.9492 21.1086 39.001 20.8485 39.001 20.5858C39.001 20.3231 38.9492 20.063 38.8487 19.8203C38.7481 19.5777 38.6008 19.3572 38.415 19.1714ZM34 23.5864L28.415 18.0002L31.415 15.0002L37 20.5864L34 23.5864Z"
-      fill="#1B4DFF"
-    />
-  </svg>
-);
-
 const CloseIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const CalendarIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M11.0833 2.33331H2.91667C2.27233 2.33331 1.75 2.85565 1.75 3.49998V11.6666C1.75 12.311 2.27233 12.8333 2.91667 12.8333H11.0833C11.7277 12.8333 12.25 12.311 12.25 11.6666V3.49998C12.25 2.85565 11.7277 2.33331 11.0833 2.33331Z"
-      stroke="currentColor"
-      strokeWidth="1.16667"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M9.33331 1.16669V3.50002"
-      stroke="currentColor"
-      strokeWidth="1.16667"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M4.66669 1.16669V3.50002"
-      stroke="currentColor"
-      strokeWidth="1.16667"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M1.75 5.83331H12.25"
-      stroke="currentColor"
-      strokeWidth="1.16667"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
   </svg>
 );
 
@@ -147,6 +101,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   onSuccessUnauthenticated,
 }) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useApplyForDemoDay(demoDaySlug);
   const { data } = useMemberFormOptions();
@@ -160,6 +115,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   // Check if user is authenticated
   const authToken = Cookies.get('authToken');
   const isAuthenticated = Boolean(authToken);
+  const isOpenedByLink = searchParams.get('dialog') === 'applyToDemoday';
 
   const {
     data: member,
@@ -256,6 +212,10 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   // Auto-submit if all required fields are available
   useEffect(() => {
     const autoSubmit = async () => {
+      if (isOpenedByLink) {
+        return;
+      }
+
       if (
         !hasAutoSubmitted &&
         member &&
@@ -328,7 +288,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
       }
     };
 
-    autoSubmit();
+    void autoSubmit();
   }, [
     hasAutoSubmitted,
     member,
@@ -343,6 +303,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     onSuccessUnauthenticated,
     isOpen,
     minLoaderTime,
+    isOpenedByLink,
   ]);
 
   const onSubmit = async (formData: ApplyFormData) => {

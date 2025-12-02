@@ -46,7 +46,8 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
   }, [searchParams]);
 
   // Analytics hooks
-  const { onLandingRequestInviteButtonClicked } = useDemoDayAnalytics();
+  const { onLandingRequestInviteButtonClicked, onLandingLoginButtonClicked, onLandingInvestorsLinkClicked } =
+    useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
 
   // Page view analytics - triggers only once on mount

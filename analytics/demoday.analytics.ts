@@ -232,6 +232,26 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_COMMUNICATIONS_SETTINGS_UPDATED, eventParams);
   }
 
+  function onDemoDayListCardClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_DEMO_DAY_LIST_CARD_CLICKED, eventParams);
+  }
+
+  function onLandingInvestorsLinkClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_LANDING_INVESTORS_LINK_CLICKED, eventParams);
+  }
+
+  function onApplicationModalFieldEntered(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_APPLICATION_MODAL_FIELD_ENTERED, eventParams);
+  }
+
+  function onApplicationModalCanceled(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_APPLICATION_MODAL_CANCELED, eventParams);
+  }
+
+  function onApplicationModalSubmitted(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_APPLICATION_MODAL_SUBMITTED, eventParams);
+  }
+
   return {
     onLandingPageOpened,
     onLandingLoginButtonClicked,
@@ -286,5 +306,10 @@ export const useDemoDayAnalytics = () => {
     onInvestorProfileAddDetailsClicked,
     onInvestorProfileNotAnInvestorClicked,
     onInvestorCommunicationsSettingsUpdated,
+    onDemoDayListCardClicked,
+    onLandingInvestorsLinkClicked,
+    onApplicationModalFieldEntered,
+    onApplicationModalCanceled,
+    onApplicationModalSubmitted,
   };
 };

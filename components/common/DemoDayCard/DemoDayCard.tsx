@@ -1,6 +1,9 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 import s from './DemoDayCard.module.scss';
 import { DemoDayListResponse } from '@/services/demo-day/hooks/useGetDemoDaysList';
@@ -101,6 +104,8 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = ({
   status,
   className,
 }) => {
+  const { onDemoDayListCardClicked } = useDemoDayAnalytics();
+
   const statusConfig = getStatusConfig(status);
   const formattedDate = approximateStartDate || format(new Date(date), 'dd MMM yyyy');
   const showMore = status !== 'UPCOMING';
@@ -113,6 +118,15 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = ({
     }
   };
 
+  const handleCardClick = () => {
+    if (status === 'UPCOMING') {
+      return;
+    }
+
+    // PostHog analytics
+    onDemoDayListCardClicked({ demoDaySlug: slug, demoDayTitle: title, demoDayStatus: status });
+  };
+
   return (
     <Link
       href={`/demoday/${slug}`}
@@ -122,6 +136,8 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = ({
       onClick={(e) => {
         if (status === 'UPCOMING') {
           e.preventDefault();
+        } else {
+          handleCardClick();
         }
       }}
     >

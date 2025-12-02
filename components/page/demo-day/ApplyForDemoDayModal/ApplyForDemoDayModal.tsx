@@ -30,6 +30,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import clsx from 'clsx';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 const applySchema = yup.object().shape(
   {
@@ -106,11 +107,14 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   const { mutateAsync, isPending } = useApplyForDemoDay(demoDaySlug);
   const { data } = useMemberFormOptions();
   const memberAnalytics = useMemberAnalytics();
+  const { onApplicationModalFieldEntered, onApplicationModalCanceled, onApplicationModalSubmitted } =
+    useDemoDayAnalytics();
   const [isAddingTeam, setIsAddingTeam] = useState(false);
   const [hasAutoSubmitted, setHasAutoSubmitted] = useState(false);
   const [minLoaderTime, setMinLoaderTime] = useState<number | null>(null);
   const [showLoader, setShowLoader] = useState(false);
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
+  const [hasTrackedFieldEntry, setHasTrackedFieldEntry] = useState(false);
 
   // Check if user is authenticated
   const authToken = Cookies.get('authToken');
@@ -191,6 +195,20 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   } = methods;
 
   const isInvestor = watch('isInvestor');
+
+  // Track field entry (only once per modal open)
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (!hasTrackedFieldEntry && name) {
+        setHasTrackedFieldEntry(true);
+
+        // PostHog analytics
+        onApplicationModalFieldEntered({ fieldName: name, demoDaySlug, demoDayTitle: demoDayData?.title });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [watch, hasTrackedFieldEntry, onApplicationModalFieldEntered, demoDaySlug, demoDayData?.title]);
 
   // Reinitialize form when member data is fetched
   useEffect(() => {
@@ -350,6 +368,16 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
       const res = await mutateAsync(payload);
 
       if (res) {
+        // PostHog analytics
+        onApplicationModalSubmitted({
+          demoDaySlug,
+          demoDayTitle: demoDayData?.title,
+          isAuthenticated,
+          isTeamNew,
+          hasTeam: !!team && Object.keys(team).length > 0,
+          hasProject: !!project,
+        });
+
         // Invalidate demo day state queries
         await queryClient.invalidateQueries({
           queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATE],
@@ -381,12 +409,19 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   };
 
   const handleClose = () => {
+    // Track modal cancellation if user has entered any data
+    if (hasTrackedFieldEntry) {
+      // PostHog analytics
+      onApplicationModalCanceled({ demoDaySlug, demoDayTitle: demoDayData?.title });
+    }
+
     reset();
     setIsAddingTeam(false);
     setHasAutoSubmitted(false);
     setMinLoaderTime(null);
     setShowLoader(false);
     setIsAutoSubmitting(false);
+    setHasTrackedFieldEntry(false);
 
     // Remove dialog query param if it exists
     const currentParams = new URLSearchParams(window.location.search);

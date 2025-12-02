@@ -1669,4 +1669,9 @@ export const DEMO_DAY_ANALYTICS = {
   ON_INVESTOR_PROFILE_ADD_DETAILS_CLICKED: 'demo-day-investor-profile-add-details-clicked',
   ON_INVESTOR_PROFILE_NOT_AN_INVESTOR_CLICKED: 'demo-day-investor-profile-not-an-investor-clicked',
   ON_INVESTOR_COMMUNICATIONS_SETTINGS_UPDATED: 'demo-day-investor-communications-settings-updated',
+  ON_DEMO_DAY_LIST_CARD_CLICKED: 'demo-day-list-card-clicked',
+  ON_LANDING_INVESTORS_LINK_CLICKED: 'demo-day-landing-investors-link-clicked',
+  ON_APPLICATION_MODAL_FIELD_ENTERED: 'demo-day-application-modal-field-entered',
+  ON_APPLICATION_MODAL_CANCELED: 'demo-day-application-modal-canceled',
+  ON_APPLICATION_MODAL_SUBMITTED: 'demo-day-application-modal-submitted',
 };

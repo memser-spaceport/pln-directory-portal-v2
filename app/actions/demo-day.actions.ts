@@ -15,6 +15,7 @@ export type DemoDayState = {
   investorsCount: number;
   teamsCount: number;
   approximateStartDate?: string;
+  supportEmail?: string;
 };
 
 export const getDemoDayState = async (slug: string, memberUid?: string, authToken?: string) => {

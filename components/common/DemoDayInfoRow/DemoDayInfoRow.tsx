@@ -1,6 +1,9 @@
+'use client';
+
 import React from 'react';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 import s from './DemoDayInfoRow.module.scss';
 
@@ -59,11 +62,18 @@ export const DemoDayInfoRow: React.FC<DemoDayInfoRowProps> = ({
   showInvestorsLink = false,
   approximateStartDate,
 }) => {
+  const { onLandingInvestorsLinkClicked } = useDemoDayAnalytics();
+
   const formattedDate = approximateStartDate
     ? approximateStartDate
     : date
       ? format(new Date(date), 'MMM dd, yyyy, HH:mm')
       : null;
+
+  const handleInvestorsLinkClick = () => {
+    // PostHog analytics
+    onLandingInvestorsLinkClicked({ investorsCount });
+  };
 
   return (
     <div className={s.container}>
@@ -95,7 +105,12 @@ export const DemoDayInfoRow: React.FC<DemoDayInfoRowProps> = ({
       {investorsCount !== undefined && (
         <>
           {showInvestorsLink ? (
-            <Link href="/members?isInvestor=true" className={s.link} target="_blank">
+            <Link
+              href="/members?isInvestor=true"
+              className={s.link}
+              target="_blank"
+              onClick={handleInvestorsLinkClick}
+            >
               <span className={s.text}>{investorsCount} Investors</span>
               <ArrowUpRightIcon />
             </Link>

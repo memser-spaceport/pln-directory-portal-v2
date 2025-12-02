@@ -46,7 +46,8 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
   }, [searchParams]);
 
   // Analytics hooks
-  const { onLandingRequestInviteButtonClicked } = useDemoDayAnalytics();
+  const { onLandingRequestInviteButtonClicked, onLandingLoginButtonClicked, onLandingInvestorsLinkClicked } =
+    useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
 
   // Page view analytics - triggers only once on mount
@@ -129,6 +130,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
             showInvestorsLink={true}
           />
         }
+        hideLogos={demoDaySlug === 'pl-genesis-accelerator'}
       >
         <div className={s.root}>
           {!userInfo && <LoginBtn className={clsx(s.btn, s.secondaryButton)}>Already approved? Log in</LoginBtn>}
@@ -146,7 +148,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
 
       {demoDaySlug && (
         <ApplyForDemoDayModal
-          isOpen={isApplyModalOpen}
+          isOpen={isApplyModalOpen && !data?.isPending}
           onClose={() => setIsApplyModalOpen(false)}
           userInfo={userInfo}
           memberData={null}

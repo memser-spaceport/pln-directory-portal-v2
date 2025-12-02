@@ -1,19 +1,16 @@
 'use client';
 
 import { clsx } from 'clsx';
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useState, useMemo } from 'react';
 
 import s from './FAQ.module.scss';
-
-interface FAQItem {
-  question: string;
-  answer: ReactNode;
-}
+import { demoDayFaqMap, FAQItem } from '@/app/constants/demoday';
 
 interface FAQProps {
   title?: string;
   items: FAQItem[];
   subtitle?: ReactNode;
+  demoDaySlug?: string | null;
 }
 
 const ChevronDownIcon = () => (
@@ -28,10 +25,18 @@ const ChevronDownIcon = () => (
   </svg>
 );
 
-export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', items, subtitle }) => {
+export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', items, subtitle, demoDaySlug }) => {
+  // Use demo day specific FAQ if available (from hardcoded map), otherwise use default items
+  const faqItems = useMemo(() => {
+    if (demoDaySlug && demoDayFaqMap[demoDaySlug]) {
+      return demoDayFaqMap[demoDaySlug];
+    }
+    return items;
+  }, [demoDaySlug, items]);
+
   // Initialize with all items expanded by default
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(
-    () => new Set(Array.from({ length: items.length }, (_, i) => i)),
+    () => new Set(Array.from({ length: faqItems.length }, (_, i) => i)),
   );
 
   const toggleItem = (index: number) => {
@@ -52,7 +57,7 @@ export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', 
       {subtitle && <div className={s.subtitle}>{subtitle}</div>}
       <div className={s.divider} />
       <div className={s.itemsContainer}>
-        {items.map((item, index) => (
+        {faqItems.map((item, index) => (
           <div key={index} className={s.faqItem}>
             <button
               className={clsx(s.questionButton, {

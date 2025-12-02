@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react';
+import React, { PropsWithChildren, ReactNode } from 'react';
 
 import { faqItems } from '@/app/constants/demoday';
 
@@ -13,10 +13,14 @@ import s from './LandingBase.module.scss';
 
 interface LandingBaseProps {
   initialDemoDayState?: DemoDayState;
+  countdown?: ReactNode;
+  information?: ReactNode;
+  hideLogos?: boolean;
 }
 
 export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
-  const { children, initialDemoDayState } = props;
+  const { children, initialDemoDayState, countdown, information, hideLogos } = props;
+  const supportEmail = initialDemoDayState?.supportEmail ?? 'pldemoday@protocol.ai';
 
   return (
     <div className={s.root}>
@@ -24,20 +28,23 @@ export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
         {/* Main content */}
         <div className={s.content}>
           <div className={s.mainContent}>
+            {countdown}
             <PageTitle initialDemoDayState={initialDemoDayState} />
+            {information}
           </div>
 
           {children}
 
           <div className={s.reachOut}>
             Questions? Contact us at{' '}
-            <a href="mailto:pldemoday@protocol.ai" className={s.email}>
-              pldemoday@protocol.ai
+            <a href={`mailto:${supportEmail}`} className={s.email}>
+              {supportEmail}
             </a>
           </div>
 
-          <LogosGrid />
-          <FAQ items={faqItems} />
+          {!hideLogos && <LogosGrid />}
+
+          <FAQ items={faqItems} demoDaySlug={initialDemoDayState?.uid} />
 
           <Footer />
         </div>

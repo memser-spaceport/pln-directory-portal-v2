@@ -10,7 +10,7 @@ import { useDebounce } from 'react-use';
  *
  * Syncs Teams filter store state to URL with debouncing
  */
-export function SyncTeamsParamsToUrl({ debounceTime = 700 }: { debounceTime?: number }) {
+export function SyncTeamsParamsToUrl({ debounceTime = 0 }: { debounceTime?: number }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { params, _clearImmediate } = useTeamFilterStore();

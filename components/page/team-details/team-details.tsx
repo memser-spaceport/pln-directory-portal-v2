@@ -5,7 +5,7 @@ import { Tag } from '@/components/ui/tag';
 import { IUserInfo } from '@/types/shared.types';
 import { ITag, ITeam } from '@/types/teams.types';
 import { ADMIN_ROLE } from '@/utils/constants';
-import { getTeamTier, getTechnologyImage } from '@/utils/team.utils';
+import { getTeamTier, getTechnologyImage, getTierLabel } from '@/utils/team.utils';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { Fragment, useEffect, useMemo, useState } from 'react';
@@ -36,7 +36,7 @@ const TeamDetails = (props: ITeamDetails) => {
     if (isTierViewer && typeof tier === 'number') {
       return [
         {
-          title: `Tier ${tier}`,
+          title: getTierLabel(tier),
           icon: <Image src="/icons/stack.svg" alt="stack" width={16} height={14} />,
         } as ITag,
         ...(team?.industryTags ?? []),

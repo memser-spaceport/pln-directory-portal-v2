@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { getVideoUploadUrl, confirmVideoUpload } from '../fundraising-profile.service';
 import { uploadToS3 } from '@/utils/s3-upload.utils';
@@ -14,12 +15,12 @@ interface UploadVideoParams {
   onProgress?: (progress: number) => void; // Progress callback
 }
 
-async function uploadVideo(params: UploadVideoParams): Promise<UploadVideoResponse> {
+async function uploadVideo(demoDayId: string, params: UploadVideoParams): Promise<UploadVideoResponse> {
   const { file, teamUid, onProgress } = params;
 
   try {
     // Step 1: Get presigned upload URL
-    const { uploadUid, presignedUrl } = await getVideoUploadUrl({
+    const { uploadUid, presignedUrl } = await getVideoUploadUrl(demoDayId, {
       filename: file.name,
       filesize: file.size,
       mimetype: file.type,
@@ -32,7 +33,7 @@ async function uploadVideo(params: UploadVideoParams): Promise<UploadVideoRespon
     });
 
     // Step 3: Confirm upload completion
-    const result = await confirmVideoUpload({
+    const result = await confirmVideoUpload(demoDayId, {
       uploadUid,
       teamUid,
     });
@@ -55,16 +56,18 @@ async function uploadVideo(params: UploadVideoParams): Promise<UploadVideoRespon
 
 export function useUploadVideo() {
   const queryClient = useQueryClient();
+  const params = useParams();
+  const demoDayId = params.demoDayId as string;
 
   return useMutation({
-    mutationFn: uploadVideo,
+    mutationFn: (uploadParams: UploadVideoParams) => uploadVideo(demoDayId, uploadParams),
     onSuccess: (_, variables) => {
       // Invalidate and refetch the fundraising profile data
-      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
-      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE, demoDayId] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId] });
       // Only invalidate admin list if uploading as admin
       if (variables.teamUid) {
-        queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES] });
+        queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId] });
       }
     },
     onError: (error) => {

@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useToggle } from 'react-use';
 import clsx from 'clsx';
+import { useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/common/Button';
 import { LogosGrid } from '@/components/common/LogosGrid';
@@ -18,7 +19,12 @@ import teamsData from '@/components/common/LogosGrid/teams.json';
 import s from './DemodayCompletedView.module.scss';
 import { IUserInfo } from '@/types/shared.types';
 import { toast } from '@/components/core/ToastContainer';
-import { APPLY_FOR_NEXT_DEMO_DAY_URL, FOUNDERS_FORGE_URL } from '@/constants/demoDay';
+import { format } from 'date-fns';
+import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList';
+import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
+import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
+import { DemoDayPageSkeleton } from '@/components/page/demo-day/DemoDayPageSkeleton';
+import { isDemoDayParticipantInvestor } from '@/utils/member.utils';
 
 interface DemodayCompletedViewProps {
   initialDemoDayState?: DemoDayState;
@@ -43,16 +49,46 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
   isLoggedIn,
   userInfo,
 }) => {
+  const searchParams = useSearchParams();
   const showFeedbackOption =
-    isLoggedIn && initialDemoDayState?.access && initialDemoDayState?.access?.toUpperCase() === 'INVESTOR';
+    isLoggedIn &&
+    initialDemoDayState?.access &&
+    (isDemoDayParticipantInvestor(initialDemoDayState?.access) ||
+      initialDemoDayState?.access?.toUpperCase() === 'FOUNDER');
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [showAllTeams, toggleShowAllTeams] = useToggle(false);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
   const {
     onCompletedViewApplyForNextDemoDayClicked,
     onCompletedViewGiveFeedbackClicked,
     onCompletedViewKeepProfileUpdatedClicked,
     onCompletedViewShowMoreTeamsClicked,
   } = useDemoDayAnalytics();
+
+  // Fetch demo days list
+  const { data: demoDays, isLoading } = useGetDemoDaysList();
+
+  // Auto-open modal if dialog=applyToDemoday query param is present
+  useEffect(() => {
+    if (searchParams.get('dialog') === 'applyToDemoday') {
+      setIsApplyModalOpen(true);
+    }
+  }, [searchParams]);
+
+  // Find next demo day with REGISTRATION_OPEN or ACTIVE status
+  const nextDemoDay = useMemo(() => {
+    if (!demoDays) return null;
+
+    // First try to find REGISTRATION_OPEN
+    const registrationOpen = demoDays.find((dd) => dd.status === 'REGISTRATION_OPEN');
+    if (registrationOpen) return registrationOpen;
+
+    // If not found, try to find ACTIVE
+    const active = demoDays.find((dd) => dd.status === 'ACTIVE');
+    return active || null;
+  }, [demoDays]);
 
   // Use static teams data from teams.json
   const displayTeams = teamsData;
@@ -81,30 +117,35 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
     toggleShowAllTeams();
   };
 
+  // Show skeleton loader while loading
+  if (isLoading) {
+    return <DemoDayPageSkeleton />;
+  }
+
   return (
     <div className={s.root}>
       <div className={s.content}>
         {/* Hero Section */}
         <section className={s.heroSection}>
           <div className={s.titleContainer}>
+            <div className={s.overline}>
+              <div className={s.dot} />
+              <span className={s.overlineText}>COMPLETED</span>
+              <span className={s.break} />
+              <span className={s.overlineText}>
+                {initialDemoDayState?.date ? format(new Date(initialDemoDayState?.date), 'MMM dd, yyyy') : ''}
+              </span>
+            </div>
             <div className={s.headline}>
-              <h1 className={s.title}>PL Demo Day</h1>
-              <p className={s.body}>
-                PL Demo Day is a concentrated virtual event featuring the most promising, pre-selected batch of
-                high-quality teams that will deliver pitches, in a fully asynchronous environment.
-              </p>
+              <h1 className={s.title}>{initialDemoDayState?.title}</h1>
+              <p className={s.body} dangerouslySetInnerHTML={{ __html: initialDemoDayState?.description || '' }} />
             </div>
           </div>
 
           <div className={s.buttons}>
-            <Link
-              href={APPLY_FOR_NEXT_DEMO_DAY_URL}
-              onClick={handleApplyForNextDemoDayClick}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <Link href="/demoday" onClick={handleApplyForNextDemoDayClick}>
               <Button size="l" style="fill" variant="primary">
-                Apply for next Demo Day <ArrowRight />
+                View upcoming Demo Days <ArrowRight />
               </Button>
             </Link>
             <div className={s.links}>
@@ -127,38 +168,38 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           </div>
         </section>
 
-        {/* Demo Days Timeline Section */}
-        <section className={s.sectionTimeline}>
-          <div className={s.statusBadge} data-status="upcoming">
-            Upcoming
-          </div>
-          <h3 className={s.timelineTitle}>PL_Genesis Accelerator Demo Day · January 2026</h3>
-          <p className={s.timelineDescription}>
-            Explore 10 pioneering teams asynchronously after they live pitch at{' '}
-            <a
-              href={FOUNDERS_FORGE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={s.timelineDescriptionLink}
-            >
-              Build Week in UAE
-            </a>
-            .
-          </p>
-          <div className={s.divider} />
-          <h3 className={s.timelineTitle}>PL Demo Day W26 · Q1&apos;26</h3>
-          <p className={s.timelineDescription}>Explore 20+ teams across AI, Web3, crypto, robotics, and neurotech.</p>
-        </section>
+        {/*/!* Demo Days Timeline Section *!/*/}
+        {/*<section className={s.sectionTimeline}>*/}
+        {/*  <div className={s.statusBadge} data-status="upcoming">*/}
+        {/*    Upcoming*/}
+        {/*  </div>*/}
+        {/*  <h3 className={s.timelineTitle}>PL_Genesis Accelerator Demo Day · January 2026</h3>*/}
+        {/*  <p className={s.timelineDescription}>*/}
+        {/*    Explore 10 pioneering teams asynchronously after they live pitch at{' '}*/}
+        {/*    <a*/}
+        {/*      href={FOUNDERS_FORGE_URL}*/}
+        {/*      target="_blank"*/}
+        {/*      rel="noopener noreferrer"*/}
+        {/*      className={s.timelineDescriptionLink}*/}
+        {/*    >*/}
+        {/*      Build Week in UAE*/}
+        {/*    </a>*/}
+        {/*    .*/}
+        {/*  </p>*/}
+        {/*  <div className={s.divider} />*/}
+        {/*  <h3 className={s.timelineTitle}>PL Demo Day W26 · Q1&apos;26</h3>*/}
+        {/*  <p className={s.timelineDescription}>Explore 20+ teams across AI, Web3, crypto, robotics, and neurotech.</p>*/}
+        {/*</section>*/}
 
-        <section className={s.sectionTimeline}>
-          <div className={s.statusBadge} data-status="completed">
-            Completed
-          </div>
-          <h3 className={s.timelineTitle}>PL Demo Day F25</h3>
-          <p className={s.timelineDescription}>
-            Showcased 28 teams from Pre-Seed to Series A+ across AI, neurotech, robotics, web3, and crypto.
-          </p>
-        </section>
+        {/*<section className={s.sectionTimeline}>*/}
+        {/*  <div className={s.statusBadge} data-status="completed">*/}
+        {/*    Completed*/}
+        {/*  </div>*/}
+        {/*  <h3 className={s.timelineTitle}>PL Demo Day F25</h3>*/}
+        {/*  <p className={s.timelineDescription}>*/}
+        {/*    Showcased 28 teams from Pre-Seed to Series A+ across AI, neurotech, robotics, web3, and crypto.*/}
+        {/*  </p>*/}
+        {/*</section>*/}
 
         {/* Partners Section */}
         <section className={s.sectionPartners}>
@@ -211,6 +252,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           <FAQ
             title="Frequently Asked Questions"
             items={faqCompletedItems}
+            demoDaySlug={initialDemoDayState?.uid}
             subtitle={
               <p className={s.infoText}>
                 Reach out to us on{' '}
@@ -248,6 +290,32 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
         onClose={() => setIsFeedbackDialogOpen(false)}
         onSuccess={handleFeedbackSuccess}
       />
+
+      {/* Apply for Demo Day Modal */}
+      {nextDemoDay && (
+        <ApplyForDemoDayModal
+          isOpen={isApplyModalOpen}
+          onClose={() => setIsApplyModalOpen(false)}
+          userInfo={userInfo}
+          memberData={null}
+          demoDaySlug={nextDemoDay.slugURL}
+          demoDayData={{
+            uid: '',
+            access: nextDemoDay.access,
+            date: nextDemoDay.date,
+            title: nextDemoDay.title,
+            description: nextDemoDay.description,
+            status: nextDemoDay.status,
+            isDemoDayAdmin: false,
+            confidentialityAccepted: nextDemoDay.confidentialityAccepted,
+            investorsCount: nextDemoDay.investorsCount,
+            teamsCount: nextDemoDay.teamsCount,
+          }}
+          onSuccessUnauthenticated={() => setShowSuccessModal(true)}
+        />
+      )}
+
+      <AccountCreatedSuccessModal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} />
     </div>
   );
 };

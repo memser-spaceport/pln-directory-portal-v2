@@ -1,0 +1,2 @@
+export { DemoDayPageSkeleton } from './DemoDayPageSkeleton';
+

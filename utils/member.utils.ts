@@ -862,3 +862,7 @@ export function checkInvestorProfileComplete(memberInfo: any, userInfo: any): bo
 
   return hasInvestmentTeams;
 }
+
+export function isDemoDayParticipantInvestor(access?: string): boolean {
+  return ['INVESTOR', 'SUPPORT'].includes(String(access).toUpperCase());
+}

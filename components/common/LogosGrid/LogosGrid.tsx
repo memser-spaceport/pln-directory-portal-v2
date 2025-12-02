@@ -53,7 +53,7 @@ export function LogosGrid(props: Props) {
       </div>
 
       <Button size="s" style="border" className={s.btn} onClick={handleShowMoreClick}>
-        Show {showAll ? 'Less' : 'More'}
+        Show {showAll ? 'Less' : 'All'}
       </Button>
     </div>
   );

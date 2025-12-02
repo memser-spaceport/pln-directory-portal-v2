@@ -13,7 +13,7 @@ import { AdminFilters } from '@/components/page/demo-day/AdminView/components/Ad
 import { AdminContent } from '@/components/page/demo-day/AdminView/components/AdminContent';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
-function DemoDayPrepPage() {
+function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const { data } = useGetDemoDayState();
@@ -25,9 +25,9 @@ function DemoDayPrepPage() {
   useEffect(() => {
     // Redirect non-admins to regular demo day page
     if (!hasAccess && data) {
-      redirect('/demoday');
+      redirect(`/demoday/${params.demoDayId}`);
     }
-  }, [hasAccess, data]);
+  }, [hasAccess, data, params?.demoDayId]);
 
   // Don't render anything for non-admins while redirecting
   if (!hasAccess) {

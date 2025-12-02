@@ -1,0 +1,212 @@
+.card {
+  display: block;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  border-radius: 16px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    border-radius: 16px;
+    border: 1px solid var(--action-border-neutral-light_hover, rgba(14, 15, 17, 0.24));
+    background: var(--background-base-white, #FFF);
+    box-shadow: 0 10px 15px -3px var(--transparent-dark-12, rgba(14, 15, 17, 0.12)), 0 4px 6px -2px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  }
+
+  &.nonClickable {
+    cursor: default;
+    border: 1px solid rgba(14, 15, 17, 0.16);
+    box-shadow: none;
+  }
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.eventInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.overline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.badgeUpcoming {
+  border-color: transparent;
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  color: #455468;
+
+  svg {
+    color: #455468;
+  }
+}
+
+.badgeRegistrationOpen {
+  border-color: transparent;
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-brand-4, rgba(27, 77, 255, 0.04));
+  color: #4174FF;
+
+  svg {
+    color: #4174ff;
+  }
+}
+
+
+.badgeActive {
+  border-color: transparent;
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--background-error-soft-surface, rgba(255, 56, 56, 0.08));
+  color: #FF3838;
+
+  svg {
+    color: #FF3838;
+  }
+}
+
+.badgeCompleted {
+  border-color: transparent;
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--background-success-soft-surface, rgba(10, 153, 82, 0.10));
+  color: #11A75C;
+
+  svg {
+    color: #11A75C;
+  }
+}
+
+.badgeArchived {
+  background: rgba(175, 186, 202, 0.04);
+  border-color: #e5e8eb;
+  color: #7d8a9c;
+
+  svg {
+    color: #7d8a9c;
+  }
+}
+
+.badgeDefault {
+  background: rgba(175, 186, 202, 0.08);
+  border-color: #d1d8e0;
+  color: #455468;
+
+  svg {
+    color: #455468;
+  }
+}
+
+.badgeText {
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+.date {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    color: #455468;
+  }
+}
+
+.dateText {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+.title {
+  color: var(--foreground-neutral-primary, #0A0C11);
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 34px; /* 141.667% */
+  letter-spacing: -0.4px;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+    line-height: 28px;
+  }
+}
+
+.description {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 142.857% */
+
+  a {
+    color: #1B4DFF;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+      color: #1a45e6;
+    }
+  }
+}
+
+.more {
+  display: flex;
+  padding: 8px var(--global-size-size-125, 10px);
+  justify-content: center;
+  align-items: center;
+  border-radius: var(--corner-radius-md, 8px);
+  border: 1px solid var(--action-foreground-brand-normal, #1B4DFF);
+  background: var(--action-background-base-white, #FFF);
+  box-shadow: 0 2px 8px 0 var(--transparent-brand-4, rgba(27, 77, 255, 0.04)) inset, 0 1px 4px 0 var(--transparent-brand-24, rgba(27, 77, 255, 0.24));
+
+  width: fit-content;
+  gap: 4px;
+  color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  margin-top: 20px;
+}

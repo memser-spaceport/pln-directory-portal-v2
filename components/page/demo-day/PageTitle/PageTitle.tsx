@@ -20,15 +20,10 @@ export function PageTitle(props: PageTitleProps) {
   return (
     <div className={s.root}>
       <h1 className={`${s.title} ${size === 'small' && s.small}`}>{data?.title || 'PL F25 Demo Day'}</h1>
-      <p className={`${s.description} ${size === 'small' && s.small}`}>
-        Explore 28 teams across AI, Web3, crypto, robotics, and neurotech.
-        <br />
-        Review teams asynchronously, with direct contact available in-platform.
-        <br />
-        {subtitle}
-        <br />
-        <b>F25 Demo Day closed on Nov 7th at 10:00 PM PST</b>
-      </p>
+      <p
+        className={`${s.description} ${size === 'small' && s.small}`}
+        dangerouslySetInnerHTML={{ __html: data?.shortDescription || data?.description || '' }}
+      />
     </div>
   );
 }

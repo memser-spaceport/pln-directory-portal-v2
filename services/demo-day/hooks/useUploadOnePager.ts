@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { getOnePagerUploadUrl, confirmOnePagerUpload, uploadOnePagerPreview } from '../fundraising-profile.service';
 import { uploadToS3 } from '@/utils/s3-upload.utils';
@@ -15,12 +16,12 @@ interface UploadOnePagerParams {
   onProgress?: (progress: number, status?: string) => void; // Progress callback with optional status
 }
 
-async function uploadOnePager(params: UploadOnePagerParams): Promise<UploadOnePagerResponse> {
+async function uploadOnePager(demoDayId: string, params: UploadOnePagerParams): Promise<UploadOnePagerResponse> {
   const { file, teamUid, onProgress } = params;
 
   try {
     // Step 1: Get presigned upload URL
-    const { uploadUid, presignedUrl } = await getOnePagerUploadUrl({
+    const { uploadUid, presignedUrl } = await getOnePagerUploadUrl(demoDayId, {
       filename: file.name,
       filesize: file.size,
       mimetype: file.type,
@@ -33,7 +34,7 @@ async function uploadOnePager(params: UploadOnePagerParams): Promise<UploadOnePa
     });
 
     // Step 3: Confirm upload completion
-    const result = await confirmOnePagerUpload({
+    const result = await confirmOnePagerUpload(demoDayId, {
       uploadUid,
       teamUid,
     });
@@ -45,9 +46,9 @@ async function uploadOnePager(params: UploadOnePagerParams): Promise<UploadOnePa
         onProgress?.(100, 'Processing');
 
         const previewImage = await generatePdfPreview(file, 8.0, 'jpeg', 0.99);
-        const previewImageSmall = await generatePdfPreview(file, 1, 'jpeg', 0.99);
+        const previewImageSmall = await generatePdfPreview(file, 1, 'jpeg', 0.7);
 
-        await uploadOnePagerPreview({
+        await uploadOnePagerPreview(demoDayId, {
           previewImage,
           previewImageSmall,
           teamUid,
@@ -76,16 +77,18 @@ async function uploadOnePager(params: UploadOnePagerParams): Promise<UploadOnePa
 
 export function useUploadOnePager() {
   const queryClient = useQueryClient();
+  const params = useParams();
+  const demoDayId = params.demoDayId as string;
 
   return useMutation({
-    mutationFn: uploadOnePager,
+    mutationFn: (uploadParams: UploadOnePagerParams) => uploadOnePager(demoDayId, uploadParams),
     onSuccess: (_, variables) => {
       // Invalidate and refetch the fundraising profile data
-      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
-      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE, demoDayId] });
+      queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId] });
       // Only invalidate admin list if uploading as admin
       if (variables.teamUid) {
-        queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES] });
+        queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId] });
       }
     },
     onError: (error) => {

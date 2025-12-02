@@ -4,20 +4,22 @@ import { getHeader } from '@/utils/common.utils';
 
 export type DemoDayState = {
   uid: string;
-  access: 'none' | 'INVESTOR' | 'FOUNDER';
+  access: 'none' | 'INVESTOR' | 'SUPPORT' | 'FOUNDER';
   date: string;
   title: string;
   description: string;
-  status: 'NONE' | 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
+  status: 'NONE' | 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED' | 'REGISTRATION_OPEN';
   isDemoDayAdmin: boolean;
   isEarlyAccess?: boolean;
   confidentialityAccepted: boolean;
   investorsCount: number;
   teamsCount: number;
+  approximateStartDate?: string;
+  supportEmail?: string;
 };
 
-export const getDemoDayState = async (memberUid?: string, authToken?: string) => {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/current${memberUid ? `?memberUid=${memberUid}` : ''}`;
+export const getDemoDayState = async (slug: string, memberUid?: string, authToken?: string) => {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${slug}${memberUid ? `?memberUid=${memberUid}` : ''}`;
 
   const response = await fetch(url, {
     method: 'GET',

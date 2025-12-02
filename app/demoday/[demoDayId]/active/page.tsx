@@ -4,7 +4,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { redirect } from 'next/navigation';
 import { ActiveView } from '@/components/page/demo-day/ActiveView';
 
-export default async function ActivePage() {
+export default async function ActivePage({ params }: { params: { demoDayId: string } }) {
   const { userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
   const parsedUserInfo: IUserInfo = userInfo;
 
@@ -12,12 +12,12 @@ export default async function ActivePage() {
   let demoDayState = null;
 
   if (!isLoggedIn || !parsedUserInfo?.uid) {
-    redirect('/demoday');
+    redirect(`/demoday/${params.demoDayId}`);
   }
 
   if (parsedUserInfo?.uid) {
     try {
-      const demoDayResult = await getDemoDayState(parsedUserInfo.uid, authToken);
+      const demoDayResult = await getDemoDayState(params.demoDayId, parsedUserInfo.uid, authToken);
 
       demoDayState = demoDayResult?.data || null;
     } catch (error) {
@@ -28,7 +28,7 @@ export default async function ActivePage() {
   // Server-side redirect logic
   if (demoDayState) {
     if (demoDayState.access === 'none' || demoDayState.status !== 'ACTIVE') {
-      redirect('/demoday');
+      redirect(`/demoday/${params.demoDayId}`);
     }
   }
 

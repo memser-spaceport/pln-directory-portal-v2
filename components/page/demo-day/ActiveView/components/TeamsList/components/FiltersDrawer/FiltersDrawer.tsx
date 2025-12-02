@@ -69,7 +69,6 @@ export const FiltersDrawer: React.FC<FiltersDrawerProps> = ({ isOpen, onClose })
                   Clear all
                 </button>
                 <button className={s.closeButton} onClick={onClose}>
-                  <CloseIcon />
                   Close
                 </button>
               </div>

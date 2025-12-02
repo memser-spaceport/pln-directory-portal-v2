@@ -453,14 +453,14 @@ export function getTierColor(tier: number): string {
   return tierColors[tier] || '#d9d2e9'; // Default to tier 0/4 color if tier not found
 }
 
-export function getTierLabel(tier: number | string): string {
+export function getTierLabel(tier: number | string, full?: boolean): string {
   const tierLabels: Record<string, string> = {
     '0': 'Tier 0',
     '1': 'Tier 1',
     '2': 'Tier 2',
     '3': 'Tier 3',
     '4': 'Tier 4',
-    '-1': 'Tier N/A',
+    '-1': full ? 'Tier NA (Not Assigned)' : 'Tier NA',
   };
 
   return tierLabels[String(tier)] || 'Tier ?';

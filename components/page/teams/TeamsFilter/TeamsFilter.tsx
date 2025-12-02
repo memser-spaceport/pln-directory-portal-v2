@@ -51,7 +51,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
   const getMembershipSources = createFilterGetter(filterValues?.membershipSources);
   const getFundingStages = createFilterGetter(filterValues?.fundingStage);
   const getTiers = createFilterGetter(filterValues?.tiers, {
-    formatLabel: (tier) => getTierLabel(tier.value),
+    formatLabel: (tier) => getTierLabel(tier.value, true),
   });
 
   // Wrap clearParams to include analytics

@@ -129,6 +129,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
             showInvestorsLink={true}
           />
         }
+        hideLogos={demoDaySlug === 'pl-genesis-accelerator'}
       >
         <div className={s.root}>
           {!userInfo && <LoginBtn className={clsx(s.btn, s.secondaryButton)}>Already approved? Log in</LoginBtn>}

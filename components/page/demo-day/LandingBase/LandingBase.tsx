@@ -15,10 +15,11 @@ interface LandingBaseProps {
   initialDemoDayState?: DemoDayState;
   countdown?: ReactNode;
   information?: ReactNode;
+  hideLogos?: boolean;
 }
 
 export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
-  const { children, initialDemoDayState, countdown, information } = props;
+  const { children, initialDemoDayState, countdown, information, hideLogos } = props;
   const supportEmail = initialDemoDayState?.supportEmail ?? 'pldemoday@protocol.ai';
 
   return (
@@ -41,7 +42,8 @@ export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
             </a>
           </div>
 
-          <LogosGrid />
+          {!hideLogos && <LogosGrid />}
+
           <FAQ items={faqItems} demoDaySlug={initialDemoDayState?.uid} />
 
           <Footer />

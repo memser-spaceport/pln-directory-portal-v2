@@ -36,6 +36,7 @@ async function mutation(demoDaySlug: string, payload: ApplyForDemoDayPayload) {
     linkedinProfile: payload.linkedin,
     role: payload.role,
     teamUid: payload.team?.uid || '',
+    projectUid: payload.project?.projectUid || '',
     isAccreditedInvestor: payload.isInvestor,
   };
 

@@ -19,6 +19,7 @@ interface LandingBaseProps {
 
 export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
   const { children, initialDemoDayState, countdown, information } = props;
+  const supportEmail = initialDemoDayState?.supportEmail ?? 'pldemoday@protocol.ai';
 
   return (
     <div className={s.root}>
@@ -35,8 +36,8 @@ export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
 
           <div className={s.reachOut}>
             Questions? Contact us at{' '}
-            <a href="mailto:pldemoday@protocol.ai" className={s.email}>
-              pldemoday@protocol.ai
+            <a href={`mailto:${supportEmail}`} className={s.email}>
+              {supportEmail}
             </a>
           </div>
 

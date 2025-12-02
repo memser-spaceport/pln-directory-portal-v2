@@ -146,7 +146,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
 
       {demoDaySlug && (
         <ApplyForDemoDayModal
-          isOpen={isApplyModalOpen}
+          isOpen={isApplyModalOpen && !data?.isPending}
           onClose={() => setIsApplyModalOpen(false)}
           userInfo={userInfo}
           memberData={null}

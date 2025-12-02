@@ -387,6 +387,17 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     setMinLoaderTime(null);
     setShowLoader(false);
     setIsAutoSubmitting(false);
+
+    // Remove dialog query param if it exists
+    const currentParams = new URLSearchParams(window.location.search);
+    if (currentParams.has('dialog')) {
+      currentParams.delete('dialog');
+      const newUrl = currentParams.toString()
+        ? `${window.location.pathname}?${currentParams.toString()}`
+        : window.location.pathname;
+      router.replace(newUrl);
+    }
+
     onClose();
   };
 

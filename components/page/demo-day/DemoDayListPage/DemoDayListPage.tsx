@@ -88,8 +88,8 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
               <div className={s.headline}>
                 <h1 className={s.headlineTitle}>PL Demo Day</h1>
                 <p className={s.headlineBody}>
-                  PL Demo Day is a concentrated virtual event featuring the most promising, pre-selected batch of
-                  high-quality teams that will deliver pitches, in a fully asynchronous environment.
+                  PL Demo Days are virtual events featuring top, pre-selected teams from the PL network. Accredited
+                  investors review pitches asynchronously, with 1-click options to connect and invest.
                 </p>
               </div>
             </div>

@@ -6,6 +6,7 @@ export * from './CloseIcon';
 export * from './CheckIcon';
 export * from './MinusIcon';
 export * from './SearchIcon';
+export * from './SpinnerIcon';
 export * from './CalendarIcon';
 export * from './ArrowBackIcon';
 export * from './CaretRightIcon';

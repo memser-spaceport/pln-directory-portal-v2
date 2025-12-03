@@ -20,6 +20,13 @@
     border: 1px solid rgba(14, 15, 17, 0.16);
     box-shadow: none;
   }
+
+  &.highlighted {
+    border-radius: 16px;
+    border: 1px solid var(--border-brand-subtle, #AEBFFF);
+    background: var(--action-background-brand-light_normal, rgba(27, 77, 255, 0.04));
+    box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  }
 }
 
 .cardContent {

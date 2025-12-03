@@ -19,6 +19,7 @@ export type DemoDayCardProps = {
   approximateStartDate?: string;
   status: DemoDayStatus;
   className?: string;
+  isHighlighted?: boolean;
 };
 
 const CalendarIcon = () => (
@@ -103,6 +104,7 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = ({
   approximateStartDate,
   status,
   className,
+  isHighlighted,
 }) => {
   const { onDemoDayListCardClicked } = useDemoDayAnalytics();
 
@@ -132,6 +134,7 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = ({
       href={`/demoday/${slug}`}
       className={clsx(`${s.card} ${className || ''}`, {
         [s.nonClickable]: status === 'UPCOMING',
+        [s.highlighted]: isHighlighted,
       })}
       onClick={(e) => {
         if (status === 'UPCOMING') {

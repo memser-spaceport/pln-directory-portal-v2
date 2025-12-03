@@ -64,6 +64,10 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
   const shouldShowApplyButton = applicableDemoDays && applicableDemoDays.length === 1;
   const nextDemoDay = shouldShowApplyButton ? applicableDemoDays[0] : null;
 
+  const toHighlightSlug =
+    applicableDemoDays?.find((dd) => dd.status === 'ACTIVE')?.slugURL ??
+    applicableDemoDays?.find((dd) => dd.status === 'REGISTRATION_OPEN')?.slugURL;
+
   const displayedDemoDays = useMemo(() => {
     if (!demoDays) return [];
 
@@ -130,6 +134,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
                     date={demoDay.date}
                     approximateStartDate={demoDay.approximateStartDate}
                     status={demoDay.status}
+                    isHighlighted={toHighlightSlug === demoDay.slugURL}
                   />
                 ))
               ) : (

@@ -1,7 +1,7 @@
 .root {
   width: 400px;
-  height: 440px;
   padding: 20px;
+  margin: 0 auto;
 
   border-radius: 24px;
   background-color: #fff;
@@ -48,7 +48,7 @@
   text-align: center;
 
   .title {
-    color: var(--foreground-neutral-primary, #0A0C11);
+    color: var(--foreground-neutral-primary, #0a0c11);
     font-size: 20px;
     font-weight: 500;
     line-height: 27px;
@@ -57,10 +57,14 @@
 }
 
 .footer {
+  gap: 16px;
+  display: grid;
+  margin-top: 24px;
+}
+
+.footerBtns {
   gap: 8px;
   display: flex;
-
-  margin-top: 24px;
 }
 
 .btn {

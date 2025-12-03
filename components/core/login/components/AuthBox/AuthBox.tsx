@@ -7,7 +7,7 @@ import Cookies from 'js-cookie';
 
 import useHash from '@/hooks/useHash';
 import { PrivyModals } from '../PrivyModals';
-import { AuthInvalidUser } from '../errors/AuthInvalidUser';
+import { AuthInvalidUser } from '../modals/AuthInvalidUser';
 import { AuthInfo } from '../AuthInfo';
 
 const PRIVY_CONFIG = {

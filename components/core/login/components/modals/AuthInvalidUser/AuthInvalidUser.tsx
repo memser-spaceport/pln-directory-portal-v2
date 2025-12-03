@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useToggle } from 'react-use';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
-import { VerifyEmailModal } from '../VerifyEmailModal';
 import { triggerLoader, getParsedValue } from '@/utils/common.utils';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
@@ -12,40 +12,41 @@ import { INVITE_FORM_URL } from '@/constants/demoDay';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
 import { authEvents, AuthErrorCode } from '../../../utils/authEvents';
+import { ModalBase } from '@/components/common/ModalBase';
+import { useContactSupportContext } from '@/components/ContactSupport/context/ContactSupportContext';
+import { WarningCircleIcon } from '@/components/icons';
 
 interface ModalContent {
   title: string;
-  errorMessage: string;
   description: string;
-  variant: 'regular' | 'access_denied_demo_day';
+  reason: string;
 }
 
 const DEFAULT_CONTENT: ModalContent = {
-  title: 'Email Verification',
-  errorMessage: 'Email not available',
-  description: 'Your email is either invalid or not available in our directory. Please try again with valid email.',
-  variant: 'regular',
+  title: 'Email Not Found',
+  description:
+    "We couldn't find any user with this email in the system. Double-check your email or try a different one. If you believe this is an error, our support team can help.",
+  reason: 'email_not_found',
 };
 
 const ERROR_CONTENT: Record<string, ModalContent> = {
   linked_to_another_user: {
     title: 'Email Verification',
-    errorMessage: 'Email already used. Connect social account for login',
     description:
       'The email you provided is already used or linked to another account. If this is your email id, then login with the email id and connect this social account in profile settings page. After that you can use any of your linked accounts for subsequent logins.',
-    variant: 'regular',
+    reason: 'linked_to_another_user',
   },
   unexpected_error: {
-    title: 'Something went wrong',
-    errorMessage: 'We are unable to authenticate you at the moment due to technical issues. Please try again later',
-    description: '',
-    variant: 'regular',
+    title: 'Something Went Wrong',
+    description:
+      "We couldn't complete your request due to a technical issue. Please try again or contact our support team for help.",
+    reason: 'unexpected_error',
   },
   rejected_access_level: {
-    title: 'Access rejected',
-    errorMessage: 'Your application to join the Protocol Labs network was not approved.',
-    description: 'Your application to join the Protocol Labs network was not approved. You may reapply in the future.',
-    variant: 'regular',
+    title: 'Access Denied',
+    description:
+      'Your application to join the Protocol Labs was not approved. You may reapply in the future. If you believe this was a mistake, please contact our support team.',
+    reason: 'rejected_access_level',
   },
 };
 
@@ -56,9 +57,10 @@ const ERROR_CONTENT: Record<string, ModalContent> = {
  * Special handling for demo day access denied scenarios.
  */
 export function AuthInvalidUser() {
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const [open, toggleOpen] = useToggle(false);
+  const { openModal } = useContactSupportContext();
 
   const { onAccessDeniedModalShown, onAccessDeniedUserNotWhitelistedModalShown } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
@@ -67,12 +69,12 @@ export function AuthInvalidUser() {
 
   const handleModalClose = () => {
     triggerLoader(false);
-    dialogRef.current?.close();
+    toggleOpen(false);
     setTimeout(() => setContent(DEFAULT_CONTENT), 500);
   };
 
   const handleModalOpen = () => {
-    dialogRef.current?.showModal();
+    toggleOpen(true);
   };
 
   const trackDemoDayAccess = (userInfo: IUserInfo | null) => {
@@ -119,9 +121,8 @@ export function AuthInvalidUser() {
 
           setContent({
             title: 'Access Denied',
-            errorMessage: "Your email isn't on our Protocol Labs Demo Day invite list yet. Request access below.",
             description: INVITE_FORM_URL,
-            variant: 'access_denied_demo_day',
+            reason: 'access_denied',
           });
 
           trackDemoDayAccess(userInfo);
@@ -137,5 +138,22 @@ export function AuthInvalidUser() {
     return unsubscribe;
   }, [pathname, onAccessDeniedModalShown, onAccessDeniedUserNotWhitelistedModalShown, reportAnalytics, router]);
 
-  return <VerifyEmailModal dialogRef={dialogRef} content={content} handleModalClose={handleModalClose} />;
+  return (
+    <ModalBase
+      title={content.title}
+      titleIcon={<WarningCircleIcon />}
+      description={content.description}
+      cancel={{
+        onClick: handleModalClose,
+      }}
+      submit={{
+        label: 'Contact Support',
+        onClick: () => {
+          handleModalClose();
+          openModal({ reason: content.reason });
+        },
+      }}
+      open={open}
+    />
+  );
 }

@@ -6,9 +6,8 @@ export { AuthInfo } from './components/AuthInfo';
 export { PrivyModals } from './components/PrivyModals';
 
 // Error components
-export { AuthInvalidUser } from './components/errors/AuthInvalidUser';
-export { LinkAccountModal } from './components/errors/LinkAccountModal';
-export { VerifyEmailModal } from './components/errors/VerifyEmailModal';
+export { AuthInvalidUser } from './components/modals/AuthInvalidUser';
+export { LinkAccountModal } from './components/modals/LinkAccountModal';
 
 // Utility components
 export { BroadcastChannel, createLogoutChannel, logoutAllTabs } from './components/BroadcastChannel';

@@ -15,4 +15,5 @@ export * from './ChevronDownIcon';
 export * from './ArrowUpRightIcon';
 export * from './SuccessCircleIcon';
 export * from './WarningCircleIcon';
+export * from './QuestionCircleIcon';
 export * from './InfoCircleIconOutlined';

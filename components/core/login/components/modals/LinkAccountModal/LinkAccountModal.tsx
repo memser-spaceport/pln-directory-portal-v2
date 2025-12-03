@@ -8,8 +8,8 @@ import { useAuthAnalytics } from '@/analytics/auth.analytics';
 
 import { ModalBase } from '@/components/common/ModalBase';
 
-import { LinkAccountInput } from './components/LinkAccountInput';
 import { WarningCircleIcon } from '@/components/icons';
+import { LabeledInput } from '@/components/common/LabeledInput';
 
 interface Props {
   open: boolean;
@@ -61,7 +61,7 @@ export function LinkAccountModal(props: Props) {
         disabled: !email || !name,
       }}
     >
-      <LinkAccountInput
+      <LabeledInput
         label="Email Address"
         input={{
           type: 'email',
@@ -71,7 +71,7 @@ export function LinkAccountModal(props: Props) {
         }}
       />
 
-      <LinkAccountInput
+      <LabeledInput
         label="Name"
         input={{
           placeholder: 'Enter your name',

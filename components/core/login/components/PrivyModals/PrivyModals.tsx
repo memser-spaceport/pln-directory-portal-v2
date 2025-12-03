@@ -200,7 +200,7 @@ export function PrivyModals() {
       if (user?.email?.address && response.status === 403) {
         await handleInvalidDirectoryEmail();
       }
-    } catch {
+    } catch (e) {
       triggerLoader(false);
       authEvents.emit('auth:invalid-email', 'unexpected_error');
       setLinkAccountKey('');

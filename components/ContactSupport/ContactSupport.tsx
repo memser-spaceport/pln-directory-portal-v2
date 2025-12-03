@@ -1,12 +1,29 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import { useContactSupportContext } from '@/components/ContactSupport/context/ContactSupportContext';
 
 import { ModalBase } from '@/components/common/ModalBase';
 import { QuestionCircleIcon } from '@/components/icons';
+import { LabeledInput } from '@/components/common/LabeledInput';
+import { IUserInfo } from '@/types/shared.types';
 
-export function ContactSupport() {
-  const { open, closeModal } = useContactSupportContext();
+interface Props {
+  userInfo?: IUserInfo;
+}
+
+export function ContactSupport(props: Props) {
+  const { userInfo } = props;
+  const { open, metadata, closeModal } = useContactSupportContext();
+
+  const [email, setEmail] = useState(userInfo?.email);
+  const [name, setName] = useState('');
+  const [details, setDetails] = useState('');
+
+  useEffect(() => {
+    setEmail(userInfo?.email);
+  }, [userInfo?.email]);
 
   return (
     <ModalBase
@@ -22,6 +39,35 @@ can help."
         label: 'Submit',
         onClick: () => {},
       }}
-    />
+    >
+      <LabeledInput
+        label="Email Address"
+        input={{
+          type: 'email',
+          placeholder: 'Enter your email',
+          value: email,
+          onChange: (e) => setEmail(e.target.value),
+        }}
+      />
+
+      <LabeledInput
+        label="Name"
+        input={{
+          placeholder: 'Enter your name',
+          value: name,
+          onChange: (e) => setName(e.target.value),
+        }}
+      />
+
+      <LabeledInput
+        label="Describe the issue"
+        input={{
+          as: 'textarea',
+          placeholder: 'I’m having an issue with...',
+          value: details,
+          onChange: (e) => setDetails(e.target.value),
+        }}
+      />
+    </ModalBase>
   );
 }

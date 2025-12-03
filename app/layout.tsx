@@ -98,7 +98,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
               </header>
               <AuthBox />
-              <ContactSupport />
+              <ContactSupport userInfo={userInfo} />
             </ContactSupportContextProvider>
             <DemoDayStats />
             <main className="layout__main">{children}</main>

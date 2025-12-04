@@ -1,8 +1,33 @@
+jest.mock('@privy-io/react-auth', () => ({
+  PrivyProvider: ({ children }: any) => children,
+  usePrivy: () => ({
+    ready: false,
+    authenticated: false,
+    user: null,
+    login: jest.fn(),
+    logout: jest.fn(),
+  }),
+  useWallets: () => ({ wallets: [], ready: false }),
+  useLoginWithEmail: () => ({
+    loginWithEmail: jest.fn(),
+    state: { status: 'initial' },
+  }),
+}));
+
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AuthInfo } from '@/components/core/login';
 import { useRouter } from 'next/navigation';
 import { usePrivyWrapper } from '@/components/core/login/hooks';
 import { createStateUid } from '@/services/auth.service';
+
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: async () => ({}),
+    text: async () => '',
+    status: 200,
+  } as Response),
+) as jest.Mock;
 
 // Mocking necessary hooks and functions
 jest.mock('next/navigation', () => ({

@@ -232,10 +232,10 @@ function PrivyModals() {
       const info = e.detail;
       analytics.onPrivyLoginSuccess(info?.user);
       // If email is not linked, link email mandatorily
-      if (!info?.user?.email?.address) {
-        setLinkAccountKey('email');
-        return;
-      }
+      // if (!info?.user?.email?.address) {
+      //   setLinkAccountKey('email');
+      //   return;
+      // }
       const stateUid = localStorage.getItem('stateUid');
       if (stateUid) {
         // If linked login user

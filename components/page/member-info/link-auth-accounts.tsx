@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import { decodeToken } from '@/utils/auth.utils';
+import { authEvents, LinkMethod } from '@/components/core/login/utils';
 
 function LinkAuthAccounts() {
   const [userLinkedAccounts, setUserLinkedAccounts] = useState<any>([]);
@@ -18,8 +19,8 @@ function LinkAuthAccounts() {
     return account;
   });
 
-  const onLinkAccount = (account: any) => {
-    document.dispatchEvent(new CustomEvent('auth-link-account', { detail: account }));
+  const onLinkAccount = (account: LinkMethod) => {
+    authEvents.emit('auth:link-account', account);
   };
 
   useEffect(() => {
@@ -30,24 +31,22 @@ function LinkAuthAccounts() {
     } else {
       setUserLinkedAccounts([]);
     }
-    function authAccountsHandler(e: any) {
+    function authAccountsHandler(linkedAccounts: string) {
       const refreshToken = Cookies.get('refreshToken');
       if (refreshToken) {
         const refreshTokenExpiry = decodeToken(JSON.parse(refreshToken));
-        Cookies.set('authLinkedAccounts', JSON.stringify(e.detail), {
+        Cookies.set('authLinkedAccounts', JSON.stringify(linkedAccounts), {
           expires: new Date(refreshTokenExpiry.exp * 1000),
           path: '/',
           domain: process.env.COOKIE_DOMAIN || '',
         });
-        const accounts = e.detail.split(',');
+        const accounts = linkedAccounts.split(',');
         setUserLinkedAccounts(accounts);
       }
     }
 
-    document.addEventListener('new-auth-accounts', authAccountsHandler);
-    return function () {
-      document.removeEventListener('new-auth-accounts', authAccountsHandler);
-    };
+    const unsubscribe = authEvents.on('auth:new-accounts', authAccountsHandler);
+    return unsubscribe;
   }, []);
 
   return (

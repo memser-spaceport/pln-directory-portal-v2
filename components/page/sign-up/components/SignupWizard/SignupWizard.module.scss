@@ -382,3 +382,32 @@
     opacity: 0.5;
   }
 }
+
+.aboutField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.aboutLabel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.aboutLabelText {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  color: #455468;
+}
+
+.aboutLabelOptional {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  color: #8897ae;
+}

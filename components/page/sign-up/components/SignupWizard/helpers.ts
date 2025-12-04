@@ -36,6 +36,7 @@ export const signupSchema = yup.object().shape({
       },
       message: 'Website is required when adding a new team',
     }),
+  about: yup.string().max(400, 'Maximum 400 characters allowed').optional(),
   subscribe: yup.boolean().required('Required'),
   agreed: yup.boolean().isTrue().required('Required'),
 });

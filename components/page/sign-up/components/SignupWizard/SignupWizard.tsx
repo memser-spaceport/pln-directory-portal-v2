@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import Image from 'next/image';
 import Cookies from 'js-cookie';
@@ -14,6 +14,7 @@ import { saveRegistrationImage } from '@/services/registration.service';
 import { SignupForm } from '@/components/page/sign-up/components/SignupWizard/types';
 import { signupSchema } from '@/components/page/sign-up/components/SignupWizard/helpers';
 import { FormField } from '@/components/form/FormField';
+import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { ProfileImageInput } from '@/components/page/sign-up/components/ProfileImageInput';
 import { getRecaptchaToken } from '@/services/google-recaptcha.service';
 import { toast } from '@/components/core/ToastContainer';
@@ -52,6 +53,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       teamOrProject: null,
       teamName: '',
       websiteAddress: '',
+      about: '',
       subscribe: true,
       agreed: true,
     },
@@ -108,6 +110,10 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     if (image) {
       newData.imageUid = image.uid;
       newData.imageUrl = image.url;
+    }
+
+    if (formData.about?.trim()) {
+      newData.bio = formData.about.trim();
     }
 
     // Build the team/project object
@@ -339,6 +345,22 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                 {/*    />*/}
                 {/*  </Field.Root>*/}
                 {/*</div>*/}
+
+                <div className={s.row}>
+                  <div className={s.aboutField}>
+                    <div className={s.aboutLabel}>
+                      <span className={s.aboutLabelText}>Tell us a bit about you</span>
+                      <span className={s.aboutLabelOptional}>(Optional)</span>
+                    </div>
+                    <FormTextArea
+                      name="about"
+                      placeholder="Founder at Foresight Ventures, supporting early-stage teams in AI, biotech, and frontier tech."
+                      description="One short paragraph, max 400 characters."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
                 <div className={s.col}>
                   <label className={s.Label}>
                     <Checkbox

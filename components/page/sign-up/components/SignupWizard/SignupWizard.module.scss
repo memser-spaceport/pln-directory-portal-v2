@@ -103,7 +103,7 @@
   color: #0f172a;
   font-size: clamp(18px, 5vw, 36px); // 36px;
   font-style: normal;
-  font-weight: 900;
+  font-weight: 600;
   line-height: 120.462%; /* 43.366px */
   text-align: center;
   width: 100%;
@@ -381,4 +381,33 @@
   50% {
     opacity: 0.5;
   }
+}
+
+.aboutField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.aboutLabel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.aboutLabelText {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  color: #455468;
+}
+
+.aboutLabelOptional {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  color: #8897ae;
 }

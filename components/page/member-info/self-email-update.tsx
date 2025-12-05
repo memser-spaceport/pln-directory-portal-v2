@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { updateUserDirectoryEmail } from '@/services/members.service';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { getUserInfo } from '@/utils/third-party.helper';
+import { authEvents } from '@/components/core/login/utils';
 function SelfEmailUpdate(props: any) {
   const email = props.email;
   const uid = props.uid;
@@ -27,7 +28,7 @@ function SelfEmailUpdate(props: any) {
       return;
     }
 
-    document.dispatchEvent(new CustomEvent('auth-link-account', { detail: 'updateEmail' }));
+    authEvents.emit('auth:link-account', 'updateEmail');
   };
 
   useEffect(() => {
@@ -35,9 +36,9 @@ function SelfEmailUpdate(props: any) {
   }, [email]);
 
   useEffect(() => {
-    async function updateUserEmail(e: any) {
+    async function updateUserEmail(data: { newEmail: string }) {
       try {
-        const newEmail = e.detail.newEmail;
+        const { newEmail } = data;
         const oldAccessToken = Cookies.get('authToken');
         if (!oldAccessToken) {
           return;
@@ -75,18 +76,15 @@ function SelfEmailUpdate(props: any) {
           toast.success('Email Updated Successfully');
           window.location.reload();
         }
-      } catch (err) {
-        const newEmail = e.detail.newEmail;
-        analytics.onUpdateEmailFailure({ newEmail, oldEmail: currentEmail });
+      } catch {
+        analytics.onUpdateEmailFailure({ newEmail: data.newEmail, oldEmail: currentEmail });
         document.dispatchEvent(new CustomEvent('app-loader-status'));
         toast.error('Email Update Failed');
       }
     }
 
-    document.addEventListener('directory-update-email', updateUserEmail);
-    return function () {
-      document.removeEventListener('directory-update-email', updateUserEmail);
-    };
+    const unsubscribe = authEvents.on('auth:update-email', updateUserEmail);
+    return unsubscribe;
   }, []);
 
   return (

@@ -36,7 +36,7 @@
 .input {
   display: flex;
   min-height: 80px;
-  padding: 0 16px 0 0;
+  padding: 0 2px 0 0;
   align-items: flex-start;
   gap: 8px;
   align-self: stretch;
@@ -80,12 +80,13 @@
   background: transparent;
   outline: none;
   color: #455468;
-  resize: vertical;
+  //resize: vertical;
   min-height: 60px;
   width: 100%;
   font-family: inherit;
   font-size: 14px;
   line-height: 1.5;
+  resize: none;
 }
 
 .description {

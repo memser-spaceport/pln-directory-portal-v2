@@ -66,3 +66,75 @@ export const reportLinkIssue = async (data: { name: string; email: string }) => 
     body: JSON.stringify(data),
   });
 };
+
+export interface TokenExchangeResponse {
+  accessToken: string;
+  refreshToken: string;
+  userInfo: {
+    uid: string;
+    email?: string;
+    name?: string;
+    isFirstTimeLogin?: boolean;
+  };
+  isDeleteAccount?: boolean;
+}
+
+export interface TokenExchangeResult {
+  ok: boolean;
+  data: TokenExchangeResponse | null;
+  status: number;
+  error?: string;
+}
+
+/**
+ * Exchange Privy token for directory tokens with retry support
+ */
+export const exchangeToken = async (
+  privyToken: string,
+  stateUid: string,
+  retries = 3
+): Promise<TokenExchangeResult> => {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          exchangeRequestToken: privyToken,
+          exchangeRequestId: stateUid,
+          grantType: 'token_exchange',
+        }),
+      });
+
+      // Don't retry on client errors (4xx) - only on server errors (5xx) or network issues
+      if (response.status >= 400 && response.status < 500) {
+        const data = response.ok ? await response.json() : null;
+        return { ok: response.ok, data, status: response.status };
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        return { ok: true, data, status: response.status };
+      }
+
+      // Server error - will retry
+      lastError = new Error(`Server error: ${response.status}`);
+    } catch (err) {
+      lastError = err as Error;
+    }
+
+    // Wait before retry (exponential backoff)
+    if (attempt < retries - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+    }
+  }
+
+  return {
+    ok: false,
+    data: null,
+    status: 500,
+    error: lastError?.message || 'Token exchange failed after retries',
+  };
+};

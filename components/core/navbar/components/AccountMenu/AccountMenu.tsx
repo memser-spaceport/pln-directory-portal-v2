@@ -10,7 +10,8 @@ import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
-import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
+import { broadcastLogout } from '@/components/core/login/components/BroadcastChannel';
+import { authEvents } from '@/components/core/login/utils';
 import { usePostHog } from 'posthog-js/react';
 
 import s from './AccountMenu.module.scss';
@@ -47,9 +48,9 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
 
   const handleLogout = useCallback(() => {
     clearAllAuthCookies();
-    document.dispatchEvent(new CustomEvent('init-privy-logout'));
+    authEvents.emit('auth:logout');
     toast.success(TOAST_MESSAGES.LOGOUT_MSG);
-    createLogoutChannel().postMessage('logout');
+    broadcastLogout();
     postHogProps.reset();
   }, [postHogProps]);
 

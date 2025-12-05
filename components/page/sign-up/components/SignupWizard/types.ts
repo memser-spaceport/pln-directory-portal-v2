@@ -6,6 +6,7 @@ export interface SignupForm {
   teamName?: string;
   websiteAddress?: string;
   role?: string;
+  about?: string;
   subscribe: boolean;
   agreed: true;
 }

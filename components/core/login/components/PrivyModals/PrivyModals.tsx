@@ -228,11 +228,11 @@ export function PrivyModals() {
       const privyUser = data.user;
       analytics.onPrivyLoginSuccess(privyUser);
 
-      // Require email linking if not present
-      if (!privyUser?.email?.address) {
-        setLinkAccountKey('email');
-        return;
-      }
+      // // Require email linking if not present
+      // if (!privyUser?.email?.address) {
+      //   setLinkAccountKey('email');
+      //   return;
+      // }
 
       const stateUid = localStorage.getItem('stateUid');
       if (stateUid) {

@@ -5,7 +5,7 @@ import { getParsedValue } from './common.utils';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from './constants';
 import { clearAllAuthCookies } from './third-party.helper';
-import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
+import { authEvents } from '@/components/core/login/utils';
 
 const getAuthInfoFromCookie = () => {
   const userInfo = getParsedValue(Cookies.get('userInfo'));
@@ -111,7 +111,7 @@ const retryApi = async (url: string, options: any) => {
 
 export const logoutUser = () => {
   clearAllAuthCookies();
-  document.dispatchEvent(new CustomEvent('init-privy-logout'));
+  authEvents.emit('auth:logout');
 };
 
 export const getUserCredentialsInfo = async () => {

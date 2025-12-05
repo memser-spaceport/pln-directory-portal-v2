@@ -17,19 +17,29 @@ import PostHogIdentifier from '@/components/page/posthog-identifier';
 import PostLoginRedirectHandler from '@/components/page/recommendations/components/RecommendationsPreloader/PostLoginRedirectHandler';
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginFlowTrigger';
-import { UserInfoChecker } from '@/components/core/login/UserInfoChecker';
+import { UserInfoChecker } from '@/components/core/login';
 import { MobileBottomNav } from '@/components/core/MobileBottomNav/MobileBottomNav';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { DemoDayBanner } from '@/components/core/navbar/components/DemoDayBanner';
 import { DemoDayStats } from '@/components/core/DemoDayStats';
+import { ContactSupport } from '@/components/ContactSupport/ContactSupport';
+import { ContactSupportContextProvider } from '@/components/ContactSupport/context/ContactSupportContext';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
-const AuthBox = dynamic(() => import('@/components/core/login/auth-box'), { ssr: false });
+const AuthBox = dynamic(() => import('@/components/core/login/components/AuthBox').then((m) => m.AuthBox), {
+  ssr: false,
+});
 const ToastContainer = dynamic(() => import('@/components/core/ToastContainer'), { ssr: false });
-const BroadCastChannel = dynamic(() => import('@/components/core/login/broadcast-channel'), { ssr: false });
+const BroadCastChannel = dynamic(
+  () => import('@/components/core/login/components/BroadcastChannel').then((m) => m.BroadcastChannel),
+  { ssr: false },
+);
 const MemberRegisterDialog = dynamic(() => import('@/components/core/register/member-register-dialog'), { ssr: false });
-const CookieChecker = dynamic(() => import('@/components/core/login/cookie-checker'), { ssr: false });
+const CookieChecker = dynamic(
+  () => import('@/components/core/login/components/CookieChecker').then((m) => m.CookieChecker),
+  { ssr: false },
+);
 const PostHogPageview = dynamic(() => import('@/providers/analytics-provider').then((d) => d.PostHogPageview), {
   ssr: false,
 });
@@ -80,17 +90,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <QueryProvider>
             <StoreInitializer userInfo={userInfo} />
             <PostHogIdentifier />
-            <header className="layout__header">
-              <DemoDayBanner />
-              {false && <SubscribeToRecoomendations userInfo={userInfo} />}
-              <CompleteYourProfile userInfo={userInfo} />
-              <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
-            </header>
+            <ContactSupportContextProvider>
+              <header className="layout__header">
+                <DemoDayBanner />
+                {false && <SubscribeToRecoomendations userInfo={userInfo} />}
+                <CompleteYourProfile userInfo={userInfo} />
+                <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
+              </header>
+              <AuthBox />
+              <ContactSupport userInfo={userInfo} />
+            </ContactSupportContextProvider>
             <DemoDayStats />
             <main className="layout__main">{children}</main>
             <MobileBottomNav />
             <Loader />
-            <AuthBox />
             <ToastContainer />
             <BroadCastChannel />
             <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />

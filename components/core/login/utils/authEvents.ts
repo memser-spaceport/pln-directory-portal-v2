@@ -6,6 +6,7 @@
 export type AuthErrorCode =
   | 'unexpected_error'
   | 'rejected_access_level'
+  | 'email_not_found'
   | 'linked_to_another_user'
   | 'exited_link_flow'
   | 'invalid_credentials'
@@ -98,3 +99,16 @@ class AuthEventEmitter {
 
 // Singleton instance
 export const authEvents = new AuthEventEmitter();
+
+/**
+ * Checks if a pathname is a demo day subpage (excludes /demoday and /demoday/)
+ * @param pathname - The pathname to check
+ * @returns true if the pathname matches /demoday/ followed by content
+ */
+export function isDemoDayScopePage(pathname: string | null | undefined, includeRoot: boolean = false): boolean {
+  if (!pathname) return false;
+  if (includeRoot) {
+    return /^\/demoday\/.+/.test(pathname) || pathname === '/demoday';
+  }
+  return /^\/demoday\/.+/.test(pathname) && pathname !== '/demoday';
+}

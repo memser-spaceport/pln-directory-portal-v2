@@ -1,2 +1,2 @@
-export { authEvents, type AuthEventMap, type AuthErrorCode, type LinkMethod } from './authEvents';
+export { authEvents, type AuthEventMap, type AuthErrorCode, type LinkMethod, isDemoDayScopePage } from './authEvents';
 export { authStatus } from './authStatus';

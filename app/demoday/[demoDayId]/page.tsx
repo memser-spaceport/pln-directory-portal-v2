@@ -28,7 +28,6 @@ export default async function DemoDayLandingPage({ params }: { params: { demoDay
   // Server-side redirect logic (moved from client component)
   if (demoDayState) {
     if (demoDayState.status === 'COMPLETED') {
-      console.log('Redirecting to completed page');
       redirect(`/demoday/${params.demoDayId}/completed`);
     }
 
@@ -45,30 +44,26 @@ export default async function DemoDayLandingPage({ params }: { params: { demoDay
     }
 
     // Conditions that should redirect to specific routes
-    if (
-      demoDayState.access === 'FOUNDER' &&
-      (demoDayState.status === 'UPCOMING' || demoDayState.status === 'REGISTRATION_OPEN')
-    ) {
-      redirect(`/demoday/${params.demoDayId}/founder`);
-    }
-
-    if (
-      isDemoDayParticipantInvestor(demoDayState.access) &&
-      (demoDayState.status === 'UPCOMING' || demoDayState.status === 'REGISTRATION_OPEN')
-    ) {
-      redirect(`/demoday/${params.demoDayId}/investor`);
-    }
-
-    if (demoDayState.access === 'FOUNDER' && demoDayState.status === 'ACTIVE') {
-      redirect(`/demoday/${params.demoDayId}/active`);
-    }
-
-    if (isDemoDayParticipantInvestor(demoDayState.access) && demoDayState.status === 'ACTIVE') {
-      const isInvestorProfileComplete = checkInvestorProfileComplete(memberData, parsedUserInfo);
-      if (isInvestorProfileComplete) {
+    if (demoDayState.access === 'FOUNDER') {
+      if (demoDayState.status === 'UPCOMING' || demoDayState.status === 'REGISTRATION_OPEN') {
+        redirect(`/demoday/${params.demoDayId}/founder`);
+      } else if (demoDayState.status === 'ACTIVE') {
         redirect(`/demoday/${params.demoDayId}/active`);
-      } else {
+      }
+    }
+
+    if (isDemoDayParticipantInvestor(demoDayState.access)) {
+      if (demoDayState.status === 'UPCOMING') {
+        redirect(`/demoday`);
+      } else if (demoDayState.status === 'REGISTRATION_OPEN') {
         redirect(`/demoday/${params.demoDayId}/investor`);
+      } else if (demoDayState.status === 'ACTIVE') {
+        const isInvestorProfileComplete = checkInvestorProfileComplete(memberData, parsedUserInfo);
+        if (isInvestorProfileComplete) {
+          redirect(`/demoday/${params.demoDayId}/active`);
+        } else {
+          redirect(`/demoday/${params.demoDayId}/investor`);
+        }
       }
     }
   }

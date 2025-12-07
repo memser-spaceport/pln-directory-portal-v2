@@ -113,7 +113,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     }
 
     if (formData.about?.trim()) {
-      newData.bio = formData.about.trim();
+      newData.aboutYou = formData.about.trim();
     }
 
     // Build the team/project object

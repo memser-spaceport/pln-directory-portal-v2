@@ -31,21 +31,20 @@ export default async function DemoDayLandingPage({ params }: { params: { demoDay
       redirect(`/demoday/${params.demoDayId}/completed`);
     }
 
-    // Conditions that should redirect to /members
-    if (demoDayState.access === 'none' && demoDayState.status === 'NONE') {
-      redirect('/members');
+    if (['NONE', 'UPCOMING'].includes(demoDayState.status)) {
+      redirect('/demoday');
     }
 
     if (
       (demoDayState.access === 'FOUNDER' || isDemoDayParticipantInvestor(demoDayState.access)) &&
       demoDayState.status === 'NONE'
     ) {
-      redirect('/members');
+      redirect('/demoday');
     }
 
     // Conditions that should redirect to specific routes
     if (demoDayState.access === 'FOUNDER') {
-      if (demoDayState.status === 'UPCOMING' || demoDayState.status === 'REGISTRATION_OPEN') {
+      if (demoDayState.status === 'REGISTRATION_OPEN') {
         redirect(`/demoday/${params.demoDayId}/founder`);
       } else if (demoDayState.status === 'ACTIVE') {
         redirect(`/demoday/${params.demoDayId}/active`);
@@ -53,9 +52,7 @@ export default async function DemoDayLandingPage({ params }: { params: { demoDay
     }
 
     if (isDemoDayParticipantInvestor(demoDayState.access)) {
-      if (demoDayState.status === 'UPCOMING') {
-        redirect(`/demoday`);
-      } else if (demoDayState.status === 'REGISTRATION_OPEN') {
+      if (demoDayState.status === 'REGISTRATION_OPEN') {
         redirect(`/demoday/${params.demoDayId}/investor`);
       } else if (demoDayState.status === 'ACTIVE') {
         const isInvestorProfileComplete = checkInvestorProfileComplete(memberData, parsedUserInfo);

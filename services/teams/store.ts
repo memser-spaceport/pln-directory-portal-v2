@@ -1,5 +1,17 @@
 import { createFilterStore } from '@/services/filters';
 
+// Legacy analytics callback support for backward compatibility
+let legacyAnalyticsCallback: ((params: URLSearchParams) => void) | undefined;
+
+/**
+ * Set analytics callback for filter changes
+ * @deprecated Use the onFilterChange config in createFilterStore instead
+ * This is kept for backward compatibility with SyncTeamsParamsToUrl component
+ */
+export const setFilterAnalyticsCallback = (callback: (params: URLSearchParams) => void) => {
+  legacyAnalyticsCallback = callback;
+};
+
 /**
  * Teams Filter Store
  *
@@ -39,5 +51,10 @@ export const useTeamFilterStore = createFilterStore({
     'sort', // Sort order
     'page', // Page number
   ],
-  onFilterChange: (key, value, allParams) => {},
+  onFilterChange: (key, value, allParams) => {
+    // Call legacy callback if set (for backward compatibility)
+    if (legacyAnalyticsCallback) {
+      legacyAnalyticsCallback(allParams);
+    }
+  },
 });

@@ -68,6 +68,38 @@ export function TeamsFilter(props: TeamsFilterProps) {
     }
   };
 
+  // Analytics callbacks for Tags filter
+  const handleTagsChange = (key: string, values: string[]) => {
+    analytics.onTeamsTagsFilterSelected({ page: 'Teams', tags: values });
+  };
+
+  const handleTagsSearch = (searchText: string) => {
+    analytics.onTeamsTagsFilterSearched({ page: 'Teams', searchText });
+  };
+
+  // Analytics callbacks for Membership Sources filter
+  const handleMembershipSourcesChange = (key: string, values: string[]) => {
+    analytics.onTeamsMembershipSourcesFilterSelected({ page: 'Teams', membershipSources: values });
+  };
+
+  const handleMembershipSourcesSearch = (searchText: string) => {
+    analytics.onTeamsMembershipSourcesFilterSearched({ page: 'Teams', searchText });
+  };
+
+  // Analytics callbacks for Funding Stage filter
+  const handleFundingStageChange = (key: string, values: string[]) => {
+    analytics.onTeamsFundingStageFilterSelected({ page: 'Teams', fundingStages: values });
+  };
+
+  const handleFundingStageSearch = (searchText: string) => {
+    analytics.onTeamsFundingStageFilterSearched({ page: 'Teams', searchText });
+  };
+
+  // Analytics callback for Tiers filter
+  const handleTiersChange = (key: string, values: string[]) => {
+    analytics.onTeamsTiersFilterSelected({ page: 'Teams', tiers: values });
+  };
+
   return (
     <FiltersSidePanel onClose={handleClose} clearParams={handleClearParams} appliedFiltersCount={appliedFiltersCount}>
       {isDirectoryAdmin && (
@@ -88,11 +120,13 @@ export function TeamsFilter(props: TeamsFilterProps) {
             defaultItemsToShow={5}
             onChange={(key, values) => {
               triggerLoader(true);
+              handleMembershipSourcesChange(key, values);
               if (!isEmpty(values)) {
                 const latestValue = last(values) || '';
                 analytics.onFilterApplied('membershipSources', latestValue);
               }
             }}
+            onSearch={handleMembershipSourcesSearch}
           />
         </FilterSection>
       )}
@@ -114,8 +148,9 @@ export function TeamsFilter(props: TeamsFilterProps) {
             useGetDataHook={getTiers}
             defaultItemsToShow={6}
             hideSearch
-            onChange={() => {
+            onChange={(key, values) => {
               triggerLoader(true);
+              handleTiersChange(key, values);
             }}
           />
         </FilterSection>
@@ -146,11 +181,13 @@ export function TeamsFilter(props: TeamsFilterProps) {
             defaultItemsToShow={5}
             onChange={(key, values) => {
               triggerLoader(true);
+              handleTagsChange(key, values);
               if (!isEmpty(values)) {
                 const latestValue = last(values) || '';
                 analytics.onFilterApplied('tags', latestValue);
               }
             }}
+            onSearch={handleTagsSearch}
           />
         </FilterSection>
       )}
@@ -166,11 +203,13 @@ export function TeamsFilter(props: TeamsFilterProps) {
             defaultItemsToShow={10}
             onChange={(key, values) => {
               triggerLoader(true);
+              handleFundingStageChange(key, values);
               if (!isEmpty(values)) {
                 const latestValue = last(values) || '';
                 analytics.onFilterApplied('fundingStage', latestValue);
               }
             }}
+            onSearch={handleFundingStageSearch}
             hideSearch
           />
         </FilterSection>

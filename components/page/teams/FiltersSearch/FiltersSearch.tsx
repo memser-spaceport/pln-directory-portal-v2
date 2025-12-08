@@ -4,7 +4,7 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { ITeamsSearchParams } from '@/types/teams.types';
 import { IUserInfo } from '@/types/shared.types';
-import { Input } from '@/components/common/Input';
+import { Input } from '@/components/common/form/Input';
 import { CloseIcon, SearchIcon } from '@/components/icons';
 import { useTeamFilterStore } from '@/services/teams';
 

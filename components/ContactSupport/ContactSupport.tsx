@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useContactSupportContext } from '@/components/ContactSupport/context/ContactSupportContext';
 import { ModalBase } from '@/components/common/ModalBase';
 import { QuestionCircleIcon } from '@/components/icons';
-import { LabeledInput } from '@/components/common/LabeledInput';
+import { LabeledInput } from '@/components/common/form/LabeledInput';
 import { IUserInfo } from '@/types/shared.types';
 
 import { useContactSupport } from './hooks/useContactSupport';

@@ -13,6 +13,7 @@ import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hook
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { ReferCompanyModal } from '../ReferCompanyModal';
+import { GiveFeedbackModal } from '@/components/page/demo-day/GiveFeedbackModal';
 import { clsx } from 'clsx';
 import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
 
@@ -32,6 +33,7 @@ interface TeamProfileCardProps {
 
 export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick, isAdmin = false }) => {
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
   const descriptionRef = React.useRef<HTMLParagraphElement>(null);
 
@@ -247,6 +249,25 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     setIsReferModalOpen(false);
   };
 
+  const handleFeedbackSubmit = (feedbackData: { feedback: string }) => {
+    // TODO: Add analytics for feedback submission
+
+    // Express interest via API with feedback data
+    expressInterest.mutate(
+      {
+        teamFundraisingProfileUid: team.uid,
+        interestType: 'feedback' as InterestType,
+        isPrepDemoDay,
+        feedbackData,
+      },
+      {
+        onSuccess: () => {
+          setIsFeedbackModalOpen(false);
+        },
+      },
+    );
+  };
+
   // Analytics handlers for media viewing
   const handlePitchDeckView = () => {
     if (userInfo?.email) {
@@ -374,6 +395,17 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
           )}
         </button>
         <button
+          className={s.feedbackButton}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsFeedbackModalOpen(true);
+          }}
+          disabled={!team.uid}
+        >
+          📝 Give Feedback
+        </button>
+        <button
           className={s.secondaryButton}
           onClick={(e) => handleInterestCompanyClick(e, 'like')}
           disabled={expressInterest.isPending || !team.uid}
@@ -451,6 +483,15 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
           }
         }}
         onSubmit={handleReferSubmit}
+        teamName={team?.team?.name || 'this company'}
+        isSubmitting={expressInterest.isPending}
+      />
+
+      {/* Give Feedback Modal */}
+      <GiveFeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        onSubmit={handleFeedbackSubmit}
         teamName={team?.team?.name || 'this company'}
         isSubmitting={expressInterest.isPending}
       />

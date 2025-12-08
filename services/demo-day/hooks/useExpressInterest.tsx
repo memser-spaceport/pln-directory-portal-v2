@@ -4,7 +4,7 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import { toast } from '@/components/core/ToastContainer/utils/toast';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 
-export type InterestType = 'like' | 'connect' | 'invest' | 'referral';
+export type InterestType = 'like' | 'connect' | 'invest' | 'referral' | 'feedback';
 
 interface ReferralData {
   investorName: string;
@@ -12,11 +12,16 @@ interface ReferralData {
   message: string;
 }
 
+interface FeedbackData {
+  feedback: string;
+}
+
 interface ExpressInterestData {
   teamFundraisingProfileUid: string;
   interestType: InterestType;
   isPrepDemoDay?: boolean;
   referralData?: ReferralData;
+  feedbackData?: FeedbackData;
 }
 
 async function expressInterest(demoDayId: string, data: ExpressInterestData): Promise<boolean> {
@@ -64,6 +69,9 @@ export function useExpressInterest(teamName?: string) {
           break;
         case 'referral':
           title = `${teamName || '[TeamName]'} introduction sent`;
+          break;
+        case 'feedback':
+          title = `Feedback sent to ${teamName || '[TeamName]'}`;
           break;
         default:
           title = 'Connection request sent!';

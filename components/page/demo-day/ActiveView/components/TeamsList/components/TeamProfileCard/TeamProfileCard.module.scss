@@ -40,7 +40,7 @@
   display: grid;
   grid-template-columns: 1fr;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 8px;
   width: 100%;
 
@@ -61,6 +61,38 @@
 
   display: flex;
   padding: 8px var(--global-size-size-125, 10px);
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+
+  border-radius: var(--corner-radius-md, 8px);
+  border: 1px solid var(--transparent-brand-2, rgba(27, 77, 255, 0.02));
+  background: var(--action-background-brand-light_normal, rgba(27, 77, 255, 0.04));
+
+  box-shadow: 0 -1px 4px 0 var(--transparent-brand-8, rgba(27, 77, 255, 0.08)) inset;
+
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  @include media.tablet-landscape {
+    font-size: 14px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.feedbackButton {
+  white-space: nowrap;
+
+  display: flex;
+  padding: 6px var(--global-size-size-125, 10px);
   justify-content: center;
   align-items: center;
   gap: 4px;

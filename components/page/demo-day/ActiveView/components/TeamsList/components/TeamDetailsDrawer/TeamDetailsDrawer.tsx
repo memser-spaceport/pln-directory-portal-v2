@@ -20,6 +20,7 @@ import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { ReferCompanyModal } from '../ReferCompanyModal';
+import { GiveFeedbackModal } from '@/components/page/demo-day/GiveFeedbackModal';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 const BackIcon = () => (
@@ -71,6 +72,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   const { data } = useGetFundraisingProfile(demoDayData?.access === 'FOUNDER');
   const isPrepDemoDay = useIsPrepDemoDay();
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   // Analytics hooks
   const {
@@ -270,6 +272,25 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
     // Close modal
     setIsReferModalOpen(false);
+  };
+
+  const handleFeedbackSubmit = (feedbackData: { feedback: string }) => {
+    // TODO: Add analytics for feedback submission
+
+    // Express interest via API with feedback data
+    expressInterest.mutate(
+      {
+        teamFundraisingProfileUid: team.uid,
+        interestType: 'feedback' as any,
+        isPrepDemoDay,
+        feedbackData,
+      },
+      {
+        onSuccess: () => {
+          setIsFeedbackModalOpen(false);
+        },
+      },
+    );
   };
 
   // Analytics handlers for media viewing
@@ -483,6 +504,13 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                       )}
                     </button>
                     <button
+                      className={s.feedbackButton}
+                      onClick={() => setIsFeedbackModalOpen(true)}
+                      disabled={!team.uid}
+                    >
+                      📝 Give Feedback
+                    </button>
+                    <button
                       className={s.secondaryButton}
                       onClick={handleLikeCompanyClick}
                       disabled={expressInterest.isPending || !team.uid}
@@ -566,6 +594,15 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
               }
             }}
             onSubmit={handleReferSubmit}
+            teamName={team?.team?.name || 'this company'}
+            isSubmitting={expressInterest.isPending}
+          />
+
+          {/* Give Feedback Modal */}
+          <GiveFeedbackModal
+            isOpen={isFeedbackModalOpen}
+            onClose={() => setIsFeedbackModalOpen(false)}
+            onSubmit={handleFeedbackSubmit}
             teamName={team?.team?.name || 'this company'}
             isSubmitting={expressInterest.isPending}
           />

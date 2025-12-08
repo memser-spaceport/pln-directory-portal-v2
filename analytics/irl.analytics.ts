@@ -88,6 +88,7 @@ export const useIrlAnalytics = () => {
 
     IRL_GUEST_LIST_REGISTER_TODAY_CLICKED: 'irl-guest-list-register-today-clicked',
     IRL_GUEST_LIST_VIEW_PAST_ATTENDEES_CLICKED: 'irl-guest-list-view-past-attendees-clicked',
+    IRL_EMPTY_GUEST_LIST_IM_GOING_CLICK: 'irl-empty-guest-list-im-going-click',
   };
 
   const trackShowOnlyPastAttendeesCheckboxClicked = (location: any) => {
@@ -643,6 +644,16 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_VIEW_PAST_ATTENDEES_CLICKED, { ...params });
   }
 
+  function trackEmptyGuestListImGoingClicked(location: any, loginStatus: string) {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+      source: 'guest_list_empty_state',
+      userStatus: loginStatus,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_EMPTY_GUEST_LIST_IM_GOING_CLICK, { ...params });
+  }
+
   return {
     trackImGoingBtnClick,
     trackLoginToRespondBtnClick,
@@ -713,5 +724,6 @@ export const useIrlAnalytics = () => {
     trackEventDeleteCancelled,
     trackGuestListRegisterTodayClicked,
     trackGuestListViewPastAttendeesClicked,
+    trackEmptyGuestListImGoingClicked,
   };
 };

@@ -27,11 +27,16 @@ export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps>
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
   } = useForm<FormData>({
     defaultValues: {
       fundraiseParagraph: paragraph || '',
     },
   });
+
+  const currentText = watch('fundraiseParagraph') || '';
+  const charCount = currentText.length;
+  const maxChars = 400;
 
   const handleEditClick = () => {
     setIsEditMode(true);
@@ -93,7 +98,9 @@ export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps>
               />
             </div>
             <div className={s.helperText}>
-              <p>One short paragraph, max 400 characters.</p>
+              <p className={charCount > maxChars ? s.errorCount : ''}>
+                {charCount}/{maxChars} characters left
+              </p>
             </div>
             {errors.fundraiseParagraph && <div className={s.errorText}>{errors.fundraiseParagraph.message}</div>}
           </div>

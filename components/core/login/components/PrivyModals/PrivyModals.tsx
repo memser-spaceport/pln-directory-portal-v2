@@ -15,7 +15,7 @@ import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { getDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { broadcastLogout } from '../BroadcastChannel';
 import { LinkAccountModal } from '../modals/LinkAccountModal';
-import { authStatus, authEvents, AuthErrorCode, LinkMethod } from '../../utils';
+import { authStatus, authEvents, AuthErrorCode, LinkMethod, isDemoDayScopePage } from '../../utils';
 
 import './PrivyModals.scss';
 
@@ -87,7 +87,7 @@ export function PrivyModals() {
       await logout();
       authEvents.emit('auth:invalid-email', errorCode);
     },
-    [analytics, getAccessToken, logout, user]
+    [analytics, getAccessToken, logout, user],
   );
 
   const handleInvalidDirectoryEmail = useCallback(async () => {
@@ -119,9 +119,7 @@ export function PrivyModals() {
     setLinkAccountKey('');
     toast.success(TOAST_MESSAGES.LOGIN_MSG);
     Cookies.set('showNotificationPopup', JSON.stringify(true));
-    document.dispatchEvent(
-      new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } })
-    );
+    document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
   }, []);
 
   const loginUser = useCallback(
@@ -130,7 +128,7 @@ export function PrivyModals() {
       showLoginSuccess();
 
       // Check demo day access
-      if (pathname === '/demoday' && output?.userInfo?.uid) {
+      if (isDemoDayScopePage(pathname) && output?.userInfo?.uid) {
         const res = await getDemoDayState(output.userInfo.uid);
         if (res?.access === 'none') {
           authEvents.emit('auth:invalid-email', 'rejected_access_level');
@@ -143,7 +141,7 @@ export function PrivyModals() {
       // Small delay to ensure cookies are set before refresh completes
       setTimeout(() => window.location.reload(), 300);
     },
-    [clearPrivyParams, pathname, router, showLoginSuccess]
+    [clearPrivyParams, pathname, router, showLoginSuccess],
   );
 
   const initDirectoryLogin = useCallback(async () => {
@@ -167,6 +165,14 @@ export function PrivyModals() {
       if (response.status === 403) {
         triggerLoader(false);
         authEvents.emit('auth:invalid-email', 'rejected_access_level');
+        setLinkAccountKey('');
+        await logout();
+        return;
+      }
+
+      if (response.status === 404) {
+        triggerLoader(false);
+        authEvents.emit('auth:invalid-email', 'email_not_found');
         setLinkAccountKey('');
         await logout();
         return;
@@ -322,11 +328,7 @@ export function PrivyModals() {
       const prefillEmail = localStorage.getItem('prefillEmail');
 
       if (stateUid) {
-        login(
-          prefillEmail
-            ? { prefill: { type: 'email', value: prefillEmail }, loginMethods: ['email'] }
-            : undefined
-        );
+        login(prefillEmail ? { prefill: { type: 'email', value: prefillEmail }, loginMethods: ['email'] } : undefined);
       }
     }
 
@@ -368,16 +370,7 @@ export function PrivyModals() {
       // Cleanup all subscriptions
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, [
-    analytics,
-    deleteUser,
-    initDirectoryLogin,
-    login,
-    logout,
-    ready,
-    toggleLinkAccountModalOpen,
-    user,
-  ]);
+  }, [analytics, deleteUser, initDirectoryLogin, login, logout, ready, toggleLinkAccountModalOpen, user]);
 
   // ============================================
   // Account Linking Effect

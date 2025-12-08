@@ -350,6 +350,16 @@ export const TEAMS_ANALYTICS_EVENTS = {
   IS_HOST_TOGGLE_CLICKED: 'team-is-host-toggle-clicked',
   IS_ACTIVE_TOGGLE_CLICKED: 'team-is-active-toggle-clicked',
   IS_SPONSOR_TOGGLE_CLICKED: 'team-is-sponsor-toggle-clicked',
+
+  TEAMS_FILTERS_CHANGE: 'teams-filters-change',
+  TEAMS_OH_FILTER_TOGGLED: 'team-office-hours-filter-toggled',
+  TEAMS_TAGS_FILTER_SEARCHED: 'team-tags-filter-searched',
+  TEAMS_TAGS_FILTER_SELECTED: 'team-tags-filter-selected',
+  TEAMS_MEMBERSHIP_SOURCES_FILTER_SEARCHED: 'team-membership-sources-filter-searched',
+  TEAMS_MEMBERSHIP_SOURCES_FILTER_SELECTED: 'team-membership-sources-filter-selected',
+  TEAMS_FUNDING_STAGE_FILTER_SEARCHED: 'team-funding-stage-filter-searched',
+  TEAMS_FUNDING_STAGE_FILTER_SELECTED: 'team-funding-stage-filter-selected',
+  TEAMS_TIERS_FILTER_SELECTED: 'team-tiers-filter-selected',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {

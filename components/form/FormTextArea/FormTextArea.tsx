@@ -14,6 +14,8 @@ interface Props extends PropsWithChildren {
   disabled?: boolean;
   isRequired?: boolean;
   rows?: number;
+  maxLength?: number;
+  showCharCount?: boolean;
 }
 
 export const FormTextArea = ({
@@ -25,6 +27,8 @@ export const FormTextArea = ({
   children,
   isRequired,
   rows = 3,
+  maxLength,
+  showCharCount = false,
   ...rest
 }: Props) => {
   const {
@@ -33,6 +37,8 @@ export const FormTextArea = ({
     watch,
   } = useFormContext();
   const val = watch(name);
+  const currentText = (val as string) || '';
+  const charCount = currentText.length;
 
   useScrollIntoViewOnFocus<HTMLTextAreaElement>({ id: name });
 
@@ -67,7 +73,14 @@ export const FormTextArea = ({
         </div>
         {children}
       </div>
-      {description && <div className={s.description}>{description}</div>}
+      {showCharCount && maxLength && (
+        <div className={s.charCounter}>
+          <span className={clsx(s.charCount, { [s.charCountError]: charCount > maxLength })}>
+            {charCount}/{maxLength} characters left
+          </span>
+        </div>
+      )}
+      {description && !showCharCount && <div className={s.description}>{description}</div>}
       {errors[name] && <div className={s.errorMessage}>{errors[name]?.message as string}</div>}
     </Field.Root>
   );

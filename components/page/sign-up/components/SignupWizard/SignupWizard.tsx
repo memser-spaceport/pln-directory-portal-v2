@@ -113,7 +113,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     }
 
     if (formData.about?.trim()) {
-      newData.bio = formData.about.trim();
+      newData.aboutYou = formData.about.trim();
     }
 
     // Build the team/project object
@@ -355,8 +355,9 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                     <FormTextArea
                       name="about"
                       placeholder="Founder at Foresight Ventures, supporting early-stage teams in AI, biotech, and frontier tech."
-                      description="One short paragraph, max 400 characters."
                       rows={3}
+                      maxLength={400}
+                      showCharCount={true}
                     />
                   </div>
                 </div>

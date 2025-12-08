@@ -1,33 +1,33 @@
 'use client';
 
 import { useToggle } from 'react-use';
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
 import { triggerLoader, getParsedValue } from '@/utils/common.utils';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { INVITE_FORM_URL } from '@/constants/demoDay';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
-import { authEvents, AuthErrorCode } from '../../../utils/authEvents';
+import { authEvents, AuthErrorCode, isDemoDayScopePage } from '../../../utils/authEvents';
 import { ModalBase } from '@/components/common/ModalBase';
+import { Button } from '@/components/common/Button';
 import { useContactSupportContext } from '@/components/ContactSupport/context/ContactSupportContext';
 import { WarningCircleIcon } from '@/components/icons';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 interface ModalContent {
   title: string;
   description: string;
   reason: string;
+  submit?: {
+    label: ReactNode;
+    onClick: () => void;
+    disabled?: boolean;
+  };
+  footer?: ReactNode;
 }
-
-const DEFAULT_CONTENT: ModalContent = {
-  title: 'Email Not Found',
-  description:
-    "We couldn't find any user with this email in the system. Double-check your email or try a different one. If you believe this is an error, our support team can help.",
-  reason: 'email_not_found',
-};
 
 const ERROR_CONTENT: Record<string, ModalContent> = {
   linked_to_another_user: {
@@ -48,7 +48,15 @@ const ERROR_CONTENT: Record<string, ModalContent> = {
       'Your application to join the Protocol Labs was not approved. You may reapply in the future. If you believe this was a mistake, please contact our support team.',
     reason: 'rejected_access_level',
   },
+  email_not_found: {
+    title: 'Email Not Found',
+    description:
+      "We couldn't find any user with this email in the system. Double-check your email or try a different one. If you believe this is an error, our support team can help.",
+    reason: 'email_not_found',
+  },
 };
+
+const DEFAULT_CONTENT: ModalContent = ERROR_CONTENT.unexpected_error;
 
 /**
  * AuthInvalidUser - Handles auth error modal display
@@ -59,6 +67,7 @@ const ERROR_CONTENT: Record<string, ModalContent> = {
 export function AuthInvalidUser() {
   const router = useRouter();
   const pathname = usePathname();
+  const { data: demoDayState } = useGetDemoDayState();
   const [open, toggleOpen] = useToggle(false);
   const { openModal } = useContactSupportContext();
 
@@ -116,13 +125,38 @@ export function AuthInvalidUser() {
         router.refresh();
 
         // Special handling for demo day rejected access
-        if (pathname === '/demoday' && errorType === 'rejected_access_level') {
+        if (
+          isDemoDayScopePage(pathname) &&
+          ['REGISTRATION_OPEN', 'ACTIVE'].includes(demoDayState?.status) &&
+          ['rejected_access_level', 'email_not_found'].includes(errorType)
+        ) {
           const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
           setContent({
             title: 'Access Denied',
-            description: INVITE_FORM_URL,
+            description:
+              "Your email isn't on our Protocol Labs Demo Day invite list yet. Request access below. If you believe this is an error, our support team can help.",
             reason: 'access_denied',
+            submit: {
+              label: 'Register',
+              onClick: () => {
+                handleModalClose();
+                router.push(`/demoday/${demoDayState?.slugURL}?dialog=applyToDemoday`);
+              },
+            },
+            footer: (
+              <div style={{ textAlign: 'center' }}>
+                <Button
+                  style="link"
+                  onClick={() => {
+                    handleModalClose();
+                    openModal({ reason: content.reason });
+                  }}
+                >
+                  Contact Support
+                </Button>
+              </div>
+            ),
           });
 
           trackDemoDayAccess(userInfo);
@@ -146,14 +180,19 @@ export function AuthInvalidUser() {
       cancel={{
         onClick: handleModalClose,
       }}
-      submit={{
-        label: 'Contact Support',
-        onClick: () => {
-          handleModalClose();
-          openModal({ reason: content.reason });
-        },
-      }}
+      submit={
+        content.submit
+          ? content.submit
+          : {
+              label: 'Contact Support',
+              onClick: () => {
+                handleModalClose();
+                openModal({ reason: content.reason });
+              },
+            }
+      }
       open={open}
+      footer={content.footer}
     />
   );
 }

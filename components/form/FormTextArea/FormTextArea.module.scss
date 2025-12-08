@@ -112,3 +112,24 @@
   line-height: 20px; /* 200% */
   margin-top: 0.25rem;
 }
+
+.charCounter {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.charCount {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.charCountError {
+  color: #dc2626;
+}

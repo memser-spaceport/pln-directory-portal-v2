@@ -369,6 +369,42 @@ export const useTeamAnalytics = () => {
     captureEvent(TEAMS_ANALYTICS_EVENTS.ASK_SECTION_TAB_CLICK);
   }
 
+  function onTeamsFiltersChange(filters: URLSearchParams) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_FILTERS_CHANGE, { filters: filters.toString() });
+  }
+
+  function onTeamsOHFilterToggled(params: { page: string; option: string; value: string }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_OH_FILTER_TOGGLED, params);
+  }
+
+  function onTeamsTagsFilterSearched(params: { page: string; searchText: string }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_TAGS_FILTER_SEARCHED, params);
+  }
+
+  function onTeamsTagsFilterSelected(params: { page: string; tags: string[] }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_TAGS_FILTER_SELECTED, params);
+  }
+
+  function onTeamsMembershipSourcesFilterSearched(params: { page: string; searchText: string }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_MEMBERSHIP_SOURCES_FILTER_SEARCHED, params);
+  }
+
+  function onTeamsMembershipSourcesFilterSelected(params: { page: string; membershipSources: string[] }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_MEMBERSHIP_SOURCES_FILTER_SELECTED, params);
+  }
+
+  function onTeamsFundingStageFilterSearched(params: { page: string; searchText: string }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_FUNDING_STAGE_FILTER_SEARCHED, params);
+  }
+
+  function onTeamsFundingStageFilterSelected(params: { page: string; fundingStages: string[] }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_FUNDING_STAGE_FILTER_SELECTED, params);
+  }
+
+  function onTeamsTiersFilterSelected(params: { page: string; tiers: string[] }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_TIERS_FILTER_SELECTED, params);
+  }
+
   return {
     onOfficeHoursSelected,
     onFriendsOfProtocolSelected,
@@ -417,5 +453,14 @@ export const useTeamAnalytics = () => {
     onIsHostToggleClicked,
     onIsActiveToggleClicked,
     onIsSponsorToggleClicked,
+    onTeamsFiltersChange,
+    onTeamsOHFilterToggled,
+    onTeamsTagsFilterSearched,
+    onTeamsTagsFilterSelected,
+    onTeamsMembershipSourcesFilterSearched,
+    onTeamsMembershipSourcesFilterSelected,
+    onTeamsFundingStageFilterSearched,
+    onTeamsFundingStageFilterSelected,
+    onTeamsTiersFilterSelected,
   };
 };

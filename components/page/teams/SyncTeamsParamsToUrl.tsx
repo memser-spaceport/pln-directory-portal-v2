@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef } from 'react';
-import { useTeamFilterStore } from '@/services/teams';
+import { useTeamFilterStore, setFilterAnalyticsCallback } from '@/services/teams';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { useDebounce } from 'react-use';
 
 /**
@@ -14,8 +15,15 @@ export function SyncTeamsParamsToUrl({ debounceTime = 0 }: { debounceTime?: numb
   const router = useRouter();
   const searchParams = useSearchParams();
   const { params, _clearImmediate } = useTeamFilterStore();
+  const { onTeamsFiltersChange } = useTeamAnalytics();
   const isInitialLoad = useRef(true);
   const lastSyncedParams = useRef<string>('');
+
+  // Set analytics callback once on mount
+  useEffect(() => {
+    setFilterAnalyticsCallback(onTeamsFiltersChange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   // Skip initial load to avoid unnecessary navigation
   useEffect(() => {
@@ -46,7 +54,7 @@ export function SyncTeamsParamsToUrl({ debounceTime = 0 }: { debounceTime?: numb
       router.push(newUrl, { scroll: false });
     },
     _clearImmediate ? 0 : debounceTime,
-    [params, _clearImmediate]
+    [params, _clearImmediate],
   );
 
   return null;

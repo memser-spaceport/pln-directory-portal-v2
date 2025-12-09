@@ -30,8 +30,6 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
   const topicsAndReason = props.topicsAndReasonResponse;
   const nearestEventDate = getNearestEventDate(eventDetails.events);
 
-  console.log("eventDetails", eventDetails.events);
-
   const isAdminInAllEvents = checkAdminInAllEvents(
     searchParams?.type,
     locationEvents?.upcomingEvents,

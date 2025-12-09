@@ -47,7 +47,7 @@ export async function middleware(req: NextRequest) {
       // Priority 1: Check for force logout (regardless of active status)
       // console.log('middleware validCheckResponse', validCheckResponse);
       if (validCheckResponse?.forceLogout) {
-        console.log('middleware inside middleware forceLogout');
+        // console.log('middleware inside middleware forceLogout');
         response.cookies.delete('refreshToken');
         response.cookies.delete('authToken');
         response.cookies.delete('userInfo');
@@ -67,7 +67,7 @@ export async function middleware(req: NextRequest) {
     }
 
     if ((!authTokenFromCookie || !isValidAuthToken || !userInfo) && refreshTokenFromCookie) {
-      console.log('middleware inside refresh token');
+      // console.log('middleware inside refresh token');
       const renewAccessTokenResponse = await renewAccessToken(refreshTokenFromCookie?.value.replace(/"/g, ''));
       const { accessToken, refreshToken, userInfo } = renewAccessTokenResponse?.data;
 
@@ -99,7 +99,7 @@ export async function middleware(req: NextRequest) {
       return response;
     }
   } catch (err) {
-    console.log(err);
+    console.error(err);
     response.cookies.delete('refreshToken');
     response.cookies.delete('authToken');
     response.cookies.delete('userInfo');

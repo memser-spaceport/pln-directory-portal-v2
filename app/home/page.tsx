@@ -101,7 +101,7 @@ const getPageData = async () => {
       discoverData,
     };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     isError = true;
     return {
       isError,

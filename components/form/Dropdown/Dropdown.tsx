@@ -26,6 +26,9 @@ interface DropdownProps {
   count?: any;
   classes?: {
     label?: string;
+    ddRoot?: string;
+    option?: string;
+    selectedOption?: string;
   };
 }
 
@@ -107,7 +110,7 @@ export function Dropdown(props: DropdownProps) {
       >
         <div
           id={id}
-          className={clsx(s.select, {
+          className={clsx(s.select, classes?.ddRoot, {
             [s.error]: isMandatory && !selectedOption?.[uniqueKey],
           })}
           onClick={onSearchFocus}
@@ -132,8 +135,9 @@ export function Dropdown(props: DropdownProps) {
               <li
                 key={option[uniqueKey]}
                 onClick={() => handleOptionClick(option)}
-                className={clsx(s.optionItem, {
+                className={clsx(s.optionItem, classes?.option, {
                   [s.selected]: option === selectedOption,
+                  [classes?.selectedOption || '']: option === selectedOption,
                 })}
               >
                 {option[displayKey]} {option.count && <span className={s.optionItemCount}>({option.count})</span>}

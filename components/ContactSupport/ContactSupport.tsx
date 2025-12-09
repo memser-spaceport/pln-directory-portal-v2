@@ -9,11 +9,17 @@ import { useContactSupportContext } from '@/components/ContactSupport/context/Co
 import { ModalBase } from '@/components/common/ModalBase';
 import { QuestionCircleIcon } from '@/components/icons';
 import { LabeledInput } from '@/components/common/form/LabeledInput';
+import { Dropdown } from '@/components/form/Dropdown';
 import { IUserInfo } from '@/types/shared.types';
+
+import { CONTACT_SUPPORT_TOPICS } from './constants';
 
 import { useContactSupport } from './hooks/useContactSupport';
 
+import s from './ContactSupport.module.scss';
+
 const contactSupportSchema = yup.object().shape({
+  topic: yup.string().required('Topic is required'),
   email: yup.string().email('Must be a valid email').required('Email is required'),
   name: yup.string().required('Name is required'),
   message: yup.string().required('Description is required'),
@@ -33,6 +39,7 @@ export function ContactSupport(props: Props) {
   const methods = useForm<ContactSupportFormData>({
     resolver: yupResolver(contactSupportSchema),
     defaultValues: {
+      topic: CONTACT_SUPPORT_TOPICS[0].value,
       email: userInfo?.email || '',
       name: '',
       message: '',
@@ -41,12 +48,15 @@ export function ContactSupport(props: Props) {
   });
 
   const {
-    handleSubmit,
+    watch,
     reset,
     setValue,
     register,
+    handleSubmit,
     formState: { isValid, errors },
   } = methods;
+
+  const selectedTopic = watch('topic');
 
   useEffect(() => {
     if (userInfo?.email) {
@@ -57,6 +67,7 @@ export function ContactSupport(props: Props) {
   useEffect(() => {
     if (open) {
       reset({
+        topic: CONTACT_SUPPORT_TOPICS[0].value,
         email: userInfo?.email || '',
         name: '',
         message: '',
@@ -67,7 +78,7 @@ export function ContactSupport(props: Props) {
   const onSubmit = (data: ContactSupportFormData) => {
     contactSupportMutation.mutate(
       {
-        topic: 'Contact support',
+        topic: data.topic,
         email: data.email,
         name: data.name,
         message: data.message,
@@ -99,6 +110,28 @@ export function ContactSupport(props: Props) {
         disabled: !isValid || isLoading,
       }}
     >
+      <Dropdown
+        id="topic"
+        label="Please choose topic below"
+        options={CONTACT_SUPPORT_TOPICS}
+        onItemSelect={(option) => {
+          if (option) {
+            setValue('topic', option.value, { shouldValidate: true });
+          }
+        }}
+        uniqueKey="value"
+        displayKey="label"
+        selectedOption={CONTACT_SUPPORT_TOPICS.find((topic) => topic.value === selectedTopic)}
+        isMandatory
+        classes={{
+          label: s.ddLabel,
+          ddRoot: s.ddRoot,
+          option: s.option,
+          selectedOption: s.selectedOption,
+        }}
+        arrowImgUrl="/icons/arrow-down.svg"
+      />
+
       <LabeledInput
         label="Email Address"
         error={errors.email?.message}

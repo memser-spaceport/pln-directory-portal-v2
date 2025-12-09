@@ -46,6 +46,8 @@ export const InvestorFilterToggle = ({ label, paramKey }: Props) => {
       setParam('minTypicalCheckSize', undefined);
       setParam('maxTypicalCheckSize', undefined);
       setParam('investmentFocus', undefined);
+    } else {
+      setParam('investorType', undefined);
     }
   };
 

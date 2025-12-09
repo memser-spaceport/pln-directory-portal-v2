@@ -20,8 +20,6 @@ export const getMemberListForQuery = async (query: string, currentPage: number, 
   const result = await response.json();
 
   const formattedMembers: any = result?.members?.map((member: any) => {
-    console.log(member);
-
     const teams =
       member?.teamMemberRoles?.map((teamMemberRole: any) => ({
         id: teamMemberRole.team?.uid || '',

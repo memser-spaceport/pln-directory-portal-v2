@@ -28,6 +28,7 @@ interface IFollowSectionProps {
   isAdminInAllEvents: any;
   guestDetails: any;
   topicsAndReason: any;
+  nearestEventDate: string | null;
 }
 
 const FollowSection = (props: IFollowSectionProps) => {
@@ -62,9 +63,10 @@ const FollowSection = (props: IFollowSectionProps) => {
     isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const topicsAndReason = props?.topicsAndReason;
   const accessLevel = getAccessLevel(userInfo, isUserLoggedIn);
+  const nearestEventDate = props?.nearestEventDate;
   const scheduleURL =
     locationEvents?.additionalInfo?.schedule_url ||
-    `${process.env.SCHEDULE_BASE_URL}/program?location=${encodeURIComponent(eventLocationSummary.name)}`;
+    `${process.env.SCHEDULE_BASE_URL}/program?location=${encodeURIComponent(eventLocationSummary.name)}${nearestEventDate ? `&date=${nearestEventDate}` : ''}`;
 
   // Helper functions
   const getFollowProperties = (followers: any[]) => ({
@@ -588,6 +590,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             gap: 8px;
             border-radius: 8px;
             border: 1px solid #cbd5e1;
+            font-family: 'Inter', sans-serif;
             font-size: 14px;
             font-weight: 500;
             line-height: 20px;

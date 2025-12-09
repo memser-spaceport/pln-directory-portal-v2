@@ -73,6 +73,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
       investInFundTypes: member.investorProfile?.investInFundTypes?.map((item) => ({ label: item, value: item })) || [],
 
       teamRole: fundTeam?.role || '',
+      website: fundTeam?.website || '',
       teamInvestInFundTypes:
         fundTeam?.investorProfile?.investInFundTypes?.map((item) => ({ label: item, value: item })) || [],
       teamInvestInStartupStages:
@@ -197,6 +198,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     const _team = member?.teams.find((team) => team.id === selectedTeam?.value);
 
     setValue('teamRole', _team?.role ?? '', { shouldValidate: true, shouldDirty: true });
+    setValue('website', selectedTeam?.originalObject?.website ?? '', { shouldValidate: true, shouldDirty: true });
     setValue(
       'teamInvestInFundTypes',
       selectedTeam?.originalObject?.investorProfile?.investInFundTypes?.map((item: any) => ({
@@ -257,6 +259,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
           role: formData.teamRole,
           investmentTeam: true,
           memberUid: member.id,
+          ...(formData.website && { website: formData.website }),
         };
 
         if (isTeamLead) {
@@ -559,6 +562,16 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                             </div>
                           </div>
                         )}
+                      </div>
+
+                      <div className={s.row}>
+                        <FormField
+                          name="website"
+                          placeholder="Enter website"
+                          label="Website address"
+                          description="Paste a URL (company website, LinkedIn, Notion, X.com, Bluesky, etc.)"
+                          disabled={!selectedTeam}
+                        />
                       </div>
 
                       <div className={s.row}>

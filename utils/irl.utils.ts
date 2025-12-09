@@ -652,3 +652,53 @@ export function getGatherings(type: string, events: any, from: string): IIrlEven
 
   return shouldReturnPastEvents ? (events.pastEvents ?? []) : (events.upcomingEvents ?? []);
 }
+
+function getEventTimestamp(dateStr: string): number {
+  // Extract only YYYY-MM-DD (avoid timezone shifts)
+  const dateOnly = dateStr.slice(0, 10); // "YYYY-MM-DD"
+  return Date.parse(dateOnly + "T00:00:00Z");
+}
+
+function evaluateDate(
+  timestamp: number,
+  now: number,
+  nearestFuture: { value: number | null },
+  latestPast: { value: number | null }
+) {
+  if (isNaN(timestamp)) return;
+
+  if (timestamp >= now) {
+    if (nearestFuture.value === null || timestamp < nearestFuture.value) {
+      nearestFuture.value = timestamp;
+    }
+  } else {
+    if (latestPast.value === null || timestamp > latestPast.value) {
+      latestPast.value = timestamp;
+    }
+  }
+}
+
+export function getNearestEventDate<
+  T extends { startDate: string; endDate: string }
+>(events: T[]): string | null {
+  const now = Date.now();
+
+  const nearestFuture = { value: null as number | null };
+  const latestPast = { value: null as number | null };
+
+  for (let i = 0; i < events.length; i++) {
+    const e = events[i];
+
+    const startTs = getEventTimestamp(e.startDate);
+    const endTs = getEventTimestamp(e.endDate);
+
+    evaluateDate(startTs, now, nearestFuture, latestPast);
+    evaluateDate(endTs, now, nearestFuture, latestPast);
+  }
+
+  const finalTs = nearestFuture.value ?? latestPast.value;
+  if (!finalTs) return null;
+
+  // Convert back to YYYY-MM-DD WITHOUT timezone shift
+  return new Date(finalTs).toISOString().slice(0, 10);
+}

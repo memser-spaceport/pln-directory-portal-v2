@@ -82,9 +82,7 @@ export function useExpressInterest(teamName?: string) {
           <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{title}</span>
           <br />
           <span style={{ fontSize: '14px' }}>
-            {isPrepDemoDay
-              ? `Emails aren't sent to founders in showcase mode.`
-              : 'We sent an email to let them know.'}
+            {isPrepDemoDay ? `Emails aren't sent to founders in showcase mode.` : 'We sent an email to let them know.'}
           </span>
         </div>,
         {
@@ -102,7 +100,7 @@ export function useExpressInterest(teamName?: string) {
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATS, demoDayId] });
     },
     onError: (error) => {
-      toast.error('Connection request failed. Please try again.', {
+      toast.error(error?.message || 'Connection request failed. Please try again.', {
         autoClose: 3000,
       });
     },

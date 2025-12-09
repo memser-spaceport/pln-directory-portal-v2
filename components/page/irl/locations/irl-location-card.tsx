@@ -42,7 +42,7 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
             <div className="root__events p-2">
               {upcomingEvents > 0 && (
                 <>
-                  <span>{upcomingEvents} </span>Upcoming
+                  <span>{upcomingEvents} </span>Current
                 </>
               )}
             </div>

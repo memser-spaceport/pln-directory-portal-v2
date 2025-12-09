@@ -15,7 +15,7 @@ const IrlHeader = () => {
           </div>
         </div>
         <div className="irlheaderCnt__text">
-          Choose a destination to view upcoming gathering, attendees, resources & let the network know about your
+          Choose a destination to view current gatherings, attendees, resources & let the network know about your
           presence
         </div>
       </div>

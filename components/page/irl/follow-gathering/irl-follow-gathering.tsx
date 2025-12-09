@@ -3,7 +3,7 @@
 import { IUserInfo } from '@/types/shared.types';
 import FollowSection from './follow-section';
 import { ILocationDetails } from '@/types/irl.types';
-import { checkAdminInAllEvents } from '@/utils/irl.utils';
+import { checkAdminInAllEvents, getNearestEventDate } from '@/utils/irl.utils';
 import { useCallback } from 'react';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import router from 'next/router';
@@ -28,6 +28,9 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
   const router = useRouter();
   const isLoggedIn = props.isLoggedIn;
   const topicsAndReason = props.topicsAndReasonResponse;
+  const nearestEventDate = getNearestEventDate(eventDetails.events);
+
+  console.log("eventDetails", eventDetails.events);
 
   const isAdminInAllEvents = checkAdminInAllEvents(
     searchParams?.type,
@@ -59,6 +62,7 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
           isLoggedIn={isLoggedIn}
           isAdminInAllEvents={isAdminInAllEvents}
           guestDetails={props.guestDetails}
+          nearestEventDate={nearestEventDate}
         />
       </div>
 

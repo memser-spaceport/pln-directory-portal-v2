@@ -9,7 +9,7 @@ const LinkTab = (props: any) => {
         target="_blank"
         onClick={() => handleAdditionalResourceClicked(resource)}
       >
-        {resource?.type}
+        {resource?.name}
       </a>
       <div>
         <img src="/icons/arrow-blue.svg" alt="arrow icon" />

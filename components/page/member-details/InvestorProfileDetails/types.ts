@@ -6,6 +6,7 @@ export interface TEditInvestorProfileForm {
   investInStartupStages: { label: string; value: string }[];
   investInFundTypes: { label: string; value: string }[];
   teamRole: string;
+  website: string;
 
   teamInvestmentFocusAreas: string[];
   teamTypicalCheckSize: string;

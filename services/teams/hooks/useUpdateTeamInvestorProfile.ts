@@ -9,6 +9,7 @@ interface TeamInvestorProfilePayload {
   investmentTeam?: boolean;
   isFund?: boolean;
   memberUid?: string;
+  website?: string;
   investorProfile?: {
     investmentFocus?: string[];
     investInStartupStages?: string[];

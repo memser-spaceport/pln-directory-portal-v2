@@ -34,6 +34,7 @@ export const editInvestorProfileSchema = yup.object().shape({
     .defined(),
 
   teamRole: yup.string().defined(),
+  website: yup.string().url().defined(),
   teamTypicalCheckSize: yup.string().defined(),
   teamInvestmentFocusAreas: yup.array().of(yup.string().required()).defined(),
   teamInvestInStartupStages: yup

@@ -2,7 +2,6 @@
 
 import Modal from '@/components/core/modal';
 import { useRef, useState } from 'react';
-import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { getFormattedDateString, abbreviateString } from '@/utils/irl.utils';
 import IrlUpcomingEvents from './irl-upcoming-events';
 import IrlPastEvents from './irl-past-events';
@@ -10,7 +9,6 @@ import { triggerLoader, toTitleCase } from '@/utils/common.utils';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ILocationDetails } from '@/types/irl.types';
-import Image from 'next/image';
 import {
   EVENTS,
   EVENTS_OPTIONS,
@@ -21,10 +19,9 @@ import {
 } from '@/utils/constants';
 import IrlAllEvents from './irl-all-events';
 import { IUserInfo } from '@/types/shared.types';
-import useClickedOutside from '@/hooks/useClickedOutside';
 import IrlEditResponse from './irl-edit-response';
 import Link from 'next/link';
-import Dropdown from '../../../form/dropdown';
+import { Dropdown } from '../../../form/Dropdown';
 import DeleteEventModal from './delete-event-modal';
 import { deleteEventLocation } from '@/services/irl.service';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
@@ -643,7 +640,7 @@ const IrlEvents = (props: IIrlEvents) => {
         </a>
       </div> */}
 
-      {/* 
+      {/*
       <div className="add-gathering">
         <div className="add-gathering__icon">
           <Image src="/icons/irl/add-gathering.svg" alt="add-gathering" width={19} height={19} />

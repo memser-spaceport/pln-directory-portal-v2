@@ -12,10 +12,18 @@ import qs from 'qs';
 
 async function infiniteFetcher(searchParams: MembersListQueryParams['searchParams'], page: number) {
   const authToken = cookies.get('authToken');
+
+  const invType = searchParams.investorType?.split('|') || '';
+
+  if (invType.length > 0) {
+    invType.push('ANGEL_AND_FUND');
+  }
+
   const query = qs.stringify({
     ...searchParams,
     roles: searchParams.roles?.split('|'),
     topics: searchParams.topics?.split('|') || '',
+    investorType: invType,
     sort: searchParams.sort
       ?.split(',')
       .map((s: string) => s.toLowerCase())
@@ -39,8 +47,6 @@ export function useInfiniteMembersList(
     initialData: QueryData;
   },
 ) {
-  const queryClient = useQueryClient();
-
   const {
     isRefetching,
     data,

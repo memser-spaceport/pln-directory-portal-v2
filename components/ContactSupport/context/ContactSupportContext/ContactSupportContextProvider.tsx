@@ -1,7 +1,7 @@
 'use client';
 
 import { useToggle } from 'react-use';
-import { PropsWithChildren, useMemo, useState } from 'react';
+import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 
 import { ContactSupportContext } from './ContactSupportContext';
 
@@ -10,6 +10,15 @@ export function ContactSupportContextProvider(props: PropsWithChildren<{}>) {
 
   const [open, toggleOpen] = useToggle(false);
   const [metadata, setMetadata] = useState<Record<string, string>>();
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const dialog = searchParams.get('dialog');
+
+    if (dialog === 'contactSupport') {
+      toggleOpen(true);
+    }
+  }, []);
 
   function openModal(metadata?: Record<string, string>) {
     if (metadata) {

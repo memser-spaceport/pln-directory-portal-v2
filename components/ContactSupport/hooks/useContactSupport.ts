@@ -38,7 +38,11 @@ export function useContactSupport() {
   return useMutation({
     mutationFn: (payload: ContactSupportPayload) => mutation(payload),
     onSuccess: () => {
-      toast.success('Your message has been sent successfully! We\'ll get back to you soon.');
+      toast.success('Thanks! We have received your request and will be in touch soon.', {
+        style: {
+          width: 520,
+        },
+      });
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to send your message. Please try again.');

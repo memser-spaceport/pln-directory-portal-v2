@@ -9,7 +9,7 @@ import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { ModalBase } from '@/components/common/ModalBase';
 
 import { WarningCircleIcon } from '@/components/icons';
-import { LabeledInput } from '@/components/common/LabeledInput';
+import { LabeledInput } from '@/components/common/form/LabeledInput';
 
 interface Props {
   open: boolean;

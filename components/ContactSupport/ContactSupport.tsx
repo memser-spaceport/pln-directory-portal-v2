@@ -44,7 +44,7 @@ export function ContactSupport(props: Props) {
       name: '',
       message: '',
     },
-    mode: 'onBlur',
+    mode: 'onChange',
   });
 
   const {

@@ -8,7 +8,7 @@ interface Input {
   beData: FilterOption[];
   selectedData: FilterOption[];
   searchValue: string;
-  defaultItemsToShow: number;
+  defaultItemsToShow?: number;
 }
 
 export function useGetMergedItemsToRender(input: Input) {
@@ -34,7 +34,7 @@ export function useGetMergedItemsToRender(input: Input) {
 
     const result = [...selected, ...rest];
 
-    if (isEmpty(searchValue) && result.length > defaultItemsToShow) {
+    if (isEmpty(searchValue) && defaultItemsToShow && result.length > defaultItemsToShow) {
       if (selectedNum > defaultItemsToShow) {
         return result.slice(0, selectedNum);
       }

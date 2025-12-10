@@ -38,7 +38,7 @@ export interface GenericCheckboxListProps {
   /**
    * Number of items to show by default (before "Show more" is clicked)
    */
-  defaultItemsToShow: number;
+  defaultItemsToShow?: number;
 
   /**
    * Hook to fetch data based on search input

@@ -42,7 +42,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
   const { clearParams, params } = useTeamFilterStore();
   const appliedFiltersCount = useTeamFilterCount();
   const analytics = useTeamAnalytics();
-  const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
+  const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE) || true;
   const isTierViewer = isDirectoryAdmin || !!userInfo?.isTierViewer;
 
   // Create data hooks at the top level (not conditionally)
@@ -117,7 +117,6 @@ export function TeamsFilter(props: TeamsFilterProps) {
             placeholder="E.g. Direct..."
             filterStore={useTeamFilterStore}
             useGetDataHook={getMembershipSources}
-            defaultItemsToShow={5}
             onChange={(key, values) => {
               triggerLoader(true);
               handleMembershipSourcesChange(key, values);

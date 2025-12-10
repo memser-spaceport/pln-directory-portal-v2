@@ -89,7 +89,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     analytics.recordSignUpSave('submit-clicked', formData);
 
     const campaign = Cookies.get('utm_campaign') ?? '';
-    const source = Cookies.get('utm_source') ?? '';
+    const source = Cookies.get('utm_source') || searchParams.get('utm_source') || '';
     const medium = Cookies.get('utm_medium') ?? '';
 
     let image;

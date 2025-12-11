@@ -210,7 +210,6 @@ export function MobileBottomNav() {
 
           {/* Other Nav Items */}
           {navItems.map(({ href, label, icon: Icon }) => {
-            console.log(pathname, href);
             return (
               <NavigationMenu.Item key={href}>
                 <Link href={href} className={clsx(styles.item, href.includes(pathname) && styles.itemActive)}>

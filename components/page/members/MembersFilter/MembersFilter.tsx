@@ -170,7 +170,7 @@ export const MembersFilter = (props: IMembersFilter) => {
             min: 0,
             max: 5000000,
           }}
-          disabled={!params.get('isInvestor')}
+          // disabled={!params.get('isInvestor')}
         />
 
         <FilterDivider />
@@ -179,7 +179,7 @@ export const MembersFilter = (props: IMembersFilter) => {
           selectLabel="Investment Focus"
           paramKey="investmentFocus"
           filterStore={useFilterStore}
-          disabled={!params.get('isInvestor')}
+          // disabled={!params.get('isInvestor')}
         />
       </FilterSection>
     </FiltersSidePanel>

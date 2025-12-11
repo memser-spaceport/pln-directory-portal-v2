@@ -209,14 +209,16 @@ export function MobileBottomNav() {
           </NavigationMenu.Item>
 
           {/* Other Nav Items */}
-          {navItems.map(({ href, label, icon: Icon }) => (
-            <NavigationMenu.Item key={href}>
-              <Link href={href} className={clsx(styles.item, pathname === href && styles.itemActive)}>
-                <Icon />
-                <span>{label}</span>
-              </Link>
-            </NavigationMenu.Item>
-          ))}
+          {navItems.map(({ href, label, icon: Icon }) => {
+            return (
+              <NavigationMenu.Item key={href}>
+                <Link href={href} className={clsx(styles.item, href.includes(pathname) && styles.itemActive)}>
+                  <Icon />
+                  <span>{label}</span>
+                </Link>
+              </NavigationMenu.Item>
+            );
+          })}
         </NavigationMenu.List>
       </NavigationMenu.Root>
     </div>

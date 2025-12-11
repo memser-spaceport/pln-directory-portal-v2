@@ -1,17 +1,18 @@
 'use client';
 
 import { createContext } from 'react';
+import { Metadata } from '@/components/ContactSupport/types';
 
 export interface IContactSupportContext {
   open: boolean;
-  openModal: (metadata?: Record<string, string>) => void;
+  openModal: (metadata?: Metadata) => void;
   closeModal: () => void;
-  metadata?: Record<string, string>;
+  metadata?: Metadata;
 }
 
 export const ContactSupportContext = createContext<IContactSupportContext>({
   open: false,
-  openModal: (metadata?: Record<string, string>) => {},
+  openModal: (metadata?: Metadata) => {},
   closeModal: () => {},
   metadata: {},
 });

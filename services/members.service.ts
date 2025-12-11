@@ -377,7 +377,7 @@ export const getMembersForAttendeeForm = async () => {
 
 export const getMemberInfo = async (memberUid: string) => {
   const response = await fetch(
-    `${process.env.DIRECTORY_API_URL}/v1/members/${memberUid}?${new URLSearchParams({ with: 'image,skills,location,teamMemberRoles.team' })}`,
+    `${process.env.DIRECTORY_API_URL}/v1/members/${memberUid}?${new URLSearchParams({ with: 'image,skills,location,teamMemberRoles.team,memberRoles' })}`,
     {
       cache: 'no-store',
       method: 'GET',

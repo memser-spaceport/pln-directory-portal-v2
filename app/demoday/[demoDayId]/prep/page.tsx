@@ -17,10 +17,13 @@ function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const { data } = useGetDemoDayState();
+
+  // User has admin access if they are a directory admin OR a demo day admin (with correct host scope)
+  const hasAdminAccess = isDirectoryAdmin || data?.isDemoDayAdmin;
+
+  // User can view the prep page if they have admin access OR are a founder
   const hasAccess =
-    data?.status === 'COMPLETED'
-      ? isDirectoryAdmin
-      : isDirectoryAdmin || data?.isDemoDayAdmin || data?.access === 'FOUNDER';
+    data?.status === 'COMPLETED' ? isDirectoryAdmin : hasAdminAccess || data?.access === 'FOUNDER';
 
   useEffect(() => {
     // Redirect non-admins to regular demo day page
@@ -39,7 +42,7 @@ function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
       <SyncParamsToUrl debounceTime={0} />
       <DashboardPagesLayout
         filters={<AdminFilters />}
-        content={<AdminContent isDirectoryAdmin={!!isDirectoryAdmin} />}
+        content={<AdminContent isDirectoryAdmin={!!hasAdminAccess} />}
       />
     </FiltersHydrator>
   );

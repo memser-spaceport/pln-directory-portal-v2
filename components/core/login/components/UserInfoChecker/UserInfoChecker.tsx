@@ -16,9 +16,21 @@ interface UserInfoCheckerProps {
 }
 
 /**
+ * Compares two arrays of roles for equality (order-independent)
+ */
+function areRolesEqual(roles1: string[] | undefined, roles2: string[] | undefined): boolean {
+  if (!roles1 && !roles2) return true;
+  if (!roles1 || !roles2) return false;
+  if (roles1.length !== roles2.length) return false;
+  const sorted1 = [...roles1].sort();
+  const sorted2 = [...roles2].sort();
+  return sorted1.every((role, index) => role === sorted2[index]);
+}
+
+/**
  * UserInfoChecker - Syncs user info between cookie and server
  *
- * This component monitors for changes in user data (access level, name, profile image)
+ * This component monitors for changes in user data (access level, name, profile image, roles)
  * and updates cookies accordingly. Also handles rejected access levels by logging out.
  */
 export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
@@ -63,6 +75,24 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
     if (memberInfo.accessLevel === 'Rejected' && !rejectedRef.current) {
       rejectedRef.current = true;
       handleLogout();
+      return;
+    }
+
+    // Handle roles changes
+    const serverRoles = memberInfo.memberRoles?.map((r: { name: string }) => r.name) || [];
+    if (!areRolesEqual(serverRoles, userInfo.roles)) {
+      try {
+        const parsedCookie = JSON.parse(userInfoCookie);
+
+        if (parsedCookie.uid === memberInfo.uid) {
+          setUserInfoCookie(JSON.stringify({ ...parsedCookie, roles: serverRoles }), {
+            domain: process.env.COOKIE_DOMAIN || '',
+          });
+          router.refresh();
+        }
+      } catch (e) {
+        console.error('Failed to parse userInfo cookie:', e);
+      }
       return;
     }
 

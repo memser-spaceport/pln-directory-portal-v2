@@ -42,7 +42,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
   const { clearParams, params } = useTeamFilterStore();
   const appliedFiltersCount = useTeamFilterCount();
   const analytics = useTeamAnalytics();
-  const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE) || true;
+  const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const isTierViewer = isDirectoryAdmin || !!userInfo?.isTierViewer;
 
   // Create data hooks at the top level (not conditionally)

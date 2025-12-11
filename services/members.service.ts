@@ -168,6 +168,7 @@ export const getMember = async (
         isFund: teamMemberRole?.team?.isFund,
         investmentTeam: teamMemberRole.investmentTeam,
         investorProfile: teamMemberRole?.team?.investorProfile,
+        website: teamMemberRole?.team?.website,
       };
     }) || [];
 

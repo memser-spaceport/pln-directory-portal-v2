@@ -1,12 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from '@/components/core/ToastContainer';
+import { Metadata } from '@/components/ContactSupport/types';
 
 export type ContactSupportPayload = {
   topic: string;
   email: string;
   name: string;
   message: string;
-  metadata?: Record<string, string>;
+  metadata?: Metadata;
 };
 
 async function mutation(payload: ContactSupportPayload) {

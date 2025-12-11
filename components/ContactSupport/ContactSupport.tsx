@@ -1,8 +1,9 @@
 'use client';
 
 import * as yup from 'yup';
-import { useEffect } from 'react';
+import isEmpty from 'lodash/isEmpty';
 import { useForm } from 'react-hook-form';
+import { useCallback, useEffect } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import { useContactSupportContext } from '@/components/ContactSupport/context/ContactSupportContext';
@@ -36,14 +37,20 @@ export function ContactSupport(props: Props) {
   const { open, metadata, closeModal } = useContactSupportContext();
   const contactSupportMutation = useContactSupport();
 
+  const getDefaultValues = useCallback(() => {
+    const { email = '', name = '' } = userInfo || {};
+
+    return {
+      topic: CONTACT_SUPPORT_TOPICS[0].value,
+      email,
+      name,
+      message: '',
+    };
+  }, [userInfo?.email, userInfo?.name]);
+
   const methods = useForm<ContactSupportFormData>({
     resolver: yupResolver(contactSupportSchema),
-    defaultValues: {
-      topic: CONTACT_SUPPORT_TOPICS[0].value,
-      email: userInfo?.email || '',
-      name: '',
-      message: '',
-    },
+    defaultValues: getDefaultValues(),
     mode: 'onChange',
   });
 
@@ -59,21 +66,10 @@ export function ContactSupport(props: Props) {
   const selectedTopic = watch('topic');
 
   useEffect(() => {
-    if (userInfo?.email) {
-      setValue('email', userInfo.email);
-    }
-  }, [userInfo?.email, setValue]);
-
-  useEffect(() => {
     if (open) {
-      reset({
-        topic: CONTACT_SUPPORT_TOPICS[0].value,
-        email: userInfo?.email || '',
-        name: '',
-        message: '',
-      });
+      reset(getDefaultValues());
     }
-  }, [open, reset, userInfo?.email]);
+  }, [open, reset, getDefaultValues]);
 
   const onSubmit = (data: ContactSupportFormData) => {
     contactSupportMutation.mutate(
@@ -82,7 +78,12 @@ export function ContactSupport(props: Props) {
         email: data.email,
         name: data.name,
         message: data.message,
-        metadata: metadata || {},
+        metadata: {
+          ...metadata,
+          logged: !isEmpty(userInfo),
+          uid: userInfo?.uid || '',
+          page: window.location.toString(),
+        },
       },
       {
         onSuccess: () => {

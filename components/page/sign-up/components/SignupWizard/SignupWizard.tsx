@@ -24,7 +24,7 @@ import { useSignupV2 } from '@/services/signup/hooks/useSignup';
 import { Checkbox } from '@/components/common/Checkbox';
 import { MAX_NAME_LENGTH } from '@/constants/profile';
 
-import { TERMS_OF_SERVICE_AND_PRIVACY_URL } from './constants';
+import { PRIVACY_URL, TERMS_OF_SERVICE_AND_PRIVACY_URL, TERMS_OF_SERVICE_URL } from './constants';
 
 import s from './SignupWizard.module.scss';
 import { FormSelect } from '@/components/form/FormSelect';
@@ -380,8 +380,12 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                     />
                     <div className={s.primary}>
                       I agree to Protocol Labs{' '}
-                      <a href={TERMS_OF_SERVICE_AND_PRIVACY_URL} target="_blank">
-                        Terms of Service and Privacy Policy
+                      <a href={TERMS_OF_SERVICE_URL} target="_blank">
+                        Terms of Service
+                      </a>{' '}
+                      and{' '}
+                      <a href={PRIVACY_URL} target="_blank">
+                        Privacy Policy
                       </a>
                     </div>
                   </label>

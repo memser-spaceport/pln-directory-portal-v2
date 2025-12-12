@@ -89,7 +89,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     analytics.recordSignUpSave('submit-clicked', formData);
 
     const campaign = Cookies.get('utm_campaign') ?? '';
-    const source = Cookies.get('utm_source') || searchParams.get('utm_source') || '';
+    const source = searchParams.get('utm_source') || Cookies.get('utm_source') || '';
     const medium = Cookies.get('utm_medium') ?? '';
 
     let image;
@@ -105,6 +105,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       email: formData.email,
       isSubscribedToNewsletter: formData.subscribe,
       isUserConsent: formData.agreed,
+      signUpSource,
     };
 
     if (image) {
@@ -153,7 +154,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       newData,
     };
 
-    // Use signUpSource prop if provided, otherwise fall back to UTM source
+    // Use signUpSource prop if provided, otherwise use utm_source from query params or cookies
     if (signUpSource) {
       payload.signUpSource = signUpSource;
     } else if (source) {
@@ -165,6 +166,8 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     if (campaign) {
       payload.signUpCampaign = campaign;
     }
+
+    payload.newData.signUpSource = payload.signUpSource;
 
     const res = await mutateAsync(payload);
 

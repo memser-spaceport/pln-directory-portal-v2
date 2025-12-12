@@ -680,7 +680,7 @@ function evaluateDate(
 
 export function getNearestEventDate<
   T extends { startDate: string; endDate: string }
->(events: T[]): string | null {
+>(events: T[], type?: 'past' | 'current'): string | null {
   const now = Date.now();
 
   const nearestFuture = { value: null as number | null };
@@ -696,9 +696,16 @@ export function getNearestEventDate<
     evaluateDate(endTs, now, nearestFuture, latestPast);
   }
 
-  const finalTs = nearestFuture.value ?? latestPast.value;
+  let finalTs: number | null = null;
+
+  if (type === 'past') {
+    finalTs = latestPast.value;
+  } else {
+    // default behavior
+    finalTs = nearestFuture.value ?? latestPast.value;
+  }
+
   if (!finalTs) return null;
 
-  // Convert back to YYYY-MM-DD WITHOUT timezone shift
   return new Date(finalTs).toISOString().slice(0, 10);
 }

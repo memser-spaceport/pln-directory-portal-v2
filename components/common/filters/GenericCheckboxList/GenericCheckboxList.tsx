@@ -78,6 +78,8 @@ export interface GenericCheckboxListProps {
   className?: string;
 
   hideSearch?: boolean;
+
+  disableSorting?: boolean;
 }
 
 /**
@@ -127,6 +129,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     shouldClearSearch,
     className,
     hideSearch,
+    disableSorting,
   } = props;
 
   const [searchValue, setSearchValue] = useState('');
@@ -161,6 +164,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     selectedData: selectedValues,
     searchValue,
     defaultItemsToShow,
+    disableSorting,
   });
 
   // React Hook Form setup

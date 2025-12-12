@@ -126,9 +126,10 @@ export function AuthInvalidUser() {
 
         // Special handling for demo day rejected access
         if (
-          isDemoDayScopePage(pathname) &&
-          ['REGISTRATION_OPEN', 'ACTIVE'].includes(demoDayState?.status) &&
-          ['rejected_access_level', 'email_not_found'].includes(errorType)
+          errorType === 'no_demo_day_access' ||
+          (isDemoDayScopePage(pathname) &&
+            ['REGISTRATION_OPEN', 'ACTIVE'].includes(demoDayState?.status) &&
+            ['rejected_access_level', 'email_not_found'].includes(errorType))
         ) {
           const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 

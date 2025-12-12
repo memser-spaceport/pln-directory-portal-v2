@@ -11,6 +11,7 @@ export type AuthErrorCode =
   | 'exited_link_flow'
   | 'invalid_credentials'
   | 'email-changed'
+  | 'no_demo_day_access'
   | '';
 
 export type LinkMethod = 'github' | 'google' | 'siwe' | 'email' | 'updateEmail';

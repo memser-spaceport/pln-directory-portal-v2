@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useToggle } from 'react-use';
 import { User } from '@privy-io/react-auth';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useParams } from 'next/navigation';
 import Cookies from 'js-cookie';
 
 import { usePrivyWrapper, useAuthTokens, getLinkedAccounts } from '../../hooks';
@@ -31,6 +31,7 @@ import './PrivyModals.scss';
 export function PrivyModals() {
   const router = useRouter();
   const pathname = usePathname();
+  const params = useParams();
   const analytics = useAuthAnalytics();
 
   // Privy hooks
@@ -129,10 +130,13 @@ export function PrivyModals() {
 
       // Check demo day access
       if (isDemoDayScopePage(pathname) && output?.userInfo?.uid) {
-        const res = await getDemoDayState(output.userInfo.uid);
-        if (res?.access === 'none') {
-          authEvents.emit('auth:invalid-email', 'rejected_access_level');
-          return;
+        const demoDaySlug = params?.demoDayId as string;
+        if (demoDaySlug) {
+          const res = await getDemoDayState(demoDaySlug, output.userInfo.uid);
+          if (res?.access === 'none') {
+            authEvents.emit('auth:invalid-email', 'no_demo_day_access');
+            return;
+          }
         }
       }
 
@@ -141,7 +145,7 @@ export function PrivyModals() {
       // Small delay to ensure cookies are set before refresh completes
       setTimeout(() => window.location.reload(), 300);
     },
-    [clearPrivyParams, pathname, router, showLoginSuccess],
+    [clearPrivyParams, pathname, params, router, showLoginSuccess],
   );
 
   const initDirectoryLogin = useCallback(async () => {

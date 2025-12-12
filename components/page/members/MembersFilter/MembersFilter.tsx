@@ -157,6 +157,7 @@ export const MembersFilter = (props: IMembersFilter) => {
           })}
           defaultItemsToShow={2}
           hideSearch
+          disableSorting
         />
 
         <FilterDivider />

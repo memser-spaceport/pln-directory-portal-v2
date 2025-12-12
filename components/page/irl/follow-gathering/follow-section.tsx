@@ -820,7 +820,7 @@ const FollowSection = (props: IFollowSectionProps) => {
 
       <style jsx global>{`
         .toolbar__actionCn__scheduleBtn {
-          display: ${isShrunk ? 'flex' : 'none'};
+          display: flex;
           align-items: center;
           justify-content: center;
           border: 1px solid #cbd5e1;

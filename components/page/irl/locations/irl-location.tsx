@@ -247,7 +247,7 @@ const IrlLocation = (props: IrlLocation) => {
                       <div className="root__irl__mobileModal__cnt__events">
                         {location.upcomingEvents?.length > 0 && (
                           <>
-                            <span>{location.upcomingEvents?.length ?? 0}</span> Upcoming
+                            <span>{location.upcomingEvents?.length ?? 0}</span> Current
                           </>
                         )}
                         {location.pastEvents?.length > 0 && (

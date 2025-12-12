@@ -116,7 +116,7 @@ export default function EventsSection({ eventLocations, userInfo }: EventsSectio
   return (
     <div className={`events-section`}>
       <div className="header">
-        <h1>Current & Upcoming</h1>
+        <h1>Current Events</h1>
 
         <div className="navigation-buttons">
           <button

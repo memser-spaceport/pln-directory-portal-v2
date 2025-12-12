@@ -63,7 +63,7 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
               onUpcomingEventsWidgetShowAllClicked();
             }}
           >
-            Upcoming Events <ArrowIcon />
+            Current Events <ArrowIcon />
           </Link>
           <button
             onClick={() => {

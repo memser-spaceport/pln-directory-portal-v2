@@ -28,7 +28,7 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
   const router = useRouter();
   const isLoggedIn = props.isLoggedIn;
   const topicsAndReason = props.topicsAndReasonResponse;
-  const nearestEventDate = getNearestEventDate(eventDetails.events);
+  const nearestEventDate = getNearestEventDate(eventDetails.events, searchParams?.type || null);
 
   const isAdminInAllEvents = checkAdminInAllEvents(
     searchParams?.type,

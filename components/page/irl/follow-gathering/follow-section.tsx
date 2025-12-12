@@ -48,8 +48,8 @@ const FollowSection = (props: IFollowSectionProps) => {
   const addMemberRef = useRef<HTMLButtonElement>(null);
   const locationEvents = props?.locationEvents;
   const pastEvents = locationEvents?.pastEvents;
-  const upcomingEvents = locationEvents?.upcomingEvents;
-  const totalEvents = (upcomingEvents?.length || 0) + (pastEvents?.length || 0);
+  const upcomingEvents = locationEvents?.upcomingEvents ?? [];
+  const totalEvents = type === 'past' ? pastEvents?.length || 0 : upcomingEvents?.length > 0 && type !== 'past' ? upcomingEvents?.length || 0 : (upcomingEvents?.length || 0) + (pastEvents?.length || 0);
   const filteredGatherings = upcomingEvents.filter((gathering: any) => filterUpcomingGatherings(gathering));
   // Check if user has any upcoming events (events they can edit)
   const userHasUpcomingEvents = updatedUser?.events?.some((event: any) => filterUpcomingGatherings(event)) ?? false;
@@ -856,7 +856,7 @@ const FollowSection = (props: IFollowSectionProps) => {
           white-space: nowrap;
           display: flex;
           align-items: center;
-          margin-top: 2px;
+          margin-top: unset !important;
         }
 
         @media (min-width: 1024px) {

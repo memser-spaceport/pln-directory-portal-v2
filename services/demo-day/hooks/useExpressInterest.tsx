@@ -4,7 +4,7 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import { toast } from '@/components/core/ToastContainer/utils/toast';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 
-export type InterestType = 'like' | 'connect' | 'invest' | 'referral';
+export type InterestType = 'like' | 'connect' | 'invest' | 'referral' | 'feedback';
 
 interface ReferralData {
   investorName: string;
@@ -12,11 +12,16 @@ interface ReferralData {
   message: string;
 }
 
+interface FeedbackData {
+  feedback: string;
+}
+
 interface ExpressInterestData {
   teamFundraisingProfileUid: string;
   interestType: InterestType;
   isPrepDemoDay?: boolean;
   referralData?: ReferralData;
+  feedbackData?: FeedbackData;
 }
 
 async function expressInterest(demoDayId: string, data: ExpressInterestData): Promise<boolean> {
@@ -65,6 +70,9 @@ export function useExpressInterest(teamName?: string) {
         case 'referral':
           title = `${teamName || '[TeamName]'} introduction sent`;
           break;
+        case 'feedback':
+          title = `Feedback sent to ${teamName || '[TeamName]'}`;
+          break;
         default:
           title = 'Connection request sent!';
       }
@@ -74,9 +82,7 @@ export function useExpressInterest(teamName?: string) {
           <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{title}</span>
           <br />
           <span style={{ fontSize: '14px' }}>
-            {isPrepDemoDay
-              ? `Emails aren't sent to founders in showcase mode.`
-              : 'We sent an email to let them know.'}
+            {isPrepDemoDay ? `Emails aren't sent to founders in showcase mode.` : 'We sent an email to let them know.'}
           </span>
         </div>,
         {
@@ -94,7 +100,7 @@ export function useExpressInterest(teamName?: string) {
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATS, demoDayId] });
     },
     onError: (error) => {
-      toast.error('Connection request failed. Please try again.', {
+      toast.error(error?.message || 'Connection request failed. Please try again.', {
         autoClose: 3000,
       });
     },

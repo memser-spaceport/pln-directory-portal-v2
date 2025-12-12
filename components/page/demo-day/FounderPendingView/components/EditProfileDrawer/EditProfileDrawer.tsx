@@ -21,6 +21,7 @@ import Image from 'next/image';
 import { Drawer } from '@/components/common/Drawer';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { ReferCompanyModal } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/ReferCompanyModal';
+import { GiveFeedbackModal } from '@/components/page/demo-day/GiveFeedbackModal';
 import { FoundersListModal } from '../FoundersListModal';
 
 const BackIcon = () => (
@@ -97,6 +98,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   const [editView, setEditView] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isFoundersModalOpen, setIsFoundersModalOpen] = useState(false);
   const successAlertTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -434,6 +436,26 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
     }
   };
 
+  const handleFeedbackSubmit = (feedbackData: { feedback: string }) => {
+    if (data?.uid) {
+      // TODO: Add analytics for feedback submission
+
+      expressInterest.mutate(
+        {
+          teamFundraisingProfileUid: data.uid,
+          interestType: 'feedback' as any,
+          isPrepDemoDay,
+          feedbackData,
+        },
+        {
+          onSuccess: () => {
+            setIsFeedbackModalOpen(false);
+          },
+        },
+      );
+    }
+  };
+
   const founders = useMemo(() => {
     if (!data?.founders) {
       return [];
@@ -673,6 +695,13 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             )}
           </button>
           <button
+            className={s.feedbackButton}
+            onClick={() => setIsFeedbackModalOpen(true)}
+            disabled={!data?.uid}
+          >
+            📝 Give Feedback
+          </button>
+          <button
             className={s.secondaryButton}
             onClick={() =>
               expressInterest.mutate({
@@ -742,6 +771,15 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
         isOpen={isReferModalOpen}
         onClose={() => setIsReferModalOpen(false)}
         onSubmit={handleReferSubmit}
+        teamName={data?.team?.name || ''}
+        isSubmitting={expressInterest.isPending}
+      />
+
+      {/* Give Feedback Modal */}
+      <GiveFeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        onSubmit={handleFeedbackSubmit}
         teamName={data?.team?.name || ''}
         isSubmitting={expressInterest.isPending}
       />

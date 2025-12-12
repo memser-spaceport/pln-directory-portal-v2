@@ -24,6 +24,8 @@ import { FilterSection } from '@/components/common/filters/FilterSection';
 import { FilterCheckboxListWithSearch } from './FilterCheckboxListWithSearch';
 
 import s from './MembersFilter.module.scss';
+import { FilterList } from '@/components/page/demo-day/ActiveView/components/Filters/components/FilterList';
+import { GenericCheckboxList } from '@/components/common/filters/GenericCheckboxList';
 
 export interface IMembersFilter {
   filterValues: any | undefined;
@@ -32,6 +34,11 @@ export interface IMembersFilter {
   searchParams: any;
   onClose?: () => void;
 }
+
+const INVESTOR_OPTIONS = [
+  { value: 'ANGEL', label: 'Angel Investor' },
+  { value: 'FUND', label: 'Invest through fund(s)' },
+];
 
 export const MembersFilter = (props: IMembersFilter) => {
   const { userInfo, onClose } = props;
@@ -142,6 +149,17 @@ export const MembersFilter = (props: IMembersFilter) => {
       <FilterSection title="Investors">
         <InvestorFilterToggle label="Show all Investors" paramKey="isInvestor" />
 
+        <GenericCheckboxList
+          paramKey="investorType"
+          filterStore={useFilterStore}
+          useGetDataHook={() => ({
+            data: INVESTOR_OPTIONS,
+          })}
+          defaultItemsToShow={2}
+          hideSearch
+          disableSorting
+        />
+
         <FilterDivider />
 
         <FilterCheckSizeInput
@@ -153,7 +171,7 @@ export const MembersFilter = (props: IMembersFilter) => {
             min: 0,
             max: 5000000,
           }}
-          disabled={!params.get('isInvestor')}
+          // disabled={!params.get('isInvestor')}
         />
 
         <FilterDivider />
@@ -162,7 +180,7 @@ export const MembersFilter = (props: IMembersFilter) => {
           selectLabel="Investment Focus"
           paramKey="investmentFocus"
           filterStore={useFilterStore}
-          disabled={!params.get('isInvestor')}
+          // disabled={!params.get('isInvestor')}
         />
       </FilterSection>
     </FiltersSidePanel>

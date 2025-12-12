@@ -28,6 +28,7 @@ interface IFollowSectionProps {
   isAdminInAllEvents: any;
   guestDetails: any;
   topicsAndReason: any;
+  nearestEventDate: string | null;
 }
 
 const FollowSection = (props: IFollowSectionProps) => {
@@ -47,8 +48,8 @@ const FollowSection = (props: IFollowSectionProps) => {
   const addMemberRef = useRef<HTMLButtonElement>(null);
   const locationEvents = props?.locationEvents;
   const pastEvents = locationEvents?.pastEvents;
-  const upcomingEvents = locationEvents?.upcomingEvents;
-  const totalEvents = (upcomingEvents?.length || 0) + (pastEvents?.length || 0);
+  const upcomingEvents = locationEvents?.upcomingEvents ?? [];
+  const totalEvents = type === 'past' ? pastEvents?.length || 0 : upcomingEvents?.length > 0 && type !== 'past' ? upcomingEvents?.length || 0 : (upcomingEvents?.length || 0) + (pastEvents?.length || 0);
   const filteredGatherings = upcomingEvents.filter((gathering: any) => filterUpcomingGatherings(gathering));
   // Check if user has any upcoming events (events they can edit)
   const userHasUpcomingEvents = updatedUser?.events?.some((event: any) => filterUpcomingGatherings(event)) ?? false;
@@ -62,9 +63,10 @@ const FollowSection = (props: IFollowSectionProps) => {
     isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const topicsAndReason = props?.topicsAndReason;
   const accessLevel = getAccessLevel(userInfo, isUserLoggedIn);
+  const nearestEventDate = props?.nearestEventDate;
   const scheduleURL =
     locationEvents?.additionalInfo?.schedule_url ||
-    `${process.env.SCHEDULE_BASE_URL}/program?location=${encodeURIComponent(eventLocationSummary.name)}`;
+    `${process.env.SCHEDULE_BASE_URL}/program?location=${encodeURIComponent(eventLocationSummary.name)}${nearestEventDate ? `&date=${nearestEventDate}` : ''}`;
 
   // Helper functions
   const getFollowProperties = (followers: any[]) => ({
@@ -588,6 +590,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             gap: 8px;
             border-radius: 8px;
             border: 1px solid #cbd5e1;
+            font-family: 'Inter', sans-serif;
             font-size: 14px;
             font-weight: 500;
             line-height: 20px;
@@ -817,7 +820,7 @@ const FollowSection = (props: IFollowSectionProps) => {
 
       <style jsx global>{`
         .toolbar__actionCn__scheduleBtn {
-          display: ${isShrunk ? 'flex' : 'none'};
+          display: flex;
           align-items: center;
           justify-content: center;
           border: 1px solid #cbd5e1;
@@ -853,7 +856,7 @@ const FollowSection = (props: IFollowSectionProps) => {
           white-space: nowrap;
           display: flex;
           align-items: center;
-          margin-top: 2px;
+          margin-top: unset !important;
         }
 
         @media (min-width: 1024px) {

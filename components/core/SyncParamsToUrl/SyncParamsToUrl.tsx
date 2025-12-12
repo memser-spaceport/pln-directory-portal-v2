@@ -21,6 +21,7 @@ const TRACKED_PARAMS = [
   'stage',
   'industry',
   'activity',
+  'investorType',
 ] as const;
 
 // Helper function to filter URLSearchParams to only include tracked parameters

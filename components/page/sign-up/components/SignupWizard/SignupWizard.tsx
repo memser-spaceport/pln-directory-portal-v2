@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import Image from 'next/image';
 import Cookies from 'js-cookie';
@@ -14,6 +14,7 @@ import { saveRegistrationImage } from '@/services/registration.service';
 import { SignupForm } from '@/components/page/sign-up/components/SignupWizard/types';
 import { signupSchema } from '@/components/page/sign-up/components/SignupWizard/helpers';
 import { FormField } from '@/components/form/FormField';
+import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { ProfileImageInput } from '@/components/page/sign-up/components/ProfileImageInput';
 import { getRecaptchaToken } from '@/services/google-recaptcha.service';
 import { toast } from '@/components/core/ToastContainer';
@@ -52,6 +53,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       teamOrProject: null,
       teamName: '',
       websiteAddress: '',
+      about: '',
       subscribe: true,
       agreed: true,
     },
@@ -87,7 +89,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     analytics.recordSignUpSave('submit-clicked', formData);
 
     const campaign = Cookies.get('utm_campaign') ?? '';
-    const source = Cookies.get('utm_source') ?? '';
+    const source = searchParams.get('utm_source') || Cookies.get('utm_source') || '';
     const medium = Cookies.get('utm_medium') ?? '';
 
     let image;
@@ -103,11 +105,16 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       email: formData.email,
       isSubscribedToNewsletter: formData.subscribe,
       isUserConsent: formData.agreed,
+      signUpSource,
     };
 
     if (image) {
       newData.imageUid = image.uid;
       newData.imageUrl = image.url;
+    }
+
+    if (formData.about?.trim()) {
+      newData.aboutYou = formData.about.trim();
     }
 
     // Build the team/project object
@@ -147,7 +154,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       newData,
     };
 
-    // Use signUpSource prop if provided, otherwise fall back to UTM source
+    // Use signUpSource prop if provided, otherwise use utm_source from query params or cookies
     if (signUpSource) {
       payload.signUpSource = signUpSource;
     } else if (source) {
@@ -159,6 +166,8 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     if (campaign) {
       payload.signUpCampaign = campaign;
     }
+
+    payload.newData.signUpSource = payload.signUpSource;
 
     const res = await mutateAsync(payload);
 
@@ -339,6 +348,23 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                 {/*    />*/}
                 {/*  </Field.Root>*/}
                 {/*</div>*/}
+
+                <div className={s.row}>
+                  <div className={s.aboutField}>
+                    <div className={s.aboutLabel}>
+                      <span className={s.aboutLabelText}>Tell us a bit about you</span>
+                      <span className={s.aboutLabelOptional}>(Optional)</span>
+                    </div>
+                    <FormTextArea
+                      name="about"
+                      placeholder="Founder at Foresight Ventures, supporting early-stage teams in AI, biotech, and frontier tech."
+                      rows={3}
+                      maxLength={400}
+                      showCharCount={true}
+                    />
+                  </div>
+                </div>
+
                 <div className={s.col}>
                   <label className={s.Label}>
                     <Checkbox

@@ -49,10 +49,22 @@ const getPageData = async (searchParams: Record<string, string>) => {
 
   try {
     const { isLoggedIn, authToken } = getCookiesFromHeaders();
+
+    const invType = searchParams.investorType?.split('|') || [];
+
+    if (invType.length > 0) {
+      invType.push('ANGEL_AND_FUND');
+    }
+
+    // When any investor type is selected, set isInvestor to true
+    const isInvestor = invType.length > 0 ? 'true' : searchParams.isInvestor;
+
     const query = qs.stringify({
       ...searchParams,
+      isInvestor,
       roles: searchParams.roles?.split('|'),
       topics: searchParams.topics?.split('|') || '',
+      investorType: invType,
       sort: searchParams.sort
         ?.split(',')
         .map((s) => s.toLowerCase())

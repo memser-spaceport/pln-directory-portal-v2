@@ -169,7 +169,7 @@ const LocationCard = (props: any) => {
           </div>
           <div className="LocationCard__content__eventCntr">
             <div className="LocationCard__content__eventCntr__br"></div>
-            <div className="LocationCard__content__eventCntr__cnt">{upcomingEvents?.length} Upcoming Events</div>
+            <div className="LocationCard__content__eventCntr__cnt">{upcomingEvents?.length} Current Events</div>
             <div className="LocationCard__content__eventCntr__br"></div>
           </div>
           <div className="LocationCard__content__eventCntr__events ">

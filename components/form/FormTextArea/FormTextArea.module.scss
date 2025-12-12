@@ -36,7 +36,7 @@
 .input {
   display: flex;
   min-height: 80px;
-  padding: 0 16px 0 0;
+  padding: 0 2px 0 0;
   align-items: flex-start;
   gap: 8px;
   align-self: stretch;
@@ -80,12 +80,13 @@
   background: transparent;
   outline: none;
   color: #455468;
-  resize: vertical;
+  //resize: vertical;
   min-height: 60px;
   width: 100%;
   font-family: inherit;
   font-size: 14px;
   line-height: 1.5;
+  resize: none;
 }
 
 .description {
@@ -110,4 +111,25 @@
   font-weight: 500;
   line-height: 20px; /* 200% */
   margin-top: 0.25rem;
+}
+
+.charCounter {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.charCount {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.charCountError {
+  color: #dc2626;
 }

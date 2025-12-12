@@ -1,0 +1,19 @@
+.root {
+  gap: 8px;
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.error {
+  color: #dc2626;
+  font-size: 12px;
+}

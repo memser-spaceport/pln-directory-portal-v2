@@ -41,11 +41,12 @@ export const InvestorFilterToggle = ({ label, paramKey }: Props) => {
 
   // Clear related filters when turning OFF the investor toggle
   const handleBeforeChange = (isCurrentlyChecked: boolean, setParam: (key: string, value?: string) => void) => {
-    if (isCurrentlyChecked) {
+    if (!isCurrentlyChecked) {
       // Turning OFF - clear investor-specific filters
       setParam('minTypicalCheckSize', undefined);
       setParam('maxTypicalCheckSize', undefined);
       setParam('investmentFocus', undefined);
+      setParam('investorType', undefined);
     }
   };
 

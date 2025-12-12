@@ -117,7 +117,6 @@ export function TeamsFilter(props: TeamsFilterProps) {
             placeholder="E.g. Direct..."
             filterStore={useTeamFilterStore}
             useGetDataHook={getMembershipSources}
-            defaultItemsToShow={5}
             onChange={(key, values) => {
               triggerLoader(true);
               handleMembershipSourcesChange(key, values);

@@ -12,6 +12,7 @@ import { IUserInfo } from '@/types/shared.types';
 
 import s from './LoginButton.module.scss';
 import { PropsWithChildren } from 'react';
+import { isDemoDayScopePage } from '../login/utils';
 
 interface Props {
   className?: string;
@@ -30,7 +31,7 @@ const LoginBtn = (props: PropsWithChildren<Props>) => {
     authAnalytics.onLoginBtnClicked();
 
     // Track demo day login button click if on demo day page
-    if (pathname === '/demoday') {
+    if (isDemoDayScopePage(pathname, true)) {
       const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
 
       // PostHog analytics

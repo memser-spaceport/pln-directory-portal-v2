@@ -27,7 +27,7 @@ const IrlLocationPopupView = (props: IrlLocationPopupViewProps) => {
         <div className="root__irl__overlay__cnt__events">
           {upcomingEvents?.length > 0 && (
             <>
-              <span>{location.upcomingEvents?.length ?? 0}</span> Upcoming
+              <span>{location.upcomingEvents?.length ?? 0}</span> Current
             </>
           )}
           {pastEvents?.length > 0 && (

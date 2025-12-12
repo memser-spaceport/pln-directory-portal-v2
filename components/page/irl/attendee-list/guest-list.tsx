@@ -44,6 +44,8 @@ const GuestList = (props: IGuestList) => {
   const analytics = useIrlAnalytics();
   const router = useRouter();
 
+  const scheduleURL = `${process.env.SCHEDULE_BASE_URL}/program?location=${encodeURIComponent(location?.name)}`;
+
   const onchangeSelectionStatus = (uid: string) => {
     setSelectedGuests((prevSelectedIds: string[]) => {
       if (prevSelectedIds.includes(uid)) {
@@ -85,6 +87,16 @@ const GuestList = (props: IGuestList) => {
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, props));
   };
 
+  const onEmptyGuestListImGoingClick = () => {
+    if (isLoggedIn) {
+      analytics.trackEmptyGuestListImGoingClicked(location, 'logged_in');
+      onRegisterToday();
+    } else {
+      analytics.trackEmptyGuestListImGoingClicked(location, 'not_logged_in');
+      onLogin();
+    }
+  }
+
   useEffect(() => {
     document.dispatchEvent(
       new CustomEvent(EVENTS.OPEN_FLOATING_BAR, {
@@ -99,85 +111,24 @@ const GuestList = (props: IGuestList) => {
     }
   }, [selectedGuests]);
 
-  if (
-    events?.upcomingEvents?.length > 0 &&
-    events?.pastEvents?.length === 0 &&
-    filteredList.length === 0 &&
-    !hasFiltersApplied
-  ) {
-    return (
-      <>
-        <div className="guestList__empty__current">
-          <img width={182} height={118} src="/images/irl/attendees.svg" alt="attendees empty" />
-          <p className="guestList__empty__current__text">You could be one of the very first to join!</p>
-          <p className="guestList__empty__current__text__secondary">Claim your spot as one of the pioneers</p>
-          {filteredGatherings?.length > 0 && (
-            <button onClick={onRegisterToday} className="guestList__empty__current__button">
-              Register Today
-            </button>
-          )}
-        </div>
-        <style jsx>{`
-          .guestList__empty__current {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            align-items: center;
-            padding-block: 45px;
-          }
-
-          .guestList__empty__current__text {
-            font-weight: 600;
-            font-size: 16px;
-            line-height: 20px;
-            letter-spacing: 0.01em;
-            color: #0f172a;
-            margin-top: 24px;
-          }
-
-          .guestList__empty__current__text__secondary {
-            font-weight: 400;
-            font-size: 14px;
-            line-height: 20px;
-            letter-spacing: 0px;
-            color: #000000;
-            margin-top: 8px;
-          }
-
-          .guestList__empty__current__button {
-            background: #156ff7;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0px 1px 1px 0px #0f172a14;
-            font-weight: 500;
-            font-size: 14px;
-            line-height: 20px;
-            letter-spacing: 0px;
-            color: #ffffff;
-            height: 40px;
-            border-radius: 8px;
-            padding: 9px 16px;
-            margin-top: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-          }
-        `}</style>
-      </>
-    );
-  }
-
   if (filteredList.length === 0 && !hasFiltersApplied) {
     return (
       <>
         <div className="guestList__empty__current">
           <img width={182} height={118} src="/images/irl/attendees.svg" alt="attendees empty" />
-          <p className="guestList__empty__current__text">Registration is opening up! Be among the first to sign up </p>
-          <p className="guestList__empty__current__text__secondary">Check out who has attended in the past</p>
-          <button onClick={onViewPastAttendees} className="guestList__empty__current__button">
-            View Past Attendees
-            <img src="/images/irl/attendees-avatar-group.svg" alt="avatar group" />
-          </button>
+          <div className="guestList__empty__current__text">
+          <a
+            href={scheduleURL}
+            target="_blank"
+            className="guestList__empty__current__text__link"
+            onClick={() => analytics.trackViewScheduleClick(location)}
+          >
+            View schedule of events
+          </a> 
+          {' '}in {location?.name.charAt(0).toUpperCase() + location?.name.slice(1)} and mark yourself as
+         <a href="#" onClick={onEmptyGuestListImGoingClick} className="guestList__empty__current__text__link"> I am Going</a>
+          {' '}if you are planning to attend.
+         </div>
         </div>
         <style jsx>{`
           .guestList__empty__current {
@@ -190,39 +141,16 @@ const GuestList = (props: IGuestList) => {
 
           .guestList__empty__current__text {
             font-weight: 600;
-            font-size: 16px;
+            font-size: 14px;
             line-height: 20px;
+            width: 550px;
             letter-spacing: 0.01em;
             color: #0f172a;
             margin-top: 24px;
           }
 
-          .guestList__empty__current__text__secondary {
-            font-weight: 400;
-            font-size: 14px;
-            line-height: 20px;
-            letter-spacing: 0px;
-            color: #000000;
-            margin-top: 8px;
-          }
-
-          .guestList__empty__current__button {
-            background: #156ff7;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0px 1px 1px 0px #0f172a14;
-            font-weight: 500;
-            font-size: 14px;
-            line-height: 20px;
-            letter-spacing: 0px;
-            color: #ffffff;
-            height: 40px;
-            border-radius: 8px;
-            padding: 9px 16px;
-            margin-top: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+          .guestList__empty__current__text__link {
+            color: #156ff7;
           }
         `}</style>
       </>

@@ -15,6 +15,7 @@ import { IMember } from '@/types/members.types';
 import { LogosGrid } from '@/components/common/LogosGrid';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import { faqCompletedItems } from '@/app/constants/demoday';
+import { DEMODAY_PRIVACY_URL, DEMODAY_TERMS_URL } from '@/components/page/sign-up/components/SignupWizard/constants';
 
 const ArrowRight = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -189,10 +190,10 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
               endorse or recommend any investment.
             </p>
             <div className={s.footerButtons}>
-              <Link href="/privacy" className={s.footerLink}>
+              <Link href={DEMODAY_PRIVACY_URL} className={s.footerLink} target="_blank">
                 Privacy Policy
               </Link>
-              <Link href="/terms" className={s.footerLink}>
+              <Link href={DEMODAY_TERMS_URL} className={s.footerLink} target="_blank">
                 Terms of Service
               </Link>
             </div>

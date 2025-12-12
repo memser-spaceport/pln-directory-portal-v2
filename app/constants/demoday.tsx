@@ -98,10 +98,6 @@ export const faqCompletedItems = [
       <FaqBulletList
         items={[
           'PL Demo Day is an invite-only event for investors. Invitations are being sent to a vetted list of angel investors and VCs.',
-          <span key={1}>
-            If you are an investor and would like to attend the next demo day, you can{' '}
-            <FaqLink href={APPLY_FOR_NEXT_DEMO_DAY_URL}>apply here</FaqLink>.
-          </span>,
         ]}
       />
     ),

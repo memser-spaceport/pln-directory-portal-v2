@@ -7,6 +7,7 @@ import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/co
 import { useFilterStore } from '@/services/members/store';
 import { useGetRoles } from '@/services/members/hooks/useGetRoles';
 import { useGetTopics } from '@/services/members/hooks/useGetTopics';
+import { useGetInvestorTypes } from '@/services/members/hooks/useGetInvestorTypes';
 import { useGetMembersFilterCount } from '@/components/page/members/hooks/useGetMembersFilterCount';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 
@@ -34,11 +35,6 @@ export interface IMembersFilter {
   searchParams: any;
   onClose?: () => void;
 }
-
-const INVESTOR_OPTIONS = [
-  { value: 'ANGEL', label: 'Angel Investor' },
-  { value: 'FUND', label: 'Invest through fund(s)' },
-];
 
 export const MembersFilter = (props: IMembersFilter) => {
   const { userInfo, onClose } = props;
@@ -152,9 +148,7 @@ export const MembersFilter = (props: IMembersFilter) => {
         <GenericCheckboxList
           paramKey="investorType"
           filterStore={useFilterStore}
-          useGetDataHook={() => ({
-            data: INVESTOR_OPTIONS,
-          })}
+          useGetDataHook={useGetInvestorTypes}
           defaultItemsToShow={2}
           hideSearch
           disableSorting

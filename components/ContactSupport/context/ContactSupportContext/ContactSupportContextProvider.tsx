@@ -1,7 +1,6 @@
 'use client';
 
 import { useToggle } from 'react-use';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 
 import { ContactSupportContext } from './ContactSupportContext';
@@ -13,14 +12,11 @@ const CONTACT_SUPPORT_QUERY_PARAM_VALUE = 'contactSupport';
 export function ContactSupportContextProvider(props: PropsWithChildren<{}>) {
   const { children } = props;
 
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   const [open, toggleOpen] = useToggle(false);
   const [metadata, setMetadata] = useState<Metadata>();
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(window.location.search);
     const dialog = params.get('dialog');
 
     if (!open && dialog === CONTACT_SUPPORT_QUERY_PARAM_VALUE) {
@@ -29,15 +25,15 @@ export function ContactSupportContextProvider(props: PropsWithChildren<{}>) {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    const url = new URL(window.location.href);
 
     if (open) {
-      params.set(CONTACT_SUPPORT_QUERY_PARAM_NAME, CONTACT_SUPPORT_QUERY_PARAM_VALUE);
+      url.searchParams.set(CONTACT_SUPPORT_QUERY_PARAM_NAME, CONTACT_SUPPORT_QUERY_PARAM_VALUE);
     } else {
-      params.delete(CONTACT_SUPPORT_QUERY_PARAM_NAME);
+      url.searchParams.delete(CONTACT_SUPPORT_QUERY_PARAM_NAME);
     }
 
-    router.replace(`?${params.toString()}`);
+    window.history.replaceState({}, '', url);
   }, [open]);
 
   function openModal(metadata?: Metadata) {

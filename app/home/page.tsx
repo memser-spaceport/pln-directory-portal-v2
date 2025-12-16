@@ -6,6 +6,7 @@ import Error from '@/components/core/error';
 import Featured from '@/components/page/home/featured/featured';
 import Discover from '@/components/page/home/discover/discover';
 import LandingFocusAreas from '@/components/page/home/focus-area/focus-area-section';
+import DemoDayLanding from '@/components/page/home/demo-day-landing/demo-day-landing';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/components/page/team-form-info/focus-area/focus-area';
 import HuskyDialog from '@/components/page/home/husky-dialog';
@@ -27,6 +28,10 @@ export default async function Home() {
     <>
       <div className={styles.home}>
         <div className={styles.home__cn}>
+          {/* Demo Day Landing section */}
+          <div className={styles.home__cn__demoday}>
+            <DemoDayLanding />
+          </div>
           {/* Focus Area section */}
           <div className={styles.home__cn__focusarea}>
             <LandingFocusAreas focusAreas={focusAreas} userInfo={userInfo} />

@@ -198,6 +198,10 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE, params);
   }
 
+  function onSubscribeToDemoDayUpdatesChange(params: Record<any, boolean>) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE, params);
+  }
+
   return {
     recordSettingsSideMenuClick,
     recordManageTeamsTeamChange,
@@ -224,5 +228,6 @@ export const useSettingsAnalytics = () => {
     onRecommendationEmailFeedbackClicked,
     onForumDigestOptionSelect,
     onSubscribeToPlNewsletterChange,
+    onSubscribeToDemoDayUpdatesChange,
   };
 };

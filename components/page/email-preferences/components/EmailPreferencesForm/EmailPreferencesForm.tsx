@@ -8,9 +8,11 @@ import { ForumDigest } from '@/components/page/email-preferences/components/Foru
 import s from './EmailPreferencesForm.module.scss';
 import { Newsletter } from '@/components/page/email-preferences/components/Newsletter';
 import { InvestorCommunications } from '@/components/page/email-preferences/components/InvestorCommunications';
+import { DemoDayUpdates } from '@/components/page/email-preferences/components/DemoDayUpdates';
 import { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import { InvestorSettings } from '@/services/members/hooks/useGetInvestorSettings';
 import { MemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
+import { DemoDaySubscriptionSettings } from '@/services/members/hooks/useGetDemoDaySubscription';
 import { getMemberInfo } from '@/services/members.service';
 
 interface Props {
@@ -20,6 +22,7 @@ interface Props {
     settings: ForumDigestSettings;
     investorSettings: InvestorSettings;
     memberInvestorSettings?: MemberInvestorSettings;
+    demoDaySubscription?: DemoDaySubscriptionSettings;
     memberInfo: Awaited<ReturnType<typeof getMemberInfo>>;
   };
 }
@@ -52,6 +55,7 @@ export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
         <>
           <ForumDigest userInfo={userInfo} initialData={initialData.settings} />
           <Newsletter userInfo={userInfo} initialData={initialData.memberInfo} />
+          <DemoDayUpdates userInfo={userInfo} initialData={initialData.demoDaySubscription} />
         </>
       )}
       <InvestorCommunications

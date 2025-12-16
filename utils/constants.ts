@@ -192,6 +192,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
 
   SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE: 'settings-subscribe-to-newsletter-change',
   FORUM_DIGEST_OPTION_SELECTED: 'settings-forum-digest-option-selected',
+  SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE: 'settings-subscribe-to-demo-day-updates-change',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {

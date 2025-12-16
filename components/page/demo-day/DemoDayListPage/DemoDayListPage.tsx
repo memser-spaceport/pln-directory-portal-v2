@@ -16,6 +16,7 @@ import { LogosGrid } from '@/components/common/LogosGrid';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import { faqCompletedItems } from '@/app/constants/demoday';
 import { DEMODAY_PRIVACY_URL, DEMODAY_TERMS_URL } from '@/components/page/sign-up/components/SignupWizard/constants';
+import { SubscribeSection } from './components/SubscribeSection';
 
 const ArrowRight = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -119,6 +120,9 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
               </div>
             </div>
           </div>
+
+          {/* Subscribe Section */}
+          <SubscribeSection />
 
           {/* Cards Section */}
           <div className={s.section2}>

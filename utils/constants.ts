@@ -685,7 +685,7 @@ export const ChangeLogList = [
       <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
         <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Days landing page</span> - Browse all Demo Days in one place, with dedicated pages for each event.</li>
         <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor profiles</span> - Investor profile is now available for all signed-up users.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Private teams for new members</span> - L0 users can create a private team visible only to them until they reach L2+.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Private teams for new members</span> - not approved users can create a private team visible only to them until they are approved.</li>
         <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filtering refinements</span> - Added "Tier: Not assigned" and improved filter display, plus a mobile fix for the Demo Day industry filter overlay.</li>
       </ul>
       </div>`,

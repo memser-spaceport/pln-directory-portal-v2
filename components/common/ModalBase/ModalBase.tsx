@@ -8,7 +8,7 @@ import s from './ModalBase.module.scss';
 interface ModalBaseProps {
   title: ReactNode;
   titleIcon: ReactNode;
-  description: ReactNode;
+  description?: ReactNode;
   footer?: ReactNode;
   open: boolean;
   cancel: {
@@ -38,7 +38,7 @@ export function ModalBase(props: PropsWithChildren<ModalBaseProps>) {
 
           <div className={s.description}>
             <div className={s.title}>{title}</div>
-            <div>{description}</div>
+            {description && <div>{description}</div>}
           </div>
 
           {children}

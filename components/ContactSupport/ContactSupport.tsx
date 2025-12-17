@@ -32,21 +32,68 @@ interface Props {
   userInfo?: IUserInfo;
 }
 
+const getDescriptionByReason = (reason?: string): string | undefined => {
+  switch (reason) {
+    case 'email_not_found':
+      return "We couldn't find any member with this email in the Protocol Labs Network.";
+    case 'rejected_access_level':
+      return 'Your application to join the Protocol Labs Network was not approved.';
+    case 'unexpected_error':
+      return "We couldn't complete your request due to a technical issue.";
+    default:
+      return undefined;
+  }
+};
+
+const getFieldLabelByTopic = (topic: string): string => {
+  switch (topic) {
+    case 'Contact support':
+      return 'Describe the issue';
+    case 'Ask a question':
+      return 'Your question';
+    case 'Give feedback':
+      return 'Your feedback';
+    case 'Share an idea':
+      return 'Your idea';
+    case 'Report a bug':
+      return 'Bug description';
+    default:
+      return 'Describe the issue';
+  }
+};
+
+const getFieldPlaceholderByTopic = (topic: string): string => {
+  switch (topic) {
+    case 'Contact support':
+      return "I'm having an issue with...";
+    case 'Ask a question':
+      return 'What would you like to know?';
+    case 'Give feedback':
+      return 'Share your thoughts...';
+    case 'Share an idea':
+      return 'Tell us about your idea...';
+    case 'Report a bug':
+      return 'Describe the bug you encountered...';
+    default:
+      return "I'm having an issue with...";
+  }
+};
+
 export function ContactSupport(props: Props) {
   const { userInfo } = props;
-  const { open, metadata, closeModal } = useContactSupportContext();
+  const { open, metadata, topic: contextTopic, closeModal, updateTopic } = useContactSupportContext();
   const contactSupportMutation = useContactSupport();
 
   const getDefaultValues = useCallback(() => {
     const { email = '', name = '' } = userInfo || {};
 
     return {
-      topic: CONTACT_SUPPORT_TOPICS[0].value,
+      topic: contextTopic || CONTACT_SUPPORT_TOPICS[0].value,
       email,
       name,
       message: '',
     };
-  }, [userInfo?.email, userInfo?.name]);
+  }, [userInfo, contextTopic]);
 
   const methods = useForm<ContactSupportFormData>({
     resolver: yupResolver(contactSupportSchema),
@@ -96,11 +143,15 @@ export function ContactSupport(props: Props) {
 
   const isLoading = contactSupportMutation.isPending;
 
+  const description = getDescriptionByReason(metadata?.reason as string);
+  const fieldLabel = getFieldLabelByTopic(selectedTopic);
+  const fieldPlaceholder = getFieldPlaceholderByTopic(selectedTopic);
+
   return (
     <ModalBase
       title="Contact Support"
       titleIcon={<QuestionCircleIcon />}
-      description="No member with this email exists in the Protocol Labs Network. Double-check your email or try a different one. If you believe this is an error, our support team can help."
+      description={description}
       open={open}
       cancel={{
         onClick: closeModal,
@@ -118,6 +169,7 @@ export function ContactSupport(props: Props) {
         onItemSelect={(option) => {
           if (option) {
             setValue('topic', option.value, { shouldValidate: true });
+            updateTopic(option.value);
           }
         }}
         uniqueKey="value"
@@ -153,11 +205,11 @@ export function ContactSupport(props: Props) {
       />
 
       <LabeledInput
-        label="Describe the issue"
+        label={fieldLabel}
         error={errors.message?.message}
         input={{
           as: 'textarea',
-          placeholder: "I'm having an issue with...",
+          placeholder: fieldPlaceholder,
           rows: 4,
           ...register('message'),
         }}

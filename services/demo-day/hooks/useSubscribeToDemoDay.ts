@@ -1,6 +1,7 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { toast } from '@/components/core/ToastContainer';
+import { MembersQueryKeys } from '@/services/members/constants';
 
 export interface SubscribeToDemoDayPayload {
   email: string;
@@ -38,14 +39,18 @@ async function mutation(payload: SubscribeToDemoDayPayload) {
 }
 
 export function useSubscribeToDemoDay() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (payload: SubscribeToDemoDayPayload) => mutation(payload),
-    onSuccess: () => {
-      toast.success('Your email has been added to the list! We\'ll notify you when registration opens.');
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: [MembersQueryKeys.GET_DEMO_DAY_SUBSCRIPTION],
+      });
+      toast.success("Your email has been added to the list! We'll notify you when registration opens.");
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to subscribe. Please try again.');
     },
   });
 }
-

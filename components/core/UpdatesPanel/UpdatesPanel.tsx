@@ -1,11 +1,49 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { clsx } from 'clsx';
-import { PushNotification, CATEGORY_CONFIG } from '@/types/push-notifications.types';
+import { PushNotification, PushNotificationCategory } from '@/types/push-notifications.types';
 import { formatDistanceToNow } from 'date-fns';
 import s from './UpdatesPanel.module.scss';
+
+// Tab configuration
+type TabKey = 'all' | 'demo_day' | 'forum' | 'events' | 'feedback';
+
+interface Tab {
+  key: TabKey;
+  label: string;
+  categories: PushNotificationCategory[];
+}
+
+const TABS: Tab[] = [
+  {
+    key: 'all',
+    label: 'All',
+    categories: [],
+  },
+  {
+    key: 'demo_day',
+    label: 'Demo Day',
+    categories: ['DEMO_DAY_LIKE', 'DEMO_DAY_CONNECT', 'DEMO_DAY_INVEST', 'DEMO_DAY_REFERRAL'],
+  },
+  {
+    key: 'forum',
+    label: 'Forum',
+    categories: ['FORUM_POST', 'FORUM_REPLY'],
+  },
+  {
+    key: 'events',
+    label: 'Events',
+    categories: ['EVENT'],
+  },
+  {
+    key: 'feedback',
+    label: 'Feedback',
+    categories: ['DEMO_DAY_FEEDBACK', 'SYSTEM'],
+  },
+];
 
 interface UpdatesPanelProps {
   open: boolean;
@@ -15,13 +53,19 @@ interface UpdatesPanelProps {
   onMarkAllAsRead: () => void;
 }
 
-export function UpdatesPanel({
-  open,
-  notifications,
-  onClose,
-  onMarkAsRead,
-  onMarkAllAsRead,
-}: UpdatesPanelProps) {
+export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead, onMarkAllAsRead }: UpdatesPanelProps) {
+  const [activeTab, setActiveTab] = useState<TabKey>('all');
+
+  const unreadCount = useMemo(() => notifications.filter((n) => !n.isRead).length, [notifications]);
+
+  const filteredNotifications = useMemo(() => {
+    const tab = TABS.find((t) => t.key === activeTab);
+    if (!tab || tab.key === 'all') {
+      return notifications;
+    }
+    return notifications.filter((n) => tab.categories.includes(n.category));
+  }, [notifications, activeTab]);
+
   if (!open) return null;
 
   const handleNotificationClick = (notification: PushNotification) => {
@@ -32,36 +76,19 @@ export function UpdatesPanel({
 
   const formatTime = (dateString: string) => {
     try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: false })
-        .replace('about ', '')
-        .replace('less than a minute', '1min')
-        .replace(' minutes', 'min')
-        .replace(' minute', 'min')
-        .replace(' hours', 'h')
-        .replace(' hour', 'h')
-        .replace(' days', 'd')
-        .replace(' day', 'd') + ' ago';
+      return (
+        formatDistanceToNow(new Date(dateString), { addSuffix: false })
+          .replace('about ', '')
+          .replace('less than a minute', '1min')
+          .replace(' minutes', 'min')
+          .replace(' minute', 'min')
+          .replace(' hours', 'h')
+          .replace(' hour', 'h')
+          .replace(' days', 'd')
+          .replace(' day', 'd') + ' ago'
+      );
     } catch {
       return '';
-    }
-  };
-
-  const getCategoryIcon = (category: PushNotification['category']) => {
-    switch (category) {
-      case 'DEMO_DAY_LIKE':
-      case 'DEMO_DAY_CONNECT':
-      case 'DEMO_DAY_INVEST':
-      case 'DEMO_DAY_REFERRAL':
-      case 'DEMO_DAY_FEEDBACK':
-        return <DemoDayIcon />;
-      case 'EVENT':
-        return <EventIcon />;
-      case 'FORUM_POST':
-      case 'FORUM_REPLY':
-        return <ForumIcon />;
-      case 'SYSTEM':
-      default:
-        return <SystemIcon />;
     }
   };
 
@@ -76,7 +103,7 @@ export function UpdatesPanel({
       case 'EVENT':
         return 'View event';
       case 'FORUM_POST':
-        return 'Read more';
+        return 'Read post';
       case 'FORUM_REPLY':
         return 'View comment';
       case 'SYSTEM':
@@ -84,6 +111,53 @@ export function UpdatesPanel({
         return 'View';
     }
   };
+
+  const getNotificationIcon = (notification: PushNotification) => {
+    // If notification has an image (user avatar), show it
+    if (notification.image) {
+      return (
+        <div className={s.avatarWrapper}>
+          <Image src={notification.image} alt="" width={40} height={40} className={s.avatar} />
+        </div>
+      );
+    }
+
+    // Otherwise show category icon
+    switch (notification.category) {
+      case 'DEMO_DAY_LIKE':
+      case 'DEMO_DAY_CONNECT':
+      case 'DEMO_DAY_INVEST':
+      case 'DEMO_DAY_REFERRAL':
+      case 'DEMO_DAY_FEEDBACK':
+        return (
+          <div className={s.iconWrapper}>
+            <DemoDayIcon />
+          </div>
+        );
+      case 'EVENT':
+        return (
+          <div className={s.iconWrapper}>
+            <EventIcon />
+          </div>
+        );
+      case 'FORUM_POST':
+      case 'FORUM_REPLY':
+        return (
+          <div className={s.iconWrapper}>
+            <ForumIcon />
+          </div>
+        );
+      case 'SYSTEM':
+      default:
+        return (
+          <div className={s.iconWrapper}>
+            <SystemIcon />
+          </div>
+        );
+    }
+  };
+
+  const hasUnreadNotifications = unreadCount > 0;
 
   return (
     <div className={s.overlay} onClick={onClose}>
@@ -95,58 +169,65 @@ export function UpdatesPanel({
           </button>
         </div>
 
+        <div className={s.tabs}>
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              className={clsx(s.tab, { [s.active]: activeTab === tab.key })}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+              {tab.key === 'all' && unreadCount > 0 && <span className={s.tabBadge}>{unreadCount}</span>}
+            </button>
+          ))}
+        </div>
+
         <div className={s.content}>
-          {notifications.length === 0 ? (
+          {filteredNotifications.length === 0 ? (
             <div className={s.emptyState}>
               <p>No updates yet</p>
             </div>
           ) : (
             <div className={s.notificationsList}>
-              {notifications.map((notification) => {
-                const config = CATEGORY_CONFIG[notification.category] || CATEGORY_CONFIG.SYSTEM;
-                return (
-                  <div
-                    key={notification.id}
-                    className={clsx(s.notificationItem, {
-                      [s.unread]: !notification.isRead,
-                    })}
-                    onClick={() => handleNotificationClick(notification)}
-                  >
-                    <div className={s.iconWrapper}>{getCategoryIcon(notification.category)}</div>
-                    <div className={s.notificationContent}>
-                      <div className={s.categoryBadge}>{config.label}</div>
-                      <h3 className={s.notificationTitle}>{notification.title}</h3>
+              {filteredNotifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={clsx(s.notificationItem, {
+                    [s.unread]: !notification.isRead,
+                  })}
+                  onClick={() => handleNotificationClick(notification)}
+                >
+                  {getNotificationIcon(notification)}
+                  <div className={s.notificationContent}>
+                    <p className={s.notificationText}>
+                      <span className={s.notificationTitle}>{notification.title}</span>
                       {notification.description && (
-                        <p className={s.notificationDescription}>{notification.description}</p>
+                        <span className={s.notificationDescription}> {notification.description}</span>
                       )}
-                      <div className={s.notificationFooter}>
-                        <span className={s.timestamp}>{formatTime(notification.createdAt)}</span>
-                        {notification.link && (
-                          <Link
-                            href={notification.link}
-                            className={s.actionLink}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {getActionText(notification.category)}
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                    {!notification.isRead && <div className={s.unreadDot} />}
+                      {notification.link && (
+                        <Link href={notification.link} className={s.actionLink} onClick={(e) => e.stopPropagation()}>
+                          {getActionText(notification.category)}
+                        </Link>
+                      )}
+                    </p>
+                    <span className={s.timestamp}>{formatTime(notification.createdAt)}</span>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </div>
 
         <div className={s.footer}>
           <Link href="/notifications" className={s.viewAllLink} onClick={onClose}>
-            View all recent updates
+            View recent updates
             <ArrowRightIcon />
           </Link>
-          {notifications.some((n) => !n.isRead) && (
-            <div className={s.unreadIndicator} />
+          {hasUnreadNotifications && (
+            <button className={s.markAllReadButton} onClick={onMarkAllAsRead}>
+              Mark all as read
+              <CheckIcon />
+            </button>
           )}
         </div>
       </div>
@@ -228,6 +309,20 @@ function ArrowRightIcon() {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
         d="M3.33334 8H12.6667M12.6667 8L8.00001 3.33333M12.6667 8L8.00001 12.6667"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M13.3333 4L6 11.3333L2.66667 8"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"

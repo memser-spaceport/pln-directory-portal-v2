@@ -749,7 +749,7 @@ export const ChangeLogList = [
   },
   {
     title: 'Version 4.3.1 - Demo Day UI Refinements',
-    tag: 'Fixed',
+    tag: 'Bug fixes',
     date: '20, Oct 2025',
     shortContent: `
       <div style="font-size: 14px; line-height:23px;">

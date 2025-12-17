@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList';
 import { Button } from '@/components/common/Button';
-import { DemoDayCard } from '@/components/common/DemoDayCard';
+import { DemoDayCard, DemoDayCardSkeleton } from '@/components/common/DemoDayCard';
 import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
 import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
 
@@ -122,13 +122,17 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
           </div>
 
           {/* Subscribe Section */}
-          <SubscribeSection />
+          <SubscribeSection isLoggedIn={isLoggedIn} userInfo={userInfo} />
 
           {/* Cards Section */}
           <div className={s.section2}>
             <div className={s.cards}>
               {isLoading ? (
-                <div className={s.loading}>Loading demo days...</div>
+                <>
+                  <DemoDayCardSkeleton />
+                  <DemoDayCardSkeleton />
+                  <DemoDayCardSkeleton />
+                </>
               ) : displayedDemoDays && displayedDemoDays.length > 0 ? (
                 displayedDemoDays.map((demoDay) => (
                   <DemoDayCard

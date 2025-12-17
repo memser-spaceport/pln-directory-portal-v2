@@ -1,0 +1,94 @@
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.card {
+  display: block;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  border-radius: 16px;
+  pointer-events: none;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.eventInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.overline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.badgeSkeleton {
+  width: 100px;
+  height: 24px;
+  border-radius: 9999px;
+  background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+  background-size: 800px 24px;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.dateSkeleton {
+  width: 120px;
+  height: 20px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+  background-size: 800px 20px;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.titleSkeleton {
+  width: 70%;
+  height: 34px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+  background-size: 800px 34px;
+  animation: shimmer 1.5s infinite linear;
+  margin-top: 8px;
+
+  @media (max-width: 768px) {
+    height: 28px;
+  }
+}
+
+.descriptionSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.line {
+  width: 100%;
+  height: 20px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+  background-size: 800px 20px;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.lineShort {
+  width: 60%;
+  height: 20px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+  background-size: 800px 20px;
+  animation: shimmer 1.5s infinite linear;
+}
+

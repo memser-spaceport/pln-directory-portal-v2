@@ -9,6 +9,7 @@ import { ApplicationSearch } from '@/components/core/application-search';
 import { AccountMenu } from '@/components/core/navbar/components/AccountMenu/AccountMenu';
 import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
 import { useGetAppNotifications } from '@/services/notifications/hooks/useGetAppNotifications';
+import { NotificationBell } from '@/components/core/NotificationBell';
 import { useMemberProfileStatus } from '@/services/members/hooks/useMemberProfileStatus';
 import { Signup } from './components/Signup';
 import { NavigationMenu } from '@base-ui-components/react';
@@ -136,6 +137,7 @@ function Navbar(props: Readonly<INavbar>) {
           <ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
 
           <HelpIcon onClick={() => openModal()} />
+          {isLoggedIn && <NotificationBell />}
           {isLoggedIn && (
             <AccountMenu
               userInfo={userInfo}

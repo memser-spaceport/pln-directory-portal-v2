@@ -18,7 +18,7 @@ import PostLoginRedirectHandler from '@/components/page/recommendations/componen
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginFlowTrigger';
 import { UserInfoChecker } from '@/components/core/login';
-import { MobileBottomNav } from '@/components/core/MobileBottomNav/MobileBottomNav';
+import { MobileBottomNav } from '@/components/core/MobileBottomNav';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { DemoDayBanner } from '@/components/core/navbar/components/DemoDayBanner';
 import { DemoDayStats } from '@/components/core/DemoDayStats';

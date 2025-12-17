@@ -287,6 +287,9 @@
   align-items: center;
   justify-content: flex-start;
   flex: 1;
+
+  overflow-x: auto;
+  @include mixins.hide-scrollbar;
 }
 
 .founderBadge {

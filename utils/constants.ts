@@ -192,6 +192,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
 
   SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE: 'settings-subscribe-to-newsletter-change',
   FORUM_DIGEST_OPTION_SELECTED: 'settings-forum-digest-option-selected',
+  SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE: 'settings-subscribe-to-demo-day-updates-change',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {
@@ -659,6 +660,108 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.4.1 - Sign-In, Support & Filtering Improvements',
+    tag: 'Improvements',
+    date: '12, Dec 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">User Experience Improvements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Smoother sign-in</span> - Clearer authentication messaging and a more streamlined Google sign-in experience for whitelisted users.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor filters refresh</span> - Improved investor filtering on the Members page with new options and more consistent filter behavior.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Contact Support</span> - New built-in support form with a shareable URL and helpful prefill for logged-in members.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day feedback</span> - Added a "Give Feedback" action for active Demo Days.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Sign-up flow update</span> - Added an optional "Tell us a bit about you" step and improved the Join Now flow.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.4.0 - Demo Days Discovery & Profiles',
+    tag: 'New Feature',
+    date: '02, Dec 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Days Expansion</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Days landing page</span> - Browse all Demo Days in one place, with dedicated pages for each event.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor profiles</span> - Investor profile is now available for all signed-up users.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Private teams for new members</span> - not approved users can create a private team visible only to them until they are approved.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filtering refinements</span> - Added "Tier: Not assigned" and improved filter display, plus a mobile fix for the Demo Day industry filter overlay.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.3.5 - Navigation & Teams Filters',
+    tag: 'Improvements',
+    date: '20, Nov 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Directory Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Mobile navigation redesign</span> - Updated the bottom navigation for a clearer, more ergonomic experience.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Teams page filters</span> - Added new filters to make it easier to find the right teams.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Roles & teams flow</span> - Improved the role and team selection experience and removed the default "Contributor" role.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.3.4 - Demo Day Wrap-Up & Profile Editing',
+    tag: 'Improvements',
+    date: '07, Nov 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day & Profile Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day wrap-up</span> - Added a completed Demo Day experience, including an updated banner and a feedback form for investors.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor status</span> - Members can now mark themselves as an investor.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Clearer save state</span> - Inline profile edits now show "No Changes" when there’s nothing new to save.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.3.3 - Teams Page & Mobile Polish',
+    tag: 'Improvements',
+    date: '30, Oct 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Usability Improvements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Primary team selection</span> - Added the ability to select a primary team.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Cleaner team profiles</span> - Team pages now hide empty investor sections and display fundraising contact links more clearly.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Mobile improvements</span> - Polished the Active Demo Day page and improved CTA button layouts on mobile.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.3.2 - Fundraising Cards & Filters',
+    tag: 'Improvements',
+    date: '21, Oct 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Discovery & Filtering Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Introductions CTA</span> - Added a new Send Intro call-to-action with clearer status cues.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor filtering</span> - Improved investor filter UX on the Members page.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Fundraising team tiles</span> - Updated fundraising cards to be easier to scan and added a quick website link.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filters & categories</span> - Refreshed the Industries filter UI and added a new Funds category.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.3.1 - Demo Day UI Refinements',
+    tag: 'Fixed',
+    date: '20, Oct 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Polish & Fixes</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Stage filtering cleanup</span> - Streamlined stage filters and improved dropdown behavior across the Demo Day experience.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Smoother navigation</span> - Stage tabs now jump to the correct section and scroll to the top for better context.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filter input clarity</span> - Updated investor filter interactions to reduce accidental actions when fields are empty.</li>
+      </ul>
+      </div>`,
+  },
   {
     title: 'Version 4.3.0 - Protocol Labs Demo Day Platform',
     tag: 'New Feature',

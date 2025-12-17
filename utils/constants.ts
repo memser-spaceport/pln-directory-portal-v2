@@ -661,6 +661,19 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.4.2 - Demo Day Updates Notifications',
+    tag: 'Improvements',
+    date: '17, Dec 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Subscribe CTA</span> - Added a "Subscribe" call-to-action on the Demo Days page.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Settings toggle</span> - New "Receive Demo Day Updates" setting to get notifications for announcements, registration openings, and key date reminders.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.4.1 - Sign-In, Support & Filtering Improvements',
     tag: 'Improvements',
     date: '12, Dec 2025',
@@ -1344,6 +1357,7 @@ export const tagColors = [
   },
   { name: 'Beta', color: '#C169D7' },
   { name: 'Fixed', color: '#4871D9' },
+  { name: 'Bug fixes', color: '#4871D9' },
 ];
 
 export const SOCIAL_IMAGE_URL =

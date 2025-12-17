@@ -16,7 +16,7 @@ interface Props {
   onNavItemClickHandler: (href: string, title: string) => void;
 }
 
-export function MenuItem(props: Props) {
+export function NavItemWithMenu(props: Props) {
   const { icon, label, items, onNavItemClickHandler } = props;
 
   return (

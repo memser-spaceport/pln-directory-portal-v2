@@ -25,9 +25,9 @@ import {
   DirectoryIcon,
 } from './components/icons';
 import { NavLink } from './components/NavLink';
+import { NavItemWithMenu } from './components/NavItemWithMenu';
 
 import s from './NavBar.module.scss';
-import { MenuItem } from '@/components/core/navbar/components/MenuItem';
 
 interface INavbar {
   userInfo: IUserInfo;
@@ -95,14 +95,14 @@ function Navbar(props: Readonly<INavbar>) {
           <AppLogo />
         </NavLink>
 
-        <MenuItem
+        <NavItemWithMenu
           icon={<DirectoryIcon />}
           label="Directory"
           items={DIRECTORY_LINKS}
           onNavItemClickHandler={onNavItemClickHandler}
         />
 
-        <MenuItem
+        <NavItemWithMenu
           icon={<EventsIcon />}
           label="Events"
           items={EVENT_LINKS}

@@ -1,21 +1,22 @@
 'use client';
 
-import React from 'react';
-import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
-import { NavigationMenu } from '@base-ui-components/react';
-import { Menu } from '@base-ui-components/react/menu';
+import React from 'react';
 import Link from 'next/link';
-import { DIRECTORY_LINKS } from '@/components/core/navbar/constants/navLinks';
+import { usePathname } from 'next/navigation';
+
+import { DIRECTORY_LINKS, EVENT_LINKS } from '@/components/core/navbar/constants/navLinks';
+
+import { NavigationMenu } from '@base-ui-components/react';
 
 import { useScrollDirection } from './useScrollDirection';
 
+import { MobileNavItemWithMenu } from './components/MobileMenuItem';
 import { EventsIcon, ForumIcon, DemoDayIcon, DirectoryIcon } from './components/icons';
 
 import s from './MobileBottomNav.module.scss';
 
 const navItems = [
-  { href: '/events', label: 'Events', icon: EventsIcon },
   { href: '/forum?cid=0', label: 'Forum', icon: ForumIcon },
   { href: '/demoday', label: 'Demo Day', icon: DemoDayIcon },
 ];
@@ -23,9 +24,6 @@ const navItems = [
 export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
-
-  // Check if current path is a directory page
-  const isDirectoryActive = DIRECTORY_LINKS.some((item) => pathname.startsWith(item.href));
 
   return (
     <div
@@ -36,37 +34,19 @@ export function MobileBottomNav() {
     >
       <NavigationMenu.Root style={{ width: '100%' }}>
         <NavigationMenu.List className={s.list}>
-          {/* Directory Item with Submenu */}
-          <NavigationMenu.Item>
-            <Menu.Root modal={false}>
-              <Menu.Trigger className={clsx(s.item, isDirectoryActive && s.itemActive)}>
-                <DirectoryIcon />
-                <span>Directory</span>
-              </Menu.Trigger>
-              <Menu.Portal>
-                <Menu.Positioner className={s.positioner} side="top" sideOffset={16} align="center">
-                  <Menu.Popup className={s.popup}>
-                    {DIRECTORY_LINKS.map(({ href, title, icon }) => (
-                      <Link key={href} href={href}>
-                        <Menu.Item
-                          className={clsx(s.menuItem, pathname.startsWith(href) && s.menuItemActive)}
-                        >
-                          {icon}
-                          <span>{title}</span>
-                        </Menu.Item>
-                      </Link>
-                    ))}
-                  </Menu.Popup>
-                </Menu.Positioner>
-              </Menu.Portal>
-            </Menu.Root>
-          </NavigationMenu.Item>
+          <MobileNavItemWithMenu icon={<DirectoryIcon />} label="Directory" items={DIRECTORY_LINKS} />
+          <MobileNavItemWithMenu icon={<EventsIcon />} label="Events" items={EVENT_LINKS} />
 
           {/* Other Nav Items */}
           {navItems.map(({ href, label, icon: Icon }) => {
             return (
               <NavigationMenu.Item key={href}>
-                <Link href={href} className={clsx(s.item, href.includes(pathname) && s.itemActive)}>
+                <Link
+                  href={href}
+                  className={clsx(s.item, {
+                    [s.itemActive]: href.includes(pathname),
+                  })}
+                >
                   <Icon />
                   <span>{label}</span>
                 </Link>

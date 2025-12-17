@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSubscribeToDemoDay } from '@/services/demo-day/hooks/useSubscribeToDemoDay';
+import { useGetDemoDaySubscription } from '@/services/members/hooks/useGetDemoDaySubscription';
+import { IUserInfo } from '@/types/shared.types';
 import s from './SubscribeSection.module.scss';
 
 const ArrowRightIcon = () => (
@@ -16,9 +18,32 @@ const ArrowRightIcon = () => (
   </svg>
 );
 
-export const SubscribeSection = () => {
+type Props = {
+  isLoggedIn?: boolean;
+  userInfo?: IUserInfo;
+};
+
+export const SubscribeSection = ({ isLoggedIn, userInfo }: Props) => {
   const [email, setEmail] = useState('');
   const { mutate, isPending } = useSubscribeToDemoDay();
+  const { data: subscriptionData, isLoading: isLoadingSubscription } = useGetDemoDaySubscription(userInfo?.uid);
+
+  // Prepopulate email if user is logged in
+  useEffect(() => {
+    if (isLoggedIn && userInfo?.email) {
+      setEmail(userInfo.email);
+    }
+  }, [isLoggedIn, userInfo?.email]);
+
+  // Wait for subscription data to load for logged-in users
+  if (isLoggedIn && isLoadingSubscription) {
+    return null;
+  }
+
+  // Hide component if user is already subscribed
+  if (isLoggedIn && subscriptionData?.demoDaySubscriptionEnabled) {
+    return null;
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +68,8 @@ export const SubscribeSection = () => {
     );
   };
 
+  const isEmailDisabled = isLoggedIn && !!userInfo?.email;
+
   return (
     <div className={s.root}>
       <p className={s.description}>Be the first to know when demo day registration opens</p>
@@ -53,7 +80,7 @@ export const SubscribeSection = () => {
           placeholder="Enter your email to subscribe"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          disabled={isPending}
+          disabled={isPending || isEmailDisabled}
           required
         />
         <button type="submit" className={s.button} disabled={isPending || !email.trim()}>

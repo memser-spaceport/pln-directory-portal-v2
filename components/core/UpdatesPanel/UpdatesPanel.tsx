@@ -41,7 +41,7 @@ const TABS: Tab[] = [
   {
     key: 'feedback',
     label: 'Feedback',
-    categories: ['DEMO_DAY_FEEDBACK', 'SYSTEM'],
+    categories: ['DEMO_DAY_FEEDBACK'],
   },
 ];
 

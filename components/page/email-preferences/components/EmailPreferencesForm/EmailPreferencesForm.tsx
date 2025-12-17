@@ -55,9 +55,9 @@ export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
         <>
           <ForumDigest userInfo={userInfo} initialData={initialData.settings} />
           <Newsletter userInfo={userInfo} initialData={initialData.memberInfo} />
-          <DemoDayUpdates userInfo={userInfo} initialData={initialData.demoDaySubscription} />
         </>
       )}
+      <DemoDayUpdates userInfo={userInfo} initialData={initialData.demoDaySubscription} />
       <InvestorCommunications
         userInfo={userInfo}
         initialData={initialData.investorSettings}

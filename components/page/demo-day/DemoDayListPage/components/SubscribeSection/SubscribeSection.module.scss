@@ -79,7 +79,8 @@
   justify-content: center;
   gap: var(--global-size-size-0, 0px);
   height: 32px;
-  padding: var(--spacing-3xs, 6px) var(--global-size-size-125, 10px);
+  width: 32px;
+  padding: 0;;
   background: var(--action-background-brand-normal, #1b4dff);
   border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
   border-radius: var(--corner-radius-full-round, 9999px);

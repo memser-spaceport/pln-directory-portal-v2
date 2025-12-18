@@ -4,7 +4,7 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDiscoverData } from '@/services/discovery.service';
 import Error from '@/components/core/error';
 import Featured from '@/components/page/home/featured/featured';
-import Discover from '@/components/page/home/discover/discover';
+// import Discover from '@/components/page/home/discover/discover';
 import LandingFocusAreas from '@/components/page/home/focus-area/focus-area-section';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/components/page/team-form-info/focus-area/focus-area';

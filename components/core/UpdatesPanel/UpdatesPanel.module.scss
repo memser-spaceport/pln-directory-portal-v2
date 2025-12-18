@@ -1,3 +1,5 @@
+@use 'styles/mixins';
+
 .overlay {
   position: fixed;
   inset: 0;
@@ -88,9 +90,12 @@
 }
 
 .notificationsList {
+  @include mixins.hide-scrollbar;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  max-height: 503px;
+  overflow-y: auto;
 }
 
 .notificationItem {

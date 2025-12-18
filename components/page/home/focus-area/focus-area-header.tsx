@@ -29,7 +29,6 @@ const FocusAreaHeader = ({
       <div className="lfa__hdr">
         <div className="lfa__hdr__title">
           <div className="lfa__titlesec">
-            <img height={28} width={28} src="/icons/hexagon-wheels.svg" />
             <h2 className="lfa__titles__ttl">Focus Areas</h2>
           </div>
           <div className="lfa__descsec">
@@ -113,9 +112,13 @@ const FocusAreaHeader = ({
         }
 
         .lfa__titles__ttl {
-          font-size: 32px;
-          line-height: 28px;
+          font-family: 'Inter', sans-serif;
           font-weight: 500;
+          color: #0a0c11;
+          margin: 0;
+          font-size: 32px;
+          line-height: 42px;
+          letter-spacing: -0.75px;
         }
 
         .lfa__hdr__actions {

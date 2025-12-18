@@ -1,72 +1,22 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { clsx } from 'clsx';
-import { PushNotification, PushNotificationCategory } from '@/types/push-notifications.types';
+import { PushNotification } from '@/types/push-notifications.types';
 import { formatDistanceToNow } from 'date-fns';
+import { AnimatePresence, motion } from 'framer-motion';
 import s from './UpdatesPanel.module.scss';
-
-// Tab configuration
-type TabKey = 'all' | 'demo_day' | 'forum' | 'events' | 'feedback';
-
-interface Tab {
-  key: TabKey;
-  label: string;
-  categories: PushNotificationCategory[];
-}
-
-const TABS: Tab[] = [
-  {
-    key: 'all',
-    label: 'All',
-    categories: [],
-  },
-  {
-    key: 'demo_day',
-    label: 'Demo Day',
-    categories: ['DEMO_DAY_LIKE', 'DEMO_DAY_CONNECT', 'DEMO_DAY_INVEST', 'DEMO_DAY_REFERRAL'],
-  },
-  {
-    key: 'forum',
-    label: 'Forum',
-    categories: ['FORUM_POST', 'FORUM_REPLY'],
-  },
-  {
-    key: 'events',
-    label: 'Events',
-    categories: ['EVENT'],
-  },
-  {
-    key: 'feedback',
-    label: 'Feedback',
-    categories: ['DEMO_DAY_FEEDBACK'],
-  },
-];
 
 interface UpdatesPanelProps {
   open: boolean;
   notifications: PushNotification[];
   onClose: () => void;
   onMarkAsRead: (id: string) => void;
-  onMarkAllAsRead: () => void;
 }
 
-export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead, onMarkAllAsRead }: UpdatesPanelProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>('all');
-
-  const unreadCount = useMemo(() => notifications.filter((n) => !n.isRead).length, [notifications]);
-
-  const filteredNotifications = useMemo(() => {
-    const tab = TABS.find((t) => t.key === activeTab);
-    if (!tab || tab.key === 'all') {
-      return notifications;
-    }
-    return notifications.filter((n) => tab.categories.includes(n.category));
-  }, [notifications, activeTab]);
-
-  if (!open) return null;
+export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead }: UpdatesPanelProps) {
 
   const handleNotificationClick = (notification: PushNotification) => {
     if (!notification.isRead) {
@@ -92,6 +42,25 @@ export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead, onMar
     }
   };
 
+  const getCategoryLabel = (category: PushNotification['category']) => {
+    switch (category) {
+      case 'DEMO_DAY_LIKE':
+      case 'DEMO_DAY_CONNECT':
+      case 'DEMO_DAY_INVEST':
+      case 'DEMO_DAY_REFERRAL':
+      case 'DEMO_DAY_FEEDBACK':
+        return 'Demo Day';
+      case 'EVENT':
+        return 'Events';
+      case 'FORUM_POST':
+      case 'FORUM_REPLY':
+        return 'Forum';
+      case 'SYSTEM':
+      default:
+        return 'System';
+    }
+  };
+
   const getActionText = (category: PushNotification['category']) => {
     switch (category) {
       case 'DEMO_DAY_LIKE':
@@ -103,7 +72,7 @@ export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead, onMar
       case 'EVENT':
         return 'View event';
       case 'FORUM_POST':
-        return 'Read post';
+        return 'Read more';
       case 'FORUM_REPLY':
         return 'View comment';
       case 'SYSTEM':
@@ -157,92 +126,93 @@ export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead, onMar
     }
   };
 
-  const hasUnreadNotifications = unreadCount > 0;
-
   return (
-    <div className={s.overlay} onClick={onClose}>
-      <div className={s.panel} onClick={(e) => e.stopPropagation()}>
-        <div className={s.header}>
-          <h2 className={s.title}>Updates</h2>
-          <button className={s.closeButton} onClick={onClose} aria-label="Close">
-            <CloseIcon />
-          </button>
-        </div>
-
-        <div className={s.tabs}>
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              className={clsx(s.tab, { [s.active]: activeTab === tab.key })}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              {tab.label}
-              {tab.key === 'all' && unreadCount > 0 && <span className={s.tabBadge}>{unreadCount}</span>}
-            </button>
-          ))}
-        </div>
-
-        <div className={s.content}>
-          {filteredNotifications.length === 0 ? (
-            <div className={s.emptyState}>
-              <p>No updates yet</p>
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            className={s.overlay}
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          />
+          <motion.div
+            className={s.panel}
+            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+          >
+            <div className={s.header}>
+              <h2 className={s.title}>Updates</h2>
+              <button className={s.closeButton} onClick={onClose} aria-label="Close">
+                <CloseIcon />
+              </button>
             </div>
-          ) : (
-            <div className={s.notificationsList}>
-              {filteredNotifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={clsx(s.notificationItem, {
-                    [s.unread]: !notification.isRead,
-                  })}
-                  onClick={() => handleNotificationClick(notification)}
-                >
-                  {getNotificationIcon(notification)}
-                  <div className={s.notificationContent}>
-                    <p className={s.notificationText}>
-                      <span className={s.notificationTitle}>{notification.title}</span>
-                      {notification.description && (
-                        <span className={s.notificationDescription}> {notification.description}</span>
-                      )}
-                      {notification.link && (
-                        <Link href={notification.link} className={s.actionLink} onClick={(e) => e.stopPropagation()}>
-                          {getActionText(notification.category)}
-                        </Link>
-                      )}
-                    </p>
-                    <span className={s.timestamp}>{formatTime(notification.createdAt)}</span>
-                  </div>
+
+            <div className={s.content}>
+              {notifications.length === 0 ? (
+                <div className={s.emptyState}>
+                  <p>No updates yet</p>
                 </div>
-              ))}
+              ) : (
+                <div className={s.notificationsList}>
+                  {notifications.map((notification) => (
+                    <Link
+                      key={notification.id}
+                      href={notification.link || '#'}
+                      className={clsx(s.notificationItem, {
+                        [s.unread]: !notification.isRead,
+                      })}
+                      onClick={() => handleNotificationClick(notification)}
+                    >
+                      {getNotificationIcon(notification)}
+                      <div className={s.notificationContent}>
+                        <div className={s.textSection}>
+                          <div className={s.categoryBadge}>{getCategoryLabel(notification.category)}</div>
+                          <div className={s.textContent}>
+                            <p className={s.notificationTitle}>{notification.title}</p>
+                            {notification.description && (
+                              <p className={s.notificationDescription}>{notification.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className={s.notificationFooter}>
+                          <span className={s.timestamp}>{formatTime(notification.createdAt)}</span>
+                          {notification.link && <span className={s.actionLink}>{getActionText(notification.category)}</span>}
+                        </div>
+                      </div>
+                      {!notification.isRead && <div className={s.unreadDot} />}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <div className={s.footer}>
-          <Link href="/notifications" className={s.viewAllLink} onClick={onClose}>
-            View recent updates
-            <ArrowRightIcon />
-          </Link>
-          {hasUnreadNotifications && (
-            <button className={s.markAllReadButton} onClick={onMarkAllAsRead}>
-              Mark all as read
-              <CheckIcon />
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
+            <div className={s.footer}>
+              <Link href="/home#recent-updates" className={s.viewAllLink} onClick={onClose}>
+                View all recent updates
+                <ArrowRightIcon />
+              </Link>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 
 // Icons
 function CloseIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M18 6L6 18M6 6L18 18"
+        d="M15 5L5 15M5 5L15 15"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -252,11 +222,10 @@ function CloseIcon() {
 
 function DemoDayIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="24" height="24" rx="6" fill="#EBF3FF" />
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M16 7H15V6.5C15 6.36739 14.9473 6.24021 14.8536 6.14645C14.7598 6.05268 14.6326 6 14.5 6C14.3674 6 14.2402 6.05268 14.1464 6.14645C14.0527 6.24021 14 6.36739 14 6.5V7H10V6.5C10 6.36739 9.94732 6.24021 9.85355 6.14645C9.75979 6.05268 9.63261 6 9.5 6C9.36739 6 9.24021 6.05268 9.14645 6.14645C9.05268 6.24021 9 6.36739 9 6.5V7H8C7.73478 7 7.48043 7.10536 7.29289 7.29289C7.10536 7.48043 7 7.73478 7 8V16C7 16.2652 7.10536 16.5196 7.29289 16.7071C7.48043 16.8946 7.73478 17 8 17H16C16.2652 17 16.5196 16.8946 16.7071 16.7071C16.8946 16.5196 17 16.2652 17 16V8C17 7.73478 16.8946 7.48043 16.7071 7.29289C16.5196 7.10536 16.2652 7 16 7ZM16 16H8V10H16V16ZM12 14.5L13.5 12.5H12.5V11L11 13H12V14.5Z"
-        fill="#156FF7"
+        d="M17.4167 3.66669H16.5V3.20835C16.5 3.05924 16.4407 2.91617 16.3344 2.80989C16.2281 2.70362 16.085 2.64435 15.9359 2.64435C15.7868 2.64435 15.6437 2.70362 15.5374 2.80989C15.4312 2.91617 15.3719 3.05924 15.3719 3.20835V3.66669H11.0052V3.20835C11.0052 3.05924 10.9459 2.91617 10.8396 2.80989C10.7334 2.70362 10.5903 2.64435 10.4412 2.64435C10.2921 2.64435 10.149 2.70362 10.0427 2.80989C9.93645 2.91617 9.87718 3.05924 9.87718 3.20835V3.66669H5.51051C5.21229 3.66669 4.92639 3.78507 4.71385 3.99761C4.50131 4.21015 4.38293 4.49605 4.38293 4.79427V17.4167C4.38293 17.7149 4.50131 18.0008 4.71385 18.2133C4.92639 18.4259 5.21229 18.5443 5.51051 18.5443H17.4167C17.7149 18.5443 18.0008 18.4259 18.2133 18.2133C18.4259 18.0008 18.5443 17.7149 18.5443 17.4167V4.79427C18.5443 4.49605 18.4259 4.21015 18.2133 3.99761C18.0008 3.78507 17.7149 3.66669 17.4167 3.66669ZM17.4167 17.4167H5.51051V7.05002H17.4167V17.4167ZM11.4635 15.1635L13.7188 12.0052H12.5698V10.1927L10.3146 13.351H11.4635V15.1635Z"
+        fill="#1B4DFF"
       />
     </svg>
   );
@@ -264,11 +233,10 @@ function DemoDayIcon() {
 
 function EventIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="24" height="24" rx="6" fill="#F0FDF4" />
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M16 7H15V6.5C15 6.36739 14.9473 6.24021 14.8536 6.14645C14.7598 6.05268 14.6326 6 14.5 6C14.3674 6 14.2402 6.05268 14.1464 6.14645C14.0527 6.24021 14 6.36739 14 6.5V7H10V6.5C10 6.36739 9.94732 6.24021 9.85355 6.14645C9.75979 6.05268 9.63261 6 9.5 6C9.36739 6 9.24021 6.05268 9.14645 6.14645C9.05268 6.24021 9 6.36739 9 6.5V7H8C7.73478 7 7.48043 7.10536 7.29289 7.29289C7.10536 7.48043 7 7.73478 7 8V16C7 16.2652 7.10536 16.5196 7.29289 16.7071C7.48043 16.8946 7.73478 17 8 17H16C16.2652 17 16.5196 16.8946 16.7071 16.7071C16.8946 16.5196 17 16.2652 17 16V8C17 7.73478 16.8946 7.48043 16.7071 7.29289C16.5196 7.10536 16.2652 7 16 7ZM16 16H8V10H16V16Z"
-        fill="#10B981"
+        d="M17.4167 3.66669H16.5V3.20835C16.5 3.05924 16.4407 2.91617 16.3344 2.80989C16.2281 2.70362 16.085 2.64435 15.9359 2.64435C15.7868 2.64435 15.6437 2.70362 15.5374 2.80989C15.4312 2.91617 15.3719 3.05924 15.3719 3.20835V3.66669H11.0052V3.20835C11.0052 3.05924 10.9459 2.91617 10.8396 2.80989C10.7334 2.70362 10.5903 2.64435 10.4412 2.64435C10.2921 2.64435 10.149 2.70362 10.0427 2.80989C9.93645 2.91617 9.87718 3.05924 9.87718 3.20835V3.66669H5.51051C5.21229 3.66669 4.92639 3.78507 4.71385 3.99761C4.50131 4.21015 4.38293 4.49605 4.38293 4.79427V17.4167C4.38293 17.7149 4.50131 18.0008 4.71385 18.2133C4.92639 18.4259 5.21229 18.5443 5.51051 18.5443H17.4167C17.7149 18.5443 18.0008 18.4259 18.2133 18.2133C18.4259 18.0008 18.5443 17.7149 18.5443 17.4167V4.79427C18.5443 4.49605 18.4259 4.21015 18.2133 3.99761C18.0008 3.78507 17.7149 3.66669 17.4167 3.66669ZM17.4167 17.4167H5.51051V7.05002H17.4167V17.4167Z"
+        fill="#1B4DFF"
       />
     </svg>
   );
@@ -276,11 +244,10 @@ function EventIcon() {
 
 function ForumIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="24" height="24" rx="6" fill="#F5F3FF" />
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M16 7H8C7.44772 7 7 7.44772 7 8V14C7 14.5523 7.44772 15 8 15H10L12 17L14 15H16C16.5523 15 17 14.5523 17 14V8C17 7.44772 16.5523 7 16 7Z"
-        stroke="#8B5CF6"
+        d="M17.4167 5.51051H5.51051C4.91384 5.51051 4.38293 6.04142 4.38293 6.63809V15.3714C4.38293 15.9681 4.91384 16.499 5.51051 16.499H8.87718L11.4635 19.0854L14.0498 16.499H17.4167C18.0134 16.499 18.5443 15.9681 18.5443 15.3714V6.63809C18.5443 6.04142 18.0134 5.51051 17.4167 5.51051Z"
+        stroke="#1B4DFF"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -291,11 +258,10 @@ function ForumIcon() {
 
 function SystemIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="24" height="24" rx="6" fill="#F3F4F6" />
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-        stroke="#6B7280"
+        d="M11 7.33331V11M11 14.6666H11.0113M19.25 11C19.25 15.5563 15.5563 19.25 11 19.25C6.44365 19.25 2.75 15.5563 2.75 11C2.75 6.44365 6.44365 2.75 11 2.75C15.5563 2.75 19.25 6.44365 19.25 11Z"
+        stroke="#1B4DFF"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -306,23 +272,9 @@ function SystemIcon() {
 
 function ArrowRightIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M3.33334 8H12.6667M12.6667 8L8.00001 3.33333M12.6667 8L8.00001 12.6667"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M13.3333 4L6 11.3333L2.66667 8"
+        d="M2.91669 7H11.0834M11.0834 7L7.00002 2.91669M11.0834 7L7.00002 11.0834"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"

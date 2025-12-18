@@ -15,6 +15,7 @@ import { ADMIN_ROLE, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
 import { formatFeaturedData } from '@/utils/home.utils';
+import { RecentUpdatesSection } from '@/components/page/home/recent-updates';
 
 export default async function Home() {
   const { featuredData, discoverData, isLoggedIn, isError, userInfo, focusAreas } = await getPageData();
@@ -31,10 +32,14 @@ export default async function Home() {
           <div className={styles.home__cn__focusarea}>
             <LandingFocusAreas focusAreas={focusAreas} userInfo={userInfo} />
           </div>
-          {/* Discover section */}
-          <div className={styles.home__cn__discover}>
-            <Discover discoverData={discoverData} userInfo={userInfo} />
+          {/* Recent Updates section */}
+          <div className={styles.home__cn__recentupdates}>
+            <RecentUpdatesSection />
           </div>
+          {/* Discover section */}
+          {/*<div className={styles.home__cn__discover}>*/}
+          {/*  <Discover discoverData={discoverData} userInfo={userInfo} />*/}
+          {/*</div>*/}
           {/* Featured section */}
           <div className={styles.home__cn__featured}>
             <Featured featuredData={featuredData} isLoggedIn={isLoggedIn} userInfo={userInfo} />

@@ -2,6 +2,7 @@ import React from 'react';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { HOME_PAGE_LINKS } from '@/utils/constants';
+import s from '@/components/page/home/recent-updates/RecentUpdatesSection.module.scss';
 
 const filterOptions = [
   { label: 'All', value: 'all' },
@@ -37,6 +38,7 @@ const FeaturedHeader = ({ userInfo, onClick, activeFilter }: FeaturedHeaderProps
 
   return (
     <>
+      <h2 className={s.title}>Discover</h2>
       <div className="featured__hdr">
         <div className="featured__ttl__cn">
           <div className="featured__ttl">
@@ -74,8 +76,6 @@ const FeaturedHeader = ({ userInfo, onClick, activeFilter }: FeaturedHeaderProps
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-top: 1px solid #e3e3e3;
-          padding-top: 24px;
         }
 
         .featured__hdr__actions {

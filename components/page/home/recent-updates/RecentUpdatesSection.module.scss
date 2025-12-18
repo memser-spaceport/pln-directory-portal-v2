@@ -1,0 +1,229 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.title {
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 32px;
+  letter-spacing: -0.5px;
+  color: #0a0c11;
+  margin: 0;
+
+  @media (min-width: 1024px) {
+    font-size: 32px;
+    line-height: 42px;
+    letter-spacing: -0.75px;
+  }
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+  padding: 20px;
+  width: 100%;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 8px;
+  width: 100%;
+}
+
+// Empty state
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  width: 100%;
+}
+
+.emptyContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 300px;
+  text-align: center;
+}
+
+.emptyIllustration {
+  width: 170px;
+  height: 113px;
+  margin-bottom: 16px;
+}
+
+.emptyTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 34px;
+  letter-spacing: -0.4px;
+  color: #0a0c11;
+  margin: 0;
+}
+
+.emptyDescription {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  margin: 0;
+}
+
+// Notification items
+.notificationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.notificationItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+  position: relative;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.02);
+  }
+}
+
+.avatarWrapper {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.iconWrapper {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+.notificationContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.textSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.categoryBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: #eff6ff;
+  border-radius: 9999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #1b4dff;
+  width: fit-content;
+}
+
+.textContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notificationTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #0a0c11;
+  margin: 0;
+}
+
+.notificationDescription {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notificationFooter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timestamp {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #64748b;
+}
+
+.actionLink {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #1b4dff;
+}
+
+.unreadDot {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1b4dff;
+}
+
+.unread {
+  background: rgba(27, 77, 255, 0.02);
+}

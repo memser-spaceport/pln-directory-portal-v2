@@ -6,34 +6,35 @@
   width: 40px;
   height: 40px;
   border: none;
-  background: transparent;
-  border-radius: 8px;
+  background: rgba(14, 15, 17, 0.02);
+  border-radius: 9999px;
   cursor: pointer;
-  color: #64748b;
+  color: #3d4a5c;
+  padding: 9px;
   transition: all 0.15s ease;
+  box-shadow: inset 0px -2px 4px 0px rgba(14, 15, 17, 0.02);
 
   &:hover {
-    background: #f1f5f9;
-    color: #0f172a;
+    background: rgba(14, 15, 17, 0.04);
   }
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 2px #156ff7;
   }
 }
 
 .badge {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 2px;
+  right: 2px;
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  border-radius: 9px;
-  background: #156ff7;
+  border-radius: 9999px;
+  background: #4174ff;
   border: 2px solid #ffffff;
   color: #ffffff;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 600;
   line-height: 14px;

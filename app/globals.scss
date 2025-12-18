@@ -6,6 +6,25 @@
   @include media.tablet-landscape {
     --app-header-height: 80px;
   }
+
+  /* PLAA Design Tokens (from Figma) */
+  /* Colors */
+  --plaa-primary-blue: #156ff7;
+  --plaa-text-dark: #0f172a;
+  --plaa-text-menu: #475569;
+  --plaa-icon-dark: #64748b;
+  --plaa-border-light: #e2e8f0;
+  --plaa-neutral-white: #ffffff;
+  --plaa-neutral-400: #94a3b8;
+  --plaa-surface-light-grey: #f1f5f9;
+  --plaa-border-blue: #427dff;
+
+  /* Shadows */
+  --plaa-shadow-dropdown: 0px 2px 6px rgba(15, 23, 42, 0.16);
+
+  /* Spacing */
+  --plaa-banner-height: 56px;
+  --plaa-sidebar-width: 200px;
 }
 
 @media (prefers-color-scheme: dark) {

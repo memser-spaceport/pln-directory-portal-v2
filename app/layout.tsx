@@ -24,6 +24,7 @@ import { DemoDayBanner } from '@/components/core/navbar/components/DemoDayBanner
 import { DemoDayStats } from '@/components/core/DemoDayStats';
 import { ContactSupport } from '@/components/ContactSupport/ContactSupport';
 import { ContactSupportContextProvider } from '@/components/ContactSupport/context/ContactSupportContext';
+import { PushNotificationsProvider } from '@/providers/PushNotificationsProvider';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -88,6 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Suspense>
         <StyledJsxRegistry>
           <QueryProvider>
+            <PushNotificationsProvider authToken={authToken} enabled={isLoggedIn}>
             <StoreInitializer userInfo={userInfo} />
             <PostHogIdentifier />
             <ContactSupportContextProvider>
@@ -115,6 +117,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <UserInfoChecker userInfo={userInfo} />
             <CookieChecker isLoggedIn={isLoggedIn} />
             {/*<ReactQueryDevtools initialIsOpen={false} />*/}
+            </PushNotificationsProvider>
           </QueryProvider>
         </StyledJsxRegistry>
       </body>

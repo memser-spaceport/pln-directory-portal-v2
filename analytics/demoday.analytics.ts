@@ -252,6 +252,10 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_APPLICATION_MODAL_SUBMITTED, eventParams);
   }
 
+  function onSubscribeToDemoDayClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_SUBSCRIBE_TO_DEMO_DAY_CLICKED, eventParams);
+  }
+
   return {
     onLandingPageOpened,
     onLandingLoginButtonClicked,
@@ -311,5 +315,6 @@ export const useDemoDayAnalytics = () => {
     onApplicationModalFieldEntered,
     onApplicationModalCanceled,
     onApplicationModalSubmitted,
+    onSubscribeToDemoDayClicked,
   };
 };

@@ -16,7 +16,13 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
     redirect(`/${params ? `?${params}` : '?'}&returnTo=settings-email#login`);
   }
 
-  const [settingResponse, investorSettingsResponse, memberInvestorSettingsResponse, memberInfo] = await Promise.all([
+  const [
+    settingResponse,
+    investorSettingsResponse,
+    memberInvestorSettingsResponse,
+    demoDaySubscriptionResponse,
+    memberInfo,
+  ] = await Promise.all([
     fetch(`${process.env.DIRECTORY_API_URL}/v1/notification/settings/${userInfo.uid}/forum`, {
       headers: {
         contentType: 'application/json',
@@ -35,6 +41,12 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
         Authorization: `Bearer ${authToken}`,
       },
     }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/notification/settings/${userInfo.uid}/demo-day-subscription`, {
+      headers: {
+        contentType: 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+    }),
     getMemberInfo(userInfo.uid),
   ]);
 
@@ -46,6 +58,9 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
   const investorSettings = await investorSettingsResponse.json();
   const memberInvestorSettings = memberInvestorSettingsResponse.ok
     ? await memberInvestorSettingsResponse.json()
+    : undefined;
+  const demoDaySubscription = demoDaySubscriptionResponse.ok
+    ? await demoDaySubscriptionResponse.json()
     : undefined;
   const roles = userInfo.roles ?? [];
   const isAdmin = roles.includes('DIRECTORYADMIN');
@@ -75,6 +90,7 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
                 settings,
                 investorSettings,
                 memberInvestorSettings,
+                demoDaySubscription,
                 memberInfo,
               }}
             />

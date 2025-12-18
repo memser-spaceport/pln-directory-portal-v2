@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList';
 import { Button } from '@/components/common/Button';
-import { DemoDayCard } from '@/components/common/DemoDayCard';
+import { DemoDayCard, DemoDayCardSkeleton } from '@/components/common/DemoDayCard';
 import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
 import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
 
@@ -16,6 +16,7 @@ import { LogosGrid } from '@/components/common/LogosGrid';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import { faqCompletedItems } from '@/app/constants/demoday';
 import { DEMODAY_PRIVACY_URL, DEMODAY_TERMS_URL } from '@/components/page/sign-up/components/SignupWizard/constants';
+import { SubscribeSection } from './components/SubscribeSection';
 
 const ArrowRight = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -82,7 +83,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
       <div className={s.content}>
         {/* Hero Section */}
         <section className={s.heroSection}>
-          <div className={s.section1}>
+          <div id="demodays-section" className={s.section1}>
             <div className={s.title}>
               {/* <div className={s.overline}>
                 <div className={s.dot} />
@@ -120,11 +121,18 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
             </div>
           </div>
 
+          {/* Subscribe Section */}
+          <SubscribeSection isLoggedIn={isLoggedIn} userInfo={userInfo} />
+
           {/* Cards Section */}
           <div className={s.section2}>
             <div className={s.cards}>
               {isLoading ? (
-                <div className={s.loading}>Loading demo days...</div>
+                <>
+                  <DemoDayCardSkeleton />
+                  <DemoDayCardSkeleton />
+                  <DemoDayCardSkeleton />
+                </>
               ) : displayedDemoDays && displayedDemoDays.length > 0 ? (
                 displayedDemoDays.map((demoDay) => (
                   <DemoDayCard

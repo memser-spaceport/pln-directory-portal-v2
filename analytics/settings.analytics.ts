@@ -198,6 +198,14 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE, params);
   }
 
+  function onSubscribeToDemoDayUpdatesChange(params: Record<any, boolean>) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE, params);
+  }
+
+  function onDemoDayUpdatesNotificationToggleClicked(params: Record<any, boolean>) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED, params);
+  }
+
   return {
     recordSettingsSideMenuClick,
     recordManageTeamsTeamChange,
@@ -224,5 +232,7 @@ export const useSettingsAnalytics = () => {
     onRecommendationEmailFeedbackClicked,
     onForumDigestOptionSelect,
     onSubscribeToPlNewsletterChange,
+    onSubscribeToDemoDayUpdatesChange,
+    onDemoDayUpdatesNotificationToggleClicked,
   };
 };

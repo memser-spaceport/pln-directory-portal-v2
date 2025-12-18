@@ -192,6 +192,8 @@ export const SETTINGS_ANALYTICS_EVENTS = {
 
   SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE: 'settings-subscribe-to-newsletter-change',
   FORUM_DIGEST_OPTION_SELECTED: 'settings-forum-digest-option-selected',
+  SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE: 'settings-subscribe-to-demo-day-updates-change',
+  SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED: 'settings-demo-day-updates-notification-toggle-clicked',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {
@@ -659,6 +661,19 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.4.2 - Demo Day Updates Notifications',
+    tag: 'Improvements',
+    date: '17, Dec 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Subscribe CTA</span> - Added a "Subscribe" call-to-action on the Demo Days page.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Settings toggle</span> - New "Receive Demo Day Updates" setting to get notifications for announcements, registration openings, and key date reminders.</li>
+      </ul>
+      </div>`,
+  },
   {
     title: 'Version 4.4.1 - Sign-In, Support & Filtering Improvements',
     tag: 'Improvements',
@@ -1343,6 +1358,7 @@ export const tagColors = [
   },
   { name: 'Beta', color: '#C169D7' },
   { name: 'Fixed', color: '#4871D9' },
+  { name: 'Bug fixes', color: '#4871D9' },
 ];
 
 export const SOCIAL_IMAGE_URL =
@@ -1786,4 +1802,5 @@ export const DEMO_DAY_ANALYTICS = {
   ON_APPLICATION_MODAL_FIELD_ENTERED: 'demo-day-application-modal-field-entered',
   ON_APPLICATION_MODAL_CANCELED: 'demo-day-application-modal-canceled',
   ON_APPLICATION_MODAL_SUBMITTED: 'demo-day-application-modal-submitted',
+  ON_SUBSCRIBE_TO_DEMO_DAY_CLICKED: 'demo-day-subscribe-to-demo-day-clicked',
 };

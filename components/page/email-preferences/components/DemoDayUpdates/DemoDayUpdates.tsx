@@ -4,7 +4,10 @@ import s from './DemoDayUpdates.module.scss';
 import { IUserInfo } from '@/types/shared.types';
 import { clsx } from 'clsx';
 import { Switch } from '@base-ui-components/react/switch';
-import { useGetDemoDaySubscription, DemoDaySubscriptionSettings } from '@/services/members/hooks/useGetDemoDaySubscription';
+import {
+  useGetDemoDaySubscription,
+  DemoDaySubscriptionSettings,
+} from '@/services/members/hooks/useGetDemoDaySubscription';
 import { useUpdateDemoDaySubscription } from '@/services/members/hooks/useUpdateDemoDaySubscription';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 
@@ -17,7 +20,7 @@ export const DemoDayUpdates = ({
 }) => {
   const { mutate } = useUpdateDemoDaySubscription();
   const { data } = useGetDemoDaySubscription(userInfo.uid, initialData);
-  const analytics = useSettingsAnalytics();
+  const { onDemoDayUpdatesNotificationToggleClicked } = useSettingsAnalytics();
 
   const handleChange = (checked: boolean) => {
     if (!userInfo.uid) {
@@ -29,7 +32,7 @@ export const DemoDayUpdates = ({
       demoDaySubscriptionEnabled: checked,
     });
 
-    analytics.onSubscribeToDemoDayUpdatesChange({ demoDaySubscriptionEnabled: checked });
+    onDemoDayUpdatesNotificationToggleClicked({ demoDaySubscriptionEnabled: checked });
   };
 
   return (
@@ -57,4 +60,3 @@ export const DemoDayUpdates = ({
     </div>
   );
 };
-

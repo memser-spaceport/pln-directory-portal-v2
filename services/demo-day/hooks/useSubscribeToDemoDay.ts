@@ -47,7 +47,7 @@ export function useSubscribeToDemoDay() {
       await queryClient.invalidateQueries({
         queryKey: [MembersQueryKeys.GET_DEMO_DAY_SUBSCRIPTION],
       });
-      toast.success("Your email has been added to the list! We'll notify you when registration opens.");
+      toast.success("Success! You're now in the loop for demo day updates.");
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to subscribe. Please try again.');

@@ -193,6 +193,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE: 'settings-subscribe-to-newsletter-change',
   FORUM_DIGEST_OPTION_SELECTED: 'settings-forum-digest-option-selected',
   SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE: 'settings-subscribe-to-demo-day-updates-change',
+  SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED: 'settings-demo-day-updates-notification-toggle-clicked',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {
@@ -1801,4 +1802,5 @@ export const DEMO_DAY_ANALYTICS = {
   ON_APPLICATION_MODAL_FIELD_ENTERED: 'demo-day-application-modal-field-entered',
   ON_APPLICATION_MODAL_CANCELED: 'demo-day-application-modal-canceled',
   ON_APPLICATION_MODAL_SUBMITTED: 'demo-day-application-modal-submitted',
+  ON_SUBSCRIBE_TO_DEMO_DAY_CLICKED: 'demo-day-subscribe-to-demo-day-clicked',
 };

@@ -48,6 +48,10 @@
   @include media.mobile-only {
     width: 100%;
   }
+
+  &.disabled {
+    background: var(--background-neutral-soft-surface, #f9fafb);
+  }
 }
 
 .input {
@@ -70,6 +74,10 @@
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+
+    &::placeholder {
+      color: var(--foreground-neutral-secondary, #455468);
+    }
   }
 }
 
@@ -80,11 +88,11 @@
   gap: var(--global-size-size-0, 0px);
   height: 32px;
   width: 32px;
-  padding: 0;;
+  padding: 0;
   background: var(--action-background-brand-normal, #1b4dff);
   border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
   border-radius: var(--corner-radius-full-round, 9999px);
-  box-shadow: 
+  box-shadow:
     0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16)),
     inset 0px 1px 3px 0px var(--transparent-light-32, rgba(255, 255, 255, 0.32)),
     inset 0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06));
@@ -116,4 +124,3 @@
   padding: 0 var(--global-size-size-050, 4px);
   white-space: nowrap;
 }
-

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSubscribeToDemoDay } from '@/services/demo-day/hooks/useSubscribeToDemoDay';
 import { useGetDemoDaySubscription } from '@/services/members/hooks/useGetDemoDaySubscription';
 import { IUserInfo } from '@/types/shared.types';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import s from './SubscribeSection.module.scss';
 
 const ArrowRightIcon = () => (
@@ -24,6 +25,7 @@ export const SubscribeSection = ({ isLoggedIn, userInfo }: Props) => {
   const [email, setEmail] = useState('');
   const { mutate, isPending } = useSubscribeToDemoDay();
   const { data: subscriptionData, isLoading: isLoadingSubscription } = useGetDemoDaySubscription(userInfo?.uid);
+  const { onSubscribeToDemoDayClicked } = useDemoDayAnalytics();
 
   // Prepopulate email if user is logged in
   useEffect(() => {
@@ -55,8 +57,11 @@ export const SubscribeSection = ({ isLoggedIn, userInfo }: Props) => {
       return;
     }
 
+    const trimmedEmail = email.trim();
+    onSubscribeToDemoDayClicked({ email: trimmedEmail });
+
     mutate(
-      { email: email.trim() },
+      { email: trimmedEmail },
       {
         onSuccess: () => {
           setEmail('');
@@ -68,9 +73,9 @@ export const SubscribeSection = ({ isLoggedIn, userInfo }: Props) => {
   const isEmailDisabled = isLoggedIn && !!userInfo?.email;
 
   return (
-    <div className={s.root}>
-      <p className={s.description}>Be the first to know when demo day registration opens</p>
-      <form className={s.form} onSubmit={handleSubmit}>
+    <div id="subscribe-section" className={s.root}>
+      <p className={s.description}>Stay in the loop with demo day updates, registration announcements, and more.</p>
+      <form className={`${s.form} ${isEmailDisabled ? s.disabled : ''}`} onSubmit={handleSubmit}>
         <input
           type="email"
           className={s.input}

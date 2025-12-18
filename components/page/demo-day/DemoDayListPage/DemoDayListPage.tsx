@@ -83,7 +83,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
       <div className={s.content}>
         {/* Hero Section */}
         <section className={s.heroSection}>
-          <div className={s.section1}>
+          <div id="demodays-section" className={s.section1}>
             <div className={s.title}>
               {/* <div className={s.overline}>
                 <div className={s.dot} />

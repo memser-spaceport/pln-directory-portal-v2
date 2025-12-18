@@ -93,14 +93,27 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 16px 12px;
-  border-radius: 12px;
+  padding: 8px;
+  border-radius: 10px;
   text-decoration: none;
-  transition: background-color 0.15s ease;
+  transition: all 0.15s ease;
   position: relative;
+  background: #ffffff;
+  border: 1px solid rgba(27, 56, 96, 0.06);
+  overflow: clip;
 
   &:hover {
     background: rgba(14, 15, 17, 0.02);
+    border-color: rgba(27, 56, 96, 0.06);
+  }
+
+  &.unread {
+    background: rgba(14, 15, 17, 0.02);
+    border-color: rgba(27, 56, 96, 0.06);
+
+    &:hover {
+      background: rgba(14, 15, 17, 0.04);
+    }
   }
 }
 
@@ -108,7 +121,7 @@
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: 9999px;
   overflow: hidden;
 }
 
@@ -122,12 +135,14 @@
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: #f1f5f9;
+  border-radius: 9999px;
+  background: rgba(27, 77, 255, 0.04);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  padding: 9px;
+  box-shadow: inset 0px -1px 4px 0px rgba(27, 77, 255, 0.08);
+  color: #1b4dff;
 }
 
 .notificationContent {
@@ -214,16 +229,29 @@
 }
 
 .unreadDot {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #1b4dff;
+  position: relative;
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #4174ff;
+  }
 }
 
 .unread {
-  background: rgba(27, 77, 255, 0.02);
+  background: rgba(14, 15, 17, 0.02);
+  border-color: rgba(27, 56, 96, 0.06);
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+  }
 }

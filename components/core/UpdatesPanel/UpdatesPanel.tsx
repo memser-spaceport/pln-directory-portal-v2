@@ -17,7 +17,6 @@ interface UpdatesPanelProps {
 }
 
 export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead }: UpdatesPanelProps) {
-
   const handleNotificationClick = (notification: PushNotification) => {
     if (!notification.isRead) {
       onMarkAsRead(notification.id);
@@ -182,10 +181,16 @@ export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead }: Upd
                         </div>
                         <div className={s.notificationFooter}>
                           <span className={s.timestamp}>{formatTime(notification.createdAt)}</span>
-                          {notification.link && <span className={s.actionLink}>{getActionText(notification.category)}</span>}
+                          {notification.link && (
+                            <span className={s.actionLink}>{getActionText(notification.category)}</span>
+                          )}
                         </div>
                       </div>
-                      {!notification.isRead && <div className={s.unreadDot} />}
+                      <div
+                        className={clsx(s.unreadDot, {
+                          [s.hidden]: notification.isRead,
+                        })}
+                      />
                     </Link>
                   ))}
                 </div>

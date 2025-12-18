@@ -133,10 +133,63 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       const formData = new FormData(attendeeFormRef.current);
       const formattedData = transformObject(Object.fromEntries(formData));
 
-      // if(eventType === 'past' && (mode === IAM_GOING_POPUP_MODES.EDIT || isUpdate)) {
-      //   const finalResult = mergeGuestEvents([...guestGoingEvents], [...formattedData.events]);
-      //   formattedData.events = finalResult;
-      // }
+      const isUpcomingView = eventType === 'upcoming' || (!eventType && !from) || from === 'upcoming';
+      const isPastView = eventType === 'past' || from === 'past';
+      
+      // T-90 Rule for UPCOMING/CURRENT view
+      if (isUpcomingView && (mode === IAM_GOING_POPUP_MODES.EDIT || isUpdate)) {
+        // Get UIDs of visible gatherings (shown as checkboxes in popup)
+        const visibleGatheringUids = new Set(gatherings.map((g: IIrlEvent) => g.uid));
+        
+        // Get T-90 events from guestGoingEvents that are NOT in visible gatherings
+        // These are events from API (T-90 rule data) that user cannot see/uncheck
+        const t90EventsToPreserve = guestGoingEvents.filter((e: any) => !visibleGatheringUids.has(e.uid));
+        
+        // Merge: Selected events from form + T-90 events from API
+        if (t90EventsToPreserve.length > 0) {
+          formattedData.events = [...formattedData.events, ...t90EventsToPreserve];
+        }
+      }
+      
+      // T-90 Rule for PAST view - Handle unchecked T-90 events
+      if (isPastView && (mode === IAM_GOING_POPUP_MODES.EDIT || isUpdate)) {
+        // Get UIDs of events selected in the form (checked checkboxes in past view)
+        const selectedEventUids = new Set(formattedData.events.map((e: any) => e.uid));
+        
+        // Get UIDs of visible gatherings in past view (checkboxes shown to user)
+        const visiblePastGatheringUids = new Set(gatherings.map((g: IIrlEvent) => g.uid));
+        
+        // Separate guestGoingEvents into:
+        // 1. Events visible in past view (shown as checkboxes)
+        // 2. Events NOT visible in past view (hidden T-90/upcoming events)
+        const hiddenUpcomingEvents: any[] = [];
+        const uncheckedVisibleEvents: any[] = [];
+        
+        guestGoingEvents.forEach((event: any) => {
+          const isVisibleInPast = visiblePastGatheringUids.has(event.uid);
+          const isSelected = selectedEventUids.has(event.uid);
+          
+          if (isVisibleInPast) {
+            if (!isSelected) {
+              // This event was shown as checkbox but user unchecked it
+              uncheckedVisibleEvents.push(event);
+            }
+          } else {
+            // This event is not visible in past view (it's from upcoming/T-90)
+            hiddenUpcomingEvents.push(event);
+          }
+        });
+        
+        // Merge: Selected past events + Hidden upcoming/T-90 events (preserve them)
+        if (hiddenUpcomingEvents.length > 0) {
+          formattedData.events = [...formattedData.events, ...hiddenUpcomingEvents];
+        }
+        
+        // Store unchecked events to handle separately
+        if (uncheckedVisibleEvents.length > 0) {
+          formattedData.uncheckedT90Events = uncheckedVisibleEvents;
+        }
+      }
 
       formattedData?.events?.map((event: any) => {
         // Process hostSubEvents, speakerSubEvents and sponsorSubEvents
@@ -211,6 +264,35 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
           return;
         }
+        
+        // If there are unchecked T-90 events from past view, send updated "upcoming" list WITHOUT them
+        if (formattedData.uncheckedT90Events && formattedData.uncheckedT90Events.length > 0) {
+          // Get all current/upcoming events from guestGoingEvents (not visible in past view)
+          const visiblePastGatheringUids = new Set(gatherings.map((g: IIrlEvent) => g.uid));
+          const allCurrentUpcomingEvents = guestGoingEvents.filter((e: any) => !visiblePastGatheringUids.has(e.uid));
+          
+          // Remove the unchecked T-90 events from the current/upcoming list
+          const uncheckedT90Uids = new Set(formattedData.uncheckedT90Events.map((e: any) => e.uid));
+          const updatedCurrentEvents = allCurrentUpcomingEvents.filter((e: any) => !uncheckedT90Uids.has(e.uid));
+          
+          // Create payload with the updated current/upcoming events list
+          const upcomingPayload = {
+            ...formattedData,
+            events: updatedCurrentEvents,
+          };
+          
+          // Remove the uncheckedT90Events field before sending
+          delete upcomingPayload.uncheckedT90Events;
+          
+          // Send as "upcoming" type to update the current/upcoming events list
+          await editEventGuest(
+            selectedLocation.uid,
+            formInitialValues?.memberUid,
+            upcomingPayload,
+            'upcoming',
+          );
+        }
+        
         analytics.irlGuestDetailEditBtnClick(
           getAnalyticsUserInfo(userInfo),
           getAnalyticsLocationInfo(selectedLocation),

@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { clsx } from 'clsx';
+import { useRouter } from 'next/navigation';
 import { PushNotification } from '@/types/push-notifications.types';
 import { formatDistanceToNow } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -14,9 +15,11 @@ interface UpdatesPanelProps {
   notifications: PushNotification[];
   onClose: () => void;
   onMarkAsRead: (id: string) => void;
+  isLoggedIn?: boolean;
 }
 
-export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead }: UpdatesPanelProps) {
+export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead, isLoggedIn = true }: UpdatesPanelProps) {
+  const router = useRouter();
   const handleNotificationClick = (notification: PushNotification) => {
     if (!notification.isRead) {
       onMarkAsRead(notification.id);
@@ -153,7 +156,50 @@ export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead }: Upd
             </div>
 
             <div className={s.content}>
-              {notifications.length === 0 ? (
+              {!isLoggedIn ? (
+                <div className={s.notLoggedInState}>
+                  <img
+                    src="/images/empty-nature.svg"
+                    alt=""
+                    className={s.notLoggedInIllustration}
+                  />
+                  <div className={s.notLoggedInContent}>
+                    <div className={s.notLoggedInText}>
+                      <h3 className={s.notLoggedInTitle}>
+                        Sign in to see<br />recent updates for you
+                      </h3>
+                      <p className={s.notLoggedInDescription}>
+                        View updates from Demo Days, forum,<br />and your network activity.
+                      </p>
+                    </div>
+                    <div className={s.notLoggedInButtons}>
+                      <button
+                        className={s.signInButton}
+                        onClick={() => {
+                          onClose();
+                          router.push(`${window.location.pathname}${window.location.search}#login`);
+                        }}
+                      >
+                        Sign In to View Updates
+                      </button>
+                      <div className={s.signUpRow}>
+                        <span className={s.signUpText}>Don't have an account?</span>
+                        <button
+                          className={s.signUpLink}
+                          onClick={() => {
+                            onClose();
+                            const currentPath = window.location.pathname + window.location.search;
+                            const returnTo = encodeURIComponent(currentPath);
+                            router.push(`/sign-up?returnTo=${returnTo}`);
+                          }}
+                        >
+                          Sign Up
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : notifications.length === 0 ? (
                 <div className={s.emptyState}>
                   <p>No updates yet</p>
                 </div>
@@ -197,12 +243,14 @@ export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead }: Upd
               )}
             </div>
 
-            <div className={s.footer}>
-              <Link href="/home#recent-updates" className={s.viewAllLink} onClick={onClose}>
-                View all recent updates
-                <ArrowRightIcon />
-              </Link>
-            </div>
+            {isLoggedIn && (
+              <div className={s.footer}>
+                <Link href="/home#recent-updates" className={s.viewAllLink} onClick={onClose}>
+                  View all recent updates
+                  <ArrowRightIcon />
+                </Link>
+              </div>
+            )}
           </motion.div>
         </>
       )}

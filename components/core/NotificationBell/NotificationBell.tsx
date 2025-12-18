@@ -6,7 +6,7 @@ import { UpdatesPanel } from '@/components/core/UpdatesPanel';
 import { motion, useAnimation } from 'framer-motion';
 import s from './NotificationBell.module.scss';
 
-export function NotificationBell() {
+export function NotificationBell({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, unreadCount, markAsRead } = usePushNotificationsContext();
   const controls = useAnimation();
@@ -62,6 +62,7 @@ export function NotificationBell() {
         notifications={notifications}
         onClose={handleClose}
         onMarkAsRead={markAsRead}
+        isLoggedIn={isLoggedIn}
       />
     </>
   );

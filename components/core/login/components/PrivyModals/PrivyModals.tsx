@@ -147,10 +147,7 @@ export function PrivyModals() {
         const decodedBacklink = decodeURIComponent(backlink);
         // Validate backlink is a relative path for security
         if (decodedBacklink.startsWith('/')) {
-          router.replace(decodedBacklink);
-          setTimeout(() => {
-            window.location.reload();
-          }, 300);
+          window.location.href = decodedBacklink;
           return;
         }
       }

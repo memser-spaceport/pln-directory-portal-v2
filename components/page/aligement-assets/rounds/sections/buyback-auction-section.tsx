@@ -105,7 +105,7 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
                         <div className="buyback-section__capture-bar">
                           <div 
                             className="buyback-section__capture-fill" 
-                            style={{ width: `${Math.min(parseFloat(bid.percentCapture) * 20, 100)}%` }}
+                            style={{ width: `${parseFloat(bid.percentCapture)}%` }}
                           />
                         </div>
                         <span className="buyback-section__capture-value">{bid.percentCapture}</span>

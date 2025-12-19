@@ -101,51 +101,70 @@ export default function LeaderboardSection({
               </div>
             </div>
 
-            {/* Table Rows */}
-            <div className="leaderboard-section__table">
-              {visibleData.map((entry, index) => (
-                <div 
-                  key={`${entry.name}-${entry.rank}`} 
-                  className={`leaderboard-section__row ${index === visibleData.length - 1 && !hasMore ? 'leaderboard-section__row--last' : ''}`}
-                >
-                  <div className="leaderboard-section__row-left">
-                    <div className="leaderboard-section__rank-cell">
-                      <span className="leaderboard-section__rank">#{entry.rank}</span>
-                      {entry.rank === 1 && (
-                        <Image src="/icons/rounds/points_leader_board/first.svg" alt="1st place" width={24} height={28} />
-                      )}
-                      {entry.rank === 2 && (
-                        <Image src="/icons/rounds/points_leader_board/second.svg" alt="2nd place" width={24} height={28} />
-                      )}
-                      {entry.rank === 3 && (
-                        <Image src="/icons/rounds/points_leader_board/third.svg" alt="3rd place" width={24} height={28} />
-                      )}
-                    </div>
-                    <div className="leaderboard-section__user-info">
-                      <span className="leaderboard-section__user-name">{entry.name}</span>
-                      {entry.activities && (
-                        <span className="leaderboard-section__user-activities">{entry.activities}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="leaderboard-section__points">
-                    <span className="leaderboard-section__points-value">{entry.points.toLocaleString()}</span>
-                    <span className="leaderboard-section__points-label">points</span>
-                  </div>
+            {/* Table Rows or Empty State */}
+            {filteredData.length === 0 && searchTerm ? (
+              <div className="leaderboard-section__empty-state">
+                <div className="leaderboard-section__empty-illustration">
+                  <Image 
+                    src="/icons/rounds/empty-search.svg" 
+                    alt="No results found" 
+                    width={200} 
+                    height={178}
+                  />
                 </div>
-              ))}
-            </div>
-
-            {/* Show More */}
-            {hasMore && (
-              <div className="leaderboard-section__show-more">
-                <button className="leaderboard-section__show-more-btn" onClick={handleShowMore}>
-                  <span>Show +{Math.min(10, remainingCount)} more</span>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 6L8 10L12 6" stroke="#156FF7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
+                <div className="leaderboard-section__empty-content">
+                  <h3 className="leaderboard-section__empty-title">Participant not found</h3>
+                  <p className="leaderboard-section__empty-subtitle">Try Searching for someone else</p>
+                </div>
               </div>
+            ) : (
+              <>
+                <div className="leaderboard-section__table">
+                  {visibleData.map((entry, index) => (
+                    <div 
+                      key={`${entry.name}-${entry.rank}`} 
+                      className={`leaderboard-section__row ${index === visibleData.length - 1 && !hasMore ? 'leaderboard-section__row--last' : ''}`}
+                    >
+                      <div className="leaderboard-section__row-left">
+                        <div className="leaderboard-section__rank-cell">
+                          <span className="leaderboard-section__rank">#{entry.rank}</span>
+                          {entry.rank === 1 && (
+                            <Image src="/icons/rounds/points_leader_board/first.svg" alt="1st place" width={24} height={28} />
+                          )}
+                          {entry.rank === 2 && (
+                            <Image src="/icons/rounds/points_leader_board/second.svg" alt="2nd place" width={24} height={28} />
+                          )}
+                          {entry.rank === 3 && (
+                            <Image src="/icons/rounds/points_leader_board/third.svg" alt="3rd place" width={24} height={28} />
+                          )}
+                        </div>
+                        <div className="leaderboard-section__user-info">
+                          <span className="leaderboard-section__user-name">{entry.name}</span>
+                          {entry.activities && (
+                            <span className="leaderboard-section__user-activities">{entry.activities}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="leaderboard-section__points">
+                        <span className="leaderboard-section__points-value">{entry.points.toLocaleString()}</span>
+                        <span className="leaderboard-section__points-label">points</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Show More */}
+                {hasMore && (
+                  <div className="leaderboard-section__show-more">
+                    <button className="leaderboard-section__show-more-btn" onClick={handleShowMore}>
+                      <span>Show +{Math.min(10, remainingCount)} more</span>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 6L8 10L12 6" stroke="#156FF7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -297,7 +316,54 @@ export default function LeaderboardSection({
         .leaderboard-section__table {
           width: 100%;
           background-color: white;
-          min-height: 365px;
+        }
+
+        .leaderboard-section__empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          padding: 24px;
+          min-height: 548px;
+          border-left: 1px solid #cbd5e1;
+          border-right: 1px solid #cbd5e1;
+          border-bottom: 1px solid #cbd5e1;
+          border-bottom-left-radius: 24px;
+          border-bottom-right-radius: 24px;
+          background-color: white;
+        }
+
+        .leaderboard-section__empty-illustration {
+          width: 200px;
+          height: 178px;
+        }
+
+        .leaderboard-section__empty-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .leaderboard-section__empty-title {
+          font-size: 32px;
+          font-weight: 700;
+          line-height: 40px;
+          color: #0f172a;
+          text-align: center;
+          margin: 0;
+          white-space: nowrap;
+        }
+
+        .leaderboard-section__empty-subtitle {
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 20px;
+          color: #000000;
+          text-align: center;
+          margin: 0;
+          white-space: nowrap;
         }
 
         .leaderboard-section__row {

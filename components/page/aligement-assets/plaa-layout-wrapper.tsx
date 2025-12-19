@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 import PlaaMenu, { PlaaActiveItem } from './plaa-menu';
 import PlaaBackButton from './plaa-back-btn';
 import PlaaAnnouncementBanner from './plaa-announcement-banner';
@@ -25,6 +26,14 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem; title: str
 export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) {
   const pathname = usePathname();
   const { activeItem, title } = getPageInfo(pathname);
+
+  // Scroll to top when pathname changes (tab switch)
+  useEffect(() => {
+    // Scroll both window and document to ensure it works across browsers
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [pathname]);
 
   return (
     <div className={styles.plaa}>

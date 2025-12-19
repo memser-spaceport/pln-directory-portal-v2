@@ -105,7 +105,7 @@ export default function LeaderboardSection({
             <div className="leaderboard-section__table">
               {visibleData.map((entry, index) => (
                 <div 
-                  key={index} 
+                  key={`${entry.name}-${entry.rank}`} 
                   className={`leaderboard-section__row ${index === visibleData.length - 1 && !hasMore ? 'leaderboard-section__row--last' : ''}`}
                 >
                   <div className="leaderboard-section__row-left">
@@ -171,7 +171,6 @@ export default function LeaderboardSection({
         }
 
         .leaderboard-section__title {
-          font-family: 'Inter', sans-serif;
           font-size: 20px;
           font-weight: 600;
           line-height: normal;
@@ -180,7 +179,6 @@ export default function LeaderboardSection({
         }
 
         .leaderboard-section__description {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
@@ -200,7 +198,6 @@ export default function LeaderboardSection({
         }
 
         .leaderboard-section__info-text {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
@@ -255,7 +252,6 @@ export default function LeaderboardSection({
           flex: 1;
           border: none;
           outline: none;
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 500;
           line-height: 24px;
@@ -281,7 +277,6 @@ export default function LeaderboardSection({
           padding: 10px 16px;
           border: 1px solid transparent;
           border-radius: 8px;
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
@@ -336,7 +331,6 @@ export default function LeaderboardSection({
         }
 
         .leaderboard-section__rank {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
@@ -352,7 +346,6 @@ export default function LeaderboardSection({
         }
 
         .leaderboard-section__user-name {
-          font-family: 'Inter', sans-serif;
           font-size: 16px;
           font-weight: 600;
           line-height: 20px;
@@ -360,7 +353,6 @@ export default function LeaderboardSection({
         }
 
         .leaderboard-section__user-activities {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
@@ -377,7 +369,6 @@ export default function LeaderboardSection({
         }
 
         .leaderboard-section__points-value {
-          font-family: 'Inter', sans-serif;
           font-size: 18px;
           font-weight: 700;
           line-height: 20px;
@@ -385,7 +376,6 @@ export default function LeaderboardSection({
         }
 
         .leaderboard-section__points-label {
-          font-family: 'Inter', sans-serif;
           font-size: 16px;
           font-weight: 400;
           line-height: 20px;
@@ -411,7 +401,6 @@ export default function LeaderboardSection({
           gap: 8px;
           background: none;
           border: none;
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;

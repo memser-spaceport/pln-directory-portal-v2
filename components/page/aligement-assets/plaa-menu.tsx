@@ -156,7 +156,6 @@ function PlaaMenu({ activeItem, currentRound = 2, totalRounds = 12 }: PlaaMenuPr
              Figma: Inter Medium, 12px, #475569
              --------------------------------------------------------------- */
           .plaa-menu__item-text {
-            font-family: 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 500;
             color: #475569;

@@ -32,7 +32,7 @@ export default function StatsSection({ data }: StatsSectionProps) {
                 <td className="stats-section__value">
                   <div className="stats-section__chips">
                     {stats.regionsUnlocked.map((region, index) => (
-                      <span key={index} className="stats-section__chip">
+                      <span key={`region-${region}`} className="stats-section__chip">
                         {region}
                       </span>
                     ))}
@@ -46,9 +46,9 @@ export default function StatsSection({ data }: StatsSectionProps) {
                 <td className="stats-section__value">
                   <div className="stats-section__activities">
                     {stats.incentivizedActivities.map((row, rowIndex) => (
-                      <div key={rowIndex} className="stats-section__activities-row">
+                      <div key={`row-${rowIndex}`} className="stats-section__activities-row">
                         {row.map((activity, actIndex) => (
-                          <span key={actIndex} className="stats-section__chip">
+                          <span key={`activity-${activity}-${actIndex}`} className="stats-section__chip">
                             {activity}
                           </span>
                         ))}
@@ -116,7 +116,6 @@ export default function StatsSection({ data }: StatsSectionProps) {
           width: 243px;
           min-width: 243px;
           padding: 16.5px 24px;
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 600;
           line-height: 20px;
@@ -126,7 +125,6 @@ export default function StatsSection({ data }: StatsSectionProps) {
 
         .stats-section__value {
           padding: 16.5px 12px;
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
@@ -146,7 +144,6 @@ export default function StatsSection({ data }: StatsSectionProps) {
           padding: 6px 12px;
           background-color: #f1f5f9;
           border-radius: 100px;
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 500;
           line-height: 14px;

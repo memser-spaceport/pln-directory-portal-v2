@@ -112,7 +112,7 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
               
               <div className="snapshot-section__tip-links">
                 {tipContent.links.map((link, index) => (
-                  <p key={index} className="snapshot-section__tip-link-item">
+                  <p key={`${link.linkText}-${index}`} className="snapshot-section__tip-link-item">
                     <span className="snapshot-section__tip-arrow">→</span>
                     {' '}{link.prefix}{' '}
                     <Link href={link.url} target="_blank" rel="noopener noreferrer" className="snapshot-section__tip-link">{link.linkText}</Link>
@@ -147,7 +147,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
         }
 
         .snapshot-section__title {
-          font-family: 'Inter', sans-serif;
           font-size: 18px;
           font-weight: 600;
           line-height: normal;
@@ -156,7 +155,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
         }
 
         .snapshot-section__subtitle {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 500;
           line-height: 22px;
@@ -175,7 +173,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
         }
 
         .snapshot-section__progress-title {
-          font-family: 'Inter', sans-serif;
           font-size: 16px;
           font-weight: 500;
           line-height: 24px;
@@ -199,7 +196,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
         }
 
         .snapshot-section__progress-text {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 21px;
@@ -236,7 +232,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
         }
 
         .snapshot-section__tip-text {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
@@ -250,7 +245,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
         }
 
         .snapshot-section__tip-explore {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
@@ -266,7 +260,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
         }
 
         .snapshot-section__tip-link-item {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 24px;
@@ -279,7 +272,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
         }
 
         .snapshot-section__tip-bottom {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;

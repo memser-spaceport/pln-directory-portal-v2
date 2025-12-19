@@ -54,7 +54,7 @@ export default function RoundDescriptionSection({ data }: RoundDescriptionSectio
           {/* Description paragraphs */}
           <div className="round-description__content">
             {data.paragraphs.map((paragraph, index) => (
-              <p key={index} className="round-description__paragraph">
+              <p key={`paragraph-${index}`} className="round-description__paragraph">
                 {renderParagraphWithLinks(paragraph)}
               </p>
             ))}
@@ -80,7 +80,6 @@ export default function RoundDescriptionSection({ data }: RoundDescriptionSectio
         }
 
         .round-description__title {
-          font-family: 'Inter', sans-serif;
           font-size: 18px;
           font-weight: 600;
           line-height: normal;
@@ -94,7 +93,6 @@ export default function RoundDescriptionSection({ data }: RoundDescriptionSectio
           padding: 6px 12px;
           background-color: #edf5ff;
           border-radius: 24px;
-          font-family: 'Inter', sans-serif;
           font-size: 12px;
           font-weight: 500;
           line-height: 14px;
@@ -108,7 +106,6 @@ export default function RoundDescriptionSection({ data }: RoundDescriptionSectio
         }
 
         .round-description__paragraph {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;

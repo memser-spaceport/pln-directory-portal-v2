@@ -21,7 +21,7 @@ function PlaaAnnouncementBanner({
         {`
           /* =================================================================
              Announcement Banner - Figma Design
-             Height: 56px, Background: #156ff7 (Primary/Blue600)
+             Height: 36px, Background: #156ff7 (Primary/Blue600)
              ================================================================= */
 
           .plaa-banner {
@@ -31,17 +31,16 @@ function PlaaAnnouncementBanner({
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 10px 16px;
+            padding: 0 16px;
           }
 
-          .plaa-banner__text {
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            color: #ffffff;
-            line-height: 36px;
-            text-align: center;
-          }
+        .plaa-banner__text {
+          font-size: 14px;
+          font-weight: 500;
+          color: #ffffff;
+          line-height: 36px;
+          text-align: center;
+        }
 
           @media (min-width: 768px) {
             .plaa-banner__text {

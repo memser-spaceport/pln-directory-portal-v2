@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import PlaaRoundSelector from '../plaa-round-selector';
 import HeroSection from './sections/hero-section';
 import RoundDescriptionSection from './sections/round-description-section';
 import SnapshotProgressSection from './sections/snapshot-progress-section';
@@ -28,9 +27,6 @@ interface CurrentRoundComponentProps {
  * Uses master JSON data from ./data/current-round.data.ts
  */
 export default function CurrentRoundComponent({
-  currentRound,
-  totalRounds,
-  onRoundChange,
   data = currentRoundData
 }: CurrentRoundComponentProps) {
   const [leaderboardView, setLeaderboardView] = useState<'current' | 'alltime'>('current');
@@ -102,7 +98,6 @@ export default function CurrentRoundComponent({
           flex-direction: column;
           gap: 64px;
           padding: 0;
-          padding-bottom: 200px;
         }
 
         .current-round__round-selector {

@@ -14,11 +14,12 @@
 
 /* --------------------------------------------------------------------------
    Element: plaa__banner
-   Fixed announcement banner at the top
+   Sticky announcement banner at the top
+   Navbar: 80px, Banner: 56px
    -------------------------------------------------------------------------- */
 .plaa__banner {
-  position: fixed;
-  top: var(--app-header-height);
+  position: sticky;
+  top: 103px; /* Navbar height */
   left: 0;
   right: 0;
   z-index: 4;
@@ -47,7 +48,7 @@
 .plaa__main {
   display: flex;
   width: 100%;
-  min-height: calc(100vh - var(--app-header-height) - var(--plaa-banner-height));
+  min-height: calc(100vh - var(--app-header-height) - var(--plaa-banner-height) - 36px);
   padding-top: calc(var(--plaa-banner-height) + 48px); /* Banner + mobile back btn */
 }
 
@@ -61,11 +62,12 @@
   display: none;
   border-right: 1px solid var(--plaa-border-light);
   background-color: var(--plaa-neutral-white);
-  position: fixed;
-  top: calc(var(--app-header-height) + var(--plaa-banner-height));
+  position: sticky;
+  top: calc(var(--app-header-height) + var(--plaa-banner-height) + 36px);
   left: 0;
-  height: calc(100vh - var(--app-header-height) - var(--plaa-banner-height));
+  height: calc(100vh - var(--app-header-height) - var(--plaa-banner-height) - 36px);
   overflow-y: auto;
+  align-self: flex-start;
 }
 
 /* --------------------------------------------------------------------------
@@ -85,6 +87,7 @@
 .plaa__content-inner {
   max-width: 1170px;
   margin: 0 auto;
+  overflow-x: clip;
 }
 
 /* --------------------------------------------------------------------------
@@ -207,8 +210,8 @@
   }
 
   .plaa__main {
-    padding-top: var(--plaa-banner-height);
-    padding-left: var(--plaa-sidebar-width);
+    padding-top: 0;
+    padding-left: 0;
   }
 
   .plaa__sidebar {
@@ -216,6 +219,11 @@
   }
 
   .plaa__content {
-    padding: 48px;
+    padding: 102px 48px 225px 48px;
+    flex: 1;
+  }
+
+  .plaa__banner {
+    top: 116px;
   }
 }

@@ -10,6 +10,7 @@ interface RoundDescriptionSectionProps {
 /**
  * Renders paragraph text with embedded links
  * Replaces placeholders like {linkName} with actual Link components
+ * If URL is '#', renders as styled text (non-clickable)
  */
 function renderParagraphWithLinks(paragraph: RoundDescriptionSectionData['paragraphs'][0]) {
   if (!paragraph.links || paragraph.links.length === 0) {
@@ -25,11 +26,16 @@ function renderParagraphWithLinks(paragraph: RoundDescriptionSectionData['paragr
       const parts = part.split(link.placeholder);
       if (parts.length === 1) return part;
       
-      return parts.flatMap((p, i) => 
-        i < parts.length - 1 
-          ? [p, <Link key={`link-${linkIndex}-${i}`} href={link.url} target="_blank" rel="noopener noreferrer" className="round-description__link">{link.text}</Link>]
-          : p
-      );
+      return parts.flatMap((p, i) => {
+        if (i < parts.length - 1) {
+          // If URL is '#', render as non-clickable styled text
+          if (link.url === '#') {
+            return [p, <span key={`link-${linkIndex}-${i}`} className="round-description__link round-description__link--disabled">{link.text}</span>];
+          }
+          return [p, <Link key={`link-${linkIndex}-${i}`} href={link.url} target="_blank" rel="noopener noreferrer" className="round-description__link">{link.text}</Link>];
+        }
+        return p;
+      });
     });
   });
 
@@ -135,6 +141,15 @@ export default function RoundDescriptionSection({ data }: RoundDescriptionSectio
 
         .round-description__link:hover {
           text-decoration: none;
+        }
+
+        .round-description__link--disabled {
+          cursor: default;
+          pointer-events: none;
+        }
+
+        .round-description__link--disabled:hover {
+          text-decoration: underline;
         }
       `}</style>
     </>

@@ -29,7 +29,7 @@ export const currentRoundData: CurrentRoundData = {
     actions: [
       {
         label: 'Submit Activities',
-        url: 'https://forms.gle/zUQg2jUBYsWivk5t5',
+        url: 'https://forms.gle/DiACtNgcsaAS8B6P8',
         type: 'primary',
         openInNewTab: true
       },
@@ -57,7 +57,7 @@ export const currentRoundData: CurrentRoundData = {
           {
             placeholder: '{incentivizedActivities}',
             text: 'Incentivized Activities',
-            url: '/alignment-assets/activities'
+            url: '#'
           }
         ]
       },
@@ -70,7 +70,7 @@ export const currentRoundData: CurrentRoundData = {
           {
             placeholder: '{unifiedForm}',
             text: 'unified reporting form',
-            url: 'https://forms.gle/zUQg2jUBYsWivk5t5'
+            url: 'https://forms.gle/DiACtNgcsaAS8B6P8'
           }
         ]
       },
@@ -80,7 +80,7 @@ export const currentRoundData: CurrentRoundData = {
           {
             placeholder: '{previousRounds}',
             text: 'here',
-            url: '/alignment-assets/rounds/history'
+            url: '#'
           }
         ]
       }
@@ -100,24 +100,24 @@ export const currentRoundData: CurrentRoundData = {
         {
           prefix: 'Browse activities you can complete in the',
           linkText: 'Incentivized Activities List',
-          url: '/alignment-assets/activities'
+          url: '#'
         },
         {
           prefix: 'Learn how',
           linkText: 'Point-to-Token Conversion',
           suffix: 'works',
-          url: '/alignment-assets/incentive-model'
+          url: '#'
         },
         {
           prefix: 'Review the full',
           linkText: 'Incentive Model',
           suffix: 'and see how point collection mapped to token distribution in previous rounds',
-          url: '/alignment-assets/incentive-model'
+          url: '#'
         }
       ],
       bottomLink: {
         text: 'See what happened in the last round',
-        url: '/alignment-assets/rounds/10'
+        url: '#'
       }
     }
   },
@@ -128,15 +128,15 @@ export const currentRoundData: CurrentRoundData = {
   chart: {
     title: 'Total Points Collected Per KPI Pillar In Current Snapshot Period (updated weekly)',
     subtitle: 'Please note: totals may not include the most recent submissions, as some activities rely on participant reporting.',
-    maxValue: 20000,
+    maxValue: 1000,
     chartData: [
-      { name: 'Brand', value: 12500 },
+      { name: 'Brand', value: 0 },
       { name: 'Capital', value: 0 },
-      { name: 'Knowledge Sharing', value: 17500 },
-      { name: 'Network Tooling', value: 11450 },
-      { name: 'People/Talent', value: 6650 },
-      { name: 'Programs', value: 4250 },
-      { name: 'Projects', value: 500 }
+      { name: 'Knowledge Sharing', value: 300 },
+      { name: 'Network Tooling', value: 400 },
+      { name: 'People/Talent', value: 50 },
+      { name: 'Programs', value: 600 },
+      { name: 'Projects', value: 400 }
     ]
   },
 
@@ -147,14 +147,14 @@ export const currentRoundData: CurrentRoundData = {
     onboardedParticipants: 47,
     regionsUnlocked: ['USA', 'Germany', 'Switzerland'],
     incentivizedActivities: [
-      ['PL Directory Profile', 'Share Compensation Data', 'Design a Custom Incentive Experiment'],
-      ['Write a Blog or Article', 'Host or Curate an X Space', 'Complete the Monthly Survey'],
-      ['Create a Playbook or Template', 'Lead or Join a Cross-Company Project', 'Refer a New Team Member or Collaborator'],
-      ['Propose a New Incentivized Activity', 'Make a Network Introduction', 'Highlight an Outstanding Network Contribution'],
-      ['Bring New Members Into the Alignment Asset', 'Host Office Hours', 'Contribute to the Alignment Asset Program'],
-      ['Shared Resource or Cost-Saving Initiative']
+      ['Curate X Spaces', 'Shared Resource or Cost-Saving Initiative', 'Create a Replicable Playbook or Template'],
+      ['Host Office Hours', 'Create a blog for the network', 'Complete or update your PL Directory Profile'],
+      ['Design a Custom Incentive Experiment', 'Contribute your compensation data', 'Talent Referral Program'],
+      ['Create an Incentivized Activity: Solutions to High Value Network Needs', 'Propose a Cross-Company Project/Initiative', 'Network Introductions'],
+      ['Referral Program', 'Survey Completion', 'Alignment Asset Program Contributions'],
+      ['Distinguished Network Contributions']
     ],
-    totalPointsCollected: '##',
+    totalPointsCollected: '1,750',
     totalTokensAvailable: '10,000',
     numberOfBuybacks: 1
   },
@@ -220,12 +220,12 @@ export const currentRoundData: CurrentRoundData = {
   },
 
   // ============================================================================
-  // Buyback Auction Section Data
+  // Buyback Auction Section Data (Round 11 - December 2025)
   // ============================================================================
   buybackAuction: {
     headerStats: {
-      totalFilled: 'Calculating...',
-      fillRate: '60.4%'
+      totalFilled: '$47,614.00',
+      fillRate: '99.98%'
     },
     summary: {
       title: 'Buyback Auction #1 - December 2025 - Key Results',
@@ -238,12 +238,12 @@ export const currentRoundData: CurrentRoundData = {
         {
           icon: '/icons/rounds/buy_action_results/pie-chart.svg',
           label: 'Pool Used',
-          value: '100%'
+          value: '99.98%'
         },
         {
           icon: '/icons/rounds/buy_action_results/coins-02.svg',
           label: 'Clearing Price',
-          value: 'Calculating...'
+          value: '$14.00'
         },
         {
           icon: '/icons/rounds/buy_action_results/analytics-01.svg',
@@ -253,12 +253,12 @@ export const currentRoundData: CurrentRoundData = {
         {
           icon: '/icons/rounds/buy_action_results/dollar-02.svg',
           label: 'Tokens Purchased',
-          value: 'Calculating...'
+          value: '3,401'
         },
         {
           icon: '/icons/rounds/buy_action_results/user-multiple.svg',
-          label: 'Bidders Selected',
-          value: 'Calculating...'
+          label: 'Winning Bidders',
+          value: '5'
         }
       ]
     },
@@ -280,7 +280,7 @@ export const currentRoundData: CurrentRoundData = {
   // Learn More Section Data
   // ============================================================================
   learnMore: {
-    faqUrl: '/alignment-assets/faq'
+    faqUrl: '#'
   },
 
   // ============================================================================

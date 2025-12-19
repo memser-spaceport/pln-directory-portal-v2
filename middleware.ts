@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkIsValidToken, renewAccessToken } from './services/auth.service';
 import { calculateExpiry, decodeToken } from './utils/auth.utils';
 
+/**
+ * Protected routes that require authentication
+ * Users accessing these routes without authentication will be redirected to login
+ */
+const PROTECTED_ROUTES = ['/alignment-assets'];
+
 export const config = {
   matcher: [
     /*
@@ -22,17 +28,48 @@ export const config = {
     '/changelog',
     '/husky/chat/:path',
     '/events',
+    '/alignment-assets/:path',
   ],
 };
+
+/**
+ * Checks if the given pathname matches any protected route
+ * @param pathname - The request pathname to check
+ * @returns true if the route is protected, false otherwise
+ */
+function isProtectedRoute(pathname: string): boolean {
+  return PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
+}
+
+/**
+ * Creates a redirect response to the members page with login trigger
+ * @param req - The incoming request
+ * @param pathname - The original pathname to redirect back to after login
+ * @returns NextResponse redirect to /members with backlink and #login hash
+ */
+function createLoginRedirect(req: NextRequest, pathname: string): NextResponse {
+  console.log('createLoginRedirect pathname', pathname);
+  const backlink = encodeURIComponent(pathname);
+  const redirectUrl = new URL(`/members?backlink=${backlink}#login`, req.url);
+  return NextResponse.redirect(redirectUrl);
+}
 
 export async function middleware(req: NextRequest) {
   const response = NextResponse.next();
   const refreshTokenFromCookie = req?.cookies?.get('refreshToken');
   const authTokenFromCookie = req?.cookies?.get('authToken');
   const userInfo = req?.cookies?.get('userInfo');
+  const pathname = req.nextUrl.pathname;
+  console.log('middleware pathName', pathname);
   let isValidAuthToken = false;
 
   try {
+    // Check if accessing a protected route without authentication
+    // if (!authTokenFromCookie && isProtectedRoute(pathname)) {
+    //   console.log('middleware inside authTokenFromCookie', authTokenFromCookie);
+    //   return createLoginRedirect(req, pathname);
+    // }
+
     if (!refreshTokenFromCookie) {
       response.cookies.delete('refreshToken');
       response.cookies.delete('authToken');
@@ -45,12 +82,15 @@ export async function middleware(req: NextRequest) {
       const validCheckResponse = await checkIsValidToken(authToken as string);
 
       // Priority 1: Check for force logout (regardless of active status)
-      // console.log('middleware validCheckResponse', validCheckResponse);
       if (validCheckResponse?.forceLogout) {
-        // console.log('middleware inside middleware forceLogout');
         response.cookies.delete('refreshToken');
         response.cookies.delete('authToken');
         response.cookies.delete('userInfo');
+
+        // Redirect to login if accessing protected route after force logout
+        if (isProtectedRoute(pathname)) {
+          return createLoginRedirect(req, pathname);
+        }
         return response;
       }
 
@@ -96,6 +136,11 @@ export async function middleware(req: NextRequest) {
       response.cookies.delete('refreshToken');
       response.cookies.delete('authToken');
       response.cookies.delete('userInfo');
+
+      // Redirect to login if accessing protected route with invalid tokens
+      if (isProtectedRoute(pathname)) {
+        return createLoginRedirect(req, pathname);
+      }
       return response;
     }
   } catch (err) {
@@ -103,6 +148,11 @@ export async function middleware(req: NextRequest) {
     response.cookies.delete('refreshToken');
     response.cookies.delete('authToken');
     response.cookies.delete('userInfo');
+
+    // Redirect to login if accessing protected route and an error occurred
+    if (isProtectedRoute(pathname)) {
+      return createLoginRedirect(req, pathname);
+    }
     return response;
   }
 }

@@ -142,14 +142,14 @@ export function PrivyModals() {
       }
 
       // Check for backlink parameter (used for protected route redirects)
-      const backlink = searchParams.get('backlink');
+      const backlink = searchParams?.get('backlink');
       if (backlink) {
         const decodedBacklink = decodeURIComponent(backlink);
         // Validate backlink is a relative path for security
         if (decodedBacklink.startsWith('/')) {
-          // Small delay to ensure cookies are set before redirect
+          router.replace(decodedBacklink);
           setTimeout(() => {
-            router.replace(decodedBacklink);
+            window.location.reload();
           }, 300);
           return;
         }

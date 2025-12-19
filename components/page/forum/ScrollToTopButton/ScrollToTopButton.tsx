@@ -1,10 +1,11 @@
 'use client';
 
+import clsx from 'clsx';
 import React from 'react';
 
+import { useScrollDirection } from '@/components/core/MobileBottomNav';
+
 import s from './ScrollToTopButton.module.scss';
-import { useScrollDirection } from '@/components/core/MobileBottomNav/MobileBottomNav';
-import clsx from 'clsx';
 
 export const ScrollToTopButton = () => {
   const scrollDirection = useScrollDirection();

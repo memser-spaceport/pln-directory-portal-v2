@@ -1,6 +1,6 @@
 {
   "name": "pln-directory-web-v2",
-  "version": "4.1.12",
+  "version": "plaa-v1.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 4200",

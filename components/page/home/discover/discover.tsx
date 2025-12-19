@@ -33,7 +33,6 @@ const Discover = (props: any) => {
         {/* Header */}
         <header className="discover__hdr">
           <div className="discover__hdr__ttl">
-            <img className="discover__hdr__ttl__img" src="icons/discover.svg" alt="discover" />
             <h2 className="discover__hdr__ttl__txt">Discover</h2>
           </div>
         </header>

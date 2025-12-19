@@ -137,7 +137,7 @@ function Navbar(props: Readonly<INavbar>) {
           <ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
 
           <HelpIcon onClick={() => openModal()} />
-          {isLoggedIn && <NotificationBell />}
+          <NotificationBell isLoggedIn={isLoggedIn} />
           {isLoggedIn && (
             <AccountMenu
               userInfo={userInfo}

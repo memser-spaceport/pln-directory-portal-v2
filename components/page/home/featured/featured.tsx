@@ -207,7 +207,7 @@ const Featured = (props: any) => {
         .featured {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 16px;
           width: 100%;
         }
 

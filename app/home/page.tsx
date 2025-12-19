@@ -4,7 +4,7 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDiscoverData } from '@/services/discovery.service';
 import Error from '@/components/core/error';
 import Featured from '@/components/page/home/featured/featured';
-import Discover from '@/components/page/home/discover/discover';
+// import Discover from '@/components/page/home/discover/discover';
 import LandingFocusAreas from '@/components/page/home/focus-area/focus-area-section';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/components/page/team-form-info/focus-area/focus-area';
@@ -15,6 +15,7 @@ import { ADMIN_ROLE, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
 import { formatFeaturedData } from '@/utils/home.utils';
+import { RecentUpdatesSection } from '@/components/page/home/recent-updates';
 
 export default async function Home() {
   const { featuredData, discoverData, isLoggedIn, isError, userInfo, focusAreas } = await getPageData();
@@ -31,14 +32,18 @@ export default async function Home() {
           <div className={styles.home__cn__focusarea}>
             <LandingFocusAreas focusAreas={focusAreas} userInfo={userInfo} />
           </div>
+          {/* Recent Updates section */}
+          <div className={styles.home__cn__recentupdates}>
+            <RecentUpdatesSection />
+          </div>
           {/* Discover section */}
-          <div className={styles.home__cn__discover}>
-            <Discover discoverData={discoverData} userInfo={userInfo} />
-          </div>
+          {/*<div className={styles.home__cn__discover}>*/}
+          {/*  <Discover discoverData={discoverData} userInfo={userInfo} />*/}
+          {/*</div>*/}
           {/* Featured section */}
-          <div className={styles.home__cn__featured}>
-            <Featured featuredData={featuredData} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-          </div>
+          {/*<div className={styles.home__cn__featured}>*/}
+          {/*  <Featured featuredData={featuredData} isLoggedIn={isLoggedIn} userInfo={userInfo} />*/}
+          {/*</div>*/}
           <ScrollToTop pageName="Home" userInfo={userInfo} />
         </div>
       </div>

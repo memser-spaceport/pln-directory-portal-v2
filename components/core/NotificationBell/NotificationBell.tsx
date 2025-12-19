@@ -1,13 +1,30 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePushNotificationsContext } from '@/providers/PushNotificationsProvider';
 import { UpdatesPanel } from '@/components/core/UpdatesPanel';
+import { motion, useAnimation } from 'framer-motion';
 import s from './NotificationBell.module.scss';
 
-export function NotificationBell() {
+export function NotificationBell({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = usePushNotificationsContext();
+  const { notifications, unreadCount, markAsRead } = usePushNotificationsContext();
+  const controls = useAnimation();
+  const prevUnreadCountRef = useRef(unreadCount);
+
+  useEffect(() => {
+    // Trigger animation when unread count increases
+    if (unreadCount > prevUnreadCountRef.current && unreadCount > 0) {
+      controls.start({
+        rotate: [0, -15, 15, -15, 15, -10, 10, -5, 5, 0],
+        transition: {
+          duration: 0.6,
+          ease: 'easeInOut',
+        },
+      });
+    }
+    prevUnreadCountRef.current = unreadCount;
+  }, [unreadCount, controls]);
 
   const handleToggle = () => {
     setIsOpen((prev) => !prev);
@@ -24,9 +41,19 @@ export function NotificationBell() {
         onClick={handleToggle}
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
       >
-        <BellIcon />
+        <motion.div animate={controls} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <BellIcon />
+        </motion.div>
         {unreadCount > 0 && (
-          <span className={s.badge}>{unreadCount > 99 ? '99+' : unreadCount}</span>
+          <motion.span
+            className={s.badge}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+            key={unreadCount}
+          >
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </motion.span>
         )}
       </button>
 
@@ -35,7 +62,7 @@ export function NotificationBell() {
         notifications={notifications}
         onClose={handleClose}
         onMarkAsRead={markAsRead}
-        onMarkAllAsRead={markAllAsRead}
+        isLoggedIn={isLoggedIn}
       />
     </>
   );
@@ -43,20 +70,10 @@ export function NotificationBell() {
 
 function BellIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M15 6.66667C15 5.34058 14.4732 4.06881 13.5355 3.13113C12.5979 2.19345 11.3261 1.66667 10 1.66667C8.67392 1.66667 7.40215 2.19345 6.46447 3.13113C5.52678 4.06881 5 5.34058 5 6.66667C5 12.5 2.5 14.1667 2.5 14.1667H17.5C17.5 14.1667 15 12.5 15 6.66667Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M11.4417 17.5C11.2952 17.7526 11.0849 17.9622 10.8319 18.1079C10.5788 18.2537 10.292 18.3304 10 18.3304C9.70802 18.3304 9.42116 18.2537 9.16814 18.1079C8.91513 17.9622 8.70484 17.7526 8.55833 17.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M8.25 18.5625C8.42188 18.8906 8.67969 19.1484 8.99219 19.3359C9.30469 19.5234 9.65625 19.625 10.0312 19.625C10.4062 19.625 10.7578 19.5234 11.0703 19.3359C11.3828 19.1484 11.6406 18.8906 11.8125 18.5625M16.5 7.5625C16.5 6.21094 15.9609 4.92969 15.0078 3.97656C14.0547 3.02344 12.7734 2.48438 11.4219 2.48438C10.0703 2.48438 8.78906 3.02344 7.83594 3.97656C6.88281 4.92969 6.34375 6.21094 6.34375 7.5625C6.34375 14.4375 3.4375 16.5 3.4375 16.5H18.625C18.625 16.5 15.7188 14.4375 15.7188 7.5625"
+        fill="currentColor"
       />
     </svg>
   );

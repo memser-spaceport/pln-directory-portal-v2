@@ -180,7 +180,6 @@ const LandingFocusAreas = (props: any) => {
         <div className="mb__lfa__hdr">
           <div className="mb__lfa__hdr__title">
             <div className="mb__lfa__titlesec">
-              <img height={16} width={16} src="/icons/hexagon-wheels.svg" />
               <h2 className="mb__lfa__titles__ttl">Focus Areas</h2>
             </div>
             <div className="mb__lfa__descsec">
@@ -486,9 +485,11 @@ const LandingFocusAreas = (props: any) => {
           }
 
           .mb__lfa__titles__ttl {
-            font-size: 16px;
-            line-height: 32px;
+            font-family: 'Inter', sans-serif;
             font-weight: 500;
+            color: #0a0c11;
+            margin: 0;
+            font-size: 24px;
           }
 
           .mb__lfa__focusareas {

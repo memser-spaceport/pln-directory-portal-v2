@@ -25,7 +25,7 @@ export default function HeroSection({ data }: HeroSectionProps) {
           <div className="hero-section__actions">
             {data.actions.map((action, index) => (
               <Link 
-                key={index}
+                key={`${action.type}-${action.label}`}
                 href={action.url} 
                 target={action.openInNewTab ? '_blank' : undefined}
                 rel={action.openInNewTab ? 'noopener noreferrer' : undefined}
@@ -61,7 +61,6 @@ export default function HeroSection({ data }: HeroSectionProps) {
         }
 
         .hero-section__title {
-          font-family: 'Inter', sans-serif;
           font-size: 24px;
           font-weight: 700;
           line-height: 28px;
@@ -70,7 +69,6 @@ export default function HeroSection({ data }: HeroSectionProps) {
         }
 
         .hero-section__subtitle {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 28px;
@@ -95,7 +93,6 @@ export default function HeroSection({ data }: HeroSectionProps) {
           height: 40px;
           padding: 10px 24px;
           border-radius: 8px;
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;

@@ -51,7 +51,6 @@ export default function LearnMoreSection({ data }: LearnMoreSectionProps) {
         }
 
         .learn-more-section__text {
-          font-family: 'Inter', sans-serif;
           font-size: 16px;
           font-weight: 500;
           line-height: 20px;

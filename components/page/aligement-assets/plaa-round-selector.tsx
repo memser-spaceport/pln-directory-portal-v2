@@ -249,7 +249,6 @@ function PlaaRoundSelector({
           }
 
           .round-selector__trigger-text {
-            font-family: 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 500;
             color: #0f172a;
@@ -294,7 +293,6 @@ function PlaaRoundSelector({
           }
 
           .round-selector__nav-label {
-            font-family: 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 500;
             color: #475569;
@@ -336,7 +334,6 @@ function PlaaRoundSelector({
           }
 
           .round-selector__nav-number {
-            font-family: 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 500;
             color: #0f172a;
@@ -346,7 +343,6 @@ function PlaaRoundSelector({
           }
 
           .round-selector__nav-of {
-            font-family: 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 500;
             color: #475569;
@@ -366,7 +362,6 @@ function PlaaRoundSelector({
             height: 24px;
             border: 1px solid #e2e8f0;
             border-radius: 4px;
-            font-family: 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 500;
             color: #0f172a;
@@ -398,7 +393,6 @@ function PlaaRoundSelector({
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-family: 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 500;
             color: #475569;

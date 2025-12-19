@@ -56,7 +56,6 @@ export default function DisclaimerSection({ data }: DisclaimerSectionProps) {
         }
 
         .disclaimer-section__title {
-          font-family: 'Inter', sans-serif;
           font-size: 16px;
           font-weight: 600;
           line-height: 20px;
@@ -64,7 +63,6 @@ export default function DisclaimerSection({ data }: DisclaimerSectionProps) {
         }
 
         .disclaimer-section__text {
-          font-family: 'Inter', sans-serif;
           font-size: 16px;
           font-weight: 500;
           font-style: italic;

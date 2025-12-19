@@ -53,7 +53,7 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
             <h3 className="buyback-section__summary-title">{data.summary.title}</h3>
             <div className="buyback-section__summary-grid">
               {data.summary.items.map((item, index) => (
-                <div key={index} className="buyback-section__summary-item">
+                <div key={`${item.label}-${item.value}`} className="buyback-section__summary-item">
                   <div className="buyback-section__summary-item-header">
                     <Image src={item.icon} alt="" width={16} height={16} />
                     <span className="buyback-section__summary-item-label">{item.label}</span>
@@ -87,7 +87,7 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
               </thead>
               <tbody>
                 {visibleBidData.map((bid, index) => (
-                  <tr key={index} className={`buyback-section__table-row ${index === visibleBidData.length - 1 && !hasMore ? 'buyback-section__table-row--last' : ''}`}>
+                  <tr key={`${bid.bidderId}-${bid.tokenPrice}-${index}`} className={`buyback-section__table-row ${index === visibleBidData.length - 1 && !hasMore ? 'buyback-section__table-row--last' : ''}`}>
                     <td className="buyback-section__td">{bid.bidderId}</td>
                     <td className="buyback-section__td">{bid.tokensBid}</td>
                     <td className="buyback-section__td buyback-section__td--bold">{bid.tokenPrice}</td>
@@ -158,7 +158,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
         }
 
         .buyback-section__title {
-          font-family: 'Inter', sans-serif;
           font-size: 20px;
           font-weight: 600;
           line-height: normal;
@@ -167,7 +166,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
         }
 
         .buyback-section__description {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
@@ -189,7 +187,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
         }
 
         .buyback-section__stat-label {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
@@ -197,7 +194,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
         }
 
         .buyback-section__stat-value {
-          font-family: 'Inter', sans-serif;
           font-size: 20px;
           font-weight: 600;
           line-height: normal;
@@ -222,7 +218,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
         }
 
         .buyback-section__summary-title {
-          font-family: 'Inter', sans-serif;
           font-size: 16px;
           font-weight: 600;
           line-height: normal;
@@ -252,7 +247,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
         }
 
         .buyback-section__summary-item-label {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
@@ -260,7 +254,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
         }
 
         .buyback-section__summary-item-value {
-          font-family: 'Inter', sans-serif;
           font-size: 18px;
           font-weight: 500;
           line-height: normal;
@@ -288,7 +281,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
         }
 
         .buyback-section__th {
-          font-family: 'Inter', sans-serif;
           font-size: 12px;
           font-weight: 500;
           line-height: 16px;
@@ -311,7 +303,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
         }
 
         .buyback-section__td {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
@@ -333,7 +324,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
           display: inline-flex;
           padding: 4px 12px;
           border-radius: 100px;
-          font-family: 'Inter', sans-serif;
           font-size: 12px;
           font-weight: 500;
           line-height: 16px;
@@ -370,7 +360,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
         }
 
         .buyback-section__capture-value {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
@@ -392,7 +381,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
           gap: 8px;
           background: none;
           border: none;
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;

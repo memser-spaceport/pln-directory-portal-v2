@@ -44,7 +44,6 @@ export default function PastRoundComponent({
         }
 
         .past-round__title {
-          font-family: 'Inter', sans-serif;
           font-size: 32px;
           font-weight: 700;
           line-height: 40px;
@@ -53,7 +52,6 @@ export default function PastRoundComponent({
         }
 
         .past-round__description {
-          font-family: 'Inter', sans-serif;
           font-size: 16px;
           font-weight: 400;
           line-height: 24px;
@@ -72,7 +70,6 @@ export default function PastRoundComponent({
         }
 
         .past-round__placeholder p {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;

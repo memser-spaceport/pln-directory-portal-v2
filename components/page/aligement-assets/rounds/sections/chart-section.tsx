@@ -43,8 +43,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                     tick={{ 
                       fill: '#475569', 
                       fontSize: 12, 
-                      fontWeight: 600,
-                      fontFamily: 'Inter, sans-serif'
+                      fontWeight: 600
                     }}
                     dy={10}
                   />
@@ -56,8 +55,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                     tick={{ 
                       fill: '#475569', 
                       fontSize: 12, 
-                      fontWeight: 600,
-                      fontFamily: 'Inter, sans-serif'
+                      fontWeight: 600
                     }}
                     width={60}
                     tickFormatter={(value) => value.toLocaleString()}
@@ -68,7 +66,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                     barSize={40}
                   >
                     {data.chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill="#93c5fd" />
+                      <Cell key={`cell-${entry.name}-${entry.value}`} fill="#93c5fd" />
                     ))}
                     <LabelList 
                       dataKey="value" 
@@ -77,8 +75,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                       style={{
                         fill: '#475569',
                         fontSize: 12,
-                        fontWeight: 600,
-                        fontFamily: 'Inter, sans-serif'
+                        fontWeight: 600
                       }}
                       offset={10}
                     />
@@ -112,7 +109,6 @@ export default function ChartSection({ data }: ChartSectionProps) {
         }
 
         .chart-section__title {
-          font-family: 'Inter', sans-serif;
           font-size: 18px;
           font-weight: 600;
           line-height: normal;
@@ -121,7 +117,6 @@ export default function ChartSection({ data }: ChartSectionProps) {
         }
 
         .chart-section__subtitle {
-          font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 300;
           font-style: italic;

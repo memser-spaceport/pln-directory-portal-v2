@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useToggle } from 'react-use';
 import { User } from '@privy-io/react-auth';
-import { usePathname, useRouter, useParams } from 'next/navigation';
+import { usePathname, useRouter, useParams, useSearchParams } from 'next/navigation';
 import Cookies from 'js-cookie';
 
 import { usePrivyWrapper, useAuthTokens, getLinkedAccounts } from '../../hooks';
@@ -32,6 +32,7 @@ export function PrivyModals() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
+  const searchParams = useSearchParams();
   const analytics = useAuthAnalytics();
 
   // Privy hooks
@@ -140,12 +141,26 @@ export function PrivyModals() {
         }
       }
 
+      // Check for backlink parameter (used for protected route redirects)
+      const backlink = searchParams.get('backlink');
+      if (backlink) {
+        const decodedBacklink = decodeURIComponent(backlink);
+        // Validate backlink is a relative path for security
+        if (decodedBacklink.startsWith('/')) {
+          // Small delay to ensure cookies are set before redirect
+          setTimeout(() => {
+            router.replace(decodedBacklink);
+          }, 300);
+          return;
+        }
+      }
+
       // Use router.refresh() instead of hard reload for better UX
       router.refresh();
       // Small delay to ensure cookies are set before refresh completes
       setTimeout(() => window.location.reload(), 300);
     },
-    [clearPrivyParams, pathname, params, router, showLoginSuccess],
+    [clearPrivyParams, pathname, params, router, searchParams, showLoginSuccess],
   );
 
   const initDirectoryLogin = useCallback(async () => {

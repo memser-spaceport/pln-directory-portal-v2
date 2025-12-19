@@ -17,13 +17,6 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem; title: str
   const pageMap: Record<string, { activeItem: PlaaActiveItem; title: string }> = {
     'overview': { activeItem: 'overview', title: 'Overview' },
     'rounds': { activeItem: 'rounds', title: 'Rounds' },
-    'incentive-model': { activeItem: 'incentive-model', title: 'Incentive Model' },
-    'activities': { activeItem: 'activities', title: 'Activities' },
-    'product-versions': { activeItem: 'product-versions', title: 'Product Versions' },
-    'faq': { activeItem: 'faq', title: 'FAQ' },
-    'terms-of-use': { activeItem: 'terms-of-use', title: 'Terms of Use' },
-    'feedback': { activeItem: 'feedback', title: 'Feedback' },
-    'privacy-policy': { activeItem: 'privacy-policy', title: 'Privacy Policy' },
   };
 
   return pageMap[pathSegment] || pageMap['overview'];

@@ -115,14 +115,22 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
                   <p key={`${link.linkText}-${index}`} className="snapshot-section__tip-link-item">
                     <span className="snapshot-section__tip-arrow">→</span>
                     {' '}{link.prefix}{' '}
-                    <Link href={link.url} target="_blank" rel="noopener noreferrer" className="snapshot-section__tip-link">{link.linkText}</Link>
+                    {link.url === '#' ? (
+                      <span className="snapshot-section__tip-link snapshot-section__tip-link--disabled">{link.linkText}</span>
+                    ) : (
+                      <Link href={link.url} target="_blank" rel="noopener noreferrer" className="snapshot-section__tip-link">{link.linkText}</Link>
+                    )}
                     {link.suffix && <>{' '}{link.suffix}</>}
                   </p>
                 ))}
               </div>
               
               <p className="snapshot-section__tip-bottom">
-                <Link href={tipContent.bottomLink.url} target="_blank" rel="noopener noreferrer" className="snapshot-section__tip-link">{tipContent.bottomLink.text}</Link>.
+                {tipContent.bottomLink.url === '#' ? (
+                  <span className="snapshot-section__tip-link snapshot-section__tip-link--disabled">{tipContent.bottomLink.text}</span>
+                ) : (
+                  <Link href={tipContent.bottomLink.url} target="_blank" rel="noopener noreferrer" className="snapshot-section__tip-link">{tipContent.bottomLink.text}</Link>
+                )}.
               </p>
             </div>
           </div>
@@ -296,6 +304,15 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
 
         .snapshot-section__tip-link:hover {
           text-decoration: none;
+        }
+
+        .snapshot-section__tip-link--disabled {
+          cursor: default;
+          pointer-events: none;
+        }
+
+        .snapshot-section__tip-link--disabled:hover {
+          text-decoration: underline;
         }
       `}</style>
     </>

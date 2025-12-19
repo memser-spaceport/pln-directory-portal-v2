@@ -10,16 +10,7 @@ import PlaaRoundSelector from './plaa-round-selector';
    Figma: https://www.figma.com/design/xrvyUEqgZ0oRNT0spUruMW/Untitled?node-id=1-5250
    ========================================================================== */
 
-export type PlaaActiveItem =
-  | 'overview'
-  | 'rounds'
-  | 'incentive-model'
-  | 'activities'
-  | 'product-versions'
-  | 'faq'
-  | 'terms-of-use'
-  | 'feedback'
-  | 'privacy-policy';
+export type PlaaActiveItem = 'overview' | 'rounds';
 
 interface PlaaMenuProps {
   activeItem?: PlaaActiveItem;
@@ -30,13 +21,6 @@ interface PlaaMenuProps {
 const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string }> = [
   { name: 'rounds', label: 'Current Round', url: '/alignment-assets/rounds' },
   { name: 'overview', label: 'Overview', url: '/alignment-assets/overview' },
-  { name: 'incentive-model', label: 'Incentive Model', url: '/alignment-assets/incentive-model' },
-  { name: 'activities', label: 'Activities', url: '/alignment-assets/activities' },
-  { name: 'product-versions', label: 'Product Versions', url: '/alignment-assets/product-versions' },
-  { name: 'faq', label: 'FAQ', url: '/alignment-assets/faq' },
-  { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-assets/terms-of-use' },
-  { name: 'feedback', label: 'Feedback', url: '/alignment-assets/feedback' },
-  { name: 'privacy-policy', label: 'Privacy Policy', url: '/alignment-assets/privacy-policy' },
 ];
 
 function PlaaMenu({ activeItem, currentRound = 2, totalRounds = 12 }: PlaaMenuProps) {
@@ -160,6 +144,7 @@ function PlaaMenu({ activeItem, currentRound = 2, totalRounds = 12 }: PlaaMenuPr
             font-weight: 500;
             color: #475569;
             line-height: normal;
+            font-family: 'Inter', sans-serif;
           }
         `}
       </style>

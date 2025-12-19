@@ -21,7 +21,11 @@ export default function LearnMoreSection({ data }: LearnMoreSectionProps) {
               <span className="learn-more-section__text-bold">Learn more:</span>
               <span className="learn-more-section__text-space"> </span>
               <span className="learn-more-section__text-body">Read the </span>
-              <Link href={data.faqUrl} target="_blank" rel="noopener noreferrer" className="learn-more-section__link">FAQ</Link>
+              {data.faqUrl === '#' ? (
+                <span className="learn-more-section__link learn-more-section__link--disabled">FAQ</span>
+              ) : (
+                <Link href={data.faqUrl} target="_blank" rel="noopener noreferrer" className="learn-more-section__link">FAQ</Link>
+              )}
               <span className="learn-more-section__text-body"> for details on batch auctions, clearing price calculation, and how bids are selected.</span>
             </p>
           </div>
@@ -94,6 +98,15 @@ export default function LearnMoreSection({ data }: LearnMoreSectionProps) {
 
         .learn-more-section__link:hover {
           text-decoration: none;
+        }
+
+        .learn-more-section__link--disabled {
+          cursor: default;
+          pointer-events: none;
+        }
+
+        .learn-more-section__link--disabled:hover {
+          text-decoration: underline;
         }
       `}</style>
     </>

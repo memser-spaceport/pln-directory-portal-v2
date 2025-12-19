@@ -88,8 +88,8 @@ const Overview = () => {
       <div className="overview">
         <div className="overview__content">
           <div className="overview__content__title overview__section-title">
-            <p>What if every company in the network could share in each other's success?</p>
-            <span className="overview__content__title__span">That's the idea behind the PL Alignment Asset:</span>
+            <p>What if every company in the network could share in each other&apos;s success?</p>
+            <span className="overview__content__title__span">That&apos;s the idea behind the PL Alignment Asset:</span>
           </div>
 
           <div className="overview__content__description">
@@ -209,7 +209,7 @@ const Overview = () => {
           <div className="overview__content__signup__header">
             <div className="overview__section-title">Sign Up to Join the Private Beta</div>
             <div className="overview__content__signup__header__description">
-              Sign up to join the private beta and take part in this ongoing experiment. You'll contribute to
+              Sign up to join the private beta and take part in this ongoing experiment. You&apos;ll contribute to
               network-wide progress, collect points for verified activities, and help refine how value is measured and
               recognized across the Protocol Labs Network.
             </div>

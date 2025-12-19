@@ -232,6 +232,7 @@ const Overview = () => {
             display: flex;
             flex-direction: column;
             gap: 120px;
+            width: 100%;
           }
 
           .overview__content {
@@ -460,11 +461,13 @@ const Overview = () => {
           }
 
           .overview__content__how__item--wide {
-            width: 691px;
+            flex: 1.5;
+            min-width: 300px;
           }
 
           .overview__content__how__item--narrow {
-            width: 461px;
+            flex: 1;
+            min-width: 300px;
           }
 
           .overview__content__how__item img[alt='shadow'] {

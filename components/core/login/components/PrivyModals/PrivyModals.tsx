@@ -150,6 +150,7 @@ export function PrivyModals() {
           // Small delay to ensure cookies are set before redirect
           setTimeout(() => {
             router.replace(decodedBacklink);
+            window.location.reload();
           }, 300);
           return;
         }

@@ -1,20 +1,35 @@
 'use client';
 
 import React from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import { usePushNotificationsContext } from '@/providers/PushNotificationsProvider';
+import { useInfiniteNotifications } from '@/services/push-notifications/hooks';
 import { PushNotification } from '@/types/push-notifications.types';
 import { EmptyState } from './EmptyState';
 import { NotificationItem } from './NotificationItem';
+import { LoadingIndicator } from './LoadingIndicator';
 import s from './RecentUpdatesSection.module.scss';
 
 export function RecentUpdatesSection() {
-  const { notifications, markAsRead } = usePushNotificationsContext();
+  const { markAsRead } = usePushNotificationsContext();
+  const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading } = useInfiniteNotifications();
 
   const handleNotificationClick = (notification: PushNotification) => {
     if (!notification.isRead) {
       markAsRead(notification.id);
     }
   };
+
+  if (isLoading) {
+    return (
+      <section id="recent-updates" className={s.section}>
+        <h2 className={s.title}>Recent Updates</h2>
+        <div className={s.card}>
+          <LoadingIndicator />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="recent-updates" className={s.section}>
@@ -23,15 +38,25 @@ export function RecentUpdatesSection() {
         {notifications.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className={s.notificationsList}>
-            {notifications.slice(0, 8).map((notification) => (
-              <NotificationItem
-                key={notification.id}
-                notification={notification}
-                onNotificationClick={handleNotificationClick}
-              />
-            ))}
-          </div>
+          <InfiniteScroll
+            scrollableTarget="body"
+            loader={null}
+            hasMore={hasNextPage}
+            dataLength={notifications.length}
+            next={fetchNextPage}
+            style={{ overflow: 'unset' }}
+          >
+            <div className={s.notificationsList}>
+              {notifications.map((notification) => (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                  onNotificationClick={handleNotificationClick}
+                />
+              ))}
+            </div>
+            {isFetchingNextPage && <LoadingIndicator />}
+          </InfiniteScroll>
         )}
       </div>
     </section>
@@ -39,4 +64,3 @@ export function RecentUpdatesSection() {
 }
 
 export default RecentUpdatesSection;
-

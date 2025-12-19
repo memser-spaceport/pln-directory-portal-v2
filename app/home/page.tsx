@@ -41,9 +41,9 @@ export default async function Home() {
           {/*  <Discover discoverData={discoverData} userInfo={userInfo} />*/}
           {/*</div>*/}
           {/* Featured section */}
-          <div className={styles.home__cn__featured}>
-            <Featured featuredData={featuredData} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-          </div>
+          {/*<div className={styles.home__cn__featured}>*/}
+          {/*  <Featured featuredData={featuredData} isLoggedIn={isLoggedIn} userInfo={userInfo} />*/}
+          {/*</div>*/}
           <ScrollToTop pageName="Home" userInfo={userInfo} />
         </div>
       </div>

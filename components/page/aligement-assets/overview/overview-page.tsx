@@ -166,7 +166,7 @@ const Overview = () => {
               {importantDetails.map((detail, index) => (
                 <li key={index}>{detail}</li>
               ))}
-              <li><a href="" target="_blank" className="overview__content__text__link">Learn more</a> about the incentive model.</li>
+              <li><a href="#" className="overview__content__text__link">Learn more</a> about the incentive model.</li>
             </ul>
           </div>
         </div>
@@ -200,7 +200,7 @@ const Overview = () => {
           <div className="overview__content__how__learn-more-wrapper">
             <div className="overview__content__how__learn-more">
               <span className="overview__content__how__learn-more__text">Learn more:</span> Read the{' '}
-              <a href="" target="_blank" className="overview__content__text__link">FAQ</a> for details on contributions, points, and tokens.
+              <a href="#" className="overview__content__text__link">FAQ</a> for details on contributions, points, and tokens.
             </div>
           </div>
         </div>

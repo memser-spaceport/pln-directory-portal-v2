@@ -94,8 +94,22 @@ const AttendeeDetails = (props: IAttendeeForm) => {
       const fetchGuestDetails = async () => {
         try {
           triggerLoader(true);
+          
+          // For past events, fetch BOTH past and upcoming events to check all gatherings
+          const shouldFetchBothTypes = eventType === 'past' || from === 'past';
+          
           let result = await getGuestDetail(selectedMember.uid ?? '', location.uid, authToken, from || eventType);
-          const userGoingEvents = result?.map((e: any) => ({
+          let additionalResult: any[] = [];
+          
+          if (shouldFetchBothTypes) {
+            const otherType = (from || eventType) === 'past' ? 'upcoming' : 'past';
+            additionalResult = await getGuestDetail(selectedMember.uid ?? '', location.uid, authToken, otherType);
+          }
+          
+          // Combine both results for complete attendance data
+          const combinedResult = shouldFetchBothTypes ? [...result, ...additionalResult] : result;
+          
+          const userGoingEvents = combinedResult?.map((e: any) => ({
             uid: e?.event?.uid,
             isHost: e?.isHost,
             isSpeaker: e?.isSpeaker,
@@ -110,8 +124,8 @@ const AttendeeDetails = (props: IAttendeeForm) => {
           if (selectedMember.uid) {
             topicsAndReasonResponse = await getTopicsAndReasonForUser(location.uid, selectedMember.uid, authToken);
           }
-          if (result.length > 0) {
-            const formData: any = transformGuestDetail(result, gatherings);
+          if (result.length > 0 || additionalResult.length > 0) {
+            const formData: any = transformGuestDetail(combinedResult, gatherings);
             updateMemberDetails(false);
             setSelectedTeam({ name: formData?.teamName, uid: formData?.teamUid, logo: formData?.teamLogo ?? '' });
             setInitialTeams(formData.teams);

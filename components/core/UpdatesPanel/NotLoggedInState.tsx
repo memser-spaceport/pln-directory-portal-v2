@@ -5,19 +5,19 @@ import { useRouter } from 'next/navigation';
 import s from './UpdatesPanel.module.scss';
 
 interface NotLoggedInStateProps {
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export function NotLoggedInState({ onClose }: NotLoggedInStateProps) {
   const router = useRouter();
 
   const handleSignIn = () => {
-    onClose();
+    onClose?.();
     router.push(`${window.location.pathname}${window.location.search}#login`);
   };
 
   const handleSignUp = () => {
-    onClose();
+    onClose?.();
     const currentPath = window.location.pathname + window.location.search;
     const returnTo = encodeURIComponent(currentPath);
     router.push(`/sign-up?returnTo=${returnTo}`);
@@ -28,11 +28,7 @@ export function NotLoggedInState({ onClose }: NotLoggedInStateProps) {
       <img src="/images/empty-nature.svg" alt="" className={s.notLoggedInIllustration} />
       <div className={s.notLoggedInContent}>
         <div className={s.notLoggedInText}>
-          <h3 className={s.notLoggedInTitle}>
-            Sign in to see
-            <br />
-            recent updates for you
-          </h3>
+          <h3 className={s.notLoggedInTitle}>Sign in to see recent updates for you</h3>
           <p className={s.notLoggedInDescription}>
             View updates from Demo Days, forum,
             <br />
@@ -54,4 +50,3 @@ export function NotLoggedInState({ onClose }: NotLoggedInStateProps) {
     </div>
   );
 }
-

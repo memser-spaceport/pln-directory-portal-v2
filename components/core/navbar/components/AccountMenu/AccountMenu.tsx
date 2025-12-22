@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
 import { Avatar } from '@base-ui-components/react/avatar';
 
@@ -16,12 +16,9 @@ import { usePostHog } from 'posthog-js/react';
 
 import s from './AccountMenu.module.scss';
 import { useGetAppNotifications } from '@/services/notifications/hooks/useGetAppNotifications';
-import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
 import { clsx } from 'clsx';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/services/members/store';
-import { useMember } from '@/services/members/hooks/useMember';
-import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 import { useMedia } from 'react-use';
 
 interface Props {
@@ -38,13 +35,7 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
   const analytics = useCommonAnalytics();
   const postHogProps = usePostHog();
   const router = useRouter();
-  const [showNotifications, setShowNotifications] = useState(false);
   const { profileImage } = useUserStore();
-  const { data: member, isLoading } = useMember(userInfo.uid);
-  const [hideCompleteProfile] = useLocalStorageParam('complete_profile_bar', false);
-  const isProfileFilled =
-    member?.memberInfo?.telegramHandler && member?.memberInfo?.officeHours && member?.memberInfo?.skills.length > 0;
-  const hideProfileStatus = !userInfo || isProfileFilled || hideCompleteProfile || isLoading;
 
   const handleLogout = useCallback(() => {
     clearAllAuthCookies();
@@ -58,13 +49,6 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
 
   return (
     <>
-      <NotificationsMenu
-        isMobileView={false}
-        notifications={notifications}
-        open={showNotifications}
-        onClose={() => setShowNotifications(false)}
-        userInfo={userInfo}
-      />
       <Menu.Root modal={false}>
         <Menu.Trigger className={s.Button} ref={menuTriggerRef}>
           <Avatar.Root className={s.Avatar}>
@@ -86,30 +70,7 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
                 }}
               >
                 <UserIcon /> {userInfo.name ?? userInfo.email}{' '}
-                {/*{isNumber(profileFilledPercent) && profileFilledPercent !== 100 && (*/}
-                {/*  <span className={s.itemSub}>*/}
-                {/*    Filled <div className={s.notificationsCount}>{profileFilledPercent}%</div>*/}
-                {/*  </span>*/}
-                {/*)}*/}
               </Menu.Item>
-              <Menu.Item
-                className={clsx(s.Item)}
-                onClick={() => setShowNotifications(true)}
-                disabled={!notifications?.length}
-              >
-                <NotificationsIcon /> Notifications
-                <div className={s.itemSub}>
-                  {notifications?.length > 0 && <div className={s.notificationsCount}>{notifications?.length}</div>}
-                </div>
-              </Menu.Item>
-              {/*<Link target="_blank" href={process.env.PROTOSPHERE_URL ?? ''}>*/}
-              {/*  <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('ProtoSphere', getAnalyticsUserInfo(userInfo))}>*/}
-              {/*    <MessageIcon /> ProtoSphere{' '}*/}
-              {/*    <span className={s.itemSub}>*/}
-              {/*      Forum <LinkIcon />*/}
-              {/*    </span>*/}
-              {/*  </Menu.Item>*/}
-              {/*</Link>*/}
               <div className={s.SeparatorWrapper}>
                 Support
                 <Menu.Separator className={s.Separator} />
@@ -158,50 +119,6 @@ function UserIcon(props: React.ComponentProps<'svg'>) {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
       <path
         d="M8 3.8125C9.3125 3.8125 10.4062 4.90625 10.4062 6.21875C10.4062 7.55859 9.3125 8.625 8 8.625C6.66016 8.625 5.59375 7.55859 5.59375 6.21875C5.59375 4.90625 6.66016 3.8125 8 3.8125ZM8 7.3125C8.60156 7.3125 9.09375 6.84766 9.09375 6.21875C9.09375 5.61719 8.60156 5.125 8 5.125C7.37109 5.125 6.90625 5.61719 6.90625 6.21875C6.90625 6.84766 7.37109 7.3125 8 7.3125ZM8 0.75C11.8555 0.75 15 3.89453 15 7.75C15 11.6328 11.8555 14.75 8 14.75C4.11719 14.75 1 11.6328 1 7.75C1 3.89453 4.11719 0.75 8 0.75ZM8 13.4375C9.25781 13.4375 10.4336 13.0273 11.3906 12.3164C10.9258 11.4141 9.99609 10.8125 8.95703 10.8125H7.01562C5.97656 10.8125 5.04688 11.3867 4.58203 12.3164C5.53906 13.0273 6.71484 13.4375 8 13.4375ZM12.375 11.3867C13.1953 10.4023 13.6875 9.14453 13.6875 7.75C13.6875 4.63281 11.1172 2.0625 8 2.0625C4.85547 2.0625 2.3125 4.63281 2.3125 7.75C2.3125 9.14453 2.77734 10.4023 3.59766 11.3867C4.33594 10.2383 5.59375 9.5 7.01562 9.5H8.95703C10.3789 9.5 11.6367 10.2383 12.375 11.3867Z"
-        fill="#64748B"
-      />
-    </svg>
-  );
-}
-
-function NotificationsIcon(props: React.ComponentProps<'svg'>) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path
-        d="M8.875 1.625V2.11719C10.8438 2.44531 12.375 4.16797 12.375 6.21875V7.14844C12.375 8.37891 12.7852 9.58203 13.5508 10.5664L13.9609 11.0586C14.125 11.2773 14.1523 11.5508 14.043 11.7695C13.9336 11.9883 13.7148 12.125 13.4688 12.125H2.53125C2.25781 12.125 2.03906 11.9883 1.92969 11.7695C1.82031 11.5508 1.84766 11.2773 2.01172 11.0586L2.42188 10.5664C3.1875 9.58203 3.625 8.37891 3.625 7.14844V6.21875C3.625 4.16797 5.12891 2.44531 7.125 2.11719V1.625C7.125 1.16016 7.50781 0.75 8 0.75C8.46484 0.75 8.875 1.16016 8.875 1.625ZM7.78125 3.375C6.19531 3.375 4.9375 4.66016 4.9375 6.21875V7.14844C4.9375 8.46094 4.55469 9.71875 3.84375 10.8125H12.1289C11.418 9.71875 11.0625 8.46094 11.0625 7.14844V6.21875C11.0625 4.66016 9.77734 3.375 8.21875 3.375H7.78125ZM9.75 13C9.75 13.4648 9.55859 13.9297 9.23047 14.2578C8.90234 14.5859 8.4375 14.75 8 14.75C7.53516 14.75 7.07031 14.5859 6.74219 14.2578C6.41406 13.9297 6.25 13.4648 6.25 13H9.75Z"
-        fill="#64748B"
-      />
-    </svg>
-  );
-}
-
-function MessageIcon(props: React.ComponentProps<'svg'>) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path
-        d="M10.8438 4.6875C11.1992 4.6875 11.5 4.98828 11.5 5.34375C11.5 5.72656 11.1992 6 10.8438 6H5.15625C4.77344 6 4.5 5.72656 4.5 5.34375C4.5 4.98828 4.77344 4.6875 5.15625 4.6875H10.8438ZM8.21875 7.3125C8.57422 7.3125 8.875 7.61328 8.875 7.96875C8.875 8.35156 8.57422 8.625 8.21875 8.625H5.15625C4.77344 8.625 4.5 8.35156 4.5 7.96875C4.5 7.61328 4.77344 7.3125 5.15625 7.3125H8.21875ZM13.2227 0.75C14.207 0.75 14.9727 1.54297 14.9727 2.5V10.3203C14.9727 11.25 14.1797 12.043 13.2227 12.043H9.28516L5.86719 14.6133C5.64844 14.75 5.34766 14.6133 5.34766 14.3398V12.0703H2.72266C1.73828 12.0703 0.972656 11.3047 0.972656 10.3477V2.5C0.972656 1.54297 1.73828 0.75 2.72266 0.75H13.2227ZM13.6875 10.375V2.5C13.6875 2.28125 13.4688 2.0625 13.25 2.0625H2.75C2.50391 2.0625 2.3125 2.28125 2.3125 2.5V10.375C2.3125 10.6211 2.50391 10.8125 2.75 10.8125H6.6875V12.4531L8.875 10.8125H13.25C13.4688 10.8125 13.6875 10.6211 13.6875 10.375Z"
-        fill="#64748B"
-      />
-    </svg>
-  );
-}
-
-function LinkIcon(props: React.ComponentProps<'svg'>) {
-  return (
-    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path
-        d="M0.84375 8.93359C0.953125 9.07031 1.11719 9.125 1.28125 9.125C1.47266 9.125 1.63672 9.07031 1.74609 8.93359L8.0625 2.61719V7.59375C8.0625 7.97656 8.36328 8.25 8.71875 8.25C9.10156 8.25 9.375 7.97656 9.375 7.59375V1.03125C9.375 0.675781 9.10156 0.375 8.71875 0.375H2.15625C1.80078 0.375 1.5 0.675781 1.5 1.03125C1.5 1.41406 1.80078 1.6875 2.15625 1.6875H7.16016L0.84375 8.00391C0.570312 8.27734 0.570312 8.6875 0.84375 8.93359Z"
-        fill="#E2E8F0"
-      />
-    </svg>
-  );
-}
-
-function HelpIcon(props: React.ComponentProps<'svg'>) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path
-        d="M8 0.75C11.8555 0.75 15 3.89453 15 7.75C15 11.6328 11.8555 14.75 8 14.75C4.11719 14.75 1 11.6328 1 7.75C1 3.89453 4.11719 0.75 8 0.75ZM8 13.4375C11.1172 13.4375 13.6875 10.8945 13.6875 7.75C13.6875 4.63281 11.1172 2.0625 8 2.0625C4.85547 2.0625 2.3125 4.63281 2.3125 7.75C2.3125 10.8945 4.85547 13.4375 8 13.4375ZM8 9.9375C8.46484 9.9375 8.875 10.3203 8.875 10.8125C8.875 11.3047 8.46484 11.6875 8 11.6875C7.48047 11.6875 7.125 11.3047 7.125 10.8125C7.125 10.3203 7.50781 9.9375 8 9.9375ZM8.90234 4.25C9.99609 4.25 10.8438 5.09766 10.8164 6.16406C10.8164 6.82031 10.4609 7.44922 9.88672 7.80469L8.65625 8.57031V8.625C8.65625 8.98047 8.35547 9.28125 8 9.28125C7.64453 9.28125 7.34375 8.98047 7.34375 8.625V8.1875C7.34375 7.96875 7.45312 7.75 7.67188 7.61328L9.23047 6.68359C9.42188 6.57422 9.53125 6.38281 9.53125 6.16406C9.53125 5.83594 9.23047 5.5625 8.875 5.5625H7.48047C7.15234 5.5625 6.90625 5.83594 6.90625 6.16406C6.90625 6.51953 6.60547 6.82031 6.25 6.82031C5.89453 6.82031 5.59375 6.51953 5.59375 6.16406C5.59375 5.09766 6.44141 4.25 7.50781 4.25H8.90234Z"
         fill="#64748B"
       />
     </svg>

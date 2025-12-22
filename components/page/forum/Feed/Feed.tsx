@@ -1,17 +1,19 @@
 'use client';
 
+import { clsx } from 'clsx';
 import React, { useCallback } from 'react';
-import { CategoriesTabs } from '@/components/page/forum/CategoriesTabs';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Posts } from '@/components/page/forum/Posts';
 
+import { useForumAnalytics } from '@/analytics/forum.analytics';
+import { useScrollDirection } from '@/components/core/MobileBottomNav';
+
+import { Posts } from '@/components/page/forum/Posts';
 import { ForumHeader } from '@/components/page/forum/ForumHeader';
+import { CategoriesTabs } from '@/components/page/forum/CategoriesTabs';
+import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
+
 
 import s from './Feed.module.scss';
-import { useScrollDirection } from '@/components/core/MobileBottomNav/MobileBottomNav';
-import { clsx } from 'clsx';
-import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
-import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 export const Feed = () => {
   const router = useRouter();

@@ -279,7 +279,8 @@ export const transformMembers = (result: any, currentEvents: string[]) => {
   return result.map((guest: any) => {
     const { member, team, events } = guest || {};
     const memberTeams = member?.teamMemberRoles || [];
-    const validEvents = events?.filter((event: any) => currentEvents.includes(event?.name));
+    // const validEvents = events?.filter((event: any) => currentEvents.includes(event?.name));
+    const validEvents = events || [];
 
     return {
       memberUid: guest?.memberUid,

@@ -19,6 +19,7 @@ export interface PushNotification {
 export type PushNotificationCategory =
   | 'DEMO_DAY_LIKE'
   | 'DEMO_DAY_CONNECT'
+  | 'DEMO_DAY_ANNOUNCEMENT'
   | 'DEMO_DAY_INVEST'
   | 'DEMO_DAY_REFERRAL'
   | 'DEMO_DAY_FEEDBACK'
@@ -51,13 +52,11 @@ export enum WebSocketEvent {
 }
 
 // Category display configuration
-export const CATEGORY_CONFIG: Record<
-  PushNotificationCategory,
-  { label: string; icon: string; color: string }
-> = {
+export const CATEGORY_CONFIG: Record<PushNotificationCategory, { label: string; icon: string; color: string }> = {
   DEMO_DAY_LIKE: { label: 'Demo Day', icon: 'calendar', color: '#156FF7' },
   DEMO_DAY_CONNECT: { label: 'Demo Day', icon: 'calendar', color: '#156FF7' },
   DEMO_DAY_INVEST: { label: 'Demo Day', icon: 'calendar', color: '#156FF7' },
+  DEMO_DAY_ANNOUNCEMENT: { label: 'Demo Day', icon: 'calendar', color: '#156FF7' },
   DEMO_DAY_REFERRAL: { label: 'Demo Day', icon: 'calendar', color: '#156FF7' },
   DEMO_DAY_FEEDBACK: { label: 'Demo Day', icon: 'calendar', color: '#156FF7' },
   FORUM_POST: { label: 'Forum', icon: 'forum', color: '#10B981' },

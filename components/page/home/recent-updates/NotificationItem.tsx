@@ -24,6 +24,7 @@ function getNotificationIcon(notification: PushNotification) {
   switch (notification.category) {
     case 'DEMO_DAY_LIKE':
     case 'DEMO_DAY_CONNECT':
+    case 'DEMO_DAY_ANNOUNCEMENT':
     case 'DEMO_DAY_INVEST':
     case 'DEMO_DAY_REFERRAL':
     case 'DEMO_DAY_FEEDBACK':
@@ -67,9 +68,7 @@ export function NotificationItem({ notification, onNotificationClick }: Notifica
         <div className={s.textSection}>
           <div className={s.categoryBadge}>{getCategoryLabel(notification.category)}</div>
           <p className={s.notificationTitle}>{notification.title}</p>
-          {notification.description && (
-            <p className={s.notificationDescription}>{notification.description}</p>
-          )}
+          {notification.description && <p className={s.notificationDescription}>{notification.description}</p>}
         </div>
         <div className={s.notificationFooter}>
           <div className={s.infoSection}>
@@ -86,4 +85,3 @@ export function NotificationItem({ notification, onNotificationClick }: Notifica
     </Link>
   );
 }
-

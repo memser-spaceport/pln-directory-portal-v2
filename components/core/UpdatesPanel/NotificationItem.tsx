@@ -73,7 +73,18 @@ export function NotificationItem({ notification, onNotificationClick }: Notifica
           <div className={s.categoryBadge}>{getCategoryLabel(notification.category)}</div>
           <div className={s.textContent}>
             <p className={s.notificationTitle}>{notification.title}</p>
-            {notification.description && <p className={s.notificationDescription}>{notification.description}</p>}
+            {notification.description && (
+              <p className={s.notificationDescription}>
+                {notification.description}{' '}
+                {notification.category === 'DEMO_DAY_ANNOUNCEMENT' &&
+                  notification?.metadata?.status === 'ACTIVE' &&
+                  notification.link && (
+                    <span>
+                      To participate <Link href={notification.link}></Link>
+                    </span>
+                  )}
+              </p>
+            )}
           </div>
         </div>
         <div className={s.notificationFooter}>

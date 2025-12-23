@@ -5,6 +5,7 @@ import { PushNotification } from '@/types/push-notifications.types';
 import { DemoDayIcon, EventIcon, ForumIcon, SystemIcon, ArrowRightIcon } from './icons';
 import { formatTime, getCategoryLabel, getActionText } from './utils';
 import s from './RecentUpdatesSection.module.scss';
+import { clsx } from 'clsx';
 
 interface NotificationItemProps {
   notification: PushNotification;
@@ -68,7 +69,18 @@ export function NotificationItem({ notification, onNotificationClick }: Notifica
         <div className={s.textSection}>
           <div className={s.categoryBadge}>{getCategoryLabel(notification.category)}</div>
           <p className={s.notificationTitle}>{notification.title}</p>
-          {notification.description && <p className={s.notificationDescription}>{notification.description}</p>}
+          {notification.description && (
+            <p className={s.notificationDescription}>
+              {notification.description}{' '}
+              {notification.category === 'DEMO_DAY_ANNOUNCEMENT' &&
+                notification?.metadata?.status === 'ACTIVE' &&
+                notification.link && (
+                  <span>
+                    To participate <Link href={notification.link}></Link>
+                  </span>
+                )}
+            </p>
+          )}
         </div>
         <div className={s.notificationFooter}>
           <div className={s.infoSection}>
@@ -82,6 +94,11 @@ export function NotificationItem({ notification, onNotificationClick }: Notifica
           )}
         </div>
       </div>
+      <div
+        className={clsx(s.unreadDot, {
+          [s.hidden]: notification.isRead,
+        })}
+      />
     </Link>
   );
 }

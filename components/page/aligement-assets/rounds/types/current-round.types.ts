@@ -103,7 +103,7 @@ export interface ChartSectionData {
 export interface StatsSectionData {
   onboardedParticipants: number;
   regionsUnlocked: string[];
-  incentivizedActivities: string[][];
+  incentivizedActivities: string[];
   totalPointsCollected: string;
   totalTokensAvailable: string;
   numberOfBuybacks: number;

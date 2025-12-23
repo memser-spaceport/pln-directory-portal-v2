@@ -44,15 +44,11 @@ export default function StatsSection({ data }: StatsSectionProps) {
               <tr className="stats-section__row stats-section__row--activities">
                 <td className="stats-section__label">Incentivized Activities:</td>
                 <td className="stats-section__value">
-                  <div className="stats-section__activities">
-                    {stats.incentivizedActivities.map((row, rowIndex) => (
-                      <div key={`row-${rowIndex}`} className="stats-section__activities-row">
-                        {row.map((activity, actIndex) => (
-                          <span key={`activity-${activity}-${actIndex}`} className="stats-section__chip">
-                            {activity}
-                          </span>
-                        ))}
-                      </div>
+                  <div className="stats-section__chips">
+                    {stats.incentivizedActivities.map((activity, index) => (
+                      <span key={`activity-${activity}-${index}`} className="stats-section__chip">
+                        {activity}
+                      </span>
                     ))}
                   </div>
                 </td>
@@ -151,19 +147,6 @@ export default function StatsSection({ data }: StatsSectionProps) {
           white-space: nowrap;
         }
 
-        .stats-section__activities {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          align-items: flex-start;
-        }
-
-        .stats-section__activities-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-
         @media (max-width: 1024px) {
           .stats-section__label {
             width: 200px;
@@ -186,10 +169,6 @@ export default function StatsSection({ data }: StatsSectionProps) {
           .stats-section__value {
             display: block;
             padding: 16px 12px;
-          }
-
-          .stats-section__activities-row {
-            justify-content: flex-start;
           }
         }
       `}</style>

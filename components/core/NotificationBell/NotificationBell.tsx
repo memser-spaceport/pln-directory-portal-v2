@@ -60,6 +60,7 @@ export function NotificationBell({ isLoggedIn }: { isLoggedIn: boolean }) {
       <UpdatesPanel
         open={isOpen}
         notifications={notifications}
+        unreadCount={unreadCount}
         onClose={handleClose}
         onMarkAsRead={markAsRead}
         isLoggedIn={isLoggedIn}

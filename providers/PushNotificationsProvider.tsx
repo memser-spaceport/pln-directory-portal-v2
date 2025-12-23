@@ -9,7 +9,6 @@ import {
 } from '@/types/push-notifications.types';
 import {
   getNotifications,
-  getUnreadCount,
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '@/services/push-notifications.service';
@@ -33,11 +32,7 @@ interface PushNotificationsProviderProps {
   enabled?: boolean;
 }
 
-export function PushNotificationsProvider({
-  children,
-  authToken,
-  enabled = true,
-}: PushNotificationsProviderProps) {
+export function PushNotificationsProvider({ children, authToken, enabled = true }: PushNotificationsProviderProps) {
   const [notifications, setNotifications] = useState<PushNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -53,7 +48,7 @@ export function PushNotificationsProvider({
         data.notifications.map((n) => ({
           ...n,
           id: n.uid ?? n.id, // Normalize id field
-        }))
+        })),
       );
       setUnreadCount(data.unreadCount);
     } catch (err) {
@@ -85,9 +80,7 @@ export function PushNotificationsProvider({
   // Handle notification update from WebSocket (sync across devices)
   const handleNotificationUpdate = useCallback((payload: NotificationUpdatePayload) => {
     if (payload.status === 'read') {
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === payload.id ? { ...n, isRead: true } : n))
-      );
+      setNotifications((prev) => prev.map((n) => (n.id === payload.id ? { ...n, isRead: true } : n)));
       // Recalculate unread count to stay in sync
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } else if (payload.status === 'deleted') {
@@ -129,9 +122,7 @@ export function PushNotificationsProvider({
       if (!notification || notification.isRead) return;
 
       // Optimistic update
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-      );
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
       setUnreadCount((prev) => Math.max(0, prev - 1));
 
       // Call REST API
@@ -141,9 +132,7 @@ export function PushNotificationsProvider({
         } catch (err) {
           console.error('Failed to mark notification as read:', err);
           // Revert optimistic update on error
-          setNotifications((prev) =>
-            prev.map((n) => (n.id === id ? { ...n, isRead: false } : n))
-          );
+          setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: false } : n)));
           setUnreadCount((prev) => prev + 1);
         }
       }
@@ -151,7 +140,7 @@ export function PushNotificationsProvider({
       // Notify other devices via WebSocket
       wsMarkAsRead(id);
     },
-    [notifications, authToken, wsMarkAsRead]
+    [notifications, authToken, wsMarkAsRead],
   );
 
   // Mark all notifications as read
@@ -192,14 +181,10 @@ export function PushNotificationsProvider({
       markAllAsRead,
       refreshNotifications: fetchNotifications,
     }),
-    [notifications, unreadCount, isConnected, isLoading, error, markAsRead, markAllAsRead, fetchNotifications]
+    [notifications, unreadCount, isConnected, isLoading, error, markAsRead, markAllAsRead, fetchNotifications],
   );
 
-  return (
-    <PushNotificationsContext.Provider value={value}>
-      {children}
-    </PushNotificationsContext.Provider>
-  );
+  return <PushNotificationsContext.Provider value={value}>{children}</PushNotificationsContext.Provider>;
 }
 
 export function usePushNotificationsContext(): PushNotificationsContextValue {

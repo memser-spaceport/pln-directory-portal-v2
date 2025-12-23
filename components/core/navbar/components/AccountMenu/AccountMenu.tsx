@@ -43,6 +43,11 @@ export const AccountMenu = ({ userInfo }: Props) => {
     postHogProps.reset();
   }, [postHogProps]);
 
+  // Don't render if userInfo is invalid
+  if (!userInfo?.uid) {
+    return null;
+  }
+
   return (
     <>
       <Menu.Root modal={false}>
@@ -59,10 +64,12 @@ export const AccountMenu = ({ userInfo }: Props) => {
               <Menu.Item
                 className={s.Item}
                 onClick={() => {
-                  router.push(`/members/${userInfo.uid}`);
+                  if (userInfo?.uid) {
+                    router.push(`/members/${userInfo.uid}`);
+                  }
                 }}
               >
-                <UserIcon /> {userInfo.name ?? userInfo.email}{' '}
+                <UserIcon /> {userInfo?.name ?? userInfo?.email}{' '}
               </Menu.Item>
               <div className={s.SeparatorWrapper}>
                 Support

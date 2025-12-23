@@ -368,6 +368,7 @@ const LandingFocusAreas = (props: any) => {
             line-height: 20px;
             justify-content: space-between;
             align-items: center;
+            cursor: pointer;
           }
 
           .lfa__focusareas__focusarea__footer__prts {
@@ -378,6 +379,7 @@ const LandingFocusAreas = (props: any) => {
             font-size: 11px;
             line-height: 20px;
             justify-content: space-between;
+            cursor: pointer;
           }
 
           .lfa__focusareas__focusarea__footer__txt {
@@ -432,7 +434,6 @@ const LandingFocusAreas = (props: any) => {
           .embla__slide {
             flex: 0 0 289px;
             min-width: 0;
-            cursor: pointer;
           }
 
           @media (min-width: 1024px) {

@@ -77,7 +77,7 @@
 
 .content {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 8px;
 }
 
@@ -400,7 +400,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 0 20px 20px 20px;
+  padding: 20px;
   gap: 16px;
 }
 

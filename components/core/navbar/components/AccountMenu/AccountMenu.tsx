@@ -15,8 +15,6 @@ import { authEvents } from '@/components/core/login/utils';
 import { usePostHog } from 'posthog-js/react';
 
 import s from './AccountMenu.module.scss';
-import { useGetAppNotifications } from '@/services/notifications/hooks/useGetAppNotifications';
-import { clsx } from 'clsx';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/services/members/store';
 import { useMedia } from 'react-use';
@@ -28,7 +26,7 @@ interface Props {
   profileFilledPercent?: number | null;
 }
 
-export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPercent }: Props) => {
+export const AccountMenu = ({ userInfo }: Props) => {
   const isMobile = useMedia('(max-width: 960px)', false);
   const menuTriggerRef = React.useRef<HTMLButtonElement>(null);
   const defaultAvatarImage = useDefaultAvatar(userInfo?.name);
@@ -45,8 +43,6 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
     postHogProps.reset();
   }, [postHogProps]);
 
-  const { data: notifications } = useGetAppNotifications(userInfo.uid, authToken);
-
   // Don't render if userInfo is invalid
   if (!userInfo?.uid) {
     return null;
@@ -60,9 +56,6 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
             <Avatar.Image src={profileImage ?? defaultAvatarImage} width="40" height="40" className={s.Image} />
             <Avatar.Fallback className={s.Fallback}>{userInfo?.name}</Avatar.Fallback>
           </Avatar.Root>
-          {notifications?.length > 0 && (
-            <div className={clsx(s.notificationsCount, s.absolute)}>{notifications?.length}</div>
-          )}
           <ChevronDownIcon className={s.ButtonIcon} />
         </Menu.Trigger>
         <Menu.Portal>

@@ -13,12 +13,20 @@ import s from './UpdatesPanel.module.scss';
 interface UpdatesPanelProps {
   open: boolean;
   notifications: PushNotification[];
+  unreadCount?: number;
   onClose: () => void;
   onMarkAsRead: (id: string) => void;
   isLoggedIn?: boolean;
 }
 
-export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead, isLoggedIn = true }: UpdatesPanelProps) {
+export function UpdatesPanel({
+  open,
+  notifications,
+  unreadCount = 0,
+  onClose,
+  onMarkAsRead,
+  isLoggedIn = true,
+}: UpdatesPanelProps) {
   const handleNotificationClick = (notification: PushNotification) => {
     if (!notification.isRead) {
       onMarkAsRead(notification.id);
@@ -46,7 +54,14 @@ export function UpdatesPanel({ open, notifications, onClose, onMarkAsRead, isLog
             transition={{ duration: 0.15, ease: 'easeOut' }}
           >
             <div className={s.header}>
-              <h2 className={s.title}>Updates</h2>
+              <div className={s.titleRow}>
+                <h2 className={s.title}>Updates</h2>
+                {isLoggedIn && unreadCount > 0 && (
+                  <div className={s.unreadBadge}>
+                    <span className={s.unreadBadgeText}>Unread {unreadCount}</span>
+                  </div>
+                )}
+              </div>
               <button className={s.closeButton} onClick={onClose} aria-label="Close">
                 <CloseIcon />
               </button>

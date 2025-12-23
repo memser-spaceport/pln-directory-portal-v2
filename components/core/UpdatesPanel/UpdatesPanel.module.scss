@@ -45,6 +45,12 @@
   border-bottom: 1px solid rgba(27, 56, 96, 0.12);
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .title {
   font-family: 'Inter', sans-serif;
   font-size: 24px;
@@ -53,6 +59,27 @@
   letter-spacing: -0.4px;
   color: #0a0c11;
   margin: 0;
+}
+
+.unreadBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 2px 8px;
+  background: rgba(27, 77, 255, 0.02);
+  border: 1px solid #aebfff;
+  border-radius: 9999px;
+}
+
+.unreadBadgeText {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #4174ff;
+  padding: 0 2px;
 }
 
 .closeButton {

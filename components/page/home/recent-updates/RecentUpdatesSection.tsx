@@ -15,9 +15,10 @@ import s from './RecentUpdatesSection.module.scss';
 export function RecentUpdatesSection() {
   const isLoggedIn = authStatus.isLoggedIn();
   const { markAsRead } = usePushNotificationsContext();
-  const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading } = useInfiniteNotifications({
-    enabled: isLoggedIn,
-  });
+  const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, unreadCount } =
+    useInfiniteNotifications({
+      enabled: isLoggedIn,
+    });
 
   const handleNotificationClick = (notification: PushNotification) => {
     if (!notification.isRead) {
@@ -25,10 +26,21 @@ export function RecentUpdatesSection() {
     }
   };
 
+  const renderHeader = () => (
+    <div className={s.header}>
+      <h2 className={s.title}>Recent Updates</h2>
+      {isLoggedIn && unreadCount > 0 && (
+        <div className={s.unreadBadge}>
+          <span className={s.unreadBadgeText}>Unread {unreadCount}</span>
+        </div>
+      )}
+    </div>
+  );
+
   if (!isLoggedIn) {
     return (
       <section id="recent-updates" className={s.section}>
-        <h2 className={s.title}>Recent Updates</h2>
+        {renderHeader()}
         <div className={s.card}>
           <NotLoggedInState />
         </div>
@@ -39,7 +51,7 @@ export function RecentUpdatesSection() {
   if (isLoading) {
     return (
       <section id="recent-updates" className={s.section}>
-        <h2 className={s.title}>Recent Updates</h2>
+        {renderHeader()}
         <div className={s.card}>
           <LoadingIndicator />
         </div>
@@ -49,7 +61,7 @@ export function RecentUpdatesSection() {
 
   return (
     <section id="recent-updates" className={s.section}>
-      <h2 className={s.title}>Recent Updates</h2>
+      {renderHeader()}
       <div className={s.card}>
         {notifications.length === 0 ? (
           <EmptyState />

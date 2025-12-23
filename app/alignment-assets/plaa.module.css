@@ -13,26 +13,12 @@
 }
 
 /* --------------------------------------------------------------------------
-   Element: plaa__banner
-   Sticky announcement banner at the top
-   Navbar: 80px, Banner: 56px
-   -------------------------------------------------------------------------- */
-.plaa__banner {
-  position: sticky;
-  top: 103px; /* Navbar height */
-  left: 0;
-  right: 0;
-  z-index: 4;
-  height: var(--plaa-banner-height);
-}
-
-/* --------------------------------------------------------------------------
    Element: plaa__backbtn
    Mobile back button (hidden on desktop)
    -------------------------------------------------------------------------- */
 .plaa__backbtn {
   position: fixed;
-  top: calc(var(--app-header-height) + var(--plaa-banner-height));
+  top: calc(var(--app-header-height) + 56px); /* Navbar + Banner height */
   left: 0;
   right: 0;
   width: 100%;
@@ -48,8 +34,8 @@
 .plaa__main {
   display: flex;
   width: 100%;
-  min-height: calc(100vh - var(--app-header-height) - var(--plaa-banner-height) - 36px);
-  padding-top: calc(var(--plaa-banner-height) + 48px); /* Banner + mobile back btn */
+  min-height: calc(100vh - var(--app-header-height) - 56px); /* Navbar + Banner */
+  padding-top: calc(56px + 48px); /* Banner + Mobile back btn height */
 }
 
 /* --------------------------------------------------------------------------
@@ -63,9 +49,9 @@
   border-right: 1px solid var(--plaa-border-light);
   background-color: var(--plaa-neutral-white);
   position: sticky;
-  top: calc(var(--app-header-height) + var(--plaa-banner-height) + 36px);
+  top: calc(var(--app-header-height) + 56px); /* Navbar + Banner */
   left: 0;
-  height: calc(100vh - var(--app-header-height) - var(--plaa-banner-height) - 36px);
+  height: calc(100vh - var(--app-header-height) - 56px); /* Navbar + Banner */
   overflow-y: auto;
   align-self: flex-start;
 }
@@ -221,9 +207,5 @@
   .plaa__content {
     padding: 102px 48px 225px 48px;
     flex: 1;
-  }
-
-  .plaa__banner {
-    top: 116px;
   }
 }

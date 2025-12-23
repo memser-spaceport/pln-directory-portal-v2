@@ -4,7 +4,6 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import PlaaMenu, { PlaaActiveItem } from './plaa-menu';
 import PlaaBackButton from './plaa-back-btn';
-import PlaaAnnouncementBanner from './plaa-announcement-banner';
 import styles from '@/app/alignment-assets/plaa.module.css';
 
 interface PlaaLayoutWrapperProps {
@@ -37,11 +36,6 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
 
   return (
     <div className={styles.plaa}>
-      {/* Fixed Announcement Banner */}
-      <div className={styles.plaa__banner}>
-        <PlaaAnnouncementBanner message="Upcoming: Buyback Auction Q1 2026 - date TBA" />
-      </div>
-
       {/* Mobile Back Button (hidden on desktop) */}
       <div className={styles.plaa__backbtn}>
         <PlaaBackButton title={title} />

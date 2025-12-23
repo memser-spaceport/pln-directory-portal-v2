@@ -118,8 +118,8 @@ export default function LeaderboardSection({
                 </div>
               </div>
             ) : (
-              <>
-                <div className="leaderboard-section__table">
+              <div className="leaderboard-section__table-content">
+                <div className={`leaderboard-section__table ${!hasMore ? 'leaderboard-section__table--last' : ''}`}>
                   {visibleData.map((entry, index) => (
                     <div 
                       key={`${entry.name}-${entry.rank}`} 
@@ -164,7 +164,7 @@ export default function LeaderboardSection({
                     </button>
                   </div>
                 )}
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -232,7 +232,6 @@ export default function LeaderboardSection({
         .leaderboard-section__table-wrapper {
           width: 829px;
           max-width: 100%;
-          box-shadow: 0px 0px 1px 0px rgba(15, 23, 42, 0.12), 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
         }
 
         .leaderboard-section__filter-header {
@@ -258,7 +257,6 @@ export default function LeaderboardSection({
           border: 1px solid #cbd5e1;
           border-radius: 8px;
           background-color: white;
-          box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
         }
 
         .leaderboard-section__search-icon {
@@ -271,6 +269,7 @@ export default function LeaderboardSection({
           flex: 1;
           border: none;
           outline: none;
+          font-family: inherit;
           font-size: 14px;
           font-weight: 500;
           line-height: 24px;
@@ -296,6 +295,7 @@ export default function LeaderboardSection({
           padding: 10px 16px;
           border: 1px solid transparent;
           border-radius: 8px;
+          font-family: inherit;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
@@ -313,9 +313,25 @@ export default function LeaderboardSection({
           border-color: #cbd5e1;
         }
 
+        .leaderboard-section__table-content {
+          display: flex;
+          flex-direction: column;
+          min-height: 548px;
+        }
+
         .leaderboard-section__table {
           width: 100%;
           background-color: white;
+          flex: 1;
+          border-left: 1px solid #cbd5e1;
+          border-right: 1px solid #cbd5e1;
+        }
+
+        .leaderboard-section__table--last {
+          border-bottom: 1px solid #cbd5e1;
+          border-bottom-left-radius: 24px;
+          border-bottom-right-radius: 24px;
+          overflow: hidden;
         }
 
         .leaderboard-section__empty-state {
@@ -371,15 +387,12 @@ export default function LeaderboardSection({
           align-items: center;
           justify-content: space-between;
           padding: 24px;
-          border-left: 1px solid #cbd5e1;
-          border-right: 1px solid #cbd5e1;
           border-bottom: 1px solid #cbd5e1;
           background-color: white;
         }
 
         .leaderboard-section__row--last {
-          border-bottom-left-radius: 24px;
-          border-bottom-right-radius: 24px;
+          border-bottom: none;
         }
 
         .leaderboard-section__row-left {
@@ -467,6 +480,7 @@ export default function LeaderboardSection({
           gap: 8px;
           background: none;
           border: none;
+          font-family: inherit;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;

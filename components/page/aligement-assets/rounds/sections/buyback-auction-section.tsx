@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { BuybackAuctionSectionData } from '../types';
 
 interface BuybackAuctionSectionProps {
@@ -40,11 +41,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
                 <span className="buyback-section__stat-label">Total Filled</span>
                 <span className="buyback-section__stat-value buyback-section__stat-value--calculating">{data.headerStats.totalFilled}</span>
               </div>
-              <div className="buyback-section__stat-divider" />
-              <div className="buyback-section__stat">
-                <span className="buyback-section__stat-label">Fill Rate</span>
-                <span className="buyback-section__stat-value">{data.headerStats.fillRate}</span>
-              </div>
             </div>
           </div>
 
@@ -74,7 +70,21 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
                   <th className="buyback-section__th">TOKEN PRICE</th>
                   <th className="buyback-section__th">
                     <div className="buyback-section__th-with-icon">
-                      <Image src="/icons/rounds/info-gray.svg" alt="" width={16} height={16} />
+                      <Tooltip
+                        asChild
+                        side="top"
+                        align="center"
+                        trigger={
+                          <span className="buyback-section__th-icon">
+                            <Image src="/icons/rounds/info-gray.svg" alt="Bid value info" width={16} height={16} />
+                          </span>
+                        }
+                        content={
+                          <div className="buyback-section__tooltip-content">
+                            (tokens bid * price per token)
+                          </div>
+                        }
+                      />
                       BID VALUE
                     </div>
                   </th>
@@ -204,12 +214,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
           color: #30c593;
         }
 
-        .buyback-section__stat-divider {
-          width: 1px;
-          height: 48px;
-          background-color: #e2e8f0;
-        }
-
         .buyback-section__summary {
           background-color: transparent;
           border: 1px solid #e2e8f0;
@@ -296,6 +300,21 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
           display: flex;
           align-items: center;
           gap: 4px;
+        }
+
+        .buyback-section__th-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+        }
+
+        .buyback-section__tooltip-content {
+          font-size: 12px;
+          font-weight: 500;
+          line-height: 16px;
+          color: #ffffff;
+          text-align: center;
         }
 
         .buyback-section__table-row {

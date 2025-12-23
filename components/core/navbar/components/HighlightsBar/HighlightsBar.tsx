@@ -12,7 +12,7 @@ const fade = {
 };
 
 interface Props extends PropsWithChildren {
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'plaa';
 }
 
 export const HighlightsBar = ({ children, variant = 'primary' }: Props) => {
@@ -26,6 +26,7 @@ export const HighlightsBar = ({ children, variant = 'primary' }: Props) => {
         transition={{ duration: 0.3 }}
         className={clsx(s.root, {
           [s.secondary]: variant === 'secondary',
+          [s.plaa]: variant === 'plaa',
         })}
       >
         <motion.div

@@ -59,7 +59,7 @@ function getNotificationIcon(notification: PushNotification) {
 export function NotificationItem({ notification, onNotificationClick }: NotificationItemProps) {
   return (
     <Link
-      href={notification.link || '#'}
+      href={(!notification.link?.startsWith('/') ? `/${notification.link}` : notification.link) || '#'}
       className={s.notificationItem}
       onClick={() => onNotificationClick(notification)}
     >

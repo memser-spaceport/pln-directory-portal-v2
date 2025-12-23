@@ -1,0 +1,1 @@
+export { UserInfoValidator } from './UserInfoValidator';

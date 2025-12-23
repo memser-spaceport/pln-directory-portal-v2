@@ -27,13 +27,13 @@ export const DIRECTORY_LINKS: ISubItem[] = [
 
 export const EVENT_LINKS: ISubItem[] = [
   {
-    href: '/events',
-    icon: <CalendarBlankIcon />,
-    title: 'Event Schedule',
-  },
-  {
     href: '/events/irl',
     icon: <UsersThreeIcon />,
     title: 'IRL Gatherings',
+  },
+  {
+    href: '/events',
+    icon: <CalendarBlankIcon />,
+    title: 'Schedule',
   },
 ] as const;

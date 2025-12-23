@@ -13,3 +13,4 @@ export { LinkAccountModal } from './components/modals/LinkAccountModal';
 export { BroadcastChannel, createLogoutChannel, logoutAllTabs } from './components/BroadcastChannel';
 export { CookieChecker } from './components/CookieChecker';
 export { UserInfoChecker } from './components/UserInfoChecker';
+export { UserInfoValidator } from './components/UserInfoValidator';

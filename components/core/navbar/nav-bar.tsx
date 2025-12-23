@@ -17,14 +17,7 @@ import { useContactSupportContext } from '@/components/ContactSupport/context/Co
 
 import { DIRECTORY_LINKS, EVENT_LINKS } from './constants/navLinks';
 
-import {
-  AppLogo,
-  HelpIcon,
-  ForumIcon,
-  EventsIcon,
-  DemoDayIcon,
-  DirectoryIcon,
-} from './components/icons';
+import { AppLogo, HelpIcon, ForumIcon, EventsIcon, DemoDayIcon, DirectoryIcon } from './components/icons';
 import { NavLink } from './components/NavLink';
 import { NavItemWithMenu } from './components/NavItemWithMenu';
 
@@ -133,7 +126,7 @@ function Navbar(props: Readonly<INavbar>) {
 
           <HelpIcon onClick={() => openModal()} />
           <NotificationBell isLoggedIn={isLoggedIn} />
-          {isLoggedIn && (
+          {isLoggedIn && userInfo?.uid && (
             <AccountMenu
               userInfo={userInfo}
               authToken={authToken}

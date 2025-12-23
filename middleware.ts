@@ -56,11 +56,11 @@ export async function middleware(req: NextRequest) {
 
       // Priority 2: Check if token is active
       isValidAuthToken = (validCheckResponse && validCheckResponse?.active) || false;
-      if (isValidAuthToken) {
-        // console.log('middleware inside isValidAuthToken');
+      if (isValidAuthToken && userInfo?.value) {
+        // Only set logged in if we have valid userInfo
         response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);
         response.headers.set('authToken', authTokenFromCookie?.value as string);
-        response.headers.set('userInfo', encodeURIComponent(userInfo?.value as string));
+        response.headers.set('userInfo', encodeURIComponent(userInfo.value));
         response.headers.set('isLoggedIn', 'true');
         return response;
       }
@@ -73,7 +73,8 @@ export async function middleware(req: NextRequest) {
 
       const accessTokenExpiry = decodeToken(accessToken) as any;
       const refreshTokenExpiry = decodeToken(refreshToken) as any;
-      if (accessToken && refreshToken && userInfo) {
+      if (accessToken && refreshToken && userInfo && userInfo.uid) {
+        // Only set logged in if userInfo has a valid uid
         response.cookies.set('refreshToken', JSON.stringify(refreshToken), {
           maxAge: calculateExpiry(refreshTokenExpiry?.exp),
           domain: process.env.COOKIE_DOMAIN,

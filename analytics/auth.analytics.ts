@@ -100,6 +100,10 @@ export const useAuthAnalytics = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_LINK_ACCOUNT_CANCEL_CLICKED);
   };
 
+  const onSessionExpiredModalShown = () => {
+    captureEvent(AUTH_ANALYTICS.AUTH_SESSION_EXPIRED_MODAL_SHOWN);
+  };
+
   return {
     onLoginBtnClicked,
     onProceedToLogin,
@@ -121,5 +125,6 @@ export const useAuthAnalytics = () => {
     onSignUpBtnClicked,
     onLinkAccountSubmitClicked,
     onLinkAccountCancelClicked,
+    onSessionExpiredModalShown,
   };
 };

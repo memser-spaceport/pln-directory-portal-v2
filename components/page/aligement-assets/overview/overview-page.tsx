@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState, useRef } from 'react';
 import SupportSection from "../rounds/sections/support-section";
 
 // Description items data
@@ -83,6 +84,65 @@ const howItems = [
 ];
 
 const Overview = () => {
+  const [showFloatingButton, setShowFloatingButton] = useState(false);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const secondButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    let isTriggerOutOfView = false;
+    let isSecondButtonVisible = false;
+
+    const updateFloatingButton = () => {
+      // Show floating button when trigger is out of view AND second button is NOT visible
+      setShowFloatingButton(isTriggerOutOfView && !isSecondButtonVisible);
+    };
+
+    const triggerObserver = new IntersectionObserver(
+      ([entry]) => {
+        // When the trigger element is NOT visible, mark as out of view
+        isTriggerOutOfView = !entry.isIntersecting;
+        updateFloatingButton();
+      },
+      {
+        threshold: 0,
+        rootMargin: '0px',
+      }
+    );
+
+    const secondButtonObserver = new IntersectionObserver(
+      ([entry]) => {
+        // When second button is visible, hide floating button
+        isSecondButtonVisible = entry.isIntersecting;
+        updateFloatingButton();
+      },
+      {
+        threshold: 0,
+        rootMargin: '0px',
+      }
+    );
+
+    if (triggerRef.current) {
+      triggerObserver.observe(triggerRef.current);
+    }
+
+    if (secondButtonRef.current) {
+      secondButtonObserver.observe(secondButtonRef.current);
+    }
+
+    return () => {
+      if (triggerRef.current) {
+        triggerObserver.unobserve(triggerRef.current);
+      }
+      if (secondButtonRef.current) {
+        secondButtonObserver.unobserve(secondButtonRef.current);
+      }
+    };
+  }, []);
+
+  const handleAccountClick = () => {
+    window.open('https://app.surus.io/create_investor_account', '_blank');
+  };
+
   return (
     <>
       <div className="overview">
@@ -100,9 +160,12 @@ const Overview = () => {
             ))}
           </div>
 
+          {/* Trigger element - when this scrolls out of view, show floating button */}
+          <div ref={triggerRef} className="overview__floating-trigger" />
+
           <button
             className="overview__content__button"
-            onClick={() => window.open('https://app.surus.io/create_investor_account', '_blank')}
+            onClick={handleAccountClick}
           >
             <img src="/icons/rounds/filecoin-white.svg" alt="account" />
             <span>Create Your Account</span>
@@ -215,8 +278,9 @@ const Overview = () => {
             </div>
           </div>
           <button
+            ref={secondButtonRef}
             className="overview__content__button"
-            onClick={() => window.open('https://app.surus.io/create_investor_account', '_blank')}
+            onClick={handleAccountClick}
           >
             <img src="/icons/rounds/filecoin-white.svg" alt="account" />
             <span>Create Your Account</span>
@@ -225,6 +289,16 @@ const Overview = () => {
 
         <SupportSection data={supportData} />
       </div>
+
+      {/* Floating Action Button */}
+      <button
+        className={`overview__floating-button ${showFloatingButton ? 'overview__floating-button--visible' : ''}`}
+        onClick={handleAccountClick}
+        aria-label="Create Your Account"
+      >
+        <img src="/icons/rounds/filecoin-white.svg" alt="account" />
+        <span className="overview__floating-button__text">Create Your Account</span>
+      </button>
 
       <style jsx>
         {`
@@ -272,6 +346,7 @@ const Overview = () => {
 
           .overview__content__description__item {
             display: flex;
+            align-items: center;
             flex: 1;
             // width: 394px;
             border-radius: 12px;
@@ -478,7 +553,7 @@ const Overview = () => {
 
           .overview__content__how__item img[alt='border'] {
             position: absolute;
-            top: -1px;
+            top: -2px;
             left: 30px;
           }
 
@@ -549,6 +624,85 @@ const Overview = () => {
             font-size: 16px;
             line-height: 22px;
             color: #475569;
+          }
+
+          .overview__floating-trigger {
+            position: absolute;
+            top: 200px;
+            height: 1px;
+            width: 1px;
+            pointer-events: none;
+          }
+
+          .overview__floating-button {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #cbd5e1;
+            border-radius: 50%;
+            min-width: 48px;
+            width: 48px;
+            height: 48px;
+            padding: 0;
+            box-shadow: 0px 2.47px 7.4px 0px #0F172A29;
+            background-color: #156ff7;
+            color: #ffffff;
+            cursor: pointer;
+            overflow: hidden;
+            /* Animation properties */
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.8) translateY(20px);
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease, width 0.3s ease 0.1s, border-radius 0.3s ease 0.1s, padding 0.3s ease 0.1s, background-color 0.2s ease;
+            white-space: nowrap;
+          }
+
+          .overview__floating-button--visible {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+          }
+
+          .overview__floating-button:hover {
+            width: auto;
+            min-width: 48px;
+            border-radius: 8px;
+            padding: 10px 24px;
+            gap: 8px;
+            background-color: #1260d9;
+            box-shadow: 0px 2.47px 7.4px 0px #0F172A29;
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease, width 0.35s ease, border-radius 0.35s ease, padding 0.35s ease, background-color 0.2s ease;
+          }
+
+          .overview__floating-button:active {
+            transform: scale(0.98);
+          }
+
+          .overview__floating-button img {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+          }
+
+          .overview__floating-button__text {
+            max-width: 0;
+            overflow: hidden;
+            opacity: 0;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 400;
+            white-space: nowrap;
+            transition: max-width 0.15s ease, opacity 0.1s ease;
+          }
+
+          .overview__floating-button:hover .overview__floating-button__text {
+            max-width: 200px;
+            opacity: 1;
+            transition: max-width 0.35s ease 0.05s, opacity 0.3s ease 0.1s;
           }
 
           @media (min-width: 1024px) {

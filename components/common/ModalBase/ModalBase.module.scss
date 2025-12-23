@@ -12,6 +12,29 @@
   position: relative;
 }
 
+.close {
+  top: 12px;
+  right: 12px;
+  position: absolute;
+
+  height: 24px;
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 24px;
+  background-color: rgba(14, 15, 17, 0.04);
+
+  &:hover {
+    border: 1px solid rgba(14, 15, 17, 0.04);
+  }
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
 .body {
   flex: 1;
   gap: 16px;

@@ -1,8 +1,9 @@
 import clsx from 'clsx';
 import { cloneElement, isValidElement, PropsWithChildren, ReactNode } from 'react';
 
-import { Button } from '@/components/common/Button';
+import { CloseIcon } from '@/components/icons';
 import { Modal } from '@/components/common/Modal';
+import { Button } from '@/components/common/Button';
 
 import s from './ModalBase.module.scss';
 
@@ -31,6 +32,12 @@ export function ModalBase(props: PropsWithChildren<ModalBaseProps>) {
   return (
     <Modal isOpen={open} onClose={onClose}>
       <div className={clsx(s.root, className)}>
+        {onClose && (
+          <button className={s.close} onClick={onClose} type="button">
+            <CloseIcon width={16} height={16} color="#455468" />
+          </button>
+        )}
+
         <div className={s.body}>
           <div className={s.iconContainer}>
             {isValidElement(titleIcon) &&

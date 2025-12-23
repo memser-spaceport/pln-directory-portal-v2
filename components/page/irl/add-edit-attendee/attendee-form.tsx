@@ -288,26 +288,25 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           // Replace formattedData.events with only pure past data for past API
           formattedData.events = formattedData.purePastData;
         }
-        
-        const result = await editEventGuest(
-          selectedLocation.uid,
-          formInitialValues?.memberUid,
-          formattedData,
-          from || eventType,
-        );
-        if (result?.error) {
-          triggerLoader(false);
-          onClose();
-          toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-          return;
-        }
-        
+
         // If any checked/unchecked T-90 data, send second API call (upcoming)
         const hasT90Modifications = (formattedData.checkedT90Data?.length > 0) || (formattedData.uncheckedT90Data?.length > 0);
         
         if (hasT90Modifications && isPastView) {
           // Get all upcoming events from additionalResult (upcoming API data)
-          const upcomingEvents = [...additionalResult.map((e: any) => e.event)];
+          // Map to include full event data with host/speaker/sponsor sub-events
+          const upcomingEvents = additionalResult.map((item: any) => {
+            return {
+              uid: item?.event?.uid,
+              name: item?.event?.name,
+              isHost: item?.isHost || false,
+              isSpeaker: item?.isSpeaker || false,
+              isSponsor: item?.isSponsor || false,
+              hostSubEvents: item?.additionalInfo?.hostSubEvents || [],
+              speakerSubEvents: item?.additionalInfo?.speakerSubEvents || [],
+              sponsorSubEvents: item?.additionalInfo?.sponsorSubEvents || [],
+            };
+          });
 
           // Merge checkedT90Data with upcoming data
           const checkedT90Uids = new Set(formattedData.checkedT90Data.map((e: any) => e.uid));
@@ -327,7 +326,9 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           // Remove unchecked T-90 data from merged events
           const uncheckedT90Uids = new Set(formattedData.uncheckedT90Data.map((e: any) => e.uid));
           mergedEvents = mergedEvents.filter((e: any) => !uncheckedT90Uids.has(e.uid));
-          
+          // // Remove events that were sent to past API (to avoid duplication)
+          const pastApiEventUids = new Set(formattedData.events.map((e: any) => e.uid));
+          mergedEvents = mergedEvents.filter((e: any) => !pastApiEventUids.has(e.uid));
           
           // Create payload for second API call
           const upcomingPayload = {
@@ -347,6 +348,19 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             upcomingPayload,
             'upcoming',
           );
+        }
+        
+        const result = await editEventGuest(
+          selectedLocation.uid,
+          formInitialValues?.memberUid,
+          formattedData,
+          from || eventType,
+        );
+        if (result?.error) {
+          triggerLoader(false);
+          onClose();
+          toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+          return;
         }
         
         analytics.irlGuestDetailEditBtnClick(

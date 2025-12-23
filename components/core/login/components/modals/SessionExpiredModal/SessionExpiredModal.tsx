@@ -1,8 +1,7 @@
 'use client';
 
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { ModalBase } from '@/components/common/ModalBase';
-import { Button } from '@/components/common/Button';
 import { WarningCircleIcon } from '@/components/icons';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { useEffect } from 'react';
@@ -21,7 +20,6 @@ interface SessionExpiredModalProps {
  */
 export function SessionExpiredModal({ open, onClose, onLogin }: SessionExpiredModalProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const analytics = useAuthAnalytics();
 
   useEffect(() => {
@@ -31,10 +29,9 @@ export function SessionExpiredModal({ open, onClose, onLogin }: SessionExpiredMo
   }, [open, analytics]);
 
   const handleLogin = () => {
-    const currentUrl = pathname + window.location.search;
-    const returnTo = encodeURIComponent(currentUrl);
+    const returnTo = encodeURIComponent(window.location.pathname.slice(1).replaceAll('/', '-'));
     onLogin();
-    router.push(`/?returnTo=${returnTo}#login`);
+    router.replace(`${window.location.origin}/members?returnTo=${returnTo}#login`);
   };
 
   return (

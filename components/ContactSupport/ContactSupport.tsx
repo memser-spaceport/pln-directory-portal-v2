@@ -149,6 +149,7 @@ export function ContactSupport(props: Props) {
 
   return (
     <ModalBase
+      className={s.root}
       title="Contact Support"
       titleIcon={<QuestionCircleIcon />}
       description={description}

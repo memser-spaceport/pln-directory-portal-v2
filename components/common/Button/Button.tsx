@@ -16,7 +16,16 @@ interface Props extends Omit<HTMLAttributes<HTMLButtonElement>, 'style'> {
 }
 
 export function Button(props: Props) {
-  const { size = 'm', style = 'fill', variant = 'primary', underline = false, children, className, ...rest } = props;
+  const {
+    size = 'm',
+    style = 'fill',
+    variant = 'primary',
+    underline = false,
+    children,
+    className,
+    type = 'button',
+    ...rest
+  } = props;
 
   const styleClass = clsx({
     [s.fill]: style === 'fill',
@@ -50,7 +59,7 @@ export function Button(props: Props) {
   const rootClass = clsx(s.root, sizeClass, styleClass, variantClass, underlineClass, className);
 
   return (
-    <button {...rest} className={rootClass}>
+    <button type={type} {...rest} className={rootClass}>
       {children}
     </button>
   );

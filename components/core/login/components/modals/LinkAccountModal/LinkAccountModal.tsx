@@ -11,6 +11,8 @@ import { ModalBase } from '@/components/common/ModalBase';
 import { WarningCircleIcon } from '@/components/icons';
 import { LabeledInput } from '@/components/common/form/LabeledInput';
 
+import s from './LinkAccountModal.module.scss';
+
 interface Props {
   open: boolean;
   toggleOpen: () => void;
@@ -60,6 +62,7 @@ export function LinkAccountModal(props: Props) {
         onClick: submit,
         disabled: !email || !name,
       }}
+      className={s.root}
     >
       <LabeledInput
         label="Email Address"

@@ -7,21 +7,17 @@ import clsx from 'clsx';
 
 interface ModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   children: React.ReactNode;
   closeOnBackdropClick?: boolean;
   overlayClassname?: string;
 }
 
-export const Modal: React.FC<ModalProps> = ({
-  isOpen,
-  onClose,
-  children,
-  closeOnBackdropClick = true,
-  overlayClassname,
-}) => {
+export const Modal: React.FC<ModalProps> = (props) => {
+  const { isOpen, onClose, children, closeOnBackdropClick = true, overlayClassname } = props;
+
   const handleOverlayClick = (e: React.MouseEvent) => {
-    if (closeOnBackdropClick && e.target === e.currentTarget) {
+    if (closeOnBackdropClick && e.target === e.currentTarget && onClose) {
       onClose();
     }
   };

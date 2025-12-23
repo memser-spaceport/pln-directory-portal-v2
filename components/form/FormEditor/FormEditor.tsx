@@ -1,7 +1,7 @@
-import React, { PropsWithChildren } from 'react';
 import { clsx } from 'clsx';
 import { Field } from '@base-ui-components/react/field';
 import { useFormContext } from 'react-hook-form';
+import React, { ReactNode, PropsWithChildren } from 'react';
 
 import s from './FormEditor.module.scss';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
@@ -9,16 +9,21 @@ import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 interface Props extends PropsWithChildren {
   name: string;
   placeholder: string;
-  label?: string;
+  label?: ReactNode;
   description?: string;
   disabled?: boolean;
   isRequired?: boolean;
   onClick?: () => void;
   autoFocus?: boolean;
   className?: string;
+  classes?: {
+    label?: string;
+  };
 }
 
-export const FormEditor = ({ name, label, description, disabled, isRequired, autoFocus, className }: Props) => {
+export const FormEditor = (props: Props) => {
+  const { name, label, classes, description, disabled, isRequired, autoFocus, className } = props;
+
   const {
     setValue,
     watch,
@@ -31,7 +36,7 @@ export const FormEditor = ({ name, label, description, disabled, isRequired, aut
       {label && (
         <div className={s.labelWrapper}>
           <Field.Label
-            className={clsx(s.label, {
+            className={clsx(s.label, classes?.label, {
               [s.required]: isRequired,
             })}
           >

@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { cloneElement, isValidElement, PropsWithChildren, ReactNode } from 'react';
 
 import { Button } from '@/components/common/Button';
@@ -11,22 +12,25 @@ interface ModalBaseProps {
   description?: ReactNode;
   footer?: ReactNode;
   open: boolean;
-  cancel: {
+  onClose?: () => void;
+  cancel?: {
     onClick: () => void;
   };
   submit: {
     label: ReactNode;
     onClick: () => void;
     disabled?: boolean;
+    className?: string;
   };
+  className?: string;
 }
 
 export function ModalBase(props: PropsWithChildren<ModalBaseProps>) {
-  const { open, title, titleIcon, description, cancel, submit, footer, children } = props;
+  const { open, title, titleIcon, description, cancel, submit, footer, children, className, onClose } = props;
 
   return (
-    <Modal isOpen={open} onClose={cancel.onClick}>
-      <div className={s.root}>
+    <Modal isOpen={open} onClose={onClose}>
+      <div className={clsx(s.root, className)}>
         <div className={s.body}>
           <div className={s.iconContainer}>
             {isValidElement(titleIcon) &&
@@ -46,10 +50,12 @@ export function ModalBase(props: PropsWithChildren<ModalBaseProps>) {
 
         <div className={s.footer}>
           <div className={s.footerBtns}>
-            <Button className={s.btn} style="border" onClick={cancel.onClick}>
-              Cancel
-            </Button>
-            <Button className={s.btn} onClick={submit.onClick} disabled={submit.disabled}>
+            {cancel && (
+              <Button className={s.btn} style="border" onClick={cancel.onClick}>
+                Cancel
+              </Button>
+            )}
+            <Button onClick={submit.onClick} disabled={submit.disabled} className={clsx(s.btn, submit.className)}>
               {submit.label}
             </Button>
           </div>

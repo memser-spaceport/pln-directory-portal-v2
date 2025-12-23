@@ -1,17 +1,25 @@
 .root {
-  width: 400px;
   padding: 20px;
   margin: 0 auto;
+  max-height: 98dvh;
 
   border-radius: 24px;
   background-color: #fff;
+
+  display: flex;
+  flex-direction: column;
+
+  position: relative;
 }
 
 .body {
+  flex: 1;
   gap: 16px;
   display: flex;
   align-items: center;
   flex-direction: column;
+
+  overflow: hidden;
 }
 
 .iconContainer {

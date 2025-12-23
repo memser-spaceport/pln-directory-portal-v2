@@ -1,0 +1,22 @@
+.root {
+  border-radius: 8px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+
+  padding: 16px;
+
+  gap: 10px;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-weight: 400;
+}
+
+.title {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+}

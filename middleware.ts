@@ -28,7 +28,7 @@ export const config = {
     '/changelog',
     '/husky/chat/:path',
     '/events',
-    // '/alignment-assets/:path',
+    '/alignment-assets/:path',
   ],
 };
 
@@ -63,10 +63,9 @@ export async function middleware(req: NextRequest) {
 
   try {
     // Check if accessing a protected route without authentication
-    // if (!authTokenFromCookie && isProtectedRoute(pathname)) {
-    //   console.log('middleware inside authTokenFromCookie', authTokenFromCookie);
-    //   return createLoginRedirect(req, pathname);
-    // }
+    if (!authTokenFromCookie && isProtectedRoute(pathname)) {
+      return createLoginRedirect(req, pathname);
+    }
 
     if (!refreshTokenFromCookie) {
       response.cookies.delete('refreshToken');

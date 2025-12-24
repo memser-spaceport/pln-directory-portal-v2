@@ -1,18 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { SupportSectionData } from '../types';
-
-interface SupportSectionProps {
-  data: SupportSectionData;
-}
+import {SUPPORT_URL, SUPPORT_EMAIL} from '@/constants/plaa';
 
 /**
  * SupportSection - Displays support contact information with gradient background
  * Figma: https://www.figma.com/design/xrvyUEqgZ0oRNT0spUruMW/Untitled?node-id=1-2296
  * @param data - Support section data from master JSON
  */
-export default function SupportSection({ data }: SupportSectionProps) {
+export default function SupportSection() {
   return (
     <>
       <section className="support-section">
@@ -26,9 +22,9 @@ export default function SupportSection({ data }: SupportSectionProps) {
           <div className="support-section__content">
             <p className="support-section__text">
               <strong>Have questions or need help with onboarding?</strong>{' '}
-              <Link href={data.scheduleUrl} target="_blank" rel="noopener noreferrer" className="support-section__link">Schedule office hours</Link>
+              <Link href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" className="support-section__link">Schedule office hours</Link>
               {' '}for 1:1 support or email{' '}
-              <Link href={`mailto:${data.email}`} target="_blank" rel="noopener noreferrer" className="support-section__link">{data.email}</Link>
+              <Link href={`mailto:${SUPPORT_EMAIL}`} target="_blank" rel="noopener noreferrer" className="support-section__link">{SUPPORT_EMAIL}</Link>
               <span className="support-section__dot">.</span>
             </p>
           </div>

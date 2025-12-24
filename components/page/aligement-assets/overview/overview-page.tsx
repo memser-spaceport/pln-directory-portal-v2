@@ -45,12 +45,6 @@ const importantDetails = [
   'All tokens are issued and managed by the trust.',
 ];
 
-// Support section data
-const supportData = {
-  scheduleUrl: 'https://directory.plnetwork.io/members/cldvoaw2y05x5u21k7lrmitp1',
-  email: 'plaa-wg@plrs.xyz'
-};
-
 // How section data
 const howItems = [
   {
@@ -287,7 +281,7 @@ const Overview = () => {
           </button>
         </div>
 
-        <SupportSection data={supportData} />
+        <SupportSection />
       </div>
 
       {/* Floating Action Button */}

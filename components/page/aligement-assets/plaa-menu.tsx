@@ -18,8 +18,8 @@ interface PlaaMenuProps {
 }
 
 const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string }> = [
-  { name: 'overview', label: 'Overview', url: '/alignment-assets/overview' },
   { name: 'rounds', label: 'Current Round', url: '/alignment-assets/rounds' },
+  { name: 'overview', label: 'Overview', url: '/alignment-assets/overview' },
   { name: 'product-versions', label: 'Product Versions', url: '/alignment-assets/product-versions' },
   { name: 'faqs', label: 'FAQ', url: '/alignment-assets/faqs' },
   { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-assets/terms-of-use' },

@@ -105,8 +105,10 @@ export interface StatsSectionData {
   regionsUnlocked: string[];
   incentivizedActivities: string[];
   totalPointsCollected: string;
-  totalTokensAvailable: string;
-  numberOfBuybacks: number;
+  totalTokensAvailable?: string;
+  totalTokensDistributed?: string;
+  numberOfBuybacks?: number;
+  labweek25IncentivizedActivities?: string[];
 }
 
 // ============================================================================
@@ -164,6 +166,12 @@ export interface BuybackAuctionSectionData {
   bids: BuybackBidEntry[];
 }
 
+export interface BuybackSimulationSectionData {
+  headerDescription: string;
+  summary: BuybackSummary;
+  bids: BuybackBidEntry[];
+}
+
 // ============================================================================
 // Learn More Section Types
 // ============================================================================
@@ -172,22 +180,6 @@ export interface LearnMoreSectionData {
   faqUrl: string;
 }
 
-// ============================================================================
-// Disclaimer Section Types
-// ============================================================================
-
-export interface DisclaimerSectionData {
-  disclosureUrl: string;
-}
-
-// ============================================================================
-// Support Section Types
-// ============================================================================
-
-export interface SupportSectionData {
-  scheduleUrl: string;
-  email: string;
-}
 
 // ============================================================================
 // Master Current Round Data Type
@@ -230,9 +222,24 @@ export interface CurrentRoundData {
   /** Learn more section with FAQ link */
   learnMore: LearnMoreSectionData;
   
-  /** Disclaimer section with disclosure link */
-  disclaimer: DisclaimerSectionData;
+}
+
+
+export interface IPastRoundData {
+  meta: {
+    roundId: string;
+    roundNumber: number;
+    isCurrentRound: boolean;
+    month: string;
+    year: number;
+    lastUpdated: string; // ISO date string
+  };
   
-  /** Support section with contact information */
-  support: SupportSectionData;
+  /** Hero section with title, subtitle, and action buttons */
+  hero: HeroSectionData;
+
+  /** Leaderboard section with current and all-time rankings */
+  leaderboard: LeaderboardEntry[];
+  stats: StatsSectionData;
+  buybackSimulation: BuybackSimulationSectionData;
 }

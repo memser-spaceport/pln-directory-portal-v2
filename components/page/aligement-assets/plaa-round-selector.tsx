@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 /* ==========================================================================
    PlaaRoundSelector Component
@@ -11,17 +12,28 @@ import { useState, useRef, useEffect } from 'react';
 interface PlaaRoundSelectorProps {
   currentRound: number;
   totalRounds: number;
+  viewingRound?: number; // The round being viewed on the current page (defaults to currentRound)
   onRoundChange?: (round: number) => void;
 }
 
 function PlaaRoundSelector({
   currentRound,
   totalRounds,
+  viewingRound,
   onRoundChange,
 }: PlaaRoundSelectorProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedRound, setSelectedRound] = useState(currentRound);
+  // Use viewingRound if provided, otherwise fall back to currentRound
+  const [selectedRound, setSelectedRound] = useState(viewingRound ?? currentRound);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Sync selectedRound with viewingRound prop when it changes (e.g., direct URL access)
+  useEffect(() => {
+    if (viewingRound !== undefined) {
+      setSelectedRound(viewingRound);
+    }
+  }, [viewingRound]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -49,19 +61,28 @@ function PlaaRoundSelector({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
+  const navigateToRound = (round: number) => {
+    router.push(`/alignment-assets/rounds/${round}`);
+  };
+
   const handlePrevRound = () => {
     if (selectedRound > 1) {
       const newRound = selectedRound - 1;
       setSelectedRound(newRound);
       onRoundChange?.(newRound);
+      navigateToRound(newRound);
     }
   };
 
   const handleNextRound = () => {
-    if (selectedRound < totalRounds) {
+    if (selectedRound < totalRounds-1) {
       const newRound = selectedRound + 1;
       setSelectedRound(newRound);
       onRoundChange?.(newRound);
+      navigateToRound(newRound);
+    }
+    else{
+      handleGoToCurrent();
     }
   };
 
@@ -69,6 +90,7 @@ function PlaaRoundSelector({
     setSelectedRound(currentRound);
     onRoundChange?.(currentRound);
     setIsOpen(false);
+    router.push('/alignment-assets/rounds');
   };
 
   const isCurrentRound = selectedRound === currentRound;

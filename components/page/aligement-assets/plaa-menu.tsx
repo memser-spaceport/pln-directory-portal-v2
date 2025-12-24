@@ -10,16 +10,16 @@ import PlaaRoundSelector from './plaa-round-selector';
    Figma: https://www.figma.com/design/xrvyUEqgZ0oRNT0spUruMW/Untitled?node-id=1-5250
    ========================================================================== */
 
-export type PlaaActiveItem = 'overview' | 'rounds' | 'product-versions' | 'faqs' | 'terms-of-use' | 'privacy-policy';
+export type PlaaActiveItem = 'overview' | 'terms-of-use' | 'privacy-policy' | 'product-versions' | 'faqs';
 
 interface PlaaMenuProps {
   activeItem?: PlaaActiveItem;
   currentRound?: number;
   totalRounds?: number;
+  viewingRound?: number; // The round being viewed on the current page
 }
 
 const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string }> = [
-  { name: 'rounds', label: 'Current Round', url: '/alignment-assets/rounds' },
   { name: 'overview', label: 'Overview', url: '/alignment-assets/overview' },
   { name: 'product-versions', label: 'Product Versions', url: '/alignment-assets/product-versions' },
   { name: 'faqs', label: 'FAQ', url: '/alignment-assets/faqs' },
@@ -27,7 +27,7 @@ const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string }> = [
   { name: 'privacy-policy', label: 'Privacy Policy', url: '/alignment-assets/privacy-policy' }
 ];
 
-function PlaaMenu({ activeItem, currentRound = 2, totalRounds = 12 }: PlaaMenuProps) {
+function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound }: PlaaMenuProps) {
   const router = useRouter();
 
   const onItemClicked = (url: string) => {
@@ -46,13 +46,14 @@ function PlaaMenu({ activeItem, currentRound = 2, totalRounds = 12 }: PlaaMenuPr
     <>
       <nav className="plaa-menu" role="navigation" aria-label="PLAA navigation">
         {/* Round Selector - Commented out for now */}
-        {/* <div className="plaa-menu__selector">
+        <div className="plaa-menu__selector">
           <PlaaRoundSelector
             currentRound={currentRound}
             totalRounds={totalRounds}
+            viewingRound={viewingRound}
             onRoundChange={handleRoundChange}
           />
-        </div> */}
+        </div>
 
         {/* Navigation Items */}
         <ul className="plaa-menu__list" role="list">

@@ -1,36 +1,37 @@
 'use client';
 
+import HeroSection from "./sections/hero-section";
+import PastLeaderboardSection from "./sections/past-leaderboard-section";
+import StatsSection from "./sections/stats-section";
+import { IPastRoundData } from "./types/current-round.types";
+import PastRoundDescription from "../past-rounds/past-round-description";
+import SupportSection from "./sections/support-section";
+import BuybackSimulationSection from "./sections/buyback-simulation-section";
+
 interface PastRoundComponentProps {
-  selectedRound: number;
-  totalRounds: number;
-  onRoundChange: (round: number) => void;
+  pastRoundData: IPastRoundData;
 }
 
-export default function PastRoundComponent({
-  selectedRound,
-  totalRounds,
-  onRoundChange
-}: PastRoundComponentProps) {
+export default function PastRoundComponent({ pastRoundData }: PastRoundComponentProps) {
+  const data = pastRoundData;
   return (
     <>
       <div className="past-round">
-        <div className="past-round__content">
-          <h1 className="past-round__title">Round {selectedRound}</h1>
-          <p className="past-round__description">
-            This is a past round. Historical data and results for Round {selectedRound} will be displayed here.
-          </p>
-          
-          <div className="past-round__placeholder">
-            <p>Past round content coming soon...</p>
-          </div>
-        </div>
+        <HeroSection data={data.hero} />
+        <PastRoundDescription roundNumber={data.meta.roundNumber} month={data.meta.month} year={data.meta.year} />
+        <StatsSection data={data.stats} />
+        <PastLeaderboardSection roundNumber={data.meta.roundNumber} leaderboardData={data.leaderboard} />
+        {data.buybackSimulation && <BuybackSimulationSection data={data.buybackSimulation} />}
+        <SupportSection />
       </div>
 
       <style jsx>{`
         .past-round {
           width: 100%;
-          padding: 48px;
-          min-height: 400px;
+          display: flex;
+          flex-direction: column;
+          gap: 64px;
+          padding: 0;
         }
 
         .past-round__content {

@@ -329,20 +329,6 @@ export const currentRoundData: CurrentRoundData = {
     faqUrl: '#'
   },
 
-  // ============================================================================
-  // Disclaimer Section Data
-  // ============================================================================
-  disclaimer: {
-    disclosureUrl: DISCLOSURE_URL
-  },
-
-  // ============================================================================
-  // Support Section Data
-  // ============================================================================
-  support: {
-    scheduleUrl: SUPPORT_URL,
-    email: SUPPORT_EMAIL
-  }
 };
 
 /**

@@ -13,24 +13,9 @@
 }
 
 /* --------------------------------------------------------------------------
-   Element: plaa__banner
-   Sticky announcement banner at the top
-   Navbar: 80px, Banner: 56px
-   -------------------------------------------------------------------------- */
-.plaa__banner {
-  position: sticky;
-  top: 103px;
-  /* Navbar height */
-  left: 0;
-  right: 0;
-  z-index: 4;
-  height: var(--plaa-banner-height);
-}
-
-/* --------------------------------------------------------------------------
-   Element: plaa__backbtn
-   Mobile back button (hidden on desktop)
-   -------------------------------------------------------------------------- */
+     Element: plaa__backbtn
+     Mobile back button (hidden on desktop)
+     -------------------------------------------------------------------------- */
 .plaa__backbtn {
   position: fixed;
   top: calc(var(--app-header-height) + 56px); /* Navbar + Banner height */
@@ -43,21 +28,20 @@
 }
 
 /* --------------------------------------------------------------------------
-   Element: plaa__main
-   Main layout container with sidebar and content
-   -------------------------------------------------------------------------- */
+     Element: plaa__main
+     Main layout container with sidebar and content
+     -------------------------------------------------------------------------- */
 .plaa__main {
   display: flex;
   width: 100%;
-  min-height: calc(100vh - var(--app-header-height) - var(--plaa-banner-height) - 36px);
-  padding-top: calc(var(--plaa-banner-height) + 48px);
-  /* Banner + mobile back btn */
+  min-height: calc(100vh - var(--app-header-height) - 56px); /* Navbar + Banner */
+  padding-top: calc(56px + 48px); /* Banner + Mobile back btn height */
 }
 
 /* --------------------------------------------------------------------------
-   Element: plaa__sidebar
-   Sticky sidebar navigation
-   -------------------------------------------------------------------------- */
+     Element: plaa__sidebar
+     Sticky sidebar navigation
+     -------------------------------------------------------------------------- */
 .plaa__sidebar {
   width: var(--plaa-sidebar-width);
   min-width: var(--plaa-sidebar-width);
@@ -73,9 +57,9 @@
 }
 
 /* --------------------------------------------------------------------------
-   Element: plaa__content
-   Main content area
-   -------------------------------------------------------------------------- */
+     Element: plaa__content
+     Main content area
+     -------------------------------------------------------------------------- */
 .plaa__content {
   flex: 1;
   width: 100%;
@@ -83,9 +67,9 @@
 }
 
 /* --------------------------------------------------------------------------
-   Element: plaa__content-inner
-   Content wrapper with max-width
-   -------------------------------------------------------------------------- */
+     Element: plaa__content-inner
+     Content wrapper with max-width
+     -------------------------------------------------------------------------- */
 .plaa__content-inner {
   max-width: 1170px;
   margin: 0 auto;
@@ -93,8 +77,8 @@
 }
 
 /* --------------------------------------------------------------------------
-   Typography Elements
-   -------------------------------------------------------------------------- */
+     Typography Elements
+     -------------------------------------------------------------------------- */
 .plaa__title {
   font-size: 24px;
   font-weight: 600;
@@ -115,81 +99,6 @@
   line-height: 1.6;
 }
 
-/* --------------------------------------------------------------------------
-   Element: plaa__disclaimer
-   Global disclaimer section
-   -------------------------------------------------------------------------- */
-.plaa__disclaimer {
-  display: flex;
-  gap: 12px;
-  padding: 16px;
-  background: #eff6ff;
-  border-radius: 8px;
-  margin-top: 48px;
-  border: 1px solid #bfdbfe;
-}
-
-.plaa__disclaimer-icon {
-  color: #3b82f6;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.plaa__disclaimer-content {
-  flex: 1;
-}
-
-.plaa__disclaimer-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1e40af;
-}
-
-.plaa__disclaimer-text {
-  font-size: 12px;
-  color: #1e40af;
-  line-height: 1.6;
-  margin: 4px 0 0 0;
-}
-
-.plaa__disclaimer-link {
-  color: #2563eb;
-  text-decoration: underline;
-
-  &:hover {
-    color: #1d4ed8;
-  }
-}
-
-/* --------------------------------------------------------------------------
-   Element: plaa__footer
-   Global footer section
-   -------------------------------------------------------------------------- */
-.plaa__footer {
-  display: flex;
-  justify-content: center;
-  padding: 32px 0;
-  margin-top: 48px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.plaa__footer-text {
-  font-size: 13px;
-  color: #64748b;
-  text-align: center;
-  margin: 0;
-  line-height: 1.6;
-}
-
-.plaa__footer-link {
-  color: #3b82f6;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 .plaa__placeholder {
   margin-top: 16px;
   color: var(--plaa-icon-dark);
@@ -197,8 +106,8 @@
 }
 
 /* --------------------------------------------------------------------------
-   Cards Grid
-   -------------------------------------------------------------------------- */
+     Cards Grid
+     -------------------------------------------------------------------------- */
 .plaa__cards {
   margin-top: 24px;
   display: grid;
@@ -214,8 +123,8 @@
 }
 
 /* --------------------------------------------------------------------------
-   Section Elements
-   -------------------------------------------------------------------------- */
+     Section Elements
+     -------------------------------------------------------------------------- */
 .plaa__section {
   margin-top: 48px;
 }
@@ -228,8 +137,8 @@
 }
 
 /* --------------------------------------------------------------------------
-   Benefits Grid
-   -------------------------------------------------------------------------- */
+     Benefits Grid
+     -------------------------------------------------------------------------- */
 .plaa__benefits {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -256,8 +165,8 @@
 }
 
 /* --------------------------------------------------------------------------
-   Button Elements
-   -------------------------------------------------------------------------- */
+     Button Elements
+     -------------------------------------------------------------------------- */
 .plaa__actions {
   margin-top: 32px;
 }
@@ -279,8 +188,8 @@
 }
 
 /* --------------------------------------------------------------------------
-   Responsive Styles
-   -------------------------------------------------------------------------- */
+     Responsive Styles
+     -------------------------------------------------------------------------- */
 @media (min-width: 1024px) {
   .plaa__backbtn {
     display: none;
@@ -296,7 +205,7 @@
   }
 
   .plaa__content {
-    padding: 40px 48px 120px 48px;
+    padding: 102px 48px 225px 48px;
     flex: 1;
   }
 }

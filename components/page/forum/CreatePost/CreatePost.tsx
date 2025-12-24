@@ -23,6 +23,7 @@ import { ADMIN_ROLE } from '@/utils/constants';
 import { useAllMembers } from '@/services/members/hooks/useAllMembers';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { clsx } from 'clsx';
+import { PostFormEditorLabel } from './components/PostFormEditorLabel';
 
 export type CreatePostForm = {
   user: Record<string, string> | null;
@@ -221,7 +222,15 @@ export const CreatePost = ({
                 disabled={isEdit}
               />
               <FormField name="title" placeholder="Enter the title" label="Title" max={255} />
-              <FormEditor name="content" placeholder="Write your post" label="Post" className={s.editor} />
+              <FormEditor
+                name="content"
+                placeholder="Write your post"
+                label={<PostFormEditorLabel />}
+                className={s.editor}
+                classes={{
+                  label: s.postLabel
+                }}
+              />
             </div>
           </form>
         </FormProvider>

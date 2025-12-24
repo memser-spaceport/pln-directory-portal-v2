@@ -192,6 +192,13 @@
   }
 }
 
+.postLabel {
+  display: flex;
+  justify-content: space-between;
+
+  width: 100%;
+}
+
 .logo {
   display: flex;
   white-space: nowrap;

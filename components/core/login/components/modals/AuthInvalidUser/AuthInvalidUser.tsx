@@ -17,6 +17,8 @@ import { useContactSupportContext } from '@/components/ContactSupport/context/Co
 import { WarningCircleIcon } from '@/components/icons';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
+import s from './AuthInvalidUser.module.scss';
+
 interface ModalContent {
   title: string;
   description: string;
@@ -175,6 +177,7 @@ export function AuthInvalidUser() {
 
   return (
     <ModalBase
+      className={s.root}
       title={content.title}
       titleIcon={<WarningCircleIcon />}
       description={content.description}

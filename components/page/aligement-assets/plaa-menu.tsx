@@ -2,7 +2,6 @@
 
 import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
-import PlaaRoundSelector from './plaa-round-selector';
 
 /* ==========================================================================
    PlaaMenu Component
@@ -10,7 +9,7 @@ import PlaaRoundSelector from './plaa-round-selector';
    Figma: https://www.figma.com/design/xrvyUEqgZ0oRNT0spUruMW/Untitled?node-id=1-5250
    ========================================================================== */
 
-export type PlaaActiveItem = 'overview' | 'rounds';
+export type PlaaActiveItem = 'overview' | 'rounds' | 'terms-of-use' | 'privacy-policy';
 
 interface PlaaMenuProps {
   activeItem?: PlaaActiveItem;
@@ -21,6 +20,8 @@ interface PlaaMenuProps {
 const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string }> = [
   { name: 'rounds', label: 'Current Round', url: '/alignment-assets/rounds' },
   { name: 'overview', label: 'Overview', url: '/alignment-assets/overview' },
+  { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-assets/terms-of-use' },
+  { name: 'privacy-policy', label: 'Privacy Policy', url: '/alignment-assets/privacy-policy' },
 ];
 
 function PlaaMenu({ activeItem, currentRound = 2, totalRounds = 12 }: PlaaMenuProps) {
@@ -52,17 +53,22 @@ function PlaaMenu({ activeItem, currentRound = 2, totalRounds = 12 }: PlaaMenuPr
 
         {/* Navigation Items */}
         <ul className="plaa-menu__list" role="list">
-          {menuItems.map((item) => (
-            <li key={`plaa-${item.name}`} role="listitem">
-              <button
-                onClick={() => onItemClicked(item.url)}
-                className={`plaa-menu__item ${activeItem === item.name ? 'plaa-menu__item--active' : ''}`}
-                aria-current={activeItem === item.name ? 'page' : undefined}
-              >
-                <span className="plaa-menu__item-text">{item.label}</span>
-              </button>
-            </li>
-          ))}
+          {menuItems.map((item) => {
+            const isActive = activeItem === item.name;
+            return (
+              <li key={`plaa-${item.name}`} role="listitem">
+                <button
+                  onClick={() => onItemClicked(item.url)}
+                  className={`plaa-menu__item ${isActive ? 'plaa-menu__item--active' : ''}`}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <span className={`plaa-menu__item-text ${isActive ? 'plaa-menu__item-text--active' : ''}`}>
+                    {item.label}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </nav>
 
@@ -90,7 +96,7 @@ function PlaaMenu({ activeItem, currentRound = 2, totalRounds = 12 }: PlaaMenuPr
           .plaa-menu__list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 14px;
             list-style: none;
             margin: 0;
             padding: 0;
@@ -106,6 +112,7 @@ function PlaaMenu({ activeItem, currentRound = 2, totalRounds = 12 }: PlaaMenuPr
             display: flex;
             align-items: center;
             padding: 8px;
+            font-weight: 500;
             background-color: #ffffff;
             border: none;
             border-radius: 8px;
@@ -120,7 +127,6 @@ function PlaaMenu({ activeItem, currentRound = 2, totalRounds = 12 }: PlaaMenuPr
 
           .plaa-menu__item:focus {
             outline: none;
-            box-shadow: 0 0 0 2px rgba(21, 111, 247, 0.3);
           }
 
           /* ---------------------------------------------------------------
@@ -131,20 +137,19 @@ function PlaaMenu({ activeItem, currentRound = 2, totalRounds = 12 }: PlaaMenuPr
             background-color: #f1f5f9;
           }
 
-          .plaa-menu__item--active .plaa-menu__item-text {
-            color: #156ff7;
-          }
-
           /* ---------------------------------------------------------------
              Menu Item Text
              Figma: Inter Medium, 12px, #475569
              --------------------------------------------------------------- */
           .plaa-menu__item-text {
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
-            color: #475569;
+            color: rgba(71, 85, 105, 1);
             line-height: normal;
-            font-family: 'Inter', sans-serif;
+          }
+          
+          .plaa-menu__item-text--active {
+            color: rgba(15, 23, 42, 1);
           }
         `}
       </style>

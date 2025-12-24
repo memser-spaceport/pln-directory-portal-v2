@@ -17,6 +17,8 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem; title: str
   const pageMap: Record<string, { activeItem: PlaaActiveItem; title: string }> = {
     'overview': { activeItem: 'overview', title: 'Overview' },
     'rounds': { activeItem: 'rounds', title: 'Rounds' },
+    'terms-of-use': { activeItem: 'terms-of-use', title: 'Terms of Use' },
+    'privacy-policy': { activeItem: 'privacy-policy', title: 'Privacy Policy' },
   };
 
   return pageMap[pathSegment] || pageMap['overview'];

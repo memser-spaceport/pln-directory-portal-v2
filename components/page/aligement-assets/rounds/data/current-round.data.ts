@@ -5,6 +5,7 @@
  */
 
 import { CurrentRoundData } from '../types/current-round.types';
+import { DISCLOSURE_URL, SUPPORT_URL, SUPPORT_EMAIL } from '@/constants/plaa';
 
 /**
  * Current Round 11 (December 2025) Master Data
@@ -332,15 +333,15 @@ export const currentRoundData: CurrentRoundData = {
   // Disclaimer Section Data
   // ============================================================================
   disclaimer: {
-    disclosureUrl: 'https://docs.google.com/document/d/1St-tNjvgTTyHy0Ta5XUBUJkP4d3me4MJU2Dotx6046U/edit?tab=t.0'
+    disclosureUrl: DISCLOSURE_URL
   },
 
   // ============================================================================
   // Support Section Data
   // ============================================================================
   support: {
-    scheduleUrl: 'https://directory.plnetwork.io/members/cldvoaw2y05x5u21k7lrmitp1',
-    email: 'plaa-wg@plrs.xyz'
+    scheduleUrl: SUPPORT_URL,
+    email: SUPPORT_EMAIL
   }
 };
 

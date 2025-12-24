@@ -154,7 +154,7 @@ const faqCategories: FAQCategoryData[] = [
                 <strong>How your points are calculated:</strong> Your portion of points within each category equals your points divided by total points collected by all participants in that category during the snapshot period.
               </li>
               <li style={{ marginBottom: '8px' }}>
-                <strong>Token distribution:</strong> Your portion of tokens as a percentage × category's token allocation = your tokens collected from that category.
+                <strong>Token distribution:</strong> Your portion of tokens as a percentage × category&apos;s token allocation = your tokens collected from that category.
               </li>
             </ol>
 
@@ -241,7 +241,7 @@ const faqCategories: FAQCategoryData[] = [
         answer: (
           <div>
             <p style={{ marginBottom: '16px' }}>
-              KPI categories (or "pillars") group similar activities together—for example: Capital, Programs, Knowledge, Network Tooling, People/Talent, etc.
+              KPI categories (or &quot;pillars&quot;) group similar activities together—for example: Capital, Programs, Knowledge, Network Tooling, People/Talent, etc.
             </p>
             
             <p style={{ marginBottom: '8px' }}>Each category receives a portion of monthly tokens based on its network weight. Example:</p>
@@ -252,7 +252,7 @@ const faqCategories: FAQCategoryData[] = [
             </ul>
             
             <p style={{ fontStyle: 'italic', color: '#64748b' }}>
-              The weights reflect the network's current priorities and may adjust between versions.
+              The weights reflect the network&apos;s current priorities and may adjust between versions.
             </p>
           </div>
         ),
@@ -272,7 +272,7 @@ const faqCategories: FAQCategoryData[] = [
                 <li style={{ marginBottom: '4px' }}>100 Network Tooling points (Directory Profile + other)</li>
                 <li>200 People/Talent points (Referrals + Compensation Data)</li>
               </ul>
-              <p>You'll receive tokens from both categories based on your calculated portion of each.</p>
+              <p>You&apos;ll receive tokens from both categories based on your calculated portion of each.</p>
             </div>
           </div>
         ),
@@ -282,7 +282,7 @@ const faqCategories: FAQCategoryData[] = [
         answer: (
           <div>
             <p style={{ marginBottom: '16px' }}>
-              Only whole tokens are issued. If your points don't add up to at least one token in any category, you won't receive tokens that snapshot period.
+              Only whole tokens are issued. If your points don&apos;t add up to at least one token in any category, you won&apos;t receive tokens that snapshot period.
             </p>
             
             <div style={{ backgroundColor: '#f1f5f9', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
@@ -559,7 +559,7 @@ export default function FAQsPage() {
             ))
           ) : (
             <div className="faqs__no-results">
-              <p>No results found for "{searchQuery}"</p>
+              <p>No results found for &quot;{searchQuery}&quot;</p>
               <button onClick={() => setSearchQuery('')}>Clear Search</button>
             </div>
           )}

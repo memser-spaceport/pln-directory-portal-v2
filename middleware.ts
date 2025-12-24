@@ -28,7 +28,7 @@ export const config = {
     '/changelog',
     '/husky/chat/:path',
     '/events',
-    '/alignment-assets/:path',
+    // '/alignment-assets/:path',
   ],
 };
 
@@ -48,7 +48,6 @@ function isProtectedRoute(pathname: string): boolean {
  * @returns NextResponse redirect to /members with backlink and #login hash
  */
 function createLoginRedirect(req: NextRequest, pathname: string): NextResponse {
-  console.log('createLoginRedirect pathname', pathname);
   const backlink = encodeURIComponent(pathname);
   const redirectUrl = new URL(`/members?backlink=${backlink}#login`, req.url);
   return NextResponse.redirect(redirectUrl);
@@ -60,15 +59,14 @@ export async function middleware(req: NextRequest) {
   const authTokenFromCookie = req?.cookies?.get('authToken');
   const userInfo = req?.cookies?.get('userInfo');
   const pathname = req.nextUrl.pathname;
-  console.log('middleware pathName', pathname);
   let isValidAuthToken = false;
 
   try {
     // Check if accessing a protected route without authentication
-    if (!authTokenFromCookie && isProtectedRoute(pathname)) {
-      console.log('middleware inside authTokenFromCookie', authTokenFromCookie);
-      return createLoginRedirect(req, pathname);
-    }
+    // if (!authTokenFromCookie && isProtectedRoute(pathname)) {
+    //   console.log('middleware inside authTokenFromCookie', authTokenFromCookie);
+    //   return createLoginRedirect(req, pathname);
+    // }
 
     if (!refreshTokenFromCookie) {
       response.cookies.delete('refreshToken');

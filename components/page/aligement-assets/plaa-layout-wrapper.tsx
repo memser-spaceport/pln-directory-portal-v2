@@ -10,13 +10,27 @@ interface PlaaLayoutWrapperProps {
   readonly children: React.ReactNode;
 }
 
-// Map pathname to menu active item and page title
-const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem; title: string } => {
-  const pathSegment = pathname.split('/').pop() || 'overview';
+// Map pathname to menu active item, page title, and optional viewing round
+const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem | undefined; title: string; viewingRound?: number } => {
+  const segments = pathname.split('/').filter(Boolean);
+  const pathSegment = segments[segments.length - 1] || 'overview';
+  
+  // Check if viewing a specific round (e.g., /alignment-assets/rounds/2)
+  if (segments.includes('rounds') && segments.length > 2) {
+    const roundNumber = parseInt(pathSegment, 10);
+    if (!isNaN(roundNumber)) {
+      // Viewing a specific round - don't highlight any menu item
+      return { activeItem: undefined, title: `Round ${roundNumber}`, viewingRound: roundNumber };
+    }
+  }
+  
+  // Check if on main rounds page (e.g., /alignment-assets/rounds)
+  if (pathSegment === 'rounds') {
+    return { activeItem: undefined, title: 'Rounds', viewingRound: undefined };
+  }
   
   const pageMap: Record<string, { activeItem: PlaaActiveItem; title: string }> = {
     'overview': { activeItem: 'overview', title: 'Overview' },
-    'rounds': { activeItem: 'rounds', title: 'Rounds' },
     'terms-of-use': { activeItem: 'terms-of-use', title: 'Terms of Use' },
     'privacy-policy': { activeItem: 'privacy-policy', title: 'Privacy Policy' },
     'product-versions': { activeItem: 'product-versions', title: 'Product Versions' },
@@ -29,7 +43,7 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem; title: str
 
 export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) {
   const pathname = usePathname();
-  const { activeItem, title } = getPageInfo(pathname);
+  const { activeItem, title, viewingRound } = getPageInfo(pathname ?? '');
 
   // Scroll to top when pathname changes (tab switch)
   useEffect(() => {
@@ -50,7 +64,7 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
       <div className={styles.plaa__main}>
         {/* Fixed Sidebar */}
         <aside className={styles.plaa__sidebar}>
-          <PlaaMenu activeItem={activeItem} />
+          <PlaaMenu activeItem={activeItem} totalRounds={11} currentRound={11} viewingRound={viewingRound} />
         </aside>
 
         {/* Scrollable Content */}

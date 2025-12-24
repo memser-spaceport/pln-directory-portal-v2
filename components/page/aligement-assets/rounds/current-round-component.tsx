@@ -85,10 +85,10 @@ export default function CurrentRoundComponent({
         <LearnMoreSection data={data.learnMore} />
 
         {/* Disclaimer Section */}
-        <DisclaimerSection data={data.disclaimer} />
+        <DisclaimerSection />
 
         {/* Support Section */}
-        <SupportSection data={data.support} />
+        <SupportSection />
       </div>
 
       <style jsx>{`

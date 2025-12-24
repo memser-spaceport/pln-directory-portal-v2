@@ -54,6 +54,20 @@ export default function StatsSection({ data }: StatsSectionProps) {
                 </td>
               </tr>
 
+              {/* Incentivized Activities */}
+              {stats?.labweek25IncentivizedActivities && stats.labweek25IncentivizedActivities.length > 0 && <tr className="stats-section__row stats-section__row--activities">
+                <td className="stats-section__label">Labweek25 Incentivized Activities:</td>
+                <td className="stats-section__value">
+                  <div className="stats-section__chips">
+                    {stats?.labweek25IncentivizedActivities?.map((activity, index) => (
+                      <span key={`labweek-activity-${activity}-${index}`} className="stats-section__chip">
+                        {activity}
+                      </span>
+                    ))}
+                  </div>
+                </td>
+              </tr>}
+
               {/* Total Points Collected */}
               <tr className="stats-section__row">
                 <td className="stats-section__label">Total Points Collected:</td>
@@ -61,16 +75,22 @@ export default function StatsSection({ data }: StatsSectionProps) {
               </tr>
 
               {/* Total Tokens Available */}
-              <tr className="stats-section__row">
+              {stats.totalTokensAvailable && <tr className="stats-section__row">
                 <td className="stats-section__label">Total Tokens Available:</td>
                 <td className="stats-section__value">{stats.totalTokensAvailable}</td>
-              </tr>
+              </tr>}
+
+              {/* Total Tokens Distributed  */}
+              {stats.totalTokensDistributed && <tr className="stats-section__row">
+                <td className="stats-section__label">Total Tokens Distributed:</td>
+                <td className="stats-section__value">{stats.totalTokensDistributed}</td>
+              </tr>}
 
               {/* Number of Buybacks */}
-              <tr className="stats-section__row">
+              {stats.numberOfBuybacks && <tr className="stats-section__row">
                 <td className="stats-section__label"># of Buybacks:</td>
                 <td className="stats-section__value">{stats.numberOfBuybacks}</td>
-              </tr>
+              </tr>}
             </tbody>
           </table>
         </div>

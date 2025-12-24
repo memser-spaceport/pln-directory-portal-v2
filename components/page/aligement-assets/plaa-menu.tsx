@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
    Figma: https://www.figma.com/design/xrvyUEqgZ0oRNT0spUruMW/Untitled?node-id=1-5250
    ========================================================================== */
 
-export type PlaaActiveItem = 'overview' | 'rounds' | 'terms-of-use' | 'privacy-policy';
+export type PlaaActiveItem = 'overview' | 'rounds' | 'faqs' | 'product-versions' | 'terms-of-use' | 'privacy-policy';
 
 interface PlaaMenuProps {
   activeItem?: PlaaActiveItem;
@@ -18,8 +18,10 @@ interface PlaaMenuProps {
 }
 
 const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string }> = [
-  { name: 'rounds', label: 'Current Round', url: '/alignment-assets/rounds' },
   { name: 'overview', label: 'Overview', url: '/alignment-assets/overview' },
+  { name: 'rounds', label: 'Current Round', url: '/alignment-assets/rounds' },
+  { name: 'product-versions', label: 'Product Versions', url: '/alignment-assets/product-versions' },
+  { name: 'faqs', label: 'FAQ', url: '/alignment-assets/faqs' },
   { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-assets/terms-of-use' },
   { name: 'privacy-policy', label: 'Privacy Policy', url: '/alignment-assets/privacy-policy' },
 ];

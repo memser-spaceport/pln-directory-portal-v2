@@ -317,7 +317,6 @@ export default function ProductVersionsPage() {
         .product-versions__version-card {
           background: rgba(248, 250, 252, 1);
           border-radius: 12px;
-          padding: 32px;
           border: 1px solid rgba(226, 232, 240, 1);
         }
 
@@ -328,7 +327,7 @@ export default function ProductVersionsPage() {
           justify-content: space-between;
           background: none;
           border: none;
-          padding: 0;
+          padding: 32px;
           cursor: pointer;
           text-align: left;
           transition: color 0.2s ease;
@@ -364,7 +363,7 @@ export default function ProductVersionsPage() {
         }
 
         .product-versions__version-card__content {
-          padding: 24px 0 0 0;
+          padding: 24px 32px 32px 32px;
           animation: fadeIn 0.3s ease;
           display: grid;
           grid-template-columns: repeat(3, 1fr);

@@ -159,6 +159,11 @@ export const NOTIFICATION_ANALYTICS_EVENTS = {
   OFFICE_HOURS_FEEDBACK_SUBMITTED: 'office-hours-feedback-submitted',
   OFFICE_HOURS_FEEDBACK_SUCCESS: 'office-hours-feedback-success',
   OFFICE_HOURS_FEEDBACK_FAILED: 'office-hours-feedback-failed',
+  NOTIFICATION_BELL_CLICKED: 'notification-bell-clicked',
+  NOTIFICATION_ACTION_LINK_CLICKED: 'notification-action-link-clicked',
+  VIEW_ALL_UPDATES_CLICKED: 'view-all-updates-clicked',
+  UPDATES_PANEL_NOTIFICATION_CLICKED: 'updates-panel-notification-clicked',
+  RECENT_UPDATES_NOTIFICATION_CLICKED: 'recent-updates-notification-clicked',
 };
 
 export const SETTINGS_ANALYTICS_EVENTS = {

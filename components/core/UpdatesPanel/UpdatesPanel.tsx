@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { PushNotification } from '@/types/push-notifications.types';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import { CloseIcon, ArrowRightIcon } from './icons';
 import { EmptyState } from './EmptyState';
 import { NotLoggedInState } from './NotLoggedInState';
@@ -27,10 +28,19 @@ export function UpdatesPanel({
   onMarkAsRead,
   isLoggedIn = true,
 }: UpdatesPanelProps) {
+  const analytics = useNotificationAnalytics();
+
   const handleNotificationClick = (notification: PushNotification) => {
+    analytics.onUpdatesPanelNotificationClicked(notification);
+    analytics.onNotificationActionLinkClicked(notification, 'updates_panel');
     if (!notification.isRead) {
       onMarkAsRead(notification.id);
     }
+  };
+
+  const handleViewAllClick = () => {
+    analytics.onViewAllUpdatesClicked();
+    onClose();
   };
 
   return (
@@ -87,7 +97,7 @@ export function UpdatesPanel({
 
             {isLoggedIn && (
               <div className={s.footer}>
-                <Link href="/home#recent-updates" className={s.viewAllLink} onClick={onClose}>
+                <Link href="/home#recent-updates" className={s.viewAllLink} onClick={handleViewAllClick}>
                   View all recent updates
                   <ArrowRightIcon />
                 </Link>

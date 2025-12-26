@@ -3,12 +3,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePushNotificationsContext } from '@/providers/PushNotificationsProvider';
 import { UpdatesPanel } from '@/components/core/UpdatesPanel';
+import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import { motion, useAnimation } from 'framer-motion';
 import s from './NotificationBell.module.scss';
 
 export function NotificationBell({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, unreadCount, markAsRead } = usePushNotificationsContext();
+  const analytics = useNotificationAnalytics();
   const controls = useAnimation();
   const prevUnreadCountRef = useRef(unreadCount);
 
@@ -27,6 +29,9 @@ export function NotificationBell({ isLoggedIn }: { isLoggedIn: boolean }) {
   }, [unreadCount, controls]);
 
   const handleToggle = () => {
+    if (!isOpen) {
+      analytics.onNotificationBellClicked(unreadCount);
+    }
     setIsOpen((prev) => !prev);
   };
 

@@ -4,6 +4,7 @@ import React from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { usePushNotificationsContext } from '@/providers/PushNotificationsProvider';
 import { useInfiniteNotifications } from '@/services/push-notifications/hooks';
+import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import { authStatus } from '@/components/core/login/utils/authStatus';
 import { PushNotification } from '@/types/push-notifications.types';
 import { EmptyState } from './EmptyState';
@@ -15,12 +16,15 @@ import s from './RecentUpdatesSection.module.scss';
 export function RecentUpdatesSection() {
   const isLoggedIn = authStatus.isLoggedIn();
   const { markAsRead } = usePushNotificationsContext();
+  const analytics = useNotificationAnalytics();
   const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, unreadCount } =
     useInfiniteNotifications({
       enabled: isLoggedIn,
     });
 
   const handleNotificationClick = (notification: PushNotification) => {
+    analytics.onRecentUpdatesNotificationClicked(notification);
+    analytics.onNotificationActionLinkClicked(notification, 'recent_updates');
     if (!notification.isRead) {
       markAsRead(notification.id);
     }

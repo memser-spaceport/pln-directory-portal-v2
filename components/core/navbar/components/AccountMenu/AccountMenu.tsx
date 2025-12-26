@@ -11,6 +11,7 @@ import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { broadcastLogout } from '@/components/core/login/components/BroadcastChannel';
+import { useContactSupportContext } from '@/components/ContactSupport/context/ContactSupportContext';
 import { authEvents } from '@/components/core/login/utils';
 import { usePostHog } from 'posthog-js/react';
 
@@ -18,6 +19,7 @@ import s from './AccountMenu.module.scss';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/services/members/store';
 import { useMedia } from 'react-use';
+import { HelpIcon } from '../icons';
 
 interface Props {
   userInfo: IUserInfo;
@@ -34,6 +36,7 @@ export const AccountMenu = ({ userInfo }: Props) => {
   const postHogProps = usePostHog();
   const router = useRouter();
   const { profileImage } = useUserStore();
+  const { openModal } = useContactSupportContext();
 
   const handleLogout = useCallback(() => {
     clearAllAuthCookies();
@@ -75,6 +78,15 @@ export const AccountMenu = ({ userInfo }: Props) => {
                 Support
                 <Menu.Separator className={s.Separator} />
               </div>
+              <Menu.Item
+                className={s.Item}
+                onClick={() => {
+                  openModal();
+                  analytics.onNavGetHelpItemClicked('Get Support', getAnalyticsUserInfo(userInfo));
+                }}
+              >
+                <HelpIcon className={s.HelpIcon} /> Get Support
+              </Menu.Item>
               <Link href="/changelog">
                 <Menu.Item
                   className={s.Item}

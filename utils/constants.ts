@@ -663,6 +663,20 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.0 - In-App Notifications & Navigation Updates',
+    tag: 'New Feature',
+    date: '26, Dec 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Notifications & Navigation Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">In-app notifications</span> - New notifications page and popup menu to stay updated on Demo Day status changes, registration announcements, and other important updates directly within the directory.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Events navigation</span> - Events tab now splits into "Event Schedule" and "IRL Gatherings" for clearer navigation and easier access to different event types.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum post tips</span> - Added helpful tips for writing effective forum posts to improve community engagement and response quality.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.4.2 - Demo Day Updates Notifications',
     tag: 'Improvements',
     date: '17, Dec 2025',

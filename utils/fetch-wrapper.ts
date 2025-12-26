@@ -25,16 +25,33 @@ export const customFetch = async (url: string, options: any, isIncludeToken: boo
 
     if (!authToken && refreshToken) {
       console.log('Fetch wrapper - renewTokens called with refreshToken:', refreshToken, url);
-      const { accessToken: newAuthToken, refreshToken: newRefreshToken, userInfo } = await renewTokens(refreshToken);
-      setNewTokenAndUserInfoAtClientSide({ refreshToken: newRefreshToken, accessToken: newAuthToken, userInfo });
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${newAuthToken}`,
-        },
-      });
-      return response;
+      try {
+        const tokens = await renewTokens(refreshToken);
+        if (!tokens || !tokens.accessToken || !tokens.refreshToken || !tokens.userInfo) {
+          // Refresh failed - clear cookies and logout
+          clearAllAuthCookies();
+          logoutUser();
+          toast.success(TOAST_MESSAGES.LOGOUT_MSG);
+          window.location.reload();
+          return;
+        }
+        const { accessToken: newAuthToken, refreshToken: newRefreshToken, userInfo } = tokens;
+        setNewTokenAndUserInfoAtClientSide({ refreshToken: newRefreshToken, accessToken: newAuthToken, userInfo });
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            ...options.headers,
+            Authorization: `Bearer ${newAuthToken}`,
+          },
+        });
+        return response;
+      } catch (error) {
+        clearAllAuthCookies();
+        logoutUser();
+        toast.success(TOAST_MESSAGES.LOGOUT_MSG);
+        window.location.reload();
+        return;
+      }
     }
 
     if (authToken) {
@@ -92,21 +109,54 @@ export const setNewTokenAndUserInfoAtClientSide = (details: any) => {
 const renewTokens = async (refreshToken: string) => {
   console.log('Fetch wrapper - renewTokens called with refreshToken:', refreshToken);
   const renewAccessTokenResponse = await renewAccessToken(refreshToken);
-  return renewAccessTokenResponse?.data;
+
+  // If refresh failed, return null to signal failure
+  if (!renewAccessTokenResponse?.ok || !renewAccessTokenResponse?.data) {
+    return null;
+  }
+
+  return renewAccessTokenResponse.data;
 };
 
 const retryApi = async (url: string, options: any) => {
   console.log('Fetch wrapper - retry api called:', url);
   const { refreshToken } = getAuthInfoFromCookie();
-  const { accessToken: newAuthToken, refreshToken: newRefreshToken, userInfo } = await renewTokens(refreshToken);
-  setNewTokenAndUserInfoAtClientSide({ refreshToken: newRefreshToken, accessToken: newAuthToken, userInfo });
-  return await fetch(url, {
-    ...options,
-    headers: {
-      ...options.headers,
-      Authorization: `Bearer ${newAuthToken}`,
-    },
-  });
+
+  if (!refreshToken) {
+    clearAllAuthCookies();
+    logoutUser();
+    toast.success(TOAST_MESSAGES.LOGOUT_MSG);
+    window.location.reload();
+    return new Response(null, { status: 401 });
+  }
+
+  try {
+    const tokens = await renewTokens(refreshToken);
+    if (!tokens || !tokens.accessToken || !tokens.refreshToken || !tokens.userInfo) {
+      // Refresh failed - clear cookies and logout
+      clearAllAuthCookies();
+      logoutUser();
+      toast.success(TOAST_MESSAGES.LOGOUT_MSG);
+      window.location.reload();
+      return new Response(null, { status: 401 });
+    }
+
+    const { accessToken: newAuthToken, refreshToken: newRefreshToken, userInfo } = tokens;
+    setNewTokenAndUserInfoAtClientSide({ refreshToken: newRefreshToken, accessToken: newAuthToken, userInfo });
+    return await fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${newAuthToken}`,
+      },
+    });
+  } catch (error) {
+    clearAllAuthCookies();
+    logoutUser();
+    toast.success(TOAST_MESSAGES.LOGOUT_MSG);
+    window.location.reload();
+    return new Response(null, { status: 401 });
+  }
 };
 
 export const logoutUser = () => {

@@ -159,6 +159,11 @@ export const NOTIFICATION_ANALYTICS_EVENTS = {
   OFFICE_HOURS_FEEDBACK_SUBMITTED: 'office-hours-feedback-submitted',
   OFFICE_HOURS_FEEDBACK_SUCCESS: 'office-hours-feedback-success',
   OFFICE_HOURS_FEEDBACK_FAILED: 'office-hours-feedback-failed',
+  NOTIFICATION_BELL_CLICKED: 'notification-bell-clicked',
+  NOTIFICATION_ACTION_LINK_CLICKED: 'notification-action-link-clicked',
+  VIEW_ALL_UPDATES_CLICKED: 'view-all-updates-clicked',
+  UPDATES_PANEL_NOTIFICATION_CLICKED: 'updates-panel-notification-clicked',
+  RECENT_UPDATES_NOTIFICATION_CLICKED: 'recent-updates-notification-clicked',
 };
 
 export const SETTINGS_ANALYTICS_EVENTS = {
@@ -287,6 +292,7 @@ export const AUTH_ANALYTICS = {
   AUTH_INFO_POPUP_CLOSED: 'AUTH_INFO_POPUP_CLOSED',
   AUTH_PRIVY_LOGIN_SUCCESS: 'AUTH_PRIVY_LOGIN_SUCCESS',
   AUTH_PRIVY_LOGIN_FAILURE: 'AUTH_PRIVY_LOGIN_FAILURE',
+  AUTH_SESSION_EXPIRED_MODAL_SHOWN: 'AUTH_SESSION_EXPIRED_MODAL_SHOWN',
   AUTH_DIRECTORY_LOGIN_INIT: 'AUTH_DIRECTORY_LOGIN_INIT',
   AUTH_DIRECTORY_LOGIN_SUCCESS: 'AUTH_DIRECTORY_LOGIN_SUCCESS',
   AUTH_DIRECTORY_LOGIN_FAILURE: 'AUTH_DIRECTORY_LOGIN_FAILURE',
@@ -661,6 +667,20 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.5.0 - In-App Notifications & Navigation Updates',
+    tag: 'New Feature',
+    date: '26, Dec 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Notifications & Navigation Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">In-app notifications</span> - New notifications page and popup menu to stay updated on Demo Day status changes, registration announcements, and other important updates directly within the directory.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Events navigation</span> - Events tab now splits into "Event Schedule" and "IRL Gatherings" for clearer navigation and easier access to different event types.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum post tips</span> - Added helpful tips for writing effective forum posts to improve community engagement and response quality.</li>
+      </ul>
+      </div>`,
+  },
   {
     title: 'Version 4.4.2 - Demo Day Updates Notifications',
     tag: 'Improvements',

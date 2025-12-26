@@ -1,0 +1,51 @@
+.linkCard {
+  text-decoration: none;
+  color: inherit;
+
+  display: flex;
+  padding: var(--spacing-sm, 12px) var(--spacing-md, 16px);
+  align-items: flex-start;
+  gap: var(--spacing-3xs, 8px);
+  border-radius: 8px;
+
+  @media (hover: hover) {
+    &:hover {
+      background-color: var(--Neutral-Slate-50);
+    }
+  }
+
+  &:focus-visible {
+    position: relative;
+    outline: 2px solid var(--color-blue);
+    outline-offset: -1px;
+  }
+
+  @media (min-width: 425px) {
+    & {
+      padding: 0.75rem;
+    }
+  }
+}
+
+.linkDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.linkTitle {
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+.linkDescription {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}

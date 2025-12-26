@@ -1,0 +1,49 @@
+.bellButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  color: #3d4a5c;
+  padding: 9px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+    box-shadow: inset 0px -2px 4px 0px rgba(14, 15, 17, 0.02);
+  }
+
+  &:active {
+    background: rgba(14, 15, 17, 0.04);
+    box-shadow: inset 0px -2px 4px 0px rgba(14, 15, 17, 0.02);
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background: #4174ff;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

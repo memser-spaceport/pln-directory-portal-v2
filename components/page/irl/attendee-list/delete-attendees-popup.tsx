@@ -204,7 +204,8 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
           <div className="popup__body__members">
             {selectedGuests?.map((guest: IGuest, index: number) => {
               const events = guest?.events?.filter((event: IIrlEvent) => {
-                const isEventInDetails = eventDetails?.some((g: IIrlEvent) => g?.uid === event?.uid);
+                // const isEventInDetails = eventDetails?.some((g: IIrlEvent) => g?.uid === event?.uid);
+                const isEventInDetails = true;
                 // For self-delete, show upcoming gatherings
                 if (type === 'self-delete') {
                   return isEventInDetails && filterUpcomingGatherings(event);

@@ -18,7 +18,7 @@ import { formatFeaturedData } from '@/utils/home.utils';
 import { RecentUpdatesSection } from '@/components/page/home/recent-updates';
 
 export default async function Home() {
-  const { featuredData, discoverData, isLoggedIn, isError, userInfo, focusAreas } = await getPageData();
+  const { isLoggedIn, isError, userInfo, focusAreas } = await getPageData();
 
   if (isError) {
     return <Error />;

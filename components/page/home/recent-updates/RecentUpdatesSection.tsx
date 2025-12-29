@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { usePushNotificationsContext } from '@/providers/PushNotificationsProvider';
 import { useInfiniteNotifications } from '@/services/push-notifications/hooks';
@@ -15,12 +15,18 @@ import s from './RecentUpdatesSection.module.scss';
 
 export function RecentUpdatesSection() {
   const isLoggedIn = authStatus.isLoggedIn();
-  const { markAsRead } = usePushNotificationsContext();
+  const { markAsRead, unreadCount: globalUnreadCount } = usePushNotificationsContext();
   const analytics = useNotificationAnalytics();
-  const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, unreadCount } =
+  const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, unreadCount, refetch } =
     useInfiniteNotifications({
       enabled: isLoggedIn,
     });
+
+  useEffect(() => {
+    if (globalUnreadCount !== unreadCount) {
+      void refetch();
+    }
+  }, [globalUnreadCount, unreadCount, refetch]);
 
   const handleNotificationClick = (notification: PushNotification) => {
     analytics.onRecentUpdatesNotificationClicked(notification);

@@ -82,7 +82,7 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     if (payload.status === 'read') {
       setNotifications((prev) => prev.map((n) => (n.id === payload.id ? { ...n, isRead: true } : n)));
       // Recalculate unread count to stay in sync
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      // setUnreadCount((prev) => Math.max(0, prev - 1));
     } else if (payload.status === 'deleted') {
       setNotifications((prev) => {
         const notification = prev.find((n) => n.id === payload.id);

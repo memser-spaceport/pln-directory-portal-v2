@@ -14,7 +14,7 @@ export function PostFormEditorLabel() {
     <>
       Post
       <Button style="link" className={s.btn} onClick={toggleOpen}>
-        Quick Tips for Great Posts
+        How to write a good post
         <ArrowUpRightIcon width={20} height={20} />
       </Button>
       <PostTipsModal open={open} onClose={toggleOpen} />

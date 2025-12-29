@@ -23,7 +23,7 @@ export function PostTipsModal(props: Props) {
 
   return (
     <ModalBase
-      title="Tips to write a great post"
+      title="Tips to write a good post"
       titleIcon={<NotePencilIcon />}
       open={open}
       onClose={onClose}
@@ -34,13 +34,11 @@ export function PostTipsModal(props: Props) {
       }}
     >
       <div className={s.subtitle}>
-        Great posts get better answers.
+        Make Your Post Effective.
         <br />
-        Follow these guidelines to help others give you useful, thoughtful responses.
+        Follow these guidelines to garner useful responses.
       </div>
       <section className={s.tips}>
-        <div className={s.tipsTitle}>Make Your Post Effective</div>
-
         <div className={s.tipsList}>
           <SingleTip Icon={PencilSimpleLineIcon} title="Write a specific title.">
             Compare &quot;Need help&quot; vs &quot;How to price B2B SaaS for mid-market customers?&quot; — the second

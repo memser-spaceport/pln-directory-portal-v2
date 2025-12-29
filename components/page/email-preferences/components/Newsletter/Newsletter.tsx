@@ -55,7 +55,7 @@ export const Newsletter = ({
               </Switch.Thumb>
             </Switch.Root>
           </label>
-          <div className={s.desc}>Get new letter straight to your inbox</div>
+          <div className={s.desc}>Get newsletter straight to your inbox</div>
         </div>
       </div>
     </div>

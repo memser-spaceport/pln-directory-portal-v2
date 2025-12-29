@@ -64,7 +64,7 @@ function MemberPrivacyForm(props: any) {
     {
       title: 'Newsletter',
       items: [
-        { name: 'newsLetter', title: 'Subscribe to PL Newsletter', info: 'Get new letter straight to your inbox' },
+        { name: 'newsLetter', title: 'Subscribe to PL Newsletter', info: 'Get newsletter straight to your inbox' },
       ],
     },
   ];

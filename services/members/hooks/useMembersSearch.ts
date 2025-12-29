@@ -51,12 +51,16 @@ export function useMembersSearch(searchTerm: string, options: UseMembersSearchOp
         const data = await response.json();
 
         const formattedResults: MemberSearchResult[] =
-          data.items?.map((member: any) => ({
-            uid: member.id,
-            name: member.name,
-            image: member.profile || undefined,
-            teamName: member.mainTeam?.name || undefined,
-          })) || [];
+          data.items?.map((member: any) => {
+            const { id, name, profile, mainTeam } = member;
+
+            return {
+              uid: id,
+              name,
+              image: profile,
+              teamName: mainTeam?.name,
+            };
+          }) || [];
 
         setResults(formattedResults);
       } catch (err) {

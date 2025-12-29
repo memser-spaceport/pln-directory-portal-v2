@@ -13,6 +13,9 @@ import { toast } from '@/components/core/ToastContainer';
 
 import { saveRegistrationImage } from '@/services/registration.service';
 import { useMembersSearch } from '@/services/members/hooks/useMembersSearch';
+
+import { useMentionDetection, useMentionKeyboard, useMentionClickHandler } from './hooks';
+
 import { registerMentionBlot } from './MentionBlot';
 import { MentionDropdown, MentionDropdownRef } from './MentionDropdown';
 
@@ -168,131 +171,30 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
   );
 
   // Handle text change to detect @ mentions
-  useEffect(() => {
-    if (!enableMentions || !quillRef.current) {
-      return;
-    }
-
-    const editor = quillRef.current.getEditor();
-
-    const handleTextChange = () => {
-      const selection = editor.getSelection();
-      if (!selection) {
-        return;
-      }
-
-      const [line] = editor.getLine(selection.index);
-      if (!line) {
-        return;
-      }
-
-      const text = editor.getText(0, selection.index);
-      const lines = text.split('\n');
-      const currentLine = lines[lines.length - 1];
-
-      // Find @ symbol in current line
-      const atIndex = currentLine.lastIndexOf('@');
-
-      if (atIndex !== -1 && atIndex < currentLine.length) {
-        const query = currentLine.substring(atIndex + 1);
-
-        // Check if there's no space after @ (active mention)
-        if (!query.includes(' ')) {
-          const textBeforeCursor = text.substring(0, selection.index);
-          const absoluteAtIndex = textBeforeCursor.lastIndexOf('@');
-
-          // Get cursor position for dropdown
-          const bounds = editor.getBounds(selection.index);
-          const editorContainer = editorContainerRef.current;
-          const editorElement = editorContainer?.querySelector(`.${QL_EDITOR_CLASS}`);
-
-          if (bounds && editorContainer && editorElement) {
-            const editorRect = editorElement.getBoundingClientRect();
-            const containerRect = editorContainer.getBoundingClientRect();
-
-            setMentionState({
-              isOpen: true,
-              query,
-              position: {
-                top: editorRect.top - containerRect.top + bounds.bottom + 5,
-                left: editorRect.left - containerRect.left + bounds.left,
-              },
-              startIndex: absoluteAtIndex,
-            });
-          }
-          return;
-        }
-      }
-
-      // Close dropdown if @ not found or space after @
-      if (mentionState.isOpen) {
-        closeMentionDropdown();
-      }
-    };
-
-    editor.on('text-change', handleTextChange);
-    editor.on('selection-change', handleTextChange);
-
-    return () => {
-      editor.off('text-change', handleTextChange);
-      editor.off('selection-change', handleTextChange);
-    };
-  }, [enableMentions, mentionState.isOpen, closeMentionDropdown]);
+  useMentionDetection({
+    enableMentions,
+    quillRef,
+    editorContainerRef,
+    mentionState,
+    setMentionState,
+    closeMentionDropdown,
+    qlEditorClass: QL_EDITOR_CLASS,
+  });
 
   // Handle keyboard events for mention dropdown
-  useEffect(() => {
-    if (!mentionState.isOpen || !enableMentions) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!mentionDropdownRef.current) return;
-
-      switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault();
-          mentionDropdownRef.current.moveDown();
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          mentionDropdownRef.current.moveUp();
-          break;
-        case 'Enter':
-        case 'Tab':
-          e.preventDefault();
-          mentionDropdownRef.current.selectCurrent();
-          break;
-        case 'Escape':
-          e.preventDefault();
-          closeMentionDropdown();
-          break;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [mentionState.isOpen, enableMentions, closeMentionDropdown]);
+  useMentionKeyboard({
+    isOpen: mentionState.isOpen,
+    enableMentions,
+    mentionDropdownRef,
+    closeMentionDropdown,
+  });
 
   // Handle clicks on mention links to navigate to member profile
-  useEffect(() => {
-    if (!enableMentions || !editorContainerRef.current) return;
-
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const mentionLink = target.closest('.ql-mention') as HTMLAnchorElement;
-
-      if (mentionLink && mentionLink.href) {
-        e.preventDefault();
-        e.stopPropagation();
-        window.open(mentionLink.href, '_blank');
-      }
-    };
-
-    const editorElement = editorContainerRef.current.querySelector(`.${QL_EDITOR_CLASS}`);
-
-    if (editorElement) {
-      editorElement.addEventListener('click', handleClick);
-      return () => editorElement.removeEventListener('click', handleClick);
-    }
-  }, [enableMentions]);
+  useMentionClickHandler({
+    enableMentions,
+    editorContainerRef,
+    qlEditorClass: QL_EDITOR_CLASS,
+  });
 
   const handleChange = (content: string) => {
     const { editor } = quillRef.current || {};

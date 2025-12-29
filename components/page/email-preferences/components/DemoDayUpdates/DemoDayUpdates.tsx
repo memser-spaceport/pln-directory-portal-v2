@@ -53,7 +53,7 @@ export const DemoDayUpdates = ({
             </Switch.Root>
           </label>
           <div className={s.desc}>
-            Get notifications when Demo Day events are announced, registrations open, and reminders for key dates.
+            Get notified when registration opens, demo day begins and other relevant reminders.
           </div>
         </div>
       </div>

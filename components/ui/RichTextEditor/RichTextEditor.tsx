@@ -153,17 +153,17 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
       const deleteLength = currentSelection.index - mentionState.startIndex;
       editor.deleteText(mentionState.startIndex, deleteLength);
 
-      // Insert the mention
+      // Insert the mention embed
       editor.insertEmbed(mentionState.startIndex, 'mention', {
         uid: member.uid,
         name: member.name,
       });
 
-      // Add a space after the mention
+      // Insert space after the mention
       editor.insertText(mentionState.startIndex + 1, ' ');
 
-      // Move cursor after the space
-      editor.setSelection(mentionState.startIndex + 2);
+      // Set cursor after the space (position + 1 for embed + 1 for space)
+      editor.setSelection(mentionState.startIndex + 2, 0);
 
       closeMentionDropdown();
     },

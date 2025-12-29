@@ -3,7 +3,7 @@
 import { clsx } from 'clsx';
 import ReactQuill, { Quill } from 'react-quill';
 import ImageUploader from 'quill-image-uploader';
-import React, { forwardRef, useEffect, useMemo, useRef } from 'react';
+import React, { forwardRef, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 
 import 'react-quill/dist/quill.snow.css';
 import 'quill-image-uploader/dist/quill.imageUploader.min.css';
@@ -12,6 +12,9 @@ import { mergeRefs } from '@/utils/mergeRef';
 import { toast } from '@/components/core/ToastContainer';
 
 import { saveRegistrationImage } from '@/services/registration.service';
+import { useMembersSearch } from '@/services/members/hooks/useMembersSearch';
+import { registerMentionBlot } from './MentionBlot';
+import { MentionDropdown, MentionDropdownRef } from './MentionDropdown';
 
 import s from './RichTextEditor.module.scss';
 
@@ -24,7 +27,10 @@ interface Props {
   disabled?: boolean;
   autoFocus?: boolean;
   maxLength?: number;
+  enableMentions?: boolean;
 }
+
+const QL_EDITOR_CLASS = 'ql-editor';
 
 const officeHours = `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M16.25 2.5H14.375V1.875C14.375 1.70924 14.3092 1.55027 14.1919 1.43306C14.0747 1.31585 13.9158 1.25 13.75 1.25C13.5842 1.25 13.4253 1.31585 13.3081 1.43306C13.1908 1.55027 13.125 1.70924 13.125 1.875V2.5H6.875V1.875C6.875 1.70924 6.80915 1.55027 6.69194 1.43306C6.57473 1.31585 6.41576 1.25 6.25 1.25C6.08424 1.25 5.92527 1.31585 5.80806 1.43306C5.69085 1.55027 5.625 1.70924 5.625 1.875V2.5H3.75C3.41848 2.5 3.10054 2.6317 2.86612 2.86612C2.6317 3.10054 2.5 3.41848 2.5 3.75V16.25C2.5 16.5815 2.6317 16.8995 2.86612 17.1339C3.10054 17.3683 3.41848 17.5 3.75 17.5H16.25C16.5815 17.5 16.8995 17.3683 17.1339 17.1339C17.3683 16.8995 17.5 16.5815 17.5 16.25V3.75C17.5 3.41848 17.3683 3.10054 17.1339 2.86612C16.8995 2.6317 16.5815 2.5 16.25 2.5ZM5.625 3.75V4.375C5.625 4.54076 5.69085 4.69973 5.80806 4.81694C5.92527 4.93415 6.08424 5 6.25 5C6.41576 5 6.57473 4.93415 6.69194 4.81694C6.80915 4.69973 6.875 4.54076 6.875 4.375V3.75H13.125V4.375C13.125 4.54076 13.1908 4.69973 13.3081 4.81694C13.4253 4.93415 13.5842 5 13.75 5C13.9158 5 14.0747 4.93415 14.1919 4.81694C14.3092 4.69973 14.375 4.54076 14.375 4.375V3.75H16.25V6.25H3.75V3.75H5.625ZM16.25 16.25H3.75V7.5H16.25V16.25ZM10.9375 10.3125C10.9375 10.4979 10.8825 10.6792 10.7795 10.8333C10.6765 10.9875 10.5301 11.1077 10.3588 11.1786C10.1875 11.2496 9.99896 11.2682 9.8171 11.232C9.63525 11.1958 9.4682 11.1065 9.33709 10.9754C9.20598 10.8443 9.11669 10.6773 9.08051 10.4954C9.04434 10.3135 9.06291 10.125 9.13386 9.95373C9.20482 9.78243 9.32498 9.63601 9.47915 9.533C9.63332 9.42998 9.81458 9.375 10 9.375C10.2486 9.375 10.4871 9.47377 10.6629 9.64959C10.8387 9.8254 10.9375 10.0639 10.9375 10.3125ZM14.375 10.3125C14.375 10.4979 14.32 10.6792 14.217 10.8333C14.114 10.9875 13.9676 11.1077 13.7963 11.1786C13.625 11.2496 13.4365 11.2682 13.2546 11.232C13.0727 11.1958 12.9057 11.1065 12.7746 10.9754C12.6435 10.8443 12.5542 10.6773 12.518 10.4954C12.4818 10.3135 12.5004 10.125 12.5714 9.95373C12.6423 9.78243 12.7625 9.63601 12.9167 9.533C13.0708 9.42998 13.2521 9.375 13.4375 9.375C13.6861 9.375 13.9246 9.47377 14.1004 9.64959C14.2762 9.8254 14.375 10.0639 14.375 10.3125ZM7.5 13.4375C7.5 13.6229 7.44502 13.8042 7.342 13.9583C7.23899 14.1125 7.09257 14.2327 6.92127 14.3036C6.74996 14.3746 6.56146 14.3932 6.3796 14.357C6.19775 14.3208 6.0307 14.2315 5.89959 14.1004C5.76848 13.9693 5.67919 13.8023 5.64301 13.6204C5.60684 13.4385 5.62541 13.25 5.69636 13.0787C5.76732 12.9074 5.88748 12.761 6.04165 12.658C6.19582 12.555 6.37708 12.5 6.5625 12.5C6.81114 12.5 7.0496 12.5988 7.22541 12.7746C7.40123 12.9504 7.5 13.1889 7.5 13.4375ZM10.9375 13.4375C10.9375 13.6229 10.8825 13.8042 10.7795 13.9583C10.6765 14.1125 10.5301 14.2327 10.3588 14.3036C10.1875 14.3746 9.99896 14.3932 9.8171 14.357C9.63525 14.3208 9.4682 14.2315 9.33709 14.1004C9.20598 13.9693 9.11669 13.8023 9.08051 13.6204C9.04434 13.4385 9.06291 13.25 9.13386 13.0787C9.20482 12.9074 9.32498 12.761 9.47915 12.658C9.63332 12.555 9.81458 12.5 10 12.5C10.2486 12.5 10.4871 12.5988 10.6629 12.7746C10.8387 12.9504 10.9375 13.1889 10.9375 13.4375ZM14.375 13.4375C14.375 13.6229 14.32 13.8042 14.217 13.9583C14.114 14.1125 13.9676 14.2327 13.7963 14.3036C13.625 14.3746 13.4365 14.3932 13.2546 14.357C13.0727 14.3208 12.9057 14.2315 12.7746 14.1004C12.6435 13.9693 12.5542 13.8023 12.518 13.6204C12.4818 13.4385 12.5004 13.25 12.5714 13.0787C12.6423 12.9074 12.7625 12.761 12.9167 12.658C13.0708 12.555 13.2521 12.5 13.4375 12.5C13.6861 12.5 13.9246 12.5988 14.1004 12.7746C14.2762 12.9504 14.375 13.1889 14.375 13.4375Z" fill="#8897AE"/>
@@ -33,13 +39,34 @@ const officeHours = `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"
 
 Quill.register('modules/imageUploader', ImageUploader);
 
+// Register mention blot
+registerMentionBlot();
+
 // Register it
 Quill.import('ui/icons')['officeHours'] = officeHours;
 
 const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
-  const { value, maxLength, onChange, className, errorMessage, id, disabled, autoFocus } = props;
+  const { value, maxLength, onChange, className, errorMessage, id, disabled, autoFocus, enableMentions = true } = props;
 
   const quillRef = useRef<any>(null);
+  const mentionDropdownRef = useRef<MentionDropdownRef>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+
+  const [mentionState, setMentionState] = useState<{
+    isOpen: boolean;
+    query: string;
+    position: { top: number; left: number } | null;
+    startIndex: number;
+  }>({
+    isOpen: false,
+    query: '',
+    position: null,
+    startIndex: -1,
+  });
+
+  const { results: mentionResults, isLoading: mentionLoading } = useMembersSearch(mentionState.query, {
+    enabled: mentionState.isOpen && enableMentions,
+  });
   // const { userInfo } = getCookiesFromClient();
   // const { data: member } = useMember(userInfo?.uid);
 
@@ -95,6 +122,178 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     }
   }, [autoFocus]);
 
+  // Close mention dropdown
+  const closeMentionDropdown = useCallback(() => {
+    setMentionState({
+      isOpen: false,
+      query: '',
+      position: null,
+      startIndex: -1,
+    });
+  }, []);
+
+  // Insert mention into editor
+  const insertMention = useCallback(
+    (member: { uid: string; name: string }) => {
+      const editor = quillRef.current?.getEditor();
+
+      if (!editor || mentionState.startIndex === -1) {
+        return;
+      }
+
+      const currentSelection = editor.getSelection();
+      if (!currentSelection) {
+        return;
+      }
+
+      // Delete the @ and query text
+      const deleteLength = currentSelection.index - mentionState.startIndex;
+      editor.deleteText(mentionState.startIndex, deleteLength);
+
+      // Insert the mention
+      editor.insertEmbed(mentionState.startIndex, 'mention', {
+        uid: member.uid,
+        name: member.name,
+      });
+
+      // Add a space after the mention
+      editor.insertText(mentionState.startIndex + 1, ' ');
+
+      // Move cursor after the space
+      editor.setSelection(mentionState.startIndex + 2);
+
+      closeMentionDropdown();
+    },
+    [mentionState.startIndex, closeMentionDropdown],
+  );
+
+  // Handle text change to detect @ mentions
+  useEffect(() => {
+    if (!enableMentions || !quillRef.current) {
+      return;
+    }
+
+    const editor = quillRef.current.getEditor();
+
+    const handleTextChange = () => {
+      const selection = editor.getSelection();
+      if (!selection) {
+        return;
+      }
+
+      const [line] = editor.getLine(selection.index);
+      if (!line) {
+        return;
+      }
+
+      const text = editor.getText(0, selection.index);
+      const lines = text.split('\n');
+      const currentLine = lines[lines.length - 1];
+
+      // Find @ symbol in current line
+      const atIndex = currentLine.lastIndexOf('@');
+
+      if (atIndex !== -1 && atIndex < currentLine.length) {
+        const query = currentLine.substring(atIndex + 1);
+
+        // Check if there's no space after @ (active mention)
+        if (!query.includes(' ')) {
+          const textBeforeCursor = text.substring(0, selection.index);
+          const absoluteAtIndex = textBeforeCursor.lastIndexOf('@');
+
+          // Get cursor position for dropdown
+          const bounds = editor.getBounds(selection.index);
+          const editorContainer = editorContainerRef.current;
+          const editorElement = editorContainer?.querySelector(`.${QL_EDITOR_CLASS}`);
+
+          if (bounds && editorContainer && editorElement) {
+            const editorRect = editorElement.getBoundingClientRect();
+            const containerRect = editorContainer.getBoundingClientRect();
+
+            setMentionState({
+              isOpen: true,
+              query,
+              position: {
+                top: editorRect.top - containerRect.top + bounds.bottom + 5,
+                left: editorRect.left - containerRect.left + bounds.left,
+              },
+              startIndex: absoluteAtIndex,
+            });
+          }
+          return;
+        }
+      }
+
+      // Close dropdown if @ not found or space after @
+      if (mentionState.isOpen) {
+        closeMentionDropdown();
+      }
+    };
+
+    editor.on('text-change', handleTextChange);
+    editor.on('selection-change', handleTextChange);
+
+    return () => {
+      editor.off('text-change', handleTextChange);
+      editor.off('selection-change', handleTextChange);
+    };
+  }, [enableMentions, mentionState.isOpen, closeMentionDropdown]);
+
+  // Handle keyboard events for mention dropdown
+  useEffect(() => {
+    if (!mentionState.isOpen || !enableMentions) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!mentionDropdownRef.current) return;
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          mentionDropdownRef.current.moveDown();
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          mentionDropdownRef.current.moveUp();
+          break;
+        case 'Enter':
+        case 'Tab':
+          e.preventDefault();
+          mentionDropdownRef.current.selectCurrent();
+          break;
+        case 'Escape':
+          e.preventDefault();
+          closeMentionDropdown();
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [mentionState.isOpen, enableMentions, closeMentionDropdown]);
+
+  // Handle clicks on mention links to navigate to member profile
+  useEffect(() => {
+    if (!enableMentions || !editorContainerRef.current) return;
+
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const mentionLink = target.closest('.ql-mention') as HTMLAnchorElement;
+
+      if (mentionLink && mentionLink.href) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(mentionLink.href, '_blank');
+      }
+    };
+
+    const editorElement = editorContainerRef.current.querySelector(`.${QL_EDITOR_CLASS}`);
+
+    if (editorElement) {
+      editorElement.addEventListener('click', handleClick);
+      return () => editorElement.removeEventListener('click', handleClick);
+    }
+  }, [enableMentions]);
+
   const handleChange = (content: string) => {
     const { editor } = quillRef.current || {};
 
@@ -112,6 +311,7 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
 
   return (
     <div
+      ref={editorContainerRef}
       className={clsx(s.root, {
         [s.error]: !!errorMessage,
       })}
@@ -127,6 +327,17 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
         modules={modules}
       />
       {errorMessage && <div className={s.error}>{errorMessage}</div>}
+      {enableMentions && mentionState.isOpen && (
+        <MentionDropdown
+          ref={mentionDropdownRef}
+          items={mentionResults}
+          isLoading={mentionLoading}
+          onSelect={insertMention}
+          onClose={closeMentionDropdown}
+          position={mentionState.position}
+          searchQuery={mentionState.query}
+        />
+      )}
     </div>
   );
 });

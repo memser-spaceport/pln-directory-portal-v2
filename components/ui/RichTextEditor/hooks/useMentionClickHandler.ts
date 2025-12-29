@@ -1,5 +1,7 @@
 import { useEffect, RefObject } from 'react';
 
+import MentionBlot from '@/components/ui/RichTextEditor/MentionBlot';
+
 interface UseMentionClickHandlerParams {
   enableMentions: boolean;
   editorContainerRef: RefObject<HTMLDivElement>;
@@ -21,7 +23,7 @@ export function useMentionClickHandler({
 
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const mentionLink = target.closest('.ql-mention') as HTMLAnchorElement;
+      const mentionLink = target.closest(`.${MentionBlot.className}`) as HTMLAnchorElement;
 
       if (mentionLink && mentionLink.href) {
         e.preventDefault();

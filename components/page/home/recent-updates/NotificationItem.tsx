@@ -6,6 +6,7 @@ import { DemoDayIcon, EventIcon, ForumIcon, SystemIcon, ArrowRightIcon } from '.
 import { formatTime, getCategoryLabel, getActionText } from './utils';
 import s from './RecentUpdatesSection.module.scss';
 import { clsx } from 'clsx';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface NotificationItemProps {
   notification: PushNotification;
@@ -13,10 +14,26 @@ interface NotificationItemProps {
 }
 
 function getNotificationIcon(notification: PushNotification) {
-  if (notification.image) {
+  const defaultAvatarImage = notification?.metadata?.authorUid
+    ? getDefaultAvatar(notification.metadata.authorUid as string)
+    : '';
+
+  // If notification has an image (user avatar), show it
+  if (
+    (notification.category === 'FORUM_POST' || notification.category === 'FORUM_REPLY') &&
+    (notification.metadata?.authorPicture || defaultAvatarImage)
+  ) {
     return (
       <div className={s.avatarWrapper}>
-        <Image src={notification.image} alt="" width={40} height={40} className={s.avatar} />
+        <Image
+          src={
+            notification.metadata?.authorPicture ? (notification.metadata?.authorPicture as string) : defaultAvatarImage
+          }
+          alt=""
+          width={40}
+          height={40}
+          className={s.avatar}
+        />
       </div>
     );
   }

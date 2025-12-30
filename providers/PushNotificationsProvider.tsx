@@ -16,7 +16,7 @@ import {
 /**
  * Strips HTML markup from a string, returning plain text
  */
-function stripHtml(html: string | undefined | null): string {
+export function stripHtml(html: string | undefined | null): string {
   if (!html) return '';
   const div = document.createElement('div');
   div.innerHTML = html;

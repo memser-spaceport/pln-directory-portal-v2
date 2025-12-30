@@ -1,11 +1,10 @@
 import { useMedia } from 'react-use';
-import React, { Fragment } from 'react';
+import React from 'react';
 
 import { TopicResponse } from '@/services/forum/hooks/useForumPost';
 import { CommentsInputDesktop } from '@/components/page/forum/CommentsInputDesktop';
 import { IUserInfo } from '@/types/shared.types';
 
-import { NestedComment } from './types';
 import { nestComments } from './utils/nestComments';
 import { CommentItem } from './components/CommentItem';
 
@@ -36,30 +35,20 @@ export const PostComments = ({ comments, tid, mainPid, onReply, userInfo, timest
       </div>
 
       <div className={s.list}>
-        {nested.map((item) => {
-          return (
-            <Fragment key={item.pid}>
-              <CommentItem
-                userInfo={userInfo}
-                item={item}
-                onReply={
-                  isMobile
-                    ? () => {
-                        if (onReply) onReply(item.pid);
-                      }
-                    : undefined
-                }
-              />
-              {item.replies.length > 0 && (
-                <div className={s.repliesWrapper}>
-                  {item.replies.map((reply) => {
-                    return <CommentItem key={reply.pid} item={reply as NestedComment} isReply userInfo={userInfo} />;
-                  })}
-                </div>
-              )}
-            </Fragment>
-          );
-        })}
+        {nested.map((item) => (
+          <CommentItem
+            key={item.pid}
+            userInfo={userInfo}
+            item={item}
+            onReply={
+              isMobile
+                ? () => {
+                    if (onReply) onReply(item.pid);
+                  }
+                : undefined
+            }
+          />
+        ))}
       </div>
     </div>
   );

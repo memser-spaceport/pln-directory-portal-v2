@@ -205,3 +205,11 @@
   line-height: 16px; /* 133.333% */
   letter-spacing: -0.2px;
 }
+
+.repliesWrapper {
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 16px;
+}

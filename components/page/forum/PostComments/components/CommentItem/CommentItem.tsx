@@ -25,15 +25,19 @@ import { NestedComment } from '../../types';
 
 import s from './CommentItem.module.scss';
 
+const MAX_DEPTH = 2; // Support 3 levels: 0 (comment), 1 (reply), 2 (reply to reply)
+
 interface Props {
   item: NestedComment;
-  isReply?: boolean;
+  depth?: number;
   onReply?: (pid: number) => void;
   userInfo: IUserInfo;
 }
 
 export const CommentItem = (props: Props) => {
-  const { item, isReply, onReply, userInfo } = props;
+  const { item, depth = 0, onReply, userInfo } = props;
+  const isReply = depth > 0;
+  const canReply = depth < MAX_DEPTH;
 
   const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
@@ -168,7 +172,7 @@ export const CommentItem = (props: Props) => {
             isLiked={item.upvoted}
             timestamp={item.timestamp}
           />
-          {!isReply && (
+          {canReply && (
             <>
               <div className={s.subItem}>
                 <CommentIcon /> {item.replies.length} Replies
@@ -212,6 +216,15 @@ export const CommentItem = (props: Props) => {
             router.replace(`?${params.toString()}`, { scroll: false });
           }}
         />
+      )}
+
+      {/* Render nested replies */}
+      {item.replies.length > 0 && (
+        <div className={s.repliesWrapper}>
+          {item.replies.map((reply) => (
+            <CommentItem key={reply.pid} item={reply} depth={depth + 1} userInfo={userInfo} />
+          ))}
+        </div>
       )}
     </>
   );

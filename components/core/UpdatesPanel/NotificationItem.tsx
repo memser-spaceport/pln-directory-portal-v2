@@ -78,7 +78,8 @@ export function NotificationItem({ notification, onNotificationClick }: Notifica
               </p>
             )}
 
-            {notification.category === 'FORUM_POST' || notification.category === 'FORUM_REPLY' ? (
+            {(notification.category === 'FORUM_POST' || notification.category === 'FORUM_REPLY') &&
+            notification.metadata?.authorName ? (
               <div className={s.authorInfo}>
                 <div className={s.avatarWrapper}>
                   <Image

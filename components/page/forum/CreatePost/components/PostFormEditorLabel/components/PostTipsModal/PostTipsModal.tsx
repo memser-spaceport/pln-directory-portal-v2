@@ -34,27 +34,27 @@ export function PostTipsModal(props: Props) {
       }}
     >
       <div className={s.subtitle}>
-        Make Your Post Effective.
+        Make your post effective
         <br />
         Follow these guidelines to garner useful responses.
       </div>
       <section className={s.tips}>
         <div className={s.tipsList}>
-          <SingleTip Icon={PencilSimpleLineIcon} title="Write a specific title.">
+          <SingleTip Icon={PencilSimpleLineIcon} title="Write a specific title">
             Compare &quot;Need help&quot; vs &quot;How to price B2B SaaS for mid-market customers?&quot; — the second
             one immediately tells people what you&apos;re asking.
           </SingleTip>
 
-          <SingleTip Icon={PushPinIcon} title="Provide context.">
+          <SingleTip Icon={PushPinIcon} title="Provide context">
             Share your stage, industry, what you&apos;ve tried, and any constraints. The more context, the better the
             responses.
           </SingleTip>
 
-          <SingleTip Icon={QuestionCircleStrokeIcon} title="Ask one main question.">
+          <SingleTip Icon={QuestionCircleStrokeIcon} title="Ask one main question">
             Focus each post on a single topic for clearer, more useful discussion.
           </SingleTip>
 
-          <SingleTip Icon={ArrowsInCardinalIcon} title="Be specific about what you need.">
+          <SingleTip Icon={ArrowsInCardinalIcon} title="Be specific about what you need">
             Are you looking for tactical advice, introductions, validation, or general perspectives?
           </SingleTip>
 
@@ -67,9 +67,9 @@ export function PostTipsModal(props: Props) {
             </ul>
           </SingleTip>
 
-          <SingleTip Icon={HandsPrayingIcon} title="Communication.">
-            Thank people who help you. Share back. When you get helpful responses, circle back later to share what you
-            decided and how it worked out.
+          <SingleTip Icon={HandsPrayingIcon} title="Share back">
+            Thank people who help you. When you get helpful responses, circle back later to share what you decided and
+            how it worked out.
           </SingleTip>
         </div>
       </section>

@@ -19,6 +19,7 @@ import { useForumAnalytics } from '@/analytics/forum.analytics';
 import Link from 'next/link';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
+import { processPostContent } from '@/components/page/forum/Post';
 
 interface Props {
   tid: number;
@@ -170,27 +171,44 @@ const CommentItem = ({
           />
         ) : (
           <div className={s.postContent}>
-            <Linkify
-              componentDecorator={(decoratedHref, decoratedText, key) => {
-                // Check if it's an email address
-                const isEmail = decoratedHref.startsWith('mailto:') || decoratedText.includes('@');
+            {(() => {
+              // Process the post content to handle markdown images
+              const { processedContent, imageUrls } = processPostContent(item.content);
 
-                return (
-                  <a
-                    href={isEmail ? `mailto:${decoratedText}` : decoratedHref}
-                    key={key}
-                    target={isEmail ? '_self' : '_blank'}
-                    rel={isEmail ? undefined : 'noopener noreferrer'}
-                    className={s.autoLink}
-                    title={isEmail ? `Send email to ${decoratedText}` : `Open ${decoratedHref}`}
-                  >
-                    {decoratedText}
-                  </a>
-                );
-              }}
-            >
-              {parse(item.content)}
-            </Linkify>
+              return (
+                <Linkify
+                  componentDecorator={(decoratedHref, decoratedText, key) => {
+                    // Check if it's an email address
+                    const isEmail = decoratedHref.startsWith('mailto:') || decoratedText.includes('@');
+
+                    // Check if this URL is an image URL that should be excluded from linking
+                    const isImageUrl = imageUrls.some(
+                      (imageUrl) => decoratedHref.includes(imageUrl) || decoratedText.includes(imageUrl),
+                    );
+
+                    // If it's an image URL, return the text without making it a link
+                    if (isImageUrl) {
+                      return <span key={key}>{decoratedText}</span>;
+                    }
+
+                    return (
+                      <a
+                        href={isEmail ? `mailto:${decoratedText}` : decoratedHref}
+                        key={key}
+                        target={isEmail ? '_self' : '_blank'}
+                        rel={isEmail ? undefined : 'noopener noreferrer'}
+                        className={s.autoLink}
+                        title={isEmail ? `Send email to ${decoratedText}` : `Open ${decoratedHref}`}
+                      >
+                        {decoratedText}
+                      </a>
+                    );
+                  }}
+                >
+                  {parse(processedContent)}
+                </Linkify>
+              );
+            })()}
           </div>
         )}
         <div className={s.sub}>

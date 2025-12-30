@@ -12,6 +12,31 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '@/services/push-notifications.service';
+import { processPostContent } from '@/components/page/forum/Post';
+
+/**
+ * Strips HTML markup from a string, returning plain text
+ */
+export function stripHtml(html: string | undefined | null): string {
+  if (!html) return '';
+
+  const { processedContent } = processPostContent(html);
+
+  const div = document.createElement('div');
+  div.innerHTML = processedContent;
+  return div.textContent || div.innerText || '';
+}
+
+/**
+ * Sanitizes notification title and description by removing HTML markup
+ */
+function sanitizeNotification<T extends { title?: string; description?: string }>(notification: T): T {
+  return {
+    ...notification,
+    title: stripHtml(notification.title),
+    description: stripHtml(notification.description),
+  };
+}
 
 interface PushNotificationsContextValue {
   notifications: PushNotification[];
@@ -45,10 +70,12 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     try {
       const data = await getNotifications(authToken, { limit: 50 });
       setNotifications(
-        data.notifications.map((n) => ({
-          ...n,
-          id: n.uid ?? n.id, // Normalize id field
-        })),
+        data.notifications.map((n) =>
+          sanitizeNotification({
+            ...n,
+            id: n.uid ?? n.id, // Normalize id field
+          }),
+        ),
       );
       setUnreadCount(data.unreadCount);
     } catch (err) {
@@ -66,13 +93,14 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
 
   // Handle new notification from WebSocket
   const handleNewNotification = useCallback((notification: PushNotification) => {
+    const sanitized = sanitizeNotification(notification);
     setNotifications((prev) => {
       // Avoid duplicates
-      const notificationId = notification.id;
+      const notificationId = sanitized.id;
       if (prev.some((n) => n.id === notificationId)) {
         return prev;
       }
-      return [{ ...notification, isRead: false }, ...prev];
+      return [{ ...sanitized, isRead: false }, ...prev];
     });
     setUnreadCount((prev) => prev + 1);
   }, []);
@@ -82,7 +110,7 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     if (payload.status === 'read') {
       setNotifications((prev) => prev.map((n) => (n.id === payload.id ? { ...n, isRead: true } : n)));
       // Recalculate unread count to stay in sync
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      // setUnreadCount((prev) => Math.max(0, prev - 1));
     } else if (payload.status === 'deleted') {
       setNotifications((prev) => {
         const notification = prev.find((n) => n.id === payload.id);

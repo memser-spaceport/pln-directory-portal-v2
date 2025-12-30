@@ -22,20 +22,6 @@ export function EventIcon() {
   );
 }
 
-export function ForumIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M17.4167 5.51051H5.51051C4.91384 5.51051 4.38293 6.04142 4.38293 6.63809V15.3714C4.38293 15.9681 4.91384 16.499 5.51051 16.499H8.87718L11.4635 19.0854L14.0498 16.499H17.4167C18.0134 16.499 18.5443 15.9681 18.5443 15.3714V6.63809C18.5443 6.04142 18.0134 5.51051 17.4167 5.51051Z"
-        stroke="#1B4DFF"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 export function SystemIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">

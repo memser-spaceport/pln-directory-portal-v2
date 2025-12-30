@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { usePushNotificationsContext } from '@/providers/PushNotificationsProvider';
+import { stripHtml, usePushNotificationsContext } from '@/providers/PushNotificationsProvider';
 import { useInfiniteNotifications } from '@/services/push-notifications/hooks';
 import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import { authStatus } from '@/components/core/login/utils/authStatus';
@@ -13,14 +13,34 @@ import { LoadingIndicator } from './LoadingIndicator';
 import { NotLoggedInState } from '@/components/core/UpdatesPanel/NotLoggedInState';
 import s from './RecentUpdatesSection.module.scss';
 
+/**
+ * Sanitizes notification title and description by removing HTML markup
+ */
+function sanitizeNotification(notification: PushNotification): PushNotification {
+  return {
+    ...notification,
+    title: stripHtml(notification.title),
+    description: stripHtml(notification.description),
+  };
+}
+
 export function RecentUpdatesSection() {
   const isLoggedIn = authStatus.isLoggedIn();
-  const { markAsRead } = usePushNotificationsContext();
+  const { markAsRead, unreadCount: globalUnreadCount } = usePushNotificationsContext();
   const analytics = useNotificationAnalytics();
-  const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, unreadCount } =
+  const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, unreadCount, refetch } =
     useInfiniteNotifications({
       enabled: isLoggedIn,
     });
+
+  // Sanitize notifications to remove HTML markup from title and description
+  const sanitizedNotifications = useMemo(() => notifications.map(sanitizeNotification), [notifications]);
+
+  useEffect(() => {
+    if (globalUnreadCount !== unreadCount) {
+      void refetch();
+    }
+  }, [globalUnreadCount, unreadCount, refetch]);
 
   const handleNotificationClick = (notification: PushNotification) => {
     analytics.onRecentUpdatesNotificationClicked(notification);
@@ -67,19 +87,19 @@ export function RecentUpdatesSection() {
     <section id="recent-updates" className={s.section}>
       {renderHeader()}
       <div className={s.card}>
-        {notifications.length === 0 ? (
+        {sanitizedNotifications.length === 0 ? (
           <EmptyState />
         ) : (
           <InfiniteScroll
             scrollableTarget="body"
             loader={null}
             hasMore={hasNextPage}
-            dataLength={notifications.length}
+            dataLength={sanitizedNotifications.length}
             next={fetchNextPage}
             style={{ overflow: 'unset' }}
           >
             <div className={s.notificationsList}>
-              {notifications.map((notification) => (
+              {sanitizedNotifications.map((notification) => (
                 <NotificationItem
                   key={notification.id}
                   notification={notification}

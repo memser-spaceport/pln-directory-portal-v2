@@ -36,6 +36,7 @@ export function UpdatesPanel({
     if (!notification.isRead) {
       onMarkAsRead(notification.id);
     }
+    onClose();
   };
 
   const handleViewAllClick = () => {

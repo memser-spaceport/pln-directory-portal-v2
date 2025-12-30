@@ -668,6 +668,18 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.1 - Forum Notifications',
+    tag: 'Improvements',
+    date: '30, Dec 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Engagement Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum notifications</span> - Receive in-app notifications for new forum posts, comments, replies, and trending discussions to stay connected with community conversations.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.0 - In-App Notifications & Navigation Updates',
     tag: 'New Feature',
     date: '26, Dec 2025',

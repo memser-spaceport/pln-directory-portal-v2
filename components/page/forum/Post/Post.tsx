@@ -32,7 +32,7 @@ import { ADMIN_ROLE } from '@/utils/constants';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 
 // Function to process markdown images and prepare content for Linkify
-const processPostContent = (content: string) => {
+export const processPostContent = (content: string) => {
   // Regex to match markdown images: ![alt text](url)
   const markdownImageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
   const imageUrls: string[] = [];

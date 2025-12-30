@@ -14,30 +14,6 @@ interface NotificationItemProps {
 }
 
 function getNotificationIcon(notification: PushNotification) {
-  const defaultAvatarImage = notification?.metadata?.authorUid
-    ? getDefaultAvatar(notification.metadata.authorUid as string)
-    : '';
-
-  // If notification has an image (user avatar), show it
-  if (
-    (notification.category === 'FORUM_POST' || notification.category === 'FORUM_REPLY') &&
-    (notification.metadata?.authorPicture || defaultAvatarImage)
-  ) {
-    return (
-      <div className={s.avatarWrapper}>
-        <Image
-          src={
-            notification.metadata?.authorPicture ? (notification.metadata?.authorPicture as string) : defaultAvatarImage
-          }
-          alt=""
-          width={40}
-          height={40}
-          className={s.avatar}
-        />
-      </div>
-    );
-  }
-
   // Otherwise show category icon
   switch (notification.category) {
     case 'DEMO_DAY_LIKE':
@@ -101,6 +77,25 @@ export function NotificationItem({ notification, onNotificationClick }: Notifica
                   )}
               </p>
             )}
+
+            {notification.category === 'FORUM_POST' || notification.category === 'FORUM_REPLY' ? (
+              <div className={s.authorInfo}>
+                <div className={s.avatarWrapper}>
+                  <Image
+                    src={
+                      notification.metadata?.authorPicture
+                        ? (notification.metadata?.authorPicture as string)
+                        : getDefaultAvatar((notification?.metadata?.authorUid as string) ?? '')
+                    }
+                    alt=""
+                    width={40}
+                    height={40}
+                    className={s.avatar}
+                  />
+                </div>
+                <div>by {(notification?.metadata?.authorName as string) ?? 'Unknown'}</div>
+              </div>
+            ) : null}
           </div>
         </div>
         <div className={s.notificationFooter}>

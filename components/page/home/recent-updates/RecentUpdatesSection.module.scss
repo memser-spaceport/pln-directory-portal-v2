@@ -302,3 +302,20 @@
     visibility: hidden;
   }
 }
+
+.authorInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #455468;
+}
+
+.avatarWrapper {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+}

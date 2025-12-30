@@ -7,6 +7,7 @@ import { DemoDayIcon, EventIcon, ForumIcon, SystemIcon } from './icons';
 import { formatTime, getCategoryLabel, getActionText } from './utils';
 import s from './UpdatesPanel.module.scss';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { processPostContent } from '@/components/page/forum/Post';
 
 interface NotificationItemProps {
   notification: PushNotification;

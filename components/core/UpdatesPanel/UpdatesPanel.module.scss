@@ -328,11 +328,20 @@
   box-shadow: inset 0px -1px 4px 0px rgba(27, 77, 255, 0.08);
 }
 
+.authorInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #455468;
+}
+
 .avatarWrapper {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 9999px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   overflow: hidden;
 }
 

@@ -31,11 +31,11 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem | undefined
   
   const pageMap: Record<string, { activeItem: PlaaActiveItem; title: string }> = {
     'overview': { activeItem: 'overview', title: 'Overview' },
+    'incentive-model': { activeItem: 'incentive-model', title: 'Incentive Model' },
     'terms-of-use': { activeItem: 'terms-of-use', title: 'Terms of Use' },
     'privacy-policy': { activeItem: 'privacy-policy', title: 'Privacy Policy' },
     'product-versions': { activeItem: 'product-versions', title: 'Product Versions' },
     'faqs': { activeItem: 'faqs', title: 'FAQ' },
-    
   };
 
   return pageMap[pathSegment] || pageMap['overview'];

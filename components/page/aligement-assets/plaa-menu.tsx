@@ -10,7 +10,7 @@ import PlaaRoundSelector from './plaa-round-selector';
    Figma: https://www.figma.com/design/xrvyUEqgZ0oRNT0spUruMW/Untitled?node-id=1-5250
    ========================================================================== */
 
-export type PlaaActiveItem = 'overview' | 'terms-of-use' | 'privacy-policy' | 'product-versions' | 'faqs';
+export type PlaaActiveItem = 'overview' | 'incentive-model' | 'terms-of-use' | 'privacy-policy' | 'product-versions' | 'faqs';
 
 interface PlaaMenuProps {
   activeItem?: PlaaActiveItem;
@@ -21,6 +21,7 @@ interface PlaaMenuProps {
 
 const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string }> = [
   { name: 'overview', label: 'Overview', url: '/alignment-assets/overview' },
+  { name: 'incentive-model', label: 'Incentive Model', url: '/alignment-assets/incentive-model' },
   { name: 'product-versions', label: 'Product Versions', url: '/alignment-assets/product-versions' },
   { name: 'faqs', label: 'FAQ', url: '/alignment-assets/faqs' },
   { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-assets/terms-of-use' },

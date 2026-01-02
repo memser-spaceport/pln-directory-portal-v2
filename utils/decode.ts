@@ -1,3 +1,5 @@
+import MentionBlot from '@/components/ui/RichTextEditor/MentionBlot';
+
 export function decodeHtml(html: string): string {
   const txt = document.createElement('textarea');
   txt.innerHTML = html;
@@ -29,6 +31,11 @@ export function extractTextWithImages(input: string): string {
 
       if (el.tagName.toLowerCase() === 'img') {
         return el.outerHTML; // keep <img> as-is
+      }
+
+      // Preserve user mention links
+      if (el.tagName.toLowerCase() === 'a' && el.classList.contains(MentionBlot.className)) {
+        return el.outerHTML;
       }
 
       let result = '';

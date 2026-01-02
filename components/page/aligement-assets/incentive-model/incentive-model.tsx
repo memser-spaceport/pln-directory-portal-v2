@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Radar,
   RadarChart,
@@ -13,90 +13,116 @@ import {
 import SupportSection from '../rounds/sections/support-section';
 import Link from 'next/link';
 
-// Mock data matching the Figma design exactly
-// Categories in order: Projects (top), Brand, Programs, Network Tooling, People/Talent, Knowledge
-const chartData = {
-  'round-1': {
-    'february-2025': [
-      { category: 'Projects', points: 16500, tokens: 1450 },
-      { category: 'Brand', points: 11000, tokens: 1350 },
-      { category: 'Programs', points: 8000, tokens: 1200 },
-      { category: 'Network Tooling', points: 5000, tokens: 950 },
-      { category: 'People/Talent', points: 7500, tokens: 1100 },
-      { category: 'Knowledge', points: 9000, tokens: 1300 },
-    ],
-    'march-2025': [
-      { category: 'Projects', points: 3145, tokens: 1603 },
-      { category: 'Brand', points: 10000, tokens: 1400 },
-      { category: 'Programs', points: 12000, tokens: 1200 },
-      { category: 'Network Tooling', points: 6000, tokens: 1000 },
-      { category: 'People/Talent', points: 8500, tokens: 1300 },
-      { category: 'Knowledge', points: 8000, tokens: 1250 },
-    ],
-    'april-2025': [
-      { category: 'Projects', points: 14000, tokens: 1500 },
-      { category: 'Brand', points: 12000, tokens: 1350 },
-      { category: 'Programs', points: 9500, tokens: 1250 },
-      { category: 'Network Tooling', points: 7000, tokens: 1050 },
-      { category: 'People/Talent', points: 10000, tokens: 1400 },
-      { category: 'Knowledge', points: 11000, tokens: 1450 },
-    ],
-    'may-2025': [
-      { category: 'Projects', points: 17500, tokens: 1550 },
-      { category: 'Brand', points: 13500, tokens: 1450 },
-      { category: 'Programs', points: 11000, tokens: 1300 },
-      { category: 'Network Tooling', points: 8000, tokens: 1100 },
-      { category: 'People/Talent', points: 12000, tokens: 1420 },
-      { category: 'Knowledge', points: 14000, tokens: 1600 },
-    ],
-  },
-  'round-2': {
-    'february-2025': [
-      { category: 'Projects', points: 15000, tokens: 1400 },
-      { category: 'Brand', points: 10000, tokens: 1300 },
-      { category: 'Programs', points: 7500, tokens: 1150 },
-      { category: 'Network Tooling', points: 4500, tokens: 900 },
-      { category: 'People/Talent', points: 7000, tokens: 1050 },
-      { category: 'Knowledge', points: 8500, tokens: 1250 },
-    ],
-    'march-2025': [
-      { category: 'Projects', points: 2800, tokens: 1500 },
-      { category: 'Brand', points: 9500, tokens: 1350 },
-      { category: 'Programs', points: 11000, tokens: 1150 },
-      { category: 'Network Tooling', points: 5500, tokens: 950 },
-      { category: 'People/Talent', points: 8000, tokens: 1250 },
-      { category: 'Knowledge', points: 7500, tokens: 1200 },
-    ],
-    'april-2025': [
-      { category: 'Projects', points: 13000, tokens: 1450 },
-      { category: 'Brand', points: 11500, tokens: 1300 },
-      { category: 'Programs', points: 9000, tokens: 1200 },
-      { category: 'Network Tooling', points: 6500, tokens: 1000 },
-      { category: 'People/Talent', points: 9500, tokens: 1350 },
-      { category: 'Knowledge', points: 10500, tokens: 1400 },
-    ],
-    'may-2025': [
-      { category: 'Projects', points: 16000, tokens: 1500 },
-      { category: 'Brand', points: 13000, tokens: 1400 },
-      { category: 'Programs', points: 10500, tokens: 1250 },
-      { category: 'Network Tooling', points: 7500, tokens: 1050 },
-      { category: 'People/Talent', points: 11500, tokens: 1380 },
-      { category: 'Knowledge', points: 13500, tokens: 1550 },
-    ],
-  },
+// Define all rounds (each round = one month)
+const allRounds = [
+  { id: 1, month: 'February 2025' },
+  { id: 2, month: 'March 2025' },
+  { id: 3, month: 'April 2025' },
+  { id: 4, month: 'May 2025' },
+  { id: 5, month: 'June 2025' },
+  { id: 6, month: 'July 2025' },
+  { id: 7, month: 'August 2025' },
+  { id: 8, month: 'September 2025' },
+  { id: 9, month: 'October 2025' },
+  { id: 10, month: 'November 2025' },
+  { id: 11, month: 'December 2025' },
+];
+
+// Current round (for "Go to current round" functionality)
+const CURRENT_ROUND = 11; // December 2025
+const TOTAL_ROUNDS = 11;
+
+// Mock data for each round (month)
+const chartDataByRound: Record<number, Array<{ category: string; points: number; tokens: number }>> = {
+  1: [
+    { category: 'Projects', points: 16500, tokens: 1450 },
+    { category: 'Brand', points: 11000, tokens: 1350 },
+    { category: 'Programs', points: 8000, tokens: 1200 },
+    { category: 'Network Tooling', points: 5000, tokens: 950 },
+    { category: 'People/Talent', points: 7500, tokens: 1100 },
+    { category: 'Knowledge', points: 9000, tokens: 1300 },
+  ],
+  2: [
+    { category: 'Projects', points: 3145, tokens: 1603 },
+    { category: 'Brand', points: 10000, tokens: 1400 },
+    { category: 'Programs', points: 12000, tokens: 1200 },
+    { category: 'Network Tooling', points: 6000, tokens: 1000 },
+    { category: 'People/Talent', points: 8500, tokens: 1300 },
+    { category: 'Knowledge', points: 8000, tokens: 1250 },
+  ],
+  3: [
+    { category: 'Projects', points: 14000, tokens: 1500 },
+    { category: 'Brand', points: 12000, tokens: 1350 },
+    { category: 'Programs', points: 9500, tokens: 1250 },
+    { category: 'Network Tooling', points: 7000, tokens: 1050 },
+    { category: 'People/Talent', points: 10000, tokens: 1400 },
+    { category: 'Knowledge', points: 11000, tokens: 1450 },
+  ],
+  4: [
+    { category: 'Projects', points: 17500, tokens: 1550 },
+    { category: 'Brand', points: 13500, tokens: 1450 },
+    { category: 'Programs', points: 11000, tokens: 1300 },
+    { category: 'Network Tooling', points: 8000, tokens: 1100 },
+    { category: 'People/Talent', points: 12000, tokens: 1420 },
+    { category: 'Knowledge', points: 14000, tokens: 1600 },
+  ],
+  5: [
+    { category: 'Projects', points: 15000, tokens: 1400 },
+    { category: 'Brand', points: 10000, tokens: 1300 },
+    { category: 'Programs', points: 7500, tokens: 1150 },
+    { category: 'Network Tooling', points: 4500, tokens: 900 },
+    { category: 'People/Talent', points: 7000, tokens: 1050 },
+    { category: 'Knowledge', points: 8500, tokens: 1250 },
+  ],
+  6: [
+    { category: 'Projects', points: 2800, tokens: 1500 },
+    { category: 'Brand', points: 9500, tokens: 1350 },
+    { category: 'Programs', points: 11000, tokens: 1150 },
+    { category: 'Network Tooling', points: 5500, tokens: 950 },
+    { category: 'People/Talent', points: 8000, tokens: 1250 },
+    { category: 'Knowledge', points: 7500, tokens: 1200 },
+  ],
+  7: [
+    { category: 'Projects', points: 13000, tokens: 1450 },
+    { category: 'Brand', points: 11500, tokens: 1300 },
+    { category: 'Programs', points: 9000, tokens: 1200 },
+    { category: 'Network Tooling', points: 6500, tokens: 1000 },
+    { category: 'People/Talent', points: 9500, tokens: 1350 },
+    { category: 'Knowledge', points: 10500, tokens: 1400 },
+  ],
+  8: [
+    { category: 'Projects', points: 16000, tokens: 1500 },
+    { category: 'Brand', points: 13000, tokens: 1400 },
+    { category: 'Programs', points: 10500, tokens: 1250 },
+    { category: 'Network Tooling', points: 7500, tokens: 1050 },
+    { category: 'People/Talent', points: 11500, tokens: 1380 },
+    { category: 'Knowledge', points: 13500, tokens: 1550 },
+  ],
+  9: [
+    { category: 'Projects', points: 14500, tokens: 1420 },
+    { category: 'Brand', points: 12500, tokens: 1380 },
+    { category: 'Programs', points: 10000, tokens: 1220 },
+    { category: 'Network Tooling', points: 7000, tokens: 1020 },
+    { category: 'People/Talent', points: 11000, tokens: 1360 },
+    { category: 'Knowledge', points: 13000, tokens: 1520 },
+  ],
+  10: [
+    { category: 'Projects', points: 15500, tokens: 1480 },
+    { category: 'Brand', points: 11500, tokens: 1340 },
+    { category: 'Programs', points: 9500, tokens: 1180 },
+    { category: 'Network Tooling', points: 6500, tokens: 980 },
+    { category: 'People/Talent', points: 10500, tokens: 1320 },
+    { category: 'Knowledge', points: 12500, tokens: 1480 },
+  ],
+  11: [
+    { category: 'Projects', points: 16500, tokens: 1520 },
+    { category: 'Brand', points: 12000, tokens: 1360 },
+    { category: 'Programs', points: 10500, tokens: 1240 },
+    { category: 'Network Tooling', points: 7500, tokens: 1040 },
+    { category: 'People/Talent', points: 11500, tokens: 1400 },
+    { category: 'Knowledge', points: 13500, tokens: 1560 },
+  ],
 };
-
-const months = [
-  { id: 'february-2025', label: 'February 2025' },
-  { id: 'march-2025', label: 'March 2025' },
-  { id: 'april-2025', label: 'April 2025' },
-  { id: 'may-2025', label: 'May 2025' },
-];
-
-const rounds = [
-  { id: 'round-1', label: 'Round 1' },
-  { id: 'round-2', label: 'Round 2' },
-];
 
 // Custom tooltip component with inline styles
 const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ value: number; dataKey: string; payload: { category: string; points: number; tokens: number } }> }) => {
@@ -208,10 +234,40 @@ const renderRadiusAxisTick = ({ payload, x, y }: { payload: { value: number }; x
 };
 
 export default function IncentiveModel() {
-  const [selectedRound, setSelectedRound] = useState<'round-1' | 'round-2'>('round-1');
-  const [selectedMonth, setSelectedMonth] = useState('march-2025');
+  const [selectedRound, setSelectedRound] = useState(CURRENT_ROUND);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const currentData = chartData[selectedRound][selectedMonth as keyof typeof chartData['round-1']];
+  const currentData = chartDataByRound[selectedRound] || chartDataByRound[1];
+  const currentRoundInfo = allRounds.find(r => r.id === selectedRound);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handlePrevRound = () => {
+    if (selectedRound > 1) {
+      setSelectedRound(selectedRound - 1);
+    }
+  };
+
+  const handleNextRound = () => {
+    if (selectedRound < TOTAL_ROUNDS) {
+      setSelectedRound(selectedRound + 1);
+    }
+  };
+
+  const handleGoToCurrentRound = () => {
+    setSelectedRound(CURRENT_ROUND);
+    setIsDropdownOpen(false);
+  };
 
   return (
     <>
@@ -240,38 +296,114 @@ export default function IncentiveModel() {
           <div className="incentive-model__chart-header">
             <div className="incentive-model__chart-info">
               <h2 className="incentive-model__chart-title">
-                Total Alignment Asset Points & Tokens Collected by Category
+                Total Alignment Asset Points &amp; Tokens Collected by Category
               </h2>
               <p className="incentive-model__chart-subtitle">
                 v0.1 - February 2025 - May 2025
               </p>
             </div>
             
-            {/* Round Selector */}
-            <div className="incentive-model__round-selector">
-              {rounds.map((round) => (
-                <button
-                  key={round.id}
-                  className={`incentive-model__round-btn ${selectedRound === round.id ? 'incentive-model__round-btn--active' : ''}`}
-                  onClick={() => setSelectedRound(round.id as 'round-1' | 'round-2')}
+            {/* Round Selector Dropdown */}
+            <div className="incentive-model__round-dropdown-wrapper" ref={dropdownRef}>
+              <button
+                className="incentive-model__round-dropdown-btn"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
+                {/* Gradient decoration */}
+                <div className="incentive-model__round-btn-gradient" />
+                <span>{selectedRound === CURRENT_ROUND ? 'Current Round' : `Round ${selectedRound}`}</span>
+                <svg 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 16 16" 
+                  fill="none" 
+                  style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}
                 >
-                  {round.label}
-                </button>
-              ))}
+                  <path 
+                    d="M4 6L8 10L12 6" 
+                    stroke="#64748B" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+
+              {/* Dropdown Popover */}
+              {isDropdownOpen && (
+                <div className="incentive-model__round-popover">
+                  <div className="incentive-model__round-nav-row">
+                    <span className="incentive-model__round-label">Round</span>
+                    <div className="incentive-model__round-nav-controls">
+                      <button 
+                        className="incentive-model__round-nav-arrow"
+                        onClick={handlePrevRound}
+                        disabled={selectedRound <= 1}
+                        aria-label="Previous round"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <path 
+                            d="M10 12L6 8L10 4" 
+                            stroke={selectedRound <= 1 ? '#94A3B8' : '#64748B'} 
+                            strokeWidth="1.5" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                      <div className="incentive-model__round-number-box">
+                        <span>{selectedRound}</span>
+                      </div>
+                      <button 
+                        className="incentive-model__round-nav-arrow"
+                        onClick={handleNextRound}
+                        disabled={selectedRound >= TOTAL_ROUNDS}
+                        aria-label="Next round"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <path 
+                            d="M6 4L10 8L6 12" 
+                            stroke={selectedRound >= TOTAL_ROUNDS ? '#94A3B8' : '#64748B'} 
+                            strokeWidth="1.5" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                    <span className="incentive-model__round-of-text">
+                      <span className="incentive-model__round-of-label">of</span>
+                      <span className="incentive-model__round-total">{TOTAL_ROUNDS}</span>
+                    </span>
+                  </div>
+                  
+                  <div className="incentive-model__round-divider" />
+                  
+                  <button 
+                    className="incentive-model__go-to-current"
+                    onClick={handleGoToCurrentRound}
+                  >
+                    <span>Go to current round</span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path 
+                        d="M2.5 6H9.5M9.5 6L6 2.5M9.5 6L6 9.5" 
+                        stroke="#156FF7" 
+                        strokeWidth="1.5" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Month Tabs */}
-          <div className="incentive-model__month-tabs">
-            {months.map((month) => (
-              <button
-                key={month.id}
-                className={`incentive-model__month-tab ${selectedMonth === month.id ? 'incentive-model__month-tab--active' : ''}`}
-                onClick={() => setSelectedMonth(month.id)}
-              >
-                {month.label}
-              </button>
-            ))}
+          {/* Current Month Display */}
+          <div className="incentive-model__current-month">
+            <span className="incentive-model__current-month-label">
+              Showing data for: <strong>{currentRoundInfo?.month || 'February 2025'}</strong>
+            </span>
           </div>
         </section>
 
@@ -444,75 +576,206 @@ export default function IncentiveModel() {
           margin: 0;
         }
 
-        /* Round Selector */
-        .incentive-model__round-selector {
-          display: flex;
-          background: white;
-          border: 1px solid #e2e8f0;
-          border-radius: 8px;
-          padding: 4px;
-          overflow: hidden;
+        /* Round Selector Dropdown */
+        .incentive-model__round-dropdown-wrapper {
+          position: relative;
         }
 
-        .incentive-model__round-btn {
-          padding: 10px 24px;
+        .incentive-model__round-dropdown-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 12px 24px;
+          background: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
           font-family: 'Inter', sans-serif;
           font-size: 14px;
           font-weight: 500;
           color: #0f172a;
-          background: transparent;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.2s ease;
           line-height: 20px;
+          transition: all 0.2s ease;
+          min-width: 166px;
+          height: 48px;
+          position: relative;
+          overflow: hidden;
+          z-index: 1;
         }
 
-        .incentive-model__round-btn:hover {
+        .incentive-model__round-dropdown-btn::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 8px;
+          padding: 1px;
+          background: linear-gradient(71.47deg, #427DFF 8.43%, #44D5BB 87.45%);
+          -webkit-mask: 
+            linear-gradient(#fff 0 0) content-box, 
+            linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          pointer-events: none;
+          z-index: -1;
+        }
+
+        .incentive-model__round-btn-gradient {
+          position: absolute;
+          top: -32px;
+          right: -10px;
+          width: 100px;
+          height: 90px;
+          background: radial-gradient(ellipse at center, rgba(66, 125, 255, 0.15) 0%, rgba(66, 125, 255, 0.08) 30%, rgba(68, 213, 187, 0.08) 50%, transparent 70%);
+          transform: rotate(-30deg);
+          pointer-events: none;
+          filter: blur(10px);
+          z-index: 0;
+        }
+
+        .incentive-model__round-dropdown-btn:hover {
+          background: rgba(255, 255, 255, 0.95);
+        }
+
+        .incentive-model__round-popover {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          background: white;
+          border-radius: 4px;
+          padding: 8px;
+          box-shadow: 0px 2px 6px 0px #0F172A29;
+          z-index: 100;
+          min-width: 173px;
+        }
+
+        .incentive-model__round-nav-row {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          height: 36px;
+        }
+
+        .incentive-model__round-label {
+          font-family: 'Inter', sans-serif;
+          font-size: 12px;
+          font-weight: 500;
+          color: #475569;
+          line-height: normal;
+        }
+
+        .incentive-model__round-nav-controls {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .incentive-model__round-nav-arrow {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          transition: opacity 0.2s ease;
+        }
+
+        .incentive-model__round-nav-arrow:disabled {
+          cursor: not-allowed;
+          opacity: 0.5;
+        }
+
+        .incentive-model__round-nav-arrow:not(:disabled):hover {
+          opacity: 0.7;
+        }
+
+        .incentive-model__round-number-box {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 30px;
+          height: 24px;
+          padding: 0 10px;
+          border: 1px solid #e2e8f0;
+          border-radius: 4px;
+          font-family: 'Inter', sans-serif;
+          font-size: 12px;
+          font-weight: 500;
+          color: #0f172a;
+          line-height: normal;
+        }
+
+        .incentive-model__round-of-text {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-family: 'Inter', sans-serif;
+          font-size: 12px;
+          font-weight: 500;
+          line-height: normal;
+        }
+
+        .incentive-model__round-of-label {
+          color: #475569;
+        }
+
+        .incentive-model__round-total {
+          color: #0f172a;
+        }
+
+        .incentive-model__round-divider {
+          height: 1px;
+          background: #e2e8f0;
+          margin: 6px 0;
+        }
+
+        .incentive-model__go-to-current {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          width: 100%;
+          height: 36px;
+          padding: 8px;
+          background: transparent;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-family: 'Inter', sans-serif;
+          font-size: 12px;
+          font-weight: 500;
+          color: #475569;
+          line-height: normal;
+          transition: background 0.2s ease;
+        }
+
+        .incentive-model__go-to-current:hover {
           background: #f8fafc;
         }
 
-        .incentive-model__round-btn--active {
-          background: #156ff7;
-          color: white;
-          border: 1px solid #cbd5e1;
+        .incentive-model__go-to-current svg {
+          flex-shrink: 0;
         }
 
-        .incentive-model__round-btn--active:hover {
-          background: #1260d9;
-        }
-
-        /* Month Tabs */
-        .incentive-model__month-tabs {
+        /* Current Month Display */
+        .incentive-model__current-month {
           display: flex;
-          border-bottom: 1px solid #e2e8f0;
-          padding-top: 8px;
-          margin-top: 72px;
+          padding-top: 16px;
+          margin-top: 16px;
         }
 
-        .incentive-model__month-tab {
-          flex: 1;
-          padding: 10px 32px;
+        .incentive-model__current-month-label {
           font-family: 'Inter', sans-serif;
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 400;
           color: #64748b;
-          background: transparent;
-          border: none;
-          border-bottom: 3px solid transparent;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          line-height: 20px;
+          line-height: 22px;
         }
 
-        .incentive-model__month-tab:hover {
-          color: #0f172a;
-        }
-
-        .incentive-model__month-tab--active {
+        .incentive-model__current-month-label strong {
           font-weight: 600;
           color: #0f172a;
-          border-bottom-color: #156ff7;
         }
 
         /* Chart Content */
@@ -656,29 +919,11 @@ export default function IncentiveModel() {
           .incentive-model__chart-header {
             flex-direction: column;
             align-items: flex-start;
+            gap: 16px;
           }
 
           .incentive-model__chart-title {
             font-size: 16px;
-          }
-
-          .incentive-model__month-tabs {
-            overflow-x: auto;
-            margin-top: 40px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-          }
-
-          .incentive-model__month-tabs::-webkit-scrollbar {
-            display: none;
-          }
-
-          .incentive-model__month-tab {
-            flex: none;
-            padding: 10px 16px;
-            font-size: 14px;
-            white-space: nowrap;
           }
 
           .incentive-model__chart-content {
@@ -689,20 +934,37 @@ export default function IncentiveModel() {
             flex-wrap: wrap;
           }
 
-          .incentive-model__round-btn {
-            padding: 8px 16px;
+          .incentive-model__round-dropdown-btn {
+            padding: 10px 16px;
             font-size: 13px;
+            min-width: 140px;
+            height: 42px;
+          }
+
+          .incentive-model__round-popover {
+            right: 0;
+            left: auto;
           }
         }
 
         @media (max-width: 480px) {
-          .incentive-model__month-tabs {
-            justify-content: flex-start;
-          }
-
           .incentive-model__chart-wrapper {
             min-width: 100%;
             height: 400px;
+          }
+
+          .incentive-model__round-dropdown-wrapper {
+            width: 100%;
+          }
+
+          .incentive-model__round-dropdown-btn {
+            width: 100%;
+          }
+
+          .incentive-model__round-popover {
+            left: 0;
+            right: 0;
+            min-width: auto;
           }
         }
 

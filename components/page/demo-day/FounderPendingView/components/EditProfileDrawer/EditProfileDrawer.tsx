@@ -465,7 +465,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   }, [data?.founders]);
 
   return (
-    <Drawer isOpen={isOpen} onClose={onClose} width={780}>
+    <Drawer isOpen={isOpen} onClose={onClose} width={850}>
       {/* Header */}
       <div className={s.drawerHeader}>
         <div className={s.breadcrumbs}>
@@ -694,11 +694,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
               <>✉️ Make an Intro</>
             )}
           </button>
-          <button
-            className={s.feedbackButton}
-            onClick={() => setIsFeedbackModalOpen(true)}
-            disabled={!data?.uid}
-          >
+          <button className={s.feedbackButton} onClick={() => setIsFeedbackModalOpen(true)} disabled={!data?.uid}>
             📝 Give Feedback
           </button>
           <button

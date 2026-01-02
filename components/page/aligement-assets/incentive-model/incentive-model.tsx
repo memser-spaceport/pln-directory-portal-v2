@@ -1,15 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-  Tooltip,
-} from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import SupportSection from '../rounds/sections/support-section';
 import Link from 'next/link';
 
@@ -125,27 +117,40 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
 };
 
 // Custom tooltip component with inline styles
-const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ value: number; dataKey: string; payload: { category: string; points: number; tokens: number } }> }) => {
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ value: number; dataKey: string; payload: { category: string; points: number; tokens: number } }>;
+}) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div style={{
-        background: 'white',
-        border: '1px solid #e1e1e1',
-        borderRadius: '8px',
-        padding: '16px',
-        boxShadow: '0px 9px 27px -7px rgba(15, 34, 67, 0.16), 0px 1px 3px 0px rgba(15, 34, 67, 0.12), 0px 0px 1px 0px rgba(15, 34, 67, 0.16)',
-        display: 'flex',
-        flexDirection: 'column' as const,
-        gap: '8px',
-      }}>
+      <div
+        style={{
+          background: 'white',
+          border: '1px solid #e1e1e1',
+          borderRadius: '8px',
+          padding: '16px',
+          boxShadow:
+            '0px 9px 27px -7px rgba(15, 34, 67, 0.16), 0px 1px 3px 0px rgba(15, 34, 67, 0.12), 0px 0px 1px 0px rgba(15, 34, 67, 0.16)',
+          display: 'flex',
+          flexDirection: 'column' as const,
+          gap: '8px',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#44d5bb' }} />
-          <span style={{ fontSize: '14px', color: '#475569', lineHeight: '20px' }}>{data.points.toLocaleString()} Points collected</span>
+          <span style={{ fontSize: '14px', color: '#475569', lineHeight: '20px' }}>
+            {data.points.toLocaleString()} Points collected
+          </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#156ff7' }} />
-          <span style={{ fontSize: '14px', color: '#475569', lineHeight: '20px' }}>{data.tokens.toLocaleString()} AA tokens</span>
+          <span style={{ fontSize: '14px', color: '#475569', lineHeight: '20px' }}>
+            {data.tokens.toLocaleString()} AA tokens
+          </span>
         </div>
       </div>
     );
@@ -154,20 +159,32 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<
 };
 
 // Custom tick for category labels
-const renderPolarAngleAxisTick = ({ payload, x, y, cx, cy }: { payload: { value: string }; x: number; y: number; cx: number; cy: number }) => {
+const renderPolarAngleAxisTick = ({
+  payload,
+  x,
+  y,
+  cx,
+  cy,
+}: {
+  payload: { value: string };
+  x: number;
+  y: number;
+  cx: number;
+  cy: number;
+}) => {
   const category = payload.value;
-  
+
   // Calculate the angle for positioning
   const angle = Math.atan2(y - cy, x - cx);
   const offsetDistance = 20;
   const newX = x + Math.cos(angle) * offsetDistance;
   const newY = y + Math.sin(angle) * offsetDistance;
-  
+
   // Determine text anchor based on position
   let textAnchor: 'start' | 'middle' | 'end' = 'middle';
   if (x > cx + 10) textAnchor = 'start';
   else if (x < cx - 10) textAnchor = 'end';
-  
+
   return (
     <text
       x={newX}
@@ -184,9 +201,7 @@ const renderPolarAngleAxisTick = ({ payload, x, y, cx, cy }: { payload: { value:
 // Helper function to get the top category (lowest points = highest token potential)
 const getTopCategory = (data: Array<{ category: string; points: number; tokens: number }>) => {
   if (!data || data.length === 0) return 'N/A';
-  const topCategory = data.reduce((min, item) => 
-    item.points < min.points ? item : min
-  , data[0]);
+  const topCategory = data.reduce((min, item) => (item.points < min.points ? item : min), data[0]);
   return topCategory.category;
 };
 
@@ -194,12 +209,12 @@ const getTopCategory = (data: Array<{ category: string; points: number; tokens: 
 const renderRadiusAxisTick = ({ payload, x, y }: { payload: { value: number }; x: number; y: number }) => {
   const value = payload.value;
   const formattedValue = value === 0 ? '0' : value.toLocaleString();
-  
+
   // Estimate text width for background
   const textWidth = formattedValue.length * 8 + 12;
   const textHeight = 24;
   const filterId = `shadow-${value}`;
-  
+
   return (
     <g>
       <defs>
@@ -220,13 +235,7 @@ const renderRadiusAxisTick = ({ payload, x, y }: { payload: { value: number }; x
         strokeWidth={1}
         filter={`url(#${filterId})`}
       />
-      <text
-        x={x}
-        y={y}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        style={{ fontSize: '14px', fill: '#4b5563' }}
-      >
+      <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" style={{ fontSize: '14px', fill: '#4b5563' }}>
         {formattedValue}
       </text>
     </g>
@@ -239,7 +248,7 @@ export default function IncentiveModel() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const currentData = chartDataByRound[selectedRound] || chartDataByRound[1];
-  const currentRoundInfo = allRounds.find(r => r.id === selectedRound);
+  const currentRoundInfo = allRounds.find((r) => r.id === selectedRound);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -277,16 +286,25 @@ export default function IncentiveModel() {
           <h1 className="incentive-model__title">Incentive Model</h1>
           <div className="incentive-model__description">
             <p>
-              Participants <Link href="/alignment-assets/rounds" className="incentive-model__link">collect points</Link> by completing verified activities that benefit the network each month. Points are collected during the snapshot period, and those points determine the number of tokens allocated to each contributor—with an available pool of up to 10,000 tokens issued per snapshot period.
+              Participants{' '}
+              <Link href="/alignment-assets/rounds" className="incentive-model__link">
+                collect points
+              </Link>{' '}
+              by completing verified activities that benefit the network each month. Points are collected during the
+              snapshot period, and those points determine the number of tokens allocated to each contributor—with an
+              available pool of up to 10,000 tokens issued per snapshot period.
             </p>
             <p>
-              Each category receives a fixed allocation of monthly tokens, and participants receive a portion based on the points they collect in that category.
+              Each category receives a fixed allocation of monthly tokens, and participants receive a portion based on
+              the points they collect in that category.
             </p>
             <p>
-              When more people contribute in the same category, the token pool is more widely distributed; when activity is lower in a category, more tokens are available per contributor.
+              When more people contribute in the same category, the token pool is more widely distributed; when activity
+              is lower in a category, more tokens are available per contributor.
             </p>
             <p>
-              Available token amounts and allocations may also shift between snapshot periods as the experiment adapts to network activity and evolving needs.
+              Available token amounts and allocations may also shift between snapshot periods as the experiment adapts
+              to network activity and evolving needs.
             </p>
           </div>
         </section>
@@ -299,10 +317,10 @@ export default function IncentiveModel() {
                 Total Alignment Asset Points &amp; Tokens Collected by Category
               </h2>
               <p className="incentive-model__chart-subtitle">
-                v0.1 - February 2025 - May 2025
+                Showing data for: {currentRoundInfo?.month || 'February 2025'}
               </p>
             </div>
-            
+
             {/* Round Selector Dropdown */}
             <div className="incentive-model__round-dropdown-wrapper" ref={dropdownRef}>
               <button
@@ -312,18 +330,21 @@ export default function IncentiveModel() {
                 {/* Gradient decoration */}
                 <div className="incentive-model__round-btn-gradient" />
                 <span>{selectedRound === CURRENT_ROUND ? 'Current Round' : `Round ${selectedRound}`}</span>
-                <svg 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 16 16" 
-                  fill="none" 
-                  style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  style={{
+                    transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                  }}
                 >
-                  <path 
-                    d="M4 6L8 10L12 6" 
-                    stroke="#64748B" 
-                    strokeWidth="1.5" 
-                    strokeLinecap="round" 
+                  <path
+                    d="M4 6L8 10L12 6"
+                    stroke="#64748B"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </svg>
@@ -335,18 +356,18 @@ export default function IncentiveModel() {
                   <div className="incentive-model__round-nav-row">
                     <span className="incentive-model__round-label">Round</span>
                     <div className="incentive-model__round-nav-controls">
-                      <button 
+                      <button
                         className="incentive-model__round-nav-arrow"
                         onClick={handlePrevRound}
                         disabled={selectedRound <= 1}
                         aria-label="Previous round"
                       >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path 
-                            d="M10 12L6 8L10 4" 
-                            stroke={selectedRound <= 1 ? '#94A3B8' : '#64748B'} 
-                            strokeWidth="1.5" 
-                            strokeLinecap="round" 
+                          <path
+                            d="M10 12L6 8L10 4"
+                            stroke={selectedRound <= 1 ? '#94A3B8' : '#64748B'}
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
                             strokeLinejoin="round"
                           />
                         </svg>
@@ -354,18 +375,18 @@ export default function IncentiveModel() {
                       <div className="incentive-model__round-number-box">
                         <span>{selectedRound}</span>
                       </div>
-                      <button 
+                      <button
                         className="incentive-model__round-nav-arrow"
                         onClick={handleNextRound}
                         disabled={selectedRound >= TOTAL_ROUNDS}
                         aria-label="Next round"
                       >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path 
-                            d="M6 4L10 8L6 12" 
-                            stroke={selectedRound >= TOTAL_ROUNDS ? '#94A3B8' : '#64748B'} 
-                            strokeWidth="1.5" 
-                            strokeLinecap="round" 
+                          <path
+                            d="M6 4L10 8L6 12"
+                            stroke={selectedRound >= TOTAL_ROUNDS ? '#94A3B8' : '#64748B'}
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
                             strokeLinejoin="round"
                           />
                         </svg>
@@ -376,20 +397,17 @@ export default function IncentiveModel() {
                       <span className="incentive-model__round-total">{TOTAL_ROUNDS}</span>
                     </span>
                   </div>
-                  
+
                   <div className="incentive-model__round-divider" />
-                  
-                  <button 
-                    className="incentive-model__go-to-current"
-                    onClick={handleGoToCurrentRound}
-                  >
+
+                  <button className="incentive-model__go-to-current" onClick={handleGoToCurrentRound}>
                     <span>Go to current round</span>
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path 
-                        d="M2.5 6H9.5M9.5 6L6 2.5M9.5 6L6 9.5" 
-                        stroke="#156FF7" 
-                        strokeWidth="1.5" 
-                        strokeLinecap="round" 
+                      <path
+                        d="M2.5 6H9.5M9.5 6L6 2.5M9.5 6L6 9.5"
+                        stroke="#156FF7"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
                         strokeLinejoin="round"
                       />
                     </svg>
@@ -400,11 +418,11 @@ export default function IncentiveModel() {
           </div>
 
           {/* Current Month Display */}
-          <div className="incentive-model__current-month">
+          {/* <div className="incentive-model__current-month">
             <span className="incentive-model__current-month-label">
               Showing data for: <strong>{currentRoundInfo?.month || 'February 2025'}</strong>
             </span>
-          </div>
+          </div> */}
         </section>
 
         {/* Chart and Legend Section */}
@@ -412,11 +430,7 @@ export default function IncentiveModel() {
           <div className="incentive-model__chart-wrapper">
             <ResponsiveContainer width="100%" height={600}>
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={currentData}>
-                <PolarGrid 
-                  stroke="#e2e8f0" 
-                  gridType="polygon"
-                  radialLines={false}
-                />
+                <PolarGrid stroke="#e2e8f0" gridType="polygon" radialLines={false} />
                 <PolarRadiusAxis
                   angle={90}
                   domain={[0, 20000]}
@@ -425,11 +439,7 @@ export default function IncentiveModel() {
                   axisLine={false}
                   orientation="middle"
                 />
-                <PolarAngleAxis
-                  dataKey="category"
-                  tick={renderPolarAngleAxisTick}
-                  tickLine={false}
-                />
+                <PolarAngleAxis dataKey="category" tick={renderPolarAngleAxisTick} tickLine={false} />
                 <Radar
                   name="Points"
                   dataKey="points"
@@ -466,18 +476,31 @@ export default function IncentiveModel() {
 
             {/* Explanation List */}
             <ol className="incentive-model__explanation">
-              <li>Each category shows the points collected and tokens distributed for the selected month&apos;s snapshot.</li>
-              <li>More points collected in a category = fewer tokens allocated per contributor in that category. Lower activity in a category = larger token amounts per contributor.</li>
-              <li>Toggle between months (and rounds) to see how activity and allocations shift over time, and hover over any point to view exact values. Green = points; blue = tokens.</li>
+              <li>
+                Each category shows the points collected and tokens distributed for the selected month&apos;s snapshot.
+              </li>
+              <li>
+                More points collected in a category = fewer tokens allocated per contributor in that category. Lower
+                activity in a category = larger token amounts per contributor.
+              </li>
+              <li>
+                Toggle between months (and rounds) to see how activity and allocations shift over time, and hover over
+                any point to view exact values. Green = points; blue = tokens.
+              </li>
             </ol>
 
             {/* Tip Card */}
             <div className="incentive-model__tip-card">
               <p className="incentive-model__tip-title">
-                Top category this snapshot: <span className="incentive-model__tip-category">{getTopCategory(currentData)}</span>.
+                Top category this snapshot:{' '}
+                <span className="incentive-model__tip-category">{getTopCategory(currentData)}</span>.
               </p>
               <p className="incentive-model__tip-text">
-                👉 <Link href="/alignment-assets/rounds" className="incentive-model__tip-link">View</Link> which categories offer the highest token potential today.
+                👉{' '}
+                <Link href="/alignment-assets/rounds" className="incentive-model__tip-link">
+                  View
+                </Link>{' '}
+                which categories offer the highest token potential today.
               </p>
             </div>
           </div>
@@ -488,7 +511,12 @@ export default function IncentiveModel() {
           <div className="incentive-model__learn-more-wrapper">
             <div className="incentive-model__learn-more-container">
               <p className="incentive-model__learn-more-text">
-                <Link href="/alignment-assets/faqs#point-to-token-conversion" className="incentive-model__learn-more-link">Learn more</Link>
+                <Link
+                  href="/alignment-assets/faqs#point-to-token-conversion"
+                  className="incentive-model__learn-more-link"
+                >
+                  Learn more
+                </Link>
                 <span className="incentive-model__learn-more-body"> about how points convert to tokens</span>
               </p>
             </div>
@@ -610,9 +638,9 @@ export default function IncentiveModel() {
           inset: 0;
           border-radius: 8px;
           padding: 1px;
-          background: linear-gradient(71.47deg, #427DFF 8.43%, #44D5BB 87.45%);
-          -webkit-mask: 
-            linear-gradient(#fff 0 0) content-box, 
+          background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+          -webkit-mask:
+            linear-gradient(#fff 0 0) content-box,
             linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor;
           mask-composite: exclude;
@@ -626,7 +654,13 @@ export default function IncentiveModel() {
           right: -10px;
           width: 100px;
           height: 90px;
-          background: radial-gradient(ellipse at center, rgba(66, 125, 255, 0.15) 0%, rgba(66, 125, 255, 0.08) 30%, rgba(68, 213, 187, 0.08) 50%, transparent 70%);
+          background: radial-gradient(
+            ellipse at center,
+            rgba(66, 125, 255, 0.15) 0%,
+            rgba(66, 125, 255, 0.08) 30%,
+            rgba(68, 213, 187, 0.08) 50%,
+            transparent 70%
+          );
           transform: rotate(-30deg);
           pointer-events: none;
           filter: blur(10px);
@@ -644,7 +678,7 @@ export default function IncentiveModel() {
           background: white;
           border-radius: 4px;
           padding: 8px;
-          box-shadow: 0px 2px 6px 0px #0F172A29;
+          box-shadow: 0px 2px 6px 0px #0f172a29;
           z-index: 100;
           min-width: 173px;
         }
@@ -1006,7 +1040,7 @@ export default function IncentiveModel() {
           .incentive-model__learn-more-container {
             padding: 12px 16px;
           }
-          
+
           .incentive-model__learn-more-text {
             font-size: 14px;
             white-space: normal;

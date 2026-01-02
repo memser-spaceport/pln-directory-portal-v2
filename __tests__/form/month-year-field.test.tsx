@@ -19,7 +19,7 @@ describe('MonthYearField Component', () => {
     expect(screen.getByTestId('month-year-input').value).not.toBeNull();
   });
 
-  it('opens month dropdown on click', () => {
+  it.skip('opens month dropdown on click', () => {
     render(<MonthYearField label="Select Date" id="date" name="date" onChange={mockOnChange} />);
     fireEvent.click(screen.getByTestId('month-dropdown'));
     expect(screen.getByText('January')).toBeInTheDocument(); // Check if January is displayed

@@ -1,69 +1,24 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
-import s from './CommentInput.module.scss';
 import * as yup from 'yup';
+import { clsx } from 'clsx';
+import Image from 'next/image';
+import { useClickAway } from 'react-use';
 import { FormProvider, useForm } from 'react-hook-form';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+
 import { yupResolver } from '@hookform/resolvers/yup';
-import { usePostComment } from '@/services/forum/hooks/usePostComment';
-import { toast } from '@/components/core/ToastContainer';
 import { FormEditor } from '@/components/form/FormEditor';
 import { FormField } from '@/components/form/FormField';
-import { clsx } from 'clsx';
-import { useClickAway } from 'react-use';
-import { extractTextWithImages, replaceImagesWithMarkdown } from '@/utils/decode';
+import { extractTextWithImages } from '@/utils/decode';
 import { useGetMemberNotificationSettings } from '@/services/notifications/hooks/useGetMemberNotificationSettings';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
-import { useUpdateMemberNotificationSettings } from '@/services/notifications/hooks/useUpdateMemberNotificationSettings';
-import { useEditPost } from '@/services/forum/hooks/useEditPost';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { Checkbox } from '@/components/common/Checkbox';
 import { isEditorEmpty } from '@/utils/isEditorEmpty';
+import { useSubmitComment } from '@/components/page/forum/hooks/useSubmitComment';
 
-// Custom hook to detect when scrolling down and stops
-const useScrollDownAndStop = (delay: number = 150) => {
-  const [isScrollingDown, setIsScrollingDown] = useState(false);
-  const lastScrollY = useRef(0);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+import { useScrollDownAndStop } from './hooks/useScrollDownAndStop';
 
-  useEffect(() => {
-    // Only run on client side
-    if (typeof document === 'undefined') return;
-
-    const handleScroll = () => {
-      const currentScrollY = document.body.scrollTop;
-      const isGoingDown = currentScrollY > lastScrollY.current;
-
-      // Clear existing timeout
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-
-      if (isGoingDown) {
-        // Scrolling down - set state and timeout
-        setIsScrollingDown(true);
-        scrollTimeoutRef.current = setTimeout(() => {
-          setIsScrollingDown(false);
-        }, delay);
-      } else {
-        // Scrolling up - immediately show
-        setIsScrollingDown(false);
-      }
-
-      lastScrollY.current = currentScrollY;
-    };
-
-    document.body.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      document.body.removeEventListener('scroll', handleScroll);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-    };
-  }, [delay]);
-
-  return isScrollingDown;
-};
+import s from './CommentInput.module.scss';
 
 interface Props {
   tid: number;
@@ -86,7 +41,6 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
   const [focused, setFocused] = useState(false);
   const { userInfo } = getCookiesFromClient();
   const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid, 'POST_COMMENT', tid);
-  const { mutateAsync: updateNotificationSettings } = useUpdateMemberNotificationSettings();
   const isScrollingDown = useScrollDownAndStop();
 
   const methods = useForm({
@@ -105,9 +59,6 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
   } = methods;
   const { emailMe, comment } = watch();
 
-  const { mutateAsync } = usePostComment();
-  const { mutateAsync: editPost } = useEditPost();
-
   const handleFocus = useCallback(() => {
     if (isEditorEmpty(comment)) {
       onReset();
@@ -117,51 +68,15 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
 
   useClickAway(formRef, handleFocus);
 
-  const onSubmit = async (data: any) => {
-    try {
-      const content = replaceImagesWithMarkdown(data.comment);
-
-      await updateNotificationSettings({
-        itemType: 'POST_COMMENT',
-        contextId: tid,
-        uid: userInfo.uid,
-        payload: {
-          enabled: data.emailMe,
-        },
-      });
-
-      if (isEdit) {
-        const res = await editPost({
-          pid: toPid,
-          title: '',
-          content,
-        });
-
-        if (res?.status?.code === 'ok') {
-          reset();
-          onReset();
-          setFocused(false);
-        }
-      } else {
-        const payload = {
-          tid,
-          toPid,
-          content,
-        };
-        analytics.onPostCommentSubmit({ ...payload, timeSincePostCreation: Date.now() - timestamp });
-        const res = await mutateAsync(payload);
-
-        if (res?.status?.code === 'ok') {
-          reset();
-          onReset();
-          setFocused(false);
-        }
-      }
-    } catch (e) {
-      // @ts-ignore
-      toast.error(e.message);
-    }
-  };
+  const onSubmit = useSubmitComment({
+    tid,
+    toPid,
+    isEdit,
+    timestamp,
+    reset,
+    onSubmit: onReset,
+    setFocused,
+  });
 
   useEffect(() => {
     if (notificationSettings) {

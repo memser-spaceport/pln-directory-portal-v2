@@ -29,6 +29,7 @@ export function getCategoryLabel(category: PushNotification['category']): string
     case 'DEMO_DAY_FEEDBACK':
       return 'Demo Day';
     case 'EVENT':
+    case 'IRL_GATHERING':
       return 'Events';
     case 'FORUM_POST':
     case 'FORUM_REPLY':
@@ -50,6 +51,8 @@ export function getActionText(category: PushNotification['category']): string {
       return 'View more';
     case 'EVENT':
       return 'View event';
+    case 'IRL_GATHERING':
+      return 'Learn more';
     case 'FORUM_POST':
       return 'Read more';
     case 'FORUM_REPLY':

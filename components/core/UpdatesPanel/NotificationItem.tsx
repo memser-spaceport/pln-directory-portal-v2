@@ -3,15 +3,18 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { clsx } from 'clsx';
 import { PushNotification } from '@/types/push-notifications.types';
-import { DemoDayIcon, EventIcon, ForumIcon, SystemIcon } from './icons';
+import { DemoDayIcon, EventIcon, ForumIcon, SystemIcon, ArrowRightIcon } from './icons';
 import { formatTime, getCategoryLabel, getActionText } from './utils';
 import s from './UpdatesPanel.module.scss';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { processPostContent } from '@/components/page/forum/Post';
 
 interface NotificationItemProps {
   notification: PushNotification;
   onNotificationClick: (notification: PushNotification) => void;
+  /** Variant controls styling differences between panel and page views */
+  variant?: 'panel' | 'page';
+  /** Callback for IRL_GATHERING notifications to open modal instead of navigating */
+  onIrlGatheringClick?: (notification: PushNotification) => void;
 }
 
 function getNotificationIcon(notification: PushNotification) {
@@ -29,6 +32,7 @@ function getNotificationIcon(notification: PushNotification) {
         </div>
       );
     case 'EVENT':
+    case 'IRL_GATHERING':
       return (
         <div className={s.iconWrapper}>
           <EventIcon />
@@ -51,15 +55,24 @@ function getNotificationIcon(notification: PushNotification) {
   }
 }
 
-export function NotificationItem({ notification, onNotificationClick }: NotificationItemProps) {
-  return (
-    <Link
-      href={(!notification.link?.startsWith('/') ? `/${notification.link}` : notification.link) || '#'}
-      className={clsx(s.notificationItem, {
-        [s.unread]: !notification.isRead,
-      })}
-      onClick={() => onNotificationClick(notification)}
-    >
+export function NotificationItem({
+  notification,
+  onNotificationClick,
+  variant = 'panel',
+  onIrlGatheringClick,
+}: NotificationItemProps) {
+  const isIrlGathering = notification.category === 'IRL_GATHERING';
+
+  const handleClick = (e: React.MouseEvent) => {
+    onNotificationClick(notification);
+    if (isIrlGathering && onIrlGatheringClick) {
+      e.preventDefault();
+      onIrlGatheringClick(notification);
+    }
+  };
+
+  const content = (
+    <>
       {getNotificationIcon(notification)}
       <div className={s.notificationContent}>
         <div className={s.textSection}>
@@ -98,11 +111,38 @@ export function NotificationItem({ notification, onNotificationClick }: Notifica
                 <div>by {(notification?.metadata?.authorName as string) ?? 'Unknown'}</div>
               </div>
             ) : null}
+
+            {/* Attendees row for EVENT and IRL_GATHERING notifications */}
+            {(notification.category === 'EVENT' || notification.category === 'IRL_GATHERING') &&
+            notification.metadata?.attendees ? (
+              <div className={s.attendeesRow}>
+                <div className={s.attendeesAvatarGroup}>
+                  {(notification.metadata.attendees as Array<{ uid: string; picture?: string }>)
+                    .slice(0, 3)
+                    .map((attendee, index) => (
+                      <div key={attendee.uid || index} className={s.attendeeAvatar}>
+                        <Image
+                          src={attendee.picture || getDefaultAvatar(attendee.uid || '')}
+                          alt=""
+                          width={20}
+                          height={20}
+                        />
+                      </div>
+                    ))}
+                </div>
+                <span className={s.attendeesCount}>{notification.metadata.attendeesCount as number} People going</span>
+              </div>
+            ) : null}
           </div>
         </div>
         <div className={s.notificationFooter}>
           <span className={s.timestamp}>{formatTime(notification.createdAt)}</span>
-          {notification.link && <span className={s.actionLink}>{getActionText(notification.category)}</span>}
+          {(notification.link || isIrlGathering) && (
+            <span className={s.actionLink}>
+              {getActionText(notification.category)}
+              {variant === 'page' && <ArrowRightIcon />}
+            </span>
+          )}
         </div>
       </div>
       <div
@@ -110,6 +150,39 @@ export function NotificationItem({ notification, onNotificationClick }: Notifica
           [s.hidden]: notification.isRead,
         })}
       />
+    </>
+  );
+
+  // For IRL_GATHERING with modal handler, use a div instead of Link
+  if (isIrlGathering && onIrlGatheringClick) {
+    return (
+      <div
+        className={clsx(s.notificationItem, {
+          [s.unread]: !notification.isRead,
+        })}
+        onClick={handleClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            handleClick(e as unknown as React.MouseEvent);
+          }
+        }}
+      >
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={(!notification.link?.startsWith('/') ? `/${notification.link}` : notification.link) || '#'}
+      className={clsx(s.notificationItem, {
+        [s.unread]: !notification.isRead,
+      })}
+      onClick={handleClick}
+    >
+      {content}
     </Link>
   );
 }

@@ -16,13 +16,14 @@ interface Props extends PropsWithChildren {
   onClick?: () => void;
   autoFocus?: boolean;
   className?: string;
+  enableMentions?: boolean;
   classes?: {
     label?: string;
   };
 }
 
 export const FormEditor = (props: Props) => {
-  const { name, label, classes, description, disabled, isRequired, autoFocus, className } = props;
+  const { name, label, classes, description, disabled, isRequired, autoFocus, className, enableMentions = true } = props;
 
   const {
     setValue,
@@ -49,6 +50,7 @@ export const FormEditor = (props: Props) => {
         disabled={disabled}
         value={value}
         autoFocus={autoFocus}
+        enableMentions={enableMentions}
         onChange={(txt) => setValue(name, txt, { shouldValidate: true, shouldDirty: true })}
         className={clsx(className, {
           [s.error]: !!errors[name],

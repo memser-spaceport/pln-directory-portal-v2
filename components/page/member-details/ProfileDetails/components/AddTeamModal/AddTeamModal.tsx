@@ -1,9 +1,11 @@
 'use client';
 
+import * as yup from 'yup';
+import isEmpty from 'lodash/isEmpty';
 import React, { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { FormField } from '@/components/form/FormField';
@@ -24,13 +26,12 @@ const addTeamSchema = yup.object({
   teamName: yup.string().required('Team name is required'),
   websiteAddress: yup
     .string()
-    .optional()
-    .defined()
-    .test('is-valid-url', 'Please enter a valid URL', function (value) {
-      // Only validate if the field is populated
-      if (!value || value.trim().length === 0) {
+    .default('')
+    .test('is-valid-url', 'Please enter a valid URL', (value) => {
+      if (isEmpty(value.trim())) {
         return true; // Valid if empty
       }
+
       return urlRegex.test(value); // Validate URL format if populated
     }),
 });
@@ -133,7 +134,7 @@ export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: P
               <Button type="button" style="border" onClick={handleClose} disabled={isSubmitting}>
                 Cancel
               </Button>
-              <Button type="submit" style="fill" disabled={isSubmitting || !methods.formState.isValid}>
+              <Button type="submit" style="fill" disabled={isSubmitting}>
                 {isSubmitting ? 'Submitting...' : 'Add Team'}
               </Button>
             </div>

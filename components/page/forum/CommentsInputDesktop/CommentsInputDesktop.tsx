@@ -1,24 +1,21 @@
+import * as yup from 'yup';
+import { clsx } from 'clsx';
+import { useClickAway } from 'react-use';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { FormProvider, useForm } from 'react-hook-form';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import s from './CommentsInputDesktop.module.scss';
-import { FormProvider, useForm } from 'react-hook-form';
 import { FormEditor } from '@/components/form/FormEditor';
-import { usePostComment } from '@/services/forum/hooks/usePostComment';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import { toast } from '@/components/core/ToastContainer';
-import { extractTextWithImages, replaceImagesWithMarkdown } from '@/utils/decode';
+import { extractTextWithImages } from '@/utils/decode';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useGetMemberNotificationSettings } from '@/services/notifications/hooks/useGetMemberNotificationSettings';
-import { useUpdateMemberNotificationSettings } from '@/services/notifications/hooks/useUpdateMemberNotificationSettings';
-import { useClickAway } from 'react-use';
 import { FormField } from '@/components/form/FormField';
-import { useEditPost } from '@/services/forum/hooks/useEditPost';
-import { clsx } from 'clsx';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
-import { ADMIN_ROLE } from '@/utils/constants';
 import { Checkbox } from '@/components/common/Checkbox';
 import { isEditorEmpty } from '@/utils/isEditorEmpty';
+import { useSubmitComment } from '@/components/page/forum/hooks/useSubmitComment';
+
+import s from './CommentsInputDesktop.module.scss';
 
 interface Props {
   tid: number;
@@ -38,25 +35,15 @@ const schema = yup.object().shape({
   emailMe: yup.boolean(),
 });
 
-export const CommentsInputDesktop = ({
-  tid,
-  toPid,
-  itemUid,
-  replyToName,
-  onCancel,
-  isReply,
-  initialFocused,
-  isEdit,
-  initialContent,
-  timestamp,
-}: Props) => {
+export const CommentsInputDesktop = (props: Props) => {
+  const { tid, toPid, itemUid, replyToName, onCancel, isReply, initialFocused, isEdit, initialContent, timestamp } =
+    props;
+
   const analytics = useForumAnalytics();
   const ref = useRef<HTMLFormElement | null>(null);
   const { userInfo } = getCookiesFromClient();
   const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid, 'POST_COMMENT', tid);
-  const { mutateAsync: updateNotificationSettings } = useUpdateMemberNotificationSettings();
   const [focused, setFocused] = useState(initialFocused ?? false);
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
 
   const methods = useForm({
     defaultValues: {
@@ -74,9 +61,6 @@ export const CommentsInputDesktop = ({
   } = methods;
   const { emailMe, comment } = watch();
 
-  const { mutateAsync } = usePostComment();
-  const { mutateAsync: editPost } = useEditPost();
-
   const handleFocus = useCallback(() => {
     if (isEditorEmpty(comment)) {
       setFocused(false);
@@ -86,54 +70,16 @@ export const CommentsInputDesktop = ({
 
   useClickAway(ref, handleFocus);
 
-  const onSubmit = async (data: any) => {
-    try {
-      const content = replaceImagesWithMarkdown(data.comment);
-
-      await updateNotificationSettings({
-        itemType: 'POST_COMMENT',
-        contextId: tid,
-        uid: userInfo.uid,
-        payload: {
-          enabled: data.emailMe,
-        },
-      });
-
-      if (isEdit) {
-        const payload = {
-          uid: isAdmin ? itemUid : null,
-          pid: toPid,
-          title: '',
-          content,
-        };
-
-        const res = await editPost(payload);
-
-        if (res?.status?.code === 'ok') {
-          reset();
-          setFocused(false);
-          onCancel?.();
-        }
-      } else {
-        const payload = {
-          tid,
-          toPid,
-          content,
-        };
-        analytics.onPostCommentSubmit({ ...payload, timeSincePostCreation: Date.now() - timestamp });
-        const res = await mutateAsync(payload);
-
-        if (res?.status?.code === 'ok') {
-          reset();
-          setFocused(false);
-          onCancel?.();
-        }
-      }
-    } catch (e) {
-      // @ts-ignore
-      toast.error(e.message);
-    }
-  };
+  const onSubmit = useSubmitComment({
+    tid,
+    toPid,
+    isEdit,
+    itemUid,
+    timestamp,
+    reset,
+    onSubmit: onCancel,
+    setFocused,
+  });
 
   useEffect(() => {
     if (replyToName && ref.current && toPid) {

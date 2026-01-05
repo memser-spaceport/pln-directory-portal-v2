@@ -7,6 +7,7 @@ export * from './CheckIcon';
 export * from './MinusIcon';
 export * from './FolderIcon';
 export * from './SearchIcon';
+export * from './CommentIcon';
 export * from './PushPinIcon';
 export * from './SpinnerIcon';
 export * from './CalendarIcon';

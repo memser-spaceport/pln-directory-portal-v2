@@ -18,101 +18,122 @@ const allRounds = [
   { id: 9, month: 'October 2025' },
   { id: 10, month: 'November 2025' },
   { id: 11, month: 'December 2025' },
+  { id: 12, month: 'January 2026' },
 ];
 
 // Current round (for "Go to current round" functionality)
-const CURRENT_ROUND = 11; // December 2025
-const TOTAL_ROUNDS = 11;
+const CURRENT_ROUND = 12; // January 2026
+const TOTAL_ROUNDS = 12;
 
 // Mock data for each round (month)
 const chartDataByRound: Record<number, Array<{ category: string; points: number; tokens: number }>> = {
   1: [
-    { category: 'Projects', points: 16500, tokens: 1450 },
-    { category: 'Brand', points: 11000, tokens: 1350 },
-    { category: 'Programs', points: 8000, tokens: 1200 },
-    { category: 'Network Tooling', points: 5000, tokens: 950 },
-    { category: 'People/Talent', points: 7500, tokens: 1100 },
-    { category: 'Knowledge', points: 9000, tokens: 1300 },
+    { category: 'Projects', points: 2500, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 0, tokens: 0 },
+    { category: 'Network Tooling', points: 0, tokens: 0 },
+    { category: 'People/Talent', points: 0, tokens: 0 },
+    { category: 'Knowledge', points: 0, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   2: [
-    { category: 'Projects', points: 3145, tokens: 1603 },
-    { category: 'Brand', points: 10000, tokens: 1400 },
-    { category: 'Programs', points: 12000, tokens: 1200 },
-    { category: 'Network Tooling', points: 6000, tokens: 1000 },
-    { category: 'People/Talent', points: 8500, tokens: 1300 },
-    { category: 'Knowledge', points: 8000, tokens: 1250 },
+    { category: 'Projects', points: 14000, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 300, tokens: 0 },
+    { category: 'Network Tooling', points: 2600, tokens: 0 },
+    { category: 'People/Talent', points: 2100, tokens: 0 },
+    { category: 'Knowledge', points: 0, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   3: [
-    { category: 'Projects', points: 14000, tokens: 1500 },
-    { category: 'Brand', points: 12000, tokens: 1350 },
-    { category: 'Programs', points: 9500, tokens: 1250 },
-    { category: 'Network Tooling', points: 7000, tokens: 1050 },
-    { category: 'People/Talent', points: 10000, tokens: 1400 },
-    { category: 'Knowledge', points: 11000, tokens: 1450 },
+    { category: 'Projects', points: 9750, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 0, tokens: 0 },
+    { category: 'Network Tooling', points: 1000, tokens: 0 },
+    { category: 'People/Talent', points: 1500, tokens: 0 },
+    { category: 'Knowledge', points: 3000, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   4: [
-    { category: 'Projects', points: 17500, tokens: 1550 },
-    { category: 'Brand', points: 13500, tokens: 1450 },
-    { category: 'Programs', points: 11000, tokens: 1300 },
-    { category: 'Network Tooling', points: 8000, tokens: 1100 },
-    { category: 'People/Talent', points: 12000, tokens: 1420 },
-    { category: 'Knowledge', points: 14000, tokens: 1600 },
+    { category: 'Projects', points: 4600, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 500, tokens: 0 },
+    { category: 'Network Tooling', points: 600, tokens: 0 },
+    { category: 'People/Talent', points: 475, tokens: 0 },
+    { category: 'Knowledge', points: 4650, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   5: [
-    { category: 'Projects', points: 15000, tokens: 1400 },
-    { category: 'Brand', points: 10000, tokens: 1300 },
-    { category: 'Programs', points: 7500, tokens: 1150 },
-    { category: 'Network Tooling', points: 4500, tokens: 900 },
-    { category: 'People/Talent', points: 7000, tokens: 1050 },
-    { category: 'Knowledge', points: 8500, tokens: 1250 },
+    { category: 'Projects', points: 6150, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 0, tokens: 0 },
+    { category: 'Network Tooling', points: 0, tokens: 0 },
+    { category: 'People/Talent', points: 900, tokens: 0 },
+    { category: 'Knowledge', points: 2900, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   6: [
-    { category: 'Projects', points: 2800, tokens: 1500 },
-    { category: 'Brand', points: 9500, tokens: 1350 },
-    { category: 'Programs', points: 11000, tokens: 1150 },
-    { category: 'Network Tooling', points: 5500, tokens: 950 },
-    { category: 'People/Talent', points: 8000, tokens: 1250 },
-    { category: 'Knowledge', points: 7500, tokens: 1200 },
+    { category: 'Projects', points: 1850, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 600, tokens: 0 },
+    { category: 'Network Tooling', points: 1600, tokens: 0 },
+    { category: 'People/Talent', points: 0, tokens: 0 },
+    { category: 'Knowledge', points: 3950, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   7: [
-    { category: 'Projects', points: 13000, tokens: 1450 },
-    { category: 'Brand', points: 11500, tokens: 1300 },
-    { category: 'Programs', points: 9000, tokens: 1200 },
-    { category: 'Network Tooling', points: 6500, tokens: 1000 },
-    { category: 'People/Talent', points: 9500, tokens: 1350 },
-    { category: 'Knowledge', points: 10500, tokens: 1400 },
+    { category: 'Projects', points: 1100, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 6100, tokens: 0 },
+    { category: 'Network Tooling', points: 5200, tokens: 0 },
+    { category: 'People/Talent', points: 50, tokens: 0 },
+    { category: 'Knowledge', points: 1900, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   8: [
-    { category: 'Projects', points: 16000, tokens: 1500 },
-    { category: 'Brand', points: 13000, tokens: 1400 },
-    { category: 'Programs', points: 10500, tokens: 1250 },
-    { category: 'Network Tooling', points: 7500, tokens: 1050 },
-    { category: 'People/Talent', points: 11500, tokens: 1380 },
-    { category: 'Knowledge', points: 13500, tokens: 1550 },
+    { category: 'Projects', points: 2300, tokens: 0 },
+    { category: 'Brand', points: 1200, tokens: 0 },
+    { category: 'Programs', points: 300, tokens: 0 },
+    { category: 'Network Tooling', points: 4000, tokens: 0 },
+    { category: 'People/Talent', points: 650, tokens: 0 },
+    { category: 'Knowledge', points: 3000, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   9: [
-    { category: 'Projects', points: 14500, tokens: 1420 },
-    { category: 'Brand', points: 12500, tokens: 1380 },
-    { category: 'Programs', points: 10000, tokens: 1220 },
-    { category: 'Network Tooling', points: 7000, tokens: 1020 },
-    { category: 'People/Talent', points: 11000, tokens: 1360 },
-    { category: 'Knowledge', points: 13000, tokens: 1520 },
+    { category: 'Projects', points: 2550, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 1700, tokens: 0 },
+    { category: 'Network Tooling', points: 200, tokens: 0 },
+    { category: 'People/Talent', points: 600, tokens: 0 },
+    { category: 'Knowledge', points: 2350, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   10: [
-    { category: 'Projects', points: 15500, tokens: 1480 },
-    { category: 'Brand', points: 11500, tokens: 1340 },
-    { category: 'Programs', points: 9500, tokens: 1180 },
-    { category: 'Network Tooling', points: 6500, tokens: 980 },
-    { category: 'People/Talent', points: 10500, tokens: 1320 },
-    { category: 'Knowledge', points: 12500, tokens: 1480 },
+    { category: 'Projects', points: 2650, tokens: 0 },
+    { category: 'Brand', points: 600, tokens: 0 },
+    { category: 'Programs', points: 300, tokens: 0 },
+    { category: 'Network Tooling', points: 7700, tokens: 0 },
+    { category: 'People/Talent', points: 50, tokens: 0 },
+    { category: 'Knowledge', points: 1600, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   11: [
-    { category: 'Projects', points: 16500, tokens: 1520 },
-    { category: 'Brand', points: 12000, tokens: 1360 },
-    { category: 'Programs', points: 10500, tokens: 1240 },
-    { category: 'Network Tooling', points: 7500, tokens: 1040 },
-    { category: 'People/Talent', points: 11500, tokens: 1400 },
-    { category: 'Knowledge', points: 13500, tokens: 1560 },
+    { category: 'Projects', points: 400, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 600, tokens: 0 },
+    { category: 'Network Tooling', points: 400, tokens: 0 },
+    { category: 'People/Talent', points: 50, tokens: 0 },
+    { category: 'Knowledge', points: 300, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
+  ],
+  12: [
+    { category: 'Projects', points: 0, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 0, tokens: 0 },
+    { category: 'Network Tooling', points: 0, tokens: 0 },
+    { category: 'People/Talent', points: 0, tokens: 0 },
+    { category: 'Knowledge', points: 0, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
 };
 
@@ -250,6 +271,11 @@ export default function IncentiveModel() {
   const currentData = chartDataByRound[selectedRound] || chartDataByRound[1];
   const currentRoundInfo = allRounds.find((r) => r.id === selectedRound);
 
+  // Fixed domain based on analysis of all rounds' data
+  // Max value across all rounds: 14,000 (Round 2, Projects)
+  // Set to 15,000 to provide clear visualization with headroom
+  const CHART_DOMAIN_MAX = 15000;
+
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -287,7 +313,7 @@ export default function IncentiveModel() {
           <div className="incentive-model__description">
             <p>
               Participants{' '}
-              <Link href="/alignment-assets/rounds" className="incentive-model__link">
+              <Link href="/alignment-assets/activities" className="incentive-model__link">
                 collect points
               </Link>{' '}
               by completing verified activities that benefit the network each month. Points are collected during the
@@ -433,7 +459,7 @@ export default function IncentiveModel() {
                 <PolarGrid stroke="#e2e8f0" gridType="polygon" radialLines={false} />
                 <PolarRadiusAxis
                   angle={90}
-                  domain={[0, 20000]}
+                  domain={[0, CHART_DOMAIN_MAX]}
                   tick={renderRadiusAxisTick}
                   tickCount={5}
                   axisLine={false}

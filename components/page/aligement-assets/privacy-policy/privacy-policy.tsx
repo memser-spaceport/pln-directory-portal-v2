@@ -515,7 +515,7 @@ export default function PrivacyPolicyPage() {
                   Privacy Policy.
                 </p>
                 <p className="privacy-policy__content__paragraph">
-                  This document is CC-BY-SA. It was last updated March 14, 2025.
+                  This document is CC-BY-SA. It was last updated May 8, 2025.
                 </p>
               </div>
             )}

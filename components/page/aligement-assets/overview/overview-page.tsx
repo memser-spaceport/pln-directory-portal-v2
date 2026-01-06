@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { motion, LayoutGroup, AnimatePresence } from 'framer-motion';
 import SupportSection from "../rounds/sections/support-section";
 
 // Description items data
@@ -78,40 +79,54 @@ const howItems = [
 ];
 
 const Overview = () => {
-  const [showFloatingButton, setShowFloatingButton] = useState(false);
+  const [buttonState, setButtonState] = useState<'start' | 'floating' | 'end'>('start');
   const triggerRef = useRef<HTMLDivElement>(null);
-  const secondButtonRef = useRef<HTMLButtonElement>(null);
+  const secondButtonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let isTriggerOutOfView = false;
     let isSecondButtonVisible = false;
+    let updateTimeout: NodeJS.Timeout | null = null;
 
-    const updateFloatingButton = () => {
-      // Show floating button when trigger is out of view AND second button is NOT visible
-      setShowFloatingButton(isTriggerOutOfView && !isSecondButtonVisible);
+    const updateButtonState = () => {
+      // Clear any pending updates to prevent rapid state changes
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
+      }
+
+      // Add a small delay to debounce rapid scroll events
+      updateTimeout = setTimeout(() => {
+        if (!isTriggerOutOfView) {
+          setButtonState('start');
+        } else if (isTriggerOutOfView && !isSecondButtonVisible) {
+          setButtonState('floating');
+        } else if (isSecondButtonVisible) {
+          setButtonState('end');
+        }
+      }, 50);
     };
 
     const triggerObserver = new IntersectionObserver(
       ([entry]) => {
         // When the trigger element is NOT visible, mark as out of view
         isTriggerOutOfView = !entry.isIntersecting;
-        updateFloatingButton();
+        updateButtonState();
       },
       {
-        threshold: 0,
-        rootMargin: '0px',
+        threshold: [0, 0.1],
+        rootMargin: '-50px 0px 0px 0px',
       }
     );
 
     const secondButtonObserver = new IntersectionObserver(
       ([entry]) => {
-        // When second button is visible, hide floating button
+        // When second button is visible, change state to end
         isSecondButtonVisible = entry.isIntersecting;
-        updateFloatingButton();
+        updateButtonState();
       },
       {
-        threshold: 0,
-        rootMargin: '0px',
+        threshold: [0, 0.1],
+        rootMargin: '100px 0px 0px 0px',
       }
     );
 
@@ -124,6 +139,9 @@ const Overview = () => {
     }
 
     return () => {
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
+      }
       if (triggerRef.current) {
         triggerObserver.unobserve(triggerRef.current);
       }
@@ -138,7 +156,7 @@ const Overview = () => {
   };
 
   return (
-    <>
+    <LayoutGroup>
       <div className="overview">
         <div className="overview__content">
           <div className="overview__content__title overview__section-title">
@@ -157,13 +175,25 @@ const Overview = () => {
           {/* Trigger element - when this scrolls out of view, show floating button */}
           <div ref={triggerRef} className="overview__floating-trigger" />
 
-          <button
-            className="overview__content__button"
-            onClick={handleAccountClick}
-          >
-            <img src="/icons/rounds/filecoin-white.svg" alt="account" />
-            <span>Create Your Account</span>
-          </button>
+          {buttonState === 'start' && (
+            <motion.button
+              layoutId="create-account-button"
+              className="overview__content__button"
+              onClick={handleAccountClick}
+              layout="position"
+              transition={{
+                layout: {
+                  type: 'spring',
+                  stiffness: 150,
+                  damping: 25,
+                  mass: 1.2,
+                },
+              }}
+            >
+              <img src="/icons/rounds/filecoin-white.svg" alt="account" />
+              <span>Create Your Account</span>
+            </motion.button>
+          )}
         </div>
 
         <div className="overview__content__why">
@@ -271,30 +301,69 @@ const Overview = () => {
               recognized across the Protocol Labs Network.
             </div>
           </div>
-          <button
-            ref={secondButtonRef}
-            className="overview__content__button"
-            onClick={handleAccountClick}
-          >
-            <img src="/icons/rounds/filecoin-white.svg" alt="account" />
-            <span>Create Your Account</span>
-          </button>
+          <div ref={secondButtonRef} style={{ position: 'relative', zIndex: 10 }}>
+            {buttonState === 'end' && (
+              <motion.button
+                layoutId="create-account-button"
+                className="overview__content__button"
+                onClick={handleAccountClick} 
+                layout="position"
+                transition={{
+                  layout: {
+                    type: 'spring',
+                    stiffness: 150,
+                    damping: 25,
+                    mass: 1.2,
+                  },
+                }}
+              >
+                <img src="/icons/rounds/filecoin-white.svg" alt="account" />
+                <span>Create Your Account</span>
+              </motion.button>
+            )}
+            {buttonState !== 'end' && (
+              <button
+                className="overview__content__button"
+                onClick={handleAccountClick}
+              >
+                <img src="/icons/rounds/filecoin-white.svg" alt="account" />
+                <span>Create Your Account</span>
+              </button>
+            )}
+          </div>
         </div>
 
         <SupportSection />
       </div>
 
       {/* Floating Action Button */}
-      <button
-        className={`overview__floating-button ${showFloatingButton ? 'overview__floating-button--visible' : ''}`}
-        onClick={handleAccountClick}
-        aria-label="Create Your Account"
-      >
-        <img src="/icons/rounds/filecoin-white.svg" alt="account" />
-        <span className="overview__floating-button__text">Create Your Account</span>
-      </button>
+      <AnimatePresence mode="wait">
+        {buttonState === 'floating' && (
+          <motion.button
+            layoutId="create-account-button"
+            className="overview__floating-button overview__floating-button--visible"
+            onClick={handleAccountClick}
+            aria-label="Create Your Account"
+            initial={false}
+            exit={{ opacity: 0 }}
+            layout="position"
+            transition={{
+              layout: {
+                type: 'spring',
+                stiffness: 150,
+                damping: 25,
+                mass: 1.2,
+              },
+              exit: { duration: 0.1 },
+            }}
+          >
+            <img src="/icons/rounds/filecoin-white.svg" alt="account" />
+            <span className="overview__floating-button__text">Create Your Account</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
-      <style jsx>
+      <style jsx global>
         {`
           .overview {
             display: flex;
@@ -630,7 +699,7 @@ const Overview = () => {
 
           .overview__floating-button {
             position: fixed;
-            bottom: 32px;
+            bottom: 48px;
             right: 32px;
             z-index: 1;
             display: inline-flex;
@@ -647,18 +716,12 @@ const Overview = () => {
             color: #ffffff;
             cursor: pointer;
             overflow: hidden;
-            /* Animation properties */
-            opacity: 0;
-            visibility: hidden;
-            transform: scale(0.8) translateY(20px);
-            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease, width 0.3s ease 0.1s, border-radius 0.3s ease 0.1s, padding 0.3s ease 0.1s, background-color 0.2s ease;
             white-space: nowrap;
           }
 
           .overview__floating-button--visible {
             opacity: 1;
             visibility: visible;
-            transform: scale(1) translateY(0);
           }
 
           .overview__floating-button:hover {
@@ -669,7 +732,7 @@ const Overview = () => {
             gap: 8px;
             background-color: #1260d9;
             box-shadow: 0px 2.47px 7.4px 0px #0F172A29;
-            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease, width 0.35s ease, border-radius 0.35s ease, padding 0.35s ease, background-color 0.2s ease;
+            transition: width 0.35s ease, border-radius 0.35s ease, padding 0.35s ease, background-color 0.2s ease;
           }
 
           .overview__floating-button:active {
@@ -712,7 +775,7 @@ const Overview = () => {
           }
         `}
       </style>
-    </>
+    </LayoutGroup>
   );
 };
 

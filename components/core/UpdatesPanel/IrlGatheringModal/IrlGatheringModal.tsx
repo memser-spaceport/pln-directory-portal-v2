@@ -71,7 +71,7 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} overlayClassname={s.modalOverlay}>
       <div className={s.modal}>
         <ModalHeader gatheringName={gatheringName} gatheringImage={gatheringImage} onClose={onClose} />
 

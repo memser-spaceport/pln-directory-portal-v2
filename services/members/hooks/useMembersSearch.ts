@@ -5,6 +5,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 
 export interface MemberSearchResult {
   uid: string;
+  externalId?: string;
   name: string;
   image?: string;
   teamName?: string;
@@ -52,10 +53,11 @@ export function useMembersSearch(searchTerm: string, options: UseMembersSearchOp
 
         const formattedResults: MemberSearchResult[] =
           data.items?.map((member: any) => {
-            const { id, name, profile, mainTeam } = member;
+            const { id, externalId, name, profile, mainTeam } = member;
 
             return {
               uid: id,
+              externalId,
               name,
               image: profile,
               teamName: mainTeam?.name,

@@ -33,6 +33,7 @@ export const getMemberListForQuery = async (query: string, currentPage: number, 
 
     return {
       id: member.uid,
+      externalId: member.externalId || null,
       name: member.name,
       profile: member.image?.url || null,
       officeHours: member.officeHours || null,

@@ -4,6 +4,7 @@ const Embed = Quill.import('blots/embed') as any;
 
 export interface MentionData {
   uid: string;
+  externalId: string;
   name: string;
 }
 
@@ -16,6 +17,7 @@ class MentionBlot extends Embed {
     const node = super.create() as HTMLAnchorElement;
     node.setAttribute('href', `/members/${data.uid}`);
     node.setAttribute('data-uid', data.uid);
+    node.setAttribute('data-external-id', data.externalId);
     node.setAttribute('data-name', data.name);
     node.setAttribute('target', '_blank');
     node.setAttribute('rel', 'noopener noreferrer');
@@ -27,6 +29,7 @@ class MentionBlot extends Embed {
   static value(node: HTMLElement): MentionData {
     return {
       uid: node.getAttribute('data-uid') || '',
+      externalId: node.getAttribute('data-external-id') || '',
       name: node.getAttribute('data-name') || '',
     };
   }

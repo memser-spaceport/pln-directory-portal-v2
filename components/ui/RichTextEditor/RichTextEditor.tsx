@@ -137,7 +137,7 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
 
   // Insert mention into editor
   const insertMention = useCallback(
-    (member: { uid: string; name: string }) => {
+    (member: { uid: string; externalId?: string; name: string }) => {
       const editor = quillRef.current?.getEditor();
 
       if (!editor || mentionState.startIndex === -1) {
@@ -156,6 +156,7 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
       // Insert the mention embed
       editor.insertEmbed(mentionState.startIndex, 'mention', {
         uid: member.uid,
+        externalId: member.externalId,
         name: member.name,
       });
 

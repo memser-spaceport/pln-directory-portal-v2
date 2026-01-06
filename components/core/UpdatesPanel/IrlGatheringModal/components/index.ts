@@ -4,4 +4,5 @@ export { GatheringDetails } from './GatheringDetails';
 export { AttendeesSection } from './AttendeesSection';
 export { PlanningSection } from './PlanningSection';
 export { ModalFooter } from './ModalFooter';
+export { DatePickerView } from './DatePickerView';
 

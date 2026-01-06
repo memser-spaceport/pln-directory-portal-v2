@@ -24,15 +24,15 @@ const productVersions: VersionData[] = [
     dateRange: 'December 2025 - present',
     added: [
       'Digital assets unlocked for Trust contributions',
-      'First live buyback auction (totaled $47,623.10 in assets)',
-      'Launched the website',
+      'First live buyback auction (totaled $47,614 in assets)',
       'Introduced LabWeek-only custom incentive experiments',
       'Hosted a workshop to design new custom incentive experiments for 2026',
       'Hosted our first AA community event in Buenos Aires',
+      'Launched the Alignment Asset website',
     ],
     changed: [
-      'Expanded cohort from 40 to XX participants',
-      'Simplified onboarding materials',
+      'Expanded onboarded participants from 46-47',
+      'Continued simplifying onboarding materials',
       'Adopted HubSpot for email communications',
     ],
     learned: [
@@ -40,10 +40,10 @@ const productVersions: VersionData[] = [
         text: 'Live buyback auction results validated improvements made post-simulations:',
         subItems: [
           'Buyback increased the understanding of the token value',
-          'Price discovery evolved: Clearing price adjusted from $20.40 -> $20.00 between the simulations and live auction',
+          'Price discovery evolved: Clearing price adjusted from $20.40 -> $14.00 between the second simulation and live auction',
         ],
       },
-      'Still learning!',
+      
     ],
   },
   {

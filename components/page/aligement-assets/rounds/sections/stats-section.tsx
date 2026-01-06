@@ -87,10 +87,12 @@ export default function StatsSection({ data }: StatsSectionProps) {
               </tr>}
 
               {/* Number of Buybacks */}
-              {stats.numberOfBuybacks && <tr className="stats-section__row">
-                <td className="stats-section__label"># of Buybacks:</td>
-                <td className="stats-section__value">{stats.numberOfBuybacks}</td>
-              </tr>}
+              {typeof stats?.numberOfBuybacks === 'number' && stats.numberOfBuybacks > 0 && (
+                <tr className="stats-section__row">
+                  <td className="stats-section__label"># of Buybacks:</td>
+                  <td className="stats-section__value">{stats.numberOfBuybacks}</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

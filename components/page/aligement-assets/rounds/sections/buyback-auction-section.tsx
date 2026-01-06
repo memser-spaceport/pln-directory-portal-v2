@@ -96,33 +96,41 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
                 </tr>
               </thead>
               <tbody>
-                {visibleBidData.map((bid, index) => (
-                  <tr key={`${bid.bidderId}-${bid.tokenPrice}-${index}`} className={`buyback-section__table-row ${index === visibleBidData.length - 1 && !hasMore ? 'buyback-section__table-row--last' : ''}`}>
-                    <td className="buyback-section__td">{bid.bidderId}</td>
-                    <td className="buyback-section__td">{bid.tokensBid}</td>
-                    <td className="buyback-section__td buyback-section__td--bold">{bid.tokenPrice}</td>
-                    <td className="buyback-section__td">{bid.bidValue}</td>
-                    <td className="buyback-section__td">
-                      <span className={`buyback-section__status buyback-section__status--${bid.status === 'Fully Filled' ? 'filled' : 'partial'}`}>
-                        {bid.status}
-                      </span>
-                    </td>
-                    <td className="buyback-section__td buyback-section__td--bold">{bid.amtFilled}</td>
-                    <td className="buyback-section__td buyback-section__td--accent">{bid.accepted}</td>
-                    <td className="buyback-section__td">{bid.aggFill}</td>
-                    <td className="buyback-section__td">
-                      <div className="buyback-section__capture">
-                        <div className="buyback-section__capture-bar">
-                          <div 
-                            className="buyback-section__capture-fill" 
-                            style={{ width: `${parseFloat(bid.percentCapture)}%` }}
-                          />
-                        </div>
-                        <span className="buyback-section__capture-value">{bid.percentCapture}</span>
-                      </div>
+                {data.bids.length === 0 ? (
+                  <tr className="buyback-section__table-row buyback-section__table-row--last">
+                    <td colSpan={9} className="buyback-section__td buyback-section__td--empty">
+                      No auction data available yet.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  visibleBidData.map((bid, index) => (
+                    <tr key={`${bid.bidderId}-${bid.tokenPrice}-${index}`} className={`buyback-section__table-row ${index === visibleBidData.length - 1 && !hasMore ? 'buyback-section__table-row--last' : ''}`}>
+                      <td className="buyback-section__td">{bid.bidderId}</td>
+                      <td className="buyback-section__td">{bid.tokensBid}</td>
+                      <td className="buyback-section__td buyback-section__td--bold">{bid.tokenPrice}</td>
+                      <td className="buyback-section__td">{bid.bidValue}</td>
+                      <td className="buyback-section__td">
+                        <span className={`buyback-section__status buyback-section__status--${bid.status === 'Fully Filled' ? 'filled' : 'partial'}`}>
+                          {bid.status}
+                        </span>
+                      </td>
+                      <td className="buyback-section__td buyback-section__td--bold">{bid.amtFilled}</td>
+                      <td className="buyback-section__td buyback-section__td--accent">{bid.accepted}</td>
+                      <td className="buyback-section__td">{bid.aggFill}</td>
+                      <td className="buyback-section__td">
+                        <div className="buyback-section__capture">
+                          <div className="buyback-section__capture-bar">
+                            <div 
+                              className="buyback-section__capture-fill" 
+                              style={{ width: `${parseFloat(bid.percentCapture)}%` }}
+                            />
+                          </div>
+                          <span className="buyback-section__capture-value">{bid.percentCapture}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
 
@@ -337,6 +345,13 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
 
         .buyback-section__td--accent {
           color: #10b981;
+        }
+
+        .buyback-section__td--empty {
+          text-align: center;
+          color: #64748b;
+          font-weight: 400;
+          padding: 48px 16px;
         }
 
         .buyback-section__status {

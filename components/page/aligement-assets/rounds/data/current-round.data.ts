@@ -8,17 +8,17 @@ import { CurrentRoundData } from '../types/current-round.types';
 import { DISCLOSURE_URL, SUPPORT_URL, SUPPORT_EMAIL } from '@/constants/plaa';
 
 /**
- * Current Round 11 (December 2025) Master Data
+ * Current Round 12 (January 2026) Master Data
  */
 export const currentRoundData: CurrentRoundData = {
   // ============================================================================
   // Meta Information
   // ============================================================================
   meta: {
-    roundId: 'round-11-dec-2025',
-    roundNumber: 11,
+    roundId: 'round-12-jan-2026',
+    roundNumber: 12,
     isCurrentRound: true,
-    lastUpdated: '2025-12-18T00:00:00'
+    lastUpdated: '2026-01-18T00:00:00'
   },
 
   // ============================================================================
@@ -48,8 +48,8 @@ export const currentRoundData: CurrentRoundData = {
   // Round Description Section Data
   // ============================================================================
   roundDescription: {
-    roundNumber: 11,
-    monthYear: 'December 2025',
+    roundNumber: 12,
+    monthYear: 'January 2026',
     badgeText: 'Current Round',
     paragraphs: [
       {
@@ -92,8 +92,8 @@ export const currentRoundData: CurrentRoundData = {
   // Snapshot Progress Section Data
   // ============================================================================
   snapshotProgress: {
-    startDate: '2025-12-01T00:00:00',
-    endDate: '2025-12-31T23:59:59',
+    startDate: '2026-01-01T00:00:00',
+    endDate: '2026-01-31T23:59:59',
     tipContent: {
       tipText: 'Lower activity in a category generally means more tokens available to collect per contributor, while higher activity means tokens are distributed more widely.',
       exploreTitle: 'Explore where you can make the biggest impact this month:',
@@ -133,11 +133,11 @@ export const currentRoundData: CurrentRoundData = {
     chartData: [
       { name: 'Brand', value: 0 },
       { name: 'Capital', value: 0 },
-      { name: 'Knowledge Sharing', value: 300 },
-      { name: 'Network Tooling', value: 400 },
-      { name: 'People/Talent', value: 50 },
-      { name: 'Programs', value: 600 },
-      { name: 'Projects', value: 400 }
+      { name: 'Knowledge Sharing', value: 0 },
+      { name: 'Network Tooling', value: 0 },
+      { name: 'People/Talent', value: 0 },
+      { name: 'Programs', value: 0 },
+      { name: 'Projects', value: 0 }
     ]
   },
 
@@ -165,9 +165,9 @@ export const currentRoundData: CurrentRoundData = {
       'Alignment Asset Program Contributions',
       'Distinguished Network Contributions'
     ],
-    totalPointsCollected: '1,750',
+    totalPointsCollected: '0',
     totalTokensAvailable: '10,000',
-    numberOfBuybacks: 1
+    numberOfBuybacks: 0
   },
 
   // ============================================================================
@@ -175,52 +175,53 @@ export const currentRoundData: CurrentRoundData = {
   // ============================================================================
   leaderboard: {
     currentSnapshotData: [
-      { rank: 1, name: 'David Casey', activities: '', points: 1000 },
-      { rank: 2, name: 'Theresa Therriault', activities: '', points: 950 },
-      { rank: 3, name: 'Dottie Wang', activities: '', points: 200 },
-      { rank: 4, name: 'Anuj Pandey', activities: '', points: 150 },
-      { rank: 5, name: 'Michael Stachiw', activities: '', points: 150 },
-      { rank: 6, name: 'Bradley Holden', activities: '', points: 100 },
-      { rank: 7, name: 'Jeff De Gregorio', activities: '', points: 100 },
-      { rank: 8, name: 'Ian Brunner', activities: '', points: 100 },
-      { rank: 9, name: 'Matthew Koch', activities: '', points: 0 },
-      { rank: 10, name: 'Stefanie Wykoff', activities: '', points: 0 },
-      { rank: 11, name: 'Victoria DeVesty', activities: '', points: 0 },
-      { rank: 12, name: 'Justin Melillo', activities: '', points: 0 },
-      { rank: 13, name: 'Connor Dales', activities: '', points: 0 },
-      { rank: 14, name: 'Julio Garcia', activities: '', points: 0 },
-      { rank: 15, name: 'Francesca Cohen', activities: '', points: 0 },
-      { rank: 16, name: 'Kevin Houng', activities: '', points: 0 },
-      { rank: 17, name: 'Rich Chang', activities: '', points: 0 },
-      { rank: 18, name: 'Erick Watson', activities: '', points: 0 },
-      { rank: 19, name: 'Corey James', activities: '', points: 0 },
-      { rank: 20, name: 'Diana Stern', activities: '', points: 0 },
-      { rank: 21, name: 'Stefaan Vervaet', activities: '', points: 0 },
-      { rank: 22, name: 'Carl Cervone', activities: '', points: 0 },
-      { rank: 23, name: 'Laura Brewer', activities: '', points: 0 },
-      { rank: 24, name: 'Chris Brocoum', activities: '', points: 0 },
-      { rank: 25, name: 'Ashley Franck', activities: '', points: 0 },
-      { rank: 26, name: 'Monica Ortel', activities: '', points: 0 },
-      { rank: 27, name: 'Jonathan Victor', activities: '', points: 0 },
-      { rank: 28, name: 'Cyril Delattre', activities: '', points: 0 },
-      { rank: 29, name: 'Raymond Cheng', activities: '', points: 0 },
-      { rank: 30, name: 'William Scott', activities: '', points: 0 },
-      { rank: 31, name: 'Patrick Kim', activities: '', points: 0 },
-      { rank: 32, name: 'Zachary von Naumann', activities: '', points: 0 },
+      { rank: 1, name: 'Alex Feerst', activities: '', points: 0 },
+      { rank: 2, name: 'Anuj Pandey', activities: '', points: 0 },
+      { rank: 3, name: 'Arleen Teranishi', activities: '', points: 0 },
+      { rank: 4, name: 'Ashley Franck', activities: '', points: 0 },
+      { rank: 5, name: 'Bradley Holden', activities: '', points: 0 },
+      { rank: 6, name: 'Carl Cervone', activities: '', points: 0 },
+      { rank: 7, name: 'Chris Brocoum', activities: '', points: 0 },
+      { rank: 8, name: 'Connor Dales', activities: '', points: 0 },
+      { rank: 9, name: 'Corey James', activities: '', points: 0 },
+      { rank: 10, name: 'Cyril Delattre', activities: '', points: 0 },
+      { rank: 11, name: 'David Casey', activities: '', points: 0 },
+      { rank: 12, name: 'David Huseby', activities: '', points: 0 },
+      { rank: 13, name: 'Derrick Lam', activities: '', points: 0 },
+      { rank: 14, name: 'Diana Stern', activities: '', points: 0 },
+      { rank: 15, name: 'Dottie Wang', activities: '', points: 0 },
+      { rank: 16, name: 'Erick Watson', activities: '', points: 0 },
+      { rank: 17, name: 'Eshan Chordia', activities: '', points: 0 },
+      { rank: 18, name: 'Evan Miyazono', activities: '', points: 0 },
+      { rank: 19, name: 'Francesca Cohen', activities: '', points: 0 },
+      { rank: 20, name: 'Ian Brunner', activities: '', points: 0 },
+      { rank: 21, name: 'Jeff De Gregorio', activities: '', points: 0 },
+      { rank: 22, name: 'Jonathan Victor', activities: '', points: 0 },
+      { rank: 23, name: 'Juan Benet', activities: '', points: 0 },
+      { rank: 24, name: 'Julio Garcia', activities: '', points: 0 },
+      { rank: 25, name: 'Justin Melillo', activities: '', points: 0 },
+      { rank: 26, name: 'Karla Tang', activities: '', points: 0 },
+      { rank: 27, name: 'Kevin Houng', activities: '', points: 0 },
+      { rank: 28, name: 'Laura Brewer', activities: '', points: 0 },
+      { rank: 29, name: 'Lynnette Nolan', activities: '', points: 0 },
+      { rank: 30, name: 'Matthew Koch', activities: '', points: 0 },
+      { rank: 31, name: 'Michael Stachiw', activities: '', points: 0 },
+      { rank: 32, name: 'Michelle Lee', activities: '', points: 0 },
       { rank: 33, name: 'Molly Mackinlay', activities: '', points: 0 },
-      { rank: 34, name: 'Juan Benet', activities: '', points: 0 },
-      { rank: 35, name: 'Russell Dempsey', activities: '', points: 0 },
-      { rank: 36, name: 'Derrick Lam', activities: '', points: 0 },
-      { rank: 37, name: 'Karla Tang', activities: '', points: 0 },
-      { rank: 38, name: 'Arleen Teranishi', activities: '', points: 0 },
+      { rank: 34, name: 'Monica Ortel', activities: '', points: 0 },
+      { rank: 35, name: 'Patrick Kim', activities: '', points: 0 },
+      { rank: 36, name: 'Raymond Cheng', activities: '', points: 0 },
+      { rank: 37, name: 'René Pinnell', activities: '', points: 0 },
+      { rank: 38, name: 'Rich Chang', activities: '', points: 0 },
       { rank: 39, name: 'Rohit Goel', activities: '', points: 0 },
-      { rank: 40, name: 'David Huseby', activities: '', points: 0 },
-      { rank: 41, name: 'René Pinnell', activities: '', points: 0 },
-      { rank: 42, name: 'Evan Miyazono', activities: '', points: 0 },
-      { rank: 43, name: 'Eshan Chordia', activities: '', points: 0 },
-      { rank: 44, name: 'Alex Feerst', activities: '', points: 0 },
-      { rank: 45, name: 'Lynnette Nolan', activities: '', points: 0 },
-      { rank: 46, name: 'Michelle Lee', activities: '', points: 0 }
+      { rank: 40, name: 'Russell Dempsey', activities: '', points: 0 },
+      { rank: 41, name: 'Shae Biron', activities: '', points: 0 },
+      { rank: 42, name: 'Stefaan Vervaet', activities: '', points: 0 },
+      { rank: 43, name: 'Stefanie Wykoff', activities: '', points: 0 },
+      { rank: 44, name: 'Theresa Therriault', activities: '', points: 0 },
+      { rank: 45, name: 'Victoria DeVesty', activities: '', points: 0 },
+      { rank: 46, name: 'William Scott', activities: '', points: 0 },
+      { rank: 47, name: 'Zachary von Naumann', activities: '', points: 0 }
     ],
     cumulativeData: [
       { rank: 1, name: 'Anuj Pandey', activities: '', points: 8125 },
@@ -270,56 +271,50 @@ export const currentRoundData: CurrentRoundData = {
   },
 
   // ============================================================================
-  // Buyback Auction Section Data (Round 11 - December 2025)
+  // Buyback Auction Section Data (Round 12 - January 2026)
   // ============================================================================
+  // Note: Buyback auction data will be added once the auction occurs
   buybackAuction: {
     headerStats: {
-      totalFilled: '$47,614.00',
-      fillRate: '99.98%'
+      totalFilled: '$0.00',
+      fillRate: '0%'
     },
     summary: {
-      title: 'Buyback Auction #1 - December 2025 - Key Results',
+      title: 'Buyback Auction - January 2026 - Key Results',
       items: [
         {
           icon: '/icons/rounds/buy_action_results/wallet-01.svg',
           label: 'Total Buyback Pool',
-          value: '$47,623.10'
+          value: 'TBD'
         },
         {
           icon: '/icons/rounds/buy_action_results/pie-chart.svg',
           label: 'Pool Used',
-          value: '99.98%'
+          value: 'TBD'
         },
         {
           icon: '/icons/rounds/buy_action_results/coins-02.svg',
           label: 'Clearing Price',
-          value: '$14.00'
+          value: 'TBD'
         },
         {
           icon: '/icons/rounds/buy_action_results/analytics-01.svg',
           label: 'Capped Allocation',
-          value: '$23,811.55 (50% cap)'
+          value: 'TBD'
         },
         {
           icon: '/icons/rounds/buy_action_results/dollar-02.svg',
           label: 'Tokens Purchased',
-          value: '3,401'
+          value: 'TBD'
         },
         {
           icon: '/icons/rounds/buy_action_results/user-multiple.svg',
           label: 'Winning Bidders',
-          value: '5'
+          value: 'TBD'
         }
       ]
     },
-    bids: [
-      { bidderId: 'Bidder #12', tokensBid: '1,400', tokenPrice: '$10.25', bidValue: '$14,350.00', status: 'Fully Filled', amtFilled: '$14,350', accepted: '1,025', aggFill: '$14,350', percentCapture: '30.13%' },
-      { bidderId: 'Bidder #13', tokensBid: '400', tokenPrice: '$12.00', bidValue: '$4,800.00', status: 'Partially Filled', amtFilled: '$4,788', accepted: '342', aggFill: '$19,138', percentCapture: '10.05%' },
-      { bidderId: 'Bidder #2', tokensBid: '300', tokenPrice: '$12.00', bidValue: '$3,600.00', status: 'Partially Filled', amtFilled: '$3,598', accepted: '257', aggFill: '$22,736', percentCapture: '7.56%' },
-      { bidderId: 'Bidder #8', tokensBid: '300', tokenPrice: '$12.00', bidValue: '$3,600.00', status: 'Partially Filled', amtFilled: '$3,598', accepted: '257', aggFill: '$26,334', percentCapture: '7.56%' },
-      { bidderId: 'Bidder #2', tokensBid: '300', tokenPrice: '$14.00', bidValue: '$4,200.00', status: 'Fully Filled', amtFilled: '$4,200', accepted: '300', aggFill: '$30,534', percentCapture: '8.82%' },
-      { bidderId: 'Bidder #9', tokensBid: '1,400', tokenPrice: '$14.00', bidValue: '$19,600.00', status: 'Partially Filled', amtFilled: '$17,080', accepted: '1,220', aggFill: '$47,614', percentCapture: '35.86%' }
-    ]
+    bids: []
   },
 
   // ============================================================================

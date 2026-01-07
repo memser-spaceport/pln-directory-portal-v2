@@ -28,7 +28,7 @@ const TOTAL_ROUNDS = 12;
 // Mock data for each round (month)
 const chartDataByRound: Record<number, Array<{ category: string; points: number; tokens: number }>> = {
   1: [
-    { category: 'Projects', points: 2500, tokens: 0 },
+    { category: 'Projects', points: 2500, tokens: 1547 },
     { category: 'Brand', points: 0, tokens: 0 },
     { category: 'Programs', points: 0, tokens: 0 },
     { category: 'Network Tooling', points: 0, tokens: 0 },
@@ -37,84 +37,84 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   2: [
-    { category: 'Projects', points: 14000, tokens: 0 },
+    { category: 'Projects', points: 14000, tokens: 1540 },
     { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 300, tokens: 0 },
-    { category: 'Network Tooling', points: 2600, tokens: 0 },
-    { category: 'People/Talent', points: 2100, tokens: 0 },
+    { category: 'Programs', points: 300, tokens: 1702 },
+    { category: 'Network Tooling', points: 2600, tokens: 1716 },
+    { category: 'People/Talent', points: 2100, tokens: 1603 },
     { category: 'Knowledge', points: 0, tokens: 0 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   3: [
-    { category: 'Projects', points: 9750, tokens: 0 },
+    { category: 'Projects', points: 9750, tokens: 1538 },
     { category: 'Brand', points: 0, tokens: 0 },
     { category: 'Programs', points: 0, tokens: 0 },
-    { category: 'Network Tooling', points: 1000, tokens: 0 },
-    { category: 'People/Talent', points: 1500, tokens: 0 },
-    { category: 'Knowledge', points: 3000, tokens: 0 },
+    { category: 'Network Tooling', points: 1000, tokens: 1725 },
+    { category: 'People/Talent', points: 1500, tokens: 1604 },
+    { category: 'Knowledge', points: 3000, tokens: 1769 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   4: [
-    { category: 'Projects', points: 4600, tokens: 0 },
+    { category: 'Projects', points: 4600, tokens: 1539 },
     { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 500, tokens: 0 },
-    { category: 'Network Tooling', points: 600, tokens: 0 },
-    { category: 'People/Talent', points: 475, tokens: 0 },
-    { category: 'Knowledge', points: 4650, tokens: 0 },
+    { category: 'Programs', points: 500, tokens: 1702 },
+    { category: 'Network Tooling', points: 600, tokens: 1725 },
+    { category: 'People/Talent', points: 475, tokens: 1603 },
+    { category: 'Knowledge', points: 4650, tokens: 1768 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   5: [
-    { category: 'Projects', points: 6150, tokens: 0 },
+    { category: 'Projects', points: 6150, tokens: 1548 },
     { category: 'Brand', points: 0, tokens: 0 },
     { category: 'Programs', points: 0, tokens: 0 },
     { category: 'Network Tooling', points: 0, tokens: 0 },
-    { category: 'People/Talent', points: 900, tokens: 0 },
-    { category: 'Knowledge', points: 2900, tokens: 0 },
+    { category: 'People/Talent', points: 900, tokens: 1605 },
+    { category: 'Knowledge', points: 2900, tokens: 1761 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   6: [
-    { category: 'Projects', points: 1850, tokens: 0 },
+    { category: 'Projects', points: 1850, tokens: 1312 },
     { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 600, tokens: 0 },
-    { category: 'Network Tooling', points: 1600, tokens: 0 },
+    { category: 'Programs', points: 600, tokens: 1442 },
+    { category: 'Network Tooling', points: 1600, tokens: 1456 },
     { category: 'People/Talent', points: 0, tokens: 0 },
-    { category: 'Knowledge', points: 3950, tokens: 0 },
+    { category: 'Knowledge', points: 3950, tokens: 1501 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   7: [
-    { category: 'Projects', points: 1100, tokens: 0 },
+    { category: 'Projects', points: 1100, tokens: 1309 },
     { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 6100, tokens: 0 },
-    { category: 'Network Tooling', points: 5200, tokens: 0 },
-    { category: 'People/Talent', points: 50, tokens: 0 },
-    { category: 'Knowledge', points: 1900, tokens: 0 },
+    { category: 'Programs', points: 6100, tokens: 1434 },
+    { category: 'Network Tooling', points: 5200, tokens: 1456 },
+    { category: 'People/Talent', points: 50, tokens: 1360 },
+    { category: 'Knowledge', points: 1900, tokens: 1494 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   8: [
-    { category: 'Projects', points: 2300, tokens: 0 },
-    { category: 'Brand', points: 1200, tokens: 0 },
-    { category: 'Programs', points: 300, tokens: 0 },
-    { category: 'Network Tooling', points: 4000, tokens: 0 },
-    { category: 'People/Talent', points: 650, tokens: 0 },
-    { category: 'Knowledge', points: 3000, tokens: 0 },
+    { category: 'Projects', points: 2300, tokens: 1309 },
+    { category: 'Brand', points: 1200, tokens: 1392 },
+    { category: 'Programs', points: 300, tokens: 1442 },
+    { category: 'Network Tooling', points: 4000, tokens: 1459 },
+    { category: 'People/Talent', points: 650, tokens: 1358 },
+    { category: 'Knowledge', points: 3000, tokens: 1500 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   9: [
-    { category: 'Projects', points: 2550, tokens: 0 },
+    { category: 'Projects', points: 2550, tokens: 1307 },
     { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 1700, tokens: 0 },
-    { category: 'Network Tooling', points: 200, tokens: 0 },
-    { category: 'People/Talent', points: 600, tokens: 0 },
-    { category: 'Knowledge', points: 2350, tokens: 0 },
+    { category: 'Programs', points: 1700, tokens: 1440 },
+    { category: 'Network Tooling', points: 200, tokens: 1463 },
+    { category: 'People/Talent', points: 600, tokens: 1360 },
+    { category: 'Knowledge', points: 2350, tokens: 1490 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   10: [
-    { category: 'Projects', points: 2650, tokens: 0 },
-    { category: 'Brand', points: 600, tokens: 0 },
-    { category: 'Programs', points: 300, tokens: 0 },
-    { category: 'Network Tooling', points: 7700, tokens: 0 },
-    { category: 'People/Talent', points: 50, tokens: 0 },
-    { category: 'Knowledge', points: 1600, tokens: 0 },
+    { category: 'Projects', points: 2650, tokens: 1304 },
+    { category: 'Brand', points: 600, tokens: 1393 },
+    { category: 'Programs', points: 300, tokens: 1442 },
+    { category: 'Network Tooling', points: 7700, tokens: 1463 },
+    { category: 'People/Talent', points: 50, tokens: 1360 },
+    { category: 'Knowledge', points: 1600, tokens: 1496 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   11: [
@@ -266,15 +266,17 @@ const renderRadiusAxisTick = ({ payload, x, y }: { payload: { value: number }; x
 export default function IncentiveModel() {
   const [selectedRound, setSelectedRound] = useState(CURRENT_ROUND);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [roundInputValue, setRoundInputValue] = useState(String(CURRENT_ROUND));
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const currentData = chartDataByRound[selectedRound] || chartDataByRound[1];
   const currentRoundInfo = allRounds.find((r) => r.id === selectedRound);
 
   // Fixed domain based on analysis of all rounds' data
-  // Max value across all rounds: 14,000 (Round 2, Projects)
-  // Set to 15,000 to provide clear visualization with headroom
-  const CHART_DOMAIN_MAX = 15000;
+  // Max token value across all rounds: ~1,800
+  // Max points value: 14,000 (Round 2, Projects)
+  // Set to 2,000 to better visualize token values (points will be clipped but tokens are the focus)
+  const CHART_DOMAIN_MAX = 2000;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -301,8 +303,38 @@ export default function IncentiveModel() {
 
   const handleGoToCurrentRound = () => {
     setSelectedRound(CURRENT_ROUND);
+    setRoundInputValue(String(CURRENT_ROUND));
     setIsDropdownOpen(false);
   };
+
+  const handleRoundInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numeric characters
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setRoundInputValue(value);
+  };
+
+  const handleRoundInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const newRound = Number.parseInt(roundInputValue, 10);
+      if (!Number.isNaN(newRound) && newRound >= 1 && newRound <= TOTAL_ROUNDS) {
+        setSelectedRound(newRound);
+        setIsDropdownOpen(false);
+      } else {
+        // Reset to current selected round if invalid
+        setRoundInputValue(String(selectedRound));
+      }
+    }
+  };
+
+  const handleRoundInputBlur = () => {
+    // Reset to current selected round if user clicks away without pressing Enter
+    setRoundInputValue(String(selectedRound));
+  };
+
+  // Update input value when selectedRound changes externally (via arrows)
+  useEffect(() => {
+    setRoundInputValue(String(selectedRound));
+  }, [selectedRound]);
 
   return (
     <>
@@ -354,7 +386,11 @@ export default function IncentiveModel() {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
                 {/* Gradient decoration */}
-                <div className="incentive-model__round-btn-gradient" />
+                <img 
+                  src="/images/alignment-assets/gradient.svg" 
+                  alt="" 
+                  className="incentive-model__round-btn-gradient" 
+                />
                 <span>{selectedRound === CURRENT_ROUND ? 'Current Round' : `Round ${selectedRound}`}</span>
                 <svg
                   width="16"
@@ -399,7 +435,15 @@ export default function IncentiveModel() {
                         </svg>
                       </button>
                       <div className="incentive-model__round-number-box">
-                        <span>{selectedRound}</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={roundInputValue}
+                          onChange={handleRoundInputChange}
+                          onKeyDown={handleRoundInputKeyDown}
+                          onBlur={handleRoundInputBlur}
+                          className="incentive-model__round-number-input"
+                        />
                       </div>
                       <button
                         className="incentive-model__round-nav-arrow"
@@ -676,20 +720,12 @@ export default function IncentiveModel() {
 
         .incentive-model__round-btn-gradient {
           position: absolute;
-          top: -32px;
-          right: -10px;
-          width: 100px;
-          height: 90px;
-          background: radial-gradient(
-            ellipse at center,
-            rgba(66, 125, 255, 0.15) 0%,
-            rgba(66, 125, 255, 0.08) 30%,
-            rgba(68, 213, 187, 0.08) 50%,
-            transparent 70%
-          );
-          transform: rotate(-30deg);
+          top: 0;
+          right: 0;
+          width: 132px;
+          height: 48px;
+          object-fit: cover;
           pointer-events: none;
-          filter: blur(10px);
           z-index: 0;
         }
 
@@ -705,7 +741,7 @@ export default function IncentiveModel() {
           border-radius: 4px;
           padding: 8px;
           box-shadow: 0px 2px 6px 0px #0f172a29;
-          z-index: 100;
+          z-index: 1;
           min-width: 173px;
         }
 
@@ -756,7 +792,7 @@ export default function IncentiveModel() {
           justify-content: center;
           min-width: 30px;
           height: 24px;
-          padding: 0 10px;
+          padding: 0 5px;
           border: 1px solid #e2e8f0;
           border-radius: 4px;
           font-family: 'Inter', sans-serif;
@@ -764,6 +800,20 @@ export default function IncentiveModel() {
           font-weight: 500;
           color: #0f172a;
           line-height: normal;
+        }
+
+        .incentive-model__round-number-input {
+          width: 100%;
+          text-align: center;
+          border: none;
+          background: transparent;
+          outline: none;
+          font-family: 'Inter', sans-serif;
+          font-size: 12px !important;
+          font-weight: 500;
+          color: #0f172a;
+          line-height: normal;
+          padding: 0;
         }
 
         .incentive-model__round-of-text {

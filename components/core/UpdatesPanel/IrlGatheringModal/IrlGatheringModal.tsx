@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
-import { PushNotification } from '@/types/push-notifications.types';
+import { PushNotification, IrlGatheringMetadata } from '@/types/push-notifications.types';
 import {
   ModalHeader,
   AboutSection,
@@ -28,6 +28,14 @@ export interface IrlGatheringFormData {
 
 type ModalView = 'main' | 'datePicker';
 
+function formatDateRange(startDate: string, endDate: string): string {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return `${formatDate(start)} - ${formatDate(end)}`;
+}
+
 export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick }: IrlGatheringModalProps) {
   const [currentView, setCurrentView] = useState<ModalView>('main');
   const [selectedDateRange, setSelectedDateRange] = useState<[Date, Date] | null>(null);
@@ -38,22 +46,31 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
     },
   });
 
-  const metadata = notification.metadata || {};
-  const gatheringName = (metadata.gatheringName as string) || notification.title;
-  const gatheringImage = metadata.gatheringImage as string;
-  const aboutDescription = (metadata.aboutDescription as string) || notification.description || '';
-  const dateRange = (metadata.dateRange as string) || 'TBD';
-  const location = (metadata.location as string) || 'TBD';
-  const telegramLink = metadata.telegramLink as string;
-  const eventsCount = (metadata.eventsCount as number) || 0;
-  const eventsLink = metadata.eventsLink as string;
-  const speakerIntakeLink = metadata.speakerIntakeLink as string;
-  const submittedEventsCount = (metadata.submittedEventsCount as number) || 0;
-  const submitEventLink = metadata.submitEventLink as string;
-  const otherResourcesLink = metadata.otherResourcesLink as string;
-  const attendees = (metadata.attendees as Array<{ uid: string; picture?: string }>) || [];
-  const attendeesCount = (metadata.attendeesCount as number) || 0;
-  const planningQuestion = (metadata.planningQuestion as string) || `Are you planning to be in ${location}?`;
+  const metadata = (notification.metadata || {}) as unknown as Partial<IrlGatheringMetadata>;
+
+  // Extract data from typed metadata
+  const gatheringName = metadata.location?.name || notification.title;
+  const gatheringImage = metadata.events?.items?.[0]?.logoUrl || undefined;
+  const aboutDescription = notification.description || '';
+  const dateRange = metadata.events?.dates
+    ? formatDateRange(metadata.events.dates.start, metadata.events.dates.end)
+    : 'TBD';
+  const locationName = metadata.location?.name || 'TBD';
+  const eventsCount = metadata.events?.total || 0;
+  const attendees = (metadata.attendees?.topAttendees || []).map((a) => ({
+    uid: a.memberUid,
+    picture: a.imageUrl || undefined,
+  }));
+  const attendeesCount = metadata.attendees?.total || 0;
+  const planningQuestion = `Are you planning to be in ${locationName}?`;
+
+  // These fields are not in the current metadata structure - keeping as placeholders
+  const telegramLink = undefined;
+  const eventsLink = undefined;
+  const speakerIntakeLink = undefined;
+  const submittedEventsCount = 0;
+  const submitEventLink = undefined;
+  const otherResourcesLink = undefined;
 
   const handleOpenDatePicker = () => {
     setCurrentView('datePicker');
@@ -108,7 +125,7 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
 
             <GatheringDetails
               dateRange={dateRange}
-              location={location}
+              location={locationName}
               telegramLink={telegramLink}
               eventsLink={eventsLink}
               eventsCount={eventsCount}
@@ -118,7 +135,11 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
               otherResourcesLink={otherResourcesLink}
             />
 
-            <AttendeesSection attendees={attendees} attendeesCount={attendeesCount} gatheringLink={notification.link} />
+            <AttendeesSection
+              attendees={attendees}
+              attendeesCount={attendeesCount}
+              gatheringLink={`/events/irl?location=${locationName}`}
+            />
 
             <PlanningSection
               planningQuestion={planningQuestion}

@@ -2,11 +2,25 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { clsx } from 'clsx';
-import { PushNotification } from '@/types/push-notifications.types';
+import { PushNotification, IrlGatheringMetadata } from '@/types/push-notifications.types';
 import { DemoDayIcon, EventIcon, ForumIcon, SystemIcon, ArrowRightIcon } from './icons';
 import { formatTime, getCategoryLabel, getActionText } from './utils';
 import s from './UpdatesPanel.module.scss';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+
+function getIrlGatheringAttendees(notification: PushNotification): Array<{ uid: string; picture?: string }> {
+  const metadata = notification.metadata as unknown as Partial<IrlGatheringMetadata> | undefined;
+  if (!metadata?.attendees?.topAttendees) return [];
+  return metadata.attendees.topAttendees.map((a) => ({
+    uid: a.memberUid,
+    picture: a.imageUrl || undefined,
+  }));
+}
+
+function getIrlGatheringAttendeesCount(notification: PushNotification): number {
+  const metadata = notification.metadata as unknown as Partial<IrlGatheringMetadata> | undefined;
+  return metadata?.attendees?.total || 0;
+}
 
 interface NotificationItemProps {
   notification: PushNotification;
@@ -112,9 +126,8 @@ export function NotificationItem({
               </div>
             ) : null}
 
-            {/* Attendees row for EVENT and IRL_GATHERING notifications */}
-            {(notification.category === 'EVENT' || notification.category === 'IRL_GATHERING') &&
-            notification.metadata?.attendees ? (
+            {/* Attendees row for EVENT notifications */}
+            {notification.category === 'EVENT' && notification.metadata?.attendees ? (
               <div className={s.attendeesRow}>
                 <div className={s.attendeesAvatarGroup}>
                   {(notification.metadata.attendees as Array<{ uid: string; picture?: string }>)
@@ -131,6 +144,27 @@ export function NotificationItem({
                     ))}
                 </div>
                 <span className={s.attendeesCount}>{notification.metadata.attendeesCount as number} People going</span>
+              </div>
+            ) : null}
+
+            {/* Attendees row for IRL_GATHERING notifications */}
+            {notification.category === 'IRL_GATHERING' && getIrlGatheringAttendeesCount(notification) > 0 ? (
+              <div className={s.attendeesRow}>
+                <div className={s.attendeesAvatarGroup}>
+                  {getIrlGatheringAttendees(notification)
+                    .slice(0, 3)
+                    .map((attendee, index) => (
+                      <div key={attendee.uid || index} className={s.attendeeAvatar}>
+                        <Image
+                          src={attendee.picture || getDefaultAvatar(attendee.uid || '')}
+                          alt=""
+                          width={20}
+                          height={20}
+                        />
+                      </div>
+                    ))}
+                </div>
+                <span className={s.attendeesCount}>{getIrlGatheringAttendeesCount(notification)} People going</span>
               </div>
             ) : null}
           </div>

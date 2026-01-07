@@ -14,42 +14,6 @@ import { NotLoggedInState } from '@/components/core/UpdatesPanel/NotLoggedInStat
 import { IrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatheringModal';
 import s from './RecentUpdatesSection.module.scss';
 
-// ============================================================================
-// TODO: REMOVE THIS MOCK NOTIFICATION - For testing IRL_GATHERING modal UI
-// ============================================================================
-const MOCK_IRL_GATHERING_NOTIFICATION: PushNotification = {
-  id: 'mock-irl-gathering-001',
-  category: 'IRL_GATHERING',
-  title: 'IRL Gatherings: Denver',
-  description: '16 IRL events happening in Denver between Feb 16 – Feb 28, 2026.',
-  link: '/irl',
-  isPublic: true,
-  isRead: false,
-  createdAt: new Date().toISOString(),
-  metadata: {
-    gatheringName: 'IRL Gatherings: Denver',
-    aboutDescription:
-      '16 IRL events happening in Denver between Feb 16 – Feb 28, 2026.\nSome of the major events include ETHDenver, FIL Dev Summit, and other community-led meetups across Web3, AI, and decentralized infrastructure.',
-    dateRange: 'Feb 16, 2026 – Feb 28, 2026',
-    location: 'Denver, CO',
-    telegramLink: 'https://t.me/example',
-    eventsCount: 16,
-    eventsLink: '/irl/denver/events',
-    speakerIntakeLink: 'https://example.com/speaker-intake',
-    submittedEventsCount: 5,
-    submitEventLink: '/irl/denver/submit',
-    otherResourcesLink: 'https://example.com/resources',
-    attendees: [
-      { uid: 'user-1', picture: 'https://i.pravatar.cc/150?u=user1' },
-      { uid: 'user-2', picture: 'https://i.pravatar.cc/150?u=user2' },
-      { uid: 'user-3', picture: 'https://i.pravatar.cc/150?u=user3' },
-    ],
-    attendeesCount: 37,
-    planningQuestion: 'Are you planning to be in Denver?',
-  },
-};
-// ============================================================================
-
 /**
  * Sanitizes notification title and description by removing HTML markup
  */
@@ -76,10 +40,7 @@ export function RecentUpdatesSection() {
 
   // Sanitize notifications to remove HTML markup from title and description
   // TODO: REMOVE MOCK_IRL_GATHERING_NOTIFICATION from the array below when done testing
-  const sanitizedNotifications = useMemo(
-    () => [MOCK_IRL_GATHERING_NOTIFICATION, ...notifications.map(sanitizeNotification)],
-    [notifications]
-  );
+  const sanitizedNotifications = useMemo(() => notifications.map(sanitizeNotification), [notifications]);
 
   useEffect(() => {
     if (globalUnreadCount !== unreadCount) {

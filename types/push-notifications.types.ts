@@ -12,8 +12,63 @@ export interface PushNotification {
   link?: string;
   metadata?: Record<string, unknown>;
   isPublic: boolean;
+  recipientUid?: string | null;
+  accessLevels?: string[];
   isRead?: boolean;
   createdAt: string;
+}
+
+// IRL Gathering metadata types
+export interface IrlGatheringEventItem {
+  uid: string;
+  name: string;
+  slug: string;
+  endDate: string;
+  logoUrl: string | null;
+  startDate: string;
+  attendeeCount: number;
+}
+
+export interface IrlGatheringAttendee {
+  imageUrl: string | null;
+  memberUid: string;
+  displayName: string;
+  eventsCount: number;
+}
+
+export interface IrlGatheringLocation {
+  id: string;
+  flag: string | null;
+  icon: string | null;
+  name: string;
+  country: string;
+  latitude: string;
+  timezone: string;
+  longitude: string;
+}
+
+export interface IrlGatheringMetadata {
+  ui: {
+    eventSlugs: string[];
+    locationUid: string;
+  };
+  events: {
+    dates: {
+      end: string;
+      start: string;
+    };
+    items: IrlGatheringEventItem[];
+    total: number;
+    eventUids: string[];
+  };
+  version: number;
+  location: IrlGatheringLocation;
+  ruleKind: string;
+  attendees: {
+    total: number;
+    topAttendees: IrlGatheringAttendee[];
+  };
+  gatheringUid: string;
 }
 
 export type PushNotificationCategory =

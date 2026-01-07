@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { stripHtml, usePushNotificationsContext } from '@/providers/PushNotificationsProvider';
 import { useInfiniteNotifications } from '@/services/push-notifications/hooks';
@@ -8,9 +8,10 @@ import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import { authStatus } from '@/components/core/login/utils/authStatus';
 import { PushNotification } from '@/types/push-notifications.types';
 import { EmptyState } from './EmptyState';
-import { NotificationItem } from './NotificationItem';
+import { NotificationItem } from '@/components/core/UpdatesPanel/NotificationItem';
 import { LoadingIndicator } from './LoadingIndicator';
 import { NotLoggedInState } from '@/components/core/UpdatesPanel/NotLoggedInState';
+import { IrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatheringModal';
 import s from './RecentUpdatesSection.module.scss';
 
 /**
@@ -33,7 +34,12 @@ export function RecentUpdatesSection() {
       enabled: isLoggedIn,
     });
 
+  // IRL Gathering Modal state
+  const [irlGatheringModalOpen, setIrlGatheringModalOpen] = useState(false);
+  const [selectedIrlGathering, setSelectedIrlGathering] = useState<PushNotification | null>(null);
+
   // Sanitize notifications to remove HTML markup from title and description
+  // TODO: REMOVE MOCK_IRL_GATHERING_NOTIFICATION from the array below when done testing
   const sanitizedNotifications = useMemo(() => notifications.map(sanitizeNotification), [notifications]);
 
   useEffect(() => {
@@ -49,6 +55,22 @@ export function RecentUpdatesSection() {
       markAsRead(notification.id);
     }
   };
+
+  const handleIrlGatheringClick = useCallback((notification: PushNotification) => {
+    setSelectedIrlGathering(notification);
+    setIrlGatheringModalOpen(true);
+  }, []);
+
+  const handleIrlGatheringModalClose = useCallback(() => {
+    setIrlGatheringModalOpen(false);
+    setSelectedIrlGathering(null);
+  }, []);
+
+  const handleIrlGatheringGoingClick = useCallback(() => {
+    // TODO: Implement "I'm Going" functionality
+    console.log('User clicked "I\'m Going" for:', selectedIrlGathering?.id);
+    handleIrlGatheringModalClose();
+  }, [selectedIrlGathering, handleIrlGatheringModalClose]);
 
   const renderHeader = () => (
     <div className={s.header}>
@@ -84,34 +106,48 @@ export function RecentUpdatesSection() {
   }
 
   return (
-    <section id="recent-updates" className={s.section}>
-      {renderHeader()}
-      <div className={s.card}>
-        {sanitizedNotifications.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <InfiniteScroll
-            scrollableTarget="body"
-            loader={null}
-            hasMore={hasNextPage}
-            dataLength={sanitizedNotifications.length}
-            next={fetchNextPage}
-            style={{ overflow: 'unset' }}
-          >
-            <div className={s.notificationsList}>
-              {sanitizedNotifications.map((notification) => (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
-                  onNotificationClick={handleNotificationClick}
-                />
-              ))}
-            </div>
-            {isFetchingNextPage && <LoadingIndicator />}
-          </InfiniteScroll>
-        )}
-      </div>
-    </section>
+    <>
+      <section id="recent-updates" className={s.section}>
+        {renderHeader()}
+        <div className={s.card}>
+          {sanitizedNotifications.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <InfiniteScroll
+              scrollableTarget="body"
+              loader={null}
+              hasMore={hasNextPage}
+              dataLength={sanitizedNotifications.length}
+              next={fetchNextPage}
+              style={{ overflow: 'unset' }}
+            >
+              <div className={s.notificationsList}>
+                {sanitizedNotifications.map((notification) => (
+                  <NotificationItem
+                    key={notification.id}
+                    notification={notification}
+                    onNotificationClick={handleNotificationClick}
+                    onIrlGatheringClick={handleIrlGatheringClick}
+                    variant="page"
+                  />
+                ))}
+              </div>
+              {isFetchingNextPage && <LoadingIndicator />}
+            </InfiniteScroll>
+          )}
+        </div>
+      </section>
+
+      {/* IRL Gathering Modal */}
+      {selectedIrlGathering && (
+        <IrlGatheringModal
+          isOpen={irlGatheringModalOpen}
+          onClose={handleIrlGatheringModalClose}
+          notification={selectedIrlGathering}
+          onGoingClick={handleIrlGatheringGoingClick}
+        />
+      )}
+    </>
   );
 }
 

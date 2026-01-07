@@ -238,7 +238,7 @@ function PlaaRoundSelector({
 
           .round-selector {
             position: relative;
-            width: 150px;
+            width: 100%;
           }
 
           /* ---------------------------------------------------------------
@@ -246,25 +246,21 @@ function PlaaRoundSelector({
              Figma: 150x35px, border 1px #427dff, radius 8px
              --------------------------------------------------------------- */
           .round-selector__trigger {
-            width: 150px;
+            width: 100%;
             height: 35px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
             padding: 0 24px;
-            background-color: #ffffff;
-            border: 1px solid #427dff;
+            background-color: #F1F5F9;
             border-radius: 8px;
             cursor: pointer;
             transition: border-width 0.1s ease;
             overflow: hidden;
           }
 
-          .round-selector__trigger:hover {
-            background-color: #fafbfc;
-          }
-
+      
           .round-selector__trigger:focus {
             outline: none;
             border-width: 2px;

@@ -5,15 +5,20 @@ import s from '../IrlGatheringModal.module.scss';
 interface ModalFooterProps {
   onClose: () => void;
   onGoingClick?: () => void;
+  isSubmit?: boolean;
 }
 
-export function ModalFooter({ onClose, onGoingClick }: ModalFooterProps) {
+export function ModalFooter({ onClose, onGoingClick, isSubmit = false }: ModalFooterProps) {
   return (
     <div className={s.footer}>
-      <button className={s.cancelButton} onClick={onClose}>
+      <button type="button" className={s.cancelButton} onClick={onClose}>
         Cancel
       </button>
-      <button className={s.goingButton} onClick={onGoingClick}>
+      <button
+        type={isSubmit ? 'submit' : 'button'}
+        className={s.goingButton}
+        onClick={isSubmit ? undefined : onGoingClick}
+      >
         I&apos;m Going
       </button>
     </div>

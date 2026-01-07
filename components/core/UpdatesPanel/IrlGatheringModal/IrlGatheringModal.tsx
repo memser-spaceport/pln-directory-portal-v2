@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
 import { PushNotification } from '@/types/push-notifications.types';
 import {
@@ -21,11 +22,21 @@ export interface IrlGatheringModalProps {
   onGoingClick?: () => void;
 }
 
+export interface IrlGatheringFormData {
+  topics: string[];
+}
+
 type ModalView = 'main' | 'datePicker';
 
 export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick }: IrlGatheringModalProps) {
   const [currentView, setCurrentView] = useState<ModalView>('main');
   const [selectedDateRange, setSelectedDateRange] = useState<[Date, Date] | null>(null);
+
+  const methods = useForm<IrlGatheringFormData>({
+    defaultValues: {
+      topics: [],
+    },
+  });
 
   const metadata = notification.metadata || {};
   const gatheringName = (metadata.gatheringName as string) || notification.title;
@@ -57,6 +68,14 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
     setCurrentView('main');
   };
 
+  const handleSubmit = methods.handleSubmit((data) => {
+    console.log('IRL Gathering Form Submitted:', {
+      dateRange: selectedDateRange,
+      topics: data.topics,
+    });
+    onGoingClick?.();
+  });
+
   if (currentView === 'datePicker') {
     return (
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -72,35 +91,45 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} overlayClassname={s.modalOverlay}>
-      <div className={s.modal}>
-        <ModalHeader gatheringName={gatheringName} gatheringImage={gatheringImage} onClose={onClose} />
+      <FormProvider {...methods}>
+        <form
+          onSubmit={handleSubmit}
+          className={s.modal}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+            }
+          }}
+        >
+          <ModalHeader gatheringName={gatheringName} gatheringImage={gatheringImage} onClose={onClose} />
 
-        <div className={s.content}>
-          <AboutSection description={aboutDescription} />
+          <div className={s.content}>
+            <AboutSection description={aboutDescription} />
 
-          <GatheringDetails
-            dateRange={dateRange}
-            location={location}
-            telegramLink={telegramLink}
-            eventsLink={eventsLink}
-            eventsCount={eventsCount}
-            speakerIntakeLink={speakerIntakeLink}
-            submitEventLink={submitEventLink}
-            submittedEventsCount={submittedEventsCount}
-            otherResourcesLink={otherResourcesLink}
-          />
+            <GatheringDetails
+              dateRange={dateRange}
+              location={location}
+              telegramLink={telegramLink}
+              eventsLink={eventsLink}
+              eventsCount={eventsCount}
+              speakerIntakeLink={speakerIntakeLink}
+              submitEventLink={submitEventLink}
+              submittedEventsCount={submittedEventsCount}
+              otherResourcesLink={otherResourcesLink}
+            />
 
-          <AttendeesSection attendees={attendees} attendeesCount={attendeesCount} gatheringLink={notification.link} />
+            <AttendeesSection attendees={attendees} attendeesCount={attendeesCount} gatheringLink={notification.link} />
 
-          <PlanningSection
-            planningQuestion={planningQuestion}
-            selectedDateRange={selectedDateRange}
-            onInputClick={handleOpenDatePicker}
-          />
-        </div>
+            <PlanningSection
+              planningQuestion={planningQuestion}
+              selectedDateRange={selectedDateRange}
+              onInputClick={handleOpenDatePicker}
+            />
+          </div>
 
-        <ModalFooter onClose={onClose} onGoingClick={onGoingClick} />
-      </div>
+          <ModalFooter onClose={onClose} isSubmit />
+        </form>
+      </FormProvider>
     </Modal>
   );
 }

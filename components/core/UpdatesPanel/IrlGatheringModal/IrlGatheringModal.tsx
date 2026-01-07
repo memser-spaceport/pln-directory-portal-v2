@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
 import { PushNotification, IrlGatheringMetadata } from '@/types/push-notifications.types';
+import { useCreateIrlGatheringGuest } from '@/services/events/hooks/useCreateIrlGatheringGuest';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 import {
   ModalHeader,
   AboutSection,
@@ -36,9 +38,16 @@ function formatDateRange(startDate: string, endDate: string): string {
   return `${formatDate(start)} - ${formatDate(end)}`;
 }
 
+function formatDateForApi(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
 export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick }: IrlGatheringModalProps) {
   const [currentView, setCurrentView] = useState<ModalView>('main');
   const [selectedDateRange, setSelectedDateRange] = useState<[Date, Date] | null>(null);
+
+  const { mutate: createGuest, isPending } = useCreateIrlGatheringGuest();
+  const { userInfo } = getCookiesFromClient();
 
   const methods = useForm<IrlGatheringFormData>({
     defaultValues: {
@@ -86,11 +95,53 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
   };
 
   const handleSubmit = methods.handleSubmit((data) => {
-    console.log('IRL Gathering Form Submitted:', {
-      dateRange: selectedDateRange,
+    if (!userInfo?.uid || !metadata.gatheringUid) {
+      console.error('Missing required data for submission');
+      return;
+    }
+
+    const eventPayloads = (metadata.events?.items || []).map((event) => ({
+      uid: event.uid,
+      isHost: false,
+      isSpeaker: false,
+      isSponsor: false,
+      hostSubEvents: [],
+      speakerSubEvents: [],
+      sponsorSubEvents: [],
+    }));
+
+    const payload = {
+      memberUid: userInfo.uid,
+      teamUid: userInfo.leadingTeams?.[0] || '',
+      reason: '',
+      telegramId: '',
+      officeHours: '',
+      events: eventPayloads,
+      additionalInfo: {
+        checkInDate: selectedDateRange ? formatDateForApi(selectedDateRange[0]) : '',
+        checkOutDate: selectedDateRange ? formatDateForApi(selectedDateRange[1]) : '',
+      },
       topics: data.topics,
-    });
-    onGoingClick?.();
+      locationName: locationName,
+    };
+
+    createGuest(
+      {
+        locationId: metadata.gatheringUid,
+        payload,
+        type: 'upcoming',
+      },
+      {
+        onSuccess: () => {
+          console.log('IRL Gathering guest created successfully');
+          onGoingClick?.();
+          onClose();
+        },
+        onError: (error) => {
+          console.error('Failed to create IRL gathering guest:', error);
+        },
+      },
+    );
   });
 
   if (currentView === 'datePicker') {
@@ -148,7 +199,7 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
             />
           </div>
 
-          <ModalFooter onClose={onClose} isSubmit />
+          <ModalFooter onClose={onClose} isSubmit isLoading={isPending} />
         </form>
       </FormProvider>
     </Modal>

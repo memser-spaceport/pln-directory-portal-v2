@@ -6,6 +6,7 @@ import SupportSection from '../rounds/sections/support-section';
 import Link from 'next/link';
 
 // Define all rounds (each round = one month)
+// Note: Round 12 (January 2026) will be added once the snapshot has closed and points/tokens are calculated
 const allRounds = [
   { id: 1, month: 'February 2025' },
   { id: 2, month: 'March 2025' },
@@ -18,12 +19,12 @@ const allRounds = [
   { id: 9, month: 'October 2025' },
   { id: 10, month: 'November 2025' },
   { id: 11, month: 'December 2025' },
-  { id: 12, month: 'January 2026' },
 ];
 
 // Current round (for "Go to current round" functionality)
-const CURRENT_ROUND = 12; // January 2026
-const TOTAL_ROUNDS = 12;
+// Note: Update to 12 once Round 12 snapshot is closed and points/tokens are calculated
+const CURRENT_ROUND = 11; // December 2025
+const TOTAL_ROUNDS = 11;
 
 // Mock data for each round (month)
 const chartDataByRound: Record<number, Array<{ category: string; points: number; tokens: number }>> = {
@@ -391,7 +392,7 @@ export default function IncentiveModel() {
                   alt="" 
                   className="incentive-model__round-btn-gradient" 
                 />
-                <span>{selectedRound === CURRENT_ROUND ? 'Current Round' : `Round ${selectedRound}`}</span>
+                <span>Round {selectedRound}</span>
                 <svg
                   width="16"
                   height="16"

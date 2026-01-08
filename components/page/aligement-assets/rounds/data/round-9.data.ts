@@ -96,6 +96,7 @@ export const pastRound9Data: IPastRoundData = {
   // ============================================================================
   buybackSimulation: {
     headerDescription: 'This second simulation, compared with the first, showed how different bid patterns and participation levels affect clearing prices, pool usage, and token allocation outcomes. With a wider spread of bid values and higher activity, it produced clearer differences in demand, fill rates, and bidder distribution. These insights informed refinements to handling partial fills, applying the cap, and understanding how bid density shapes the final clearing price.',
+    totalFilled: '$35,300',
     summary: {
       title: 'Buyback Simulation #2 - Key Results',
       items: [
@@ -132,12 +133,36 @@ export const pastRound9Data: IPastRoundData = {
       ]
     },
     bids: [
-      { bidderId: 'Bidder #12', tokensBid: '1,400', tokenPrice: '$10.25', bidValue: '$14,350.00', status: 'Fully Filled', amtFilled: '$14,350', accepted: '1,025', aggFill: '$14,350', percentCapture: '30.13%' },
-      { bidderId: 'Bidder #13', tokensBid: '400', tokenPrice: '$12.00', bidValue: '$4,800.00', status: 'Partially Filled', amtFilled: '$4,788', accepted: '342', aggFill: '$19,138', percentCapture: '10.05%' },
-      { bidderId: 'Bidder #2', tokensBid: '300', tokenPrice: '$12.00', bidValue: '$3,600.00', status: 'Partially Filled', amtFilled: '$3,598', accepted: '257', aggFill: '$22,736', percentCapture: '7.56%' },
-      { bidderId: 'Bidder #8', tokensBid: '300', tokenPrice: '$12.00', bidValue: '$3,600.00', status: 'Partially Filled', amtFilled: '$3,598', accepted: '257', aggFill: '$26,334', percentCapture: '7.56%' },
-      { bidderId: 'Bidder #2', tokensBid: '300', tokenPrice: '$14.00', bidValue: '$4,200.00', status: 'Fully Filled', amtFilled: '$4,200', accepted: '300', aggFill: '$30,534', percentCapture: '8.82%' },
-      { bidderId: 'Bidder #9', tokensBid: '1,400', tokenPrice: '$14.00', bidValue: '$19,600.00', status: 'Partially Filled', amtFilled: '$17,080', accepted: '1,220', aggFill: '$47,614', percentCapture: '35.86%' }
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$1.00', bidValue: '$10', status: 'Fully Filled', amtFilled: '$20', accepted: '$1.00', aggFill: '$20', percentCapture: '0.06%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$2.00', bidValue: '$20', status: 'Fully Filled', amtFilled: '$20', accepted: '$1.00', aggFill: '$40', percentCapture: '0.06%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$3.00', bidValue: '$30', status: 'Partially Filled', amtFilled: '$20', accepted: '$1.00', aggFill: '$60', percentCapture: '0.06%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$4.00', bidValue: '$40', status: 'Fully Filled', amtFilled: '$40', accepted: '$2.00', aggFill: '$100', percentCapture: '0.11%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$5.00', bidValue: '$50', status: 'Partially Filled', amtFilled: '$40', accepted: '$2.00', aggFill: '$140', percentCapture: '0.11%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$6.00', bidValue: '$60', status: 'Fully Filled', amtFilled: '$60', accepted: '$3.00', aggFill: '$200', percentCapture: '0.17%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$7.00', bidValue: '$70', status: 'Partially Filled', amtFilled: '$60', accepted: '$3.00', aggFill: '$260', percentCapture: '0.17%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$8.00', bidValue: '$80', status: 'Fully Filled', amtFilled: '$80', accepted: '$4.00', aggFill: '$340', percentCapture: '0.23%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$9.00', bidValue: '$90', status: 'Partially Filled', amtFilled: '$80', accepted: '$4.00', aggFill: '$420', percentCapture: '0.23%' },
+      { bidderId: 'Bidder #2', tokensBid: '100', tokenPrice: '$9.00', bidValue: '$900', status: 'Fully Filled', amtFilled: '$900', accepted: '$45.00', aggFill: '$1,320', percentCapture: '2.55%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$10.00', bidValue: '$100', status: 'Fully Filled', amtFilled: '$100', accepted: '$5', aggFill: '$1,420', percentCapture: '0.28%' },
+      { bidderId: 'Bidder #2', tokensBid: '100', tokenPrice: '$10.00', bidValue: '$1,000', status: 'Fully Filled', amtFilled: '$1,000', accepted: '$50', aggFill: '$2,420', percentCapture: '2.83%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$11.00', bidValue: '$110', status: 'Partially Filled', amtFilled: '$100', accepted: '$5', aggFill: '$2,520', percentCapture: '0.28%' },
+      { bidderId: 'Bidder #2', tokensBid: '100', tokenPrice: '$11.00', bidValue: '$1,100', status: 'Fully Filled', amtFilled: '$1,100', accepted: '$55', aggFill: '$3,620', percentCapture: '3.11%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$12.00', bidValue: '$120', status: 'Fully Filled', amtFilled: '$120', accepted: '$6', aggFill: '$3,740', percentCapture: '0.34%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$12.00', bidValue: '$120', status: 'Fully Filled', amtFilled: '$120', accepted: '$6', aggFill: '$3,860', percentCapture: '0.34%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$13.00', bidValue: '$130', status: 'Partially Filled', amtFilled: '$120', accepted: '$6', aggFill: '$3,980', percentCapture: '0.34%' },
+      { bidderId: 'Bidder #2', tokensBid: '100', tokenPrice: '$13.00', bidValue: '$1,300', status: 'Fully Filled', amtFilled: '$1,300', accepted: '$65', aggFill: '$5,280', percentCapture: '3.68%' },
+      { bidderId: 'Bidder #3', tokensBid: '80', tokenPrice: '$13.00', bidValue: '$1,040', status: 'Fully Filled', amtFilled: '$1,040', accepted: '$52', aggFill: '$6,320', percentCapture: '2.94%' },
+      { bidderId: 'Bidder #2', tokensBid: '100', tokenPrice: '$14.00', bidValue: '$1,400', status: 'Fully Filled', amtFilled: '$1,400', accepted: '$70', aggFill: '$7,720', percentCapture: '3.96%' },
+      { bidderId: 'Bidder #1', tokensBid: '10', tokenPrice: '$15.00', bidValue: '$150', status: 'Partially Filled', amtFilled: '$140', accepted: '$7', aggFill: '$7,860', percentCapture: '0.40%' },
+      { bidderId: 'Bidder #2', tokensBid: '100', tokenPrice: '$15.00', bidValue: '$1,500', status: 'Fully Filled', amtFilled: '$1,500', accepted: '$75', aggFill: '$9,360', percentCapture: '4.25%' },
+      { bidderId: 'Bidder #2', tokensBid: '100', tokenPrice: '$17.00', bidValue: '$1,700', status: 'Fully Filled', amtFilled: '$1,700', accepted: '$85', aggFill: '$11,060', percentCapture: '4.81%' },
+      { bidderId: 'Bidder #4', tokensBid: '100', tokenPrice: '$18.00', bidValue: '$1,800', status: 'Fully Filled', amtFilled: '$1,800', accepted: '$90', aggFill: '$12,860', percentCapture: '5.10%' },
+      { bidderId: 'Bidder #2', tokensBid: '100', tokenPrice: '$18.00', bidValue: '$1,800', status: 'Fully Filled', amtFilled: '$1,800', accepted: '$90', aggFill: '$14,660', percentCapture: '5.10%' },
+      { bidderId: 'Bidder #5', tokensBid: '1000', tokenPrice: '$19.25', bidValue: '$19,250', status: 'Limit', amtFilled: '$17,660', accepted: '$883', aggFill: '$32,320', percentCapture: '50.00%' },
+      { bidderId: 'Bidder #1', tokensBid: '25', tokenPrice: '$20.00', bidValue: '$500', status: 'Pro Rata', amtFilled: '$60', accepted: '$3', aggFill: '$32,380', percentCapture: '0.17%' },
+      { bidderId: 'Bidder #6', tokensBid: '1000', tokenPrice: '$20.00', bidValue: '$20,000', status: 'Pro Rata', amtFilled: '$2,440', accepted: '$122', aggFill: '$34,820', percentCapture: '6.91%' },
+      { bidderId: 'Bidder #7', tokensBid: '100', tokenPrice: '$20.00', bidValue: '$2,000', status: 'Pro Rata', amtFilled: '$240', accepted: '$12', aggFill: '$35,060', percentCapture: '0.68%' },
+      { bidderId: 'Bidder #2', tokensBid: '100', tokenPrice: '$20.00', bidValue: '$2,000', status: 'Pro Rata', amtFilled: '$240', accepted: '12', aggFill: '$35,300', percentCapture: '0.68%' }
     ]
   },
 };

@@ -15,7 +15,7 @@ export default function DisclaimerSection() {
           
           <p className="disclaimer-section__text">
             <em>The Alignment Asset is still in private beta, and we&apos;re actively experimenting. The points program may evolve at any time as we learn and improve. While the alignment asset trust ultimately controls token distributions, and we cannot guarantee the conversion of points to tokens, your participation now puts you at the forefront of this exciting initiative. This is for informational purposes only, and is not legal, financial, investment, or tax advice. Please read our{' '}
-            <a href={DISCLOSURE_URL} className="disclaimer-section__link" target="_blank" rel="noopener noreferrer">disclosure</a>.</em>
+            <a href={DISCLOSURE_URL} className="disclaimer-section__link" rel="noopener noreferrer">disclosure</a>.</em>
           </p>
         </div>
       </section>

@@ -168,7 +168,7 @@ export interface BuybackAuctionSectionData {
 
 export interface BuybackSimulationSectionData {
   headerDescription: string;
-  totalFilled: string;
+  totalFilled?: string;
   summary: BuybackSummary;
   bids: BuybackBidEntry[];
 }

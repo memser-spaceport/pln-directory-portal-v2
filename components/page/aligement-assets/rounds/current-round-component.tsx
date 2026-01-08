@@ -78,8 +78,10 @@ export default function CurrentRoundComponent({
           cumulativeData={data.leaderboard.cumulativeData}
         />
 
-        {/* Buyback Auction Results Section */}
-        <BuybackAuctionSection data={data.buybackAuction} />
+        {/* Buyback Auction Results Section - Only show when there's auction data */}
+        {data.buybackAuction.bids.length > 0 && (
+          <BuybackAuctionSection data={data.buybackAuction} />
+        )}
 
         {/* Learn More Section */}
         <LearnMoreSection data={data.learnMore} />

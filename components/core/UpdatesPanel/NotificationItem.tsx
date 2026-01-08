@@ -208,9 +208,18 @@ export function NotificationItem({
     );
   }
 
+  let link = notification.link;
+
+  if (isIrlGathering) {
+    // @ts-ignore
+    link = `/events/irl?location=${notification.metadata?.location?.name}`;
+  }
+
+  console.log(notification.category, link);
+
   return (
     <Link
-      href={(!notification.link?.startsWith('/') ? `/${notification.link}` : notification.link) || '#'}
+      href={(!link?.startsWith('/') ? `/${link}` : link) || '#'}
       className={clsx(s.notificationItem, {
         [s.unread]: !notification.isRead,
       })}

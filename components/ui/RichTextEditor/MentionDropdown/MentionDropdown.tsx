@@ -9,6 +9,7 @@ import s from './MentionDropdown.module.scss';
 
 export interface MentionMemberItem {
   uid: string;
+  externalId: string;
   name: string;
   image?: string;
   teamName?: string;

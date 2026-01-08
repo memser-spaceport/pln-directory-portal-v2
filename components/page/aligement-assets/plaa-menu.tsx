@@ -10,7 +10,7 @@ import PlaaRoundSelector from './plaa-round-selector';
    Figma: https://www.figma.com/design/xrvyUEqgZ0oRNT0spUruMW/Untitled?node-id=1-5250
    ========================================================================== */
 
-export type PlaaActiveItem = 'overview' | 'activities' | 'incentive-model' | 'terms-of-use' | 'privacy-policy' | 'product-versions' | 'faqs';
+export type PlaaActiveItem = 'overview' | 'activities' | 'incentive-model' | 'terms-of-use' | 'privacy-policy' | 'product-versions' | 'faqs' | 'disclosure';
 
 interface PlaaMenuProps {
   activeItem?: PlaaActiveItem;
@@ -26,7 +26,8 @@ const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string }> = [
   { name: 'product-versions', label: 'Product Versions', url: '/alignment-assets/product-versions' },
   { name: 'faqs', label: 'FAQ', url: '/alignment-assets/faqs' },
   { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-assets/terms-of-use' },
-  { name: 'privacy-policy', label: 'Privacy Policy', url: '/alignment-assets/privacy-policy' }
+  { name: 'privacy-policy', label: 'Privacy Policy', url: '/alignment-assets/privacy-policy' },
+  { name: 'disclosure', label: 'Disclosure', url: '/alignment-assets/disclosure' }
 ];
 
 function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound }: PlaaMenuProps) {

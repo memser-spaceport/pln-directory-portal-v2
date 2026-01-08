@@ -132,6 +132,7 @@ export const pastRound11Data: IPastRoundData = {
   // ============================================================================
   buybackSimulation: {
     headerDescription: 'The first buyback auction for Round 11 demonstrated strong participation with 99.98% pool utilization. The auction cleared at $14.00 per token, with 5 winning bidders purchasing 3,401 tokens from a total pool of $47,623.10.',
+    totalFilled: '$47,614',
     summary: {
       title: 'Buyback Auction #1 - December 2025 - Key Results',
       items: [

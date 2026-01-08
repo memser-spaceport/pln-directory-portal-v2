@@ -37,6 +37,7 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem | undefined
     'privacy-policy': { activeItem: 'privacy-policy', title: 'Privacy Policy' },
     'product-versions': { activeItem: 'product-versions', title: 'Product Versions' },
     'faqs': { activeItem: 'faqs', title: 'FAQ' },
+    'disclosure': { activeItem: 'disclosure', title: 'Disclosure' },
   };
 
   return pageMap[pathSegment] || pageMap['overview'];

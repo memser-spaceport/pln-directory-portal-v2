@@ -1,0 +1,11 @@
+.disclosure {
+  display: flex;
+  flex-direction: column;
+  gap: 102px;
+}
+
+.disclosure__content {
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+}

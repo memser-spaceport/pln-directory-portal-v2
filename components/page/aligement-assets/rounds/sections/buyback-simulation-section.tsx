@@ -30,10 +30,18 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
         <div className="buyback-section__container">
           {/* Header */}
           <div className="buyback-section__header">
-              <h2 className="buyback-section__title">Buyback Simulation Results</h2>
+            <div className="buyback-section__header-left">
+              <h2 className="buyback-section__title">Buyback Auction Results</h2>
               <p className="buyback-section__description">
                 {data.headerDescription}
               </p>
+            </div>
+            <div className="buyback-section__stat">
+              <span className="buyback-section__stat-label">Total Filled</span>
+              <span className={`buyback-section__stat-value ${data.totalFilled === 'Calculating...' ? 'buyback-section__stat-value--calculating' : ''}`}>
+                {data.totalFilled}
+              </span>
+            </div>
           </div>
 
           {/* Auction Summary Box */}
@@ -146,8 +154,16 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
 
         .buyback-section__header {
           display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 48px;
+        }
+
+        .buyback-section__header-left {
+          display: flex;
           flex-direction: column;
           gap: 16px;
+          flex: 1;
         }
 
         .buyback-section__title {

@@ -153,7 +153,7 @@ export interface BuybackBidEntry {
   tokensBid: string;
   tokenPrice: string;
   bidValue: string;
-  status: 'Fully Filled' | 'Partially Filled' | 'Not Filled';
+  status: 'Fully Filled' | 'Partially Filled' | 'Not Filled' | 'Limit' | 'Pro Rata';
   amtFilled: string;
   accepted: string;
   aggFill: string;
@@ -168,6 +168,7 @@ export interface BuybackAuctionSectionData {
 
 export interface BuybackSimulationSectionData {
   headerDescription: string;
+  totalFilled: string;
   summary: BuybackSummary;
   bids: BuybackBidEntry[];
 }

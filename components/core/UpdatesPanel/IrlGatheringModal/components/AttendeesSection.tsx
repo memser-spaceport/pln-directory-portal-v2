@@ -24,20 +24,14 @@ export function AttendeesSection({ attendees, attendeesCount, gatheringLink }: A
         <div className={s.avatarGroup}>
           {attendees.slice(0, 3).map((attendee, index) => (
             <div key={attendee.uid || index} className={s.avatar}>
-              <Image
-                src={attendee.picture || getDefaultAvatar(attendee.uid || '')}
-                alt=""
-                width={24}
-                height={24}
-              />
+              <Image src={attendee.picture || getDefaultAvatar(attendee.uid || '')} alt="" width={24} height={24} />
             </div>
           ))}
         </div>
-        <a href={gatheringLink || '#'} className={s.linkButton}>
+        <a href={gatheringLink || '#'} className={s.linkButton} target="_blank" rel="noopener noreferrer">
           {attendeesCount} People going <ArrowRightIcon />
         </a>
       </div>
     </div>
   );
 }
-

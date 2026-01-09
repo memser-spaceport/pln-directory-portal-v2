@@ -54,7 +54,6 @@ export const pastRound11Data: IPastRoundData = {
     regionsUnlocked: ['USA', 'Germany', 'Switzerland'],
     incentivizedActivities: [
       'Curate X Spaces',
-      'Shared Resource or Cost-Saving Initiative',
       'Create a Replicable Playbook or Template',
       'Host Office Hours',
       'Create a blog for the network',

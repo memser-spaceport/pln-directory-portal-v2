@@ -2,20 +2,31 @@
 @use 'styles/mixins';
 
 .modalOverlay {
-  // Override the modal container to properly constrain height
+  padding: 0;
   > div {
-    max-height: 80vh;
+    min-height: 100dvh;
+    max-height: 100dvh;
     display: flex;
     flex-direction: column;
+  }
+
+  @include media.tablet-landscape {
+    > div {
+      min-height: unset;
+      max-height: 80dvh !important;
+      display: flex;
+      flex-direction: column;
+    }
   }
 }
 
 .modal {
   background: white;
-  border-radius: 24px;
+  border-radius: 0;
   width: 100%;
-  max-width: 600px;
-  max-height: 80vh;
+  height: 100%;
+  max-height: 100dvh;
+  max-width: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -23,9 +34,11 @@
     0px 10px 20px -5px rgba(14, 15, 17, 0.06),
     0px 20px 65px -5px rgba(14, 15, 17, 0.06);
 
-  @include media.mobile-only {
-    max-width: 100%;
-    max-height: 80vh;
+  @include media.tablet-landscape {
+    max-width: 600px;
+    border-radius: 24px;
+    //max-height: 80dvh;
+    //border-radius: 24px;
   }
 }
 
@@ -293,8 +306,8 @@
 .planningFieldInput {
   display: flex;
   align-items: center;
-  height: 48px;
-  padding: 0 8px;
+  min-height: 48px;
+  padding: 2px 8px;
   background: white;
   border: 1px solid rgba(14, 15, 17, 0.16);
   border-radius: 8px;
@@ -501,9 +514,9 @@
 
 .datePickerModal {
   background: white;
-  border-radius: 24px;
+  border-radius: 0;
   width: 100%;
-  max-width: 600px;
+  max-width: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -511,8 +524,9 @@
     0px 10px 20px -5px rgba(14, 15, 17, 0.06),
     0px 20px 65px -5px rgba(14, 15, 17, 0.06);
 
-  @include media.mobile-only {
-    max-width: 100%;
+  @include media.tablet-landscape {
+    max-width: 600px;
+    border-radius: 24px;
   }
 }
 
@@ -525,7 +539,6 @@
 
 .calendarInline {
   width: 100%;
-  margin-top: 8px;
   max-width: 380px;
 
   border-radius: var(--corner-radius-3xl, 20px);
@@ -916,5 +929,212 @@
     letter-spacing: -0.2px;
     color: #455468;
   }
+}
+
+// Topics Picker View Styles
+.topicsPickerModal {
+  background: white;
+  border-radius: 0;
+  width: 100%;
+  max-width: 600px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.06);
+  height: 100%;
+  max-height: 100dvh;
+
+  @include media.tablet-landscape {
+    max-height: 80dvh;
+    border-radius: 24px;
+  }
+}
+
+.topicsPickerContent {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.topicsPickerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.topicsPickerLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.topicsInputContainer {
+  display: flex;
+  align-items: flex-start;
+  min-height: 48px;
+  padding: 10px 14px;
+  background: white;
+  border: 1px solid #5e718d;
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px rgba(27, 56, 96, 0.12);
+}
+
+.topicsSelectedTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.topicsTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(27, 56, 96, 0.08);
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #455468;
+}
+
+.topicsTagRemove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #8897ae;
+  line-height: 1;
+
+  &:hover {
+    color: #455468;
+  }
+}
+
+.topicsSearchInput {
+  flex: 1;
+  min-width: 80px;
+  padding: 0;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #0a0c11;
+  //height: 100%;
+
+  &::placeholder {
+    color: #afbaca;
+  }
+}
+
+.topicsSuggestionsList {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  padding-right: 4px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(27, 56, 96, 0.16);
+    border-radius: 3px;
+  }
+}
+
+.topicsSuggestionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: rgba(27, 56, 96, 0.04);
+  }
+}
+
+.topicsSuggestionItemSelected {
+  background: rgba(27, 77, 255, 0.08);
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.12);
+  }
+}
+
+.topicsSuggestionText {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0a0c11;
+}
+
+.topicsSuggestionCheck {
+  font-size: 14px;
+  color: #1b4dff;
+}
+
+.topicsNoResults {
+  padding: 20px;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #8897ae;
+}
+
+.topicsSuggestionAdd {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1b4dff;
+}
+
+// Planning section topic tags
+.planningTopicsTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.planningTopicTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: rgba(27, 56, 96, 0.08);
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #455468;
 }
 

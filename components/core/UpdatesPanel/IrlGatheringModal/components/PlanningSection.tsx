@@ -1,12 +1,13 @@
 'use client';
 
-import { FormTagsInput } from '@/components/form/FormTagsInput/FormTagsInput';
 import s from '../IrlGatheringModal.module.scss';
 
 interface PlanningSectionProps {
   planningQuestion: string;
   selectedDateRange: [Date, Date] | null;
-  onInputClick: () => void;
+  selectedTopics: string[];
+  onDateInputClick: () => void;
+  onTopicsInputClick: () => void;
 }
 
 function formatDateRange(range: [Date, Date] | null): string {
@@ -20,7 +21,9 @@ function formatDateRange(range: [Date, Date] | null): string {
 export function PlanningSection({
   planningQuestion,
   selectedDateRange,
-  onInputClick,
+  selectedTopics,
+  onDateInputClick,
+  onTopicsInputClick,
 }: PlanningSectionProps) {
   const displayValue = formatDateRange(selectedDateRange);
 
@@ -32,7 +35,7 @@ export function PlanningSection({
       </div>
 
       <div className={s.planningContent}>
-        <button type="button" className={s.planningField} onClick={onInputClick}>
+        <button type="button" className={s.planningField} onClick={onDateInputClick}>
           <span className={s.planningFieldLabel}>Select date range</span>
           <div className={s.planningFieldInput}>
             <span className={displayValue ? s.planningFieldValue : s.planningFieldPlaceholder}>
@@ -41,14 +44,22 @@ export function PlanningSection({
           </div>
         </button>
 
-        <div className={s.topicsInputWrapper}>
-          <FormTagsInput
-            name="topics"
-            selectLabel="Topics of interest"
-            placeholder="Add topic"
-            isColorfulBadges={false}
-          />
-        </div>
+        <button type="button" className={s.planningField} onClick={onTopicsInputClick}>
+          <span className={s.planningFieldLabel}>Topics of interest</span>
+          <div className={s.planningFieldInput}>
+            {selectedTopics.length > 0 ? (
+              <div className={s.planningTopicsTags}>
+                {selectedTopics.map((topic) => (
+                  <span key={topic} className={s.planningTopicTag}>
+                    {topic}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <span className={s.planningFieldPlaceholder}>Add topic</span>
+            )}
+          </div>
+        </button>
       </div>
     </div>
   );

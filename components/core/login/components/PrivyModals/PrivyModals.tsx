@@ -49,6 +49,8 @@ export function PrivyModals() {
     user,
   } = usePrivyWrapper();
 
+  console.log({ user });
+
   // Custom hooks
   const { saveTokens } = useAuthTokens();
 
@@ -391,12 +393,17 @@ export function PrivyModals() {
       updateEmail: updateEmail,
     };
 
+    if (!user?.linkedAccounts.some((item) => item.type === 'email') && linkAccountKey === 'updateEmail') {
+      setLinkAccountKey('email');
+      return;
+    }
+
     const method = linkMethods[linkAccountKey];
     if (method) {
       method();
       setLinkAccountKey('');
     }
-  }, [linkAccountKey, linkEmail, linkGithub, linkGoogle, linkWallet, updateEmail]);
+  }, [linkAccountKey, linkEmail, linkGithub, linkGoogle, linkWallet, updateEmail, user]);
 
   // ============================================
   // Render

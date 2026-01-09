@@ -25,7 +25,6 @@ export default function SupportSection() {
               <Link href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" className="support-section__link">Schedule office hours</Link>
               {' '}for 1:1 support or email{' '}
               <Link href={`mailto:${SUPPORT_EMAIL}`} target="_blank" rel="noopener noreferrer" className="support-section__link">{SUPPORT_EMAIL}</Link>
-              <span className="support-section__dot">.</span>
             </p>
           </div>
         </div>
@@ -93,10 +92,6 @@ export default function SupportSection() {
           color: #0f172a;
         }
 
-        .support-section__dot {
-          color: #156ff7;
-          font-weight: 400;
-        }
 
         @media (max-width: 768px) {
           .support-section__content {

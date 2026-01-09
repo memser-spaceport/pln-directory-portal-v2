@@ -31,7 +31,7 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
           {/* Header */}
           <div className="buyback-section__header">
             <div className="buyback-section__header-left">
-              <h2 className="buyback-section__title">Buyback Auction Results</h2>
+              <h2 className="buyback-section__title">Buyback Simulation Results</h2>
               <p className="buyback-section__description">
                 {data.headerDescription}
               </p>

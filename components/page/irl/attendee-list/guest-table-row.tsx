@@ -74,6 +74,9 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get('type');
+  // NOTE: Logged-in user identification for styling
+  // This identifies if the current row represents the logged-in user
+  // The user is NOT filtered out from the list, just styled differently (see className below)
   const isUserGoing = guestUid === userInfo?.uid;
   const topicsNeedToShow = 2;
   const remainingTopics = topics?.slice(topicsNeedToShow, topics?.length)?.map((topic: string) => topic);

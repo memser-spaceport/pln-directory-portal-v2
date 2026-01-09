@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { BuybackAuctionSectionData } from '../types';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 interface BuybackAuctionSectionProps {
   data: BuybackAuctionSectionData;
@@ -15,12 +16,14 @@ interface BuybackAuctionSectionProps {
  */
 export default function BuybackAuctionSection({ data }: BuybackAuctionSectionProps) {
   const [visibleBids, setVisibleBids] = useState(10);
+  const { onBuybackShowMoreClicked } = useAlignmentAssetsAnalytics();
   
   const visibleBidData = data.bids.slice(0, visibleBids);
   const hasMore = data.bids.length > visibleBids;
   const remainingCount = data.bids.length - visibleBids;
 
   const handleShowMore = () => {
+    onBuybackShowMoreClicked(visibleBids, remainingCount);
     setVisibleBids(prev => prev + 10);
   };
 

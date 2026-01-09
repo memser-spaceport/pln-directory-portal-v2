@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 /* ==========================================================================
    PlaaRoundSelector Component
@@ -27,6 +28,7 @@ function PlaaRoundSelector({
   // Use viewingRound if provided, otherwise fall back to currentRound
   const [selectedRound, setSelectedRound] = useState(viewingRound ?? currentRound);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { onRoundSelectorOpened, onRoundSelectorPrevClicked, onRoundSelectorNextClicked, onRoundSelectorGoToCurrentClicked } = useAlignmentAssetsAnalytics();
 
   // Sync selectedRound with viewingRound prop when it changes (e.g., direct URL access)
   useEffect(() => {
@@ -68,6 +70,7 @@ function PlaaRoundSelector({
   const handlePrevRound = () => {
     if (selectedRound > 1) {
       const newRound = selectedRound - 1;
+      onRoundSelectorPrevClicked(selectedRound, newRound);
       setSelectedRound(newRound);
       onRoundChange?.(newRound);
       navigateToRound(newRound);
@@ -77,6 +80,7 @@ function PlaaRoundSelector({
   const handleNextRound = () => {
     if (selectedRound < totalRounds-1) {
       const newRound = selectedRound + 1;
+      onRoundSelectorNextClicked(selectedRound, newRound);
       setSelectedRound(newRound);
       onRoundChange?.(newRound);
       navigateToRound(newRound);
@@ -87,10 +91,18 @@ function PlaaRoundSelector({
   };
 
   const handleGoToCurrent = () => {
+    onRoundSelectorGoToCurrentClicked(selectedRound, currentRound);
     setSelectedRound(currentRound);
     onRoundChange?.(currentRound);
     setIsOpen(false);
     router.push('/alignment-assets/rounds');
+  };
+
+  const handleTriggerClick = () => {
+    if (!isOpen) {
+      onRoundSelectorOpened(currentRound, selectedRound);
+    }
+    setIsOpen(!isOpen);
   };
 
   const isCurrentRound = selectedRound === currentRound;
@@ -102,7 +114,7 @@ function PlaaRoundSelector({
         {/* Trigger Button */}
         <button
           className="round-selector__trigger"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleTriggerClick}
           aria-expanded={isOpen}
           aria-haspopup="listbox"
           aria-label={`Select round. Currently ${displayText}`}

@@ -2,6 +2,7 @@
 
 import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 interface PlaaBackButtonProps {
   title?: string;
@@ -9,8 +10,10 @@ interface PlaaBackButtonProps {
 
 function PlaaBackButton({ title = '' }: PlaaBackButtonProps) {
   const router = useRouter();
+  const { onBackButtonClicked } = useAlignmentAssetsAnalytics();
 
   const onBackClicked = () => {
+    onBackButtonClicked(title);
     triggerLoader(true);
     router.push('/alignment-assets');
   };

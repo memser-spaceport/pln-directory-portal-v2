@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import SupportSection from '../rounds/sections/support-section';
 import Link from 'next/link';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 // Define all rounds (each round = one month)
 // Note: Round 12 (January 2026) will be added once the snapshot has closed and points/tokens are calculated
@@ -265,6 +266,16 @@ export default function IncentiveModel() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [roundInputValue, setRoundInputValue] = useState(String(CURRENT_ROUND));
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { 
+    onIncentiveModelActivitiesLinkClicked, 
+    onIncentiveModelRoundDropdownOpened, 
+    onIncentiveModelPrevRoundClicked, 
+    onIncentiveModelNextRoundClicked, 
+    onIncentiveModelGoToCurrentClicked, 
+    onIncentiveModelRoundInputChanged,
+    onIncentiveModelTipViewLinkClicked,
+    onIncentiveModelLearnMoreClicked 
+  } = useAlignmentAssetsAnalytics();
 
   const currentData = chartDataByRound[selectedRound] || chartDataByRound[1];
   const currentRoundInfo = allRounds.find((r) => r.id === selectedRound);
@@ -286,19 +297,31 @@ export default function IncentiveModel() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleDropdownToggle = () => {
+    if (!isDropdownOpen) {
+      onIncentiveModelRoundDropdownOpened(selectedRound);
+    }
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
   const handlePrevRound = () => {
     if (selectedRound > 1) {
-      setSelectedRound(selectedRound - 1);
+      const newRound = selectedRound - 1;
+      onIncentiveModelPrevRoundClicked(selectedRound, newRound);
+      setSelectedRound(newRound);
     }
   };
 
   const handleNextRound = () => {
     if (selectedRound < TOTAL_ROUNDS) {
-      setSelectedRound(selectedRound + 1);
+      const newRound = selectedRound + 1;
+      onIncentiveModelNextRoundClicked(selectedRound, newRound);
+      setSelectedRound(newRound);
     }
   };
 
   const handleGoToCurrentRound = () => {
+    onIncentiveModelGoToCurrentClicked(selectedRound, CURRENT_ROUND);
     setSelectedRound(CURRENT_ROUND);
     setRoundInputValue(String(CURRENT_ROUND));
     setIsDropdownOpen(false);
@@ -314,6 +337,7 @@ export default function IncentiveModel() {
     if (e.key === 'Enter') {
       const newRound = Number.parseInt(roundInputValue, 10);
       if (!Number.isNaN(newRound) && newRound >= 1 && newRound <= TOTAL_ROUNDS) {
+        onIncentiveModelRoundInputChanged(newRound);
         setSelectedRound(newRound);
         setIsDropdownOpen(false);
       } else {
@@ -326,6 +350,18 @@ export default function IncentiveModel() {
   const handleRoundInputBlur = () => {
     // Reset to current selected round if user clicks away without pressing Enter
     setRoundInputValue(String(selectedRound));
+  };
+
+  const handleActivitiesLinkClick = () => {
+    onIncentiveModelActivitiesLinkClicked('/alignment-assets/activities');
+  };
+
+  const handleTipViewLinkClick = () => {
+    onIncentiveModelTipViewLinkClicked('/alignment-assets/rounds');
+  };
+
+  const handleLearnMoreClick = () => {
+    onIncentiveModelLearnMoreClicked('/alignment-assets/faqs#point-to-token-conversion');
   };
 
   // Update input value when selectedRound changes externally (via arrows)
@@ -342,7 +378,7 @@ export default function IncentiveModel() {
           <div className="incentive-model__description">
             <p>
               Participants{' '}
-              <Link href="/alignment-assets/activities" className="incentive-model__link">
+              <Link href="/alignment-assets/activities" className="incentive-model__link" onClick={handleActivitiesLinkClick}>
                 collect points
               </Link>{' '}
               by completing verified activities that benefit the network each month. Points are collected during the
@@ -380,7 +416,7 @@ export default function IncentiveModel() {
             <div className="incentive-model__round-dropdown-wrapper" ref={dropdownRef}>
               <button
                 className="incentive-model__round-dropdown-btn"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                onClick={handleDropdownToggle}
               >
                 {/* Gradient decoration */}
                 <img 
@@ -564,7 +600,7 @@ export default function IncentiveModel() {
               </p>
               <p className="incentive-model__tip-text">
                 👉{' '}
-                <Link href="/alignment-assets/rounds" className="incentive-model__tip-link">
+                <Link href="/alignment-assets/rounds" className="incentive-model__tip-link" onClick={handleTipViewLinkClick}>
                   View
                 </Link>{' '}
                 which categories offer the highest token potential today.
@@ -581,6 +617,7 @@ export default function IncentiveModel() {
                 <Link
                   href="/alignment-assets/faqs#point-to-token-conversion"
                   className="incentive-model__learn-more-link"
+                  onClick={handleLearnMoreClick}
                 >
                   Learn more
                 </Link>

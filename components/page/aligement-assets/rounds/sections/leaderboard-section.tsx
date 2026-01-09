@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import { LeaderboardEntry } from '../types';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 interface LeaderboardSectionProps {
   view: 'current' | 'alltime';
@@ -26,6 +27,8 @@ export default function LeaderboardSection({
 }: LeaderboardSectionProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(5);
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const { onLeaderboardViewToggleClicked, onLeaderboardSearchUsed, onLeaderboardShowMoreClicked } = useAlignmentAssetsAnalytics();
   
   // Select data based on current view
   const allData = useMemo(() => {
@@ -44,7 +47,28 @@ export default function LeaderboardSection({
   const remainingCount = filteredData.length - visibleCount;
 
   const handleShowMore = () => {
+    onLeaderboardShowMoreClicked(visibleCount, remainingCount);
     setVisibleCount(prev => prev + 10);
+  };
+
+  const handleViewChange = (newView: 'current' | 'alltime') => {
+    onLeaderboardViewToggleClicked(newView);
+    onViewChange(newView);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    // Debounce analytics
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+    if (value.trim()) {
+      searchDebounceRef.current = setTimeout(() => {
+        onLeaderboardSearchUsed(value);
+      }, 500);
+    }
   };
 
   return (
@@ -80,7 +104,7 @@ export default function LeaderboardSection({
                     className="leaderboard-section__search-field"
                     placeholder="Search for a participant"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={handleSearchChange}
                   />
                 </div>
               </div>
@@ -88,13 +112,13 @@ export default function LeaderboardSection({
               <div className="leaderboard-section__view-toggle">
                 <button 
                   className={`leaderboard-section__toggle-btn ${view === 'current' ? 'leaderboard-section__toggle-btn--active' : ''}`}
-                  onClick={() => onViewChange('current')}
+                  onClick={() => handleViewChange('current')}
                 >
                   Current Round
                 </button>
                 <button 
                   className={`leaderboard-section__toggle-btn ${view === 'alltime' ? 'leaderboard-section__toggle-btn--active' : ''}`}
-                  onClick={() => onViewChange('alltime')}
+                  onClick={() => handleViewChange('alltime')}
                 >
                   All-time
                 </button>

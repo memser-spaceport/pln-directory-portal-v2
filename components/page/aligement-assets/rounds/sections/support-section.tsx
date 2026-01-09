@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import {SUPPORT_URL, SUPPORT_EMAIL} from '@/constants/plaa';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 /**
  * SupportSection - Displays support contact information with gradient background
@@ -9,6 +10,16 @@ import {SUPPORT_URL, SUPPORT_EMAIL} from '@/constants/plaa';
  * @param data - Support section data from master JSON
  */
 export default function SupportSection() {
+  const { onSupportOfficeHoursClicked, onSupportEmailClicked } = useAlignmentAssetsAnalytics();
+
+  const handleOfficeHoursClick = () => {
+    onSupportOfficeHoursClicked(SUPPORT_URL);
+  };
+
+  const handleEmailClick = () => {
+    onSupportEmailClicked(SUPPORT_EMAIL);
+  };
+
   return (
     <>
       <section className="support-section">
@@ -22,9 +33,9 @@ export default function SupportSection() {
           <div className="support-section__content">
             <p className="support-section__text">
               <strong>Have questions or need help with onboarding?</strong>{' '}
-              <Link href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" className="support-section__link">Schedule office hours</Link>
+              <Link href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" className="support-section__link" onClick={handleOfficeHoursClick}>Schedule office hours</Link>
               {' '}for 1:1 support or email{' '}
-              <Link href={`mailto:${SUPPORT_EMAIL}`} target="_blank" rel="noopener noreferrer" className="support-section__link">{SUPPORT_EMAIL}</Link>
+              <Link href={`mailto:${SUPPORT_EMAIL}`} target="_blank" rel="noopener noreferrer" className="support-section__link" onClick={handleEmailClick}>{SUPPORT_EMAIL}</Link>
             </p>
           </div>
         </div>

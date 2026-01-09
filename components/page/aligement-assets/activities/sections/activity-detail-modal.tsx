@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
 import { Activity, PopupLink } from '../types';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 interface ActivityDetailModalProps {
   isOpen: boolean;
@@ -12,68 +13,80 @@ interface ActivityDetailModalProps {
 }
 
 /**
- * Helper function to render text with embedded links
- */
-function renderTextWithLinks(text: string, links?: PopupLink[]) {
-  if (!links || links.length === 0) {
-    return text;
-  }
-
-  // Sort links by their position in the text (to process in order)
-  const sortedLinks = [...links].sort((a, b) => {
-    const posA = text.indexOf(a.text);
-    const posB = text.indexOf(b.text);
-    return posA - posB;
-  });
-
-  const parts: (string | JSX.Element)[] = [];
-  let remainingText = text;
-  let keyIndex = 0;
-
-  for (const link of sortedLinks) {
-    const linkIndex = remainingText.indexOf(link.text);
-    if (linkIndex === -1) continue;
-
-    // Add text before the link
-    if (linkIndex > 0) {
-      parts.push(remainingText.substring(0, linkIndex));
-    }
-
-    // Add the link
-    parts.push(
-      <Link
-        key={keyIndex++}
-        href={link.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="activity-modal__link"
-      >
-        {link.text}
-      </Link>
-    );
-
-    // Update remaining text
-    remainingText = remainingText.substring(linkIndex + link.text.length);
-  }
-
-  // Add any remaining text
-  if (remainingText) {
-    parts.push(remainingText);
-  }
-
-  return parts;
-}
-
-/**
  * ActivityDetailModal - Modal popup showing activity details and points breakdown
  */
 export default function ActivityDetailModal({ isOpen, onClose, activity }: ActivityDetailModalProps) {
+  const { onActivitiesModalLinkClicked } = useAlignmentAssetsAnalytics();
+
   if (!activity) return null;
 
   const { popupContent } = activity;
   
   // Combine submissionLink with links array for rendering
   const allLinks = popupContent.links || (popupContent.submissionLink ? [popupContent.submissionLink] : []);
+
+  const handleLinkClick = (linkText: string, url: string) => {
+    onActivitiesModalLinkClicked({
+      activityId: activity.id,
+      activityName: activity.activity,
+      category: activity.category,
+      points: activity.points,
+    }, linkText, url);
+  };
+
+  /**
+   * Helper function to render text with embedded links
+   */
+  function renderTextWithLinks(text: string, links?: PopupLink[]) {
+    if (!links || links.length === 0) {
+      return text;
+    }
+
+    // Sort links by their position in the text (to process in order)
+    const sortedLinks = [...links].sort((a, b) => {
+      const posA = text.indexOf(a.text);
+      const posB = text.indexOf(b.text);
+      return posA - posB;
+    });
+
+    const parts: (string | JSX.Element)[] = [];
+    let remainingText = text;
+    let keyIndex = 0;
+
+    for (const link of sortedLinks) {
+      const linkIndex = remainingText.indexOf(link.text);
+      if (linkIndex === -1) continue;
+
+      // Add text before the link
+      if (linkIndex > 0) {
+        parts.push(remainingText.substring(0, linkIndex));
+      }
+
+      // Add the link
+      parts.push(
+        <Link
+          key={keyIndex++}
+          href={link.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="activity-modal__link"
+          onClick={() => handleLinkClick(link.text, link.url)}
+        >
+          {link.text}
+        </Link>
+      );
+
+      // Update remaining text
+      remainingText = remainingText.substring(linkIndex + link.text.length);
+    }
+
+    // Add any remaining text
+    if (remainingText) {
+      parts.push(remainingText);
+    }
+
+    return parts;
+  }
 
   return (
     <>

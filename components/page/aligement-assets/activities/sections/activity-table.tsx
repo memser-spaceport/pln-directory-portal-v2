@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Activity } from '../types';
 import { ACTIVITY_FORM_URL } from '@/constants/plaa';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 interface ActivityTableProps {
   activities: Activity[];
@@ -14,6 +15,8 @@ interface ActivityTableProps {
  * Rows are clickable to show activity details
  */
 export default function ActivityTable({ activities, onRowClick }: ActivityTableProps) {
+  const { onActivitiesFormLinkClicked } = useAlignmentAssetsAnalytics();
+
   // Group activities by category
   const groupedActivities = activities.reduce((acc, activity) => {
     if (!acc[activity.category]) {
@@ -24,6 +27,16 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
   }, {} as Record<string, Activity[]>);
 
   const categories = Object.keys(groupedActivities);
+
+  const handleFormLinkClick = (e: React.MouseEvent, activity: Activity) => {
+    e.stopPropagation();
+    onActivitiesFormLinkClicked({
+      activityId: activity.id,
+      activityName: activity.activity,
+      category: activity.category,
+      points: activity.points,
+    }, ACTIVITY_FORM_URL);
+  };
 
   return (
     <>
@@ -68,7 +81,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                             target="_blank"
                             rel="noopener noreferrer"
                             className="activity-table__form-link"
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => handleFormLinkClick(e, activity)}
                           >
                             (form)
                           </Link>.
@@ -112,7 +125,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                             target="_blank"
                             rel="noopener noreferrer"
                             className="activity-card__form-link"
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => handleFormLinkClick(e, activity)}
                           >
                             (form)
                           </Link>.

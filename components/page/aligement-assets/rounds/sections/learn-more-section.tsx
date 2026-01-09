@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { LearnMoreSectionData } from '../types';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 interface LearnMoreSectionProps {
   data: LearnMoreSectionData;
@@ -19,6 +20,12 @@ function isInternalUrl(url: string): boolean {
  * @param data - Learn more section data from master JSON
  */
 export default function LearnMoreSection({ data }: LearnMoreSectionProps) {
+  const { onLearnMoreFaqClicked } = useAlignmentAssetsAnalytics();
+
+  const handleFaqClick = () => {
+    onLearnMoreFaqClicked(data.faqUrl);
+  };
+
   return (
     <>
       <section className="learn-more-section">
@@ -31,9 +38,9 @@ export default function LearnMoreSection({ data }: LearnMoreSectionProps) {
               {data.faqUrl === '#' ? (
                 <span className="learn-more-section__link learn-more-section__link--disabled">FAQ</span>
               ) : isInternalUrl(data.faqUrl) ? (
-                <Link href={data.faqUrl} className="learn-more-section__link">FAQ</Link>
+                <Link href={data.faqUrl} className="learn-more-section__link" onClick={handleFaqClick}>FAQ</Link>
               ) : (
-                <Link href={data.faqUrl} target="_blank" rel="noopener noreferrer" className="learn-more-section__link">FAQ</Link>
+                <Link href={data.faqUrl} target="_blank" rel="noopener noreferrer" className="learn-more-section__link" onClick={handleFaqClick}>FAQ</Link>
               )}
               <span className="learn-more-section__text-body"> for details on batch auctions, clearing price calculation, and how bids are selected.</span>
             </p>

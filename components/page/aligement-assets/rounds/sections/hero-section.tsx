@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { HeroSectionData } from '../types';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 interface HeroSectionProps {
   data: HeroSectionData;
@@ -13,6 +14,12 @@ interface HeroSectionProps {
  * @param data - Hero section data from master JSON
  */
 export default function HeroSection({ data }: HeroSectionProps) {
+  const { onRoundsHeroBtnClicked } = useAlignmentAssetsAnalytics();
+
+  const handleBtnClick = (buttonType: 'primary' | 'secondary', buttonLabel: string, url: string) => {
+    onRoundsHeroBtnClicked(buttonType, buttonLabel, url);
+  };
+
   return (
     <>
       <section className="hero-section">
@@ -30,6 +37,7 @@ export default function HeroSection({ data }: HeroSectionProps) {
                 target={action.openInNewTab ? '_blank' : undefined}
                 rel={action.openInNewTab ? 'noopener noreferrer' : undefined}
                 className={`hero-section__btn hero-section__btn--${action.type}`}
+                onClick={() => handleBtnClick(action.type, action.label, action.url)}
               >
                 {action.icon && (
                   <Image src={action.icon} alt="" width={23} height={23} className="hero-section__btn-icon" />

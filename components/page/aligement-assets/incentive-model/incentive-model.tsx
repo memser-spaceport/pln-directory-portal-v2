@@ -35,7 +35,6 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Network Tooling', points: 0, tokens: 0 },
     { category: 'People/Talent', points: 0, tokens: 0 },
     { category: 'Knowledge', points: 0, tokens: 0 },
-    { category: 'Capital', points: 0, tokens: 0 },
   ],
   2: [
     { category: 'Projects', points: 14000, tokens: 1540 },
@@ -44,7 +43,6 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Network Tooling', points: 2600, tokens: 1716 },
     { category: 'People/Talent', points: 2100, tokens: 1603 },
     { category: 'Knowledge', points: 0, tokens: 0 },
-    { category: 'Capital', points: 0, tokens: 0 },
   ],
   3: [
     { category: 'Projects', points: 9750, tokens: 1538 },
@@ -53,7 +51,6 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Network Tooling', points: 1000, tokens: 1725 },
     { category: 'People/Talent', points: 1500, tokens: 1604 },
     { category: 'Knowledge', points: 3000, tokens: 1769 },
-    { category: 'Capital', points: 0, tokens: 0 },
   ],
   4: [
     { category: 'Projects', points: 4600, tokens: 1539 },
@@ -62,7 +59,6 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Network Tooling', points: 600, tokens: 1725 },
     { category: 'People/Talent', points: 475, tokens: 1603 },
     { category: 'Knowledge', points: 4650, tokens: 1768 },
-    { category: 'Capital', points: 0, tokens: 0 },
   ],
   5: [
     { category: 'Projects', points: 6150, tokens: 1548 },

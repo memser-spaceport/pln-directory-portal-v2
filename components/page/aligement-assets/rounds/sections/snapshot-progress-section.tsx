@@ -12,6 +12,13 @@ interface SnapshotProgressSectionProps {
 }
 
 /**
+ * Check if a URL is internal (starts with /)
+ */
+function isInternalUrl(url: string): boolean {
+  return url.startsWith('/');
+}
+
+/**
  * SnapshotProgressSection - Displays snapshot period progress and tip content
  * @param startDate - Snapshot period start date
  * @param endDate - Snapshot period end date
@@ -117,6 +124,8 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
                     {' '}{link.prefix}{' '}
                     {link.url === '#' ? (
                       <span className="snapshot-section__tip-link snapshot-section__tip-link--disabled">{link.linkText}</span>
+                    ) : isInternalUrl(link.url) ? (
+                      <Link href={link.url} className="snapshot-section__tip-link">{link.linkText}</Link>
                     ) : (
                       <Link href={link.url} target="_blank" rel="noopener noreferrer" className="snapshot-section__tip-link">{link.linkText}</Link>
                     )}
@@ -128,6 +137,8 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
               <p className="snapshot-section__tip-bottom">
                 {tipContent.bottomLink.url === '#' ? (
                   <span className="snapshot-section__tip-link snapshot-section__tip-link--disabled">{tipContent.bottomLink.text}</span>
+                ) : isInternalUrl(tipContent.bottomLink.url) ? (
+                  <Link href={tipContent.bottomLink.url} className="snapshot-section__tip-link">{tipContent.bottomLink.text}</Link>
                 ) : (
                   <Link href={tipContent.bottomLink.url} target="_blank" rel="noopener noreferrer" className="snapshot-section__tip-link">{tipContent.bottomLink.text}</Link>
                 )}.

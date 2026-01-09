@@ -41,7 +41,7 @@
     margin-top: 20px;
     top: 78px;
     gap: 0px;
-    z-index: 3;
+    z-index: 5;
   }
   .irlGatheings__huskyIntegration {
     max-width: 900px;
@@ -95,7 +95,7 @@
     position: unset;
     top: unset;
     gap: unset;
-    z-index: unset;
+    z-index: 5;
   }
   .irlGatheings__huskyIntegration {
     width: 900px !important;

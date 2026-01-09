@@ -100,6 +100,21 @@ export default async function Page({ searchParams }: any) {
             guestDetails={guestDetails}
           />
         </section>
+        {/* <section className={styles.irlGatheings__guests}>
+          <AttendeeList
+            location={eventLocationSummary as IAnalyticsGuestLocation}
+            showTelegram={showTelegram as boolean}
+            eventDetails={guestDetails}
+            userInfo={userInfo}
+            isLoggedIn={isLoggedIn}
+            isUserGoing={isUserGoing as boolean}
+            searchParams={searchParams}
+            currentEventNames={currentEventNames}
+            locationEvents={eventDetails}
+            followers={followers}
+            newSearchParams={newSearchParams}
+          />
+        </section> */}
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
           <AttendeeList
@@ -236,6 +251,7 @@ const getPageData = async (searchParams: any) => {
         : eventDetails.upcomingEvents;
     guestDetails.events = { upcomingEvents: eventDetails.upcomingEvents, pastEvents: eventDetails.pastEvents };
 
+    console.log(currentGuestResponse, 'currentGuestResponse');
     guestDetails.currentGuest =
       !events?.isError && (events as any)?.guests?.[0]?.memberUid === userInfo?.uid
         ? (currentGuestResponse as any).guests[0]

@@ -49,8 +49,6 @@ export function PrivyModals() {
     user,
   } = usePrivyWrapper();
 
-  console.log({ user });
-
   // Custom hooks
   const { saveTokens } = useAuthTokens();
 

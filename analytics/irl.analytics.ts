@@ -89,6 +89,9 @@ export const useIrlAnalytics = () => {
     IRL_GUEST_LIST_REGISTER_TODAY_CLICKED: 'irl-guest-list-register-today-clicked',
     IRL_GUEST_LIST_VIEW_PAST_ATTENDEES_CLICKED: 'irl-guest-list-view-past-attendees-clicked',
     IRL_EMPTY_GUEST_LIST_IM_GOING_CLICK: 'irl-empty-guest-list-im-going-click',
+    IRL_SPEAKER_REQUEST_BTN_CLICK: 'irl-speaker-request-btn-click',
+    IRL_SPEAKER_REQUEST_FORM_CLOSE_BTN_CLICK: 'irl-speaker-request-form-close-btn-click',
+    IRL_SPEAKER_REQUEST_FORM_SUBMIT_BTN_CLICK: 'irl-speaker-request-form-submit-btn-click',
 
     // IRL Gathering Modal events
     IRL_GATHERING_MODAL_OPENED: 'irl-gathering-modal-opened',
@@ -117,7 +120,8 @@ export const useIrlAnalytics = () => {
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_SHOW_ONLY_PAST_ATTENDEES_CHECKBOX_CLICKED, { ...params });
   };
-
+  
+  
   const trackShowOnlyCurrentAttendeesClicked = (location: any) => {
     const params = {
       locationUid: location?.uid,
@@ -139,6 +143,30 @@ export const useIrlAnalytics = () => {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const trackSpeakerRequestBtnClicked = (location: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SPEAKER_REQUEST_BTN_CLICK, { ...params });
+  };
+  
+  const trackSpeakerRequestFormCloseBtnClicked = (location: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SPEAKER_REQUEST_FORM_CLOSE_BTN_CLICK, { ...params });
+  };
+  
+  const trackSpeakerRequestFormSubmitBtnClicked = (location: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SPEAKER_REQUEST_FORM_SUBMIT_BTN_CLICK, { ...params });
   };
 
   const trackImGoingBtnClick = (location: any) => {
@@ -886,6 +914,9 @@ export const useIrlAnalytics = () => {
     trackAdditionalResourcesClicked,
     irlGuestDetailPrivacySettingClick,
     irlGuestDetailOHGuidelineClick,
+    trackSpeakerRequestBtnClicked,
+    trackSpeakerRequestFormCloseBtnClicked,
+    trackSpeakerRequestFormSubmitBtnClicked,
     irlGuestDetailEditBtnClick,
     irlGuestDetailSaveBtnClick,
     irlGuestDetailSaveError,

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, LayoutGroup, AnimatePresence } from 'framer-motion';
 import SupportSection from "../rounds/sections/support-section";
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 // Description items data
 const descriptionItems = [
@@ -82,6 +83,7 @@ const Overview = () => {
   const [buttonState, setButtonState] = useState<'start' | 'floating' | 'end'>('start');
   const triggerRef = useRef<HTMLDivElement>(null);
   const secondButtonRef = useRef<HTMLDivElement>(null);
+  const { onOverviewCreateAccountClicked, onOverviewWaitlistFormClicked, onOverviewLearnMoreClicked, onOverviewFaqLinkClicked } = useAlignmentAssetsAnalytics();
 
   useEffect(() => {
     let isTriggerOutOfView = false;
@@ -151,8 +153,21 @@ const Overview = () => {
     };
   }, []);
 
-  const handleAccountClick = () => {
+  const handleAccountClick = (position: 'start' | 'floating' | 'end') => {
+    onOverviewCreateAccountClicked(position);
     window.open('https://app.surus.io/create_investor_account', '_blank');
+  };
+
+  const handleWaitlistFormClick = () => {
+    onOverviewWaitlistFormClicked('https://forms.gle/yh5dv85X8ZsVDrZ77');
+  };
+
+  const handleLearnMoreClick = () => {
+    onOverviewLearnMoreClicked('/alignment-assets/incentive-model');
+  };
+
+  const handleFaqLinkClick = () => {
+    onOverviewFaqLinkClicked('/alignment-assets/faqs');
   };
 
   return (
@@ -179,7 +194,7 @@ const Overview = () => {
             <motion.button
               layoutId="create-account-button"
               className="overview__content__button"
-              onClick={handleAccountClick}
+              onClick={() => handleAccountClick('start')}
               layout="position"
               transition={{
                 layout: {
@@ -238,6 +253,7 @@ const Overview = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="overview__content__text__link"
+                  onClick={handleWaitlistFormClick}
                 >
                   {' '}
                   form
@@ -253,7 +269,7 @@ const Overview = () => {
               {importantDetails.map((detail, index) => (
                 <li key={index}>{detail}</li>
               ))}
-              <li><a href="/alignment-assets/incentive-model" className="overview__content__text__link">Learn more</a> about the incentive model.</li>
+              <li><a href="/alignment-assets/incentive-model" className="overview__content__text__link" onClick={handleLearnMoreClick}>Learn more</a> about the incentive model.</li>
             </ul>
           </div>
         </div>
@@ -287,7 +303,7 @@ const Overview = () => {
           <div className="overview__content__how__learn-more-wrapper">
             <div className="overview__content__how__learn-more">
               <span className="overview__content__how__learn-more__text">Learn more:</span> Read the{' '}
-              <a href="/alignment-assets/faqs" className="overview__content__text__link">FAQ</a> for details on contributions, points, and tokens.
+              <a href="/alignment-assets/faqs" className="overview__content__text__link" onClick={handleFaqLinkClick}>FAQ</a> for details on contributions, points, and tokens.
             </div>
           </div>
         </div>
@@ -306,7 +322,7 @@ const Overview = () => {
               <motion.button
                 layoutId="create-account-button"
                 className="overview__content__button"
-                onClick={handleAccountClick} 
+                onClick={() => handleAccountClick('end')} 
                 layout="position"
                 transition={{
                   layout: {
@@ -324,7 +340,7 @@ const Overview = () => {
             {buttonState !== 'end' && (
               <button
                 className="overview__content__button"
-                onClick={handleAccountClick}
+                onClick={() => handleAccountClick('end')}
               >
                 <img src="/icons/rounds/filecoin-white.svg" alt="account" />
                 <span>Create Your Account</span>
@@ -342,7 +358,7 @@ const Overview = () => {
           <motion.button
             layoutId="create-account-button"
             className="overview__floating-button overview__floating-button--visible"
-            onClick={handleAccountClick}
+            onClick={() => handleAccountClick('floating')}
             aria-label="Create Your Account"
             initial={false}
             exit={{ opacity: 0 }}

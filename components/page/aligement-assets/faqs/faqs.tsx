@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, ReactNode } from 'react';
+import { useState, ReactNode, useRef } from 'react';
 import Image from 'next/image';
 import { ChevronDownIcon } from '@/components/icons';
 import SupportSection from '@/components/page/aligement-assets/rounds/sections/support-section';
 import DisclaimerSection from '@/components/page/aligement-assets/rounds/sections/disclaimer-section';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 export interface FAQItem {
   question: string;
@@ -436,15 +437,21 @@ export default function FAQsPage() {
   const [expandedQuestions, setExpandedQuestions] = useState<Record<string, boolean>>({});
   const [expandAll, setExpandAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const { onFaqsSearchUsed, onFaqsExpandAllClicked, onFaqsQuestionToggled, onFaqsClearSearchClicked } = useAlignmentAssetsAnalytics();
 
-  const toggleQuestion = (questionId: string) => {
+  const toggleQuestion = (questionId: string, categoryId: string, questionText: string) => {
+    const newExpandedState = !expandedQuestions[questionId];
+    onFaqsQuestionToggled(categoryId, questionId, questionText, newExpandedState);
     setExpandedQuestions((prev) => ({
       ...prev,
-      [questionId]: !prev[questionId],
+      [questionId]: newExpandedState,
     }));
   };
 
   const handleExpandAll = () => {
+    const newExpandAll = !expandAll;
+    onFaqsExpandAllClicked(newExpandAll);
     if (expandAll) {
       setExpandedQuestions({});
     } else {
@@ -456,7 +463,27 @@ export default function FAQsPage() {
       });
       setExpandedQuestions(allQuestions);
     }
-    setExpandAll(!expandAll);
+    setExpandAll(newExpandAll);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    
+    // Debounce analytics
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+    if (value.trim()) {
+      searchDebounceRef.current = setTimeout(() => {
+        onFaqsSearchUsed(value);
+      }, 500);
+    }
+  };
+
+  const handleClearSearch = () => {
+    onFaqsClearSearchClicked(searchQuery);
+    setSearchQuery('');
   };
 
   // Filter logic
@@ -493,7 +520,7 @@ export default function FAQsPage() {
               type="text"
               placeholder="Search for a query"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
             />
           </div>
           <button className="faqs__controls__expand-all" onClick={handleExpandAll} disabled={!!query}>
@@ -531,7 +558,7 @@ export default function FAQsPage() {
                       >
                         <button
                           className="faqs__container__category__question__button"
-                          onClick={() => toggleQuestion(questionId)}
+                          onClick={() => toggleQuestion(questionId, category.id, item.question)}
                         >
                           <span>{item.question}</span>
                           <Image
@@ -560,7 +587,7 @@ export default function FAQsPage() {
           ) : (
             <div className="faqs__no-results">
               <p>No results found for &quot;{searchQuery}&quot;</p>
-              <button onClick={() => setSearchQuery('')}>Clear Search</button>
+              <button onClick={handleClearSearch}>Clear Search</button>
             </div>
           )}
         </div>

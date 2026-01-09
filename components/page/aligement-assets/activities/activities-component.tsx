@@ -7,6 +7,7 @@ import ActivityDetailModal from './sections/activity-detail-modal';
 import SupportSection from '../rounds/sections/support-section';
 import { activitiesData } from './data';
 import { Activity } from './types';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 /**
  * ActivitiesComponent - Main component for displaying activities and points collection
@@ -15,13 +16,28 @@ import { Activity } from './types';
 export default function ActivitiesComponent() {
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { onActivitiesRowClicked, onActivitiesModalClosed } = useAlignmentAssetsAnalytics();
 
   const handleRowClick = (activity: Activity) => {
+    onActivitiesRowClicked({
+      activityId: activity.id,
+      activityName: activity.activity,
+      category: activity.category,
+      points: activity.points,
+    });
     setSelectedActivity(activity);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
+    if (selectedActivity) {
+      onActivitiesModalClosed({
+        activityId: selectedActivity.id,
+        activityName: selectedActivity.activity,
+        category: selectedActivity.category,
+        points: selectedActivity.points,
+      });
+    }
     setIsModalOpen(false);
     setSelectedActivity(null);
   };

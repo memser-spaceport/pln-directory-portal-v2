@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ACTIVITY_FORM_URL } from '@/constants/plaa';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 interface HeroSectionProps {
   data: {
@@ -18,6 +19,16 @@ interface HeroSectionProps {
  * HeroSection - Displays the main title, description, and action buttons for activities page
  */
 export default function HeroSection({ data }: HeroSectionProps) {
+  const { onActivitiesSubmitBtnClicked, onActivitiesSuggestLinkClicked } = useAlignmentAssetsAnalytics();
+
+  const handleSubmitClick = () => {
+    onActivitiesSubmitBtnClicked(ACTIVITY_FORM_URL);
+  };
+
+  const handleSuggestClick = () => {
+    onActivitiesSuggestLinkClicked(ACTIVITY_FORM_URL);
+  };
+
   return (
     <>
       <section className="activities-hero">
@@ -32,6 +43,7 @@ export default function HeroSection({ data }: HeroSectionProps) {
               target="_blank"
               rel="noopener noreferrer"
               className="activities-hero__submit-btn"
+              onClick={handleSubmitClick}
             >
               {data.submitButtonLabel}
             </Link>
@@ -44,6 +56,7 @@ export default function HeroSection({ data }: HeroSectionProps) {
               target="_blank"
               rel="noopener noreferrer"
               className="activities-hero__suggest-link"
+              onClick={handleSuggestClick}
             >
               {data.suggestLinkHighlight}
             </Link>

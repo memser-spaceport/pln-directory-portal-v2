@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TipContent } from '../types';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 interface SnapshotProgressSectionProps {
   startDate: Date;
@@ -25,6 +26,11 @@ function isInternalUrl(url: string): boolean {
  * @param tipContent - Tip section content from master JSON
  */
 export default function SnapshotProgressSection({ startDate, endDate, tipContent }: SnapshotProgressSectionProps) {
+  const { onSnapshotTipLinkClicked } = useAlignmentAssetsAnalytics();
+
+  const handleTipLinkClick = (linkText: string, url: string) => {
+    onSnapshotTipLinkClicked(linkText, url);
+  };
   const { progressPercentage, timeRemaining, dateRangeLabel } = useMemo(() => {
     const now = new Date();
     const start = new Date(startDate);
@@ -125,9 +131,9 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
                     {link.url === '#' ? (
                       <span className="snapshot-section__tip-link snapshot-section__tip-link--disabled">{link.linkText}</span>
                     ) : isInternalUrl(link.url) ? (
-                      <Link href={link.url} className="snapshot-section__tip-link">{link.linkText}</Link>
+                      <Link href={link.url} className="snapshot-section__tip-link" onClick={() => handleTipLinkClick(link.linkText, link.url)}>{link.linkText}</Link>
                     ) : (
-                      <Link href={link.url} target="_blank" rel="noopener noreferrer" className="snapshot-section__tip-link">{link.linkText}</Link>
+                      <Link href={link.url} target="_blank" rel="noopener noreferrer" className="snapshot-section__tip-link" onClick={() => handleTipLinkClick(link.linkText, link.url)}>{link.linkText}</Link>
                     )}
                     {link.suffix && <>{' '}{link.suffix}</>}
                   </p>
@@ -138,9 +144,9 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
                 {tipContent.bottomLink.url === '#' ? (
                   <span className="snapshot-section__tip-link snapshot-section__tip-link--disabled">{tipContent.bottomLink.text}</span>
                 ) : isInternalUrl(tipContent.bottomLink.url) ? (
-                  <Link href={tipContent.bottomLink.url} className="snapshot-section__tip-link">{tipContent.bottomLink.text}</Link>
+                  <Link href={tipContent.bottomLink.url} className="snapshot-section__tip-link" onClick={() => handleTipLinkClick(tipContent.bottomLink.text, tipContent.bottomLink.url)}>{tipContent.bottomLink.text}</Link>
                 ) : (
-                  <Link href={tipContent.bottomLink.url} target="_blank" rel="noopener noreferrer" className="snapshot-section__tip-link">{tipContent.bottomLink.text}</Link>
+                  <Link href={tipContent.bottomLink.url} target="_blank" rel="noopener noreferrer" className="snapshot-section__tip-link" onClick={() => handleTipLinkClick(tipContent.bottomLink.text, tipContent.bottomLink.url)}>{tipContent.bottomLink.text}</Link>
                 )}.
               </p>
             </div>

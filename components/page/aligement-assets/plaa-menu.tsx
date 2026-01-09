@@ -3,6 +3,7 @@
 import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 import PlaaRoundSelector from './plaa-round-selector';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 /* ==========================================================================
    PlaaMenu Component
@@ -32,8 +33,10 @@ const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string }> = [
 
 function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound }: PlaaMenuProps) {
   const router = useRouter();
+  const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
 
-  const onItemClicked = (url: string) => {
+  const onItemClicked = (label: string, url: string) => {
+    onNavMenuClicked(label, url);
     if (window.innerWidth < 1024) {
       triggerLoader(true);
     }
@@ -63,7 +66,7 @@ function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound
           {menuItems.map((item) => (
             <li key={`plaa-${item.name}`} role="listitem">
               <button
-                onClick={() => onItemClicked(item.url)}
+                onClick={() => onItemClicked(item.label, item.url)}
                 className={`plaa-menu__item ${activeItem === item.name ? 'plaa-menu__item--active' : ''}`}
                 aria-current={activeItem === item.name ? 'page' : undefined}
               >

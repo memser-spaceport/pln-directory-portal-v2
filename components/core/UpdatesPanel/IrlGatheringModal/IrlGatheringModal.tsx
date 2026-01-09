@@ -14,6 +14,7 @@ import {
   PlanningSection,
   ModalFooter,
   DatePickerView,
+  TopicsPickerView,
 } from './components';
 import s from './IrlGatheringModal.module.scss';
 
@@ -28,7 +29,7 @@ export interface IrlGatheringFormData {
   topics: string[];
 }
 
-type ModalView = 'main' | 'datePicker';
+type ModalView = 'main' | 'datePicker' | 'topicsPicker';
 
 function formatDateRange(startDate: string, endDate: string): string {
   const start = new Date(startDate);
@@ -45,6 +46,7 @@ function formatDateForApi(date: Date): string {
 export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick }: IrlGatheringModalProps) {
   const [currentView, setCurrentView] = useState<ModalView>('main');
   const [selectedDateRange, setSelectedDateRange] = useState<[Date, Date] | null>(null);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
 
   const { mutate: createGuest, isPending } = useCreateIrlGatheringGuest();
   const { userInfo } = getCookiesFromClient();
@@ -91,6 +93,20 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
 
   const handleDatePickerApply = (range: [Date, Date] | null) => {
     setSelectedDateRange(range);
+    setCurrentView('main');
+  };
+
+  const handleOpenTopicsPicker = () => {
+    setCurrentView('topicsPicker');
+  };
+
+  const handleTopicsPickerCancel = () => {
+    setCurrentView('main');
+  };
+
+  const handleTopicsPickerApply = (topics: string[]) => {
+    setSelectedTopics(topics);
+    methods.setValue('topics', topics);
     setCurrentView('main');
   };
 
@@ -146,12 +162,25 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
 
   if (currentView === 'datePicker') {
     return (
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={onClose} overlayClassname={s.modalOverlay}>
         <DatePickerView
           planningQuestion={planningQuestion}
           initialRange={selectedDateRange}
           onCancel={handleDatePickerCancel}
           onApply={handleDatePickerApply}
+        />
+      </Modal>
+    );
+  }
+
+  if (currentView === 'topicsPicker') {
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} overlayClassname={s.modalOverlay}>
+        <TopicsPickerView
+          planningQuestion={planningQuestion}
+          initialTopics={selectedTopics}
+          onCancel={handleTopicsPickerCancel}
+          onApply={handleTopicsPickerApply}
         />
       </Modal>
     );
@@ -195,7 +224,9 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
             <PlanningSection
               planningQuestion={planningQuestion}
               selectedDateRange={selectedDateRange}
-              onInputClick={handleOpenDatePicker}
+              selectedTopics={selectedTopics}
+              onDateInputClick={handleOpenDatePicker}
+              onTopicsInputClick={handleOpenTopicsPicker}
             />
           </div>
 

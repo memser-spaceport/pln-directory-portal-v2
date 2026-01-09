@@ -5,4 +5,5 @@ export { AttendeesSection } from './AttendeesSection';
 export { PlanningSection } from './PlanningSection';
 export { ModalFooter } from './ModalFooter';
 export { DatePickerView } from './DatePickerView';
+export { TopicsPickerView } from './TopicsPickerView';
 

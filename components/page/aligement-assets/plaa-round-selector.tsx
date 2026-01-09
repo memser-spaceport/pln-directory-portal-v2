@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, ChangeEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
@@ -27,6 +27,7 @@ function PlaaRoundSelector({
   const [isOpen, setIsOpen] = useState(false);
   // Use viewingRound if provided, otherwise fall back to currentRound
   const [selectedRound, setSelectedRound] = useState(viewingRound ?? currentRound);
+  const [inputValue, setInputValue] = useState(String(viewingRound ?? currentRound));
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { onRoundSelectorOpened, onRoundSelectorPrevClicked, onRoundSelectorNextClicked, onRoundSelectorGoToCurrentClicked } = useAlignmentAssetsAnalytics();
 
@@ -34,6 +35,7 @@ function PlaaRoundSelector({
   useEffect(() => {
     if (viewingRound !== undefined) {
       setSelectedRound(viewingRound);
+      setInputValue(String(viewingRound));
     }
   }, [viewingRound]);
 
@@ -72,6 +74,7 @@ function PlaaRoundSelector({
       const newRound = selectedRound - 1;
       onRoundSelectorPrevClicked(selectedRound, newRound);
       setSelectedRound(newRound);
+      setInputValue(String(newRound));
       onRoundChange?.(newRound);
       navigateToRound(newRound);
     }
@@ -82,6 +85,7 @@ function PlaaRoundSelector({
       const newRound = selectedRound + 1;
       onRoundSelectorNextClicked(selectedRound, newRound);
       setSelectedRound(newRound);
+      setInputValue(String(newRound));
       onRoundChange?.(newRound);
       navigateToRound(newRound);
     }
@@ -93,9 +97,39 @@ function PlaaRoundSelector({
   const handleGoToCurrent = () => {
     onRoundSelectorGoToCurrentClicked(selectedRound, currentRound);
     setSelectedRound(currentRound);
+    setInputValue(String(currentRound));
     onRoundChange?.(currentRound);
     setIsOpen(false);
     router.push('/alignment-assets/rounds');
+  };
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow only numbers
+    if (value === '' || /^\d+$/.test(value)) {
+      setInputValue(value);
+    }
+  };
+
+  const handleInputBlur = () => {
+    const parsed = parseInt(inputValue, 10);
+    if (!isNaN(parsed) && parsed >= 1 && parsed <= totalRounds) {
+      if (parsed !== selectedRound) {
+        setSelectedRound(parsed);
+        onRoundChange?.(parsed);
+        navigateToRound(parsed);
+      }
+    } else {
+      // Reset to current selected round if invalid
+      setInputValue(String(selectedRound));
+    }
+  };
+
+  const handleInputKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleInputBlur();
+      (e.target as HTMLInputElement).blur();
+    }
   };
 
   const handleTriggerClick = () => {
@@ -175,8 +209,16 @@ function PlaaRoundSelector({
                   </svg>
                 </button>
 
-                {/* Current Round Number */}
-                <span className="round-selector__nav-number">{selectedRound}</span>
+                {/* Current Round Number - Editable */}
+                <input
+                  type="text"
+                  className="round-selector__nav-input"
+                  value={inputValue}
+                  onChange={handleInputChange}
+                  onBlur={handleInputBlur}
+                  onKeyDown={handleInputKeyDown}
+                  aria-label="Round number"
+                />
 
                 {/* Next Button */}
                 <button
@@ -205,10 +247,8 @@ function PlaaRoundSelector({
 
               <span className="round-selector__nav-of">of</span>
 
-              {/* Total Rounds Box */}
-              <div className="round-selector__total-box">
-                <span>{totalRounds}</span>
-              </div>
+              {/* Total Rounds Display */}
+              <span className="round-selector__total">{totalRounds}</span>
             </div>
 
             {/* Divider */}
@@ -363,13 +403,23 @@ function PlaaRoundSelector({
             box-shadow: 0 0 0 2px rgba(21, 111, 247, 0.3);
           }
 
-          .round-selector__nav-number {
-            font-size: 12px;
+          .round-selector__nav-input {
+            width: 30px;
+            height: 24px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 12px !important;
             font-weight: 500;
             color: #0f172a;
             line-height: normal;
-            min-width: 8px;
             text-align: center;
+            padding: 0;
+            background: #ffffff;
+          }
+
+          .round-selector__nav-input:focus {
+            outline: none;
+            border-color: #156ff7;
           }
 
           .round-selector__nav-of {
@@ -381,17 +431,10 @@ function PlaaRoundSelector({
           }
 
           /* ---------------------------------------------------------------
-             Total Rounds Box
-             Figma: 30x24px, border 1px #e2e8f0, radius 4px
+             Total Rounds Display
+             Display only, no border
              --------------------------------------------------------------- */
-          .round-selector__total-box {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 24px;
-            border: 1px solid #e2e8f0;
-            border-radius: 4px;
+          .round-selector__total {
             font-size: 12px;
             font-weight: 500;
             color: #0f172a;

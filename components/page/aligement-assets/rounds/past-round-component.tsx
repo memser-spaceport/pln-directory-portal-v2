@@ -20,7 +20,7 @@ export default function PastRoundComponent({ pastRoundData }: PastRoundComponent
         <HeroSection data={data.hero} />
         <PastRoundDescription roundNumber={data.meta.roundNumber} month={data.meta.month} year={data.meta.year} />
         <StatsSection data={data.stats} />
-        <PastLeaderboardSection roundNumber={data.meta.roundNumber} leaderboardData={data.leaderboard} />
+        {/* <PastLeaderboardSection roundNumber={data.meta.roundNumber} leaderboardData={data.leaderboard} /> */}
         {data.buybackSimulation && <BuybackSimulationSection data={data.buybackSimulation} />}
         <SupportSection />
       </div>

@@ -8,6 +8,13 @@ interface LearnMoreSectionProps {
 }
 
 /**
+ * Check if a URL is internal (starts with /)
+ */
+function isInternalUrl(url: string): boolean {
+  return url.startsWith('/');
+}
+
+/**
  * LearnMoreSection - Displays a banner with FAQ link
  * @param data - Learn more section data from master JSON
  */
@@ -23,6 +30,8 @@ export default function LearnMoreSection({ data }: LearnMoreSectionProps) {
               <span className="learn-more-section__text-body">Read the </span>
               {data.faqUrl === '#' ? (
                 <span className="learn-more-section__link learn-more-section__link--disabled">FAQ</span>
+              ) : isInternalUrl(data.faqUrl) ? (
+                <Link href={data.faqUrl} className="learn-more-section__link">FAQ</Link>
               ) : (
                 <Link href={data.faqUrl} target="_blank" rel="noopener noreferrer" className="learn-more-section__link">FAQ</Link>
               )}

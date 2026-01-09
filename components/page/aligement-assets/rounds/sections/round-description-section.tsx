@@ -8,9 +8,17 @@ interface RoundDescriptionSectionProps {
 }
 
 /**
+ * Check if a URL is internal (starts with /)
+ */
+function isInternalUrl(url: string): boolean {
+  return url.startsWith('/');
+}
+
+/**
  * Renders paragraph text with embedded links
  * Replaces placeholders like {linkName} with actual Link components
  * If URL is '#', renders as styled text (non-clickable)
+ * Internal links open in same tab, external links open in new tab
  */
 function renderParagraphWithLinks(paragraph: RoundDescriptionSectionData['paragraphs'][0]) {
   if (!paragraph.links || paragraph.links.length === 0) {
@@ -32,7 +40,11 @@ function renderParagraphWithLinks(paragraph: RoundDescriptionSectionData['paragr
           if (link.url === '#') {
             return [p, <span key={`link-${linkIndex}-${i}`} className="round-description__link round-description__link--disabled">{link.text}</span>];
           }
-          return [p, <Link key={`link-${linkIndex}-${i}`} href={link.url} target="_blank" rel="noopener noreferrer" className="round-description__link">{link.text}</Link>];
+          // Internal links open in same tab, external links open in new tab
+          const linkProps = isInternalUrl(link.url) 
+            ? {} 
+            : { target: '_blank' as const, rel: 'noopener noreferrer' };
+          return [p, <Link key={`link-${linkIndex}-${i}`} href={link.url} {...linkProps} className="round-description__link">{link.text}</Link>];
         }
         return p;
       });

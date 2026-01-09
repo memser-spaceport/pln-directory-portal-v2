@@ -58,7 +58,7 @@ export const currentRoundData: CurrentRoundData = {
           {
             placeholder: '{incentivizedActivities}',
             text: 'Incentivized Activities',
-            url: '#'
+            url: '/alignment-assets/activities'
           }
         ]
       },
@@ -81,7 +81,7 @@ export const currentRoundData: CurrentRoundData = {
           {
             placeholder: '{previousRounds}',
             text: 'here',
-            url: '#'
+            url: '/alignment-assets/incentive-model'
           }
         ]
       }
@@ -101,24 +101,24 @@ export const currentRoundData: CurrentRoundData = {
         {
           prefix: 'Browse activities you can complete in the',
           linkText: 'Incentivized Activities List',
-          url: '#'
+          url: '/alignment-assets/activities'
         },
         {
           prefix: 'Learn how',
           linkText: 'Point-to-Token Conversion',
           suffix: 'works',
-          url: '#'
+          url: '/alignment-assets/faqs'
         },
         {
           prefix: 'Review the full',
           linkText: 'Incentive Model',
           suffix: 'and see how point collection mapped to token distribution in previous rounds',
-          url: '#'
+          url: '/alignment-assets/incentive-model'
         }
       ],
       bottomLink: {
         text: 'See what happened in the last round',
-        url: '#'
+        url: '/alignment-assets/rounds/11'
       }
     }
   },
@@ -321,7 +321,7 @@ export const currentRoundData: CurrentRoundData = {
   // Learn More Section Data
   // ============================================================================
   learnMore: {
-    faqUrl: '#'
+    faqUrl: '/alignment-assets/faqs'
   },
 
 };

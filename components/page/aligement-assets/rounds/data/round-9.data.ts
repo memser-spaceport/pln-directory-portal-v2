@@ -103,32 +103,32 @@ export const pastRound9Data: IPastRoundData = {
         {
           icon: '/icons/rounds/buy_action_results/wallet-01.svg',
           label: 'Total Buyback Pool',
-          value: '$47,623.10'
+          value: '$35,322'
         },
         {
           icon: '/icons/rounds/buy_action_results/pie-chart.svg',
           label: 'Pool Used',
-          value: '99.98%'
+          value: '99.90%'
         },
         {
           icon: '/icons/rounds/buy_action_results/coins-02.svg',
           label: 'Clearing Price',
-          value: '$14.00'
+          value: '$20.00'
         },
         {
           icon: '/icons/rounds/buy_action_results/analytics-01.svg',
           label: 'Capped Allocation',
-          value: '$23,811.55 (50% cap)'
+          value: '$17,661'
         },
         {
           icon: '/icons/rounds/buy_action_results/dollar-02.svg',
           label: 'Tokens Purchased',
-          value: '3,401'
+          value: '1,765'
         },
         {
           icon: '/icons/rounds/buy_action_results/user-multiple.svg',
           label: 'Winning Bidders',
-          value: '5'
+          value: '7'
         }
       ]
     },

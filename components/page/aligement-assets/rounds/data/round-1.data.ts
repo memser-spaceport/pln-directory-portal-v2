@@ -20,7 +20,7 @@ export const pastRound1Data: IPastRoundData = {
     isCurrentRound: false,
     month: 'February',
     year: 2025,
-    lastUpdated: '2025-12-18T00:00:00'
+    lastUpdated: '2025-12-18T00:00:00',
   },
 
   // ============================================================================
@@ -28,22 +28,23 @@ export const pastRound1Data: IPastRoundData = {
   // ============================================================================
   hero: {
     title: 'PL Alignment Asset',
-    subtitle: 'The PL Alignment Asset connects contributions across the Protocol Labs network — turning collaboration into shared success.',
+    subtitle:
+      'The PL Alignment Asset connects contributions across the Protocol Labs network — turning collaboration into shared success.',
     actions: [
       {
         label: 'Submit Activities',
         url: 'https://forms.gle/DiACtNgcsaAS8B6P8',
         type: 'primary',
-        openInNewTab: true
+        openInNewTab: true,
       },
       {
         label: 'Check Your Token Balance',
         url: 'https://app.surus.io/',
         type: 'secondary',
         icon: '/icons/rounds/filecoin.svg',
-        openInNewTab: true
-      }
-    ]
+        openInNewTab: true,
+      },
+    ],
   },
 
   // ============================================================================
@@ -53,35 +54,35 @@ export const pastRound1Data: IPastRoundData = {
     onboardedParticipants: 9,
     regionsUnlocked: ['USA'],
     incentivizedActivities: [
-      'PL Directory Profile',
-      'Share Compensation Data',
-      'Contribute to the Alignment Asset Program',
-      'Write a Blog or Article',
-      'Host or Curate an X Space',
-      'Complete the Quarterly Survey',
+      'Curate X Spaces',
       'Host Office Hours',
-      'Refer a New Team Member or Collaborator',
-      'Make a Network Introduction',
-      'Highlight an Outstanding Network Contribution'
+      'Create a blog for the network',
+      'Complete or update your PL Directory Profile',
+      'Contribute your compensation data',
+      'Talent Referral Program',
+      'Network Introductions',
+      'Survey Completion',
+      'Alignment Asset Program Contributions',
+      'Distinguished Network Contributions',
     ],
     totalPointsCollected: '2,500',
-    totalTokensDistributed: '1,547'
+    totalTokensDistributed: '1,547',
   },
 
   // ============================================================================
   // Leaderboard Section Data
   // ============================================================================
   leaderboard: [
-      { rank: 1, name: 'David Casey', activities: '', points: 1000 },
-      { rank: 2, name: 'Theresa Therriault', activities: '', points: 950 },
-      { rank: 3, name: 'Dottie Wang', activities: '', points: 200 },
-      { rank: 4, name: 'Anuj Pandey', activities: '', points: 150 },
-      { rank: 5, name: 'Michael Stachiw', activities: '', points: 150 },
-      { rank: 6, name: 'Bradley Holden', activities: '', points: 100 },
-      { rank: 7, name: 'Jeff De Gregorio', activities: '', points: 100 },
-      { rank: 8, name: 'Ian Brunner', activities: '', points: 100 },
-      { rank: 9, name: 'Matthew Koch', activities: '', points: 0 },
-      { rank: 10, name: 'Stefanie Wykoff', activities: '', points: 0 },
+    { rank: 1, name: 'David Casey', activities: '', points: 1000 },
+    { rank: 2, name: 'Theresa Therriault', activities: '', points: 950 },
+    { rank: 3, name: 'Dottie Wang', activities: '', points: 200 },
+    { rank: 4, name: 'Anuj Pandey', activities: '', points: 150 },
+    { rank: 5, name: 'Michael Stachiw', activities: '', points: 150 },
+    { rank: 6, name: 'Bradley Holden', activities: '', points: 100 },
+    { rank: 7, name: 'Jeff De Gregorio', activities: '', points: 100 },
+    { rank: 8, name: 'Ian Brunner', activities: '', points: 100 },
+    { rank: 9, name: 'Matthew Koch', activities: '', points: 0 },
+    { rank: 10, name: 'Stefanie Wykoff', activities: '', points: 0 },
   ],
 };
 

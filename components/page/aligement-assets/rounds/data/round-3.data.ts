@@ -54,21 +54,15 @@ export const pastRound3Data: IPastRoundData = {
     regionsUnlocked: ['USA'],
     incentivizedActivities: [
       'Curate X Spaces',
-      'Shared Resource or Cost-Saving Initiative',
-      'Create a Replicable Playbook or Template',
       'Host Office Hours',
       'Create a blog for the network',
       'Complete or update your PL Directory Profile',
-      'Design a Custom Incentive Experiment',
       'Contribute your compensation data',
       'Talent Referral Program',
-      'Create an Incentivized Activity',
-      'Propose a Cross-Company Project/Initiative',
       'Network Introductions',
-      'Referral Program',
       'Survey Completion',
       'Alignment Asset Program Contributions',
-      'Distinguished Network Contributions'
+      'Distinguished Network Contributions',
     ],
     totalPointsCollected: '15,250',
     totalTokensDistributed: '6,636'

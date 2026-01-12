@@ -90,6 +90,11 @@ export const useAlignmentAssetsAnalytics = () => {
     // Past Round Page
     PAST_ROUND_HERO_BTN_CLICKED: 'alignment-assets-past-round-hero-btn-clicked',
     PAST_LEADERBOARD_SHOW_MORE_CLICKED: 'alignment-assets-past-leaderboard-show-more-clicked',
+
+    // Scroll Depth Tracking
+    SCROLL_DEPTH_50: 'alignment-assets-scroll-depth-50',
+    SCROLL_DEPTH_70: 'alignment-assets-scroll-depth-70',
+    SCROLL_DEPTH_90: 'alignment-assets-scroll-depth-90',
   };
 
   // ==========================================
@@ -302,6 +307,18 @@ export const useAlignmentAssetsAnalytics = () => {
     captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.PAST_LEADERBOARD_SHOW_MORE_CLICKED, { roundNumber, currentCount });
   }
 
+  // ==========================================
+  // Scroll Depth Tracking Analytics
+  // ==========================================
+  function onScrollDepth(pageName: string, depth: 50 | 70 | 90) {
+    const eventMap: Record<50 | 70 | 90, string> = {
+      50: ALIGNMENT_ASSETS_ANALYTICS_EVENTS.SCROLL_DEPTH_50,
+      70: ALIGNMENT_ASSETS_ANALYTICS_EVENTS.SCROLL_DEPTH_70,
+      90: ALIGNMENT_ASSETS_ANALYTICS_EVENTS.SCROLL_DEPTH_90,
+    };
+    captureEvent(eventMap[depth], { pageName, scrollDepth: `${depth}%` });
+  }
+
   return {
     // Navigation & Menu
     onNavMenuClicked,
@@ -365,5 +382,8 @@ export const useAlignmentAssetsAnalytics = () => {
     // Past Round Page
     onPastRoundHeroBtnClicked,
     onPastLeaderboardShowMoreClicked,
+
+    // Scroll Depth Tracking
+    onScrollDepth,
   };
 };

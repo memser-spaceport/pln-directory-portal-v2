@@ -7,6 +7,7 @@ import { IPastRoundData } from "./types/current-round.types";
 import PastRoundDescription from "../past-rounds/past-round-description";
 import SupportSection from "./sections/support-section";
 import BuybackSimulationSection from "./sections/buyback-simulation-section";
+import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
 interface PastRoundComponentProps {
   pastRoundData: IPastRoundData;
@@ -14,6 +15,7 @@ interface PastRoundComponentProps {
 
 export default function PastRoundComponent({ pastRoundData }: PastRoundComponentProps) {
   const data = pastRoundData;
+  useScrollDepthTracking(`past-round-${data.meta.roundNumber}`);
   return (
     <>
       <div className="past-round">

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import SupportSection from '@/components/page/aligement-assets/rounds/sections/support-section';
 import DisclaimerSection from '@/components/page/aligement-assets/rounds/sections/disclaimer-section';
+import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
 export default function PrivacyPolicyPage() {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -26,6 +27,8 @@ export default function PrivacyPolicyPage() {
       [section]: !prev[section],
     }));
   };
+
+  useScrollDepthTracking('privacy-policy');
 
   return (
     <>

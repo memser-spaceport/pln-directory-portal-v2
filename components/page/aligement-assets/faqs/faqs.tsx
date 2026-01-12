@@ -6,6 +6,7 @@ import { ChevronDownIcon } from '@/components/icons';
 import SupportSection from '@/components/page/aligement-assets/rounds/sections/support-section';
 import DisclaimerSection from '@/components/page/aligement-assets/rounds/sections/disclaimer-section';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
+import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
 export interface FAQItem {
   question: string;
@@ -503,6 +504,8 @@ export default function FAQsPage() {
     }
     return null;
   }).filter((c): c is FAQCategoryData => c !== null);
+
+  useScrollDepthTracking('faqs');
 
   return (
     <>

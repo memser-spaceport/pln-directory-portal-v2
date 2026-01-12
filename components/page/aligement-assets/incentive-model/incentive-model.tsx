@@ -5,6 +5,7 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Responsi
 import SupportSection from '../rounds/sections/support-section';
 import Link from 'next/link';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
+import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
 // Define all rounds (each round = one month)
 // Note: Round 12 (January 2026) will be added once the snapshot has closed and points/tokens are calculated
@@ -68,6 +69,7 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Network Tooling', points: 0, tokens: 0 },
     { category: 'People/Talent', points: 900, tokens: 1605 },
     { category: 'Knowledge', points: 2900, tokens: 1761 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   6: [
     { category: 'Projects', points: 1850, tokens: 1312 },
@@ -76,6 +78,7 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Network Tooling', points: 1600, tokens: 1456 },
     { category: 'People/Talent', points: 0, tokens: 0 },
     { category: 'Knowledge', points: 3950, tokens: 1501 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   7: [
     { category: 'Projects', points: 1100, tokens: 1309 },
@@ -84,6 +87,7 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Network Tooling', points: 5200, tokens: 1456 },
     { category: 'People/Talent', points: 50, tokens: 1360 },
     { category: 'Knowledge', points: 1900, tokens: 1494 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   8: [
     { category: 'Projects', points: 2300, tokens: 1309 },
@@ -92,6 +96,7 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Network Tooling', points: 4000, tokens: 1459 },
     { category: 'People/Talent', points: 650, tokens: 1358 },
     { category: 'Knowledge', points: 3000, tokens: 1500 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   9: [
     { category: 'Projects', points: 2550, tokens: 1307 },
@@ -100,6 +105,7 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Network Tooling', points: 200, tokens: 1463 },
     { category: 'People/Talent', points: 600, tokens: 1360 },
     { category: 'Knowledge', points: 2350, tokens: 1490 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   10: [
     { category: 'Projects', points: 2650, tokens: 1304 },
@@ -108,6 +114,7 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Network Tooling', points: 7700, tokens: 1463 },
     { category: 'People/Talent', points: 50, tokens: 1360 },
     { category: 'Knowledge', points: 1600, tokens: 1496 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
   11: [
     { category: 'Projects', points: 400, tokens: 0 },
@@ -124,6 +131,7 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Network Tooling', points: 0, tokens: 0 },
     { category: 'People/Talent', points: 0, tokens: 0 },
     { category: 'Knowledge', points: 0, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
   ],
 };
 
@@ -360,6 +368,9 @@ export default function IncentiveModel() {
   useEffect(() => {
     setRoundInputValue(String(selectedRound));
   }, [selectedRound]);
+
+  useScrollDepthTracking('incentive-model');
+
 
   return (
     <>

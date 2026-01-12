@@ -8,6 +8,7 @@ import SupportSection from '../rounds/sections/support-section';
 import { activitiesData } from './data';
 import { Activity } from './types';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
+import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
 /**
  * ActivitiesComponent - Main component for displaying activities and points collection
@@ -17,6 +18,7 @@ export default function ActivitiesComponent() {
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { onActivitiesRowClicked, onActivitiesModalClosed } = useAlignmentAssetsAnalytics();
+  useScrollDepthTracking('activities');
 
   const handleRowClick = (activity: Activity) => {
     onActivitiesRowClicked({

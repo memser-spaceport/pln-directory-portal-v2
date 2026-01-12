@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { motion, LayoutGroup, AnimatePresence } from 'framer-motion';
 import SupportSection from "../rounds/sections/support-section";
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
+import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
 // Description items data
 const descriptionItems = [
@@ -84,6 +85,7 @@ const Overview = () => {
   const triggerRef = useRef<HTMLDivElement>(null);
   const secondButtonRef = useRef<HTMLDivElement>(null);
   const { onOverviewCreateAccountClicked, onOverviewWaitlistFormClicked, onOverviewLearnMoreClicked, onOverviewFaqLinkClicked } = useAlignmentAssetsAnalytics();
+  useScrollDepthTracking('overview');
 
   useEffect(() => {
     let isTriggerOutOfView = false;

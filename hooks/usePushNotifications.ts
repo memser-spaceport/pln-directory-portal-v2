@@ -16,6 +16,8 @@ interface UsePushNotificationsOptions {
   onNotificationUpdate?: (payload: NotificationUpdatePayload) => void;
   onCountUpdate?: (payload: NotificationCountPayload) => void;
   onConnectionChange?: (connected: boolean) => void;
+  /** Interval in milliseconds to check connection health. Default: 30000 (30 seconds) */
+  healthCheckInterval?: number;
 }
 
 interface UsePushNotificationsReturn {
@@ -23,13 +25,13 @@ interface UsePushNotificationsReturn {
   error: string | null;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
+  reconnect: () => void;
 }
 
 const WS_URL = process.env.DIRECTORY_API_URL;
+const DEFAULT_HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
 
-export function usePushNotifications(
-  options: UsePushNotificationsOptions
-): UsePushNotificationsReturn {
+export function usePushNotifications(options: UsePushNotificationsOptions): UsePushNotificationsReturn {
   const {
     token,
     enabled = true,
@@ -37,9 +39,11 @@ export function usePushNotifications(
     onNotificationUpdate,
     onCountUpdate,
     onConnectionChange,
+    healthCheckInterval = DEFAULT_HEALTH_CHECK_INTERVAL,
   } = options;
 
   const socketRef = useRef<Socket | null>(null);
+  const healthCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,20 +64,20 @@ export function usePushNotifications(
     };
   }, [onNewNotification, onNotificationUpdate, onCountUpdate, onConnectionChange]);
 
-  useEffect(() => {
-    if (!enabled || !token || !WS_URL) {
-      return;
+  const createSocket = useCallback(() => {
+    if (!token || !WS_URL) {
+      return null;
     }
 
     const socket = io(`${WS_URL}/notifications`, {
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 10000,
+      timeout: 20000,
     });
-
-    socketRef.current = socket;
 
     socket.on('connect', () => {
       setIsConnected(true);
@@ -81,9 +85,14 @@ export function usePushNotifications(
       callbacksRef.current.onConnectionChange?.(true);
     });
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', (reason) => {
       setIsConnected(false);
       callbacksRef.current.onConnectionChange?.(false);
+
+      // If the disconnection was initiated by the server, try to reconnect
+      if (reason === 'io server disconnect') {
+        socket.connect();
+      }
     });
 
     socket.on(WebSocketEvent.CONNECTION_ERROR, (data) => {
@@ -106,12 +115,57 @@ export function usePushNotifications(
       setError(err.message);
     });
 
+    return socket;
+  }, [token]);
+
+  const reconnect = useCallback(() => {
+    const socket = socketRef.current;
+    if (socket && !socket.connected) {
+      socket.connect();
+    }
+  }, []);
+
+  // Check connection health and reconnect if needed
+  const checkConnectionHealth = useCallback(() => {
+    const socket = socketRef.current;
+    if (!socket) {
+      return;
+    }
+
+    if (!socket.connected) {
+      // Socket exists but is not connected, attempt to reconnect
+      socket.connect();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!enabled || !token || !WS_URL) {
+      return;
+    }
+
+    // Create and store socket
+    const socket = createSocket();
+    if (!socket) {
+      return;
+    }
+    socketRef.current = socket;
+
+    // Set up periodic health check
+    healthCheckIntervalRef.current = setInterval(checkConnectionHealth, healthCheckInterval);
+
     return () => {
+      // Clear health check interval
+      if (healthCheckIntervalRef.current) {
+        clearInterval(healthCheckIntervalRef.current);
+        healthCheckIntervalRef.current = null;
+      }
+
+      // Disconnect socket
       socket.disconnect();
       socketRef.current = null;
       setIsConnected(false);
     };
-  }, [token, enabled]);
+  }, [token, enabled, createSocket, checkConnectionHealth, healthCheckInterval]);
 
   const markAsRead = useCallback((id: string) => {
     socketRef.current?.emit(WebSocketEvent.MARK_READ, { id });
@@ -126,5 +180,6 @@ export function usePushNotifications(
     error,
     markAsRead,
     markAllAsRead,
+    reconnect,
   };
 }

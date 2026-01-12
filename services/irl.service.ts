@@ -25,8 +25,9 @@ export const getAllLocations = async () => {
   });
 
   const filteredResult = result.filter(
-    (item: { pastEvents: IPastEvents[]; upcomingEvents: IUpcomingEvents[] }) =>
-      item.pastEvents.length > 0 || item.upcomingEvents.length > 0,
+    (item: { pastEvents: IPastEvents[]; upcomingEvents: IUpcomingEvents[]; location: string }) =>
+      (item.pastEvents.length > 0 || item.upcomingEvents.length > 0) &&
+      item.location?.split(',')[0]?.trim() !== 'Others',
   );
 
   filteredResult.forEach((location: any) => {

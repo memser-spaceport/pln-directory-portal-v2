@@ -1,8 +1,10 @@
 .root {
+  gap: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+
+  white-space: nowrap;
 }
 
 .details {

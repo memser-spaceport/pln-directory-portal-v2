@@ -28,7 +28,7 @@ export function getLabel(notification: PushNotification, attendees: Attendee[]) 
       return `by ${firstAttendee?.displayName ?? 'Unknown'}`;
     }
 
-    return `${firstAttendee} and ${remainingNum} other${remainingNum === 1 ? '' : 's'} in this conversation`;
+    return `${firstAttendee?.displayName} and ${remainingNum} other${remainingNum === 1 ? '' : 's'} in this conversation`;
   }
 
   return '';

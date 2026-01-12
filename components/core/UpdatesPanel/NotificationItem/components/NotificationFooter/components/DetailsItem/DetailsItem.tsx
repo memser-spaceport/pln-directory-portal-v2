@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isNil';
 import s from './DetailsItem.module.scss';
 
 interface Props {
-  data: string | null;
+  data: string;
 }
 
 export function DetailsItem(props: Props) {

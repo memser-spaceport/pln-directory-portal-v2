@@ -2,6 +2,7 @@
 
 import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import PlaaRoundSelector from './plaa-round-selector';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
@@ -11,7 +12,7 @@ import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analyt
    Figma: https://www.figma.com/design/xrvyUEqgZ0oRNT0spUruMW/Untitled?node-id=1-5250
    ========================================================================== */
 
-export type PlaaActiveItem = 'overview' | 'activities' | 'incentive-model' | 'terms-of-use' | 'privacy-policy' | 'product-versions' | 'faqs' | 'disclosure';
+export type PlaaActiveItem = 'overview' | 'activities' | 'incentive-model' | 'terms-of-use' | 'privacy-policy' | 'product-versions' | 'faqs' | 'disclosure' | 'feedback';
 
 interface PlaaMenuProps {
   activeItem?: PlaaActiveItem;
@@ -20,12 +21,13 @@ interface PlaaMenuProps {
   viewingRound?: number; // The round being viewed on the current page
 }
 
-const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string }> = [
+const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExternal?: boolean }> = [
   { name: 'overview', label: 'Overview', url: '/alignment-assets/overview' },
   { name: 'incentive-model', label: 'Incentive Model', url: '/alignment-assets/incentive-model' },
   { name: 'activities', label: 'Activities', url: '/alignment-assets/activities' },
   { name: 'product-versions', label: 'Product Versions', url: '/alignment-assets/product-versions' },
   { name: 'faqs', label: 'FAQ', url: '/alignment-assets/faqs' },
+  { name: 'feedback', label: 'Feedback', url: 'https://forms.gle/NAKxJ8RUqmUf9fmQ9', isExternal: true },
   { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-assets/terms-of-use' },
   { name: 'privacy-policy', label: 'Privacy Policy', url: '/alignment-assets/privacy-policy' },
   { name: 'disclosure', label: 'Disclosure', url: '/alignment-assets/disclosure' }
@@ -35,17 +37,19 @@ function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound
   const router = useRouter();
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
 
-  const onItemClicked = (label: string, url: string) => {
+  const onItemClicked = (label: string, url: string, isExternal?: boolean) => {
     onNavMenuClicked(label, url);
+    
+    if (isExternal) {
+      // Open external links in a new tab
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    
     if (window.innerWidth < 1024) {
       triggerLoader(true);
     }
     router.push(url);
-  };
-
-  const handleRoundChange = (round: number) => {
-    // Handle round change - could update URL or state
-    console.log('Round changed to:', round);
   };
 
   return (
@@ -57,7 +61,6 @@ function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound
             currentRound={currentRound}
             totalRounds={totalRounds}
             viewingRound={viewingRound}
-            onRoundChange={handleRoundChange}
           />
         </div>
 
@@ -66,11 +69,19 @@ function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound
           {menuItems.map((item) => (
             <li key={`plaa-${item.name}`} role="listitem">
               <button
-                onClick={() => onItemClicked(item.label, item.url)}
+                onClick={() => onItemClicked(item.label, item.url, item.isExternal)}
                 className={`plaa-menu__item ${activeItem === item.name ? 'plaa-menu__item--active' : ''}`}
                 aria-current={activeItem === item.name ? 'page' : undefined}
               >
                 <span className="plaa-menu__item-text">{item.label}</span>
+                {item.isExternal && (
+                  <Image
+                    src="/icons/external-link.svg"
+                    alt="external link"
+                    width={11}
+                    height={11}
+                  />
+                )}
               </button>
             </li>
           ))}
@@ -116,6 +127,7 @@ function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound
             height: 35px;
             display: flex;
             align-items: center;
+            gap: 4px;
             padding: 8px;
             background-color: #ffffff;
             border: none;
@@ -127,11 +139,6 @@ function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound
 
           .plaa-menu__item:hover {
             background-color: #f8fafc;
-          }
-
-          .plaa-menu__item:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(21, 111, 247, 0.3);
           }
 
           /* ---------------------------------------------------------------

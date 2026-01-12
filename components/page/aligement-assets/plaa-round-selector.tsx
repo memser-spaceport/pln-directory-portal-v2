@@ -14,14 +14,12 @@ interface PlaaRoundSelectorProps {
   currentRound: number;
   totalRounds: number;
   viewingRound?: number; // The round being viewed on the current page (defaults to currentRound)
-  onRoundChange?: (round: number) => void;
 }
 
 function PlaaRoundSelector({
   currentRound,
   totalRounds,
   viewingRound,
-  onRoundChange,
 }: PlaaRoundSelectorProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -75,7 +73,6 @@ function PlaaRoundSelector({
       onRoundSelectorPrevClicked(selectedRound, newRound);
       setSelectedRound(newRound);
       setInputValue(String(newRound));
-      onRoundChange?.(newRound);
       navigateToRound(newRound);
     }
   };
@@ -86,7 +83,6 @@ function PlaaRoundSelector({
       onRoundSelectorNextClicked(selectedRound, newRound);
       setSelectedRound(newRound);
       setInputValue(String(newRound));
-      onRoundChange?.(newRound);
       navigateToRound(newRound);
     }
     else{
@@ -98,7 +94,6 @@ function PlaaRoundSelector({
     onRoundSelectorGoToCurrentClicked(selectedRound, currentRound);
     setSelectedRound(currentRound);
     setInputValue(String(currentRound));
-    onRoundChange?.(currentRound);
     setIsOpen(false);
     router.push('/alignment-assets/rounds');
   };
@@ -116,7 +111,6 @@ function PlaaRoundSelector({
     if (!isNaN(parsed) && parsed >= 1 && parsed <= totalRounds) {
       if (parsed !== selectedRound) {
         setSelectedRound(parsed);
-        onRoundChange?.(parsed);
         navigateToRound(parsed);
       }
     } else {

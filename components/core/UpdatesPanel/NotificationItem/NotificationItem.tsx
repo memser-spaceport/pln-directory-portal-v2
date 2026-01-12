@@ -1,26 +1,19 @@
 import React from 'react';
+import { clsx } from 'clsx';
 import Link from 'next/link';
 import Image from 'next/image';
-import { clsx } from 'clsx';
-import { PushNotification, IrlGatheringMetadata } from '@/types/push-notifications.types';
-import { DemoDayIcon, EventIcon, ForumIcon, SystemIcon, ArrowRightIcon } from './icons';
-import { formatTime, getCategoryLabel, getActionText } from './utils';
-import s from './UpdatesPanel.module.scss';
+
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { PushNotification } from '@/types/push-notifications.types';
 
-function getIrlGatheringAttendees(notification: PushNotification): Array<{ uid: string; picture?: string }> {
-  const metadata = notification.metadata as unknown as Partial<IrlGatheringMetadata> | undefined;
-  if (!metadata?.attendees?.topAttendees) return [];
-  return metadata.attendees.topAttendees.map((a) => ({
-    uid: a.memberUid,
-    picture: a.imageUrl || undefined,
-  }));
-}
+import { getCategoryLabel } from './utils/getCategoryLabel';
+import { getNotificationIcon } from './utils/getNotificationIcon';
+import { getIrlGatheringAttendees } from './utils/getIrlGatheringAttendees';
+import { getIrlGatheringAttendeesCount } from './utils/getIrlGatheringAttendeesCount';
 
-function getIrlGatheringAttendeesCount(notification: PushNotification): number {
-  const metadata = notification.metadata as unknown as Partial<IrlGatheringMetadata> | undefined;
-  return metadata?.attendees?.total || 0;
-}
+import { NotificationFooter } from './components/NotificationFooter';
+
+import s from './NotificationItem.module.scss';
 
 interface NotificationItemProps {
   notification: PushNotification;
@@ -31,50 +24,9 @@ interface NotificationItemProps {
   onIrlGatheringClick?: (notification: PushNotification) => void;
 }
 
-function getNotificationIcon(notification: PushNotification) {
-  // Otherwise show category icon
-  switch (notification.category) {
-    case 'DEMO_DAY_LIKE':
-    case 'DEMO_DAY_CONNECT':
-    case 'DEMO_DAY_ANNOUNCEMENT':
-    case 'DEMO_DAY_INVEST':
-    case 'DEMO_DAY_REFERRAL':
-    case 'DEMO_DAY_FEEDBACK':
-      return (
-        <div className={s.iconWrapper}>
-          <DemoDayIcon />
-        </div>
-      );
-    case 'EVENT':
-    case 'IRL_GATHERING':
-      return (
-        <div className={s.iconWrapper}>
-          <EventIcon />
-        </div>
-      );
-    case 'FORUM_POST':
-    case 'FORUM_REPLY':
-      return (
-        <div className={s.iconWrapper}>
-          <ForumIcon />
-        </div>
-      );
-    case 'SYSTEM':
-    default:
-      return (
-        <div className={s.iconWrapper}>
-          <SystemIcon />
-        </div>
-      );
-  }
-}
+export function NotificationItem(props: NotificationItemProps) {
+  const { notification, onNotificationClick, variant = 'panel', onIrlGatheringClick } = props;
 
-export function NotificationItem({
-  notification,
-  onNotificationClick,
-  variant = 'panel',
-  onIrlGatheringClick,
-}: NotificationItemProps) {
   const isIrlGathering = notification.category === 'IRL_GATHERING';
 
   const handleClick = (e: React.MouseEvent) => {
@@ -87,7 +39,7 @@ export function NotificationItem({
 
   const content = (
     <>
-      {getNotificationIcon(notification)}
+      <div className={s.iconWrapper}>{getNotificationIcon(notification)}</div>
       <div className={s.notificationContent}>
         <div className={s.textSection}>
           <div className={s.categoryBadge}>{getCategoryLabel(notification.category)}</div>
@@ -169,15 +121,7 @@ export function NotificationItem({
             ) : null}
           </div>
         </div>
-        <div className={s.notificationFooter}>
-          <span className={s.timestamp}>{formatTime(notification.createdAt)}</span>
-          {(notification.link || isIrlGathering) && (
-            <span className={s.actionLink}>
-              {getActionText(notification.category)}
-              {variant === 'page' && <ArrowRightIcon />}
-            </span>
-          )}
-        </div>
+        <NotificationFooter variant={variant} notification={notification} isIrlGathering={isIrlGathering} />
       </div>
       <div
         className={clsx(s.unreadDot, {

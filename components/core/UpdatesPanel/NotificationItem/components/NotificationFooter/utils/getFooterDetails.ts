@@ -17,7 +17,6 @@ export function getFooterDetails(notification: PushNotification) {
 
     details.push(views);
     details.push(likes);
-    details.push(views);
     details.push(comments);
   }
 

@@ -1,0 +1,15 @@
+.root {
+  gap: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.label {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  white-space: nowrap;
+}

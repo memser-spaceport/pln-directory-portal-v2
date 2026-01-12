@@ -13,6 +13,7 @@ import DisclaimerSection from './sections/disclaimer-section';
 import SupportSection from './sections/support-section';
 import { currentRoundData } from './data';
 import { CurrentRoundData } from './types';
+import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
 interface CurrentRoundComponentProps {
   currentRound?: number;
@@ -38,6 +39,8 @@ export default function CurrentRoundComponent({
       endDate: new Date(data.snapshotProgress.endDate)
     };
   }, [data.snapshotProgress.startDate, data.snapshotProgress.endDate]);
+
+  useScrollDepthTracking('current-round');
 
   return (
     <>

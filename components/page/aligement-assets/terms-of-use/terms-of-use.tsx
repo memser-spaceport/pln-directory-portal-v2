@@ -5,6 +5,7 @@ import Image from 'next/image';
 import SupportSection from '@/components/page/aligement-assets/rounds/sections/support-section';
 import DisclaimerSection from '@/components/page/aligement-assets/rounds/sections/disclaimer-section';
 import { DISCLOSURE_URL } from '@/constants/plaa';
+import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
 export default function TermsOfUsePage() {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -22,6 +23,8 @@ export default function TermsOfUsePage() {
       [section]: !prev[section],
     }));
   };
+
+  useScrollDepthTracking('terms-of-use');
 
   return (
     <>

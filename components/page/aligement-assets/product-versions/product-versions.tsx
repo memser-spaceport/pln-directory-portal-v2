@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import SupportSection from '@/components/page/aligement-assets/rounds/sections/support-section';
+import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
 export interface VersionItem {
   text: string;
@@ -154,6 +155,8 @@ export default function ProductVersionsPage() {
       </ul>
     );
   };
+
+  useScrollDepthTracking('product-versions');
 
   return (
     <>

@@ -132,7 +132,6 @@ export const currentRoundData: CurrentRoundData = {
     maxValue: 1000,
     chartData: [
       { name: 'Brand', value: 0 },
-      { name: 'Capital', value: 0 },
       { name: 'Knowledge Sharing', value: 0 },
       { name: 'Network Tooling', value: 0 },
       { name: 'People/Talent', value: 0 },

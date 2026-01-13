@@ -6,6 +6,7 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { PushNotification, IrlGatheringMetadata } from '@/types/push-notifications.types';
 import { useCreateIrlGatheringGuest } from '@/services/events/hooks/useCreateIrlGatheringGuest';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { toast } from '@/components/core/ToastContainer';
 import {
   ModalHeader,
   AboutSection,
@@ -116,15 +117,13 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
       return;
     }
 
-    const eventPayloads = (metadata.events?.items || []).map((event) => ({
-      uid: event.uid,
-      isHost: false,
-      isSpeaker: false,
-      isSponsor: false,
-      hostSubEvents: [],
-      speakerSubEvents: [],
-      sponsorSubEvents: [],
-    }));
+    // Use selected date range or fall back to event dates from metadata
+    const checkInDate = selectedDateRange
+      ? formatDateForApi(selectedDateRange[0])
+      : metadata.events?.dates?.start || '';
+    const checkOutDate = selectedDateRange
+      ? formatDateForApi(selectedDateRange[1])
+      : metadata.events?.dates?.end || '';
 
     const payload = {
       memberUid: userInfo.uid,
@@ -132,10 +131,10 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
       reason: '',
       telegramId: '',
       officeHours: '',
-      events: eventPayloads,
+      events: [],
       additionalInfo: {
-        checkInDate: selectedDateRange ? formatDateForApi(selectedDateRange[0]) : '',
-        checkOutDate: selectedDateRange ? formatDateForApi(selectedDateRange[1]) : '',
+        checkInDate,
+        checkOutDate,
       },
       topics: data.topics,
       locationName: locationName,
@@ -149,12 +148,13 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
       },
       {
         onSuccess: () => {
-          console.log('IRL Gathering guest created successfully');
+          toast.success(`You're going to ${locationName}!`);
           onGoingClick?.();
           onClose();
         },
         onError: (error) => {
           console.error('Failed to create IRL gathering guest:', error);
+          toast.error('Failed to register for the gathering. Please try again.');
         },
       },
     );

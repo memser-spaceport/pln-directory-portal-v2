@@ -270,6 +270,35 @@ function PlaaRoundSelector({
               <span className="round-selector__total">{totalRounds}</span>
             </div>
 
+            {/* Go to Current Round - Only show when not on current round */}
+            {!isCurrentRound && (
+              <>
+                <div className="round-selector__divider" />
+                <button
+                  className="round-selector__dropdown-go-current"
+                  onClick={handleGoToCurrent}
+                  aria-label="Go to current round"
+                >
+                  <span>Go to current round</span>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2.5 6H9.5M9.5 6L6.5 3M9.5 6L6.5 9"
+                      stroke="#156FF7"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -528,7 +557,7 @@ function PlaaRoundSelector({
           }
 
           /* ---------------------------------------------------------------
-             Go to Current Round Link
+             Go to Current Round Link (outside dropdown)
              Figma: height 36px, padding 8px, flex, gap 4px
              --------------------------------------------------------------- */
           .round-selector__go-current {
@@ -542,6 +571,32 @@ function PlaaRoundSelector({
             font-size: 12px;
             line-height: 100%;
             color: #475569;
+          }
+
+          /* ---------------------------------------------------------------
+             Go to Current Round Button (inside dropdown)
+             --------------------------------------------------------------- */
+          .round-selector__dropdown-go-current {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            width: 100%;
+            height: 32px;
+            padding: 0 8px;
+            background: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 12px;
+            line-height: 100%;
+            color: #156FF7;
+            transition: background-color 0.15s ease;
+          }
+
+          .round-selector__dropdown-go-current:hover {
+            background-color: rgba(21, 111, 247, 0.08);
           }
         `}
       </style>

@@ -77,7 +77,7 @@ export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', 
               })}
             >
               <div className={s.answerContent}>
-                <p className={s.answerText}>{item.answer}</p>
+                <div className={s.answerText}>{item.answer}</div>
               </div>
             </div>
           </div>

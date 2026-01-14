@@ -75,14 +75,9 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
   }));
   const attendeesCount = metadata.attendees?.total || 0;
   const planningQuestion = `Are you planning to be in ${locationName}?`;
+  const resources = metadata.location?.resources || [];
 
-  // These fields are not in the current metadata structure - keeping as placeholders
-  const telegramLink = metadata.events?.items?.[0]?.telegramId;
   const eventsLink = `/events/irl?location=${locationName}`;
-  const speakerIntakeLink = undefined;
-  const submittedEventsCount = metadata.events?.total;
-  const submitEventLink = undefined;
-  const otherResourcesLink = undefined;
 
   const handleOpenDatePicker = () => {
     setCurrentView('datePicker');
@@ -204,13 +199,9 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
             <GatheringDetails
               dateRange={dateRange}
               location={locationName}
-              telegramLink={telegramLink}
               eventsLink={eventsLink}
               eventsCount={eventsCount}
-              speakerIntakeLink={speakerIntakeLink}
-              submitEventLink={submitEventLink}
-              submittedEventsCount={submittedEventsCount}
-              otherResourcesLink={otherResourcesLink}
+              resources={resources}
             />
 
             <AttendeesSection

@@ -27,6 +27,8 @@ export interface IrlGatheringEventItem {
   logoUrl: string | null;
   startDate: string;
   attendeeCount: number;
+  telegramId: string | null;
+  websiteUrl: string | null;
 }
 
 export interface IrlGatheringAttendee {

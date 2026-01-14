@@ -77,10 +77,10 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
   const planningQuestion = `Are you planning to be in ${locationName}?`;
 
   // These fields are not in the current metadata structure - keeping as placeholders
-  const telegramLink = undefined;
-  const eventsLink = undefined;
+  const telegramLink = metadata.events?.items?.[0]?.telegramId;
+  const eventsLink = `/events/irl?location=${locationName}`;
   const speakerIntakeLink = undefined;
-  const submittedEventsCount = 0;
+  const submittedEventsCount = metadata.events?.total;
   const submitEventLink = undefined;
   const otherResourcesLink = undefined;
 
@@ -121,9 +121,7 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
     const checkInDate = selectedDateRange
       ? formatDateForApi(selectedDateRange[0])
       : metadata.events?.dates?.start || '';
-    const checkOutDate = selectedDateRange
-      ? formatDateForApi(selectedDateRange[1])
-      : metadata.events?.dates?.end || '';
+    const checkOutDate = selectedDateRange ? formatDateForApi(selectedDateRange[1]) : metadata.events?.dates?.end || '';
 
     const payload = {
       memberUid: userInfo.uid,

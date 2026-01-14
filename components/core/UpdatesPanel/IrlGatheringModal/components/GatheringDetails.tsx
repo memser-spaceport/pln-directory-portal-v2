@@ -15,12 +15,12 @@ import s from '../IrlGatheringModal.module.scss';
 interface GatheringDetailsProps {
   dateRange: string;
   location: string;
-  telegramLink?: string;
+  telegramLink?: string | null;
   eventsLink?: string;
   eventsCount: number;
   speakerIntakeLink?: string;
   submitEventLink?: string;
-  submittedEventsCount: number;
+  submittedEventsCount: number | undefined;
   otherResourcesLink?: string;
 }
 
@@ -112,4 +112,3 @@ export function GatheringDetails({
     </div>
   );
 }
-

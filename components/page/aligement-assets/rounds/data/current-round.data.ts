@@ -107,7 +107,7 @@ export const currentRoundData: CurrentRoundData = {
           prefix: 'Learn how',
           linkText: 'Point-to-Token Conversion',
           suffix: 'works',
-          url: '/alignment-assets/faqs'
+          url: '/alignment-assets/faqs#point-to-token-conversion'
         },
         {
           prefix: 'Review the full',

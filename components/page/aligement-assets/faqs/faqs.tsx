@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, ReactNode, useRef } from 'react';
+import { useState, ReactNode, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { ChevronDownIcon } from '@/components/icons';
 import SupportSection from '@/components/page/aligement-assets/rounds/sections/support-section';
 import DisclaimerSection from '@/components/page/aligement-assets/rounds/sections/disclaimer-section';
@@ -136,7 +137,7 @@ const faqCategories: FAQCategoryData[] = [
     ],
   },
   {
-    id: 'point-to-token',
+    id: 'point-to-token-conversion',
     title: 'Point-to-Token Conversion',
     icon: '/icons/loop-icon.png',
     items: [
@@ -439,7 +440,37 @@ export default function FAQsPage() {
   const [expandAll, setExpandAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const pathname = usePathname();
   const { onFaqsSearchUsed, onFaqsExpandAllClicked, onFaqsQuestionToggled, onFaqsClearSearchClicked } = useAlignmentAssetsAnalytics();
+
+  const handleHashNavigation = useCallback((hash: string) => {
+    if (!hash) return;
+
+    const element = categoryRefs.current[hash];
+    const category = faqCategories.find(cat => cat.id === hash);
+    
+    if (!element || !category) return;
+
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash) {
+        handleHashNavigation(hash);
+      }
+    };
+
+    handleHash();
+
+    window.addEventListener('hashchange', handleHash);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHash);
+    };
+  }, [pathname]);
 
   const toggleQuestion = (questionId: string, categoryId: string, questionText: string) => {
     const newExpandedState = !expandedQuestions[questionId];
@@ -535,7 +566,12 @@ export default function FAQsPage() {
         <div className="faqs__container">
           {filteredCategories.length > 0 ? (
             filteredCategories.map((category) => (
-              <div key={category.id} className="faqs__container__category">
+              <div 
+                key={category.id} 
+                id={category.id}
+                ref={(el) => { categoryRefs.current[category.id] = el; }}
+                className="faqs__container__category"
+              >
                 <div className="faqs__container__category__header">
                   <Image 
                     src={category.icon} 
@@ -712,7 +748,9 @@ export default function FAQsPage() {
           margin-bottom: 100px;
         }
 
-        .faqs__container__category {}
+        .faqs__container__category {
+          scroll-margin-top: 200px;
+        }
 
         .faqs__container__category__header {
           display: flex;

@@ -49,6 +49,10 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
 
   // Scroll to top when pathname changes (tab switch)
   useEffect(() => {
+    // Don't scroll to top if there's a hash in the URL
+    if (window.location.hash) {
+      return;
+    }
     // Scroll both window and document to ensure it works across browsers
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;

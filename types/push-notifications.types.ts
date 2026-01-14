@@ -47,6 +47,15 @@ export interface IrlGatheringLocation {
   latitude: string;
   timezone: string;
   longitude: string;
+  resources: {
+    icon?: string;
+    link: string;
+    name: string;
+    type: 'social' | 'custom';
+    isPublic: 'true' | 'false';
+    description: string | null;
+    id?: string;
+  }[];
 }
 
 export interface IrlGatheringMetadata {

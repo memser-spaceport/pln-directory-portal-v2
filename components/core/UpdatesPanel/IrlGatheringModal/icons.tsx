@@ -134,3 +134,30 @@ export const ChevronDownIcon = () => (
     />
   </svg>
 );
+
+export const WebIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M1.5 8H14.5"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M8 1.5C9.65685 3.15685 10.6046 5.52724 10.6046 8C10.6046 10.4728 9.65685 12.8431 8 14.5C6.34315 12.8431 5.39543 10.4728 5.39543 8C5.39543 5.52724 6.34315 3.15685 8 1.5Z"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const TwitterIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M12.6 1.5H14.9L9.9 7.3L15.8 14.5H11.2L7.5 9.7L3.3 14.5H1L6.3 8.3L0.7 1.5H5.4L8.8 5.9L12.6 1.5ZM11.8 13.2H13.1L4.7 2.8H3.3L11.8 13.2Z"
+      fill="currentColor"
+    />
+  </svg>
+);

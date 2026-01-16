@@ -69,8 +69,8 @@ export const pastRound11Data: IPastRoundData = {
       'Alignment Asset Program Contributions',
       'Distinguished Network Contributions'
     ],
-    totalPointsCollected: '1,750',
-    totalTokensDistributed: '0', // Tokens still calculating
+    totalPointsCollected: '6,100',
+    totalTokensDistributed: '8,346', // Tokens still calculating
     numberOfBuybacks: 1
   },
 

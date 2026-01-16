@@ -117,12 +117,12 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   11: [
-    { category: 'Projects', points: 400, tokens: 0 },
+    { category: 'Projects', points: 3600, tokens: 1548 },
     { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 600, tokens: 0 },
-    { category: 'Network Tooling', points: 400, tokens: 0 },
-    { category: 'People/Talent', points: 50, tokens: 0 },
-    { category: 'Knowledge', points: 300, tokens: 0 },
+    { category: 'Programs', points: 600, tokens: 1702 },
+    { category: 'Network Tooling', points: 900, tokens: 1724 },
+    { category: 'People/Talent', points: 550, tokens: 1602 },
+    { category: 'Knowledge', points: 450, tokens: 1770 },
   ],
   12: [
     { category: 'Projects', points: 0, tokens: 0 },
@@ -220,7 +220,7 @@ const renderPolarAngleAxisTick = ({
 // Helper function to get the top category (lowest points = highest token potential)
 const getTopCategory = (data: Array<{ category: string; points: number; tokens: number }>) => {
   if (!data || data.length === 0) return 'N/A';
-  const topCategory = data.reduce((min, item) => (item.points < min.points ? item : min), data[0]);
+  const topCategory = data.reduce((max, item) => (item.points > max.points ? item : max), data[0]);
   return topCategory.category;
 };
 

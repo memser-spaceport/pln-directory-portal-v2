@@ -353,15 +353,15 @@ export default function IncentiveModel() {
   };
 
   const handleActivitiesLinkClick = () => {
-    onIncentiveModelActivitiesLinkClicked('/alignment-assets/activities');
+    onIncentiveModelActivitiesLinkClicked('/alignment-asset/activities');
   };
 
   const handleTipViewLinkClick = () => {
-    onIncentiveModelTipViewLinkClicked('/alignment-assets/rounds');
+    onIncentiveModelTipViewLinkClicked('/alignment-asset/rounds');
   };
 
   const handleLearnMoreClick = () => {
-    onIncentiveModelLearnMoreClicked('/alignment-assets/faqs#point-to-token-conversion');
+    onIncentiveModelLearnMoreClicked('/alignment-asset/faqs#point-to-token-conversion');
   };
 
   // Update input value when selectedRound changes externally (via arrows)
@@ -381,7 +381,7 @@ export default function IncentiveModel() {
           <div className="incentive-model__description">
             <p>
               Participants{' '}
-              <Link href="/alignment-assets/activities" className="incentive-model__link" onClick={handleActivitiesLinkClick}>
+              <Link href="/alignment-asset/activities" className="incentive-model__link" onClick={handleActivitiesLinkClick}>
                 collect points
               </Link>{' '}
               by completing verified activities that benefit the network each month. Points are collected during the
@@ -603,7 +603,7 @@ export default function IncentiveModel() {
               </p>
               <p className="incentive-model__tip-text">
                 👉{' '}
-                <Link href="/alignment-assets/rounds" className="incentive-model__tip-link" onClick={handleTipViewLinkClick}>
+                <Link href="/alignment-asset/rounds" className="incentive-model__tip-link" onClick={handleTipViewLinkClick}>
                   View
                 </Link>{' '}
                 which categories offer the highest token potential today.
@@ -618,7 +618,7 @@ export default function IncentiveModel() {
             <div className="incentive-model__learn-more-container">
               <p className="incentive-model__learn-more-text">
                 <Link
-                  href="/alignment-assets/faqs#point-to-token-conversion"
+                  href="/alignment-asset/faqs#point-to-token-conversion"
                   className="incentive-model__learn-more-link"
                   onClick={handleLearnMoreClick}
                 >

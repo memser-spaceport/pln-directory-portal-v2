@@ -64,7 +64,7 @@ function PlaaRoundSelector({
   }, [isOpen]);
 
   const navigateToRound = (round: number) => {
-    router.push(`/alignment-assets/rounds/${round}`);
+    router.push(`/alignment-asset/rounds/${round}`);
   };
 
   const handlePrevRound = () => {
@@ -95,7 +95,7 @@ function PlaaRoundSelector({
     setSelectedRound(currentRound);
     setInputValue(String(currentRound));
     setIsOpen(false);
-    router.push('/alignment-assets/rounds');
+    router.push('/alignment-asset/rounds');
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -126,15 +126,6 @@ function PlaaRoundSelector({
     }
   };
 
-  const handleRoundLabelClick = () => {
-    // Navigate to the selected round page
-    if (isCurrentRound) {
-      router.push('/alignment-assets/rounds');
-    } else {
-      navigateToRound(selectedRound);
-    }
-  };
-
   const handleDropdownToggle = () => {
     if (!isOpen) {
       onRoundSelectorOpened(currentRound, selectedRound);
@@ -148,49 +139,33 @@ function PlaaRoundSelector({
   return (
     <div className="round-selector-container">
       <div className="round-selector" ref={dropdownRef}>
-        {/* Trigger Button - Split into two sections */}
-        <div
+        {/* Trigger Button */}
+        <button
           className="round-selector__trigger"
+          onClick={handleDropdownToggle}
           aria-expanded={isOpen}
           aria-haspopup="listbox"
+          aria-label="Open round selector dropdown"
         >
-          {/* First Section - Round Label (navigates to round page) */}
-          <button
-            className="round-selector__trigger-label"
-            onClick={handleRoundLabelClick}
-            aria-label={`Go to ${displayText}`}
+          <span className="round-selector__trigger-text">{displayText}</span>
+          <svg
+            className={`round-selector__trigger-icon ${isOpen ? 'round-selector__trigger-icon--open' : ''}`}
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
           >
-            <span className="round-selector__trigger-text">{displayText}</span>
-          </button>
-
-          {/* Separator */}
-          <div className="round-selector__trigger-separator" />
-
-          {/* Second Section - Arrow (opens dropdown) */}
-          <button
-            className="round-selector__trigger-arrow"
-            onClick={handleDropdownToggle}
-            aria-label="Open round selector dropdown"
-          >
-            <svg
-              className={`round-selector__trigger-icon ${isOpen ? 'round-selector__trigger-icon--open' : ''}`}
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path
-                d="M4 6L8 10L12 6"
-                stroke="#64748B"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
+            <path
+              d="M4 6L8 10L12 6"
+              stroke="#64748B"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
 
         {/* Dropdown Panel */}
         {isOpen && (
@@ -347,7 +322,7 @@ function PlaaRoundSelector({
             align-items: center;
             justify-content: center;
             gap: 4px;
-            border: 1px solid #E2E8F0;
+            border: ${isCurrentRound ? 'none' : '1px solid #E2E8F0'};
             border-radius: 12px;
             padding: ${isCurrentRound ? '8px 8px 8px 8px' : '8px 8px 4px 8px'};
           }
@@ -358,9 +333,15 @@ function PlaaRoundSelector({
             height: 35px;
             display: flex;
             align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 12px;
             background-color: #F1F5F9;
+            border: none;
             border-radius: 8px;
+            cursor: pointer;
             overflow: visible;
+            transition: background-color 0.15s ease;
           }
 
           .round-selector__trigger::before {
@@ -376,49 +357,7 @@ function PlaaRoundSelector({
             pointer-events: none;
           }
 
-          /* First Section - Round Label */
-          .round-selector__trigger-label {
-            flex: 1;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 12px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            border-radius: 8px 0 0 8px;
-            transition: background-color 0.15s ease;
-          }
-
-          .round-selector__trigger-label:hover {
-            background-color: rgba(66, 125, 255, 0.08);
-          }
-
-          /* Separator */
-          .round-selector__trigger-separator {
-            width: 1px;
-            height: 20px;
-            background: linear-gradient(180deg, #427DFF 0%, #44D5BB 100%);
-            opacity: 0.5;
-            flex-shrink: 0;
-          }
-
-          /* Second Section - Arrow */
-          .round-selector__trigger-arrow {
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 10px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            border-radius: 0 8px 8px 0;
-            transition: background-color 0.15s ease;
-          }
-
-          .round-selector__trigger-arrow:hover {
+          .round-selector__trigger:hover {
             background-color: rgba(66, 125, 255, 0.08);
           }
 

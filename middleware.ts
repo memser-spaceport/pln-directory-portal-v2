@@ -6,7 +6,7 @@ import { calculateExpiry, decodeToken } from './utils/auth.utils';
  * Protected routes that require authentication
  * Users accessing these routes without authentication will be redirected to login
  */
-const PROTECTED_ROUTES = ['/alignment-assets'];
+const PROTECTED_ROUTES = ['/alignment-asset'];
 
 export const config = {
   matcher: [
@@ -28,7 +28,7 @@ export const config = {
     '/changelog',
     '/husky/chat/:path',
     '/events',
-    '/alignment-assets/:path',
+    '/alignment-asset/:path',
   ],
 };
 

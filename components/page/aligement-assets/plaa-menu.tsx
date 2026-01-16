@@ -22,15 +22,15 @@ interface PlaaMenuProps {
 }
 
 const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExternal?: boolean }> = [
-  { name: 'overview', label: 'Overview', url: '/alignment-assets/overview' },
-  { name: 'incentive-model', label: 'Incentive Model', url: '/alignment-assets/incentive-model' },
-  { name: 'activities', label: 'Activities', url: '/alignment-assets/activities' },
-  { name: 'product-versions', label: 'Product Versions', url: '/alignment-assets/product-versions' },
-  { name: 'faqs', label: 'FAQ', url: '/alignment-assets/faqs' },
+  { name: 'overview', label: 'Overview', url: '/alignment-asset/overview' },
+  { name: 'incentive-model', label: 'Incentive Model', url: '/alignment-asset/incentive-model' },
+  { name: 'activities', label: 'Activities', url: '/alignment-asset/activities' },
+  { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions' },
+  { name: 'faqs', label: 'FAQ', url: '/alignment-asset/faqs' },
   { name: 'feedback', label: 'Feedback', url: 'https://forms.gle/NAKxJ8RUqmUf9fmQ9', isExternal: true },
-  { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-assets/terms-of-use' },
-  { name: 'privacy-policy', label: 'Privacy Policy', url: '/alignment-assets/privacy-policy' },
-  { name: 'disclosure', label: 'Disclosure', url: '/alignment-assets/disclosure' }
+  { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-asset/terms-of-use' },
+  { name: 'privacy-policy', label: 'Privacy Policy', url: '/alignment-asset/privacy-policy' },
+  { name: 'disclosure', label: 'Disclosure', url: '/alignment-asset/disclosure' }
 ];
 
 function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound }: PlaaMenuProps) {

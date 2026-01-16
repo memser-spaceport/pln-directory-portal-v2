@@ -15,7 +15,7 @@ function PlaaBackButton({ title = '' }: PlaaBackButtonProps) {
   const onBackClicked = () => {
     onBackButtonClicked(title);
     triggerLoader(true);
-    router.push('/alignment-assets');
+    router.push('/alignment-asset');
   };
 
   return (

@@ -31,34 +31,34 @@ export const activitiesData: ActivitiesData = {
         }
       }
     },
-    {
-      id: 'shared-resource',
-      category: 'Capital',
-      activity: 'Shared Resource or Cost-Saving Initiative',
-      networkValue: 'Builds efficiency by pooling tools, services, or resources.',
-      points: '500+',
-      popupContent: {
-        title: 'Shared Resource or Cost-Saving Initiative',
-        description: 'Launch or join a resource-sharing or cost-saving effort that benefits multiple teams (e.g., negotiating SaaS discounts, sharing office space, co-sponsored research).',
-        submissionNote: 'Must deliver shared savings or value beyond what one team could achieve alone. Submit via the reporting form after completing the activity.',
-        pointsAwarded: {
-          title: 'Points Awarded:',
-          items: [
-            { label: 'Base Reward', value: '500 points for executing & documenting the activity' },
-            {
-              label: 'Impact Bonus',
-              value: '(based on total savings achieved):',
-              subItems: [
-                { label: 'Tier 1 (<9.99% savings)', value: '+300 points' },
-                { label: 'Tier 2 (10–30% savings)', value: '+700 points' },
-                { label: 'Tier 3 (>30% savings)', value: '+1,200 points' }
-              ]
-            },
-            { label: 'Collaborators', value: 'Points are split equally among listed contributors' }
-          ]
-        }
-      }
-    },
+    // {
+    //   id: 'shared-resource',
+    //   category: 'Capital',
+    //   activity: 'Shared Resource or Cost-Saving Initiative',
+    //   networkValue: 'Builds efficiency by pooling tools, services, or resources.',
+    //   points: '500+',
+    //   popupContent: {
+    //     title: 'Shared Resource or Cost-Saving Initiative',
+    //     description: 'Launch or join a resource-sharing or cost-saving effort that benefits multiple teams (e.g., negotiating SaaS discounts, sharing office space, co-sponsored research).',
+    //     submissionNote: 'Must deliver shared savings or value beyond what one team could achieve alone. Submit via the reporting form after completing the activity.',
+    //     pointsAwarded: {
+    //       title: 'Points Awarded:',
+    //       items: [
+    //         { label: 'Base Reward', value: '500 points for executing & documenting the activity' },
+    //         {
+    //           label: 'Impact Bonus',
+    //           value: '(based on total savings achieved):',
+    //           subItems: [
+    //             { label: 'Tier 1 (<9.99% savings)', value: '+300 points' },
+    //             { label: 'Tier 2 (10–30% savings)', value: '+700 points' },
+    //             { label: 'Tier 3 (>30% savings)', value: '+1,200 points' }
+    //           ]
+    //         },
+    //         { label: 'Collaborators', value: 'Points are split equally among listed contributors' }
+    //       ]
+    //     }
+    //   }
+    // },
     {
       id: 'write-blog-article',
       category: 'Knowledge Sharing',

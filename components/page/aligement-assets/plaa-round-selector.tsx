@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, ChangeEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 /* ==========================================================================
    PlaaRoundSelector Component
@@ -11,17 +13,29 @@ import { useState, useRef, useEffect } from 'react';
 interface PlaaRoundSelectorProps {
   currentRound: number;
   totalRounds: number;
-  onRoundChange?: (round: number) => void;
+  viewingRound?: number; // The round being viewed on the current page (defaults to currentRound)
 }
 
 function PlaaRoundSelector({
   currentRound,
   totalRounds,
-  onRoundChange,
+  viewingRound,
 }: PlaaRoundSelectorProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedRound, setSelectedRound] = useState(currentRound);
+  // Use viewingRound if provided, otherwise fall back to currentRound
+  const [selectedRound, setSelectedRound] = useState(viewingRound ?? currentRound);
+  const [inputValue, setInputValue] = useState(String(viewingRound ?? currentRound));
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { onRoundSelectorOpened, onRoundSelectorPrevClicked, onRoundSelectorNextClicked, onRoundSelectorGoToCurrentClicked } = useAlignmentAssetsAnalytics();
+
+  // Sync selectedRound with viewingRound prop when it changes (e.g., direct URL access)
+  useEffect(() => {
+    if (viewingRound !== undefined) {
+      setSelectedRound(viewingRound);
+      setInputValue(String(viewingRound));
+    }
+  }, [viewingRound]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -49,61 +63,134 @@ function PlaaRoundSelector({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
+  const navigateToRound = (round: number) => {
+    router.push(`/alignment-assets/rounds/${round}`);
+  };
+
   const handlePrevRound = () => {
     if (selectedRound > 1) {
       const newRound = selectedRound - 1;
+      onRoundSelectorPrevClicked(selectedRound, newRound);
       setSelectedRound(newRound);
-      onRoundChange?.(newRound);
+      setInputValue(String(newRound));
+      navigateToRound(newRound);
     }
   };
 
   const handleNextRound = () => {
-    if (selectedRound < totalRounds) {
+    if (selectedRound < totalRounds-1) {
       const newRound = selectedRound + 1;
+      onRoundSelectorNextClicked(selectedRound, newRound);
       setSelectedRound(newRound);
-      onRoundChange?.(newRound);
+      setInputValue(String(newRound));
+      navigateToRound(newRound);
+    }
+    else{
+      handleGoToCurrent();
     }
   };
 
   const handleGoToCurrent = () => {
+    onRoundSelectorGoToCurrentClicked(selectedRound, currentRound);
     setSelectedRound(currentRound);
-    onRoundChange?.(currentRound);
+    setInputValue(String(currentRound));
     setIsOpen(false);
+    router.push('/alignment-assets/rounds');
+  };
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow only numbers
+    if (value === '' || /^\d+$/.test(value)) {
+      setInputValue(value);
+    }
+  };
+
+  const handleInputBlur = () => {
+    const parsed = parseInt(inputValue, 10);
+    if (!isNaN(parsed) && parsed >= 1 && parsed <= totalRounds) {
+      if (parsed !== selectedRound) {
+        setSelectedRound(parsed);
+        navigateToRound(parsed);
+      }
+    } else {
+      // Reset to current selected round if invalid
+      setInputValue(String(selectedRound));
+    }
+  };
+
+  const handleInputKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleInputBlur();
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
+  const handleRoundLabelClick = () => {
+    // Navigate to the selected round page
+    if (isCurrentRound) {
+      router.push('/alignment-assets/rounds');
+    } else {
+      navigateToRound(selectedRound);
+    }
+  };
+
+  const handleDropdownToggle = () => {
+    if (!isOpen) {
+      onRoundSelectorOpened(currentRound, selectedRound);
+    }
+    setIsOpen(!isOpen);
   };
 
   const isCurrentRound = selectedRound === currentRound;
   const displayText = isCurrentRound ? 'Current Round' : `Round ${selectedRound}`;
 
   return (
-    <>
+    <div className="round-selector-container">
       <div className="round-selector" ref={dropdownRef}>
-        {/* Trigger Button */}
-        <button
+        {/* Trigger Button - Split into two sections */}
+        <div
           className="round-selector__trigger"
-          onClick={() => setIsOpen(!isOpen)}
           aria-expanded={isOpen}
           aria-haspopup="listbox"
-          aria-label={`Select round. Currently ${displayText}`}
         >
-          <span className="round-selector__trigger-text">{displayText}</span>
-          <svg
-            className={`round-selector__trigger-icon ${isOpen ? 'round-selector__trigger-icon--open' : ''}`}
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
+          {/* First Section - Round Label (navigates to round page) */}
+          <button
+            className="round-selector__trigger-label"
+            onClick={handleRoundLabelClick}
+            aria-label={`Go to ${displayText}`}
           >
-            <path
-              d="M4 6L8 10L12 6"
-              stroke="#64748B"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+            <span className="round-selector__trigger-text">{displayText}</span>
+          </button>
+
+          {/* Separator */}
+          <div className="round-selector__trigger-separator" />
+
+          {/* Second Section - Arrow (opens dropdown) */}
+          <button
+            className="round-selector__trigger-arrow"
+            onClick={handleDropdownToggle}
+            aria-label="Open round selector dropdown"
+          >
+            <svg
+              className={`round-selector__trigger-icon ${isOpen ? 'round-selector__trigger-icon--open' : ''}`}
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M4 6L8 10L12 6"
+                stroke="#64748B"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
 
         {/* Dropdown Panel */}
         {isOpen && (
@@ -141,8 +228,16 @@ function PlaaRoundSelector({
                   </svg>
                 </button>
 
-                {/* Current Round Number */}
-                <span className="round-selector__nav-number">{selectedRound}</span>
+                {/* Current Round Number - Editable */}
+                <input
+                  type="text"
+                  className="round-selector__nav-input"
+                  value={inputValue}
+                  onChange={handleInputChange}
+                  onBlur={handleInputBlur}
+                  onKeyDown={handleInputKeyDown}
+                  aria-label="Round number"
+                />
 
                 {/* Next Button */}
                 <button
@@ -171,42 +266,65 @@ function PlaaRoundSelector({
 
               <span className="round-selector__nav-of">of</span>
 
-              {/* Total Rounds Box */}
-              <div className="round-selector__total-box">
-                <span>{totalRounds}</span>
-              </div>
+              {/* Total Rounds Display */}
+              <span className="round-selector__total">{totalRounds}</span>
             </div>
 
-            {/* Divider */}
-            <div className="round-selector__divider" />
-
-            {/* Go to Current Round Link */}
-            <button
-              className="round-selector__go-current"
-              onClick={handleGoToCurrent}
-              aria-label="Go to current round"
-            >
-              <span>Go to current round</span>
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-              >
-                <path
-                  d="M2.5 6H9.5M9.5 6L6.5 3M9.5 6L6.5 9"
-                  stroke="#156FF7"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+            {/* Go to Current Round - Only show when not on current round */}
+            {!isCurrentRound && (
+              <>
+                <div className="round-selector__divider" />
+                <button
+                  className="round-selector__dropdown-go-current"
+                  onClick={handleGoToCurrent}
+                  aria-label="Go to current round"
+                >
+                  <span>Go to current round</span>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2.5 6H9.5M9.5 6L6.5 3M9.5 6L6.5 9"
+                      stroke="#156FF7"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
+
+       {/* Go to Current Round Link */}
+      {!isCurrentRound && (
+        <button className="round-selector__go-current" onClick={handleGoToCurrent} aria-label="Go to current round">
+          <span>Go to current round</span>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d="M2.5 6H9.5M9.5 6L6.5 3M9.5 6L6.5 9"
+              stroke="#156FF7"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      )}
 
       <style jsx>
         {`
@@ -216,43 +334,99 @@ function PlaaRoundSelector({
 
           .round-selector {
             position: relative;
-            width: 150px;
+            width: 100%;
           }
 
           /* ---------------------------------------------------------------
              Trigger Button
              Figma: 150x35px, border 1px #427dff, radius 8px
              --------------------------------------------------------------- */
+          .round-selector-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: ${isCurrentRound ? '8px 8px 8px 8px' : '8px 8px 4px 8px'};
+          }
+
           .round-selector__trigger {
-            width: 150px;
+            position: relative;
+            width: 100%;
             height: 35px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 0 24px;
-            background-color: #ffffff;
-            border: 1px solid #427dff;
+            background-color: #F1F5F9;
             border-radius: 8px;
+            overflow: visible;
+          }
+
+          .round-selector__trigger::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 8px;
+            padding: 1px;
+            background: linear-gradient(71.47deg, #427DFF 8.43%, #44D5BB 87.45%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+          }
+
+          /* First Section - Round Label */
+          .round-selector__trigger-label {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
+            background: none;
+            border: none;
             cursor: pointer;
-            transition: border-width 0.1s ease;
-            overflow: hidden;
+            border-radius: 8px 0 0 8px;
+            transition: background-color 0.15s ease;
           }
 
-          .round-selector__trigger:hover {
-            background-color: #fafbfc;
+          .round-selector__trigger-label:hover {
+            background-color: rgba(66, 125, 255, 0.08);
           }
 
-          .round-selector__trigger:focus {
-            outline: none;
-            border-width: 2px;
+          /* Separator */
+          .round-selector__trigger-separator {
+            width: 1px;
+            height: 20px;
+            background: linear-gradient(180deg, #427DFF 0%, #44D5BB 100%);
+            opacity: 0.5;
+            flex-shrink: 0;
+          }
+
+          /* Second Section - Arrow */
+          .round-selector__trigger-arrow {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-radius: 0 8px 8px 0;
+            transition: background-color 0.15s ease;
+          }
+
+          .round-selector__trigger-arrow:hover {
+            background-color: rgba(66, 125, 255, 0.08);
           }
 
           .round-selector__trigger-text {
             font-size: 12px;
             font-weight: 500;
-            color: #0f172a;
-            line-height: normal;
+            color: #0F172A;
+            line-height: 100%;
             white-space: nowrap;
           }
 
@@ -273,7 +447,8 @@ function PlaaRoundSelector({
             position: absolute;
             top: calc(100% + 8px);
             left: 0;
-            width: 167px;
+            right: 0;
+            width: 100%;
             background-color: #ffffff;
             border-radius: 4px;
             box-shadow: 0px 2px 6px rgba(15, 23, 42, 0.16);
@@ -333,13 +508,23 @@ function PlaaRoundSelector({
             box-shadow: 0 0 0 2px rgba(21, 111, 247, 0.3);
           }
 
-          .round-selector__nav-number {
-            font-size: 12px;
+          .round-selector__nav-input {
+            width: 30px;
+            height: 24px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 12px !important;
             font-weight: 500;
             color: #0f172a;
             line-height: normal;
-            min-width: 8px;
             text-align: center;
+            padding: 0;
+            background: #ffffff;
+          }
+
+          .round-selector__nav-input:focus {
+            outline: none;
+            border-color: #156ff7;
           }
 
           .round-selector__nav-of {
@@ -351,17 +536,10 @@ function PlaaRoundSelector({
           }
 
           /* ---------------------------------------------------------------
-             Total Rounds Box
-             Figma: 30x24px, border 1px #e2e8f0, radius 4px
+             Total Rounds Display
+             Display only, no border
              --------------------------------------------------------------- */
-          .round-selector__total-box {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 24px;
-            border: 1px solid #e2e8f0;
-            border-radius: 4px;
+          .round-selector__total {
             font-size: 12px;
             font-weight: 500;
             color: #0f172a;
@@ -379,38 +557,50 @@ function PlaaRoundSelector({
           }
 
           /* ---------------------------------------------------------------
-             Go to Current Round Link
+             Go to Current Round Link (outside dropdown)
              Figma: height 36px, padding 8px, flex, gap 4px
              --------------------------------------------------------------- */
           .round-selector__go-current {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 4px;
             width: 100%;
             height: 36px;
-            padding: 8px;
+            font-weight: 500;
+            font-size: 12px;
+            line-height: 100%;
+            color: #475569;
+          }
+
+          /* ---------------------------------------------------------------
+             Go to Current Round Button (inside dropdown)
+             --------------------------------------------------------------- */
+          .round-selector__dropdown-go-current {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            width: 100%;
+            height: 32px;
+            padding: 0 8px;
             background: none;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 12px;
             font-weight: 500;
-            color: #475569;
-            line-height: normal;
-            transition: background-color 0.15s ease, color 0.15s ease;
+            font-size: 12px;
+            line-height: 100%;
+            color: #156FF7;
+            transition: background-color 0.15s ease;
           }
 
-          .round-selector__go-current:hover {
-            background-color: #f8fafc;
-          }
-
-          .round-selector__go-current:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(21, 111, 247, 0.3);
+          .round-selector__dropdown-go-current:hover {
+            background-color: rgba(21, 111, 247, 0.08);
           }
         `}
       </style>
-    </>
+    </div>
   );
 }
 

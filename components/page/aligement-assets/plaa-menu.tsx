@@ -60,6 +60,7 @@ function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound
           <PlaaRoundSelector
             currentRound={currentRound}
             totalRounds={totalRounds}
+            viewingRound={viewingRound}
           />
         </div>
 

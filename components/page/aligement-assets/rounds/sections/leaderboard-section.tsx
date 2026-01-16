@@ -79,7 +79,7 @@ export default function LeaderboardSection({
           <div className="leaderboard-section__header">
             <h2 className="leaderboard-section__title">Points Leaderboard</h2>
             <p className="leaderboard-section__description">
-              This leaderboard highlights contributors who have strengthened the network through verified activities in the current snapshot. View Current Round or slide over to view the All-Time Leaderboard to see ongoing impact.
+              This leaderboard highlights contributors who have strengthened the network through verified activities in the current snapshot. View Current Round or slide over to view the All-Time Leaderboard to see ongoing impact. Please note that the Current Round Leaderboard results are not reflected in the All-Time Leaderboard.
             </p>
           </div>
 

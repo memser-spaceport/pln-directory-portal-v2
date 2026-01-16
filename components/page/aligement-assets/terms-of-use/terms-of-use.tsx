@@ -86,7 +86,7 @@ export default function TermsOfUsePage() {
                   including, for example, rounding down on the number of Points you have received or reallocating Points
                   amongst Program participants based on their contributions, even after you have collected those Points,
                   to ensure proper and effective administration of the Points. More details are available in our{' '}
-                  <a href="/alignment-assets/faqs" className="terms-of-use__link">
+                  <a href="/alignment-asset/faqs" className="terms-of-use__link">
                     FAQs
                   </a>
                   .

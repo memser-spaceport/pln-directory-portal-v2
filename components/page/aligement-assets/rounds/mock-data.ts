@@ -120,8 +120,7 @@ export const mockStatsData: StatsData = {
     ["Write a Blog or Article", "Host or Curate an X Space", "Complete the Monthly Survey"],
     ["Create a Playbook or Template", "Lead or Join a Cross-Company Project", "Refer a New Team Member or Collaborator"],
     ["Propose a New Incentivized Activity", "Make a Network Introduction", "Highlight an Outstanding Network Contribution"],
-    ["Bring New Members Into the Alignment Asset", "Host Office Hours", "Contribute to the Alignment Asset Program"],
-    ["Shared Resource or Cost-Saving Initiative"]
+    ["Bring New Members Into the Alignment Asset", "Host Office Hours", "Contribute to the Alignment Asset Program"]
   ],
   totalPointsCollected: "##",
   totalTokensAvailable: "10,000",

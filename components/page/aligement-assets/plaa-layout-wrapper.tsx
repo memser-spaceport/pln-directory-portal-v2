@@ -15,7 +15,7 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem | undefined
   const segments = pathname.split('/').filter(Boolean);
   const pathSegment = segments[segments.length - 1] || 'overview';
   
-  // Check if viewing a specific round (e.g., /alignment-assets/rounds/2)
+  // Check if viewing a specific round (e.g., /alignment-asset/rounds/2)
   if (segments.includes('rounds') && segments.length > 2) {
     const roundNumber = parseInt(pathSegment, 10);
     if (!isNaN(roundNumber)) {
@@ -24,7 +24,7 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem | undefined
     }
   }
   
-  // Check if on main rounds page (e.g., /alignment-assets/rounds)
+  // Check if on main rounds page (e.g., /alignment-asset/rounds)
   if (pathSegment === 'rounds') {
     return { activeItem: undefined, title: 'Rounds', viewingRound: undefined };
   }

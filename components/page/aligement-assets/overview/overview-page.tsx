@@ -165,11 +165,11 @@ const Overview = () => {
   };
 
   const handleLearnMoreClick = () => {
-    onOverviewLearnMoreClicked('/alignment-assets/incentive-model');
+    onOverviewLearnMoreClicked('/alignment-asset/incentive-model');
   };
 
   const handleFaqLinkClick = () => {
-    onOverviewFaqLinkClicked('/alignment-assets/faqs');
+    onOverviewFaqLinkClicked('/alignment-asset/faqs');
   };
 
   return (
@@ -271,7 +271,7 @@ const Overview = () => {
               {importantDetails.map((detail, index) => (
                 <li key={index}>{detail}</li>
               ))}
-              <li><a href="/alignment-assets/incentive-model" className="overview__content__text__link" onClick={handleLearnMoreClick}>Learn more</a> about the incentive model.</li>
+              <li><a href="/alignment-asset/incentive-model" className="overview__content__text__link" onClick={handleLearnMoreClick}>Learn more</a> about the incentive model.</li>
             </ul>
           </div>
         </div>
@@ -305,7 +305,7 @@ const Overview = () => {
           <div className="overview__content__how__learn-more-wrapper">
             <div className="overview__content__how__learn-more">
               <span className="overview__content__how__learn-more__text">Learn more:</span> Read the{' '}
-              <a href="/alignment-assets/faqs" className="overview__content__text__link" onClick={handleFaqLinkClick}>FAQ</a> for details on contributions, points, and tokens.
+              <a href="/alignment-asset/faqs" className="overview__content__text__link" onClick={handleFaqLinkClick}>FAQ</a> for details on contributions, points, and tokens.
             </div>
           </div>
         </div>

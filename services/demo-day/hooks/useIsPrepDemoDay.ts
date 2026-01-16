@@ -5,8 +5,8 @@ export function useIsPrepDemoDay(): boolean {
   return (
     (pathname?.includes('plf25-prep') ||
       pathname?.includes('plf25-demosc') ||
-      pathname?.includes('showcase') ||
-      pathname?.includes('prep')) ??
+      pathname?.includes('/showcase') ||
+      pathname?.includes('/prep')) ??
     false
   );
 }

@@ -58,7 +58,7 @@ export default function ScheduleSection(props: any) {
           </div>
         </div>
         <iframe
-          src={`${process.env.PL_EVENTS_BASE_URL}/embed/program/`}
+          src={`${process.env.PL_EVENTS_BASE_URL}/embed/map/`}
           className="schedule__iframe"
           title="Event Calendar"
         ></iframe>

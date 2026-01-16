@@ -504,9 +504,9 @@ export default function IncentiveModel() {
                     </span>
                   </div>
 
-                  <div className="incentive-model__round-divider" />
+                  {/* <div className="incentive-model__round-divider" /> */}
 
-                  <button className="incentive-model__go-to-current" onClick={handleGoToCurrentRound}>
+                  {/* <button className="incentive-model__go-to-current" onClick={handleGoToCurrentRound}>
                     <span>Go to current round</span>
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                       <path
@@ -517,7 +517,7 @@ export default function IncentiveModel() {
                         strokeLinejoin="round"
                       />
                     </svg>
-                  </button>
+                  </button> */}
                 </div>
               )}
             </div>
@@ -773,7 +773,7 @@ export default function IncentiveModel() {
         .incentive-model__round-popover {
           position: absolute;
           top: calc(100% + 8px);
-          right: 0;
+          right: 1px;
           background: white;
           border-radius: 4px;
           padding: 8px;

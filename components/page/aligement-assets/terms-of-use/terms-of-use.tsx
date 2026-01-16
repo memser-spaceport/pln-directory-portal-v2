@@ -6,6 +6,7 @@ import SupportSection from '@/components/page/aligement-assets/rounds/sections/s
 import DisclaimerSection from '@/components/page/aligement-assets/rounds/sections/disclaimer-section';
 import { DISCLOSURE_URL } from '@/constants/plaa';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
+import Link from 'next/link';
 
 export default function TermsOfUsePage() {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -116,20 +117,18 @@ export default function TermsOfUsePage() {
                   either express or implied (including quality, merchantability, and fitness for a particular purpose).
                   In order to participate in the Program, you agree that you have reviewed and agree with the disclaimer
                   linked here:{' '}
-                  <a
+                  <Link
                     href={DISCLOSURE_URL}
                     className="terms-of-use__link"
-                    target="_blank"
-                    rel="noopener noreferrer"
                   >
                     PL Alignment Asset Disclosure
-                  </a>
+                  </Link>
                 </p>
                 <p className="terms-of-use__content__paragraph">
                   You agree and represent that all information you submit via the Platform is true and accurate. We
                   reserve the right, but not the obligation, to refuse, disable, or revoke your access to the Platform
                   if we reasonably believe you are using the Platform in a fraudulent or misleading manner, such as by
-                  impersonating another individual or providing false information in an an attempt to receive additional
+                  impersonating another individual or providing false information in an attempt to receive additional
                   Network Contribution Points through the Program.
                 </p>
                 <p className="terms-of-use__content__paragraph">
@@ -412,8 +411,8 @@ export default function TermsOfUsePage() {
                 <p className="terms-of-use__content__paragraph">
                   If you have any questions, comments, concerns, or feedback regarding these Terms or about the Platform
                   or Program, you may contact us at{' '}
-                  <a href="mailto:aa-wg@plrs.xyz" className="terms-of-use__link" target="_blank" rel="noopener noreferrer">
-                    aa-wg@plrs.xyz
+                  <a href="mailto:plaa-wg@plrs.xyz" className="terms-of-use__link" target="_blank" rel="noopener noreferrer">
+                    plaa-wg@plrs.xyz
                   </a>
                   .
                 </p>
@@ -550,12 +549,6 @@ export default function TermsOfUsePage() {
           margin-bottom: 0;
         }
 
-        .terms-of-use__link {
-          color: #156ff7;
-          text-decoration: underline;
-          cursor: pointer;
-        }
-
         .terms-of-use__disclaimer {
           margin-bottom: 100px;
         }
@@ -574,6 +567,14 @@ export default function TermsOfUsePage() {
             font-size: 18px;
             line-height: 28px;
           }
+        }
+      `}</style>
+
+      <style jsx global>{`
+        .terms-of-use__link {
+          color: #156ff7;
+          text-decoration: underline;
+          cursor: pointer;
         }
       `}</style>
     </>

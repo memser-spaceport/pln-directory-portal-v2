@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { DISCLOSURE_URL } from '@/constants/plaa';
 
 export default function DisclaimerSection() {
@@ -15,7 +16,7 @@ export default function DisclaimerSection() {
           
           <p className="disclaimer-section__text">
             <em>The Alignment Asset is still in private beta, and we&apos;re actively experimenting. The points program may evolve at any time as we learn and improve. While the alignment asset trust ultimately controls token distributions, and we cannot guarantee the conversion of points to tokens, your participation now puts you at the forefront of this exciting initiative. This is for informational purposes only, and is not legal, financial, investment, or tax advice. Please read our{' '}
-            <a href={DISCLOSURE_URL} className="disclaimer-section__link" rel="noopener noreferrer">disclosure</a>.</em>
+            <Link href={DISCLOSURE_URL} className="disclaimer-section__link">disclosure</Link>.</em>
           </p>
         </div>
       </section>
@@ -84,6 +85,14 @@ export default function DisclaimerSection() {
           margin: 0;
         }
 
+        @media (max-width: 768px) {
+          .disclaimer-section__container {
+            padding: 16px;
+          }
+        }
+      `}</style>
+      
+      <style jsx global>{`
         .disclaimer-section__link {
           color: #156ff7;
           text-decoration: underline;
@@ -91,12 +100,6 @@ export default function DisclaimerSection() {
           cursor: pointer;
           position: relative;
           z-index: 2;
-        }
-
-        @media (max-width: 768px) {
-          .disclaimer-section__container {
-            padding: 16px;
-          }
         }
       `}</style>
     </>

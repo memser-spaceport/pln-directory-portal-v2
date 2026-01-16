@@ -343,7 +343,7 @@ export default function PrivacyPolicyPage() {
               className={`privacy-policy__container__section__button ${expandedSections.europeanRights ? 'privacy-policy__container__section__button--expanded' : ''}`}
               onClick={() => toggleSection('europeanRights')}
             >
-              <span>European Data Protection Rights.</span>
+              <span>European Data Protection Rights</span>
               <Image
                 src={expandedSections.europeanRights ? '/icons/arrow-up.svg' : '/icons/arrow-down-light.svg'}
                 alt="Toggle"
@@ -402,7 +402,7 @@ export default function PrivacyPolicyPage() {
               className={`privacy-policy__container__section__button ${expandedSections.californiaRights ? 'privacy-policy__container__section__button--expanded' : ''}`}
               onClick={() => toggleSection('californiaRights')}
             >
-              <span>California Privacy Rights.</span>
+              <span>California Privacy Rights</span>
               <Image
                 src={expandedSections.californiaRights ? '/icons/arrow-up.svg' : '/icons/arrow-down-light.svg'}
                 alt="Toggle"
@@ -466,7 +466,7 @@ export default function PrivacyPolicyPage() {
               className={`privacy-policy__container__section__button ${expandedSections.contactUs ? 'privacy-policy__container__section__button--expanded' : ''}`}
               onClick={() => toggleSection('contactUs')}
             >
-              <span>How to Contact Us</span>
+              <span>How to Contact Us?</span>
               <Image
                 src={expandedSections.contactUs ? '/icons/arrow-up.svg' : '/icons/arrow-down-light.svg'}
                 alt="Toggle"
@@ -479,8 +479,8 @@ export default function PrivacyPolicyPage() {
               <div className="privacy-policy__container__section__content">
                 <p className="privacy-policy__content__paragraph">
                   If you have a privacy concern, complaint, or request, please contact us at:{' '}
-                  <a href="mailto:aa-wg@plrs.xyz" className="privacy-policy__link">
-                    aa-wg@plrs.xyz
+                  <a href="mailto:plaa-wg@plrs.xyz" className="privacy-policy__link">
+                    plaa-wg@plrs.xyz
                   </a>
                   .
                 </p>

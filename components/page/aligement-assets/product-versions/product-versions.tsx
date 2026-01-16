@@ -32,7 +32,7 @@ const productVersions: VersionData[] = [
       'Launched the Alignment Asset website',
     ],
     changed: [
-      'Expanded onboarded participants from 46-47',
+      'Expanded onboarded participants from 46 to 47',
       'Continued simplifying onboarding materials',
       'Adopted HubSpot for email communications',
     ],
@@ -41,7 +41,7 @@ const productVersions: VersionData[] = [
         text: 'Live buyback auction results validated improvements made post-simulations:',
         subItems: [
           'Buyback increased the understanding of the token value',
-          'Price discovery evolved: Clearing price adjusted from $20.40 -> $14.00 between the second simulation and live auction',
+          'Price discovery evolved: Clearing price adjusted from $20 -> $14.00 between the second simulation and live auction',
         ],
       },
       

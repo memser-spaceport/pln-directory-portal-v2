@@ -257,9 +257,9 @@ const faqCategories: FAQCategoryData[] = [
               Each category receives a portion of monthly tokens based on its network weight. Example:
             </p>
             <ul style={{ paddingLeft: '24px', marginBottom: '16px', listStyleType: 'disc' }}>
-              <li style={{ marginBottom: '4px' }}>Capital: 15.25% of tokens</li>
-              <li style={{ marginBottom: '4px' }}>Programs: 14.43% of tokens</li>
-              <li>Network Tooling: 14.64% of tokens</li>
+              <li style={{ marginBottom: '4px' }}>Knowledge: 17.71% of tokens</li>
+              <li style={{ marginBottom: '4px' }}>Programs: 17.02% of tokens</li>
+              <li>Network Tooling: 17.27% of tokens</li>
             </ul>
             <p>
               The weights reflect what types of contribution we think create the most impact and value for the network at that time, and so they will change as network needs evolve.

@@ -120,8 +120,14 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
     // Use selected date range or fall back to event dates from metadata
     const checkInDate = selectedDateRange
       ? formatDateForApi(selectedDateRange[0])
-      : metadata.events?.dates?.start || '';
-    const checkOutDate = selectedDateRange ? formatDateForApi(selectedDateRange[1]) : metadata.events?.dates?.end || '';
+      : metadata.events?.dates?.start
+        ? formatDateForApi(new Date(metadata.events?.dates?.start))
+        : '';
+    const checkOutDate = selectedDateRange
+      ? formatDateForApi(selectedDateRange[1])
+      : metadata.events?.dates?.end
+        ? formatDateForApi(new Date(metadata.events?.dates?.end))
+        : '';
 
     const payload = {
       memberUid: userInfo.uid,
@@ -152,7 +158,7 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
         },
         onError: (error) => {
           console.error('Failed to create IRL gathering guest:', error);
-          toast.error('Failed to register for the gathering. Please try again.');
+          toast.error(error?.message ?? 'Failed to register for the gathering. Please try again.');
         },
       },
     );

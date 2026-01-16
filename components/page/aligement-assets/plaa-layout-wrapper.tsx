@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import PlaaMenu, { PlaaActiveItem } from './plaa-menu';
 import PlaaBackButton from './plaa-back-btn';
-import styles from '@/app/alignment-assets/plaa.module.css';
+import styles from '@/app/alignment-asset/plaa.module.css';
 
 interface PlaaLayoutWrapperProps {
   readonly children: React.ReactNode;

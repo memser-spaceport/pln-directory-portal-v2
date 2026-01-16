@@ -465,7 +465,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   }, [data?.founders]);
 
   return (
-    <Drawer isOpen={isOpen} onClose={onClose} width={850}>
+    <Drawer isOpen={isOpen} onClose={onClose} width={938}>
       {/* Header */}
       <div className={s.drawerHeader}>
         <div className={s.breadcrumbs}>

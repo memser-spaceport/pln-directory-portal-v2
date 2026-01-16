@@ -36,7 +36,14 @@ async function mutation({ locationId, payload, type }: MutationParams) {
   const result = await createEventGuest(locationId, payload, type);
 
   if (result.error) {
-    throw new Error('Failed to create IRL gathering guest');
+    const err = await result?.error?.json();
+
+    const msg =
+      err?.message && err.message.startsWith('Guest already exists')
+        ? 'Guest already exists for this location'
+        : (err?.message ?? 'Failed to create IRL gathering guest');
+
+    throw new Error(msg);
   }
 
   return result.data;
@@ -47,4 +54,3 @@ export function useCreateIrlGatheringGuest() {
     mutationFn: mutation,
   });
 }
-

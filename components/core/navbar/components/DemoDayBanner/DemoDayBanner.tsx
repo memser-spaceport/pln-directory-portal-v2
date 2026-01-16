@@ -21,17 +21,6 @@ export function DemoDayBanner() {
     return null;
   }
 
-  // Show PLAA announcement on alignment-assets pages
-  if (pathname.includes('alignment-asset')) {
-    return (
-      <HighlightsBar variant="plaa">
-        <div className={s.root}>
-          Upcoming: Buyback Auction Q1 2026 - February 19-26
-        </div>
-      </HighlightsBar>
-    );
-  }
-
   // Default: DemoDay announcement
   return (
     <HighlightsBar>

@@ -25,6 +25,7 @@ import { DemoDayStats } from '@/components/core/DemoDayStats';
 import { ContactSupport } from '@/components/ContactSupport/ContactSupport';
 import { ContactSupportContextProvider } from '@/components/ContactSupport/context/ContactSupportContext';
 import { PushNotificationsProvider } from '@/providers/PushNotificationsProvider';
+import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -94,7 +95,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <PostHogIdentifier />
               <ContactSupportContextProvider>
                 <header className="layout__header">
-                  {/*<DemoDayBanner />*/}
+                  {/* <DemoDayBanner /> */}
+                  <PlaaBanner />
                   {false && <SubscribeToRecoomendations userInfo={userInfo} />}
                   <CompleteYourProfile userInfo={userInfo} />
                   <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />

@@ -163,7 +163,7 @@ export const currentRoundData: CurrentRoundData = {
       'Alignment Asset Program Contributions',
       'Distinguished Network Contributions'
     ],
-    totalPointsCollected: '0',
+    totalPointsCollected: '2,050',
     totalTokensAvailable: '10,000',
     numberOfBuybacks: 0
   },

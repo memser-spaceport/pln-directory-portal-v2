@@ -94,7 +94,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <PostHogIdentifier />
               <ContactSupportContextProvider>
                 <header className="layout__header">
-                  <DemoDayBanner />
+                  {/*<DemoDayBanner />*/}
                   {false && <SubscribeToRecoomendations userInfo={userInfo} />}
                   <CompleteYourProfile userInfo={userInfo} />
                   <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />

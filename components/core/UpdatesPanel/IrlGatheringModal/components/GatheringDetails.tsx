@@ -3,38 +3,64 @@
 import {
   CalendarDotsIcon,
   MapPinIcon,
-  TelegramIcon,
   CalendarIcon,
-  UserIcon,
-  CalendarPlusIcon,
-  CirclesThreeIcon,
   ArrowRightIcon,
+  TelegramIcon,
+  TwitterIcon,
+  WebIcon,
 } from '../icons';
 import s from '../IrlGatheringModal.module.scss';
+
+interface Resource {
+  icon?: string;
+  link: string;
+  name: string;
+  type: 'social' | 'custom';
+  isPublic: 'true' | 'false';
+  description: string | null;
+}
 
 interface GatheringDetailsProps {
   dateRange: string;
   location: string;
-  telegramLink?: string | null;
   eventsLink?: string;
   eventsCount: number;
-  speakerIntakeLink?: string;
-  submitEventLink?: string;
-  submittedEventsCount: number | undefined;
-  otherResourcesLink?: string;
+  resources?: Resource[];
+}
+
+function getResourceIcon(resource: Resource) {
+  const nameLower = resource.name.toLowerCase();
+  const linkLower = resource.link.toLowerCase();
+
+  // Check for Telegram
+  if (nameLower.includes('telegram') || linkLower.includes('t.me') || linkLower.includes('telegram')) {
+    return <TelegramIcon />;
+  }
+
+  // Check for Twitter/X
+  if (
+    nameLower.includes('twitter') ||
+    nameLower.includes('x') ||
+    linkLower.includes('twitter.com') ||
+    linkLower.includes('x.com')
+  ) {
+    return <TwitterIcon />;
+  }
+
+  // Default to web icon
+  return <WebIcon />;
 }
 
 export function GatheringDetails({
   dateRange,
   location,
-  telegramLink,
   eventsLink,
   eventsCount,
-  speakerIntakeLink,
-  submitEventLink,
-  submittedEventsCount,
-  otherResourcesLink,
+  resources = [],
 }: GatheringDetailsProps) {
+  // Filter only public resources
+  const publicResources = resources.filter((r) => r.isPublic === 'true');
+
   return (
     <div className={s.section}>
       <h3 className={s.sectionTitle}>Gathering details</h3>
@@ -53,17 +79,6 @@ export function GatheringDetails({
           </div>
           <span className={s.detailValue}>{location}</span>
         </div>
-        {telegramLink && (
-          <div className={s.detailRow}>
-            <div className={s.detailLabel}>
-              <TelegramIcon />
-              <span>Telegram:</span>
-            </div>
-            <a href={telegramLink} target="_blank" rel="noopener noreferrer" className={s.linkButton}>
-              Link <ArrowRightIcon />
-            </a>
-          </div>
-        )}
         {eventsLink && (
           <div className={s.detailRow}>
             <div className={s.detailLabel}>
@@ -75,39 +90,17 @@ export function GatheringDetails({
             </a>
           </div>
         )}
-        {speakerIntakeLink && (
-          <div className={s.detailRow}>
+        {publicResources.map((resource) => (
+          <div key={resource.link} className={s.detailRow}>
             <div className={s.detailLabel}>
-              <UserIcon />
-              <span>Speaker intake:</span>
+              {getResourceIcon(resource)}
+              <span>{resource.name}:</span>
             </div>
-            <a href={speakerIntakeLink} target="_blank" rel="noopener noreferrer" className={s.linkButton}>
+            <a href={resource.link} target="_blank" rel="noopener noreferrer" className={s.linkButton}>
               Link <ArrowRightIcon />
             </a>
           </div>
-        )}
-        {submitEventLink && (
-          <div className={s.detailRow}>
-            <div className={s.detailLabel}>
-              <CalendarPlusIcon />
-              <span>Host/Submit an event:</span>
-            </div>
-            <a href={submitEventLink} target="_blank" rel="noopener noreferrer" className={s.linkButton}>
-              {submittedEventsCount} events submitted <ArrowRightIcon />
-            </a>
-          </div>
-        )}
-        {otherResourcesLink && (
-          <div className={s.detailRow}>
-            <div className={s.detailLabel}>
-              <CirclesThreeIcon />
-              <span>Other resources</span>
-            </div>
-            <a href={otherResourcesLink} target="_blank" rel="noopener noreferrer" className={s.linkButton}>
-              Link <ArrowRightIcon />
-            </a>
-          </div>
-        )}
+        ))}
       </div>
     </div>
   );

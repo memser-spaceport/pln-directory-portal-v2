@@ -46,7 +46,15 @@ const applySchema = yup.object().shape(
         return domain.includes('.');
       })
       .required('Email is required'),
-    linkedin: yup.string().defined(),
+    linkedin: yup
+      .string()
+      .defined()
+      .test('linkedin-url', 'Please enter a valid LinkedIn profile URL', (value) => {
+        if (!value || value.trim() === '') return true; // Allow empty values
+        // Match LinkedIn profile URLs with or without protocol
+        const linkedinPattern = /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|pub|profile)\/[\w-]+\/?$/i;
+        return linkedinPattern.test(value.trim());
+      }),
     teamOrProject: yup.mixed<string | Record<string, string>>().when('teamName', {
       is: (teamName: string) => !teamName,
       then: (schema) => schema.defined().nullable(),

@@ -50,9 +50,10 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
       percentage = Math.min(100, Math.max(0, (elapsedTime / totalDuration) * 100));
     }
     
-    // Calculate remaining time
-    const remainingMs = Math.max(0, end.getTime() - now.getTime());
-    const remainingDays = Math.ceil(remainingMs / (1000 * 60 * 60 * 24));
+    // Calculate remaining calendar days (including today)
+    const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    const remainingDays = Math.max(0, Math.floor((endDateOnly.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
     
     let remaining = '';
     if (now > end) {

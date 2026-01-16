@@ -64,7 +64,7 @@ function PlaaRoundSelector({
   }, [isOpen]);
 
   const navigateToRound = (round: number) => {
-    router.push(`/alignment-assets/rounds/${round}`);
+    router.push(`/alignment-asset/rounds/${round}`);
   };
 
   const handlePrevRound = () => {
@@ -95,7 +95,7 @@ function PlaaRoundSelector({
     setSelectedRound(currentRound);
     setInputValue(String(currentRound));
     setIsOpen(false);
-    router.push('/alignment-assets/rounds');
+    router.push('/alignment-asset/rounds');
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -129,7 +129,7 @@ function PlaaRoundSelector({
   const handleRoundLabelClick = () => {
     // Navigate to the selected round page
     if (isCurrentRound) {
-      router.push('/alignment-assets/rounds');
+      router.push('/alignment-asset/rounds');
     } else {
       navigateToRound(selectedRound);
     }

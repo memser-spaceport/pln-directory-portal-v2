@@ -77,7 +77,7 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
   const planningQuestion = `Are you planning to be in ${locationName}?`;
   const resources = metadata.location?.resources || [];
 
-  const eventsLink = `${process.env.NEXT_PUBLIC_PL_EVENTS_URL}/program?location=${locationName}&date=${metadata.events?.dates?.start ? formatDateForApi(new Date(metadata.events?.dates?.start)) : ''}`;
+  const eventsLink = `${process.env.NEXT_PUBLIC_PL_EVENTS_URL}?location=${locationName}&date=${metadata.events?.dates?.start ? formatDateForApi(new Date(metadata.events?.dates?.start)) : ''}`;
 
   const handleOpenDatePicker = () => {
     setCurrentView('datePicker');

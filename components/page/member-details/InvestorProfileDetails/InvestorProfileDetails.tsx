@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { clsx } from 'clsx';
 import { IMember, InvestorProfileType } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE, DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { EditInvestorProfileForm } from '@/components/page/member-details/InvestorProfileDetails/components/EditInvestorProfileForm';
 import { InvestorProfileView } from '@/components/page/member-details/InvestorProfileDetails/components/InvestorProfileView';
+import { MemberDetailsSection } from '@/components/page/member-details/MemberDetailsSection';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import { ITeam } from '@/types/teams.types';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
@@ -123,11 +123,10 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member, isInvesto
   }
 
   return (
-    <div
-      className={clsx(s.root, {
-        [s.editView]: editView,
-        [s.missingData]: showIncomplete,
-      })}
+    <MemberDetailsSection
+      editView={editView}
+      missingData={showIncomplete}
+      classes={{ root: s.root, editView: s.editView }}
     >
       {editView ? (
         <EditInvestorProfileForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} />
@@ -149,6 +148,6 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member, isInvesto
           isInvestor={isInvestor}
         />
       )}
-    </div>
+    </MemberDetailsSection>
   );
 };

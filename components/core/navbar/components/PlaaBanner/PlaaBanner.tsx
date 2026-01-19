@@ -40,9 +40,7 @@ const BANNER_CONTENTS: BannerContent[] = [
   {
     id: 'buyback-auction',
     segments: [
-      { text: 'Upcoming: ' },
-      { text: 'Buyback Auction Q1 2026', link: '/alignment-asset/buyback' },
-      { text: ' - February 19-26' },
+      { text: 'Upcoming: Buyback Auction Q1 2026 - February 19-26' }
     ],
   },
 ];
@@ -69,17 +67,17 @@ export function PlaaBanner() {
   return (
     <HighlightsBar variant="plaa">
       <div className={s.root}>
-        <div className={s.bannerContent}>
-          {showNavigation && (
-            <button
-              className={s.arrow}
-              onClick={scrollPrev}
-              aria-label="Previous announcement"
-            >
-              ‹
-            </button>
-          )}
+        {showNavigation && (
+          <button
+            className={`${s.arrow} ${s.arrowLeft}`}
+            onClick={scrollPrev}
+            aria-label="Previous announcement"
+          >
+            ‹
+          </button>
+        )}
 
+        <div className={s.bannerContent}>
           <div className={s.carousel} ref={emblaRef}>
             <div className={s.container}>
               {BANNER_CONTENTS.map((content) => (
@@ -99,17 +97,17 @@ export function PlaaBanner() {
               ))}
             </div>
           </div>
-
-          {showNavigation && (
-            <button
-              className={s.arrow}
-              onClick={scrollNext}
-              aria-label="Next announcement"
-            >
-              ›
-            </button>
-          )}
         </div>
+
+        {showNavigation && (
+          <button
+            className={`${s.arrow} ${s.arrowRight}`}
+            onClick={scrollNext}
+            aria-label="Next announcement"
+          >
+            ›
+          </button>
+        )}
 
         {showNavigation && (
           <div className={s.indicators}>

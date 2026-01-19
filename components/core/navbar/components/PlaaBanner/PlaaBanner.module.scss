@@ -3,8 +3,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 1px;
   width: 100%;
+  position: relative;
 
   @media (max-width: 768px) {
     font-size: 13px;
@@ -18,9 +19,17 @@
   justify-content: center;
   width: 100%;
   gap: 8px;
+  padding: 0 40px;
+
+  @media (max-width: 768px) {
+    padding: 0 32px;
+  }
 }
 
 .arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -35,6 +44,7 @@
   cursor: pointer;
   flex-shrink: 0;
   transition: background 0.2s ease;
+  z-index: 1;
 
   &:hover {
     background: rgba(255, 255, 255, 0.3);
@@ -45,6 +55,14 @@
     height: 20px;
     font-size: 14px;
   }
+}
+
+.arrowLeft {
+  left: 0;
+}
+
+.arrowRight {
+  right: 0;
 }
 
 .carousel {
@@ -58,6 +76,7 @@
 .container {
   display: flex;
   align-items: center;
+  padding-top: 6px;
 }
 
 .slide {

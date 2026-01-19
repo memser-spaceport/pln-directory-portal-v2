@@ -1,15 +1,15 @@
 import React from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
-import { AddButton } from '@/components/page/member-details/components/AddButton';
 
+import { ITeam } from '@/types/teams.types';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { FormattedMemberExperience } from '@/services/members/hooks/useMemberExperience';
-import { Separator } from '@base-ui-components/react/separator';
+
+import { AddButton } from '@/components/page/member-details/components/AddButton';
+import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
 
 import s from './TeamsList.module.scss';
-import { ITeam } from '@/types/teams.types';
-import Link from 'next/link';
 
 interface Props {
   isEditable: boolean;
@@ -22,10 +22,10 @@ interface Props {
 export const TeamsList = ({ isEditable, onAdd, onEdit, member }: Props) => {
   return (
     <div className={s.root}>
-      <div className={s.header}>
-        <h2 className={s.title}>Teams {member.teams?.length ? `(${member.teams.length})` : ''}</h2>
+      <MemberDetailsSectionHeader title={`Teams ${member.teams?.length ? `(${member.teams.length})` : ''}`}>
         {isEditable && <AddButton onClick={onAdd} />}
-      </div>
+      </MemberDetailsSectionHeader>
+
       {!!member.teams?.length && (
         <ul className={s.list}>
           {member.teams?.map((item) => (

@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
 
+import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
+
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import Image from 'next/image';
@@ -53,8 +55,7 @@ export const RepositoriesList = ({ isEditable, member }: Props) => {
 
   return (
     <div className={s.root}>
-      <div className={s.header}>
-        <h2 className={s.title}>Repositories</h2>
+      <MemberDetailsSectionHeader title="Repositories">
         {!isError && githubHandle && (
           <Link href={`https://github.com/${githubHandle}`} className={s.profileLink}>
             <Image src="/icons/contact/github-contact-logo.svg" alt="GitHub" height={24} width={24} />
@@ -62,7 +63,7 @@ export const RepositoriesList = ({ isEditable, member }: Props) => {
             <LinkIcon />
           </Link>
         )}
-      </div>
+      </MemberDetailsSectionHeader>
       {!!data?.length && (
         <ul className={s.list}>
           {data?.slice(0, 5).map((item) => (

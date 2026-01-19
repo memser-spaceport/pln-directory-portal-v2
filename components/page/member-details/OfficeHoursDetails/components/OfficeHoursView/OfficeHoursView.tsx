@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
+import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
 import { OfficeHoursDialog } from '@/components/page/member-details/OfficeHoursDetails/components/OfficeHoursDialog';
 import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
 
@@ -244,11 +245,15 @@ export const OfficeHoursView = ({
           [s.missingData]: (showIncomplete || showAlert) && isLoggedIn,
         })}
       >
-        <div className={s.header}>
-          <h2 className={s.title}>
-            Office Hours{' '}
-            {isOwner && hasOfficeHours && <span className={s.titleHintLabel}>&#8226; Available to connect</span>}
-          </h2>
+        <MemberDetailsSectionHeader
+          title={
+            <>
+              Office Hours{' '}
+              {isOwner && hasOfficeHours && <span className={s.titleHintLabel}>&#8226; Available to connect</span>}
+            </>
+          }
+          className={s.header}
+        >
           {isLoggedIn && isEditable && !showAlertUpdateButton && !showAddButton && (
             <EditButton
               onClick={() => {
@@ -257,7 +262,7 @@ export const OfficeHoursView = ({
               }}
             />
           )}
-        </div>
+        </MemberDetailsSectionHeader>
 
         <div className={s.content}>
           <div className={s.officeHoursSection}>

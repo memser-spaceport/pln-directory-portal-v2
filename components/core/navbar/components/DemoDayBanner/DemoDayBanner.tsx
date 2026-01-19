@@ -6,13 +6,22 @@ import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar
 
 import s from './DemoDayBanner.module.scss';
 
+/**
+ * DemoDayBanner - Site-wide announcement banner
+ * Shows different content based on the current route:
+ * - PLAA pages: Shows PLAA-specific announcement
+ * - DemoDay pages: Hidden (to avoid redundancy)
+ * - Default: Shows DemoDay announcement
+ */
 export function DemoDayBanner() {
   const pathname = usePathname();
 
+  // Hide banner on demoday pages
   if (pathname.includes('demoday')) {
     return null;
   }
 
+  // Default: DemoDay announcement
   return (
     <HighlightsBar>
       <div className={s.root}>

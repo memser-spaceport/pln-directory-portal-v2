@@ -10,7 +10,7 @@ import { ADMIN_ROLE } from '@/utils/constants';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
-import { MemberDetailsSection } from '@/components/page/member-details/MemberDetailsSection';
+import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 
 interface Props {
   member: IMember;

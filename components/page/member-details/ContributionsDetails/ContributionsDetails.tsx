@@ -8,7 +8,7 @@ import { ADMIN_ROLE } from '@/utils/constants';
 
 import { ContributionsList } from '@/components/page/member-details/ContributionsDetails/components/ContributionsList';
 import { EditContributionsForm } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm';
-import { MemberDetailsSection } from '@/components/page/member-details/MemberDetailsSection';
+import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAccessLevel } from '@/utils/auth.utils';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';

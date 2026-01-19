@@ -6,7 +6,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { ContactDetails as ContactDetailsView } from '@/components/page/member-details/contact-details';
 import { MemberProfileLoginStrip } from '@/components/page/member-details/member-details-login-strip';
 import { EditContactForm } from '@/components/page/member-details/ContactDetails/components/EditContactForm';
-import { MemberDetailsSection } from '@/components/page/member-details/MemberDetailsSection';
+import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 
 import s from './ContactDetails.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';

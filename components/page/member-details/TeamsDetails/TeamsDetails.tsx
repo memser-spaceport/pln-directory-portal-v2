@@ -11,7 +11,7 @@ import { ITeam } from '@/types/teams.types';
 import { TeamsList } from '@/components/page/member-details/TeamsDetails/components/TeamsList';
 import { EditTeamForm } from '@/components/page/member-details/TeamsDetails/components/EditTeamForm';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
-import { MemberDetailsSection } from '@/components/page/member-details/MemberDetailsSection';
+import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 
 interface Props {
   member: IMember;

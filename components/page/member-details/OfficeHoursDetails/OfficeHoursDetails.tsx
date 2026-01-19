@@ -6,7 +6,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { EditOfficeHoursForm } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursForm';
 import { OfficeHoursView } from '@/components/page/member-details/OfficeHoursDetails/components/OfficeHoursView';
-import { MemberDetailsSection } from '@/components/page/member-details/MemberDetailsSection';
+import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './OfficeHoursDetails.module.scss';

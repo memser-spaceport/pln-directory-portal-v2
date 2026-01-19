@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { EditOfficeHoursForm } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursForm';
 import { OfficeHoursView } from '@/components/page/member-details/OfficeHoursDetails/components/OfficeHoursView';
+import { MemberDetailsSection } from '@/components/page/member-details/MemberDetailsSection';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './OfficeHoursDetails.module.scss';
@@ -68,12 +68,11 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   }
 
   return (
-    <div
-      className={clsx(s.root, {
-        [s.editView]: editView,
-        [s.missingData]: showIncomplete,
-        [s.missingDataAlert]: officeHoursValidation && !officeHoursValidation.isValid && isOwner && !editView,
-      })}
+    <MemberDetailsSection
+      editView={editView}
+      missingData={showIncomplete}
+      missingDataAlert={officeHoursValidation && !officeHoursValidation.isValid && isOwner && !editView}
+      classes={{ root: s.root }}
     >
       {editView ? (
         <EditOfficeHoursForm
@@ -97,6 +96,6 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
           isOfficeHoursValid={officeHoursValidation?.isValid ?? true}
         />
       )}
-    </div>
+    </MemberDetailsSection>
   );
 };

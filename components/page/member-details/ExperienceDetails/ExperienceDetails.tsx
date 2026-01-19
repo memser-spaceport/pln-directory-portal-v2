@@ -2,20 +2,18 @@
 
 import React, { useState } from 'react';
 
-import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { EditProfileForm } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm';
 import { ADMIN_ROLE } from '@/utils/constants';
 
 import { ExperiencesList } from '@/components/page/member-details/ExperienceDetails/components/ExperiencesList';
 
-import s from './ExperienceDetails.module.scss';
 import { FormattedMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { EditExperienceForm } from '@/components/page/member-details/ExperienceDetails/components/EditExperienceForm';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAccessLevel } from '@/utils/auth.utils';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
+import { MemberDetailsSection } from '@/components/page/member-details/MemberDetailsSection';
 
 interface Props {
   member: IMember;
@@ -37,11 +35,7 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   }
 
   return (
-    <div
-      className={clsx(s.root, {
-        [s.editView]: view !== 'view',
-      })}
-    >
+    <MemberDetailsSection editView={view !== 'view'}>
       {view === 'view' && (
         <ExperiencesList
           member={member}
@@ -62,6 +56,6 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
         <EditExperienceForm onClose={() => setView('view')} member={member} initialData={selectedItem} />
       )}
       {view === 'add' && <EditExperienceForm onClose={() => setView('view')} member={member} />}
-    </div>
+    </MemberDetailsSection>
   );
 };

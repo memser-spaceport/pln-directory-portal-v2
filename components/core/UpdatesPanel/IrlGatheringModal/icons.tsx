@@ -334,3 +334,50 @@ export const CaretDownSmallIcon = () => (
     />
   </svg>
 );
+
+export const AddressBookIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M15.625 2.5H5C4.66848 2.5 4.35054 2.6317 4.11612 2.86612C3.8817 3.10054 3.75 3.41848 3.75 3.75V16.25C3.75 16.5815 3.8817 16.8995 4.11612 17.1339C4.35054 17.3683 4.66848 17.5 5 17.5H15.625C15.7908 17.5 15.9497 17.4342 16.0669 17.3169C16.1842 17.1997 16.25 17.0408 16.25 16.875V3.125C16.25 2.95924 16.1842 2.80027 16.0669 2.68306C15.9497 2.56585 15.7908 2.5 15.625 2.5Z"
+      stroke="#1B4DFF"
+      strokeWidth="1.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M10 10.625C11.0355 10.625 11.875 9.78553 11.875 8.75C11.875 7.71447 11.0355 6.875 10 6.875C8.96447 6.875 8.125 7.71447 8.125 8.75C8.125 9.78553 8.96447 10.625 10 10.625Z"
+      stroke="#1B4DFF"
+      strokeWidth="1.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M7.1875 13.125C7.35628 12.5279 7.72164 12.0052 8.22489 11.6413C8.72814 11.2774 9.34009 11.0927 9.96484 11.0927C10.5896 11.0927 11.2016 11.2774 11.7048 11.6413C12.2081 12.0052 12.5734 12.5279 12.7422 13.125"
+      stroke="#1B4DFF"
+      strokeWidth="1.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M1.5625 6.25H3.75"
+      stroke="#1B4DFF"
+      strokeWidth="1.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M1.5625 10H3.75"
+      stroke="#1B4DFF"
+      strokeWidth="1.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M1.5625 13.75H3.75"
+      stroke="#1B4DFF"
+      strokeWidth="1.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);

@@ -12,6 +12,7 @@ import {
   EventsSection,
   PlanningSection,
   AdditionalDetailsSection,
+  ContactInfoSection,
   ModalFooter,
   DatePickerView,
   TopicsPickerView,
@@ -21,6 +22,7 @@ import { buildGatheringLink } from './helpers';
 import { IrlGatheringModalProps, IrlGatheringFormData } from './types';
 import s from './IrlGatheringModal.module.scss';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
+import { useMember } from '@/services/members/hooks/useMember';
 
 export type { IrlGatheringModalProps, IrlGatheringFormData } from './types';
 
@@ -29,6 +31,7 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
   const { userInfo } = getCookiesFromClient();
   const defaultTeamUid = userInfo?.leadingTeams?.[0];
   const { data } = useMemberFormOptions();
+  const { data: memberData } = useMember(userInfo?.uid);
 
   const methods = useForm<IrlGatheringFormData>({
     defaultValues: {
@@ -133,8 +136,6 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
               gatheringLink={buildGatheringLink(gatheringData.locationName)}
             />
 
-            <EventsSection events={gatheringData.events} locationName={gatheringData.locationName} />
-
             <PlanningSection
               planningQuestion={gatheringData.planningQuestion}
               selectedDateRange={selectedDateRange}
@@ -143,7 +144,14 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
               onTopicsInputClick={handleOpenTopicsPicker}
             />
 
+            <EventsSection events={gatheringData.events} locationName={gatheringData.locationName} />
+
             <AdditionalDetailsSection teams={data?.teams || []} defaultTeamUid={defaultTeamUid} />
+
+            <ContactInfoSection
+              telegramHandle={memberData?.memberInfo?.telegramHandle}
+              officeHours={memberData?.memberInfo?.officeHours}
+            />
           </div>
 
           <ModalFooter onClose={onClose} isSubmit isLoading={isPending} />

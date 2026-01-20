@@ -1732,4 +1732,129 @@
   width: 100%;
 }
 
+// Contact Info Section
+.contactInfoContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+}
+
+.contactInfoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.contactInfoHeaderContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.contactInfoIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: #1b4dff;
+}
+
+.contactInfoTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #0a0c11;
+}
+
+.contactInfoCaret {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #afbaca;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.contactInfoContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contactInfoField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contactInfoLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contactInfoLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.contactInfoPrefilled {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #8897ae;
+}
+
+.contactInfoInputBox {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  background: #f9fafb;
+  border: 1px solid rgba(14, 15, 17, 0.24);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+}
+
+.contactInfoInputValue {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contactInfoHelperText {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
 

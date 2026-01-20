@@ -188,6 +188,22 @@ const FollowSection = (props: IFollowSectionProps) => {
   // Build edit mode data from current guest
   const editModeData = useMemo(() => {
     if (!updatedUser) return undefined;
+
+    // Try to get dates from additionalInfo first, then fall back to first event's dates
+    let checkInDate = updatedUser.additionalInfo?.checkInDate || '';
+    let checkOutDate = updatedUser.additionalInfo?.checkOutDate || '';
+
+    // If dates not in additionalInfo, try to get from events
+    if ((!checkInDate || !checkOutDate) && updatedUser.events?.length > 0) {
+      const firstEvent = updatedUser.events[0];
+      if (!checkInDate && firstEvent.checkInDate) {
+        checkInDate = firstEvent.checkInDate;
+      }
+      if (!checkOutDate && firstEvent.checkOutDate) {
+        checkOutDate = firstEvent.checkOutDate;
+      }
+    }
+
     return {
       guestUid: updatedUser.memberUid, // Using memberUid as guestUid for the API
       teamUid: updatedUser.teamUid,
@@ -200,8 +216,8 @@ const FollowSection = (props: IFollowSectionProps) => {
         isSpeaker: e.isSpeaker,
       })),
       additionalInfo: {
-        checkInDate: updatedUser.additionalInfo?.checkInDate || '',
-        checkOutDate: updatedUser.additionalInfo?.checkOutDate || '',
+        checkInDate,
+        checkOutDate,
       },
       topics: updatedUser.topics,
       reason: updatedUser.reason,

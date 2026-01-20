@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { ModalView } from '../types';
 
 interface UseIrlGatheringModalParams {
@@ -27,15 +27,30 @@ export function useIrlGatheringModal(params?: UseIrlGatheringModalParams): UseIr
   const [currentView, setCurrentView] = useState<ModalView>('main');
   const [selectedDateRange, setSelectedDateRange] = useState<[Date, Date] | null>(params?.initialDateRange ?? null);
   const [selectedTopics, setSelectedTopics] = useState<string[]>(params?.initialTopics ?? []);
+  const wasOpenRef = useRef(false);
+
+  // Serialize date range for stable comparison
+  const initialDateRangeKey = params?.initialDateRange
+    ? `${params.initialDateRange[0].getTime()}-${params.initialDateRange[1].getTime()}`
+    : 'null';
+  const initialTopicsKey = params?.initialTopics?.join(',') ?? '';
+
+  // Store refs to avoid stale closures
+  const initialDateRangeRef = useRef(params?.initialDateRange);
+  const initialTopicsRef = useRef(params?.initialTopics);
+  initialDateRangeRef.current = params?.initialDateRange;
+  initialTopicsRef.current = params?.initialTopics;
 
   // Reset state when modal opens with new initial values
   useEffect(() => {
-    if (params?.isOpen) {
+    // Only reset when modal transitions from closed to open
+    if (params?.isOpen && !wasOpenRef.current) {
       setCurrentView('main');
-      setSelectedDateRange(params?.initialDateRange ?? null);
-      setSelectedTopics(params?.initialTopics ?? []);
+      setSelectedDateRange(initialDateRangeRef.current ?? null);
+      setSelectedTopics(initialTopicsRef.current ?? []);
     }
-  }, [params?.isOpen, params?.initialDateRange, params?.initialTopics]);
+    wasOpenRef.current = params?.isOpen ?? false;
+  }, [params?.isOpen, initialDateRangeKey, initialTopicsKey]);
 
   const handleOpenDatePicker = useCallback(() => {
     setCurrentView('datePicker');

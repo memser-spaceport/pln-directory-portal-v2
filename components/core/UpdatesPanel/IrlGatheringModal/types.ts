@@ -1,10 +1,33 @@
 import { PushNotification } from '@/types/push-notifications.types';
 
+export interface EditModeInitialData {
+  guestUid: string;
+  teamUid?: string;
+  teamName?: string;
+  teamLogo?: string;
+  events?: Array<{
+    uid: string;
+    name?: string;
+    isHost?: boolean;
+    isSpeaker?: boolean;
+  }>;
+  additionalInfo?: {
+    checkInDate?: string;
+    checkOutDate?: string;
+  };
+  topics?: string[];
+  reason?: string;
+  telegramId?: string;
+  officeHours?: string;
+}
+
 export interface IrlGatheringModalProps {
   isOpen: boolean;
   onClose: () => void;
   notification: PushNotification;
   onGoingClick?: () => void;
+  isEditMode?: boolean;
+  editModeData?: EditModeInitialData;
 }
 
 export type EventRole = 'Attendee' | 'Speaker' | 'Host';

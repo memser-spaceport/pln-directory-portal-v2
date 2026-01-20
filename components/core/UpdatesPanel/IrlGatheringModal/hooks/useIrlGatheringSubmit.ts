@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useCreateIrlGatheringGuest } from '@/services/events/hooks/useCreateIrlGatheringGuest';
+import { useEditIrlGatheringGuest } from '@/services/events/hooks/useEditIrlGatheringGuest';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { toast } from '@/components/core/ToastContainer';
 import { IrlGatheringFormData, GatheringData } from '../types';
@@ -9,6 +10,8 @@ interface UseIrlGatheringSubmitParams {
   gatheringData: GatheringData;
   selectedDateRange: [Date, Date] | null;
   onSuccess: () => void;
+  isEditMode?: boolean;
+  guestUid?: string;
 }
 
 interface UseIrlGatheringSubmitReturn {
@@ -18,15 +21,19 @@ interface UseIrlGatheringSubmitReturn {
 
 /**
  * Hook for handling IRL Gathering form submission
- * Creates a guest registration for the gathering
+ * Creates or edits a guest registration for the gathering
  */
 export function useIrlGatheringSubmit({
   gatheringData,
   selectedDateRange,
   onSuccess,
+  isEditMode = false,
+  guestUid,
 }: UseIrlGatheringSubmitParams): UseIrlGatheringSubmitReturn {
-  const { mutate: createGuest, isPending } = useCreateIrlGatheringGuest();
+  const { mutate: createGuest, isPending: isCreatePending } = useCreateIrlGatheringGuest();
+  const { mutate: editGuest, isPending: isEditPending } = useEditIrlGatheringGuest();
   const { userInfo } = getCookiesFromClient();
+  const isPending = isCreatePending || isEditPending;
 
   const handleSubmit = useCallback(
     (data: IrlGatheringFormData) => {
@@ -87,25 +94,46 @@ export function useIrlGatheringSubmit({
         locationName: gatheringData.locationName,
       };
 
-      createGuest(
-        {
-          locationId: gatheringData.gatheringUid,
-          payload,
-          type: 'upcoming',
-        },
-        {
-          onSuccess: () => {
-            toast.success(`You're going to ${gatheringData.locationName}!`);
-            onSuccess();
+      if (isEditMode && guestUid) {
+        editGuest(
+          {
+            locationId: gatheringData.gatheringUid,
+            guestUid,
+            payload,
+            type: 'upcoming',
           },
-          onError: (error) => {
-            console.error('Failed to create IRL gathering guest:', error);
-            toast.error(error?.message ?? 'Failed to register for the gathering. Please try again.');
+          {
+            onSuccess: () => {
+              toast.success('Your details have been updated!');
+              onSuccess();
+            },
+            onError: (error) => {
+              console.error('Failed to update IRL gathering guest:', error);
+              toast.error(error?.message ?? 'Failed to update your details. Please try again.');
+            },
           },
-        },
-      );
+        );
+      } else {
+        createGuest(
+          {
+            locationId: gatheringData.gatheringUid,
+            payload,
+            type: 'upcoming',
+          },
+          {
+            onSuccess: () => {
+              toast.success(`You're going to ${gatheringData.locationName}!`);
+              onSuccess();
+            },
+            onError: (error) => {
+              console.error('Failed to create IRL gathering guest:', error);
+              toast.error(error?.message ?? 'Failed to register for the gathering. Please try again.');
+            },
+          },
+        );
+      }
     },
-    [userInfo, gatheringData, selectedDateRange, createGuest, onSuccess],
+    [userInfo, gatheringData, selectedDateRange, createGuest, editGuest, onSuccess, isEditMode, guestUid],
   );
 
   return {

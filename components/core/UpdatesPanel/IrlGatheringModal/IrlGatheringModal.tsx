@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
@@ -19,31 +19,77 @@ import {
 } from './components';
 import { useIrlGatheringModal, useIrlGatheringData, useIrlGatheringSubmit } from './hooks';
 import { buildGatheringLink } from './helpers';
-import { IrlGatheringModalProps, IrlGatheringFormData } from './types';
+import { IrlGatheringModalProps, IrlGatheringFormData, EventRoleSelection } from './types';
 import s from './IrlGatheringModal.module.scss';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { useMember } from '@/services/members/hooks/useMember';
 
 export type { IrlGatheringModalProps, IrlGatheringFormData } from './types';
 
-export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick }: IrlGatheringModalProps) {
+export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick, isEditMode = false, editModeData }: IrlGatheringModalProps) {
   const gatheringData = useIrlGatheringData(notification);
   const { userInfo } = getCookiesFromClient();
   const defaultTeamUid = userInfo?.leadingTeams?.[0];
   const { data } = useMemberFormOptions();
   const { data: memberData } = useMember(userInfo?.uid);
 
+  // Build initial form values for edit mode
+  const initialFormValues = useMemo(() => {
+    if (!isEditMode || !editModeData) {
+      return {
+        topics: [],
+        selectedEventUids: [],
+        eventRoles: [],
+        additionalDetails: '',
+        selectedTeam: undefined,
+        telegramHandle: '',
+        officeHours: '',
+      };
+    }
+
+    // Build selected team option
+    const selectedTeam = editModeData.teamUid && editModeData.teamName
+      ? { value: editModeData.teamUid, label: editModeData.teamName }
+      : undefined;
+
+    // Build selected event UIDs and roles
+    const selectedEventUids = editModeData.events?.map((e) => e.uid) || [];
+    const eventRoles: EventRoleSelection[] = editModeData.events?.map((e) => {
+      const roles: ('Attendee' | 'Speaker' | 'Host')[] = ['Attendee'];
+      if (e.isHost) roles.push('Host');
+      if (e.isSpeaker) roles.push('Speaker');
+      return { eventUid: e.uid, roles };
+    }) || [];
+
+    return {
+      topics: editModeData.topics || [],
+      selectedEventUids,
+      eventRoles,
+      additionalDetails: editModeData.reason || '',
+      selectedTeam,
+      telegramHandle: editModeData.telegramId || '',
+      officeHours: editModeData.officeHours || '',
+    };
+  }, [isEditMode, editModeData]);
+
+  // Build initial date range for edit mode
+  const initialDateRange = useMemo((): [Date, Date] | null => {
+    if (!isEditMode || !editModeData?.additionalInfo) return null;
+    const { checkInDate, checkOutDate } = editModeData.additionalInfo;
+    if (!checkInDate || !checkOutDate) return null;
+    return [new Date(checkInDate), new Date(checkOutDate)];
+  }, [isEditMode, editModeData]);
+
   const methods = useForm<IrlGatheringFormData>({
-    defaultValues: {
-      topics: [],
-      selectedEventUids: [],
-      eventRoles: [],
-      additionalDetails: '',
-      selectedTeam: undefined,
-      telegramHandle: '',
-      officeHours: '',
-    },
+    defaultValues: initialFormValues,
   });
+
+  // Reset form when modal opens with new data
+  useEffect(() => {
+    if (isOpen) {
+      methods.reset(initialFormValues);
+    }
+  }, [isOpen, initialFormValues, methods]);
 
   const {
     currentView,
@@ -55,7 +101,11 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
     handleOpenTopicsPicker,
     handleTopicsPickerCancel,
     handleTopicsPickerApply,
-  } = useIrlGatheringModal();
+  } = useIrlGatheringModal({
+    initialDateRange,
+    initialTopics: isEditMode ? editModeData?.topics : undefined,
+    isOpen,
+  });
 
   const handleSuccess = useCallback(() => {
     onGoingClick?.();
@@ -66,6 +116,8 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
     gatheringData,
     selectedDateRange,
     onSuccess: handleSuccess,
+    isEditMode,
+    guestUid: editModeData?.guestUid,
   });
 
   const handleFormSubmit = methods.handleSubmit(submitForm);
@@ -156,7 +208,7 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
             />
           </div>
 
-          <ModalFooter onClose={onClose} isSubmit isLoading={isPending} />
+          <ModalFooter onClose={onClose} isSubmit isLoading={isPending} isEditMode={isEditMode} />
         </form>
       </FormProvider>
     </Modal>

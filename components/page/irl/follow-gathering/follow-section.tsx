@@ -77,6 +77,7 @@ const FollowSection = (props: IFollowSectionProps) => {
 
   // IRL Gathering Modal state
   const [isIrlGatheringModalOpen, setIsIrlGatheringModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const urlSearchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -176,12 +177,38 @@ const FollowSection = (props: IFollowSectionProps) => {
 
   const handleIrlGatheringModalClose = useCallback(() => {
     setIsIrlGatheringModalOpen(false);
+    setIsEditMode(false);
   }, []);
 
   const handleIrlGatheringSuccess = useCallback(() => {
     // Refresh the page data after successful submission
     router.refresh();
   }, [router]);
+
+  // Build edit mode data from current guest
+  const editModeData = useMemo(() => {
+    if (!updatedUser) return undefined;
+    return {
+      guestUid: updatedUser.memberUid, // Using memberUid as guestUid for the API
+      teamUid: updatedUser.teamUid,
+      teamName: updatedUser.teamName,
+      teamLogo: updatedUser.teamLogo,
+      events: updatedUser.events?.map((e: any) => ({
+        uid: e.uid,
+        name: e.name,
+        isHost: e.isHost,
+        isSpeaker: e.isSpeaker,
+      })),
+      additionalInfo: {
+        checkInDate: updatedUser.additionalInfo?.checkInDate || '',
+        checkOutDate: updatedUser.additionalInfo?.checkOutDate || '',
+      },
+      topics: updatedUser.topics,
+      reason: updatedUser.reason,
+      telegramId: updatedUser.telegramId,
+      officeHours: updatedUser.officeHours || '',
+    };
+  }, [updatedUser]);
 
   // Helper functions
   const getFollowProperties = (followers: any[]) => ({
@@ -320,38 +347,9 @@ const FollowSection = (props: IFollowSectionProps) => {
 
   const onEditDetailsClicked = () => {
     analytics.trackSelfEditDetailsClicked(location);
-    const formData = {
-      team: {
-        name: updatedUser?.teamName,
-        logo: updatedUser?.teamLogo,
-        uid: updatedUser?.teamUid,
-      },
-      member: {
-        name: updatedUser?.memberName,
-        logo: updatedUser?.memberLogo,
-        uid: updatedUser?.memberUid,
-      },
-      teamUid: updatedUser?.teamUid,
-      events: updatedUser?.events,
-      teams: updatedUser?.teams?.map((team: any) => {
-        return { ...team, uid: team?.id };
-      }),
-      memberUid: updatedUser?.memberUid,
-      additionalInfo: {
-        checkInDate: updatedUser?.additionalInfo?.checkInDate || '',
-        checkOutDate: updatedUser?.additionalInfo?.checkOutDate ?? '',
-      },
-      topics: updatedUser?.topics,
-      reason: updatedUser?.reason,
-      topicsAndReason: topicsAndReason,
-      telegramId: updatedUser?.telegramId,
-      officeHours: updatedUser?.officeHours ?? '',
-    };
-    document.dispatchEvent(
-      new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
-        detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT },
-      }),
-    );
+    seIsEdit(false);
+    setIsEditMode(true);
+    setIsIrlGatheringModalOpen(true);
   };
 
   useClickedOutside({
@@ -560,6 +558,8 @@ const FollowSection = (props: IFollowSectionProps) => {
         onClose={handleIrlGatheringModalClose}
         notification={irlGatheringNotification}
         onGoingClick={handleIrlGatheringSuccess}
+        isEditMode={isEditMode}
+        editModeData={isEditMode ? editModeData : undefined}
       />
 
       <style jsx>

@@ -1,5 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ModalView } from '../types';
+
+interface UseIrlGatheringModalParams {
+  initialDateRange?: [Date, Date] | null;
+  initialTopics?: string[];
+  isOpen?: boolean;
+}
 
 interface UseIrlGatheringModalReturn {
   currentView: ModalView;
@@ -17,10 +23,19 @@ interface UseIrlGatheringModalReturn {
  * Hook for managing IRL Gathering modal view state and navigation
  * Handles switching between main view, date picker, and topics picker
  */
-export function useIrlGatheringModal(): UseIrlGatheringModalReturn {
+export function useIrlGatheringModal(params?: UseIrlGatheringModalParams): UseIrlGatheringModalReturn {
   const [currentView, setCurrentView] = useState<ModalView>('main');
-  const [selectedDateRange, setSelectedDateRange] = useState<[Date, Date] | null>(null);
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedDateRange, setSelectedDateRange] = useState<[Date, Date] | null>(params?.initialDateRange ?? null);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>(params?.initialTopics ?? []);
+
+  // Reset state when modal opens with new initial values
+  useEffect(() => {
+    if (params?.isOpen) {
+      setCurrentView('main');
+      setSelectedDateRange(params?.initialDateRange ?? null);
+      setSelectedTopics(params?.initialTopics ?? []);
+    }
+  }, [params?.isOpen, params?.initialDateRange, params?.initialTopics]);
 
   const handleOpenDatePicker = useCallback(() => {
     setCurrentView('datePicker');

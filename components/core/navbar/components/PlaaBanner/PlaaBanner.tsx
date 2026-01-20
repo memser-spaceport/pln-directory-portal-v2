@@ -40,7 +40,7 @@ const BANNER_CONTENTS: BannerContent[] = [
   {
     id: 'buyback-auction',
     segments: [
-      { text: 'Upcoming: Buyback Auction - February 19-26' }
+      { text: 'Upcoming: Buyback Auction - February 19 - 26' }
     ],
   },
 ];

@@ -40,6 +40,8 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
       eventRoles: [],
       additionalDetails: '',
       selectedTeam: undefined,
+      telegramHandle: '',
+      officeHours: '',
     },
   });
 

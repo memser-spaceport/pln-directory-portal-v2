@@ -1,7 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useFormContext } from 'react-hook-form';
+import { FormField } from '@/components/form/FormField/FormField';
 import { AddressBookIcon, CaretUpIcon, CaretDownIcon } from '../icons';
+import { IrlGatheringFormData } from '../types';
 import s from '../IrlGatheringModal.module.scss';
 
 interface ContactInfoSectionProps {
@@ -16,17 +19,26 @@ export function ContactInfoSection({
   defaultExpanded = true,
 }: ContactInfoSectionProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const { setValue } = useFormContext<IrlGatheringFormData>();
+
+  // Prefill form values when member data is loaded
+  useEffect(() => {
+    if (telegramHandle) {
+      // Format telegram handle with @ prefix if not already present
+      const formatted = telegramHandle.startsWith('@') ? telegramHandle : `@${telegramHandle}`;
+      setValue('telegramHandle', formatted);
+    }
+  }, [telegramHandle, setValue]);
+
+  useEffect(() => {
+    if (officeHours) {
+      setValue('officeHours', officeHours);
+    }
+  }, [officeHours, setValue]);
 
   const toggleExpanded = () => {
     setIsExpanded((prev) => !prev);
   };
-
-  // Format telegram handle to show with @ prefix
-  const formattedTelegram = telegramHandle
-    ? telegramHandle.startsWith('@')
-      ? telegramHandle
-      : `@${telegramHandle}`
-    : '';
 
   return (
     <div className={s.contactInfoContainer}>
@@ -45,32 +57,25 @@ export function ContactInfoSection({
       {isExpanded && (
         <div className={s.contactInfoContent}>
           {/* Telegram Handle */}
-          <div className={s.contactInfoField}>
+          <div className={s.contactInfoFieldWrapper}>
             <div className={s.contactInfoLabelRow}>
               <span className={s.contactInfoLabel}>Telegram handle</span>
               <span className={s.contactInfoPrefilled}>(Prefilled)</span>
             </div>
-            <div className={s.contactInfoInputBox}>
-              <span className={s.contactInfoInputValue}>
-                {formattedTelegram || 'Not provided'}
-              </span>
-            </div>
+            <FormField name="telegramHandle" placeholder="@username" />
           </div>
 
           {/* Office Hours */}
-          <div className={s.contactInfoField}>
+          <div className={s.contactInfoFieldWrapper}>
             <div className={s.contactInfoLabelRow}>
               <span className={s.contactInfoLabel}>Office Hours</span>
               <span className={s.contactInfoPrefilled}>(Prefilled)</span>
             </div>
-            <div className={s.contactInfoInputBox}>
-              <span className={s.contactInfoInputValue}>
-                {officeHours || 'Not provided'}
-              </span>
-            </div>
-            <p className={s.contactInfoHelperText}>
-              I will be available for a short 1:1 call to connect — no introduction needed.
-            </p>
+            <FormField
+              name="officeHours"
+              placeholder="https://calendly.com/your-link"
+              description="I will be available for a short 1:1 call to connect — no introduction needed."
+            />
           </div>
         </div>
       )}

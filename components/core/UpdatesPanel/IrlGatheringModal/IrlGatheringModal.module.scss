@@ -1802,6 +1802,12 @@
   gap: 8px;
 }
 
+.contactInfoFieldWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .contactInfoLabelRow {
   display: flex;
   align-items: center;
@@ -1849,6 +1855,37 @@
   white-space: nowrap;
 }
 
+.contactInfoInput {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  background: white;
+  border: 1px solid rgba(14, 15, 17, 0.24);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  outline: none;
+  transition: border-color 0.15s ease;
+
+  &::placeholder {
+    color: #afbaca;
+    font-weight: 400;
+  }
+
+  &:hover {
+    border-color: rgba(14, 15, 17, 0.32);
+  }
+
+  &:focus {
+    border-color: #1b4dff;
+  }
+}
+
 .contactInfoHelperText {
   font-family: 'Inter', sans-serif;
   font-size: 12px;
@@ -1857,4 +1894,3 @@
   letter-spacing: -0.2px;
   color: #455468;
 }
-

@@ -48,22 +48,36 @@ export function useIrlGatheringSubmit({
           : '';
 
       // Transform selected event UIDs into the expected payload format
-      const eventsPayload = (data.selectedEventUids || []).map((uid) => ({
-        uid,
-        isHost: false,
-        isSpeaker: false,
-        isSponsor: false,
-        hostSubEvents: [],
-        speakerSubEvents: [],
-        sponsorSubEvents: [],
-      }));
+      const eventsPayload = (data.selectedEventUids || []).map((uid) => {
+        const eventRoleSelection = data.eventRoles?.find((er) => er.eventUid === uid);
+        const roles = eventRoleSelection?.roles || [];
+        const eventData = gatheringData.events.find((e) => e.uid === uid);
+
+        const isHost = roles.includes('Host');
+        const isSpeaker = roles.includes('Speaker');
+
+        // Create sub-event object with event details
+        const subEventData = eventData
+          ? { uid, name: eventData.name, link: eventData.websiteUrl || '' }
+          : { uid, name: '', link: '' };
+
+        return {
+          uid,
+          isHost,
+          isSpeaker,
+          isSponsor: false, // Sponsor role is not available in the form UI
+          hostSubEvents: isHost ? [subEventData] : [],
+          speakerSubEvents: isSpeaker ? [subEventData] : [],
+          sponsorSubEvents: [],
+        };
+      });
 
       const payload = {
         memberUid: userInfo.uid,
-        teamUid: userInfo.leadingTeams?.[0] || '',
-        reason: '',
-        telegramId: '',
-        officeHours: '',
+        teamUid: data.selectedTeam?.value || userInfo.leadingTeams?.[0] || '',
+        reason: data.additionalDetails || '',
+        telegramId: data.telegramHandle || '',
+        officeHours: data.officeHours || '',
         events: eventsPayload,
         additionalInfo: {
           checkInDate,

@@ -31,6 +31,8 @@ export interface IrlGatheringFormData {
   eventRoles: EventRoleSelection[];
   additionalDetails: string;
   selectedTeam?: SelectedTeamOption;
+  telegramHandle: string;
+  officeHours: string;
 }
 
 export type ModalView = 'main' | 'datePicker' | 'topicsPicker';

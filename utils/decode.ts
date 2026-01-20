@@ -1,3 +1,5 @@
+import MentionBlot from '@/components/ui/RichTextEditor/MentionBlot';
+
 export function decodeHtml(html: string): string {
   const txt = document.createElement('textarea');
   txt.innerHTML = html;
@@ -31,6 +33,11 @@ export function extractTextWithImages(input: string): string {
         return el.outerHTML; // keep <img> as-is
       }
 
+      // Preserve user mention links
+      if (el.tagName.toLowerCase() === 'a' && el.classList.contains(MentionBlot.className)) {
+        return el.outerHTML;
+      }
+
       let result = '';
 
       // Preserve line breaks for <p>, <br>, etc.
@@ -55,4 +62,11 @@ export function extractTextWithImages(input: string): string {
 
   // Normalize whitespace: trim and collapse excessive empty lines
   return output.replace(/\n{3,}/g, '\n\n').trim();
+}
+
+export function convertMarkdownImagesToHtml(html: string): string {
+  // Convert markdown images ![alt](url) to <img> tags
+  return html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => {
+    return `<img src="${src}" alt="${alt}" />`;
+  });
 }

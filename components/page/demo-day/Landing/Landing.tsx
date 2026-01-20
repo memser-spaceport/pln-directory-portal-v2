@@ -1,7 +1,7 @@
 'use client';
-import React, { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 import Cookies from 'js-cookie';
+import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
@@ -110,6 +110,10 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
   // Show skeleton loader while loading
   if (isLoading || !data) {
     return <DemoDayPageSkeleton />;
+  }
+
+  if (data.access !== 'none') {
+    window.location.reload();
   }
 
   return (

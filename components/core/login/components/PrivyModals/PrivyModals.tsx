@@ -134,7 +134,7 @@ export function PrivyModals() {
         const demoDaySlug = params?.demoDayId as string;
         if (demoDaySlug) {
           const res = await getDemoDayState(demoDaySlug, output.userInfo.uid);
-          if (res?.access === 'none') {
+          if (res?.access === 'none' && !res.isPending) {
             authEvents.emit('auth:invalid-email', 'no_demo_day_access');
             return;
           }

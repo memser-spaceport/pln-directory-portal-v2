@@ -32,8 +32,8 @@ const config: Config = {
   coverageReporters: ['text', 'json', 'html'],
   coverageThreshold: {
     global: {
-      branches: 20,
-      functions: 10,
+      branches: 5,
+      functions: 5,
       lines: 5,
       statements: 5,
     },

@@ -12,7 +12,7 @@ import { useCreatePost } from '@/services/forum/hooks/useCreatePost';
 import { toast } from '@/components/core/ToastContainer';
 import { createPostSchema } from '@/components/page/forum/CreatePost/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { extractTextWithImages, replaceImagesWithMarkdown } from '@/utils/decode';
+import { convertMarkdownImagesToHtml, replaceImagesWithMarkdown } from '@/utils/decode';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEditPost } from '@/services/forum/hooks/useEditPost';
@@ -32,17 +32,16 @@ export type CreatePostForm = {
   content: string;
 };
 
-export const CreatePost = ({
-  isEdit,
-  initialData,
-  pid,
-  userInfo,
-}: {
+interface Props {
   isEdit?: boolean;
   initialData?: CreatePostForm;
   pid?: number;
   userInfo?: IUserInfo;
-}) => {
+}
+
+export const CreatePost = (props: Props) => {
+  const { isEdit, initialData, pid, userInfo } = props;
+
   const analytics = useForumAnalytics();
   const router = useRouter();
   const params = useParams();
@@ -76,7 +75,7 @@ export const CreatePost = ({
     defaultValues: initialData
       ? {
           ...initialData,
-          content: extractTextWithImages(initialData.content),
+          content: convertMarkdownImagesToHtml(initialData.content),
         }
       : {
           user: userInfo ? { label: userInfo.name, value: userInfo.uid } : null,
@@ -228,7 +227,7 @@ export const CreatePost = ({
                 label={<PostFormEditorLabel />}
                 className={s.editor}
                 classes={{
-                  label: s.postLabel
+                  label: s.postLabel,
                 }}
               />
             </div>

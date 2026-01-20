@@ -1,0 +1,33 @@
+.root {
+  gap: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  white-space: nowrap;
+}
+
+.details {
+  gap: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.actionLink {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #1b4dff;
+  text-decoration: none;
+  transition: color 0.15s ease;
+
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    color: #1a45e6;
+  }
+}

@@ -13,7 +13,7 @@ import { EditExperienceForm } from '@/components/page/member-details/ExperienceD
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAccessLevel } from '@/utils/auth.utils';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
-import { MemberDetailsSection } from '@/components/page/member-details/MemberDetailsSection';
+import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 
 interface Props {
   member: IMember;

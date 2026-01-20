@@ -2,25 +2,9 @@
 @use 'styles/mixins';
 
 .root {
-  //padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.title {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: 0;
-  text-align: left;
-  color: #64748b;
 }
 
 .emptyData {

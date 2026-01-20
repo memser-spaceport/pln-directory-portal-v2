@@ -1,23 +1,27 @@
 import React from 'react';
+import { clsx } from 'clsx';
+
+import { HeaderActionBtn } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
 
 import s from './EditButton.module.scss';
-import { clsx } from 'clsx';
 
 interface Props {
   onClick: () => void;
   incomplete?: boolean;
 }
 
-export const EditButton = ({ onClick, incomplete }: Props) => {
+export const EditButton = (props: Props) => {
+  const { onClick, incomplete } = props;
+
   return (
-    <button
+    <HeaderActionBtn
       onClick={onClick}
-      className={clsx(s.root, {
+      className={clsx(s.root, s.edit, {
         [s.incomplete]: incomplete,
       })}
     >
       <EditIcon /> Edit
-    </button>
+    </HeaderActionBtn>
   );
 };
 

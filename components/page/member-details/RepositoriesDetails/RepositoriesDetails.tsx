@@ -7,7 +7,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
 
 import { RepositoriesList } from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList';
-import { MemberDetailsSection } from '@/components/page/member-details/MemberDetailsSection';
+import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 
 import { getAccessLevel } from '@/utils/auth.utils';
 

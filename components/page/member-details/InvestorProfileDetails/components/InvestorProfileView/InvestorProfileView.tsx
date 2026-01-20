@@ -4,6 +4,7 @@ import React from 'react';
 import { clsx } from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
+import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
 import { InvestmentDetailsSection, InvestorProfileField } from './components';
 
 import s from './InvestorProfileView.module.scss';
@@ -166,10 +167,9 @@ export const InvestorProfileView = ({
           [s.missingData]: showIncomplete && isLoggedIn,
         })}
       >
-        <div className={s.header}>
-          <h3 className={s.title}>Investor Profile</h3>
+        <MemberDetailsSectionHeader title="Investor Profile">
           {isEditable && onEdit && <EditButton onClick={onEdit} />}
-        </div>
+        </MemberDetailsSectionHeader>
 
         <div className={s.content}>
           {(type === 'ANGEL_AND_FUND' || type === 'FUND') && investmentTeams?.length > 0 && (

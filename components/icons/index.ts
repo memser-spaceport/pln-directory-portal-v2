@@ -1,3 +1,4 @@
+export * from './EyeIcon';
 export * from './MenuIcon';
 export * from './PlusIcon';
 export * from './EditIcon';

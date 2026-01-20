@@ -16,6 +16,18 @@ export function useIrlGatheringData(notification: PushNotification): GatheringDa
     const eventStartDate = metadata.events?.dates?.start;
     const eventEndDate = metadata.events?.dates?.end;
 
+    // Map events from metadata to EventData format
+    const events = (metadata.events?.items || []).map((item) => ({
+      uid: item.uid,
+      name: item.name,
+      slug: item.slug,
+      startDate: item.startDate,
+      endDate: item.endDate,
+      logoUrl: item.logoUrl,
+      attendeeCount: item.attendeeCount,
+      websiteUrl: item.websiteUrl,
+    }));
+
     return {
       gatheringName: metadata.location?.name || notification.title,
       gatheringImage: metadata.events?.items?.[0]?.logoUrl || undefined,
@@ -25,6 +37,7 @@ export function useIrlGatheringData(notification: PushNotification): GatheringDa
         : 'TBD',
       locationName,
       eventsCount: metadata.events?.total || 0,
+      events,
       attendees: (metadata.attendees?.topAttendees || []).map((a) => ({
         uid: a.memberUid,
         picture: a.imageUrl || undefined,

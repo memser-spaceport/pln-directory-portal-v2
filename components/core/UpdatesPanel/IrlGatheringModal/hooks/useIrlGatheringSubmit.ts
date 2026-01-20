@@ -47,13 +47,24 @@ export function useIrlGatheringSubmit({
           ? formatDateForApi(new Date(gatheringData.eventDates.end))
           : '';
 
+      // Transform selected event UIDs into the expected payload format
+      const eventsPayload = (data.selectedEventUids || []).map((uid) => ({
+        uid,
+        isHost: false,
+        isSpeaker: false,
+        isSponsor: false,
+        hostSubEvents: [],
+        speakerSubEvents: [],
+        sponsorSubEvents: [],
+      }));
+
       const payload = {
         memberUid: userInfo.uid,
         teamUid: userInfo.leadingTeams?.[0] || '',
         reason: '',
         telegramId: '',
         officeHours: '',
-        events: [],
+        events: eventsPayload,
         additionalInfo: {
           checkInDate,
           checkOutDate,

@@ -301,6 +301,342 @@
   gap: 16px;
 }
 
+// Events Section - Expanded Content
+.eventsExpandedContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.eventsDescription {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eventsDescriptionTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  margin: 0;
+}
+
+.eventsDescriptionSubtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #8897ae;
+  margin: 0;
+}
+
+.eventsSearchContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: white;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.08);
+}
+
+.eventsSearchIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #2d3643;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.eventsSearchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #0a0c11;
+
+  &::placeholder {
+    color: #afbaca;
+  }
+}
+
+.eventsSearchClear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #455468;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    color: #0a0c11;
+  }
+}
+
+.eventsToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.eventsSelectAllBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  background: rgba(14, 15, 17, 0.06);
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.1);
+  }
+}
+
+.eventsSelectedCount {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #8897ae;
+}
+
+.eventsListContainer {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.eventListItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: white;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.06);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.02);
+  }
+}
+
+.eventListItemSelected {
+  background: rgba(27, 77, 255, 0.04);
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.06);
+  }
+}
+
+.eventCheckbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid rgba(14, 15, 17, 0.16);
+  border-radius: 4px;
+  background: rgba(14, 15, 17, 0.04);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.eventCheckboxChecked {
+  background: #1b4dff;
+  border-color: #1b4dff;
+  color: white;
+}
+
+.eventListLogo {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(27, 56, 96, 0.24);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.eventLogoPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: white;
+  color: #0a0c11;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.eventListInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.eventListName {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #455468;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.eventListMeta {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.eventsEmptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #8897ae;
+}
+
+// Legacy Events Section (kept for compatibility)
+.eventsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.eventCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid rgba(27, 56, 96, 0.06);
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.04);
+    border-color: rgba(27, 77, 255, 0.12);
+  }
+}
+
+.eventCardSelected {
+  background: rgba(27, 77, 255, 0.04);
+  border-color: rgba(27, 77, 255, 0.24);
+}
+
+.eventLogo {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(27, 77, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.eventInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.eventName {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #0a0c11;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.eventMeta {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #8897ae;
+}
+
 // Planning Section - Legacy styles (kept for compatibility)
 .planningContainer {
   display: flex;

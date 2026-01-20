@@ -8,6 +8,7 @@ import {
   AboutSection,
   GatheringDetails,
   AttendeesSection,
+  EventsSection,
   PlanningSection,
   ModalFooter,
   DatePickerView,
@@ -21,13 +22,14 @@ import s from './IrlGatheringModal.module.scss';
 export type { IrlGatheringModalProps, IrlGatheringFormData } from './types';
 
 export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick }: IrlGatheringModalProps) {
+  const gatheringData = useIrlGatheringData(notification);
+
   const methods = useForm<IrlGatheringFormData>({
     defaultValues: {
       topics: [],
+      selectedEventUids: [],
     },
   });
-
-  const gatheringData = useIrlGatheringData(notification);
 
   const {
     currentView,
@@ -121,6 +123,8 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
               attendeesCount={gatheringData.attendeesCount}
               gatheringLink={buildGatheringLink(gatheringData.locationName)}
             />
+
+            <EventsSection events={gatheringData.events} locationName={gatheringData.locationName} />
 
             <PlanningSection
               planningQuestion={gatheringData.planningQuestion}

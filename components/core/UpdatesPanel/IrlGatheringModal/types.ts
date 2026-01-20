@@ -9,6 +9,7 @@ export interface IrlGatheringModalProps {
 
 export interface IrlGatheringFormData {
   topics: string[];
+  selectedEventUids: string[];
 }
 
 export type ModalView = 'main' | 'datePicker' | 'topicsPicker';
@@ -27,6 +28,17 @@ export interface Resource {
   description: string | null;
 }
 
+export interface EventData {
+  uid: string;
+  name: string;
+  slug: string;
+  startDate: string;
+  endDate: string;
+  logoUrl: string | null;
+  attendeeCount: number;
+  websiteUrl: string | null;
+}
+
 export interface GatheringData {
   gatheringName: string;
   gatheringImage: string | undefined;
@@ -34,6 +46,7 @@ export interface GatheringData {
   dateRange: string;
   locationName: string;
   eventsCount: number;
+  events: EventData[];
   attendees: AttendeeData[];
   attendeesCount: number;
   planningQuestion: string;

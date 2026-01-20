@@ -161,3 +161,74 @@ export const TwitterIcon = () => (
     />
   </svg>
 );
+
+export const SlidersHorizontalIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M3.4375 6.25H5.625"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M8.75 6.25H16.5625"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M3.4375 13.75H11.25"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M14.375 13.75H16.5625"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M7.1875 8.4375C8.39562 8.4375 9.375 7.45812 9.375 6.25C9.375 5.04188 8.39562 4.0625 7.1875 4.0625C5.97938 4.0625 5 5.04188 5 6.25C5 7.45812 5.97938 8.4375 7.1875 8.4375Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12.8125 15.9375C14.0206 15.9375 15 14.9581 15 13.75C15 12.5419 14.0206 11.5625 12.8125 11.5625C11.6044 11.5625 10.625 12.5419 10.625 13.75C10.625 14.9581 11.6044 15.9375 12.8125 15.9375Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const CaretUpIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M14.25 11.25L9 6L3.75 11.25"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const CaretDownIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M3.75 6.75L9 12L14.25 6.75"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);

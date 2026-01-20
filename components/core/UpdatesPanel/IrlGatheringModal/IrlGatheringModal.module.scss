@@ -233,7 +233,75 @@
   }
 }
 
-// Planning Section - New Card Design
+// Accordion / Collapsible Planning Section
+.accordionContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: white;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.accordionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.accordionHeaderContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.accordionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: #1b4dff;
+}
+
+.accordionTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #0a0c11;
+  flex: 1;
+  min-width: 0;
+}
+
+.accordionCaret {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: #afbaca;
+}
+
+.accordionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// Planning Section - Legacy styles (kept for compatibility)
 .planningContainer {
   display: flex;
   flex-direction: column;

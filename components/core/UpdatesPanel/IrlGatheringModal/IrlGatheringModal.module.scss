@@ -1605,3 +1605,131 @@
   color: #455468;
 }
 
+// Additional Details Section
+.additionalDetailsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+}
+
+.additionalDetailsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.additionalDetailsHeaderContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.additionalDetailsIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1b4dff;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.additionalDetailsTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #0a0c11;
+}
+
+.additionalDetailsCaret {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #afbaca;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.additionalDetailsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.additionalDetailsField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.additionalDetailsLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.additionalDetailsTextareaContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+}
+
+.additionalDetailsTextarea {
+  width: 100%;
+  min-height: 66px;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  resize: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #455468;
+
+  &::placeholder {
+    color: #afbaca;
+  }
+}
+
+.additionalDetailsCharCount {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+// Team Selector Wrapper for FormSelect
+.teamSelectorWrapper {
+  width: 100%;
+}
+
+

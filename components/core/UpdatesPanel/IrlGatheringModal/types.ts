@@ -14,10 +14,23 @@ export interface EventRoleSelection {
   roles: EventRole[];
 }
 
+export interface TeamOption {
+  uid: string;
+  name: string;
+  logo?: string | null;
+}
+
+export interface SelectedTeamOption {
+  value: string;
+  label: string;
+}
+
 export interface IrlGatheringFormData {
   topics: string[];
   selectedEventUids: string[];
   eventRoles: EventRoleSelection[];
+  additionalDetails: string;
+  selectedTeam?: SelectedTeamOption;
 }
 
 export type ModalView = 'main' | 'datePicker' | 'topicsPicker';
@@ -66,5 +79,6 @@ export interface GatheringData {
     start: string | undefined;
     end: string | undefined;
   };
+  teams?: TeamOption[];
 }
 

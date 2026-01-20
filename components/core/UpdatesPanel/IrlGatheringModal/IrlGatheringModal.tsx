@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 import {
   ModalHeader,
   AboutSection,
@@ -10,6 +11,7 @@ import {
   AttendeesSection,
   EventsSection,
   PlanningSection,
+  AdditionalDetailsSection,
   ModalFooter,
   DatePickerView,
   TopicsPickerView,
@@ -18,17 +20,23 @@ import { useIrlGatheringModal, useIrlGatheringData, useIrlGatheringSubmit } from
 import { buildGatheringLink } from './helpers';
 import { IrlGatheringModalProps, IrlGatheringFormData } from './types';
 import s from './IrlGatheringModal.module.scss';
+import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 
 export type { IrlGatheringModalProps, IrlGatheringFormData } from './types';
 
 export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick }: IrlGatheringModalProps) {
   const gatheringData = useIrlGatheringData(notification);
+  const { userInfo } = getCookiesFromClient();
+  const defaultTeamUid = userInfo?.leadingTeams?.[0];
+  const { data } = useMemberFormOptions();
 
   const methods = useForm<IrlGatheringFormData>({
     defaultValues: {
       topics: [],
       selectedEventUids: [],
       eventRoles: [],
+      additionalDetails: '',
+      selectedTeam: undefined,
     },
   });
 
@@ -134,6 +142,8 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
               onDateInputClick={handleOpenDatePicker}
               onTopicsInputClick={handleOpenTopicsPicker}
             />
+
+            <AdditionalDetailsSection teams={data?.teams || []} defaultTeamUid={defaultTeamUid} />
           </div>
 
           <ModalFooter onClose={onClose} isSubmit isLoading={isPending} />

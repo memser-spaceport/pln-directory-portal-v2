@@ -28,6 +28,13 @@ export function useIrlGatheringData(notification: PushNotification): GatheringDa
       websiteUrl: item.websiteUrl,
     }));
 
+    // Map teams from metadata to TeamOption format
+    const teams = (metadata.teams || []).map((team) => ({
+      uid: team.uid,
+      name: team.name,
+      logo: team.logo || null,
+    }));
+
     return {
       gatheringName: metadata.location?.name || notification.title,
       gatheringImage: metadata.events?.items?.[0]?.logoUrl || undefined,
@@ -51,6 +58,7 @@ export function useIrlGatheringData(notification: PushNotification): GatheringDa
         start: eventStartDate,
         end: eventEndDate,
       },
+      teams,
     };
   }, [notification]);
 }

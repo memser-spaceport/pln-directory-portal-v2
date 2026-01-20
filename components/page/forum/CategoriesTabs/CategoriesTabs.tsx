@@ -1,10 +1,8 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Tabs } from '@base-ui-components/react/tabs';
+import React, { useMemo } from 'react';
 
+import { Tabs } from '@/components/common/Tabs';
 import { useForumCategories } from '@/services/forum/hooks/useForumCategories';
 import s from './CategoriesTabs.module.scss';
-import { CreatePost } from '@/components/page/forum/CreatePost';
-import { useMedia } from 'react-use';
 import { useRouter } from 'next/navigation';
 import { useCheckGroupAccess } from '@/services/forum/hooks/useCheckGroupAccess';
 import Link from 'next/link';
@@ -13,12 +11,11 @@ import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 interface Props {
   value: string | undefined;
-  onValueChange: (value: string, event?: Event) => void;
+  onValueChange: (value: string) => void;
 }
 
 export const CategoriesTabs = ({ value, onValueChange }: Props) => {
   const router = useRouter();
-  const isMobile = useMedia('(max-width: 960px)', false);
   const { data } = useForumCategories();
   const { data: groupAccess } = useCheckGroupAccess();
   const analytics = useForumAnalytics();
@@ -44,46 +41,21 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
     );
   }, [data]);
 
-  const tabRefs = useRef<Record<string, Element | null>>({});
-
-  useEffect(() => {
-    if (!value || !isMobile) {
-      return;
-    }
-
-    const current = tabRefs.current[value];
-    if (current) {
-      current.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
-    }
-  }, [isMobile, value]);
-
   const hasGroupAccess = groupAccess?.hasAccess;
 
   return (
     <>
       <div className={s.root}>
-        <Tabs.Root
-          className={s.Tabs}
-          value={value || '1'}
-          onValueChange={(v, event) => onValueChange(v, event as unknown as Event)}
-        >
-          <Tabs.List className={s.List}>
-            {tabs.map((item) => (
-              // @ts-ignore
-              <Tabs.Tab
-                className={s.Tab}
-                value={item.value}
-                key={item.value}
-                ref={(el) => {
-                  tabRefs.current[item.value] = el;
-                }}
-              >
-                {item.label}
-              </Tabs.Tab>
-            ))}
-            <Tabs.Indicator className={s.Indicator} />
-          </Tabs.List>
-        </Tabs.Root>
+        <Tabs
+          tabs={tabs}
+          value={value || '0'}
+          onValueChange={onValueChange}
+          classes={{
+            root: s.tabsRoot,
+            list: s.tabsList,
+            label: s.tabsLabel,
+          }}
+        />
         <div className={s.actions}>
           {hasGroupAccess && (
             <Link className={s.groupLink} href={GROUPS_URL} target="_blank">

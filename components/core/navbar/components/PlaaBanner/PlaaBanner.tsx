@@ -40,7 +40,7 @@ const BANNER_CONTENTS: BannerContent[] = [
   {
     id: 'buyback-auction',
     segments: [
-      { text: 'Upcoming: Buyback Auction Q1 2026 - February 19-26' }
+      { text: 'Upcoming: Buyback Auction - February 19-26' }
     ],
   },
 ];
@@ -85,7 +85,7 @@ export function PlaaBanner() {
                   <p className={s.text}>
                     {content.segments.map((segment, idx) =>
                       segment.link ? (
-                        <a key={idx} href={segment.link} className={s.link}>
+                        <a key={idx} target="_blank" href={segment.link} className={s.link}>
                           {segment.text}
                         </a>
                       ) : (

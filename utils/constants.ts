@@ -668,6 +668,21 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.2 - Forum Engagement & Notifications',
+    tag: 'Improvements',
+    date: '02, Jan 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">User mentions</span> - Tag and mention other members in forum posts and comments to bring them into conversations.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Nested replies</span> - Reply directly to comments with support for three-level threading to keep discussions organized.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Mention notifications</span> - Receive in-app and email notifications when you're mentioned in forum posts or comments.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Notification UI updates</span> - Improved notification display with clearer unread indicators and better visual organization.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.1 - Forum Notifications',
     tag: 'Improvements',
     date: '30, Dec 2026',

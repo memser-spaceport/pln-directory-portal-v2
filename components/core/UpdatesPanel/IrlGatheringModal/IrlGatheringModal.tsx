@@ -28,6 +28,7 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
     defaultValues: {
       topics: [],
       selectedEventUids: [],
+      eventRoles: [],
     },
   });
 

@@ -548,6 +548,69 @@
   color: #455468;
 }
 
+.eventListDescription {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+// Event Role Selector
+.eventRoleSelector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.eventRoleLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.eventRoleBadges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eventRoleBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  background: rgba(27, 77, 255, 0.04);
+  color: #4174ff;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.08);
+  }
+}
+
+.eventRoleBadgeSelected {
+  background: #1b4dff;
+  color: white;
+
+  &:hover {
+    background: #1540cc;
+  }
+}
+
 .eventsEmptyState {
   display: flex;
   align-items: center;

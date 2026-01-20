@@ -7,9 +7,17 @@ export interface IrlGatheringModalProps {
   onGoingClick?: () => void;
 }
 
+export type EventRole = 'Attendee' | 'Speaker' | 'Host';
+
+export interface EventRoleSelection {
+  eventUid: string;
+  roles: EventRole[];
+}
+
 export interface IrlGatheringFormData {
   topics: string[];
   selectedEventUids: string[];
+  eventRoles: EventRoleSelection[];
 }
 
 export type ModalView = 'main' | 'datePicker' | 'topicsPicker';
@@ -37,6 +45,7 @@ export interface EventData {
   logoUrl: string | null;
   attendeeCount: number;
   websiteUrl: string | null;
+  description?: string | null;
 }
 
 export interface GatheringData {

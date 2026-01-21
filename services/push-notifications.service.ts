@@ -28,6 +28,7 @@ export async function getNotifications(
     headers: {
       Authorization: `Bearer ${authToken}`,
     },
+    cache: 'no-store', // Prevent browser caching to ensure fresh data
   });
 
   if (!response.ok) {
@@ -45,6 +46,7 @@ export async function getUnreadCount(authToken: string): Promise<number> {
     headers: {
       Authorization: `Bearer ${authToken}`,
     },
+    cache: 'no-store',
   });
 
   if (!response.ok) {

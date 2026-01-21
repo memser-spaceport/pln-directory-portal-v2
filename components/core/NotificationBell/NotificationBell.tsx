@@ -9,7 +9,7 @@ import s from './NotificationBell.module.scss';
 
 export function NotificationBell({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
-  const { notifications, unreadCount, markAsRead } = usePushNotificationsContext();
+  const { notifications, unreadCount, markAsRead, refreshNotifications } = usePushNotificationsContext();
   const analytics = useNotificationAnalytics();
   const controls = useAnimation();
   const prevUnreadCountRef = useRef(unreadCount);
@@ -31,6 +31,8 @@ export function NotificationBell({ isLoggedIn }: { isLoggedIn: boolean }) {
   const handleToggle = () => {
     if (!isOpen) {
       analytics.onNotificationBellClicked(unreadCount);
+      // Refresh notifications when opening to catch any missed WebSocket events
+      void refreshNotifications();
     }
     setIsOpen((prev) => !prev);
   };

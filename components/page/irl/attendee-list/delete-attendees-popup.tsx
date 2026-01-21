@@ -47,6 +47,30 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
   const [selectedEvents, setSelectedEvents] = useState<ISelectedEvents>({});
   const analytics = useIrlAnalytics();
 
+  // Get filtered events count (events that are actually displayed in the list)
+  const getFilteredEventsCount = () => {
+    return selectedGuests?.reduce((total, guest) => {
+      const filteredEvents = guest?.events?.filter((event: IIrlEvent) => {
+        const isEventInDetails = true;
+        if (type === 'self-delete') {
+          return isEventInDetails && filterUpcomingGatherings(event);
+        }
+        return isEventInDetails;
+      });
+      return total + (filteredEvents?.length || 0);
+    }, 0) || 0;
+  };
+
+  const hasNoFilteredEvents = getFilteredEventsCount() === 0;
+
+  // Get all possible events for all selected guests (used when no filtered events exist)
+  const getAllPossibleMembersAndEvents = () => {
+    return selectedGuests?.map((guest: IGuest) => ({
+      memberUid: guest?.memberUid,
+      events: guest?.events?.map((event: IIrlEvent) => event?.uid) || [],
+    })) || [];
+  };
+
   const onDeleteGuests = async (e: SyntheticEvent) => {
     e.preventDefault();
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
@@ -56,10 +80,13 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
       analytics.trackAdminRemoveAttendeesPopupConfirmRemovalBtnClicked(location);
     }
     try {
-      const membersAndEvents = Object.keys(selectedEvents).map((memberUid) => ({
-        memberUid,
-        events: selectedEvents[memberUid],
-      }));
+      // When no filtered events exist, use all possible events for the API call and analytics
+      const membersAndEvents = hasNoFilteredEvents
+        ? getAllPossibleMembersAndEvents()
+        : Object.keys(selectedEvents).map((memberUid) => ({
+            memberUid,
+            events: selectedEvents[memberUid],
+          }));
       const deleteGuestsResponse = await deleteEventGuestByLocation(location?.uid, {
         membersAndEvents: membersAndEvents,
       });
@@ -319,9 +346,9 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
             Close
           </button>
           <button
-            disabled={!Object.keys(selectedEvents).length}
+            disabled={!hasNoFilteredEvents && !Object.keys(selectedEvents).length}
             onClick={onDeleteGuests}
-            className={`popup__footer__confirm ${!Object.keys(selectedEvents).length ? 'popup__footer__confirm--disabled' : ''}`}
+            className={`popup__footer__confirm ${!hasNoFilteredEvents && !Object.keys(selectedEvents).length ? 'popup__footer__confirm--disabled' : ''}`}
           >
             Confirm Removal
           </button>

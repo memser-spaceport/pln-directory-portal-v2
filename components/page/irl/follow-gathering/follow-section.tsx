@@ -85,7 +85,15 @@ const FollowSection = (props: IFollowSectionProps) => {
   // Auto-open modal if URL contains open-modal=true and remove the param immediately
   useEffect(() => {
     const openModal = urlSearchParams.get('open-modal');
-    if (openModal === 'true' && isUserLoggedIn && !inPastEvents && accessLevel === 'advanced' && !isUserGoing && !userHasUpcomingEvents && filteredGatherings?.length > 0) {
+    if (
+      openModal === 'true' &&
+      isUserLoggedIn &&
+      !inPastEvents &&
+      accessLevel === 'advanced' &&
+      !isUserGoing &&
+      !userHasUpcomingEvents &&
+      filteredGatherings?.length > 0
+    ) {
       // Remove open-modal param from URL before opening modal
       const params = new URLSearchParams(urlSearchParams.toString());
       params.delete('open-modal');
@@ -94,17 +102,28 @@ const FollowSection = (props: IFollowSectionProps) => {
 
       setIsIrlGatheringModalOpen(true);
     }
-  }, [urlSearchParams, isUserLoggedIn, inPastEvents, accessLevel, isUserGoing, userHasUpcomingEvents, filteredGatherings, pathname, router]);
+  }, [
+    urlSearchParams,
+    isUserLoggedIn,
+    inPastEvents,
+    accessLevel,
+    isUserGoing,
+    userHasUpcomingEvents,
+    filteredGatherings,
+    pathname,
+    router,
+  ]);
 
   // Build PushNotification object from available data for IrlGatheringModal
   const irlGatheringNotification = useMemo((): PushNotification => {
     const events = upcomingEvents || [];
-    const eventDates = events.length > 0
-      ? {
-          start: events.reduce((min: string, e: any) => (!min || e.startDate < min ? e.startDate : min), ''),
-          end: events.reduce((max: string, e: any) => (!max || e.endDate > max ? e.endDate : max), ''),
-        }
-      : { start: '', end: '' };
+    const eventDates =
+      events.length > 0
+        ? {
+            start: events.reduce((min: string, e: any) => (!min || e.startDate < min ? e.startDate : min), ''),
+            end: events.reduce((max: string, e: any) => (!max || e.endDate > max ? e.endDate : max), ''),
+          }
+        : { start: '', end: '' };
 
     const metadata: IrlGatheringMetadata = {
       ui: {
@@ -153,11 +172,12 @@ const FollowSection = (props: IFollowSectionProps) => {
         })),
       },
       gatheringUid: eventLocationSummary?.uid || '',
-      teams: userInfo?.leadingTeams?.map((teamUid: string) => ({
-        uid: teamUid,
-        name: '',
-        logo: null,
-      })) || [],
+      teams:
+        userInfo?.leadingTeams?.map((teamUid: string) => ({
+          uid: teamUid,
+          name: '',
+          logo: null,
+        })) || [],
     };
 
     return {
@@ -543,8 +563,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             {isUserGoing &&
               isUserLoggedIn &&
               (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) &&
-              accessLevel === 'advanced' &&
-              userHasUpcomingEvents && (
+              accessLevel === 'advanced' && (
                 <div className="toolbar__actionCn__edit__wrpr">
                   <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
                     <img src="/icons/edit-white.svg" alt="arrow" width={18} height={18} />

@@ -14,6 +14,8 @@ const EventSummary: React.FC<EventSummaryProps> = ({
   const hiddenEventCount = events.length - visibleEvents.length;
   const remainingEvents = events.slice(maxVisibleEvents);
 
+  if (events.length === 0) return null;
+
   return (
     <>
       <div className="eventSummaryContainer">

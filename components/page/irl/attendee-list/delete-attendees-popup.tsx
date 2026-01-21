@@ -49,26 +49,30 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
 
   // Get filtered events count (events that are actually displayed in the list)
   const getFilteredEventsCount = () => {
-    return selectedGuests?.reduce((total, guest) => {
-      const filteredEvents = guest?.events?.filter((event: IIrlEvent) => {
-        const isEventInDetails = true;
-        if (type === 'self-delete') {
-          return isEventInDetails && filterUpcomingGatherings(event);
-        }
-        return isEventInDetails;
-      });
-      return total + (filteredEvents?.length || 0);
-    }, 0) || 0;
+    return (
+      selectedGuests?.reduce((total, guest) => {
+        const filteredEvents = guest?.events?.filter((event: IIrlEvent) => {
+          const isEventInDetails = true;
+          if (type === 'self-delete') {
+            return isEventInDetails && filterUpcomingGatherings(event);
+          }
+          return isEventInDetails;
+        });
+        return total + (filteredEvents?.length || 0);
+      }, 0) || 0
+    );
   };
 
   const hasNoFilteredEvents = getFilteredEventsCount() === 0;
 
   // Get all possible events for all selected guests (used when no filtered events exist)
   const getAllPossibleMembersAndEvents = () => {
-    return selectedGuests?.map((guest: IGuest) => ({
-      memberUid: guest?.memberUid,
-      events: guest?.events?.map((event: IIrlEvent) => event?.uid) || [],
-    })) || [];
+    return (
+      selectedGuests?.map((guest: IGuest) => ({
+        memberUid: guest?.memberUid,
+        events: guest?.events?.map((event: IIrlEvent) => event?.uid) || [],
+      })) || []
+    );
   };
 
   const onDeleteGuests = async (e: SyntheticEvent) => {
@@ -254,7 +258,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
                     </div>
                   )}
 
-                  {type === 'self-delete' && (
+                  {type === 'self-delete' && !!events?.length && (
                     <div className="popup__member__gatherings__header__title">
                       Select the gatherings that you are not attending
                     </div>
@@ -461,8 +465,8 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
         }
 
         .popup__member__gatherings {
-          border: 0.5px solid #cbd5e1;
-          border-radius: 4px;
+          //border: 0.5px solid #cbd5e1;
+          //border-radius: 4px;
           margin-top: 16px;
         }
 

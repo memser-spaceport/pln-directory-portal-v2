@@ -32,14 +32,14 @@ const CONFIRM_REFERRAL_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSfuDNC7f
 // Banner data
 export const BANNER_CONTENTS: BannerContent[] = [
   {
-    id: 'bonus-network-product-lead',
+    id: 'bonus-product-manager',
     type: 'bonus',
-    title: 'Bonus Points Multiplier: Network Product Lead',
+    title: 'Bonus Points Multiplier: Product Manager',
     subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
     highlightText: '2×–3×',
     date: 'Submit by Jan 31, 2026',
     buttons: [
-      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/60401144-network-product-lead-polaris', variant: 'primary' },
+      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/59154950-product-manager-labos-modularization', variant: 'primary' },
       { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
     ],
   },
@@ -56,11 +56,23 @@ export const BANNER_CONTENTS: BannerContent[] = [
     ],
   },
   {
+    id: 'bonus-network-product-lead',
+    type: 'bonus',
+    title: 'Bonus Points Multiplier: Network Product Lead',
+    subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
+    highlightText: '2x-3x',
+    date: 'Submit by Jan 31, 2026',
+    buttons: [
+      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/60401144-network-product-lead-polaris', variant: 'primary' },
+      { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
+    ],
+  },
+  {
     id: 'bonus-events-lead',
     type: 'bonus',
     title: 'Bonus Points Multiplier: Events Lead',
     subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
-    highlightText: '2×–3×',
+    highlightText: '2x-3x',
     date: 'Submit by Jan 31, 2026',
     buttons: [
       { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/61984015-events-lead#content', variant: 'primary' },
@@ -72,22 +84,10 @@ export const BANNER_CONTENTS: BannerContent[] = [
     type: 'bonus',
     title: 'Bonus Points Multiplier: Network Scientist',
     subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
-    highlightText: '2×–3×',
+    highlightText: '2x-3x',
     date: 'Submit by Jan 31, 2026',
     buttons: [
       { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/60969057-network-scientist-polaris#content', variant: 'primary' },
-      { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
-    ],
-  },
-  {
-    id: 'bonus-product-manager',
-    type: 'bonus',
-    title: 'Bonus Points Multiplier: Product Manager',
-    subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
-    highlightText: '2×–3×',
-    date: 'Submit by Jan 31, 2026',
-    buttons: [
-      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/59154950-product-manager-labos-modularization', variant: 'primary' },
       { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
     ],
   },

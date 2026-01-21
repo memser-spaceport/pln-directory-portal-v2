@@ -1,123 +1,467 @@
-.root {
-  color: #fff;
-  display: flex;
-  flex-direction: column;
+// ==========================================================================
+// PlaaBanner - Desktop & Mobile Carousel
+// ==========================================================================
+
+// --------------------------------------------------------------------------
+// DESKTOP BANNER
+// --------------------------------------------------------------------------
+
+.banner {
+  display: none;
   align-items: center;
-  gap: 1px;
   width: 100%;
+  height: 80px;
+  padding: 0 40px;
+  color: #fff;
   position: relative;
 
-  @media (max-width: 768px) {
-    font-size: 13px;
-    gap: 4px;
+  @media (min-width: 960px) {
+    display: flex;
   }
 }
 
-.bannerContent {
+// Navigation buttons (arrows) - positioned at far edges
+.navBtnLeft,
+.navBtnRight {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  gap: 8px;
-  padding: 0 40px;
-
-  @media (max-width: 768px) {
-    padding: 0 32px;
-  }
-}
-
-.arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 40px;
+  height: 100%;
+  padding: 0;
   border: none;
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  font-size: 18px;
-  line-height: 1;
-  border-radius: 50%;
+  background: transparent;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.2s ease;
-  z-index: 1;
+  opacity: 0.9;
+  position: absolute;
+  top: 0;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.3);
-  }
-
-  @media (max-width: 768px) {
-    width: 20px;
-    height: 20px;
-    font-size: 14px;
+    opacity: 1;
   }
 }
 
-.arrowLeft {
-  left: 0;
+.navBtnLeft {
+  left: 40px;
 }
 
-.arrowRight {
-  right: 0;
+.navBtnRight {
+  right: 40px;
 }
 
-.carousel {
-  overflow: hidden;
+// Center content wrapper
+.centerContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex: 1;
-  max-width: 100%;
-  display: flex;
-  align-items: center;
+  padding: 0 48px; // Space for arrows
+  gap: 16px;
 }
 
-.container {
-  display: flex;
-  align-items: center;
-  padding-top: 6px;
+// Embla carousel viewport
+.emblaViewport {
+  flex: 1;
+  max-width: 900px;
+  overflow: hidden;
+  min-width: 0;
 }
 
-.slide {
+// Embla container
+.emblaContainer {
+  display: flex;
+}
+
+// Each slide
+.emblaSlide {
   flex: 0 0 100%;
   min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  padding: 0 8px;
+  gap: 16px; // Figma: 16px gap
 }
 
-.text {
-  margin: 0;
-  display: inline;
-}
-
-.link {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-
-  &:hover {
-    opacity: 0.85;
-  }
-}
-
-.indicators {
+// Icon box - Figma: 40px with #1d4ed8 bg, 8px radius
+.iconBox {
   display: flex;
-  gap: 8px;
   align-items: center;
   justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #1d4ed8; // Figma: primary/blue700
+  border-radius: 8px;
+  flex-shrink: 0;
 }
 
-.indicator {
-  font-size: 14px;
-  line-height: 1;
-  opacity: 0.5;
-  transition: opacity 0.2s ease;
+// Text area
+.textArea {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; // Figma: 8px gap between title and subtitle
+  justify-content: center;
+  flex: 0 1 auto;
+  min-width: 0;
+}
 
-  &.active {
-    opacity: 1;
+// Title - Figma: Inter Medium, 16px, white
+.title {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500; // Medium
+  line-height: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #fff;
+}
+
+// Subtitle container - Figma: 12px
+.subtitle {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400; // Regular
+  line-height: normal;
+  white-space: nowrap;
+  color: #fff;
+}
+
+// Yellow highlight - Figma: Inter Bold, #ef0
+.highlight {
+  color: #eeff00; // Figma: #ef0
+  font-weight: 700; // Bold
+}
+
+// Separator line
+.separator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1px;
+  height: 14px;
+  background: #cbd5e1;
+  margin: 0 4px;
+}
+
+// Buttons container
+.buttons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+  margin-left: 36px;
+}
+
+// Button base
+.btnPrimary,
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 10px 16px;
+  border-radius: 58px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0px 1px 1px 0px rgba(15, 23, 42, 0.08);
+}
+
+// "View Job Info"
+.btnPrimary {
+  background: #156ff7;
+  border: 1px solid #cbd5e1;
+  color: #fff;
+
+  &:hover {
+    background: #1259d4;
   }
+}
+
+// "Confirm Referral"
+.btnSecondary {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  color: #156ff7;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+// Pagination
+.pagination {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 400; // Regular
+  line-height: normal;
+  flex-shrink: 0;
+  text-align: center;
+  color: #fff;
+  position: absolute;
+  right: 88px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+// --------------------------------------------------------------------------
+// MOBILE BANNER
+// With swipe carousel and sticky compact mode
+// --------------------------------------------------------------------------
+
+.mobileBanner {
+  position: sticky;
+  top: var(--app-header-height, 64px);
+  width: 100%;
+  background: #156ff7;
+  color: #fff;
+  z-index: 10;
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  transition: padding 0.3s ease;
+
+  @media (min-width: 960px) {
+    display: none;
+  }
+}
+
+// Dots wrapper - shown centered at top in compact mode only
+.dotsWrapper {
+  display: none;
+  justify-content: center;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+}
+
+// Compact mode when scrolled
+.mobileBannerCompact {
+  padding: 12px 24px;
+
+  // Center content in compact mode
+  .mobileEmblaSlide {
+    text-align: center;
+    gap: 0;
+  }
+
+  .mobileTitle {
+    font-size: 14px;
+  }
+
+  // Hide extra content in compact mode with smooth transition
+  .mobileHideOnCompact {
+    opacity: 0;
+    max-height: 0;
+    margin-top: 0;
+    overflow: hidden;
+  }
+
+  // Hide pagination in compact mode with smooth transition
+  .mobilePaginationFixed {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  // Show dots at top center in compact mode
+  .dotsWrapper {
+    display: flex;
+    opacity: 1;
+    max-height: 20px;
+    margin-bottom: 6px;
+  }
+}
+
+// Mobile Embla Carousel
+.mobileEmblaViewport {
+  overflow: hidden;
+  width: 100%;
+  flex: 1;
+}
+
+.mobileEmblaContainer {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+}
+
+.mobileEmblaSlide {
+  flex: 0 0 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: gap 0.3s ease;
+}
+
+// Content that hides in compact mode - with smooth transition
+.mobileHideOnCompact {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+  opacity: 1;
+  max-height: 200px; // Enough height for content
+  overflow: hidden;
+  transition: opacity 0.3s ease, max-height 0.3s ease, margin-top 0.3s ease;
+}
+
+// Mobile Title
+.mobileTitle {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: normal;
+  color: #fff;
+  transition: font-size 0.3s ease;
+}
+
+// Text group for subtitle and date
+.mobileTextGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// Mobile Subtitle
+.mobileSubtitle {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: normal;
+  color: #fff;
+}
+
+// Mobile Date
+.mobileDate {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: normal;
+  color: #fff;
+}
+
+.mobileFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Mobile Buttons
+.mobileButtons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+// Mobile Button styles
+.mobileBtnPrimary,
+.mobileBtnSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 10px 16px;
+  border-radius: 58px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0px 1px 1px 0px rgba(15, 23, 42, 0.08);
+}
+
+.mobileBtnPrimary {
+  background: #156ff7;
+  border: 1px solid #cbd5e1;
+  color: #fff;
+
+  &:hover {
+    background: #1259d4;
+  }
+}
+
+.mobileBtnSecondary {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  color: #156ff7;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+// Mobile Pagination
+.mobilePagination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  color: #fff;
+}
+
+// Mobile Pagination Fixed - positioned at bottom right
+.mobilePaginationFixed {
+  position: absolute;
+  bottom: 16px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  color: #fff;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.paginationText {
+  transition: opacity 0.3s ease;
+}
+
+
+// --------------------------------------------------------------------------
+// DOTS (shared between full and compact)
+// --------------------------------------------------------------------------
+
+.dots {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%; // Circular dots
+  background: rgba(255, 255, 255, 0.4);
+  transition: background 0.2s;
+}
+
+.dotActive {
+  background: #fff;
 }

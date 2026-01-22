@@ -30,7 +30,6 @@ interface AdditionalDetailsSectionProps {
 
 export function AdditionalDetailsSection({
   teams,
-  defaultTeamUid,
   defaultExpanded = true,
   telegramHandle,
   officeHours,
@@ -38,7 +37,6 @@ export function AdditionalDetailsSection({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const { watch, setValue } = useFormContext<IrlGatheringFormData>();
   const additionalDetails = watch('additionalDetails') || '';
-  const selectedTeam = watch('selectedTeam');
 
   const charactersLeft = MAX_CHARACTERS - additionalDetails.length;
 
@@ -49,19 +47,6 @@ export function AdditionalDetailsSection({
       label: team.teamTitle,
     }));
   }, [teams]);
-
-  // Preselect the default team on mount
-  useEffect(() => {
-    if (teams.length > 0 && !selectedTeam) {
-      // Try to find the user's default team in the list
-      const defaultTeam = defaultTeamUid ? teams.find((t) => t.teamUid === defaultTeamUid) : null;
-      // Use the default team if found, otherwise use the first team
-      const teamToSelect = defaultTeam || teams[0];
-      if (teamToSelect) {
-        setValue('selectedTeam', { value: teamToSelect.teamUid, label: teamToSelect.teamTitle });
-      }
-    }
-  }, [teams, defaultTeamUid, selectedTeam, setValue]);
 
   // Prefill telegram handle when member data is loaded
   useEffect(() => {

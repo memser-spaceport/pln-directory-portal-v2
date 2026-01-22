@@ -16,6 +16,7 @@ export interface PushNotification {
   accessLevels?: string[];
   isRead?: boolean;
   createdAt: string;
+  isAttended?: boolean;
 }
 
 // IRL Gathering metadata types

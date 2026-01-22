@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormSelect } from '@/components/form/FormSelect';
+import { FormField } from '@/components/form/FormField/FormField';
 import {
   DiamondsFourIcon,
   CaretUpIcon,
@@ -23,12 +24,16 @@ interface AdditionalDetailsSectionProps {
   teams: TeamFromApi[];
   defaultTeamUid?: string;
   defaultExpanded?: boolean;
+  telegramHandle?: string | null;
+  officeHours?: string | null;
 }
 
 export function AdditionalDetailsSection({
   teams,
   defaultTeamUid,
   defaultExpanded = true,
+  telegramHandle,
+  officeHours,
 }: AdditionalDetailsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const { watch, setValue } = useFormContext<IrlGatheringFormData>();
@@ -57,6 +62,22 @@ export function AdditionalDetailsSection({
       }
     }
   }, [teams, defaultTeamUid, selectedTeam, setValue]);
+
+  // Prefill telegram handle when member data is loaded
+  useEffect(() => {
+    if (telegramHandle) {
+      // Format telegram handle with @ prefix if not already present
+      const formatted = telegramHandle.startsWith('@') ? telegramHandle : `@${telegramHandle}`;
+      setValue('telegramHandle', formatted);
+    }
+  }, [telegramHandle, setValue]);
+
+  // Prefill office hours when member data is loaded
+  useEffect(() => {
+    if (officeHours) {
+      setValue('officeHours', officeHours);
+    }
+  }, [officeHours, setValue]);
 
   const toggleExpanded = () => {
     setIsExpanded((prev) => !prev);
@@ -116,6 +137,28 @@ export function AdditionalDetailsSection({
               />
             </div>
           )}
+
+          {/* Telegram Handle */}
+          <div className={s.contactInfoFieldWrapper}>
+            <div className={s.contactInfoLabelRow}>
+              <span className={s.contactInfoLabel}>Telegram handle</span>
+              <span className={s.contactInfoPrefilled}>(Prefilled)</span>
+            </div>
+            <FormField name="telegramHandle" placeholder="@username" />
+          </div>
+
+          {/* Office Hours */}
+          <div className={s.contactInfoFieldWrapper}>
+            <div className={s.contactInfoLabelRow}>
+              <span className={s.contactInfoLabel}>Office Hours</span>
+              <span className={s.contactInfoPrefilled}>(Prefilled)</span>
+            </div>
+            <FormField
+              name="officeHours"
+              placeholder="https://calendly.com/your-link"
+              description="I will be available for a short 1:1 call to connect — no introduction needed."
+            />
+          </div>
         </div>
       )}
     </div>

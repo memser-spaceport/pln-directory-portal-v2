@@ -12,7 +12,6 @@ import {
   EventsSection,
   PlanningSection,
   AdditionalDetailsSection,
-  ContactInfoSection,
   ModalFooter,
   DatePickerView,
   TopicsPickerView,
@@ -26,7 +25,14 @@ import { useMember } from '@/services/members/hooks/useMember';
 
 export type { IrlGatheringModalProps, IrlGatheringFormData } from './types';
 
-export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick, isEditMode = false, editModeData }: IrlGatheringModalProps) {
+export function IrlGatheringModal({
+  isOpen,
+  onClose,
+  notification,
+  onGoingClick,
+  isEditMode = false,
+  editModeData,
+}: IrlGatheringModalProps) {
   const gatheringData = useIrlGatheringData(notification);
   const { userInfo } = getCookiesFromClient();
   const defaultTeamUid = userInfo?.leadingTeams?.[0];
@@ -48,18 +54,20 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick,
     }
 
     // Build selected team option
-    const selectedTeam = editModeData.teamUid && editModeData.teamName
-      ? { value: editModeData.teamUid, label: editModeData.teamName }
-      : undefined;
+    const selectedTeam =
+      editModeData.teamUid && editModeData.teamName
+        ? { value: editModeData.teamUid, label: editModeData.teamName }
+        : undefined;
 
     // Build selected event UIDs and roles
     const selectedEventUids = editModeData.events?.map((e) => e.uid) || [];
-    const eventRoles: EventRoleSelection[] = editModeData.events?.map((e) => {
-      const roles: ('Attendee' | 'Speaker' | 'Host')[] = ['Attendee'];
-      if (e.isHost) roles.push('Host');
-      if (e.isSpeaker) roles.push('Speaker');
-      return { eventUid: e.uid, roles };
-    }) || [];
+    const eventRoles: EventRoleSelection[] =
+      editModeData.events?.map((e) => {
+        const roles: ('Attendee' | 'Speaker' | 'Host')[] = ['Attendee'];
+        if (e.isHost) roles.push('Host');
+        if (e.isSpeaker) roles.push('Speaker');
+        return { eventUid: e.uid, roles };
+      }) || [];
 
     return {
       topics: editModeData.topics || [],
@@ -200,11 +208,12 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick,
 
             <EventsSection events={gatheringData.events} locationName={gatheringData.locationName} />
 
-            <AdditionalDetailsSection teams={data?.teams || []} defaultTeamUid={defaultTeamUid} />
-
-            <ContactInfoSection
+            <AdditionalDetailsSection
+              teams={data?.teams || []}
+              defaultTeamUid={defaultTeamUid}
               telegramHandle={memberData?.memberInfo?.telegramHandle}
               officeHours={memberData?.memberInfo?.officeHours}
+              defaultExpanded={false}
             />
           </div>
 

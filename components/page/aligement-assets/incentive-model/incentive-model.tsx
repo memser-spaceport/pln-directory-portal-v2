@@ -1014,8 +1014,9 @@ export default function IncentiveModel() {
           height: 600px;
           position: relative;
           overflow: visible;
-          padding: 30px 25px 25px 50px;
+          padding: 0px 25px 25px 50px;
           box-sizing: border-box;
+          margin-top: -40px;
           /* CSS Custom Properties - Default values (desktop) */
           --chart-outer-radius: 70%;
           --chart-height: 600;
@@ -1133,12 +1134,14 @@ export default function IncentiveModel() {
             width: 100%;
             max-width: 100%;
             height: 500px;
-            padding: 25px 20px 20px 30px;
+            margin-top: 0px;
+            padding: 0px 20px 0px 30px;
             --chart-outer-radius: 60%;
             --chart-height: 500;
             --chart-label-font-size: 13;
             --chart-label-offset: 22;
             --chart-tick-font-size: 13;
+            margin-top: -20px;
           }
 
           .incentive-model__explanation-wrapper {
@@ -1150,7 +1153,8 @@ export default function IncentiveModel() {
         @media (max-width: 1024px) {
           .incentive-model__chart-wrapper {
             height: 500px;
-            padding: 25px 20px 20px 30px;
+            margin-top: 0px;
+            padding: 0px 20px 0px 30px;
             --chart-outer-radius: 60%;
             --chart-height: 500;
             --chart-label-font-size: 13;
@@ -1203,7 +1207,8 @@ export default function IncentiveModel() {
 
           .incentive-model__chart-wrapper {
             height: 450px;
-            padding: 20px 15px 15px 25px;
+            margin-top: 0px;
+            padding: 0px 15px 0px 25px;
             min-width: 100%;
             --chart-outer-radius: 55%;
             --chart-height: 450;
@@ -1243,7 +1248,8 @@ export default function IncentiveModel() {
           .incentive-model__chart-wrapper {
             min-width: 100%;
             height: 400px;
-            padding: 18px 12px 12px 20px;
+            margin-top: 0px;
+            padding: 0px 12px 0px 20px;
             --chart-outer-radius: 50%;
             --chart-height: 400;
             --chart-label-font-size: 11;
@@ -1265,7 +1271,7 @@ export default function IncentiveModel() {
         @media (max-width: 360px) {
           .incentive-model__chart-wrapper {
             height: 350px;
-            padding: 15px 10px 10px 18px;
+            padding: 0px 10px 0px 18px;
             --chart-outer-radius: 45%;
             --chart-height: 350;
             --chart-label-font-size: 10;

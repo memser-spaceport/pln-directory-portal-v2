@@ -91,7 +91,7 @@ export default function SupportSection() {
         }
 
         .support-section__text {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 500;
           line-height: 20px;
           color: #475569;

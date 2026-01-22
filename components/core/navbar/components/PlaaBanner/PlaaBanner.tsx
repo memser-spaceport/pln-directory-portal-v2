@@ -1,128 +1,313 @@
 'use client';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
 import { useCarousel } from '@/hooks/use-embla-carousel';
 
-import s from './PlaaBanner.module.scss';
+import styles from './PlaaBanner.module.scss';
 
-interface TextSegment {
-  text: string;
-  link?: string;
+type BannerType = 'event' | 'bonus';
+
+interface BannerButton {
+  label: string;
+  link: string;
+  variant: 'primary' | 'secondary';
 }
 
 interface BannerContent {
   id: string;
-  segments: TextSegment[];
+  type: BannerType;
+  title: string;
+  subtitle: string;
+  highlightText?: string;
+  date: string;
+  buttons: BannerButton[];
 }
 
-// Add your banner contents here
-// Each segment can have optional link - text without link renders as plain text
-const BANNER_CONTENTS: BannerContent[] = [
+// Shared Confirm Referral link for all bonus-lead items
+const CONFIRM_REFERRAL_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSfuDNC7fGLc5TMhSh1g6IpTXzOkS8Ie-I1QbIxOdqefUKSt3g/viewform';
+
+// Banner data
+export const BANNER_CONTENTS: BannerContent[] = [
   {
-    id: 'talent-referral',
-    segments: [
-      { text: 'Bonus Points Multiplier for Referring Key Roles: Collect 2× – 3× points on ' },
-      { text: 'Talent Referral Program submissions', link: 'https://docs.google.com/forms/d/e/1FAIpQLSfuDNC7fGLc5TMhSh1g6IpTXzOkS8Ie-I1QbIxOdqefUKSt3g/viewform' },
-      { text: ' for ' },
-      { text: 'Product Manager', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/59154950-product-manager-labos-modularization' },
-      { text: ', ' },
-      { text: 'Product Lead', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/47068372-product-manager-alignment-asset' },
-      { text: ', ' },
-      { text: 'Network Product Lead', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/60401144-network-product-lead-polaris' },
-      { text: ', ' },
-      { text: 'Events Lead', link: ' https://jobs.protocol.ai/companies/pl-job-board/jobs/61984015-events-lead#content' },
-      { text: ', and ' },
-      { text: 'Network Scientist', link: ' https://jobs.protocol.ai/companies/pl-job-board/jobs/60969057-network-scientist-polaris#content' },
-      { text: ' roles. Submit by Jan 31, 2026.' },
+    id: 'bonus-product-manager',
+    type: 'bonus',
+    title: 'Bonus Points Multiplier: Product Manager',
+    subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
+    highlightText: '2×–3×',
+    date: 'Submit by Jan 31, 2026',
+    buttons: [
+      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/59154950-product-manager-labos-modularization', variant: 'primary' },
+      { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
+    ],
+  },
+  {
+    id: 'bonus-product-lead',
+    type: 'bonus',
+    title: 'Bonus Points Multiplier: Product Lead',
+    subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
+    highlightText: '2×–3×',
+    date: 'Submit by Jan 31, 2026',
+    buttons: [
+      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/47068372-product-manager-alignment-asset', variant: 'primary' },
+      { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
+    ],
+  },
+  {
+    id: 'bonus-network-product-lead',
+    type: 'bonus',
+    title: 'Bonus Points Multiplier: Network Product Lead',
+    subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
+    highlightText: '2x-3x',
+    date: 'Submit by Jan 31, 2026',
+    buttons: [
+      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/60401144-network-product-lead-polaris', variant: 'primary' },
+      { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
+    ],
+  },
+  {
+    id: 'bonus-events-lead',
+    type: 'bonus',
+    title: 'Bonus Points Multiplier: Events Lead',
+    subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
+    highlightText: '2x-3x',
+    date: 'Submit by Jan 31, 2026',
+    buttons: [
+      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/61984015-events-lead#content', variant: 'primary' },
+      { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
+    ],
+  },
+  {
+    id: 'bonus-network-scientist',
+    type: 'bonus',
+    title: 'Bonus Points Multiplier: Network Scientist',
+    subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
+    highlightText: '2x-3x',
+    date: 'Submit by Jan 31, 2026',
+    buttons: [
+      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/60969057-network-scientist-polaris#content', variant: 'primary' },
+      { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
     ],
   },
   {
     id: 'buyback-auction',
-    segments: [
-      { text: 'Upcoming: Buyback Auction - February 19 - 26' }
+    type: 'event',
+    title: 'Upcoming Event',
+    subtitle: 'Buyback Auction Q1 2026',
+    date: 'February 19 - 26',
+    buttons: [
+      // { label: 'Learn More', link: 'https://protocol.ai', variant: 'secondary' },
     ],
   },
 ];
 
-/**
- * PlaaBanner - Announcement banner carousel for alignment-asset pages only
- * Shows PLAA-specific announcements on alignment-asset routes with auto-rotating carousel
- * Supports rich text with multiple inline links per announcement
- */
-export function PlaaBanner() {
+interface PlaaBannerProps {
+  variant?: 'desktop' | 'mobile';
+}
+
+export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
   const pathname = usePathname();
-  const { emblaRef, activeIndex, scrollPrev, scrollNext } = useCarousel({
+  const [isCompact, setIsCompact] = useState(false);
+  const bannerRef = useRef<HTMLDivElement>(null);
+  
+  // Desktop carousel
+  const desktopCarousel = useCarousel({
     loop: true,
-    align: 'center',
+    align: 'start',
+  });
+  
+  // Mobile carousel with drag/swipe enabled
+  const mobileCarousel = useCarousel({
+    loop: true,
+    align: 'start',
+    dragFree: false,
   });
 
-  // Show banner only on alignment-asset pages
+  // Intersection Observer to detect when banner becomes "stuck"
+  // We observe a sentinel placed BEFORE the mobile banner wrapper
+  useEffect(() => {
+    if (variant !== 'mobile') return;
+
+    // Find the mobile banner wrapper in the layout
+    const bannerWrapper = document.querySelector('[class*="plaa__mobile-banner"]');
+    if (!bannerWrapper) return;
+
+    // Create sentinel and place it BEFORE the banner wrapper
+    const sentinel = document.createElement('div');
+    sentinel.id = 'plaa-scroll-sentinel';
+    sentinel.style.cssText = 'height: 1px; width: 100%; pointer-events: none;';
+    bannerWrapper.parentNode?.insertBefore(sentinel, bannerWrapper);
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // When sentinel exits viewport (scrolled past), show compact
+        setIsCompact(!entry.isIntersecting);
+      },
+      {
+        root: null,
+        rootMargin: `-${getComputedStyle(document.documentElement).getPropertyValue('--app-header-height') || '64px'} 0px 0px 0px`,
+        threshold: 0,
+      }
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+      sentinel.remove();
+    };
+  }, [variant]);
+
   if (!pathname?.includes('alignment-asset')) {
     return null;
   }
 
-  const showNavigation = BANNER_CONTENTS.length > 1;
+  const totalSlides = BANNER_CONTENTS.length;
 
-  return (
-    <HighlightsBar variant="plaa">
-      <div className={s.root}>
-        {showNavigation && (
-          <button
-            className={`${s.arrow} ${s.arrowLeft}`}
-            onClick={scrollPrev}
-            aria-label="Previous announcement"
-          >
-            ‹
+  // Desktop variant
+  if (variant === 'desktop') {
+    return (
+      <HighlightsBar variant="plaa">
+        <div className={styles.banner}>
+          {/* Left Arrow - far left */}
+          <button className={styles.navBtnLeft} onClick={desktopCarousel.scrollPrev} aria-label="Previous">
+            <Image src="/icons/chevron-left-white.svg" alt="" width={16} height={16} />
           </button>
-        )}
 
-        <div className={s.bannerContent}>
-          <div className={s.carousel} ref={emblaRef}>
-            <div className={s.container}>
-              {BANNER_CONTENTS.map((content) => (
-                <div key={content.id} className={s.slide}>
-                  <p className={s.text}>
-                    {content.segments.map((segment, idx) =>
-                      segment.link ? (
-                        <a key={idx} target="_blank" href={segment.link} className={s.link}>
-                          {segment.text}
+          {/* Center Content */}
+          <div className={styles.centerContent}>
+            {/* Embla Carousel */}
+            <div className={styles.emblaViewport} ref={desktopCarousel.emblaRef}>
+              <div className={styles.emblaContainer}>
+                {BANNER_CONTENTS.map((item) => (
+                  <div key={item.id} className={styles.emblaSlide}>
+                    {/* Icon */}
+                    <div className={styles.iconBox}>
+                      <Image
+                        src={item.type === 'event' ? '/icons/calendar-white.svg' : '/icons/zap-yellow.svg'}
+                        alt=""
+                        width={24}
+                        height={24}
+                      />
+                    </div>
+
+                    {/* Text */}
+                    <div className={styles.textArea}>
+                      <p className={styles.title}>{item.title}</p>
+                      <div className={styles.subtitle}>
+                        <span>
+                          {item.type === 'bonus' && item.highlightText ? (
+                            <>
+                              Bonus Points Multiplier <span className={styles.highlight}>{item.highlightText}</span> on Key Talent Referrals
+                            </>
+                          ) : (
+                            item.subtitle
+                          )}
+                        </span>
+                        <span className={styles.separator} />
+                        <span>{item.date}</span>
+                      </div>
+                    </div>
+
+                    {/* Buttons */}
+                    <div className={styles.buttons}>
+                      {item.buttons.map((btn, i) => (
+                        <a
+                          key={i}
+                          href={btn.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={btn.variant === 'primary' ? styles.btnPrimary : styles.btnSecondary}
+                        >
+                          {btn.label}
                         </a>
-                      ) : (
-                        <span key={idx}>{segment.text}</span>
-                      )
-                    )}
-                  </p>
-                </div>
-              ))}
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        {showNavigation && (
-          <button
-            className={`${s.arrow} ${s.arrowRight}`}
-            onClick={scrollNext}
-            aria-label="Next announcement"
-          >
-            ›
+          {/* Pagination */}
+          <span className={styles.pagination}>{desktopCarousel.activeIndex + 1}/{totalSlides}</span>
+
+          {/* Right Arrow - far right */}
+          <button className={styles.navBtnRight} onClick={desktopCarousel.scrollNext} aria-label="Next">
+            <Image src="/icons/chevron-right-white.svg" alt="" width={16} height={16} />
           </button>
-        )}
+        </div>
+      </HighlightsBar>
+    );
+  }
 
-        {showNavigation && (
-          <div className={s.indicators}>
-            {BANNER_CONTENTS.map((_, index) => (
-              <span
-                key={index}
-                className={`${s.indicator} ${index === activeIndex ? s.active : ''}`}
-                aria-label={`Slide ${index + 1}${index === activeIndex ? ' (current)' : ''}`}
-              >
-                {index === activeIndex ? '—' : '•'}
-              </span>
-            ))}
-          </div>
-        )}
+  // Mobile variant
+  return (
+    <div 
+      ref={bannerRef}
+      className={`${styles.mobileBanner} ${isCompact ? styles.mobileBannerCompact : ''}`}
+    >
+      {/* Dots - always visible, positioned at top in compact mode */}
+      <div className={styles.dotsWrapper}>
+        <div className={styles.dots}>
+          {BANNER_CONTENTS.map((_, i) => (
+            <span key={i} className={`${styles.dot} ${i === mobileCarousel.activeIndex ? styles.dotActive : ''}`} />
+          ))}
+        </div>
       </div>
-    </HighlightsBar>
+
+      {/* Single carousel - always mounted for consistent swipe */}
+      <div className={styles.mobileEmblaViewport} ref={mobileCarousel.emblaRef}>
+        <div className={styles.mobileEmblaContainer}>
+          {BANNER_CONTENTS.map((item) => (
+            <div key={item.id} className={styles.mobileEmblaSlide}>
+              {/* Title - always visible */}
+              <p className={styles.mobileTitle}>{item.title}</p>
+              
+              {/* Content hidden in compact mode */}
+              <div className={styles.mobileHideOnCompact}>
+                <div className={styles.mobileTextGroup}>
+                  <p className={styles.mobileSubtitle}>
+                    {item.type === 'bonus' && item.highlightText ? (
+                      <>
+                        Bonus Points Multiplier <span className={styles.highlight}>{item.highlightText}</span> on Key Talent Referrals
+                      </>
+                    ) : (
+                      item.subtitle
+                    )}
+                  </p>
+                  <p className={styles.mobileDate}>{item.date}</p>
+                </div>
+                <div className={styles.mobileButtons}>
+                  {item.buttons.map((btn, i) => (
+                    <a
+                      key={i}
+                      href={btn.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={btn.variant === 'primary' ? styles.mobileBtnPrimary : styles.mobileBtnSecondary}
+                    >
+                      {btn.label}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Pagination with dots - bottom right in full mode */}
+      <div className={styles.mobilePaginationFixed}>
+        <span className={styles.paginationText}>{mobileCarousel.activeIndex + 1}/{totalSlides}</span>
+        <div className={styles.dots}>
+          {BANNER_CONTENTS.map((_, i) => (
+            <span key={i} className={`${styles.dot} ${i === mobileCarousel.activeIndex ? styles.dotActive : ''}`} />
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }

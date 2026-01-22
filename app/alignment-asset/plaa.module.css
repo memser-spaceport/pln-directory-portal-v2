@@ -14,17 +14,21 @@
 
 /* --------------------------------------------------------------------------
      Element: plaa__backbtn
-     Mobile back button (hidden on desktop)
+     Mobile back button - HIDDEN on mobile, only shown on desktop (then hidden via media query)
      -------------------------------------------------------------------------- */
 .plaa__backbtn {
-  position: fixed;
-  top: calc(var(--app-header-height) + 56px); /* Navbar + Banner height */
-  left: 0;
-  right: 0;
+  display: none; /* Hidden on mobile */
+}
+
+/* --------------------------------------------------------------------------
+     Element: plaa__mobile-banner
+     Mobile banner container - Sticky at top when scrolled
+     -------------------------------------------------------------------------- */
+.plaa__mobile-banner {
+  position: sticky;
+  top: var(--app-header-height, 64px);
   width: 100%;
-  height: 48px;
-  z-index: 3;
-  background-color: var(--plaa-neutral-white);
+  z-index: 10;
 }
 
 /* --------------------------------------------------------------------------
@@ -34,8 +38,9 @@
 .plaa__main {
   display: flex;
   width: 100%;
-  min-height: calc(100vh - var(--app-header-height) - 56px); /* Navbar + Banner */
-  padding-top: calc(56px + 48px); /* Banner + Mobile back btn height */
+  min-height: calc(100vh - var(--app-header-height));
+  /* Mobile: No padding-top needed since banner is in normal flow */
+  padding-top: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -190,8 +195,12 @@
 /* --------------------------------------------------------------------------
      Responsive Styles
      -------------------------------------------------------------------------- */
-@media (min-width: 1024px) {
+@media (min-width: 960px) {
   .plaa__backbtn {
+    display: none;
+  }
+
+  .plaa__mobile-banner {
     display: none;
   }
 
@@ -202,6 +211,8 @@
 
   .plaa__sidebar {
     display: block;
+    top: calc(var(--app-header-height) + 80px); /* Navbar + Desktop Banner */
+    height: calc(100vh - var(--app-header-height) - 80px);
   }
 
   .plaa__content {

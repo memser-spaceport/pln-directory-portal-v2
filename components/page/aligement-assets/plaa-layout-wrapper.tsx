@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import PlaaMenu, { PlaaActiveItem } from './plaa-menu';
 import PlaaBackButton from './plaa-back-btn';
+import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
 import styles from '@/app/alignment-asset/plaa.module.css';
 
 interface PlaaLayoutWrapperProps {
@@ -24,8 +25,8 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem | undefined
     }
   }
   
-  // Check if on main rounds page (e.g., /alignment-asset/rounds)
-  if (pathSegment === 'rounds') {
+  // Check if on main alignment-asset page (current round) or /alignment-asset/rounds (legacy)
+  if (pathSegment === 'alignment-asset' || pathSegment === 'rounds') {
     return { activeItem: undefined, title: 'Rounds', viewingRound: undefined };
   }
   
@@ -64,6 +65,11 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
       {/* Mobile Back Button (hidden on desktop) */}
       <div className={styles.plaa__backbtn}>
         <PlaaBackButton title={title} />
+      </div>
+
+      {/* Mobile Banner - positioned inside layout, hidden on desktop */}
+      <div className={styles['plaa__mobile-banner']}>
+        <PlaaBanner variant="mobile" />
       </div>
 
       {/* Main Layout */}

@@ -84,11 +84,12 @@ const Overview = () => {
   const [buttonState, setButtonState] = useState<'start' | 'floating' | 'end'>('start');
   const triggerRef = useRef<HTMLDivElement>(null);
   const secondButtonRef = useRef<HTMLDivElement>(null);
+  const initialButtonRef = useRef<HTMLButtonElement>(null);
   const { onOverviewCreateAccountClicked, onOverviewWaitlistFormClicked, onOverviewLearnMoreClicked, onOverviewFaqLinkClicked } = useAlignmentAssetsAnalytics();
   useScrollDepthTracking('overview');
 
   useEffect(() => {
-    let isTriggerOutOfView = false;
+    let isButtonOutOfView = false;
     let isSecondButtonVisible = false;
     let updateTimeout: NodeJS.Timeout | null = null;
 
@@ -100,9 +101,9 @@ const Overview = () => {
 
       // Add a small delay to debounce rapid scroll events
       updateTimeout = setTimeout(() => {
-        if (!isTriggerOutOfView) {
+        if (!isButtonOutOfView) {
           setButtonState('start');
-        } else if (isTriggerOutOfView && !isSecondButtonVisible) {
+        } else if (isButtonOutOfView && !isSecondButtonVisible) {
           setButtonState('floating');
         } else if (isSecondButtonVisible) {
           setButtonState('end');
@@ -110,15 +111,23 @@ const Overview = () => {
       }, 50);
     };
 
-    const triggerObserver = new IntersectionObserver(
+    // Observer to track when the actual button scrolls out of view (below viewport)
+    const buttonObserver = new IntersectionObserver(
       ([entry]) => {
-        // When the trigger element is NOT visible, mark as out of view
-        isTriggerOutOfView = !entry.isIntersecting;
+        // Check if button is completely out of view below the viewport
+        // entry.boundingClientRect.top > window.innerHeight means button is below viewport
+        const rect = entry.boundingClientRect;
+        const isBelowViewport = rect.top > window.innerHeight;
+        const isAboveViewport = rect.bottom < 0;
+        
+        // Button is out of view only when it's below the viewport (scrolled down past it)
+        // Not when it's above viewport (scrolled back up)
+        isButtonOutOfView = isBelowViewport && !entry.isIntersecting;
         updateButtonState();
       },
       {
-        threshold: [0, 0.1],
-        rootMargin: '-50px 0px 0px 0px',
+        threshold: 0,
+        rootMargin: '0px',
       }
     );
 
@@ -134,8 +143,9 @@ const Overview = () => {
       }
     );
 
-    if (triggerRef.current) {
-      triggerObserver.observe(triggerRef.current);
+    // Observe the actual button element when it's rendered
+    if (initialButtonRef.current) {
+      buttonObserver.observe(initialButtonRef.current);
     }
 
     if (secondButtonRef.current) {
@@ -146,8 +156,8 @@ const Overview = () => {
       if (updateTimeout) {
         clearTimeout(updateTimeout);
       }
-      if (triggerRef.current) {
-        triggerObserver.unobserve(triggerRef.current);
+      if (initialButtonRef.current) {
+        buttonObserver.unobserve(initialButtonRef.current);
       }
       if (secondButtonRef.current) {
         secondButtonObserver.unobserve(secondButtonRef.current);
@@ -177,7 +187,7 @@ const Overview = () => {
       <div className="overview">
         <div className="overview__content">
           <div className="overview__content__title overview__section-title">
-            <p>What if every company in the network could share in each other&apos;s success?</p>
+            <p className="overview__content__title__paragraph">What if every company in the network could share in each other&apos;s success?</p>
             <span className="overview__content__title__span">That&apos;s the idea behind the PL Alignment Asset:</span>
           </div>
 
@@ -189,11 +199,9 @@ const Overview = () => {
             ))}
           </div>
 
-          {/* Trigger element - when this scrolls out of view, show floating button */}
-          <div ref={triggerRef} className="overview__floating-trigger" />
-
           {buttonState === 'start' && (
             <motion.button
+              ref={initialButtonRef}
               layoutId="create-account-button"
               className="overview__content__button"
               onClick={() => handleAccountClick('start')}
@@ -211,6 +219,9 @@ const Overview = () => {
               <span>Create Your Account</span>
             </motion.button>
           )}
+          
+          {/* Trigger element - placeholder for potential future use */}
+          <div ref={triggerRef} className="overview__floating-trigger" />
         </div>
 
         <div className="overview__content__why">
@@ -304,8 +315,11 @@ const Overview = () => {
           </div>
           <div className="overview__content__how__learn-more-wrapper">
             <div className="overview__content__how__learn-more">
-              <span className="overview__content__how__learn-more__text">Learn more:</span> Read the{' '}
+              <span className="overview__content__how__learn-more__text">Learn more:</span>
+              <p>
+              Read the{' '}
               <a href="/alignment-asset/faqs" className="overview__content__text__link" onClick={handleFaqLinkClick}>FAQ</a> for details on contributions, points, and tokens.
+              </p>
             </div>
           </div>
         </div>
@@ -399,25 +413,32 @@ const Overview = () => {
           .overview__content__title {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
           }
 
           .overview__section-title {
             font-weight: 600;
-            font-size: 24px;
+            font-size: 18px;
             line-height: 100%;
             color: #0f172a;
           }
 
+          .overview__content__title__paragraph{
+            font-weight: 600;
+            font-size: 20px;
+            line-height: 28px;
+          }
+
           .overview__content__title__span {
             font-weight: 400;
-            font-size: 16px;
+            font-size: 14px;
             line-height: 20px;
-            color: #475569;
+            color:rgba(71, 85, 105, 1)
           }
 
           .overview__content__description {
             display: flex;
+            flex-direction:column;
             gap: 16px;
             font-weight: 400;
             font-size: 14px;
@@ -429,10 +450,10 @@ const Overview = () => {
             display: flex;
             align-items: center;
             flex: 1;
-            // width: 394px;
             border-radius: 12px;
             padding: 24px;
             background-color: #f8fafc;
+            border: 1px solid rgba(219, 234, 254, 1);
           }
 
           .overview__content__button {
@@ -458,19 +479,17 @@ const Overview = () => {
 
           .overview__content__why__description {
             display: flex;
-            // flex-wrap: wrap;
+            flex-direction: column;
             gap: 16px;
-            text-align: center;
           }
 
           .overview__content__why__description__item {
             display: flex;
             flex-direction: column;
             flex: 1;
-            // width: 280.75px;
             border-radius: 12px;
             border: 1px solid #dbeafe;
-            padding: 24px;
+            padding: 20px;
             background-color: #ffffff;
             font-weight: 600;
             font-size: 14px;
@@ -480,11 +499,6 @@ const Overview = () => {
 
           .overview__content__why__description__item p {
             font-weight: 400;
-          }
-
-          .overview__content__who {
-            display: flex;
-            gap: 24px;
           }
 
           .overview__content__who__header {
@@ -502,7 +516,7 @@ const Overview = () => {
           .overview__content__who__header__content__description {
             font-weight: 400;
             font-size: 14px;
-            line-height: 30px;
+            line-height: 20px;
             color: #475569;
           }
 
@@ -536,7 +550,7 @@ const Overview = () => {
           .overview__content__who__details {
             margin-top: 30px;
             border-radius: 16px;
-            padding: 24px;
+            padding: 10px 20px;
             align-self: flex-start;
             border: 1px solid transparent;
             background:
@@ -545,8 +559,9 @@ const Overview = () => {
           }
 
           .overview__content__who__details__title {
-            font-size: 20px;
+            font-size: 18px;
             line-height: 39px;
+            font-weight: 600;
             background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -665,12 +680,12 @@ const Overview = () => {
           .overview__content__how__learn-more {
             display: inline-block;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 14px;
             line-height: 20px;
             color: #475569;
             text-align: center;
-            border-radius: 100px;
-            padding: 16px 22px;
+            border-radius: 30px;
+            padding: 10px;
             border: 1.5px solid transparent;
             background:
               linear-gradient(white, white) padding-box,
@@ -679,6 +694,7 @@ const Overview = () => {
 
           .overview__content__how__learn-more__text {
             color: #0f172a;
+            font-size: 14px;
           }
 
           .overview__content__text__link {
@@ -702,14 +718,14 @@ const Overview = () => {
 
           .overview__content__signup__header__description {
             font-weight: 400;
-            font-size: 16px;
+            font-size: 14px;
             line-height: 22px;
             color: #475569;
           }
 
           .overview__floating-trigger {
             position: absolute;
-            top: 200px;
+            top: 580px;
             height: 1px;
             width: 1px;
             pointer-events: none;
@@ -780,15 +796,50 @@ const Overview = () => {
             transition: max-width 0.35s ease 0.05s, opacity 0.3s ease 0.1s;
           }
 
+          @media (min-width: 480px) {
+            .overview__floating-trigger {
+              top: 500px;
+            }
+          }
+
+          @media(min-width: 768px) {
+            .overview__content__title {
+              gap: 8px;
+             }
+            .overview__content__description, .overview__content__why__description {
+              flex-direction: row;
+            }
+            .overview__section-title {
+              font-size: 24px;
+            }
+            .overview__content__who {
+              display: flex;
+              gap: 24px;
+            }
+            .overview__content__who__header__content__description {
+              line-height: 30px;
+            }
+            .overview__content__who__details {
+              padding: 24px;
+            }
+
+            .overview__floating-trigger {
+              top: 350px;
+            }
+          }
+
           @media (min-width: 1024px) {
             .overview__content__how__row {
               flex-wrap: nowrap;
             }
+            .overview__floating-trigger {
+              top: 300px;
+            }
           }
 
           @media (max-width: 1023px) {
-            .overview__content__who, .overview__content__description, .overview__content__why__description {
-              flex-wrap: wrap;
+            .overview__content__who, {
+              // flex-wrap: wrap;
             }
           }
         `}

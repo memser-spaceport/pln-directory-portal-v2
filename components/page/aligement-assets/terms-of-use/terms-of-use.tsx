@@ -442,10 +442,11 @@ export default function TermsOfUsePage() {
         }
 
         .terms-of-use__header__title {
-          font-size: 16px;
           font-weight: 600;
-          line-height: 40px;
+          font-size: 20px;
+          line-height: 28px;
           color: #000000;
+          margin-bottom: 8px;
         }
 
         .terms-of-use__header__date {
@@ -539,8 +540,10 @@ export default function TermsOfUsePage() {
         }
 
         .terms-of-use__overview__paragraph, .terms-of-use__content__paragraph {
-          font-size: 15px;
-          line-height: 24px;
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 20px;
+          letter-spacing: 0%;
           color: rgba(71, 85, 105, 1);
           margin: 0 0 16px 0;
         }
@@ -557,10 +560,15 @@ export default function TermsOfUsePage() {
           .terms-of-use__header__title {
             font-size: 24px;
             line-height: 48px;
+            margin-bottom: 0px;
           }
 
           .terms-of-use__container {
             padding: 32px;
+          }
+
+          .terms-of-use__header {
+            margin-bottom: 40px;
           }
 
           .terms-of-use__container__section__button {

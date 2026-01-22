@@ -1,0 +1,1 @@
+export { ForumExcerpt } from './ForumExcerpt';

@@ -1,0 +1,14 @@
+.cardsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loading,
+.empty {
+  padding: 24px;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

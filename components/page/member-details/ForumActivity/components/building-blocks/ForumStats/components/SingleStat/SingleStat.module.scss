@@ -1,0 +1,17 @@
+.root {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

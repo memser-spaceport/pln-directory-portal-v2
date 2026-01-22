@@ -11,6 +11,7 @@ export * from './SearchIcon';
 export * from './CommentIcon';
 export * from './PushPinIcon';
 export * from './SpinnerIcon';
+export * from './ThumbsUpIcon';
 export * from './CalendarIcon';
 export * from './ArrowBackIcon';
 export * from './UsersThreeIcon';

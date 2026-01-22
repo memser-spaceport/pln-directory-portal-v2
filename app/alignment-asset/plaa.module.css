@@ -13,22 +13,27 @@
 }
 
 /* --------------------------------------------------------------------------
-     Element: plaa__backbtn
-     Mobile back button - HIDDEN on mobile, only shown on desktop (then hidden via media query)
+     Element: plaa__menuBtn
+     Mobile menu button - Bottom right floating button (hidden on desktop)
      -------------------------------------------------------------------------- */
-.plaa__backbtn {
-  display: none; /* Hidden on mobile */
-}
-
-/* --------------------------------------------------------------------------
-     Element: plaa__mobile-banner
-     Mobile banner container - Sticky at top when scrolled
-     -------------------------------------------------------------------------- */
-.plaa__mobile-banner {
-  position: sticky;
-  top: var(--app-header-height, 64px);
-  width: 100%;
-  z-index: 10;
+.plaa__menuBtn {
+  display: none;
+  position: fixed;
+  bottom: 65px; 
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  z-index: 5;
+  background-color: #FFFFFF;
+  border: 1px solid #156FF7;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 2px 6px 0px #0F172A29;
+  transition: all 0.3s ease;
+  color: #156FF7;
 }
 
 /* --------------------------------------------------------------------------
@@ -79,6 +84,91 @@
   max-width: 1170px;
   margin: 0 auto;
   overflow-x: clip;
+}
+
+/* --------------------------------------------------------------------------
+     Mobile Menu Elements
+     -------------------------------------------------------------------------- */
+
+/* Mobile Menu Backdrop - Darkened background overlay */
+.plaa__menuBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  animation: fadeIn 0.3s ease;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Mobile Menu Overlay - Drawer from right side */
+.plaa__menuOverlay {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 268px;
+  background-color: var(--plaa-neutral-white);
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Menu Header - Contains title and close button */
+.plaa__menuHeader {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 16px 0 16px;
+  background-color: var(--plaa-neutral-white);
+  z-index: 1;
+}
+
+
+/* Menu Title */
+.plaa__menuTitle {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  color: #0F172A;
+}
+
+/* Close Button */
+.plaa__menuClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--plaa-icon-dark, #475569);
+  transition: opacity 0.15s ease;
 }
 
 /* --------------------------------------------------------------------------
@@ -218,5 +308,9 @@
   .plaa__content {
     padding: 102px 48px 225px 48px;
     flex: 1;
+  }
+  
+  .plaa__menuBtn {
+    display: none;
   }
 }

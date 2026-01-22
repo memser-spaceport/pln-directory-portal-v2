@@ -7,9 +7,17 @@ interface ModalFooterProps {
   onGoingClick?: () => void;
   isSubmit?: boolean;
   isLoading?: boolean;
+  isEditMode?: boolean;
 }
 
-export function ModalFooter({ onClose, onGoingClick, isSubmit = false, isLoading = false }: ModalFooterProps) {
+export function ModalFooter({ onClose, onGoingClick, isSubmit = false, isLoading = false, isEditMode = false }: ModalFooterProps) {
+  const getButtonText = () => {
+    if (isLoading) {
+      return isEditMode ? 'Saving...' : 'Submitting...';
+    }
+    return isEditMode ? 'Save' : "I'm Going";
+  };
+
   return (
     <div className={s.footer}>
       <button type="button" className={s.cancelButton} onClick={onClose} disabled={isLoading}>
@@ -21,7 +29,7 @@ export function ModalFooter({ onClose, onGoingClick, isSubmit = false, isLoading
         onClick={isSubmit ? undefined : onGoingClick}
         disabled={isLoading}
       >
-        {isLoading ? 'Submitting...' : "I'm Going"}
+        {getButtonText()}
       </button>
     </div>
   );

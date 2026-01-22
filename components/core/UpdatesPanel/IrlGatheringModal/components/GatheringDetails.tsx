@@ -9,16 +9,8 @@ import {
   TwitterIcon,
   WebIcon,
 } from '../icons';
+import { Resource } from '../types';
 import s from '../IrlGatheringModal.module.scss';
-
-interface Resource {
-  icon?: string;
-  link: string;
-  name: string;
-  type: 'social' | 'custom';
-  isPublic: 'true' | 'false';
-  description: string | null;
-}
 
 interface GatheringDetailsProps {
   dateRange: string;

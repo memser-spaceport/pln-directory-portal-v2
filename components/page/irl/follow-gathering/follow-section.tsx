@@ -1,5 +1,5 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS,
   EVENTS,
@@ -9,13 +9,15 @@ import {
 import AllFollowers from './all-followers';
 import Image from 'next/image';
 import FollowButton from './follow-button';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { canUserPerformEditAction, filterUpcomingGatherings } from '@/utils/irl.utils';
 import PresenceRequestSuccess from './presence-request-success';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { getAccessLevel } from '@/utils/auth.utils';
 import Link from 'next/link';
+import { IrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatheringModal';
+import { PushNotification, IrlGatheringMetadata } from '@/types/push-notifications.types';
 interface IFollowSectionProps {
   userInfo: any;
   eventLocationSummary: any;
@@ -49,7 +51,12 @@ const FollowSection = (props: IFollowSectionProps) => {
   const locationEvents = props?.locationEvents;
   const pastEvents = locationEvents?.pastEvents;
   const upcomingEvents = locationEvents?.upcomingEvents ?? [];
-  const totalEvents = type === 'past' ? pastEvents?.length || 0 : upcomingEvents?.length > 0 && type !== 'past' ? upcomingEvents?.length || 0 : (upcomingEvents?.length || 0) + (pastEvents?.length || 0);
+  const totalEvents =
+    type === 'past'
+      ? pastEvents?.length || 0
+      : upcomingEvents?.length > 0 && type !== 'past'
+        ? upcomingEvents?.length || 0
+        : (upcomingEvents?.length || 0) + (pastEvents?.length || 0);
   const filteredGatherings = upcomingEvents.filter((gathering: any) => filterUpcomingGatherings(gathering));
   // Check if user has any upcoming events (events they can edit)
   const userHasUpcomingEvents = updatedUser?.events?.some((event: any) => filterUpcomingGatherings(event)) ?? false;
@@ -67,6 +74,177 @@ const FollowSection = (props: IFollowSectionProps) => {
   const scheduleURL =
     locationEvents?.additionalInfo?.schedule_url ||
     `${process.env.SCHEDULE_BASE_URL}/program?location=${encodeURIComponent(eventLocationSummary.name)}${nearestEventDate ? `&date=${nearestEventDate}` : ''}`;
+
+  // IRL Gathering Modal state
+  const [isIrlGatheringModalOpen, setIsIrlGatheringModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const urlSearchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Auto-open modal if URL contains open-modal=true and remove the param immediately
+  useEffect(() => {
+    const openModal = urlSearchParams.get('open-modal');
+    if (
+      openModal === 'true' &&
+      isUserLoggedIn &&
+      !inPastEvents &&
+      accessLevel === 'advanced' &&
+      !isUserGoing &&
+      !userHasUpcomingEvents &&
+      filteredGatherings?.length > 0
+    ) {
+      // Remove open-modal param from URL before opening modal
+      const params = new URLSearchParams(urlSearchParams.toString());
+      params.delete('open-modal');
+      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+      router.replace(newUrl, { scroll: false });
+
+      setIsIrlGatheringModalOpen(true);
+    }
+  }, [
+    urlSearchParams,
+    isUserLoggedIn,
+    inPastEvents,
+    accessLevel,
+    isUserGoing,
+    userHasUpcomingEvents,
+    filteredGatherings,
+    pathname,
+    router,
+  ]);
+
+  // Build PushNotification object from available data for IrlGatheringModal
+  const irlGatheringNotification = useMemo((): PushNotification => {
+    const events = upcomingEvents || [];
+    const eventDates =
+      events.length > 0
+        ? {
+            start: events.reduce((min: string, e: any) => (!min || e.startDate < min ? e.startDate : min), ''),
+            end: events.reduce((max: string, e: any) => (!max || e.endDate > max ? e.endDate : max), ''),
+          }
+        : { start: '', end: '' };
+
+    const metadata: IrlGatheringMetadata = {
+      ui: {
+        eventSlugs: events.map((e: any) => e.slugURL || e.slug || ''),
+        locationUid: eventLocationSummary?.uid || '',
+      },
+      events: {
+        dates: {
+          start: eventDates.start,
+          end: eventDates.end,
+        },
+        items: events.map((e: any) => ({
+          uid: e.uid || e.id || '',
+          name: e.name || '',
+          slug: e.slugURL || e.slug || '',
+          endDate: e.endDate || '',
+          logoUrl: e.logo || e.logoUrl || null,
+          startDate: e.startDate || '',
+          attendeeCount: e.attendeesCount || 0,
+          telegramId: e.telegramId || null,
+          websiteUrl: e.website || e.websiteUrl || null,
+        })),
+        total: events.length,
+        eventUids: events.map((e: any) => e.uid || e.id || ''),
+      },
+      version: 1,
+      location: {
+        id: eventLocationSummary?.uid || '',
+        flag: eventLocationSummary?.flag || null,
+        icon: null,
+        name: eventLocationSummary?.name || '',
+        country: eventLocationSummary?.country || '',
+        latitude: eventLocationSummary?.latitude || '',
+        timezone: eventLocationSummary?.timezone || '',
+        longitude: eventLocationSummary?.longitude || '',
+        resources: locationEvents?.additionalInfo?.resources || [],
+      },
+      ruleKind: 'IRL_GATHERING',
+      attendees: {
+        total: guestDetails?.totalGuests || 0,
+        topAttendees: (guestDetails?.guests || []).slice(0, 5).map((g: any) => ({
+          imageUrl: g.memberLogo || null,
+          memberUid: g.memberUid || '',
+          displayName: g.memberName || '',
+          eventsCount: g.events?.length || 0,
+        })),
+      },
+      gatheringUid: eventLocationSummary?.uid || '',
+      teams:
+        userInfo?.leadingTeams?.map((teamUid: string) => ({
+          uid: teamUid,
+          name: '',
+          logo: null,
+        })) || [],
+    };
+
+    return {
+      id: `irl-gathering-${eventLocationSummary?.uid || 'unknown'}`,
+      category: 'IRL_GATHERING',
+      title: eventLocationSummary?.name || 'IRL Gathering',
+      description: `Join us at ${eventLocationSummary?.name || 'this gathering'}`,
+      isPublic: true,
+      createdAt: new Date().toISOString(),
+      metadata: metadata as unknown as Record<string, unknown>,
+    };
+  }, [eventLocationSummary, upcomingEvents, guestDetails, locationEvents, userInfo]);
+
+  const handleIrlGatheringModalOpen = useCallback(() => {
+    setIsIrlGatheringModalOpen(true);
+  }, []);
+
+  const handleIrlGatheringModalClose = useCallback(() => {
+    setIsIrlGatheringModalOpen(false);
+    setIsEditMode(false);
+  }, []);
+
+  const handleIrlGatheringSuccess = useCallback(() => {
+    // Refresh the page data after successful submission
+    router.refresh();
+  }, [router]);
+
+  // Build edit mode data from current guest
+  const editModeData = useMemo(() => {
+    if (!updatedUser) return undefined;
+
+    // Try to get dates from additionalInfo first, then fall back to first event's dates
+    let checkInDate = updatedUser.additionalInfo?.checkInDate || '';
+    let checkOutDate = updatedUser.additionalInfo?.checkOutDate || '';
+
+    // If dates not in additionalInfo, try to get from events
+    if ((!checkInDate || !checkOutDate) && updatedUser.events?.length > 0) {
+      const firstEvent = updatedUser.events[0];
+      if (!checkInDate && firstEvent.checkInDate) {
+        checkInDate = firstEvent.checkInDate;
+      }
+      if (!checkOutDate && firstEvent.checkOutDate) {
+        checkOutDate = firstEvent.checkOutDate;
+      }
+    }
+
+    return {
+      guestUid: updatedUser.memberUid, // Using memberUid as guestUid for the API
+      teamUid: updatedUser.teamUid,
+      teamName: updatedUser.teamName,
+      teamLogo: updatedUser.teamLogo,
+      events: updatedUser.events?.map((e: any) => ({
+        uid: e.uid,
+        name: e.name,
+        isHost: e.isHost,
+        isSpeaker: e.isSpeaker,
+      })),
+      additionalInfo: {
+        checkInDate,
+        checkOutDate,
+      },
+      topics: updatedUser.topics,
+      reason: updatedUser.reason,
+      telegramId: updatedUser.telegramId,
+      officeHours: updatedUser.officeHours || '',
+    };
+  }, [updatedUser]);
 
   // Helper functions
   const getFollowProperties = (followers: any[]) => ({
@@ -205,38 +383,9 @@ const FollowSection = (props: IFollowSectionProps) => {
 
   const onEditDetailsClicked = () => {
     analytics.trackSelfEditDetailsClicked(location);
-    const formData = {
-      team: {
-        name: updatedUser?.teamName,
-        logo: updatedUser?.teamLogo,
-        uid: updatedUser?.teamUid,
-      },
-      member: {
-        name: updatedUser?.memberName,
-        logo: updatedUser?.memberLogo,
-        uid: updatedUser?.memberUid,
-      },
-      teamUid: updatedUser?.teamUid,
-      events: updatedUser?.events,
-      teams: updatedUser?.teams?.map((team: any) => {
-        return { ...team, uid: team?.id };
-      }),
-      memberUid: updatedUser?.memberUid,
-      additionalInfo: {
-        checkInDate: updatedUser?.additionalInfo?.checkInDate || '',
-        checkOutDate: updatedUser?.additionalInfo?.checkOutDate ?? '',
-      },
-      topics: updatedUser?.topics,
-      reason: updatedUser?.reason,
-      topicsAndReason: topicsAndReason,
-      telegramId: updatedUser?.telegramId,
-      officeHours: updatedUser?.officeHours ?? '',
-    };
-    document.dispatchEvent(
-      new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {
-        detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT },
-      }),
-    );
+    seIsEdit(false);
+    setIsEditMode(true);
+    setIsIrlGatheringModalOpen(true);
   };
 
   useClickedOutside({
@@ -384,6 +533,19 @@ const FollowSection = (props: IFollowSectionProps) => {
                 </div>
               </div>
             )}
+
+            {/* IRL Gathering Modal Button */}
+            {isUserLoggedIn &&
+              !inPastEvents &&
+              accessLevel === 'advanced' &&
+              !isUserGoing &&
+              !userHasUpcomingEvents &&
+              filteredGatherings?.length > 0 && (
+                <button onClick={handleIrlGatheringModalOpen} className="toolbar__actionCn__imGoingBtn">
+                  I&apos;m Going
+                </button>
+              )}
+
             {isUserLoggedIn &&
               !canUserAddAttendees &&
               type === 'past' &&
@@ -391,16 +553,6 @@ const FollowSection = (props: IFollowSectionProps) => {
               accessLevel === 'advanced' && (
                 <button onClick={() => onIAmGoingClick('mark-presence')} className="toolbar__actionCn__imGoingBtn">
                   Claim Attendance
-                </button>
-              )}
-            {isUserLoggedIn &&
-              !inPastEvents &&
-              accessLevel === 'advanced' &&
-              (!isUserGoing || (isUserGoing && filteredGatherings?.length > 0)) &&
-              !userHasUpcomingEvents &&
-              filteredGatherings?.length > 0 && (
-                <button onClick={() => onIAmGoingClick('upcoming')} className="toolbar__actionCn__imGoingBtn">
-                  I&apos;m Going
                 </button>
               )}
             {!isUserLoggedIn && (
@@ -411,8 +563,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             {isUserGoing &&
               isUserLoggedIn &&
               (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) &&
-              accessLevel === 'advanced' &&
-              userHasUpcomingEvents && (
+              accessLevel === 'advanced' && (
                 <div className="toolbar__actionCn__edit__wrpr">
                   <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
                     <img src="/icons/edit-white.svg" alt="arrow" width={18} height={18} />
@@ -435,6 +586,17 @@ const FollowSection = (props: IFollowSectionProps) => {
         </div>
       </div>
       <PresenceRequestSuccess />
+
+      {/* IRL Gathering Modal */}
+      <IrlGatheringModal
+        isOpen={isIrlGatheringModalOpen}
+        onClose={handleIrlGatheringModalClose}
+        notification={irlGatheringNotification}
+        onGoingClick={handleIrlGatheringSuccess}
+        isEditMode={isEditMode}
+        editModeData={isEditMode ? editModeData : undefined}
+      />
+
       <style jsx>
         {`
           .root__irl__follwcnt {

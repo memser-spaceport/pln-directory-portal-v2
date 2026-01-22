@@ -57,7 +57,7 @@ export function ModalHeader({ gatheringName, gatheringImage, onClose }: ModalHea
           <h2 className={s.title}>{gatheringName}</h2>
         </div>
       </div>
-      <button className={s.closeButton} onClick={onClose} aria-label="Close">
+      <button className={s.closeButton} onClick={onClose} aria-label="Close" type="button">
         <CloseIcon />
       </button>
     </div>

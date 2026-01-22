@@ -233,7 +233,474 @@
   }
 }
 
-// Planning Section - New Card Design
+// Accordion / Collapsible Planning Section
+.accordionContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: white;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.accordionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.accordionHeaderContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.accordionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: #1b4dff;
+}
+
+.accordionTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #0a0c11;
+  flex: 1;
+  min-width: 0;
+}
+
+.accordionCaret {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: #afbaca;
+}
+
+.accordionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// Events Section - Expanded Content
+.eventsExpandedContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.eventsDescription {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eventsDescriptionTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  margin: 0;
+}
+
+.eventsDescriptionSubtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #8897ae;
+  margin: 0;
+}
+
+.eventsSearchContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: white;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.08);
+}
+
+.eventsSearchIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #2d3643;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.eventsSearchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #0a0c11;
+
+  &::placeholder {
+    color: #afbaca;
+  }
+}
+
+.eventsSearchClear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #455468;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    color: #0a0c11;
+  }
+}
+
+.eventsToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.eventsSelectAllBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  background: rgba(14, 15, 17, 0.06);
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.1);
+  }
+}
+
+.eventsSelectedCount {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #8897ae;
+}
+
+.eventsListContainer {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.eventListItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: white;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.06);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.02);
+  }
+}
+
+.eventListItemSelected {
+  background: rgba(27, 77, 255, 0.04);
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.06);
+  }
+}
+
+.eventCheckbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid rgba(14, 15, 17, 0.16);
+  border-radius: 4px;
+  background: rgba(14, 15, 17, 0.04);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.eventCheckboxChecked {
+  background: #1b4dff;
+  border-color: #1b4dff;
+  color: white;
+}
+
+.eventListLogo {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(27, 56, 96, 0.24);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.eventLogoPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: white;
+  color: #0a0c11;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.eventListInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.eventListName {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #455468;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.eventListMeta {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.eventListDescription {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+// Event Role Selector
+.eventRoleSelector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.eventRoleLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.eventRoleBadges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eventRoleBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  background: rgba(27, 77, 255, 0.04);
+  color: #4174ff;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.08);
+  }
+}
+
+.eventRoleBadgeSelected {
+  background: #1b4dff;
+  color: white;
+
+  &:hover {
+    background: #1540cc;
+  }
+}
+
+.eventsEmptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #8897ae;
+}
+
+// Legacy Events Section (kept for compatibility)
+.eventsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.eventCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid rgba(27, 56, 96, 0.06);
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.04);
+    border-color: rgba(27, 77, 255, 0.12);
+  }
+}
+
+.eventCardSelected {
+  background: rgba(27, 77, 255, 0.04);
+  border-color: rgba(27, 77, 255, 0.24);
+}
+
+.eventLogo {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(27, 77, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.eventInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.eventName {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #0a0c11;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.eventMeta {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #8897ae;
+}
+
+// Planning Section - Legacy styles (kept for compatibility)
 .planningContainer {
   display: flex;
   flex-direction: column;
@@ -1138,3 +1605,341 @@
   color: #455468;
 }
 
+// Planning section event tags
+.planningEventsTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.planningEventTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: rgba(27, 56, 96, 0.08);
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #455468;
+}
+
+// Events Picker View Styles
+.eventsPickerModal {
+  background: white;
+  border-radius: 0;
+  width: 100%;
+  max-width: 600px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.06);
+  height: 100%;
+  max-height: 100dvh;
+
+  @include media.tablet-landscape {
+    max-height: 80dvh;
+    border-radius: 24px;
+  }
+}
+
+.eventsPickerContent {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+// Additional Details Section
+.additionalDetailsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+}
+
+.additionalDetailsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.additionalDetailsHeaderContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.additionalDetailsIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1b4dff;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.additionalDetailsTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #0a0c11;
+}
+
+.additionalDetailsCaret {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #afbaca;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.additionalDetailsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.additionalDetailsField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.additionalDetailsLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.additionalDetailsTextareaContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+}
+
+.additionalDetailsTextarea {
+  width: 100%;
+  min-height: 66px;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  resize: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #455468;
+
+  &::placeholder {
+    color: #afbaca;
+  }
+}
+
+.additionalDetailsCharCount {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+// Team Selector Wrapper for FormSelect
+.teamSelectorWrapper {
+  width: 100%;
+}
+
+// Contact Info Section
+.contactInfoContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+}
+
+.contactInfoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.contactInfoHeaderContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.contactInfoIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: #1b4dff;
+}
+
+.contactInfoTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #0a0c11;
+}
+
+.contactInfoCaret {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #afbaca;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.contactInfoContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contactInfoField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contactInfoFieldWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contactInfoLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contactInfoLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.contactInfoPrefilled {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #8897ae;
+}
+
+.contactInfoInputBox {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  background: #f9fafb;
+  border: 1px solid rgba(14, 15, 17, 0.24);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+}
+
+.contactInfoInputValue {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contactInfoInput {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  background: white;
+  border: 1px solid rgba(14, 15, 17, 0.24);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  outline: none;
+  transition: border-color 0.15s ease;
+
+  &::placeholder {
+    color: #afbaca;
+    font-weight: 400;
+  }
+
+  &:hover {
+    border-color: rgba(14, 15, 17, 0.32);
+  }
+
+  &:focus {
+    border-color: #1b4dff;
+  }
+}
+
+.contactInfoHelperText {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}

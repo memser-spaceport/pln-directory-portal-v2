@@ -58,13 +58,17 @@ export default async function Page({ searchParams }: any) {
         <section className={styles.irlGatheings__locations}>
           <IrlLocation locationDetails={locationDetails} searchParams={searchParams} />
           {eventDetails?.resources?.length > 0 && (
-            <div className={`${styles.irlGatherings__additionalResources} ${styles.irlGatherings__additionalResources__web}`}>
+            <div
+              className={`${styles.irlGatherings__additionalResources} ${styles.irlGatherings__additionalResources__web}`}
+            >
               <AddtionalResources eventDetails={eventDetails} searchParams={searchParams} isLoggedIn={isLoggedIn} />
             </div>
           )}
         </section>
         {eventDetails?.resources?.length > 0 && (
-          <section className={`${styles.irlGatherings__additionalResources} ${styles.irlGatherings__additionalResources__mobile}`}>
+          <section
+            className={`${styles.irlGatherings__additionalResources} ${styles.irlGatherings__additionalResources__mobile}`}
+          >
             <AddtionalResources eventDetails={eventDetails} searchParams={searchParams} isLoggedIn={isLoggedIn} />
           </section>
         )}
@@ -232,12 +236,12 @@ const getPageData = async (searchParams: any) => {
     guestDetails.events = { upcomingEvents: eventDetails.upcomingEvents, pastEvents: eventDetails.pastEvents };
 
     guestDetails.currentGuest =
-      !currentGuestResponse?.isError && (currentGuestResponse as any)?.guests?.[0]?.memberUid === userInfo?.uid
+      !events?.isError && (events as any)?.guests?.[0]?.memberUid === userInfo?.uid
         ? (currentGuestResponse as any).guests[0]
         : null;
-    guestDetails.isUserGoing = selectedTypeEvents?.some((event: any) =>
-      loggedInUserEvents?.some((userEvent: any) => userEvent?.uid === event?.uid),
-    );
+
+    guestDetails.isUserGoing = !!guestDetails.currentGuest;
+
     guestDetails.topics = topics;
     guestDetails.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, currentEvents, isLoggedIn, userInfo);
 

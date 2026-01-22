@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { triggerLoader } from '@/utils/common.utils';
 
+const CURRENT_ROUND_PATH = '/alignment-asset';
+
 /* ==========================================================================
    PlaaRoundSelector Component
    Pixel-perfect implementation based on Figma design
@@ -125,9 +127,8 @@ function PlaaRoundSelector({
     
     // Check if we're already on the target URL
     const currentPath = window.location.pathname;
-    const targetPath = '/alignment-asset/rounds';
     
-    if (currentPath === targetPath) {
+    if (currentPath === CURRENT_ROUND_PATH) {
       // Already on this page, no need to navigate or show loader
       return;
     }
@@ -137,7 +138,7 @@ function PlaaRoundSelector({
       triggerLoader(true);
     }
     
-    router.push(targetPath);
+    router.push(CURRENT_ROUND_PATH);
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -174,7 +175,7 @@ function PlaaRoundSelector({
     let targetPath: string;
     
     if (isCurrentRound) {
-      targetPath = '/alignment-asset/rounds';
+      targetPath = CURRENT_ROUND_PATH;
     } else {
       targetPath = `/alignment-asset/rounds/${selectedRound}`;
     }

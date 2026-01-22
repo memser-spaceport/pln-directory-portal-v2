@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import {
   PushNotification,
@@ -142,6 +142,23 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     onNotificationUpdate: handleNotificationUpdate,
     onCountUpdate: handleCountUpdate,
   });
+
+  // Track previous connection state to detect reconnections
+  const wasConnectedRef = useRef(isConnected);
+
+  // Refetch notifications on WebSocket reconnect to catch any missed events
+  useEffect(() => {
+    const wasDisconnected = !wasConnectedRef.current;
+    const isNowConnected = isConnected;
+
+    // Update ref for next comparison
+    wasConnectedRef.current = isConnected;
+
+    // If we just reconnected (was disconnected, now connected), refetch notifications
+    if (wasDisconnected && isNowConnected && authToken) {
+      void fetchNotifications();
+    }
+  }, [isConnected, authToken, fetchNotifications]);
 
   // Mark single notification as read
   const markAsRead = useCallback(

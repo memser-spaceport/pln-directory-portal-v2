@@ -1,9 +1,9 @@
 import { formatDistanceToNow } from 'date-fns';
 
-export function formatTime(dateString: string): string {
+export function formatTimeAgo(date: string | number): string {
   try {
     return (
-      formatDistanceToNow(new Date(dateString), { addSuffix: false })
+      formatDistanceToNow(new Date(date), { addSuffix: false })
         .replace('about ', '')
         .replace('less than a minute', '1min')
         .replace(' minutes', 'min')

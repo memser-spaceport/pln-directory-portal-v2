@@ -159,7 +159,7 @@ const FollowSection = (props: IFollowSectionProps) => {
         latitude: eventLocationSummary?.latitude || '',
         timezone: eventLocationSummary?.timezone || '',
         longitude: eventLocationSummary?.longitude || '',
-        resources: locationEvents?.additionalInfo?.resources || [],
+        resources: eventLocationSummary.resources || locationEvents?.additionalInfo?.resources || [],
       },
       ruleKind: 'IRL_GATHERING',
       attendees: {
@@ -184,7 +184,7 @@ const FollowSection = (props: IFollowSectionProps) => {
       id: `irl-gathering-${eventLocationSummary?.uid || 'unknown'}`,
       category: 'IRL_GATHERING',
       title: eventLocationSummary?.name || 'IRL Gathering',
-      description: `Join us at ${eventLocationSummary?.name || 'this gathering'}`,
+      description: eventLocationSummary.description || `Join us at ${eventLocationSummary?.name || 'this gathering'}`,
       isPublic: true,
       createdAt: new Date().toISOString(),
       metadata: metadata as unknown as Record<string, unknown>,

@@ -58,7 +58,10 @@ export default function CurrentRoundComponent({
         <HeroSection data={data.hero} />
 
         {/* Round Description Section */}
-        <RoundDescriptionSection data={data.roundDescription} />
+        <RoundDescriptionSection 
+          data={data.roundDescription} 
+          tokensAllocated={data.stats.totalTokensAvailable}
+        />
 
         {/* Total Alignment Asset Points & Tokens Collected by Category */}
         <SnapshotProgressSection 

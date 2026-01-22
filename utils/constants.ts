@@ -670,7 +670,7 @@ export const ChangeLogList = [
   {
     title: 'Version 4.5.2 - Forum Engagement & Notifications',
     tag: 'Improvements',
-    date: '02, Jan 2025',
+    date: '20, Jan 2026',
     shortContent: `
       <div style="font-size: 14px; line-height:23px;">
       <span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Enhancements</span><br/>
@@ -685,7 +685,7 @@ export const ChangeLogList = [
   {
     title: 'Version 4.5.1 - Forum Notifications',
     tag: 'Improvements',
-    date: '30, Dec 2026',
+    date: '30, Dec 2025',
     shortContent: `
       <div style="font-size: 14px; line-height:23px;">
       <span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Engagement Enhancements</span><br/>

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import {
   PushNotification,
@@ -110,7 +111,7 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     if (payload.status === 'read') {
       setNotifications((prev) => prev.map((n) => (n.id === payload.id ? { ...n, isRead: true } : n)));
       // Recalculate unread count to stay in sync
-      // setUnreadCount((prev) => Math.max(0, prev - 1));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } else if (payload.status === 'deleted') {
       setNotifications((prev) => {
         const notification = prev.find((n) => n.id === payload.id);
@@ -142,6 +143,23 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     onNotificationUpdate: handleNotificationUpdate,
     onCountUpdate: handleCountUpdate,
   });
+
+  // Track previous connection state to detect reconnections
+  const wasConnectedRef = useRef(isConnected);
+
+  // Refetch notifications on WebSocket reconnect to catch any missed events
+  useEffect(() => {
+    const wasDisconnected = !wasConnectedRef.current;
+    const isNowConnected = isConnected;
+
+    // Update ref for next comparison
+    wasConnectedRef.current = isConnected;
+
+    // If we just reconnected (was disconnected, now connected), refetch notifications
+    if (wasDisconnected && isNowConnected && authToken) {
+      void fetchNotifications();
+    }
+  }, [isConnected, authToken, fetchNotifications]);
 
   // Mark single notification as read
   const markAsRead = useCallback(

@@ -9,12 +9,12 @@ import {
   AboutSection,
   GatheringDetails,
   AttendeesSection,
-  EventsSection,
   PlanningSection,
   AdditionalDetailsSection,
   ModalFooter,
   DatePickerView,
   TopicsPickerView,
+  EventsPickerView,
 } from './components';
 import { useIrlGatheringModal, useIrlGatheringData, useIrlGatheringSubmit } from './hooks';
 import { buildGatheringLink } from './helpers';
@@ -109,11 +109,28 @@ export function IrlGatheringModal({
     handleOpenTopicsPicker,
     handleTopicsPickerCancel,
     handleTopicsPickerApply,
+    handleOpenEventsPicker,
+    handleEventsPickerCancel,
+    handleEventsPickerApply,
   } = useIrlGatheringModal({
     initialDateRange,
     initialTopics: isEditMode ? editModeData?.topics : undefined,
     isOpen,
   });
+
+  // Watch selected events from form
+  const selectedEventUids = methods.watch('selectedEventUids') || [];
+  const eventRoles = methods.watch('eventRoles') || [];
+
+  // Build selected events info for display in PlanningSection
+  const selectedEvents = useMemo(() => {
+    return selectedEventUids
+      .map((uid) => {
+        const event = gatheringData.events.find((e) => e.uid === uid);
+        return event ? { uid: event.uid, name: event.name } : null;
+      })
+      .filter((e): e is { uid: string; name: string } => e !== null);
+  }, [selectedEventUids, gatheringData.events]);
 
   const handleSuccess = useCallback(() => {
     onGoingClick?.();
@@ -137,6 +154,18 @@ export function IrlGatheringModal({
     [handleTopicsPickerApply, methods],
   );
 
+  const handleEventsApply = useCallback(
+    (uids: string[], roles: EventRoleSelection[]) => {
+      handleEventsPickerApply(
+        uids,
+        roles,
+        (u) => methods.setValue('selectedEventUids', u),
+        (r) => methods.setValue('eventRoles', r),
+      );
+    },
+    [handleEventsPickerApply, methods],
+  );
+
   if (currentView === 'datePicker') {
     return (
       <Modal isOpen={isOpen} onClose={onClose} overlayClassname={s.modalOverlay}>
@@ -158,6 +187,22 @@ export function IrlGatheringModal({
           initialTopics={selectedTopics}
           onCancel={handleTopicsPickerCancel}
           onApply={handleTopicsApply}
+        />
+      </Modal>
+    );
+  }
+
+  if (currentView === 'eventsPicker') {
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} overlayClassname={s.modalOverlay}>
+        <EventsPickerView
+          planningQuestion={gatheringData.planningQuestion}
+          locationName={gatheringData.locationName}
+          events={gatheringData.events}
+          initialSelectedEventUids={selectedEventUids}
+          initialEventRoles={eventRoles}
+          onCancel={handleEventsPickerCancel}
+          onApply={handleEventsApply}
         />
       </Modal>
     );
@@ -202,11 +247,12 @@ export function IrlGatheringModal({
               planningQuestion={gatheringData.planningQuestion}
               selectedDateRange={selectedDateRange}
               selectedTopics={selectedTopics}
+              selectedEvents={selectedEvents}
+              events={gatheringData.events}
               onDateInputClick={handleOpenDatePicker}
               onTopicsInputClick={handleOpenTopicsPicker}
+              onEventsInputClick={handleOpenEventsPicker}
             />
-
-            <EventsSection events={gatheringData.events} locationName={gatheringData.locationName} />
 
             <AdditionalDetailsSection
               teams={data?.teams || []}

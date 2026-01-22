@@ -1605,6 +1605,55 @@
   color: #455468;
 }
 
+// Planning section event tags
+.planningEventsTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.planningEventTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: rgba(27, 56, 96, 0.08);
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #455468;
+}
+
+// Events Picker View Styles
+.eventsPickerModal {
+  background: white;
+  border-radius: 0;
+  width: 100%;
+  max-width: 600px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.06);
+  height: 100%;
+  max-height: 100dvh;
+
+  @include media.tablet-landscape {
+    max-height: 80dvh;
+    border-radius: 24px;
+  }
+}
+
+.eventsPickerContent {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  overflow-y: auto;
+}
+
 // Additional Details Section
 .additionalDetailsContainer {
   display: flex;

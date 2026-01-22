@@ -58,7 +58,7 @@ export interface IrlGatheringFormData {
   officeHours: string;
 }
 
-export type ModalView = 'main' | 'datePicker' | 'topicsPicker';
+export type ModalView = 'main' | 'datePicker' | 'topicsPicker' | 'eventsPicker';
 
 export interface AttendeeData {
   uid: string;

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { ModalView } from '../types';
+import { ModalView, EventRoleSelection } from '../types';
 
 interface UseIrlGatheringModalParams {
   initialDateRange?: [Date, Date] | null;
@@ -17,6 +17,14 @@ interface UseIrlGatheringModalReturn {
   handleOpenTopicsPicker: () => void;
   handleTopicsPickerCancel: () => void;
   handleTopicsPickerApply: (topics: string[], setFormTopics: (topics: string[]) => void) => void;
+  handleOpenEventsPicker: () => void;
+  handleEventsPickerCancel: () => void;
+  handleEventsPickerApply: (
+    selectedEventUids: string[],
+    eventRoles: EventRoleSelection[],
+    setFormEvents: (uids: string[]) => void,
+    setFormRoles: (roles: EventRoleSelection[]) => void,
+  ) => void;
 }
 
 /**
@@ -82,6 +90,28 @@ export function useIrlGatheringModal(params?: UseIrlGatheringModalParams): UseIr
     [],
   );
 
+  const handleOpenEventsPicker = useCallback(() => {
+    setCurrentView('eventsPicker');
+  }, []);
+
+  const handleEventsPickerCancel = useCallback(() => {
+    setCurrentView('main');
+  }, []);
+
+  const handleEventsPickerApply = useCallback(
+    (
+      selectedEventUids: string[],
+      eventRoles: EventRoleSelection[],
+      setFormEvents: (uids: string[]) => void,
+      setFormRoles: (roles: EventRoleSelection[]) => void,
+    ) => {
+      setFormEvents(selectedEventUids);
+      setFormRoles(eventRoles);
+      setCurrentView('main');
+    },
+    [],
+  );
+
   return {
     currentView,
     selectedDateRange,
@@ -92,6 +122,9 @@ export function useIrlGatheringModal(params?: UseIrlGatheringModalParams): UseIr
     handleOpenTopicsPicker,
     handleTopicsPickerCancel,
     handleTopicsPickerApply,
+    handleOpenEventsPicker,
+    handleEventsPickerCancel,
+    handleEventsPickerApply,
   };
 }
 

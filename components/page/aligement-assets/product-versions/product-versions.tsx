@@ -107,6 +107,7 @@ const productVersions: VersionData[] = [
 
 export default function ProductVersionsPage() {
   const [expandedVersions, setExpandedVersions] = useState<Record<string, boolean>>({});
+  const [activeTabs, setActiveTabs] = useState<Record<string, string>>({});
   const [expandAll, setExpandAll] = useState(false);
 
   const toggleVersion = (version: string) => {
@@ -181,15 +182,27 @@ export default function ProductVersionsPage() {
         <div className="product-versions__versions-list">
           {productVersions.map((version) => {
             const isExpanded = expandedVersions[version.version];
+            
+            // Determine available tabs
+            const availableTabs = [
+              { key: 'added', label: 'Added', icon: '/icons/added-icon.png', data: version.added },
+              { key: 'changed', label: 'Changed', icon: '/icons/changed-icon.png', data: version.changed },
+              { key: 'learned', label: 'Learned', icon: '/icons/learned-icon.png', data: version.learned },
+              { key: 'launched', label: 'Launched', icon: '/icons/launched-icon.png', data: version.launched },
+            ].filter(tab => tab.data && tab.data.length > 0);
+
+            // Determine active tab (default to first available)
+            const activeTabKey = activeTabs[version.version] || (availableTabs.length > 0 ? availableTabs[0].key : '');
 
             return (
               <div key={version.version} className="product-versions__version-card">
                 <button
                   className="product-versions__version-card__button"
                   onClick={() => toggleVersion(version.version)}
+                  aria-expanded={isExpanded}
                 >
                   <div className="product-versions__version-card__header">
-                    <span className="product-versions__version-card__version">{version.version}:</span>
+                    <span className="product-versions__version-card__version">{version.version}</span>
                     <span className="product-versions__version-card__date">{version.dateRange}</span>
                   </div>
                   <Image
@@ -201,8 +214,47 @@ export default function ProductVersionsPage() {
                   />
                 </button>
 
+                {/* Mobile Tabs View */}
+                {isExpanded && availableTabs.length > 0 && (
+                  <div className="product-versions__mobile-view">
+                    {/* Tabs */}
+                    <div className="product-versions__tabs">
+                      {availableTabs.map((tab) => (
+                        <button
+                          key={tab.key}
+                          className={`product-versions__tab ${activeTabKey === tab.key ? 'product-versions__tab--active' : ''}`}
+                          onClick={() => setActiveTabs(prev => ({ ...prev, [version.version]: tab.key }))}
+                        >
+                          <Image
+                             src={tab.icon} 
+                             alt="" 
+                             width={16} 
+                             height={16} 
+                             className="product-versions__tab__icon"
+                          />
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Content */}
+                    <div className="product-versions__tab-content">
+                       {availableTabs.map((tab) => {
+                         if (tab.key !== activeTabKey) return null;
+                         return (
+                           <div key={tab.key} className="product-versions__section animation-fade-in">
+                             {renderList(tab.data as (string | VersionItem)[])}
+                           </div>
+                         );
+                       })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Desktop Grid View */}
                 {isExpanded && (
-                  <div className="product-versions__version-card__content">
+                  <div className="product-versions__desktop-view">
+                     <div className="product-versions__version-card__content">
                     {version.launched && version.launched.length > 0 && (
                       <div className="product-versions__section">
                         <h3 className="product-versions__section__title product-versions__section__title--launched">
@@ -242,6 +294,7 @@ export default function ProductVersionsPage() {
                         {renderList(version.learned)}
                       </div>
                     )}
+                  </div>
                   </div>
                 )}
               </div>
@@ -283,11 +336,11 @@ export default function ProductVersionsPage() {
           align-items: center;
           gap: 4px;
           padding: 6px 12px;
-          background: transparent;
+          background: #ffffff;
           border: 1px solid #e2e8f0;
           color: #64748b;
           font-size: 12px;
-          font-weight: 400;
+          font-weight: 500;
           cursor: pointer;
           border-radius: 999px;
           transition: all 0.2s;
@@ -318,19 +371,18 @@ export default function ProductVersionsPage() {
         }
 
         .product-versions__version-card {
-          background: rgba(248, 250, 252, 1);
+          background: #fafafa;
           border-radius: 12px;
-          border: 1px solid rgba(226, 232, 240, 1);
         }
 
         .product-versions__version-card__button {
           width: 100%;
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: space-between;
           background: none;
           border: none;
-          padding: 32px;
+          padding: 24px;
           cursor: pointer;
           text-align: left;
           transition: color 0.2s ease;
@@ -338,27 +390,29 @@ export default function ProductVersionsPage() {
 
         .product-versions__version-card__header {
           display: flex;
-          align-items: center;
-          gap: 8px;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
         }
 
         .product-versions__version-card__version {
           font-size: 16px;
           font-weight: 600;
-          line-height: 20px;
+          line-height: 24px;
           color: #0f172a;
         }
 
         .product-versions__version-card__date {
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 400;
           line-height: 20px;
-          color: #334155;
+          color: #475569;
         }
 
         .product-versions__chevron {
           transition: transform 0.3s ease;
           flex-shrink: 0;
+          margin-top: 4px; 
         }
 
         .product-versions__chevron--expanded {
@@ -366,22 +420,69 @@ export default function ProductVersionsPage() {
         }
 
         .product-versions__version-card__content {
-          padding: 24px 32px 32px 32px;
+          padding: 0 24px 24px 24px;
           animation: fadeIn 0.3s ease;
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 20px;
         }
 
         @keyframes fadeIn {
           from {
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(-5px);
           }
           to {
             opacity: 1;
             transform: translateY(0);
           }
+        }
+        
+        .animation-fade-in {
+          animation: fadeIn 0.3s ease;
+        }
+
+        /* Tabs Styling */
+        .product-versions__tabs {
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 8px;
+          border-bottom: 1px solid #e2e8f0;
+          margin-bottom: 24px;
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+        
+        .product-versions__tabs::-webkit-scrollbar {
+          display: none;
+        }
+
+        .product-versions__tab {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: none;
+          border: none;
+          padding: 8px 4px 8px 8px;
+          font-size: 14px;
+          font-weight: 500;
+          color: #64748b;
+          cursor: pointer;
+          border-bottom: 2px solid transparent;
+          white-space: nowrap;
+          transition: all 0.2s;
+          margin-bottom: -1px; /* Overlap the bottom border */
+        }
+
+        .product-versions__tab--active {
+          color: #3b82f6; 
+          border-bottom-color: #3b82f6;
+        }
+
+        .product-versions__tab__icon {
+          opacity: 0.6;
+        }
+
+        .product-versions__tab--active .product-versions__tab__icon {
+          opacity: 1; 
         }
 
         .product-versions__section {
@@ -409,12 +510,10 @@ export default function ProductVersionsPage() {
           font-family: inherit;
           font-size: 14px;
           font-weight: 400;
-          font-style: normal;
-          line-height: 20px;
-          letter-spacing: 0;
-          color: #475569;
+          line-height: 24px;
+          color: #334155;
           margin: 0 0 12px 0;
-          padding-left: 20px;
+          padding-left: 16px;
           position: relative;
           display: block;
         }
@@ -422,9 +521,10 @@ export default function ProductVersionsPage() {
         :global(.product-versions__list__item)::before {
           content: '•';
           position: absolute;
-          left: 6px;
+          left: 0;
           top: 0;
-          color: #475569;
+          color: #334155;
+          font-weight: bold;
         }
 
         :global(.product-versions__list__item:last-child) {
@@ -441,12 +541,10 @@ export default function ProductVersionsPage() {
           font-family: inherit;
           font-size: 14px;
           font-weight: 400;
-          font-style: normal;
-          line-height: 20px;
-          letter-spacing: 0;
-          color: #475569;
-          margin: 0 0 10px 0;
-          padding-left: 18px;
+          line-height: 24px;
+          color: #64748b;
+          margin: 0 0 8px 0;
+          padding-left: 16px;
           position: relative;
           display: block;
         }
@@ -454,40 +552,63 @@ export default function ProductVersionsPage() {
         :global(.product-versions__list__sub__item)::before {
           content: '•';
           position: absolute;
-          left: 4px;
+          left: 0;
           top: 0;
-          color: #475569;
+          color: #64748b;
         }
 
         :global(.product-versions__list__sub__item:last-child) {
           margin-bottom: 0;
         }
 
+        /* View Switching Logic */
+        .product-versions__desktop-view {
+          display: none;
+        }
 
-        @media (max-width: 1024px) {
-          .product-versions__version-card__content {
-            grid-template-columns: 1fr;
-            gap: 24px;
-          }
-
-          .product-versions__section {
-            margin-bottom: 0;
-          }
+        .product-versions__mobile-view {
+          display: block;
+          padding: 0 24px 24px 24px;
         }
 
         @media (min-width: 1024px) {
+          .product-versions__mobile-view {
+            display: none;
+          }
+
+          .product-versions__desktop-view {
+            display: block;
+          }
+
           .product-versions__header__title {
             font-size: 24px;
             line-height: 48px;
+            text-align: left;
           }
 
-          .product-versions__container {
-            padding: 32px;
+          .product-versions__header {
+             margin-bottom: 32px;
           }
 
-          .product-versions__container__section__version {
-            font-size: 18px;
-            line-height: 28px;
+          .product-versions__version-card__button {
+             align-items: center;
+          }
+
+          .product-versions__version-card__header {
+             flex-direction: row;
+             align-items: center;
+             gap: 12px;
+          }
+
+          .product-versions__version-card__version {
+             font-size: 18px;
+          }
+          
+          .product-versions__version-card__content {
+             display: grid;
+             grid-template-columns: repeat(3, 1fr);
+             gap: 20px;
+             padding: 32px;
           }
         }
       `}</style>

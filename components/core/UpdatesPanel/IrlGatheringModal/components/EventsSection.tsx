@@ -3,14 +3,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import Image from 'next/image';
-import {
-  CalendarPlusIcon,
-  CaretUpIcon,
-  CaretDownIcon,
-  CheckIcon,
-  SearchIcon,
-  XCircleIcon,
-} from '../icons';
+import { CalendarPlusIcon, CaretUpIcon, CaretDownIcon, CheckIcon, SearchIcon, XCircleIcon } from '../icons';
 import { EventData, EventRole, EventRoleSelection, IrlGatheringFormData } from '../types';
 import s from '../IrlGatheringModal.module.scss';
 
@@ -25,8 +18,7 @@ interface EventsSectionProps {
 function formatEventDate(startDate: string, endDate: string): string {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const formatDate = (date: Date) =>
-    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const formatDate = (date: Date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   if (start.toDateString() === end.toDateString()) {
     return formatDate(start);
@@ -34,11 +26,7 @@ function formatEventDate(startDate: string, endDate: string): string {
   return `${formatDate(start)} - ${formatDate(end)}`;
 }
 
-export function EventsSection({
-  events,
-  locationName = '',
-  defaultExpanded = true,
-}: EventsSectionProps) {
+export function EventsSection({ events, locationName = '', defaultExpanded = true }: EventsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [searchQuery, setSearchQuery] = useState('');
   const { watch, setValue } = useFormContext<IrlGatheringFormData>();
@@ -164,8 +152,7 @@ export function EventsSection({
               Which events are you planning to attend{locationName ? ` in ${locationName}` : ''}?
             </p>
             <p className={s.eventsDescriptionSubtitle}>
-              This helps others know where they can meet you during the week. You can update this
-              later.
+              This helps others know where they can meet you during the week. You can update this later.
             </p>
           </div>
 
@@ -239,8 +226,7 @@ export function EventsSection({
                     )}
                     {!isSelected && (
                       <span className={s.eventListMeta}>
-                        {formatEventDate(event.startDate, event.endDate)} · {event.attendeeCount}{' '}
-                        attending
+                        {formatEventDate(event.startDate, event.endDate)} · {event.attendeeCount} attending
                       </span>
                     )}
                     {isSelected && (
@@ -268,7 +254,9 @@ export function EventsSection({
               );
             })}
             {filteredEvents.length === 0 && (
-              <div className={s.eventsEmptyState}>No events found matching "{searchQuery}"</div>
+              <div className={s.eventsEmptyState}>
+                No events found matching <b>{searchQuery}</b>
+              </div>
             )}
           </div>
         </div>
@@ -276,4 +264,3 @@ export function EventsSection({
     </div>
   );
 }
-

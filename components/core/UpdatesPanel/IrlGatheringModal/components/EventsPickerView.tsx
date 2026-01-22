@@ -2,12 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import Image from 'next/image';
-import {
-  CalendarPlusIcon,
-  CheckIcon,
-  SearchIcon,
-  XCircleIcon,
-} from '../icons';
+import { CalendarPlusIcon, CheckIcon, SearchIcon, XCircleIcon } from '../icons';
 import { EventData, EventRole, EventRoleSelection } from '../types';
 import s from '../IrlGatheringModal.module.scss';
 
@@ -26,8 +21,7 @@ interface EventsPickerViewProps {
 function formatEventDate(startDate: string, endDate: string): string {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const formatDate = (date: Date) =>
-    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const formatDate = (date: Date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   if (start.toDateString() === end.toDateString()) {
     return formatDate(start);
@@ -152,12 +146,7 @@ export function EventsPickerView({
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button
-              type="button"
-              className={s.eventsSearchClear}
-              onClick={handleClearSearch}
-              aria-label="Clear search"
-            >
+            <button type="button" className={s.eventsSearchClear} onClick={handleClearSearch} aria-label="Clear search">
               <XCircleIcon />
             </button>
           )}
@@ -235,7 +224,9 @@ export function EventsPickerView({
             );
           })}
           {filteredEvents.length === 0 && (
-            <div className={s.eventsEmptyState}>No events found matching "{searchQuery}"</div>
+            <div className={s.eventsEmptyState}>
+              No events found matching <b>{searchQuery}</b>
+            </div>
           )}
         </div>
       </div>
@@ -251,4 +242,3 @@ export function EventsPickerView({
     </div>
   );
 }
-

@@ -567,7 +567,7 @@ export default function PrivacyPolicyPage() {
 
         .privacy-policy__content__paragraph__list {
           margin-left: 20px;
-          line-height: 30px;
+          line-height: 28px;
         }
 
         .privacy-policy__content__paragraph__list__item {
@@ -647,8 +647,8 @@ export default function PrivacyPolicyPage() {
         }
 
         .privacy-policy__overview__paragraph, .privacy-policy__content__paragraph {
-          font-size: 15px;
-          line-height: 24px;
+          font-size: 14px;
+          line-height: 20px;
           color: rgba(71, 85, 105, 1);
           margin: 0 0 16px 0;
         }

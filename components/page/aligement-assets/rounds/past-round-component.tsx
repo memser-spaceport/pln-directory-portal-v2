@@ -20,7 +20,12 @@ export default function PastRoundComponent({ pastRoundData }: PastRoundComponent
     <>
       <div className="past-round">
         <HeroSection data={data.hero} />
-        <PastRoundDescription roundNumber={data.meta.roundNumber} month={data.meta.month} year={data.meta.year} />
+        <PastRoundDescription 
+          roundNumber={data.meta.roundNumber} 
+          month={data.meta.month} 
+          year={data.meta.year}
+          tokensAllocated={data.stats.totalTokensAvailable}
+        />
         <StatsSection data={data.stats} />
         {/* <PastLeaderboardSection roundNumber={data.meta.roundNumber} leaderboardData={data.leaderboard} /> */}
         {data.buybackSimulation && <BuybackSimulationSection data={data.buybackSimulation} />}
@@ -81,9 +86,6 @@ export default function PastRoundComponent({ pastRoundData }: PastRoundComponent
         }
 
         @media (max-width: 768px) {
-          .past-round {
-            padding: 24px;
-          }
           
           .past-round__title {
             font-size: 24px;

@@ -661,6 +661,12 @@ function PlaaRoundSelector({
           .round-selector__dropdown-go-current:hover {
             background-color: rgba(21, 111, 247, 0.08);
           }
+
+          @media (max-width: 768px) {
+            .round-selector__nav-of {
+              margin-left: 0;
+            }
+          }
         `}
       </style>
     </div>

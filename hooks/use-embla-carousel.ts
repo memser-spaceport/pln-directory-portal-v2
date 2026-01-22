@@ -9,50 +9,64 @@ export const useCarousel = (options: EmblaOptionsType & { isPaused?: boolean }) 
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
 
+  const stopAutoScroll = useCallback(() => {
+    if (autoScrollRef.current) {
+      clearInterval(autoScrollRef.current);
+      autoScrollRef.current = null;
+    }
+  }, []);
+
+  const startAutoScroll = useCallback(() => {
+    stopAutoScroll();
+    if (!emblaApi || options.isPaused) return;
+
+    autoScrollRef.current = setInterval(() => {
+      if (emblaApi.canScrollNext()) {
+        emblaApi.scrollNext();
+      } else {
+        emblaApi.scrollTo(0);
+      }
+    }, AUTO_SCROLL_INTERVAL);
+  }, [emblaApi, options.isPaused, stopAutoScroll]);
+
   const scrollPrev = useCallback(() => {
     if (emblaApi) {
       emblaApi.scrollPrev();
-      setActiveIndex(emblaApi.selectedScrollSnap());
+      startAutoScroll(); // Reset the timer when manually navigating
     }
-  }, [emblaApi]);
+  }, [emblaApi, startAutoScroll]);
 
   const scrollNext = useCallback(() => {
     if (emblaApi) {
       emblaApi.scrollNext();
-      setActiveIndex(emblaApi.selectedScrollSnap());
+      startAutoScroll(); // Reset the timer when manually navigating
     }
-  }, [emblaApi]);
+  }, [emblaApi, startAutoScroll]);
 
   useEffect(() => {
-    if (!emblaApi || options.isPaused) return;
+    if (!emblaApi) return;
 
     const updateActiveIndex = () => {
       setActiveIndex(emblaApi.selectedScrollSnap());
     };
 
-    const startAutoScroll = () => {
-      autoScrollRef.current = setInterval(() => {
-        if (emblaApi.canScrollNext()) {
-          emblaApi.scrollNext();
-        } else {
-          emblaApi.scrollTo(0);
-        }
-        updateActiveIndex();
-      }, AUTO_SCROLL_INTERVAL);
-    };
+    emblaApi.on('select', updateActiveIndex);
 
-    const stopAutoScroll = () => {
-      if (autoScrollRef.current) clearInterval(autoScrollRef.current);
-    };
+    // Pause auto-scroll when user starts interacting and resume when it settles
+    // This handles both clicking navigation buttons (if they use the underlying embla actions) 
+    // and manual dragging/swiping
+    emblaApi.on('pointerDown', stopAutoScroll);
+    emblaApi.on('settle', startAutoScroll);
 
     startAutoScroll();
-    emblaApi.on('select', updateActiveIndex);
 
     return () => {
       stopAutoScroll();
       emblaApi.off('select', updateActiveIndex);
+      emblaApi.off('pointerDown', stopAutoScroll);
+      emblaApi.off('settle', startAutoScroll);
     };
-  }, [emblaApi, options.isPaused]);
+  }, [emblaApi, startAutoScroll, stopAutoScroll]);
 
   return { emblaRef, activeIndex, scrollPrev, scrollNext, setActiveIndex, emblaApi };
 };

@@ -49,6 +49,17 @@
 }
 
 /* --------------------------------------------------------------------------
+     Element: plaa__mobile-banner
+     Mobile banner container - Sticky at top when scrolled
+     -------------------------------------------------------------------------- */
+.plaa__mobile-banner {
+  position: sticky;
+  top: var(--app-header-height, 64px);
+  width: 100%;
+  z-index: 6;
+}
+
+/* --------------------------------------------------------------------------
      Element: plaa__sidebar
      Sticky sidebar navigation
      -------------------------------------------------------------------------- */

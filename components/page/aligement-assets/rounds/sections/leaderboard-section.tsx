@@ -340,7 +340,7 @@ export default function LeaderboardSection({
         .leaderboard-section__table-content {
           display: flex;
           flex-direction: column;
-          min-height: 548px;
+          min-height: 470px;
         }
 
         .leaderboard-section__table {
@@ -365,7 +365,7 @@ export default function LeaderboardSection({
           justify-content: center;
           gap: 10px;
           padding: 24px;
-          min-height: 548px;
+          min-height: 470px;
           border-left: 1px solid #cbd5e1;
           border-right: 1px solid #cbd5e1;
           border-bottom: 1px solid #cbd5e1;

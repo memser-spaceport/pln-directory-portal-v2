@@ -16,16 +16,21 @@
   }
 
   &.plaa {
-    .wrapper {
-      height: 56px;
-      padding: 0 16px;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
+    // Completely hide on mobile
+    display: none !important;
+    background: transparent;
 
-      @include media.tablet-landscape {
-        padding: 0 48px;
-      }
+    @media (min-width: 960px) {
+      display: flex !important;
+      background: #156ff7;
+      overflow: hidden;
+    }
+
+    .wrapper {
+      height: 80px;
+      padding: 0;
+      gap: 0;
+      overflow: hidden;
     }
   }
 

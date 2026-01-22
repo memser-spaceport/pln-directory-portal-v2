@@ -357,7 +357,7 @@ export default function IncentiveModel() {
   };
 
   const handleTipViewLinkClick = () => {
-    onIncentiveModelTipViewLinkClicked('/alignment-asset/rounds');
+    onIncentiveModelTipViewLinkClicked('/alignment-asset');
   };
 
   const handleLearnMoreClick = () => {
@@ -603,7 +603,7 @@ export default function IncentiveModel() {
               </p>
               <p className="incentive-model__tip-text">
                 👉{' '}
-                <Link href="/alignment-asset/rounds" className="incentive-model__tip-link" onClick={handleTipViewLinkClick}>
+                <Link href="/alignment-asset" className="incentive-model__tip-link" onClick={handleTipViewLinkClick}>
                   View
                 </Link>{' '}
                 which categories offer the highest token potential today.

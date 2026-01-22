@@ -1,10 +1,5 @@
-import CurrentRoundComponent from '@/components/page/aligement-assets/rounds/current-round-component';
-import styles from './page.module.css';
+import { redirect } from 'next/navigation';
 
 export default function RoundsPage() {
-  return (
-    <div className={styles.rounds}>
-      <CurrentRoundComponent />
-    </div>
-  );
+  redirect('/alignment-asset');
 }

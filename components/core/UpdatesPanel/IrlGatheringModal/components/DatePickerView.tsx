@@ -13,6 +13,10 @@ interface DatePickerViewProps {
   initialRange: [Date, Date] | null;
   onCancel: () => void;
   onApply: (range: [Date, Date] | null) => void;
+  gatheringDateRange?: {
+    start: string | undefined;
+    end: string | undefined;
+  };
 }
 
 function formatDateDisplay(value: Value): string {
@@ -33,8 +37,18 @@ function formatDateDisplay(value: Value): string {
   return '';
 }
 
-export function DatePickerView({ planningQuestion, initialRange, onCancel, onApply }: DatePickerViewProps) {
+export function DatePickerView({
+  planningQuestion,
+  initialRange,
+  onCancel,
+  onApply,
+  gatheringDateRange,
+}: DatePickerViewProps) {
   const [tempRange, setTempRange] = useState<Value>(initialRange);
+
+  // Calculate min and max dates based on gathering date range
+  const minDate = gatheringDateRange?.start ? new Date(gatheringDateRange.start) : new Date();
+  const maxDate = gatheringDateRange?.end ? new Date(gatheringDateRange.end) : undefined;
 
   const handleCalendarChange = (value: Value) => {
     setTempRange(value);
@@ -68,7 +82,8 @@ export function DatePickerView({ planningQuestion, initialRange, onCancel, onApp
             onChange={handleCalendarChange}
             value={tempRange}
             selectRange
-            minDate={new Date()}
+            minDate={minDate}
+            maxDate={maxDate}
             className={s.calendar}
             showFixedNumberOfWeeks
           />

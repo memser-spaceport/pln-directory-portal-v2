@@ -36,6 +36,15 @@ export const useAlignmentAssetsAnalytics = () => {
     ROUND_SELECTOR_NEXT_CLICKED: 'alignment-assets-round-selector-next-clicked',
     ROUND_SELECTOR_GO_TO_CURRENT_CLICKED: 'alignment-assets-round-selector-go-to-current-clicked',
 
+    // Mobile Menu
+    MOBILE_NAV_MENU_CLICKED: 'alignment-assets-mobile-nav-menu-clicked',
+    MOBILE_NAV_MENU_CLOSED: 'alignment-assets-mobile-nav-menu-closed',
+
+    // PLAA Banner
+    BANNER_CAROUSEL_PREV_CLICKED: 'alignment-assets-banner-carousel-prev-clicked',
+    BANNER_CAROUSEL_NEXT_CLICKED: 'alignment-assets-banner-carousel-next-clicked',
+    BANNER_BUTTON_CLICKED: 'alignment-assets-banner-button-clicked',
+
     // Overview Page
     OVERVIEW_CREATE_ACCOUNT_CLICKED: 'alignment-assets-overview-create-account-clicked',
     OVERVIEW_WAITLIST_FORM_CLICKED: 'alignment-assets-overview-waitlist-form-clicked',
@@ -122,6 +131,29 @@ export const useAlignmentAssetsAnalytics = () => {
 
   function onRoundSelectorGoToCurrentClicked(fromRound: number, currentRound: number) {
     captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.ROUND_SELECTOR_GO_TO_CURRENT_CLICKED, { fromRound, currentRound });
+  }
+
+  function onMobileNavMenuClicked() {
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.MOBILE_NAV_MENU_CLICKED);
+  }
+
+  function onMobileNavMenuClosed() {
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.MOBILE_NAV_MENU_CLOSED);
+  }
+
+  // ==========================================
+  // PLAA Banner Analytics
+  // ==========================================
+  function onBannerCarouselPrevClicked() {
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.BANNER_CAROUSEL_PREV_CLICKED);
+  }
+
+  function onBannerCarouselNextClicked() {
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.BANNER_CAROUSEL_NEXT_CLICKED);
+  }
+
+  function onBannerButtonClicked(name: string, url: string) {
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.BANNER_BUTTON_CLICKED, { name, url });
   }
 
   // ==========================================
@@ -327,6 +359,13 @@ export const useAlignmentAssetsAnalytics = () => {
     onRoundSelectorPrevClicked,
     onRoundSelectorNextClicked,
     onRoundSelectorGoToCurrentClicked,
+    onMobileNavMenuClicked,
+    onMobileNavMenuClosed,
+
+    // PLAA Banner
+    onBannerCarouselPrevClicked,
+    onBannerCarouselNextClicked,
+    onBannerButtonClicked,
 
     // Overview Page
     onOverviewCreateAccountClicked,

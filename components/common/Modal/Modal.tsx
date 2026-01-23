@@ -12,10 +12,11 @@ interface ModalProps {
   children: React.ReactNode;
   closeOnBackdropClick?: boolean;
   overlayClassname?: string;
+  className?: string;
 }
 
 export const Modal: React.FC<ModalProps> = (props) => {
-  const { isOpen, onClose, children, closeOnBackdropClick = true, overlayClassname } = props;
+  const { isOpen, onClose, children, closeOnBackdropClick = true, overlayClassname, className } = props;
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export const Modal: React.FC<ModalProps> = (props) => {
           onClick={handleOverlayClick}
         >
           <motion.div
-            className={s.modalContainer}
+            className={clsx(s.modalContainer, className)}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}

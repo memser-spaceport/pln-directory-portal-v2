@@ -1,0 +1,46 @@
+.modal {
+  max-width: 900px;
+}
+
+.root {
+  padding: 0 0 20px 0;
+}
+
+.content {
+  width: 100%;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 27px;
+  letter-spacing: -0.4px;
+
+  padding: 0 16px 10px;
+
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+}
+
+.body {
+  padding: 20px;
+
+  flex: 1;
+  gap: 32px;
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+.tabs {
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+
+  .tab {
+    flex: 1;
+  }
+}

@@ -1,7 +1,10 @@
-.cardsList {
+
+.list {
+  gap: 8px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+
+  overflow: auto;
 }
 
 .loading,

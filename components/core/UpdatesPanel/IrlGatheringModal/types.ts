@@ -10,6 +10,7 @@ export interface EditModeInitialData {
     name?: string;
     isHost?: boolean;
     isSpeaker?: boolean;
+    isSponsor?: boolean;
   }>;
   additionalInfo?: {
     checkInDate?: string;

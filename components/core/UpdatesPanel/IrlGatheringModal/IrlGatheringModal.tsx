@@ -63,9 +63,13 @@ export function IrlGatheringModal({
     const selectedEventUids = editModeData.events?.map((e) => e.uid) || [];
     const eventRoles: EventRoleSelection[] =
       editModeData.events?.map((e) => {
-        const roles: ('Attendee' | 'Speaker' | 'Host')[] = ['Attendee'];
+        const roles: ('Attendee' | 'Speaker' | 'Host' | 'Sponsor')[] = [];
         if (e.isHost) roles.push('Host');
         if (e.isSpeaker) roles.push('Speaker');
+        if (e.isSponsor) roles.push('Sponsor');
+
+        if (roles.length === 0) roles.push('Attendee');
+
         return { eventUid: e.uid, roles };
       }) || [];
 

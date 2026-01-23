@@ -184,7 +184,7 @@ const FollowSection = (props: IFollowSectionProps) => {
       id: `irl-gathering-${eventLocationSummary?.uid || 'unknown'}`,
       category: 'IRL_GATHERING',
       title: eventLocationSummary?.name || 'IRL Gathering',
-      description: eventLocationSummary.description || `Join us at ${eventLocationSummary?.name || 'this gathering'}`,
+      description: eventLocationSummary.description,
       isPublic: true,
       createdAt: new Date().toISOString(),
       metadata: metadata as unknown as Record<string, unknown>,
@@ -234,6 +234,7 @@ const FollowSection = (props: IFollowSectionProps) => {
         name: e.name,
         isHost: e.isHost,
         isSpeaker: e.isSpeaker,
+        isSponsor: e.isSponsor || e.sponsorSubEvents?.length > 0,
       })),
       additionalInfo: {
         checkInDate,

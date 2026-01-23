@@ -64,11 +64,11 @@ export function EventsPickerView({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEventUids, setSelectedEventUids] = useState<string[]>(initialSelectedEventUids);
 
-  // Normalize initial roles to single-select (keep only first role for each event)
+  // Normalize initial roles to ensure Attendee is always included
   const [eventRoles, setEventRoles] = useState<EventRoleSelection[]>(() =>
     initialEventRoles.map((er) => ({
       eventUid: er.eventUid,
-      roles: er.roles.length > 0 ? [er.roles[0]] : (['Attendee'] as EventRole[]),
+      roles: er.roles.includes('Attendee') ? er.roles : (['Attendee', ...er.roles] as EventRole[]),
     })),
   );
 
@@ -112,9 +112,28 @@ export function EventsPickerView({
     (eventUid: string, role: EventRole, e: React.MouseEvent) => {
       e.stopPropagation();
 
-      // Single select - just set the new role (don't allow unselecting)
+      // Attendee is always selected and cannot be toggled off
+      if (role === 'Attendee') return;
+
+      const currentEventRoles = eventRoles.find((er) => er.eventUid === eventUid);
+      const currentRoles = currentEventRoles?.roles || ['Attendee'];
+
+      let newRoles: EventRole[];
+      if (currentRoles.includes(role)) {
+        // Remove the role (but keep Attendee)
+        newRoles = currentRoles.filter((r) => r !== role);
+      } else {
+        // Add the role
+        newRoles = [...currentRoles, role];
+      }
+
+      // Ensure Attendee is always included
+      if (!newRoles.includes('Attendee')) {
+        newRoles = ['Attendee', ...newRoles];
+      }
+
       const updatedEventRoles = eventRoles.filter((er) => er.eventUid !== eventUid);
-      updatedEventRoles.push({ eventUid, roles: [role] });
+      updatedEventRoles.push({ eventUid, roles: newRoles });
 
       setEventRoles(updatedEventRoles);
     },

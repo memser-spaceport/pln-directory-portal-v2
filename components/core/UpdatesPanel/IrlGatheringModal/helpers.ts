@@ -29,7 +29,7 @@ export function formatDateForApi(date: Date): string {
  */
 export function buildEventsLink(locationName: string, startDate?: string): string {
   const dateParam = startDate ? formatDateForApi(new Date(startDate)) : '';
-  return `${process.env.SCHEDULE_BASE_URL}?location=${locationName}&date=${dateParam}`;
+  return `${process.env.SCHEDULE_BASE_URL}/program?location=${locationName}&date=${dateParam}`;
 }
 
 /**
@@ -40,4 +40,3 @@ export function buildEventsLink(locationName: string, startDate?: string): strin
 export function buildGatheringLink(locationName: string): string {
   return `/events/irl?location=${locationName}`;
 }
-

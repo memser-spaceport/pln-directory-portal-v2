@@ -176,6 +176,7 @@ export function IrlGatheringModal({
           initialRange={selectedDateRange}
           onCancel={handleDatePickerCancel}
           onApply={handleDatePickerApply}
+          gatheringDateRange={gatheringData.eventDates}
         />
       </Modal>
     );

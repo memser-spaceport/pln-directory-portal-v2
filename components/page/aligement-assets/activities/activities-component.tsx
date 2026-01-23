@@ -78,7 +78,7 @@ export default function ActivitiesComponent() {
 
         @media (max-width: 768px) {
           .activities-component {
-            gap: 32px;
+            gap: 12px;
           }
         }
       `}</style>

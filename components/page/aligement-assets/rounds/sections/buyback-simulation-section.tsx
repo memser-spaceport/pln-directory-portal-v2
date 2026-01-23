@@ -15,13 +15,21 @@ interface BuybackAuctionSectionProps {
  */
 export default function BuybackAuctionSection({ data }: BuybackAuctionSectionProps) {
   const [visibleBids, setVisibleBids] = useState(10);
+  const [visibleBidsMobile, setVisibleBidsMobile] = useState(5);
   
   const visibleBidData = data.bids.slice(0, visibleBids);
+  const visibleBidDataMobile = data.bids.slice(0, visibleBidsMobile);
   const hasMore = data.bids.length > visibleBids;
+  const hasMoreMobile = data.bids.length > visibleBidsMobile;
   const remainingCount = data.bids.length - visibleBids;
+  const remainingCountMobile = data.bids.length - visibleBidsMobile;
 
   const handleShowMore = () => {
     setVisibleBids(prev => prev + 10);
+  };
+
+  const handleShowMoreMobile = () => {
+    setVisibleBidsMobile(prev => prev + 5);
   };
 
   return (
@@ -60,8 +68,8 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
             </div>
           </div>
 
-          {/* Auction Table */}
-          <div className={`buyback-section__table-container ${!hasMore ? 'buyback-section__table-container--no-more' : ''}`}>
+          {/* Auction Table - Desktop */}
+          <div className={`buyback-section__table-container buyback-section__table-container--desktop ${!hasMore ? 'buyback-section__table-container--no-more' : ''}`}>
             <table className="buyback-section__table">
               <thead>
                 <tr className="buyback-section__table-header-row">
@@ -134,6 +142,69 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M4 6L8 10L12 6" stroke="#156FF7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Bid Cards - Mobile */}
+          <div className="buyback-section__cards-container">
+            <div className="buyback-section__cards-header">
+              <span className="buyback-section__cards-title">BID DETAILS</span>
+            </div>
+            <div className="buyback-section__cards-list">
+              {visibleBidDataMobile.map((bid, index) => (
+                <div key={`mobile-${bid.bidderId}-${bid.tokenPrice}-${index}`} className="buyback-section__card">
+                  <div className="buyback-section__card-header">
+                    <span className="buyback-section__card-bidder">{bid.bidderId}</span>
+                    <span className={`buyback-section__status buyback-section__status--${bid.status === 'Fully Filled' ? 'filled' : 'partial'}`}>
+                      {bid.status}
+                    </span>
+                  </div>
+                  <div className="buyback-section__card-grid">
+                    <div className="buyback-section__card-item">
+                      <span className="buyback-section__card-label">Tokens Bid</span>
+                      <span className="buyback-section__card-value">{bid.tokensBid}</span>
+                    </div>
+                    <div className="buyback-section__card-item">
+                      <span className="buyback-section__card-label">Token Price</span>
+                      <span className="buyback-section__card-value">{bid.tokenPrice}</span>
+                    </div>
+                    <div className="buyback-section__card-item">
+                      <span className="buyback-section__card-label">Bid Value</span>
+                      <span className="buyback-section__card-value">{bid.bidValue}</span>
+                    </div>
+                    <div className="buyback-section__card-item">
+                      <span className="buyback-section__card-label">Amt Filled</span>
+                      <span className="buyback-section__card-value">{bid.amtFilled}</span>
+                    </div>
+                    <div className="buyback-section__card-item">
+                      <span className="buyback-section__card-label">Accepted</span>
+                      <span className="buyback-section__card-value buyback-section__card-value--accent">{bid.accepted}</span>
+                    </div>
+                    <div className="buyback-section__card-item">
+                      <span className="buyback-section__card-label">Agg Fill</span>
+                      <span className="buyback-section__card-value">{bid.aggFill}</span>
+                    </div>
+                  </div>
+                  <div className="buyback-section__card-footer">
+                    <div className="buyback-section__capture buyback-section__capture--mobile">
+                      <div className="buyback-section__capture-bar">
+                        <div 
+                          className="buyback-section__capture-fill" 
+                          style={{ width: `${parseFloat(bid.percentCapture)}%` }}
+                        />
+                      </div>
+                      <span className="buyback-section__capture-value">{bid.percentCapture}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {hasMoreMobile && (
+              <div className="buyback-section__show-more">
+                <button className="buyback-section__show-more-btn" onClick={handleShowMoreMobile}>
+                  <span>Show +{Math.min(5, remainingCountMobile)} more</span>
                 </button>
               </div>
             )}
@@ -403,6 +474,104 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
           text-decoration: underline;
         }
 
+        /* Mobile Cards Styles */
+        .buyback-section__cards-container {
+          display: none;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          overflow: hidden;
+          background-color: white;
+        }
+
+        .buyback-section__cards-header {
+          padding: 16px 20px;
+          border-bottom: 1px solid #e2e8f0;
+          background-color: #f9fafb;
+        }
+
+        .buyback-section__cards-title {
+          font-size: 12px;
+          font-weight: 600;
+          line-height: 16px;
+          color: #0F172A;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .buyback-section__cards-list {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .buyback-section__card {
+          padding: 20px;
+          border-bottom: 1px solid #e2e8f0;
+        }
+
+        .buyback-section__card:last-child {
+          border-bottom: none;
+        }
+
+        .buyback-section__card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+
+        .buyback-section__card-bidder {
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          color: #475569;
+        }
+
+        .buyback-section__card-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+
+        .buyback-section__card-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .buyback-section__card-label {
+          font-size: 13px;
+          font-weight: 400;
+          line-height: 16px;
+          color: #64748b;
+        }
+
+        .buyback-section__card-value {
+          font-size: 13px;
+          font-weight: 500;
+          line-height: 16px;
+          color: #475569;
+        }
+
+        .buyback-section__card-value--accent {
+          color: #10b981;
+        }
+
+        .buyback-section__card-footer {
+          display: flex;
+          justify-content: flex-end;
+          padding-top: 12px;
+        }
+
+        .buyback-section__capture--mobile {
+          width: 100%;
+        }
+
+        .buyback-section__capture--mobile .buyback-section__capture-bar {
+          flex: 1;
+          width: auto;
+        }
+
         @media (max-width: 1200px) {
           .buyback-section__header {
             flex-direction: column;
@@ -433,6 +602,18 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
 
           .buyback-section__summary-grid {
             grid-template-columns: 1fr;
+          }
+
+          .buyback-section__table-container--desktop {
+            display: none;
+          }
+
+          .buyback-section__cards-container {
+            display: block;
+          }
+
+          .buyback-section__summary {
+            padding: 16px;
           }
         }
       `}</style>

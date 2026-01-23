@@ -177,44 +177,59 @@ const CustomTooltip = ({
   return null;
 };
 
-// Custom tick for category labels
-const renderPolarAngleAxisTick = ({
-  payload,
-  x,
-  y,
-  cx,
-  cy,
-}: {
-  payload: { value: string };
-  x: number;
-  y: number;
-  cx: number;
-  cy: number;
-}) => {
-  const category = payload.value;
+// Custom tick for category labels - factory function for responsive values
+const createRenderPolarAngleAxisTick = (labelFontSize: number, labelOffset: number) => {
+  const RenderPolarAngleAxisTick = ({
+    payload,
+    x,
+    y,
+    cx,
+    cy,
+  }: {
+    payload: { value: string };
+    x: number;
+    y: number;
+    cx: number;
+    cy: number;
+  }) => {
+    const category = payload.value;
 
-  // Calculate the angle for positioning
-  const angle = Math.atan2(y - cy, x - cx);
-  const offsetDistance = 20;
-  const newX = x + Math.cos(angle) * offsetDistance;
-  const newY = y + Math.sin(angle) * offsetDistance;
+    // Calculate the angle for positioning
+    const angle = Math.atan2(y - cy, x - cx);
+    
+    // Increase offset for longer labels and labels on the left side
+    const isLeftSide = x < cx;
+    const isLongLabel = category.length > 10; // Labels like "People/Talent", "Network Tooling"
+    const adjustedOffset = isLeftSide || isLongLabel ? labelOffset + 8 : labelOffset;
+    
+    const newX = x + Math.cos(angle) * adjustedOffset;
+    const newY = y + Math.sin(angle) * adjustedOffset;
 
-  // Determine text anchor based on position
-  let textAnchor: 'start' | 'middle' | 'end' = 'middle';
-  if (x > cx + 10) textAnchor = 'start';
-  else if (x < cx - 10) textAnchor = 'end';
+    // Determine text anchor based on position - improved logic
+    let textAnchor: 'start' | 'middle' | 'end' = 'middle';
+    if (x > cx + 10) {
+      textAnchor = 'start'; // Right side - align to start
+    } else if (x < cx - 10) {
+      textAnchor = 'end'; // Left side - align to end (so text doesn't go off screen)
+    } else {
+      textAnchor = 'middle'; // Top/bottom - center align
+    }
 
-  return (
-    <text
-      x={newX}
-      y={newY}
-      textAnchor={textAnchor}
-      dominantBaseline="middle"
-      style={{ fontSize: '14px', fontWeight: 600, fill: '#475569' }}
-    >
-      {category}
-    </text>
-  );
+    return (
+      <text
+        x={newX}
+        y={newY}
+        textAnchor={textAnchor}
+        dominantBaseline="middle"
+        style={{ fontSize: `${labelFontSize}px`, fontWeight: 600, fill: '#475569' }}
+      >
+        {category}
+      </text>
+    );
+  };
+  
+  RenderPolarAngleAxisTick.displayName = 'RenderPolarAngleAxisTick';
+  return RenderPolarAngleAxisTick;
 };
 
 // Helper function to get the top category (lowest points = highest token potential)
@@ -224,47 +239,61 @@ const getTopCategory = (data: Array<{ category: string; points: number; tokens: 
   return topCategory.category;
 };
 
-// Custom tick for radius axis with pill/badge background and shadow
-const renderRadiusAxisTick = ({ payload, x, y }: { payload: { value: number }; x: number; y: number }) => {
-  const value = payload.value;
-  const formattedValue = value === 0 ? '0' : value.toLocaleString();
+// Custom tick for radius axis with pill/badge background and shadow - factory function for responsive values
+const createRenderRadiusAxisTick = (tickFontSize: number) => {
+  const RenderRadiusAxisTick = ({ payload, x, y }: { payload: { value: number }; x: number; y: number }) => {
+    const value = payload.value;
+    const formattedValue = value === 0 ? '0' : value.toLocaleString();
 
-  // Estimate text width for background
-  const textWidth = formattedValue.length * 8 + 12;
-  const textHeight = 24;
-  const filterId = `shadow-${value}`;
+    // Estimate text width for background based on font size
+    const charWidth = tickFontSize * 0.6;
+    const textWidth = formattedValue.length * charWidth + 12;
+    const textHeight = tickFontSize + 8;
+    const filterId = `shadow-${value}-${tickFontSize}`;
 
-  return (
-    <g>
-      <defs>
-        <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="0" stdDeviation="0.5" floodColor="rgba(15,23,42,0.12)" />
-          <feDropShadow dx="0" dy="4" stdDeviation="2" floodColor="rgba(15,23,42,0.04)" />
-        </filter>
-      </defs>
-      <rect
-        x={x - textWidth / 2}
-        y={y - textHeight / 2}
-        width={textWidth}
-        height={textHeight}
-        rx={4}
-        ry={4}
-        fill="white"
-        stroke="#e1e1e1"
-        strokeWidth={1}
-        filter={`url(#${filterId})`}
-      />
-      <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" style={{ fontSize: '14px', fill: '#4b5563' }}>
-        {formattedValue}
-      </text>
-    </g>
-  );
+    return (
+      <g>
+        <defs>
+          <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="0" stdDeviation="0.5" floodColor="rgba(15,23,42,0.12)" />
+            <feDropShadow dx="0" dy="4" stdDeviation="2" floodColor="rgba(15,23,42,0.04)" />
+          </filter>
+        </defs>
+        <rect
+          x={x - textWidth / 2}
+          y={y - textHeight / 2}
+          width={textWidth}
+          height={textHeight}
+          rx={4}
+          ry={4}
+          fill="white"
+          stroke="#e1e1e1"
+          strokeWidth={1}
+          filter={`url(#${filterId})`}
+        />
+        <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" style={{ fontSize: `${tickFontSize}px`, fill: '#4b5563' }}>
+          {formattedValue}
+        </text>
+      </g>
+    );
+  };
+  
+  RenderRadiusAxisTick.displayName = 'RenderRadiusAxisTick';
+  return RenderRadiusAxisTick;
 };
 
 export default function IncentiveModel() {
   const [selectedRound, setSelectedRound] = useState(CURRENT_ROUND);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [roundInputValue, setRoundInputValue] = useState(String(CURRENT_ROUND));
+  const [chartDimensions, setChartDimensions] = useState({ 
+    outerRadius: '70%', 
+    height: 600, 
+    labelFontSize: 14, 
+    labelOffset: 20, 
+    tickFontSize: 14 
+  });
+  const chartWrapperRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { 
     onIncentiveModelActivitiesLinkClicked, 
@@ -285,6 +314,44 @@ export default function IncentiveModel() {
   // Max points value: 14,000 (Round 2, Projects)
   // Set to 2,000 to better visualize token values (points will be clipped but tokens are the focus)
   const CHART_DOMAIN_MAX = 2000;
+
+  // Read CSS custom properties set via media queries
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (chartWrapperRef.current) {
+        const styles = getComputedStyle(chartWrapperRef.current);
+        const outerRadius = styles.getPropertyValue('--chart-outer-radius').trim() || '70%';
+        const height = parseInt(styles.getPropertyValue('--chart-height').trim()) || 600;
+        const labelFontSize = parseInt(styles.getPropertyValue('--chart-label-font-size').trim()) || 14;
+        const labelOffset = parseInt(styles.getPropertyValue('--chart-label-offset').trim()) || 20;
+        const tickFontSize = parseInt(styles.getPropertyValue('--chart-tick-font-size').trim()) || 14;
+        
+        setChartDimensions({
+          outerRadius,
+          height,
+          labelFontSize,
+          labelOffset,
+          tickFontSize,
+        });
+      }
+    };
+
+    // Initial read
+    updateDimensions();
+
+    // Use ResizeObserver to detect when container size changes (triggers on media query changes)
+    if (chartWrapperRef.current && typeof ResizeObserver !== 'undefined') {
+      const resizeObserver = new ResizeObserver(() => {
+        // Small delay to ensure CSS has updated
+        setTimeout(updateDimensions, 0);
+      });
+      resizeObserver.observe(chartWrapperRef.current);
+
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -530,22 +597,36 @@ export default function IncentiveModel() {
             </span>
           </div> */}
         </section>
-
+        <section className="incentive-model__chart-and-legend-section">
+        <div className="incentive-model__legend">
+              <div className="incentive-model__legend-item">
+                <span className="incentive-model__legend-box incentive-model__legend-box--points" />
+                <span className="incentive-model__legend-text">Points</span>
+              </div>
+              <div className="incentive-model__legend-item">
+                <span className="incentive-model__legend-box incentive-model__legend-box--tokens" />
+                <span className="incentive-model__legend-text">Tokens</span>
+              </div>
+          </div>
         {/* Chart and Legend Section */}
         <section className="incentive-model__chart-content">
-          <div className="incentive-model__chart-wrapper">
-            <ResponsiveContainer width="100%" height={600}>
-              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={currentData}>
+          <div className="incentive-model__chart-wrapper" ref={chartWrapperRef}>
+            <ResponsiveContainer width="100%" height={chartDimensions.height}>
+              <RadarChart cx="50%" cy="50%" outerRadius={chartDimensions.outerRadius} data={currentData}>
                 <PolarGrid stroke="#e2e8f0" gridType="polygon" radialLines={false} />
                 <PolarRadiusAxis
                   angle={90}
                   domain={[0, CHART_DOMAIN_MAX]}
-                  tick={renderRadiusAxisTick}
+                  tick={createRenderRadiusAxisTick(chartDimensions.tickFontSize)}
                   tickCount={5}
                   axisLine={false}
                   orientation="middle"
                 />
-                <PolarAngleAxis dataKey="category" tick={renderPolarAngleAxisTick} tickLine={false} />
+                <PolarAngleAxis 
+                  dataKey="category" 
+                  tick={createRenderPolarAngleAxisTick(chartDimensions.labelFontSize, chartDimensions.labelOffset)} 
+                  tickLine={false} 
+                />
                 <Radar
                   name="Points"
                   dataKey="points"
@@ -567,19 +648,7 @@ export default function IncentiveModel() {
             </ResponsiveContainer>
           </div>
 
-          <div className="incentive-model__legend-wrapper">
-            {/* Legend */}
-            <div className="incentive-model__legend">
-              <div className="incentive-model__legend-item">
-                <span className="incentive-model__legend-box incentive-model__legend-box--points" />
-                <span className="incentive-model__legend-text">Points</span>
-              </div>
-              <div className="incentive-model__legend-item">
-                <span className="incentive-model__legend-box incentive-model__legend-box--tokens" />
-                <span className="incentive-model__legend-text">Tokens</span>
-              </div>
-            </div>
-
+          <div className="incentive-model__explanation-wrapper">
             {/* Explanation List */}
             <ol className="incentive-model__explanation">
               <li>
@@ -610,6 +679,7 @@ export default function IncentiveModel() {
               </p>
             </div>
           </div>
+        </section>
         </section>
 
         {/* Learn More CTA */}
@@ -683,10 +753,7 @@ export default function IncentiveModel() {
 
         .incentive-model__chart-header {
           display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 16px;
+          flex-direction: column;
         }
 
         .incentive-model__chart-info {
@@ -714,6 +781,11 @@ export default function IncentiveModel() {
         /* Round Selector Dropdown */
         .incentive-model__round-dropdown-wrapper {
           position: relative;
+        }
+
+        .incentive-model__chart-and-legend-section {
+          display: flex;
+          flex-direction: column;
         }
 
         .incentive-model__round-dropdown-btn {
@@ -941,9 +1013,27 @@ export default function IncentiveModel() {
           width: 100%;
           height: 600px;
           position: relative;
+          overflow: visible;
+          padding: 0px 25px 25px 50px;
+          box-sizing: border-box;
+          margin-top: -40px;
+          /* CSS Custom Properties - Default values (desktop) */
+          --chart-outer-radius: 70%;
+          --chart-height: 600;
+          --chart-label-font-size: 14;
+          --chart-label-offset: 25;
+          --chart-tick-font-size: 14;
         }
 
-        .incentive-model__legend-wrapper {
+        .incentive-model__chart-wrapper :global(.recharts-wrapper) {
+          overflow: visible !important;
+        }
+
+        .incentive-model__chart-wrapper :global(.recharts-surface) {
+          overflow: visible !important;
+        }
+
+        .incentive-model__explanation-wrapper {
           display: flex;
           flex-direction: column;
           gap: 24px;
@@ -955,6 +1045,7 @@ export default function IncentiveModel() {
         .incentive-model__legend {
           display: flex;
           gap: 24px;
+          align-self: flex-start;
         }
 
         .incentive-model__legend-item {
@@ -1042,12 +1133,43 @@ export default function IncentiveModel() {
           .incentive-model__chart-wrapper {
             width: 100%;
             max-width: 100%;
+            height: 500px;
+            margin-top: 0px;
+            padding: 0px 20px 0px 30px;
+            --chart-outer-radius: 60%;
+            --chart-height: 500;
+            --chart-label-font-size: 13;
+            --chart-label-offset: 22;
+            --chart-tick-font-size: 13;
+            margin-top: -20px;
           }
 
-          .incentive-model__legend-wrapper {
+          .incentive-model__explanation-wrapper {
             max-width: 100%;
             width: 100%;
           }
+        }
+
+        @media (max-width: 1024px) {
+          .incentive-model__chart-wrapper {
+            height: 500px;
+            margin-top: 0px;
+            padding: 0px 20px 0px 30px;
+            --chart-outer-radius: 60%;
+            --chart-height: 500;
+            --chart-label-font-size: 13;
+            --chart-label-offset: 22;
+            --chart-tick-font-size: 13;
+          }
+        }
+
+        @media (min-width: 768px) {
+        .incentive-model__chart-header {
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+          gap: 16px;
+        }
         }
 
         @media (max-width: 768px) {
@@ -1064,9 +1186,14 @@ export default function IncentiveModel() {
           }
 
           .incentive-model__chart-header {
-            flex-direction: column;
-            align-items: flex-start;
             gap: 16px;
+          }
+
+          .incentive-model__round-dropdown-wrapper {
+            // width: 100%;
+            display: flex;
+            align-self: flex-end;
+            
           }
 
           .incentive-model__chart-title {
@@ -1075,10 +1202,19 @@ export default function IncentiveModel() {
 
           .incentive-model__chart-content {
             gap: 32px;
+            min-height: auto;
           }
 
-          .incentive-model__legend {
-            flex-wrap: wrap;
+          .incentive-model__chart-wrapper {
+            height: 450px;
+            margin-top: 0px;
+            padding: 0px 15px 0px 25px;
+            min-width: 100%;
+            --chart-outer-radius: 55%;
+            --chart-height: 450;
+            --chart-label-font-size: 12;
+            --chart-label-offset: 20;
+            --chart-tick-font-size: 13;
           }
 
           .incentive-model__round-dropdown-btn {
@@ -1094,14 +1230,31 @@ export default function IncentiveModel() {
           }
         }
 
+        @media (min-width: 1024px) {
+          .incentive-model__legend {
+            align-self: flex-end;
+            margin-right: 150px;
+          }
+        }
+
+        @media (min-width: 1440px) {
+          .incentive-model__legend {
+            align-self: flex-end;
+            margin-right: 180px;
+          }
+        }
+
         @media (max-width: 480px) {
           .incentive-model__chart-wrapper {
             min-width: 100%;
             height: 400px;
-          }
-
-          .incentive-model__round-dropdown-wrapper {
-            width: 100%;
+            margin-top: 0px;
+            padding: 0px 12px 0px 20px;
+            --chart-outer-radius: 50%;
+            --chart-height: 400;
+            --chart-label-font-size: 11;
+            --chart-label-offset: 18;
+            --chart-tick-font-size: 12;
           }
 
           .incentive-model__round-dropdown-btn {
@@ -1112,6 +1265,18 @@ export default function IncentiveModel() {
             left: 0;
             right: 0;
             min-width: auto;
+          }
+        }
+
+        @media (max-width: 360px) {
+          .incentive-model__chart-wrapper {
+            height: 350px;
+            padding: 0px 10px 0px 18px;
+            --chart-outer-radius: 45%;
+            --chart-height: 350;
+            --chart-label-font-size: 10;
+            --chart-label-offset: 15;
+            --chart-tick-font-size: 11;
           }
         }
 
@@ -1138,7 +1303,7 @@ export default function IncentiveModel() {
         }
 
         .incentive-model__learn-more-text {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 500;
           line-height: 20px;
           margin: 0;

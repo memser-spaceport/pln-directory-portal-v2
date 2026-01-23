@@ -74,7 +74,7 @@ export default function HeroSection({ data }: HeroSectionProps) {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 16px;
+          gap: 26px;
           max-width: 1124px;
           margin: 0 auto;
         }
@@ -117,8 +117,13 @@ export default function HeroSection({ data }: HeroSectionProps) {
         }
 
         @media (max-width: 768px) {
+          .activities-hero {
+            text-align: left;
+          }
+
           .activities-hero__content {
             padding: 0 16px;
+            align-items: flex-start;
           }
 
           .activities-hero__title {

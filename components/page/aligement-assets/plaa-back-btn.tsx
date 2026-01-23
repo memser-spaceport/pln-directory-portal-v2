@@ -54,6 +54,12 @@ function PlaaBackButton({ title = '' }: PlaaBackButtonProps) {
             color: #156ff7;
             cursor: pointer;
           }
+
+          @media (max-width: 768px) {
+            .pb {
+              display: none;
+            }
+          }
         `}
       </style>
     </>

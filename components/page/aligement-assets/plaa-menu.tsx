@@ -19,6 +19,7 @@ interface PlaaMenuProps {
   currentRound?: number;
   totalRounds?: number;
   viewingRound?: number; // The round being viewed on the current page
+  onMenuItemClick?: () => void; // Callback to handle menu item clicks (e.g., close mobile menu)
 }
 
 const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExternal?: boolean }> = [
@@ -33,16 +34,28 @@ const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExt
   { name: 'disclosure', label: 'Disclosure', url: '/alignment-asset/disclosure' }
 ];
 
-function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound }: PlaaMenuProps) {
+function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound, onMenuItemClick }: PlaaMenuProps) {
   const router = useRouter();
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
 
   const onItemClicked = (label: string, url: string, isExternal?: boolean) => {
     onNavMenuClicked(label, url);
     
+    // Call the callback to close mobile menu if provided
+    if (onMenuItemClick) {
+      onMenuItemClick();
+    }
+    
     if (isExternal) {
       // Open external links in a new tab
       window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    
+    // Check if we're already on the target URL
+    const currentPath = window.location.pathname;
+    if (currentPath === url) {
+      // Already on this page, no need to navigate or show loader
       return;
     }
     
@@ -61,6 +74,7 @@ function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound
             currentRound={currentRound}
             totalRounds={totalRounds}
             viewingRound={viewingRound}
+            onRoundNavigation={onMenuItemClick}
           />
         </div>
 
@@ -163,6 +177,16 @@ function PlaaMenu({ activeItem, currentRound = 1, totalRounds = 12, viewingRound
             color: #475569;
             line-height: normal;
             font-family: 'Inter', sans-serif;
+          }
+
+          @media (max-width: 768px) {
+            .plaa-menu {
+              padding: 16px;
+            }
+            
+            .plaa-menu__item {
+              width: 93%;
+            }
           }
         `}
       </style>

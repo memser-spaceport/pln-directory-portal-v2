@@ -22,6 +22,11 @@ const nextConfig = {
         destination: '/sign-up',
         permanent: true,
       },
+      {
+        source: '/alignment-asset/rounds',
+        destination: '/alignment-asset',
+        permanent: true,
+      },
     ];
   },
   env: {

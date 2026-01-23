@@ -29,6 +29,29 @@ function formatEventDate(startDate: string, endDate: string): string {
   return `${formatDate(start)} - ${formatDate(end)}`;
 }
 
+function formatDateGroupHeader(startDate: string, endDate: string): string {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  if (start.toDateString() === end.toDateString()) {
+    return formatDate(start);
+  }
+  return `${formatDate(start)} - ${formatDate(end)}`;
+}
+
+function getDateKey(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+}
+
+interface EventGroup {
+  dateKey: string;
+  dateLabel: string;
+  events: EventData[];
+}
+
 export function EventsPickerView({
   planningQuestion,
   locationName,
@@ -47,6 +70,28 @@ export function EventsPickerView({
     const query = searchQuery.toLowerCase();
     return events.filter((event) => event.name.toLowerCase().includes(query));
   }, [events, searchQuery]);
+
+  // Group events by start date
+  const groupedEvents = useMemo((): EventGroup[] => {
+    const groups: Map<string, EventData[]> = new Map();
+
+    filteredEvents.forEach((event) => {
+      const dateKey = getDateKey(event.startDate);
+      if (!groups.has(dateKey)) {
+        groups.set(dateKey, []);
+      }
+      groups.get(dateKey)!.push(event);
+    });
+
+    // Sort groups by date and convert to array
+    return Array.from(groups.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([dateKey, evts]) => ({
+        dateKey,
+        dateLabel: formatDateGroupHeader(evts[0].startDate, evts[0].endDate),
+        events: evts,
+      }));
+  }, [filteredEvents]);
 
   const getEventRoles = useCallback(
     (eventUid: string): EventRole[] => {
@@ -160,69 +205,74 @@ export function EventsPickerView({
         </div>
 
         <div className={s.eventsListContainer}>
-          {filteredEvents.map((event) => {
-            const isSelected = selectedEventUids.includes(event.uid);
-            const selectedRoles = getEventRoles(event.uid);
-            return (
-              <div
-                key={event.uid}
-                className={`${s.eventListItem} ${isSelected ? s.eventListItemSelected : ''}`}
-                onClick={() => handleEventToggle(event.uid)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleEventToggle(event.uid);
-                  }
-                }}
-              >
-                <div className={`${s.eventCheckbox} ${isSelected ? s.eventCheckboxChecked : ''}`}>
-                  {isSelected && <CheckIcon />}
-                </div>
-                <div className={s.eventListLogo}>
-                  {event.logoUrl ? (
-                    <Image src={event.logoUrl} alt={event.name} width={40} height={40} />
-                  ) : (
-                    <div className={s.eventLogoPlaceholder}>
-                      <CalendarPlusIcon />
+          {groupedEvents.map((group) => (
+            <div key={group.dateKey} className={s.eventsDateGroup}>
+              <div className={s.eventsDateHeader}>{group.dateLabel}</div>
+              {group.events.map((event) => {
+                const isSelected = selectedEventUids.includes(event.uid);
+                const selectedRoles = getEventRoles(event.uid);
+                return (
+                  <div
+                    key={event.uid}
+                    className={`${s.eventListItem} ${isSelected ? s.eventListItemSelected : ''}`}
+                    onClick={() => handleEventToggle(event.uid)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleEventToggle(event.uid);
+                      }
+                    }}
+                  >
+                    <div className={`${s.eventCheckbox} ${isSelected ? s.eventCheckboxChecked : ''}`}>
+                      {isSelected && <CheckIcon />}
                     </div>
-                  )}
-                </div>
-                <div className={s.eventListInfo}>
-                  <span className={s.eventListName}>{event.name}</span>
-                  {isSelected && event.description && (
-                    <span className={s.eventListDescription}>{event.description}</span>
-                  )}
-                  {!isSelected && (
-                    <span className={s.eventListMeta}>
-                      {formatEventDate(event.startDate, event.endDate)} · {event.attendeeCount} attending
-                    </span>
-                  )}
-                  {isSelected && (
-                    <div className={s.eventRoleSelector}>
-                      <span className={s.eventRoleLabel}>Role:</span>
-                      <div className={s.eventRoleBadges}>
-                        {AVAILABLE_ROLES.map((role) => {
-                          const isRoleSelected = selectedRoles.includes(role);
-                          return (
-                            <button
-                              key={role}
-                              type="button"
-                              className={`${s.eventRoleBadge} ${isRoleSelected ? s.eventRoleBadgeSelected : ''}`}
-                              onClick={(e) => handleRoleToggle(event.uid, role, e)}
-                            >
-                              {role}
-                            </button>
-                          );
-                        })}
-                      </div>
+                    <div className={s.eventListLogo}>
+                      {event.logoUrl ? (
+                        <Image src={event.logoUrl} alt={event.name} width={40} height={40} />
+                      ) : (
+                        <div className={s.eventLogoPlaceholder}>
+                          <CalendarPlusIcon />
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                    <div className={s.eventListInfo}>
+                      <span className={s.eventListName}>{event.name}</span>
+                      {isSelected && event.description && (
+                        <span className={s.eventListDescription}>{event.description}</span>
+                      )}
+                      {!isSelected && (
+                        <span className={s.eventListMeta}>
+                          {formatEventDate(event.startDate, event.endDate)} · {event.attendeeCount} attending
+                        </span>
+                      )}
+                      {isSelected && (
+                        <div className={s.eventRoleSelector}>
+                          <span className={s.eventRoleLabel}>Role:</span>
+                          <div className={s.eventRoleBadges}>
+                            {AVAILABLE_ROLES.map((role) => {
+                              const isRoleSelected = selectedRoles.includes(role);
+                              return (
+                                <button
+                                  key={role}
+                                  type="button"
+                                  className={`${s.eventRoleBadge} ${isRoleSelected ? s.eventRoleBadgeSelected : ''}`}
+                                  onClick={(e) => handleRoleToggle(event.uid, role, e)}
+                                >
+                                  {role}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
           {filteredEvents.length === 0 && (
             <div className={s.eventsEmptyState}>
               No events found matching <b>{searchQuery}</b>

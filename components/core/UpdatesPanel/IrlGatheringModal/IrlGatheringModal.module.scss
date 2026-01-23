@@ -443,6 +443,31 @@
   overflow-y: auto;
 }
 
+.eventsDateGroup {
+  display: flex;
+  flex-direction: column;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid rgba(27, 56, 96, 0.06);
+  }
+}
+
+.eventsDateHeader {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: rgba(14, 15, 17, 0.02);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
 .eventListItem {
   display: flex;
   align-items: center;

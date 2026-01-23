@@ -227,7 +227,7 @@ export function IrlGatheringModal({
           />
 
           <div className={s.content}>
-            <AboutSection description={gatheringData.aboutDescription} />
+            {gatheringData.aboutDescription && <AboutSection description={gatheringData.aboutDescription} />}
 
             <GatheringDetails
               dateRange={gatheringData.dateRange}

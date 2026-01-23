@@ -14,6 +14,25 @@ import s from '../IrlGatheringModal.module.scss';
 
 const MAX_CHARACTERS = 150;
 
+// URL validation that accepts links with or without http/https prefix
+const isValidUrl = (value: string): boolean | string => {
+  if (!value) return true; // Allow empty values
+
+  // Add https:// if no protocol is present for validation
+  const urlToValidate = value.match(/^https?:\/\//) ? value : `https://${value}`;
+
+  try {
+    const url = new URL(urlToValidate);
+    // Check if it has a valid domain structure
+    if (!url.hostname.includes('.')) {
+      return 'Please enter a valid URL';
+    }
+    return true;
+  } catch {
+    return 'Please enter a valid URL';
+  }
+};
+
 interface TeamFromApi {
   teamUid: string;
   teamTitle: string;
@@ -142,6 +161,7 @@ export function AdditionalDetailsSection({
               name="officeHours"
               placeholder="https://calendly.com/your-link"
               description="I will be available for a short 1:1 call to connect — no introduction needed."
+              rules={{ validate: isValidUrl }}
             />
           </div>
         </div>

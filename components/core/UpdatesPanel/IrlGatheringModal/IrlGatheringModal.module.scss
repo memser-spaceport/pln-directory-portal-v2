@@ -884,6 +884,12 @@
   position: relative;
 }
 
+.datePickerLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .datePickerLabel {
   font-family: 'Inter', sans-serif;
   font-size: 14px;
@@ -891,6 +897,24 @@
   line-height: 20px;
   letter-spacing: -0.2px;
   color: #455468;
+}
+
+.datePickerClearButton {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #1b4dff;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
 }
 
 .datePickerInput {

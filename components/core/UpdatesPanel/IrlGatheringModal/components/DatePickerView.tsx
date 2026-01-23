@@ -62,7 +62,12 @@ export function DatePickerView({
     }
   };
 
+  const handleClear = () => {
+    setTempRange(null);
+  };
+
   const displayValue = formatDateDisplay(tempRange);
+  const hasSelection = Array.isArray(tempRange) ? tempRange[0] !== null : tempRange !== null;
 
   return (
     <div className={s.datePickerModal}>
@@ -71,7 +76,14 @@ export function DatePickerView({
         <p className={s.sectionDescription}>Let others know if you are attending.</p>
 
         <div className={s.datePickerSection}>
-          <span className={s.datePickerLabel}>Select date range</span>
+          <div className={s.datePickerLabelRow}>
+            <span className={s.datePickerLabel}>Select date range</span>
+            {hasSelection && (
+              <button type="button" className={s.datePickerClearButton} onClick={handleClear}>
+                Clear
+              </button>
+            )}
+          </div>
           <div className={`${s.datePickerInput} ${s.datePickerInputFocused}`}>
             <span className={displayValue ? s.datePickerInputValue : ''}>{displayValue || 'Select date range'}</span>
           </div>

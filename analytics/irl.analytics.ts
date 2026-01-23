@@ -89,6 +89,23 @@ export const useIrlAnalytics = () => {
     IRL_GUEST_LIST_REGISTER_TODAY_CLICKED: 'irl-guest-list-register-today-clicked',
     IRL_GUEST_LIST_VIEW_PAST_ATTENDEES_CLICKED: 'irl-guest-list-view-past-attendees-clicked',
     IRL_EMPTY_GUEST_LIST_IM_GOING_CLICK: 'irl-empty-guest-list-im-going-click',
+
+    // IRL Gathering Modal events
+    IRL_GATHERING_MODAL_OPENED: 'irl-gathering-modal-opened',
+    IRL_GATHERING_MODAL_CLOSED: 'irl-gathering-modal-closed',
+    IRL_GATHERING_MODAL_DATE_PICKER_OPENED: 'irl-gathering-modal-date-picker-opened',
+    IRL_GATHERING_MODAL_DATE_PICKER_APPLIED: 'irl-gathering-modal-date-picker-applied',
+    IRL_GATHERING_MODAL_DATE_PICKER_CANCELLED: 'irl-gathering-modal-date-picker-cancelled',
+    IRL_GATHERING_MODAL_DATE_PICKER_CLEARED: 'irl-gathering-modal-date-picker-cleared',
+    IRL_GATHERING_MODAL_TOPICS_PICKER_OPENED: 'irl-gathering-modal-topics-picker-opened',
+    IRL_GATHERING_MODAL_TOPICS_PICKER_APPLIED: 'irl-gathering-modal-topics-picker-applied',
+    IRL_GATHERING_MODAL_TOPICS_PICKER_CANCELLED: 'irl-gathering-modal-topics-picker-cancelled',
+    IRL_GATHERING_MODAL_EVENTS_PICKER_OPENED: 'irl-gathering-modal-events-picker-opened',
+    IRL_GATHERING_MODAL_EVENTS_PICKER_APPLIED: 'irl-gathering-modal-events-picker-applied',
+    IRL_GATHERING_MODAL_EVENTS_PICKER_CANCELLED: 'irl-gathering-modal-events-picker-cancelled',
+    IRL_GATHERING_MODAL_SUBMIT_CLICKED: 'irl-gathering-modal-submit-clicked',
+    IRL_GATHERING_MODAL_SUBMIT_SUCCESS: 'irl-gathering-modal-submit-success',
+    IRL_GATHERING_MODAL_SUBMIT_ERROR: 'irl-gathering-modal-submit-error',
   };
 
   const trackShowOnlyPastAttendeesCheckboxClicked = (location: any) => {
@@ -654,6 +671,154 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_EMPTY_GUEST_LIST_IM_GOING_CLICK, { ...params });
   }
 
+  // IRL Gathering Modal tracking functions
+  function trackGatheringModalOpened(gatheringData: any, isEditMode: boolean) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+      isEditMode,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_OPENED, { ...params });
+  }
+
+  function trackGatheringModalClosed(gatheringData: any, isEditMode: boolean) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+      isEditMode,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_CLOSED, { ...params });
+  }
+
+  function trackGatheringModalDatePickerOpened(gatheringData: any) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_DATE_PICKER_OPENED, { ...params });
+  }
+
+  function trackGatheringModalDatePickerApplied(gatheringData: any, dateRange: [Date, Date] | null) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+      startDate: dateRange?.[0]?.toISOString(),
+      endDate: dateRange?.[1]?.toISOString(),
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_DATE_PICKER_APPLIED, { ...params });
+  }
+
+  function trackGatheringModalDatePickerCancelled(gatheringData: any) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_DATE_PICKER_CANCELLED, { ...params });
+  }
+
+  function trackGatheringModalDatePickerCleared(gatheringData: any) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_DATE_PICKER_CLEARED, { ...params });
+  }
+
+  function trackGatheringModalTopicsPickerOpened(gatheringData: any) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_TOPICS_PICKER_OPENED, { ...params });
+  }
+
+  function trackGatheringModalTopicsPickerApplied(gatheringData: any, topics: string[]) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+      topicsCount: topics.length,
+      topics,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_TOPICS_PICKER_APPLIED, { ...params });
+  }
+
+  function trackGatheringModalTopicsPickerCancelled(gatheringData: any) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_TOPICS_PICKER_CANCELLED, { ...params });
+  }
+
+  function trackGatheringModalEventsPickerOpened(gatheringData: any) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_EVENTS_PICKER_OPENED, { ...params });
+  }
+
+  function trackGatheringModalEventsPickerApplied(gatheringData: any, eventUids: string[]) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+      eventsCount: eventUids.length,
+      eventUids,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_EVENTS_PICKER_APPLIED, { ...params });
+  }
+
+  function trackGatheringModalEventsPickerCancelled(gatheringData: any) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_EVENTS_PICKER_CANCELLED, { ...params });
+  }
+
+  function trackGatheringModalSubmitClicked(gatheringData: any, isEditMode: boolean) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+      isEditMode,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_SUBMIT_CLICKED, { ...params });
+  }
+
+  function trackGatheringModalSubmitSuccess(gatheringData: any, isEditMode: boolean) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+      isEditMode,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_SUBMIT_SUCCESS, { ...params });
+  }
+
+  function trackGatheringModalSubmitError(gatheringData: any, isEditMode: boolean, error: any) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+      isEditMode,
+      error: error?.message || String(error),
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_SUBMIT_ERROR, { ...params });
+  }
+
   return {
     trackImGoingBtnClick,
     trackLoginToRespondBtnClick,
@@ -725,5 +890,21 @@ export const useIrlAnalytics = () => {
     trackGuestListRegisterTodayClicked,
     trackGuestListViewPastAttendeesClicked,
     trackEmptyGuestListImGoingClicked,
+    // IRL Gathering Modal
+    trackGatheringModalOpened,
+    trackGatheringModalClosed,
+    trackGatheringModalDatePickerOpened,
+    trackGatheringModalDatePickerApplied,
+    trackGatheringModalDatePickerCancelled,
+    trackGatheringModalDatePickerCleared,
+    trackGatheringModalTopicsPickerOpened,
+    trackGatheringModalTopicsPickerApplied,
+    trackGatheringModalTopicsPickerCancelled,
+    trackGatheringModalEventsPickerOpened,
+    trackGatheringModalEventsPickerApplied,
+    trackGatheringModalEventsPickerCancelled,
+    trackGatheringModalSubmitClicked,
+    trackGatheringModalSubmitSuccess,
+    trackGatheringModalSubmitError,
   };
 };

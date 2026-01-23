@@ -17,6 +17,7 @@ interface DatePickerViewProps {
     start: string | undefined;
     end: string | undefined;
   };
+  onClear?: () => void;
 }
 
 function formatDateDisplay(value: Value): string {
@@ -43,6 +44,7 @@ export function DatePickerView({
   onCancel,
   onApply,
   gatheringDateRange,
+  onClear,
 }: DatePickerViewProps) {
   const [tempRange, setTempRange] = useState<Value>(initialRange);
 
@@ -63,6 +65,7 @@ export function DatePickerView({
   };
 
   const handleClear = () => {
+    onClear?.();
     setTempRange(null);
   };
 

@@ -62,6 +62,7 @@ export function useIrlGatheringSubmit({
 
         const isHost = roles.includes('Host');
         const isSpeaker = roles.includes('Speaker');
+        const isSponsor = roles.includes('Sponsor');
 
         // Create sub-event object with event details
         const subEventData = eventData
@@ -75,7 +76,7 @@ export function useIrlGatheringSubmit({
           isSponsor: false, // Sponsor role is not available in the form UI
           hostSubEvents: isHost ? [subEventData] : [],
           speakerSubEvents: isSpeaker ? [subEventData] : [],
-          sponsorSubEvents: [],
+          sponsorSubEvents: isSponsor ? [subEventData] : [],
         };
       });
 

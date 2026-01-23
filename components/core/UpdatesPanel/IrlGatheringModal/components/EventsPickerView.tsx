@@ -6,7 +6,7 @@ import { CalendarPlusIcon, CheckIcon, SearchIcon, XCircleIcon } from '../icons';
 import { EventData, EventRole, EventRoleSelection } from '../types';
 import s from '../IrlGatheringModal.module.scss';
 
-const AVAILABLE_ROLES: EventRole[] = ['Attendee', 'Speaker', 'Host'];
+const AVAILABLE_ROLES: EventRole[] = ['Attendee', 'Speaker', 'Host', 'Sponsor'];
 
 interface EventsPickerViewProps {
   planningQuestion: string;
@@ -63,7 +63,14 @@ export function EventsPickerView({
 }: EventsPickerViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEventUids, setSelectedEventUids] = useState<string[]>(initialSelectedEventUids);
-  const [eventRoles, setEventRoles] = useState<EventRoleSelection[]>(initialEventRoles);
+
+  // Normalize initial roles to single-select (keep only first role for each event)
+  const [eventRoles, setEventRoles] = useState<EventRoleSelection[]>(() =>
+    initialEventRoles.map((er) => ({
+      eventUid: er.eventUid,
+      roles: er.roles.length > 0 ? [er.roles[0]] : (['Attendee'] as EventRole[]),
+    })),
+  );
 
   const filteredEvents = useMemo(() => {
     if (!searchQuery.trim()) return events;
@@ -105,20 +112,9 @@ export function EventsPickerView({
     (eventUid: string, role: EventRole, e: React.MouseEvent) => {
       e.stopPropagation();
 
-      const currentEventRoles = eventRoles.find((er) => er.eventUid === eventUid);
-      const currentRoles = currentEventRoles?.roles || [];
-
-      let newRoles: EventRole[];
-      if (currentRoles.includes(role)) {
-        newRoles = currentRoles.filter((r) => r !== role);
-      } else {
-        newRoles = [...currentRoles, role];
-      }
-
+      // Single select - just set the new role (don't allow unselecting)
       const updatedEventRoles = eventRoles.filter((er) => er.eventUid !== eventUid);
-      if (newRoles.length > 0) {
-        updatedEventRoles.push({ eventUid, roles: newRoles });
-      }
+      updatedEventRoles.push({ eventUid, roles: [role] });
 
       setEventRoles(updatedEventRoles);
     },

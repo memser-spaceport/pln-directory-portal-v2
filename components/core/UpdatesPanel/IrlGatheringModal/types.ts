@@ -30,7 +30,7 @@ export interface IrlGatheringModalProps {
   editModeData?: EditModeInitialData;
 }
 
-export type EventRole = 'Attendee' | 'Speaker' | 'Host';
+export type EventRole = 'Attendee' | 'Speaker' | 'Host' | 'Sponsor';
 
 export interface EventRoleSelection {
   eventUid: string;

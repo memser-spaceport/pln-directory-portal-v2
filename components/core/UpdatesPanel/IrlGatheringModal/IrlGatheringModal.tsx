@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
@@ -22,6 +22,7 @@ import { IrlGatheringModalProps, IrlGatheringFormData, EventRoleSelection } from
 import s from './IrlGatheringModal.module.scss';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { useMember } from '@/services/members/hooks/useMember';
+import { useIrlAnalytics } from '@/analytics/irl.analytics';
 
 export type { IrlGatheringModalProps, IrlGatheringFormData } from './types';
 
@@ -38,6 +39,8 @@ export function IrlGatheringModal({
   const defaultTeamUid = userInfo?.leadingTeams?.[0];
   const { data } = useMemberFormOptions();
   const { data: memberData } = useMember(userInfo?.uid);
+  const analytics = useIrlAnalytics();
+  const wasOpenRef = useRef(false);
 
   // Build initial form values for edit mode
   const initialFormValues = useMemo(() => {
@@ -101,6 +104,16 @@ export function IrlGatheringModal({
     }
   }, [isOpen, initialFormValues, methods]);
 
+  // Track modal open/close
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current) {
+      analytics.trackGatheringModalOpened(gatheringData, isEditMode);
+    } else if (!isOpen && wasOpenRef.current) {
+      analytics.trackGatheringModalClosed(gatheringData, isEditMode);
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen, gatheringData, isEditMode, analytics]);
+
   const {
     currentView,
     selectedDateRange,
@@ -147,17 +160,61 @@ export function IrlGatheringModal({
     guestUid: editModeData?.guestUid,
   });
 
-  const handleFormSubmit = methods.handleSubmit(submitForm);
+  const handleFormSubmit = methods.handleSubmit((data) => {
+    analytics.trackGatheringModalSubmitClicked(gatheringData, isEditMode);
+    submitForm(data);
+  });
+
+  // Wrapped handlers with analytics tracking
+  const handleOpenDatePickerWithTracking = useCallback(() => {
+    analytics.trackGatheringModalDatePickerOpened(gatheringData);
+    handleOpenDatePicker();
+  }, [analytics, gatheringData, handleOpenDatePicker]);
+
+  const handleDatePickerCancelWithTracking = useCallback(() => {
+    analytics.trackGatheringModalDatePickerCancelled(gatheringData);
+    handleDatePickerCancel();
+  }, [analytics, gatheringData, handleDatePickerCancel]);
+
+  const handleDatePickerApplyWithTracking = useCallback(
+    (range: [Date, Date] | null) => {
+      analytics.trackGatheringModalDatePickerApplied(gatheringData, range);
+      handleDatePickerApply(range);
+    },
+    [analytics, gatheringData, handleDatePickerApply],
+  );
+
+  const handleOpenTopicsPickerWithTracking = useCallback(() => {
+    analytics.trackGatheringModalTopicsPickerOpened(gatheringData);
+    handleOpenTopicsPicker();
+  }, [analytics, gatheringData, handleOpenTopicsPicker]);
+
+  const handleTopicsPickerCancelWithTracking = useCallback(() => {
+    analytics.trackGatheringModalTopicsPickerCancelled(gatheringData);
+    handleTopicsPickerCancel();
+  }, [analytics, gatheringData, handleTopicsPickerCancel]);
 
   const handleTopicsApply = useCallback(
     (topics: string[]) => {
+      analytics.trackGatheringModalTopicsPickerApplied(gatheringData, topics);
       handleTopicsPickerApply(topics, (t) => methods.setValue('topics', t));
     },
-    [handleTopicsPickerApply, methods],
+    [analytics, gatheringData, handleTopicsPickerApply, methods],
   );
+
+  const handleOpenEventsPickerWithTracking = useCallback(() => {
+    analytics.trackGatheringModalEventsPickerOpened(gatheringData);
+    handleOpenEventsPicker();
+  }, [analytics, gatheringData, handleOpenEventsPicker]);
+
+  const handleEventsPickerCancelWithTracking = useCallback(() => {
+    analytics.trackGatheringModalEventsPickerCancelled(gatheringData);
+    handleEventsPickerCancel();
+  }, [analytics, gatheringData, handleEventsPickerCancel]);
 
   const handleEventsApply = useCallback(
     (uids: string[], roles: EventRoleSelection[]) => {
+      analytics.trackGatheringModalEventsPickerApplied(gatheringData, uids);
       handleEventsPickerApply(
         uids,
         roles,
@@ -165,7 +222,7 @@ export function IrlGatheringModal({
         (r) => methods.setValue('eventRoles', r),
       );
     },
-    [handleEventsPickerApply, methods],
+    [analytics, gatheringData, handleEventsPickerApply, methods],
   );
 
   if (currentView === 'datePicker') {
@@ -174,9 +231,10 @@ export function IrlGatheringModal({
         <DatePickerView
           planningQuestion={gatheringData.planningQuestion}
           initialRange={selectedDateRange}
-          onCancel={handleDatePickerCancel}
-          onApply={handleDatePickerApply}
+          onCancel={handleDatePickerCancelWithTracking}
+          onApply={handleDatePickerApplyWithTracking}
           gatheringDateRange={gatheringData.eventDates}
+          onClear={() => analytics.trackGatheringModalDatePickerCleared(gatheringData)}
         />
       </Modal>
     );
@@ -188,7 +246,7 @@ export function IrlGatheringModal({
         <TopicsPickerView
           planningQuestion={gatheringData.planningQuestion}
           initialTopics={selectedTopics}
-          onCancel={handleTopicsPickerCancel}
+          onCancel={handleTopicsPickerCancelWithTracking}
           onApply={handleTopicsApply}
         />
       </Modal>
@@ -204,7 +262,7 @@ export function IrlGatheringModal({
           events={gatheringData.events}
           initialSelectedEventUids={selectedEventUids}
           initialEventRoles={eventRoles}
-          onCancel={handleEventsPickerCancel}
+          onCancel={handleEventsPickerCancelWithTracking}
           onApply={handleEventsApply}
         />
       </Modal>
@@ -252,9 +310,9 @@ export function IrlGatheringModal({
               selectedTopics={selectedTopics}
               selectedEvents={selectedEvents}
               events={gatheringData.events}
-              onDateInputClick={handleOpenDatePicker}
-              onTopicsInputClick={handleOpenTopicsPicker}
-              onEventsInputClick={handleOpenEventsPicker}
+              onDateInputClick={handleOpenDatePickerWithTracking}
+              onTopicsInputClick={handleOpenTopicsPickerWithTracking}
+              onEventsInputClick={handleOpenEventsPickerWithTracking}
             />
 
             <AdditionalDetailsSection

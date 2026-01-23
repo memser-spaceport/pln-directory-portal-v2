@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import PlaaMenu, { PlaaActiveItem } from './plaa-menu';
 import PlaaBackButton from './plaa-back-btn';
 import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import styles from '@/app/alignment-asset/plaa.module.css';
 
 interface PlaaLayoutWrapperProps {
@@ -48,6 +49,8 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
   const pathname = usePathname();
   const { activeItem, title, viewingRound } = getPageInfo(pathname ?? '');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  const { onMobileNavMenuClicked, onMobileNavMenuClosed } = useAlignmentAssetsAnalytics();
 
   // Scroll to top when pathname changes (tab switch)
   useEffect(() => {
@@ -71,6 +74,7 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
    */
   const handleOpenMenu = () => {
     setIsMobileMenuOpen(true);
+    onMobileNavMenuClicked();
   };
 
   /**
@@ -78,6 +82,7 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
    */
   const handleCloseMenu = () => {
     setIsMobileMenuOpen(false);
+    onMobileNavMenuClosed();
   };
 
   return (

@@ -16,6 +16,7 @@ export * from './CalendarIcon';
 export * from './ArrowBackIcon';
 export * from './UsersThreeIcon';
 export * from './NotePencilIcon';
+export * from './CaretLeftIcon';
 export * from './CaretRightIcon';
 export * from './InfoCircleIcon';
 export * from './ErrorCircleIcon';

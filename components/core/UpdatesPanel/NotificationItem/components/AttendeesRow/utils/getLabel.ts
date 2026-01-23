@@ -14,9 +14,11 @@ export function getLabel(notification: PushNotification, attendees: Attendee[]) 
 
   if (category === 'IRL_GATHERING') {
     if (isAttended) {
-      return `You and ${attendeesNum} People going`;
+      // @ts-ignore
+      return `You and ${metadata?.attendees?.total - 1} People going`;
     }
-    return `${attendeesNum} People going`;
+    // @ts-ignore
+    return `${metadata?.attendees?.total} People going`;
   }
 
   if (['FORUM_POST', 'FORUM_REPLY'].includes(category)) {

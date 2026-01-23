@@ -138,22 +138,23 @@ export function AdditionalDetailsSection({
           <div className={s.contactInfoFieldWrapper}>
             <div className={s.contactInfoLabelRow}>
               <span className={s.contactInfoLabel}>Telegram handle</span>
-              <span className={s.contactInfoPrefilled}>(Prefilled)</span>
+              {telegramHandle && <span className={s.contactInfoPrefilled}>(Prefilled)</span>}
             </div>
-            <FormField name="telegramHandle" placeholder="@username" />
+            <FormField name="telegramHandle" placeholder="Enter your Telegram handle" disabled={!!telegramHandle} />
           </div>
 
           {/* Office Hours */}
           <div className={s.contactInfoFieldWrapper}>
             <div className={s.contactInfoLabelRow}>
               <span className={s.contactInfoLabel}>Office Hours</span>
-              <span className={s.contactInfoPrefilled}>(Prefilled)</span>
+              {officeHours && <span className={s.contactInfoPrefilled}>(Prefilled)</span>}
             </div>
             <FormField
               name="officeHours"
-              placeholder="https://calendly.com/your-link"
+              placeholder="Enter your Office Hours"
               description="I will be available for a short 1:1 call to connect — no introduction needed."
-              rules={{ validate: isValidUrl }}
+              rules={officeHours ? undefined : { validate: isValidUrl }}
+              disabled={!!officeHours}
             />
           </div>
         </div>

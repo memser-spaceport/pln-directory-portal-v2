@@ -21,7 +21,7 @@ export function ModalFooter({
     if (isLoading) {
       return isEditMode ? 'Saving...' : 'Submitting...';
     }
-    return isEditMode ? 'Save' : 'Submit';
+    return 'Submit';
   };
 
   return (

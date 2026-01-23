@@ -4,15 +4,30 @@ import { useState, useEffect, useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { FormField } from '@/components/form/FormField/FormField';
-import {
-  DiamondsFourIcon,
-  CaretUpIcon,
-  CaretDownIcon,
-} from '../icons';
+import { DiamondsFourIcon, CaretUpIcon, CaretDownIcon } from '../icons';
 import { IrlGatheringFormData } from '../types';
 import s from '../IrlGatheringModal.module.scss';
 
 const MAX_CHARACTERS = 150;
+
+// URL validation that accepts links with or without http/https prefix
+const isValidUrl = (value: string): boolean | string => {
+  if (!value) return true; // Allow empty values
+
+  // Add https:// if no protocol is present for validation
+  const urlToValidate = value.match(/^https?:\/\//) ? value : `https://${value}`;
+
+  try {
+    const url = new URL(urlToValidate);
+    // Check if it has a valid domain structure
+    if (!url.hostname.includes('.')) {
+      return 'Please enter a valid URL';
+    }
+    return true;
+  } catch {
+    return 'Please enter a valid URL';
+  }
+};
 
 interface TeamFromApi {
   teamUid: string;
@@ -84,29 +99,25 @@ export function AdditionalDetailsSection({
           </span>
           <span className={s.additionalDetailsTitle}>Additional details</span>
         </div>
-        <span className={s.additionalDetailsCaret}>
-          {isExpanded ? <CaretUpIcon /> : <CaretDownIcon />}
-        </span>
+        <span className={s.additionalDetailsCaret}>{isExpanded ? <CaretUpIcon /> : <CaretDownIcon />}</span>
       </button>
 
       {isExpanded && (
         <div className={s.additionalDetailsContent}>
           {/* About / How should people connect */}
           <div className={s.additionalDetailsField}>
-            <label className={s.additionalDetailsLabel}>
-              How should people connect with you?
-            </label>
+            <label className={s.additionalDetailsLabel}>How should people connect with you?</label>
             <div className={s.additionalDetailsTextareaContainer}>
               <textarea
                 className={s.additionalDetailsTextarea}
-                placeholder="I can help with product strategy and UX feedback. Looking to connect with early-stage founders."
+                placeholder="I can help with... / I’m looking for..."
                 value={additionalDetails}
                 onChange={handleTextChange}
                 rows={3}
               />
             </div>
             <span className={s.additionalDetailsCharCount}>
-              {charactersLeft}/{MAX_CHARACTERS} characters left
+              Let others know how you’d like to collaborate during the events. Max. 150 characters
             </span>
           </div>
 
@@ -115,7 +126,7 @@ export function AdditionalDetailsSection({
             <div className={s.teamSelectorWrapper}>
               <FormSelect
                 name="selectedTeam"
-                label="Change team"
+                label="Selected Team"
                 placeholder="Select a team"
                 backLabel="Teams"
                 options={teamOptions}
@@ -127,21 +138,23 @@ export function AdditionalDetailsSection({
           <div className={s.contactInfoFieldWrapper}>
             <div className={s.contactInfoLabelRow}>
               <span className={s.contactInfoLabel}>Telegram handle</span>
-              <span className={s.contactInfoPrefilled}>(Prefilled)</span>
+              {telegramHandle && <span className={s.contactInfoPrefilled}>(Prefilled)</span>}
             </div>
-            <FormField name="telegramHandle" placeholder="@username" />
+            <FormField name="telegramHandle" placeholder="Enter your Telegram handle" disabled={!!telegramHandle} />
           </div>
 
           {/* Office Hours */}
           <div className={s.contactInfoFieldWrapper}>
             <div className={s.contactInfoLabelRow}>
               <span className={s.contactInfoLabel}>Office Hours</span>
-              <span className={s.contactInfoPrefilled}>(Prefilled)</span>
+              {officeHours && <span className={s.contactInfoPrefilled}>(Prefilled)</span>}
             </div>
             <FormField
               name="officeHours"
-              placeholder="https://calendly.com/your-link"
+              placeholder="Enter your Office Hours"
               description="I will be available for a short 1:1 call to connect — no introduction needed."
+              rules={officeHours ? undefined : { validate: isValidUrl }}
+              disabled={!!officeHours}
             />
           </div>
         </div>
@@ -149,4 +162,3 @@ export function AdditionalDetailsSection({
     </div>
   );
 }
-

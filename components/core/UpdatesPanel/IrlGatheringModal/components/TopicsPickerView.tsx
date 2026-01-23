@@ -70,7 +70,7 @@ export function TopicsPickerView({ planningQuestion, initialTopics, onCancel, on
           <span className={s.topicsPickerLabel}>Topics of interest</span>
           <div className={s.topicsInputContainer}>
             <div className={s.topicsSelectedTags}>
-              {selectedTopics.map((topic) => (
+              {selectedTopics.slice(0, 12).map((topic) => (
                 <span key={topic} className={s.topicsTag}>
                   {topic}
                   <button type="button" className={s.topicsTagRemove} onClick={() => handleRemoveTopic(topic)}>
@@ -78,6 +78,9 @@ export function TopicsPickerView({ planningQuestion, initialTopics, onCancel, on
                   </button>
                 </span>
               ))}
+              {selectedTopics.length > 12 && (
+                <span className={s.topicsTagMore}>+{selectedTopics.length - 12}</span>
+              )}
               <input
                 type="text"
                 className={s.topicsSearchInput}

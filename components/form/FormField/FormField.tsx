@@ -17,6 +17,7 @@ interface Props extends PropsWithChildren {
   max?: number;
   clearable?: boolean;
   onClear?: () => void;
+  rules?: Record<string, unknown>;
 }
 
 export const FormField = ({
@@ -30,6 +31,7 @@ export const FormField = ({
   max,
   clearable,
   onClear,
+  rules,
   ...rest
 }: Props) => {
   const {
@@ -69,7 +71,7 @@ export const FormField = ({
       >
         <div className={s.inputContent}>
           <Field.Control
-            {...register(name)}
+            {...register(name, rules)}
             disabled={disabled}
             placeholder={placeholder}
             className={s.inputElement}

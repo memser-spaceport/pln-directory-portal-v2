@@ -10,12 +10,18 @@ interface ModalFooterProps {
   isEditMode?: boolean;
 }
 
-export function ModalFooter({ onClose, onGoingClick, isSubmit = false, isLoading = false, isEditMode = false }: ModalFooterProps) {
+export function ModalFooter({
+  onClose,
+  onGoingClick,
+  isSubmit = false,
+  isLoading = false,
+  isEditMode = false,
+}: ModalFooterProps) {
   const getButtonText = () => {
     if (isLoading) {
       return isEditMode ? 'Saving...' : 'Submitting...';
     }
-    return isEditMode ? 'Save' : "I'm Going";
+    return isEditMode ? 'Save' : 'Submit';
   };
 
   return (
@@ -34,4 +40,3 @@ export function ModalFooter({ onClose, onGoingClick, isSubmit = false, isLoading
     </div>
   );
 }
-

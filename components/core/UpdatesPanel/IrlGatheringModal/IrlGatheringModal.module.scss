@@ -1520,6 +1520,18 @@
   }
 }
 
+.topicsTagMore {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: rgba(27, 77, 255, 0.08);
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1b4dff;
+}
+
 .topicsSearchInput {
   flex: 1;
   min-width: 80px;

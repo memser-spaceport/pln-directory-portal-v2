@@ -75,12 +75,13 @@ const FollowSection = (props: IFollowSectionProps) => {
     locationEvents?.additionalInfo?.schedule_url ||
     `${process.env.SCHEDULE_BASE_URL}/program?location=${encodeURIComponent(eventLocationSummary.name)}${nearestEventDate ? `&date=${nearestEventDate}` : ''}`;
 
+  // IRL Gathering Modal state - derived from URL param
   const [isEditMode, setIsEditMode] = useState(false);
   const urlSearchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const isManuallyOpeningRef = useRef(false);
 
+  // Conditions for showing "I'm Going" button (new attendance)
   const canShowImGoingButton =
     isUserLoggedIn &&
     !inPastEvents &&
@@ -89,21 +90,15 @@ const FollowSection = (props: IFollowSectionProps) => {
     !userHasUpcomingEvents &&
     filteredGatherings?.length > 0;
 
-  const canEditModal = isUserLoggedIn && accessLevel === 'advanced' && isUserGoing;
-  const canOpenModal = canShowImGoingButton || canEditModal;
+  // Modal can be opened for new attendance OR for editing existing attendance
+  const canOpenModal = canShowImGoingButton || (isEditMode && isUserLoggedIn && accessLevel === 'advanced');
 
   const [isIrlGatheringModalOpen, setIsIrlGatheringModalOpen] = useState(() => {
-    const urlHasModal = urlSearchParams.get('open-modal') === 'true';
-    return urlHasModal && canOpenModal;
+    return urlSearchParams.get('open-modal') === 'true' && canOpenModal;
   });
 
   useEffect(() => {
-    if (isManuallyOpeningRef.current) {
-      isManuallyOpeningRef.current = false;
-      return;
-    }
-    const urlHasModal = urlSearchParams.get('open-modal') === 'true';
-    const urlModalState = urlHasModal && canOpenModal;
+    const urlModalState = urlSearchParams.get('open-modal') === 'true' && canOpenModal;
     setIsIrlGatheringModalOpen(urlModalState);
     if (!urlModalState) {
       setIsEditMode(false);
@@ -188,7 +183,6 @@ const FollowSection = (props: IFollowSectionProps) => {
   }, [eventLocationSummary, upcomingEvents, guestDetails, locationEvents, userInfo]);
 
   const handleIrlGatheringModalOpen = useCallback(() => {
-    isManuallyOpeningRef.current = true;
     setIsIrlGatheringModalOpen(true);
     const params = new URLSearchParams(urlSearchParams.toString());
     params.set('open-modal', 'true');
@@ -392,7 +386,6 @@ const FollowSection = (props: IFollowSectionProps) => {
   const onEditDetailsClicked = () => {
     analytics.trackSelfEditDetailsClicked(location);
     seIsEdit(false);
-    isManuallyOpeningRef.current = true;
     setIsEditMode(true);
     setIsIrlGatheringModalOpen(true);
     const params = new URLSearchParams(urlSearchParams.toString());

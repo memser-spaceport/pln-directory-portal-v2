@@ -199,6 +199,16 @@ const FollowSection = (props: IFollowSectionProps) => {
     router.refresh();
   }, [router]);
 
+  // Remove open-modal param if user is not logged in
+  useEffect(() => {
+    if (!isUserLoggedIn && urlSearchParams.get('open-modal') === 'true') {
+      const params = new URLSearchParams(urlSearchParams.toString());
+      params.delete('open-modal');
+      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [isUserLoggedIn, urlSearchParams, pathname, router]);
+
   // Build edit mode data from current guest
   const editModeData = useMemo(() => {
     if (!updatedUser) return undefined;
@@ -589,15 +599,17 @@ const FollowSection = (props: IFollowSectionProps) => {
       </div>
       <PresenceRequestSuccess />
 
-      {/* IRL Gathering Modal */}
-      <IrlGatheringModal
-        isOpen={isIrlGatheringModalOpen}
-        onClose={handleIrlGatheringModalClose}
-        notification={irlGatheringNotification}
-        onGoingClick={handleIrlGatheringSuccess}
-        isEditMode={isEditMode}
-        editModeData={isEditMode ? editModeData : undefined}
-      />
+      {/* IRL Gathering Modal - only render when user can open modal */}
+      {canOpenModal && (
+        <IrlGatheringModal
+          isOpen={isIrlGatheringModalOpen}
+          onClose={handleIrlGatheringModalClose}
+          notification={irlGatheringNotification}
+          onGoingClick={handleIrlGatheringSuccess}
+          isEditMode={isEditMode}
+          editModeData={isEditMode ? editModeData : undefined}
+        />
+      )}
 
       <style jsx>
         {`

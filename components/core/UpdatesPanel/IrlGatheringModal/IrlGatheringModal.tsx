@@ -46,10 +46,10 @@ export function IrlGatheringModal({
   const wasOpenRef = useRef(false);
 
   const { data: member } = useQuery({
-    queryKey: [MembersQueryKeys.GET_MEMBER, userInfo.uid, !!userInfo, userInfo.uid],
+    queryKey: [MembersQueryKeys.GET_MEMBER, userInfo?.uid, !!userInfo, userInfo?.uid],
     queryFn: () =>
-      getMember(userInfo.uid, { with: 'image,skills,location,teamMemberRoles.team' }, !!userInfo, userInfo, true, true),
-    enabled: !!userInfo.uid,
+      getMember(userInfo?.uid, { with: 'image,skills,location,teamMemberRoles.team' }, !!userInfo, userInfo, true, true),
+    enabled: !!userInfo?.uid,
     select: (data) => data?.data?.formattedData,
   });
 

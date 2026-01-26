@@ -140,7 +140,7 @@ const FollowSection = (props: IFollowSectionProps) => {
           name: e.name || '',
           slug: e.slugURL || e.slug || '',
           endDate: e.endDate || '',
-          logoUrl: e.logo || e.logoUrl || null,
+          logoUrl: e.logo && e.logo?.url ? e.logo.url : e.logoUrl || null,
           startDate: e.startDate || '',
           attendeeCount: e.attendeesCount || 0,
           telegramId: e.telegramId || null,

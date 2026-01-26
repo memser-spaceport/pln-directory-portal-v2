@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { PushNotification } from '@/types/push-notifications.types';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -9,7 +9,6 @@ import { CloseIcon, ArrowRightIcon } from './icons';
 import { EmptyState } from './EmptyState';
 import { NotLoggedInState } from './NotLoggedInState';
 import { NotificationItem } from './NotificationItem';
-import { IrlGatheringModal } from './IrlGatheringModal';
 import s from './UpdatesPanel.module.scss';
 
 interface UpdatesPanelProps {
@@ -31,10 +30,6 @@ export function UpdatesPanel({
 }: UpdatesPanelProps) {
   const analytics = useNotificationAnalytics();
 
-  // IRL Gathering Modal state
-  const [irlGatheringModalOpen, setIrlGatheringModalOpen] = useState(false);
-  const [selectedIrlGathering, setSelectedIrlGathering] = useState<PushNotification | null>(null);
-
   const handleNotificationClick = (notification: PushNotification) => {
     analytics.onUpdatesPanelNotificationClicked(notification);
     analytics.onNotificationActionLinkClicked(notification, 'updates_panel');
@@ -48,27 +43,6 @@ export function UpdatesPanel({
     analytics.onViewAllUpdatesClicked();
     onClose();
   };
-
-  const handleIrlGatheringClick = useCallback(
-    (notification: PushNotification) => {
-      if (!notification.isRead) {
-        onMarkAsRead(notification.id);
-      }
-      setSelectedIrlGathering(notification);
-      setIrlGatheringModalOpen(true);
-    },
-    [onMarkAsRead],
-  );
-
-  const handleIrlGatheringModalClose = useCallback(() => {
-    setIrlGatheringModalOpen(false);
-    setSelectedIrlGathering(null);
-  }, []);
-
-  const handleIrlGatheringGoingClick = useCallback(() => {
-    handleIrlGatheringModalClose();
-    onClose();
-  }, [handleIrlGatheringModalClose, onClose]);
 
   return (
     <AnimatePresence>
@@ -116,7 +90,6 @@ export function UpdatesPanel({
                       key={notification.id}
                       notification={notification}
                       onNotificationClick={handleNotificationClick}
-                      onIrlGatheringClick={handleIrlGatheringClick}
                     />
                   ))}
                 </div>
@@ -133,16 +106,6 @@ export function UpdatesPanel({
             )}
           </motion.div>
         </>
-      )}
-
-      {/* IRL Gathering Modal */}
-      {selectedIrlGathering && (
-        <IrlGatheringModal
-          isOpen={irlGatheringModalOpen}
-          onClose={handleIrlGatheringModalClose}
-          notification={selectedIrlGathering}
-          onGoingClick={handleIrlGatheringGoingClick}
-        />
       )}
     </AnimatePresence>
   );

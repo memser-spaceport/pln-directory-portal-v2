@@ -6,9 +6,21 @@ export interface IrlGatheringEventPayload {
   isHost: boolean;
   isSpeaker: boolean;
   isSponsor: boolean;
-  hostSubEvents: string[];
-  speakerSubEvents: string[];
-  sponsorSubEvents: string[];
+  hostSubEvents: {
+    uid: string;
+    name: string;
+    link: string;
+  }[];
+  speakerSubEvents: {
+    uid: string;
+    name: string;
+    link: string;
+  }[];
+  sponsorSubEvents: {
+    uid: string;
+    name: string;
+    link: string;
+  }[];
 }
 
 export interface IrlGatheringGuestPayload {

@@ -179,7 +179,7 @@ export const Post = () => {
   if (!post) {
     return (
       <div className={s.container}>
-        <BackButton forceTo to={`/forum?cid=${fromCategory}`} />
+        <BackButton forceTo to="/forum?cid=0" />
         <PostPageLoader />
       </div>
     );
@@ -187,7 +187,7 @@ export const Post = () => {
 
   return (
     <div className={s.container}>
-      <BackButton forceTo to={`/forum?cid=${fromCategory}`} />
+      <BackButton forceTo to="/forum?cid=0" />
       <div className={s.root}>
         <Link
           href={`/forum?cid=${fromCategory}`}

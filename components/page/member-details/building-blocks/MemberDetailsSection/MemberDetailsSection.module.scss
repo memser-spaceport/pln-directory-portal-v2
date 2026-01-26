@@ -14,6 +14,10 @@
   flex-direction: column;
   gap: 24px;
 
+  @include media.tablet-landscape {
+    padding: 16px;
+  }
+
   &.editView {
     padding: 0;
     border-radius: 8px;
@@ -32,11 +36,31 @@
         0 0 1px 0 rgba(15, 23, 42, 0.12),
         0 4px 4px 0 rgba(15, 23, 42, 0.04);
     }
+  }
 
-    form {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
+  &.missingData {
+    padding: 0;
+    gap: 0;
+    border: 0;
+    background: var(--background-brand-soft-surface, #f2f5ff);
+    box-shadow: none;
+
+    @include media.tablet-landscape {
+      border: 1px solid var(--border-brand-subtle, #aebfff);
+    }
+  }
+
+  &.missingDataAlert {
+    padding: 0;
+    gap: 0;
+    border: 0;
+    background: var(--background-brand-soft-surface, #f2f5ff);
+    box-shadow: none;
+
+    @include media.tablet-landscape {
+      border-radius: 8px;
+      border: 1px solid var(--border-warning-subtle, #fde68a);
+      background: linear-gradient(0deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%), #fff;
     }
   }
 }

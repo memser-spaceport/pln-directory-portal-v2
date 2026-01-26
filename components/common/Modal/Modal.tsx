@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import s from './Modal.module.scss';
 import clsx from 'clsx';
@@ -15,6 +16,11 @@ interface ModalProps {
 
 export const Modal: React.FC<ModalProps> = (props) => {
   const { isOpen, onClose, children, closeOnBackdropClick = true, overlayClassname } = props;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (closeOnBackdropClick && e.target === e.currentTarget && onClose) {
@@ -22,7 +28,7 @@ export const Modal: React.FC<ModalProps> = (props) => {
     }
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -47,4 +53,11 @@ export const Modal: React.FC<ModalProps> = (props) => {
       )}
     </AnimatePresence>
   );
+
+  // Only render portal on client side
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(modalContent, document.body);
 };

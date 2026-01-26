@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { BioView } from '@/components/page/member-details/BioDetails/components/BioView';
@@ -11,7 +10,7 @@ import { ADMIN_ROLE } from '@/utils/constants';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
-import s from './BioDetails.module.scss';
+import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 
 interface Props {
   member: IMember;
@@ -35,11 +34,7 @@ export const BioDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   }
 
   return (
-    <div
-      className={clsx(s.root, {
-        [s.editView]: editView,
-      })}
-    >
+    <MemberDetailsSection editView={editView}>
       {editView ? (
         <EditBioForm
           onClose={() => {
@@ -67,6 +62,6 @@ export const BioDetails = ({ isLoggedIn, userInfo, member }: Props) => {
           }}
         />
       )}
-    </div>
+    </MemberDetailsSection>
   );
 };

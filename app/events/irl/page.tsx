@@ -58,13 +58,17 @@ export default async function Page({ searchParams }: any) {
         <section className={styles.irlGatheings__locations}>
           <IrlLocation locationDetails={locationDetails} searchParams={searchParams} />
           {eventDetails?.resources?.length > 0 && (
-            <div className={`${styles.irlGatherings__additionalResources} ${styles.irlGatherings__additionalResources__web}`}>
+            <div
+              className={`${styles.irlGatherings__additionalResources} ${styles.irlGatherings__additionalResources__web}`}
+            >
               <AddtionalResources eventDetails={eventDetails} searchParams={searchParams} isLoggedIn={isLoggedIn} />
             </div>
           )}
         </section>
         {eventDetails?.resources?.length > 0 && (
-          <section className={`${styles.irlGatherings__additionalResources} ${styles.irlGatherings__additionalResources__mobile}`}>
+          <section
+            className={`${styles.irlGatherings__additionalResources} ${styles.irlGatherings__additionalResources__mobile}`}
+          >
             <AddtionalResources eventDetails={eventDetails} searchParams={searchParams} isLoggedIn={isLoggedIn} />
           </section>
         )}
@@ -147,7 +151,8 @@ const getPageData = async (searchParams: any) => {
     const eventDetails = searchParams?.location
       ? locationDetails.find((loc: any) => loc.location.split(',')[0].trim() === searchParams.location)
       : locationDetails[0];
-    const { uid, location: name, pastEvents, flag } = eventDetails;
+
+    const { uid, location: name, pastEvents, flag, description, resources } = eventDetails;
 
     //check correct event type
     if (searchParams?.type) {
@@ -168,7 +173,7 @@ const getPageData = async (searchParams: any) => {
     if (!eventDetails || !isEventActive || !isEventAvailable) {
       return { isLocationError: true };
     }
-    const eventLocationSummary = { uid, name, flag };
+    const eventLocationSummary = { uid, name, flag, description, resources };
 
     // Determine event type and fetch event guest data
     const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';
@@ -232,12 +237,12 @@ const getPageData = async (searchParams: any) => {
     guestDetails.events = { upcomingEvents: eventDetails.upcomingEvents, pastEvents: eventDetails.pastEvents };
 
     guestDetails.currentGuest =
-      !currentGuestResponse?.isError && (currentGuestResponse as any)?.guests?.[0]?.memberUid === userInfo?.uid
+      !events?.isError && (events as any)?.guests?.[0]?.memberUid === userInfo?.uid
         ? (currentGuestResponse as any).guests[0]
         : null;
-    guestDetails.isUserGoing = selectedTypeEvents?.some((event: any) =>
-      loggedInUserEvents?.some((userEvent: any) => userEvent?.uid === event?.uid),
-    );
+
+    guestDetails.isUserGoing = !!guestDetails.currentGuest;
+
     guestDetails.topics = topics;
     guestDetails.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, currentEvents, isLoggedIn, userInfo);
 

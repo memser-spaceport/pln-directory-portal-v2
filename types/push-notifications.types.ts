@@ -16,6 +16,7 @@ export interface PushNotification {
   accessLevels?: string[];
   isRead?: boolean;
   createdAt: string;
+  isAttended?: boolean;
 }
 
 // IRL Gathering metadata types
@@ -58,6 +59,12 @@ export interface IrlGatheringLocation {
   }[];
 }
 
+export interface IrlGatheringTeam {
+  uid: string;
+  name: string;
+  logo?: string | null;
+}
+
 export interface IrlGatheringMetadata {
   ui: {
     eventSlugs: string[];
@@ -80,6 +87,7 @@ export interface IrlGatheringMetadata {
     topAttendees: IrlGatheringAttendee[];
   };
   gatheringUid: string;
+  teams?: IrlGatheringTeam[];
 }
 
 export type PushNotificationCategory =

@@ -18,21 +18,15 @@ interface NotificationItemProps {
   onNotificationClick: (notification: PushNotification) => void;
   /** Variant controls styling differences between panel and page views */
   variant?: 'panel' | 'page';
-  /** Callback for IRL_GATHERING notifications to open modal instead of navigating */
-  onIrlGatheringClick?: (notification: PushNotification) => void;
 }
 
 export function NotificationItem(props: NotificationItemProps) {
-  const { notification, onNotificationClick, variant = 'panel', onIrlGatheringClick } = props;
+  const { notification, onNotificationClick, variant = 'panel' } = props;
 
   const isIrlGathering = notification.category === 'IRL_GATHERING';
 
   const handleClick = (e: React.MouseEvent) => {
     onNotificationClick(notification);
-    if (isIrlGathering && onIrlGatheringClick) {
-      e.preventDefault();
-      onIrlGatheringClick(notification);
-    }
   };
 
   const content = (
@@ -69,32 +63,11 @@ export function NotificationItem(props: NotificationItemProps) {
     </>
   );
 
-  // For IRL_GATHERING with modal handler, use a div instead of Link
-  if (isIrlGathering && onIrlGatheringClick) {
-    return (
-      <div
-        className={clsx(s.notificationItem, {
-          [s.unread]: !notification.isRead,
-        })}
-        onClick={handleClick}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            handleClick(e as unknown as React.MouseEvent);
-          }
-        }}
-      >
-        {content}
-      </div>
-    );
-  }
-
   let link = notification.link;
 
   if (isIrlGathering) {
     // @ts-ignore
-    link = `/events/irl?location=${notification.metadata?.location?.name}`;
+    link = `/events/irl?location=${notification.metadata?.location?.name}&open-modal=true`;
   }
 
   return (

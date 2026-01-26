@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
+import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
 
 import s from './BioView.module.scss';
 
@@ -23,10 +24,9 @@ export const BioView = ({ member, isLoggedIn, userInfo, isEditable, showIncomple
 
   return (
     <div className={s.root}>
-      <div className={s.header}>
-        <h2 className={s.title}>Bio</h2>
+      <MemberDetailsSectionHeader title="Bio" className={s.header}>
         {isLoggedIn && isEditable && <EditButton onClick={onEdit} />}
-      </div>
+      </MemberDetailsSectionHeader>
 
       <div className={clsx(s.content)}>
         {hasBio && member.bio ? (

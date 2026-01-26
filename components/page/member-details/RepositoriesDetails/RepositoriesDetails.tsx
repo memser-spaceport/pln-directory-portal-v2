@@ -2,14 +2,13 @@
 
 import React from 'react';
 
-import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
 
 import { RepositoriesList } from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList';
+import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 
-import s from './RepositoriesDetails.module.scss';
 import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
@@ -28,8 +27,8 @@ export const RepositoriesDetails = ({ isLoggedIn, userInfo, member }: Props) => 
   }
 
   return (
-    <div className={clsx(s.root)}>
+    <MemberDetailsSection>
       <RepositoriesList member={member} userInfo={userInfo} isEditable={isEditable} />
-    </div>
+    </MemberDetailsSection>
   );
 };

@@ -1,172 +1,240 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
-import { PushNotification, IrlGatheringMetadata } from '@/types/push-notifications.types';
-import { useCreateIrlGatheringGuest } from '@/services/events/hooks/useCreateIrlGatheringGuest';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
-import { toast } from '@/components/core/ToastContainer';
 import {
   ModalHeader,
   AboutSection,
   GatheringDetails,
   AttendeesSection,
   PlanningSection,
+  AdditionalDetailsSection,
   ModalFooter,
   DatePickerView,
   TopicsPickerView,
+  EventsPickerView,
 } from './components';
+import { useIrlGatheringModal, useIrlGatheringData, useIrlGatheringSubmit } from './hooks';
+import { buildGatheringLink } from './helpers';
+import { IrlGatheringModalProps, IrlGatheringFormData, EventRoleSelection } from './types';
 import s from './IrlGatheringModal.module.scss';
+import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
+import { useMember } from '@/services/members/hooks/useMember';
+import { useIrlAnalytics } from '@/analytics/irl.analytics';
 
-export interface IrlGatheringModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  notification: PushNotification;
-  onGoingClick?: () => void;
-}
+export type { IrlGatheringModalProps, IrlGatheringFormData } from './types';
 
-export interface IrlGatheringFormData {
-  topics: string[];
-}
-
-type ModalView = 'main' | 'datePicker' | 'topicsPicker';
-
-function formatDateRange(startDate: string, endDate: string): string {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const formatDate = (date: Date) =>
-    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  return `${formatDate(start)} - ${formatDate(end)}`;
-}
-
-function formatDateForApi(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
-
-export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick }: IrlGatheringModalProps) {
-  const [currentView, setCurrentView] = useState<ModalView>('main');
-  const [selectedDateRange, setSelectedDateRange] = useState<[Date, Date] | null>(null);
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
-
-  const { mutate: createGuest, isPending } = useCreateIrlGatheringGuest();
+export function IrlGatheringModal({
+  isOpen,
+  onClose,
+  notification,
+  onGoingClick,
+  isEditMode = false,
+  editModeData,
+}: IrlGatheringModalProps) {
+  const gatheringData = useIrlGatheringData(notification);
   const { userInfo } = getCookiesFromClient();
+  const defaultTeamUid = userInfo?.leadingTeams?.[0];
+  const { data } = useMemberFormOptions();
+  const { data: memberData } = useMember(userInfo?.uid);
+  const analytics = useIrlAnalytics();
+  const wasOpenRef = useRef(false);
 
-  const methods = useForm<IrlGatheringFormData>({
-    defaultValues: {
-      topics: [],
-    },
-  });
-
-  const metadata = (notification.metadata || {}) as unknown as Partial<IrlGatheringMetadata>;
-
-  // Extract data from typed metadata
-  const gatheringName = metadata.location?.name || notification.title;
-  const gatheringImage = metadata.events?.items?.[0]?.logoUrl || undefined;
-  const aboutDescription = notification.description || '';
-  const dateRange = metadata.events?.dates
-    ? formatDateRange(metadata.events.dates.start, metadata.events.dates.end)
-    : 'TBD';
-  const locationName = metadata.location?.name || 'TBD';
-  const eventsCount = metadata.events?.total || 0;
-  const attendees = (metadata.attendees?.topAttendees || []).map((a) => ({
-    uid: a.memberUid,
-    picture: a.imageUrl || undefined,
-  }));
-  const attendeesCount = metadata.attendees?.total || 0;
-  const planningQuestion = `Are you planning to be in ${locationName}?`;
-  const resources = metadata.location?.resources || [];
-
-  const eventsLink = `${process.env.SCHEDULE_BASE_URL}?location=${locationName}&date=${metadata.events?.dates?.start ? formatDateForApi(new Date(metadata.events?.dates?.start)) : ''}`;
-
-  const handleOpenDatePicker = () => {
-    setCurrentView('datePicker');
-  };
-
-  const handleDatePickerCancel = () => {
-    setCurrentView('main');
-  };
-
-  const handleDatePickerApply = (range: [Date, Date] | null) => {
-    setSelectedDateRange(range);
-    setCurrentView('main');
-  };
-
-  const handleOpenTopicsPicker = () => {
-    setCurrentView('topicsPicker');
-  };
-
-  const handleTopicsPickerCancel = () => {
-    setCurrentView('main');
-  };
-
-  const handleTopicsPickerApply = (topics: string[]) => {
-    setSelectedTopics(topics);
-    methods.setValue('topics', topics);
-    setCurrentView('main');
-  };
-
-  const handleSubmit = methods.handleSubmit((data) => {
-    if (!userInfo?.uid || !metadata.gatheringUid) {
-      console.error('Missing required data for submission');
-      return;
+  // Build initial form values for edit mode
+  const initialFormValues = useMemo(() => {
+    if (!isEditMode || !editModeData) {
+      return {
+        topics: [],
+        selectedEventUids: [],
+        eventRoles: [],
+        additionalDetails: '',
+        selectedTeam: undefined,
+        telegramHandle: '',
+        officeHours: '',
+      };
     }
 
-    // Use selected date range or fall back to event dates from metadata
-    const checkInDate = selectedDateRange
-      ? formatDateForApi(selectedDateRange[0])
-      : metadata.events?.dates?.start
-        ? formatDateForApi(new Date(metadata.events?.dates?.start))
-        : '';
-    const checkOutDate = selectedDateRange
-      ? formatDateForApi(selectedDateRange[1])
-      : metadata.events?.dates?.end
-        ? formatDateForApi(new Date(metadata.events?.dates?.end))
-        : '';
+    // Build selected team option
+    const selectedTeam =
+      editModeData.teamUid && editModeData.teamName
+        ? { value: editModeData.teamUid, label: editModeData.teamName }
+        : undefined;
 
-    const payload = {
-      memberUid: userInfo.uid,
-      teamUid: userInfo.leadingTeams?.[0] || '',
-      reason: '',
-      telegramId: '',
-      officeHours: '',
-      events: [],
-      additionalInfo: {
-        checkInDate,
-        checkOutDate,
-      },
-      topics: data.topics,
-      locationName: locationName,
+    // Build selected event UIDs and roles
+    const selectedEventUids = editModeData.events?.map((e) => e.uid) || [];
+    const eventRoles: EventRoleSelection[] =
+      editModeData.events?.map((e) => {
+        const roles: ('Attendee' | 'Speaker' | 'Host' | 'Sponsor')[] = ['Attendee'];
+        if (e.isHost) roles.push('Host');
+        if (e.isSpeaker) roles.push('Speaker');
+        if (e.isSponsor) roles.push('Sponsor');
+
+        return { eventUid: e.uid, roles };
+      }) || [];
+
+    return {
+      topics: editModeData.topics || [],
+      selectedEventUids,
+      eventRoles,
+      additionalDetails: editModeData.reason || '',
+      selectedTeam,
+      telegramHandle: editModeData.telegramId || '',
+      officeHours: editModeData.officeHours || '',
     };
+  }, [isEditMode, editModeData]);
 
-    createGuest(
-      {
-        locationId: metadata.gatheringUid,
-        payload,
-        type: 'upcoming',
-      },
-      {
-        onSuccess: () => {
-          toast.success(`You're going to ${locationName}!`);
-          onGoingClick?.();
-          onClose();
-        },
-        onError: (error) => {
-          console.error('Failed to create IRL gathering guest:', error);
-          toast.error(error?.message ?? 'Failed to register for the gathering. Please try again.');
-        },
-      },
-    );
+  // Build initial date range for edit mode
+  const initialDateRange = useMemo((): [Date, Date] | null => {
+    if (!isEditMode || !editModeData?.additionalInfo) return null;
+    const { checkInDate, checkOutDate } = editModeData.additionalInfo;
+    if (!checkInDate || !checkOutDate) return null;
+    return [new Date(checkInDate), new Date(checkOutDate)];
+  }, [isEditMode, editModeData]);
+
+  const methods = useForm<IrlGatheringFormData>({
+    defaultValues: initialFormValues,
   });
+
+  // Reset form when modal opens with new data
+  useEffect(() => {
+    if (isOpen) {
+      methods.reset(initialFormValues);
+    }
+  }, [isOpen, initialFormValues, methods]);
+
+  // Track modal open/close
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current) {
+      analytics.trackGatheringModalOpened(gatheringData, isEditMode);
+    } else if (!isOpen && wasOpenRef.current) {
+      analytics.trackGatheringModalClosed(gatheringData, isEditMode);
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen, gatheringData, isEditMode, analytics]);
+
+  const {
+    currentView,
+    selectedDateRange,
+    selectedTopics,
+    handleOpenDatePicker,
+    handleDatePickerCancel,
+    handleDatePickerApply,
+    handleOpenTopicsPicker,
+    handleTopicsPickerCancel,
+    handleTopicsPickerApply,
+    handleOpenEventsPicker,
+    handleEventsPickerCancel,
+    handleEventsPickerApply,
+  } = useIrlGatheringModal({
+    initialDateRange,
+    initialTopics: isEditMode ? editModeData?.topics : undefined,
+    isOpen,
+  });
+
+  // Watch selected events from form
+  const selectedEventUids = methods.watch('selectedEventUids') || [];
+  const eventRoles = methods.watch('eventRoles') || [];
+
+  // Build selected events info for display in PlanningSection
+  const selectedEvents = useMemo(() => {
+    return selectedEventUids
+      .map((uid) => {
+        const event = gatheringData.events.find((e) => e.uid === uid);
+        return event ? { uid: event.uid, name: event.name } : null;
+      })
+      .filter((e): e is { uid: string; name: string } => e !== null);
+  }, [selectedEventUids, gatheringData.events]);
+
+  const handleSuccess = useCallback(() => {
+    onGoingClick?.();
+    onClose();
+  }, [onGoingClick, onClose]);
+
+  const { handleSubmit: submitForm, isPending } = useIrlGatheringSubmit({
+    gatheringData,
+    selectedDateRange,
+    onSuccess: handleSuccess,
+    isEditMode,
+    guestUid: editModeData?.guestUid,
+  });
+
+  const handleFormSubmit = methods.handleSubmit((data) => {
+    analytics.trackGatheringModalSubmitClicked(gatheringData, isEditMode);
+    submitForm(data);
+  });
+
+  // Wrapped handlers with analytics tracking
+  const handleOpenDatePickerWithTracking = useCallback(() => {
+    analytics.trackGatheringModalDatePickerOpened(gatheringData);
+    handleOpenDatePicker();
+  }, [analytics, gatheringData, handleOpenDatePicker]);
+
+  const handleDatePickerCancelWithTracking = useCallback(() => {
+    analytics.trackGatheringModalDatePickerCancelled(gatheringData);
+    handleDatePickerCancel();
+  }, [analytics, gatheringData, handleDatePickerCancel]);
+
+  const handleDatePickerApplyWithTracking = useCallback(
+    (range: [Date, Date] | null) => {
+      analytics.trackGatheringModalDatePickerApplied(gatheringData, range);
+      handleDatePickerApply(range);
+    },
+    [analytics, gatheringData, handleDatePickerApply],
+  );
+
+  const handleOpenTopicsPickerWithTracking = useCallback(() => {
+    analytics.trackGatheringModalTopicsPickerOpened(gatheringData);
+    handleOpenTopicsPicker();
+  }, [analytics, gatheringData, handleOpenTopicsPicker]);
+
+  const handleTopicsPickerCancelWithTracking = useCallback(() => {
+    analytics.trackGatheringModalTopicsPickerCancelled(gatheringData);
+    handleTopicsPickerCancel();
+  }, [analytics, gatheringData, handleTopicsPickerCancel]);
+
+  const handleTopicsApply = useCallback(
+    (topics: string[]) => {
+      analytics.trackGatheringModalTopicsPickerApplied(gatheringData, topics);
+      handleTopicsPickerApply(topics, (t) => methods.setValue('topics', t));
+    },
+    [analytics, gatheringData, handleTopicsPickerApply, methods],
+  );
+
+  const handleOpenEventsPickerWithTracking = useCallback(() => {
+    analytics.trackGatheringModalEventsPickerOpened(gatheringData);
+    handleOpenEventsPicker();
+  }, [analytics, gatheringData, handleOpenEventsPicker]);
+
+  const handleEventsPickerCancelWithTracking = useCallback(() => {
+    analytics.trackGatheringModalEventsPickerCancelled(gatheringData);
+    handleEventsPickerCancel();
+  }, [analytics, gatheringData, handleEventsPickerCancel]);
+
+  const handleEventsApply = useCallback(
+    (uids: string[], roles: EventRoleSelection[]) => {
+      analytics.trackGatheringModalEventsPickerApplied(gatheringData, uids);
+      handleEventsPickerApply(
+        uids,
+        roles,
+        (u) => methods.setValue('selectedEventUids', u),
+        (r) => methods.setValue('eventRoles', r),
+      );
+    },
+    [analytics, gatheringData, handleEventsPickerApply, methods],
+  );
 
   if (currentView === 'datePicker') {
     return (
       <Modal isOpen={isOpen} onClose={onClose} overlayClassname={s.modalOverlay}>
         <DatePickerView
-          planningQuestion={planningQuestion}
+          planningQuestion={gatheringData.planningQuestion}
           initialRange={selectedDateRange}
-          onCancel={handleDatePickerCancel}
-          onApply={handleDatePickerApply}
+          onCancel={handleDatePickerCancelWithTracking}
+          onApply={handleDatePickerApplyWithTracking}
+          gatheringDateRange={gatheringData.eventDates}
+          onClear={() => analytics.trackGatheringModalDatePickerCleared(gatheringData)}
         />
       </Modal>
     );
@@ -176,10 +244,26 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
     return (
       <Modal isOpen={isOpen} onClose={onClose} overlayClassname={s.modalOverlay}>
         <TopicsPickerView
-          planningQuestion={planningQuestion}
+          planningQuestion={gatheringData.planningQuestion}
           initialTopics={selectedTopics}
-          onCancel={handleTopicsPickerCancel}
-          onApply={handleTopicsPickerApply}
+          onCancel={handleTopicsPickerCancelWithTracking}
+          onApply={handleTopicsApply}
+        />
+      </Modal>
+    );
+  }
+
+  if (currentView === 'eventsPicker') {
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} overlayClassname={s.modalOverlay}>
+        <EventsPickerView
+          planningQuestion={gatheringData.planningQuestion}
+          locationName={gatheringData.locationName}
+          events={gatheringData.events}
+          initialSelectedEventUids={selectedEventUids}
+          initialEventRoles={eventRoles}
+          onCancel={handleEventsPickerCancelWithTracking}
+          onApply={handleEventsApply}
         />
       </Modal>
     );
@@ -189,7 +273,7 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
     <Modal isOpen={isOpen} onClose={onClose} overlayClassname={s.modalOverlay}>
       <FormProvider {...methods}>
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           className={s.modal}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -197,35 +281,50 @@ export function IrlGatheringModal({ isOpen, onClose, notification, onGoingClick 
             }
           }}
         >
-          <ModalHeader gatheringName={gatheringName} gatheringImage={gatheringImage} onClose={onClose} />
+          <ModalHeader
+            gatheringName={gatheringData.gatheringName}
+            gatheringImage={gatheringData.gatheringImage}
+            onClose={onClose}
+          />
 
           <div className={s.content}>
-            <AboutSection description={aboutDescription} />
+            {gatheringData.aboutDescription && <AboutSection description={gatheringData.aboutDescription} />}
 
             <GatheringDetails
-              dateRange={dateRange}
-              location={locationName}
-              eventsLink={eventsLink}
-              eventsCount={eventsCount}
-              resources={resources}
+              dateRange={gatheringData.dateRange}
+              location={gatheringData.locationName}
+              eventsLink={gatheringData.eventsLink}
+              eventsCount={gatheringData.eventsCount}
+              resources={gatheringData.resources}
             />
 
             <AttendeesSection
-              attendees={attendees}
-              attendeesCount={attendeesCount}
-              gatheringLink={`/events/irl?location=${locationName}`}
+              attendees={gatheringData.attendees}
+              attendeesCount={gatheringData.attendeesCount}
+              gatheringLink={buildGatheringLink(gatheringData.locationName)}
             />
 
             <PlanningSection
-              planningQuestion={planningQuestion}
+              planningQuestion={gatheringData.planningQuestion}
               selectedDateRange={selectedDateRange}
               selectedTopics={selectedTopics}
-              onDateInputClick={handleOpenDatePicker}
-              onTopicsInputClick={handleOpenTopicsPicker}
+              selectedEvents={selectedEvents}
+              events={gatheringData.events}
+              onDateInputClick={handleOpenDatePickerWithTracking}
+              onTopicsInputClick={handleOpenTopicsPickerWithTracking}
+              onEventsInputClick={handleOpenEventsPickerWithTracking}
+            />
+
+            <AdditionalDetailsSection
+              teams={data?.teams || []}
+              defaultTeamUid={defaultTeamUid}
+              telegramHandle={memberData?.memberInfo?.telegramHandle}
+              officeHours={memberData?.memberInfo?.officeHours}
+              defaultExpanded={false}
             />
           </div>
 
-          <ModalFooter onClose={onClose} isSubmit isLoading={isPending} />
+          <ModalFooter onClose={onClose} isSubmit isLoading={isPending} isEditMode={isEditMode} />
         </form>
       </FormProvider>
     </Modal>

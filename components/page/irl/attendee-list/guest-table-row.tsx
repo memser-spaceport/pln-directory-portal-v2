@@ -65,7 +65,12 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const hostEvents = events?.flatMap((event: IIrlEvent) => event?.hostSubEvents || []);
   const speakerEvents = events?.flatMap((event: IIrlEvent) => event?.speakerSubEvents || []);
   const sponsorEvents = events?.flatMap((event: IIrlEvent) => event?.sponsorSubEvents || []);
-  const formattedEventRange = checkInDate && checkOutDate ? getFormattedDateString(checkInDate, checkOutDate) : '';
+  let formattedEventRange = checkInDate && checkOutDate ? getFormattedDateString(checkInDate, checkOutDate) : '';
+
+  if (!formattedEventRange && guest.additionalInfo?.checkInDate && guest.additionalInfo?.checkOutDate) {
+    formattedEventRange = getFormattedDateString(guest.additionalInfo?.checkInDate, guest.additionalInfo?.checkOutDate);
+  }
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get('type');

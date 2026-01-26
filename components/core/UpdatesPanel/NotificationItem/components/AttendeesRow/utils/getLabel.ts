@@ -4,7 +4,7 @@ import { PushNotification } from '@/types/push-notifications.types';
 import { Attendee } from '@/components/core/UpdatesPanel/NotificationItem/components/AttendeesRow/types';
 
 export function getLabel(notification: PushNotification, attendees: Attendee[]) {
-  const { category, metadata } = notification;
+  const { category, metadata, isAttended } = notification;
 
   const attendeesNum = attendees.length;
 
@@ -13,7 +13,12 @@ export function getLabel(notification: PushNotification, attendees: Attendee[]) 
   }
 
   if (category === 'IRL_GATHERING') {
-    return `${attendeesNum} People going`;
+    if (isAttended) {
+      // @ts-ignore
+      return `You and ${metadata?.attendees?.total - 1} People going`;
+    }
+    // @ts-ignore
+    return `${metadata?.attendees?.total} People going`;
   }
 
   if (['FORUM_POST', 'FORUM_REPLY'].includes(category)) {

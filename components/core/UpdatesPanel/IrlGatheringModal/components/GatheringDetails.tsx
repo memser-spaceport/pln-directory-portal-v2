@@ -7,18 +7,13 @@ import {
   ArrowRightIcon,
   TelegramIcon,
   TwitterIcon,
-  WebIcon,
+  BlueskyIcon,
+  MastodonIcon,
+  DocumentIcon,
+  OtherResourceIcon,
 } from '../icons';
+import { Resource } from '../types';
 import s from '../IrlGatheringModal.module.scss';
-
-interface Resource {
-  icon?: string;
-  link: string;
-  name: string;
-  type: 'social' | 'custom';
-  isPublic: 'true' | 'false';
-  description: string | null;
-}
 
 interface GatheringDetailsProps {
   dateRange: string;
@@ -47,8 +42,28 @@ function getResourceIcon(resource: Resource) {
     return <TwitterIcon />;
   }
 
-  // Default to web icon
-  return <WebIcon />;
+  // Check for Bluesky
+  if (nameLower.includes('bluesky') || linkLower.includes('bsky.app') || linkLower.includes('bluesky')) {
+    return <BlueskyIcon />;
+  }
+
+  // Check for Mastodon
+  if (nameLower.includes('mastodon') || linkLower.includes('mastodon') || linkLower.includes('mstdn')) {
+    return <MastodonIcon />;
+  }
+
+  // Check for Google Docs
+  if (
+    nameLower.includes('google doc') ||
+    nameLower.includes('gdoc') ||
+    linkLower.includes('docs.google.com') ||
+    linkLower.includes('drive.google.com')
+  ) {
+    return <DocumentIcon />;
+  }
+
+  // Default to other resource icon
+  return <OtherResourceIcon />;
 }
 
 export function GatheringDetails({

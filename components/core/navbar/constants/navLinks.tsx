@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ISubItem } from '@/components/core/navbar/type';
-import { CalendarBlankIcon, UsersThreeIcon } from '@/components/icons';
+import { CalendarBlankIcon, ContributorIcon, UsersThreeIcon } from '@/components/icons';
 import { MembersIcon, TeamsIcon, ProjectsIcon } from '../components/icons';
 
 export const DIRECTORY_LINKS: ISubItem[] = [
@@ -33,9 +33,15 @@ export const EVENT_LINKS: ISubItem[] = [
     description: 'Explore major events and attendees by location',
   },
   {
-    href: '/events',
+    href: '/events/all',
     icon: <CalendarBlankIcon />,
-    title: 'Schedule',
+    title: 'All Events',
     description: 'Browse and register for all upcoming events',
+  },
+  {
+    href: '/events/contributors',
+    icon: <ContributorIcon />,
+    title: 'Event Contributors',
+    description: 'Hosts, speakers, and sponsors',
   },
 ] as const;

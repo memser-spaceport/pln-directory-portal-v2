@@ -17,9 +17,9 @@
 }
 
 @media (min-width: 768px) {
-  .scheduler {
-    padding: 20px;
-  }
+  /*.scheduler {*/
+  /*  padding: 20px;*/
+  /*}*/
 }
 
 @media (min-width: 1024px) {

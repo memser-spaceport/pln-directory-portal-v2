@@ -585,7 +585,7 @@
 // Event Role Selector
 .eventRoleSelector {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   margin-top: 6px;
 }
@@ -602,6 +602,7 @@
 .eventRoleBadges {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 

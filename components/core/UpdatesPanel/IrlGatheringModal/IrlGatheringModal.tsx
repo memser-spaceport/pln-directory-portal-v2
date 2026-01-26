@@ -270,6 +270,7 @@ export function IrlGatheringModal({
         <EventsPickerView
           planningQuestion={gatheringData.planningQuestion}
           locationName={gatheringData.locationName}
+          timezone={gatheringData.timezone}
           events={gatheringData.events}
           initialSelectedEventUids={selectedEventUids}
           initialEventRoles={eventRoles}

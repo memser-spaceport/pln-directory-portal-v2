@@ -43,6 +43,7 @@ export function useIrlGatheringData(notification: PushNotification): GatheringDa
         ? formatDateRange(metadata.events.dates.start, metadata.events.dates.end)
         : 'TBD',
       locationName,
+      timezone: metadata.location?.timezone || 'UTC',
       eventsCount: metadata.events?.total || 0,
       events,
       attendees: (metadata.attendees?.topAttendees || []).map((a) => ({

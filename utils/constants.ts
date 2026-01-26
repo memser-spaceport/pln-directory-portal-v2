@@ -668,6 +668,20 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.3 - IRL Gatherings & Forum Updates',
+    tag: 'Improvements',
+    date: '26, Jan 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">IRL Gatherings & Forum Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">IRL Gathering notifications</span> - Receive in-app notifications for upcoming IRL gatherings and reminders to stay informed about community events happening near you.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">"I'm Going" modal</span> - New streamlined modal to indicate your attendance at IRL Gathering locations with improved edit and delete attendee flows.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum mention search</span> - Improved @mention search experience in forum posts and comments to make it easier to tag and bring others into conversations.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.2 - Forum Engagement & Notifications',
     tag: 'Improvements',
     date: '20, Jan 2026',

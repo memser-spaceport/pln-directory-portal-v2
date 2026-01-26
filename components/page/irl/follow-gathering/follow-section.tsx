@@ -81,23 +81,16 @@ const FollowSection = (props: IFollowSectionProps) => {
   const pathname = usePathname();
   const isManuallyOpeningRef = useRef(false);
 
-  const canShowImGoingButton = useMemo(
-    () =>
-      isUserLoggedIn &&
-      !inPastEvents &&
-      accessLevel === 'advanced' &&
-      !isUserGoing &&
-      !userHasUpcomingEvents &&
-      filteredGatherings?.length > 0,
-    [isUserLoggedIn, inPastEvents, accessLevel, isUserGoing, userHasUpcomingEvents, filteredGatherings],
-  );
+  const canShowImGoingButton =
+    isUserLoggedIn &&
+    !inPastEvents &&
+    accessLevel === 'advanced' &&
+    !isUserGoing &&
+    !userHasUpcomingEvents &&
+    filteredGatherings?.length > 0;
 
-  const canEditModal = useMemo(
-    () => isUserLoggedIn && accessLevel === 'advanced' && isUserGoing,
-    [isUserLoggedIn, accessLevel, isUserGoing],
-  );
-
-  const canOpenModal = useMemo(() => canShowImGoingButton || canEditModal, [canShowImGoingButton, canEditModal]);
+  const canEditModal = isUserLoggedIn && accessLevel === 'advanced' && isUserGoing;
+  const canOpenModal = canShowImGoingButton || canEditModal;
 
   const [isIrlGatheringModalOpen, setIsIrlGatheringModalOpen] = useState(() => {
     const urlHasModal = urlSearchParams.get('open-modal') === 'true';

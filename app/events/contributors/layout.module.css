@@ -1,0 +1,30 @@
+.top {
+  width: 100%;
+}
+
+.husky {
+  width: 100%;
+  padding: 0 20px 30px 20px;
+}
+
+.contributors {
+  width: 100%;
+}
+
+.scheduler {
+  width: 100%;
+  height: auto;
+}
+
+@media (min-width: 768px) {
+  .scheduler {
+    padding: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .top {
+    padding: 20px;
+    background: #bfeaff;
+  }
+}

@@ -27,6 +27,7 @@
 
 .body {
   padding: 20px;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
 
   flex: 1;
   gap: 32px;
@@ -43,4 +44,11 @@
   .tab {
     flex: 1;
   }
+}
+
+.pagination {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(27, 56, 96, 0.12);
 }

@@ -1,9 +1,10 @@
 import { Tabs, TabsProps } from '@/components/common/Tabs';
 import { useGetTabs } from './hooks/useGetTabs';
+import { ActiveTab } from '@/components/page/member-details/ForumActivity/types';
 
 interface Props {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
+  activeTab: ActiveTab;
+  setActiveTab: (tab: ActiveTab) => void;
   postsCount: number;
   commentsCount: number;
   tabProps?: Partial<Omit<TabsProps, 'tabs' | 'value' | 'onValueChange'>>;
@@ -18,5 +19,5 @@ export function ForumActivityTabs(props: Props) {
     commentsCount,
   });
 
-  return <Tabs tabs={tabs} value={activeTab} onValueChange={setActiveTab} {...tabProps} />;
+  return <Tabs tabs={tabs} value={activeTab} onValueChange={setActiveTab as (v: string) => {}} {...tabProps} />;
 }

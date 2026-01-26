@@ -1,0 +1,28 @@
+.root {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 34px;
+  letter-spacing: -0.4px;
+  margin: 4px 0 10px;
+}
+
+.description {
+  color: #455468;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  max-width: 425px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.link {
+  margin-bottom: 16px;
+}

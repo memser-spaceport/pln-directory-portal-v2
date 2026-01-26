@@ -1,5 +1,5 @@
 
-.list {
+.root {
   gap: 8px;
   display: flex;
   flex-direction: column;
@@ -7,8 +7,7 @@
   overflow: auto;
 }
 
-.loading,
-.empty {
+.loading {
   padding: 24px;
   text-align: center;
   font-family: 'Inter', sans-serif;

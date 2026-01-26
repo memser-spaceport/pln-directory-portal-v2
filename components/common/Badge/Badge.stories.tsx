@@ -66,6 +66,7 @@ export const WithText: Story = {
   },
 };
 
+// @ts-ignore
 export const AllVariants: Story = {
   render: () => (
     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>

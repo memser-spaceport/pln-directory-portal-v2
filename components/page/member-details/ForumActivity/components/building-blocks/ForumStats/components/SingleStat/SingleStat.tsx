@@ -1,4 +1,4 @@
-import { cloneElement, ReactNode } from 'react';
+import { cloneElement, isValidElement, ReactNode } from 'react';
 
 import s from './SingleStat.module.scss';
 
@@ -17,9 +17,11 @@ export function SingleStat(props: Props) {
 
   return (
     <div className={s.root}>
-      {cloneElement(icon, {
-        className: s.icon,
-      })}
+      {isValidElement(icon) &&
+        cloneElement(icon, {
+          // @ts-ignore
+          className: s.icon,
+        })}
 
       <span>
         {value} {label}

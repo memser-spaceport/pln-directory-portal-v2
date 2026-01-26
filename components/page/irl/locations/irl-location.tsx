@@ -19,11 +19,8 @@ interface IrlLocation {
 }
 
 const IrlLocation = (props: IrlLocation) => {
-  const filteredLocations = props.locationDetails.filter(
-    (loc) => loc.location.split(',')[0].trim().toLowerCase() !== 'others',
-  );
   const [activeLocationId, setActiveLocationId] = useState<string | null>(null);
-  const [locations, setLocations] = useState(filteredLocations);
+  const [locations, setLocations] = useState(props.locationDetails);
   const [showMore, setShowMore] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const searchParams = props?.searchParams;
@@ -74,7 +71,7 @@ const IrlLocation = (props: IrlLocation) => {
         }
       }
     }
-  }, [searchParams, locations]);
+  }, [searchParams]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();

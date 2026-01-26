@@ -123,7 +123,7 @@ export function IrlGatheringModal({
       analytics.trackGatheringModalClosed(gatheringData, isEditMode);
     }
     wasOpenRef.current = isOpen;
-  }, [isOpen, gatheringData, isEditMode]);
+  }, [isOpen, gatheringData, isEditMode, analytics]);
 
   const {
     currentView,
@@ -270,7 +270,6 @@ export function IrlGatheringModal({
         <EventsPickerView
           planningQuestion={gatheringData.planningQuestion}
           locationName={gatheringData.locationName}
-          timezone={gatheringData.timezone}
           events={gatheringData.events}
           initialSelectedEventUids={selectedEventUids}
           initialEventRoles={eventRoles}

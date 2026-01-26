@@ -94,7 +94,8 @@ const FollowSection = (props: IFollowSectionProps) => {
   // Modal can be opened for new attendance OR for editing existing attendance
   const canOpenModal = canShowImGoingButton || (isEditMode && isUserLoggedIn && accessLevel === 'advanced');
 
-  const isIrlGatheringModalOpen = (isModalOpenLocal || urlSearchParams.get('open-modal') === 'true') && canOpenModal;
+  // Prioritize local state: if false, close immediately. URL param only used to sync initial state.
+  const isIrlGatheringModalOpen = isModalOpenLocal && canOpenModal;
 
   // Build PushNotification object from available data for IrlGatheringModal
   const irlGatheringNotification = useMemo((): PushNotification => {

@@ -152,7 +152,7 @@ const getPageData = async (searchParams: any) => {
       ? locationDetails.find((loc: any) => loc.location.split(',')[0].trim() === searchParams.location)
       : locationDetails[0];
 
-    const { uid, location: name, pastEvents, flag, description, resources } = eventDetails;
+    const { uid, location: name, pastEvents, flag, icon, description, resources } = eventDetails;
 
     //check correct event type
     if (searchParams?.type) {
@@ -173,7 +173,7 @@ const getPageData = async (searchParams: any) => {
     if (!eventDetails || !isEventActive || !isEventAvailable) {
       return { isLocationError: true };
     }
-    const eventLocationSummary = { uid, name, flag, description, resources };
+    const eventLocationSummary = { uid, name, flag, icon, description, resources };
 
     // Determine event type and fetch event guest data
     const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';

@@ -37,12 +37,13 @@ export function useIrlGatheringData(notification: PushNotification): GatheringDa
 
     return {
       gatheringName: metadata.location?.name || notification.title,
-      gatheringImage: metadata.events?.items?.[0]?.logoUrl || undefined,
+      gatheringImage: metadata.location?.icon || '/images/irl/defaultCity.svg',
       aboutDescription: notification.description || '',
       dateRange: metadata.events?.dates
         ? formatDateRange(metadata.events.dates.start, metadata.events.dates.end)
         : 'TBD',
       locationName,
+      timezone: metadata.location?.timezone || 'UTC',
       eventsCount: metadata.events?.total || 0,
       events,
       attendees: (metadata.attendees?.topAttendees || []).map((a) => ({

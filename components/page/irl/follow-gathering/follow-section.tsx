@@ -197,6 +197,8 @@ const FollowSection = (props: IFollowSectionProps) => {
   const handleIrlGatheringSuccess = useCallback(() => {
     // Refresh the page data after successful submission
     router.refresh();
+    // Trigger attendees list refresh
+    document.dispatchEvent(new CustomEvent(EVENTS.REFRESH_ATTENDEES_LIST));
   }, [router]);
 
   // Remove open-modal param if user is not logged in

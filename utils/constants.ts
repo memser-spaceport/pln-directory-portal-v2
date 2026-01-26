@@ -93,6 +93,7 @@ export const EVENTS = {
   TRIGGER_ADD_EDIT_EXPERIENCE_MODAL: 'trigger-add-edit-experience-modal',
   TRIGGER_SEE_ALL_EXPERIENCE_MODAL: 'trigger-see-all-experience-modal',
   TRIGGER_DIALOG_LOADER: 'trigger-dialog-loader',
+  REFRESH_ATTENDEES_LIST: 'refresh-attendees-list',
 };
 
 export const PROFILE_MENU_OPTIONS = [

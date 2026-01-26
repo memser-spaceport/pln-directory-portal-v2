@@ -18,31 +18,39 @@ interface EventsPickerViewProps {
   onApply: (selectedEventUids: string[], eventRoles: EventRoleSelection[]) => void;
 }
 
-function formatEventDate(startDate: string, endDate: string): string {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const formatDate = (date: Date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+// Parse date string and return a Date object in UTC to avoid timezone issues
+function parseAsUTC(dateString: string): Date {
+  const date = new Date(dateString);
+  // Use UTC methods to avoid timezone shifts
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
 
-  if (start.toDateString() === end.toDateString()) {
+function formatEventDate(startDate: string, endDate: string): string {
+  const start = parseAsUTC(startDate);
+  const end = parseAsUTC(endDate);
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+
+  if (start.getTime() === end.getTime()) {
     return formatDate(start);
   }
   return `${formatDate(start)} - ${formatDate(end)}`;
 }
 
 function formatDateGroupHeader(startDate: string, endDate: string): string {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const start = parseAsUTC(startDate);
+  const end = parseAsUTC(endDate);
   const formatDate = (date: Date) =>
-    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
-  if (start.toDateString() === end.toDateString()) {
+  if (start.getTime() === end.getTime()) {
     return formatDate(start);
   }
   return `${formatDate(start)} - ${formatDate(end)}`;
 }
 
 function getDateKey(dateString: string): string {
-  const date = new Date(dateString);
+  const date = parseAsUTC(dateString);
   return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
 }
 

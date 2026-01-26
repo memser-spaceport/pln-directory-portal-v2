@@ -123,7 +123,7 @@ export function IrlGatheringModal({
       analytics.trackGatheringModalClosed(gatheringData, isEditMode);
     }
     wasOpenRef.current = isOpen;
-  }, [isOpen, gatheringData, isEditMode, analytics]);
+  }, [isOpen, gatheringData, isEditMode]);
 
   const {
     currentView,

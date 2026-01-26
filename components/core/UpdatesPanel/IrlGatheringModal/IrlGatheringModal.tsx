@@ -23,6 +23,9 @@ import s from './IrlGatheringModal.module.scss';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { useQuery } from '@tanstack/react-query';
+import { MembersQueryKeys } from '@/services/members/constants';
+import { getMember } from '@/services/members.service';
 
 export type { IrlGatheringModalProps, IrlGatheringFormData } from './types';
 
@@ -41,6 +44,14 @@ export function IrlGatheringModal({
   const { data: memberData } = useMember(userInfo?.uid);
   const analytics = useIrlAnalytics();
   const wasOpenRef = useRef(false);
+
+  const { data: member } = useQuery({
+    queryKey: [MembersQueryKeys.GET_MEMBER, userInfo.uid, !!userInfo, userInfo.uid],
+    queryFn: () =>
+      getMember(userInfo.uid, { with: 'image,skills,location,teamMemberRoles.team' }, !!userInfo, userInfo, true, true),
+    enabled: !!userInfo.uid,
+    select: (data) => data?.data?.formattedData,
+  });
 
   // Build initial form values for edit mode
   const initialFormValues = useMemo(() => {
@@ -316,7 +327,7 @@ export function IrlGatheringModal({
             />
 
             <AdditionalDetailsSection
-              teams={data?.teams || []}
+              teams={member?.teams || []}
               defaultTeamUid={defaultTeamUid}
               telegramHandle={memberData?.memberInfo?.telegramHandle}
               officeHours={memberData?.memberInfo?.officeHours}

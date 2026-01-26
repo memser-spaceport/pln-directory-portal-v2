@@ -597,11 +597,6 @@
   line-height: 18px;
   letter-spacing: -0.2px;
   color: #455468;
-  display: none;
-
-  @include media.tablet-landscape {
-    display: inline;
-  }
 }
 
 .eventRoleBadges {

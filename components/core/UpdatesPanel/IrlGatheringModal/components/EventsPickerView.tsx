@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import Image from 'next/image';
-import { format, toZonedTime } from 'date-fns-tz';
 import { CalendarPlusIcon, CheckIcon, SearchIcon, XCircleIcon } from '../icons';
 import { EventData, EventRole, EventRoleSelection } from '../types';
 import s from '../IrlGatheringModal.module.scss';
@@ -12,7 +11,6 @@ const AVAILABLE_ROLES: EventRole[] = ['Attendee', 'Speaker', 'Host', 'Sponsor'];
 interface EventsPickerViewProps {
   planningQuestion: string;
   locationName: string;
-  timezone: string;
   events: EventData[];
   initialSelectedEventUids: string[];
   initialEventRoles: EventRoleSelection[];
@@ -20,16 +18,18 @@ interface EventsPickerViewProps {
   onApply: (selectedEventUids: string[], eventRoles: EventRoleSelection[]) => void;
 }
 
-function parseAsLocationTimezone(dateString: string, timezone: string): Date {
+// Parse date string and return a Date object in UTC to avoid timezone issues
+function parseAsUTC(dateString: string): Date {
   const date = new Date(dateString);
-  const zonedDate = toZonedTime(date, timezone);
-  return zonedDate;
+  // Use UTC methods to avoid timezone shifts
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
-function formatEventDate(startDate: string, endDate: string, timezone: string): string {
-  const start = parseAsLocationTimezone(startDate, timezone);
-  const end = parseAsLocationTimezone(endDate, timezone);
-  const formatDate = (date: Date) => format(date, 'MMM d', { timeZone: timezone });
+function formatEventDate(startDate: string, endDate: string): string {
+  const start = parseAsUTC(startDate);
+  const end = parseAsUTC(endDate);
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 
   if (start.getTime() === end.getTime()) {
     return formatDate(start);
@@ -37,17 +37,21 @@ function formatEventDate(startDate: string, endDate: string, timezone: string): 
   return `${formatDate(start)} - ${formatDate(end)}`;
 }
 
-function formatDateGroupHeader(startDate: string, timezone: string): string {
-  const start = parseAsLocationTimezone(startDate, timezone);
-  return format(start, 'MMM d, yyyy', { timeZone: timezone });
+function formatDateGroupHeader(startDate: string, endDate: string): string {
+  const start = parseAsUTC(startDate);
+  const end = parseAsUTC(endDate);
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+
+  if (start.getTime() === end.getTime()) {
+    return formatDate(start);
+  }
+  return `${formatDate(start)} - ${formatDate(end)}`;
 }
 
-function getDateKey(dateString: string, timezone: string): string {
-  const date = parseAsLocationTimezone(dateString, timezone);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+function getDateKey(dateString: string): string {
+  const date = parseAsUTC(dateString);
+  return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
 }
 
 interface EventGroup {
@@ -59,7 +63,6 @@ interface EventGroup {
 export function EventsPickerView({
   planningQuestion,
   locationName,
-  timezone,
   events,
   initialSelectedEventUids,
   initialEventRoles,
@@ -88,7 +91,7 @@ export function EventsPickerView({
     const groups: Map<string, EventData[]> = new Map();
 
     filteredEvents.forEach((event) => {
-      const dateKey = getDateKey(event.startDate, timezone);
+      const dateKey = getDateKey(event.startDate);
       if (!groups.has(dateKey)) {
         groups.set(dateKey, []);
       }
@@ -100,10 +103,10 @@ export function EventsPickerView({
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([dateKey, evts]) => ({
         dateKey,
-        dateLabel: formatDateGroupHeader(evts[0].startDate, timezone),
+        dateLabel: formatDateGroupHeader(evts[0].startDate, evts[0].endDate),
         events: evts,
       }));
-  }, [filteredEvents, timezone]);
+  }, [filteredEvents]);
 
   const getEventRoles = useCallback(
     (eventUid: string): EventRole[] => {
@@ -264,7 +267,7 @@ export function EventsPickerView({
                       )}
                       {!isSelected && (
                         <span className={s.eventListMeta}>
-                          {formatEventDate(event.startDate, event.endDate, timezone)} · {event.attendeeCount} attending
+                          {formatEventDate(event.startDate, event.endDate)} · {event.attendeeCount} attending
                         </span>
                       )}
                       {isSelected && (

@@ -45,8 +45,6 @@ export function IrlGatheringModal({
   const analytics = useIrlAnalytics();
   const wasOpenRef = useRef(false);
 
-  console.log(memberData);
-
   const { data: member } = useQuery({
     queryKey: [MembersQueryKeys.GET_MEMBER, userInfo.uid, !!userInfo, userInfo.uid],
     queryFn: () =>

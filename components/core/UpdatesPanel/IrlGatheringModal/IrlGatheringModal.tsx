@@ -26,6 +26,7 @@ import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useQuery } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { getMember } from '@/services/members.service';
+import { ITeam } from '@/types/teams.types';
 
 export type { IrlGatheringModalProps, IrlGatheringFormData } from './types';
 
@@ -56,14 +57,28 @@ export function IrlGatheringModal({
   // Build initial form values for edit mode
   const initialFormValues = useMemo(() => {
     if (!isEditMode || !editModeData) {
+      // Prefill with member data if available
+      const mainTeam = member?.teams?.find((team: ITeam) => team.mainTeam === true);
+      const selectedTeam = mainTeam && mainTeam.name
+        ? { value: mainTeam.id, label: mainTeam.name }
+        : undefined;
+      
+      const telegramHandle = memberData?.memberInfo?.telegramHandler
+        ? memberData.memberInfo.telegramHandler.startsWith('@')
+          ? memberData.memberInfo.telegramHandler
+          : `@${memberData.memberInfo.telegramHandler}`
+        : '';
+      
+      const officeHours = memberData?.memberInfo?.officeHours || '';
+
       return {
         topics: [],
         selectedEventUids: [],
         eventRoles: [],
         additionalDetails: '',
-        selectedTeam: undefined,
-        telegramHandle: '',
-        officeHours: '',
+        selectedTeam,
+        telegramHandle,
+        officeHours,
       };
     }
 
@@ -94,7 +109,7 @@ export function IrlGatheringModal({
       telegramHandle: editModeData.telegramId || '',
       officeHours: editModeData.officeHours || '',
     };
-  }, [isEditMode, editModeData]);
+  }, [isEditMode, editModeData, member?.teams, memberData?.memberInfo?.telegramHandler, memberData?.memberInfo?.officeHours]);
 
   // Build initial date range for edit mode
   const initialDateRange = useMemo((): [Date, Date] | null => {
@@ -108,12 +123,12 @@ export function IrlGatheringModal({
     defaultValues: initialFormValues,
   });
 
-  // Reset form when modal opens with new data
+  // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       methods.reset(initialFormValues);
     }
-  }, [isOpen, initialFormValues, methods]);
+  }, [isOpen, methods, initialFormValues]);
 
   // Track modal open/close
   useEffect(() => {

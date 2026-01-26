@@ -3,6 +3,9 @@
 import { useState, useRef, useEffect, ChangeEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
+import { triggerLoader } from '@/utils/common.utils';
+
+const CURRENT_ROUND_PATH = '/alignment-asset';
 
 /* ==========================================================================
    PlaaRoundSelector Component
@@ -14,12 +17,14 @@ interface PlaaRoundSelectorProps {
   currentRound: number;
   totalRounds: number;
   viewingRound?: number; // The round being viewed on the current page (defaults to currentRound)
+  onRoundNavigation?: () => void; // Callback to handle round navigation (e.g., close mobile menu)
 }
 
 function PlaaRoundSelector({
   currentRound,
   totalRounds,
   viewingRound,
+  onRoundNavigation,
 }: PlaaRoundSelectorProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -64,7 +69,26 @@ function PlaaRoundSelector({
   }, [isOpen]);
 
   const navigateToRound = (round: number) => {
-    router.push(`/alignment-asset/rounds/${round}`);
+    
+    // Check if we're already on the target URL
+    const currentPath = window.location.pathname;
+    const targetPath = `/alignment-asset/rounds/${round}`;
+
+    
+    if (currentPath === targetPath) {
+      // Already on this page, no need to navigate or show loader
+      return;
+    }
+    
+    // Show loader on mobile
+    // if (window.innerWidth < 1024) {
+    //   // if (onRoundNavigation) {
+    //   //   onRoundNavigation();
+    //   // }
+    //   triggerLoader(true);
+    // }
+    
+    router.push(targetPath);
   };
 
   const handlePrevRound = () => {
@@ -95,7 +119,26 @@ function PlaaRoundSelector({
     setSelectedRound(currentRound);
     setInputValue(String(currentRound));
     setIsOpen(false);
-    router.push('/alignment-asset');
+    
+    // Always close mobile menu if provided
+    if (onRoundNavigation) {
+      onRoundNavigation();
+    }
+    
+    // Check if we're already on the target URL
+    const currentPath = window.location.pathname;
+    
+    if (currentPath === CURRENT_ROUND_PATH) {
+      // Already on this page, no need to navigate or show loader
+      return;
+    }
+    
+    // Show loader on mobile
+    if (window.innerWidth < 1024) {
+      triggerLoader(true);
+    }
+    
+    router.push(CURRENT_ROUND_PATH);
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -128,11 +171,32 @@ function PlaaRoundSelector({
 
   const handleRoundLabelClick = () => {
     // Navigate to the selected round page
+    const currentPath = window.location.pathname;
+    let targetPath: string;
+    
     if (isCurrentRound) {
-      router.push('/alignment-asset');
+      targetPath = CURRENT_ROUND_PATH;
     } else {
-      navigateToRound(selectedRound);
+      targetPath = `/alignment-asset/rounds/${selectedRound}`;
     }
+    
+    // Always close mobile menu if provided
+    if (onRoundNavigation) {
+      onRoundNavigation();
+    }
+    
+    // Check if we're already on the target URL
+    if (currentPath === targetPath) {
+      // Already on this page, no need to navigate or show loader
+      return;
+    }
+    
+    // Show loader on mobile
+    if (window.innerWidth < 1024) {
+      triggerLoader(true);
+    }
+    
+    router.push(targetPath);
   };
 
   const handleDropdownToggle = () => {
@@ -597,6 +661,12 @@ function PlaaRoundSelector({
 
           .round-selector__dropdown-go-current:hover {
             background-color: rgba(21, 111, 247, 0.08);
+          }
+
+          @media (max-width: 768px) {
+            .round-selector__nav-of {
+              margin-left: 0;
+            }
           }
         `}
       </style>

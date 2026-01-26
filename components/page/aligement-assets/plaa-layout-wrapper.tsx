@@ -1,10 +1,11 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import PlaaMenu, { PlaaActiveItem } from './plaa-menu';
 import PlaaBackButton from './plaa-back-btn';
 import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import styles from '@/app/alignment-asset/plaa.module.css';
 
 interface PlaaLayoutWrapperProps {
@@ -47,6 +48,9 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem | undefined
 export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) {
   const pathname = usePathname();
   const { activeItem, title, viewingRound } = getPageInfo(pathname ?? '');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  const { onMobileNavMenuClicked, onMobileNavMenuClosed } = useAlignmentAssetsAnalytics();
 
   // Scroll to top when pathname changes (tab switch)
   useEffect(() => {
@@ -60,12 +64,38 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
     document.body.scrollTop = 0;
   }, [pathname]);
 
+  // Close mobile menu on pathname change (navigation)
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  /**
+   * Handles opening the mobile menu
+   */
+  const handleOpenMenu = () => {
+    setIsMobileMenuOpen(true);
+    onMobileNavMenuClicked();
+  };
+
+  /**
+   * Handles closing the mobile menu
+   */
+  const handleCloseMenu = () => {
+    setIsMobileMenuOpen(false);
+    onMobileNavMenuClosed();
+  };
+
   return (
     <div className={styles.plaa}>
-      {/* Mobile Back Button (hidden on desktop) */}
-      <div className={styles.plaa__backbtn}>
-        <PlaaBackButton title={title} />
-      </div>
+      {/* Mobile Menu Button */}
+      <button
+        className={styles.plaa__menuBtn}
+        onClick={handleOpenMenu}
+        aria-label="Open menu"
+        aria-expanded={isMobileMenuOpen}
+      >
+        <img src="/icons/menu-icon.svg" alt="Menu" width={16} height={16} />
+      </button>
 
       {/* Mobile Banner - positioned inside layout, hidden on desktop */}
       <div className={styles['plaa__mobile-banner']}>
@@ -86,6 +116,45 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
           </div>
         </div>
       </div>
+
+      {isMobileMenuOpen && (
+        <div 
+          className={styles.plaa__menuBackdrop}
+          onClick={handleCloseMenu}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div 
+            className={styles.plaa__menuOverlay}
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Navigation menu"
+          >
+            {/* Menu Header with Title and Close Button */}
+            <div className={styles.plaa__menuHeader}>
+              <h2 className={styles.plaa__menuTitle}>Menu</h2>
+              <button 
+                className={styles.plaa__menuClose}
+                onClick={handleCloseMenu}
+                aria-label="Close menu"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Menu Content */}
+            <PlaaMenu 
+              activeItem={activeItem} 
+              totalRounds={12} 
+              currentRound={12} 
+              viewingRound={viewingRound}
+              onMenuItemClick={handleCloseMenu}
+            />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

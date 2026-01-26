@@ -550,7 +550,14 @@ export default function FAQsPage() {
           <h1 className="faqs__header__title">Frequently Asked Questions</h1>
         </div>
 
-        <div className="faqs__controls">
+        <div className="faqs__header-controls">
+           <button className="faqs__controls__expand-all" onClick={handleExpandAll} disabled={!!query}>
+            {expandAll ? 'Collapse All' : 'Expand All'}
+            <ChevronDownIcon className={`faqs__controls__expand-all__icon ${expandAll ? 'faqs__controls__expand-all__icon--expanded' : ''}`} />
+          </button>
+        </div>
+
+        <div className="faqs__container">
           <div className="faqs__controls__search">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -562,13 +569,7 @@ export default function FAQsPage() {
               onChange={handleSearchChange}
             />
           </div>
-          <button className="faqs__controls__expand-all" onClick={handleExpandAll} disabled={!!query}>
-            {expandAll ? 'Collapse All' : 'Expand All'}
-            <ChevronDownIcon className={`faqs__controls__expand-all__icon ${expandAll ? 'faqs__controls__expand-all__icon--expanded' : ''}`} />
-          </button>
-        </div>
 
-        <div className="faqs__container">
           {filteredCategories.length > 0 ? (
             filteredCategories.map((category) => (
               <div 
@@ -675,18 +676,10 @@ export default function FAQsPage() {
           color: #000000;
         }
 
-        .faqs__controls {
+        .faqs__header-controls {
           display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 16px;
-          margin-bottom: 0;
-          position: sticky;
-          top: calc(var(--app-header-height, 80px) + 56px);
-          background: #f8fafc;
-          padding: 16px 24px;
-          border-radius: 12px 12px 0 0;
-          z-index: 2;
+          justify-content: flex-end;
+          margin-bottom: 8px;
         }
 
         .faqs__controls__search {
@@ -697,8 +690,7 @@ export default function FAQsPage() {
           background: #ffffff;
           border: 1px solid #e2e8f0;
           border-radius: 6px;
-          flex: 1;
-          max-width: 240px;
+          margin-bottom: 24px;
         }
 
         .faqs__controls__search svg {
@@ -724,11 +716,11 @@ export default function FAQsPage() {
           align-items: center;
           gap: 4px;
           padding: 6px 12px;
-          background: transparent;
-          border: none;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           color: #64748b;
           font-size: 12px;
-          font-weight: 400;
+          font-weight: 500;
           cursor: pointer;
           border-radius: 999px;
           transition: all 0.2s;
@@ -752,9 +744,8 @@ export default function FAQsPage() {
 
         .faqs__container {
           background: rgba(248, 250, 252, 1);
-          border-radius: 0 0 12px 12px;
+          border-radius: 12px;
           padding: 24px;
-          padding-top: 12px;
           display: flex;
           flex-direction: column;
           gap: 24px;
@@ -777,7 +768,7 @@ export default function FAQsPage() {
         }
 
         .faqs__container__category__title {
-          font-size: 14px;
+          font-size: 16px;
           font-weight: 600;
           color: #0f172a;
         }
@@ -904,9 +895,29 @@ export default function FAQsPage() {
             line-height: 48px;
           }
 
-          .faqs__container {
-            padding: 32px;
+          .faqs__header-controls {
+            display: none;
           }
+
+          /* Use a grid or flex layout for desktop to put controls back in place if needed, 
+             but simpler to just hide mobile controls and show desktop specific ones? 
+             Actually, distinct layouts might be better. 
+             For now, let's adapt the single layout to work for both. */
+          
+          .faqs__container {
+             padding: 32px;
+             position: relative;
+          }
+
+          /* Move search to top right absolute if we want to mimic old desktop layout? 
+             Or keep it in flow. 
+             Let's keep it simple: Search is now inside container. */
+             
+           .faqs__controls__search {
+             max-width: 300px;
+             margin-left: auto; 
+             /* On desktop we might want search on the right? */
+           }
 
           .faqs__container__category__title {
             font-size: 18px;

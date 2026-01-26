@@ -5,6 +5,7 @@ import Image from 'next/image';
 
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
 import { useCarousel } from '@/hooks/use-embla-carousel';
+import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 import styles from './PlaaBanner.module.scss';
 
@@ -112,6 +113,8 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
   const [isCompact, setIsCompact] = useState(false);
   const bannerRef = useRef<HTMLDivElement>(null);
   
+  const { onBannerCarouselPrevClicked, onBannerCarouselNextClicked, onBannerButtonClicked } = useAlignmentAssetsAnalytics();
+  
   // Desktop carousel
   const desktopCarousel = useCarousel({
     loop: true,
@@ -166,13 +169,23 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
 
   const totalSlides = BANNER_CONTENTS.length;
 
+  const handlePrevClick = () => {
+    onBannerCarouselPrevClicked();
+    desktopCarousel.scrollPrev();
+  };
+
+  const handleNextClick = () => {
+    onBannerCarouselNextClicked();
+    desktopCarousel.scrollNext();
+  };
+
   // Desktop variant
   if (variant === 'desktop') {
     return (
       <HighlightsBar variant="plaa">
         <div className={styles.banner}>
           {/* Left Arrow - far left */}
-          <button className={styles.navBtnLeft} onClick={desktopCarousel.scrollPrev} aria-label="Previous">
+          <button className={styles.navBtnLeft} onClick={handlePrevClick} aria-label="Previous">
             <Image src="/icons/chevron-left-white.svg" alt="" width={16} height={16} />
           </button>
 
@@ -220,6 +233,7 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
                           target="_blank"
                           rel="noopener noreferrer"
                           className={btn.variant === 'primary' ? styles.btnPrimary : styles.btnSecondary}
+                          onClick={() => onBannerButtonClicked(btn.label, btn.link)}
                         >
                           {btn.label}
                         </a>
@@ -235,7 +249,7 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
           <span className={styles.pagination}>{desktopCarousel.activeIndex + 1}/{totalSlides}</span>
 
           {/* Right Arrow - far right */}
-          <button className={styles.navBtnRight} onClick={desktopCarousel.scrollNext} aria-label="Next">
+          <button className={styles.navBtnRight} onClick={handleNextClick} aria-label="Next">
             <Image src="/icons/chevron-right-white.svg" alt="" width={16} height={16} />
           </button>
         </div>
@@ -288,6 +302,7 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
                       target="_blank"
                       rel="noopener noreferrer"
                       className={btn.variant === 'primary' ? styles.mobileBtnPrimary : styles.mobileBtnSecondary}
+                      onClick={() => onBannerButtonClicked(btn.label, btn.link)}
                     >
                       {btn.label}
                     </a>

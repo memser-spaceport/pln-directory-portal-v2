@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import Image from 'next/image';
+import { toZonedTime, format } from 'date-fns-tz';
 import { CalendarPlusIcon, CheckIcon, SearchIcon, XCircleIcon } from '../icons';
 import { EventData, EventRole, EventRoleSelection } from '../types';
 import s from '../IrlGatheringModal.module.scss';
@@ -11,6 +12,7 @@ const AVAILABLE_ROLES: EventRole[] = ['Attendee', 'Speaker', 'Host', 'Sponsor'];
 interface EventsPickerViewProps {
   planningQuestion: string;
   locationName: string;
+  timezone: string;
   events: EventData[];
   initialSelectedEventUids: string[];
   initialEventRoles: EventRoleSelection[];
@@ -18,32 +20,34 @@ interface EventsPickerViewProps {
   onApply: (selectedEventUids: string[], eventRoles: EventRoleSelection[]) => void;
 }
 
-function formatEventDate(startDate: string, endDate: string): string {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const formatDate = (date: Date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-  if (start.toDateString() === end.toDateString()) {
-    return formatDate(start);
-  }
-  return `${formatDate(start)} - ${formatDate(end)}`;
-}
-
-function formatDateGroupHeader(startDate: string, endDate: string): string {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const formatDate = (date: Date) =>
-    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-  if (start.toDateString() === end.toDateString()) {
-    return formatDate(start);
-  }
-  return `${formatDate(start)} - ${formatDate(end)}`;
-}
-
-function getDateKey(dateString: string): string {
+function parseAsLocationTimezone(dateString: string, timezone: string): Date {
   const date = new Date(dateString);
-  return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+  const zonedDate = toZonedTime(date, timezone);
+  return new Date(zonedDate.getFullYear(), zonedDate.getMonth(), zonedDate.getDate());
+}
+
+function formatEventDate(startDate: string, endDate: string, timezone: string): string {
+  const start = toZonedTime(new Date(startDate), timezone);
+  const end = toZonedTime(new Date(endDate), timezone);
+  const formatDate = (date: Date) => format(date, 'MMM d', { timeZone: timezone });
+
+  if (start.getTime() === end.getTime()) {
+    return formatDate(start);
+  }
+  return `${formatDate(start)} - ${formatDate(end)}`;
+}
+
+function formatDateGroupHeader(startDate: string, timezone: string): string {
+  const date = toZonedTime(new Date(startDate), timezone);
+  return format(date, 'MMM d, yyyy', { timeZone: timezone });
+}
+
+function getDateKey(dateString: string, timezone: string): string {
+  const date = parseAsLocationTimezone(dateString, timezone);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 interface EventGroup {
@@ -55,6 +59,7 @@ interface EventGroup {
 export function EventsPickerView({
   planningQuestion,
   locationName,
+  timezone,
   events,
   initialSelectedEventUids,
   initialEventRoles,
@@ -83,7 +88,7 @@ export function EventsPickerView({
     const groups: Map<string, EventData[]> = new Map();
 
     filteredEvents.forEach((event) => {
-      const dateKey = getDateKey(event.startDate);
+      const dateKey = getDateKey(event.startDate, timezone);
       if (!groups.has(dateKey)) {
         groups.set(dateKey, []);
       }
@@ -95,10 +100,10 @@ export function EventsPickerView({
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([dateKey, evts]) => ({
         dateKey,
-        dateLabel: formatDateGroupHeader(evts[0].startDate, evts[0].endDate),
+        dateLabel: formatDateGroupHeader(evts[0].startDate, timezone),
         events: evts,
       }));
-  }, [filteredEvents]);
+  }, [filteredEvents, timezone]);
 
   const getEventRoles = useCallback(
     (eventUid: string): EventRole[] => {
@@ -259,7 +264,7 @@ export function EventsPickerView({
                       )}
                       {!isSelected && (
                         <span className={s.eventListMeta}>
-                          {formatEventDate(event.startDate, event.endDate)} · {event.attendeeCount} attending
+                          {formatEventDate(event.startDate, event.endDate, timezone)} · {event.attendeeCount} attending
                         </span>
                       )}
                       {isSelected && (

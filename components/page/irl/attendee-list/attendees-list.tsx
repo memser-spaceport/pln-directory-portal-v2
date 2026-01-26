@@ -183,16 +183,22 @@ const AttendeeList = (props: IAttendeeList) => {
       setIamGoingPopupProps(e.detail);
     };
 
+    const refreshAttendeesHandler = () => {
+      getEventDetails();
+    };
+
     document.addEventListener(EVENTS.OPEN_FLOATING_BAR, floatingBarhandler);
     document.addEventListener(EVENTS.OPEN_REMOVE_GUESTS_POPUP, deleteGuestsHandler);
     document.addEventListener(EVENTS.OPEN_IAM_GOING_POPUP, iamGoingHandler);
+    document.addEventListener(EVENTS.REFRESH_ATTENDEES_LIST, refreshAttendeesHandler);
 
     return () => {
       document.removeEventListener(EVENTS.OPEN_FLOATING_BAR, floatingBarhandler);
       document.removeEventListener(EVENTS.OPEN_REMOVE_GUESTS_POPUP, deleteGuestsHandler);
       document.removeEventListener(EVENTS.OPEN_IAM_GOING_POPUP, iamGoingHandler);
+      document.removeEventListener(EVENTS.REFRESH_ATTENDEES_LIST, refreshAttendeesHandler);
     };
-  }, []);
+  }, [getEventDetails]);
 
   //close floating bar on route change
   useEffect(() => {

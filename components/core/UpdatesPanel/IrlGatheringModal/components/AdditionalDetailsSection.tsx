@@ -7,6 +7,7 @@ import { FormField } from '@/components/form/FormField/FormField';
 import { DiamondsFourIcon, CaretUpIcon, CaretDownIcon } from '../icons';
 import { IrlGatheringFormData } from '../types';
 import s from '../IrlGatheringModal.module.scss';
+import { ITeam } from '@/types/teams.types';
 
 const MAX_CHARACTERS = 150;
 
@@ -36,7 +37,7 @@ interface TeamFromApi {
 }
 
 interface AdditionalDetailsSectionProps {
-  teams: TeamFromApi[];
+  teams: ITeam[];
   defaultTeamUid?: string;
   defaultExpanded?: boolean;
   telegramHandle?: string | null;
@@ -57,11 +58,21 @@ export function AdditionalDetailsSection({
 
   // Convert teams to FormSelect options format
   const teamOptions = useMemo(() => {
-    return teams.map((team) => ({
-      value: team.teamUid,
-      label: team.teamTitle,
-    }));
+    return teams
+      .map((team) => ({
+        value: team.id,
+        label: team.name ?? '',
+      }))
+      .filter((option) => option.label.length > 0);
   }, [teams]);
+
+  // Preselect team with mainTeam: true
+  useEffect(() => {
+    const mainTeam = teams.find((team) => team.mainTeam === true);
+    if (mainTeam && mainTeam.name) {
+      setValue('selectedTeam', { value: mainTeam.id, label: mainTeam.name });
+    }
+  }, [teams, setValue]);
 
   // Prefill telegram handle when member data is loaded
   useEffect(() => {
@@ -140,7 +151,7 @@ export function AdditionalDetailsSection({
               <span className={s.contactInfoLabel}>Telegram handle</span>
               {telegramHandle && <span className={s.contactInfoPrefilled}>(Prefilled)</span>}
             </div>
-            <FormField name="telegramHandle" placeholder="Enter your Telegram handle" disabled={!!telegramHandle} />
+            <FormField name="telegramHandle" placeholder="Enter your Telegram handle" />
           </div>
 
           {/* Office Hours */}
@@ -154,7 +165,6 @@ export function AdditionalDetailsSection({
               placeholder="Enter your Office Hours"
               description="I will be available for a short 1:1 call to connect — no introduction needed."
               rules={officeHours ? undefined : { validate: isValidUrl }}
-              disabled={!!officeHours}
             />
           </div>
         </div>

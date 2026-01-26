@@ -37,7 +37,7 @@ export function useIrlGatheringData(notification: PushNotification): GatheringDa
 
     return {
       gatheringName: metadata.location?.name || notification.title,
-      gatheringImage: metadata.events?.items?.[0]?.logoUrl || undefined,
+      gatheringImage: metadata.location?.icon || '/images/irl/defaultCity.svg',
       aboutDescription: notification.description || '',
       dateRange: metadata.events?.dates
         ? formatDateRange(metadata.events.dates.start, metadata.events.dates.end)

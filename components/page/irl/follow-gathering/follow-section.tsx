@@ -134,7 +134,7 @@ const FollowSection = (props: IFollowSectionProps) => {
       location: {
         id: eventLocationSummary?.uid || '',
         flag: eventLocationSummary?.flag || null,
-        icon: null,
+        icon: eventLocationSummary?.icon || null,
         name: eventLocationSummary?.name || '',
         country: eventLocationSummary?.country || '',
         latitude: eventLocationSummary?.latitude || '',

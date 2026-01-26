@@ -151,7 +151,7 @@ export function AdditionalDetailsSection({
               <span className={s.contactInfoLabel}>Telegram handle</span>
               {telegramHandle && <span className={s.contactInfoPrefilled}>(Prefilled)</span>}
             </div>
-            <FormField name="telegramHandle" placeholder="Enter your Telegram handle" disabled={!!telegramHandle} />
+            <FormField name="telegramHandle" placeholder="Enter your Telegram handle" />
           </div>
 
           {/* Office Hours */}
@@ -165,7 +165,6 @@ export function AdditionalDetailsSection({
               placeholder="Enter your Office Hours"
               description="I will be available for a short 1:1 call to connect — no introduction needed."
               rules={officeHours ? undefined : { validate: isValidUrl }}
-              disabled={!!officeHours}
             />
           </div>
         </div>

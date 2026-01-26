@@ -7,6 +7,7 @@ import { FormField } from '@/components/form/FormField/FormField';
 import { DiamondsFourIcon, CaretUpIcon, CaretDownIcon } from '../icons';
 import { IrlGatheringFormData } from '../types';
 import s from '../IrlGatheringModal.module.scss';
+import { ITeam } from '@/types/teams.types';
 
 const MAX_CHARACTERS = 150;
 
@@ -36,7 +37,7 @@ interface TeamFromApi {
 }
 
 interface AdditionalDetailsSectionProps {
-  teams: TeamFromApi[];
+  teams: ITeam[];
   defaultTeamUid?: string;
   defaultExpanded?: boolean;
   telegramHandle?: string | null;
@@ -57,10 +58,12 @@ export function AdditionalDetailsSection({
 
   // Convert teams to FormSelect options format
   const teamOptions = useMemo(() => {
-    return teams.map((team) => ({
-      value: team.teamUid,
-      label: team.teamTitle,
-    }));
+    return teams
+      .map((team) => ({
+        value: team.id,
+        label: team.name ?? '',
+      }))
+      .filter((option) => option.label.length > 0);
   }, [teams]);
 
   // Prefill telegram handle when member data is loaded

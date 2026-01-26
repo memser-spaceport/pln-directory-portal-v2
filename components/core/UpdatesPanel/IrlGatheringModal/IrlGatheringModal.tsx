@@ -45,6 +45,8 @@ export function IrlGatheringModal({
   const analytics = useIrlAnalytics();
   const wasOpenRef = useRef(false);
 
+  console.log(memberData);
+
   const { data: member } = useQuery({
     queryKey: [MembersQueryKeys.GET_MEMBER, userInfo.uid, !!userInfo, userInfo.uid],
     queryFn: () =>
@@ -329,7 +331,7 @@ export function IrlGatheringModal({
             <AdditionalDetailsSection
               teams={member?.teams || []}
               defaultTeamUid={defaultTeamUid}
-              telegramHandle={memberData?.memberInfo?.telegramHandle}
+              telegramHandle={memberData?.memberInfo?.telegramHandler}
               officeHours={memberData?.memberInfo?.officeHours}
               defaultExpanded={false}
             />

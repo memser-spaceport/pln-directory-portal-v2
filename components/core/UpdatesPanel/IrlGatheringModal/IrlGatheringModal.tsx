@@ -329,7 +329,7 @@ export function IrlGatheringModal({
             <AdditionalDetailsSection
               teams={member?.teams || []}
               defaultTeamUid={defaultTeamUid}
-              telegramHandle={memberData?.memberInfo?.telegramHandle}
+              telegramHandle={memberData?.memberInfo?.telegramHandler}
               officeHours={memberData?.memberInfo?.officeHours}
               defaultExpanded={false}
             />

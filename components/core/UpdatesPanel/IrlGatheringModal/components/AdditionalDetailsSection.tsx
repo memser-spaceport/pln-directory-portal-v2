@@ -66,6 +66,14 @@ export function AdditionalDetailsSection({
       .filter((option) => option.label.length > 0);
   }, [teams]);
 
+  // Preselect team with mainTeam: true
+  useEffect(() => {
+    const mainTeam = teams.find((team) => team.mainTeam === true);
+    if (mainTeam && mainTeam.name) {
+      setValue('selectedTeam', { value: mainTeam.id, label: mainTeam.name });
+    }
+  }, [teams, setValue]);
+
   // Prefill telegram handle when member data is loaded
   useEffect(() => {
     if (telegramHandle) {

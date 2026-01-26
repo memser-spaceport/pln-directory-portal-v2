@@ -1055,7 +1055,7 @@
 
 .calendarInline {
   width: 100%;
-  max-width: 380px;
+  max-width: 280px;
 
   border-radius: var(--corner-radius-3xl, 20px);
   border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
@@ -1100,7 +1100,7 @@
 
       .react-calendar__navigation__label {
         background: transparent;
-        font-size: 20px;
+        font-size: 16px;
         font-weight: 500;
         color: #0a0c11;
 
@@ -1111,7 +1111,7 @@
       }
 
       .react-calendar__navigation__arrow {
-        font-size: 16px;
+        font-size: 14px;
         padding: 8px;
         display: flex;
         align-items: center;
@@ -1122,7 +1122,7 @@
     .react-calendar__month-view__weekdays {
       text-align: center;
       text-transform: capitalize;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 500;
       color: #8897ae;
       padding-bottom: 4px;
@@ -1133,7 +1133,7 @@
     }
 
     .react-calendar__month-view__days__day {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 600;
       color: #455468;
 

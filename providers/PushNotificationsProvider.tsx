@@ -107,11 +107,7 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
 
   // Handle notification update from WebSocket (sync across devices)
   const handleNotificationUpdate = useCallback((payload: NotificationUpdatePayload) => {
-    if (payload.status === 'read') {
-      setNotifications((prev) => prev.map((n) => (n.id === payload.id ? { ...n, isRead: true } : n)));
-      // Recalculate unread count to stay in sync
-      setUnreadCount((prev) => Math.max(0, prev - 1));
-    } else if (payload.status === 'deleted') {
+    if (payload.status === 'deleted') {
       setNotifications((prev) => {
         const notification = prev.find((n) => n.id === payload.id);
         if (notification && !notification.isRead) {
@@ -166,14 +162,11 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
       const notification = notifications.find((n) => n.id === id);
       if (!notification || notification.isRead) return;
 
-      // Optimistic update
-      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
-      setUnreadCount((prev) => Math.max(0, prev - 1));
-
       // Call REST API
       if (authToken) {
         try {
           await markNotificationAsRead(authToken, id);
+          await fetchNotifications();
         } catch (err) {
           console.error('Failed to mark notification as read:', err);
           // Revert optimistic update on error
@@ -203,6 +196,7 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     if (authToken) {
       try {
         await markAllNotificationsAsRead(authToken);
+        await fetchNotifications();
       } catch (err) {
         console.error('Failed to mark all notifications as read:', err);
         // Revert optimistic update on error

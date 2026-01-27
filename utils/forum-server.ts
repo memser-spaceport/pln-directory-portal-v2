@@ -2,7 +2,16 @@ import { cookies } from 'next/headers';
 import { getParsedValue } from './common.utils';
 import { customFetch } from '@/utils/fetch-wrapper';
 
-export async function fetchForumActivity(url: string) {
+export type ForumErrorInfo = {
+  status: string;
+  statusText: string;
+};
+
+export type ForumFetchResult =
+  | { data: Response; error: null }
+  | { data: null; error: ForumErrorInfo };
+
+export async function fetchForumActivity(url: string): Promise<ForumFetchResult> {
   const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
 
   const cookieStore = await cookies();
@@ -21,8 +30,14 @@ export async function fetchForumActivity(url: string) {
   );
 
   if (!response?.ok) {
-    throw new Error(`${response?.status}: ${response?.statusText}`);
+    return {
+      data: null,
+      error: {
+        status: String(response?.status ?? 500),
+        statusText: response?.statusText ?? 'Unknown error',
+      },
+    };
   }
 
-  return response;
+  return { data: response, error: null };
 }

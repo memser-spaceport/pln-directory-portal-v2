@@ -21,18 +21,28 @@ export interface VersionData {
 
 const productVersions: VersionData[] = [
   {
+    version: 'v0.5',
+    dateRange: 'January 2025 - present',
+    added: [
+      'Launched the Alignment Asset website',
+      'Monthly Alignment Asset newsletter',
+    ],
+    changed: [
+      'Expanded onboarded participants from 48 to 49',
+    ],
+  },
+  {
     version: 'v0.4',
-    dateRange: 'December 2025 - present',
+    dateRange: 'December 2025',
     added: [
       'Digital assets unlocked for Trust contributions',
       'First live buyback auction (totaled $47,614 in assets)',
       'Introduced LabWeek-only custom incentive experiments',
       'Hosted a workshop to design new custom incentive experiments for 2026',
       'Hosted our first AA community event in Buenos Aires',
-      'Launched the Alignment Asset website',
     ],
     changed: [
-      'Expanded onboarded participants from 46 to 47',
+      'Expanded onboarded participants from 46 to 48',
       'Continued simplifying onboarding materials',
       'Adopted HubSpot for email communications',
     ],

@@ -137,7 +137,23 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
         )}
         <div className={s.content}>
           {focused ? (
-            <FormEditor name="comment" placeholder="Comment" autoFocus />
+            <FormEditor
+              name="comment"
+              placeholder="Comment"
+              autoFocus
+              onMentionInitiated={() => analytics.onMentionInitiated({ context: isEdit ? 'edit_comment' : 'create_comment' })}
+              onMentionSearch={(query, resultsCount) =>
+                analytics.onMentionSearch({ query, resultsCount, context: isEdit ? 'edit_comment' : 'create_comment' })
+              }
+              onMentionSelected={(member, query) =>
+                analytics.onMentionSelected({
+                  memberUid: member.uid,
+                  memberName: member.name,
+                  query,
+                  context: isEdit ? 'edit_comment' : 'create_comment',
+                })
+              }
+            />
           ) : (
             <FormField
               name="dummy"

@@ -20,10 +20,26 @@ interface Props extends PropsWithChildren {
   classes?: {
     label?: string;
   };
+  onMentionInitiated?: () => void;
+  onMentionSearch?: (query: string, resultsCount?: number) => void;
+  onMentionSelected?: (member: { uid: string; name: string }, query?: string) => void;
 }
 
 export const FormEditor = (props: Props) => {
-  const { name, label, classes, description, disabled, isRequired, autoFocus, className, enableMentions = true } = props;
+  const {
+    name,
+    label,
+    classes,
+    description,
+    disabled,
+    isRequired,
+    autoFocus,
+    className,
+    enableMentions = true,
+    onMentionInitiated,
+    onMentionSearch,
+    onMentionSelected,
+  } = props;
 
   const {
     setValue,
@@ -55,6 +71,9 @@ export const FormEditor = (props: Props) => {
         className={clsx(className, {
           [s.error]: !!errors[name],
         })}
+        onMentionInitiated={onMentionInitiated}
+        onMentionSearch={onMentionSearch}
+        onMentionSelected={onMentionSelected}
       />
       {!errors[name] && description ? (
         <Field.Description className={s.fieldDescription}>{description}</Field.Description>

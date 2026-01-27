@@ -510,6 +510,9 @@ export const FORUM_ANALYTICS_EVENTS = {
   DIGEST_EMAIL_POST_CLICKED: 'forum-digest-email-post-clicked',
   COMMENT_NOTIFICATION_EMAIL_LINK_CLICKED: 'forum-comment-notification-email-link-clicked',
   COMMENT_NOTIFICATION_EMAIL_REPLY_CLICKED: 'forum-comment-notification-email-reply-clicked',
+  MENTION_INITIATED: 'forum-mention-initiated',
+  MENTION_SEARCH: 'forum-mention-search',
+  MENTION_SELECTED: 'forum-mention-selected',
 };
 
 export const IRL_ANALYTICS_EVENTS = {};

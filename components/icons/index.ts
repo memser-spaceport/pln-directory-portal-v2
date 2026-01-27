@@ -29,3 +29,4 @@ export * from './PencilSimpleLineIcon';
 export * from './ArrowsInCardinalIcon';
 export * from './InfoCircleIconOutlined';
 export * from './QuestionCircleStrokeIcon';
+export * from './ContributorIcon';

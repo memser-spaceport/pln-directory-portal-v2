@@ -99,6 +99,7 @@ export function DatePickerView({
             selectRange
             minDate={minDate}
             maxDate={maxDate}
+            defaultActiveStartDate={minDate}
             className={s.calendar}
             showFixedNumberOfWeeks
           />

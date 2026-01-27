@@ -75,44 +75,27 @@ const FollowSection = (props: IFollowSectionProps) => {
     locationEvents?.additionalInfo?.schedule_url ||
     `${process.env.SCHEDULE_BASE_URL}/program?location=${encodeURIComponent(eventLocationSummary.name)}${nearestEventDate ? `&date=${nearestEventDate}` : ''}`;
 
-  // IRL Gathering Modal state
-  const [isIrlGatheringModalOpen, setIsIrlGatheringModalOpen] = useState(false);
+  // IRL Gathering Modal state - derived from URL param
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isModalOpenLocal, setIsModalOpenLocal] = useState(false);
   const urlSearchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
-  // Auto-open modal if URL contains open-modal=true and remove the param immediately
-  useEffect(() => {
-    const openModal = urlSearchParams.get('open-modal');
-    if (
-      openModal === 'true' &&
-      isUserLoggedIn &&
-      !inPastEvents &&
-      accessLevel === 'advanced' &&
-      !isUserGoing &&
-      !userHasUpcomingEvents &&
-      filteredGatherings?.length > 0
-    ) {
-      // Remove open-modal param from URL before opening modal
-      const params = new URLSearchParams(urlSearchParams.toString());
-      params.delete('open-modal');
-      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
-      router.replace(newUrl, { scroll: false });
+  // Conditions for showing "I'm Going" button (new attendance)
+  const canShowImGoingButton =
+    isUserLoggedIn &&
+    !inPastEvents &&
+    accessLevel === 'advanced' &&
+    !isUserGoing &&
+    !userHasUpcomingEvents &&
+    filteredGatherings?.length > 0;
 
-      setIsIrlGatheringModalOpen(true);
-    }
-  }, [
-    urlSearchParams,
-    isUserLoggedIn,
-    inPastEvents,
-    accessLevel,
-    isUserGoing,
-    userHasUpcomingEvents,
-    filteredGatherings,
-    pathname,
-    router,
-  ]);
+  // Modal can be opened for new attendance OR for editing existing attendance
+  const canOpenModal = canShowImGoingButton || (isEditMode && isUserLoggedIn && accessLevel === 'advanced');
+
+  // Prioritize local state: if false, close immediately. URL param only used to sync initial state.
+  const isIrlGatheringModalOpen = isModalOpenLocal && canOpenModal;
 
   // Build PushNotification object from available data for IrlGatheringModal
   const irlGatheringNotification = useMemo((): PushNotification => {
@@ -140,7 +123,7 @@ const FollowSection = (props: IFollowSectionProps) => {
           name: e.name || '',
           slug: e.slugURL || e.slug || '',
           endDate: e.endDate || '',
-          logoUrl: e.logo || e.logoUrl || null,
+          logoUrl: e.logo && e.logo?.url ? e.logo.url : e.logoUrl || null,
           startDate: e.startDate || '',
           attendeeCount: e.attendeesCount || 0,
           telegramId: e.telegramId || null,
@@ -153,7 +136,7 @@ const FollowSection = (props: IFollowSectionProps) => {
       location: {
         id: eventLocationSummary?.uid || '',
         flag: eventLocationSummary?.flag || null,
-        icon: null,
+        icon: eventLocationSummary?.icon || null,
         name: eventLocationSummary?.name || '',
         country: eventLocationSummary?.country || '',
         latitude: eventLocationSummary?.latitude || '',
@@ -192,18 +175,42 @@ const FollowSection = (props: IFollowSectionProps) => {
   }, [eventLocationSummary, upcomingEvents, guestDetails, locationEvents, userInfo]);
 
   const handleIrlGatheringModalOpen = useCallback(() => {
-    setIsIrlGatheringModalOpen(true);
-  }, []);
+    setIsModalOpenLocal(true);
+    setTimeout(() => {
+      const params = new URLSearchParams(urlSearchParams.toString());
+      params.set('open-modal', 'true');
+      const newUrl = `${pathname}?${params.toString()}`;
+      router.replace(newUrl, { scroll: false });
+    }, 0);
+  }, [urlSearchParams, pathname, router]);
 
   const handleIrlGatheringModalClose = useCallback(() => {
-    setIsIrlGatheringModalOpen(false);
+    setIsModalOpenLocal(false);
     setIsEditMode(false);
-  }, []);
+    setTimeout(() => {
+      const params = new URLSearchParams(urlSearchParams.toString());
+      params.delete('open-modal');
+      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+      router.replace(newUrl, { scroll: false });
+    }, 0);
+  }, [urlSearchParams, pathname, router]);
 
   const handleIrlGatheringSuccess = useCallback(() => {
     // Refresh the page data after successful submission
     router.refresh();
+    // Trigger attendees list refresh
+    document.dispatchEvent(new CustomEvent(EVENTS.REFRESH_ATTENDEES_LIST));
   }, [router]);
+
+  // Remove open-modal param if user is not logged in
+  useEffect(() => {
+    if (!isUserLoggedIn && urlSearchParams.get('open-modal') === 'true') {
+      const params = new URLSearchParams(urlSearchParams.toString());
+      params.delete('open-modal');
+      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [isUserLoggedIn, urlSearchParams, pathname, router]);
 
   // Build edit mode data from current guest
   const editModeData = useMemo(() => {
@@ -261,6 +268,12 @@ const FollowSection = (props: IFollowSectionProps) => {
   useEffect(() => {
     setFollowProperties((e: any) => getFollowProperties(props.followers));
   }, [eventLocationSummary.uid, props.followers]);
+
+  useEffect(() => {
+    if (urlSearchParams.get('open-modal') === 'true' && canOpenModal) {
+      setIsModalOpenLocal(true);
+    }
+  }, [urlSearchParams, canOpenModal]);
 
   useEffect(() => {
     function updateFollowers(e: any) {
@@ -386,7 +399,13 @@ const FollowSection = (props: IFollowSectionProps) => {
     analytics.trackSelfEditDetailsClicked(location);
     seIsEdit(false);
     setIsEditMode(true);
-    setIsIrlGatheringModalOpen(true);
+    setIsModalOpenLocal(true);
+    setTimeout(() => {
+      const params = new URLSearchParams(urlSearchParams.toString());
+      params.set('open-modal', 'true');
+      const newUrl = `${pathname}?${params.toString()}`;
+      router.replace(newUrl, { scroll: false });
+    }, 0);
   };
 
   useClickedOutside({
@@ -536,16 +555,11 @@ const FollowSection = (props: IFollowSectionProps) => {
             )}
 
             {/* IRL Gathering Modal Button */}
-            {isUserLoggedIn &&
-              !inPastEvents &&
-              accessLevel === 'advanced' &&
-              !isUserGoing &&
-              !userHasUpcomingEvents &&
-              filteredGatherings?.length > 0 && (
-                <button onClick={handleIrlGatheringModalOpen} className="toolbar__actionCn__imGoingBtn">
-                  I&apos;m Going
-                </button>
-              )}
+            {canShowImGoingButton && (
+              <button onClick={handleIrlGatheringModalOpen} className="toolbar__actionCn__imGoingBtn">
+                I&apos;m Going
+              </button>
+            )}
 
             {isUserLoggedIn &&
               !canUserAddAttendees &&
@@ -588,15 +602,17 @@ const FollowSection = (props: IFollowSectionProps) => {
       </div>
       <PresenceRequestSuccess />
 
-      {/* IRL Gathering Modal */}
-      <IrlGatheringModal
-        isOpen={isIrlGatheringModalOpen}
-        onClose={handleIrlGatheringModalClose}
-        notification={irlGatheringNotification}
-        onGoingClick={handleIrlGatheringSuccess}
-        isEditMode={isEditMode}
-        editModeData={isEditMode ? editModeData : undefined}
-      />
+      {/* IRL Gathering Modal - only render when user can open modal */}
+      {canOpenModal && (
+        <IrlGatheringModal
+          isOpen={isIrlGatheringModalOpen}
+          onClose={handleIrlGatheringModalClose}
+          notification={irlGatheringNotification}
+          onGoingClick={handleIrlGatheringSuccess}
+          isEditMode={isEditMode}
+          editModeData={isEditMode ? editModeData : undefined}
+        />
+      )}
 
       <style jsx>
         {`

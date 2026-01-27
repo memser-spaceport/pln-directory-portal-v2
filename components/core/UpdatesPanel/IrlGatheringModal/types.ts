@@ -93,6 +93,7 @@ export interface GatheringData {
   aboutDescription: string;
   dateRange: string;
   locationName: string;
+  timezone: string;
   eventsCount: number;
   events: EventData[];
   attendees: AttendeeData[];

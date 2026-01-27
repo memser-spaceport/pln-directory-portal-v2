@@ -1,33 +1,25 @@
 import { cookies } from 'next/headers';
+
 import { getParsedValue } from './common.utils';
-import { customFetch } from '@/utils/fetch-wrapper';
 
 export type ForumErrorInfo = {
   status: string;
   statusText: string;
 };
 
-export type ForumFetchResult =
-  | { data: Response; error: null }
-  | { data: null; error: ForumErrorInfo };
+export type ForumFetchResult = { data: Response; error: null } | { data: null; error: ForumErrorInfo };
 
 export async function fetchForumActivity(url: string): Promise<ForumFetchResult> {
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
-
   const cookieStore = await cookies();
   const authToken = getParsedValue(cookieStore.get('authToken')?.value);
 
-  const response = await customFetch(
-    url,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${authToken}` } : {}),
-      },
-      credentials: 'include',
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     },
-    !token,
-  );
+    credentials: 'include',
+  });
 
   if (!response?.ok) {
     return {

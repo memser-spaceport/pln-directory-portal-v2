@@ -66,7 +66,8 @@ export default function ScheduleSection(props: any) {
       <style jsx>{`
         .schedule {
           width: 100%;
-          height: 100%;
+          height: calc(100vh - var(--app-header-height));
+          min-height: calc(100vh - var(--app-header-height));
           display: flex;
           flex-direction: column;
           //padding-inline: 48px;
@@ -80,6 +81,7 @@ export default function ScheduleSection(props: any) {
           background-color: #ffffff;
           padding: 10px;
           width: 100%;
+          flex-shrink: 0;
         }
         .schedule__hdr__btn {
           display: flex;
@@ -89,7 +91,8 @@ export default function ScheduleSection(props: any) {
         }
         .schedule__iframe {
           width: 100%;
-          height: 800px;
+          flex: 1;
+          min-height: 0;
           border: none;
         }
 

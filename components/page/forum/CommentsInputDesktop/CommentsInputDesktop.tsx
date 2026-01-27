@@ -117,6 +117,26 @@ export const CommentsInputDesktop = (props: Props) => {
               name="comment"
               placeholder="Comment"
               label={replyToName ? `Replying to ${replyToName}` : ''}
+              onMentionInitiated={() =>
+                analytics.onMentionInitiated({
+                  context: isEdit ? 'edit_comment' : isReply ? 'reply_comment' : 'create_comment',
+                })
+              }
+              onMentionSearch={(query, resultsCount) =>
+                analytics.onMentionSearch({
+                  query,
+                  resultsCount,
+                  context: isEdit ? 'edit_comment' : isReply ? 'reply_comment' : 'create_comment',
+                })
+              }
+              onMentionSelected={(member, query) =>
+                analytics.onMentionSelected({
+                  memberUid: member.uid,
+                  memberName: member.name,
+                  query,
+                  context: isEdit ? 'edit_comment' : isReply ? 'reply_comment' : 'create_comment',
+                })
+              }
             />
             <label className={s.Label}>
               <div className={s.primary}>Email me when someone comments on this post.</div>

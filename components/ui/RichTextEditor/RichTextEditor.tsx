@@ -31,6 +31,9 @@ interface Props {
   autoFocus?: boolean;
   maxLength?: number;
   enableMentions?: boolean;
+  onMentionInitiated?: () => void;
+  onMentionSearch?: (query: string, resultsCount?: number) => void;
+  onMentionSelected?: (member: { uid: string; name: string }, query?: string) => void;
 }
 
 const QL_EDITOR_CLASS = 'ql-editor';
@@ -49,7 +52,20 @@ registerMentionBlot();
 Quill.import('ui/icons')['officeHours'] = officeHours;
 
 const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
-  const { value, maxLength, onChange, className, errorMessage, id, disabled, autoFocus, enableMentions = true } = props;
+  const {
+    value,
+    maxLength,
+    onChange,
+    className,
+    errorMessage,
+    id,
+    disabled,
+    autoFocus,
+    enableMentions = true,
+    onMentionInitiated,
+    onMentionSearch,
+    onMentionSelected,
+  } = props;
 
   const quillRef = useRef<any>(null);
   const mentionDropdownRef = useRef<MentionDropdownRef>(null);
@@ -70,8 +86,34 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
   const { results: mentionResults, isLoading: mentionLoading } = useMembersSearch(mentionState.query, {
     enabled: mentionState.isOpen && enableMentions,
   });
-  // const { userInfo } = getCookiesFromClient();
-  // const { data: member } = useMember(userInfo?.uid);
+
+  const prevIsOpenRef = useRef(false);
+  const prevQueryRef = useRef('');
+
+  useEffect(() => {
+    if (enableMentions && onMentionInitiated) {
+      const wasClosed = !prevIsOpenRef.current;
+      const isNowOpen = mentionState.isOpen;
+
+      if (wasClosed && isNowOpen) {
+        onMentionInitiated();
+      }
+      prevIsOpenRef.current = mentionState.isOpen;
+    }
+  }, [mentionState.isOpen, enableMentions, onMentionInitiated]);
+
+  useEffect(() => {
+    if (
+      enableMentions &&
+      onMentionSearch &&
+      mentionState.isOpen &&
+      mentionState.query !== prevQueryRef.current &&
+      mentionState.query !== ''
+    ) {
+      onMentionSearch(mentionState.query, mentionResults?.length);
+      prevQueryRef.current = mentionState.query;
+    }
+  }, [mentionState.query, mentionState.isOpen, mentionResults?.length, enableMentions, onMentionSearch]);
 
   // 3. Define toolbar modules (with proper nesting)
   const modules = useMemo(() => {
@@ -149,6 +191,10 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
         return;
       }
 
+      if (enableMentions && onMentionSelected) {
+        onMentionSelected({ uid: member.uid, name: member.name }, mentionState.query);
+      }
+
       // Delete the @ and query text
       const deleteLength = currentSelection.index - mentionState.startIndex;
       editor.deleteText(mentionState.startIndex, deleteLength);
@@ -168,7 +214,7 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
 
       closeMentionDropdown();
     },
-    [mentionState.startIndex, closeMentionDropdown],
+    [mentionState.startIndex, mentionState.query, enableMentions, onMentionSelected, closeMentionDropdown],
   );
 
   // Handle text change to detect @ mentions

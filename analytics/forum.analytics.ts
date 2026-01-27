@@ -134,6 +134,18 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.COMMENT_NOTIFICATION_EMAIL_REPLY_CLICKED, params);
   }
 
+  function onMentionInitiated(params?: { context?: string }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.MENTION_INITIATED, params || {});
+  }
+
+  function onMentionSearch(params: { query: string; resultsCount?: number; context?: string }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.MENTION_SEARCH, params);
+  }
+
+  function onMentionSelected(params: { memberUid: string; memberName: string; query?: string; context?: string }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.MENTION_SELECTED, params);
+  }
+
   return {
     onForumTopicClicked,
     onForumSortSelected,
@@ -153,5 +165,8 @@ export const useForumAnalytics = () => {
     onDigestEmailPostLinkClicked,
     onCommentNotificationEmailLinkClicked,
     onCommentNotificationEmailReplyClicked,
+    onMentionInitiated,
+    onMentionSearch,
+    onMentionSelected,
   };
 };

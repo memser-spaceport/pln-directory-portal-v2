@@ -229,6 +229,20 @@ export const CreatePost = (props: Props) => {
                 classes={{
                   label: s.postLabel,
                 }}
+                onMentionInitiated={() =>
+                  analytics.onMentionInitiated({ context: isEdit ? 'edit_post' : 'create_post' })
+                }
+                onMentionSearch={(query, resultsCount) =>
+                  analytics.onMentionSearch({ query, resultsCount, context: isEdit ? 'edit_post' : 'create_post' })
+                }
+                onMentionSelected={(member, query) =>
+                  analytics.onMentionSelected({
+                    memberUid: member.uid,
+                    memberName: member.name,
+                    query,
+                    context: isEdit ? 'edit_post' : 'create_post',
+                  })
+                }
               />
             </div>
           </form>

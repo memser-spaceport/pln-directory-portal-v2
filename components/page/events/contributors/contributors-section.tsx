@@ -203,7 +203,7 @@ export default function ContributorsSection({
       <style jsx>{`
         .contributors-container {
           width: 100%;
-          padding-inline: 48px;
+          //padding-inline: 48px;
           background: #ffffff;
         }
 

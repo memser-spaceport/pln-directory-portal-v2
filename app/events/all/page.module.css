@@ -14,12 +14,13 @@
 .scheduler {
   width: 100%;
   height: auto;
+  background: #fff;
 }
 
 @media (min-width: 768px) {
-  /*.scheduler {*/
-  /*  padding: 20px;*/
-  /*}*/
+  .scheduler {
+    padding: 0 20px;
+  }
 }
 
 @media (min-width: 1024px) {

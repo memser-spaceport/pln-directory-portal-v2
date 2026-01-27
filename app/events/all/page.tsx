@@ -2,8 +2,6 @@ import React from 'react';
 import { Metadata } from 'next';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import ScheduleSection from '@/components/page/events/schedule-section';
-import { BackButton } from '@/components/ui/BackButton';
-import { PAGE_ROUTES } from '@/utils/constants';
 
 import s from './page.module.css';
 
@@ -12,7 +10,6 @@ export default function Page() {
 
   return (
     <div id="schedule" className={s.scheduler}>
-      <BackButton to={PAGE_ROUTES.MEMBERS} />
       <ScheduleSection userInfo={userInfo} />
     </div>
   );

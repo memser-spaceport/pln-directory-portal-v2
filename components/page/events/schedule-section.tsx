@@ -69,7 +69,7 @@ export default function ScheduleSection(props: any) {
           height: 100%;
           display: flex;
           flex-direction: column;
-          padding-inline: 48px;
+          //padding-inline: 48px;
           background-color: #ffffff;
         }
         .schedule__hdr {

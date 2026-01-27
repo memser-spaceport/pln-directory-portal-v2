@@ -8,7 +8,6 @@ import s from './layout.module.css';
 export default function Layout({ contributors }: { contributors: ReactNode }) {
   return (
     <div id="contributors" className={s.contributors}>
-      <BackButton to={PAGE_ROUTES.MEMBERS} />
       {contributors}
     </div>
   );

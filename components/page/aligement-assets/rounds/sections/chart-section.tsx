@@ -49,7 +49,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                   />
                   <YAxis 
                     domain={[0, data.maxValue]}
-                    ticks={[0, 200, 400, 600, 800, 1000]}
+                    ticks={[0, 200, 400, 600, 800, 1000, 2000]}
                     axisLine={false}
                     tickLine={false}
                     tick={{ 

@@ -72,16 +72,16 @@ export const pastRound2Data: IPastRoundData = {
   // Leaderboard Section Data
   // ============================================================================
   leaderboard: [
-      { rank: 1, name: 'David Casey', activities: '', points: 1000 },
-      { rank: 2, name: 'Theresa Therriault', activities: '', points: 950 },
-      { rank: 3, name: 'Dottie Wang', activities: '', points: 200 },
-      { rank: 4, name: 'Anuj Pandey', activities: '', points: 150 },
-      { rank: 5, name: 'Michael Stachiw', activities: '', points: 150 },
-      { rank: 6, name: 'Bradley Holden', activities: '', points: 100 },
-      { rank: 7, name: 'Jeff De Gregorio', activities: '', points: 100 },
-      { rank: 8, name: 'Ian Brunner', activities: '', points: 100 },
-      { rank: 9, name: 'Matthew Koch', activities: '', points: 0 },
-      { rank: 10, name: 'Stefanie Wykoff', activities: '', points: 0 },
+      { rank: 1, name: 'Stefanie Wykoff', activities: '', points: 4000 },
+      { rank: 2, name: 'Anuj Pandey', activities: '', points: 1750 },
+      { rank: 3, name: 'Kevin Houng', activities: '', points: 1500 },
+      { rank: 4, name: 'Jeff De Gregorio', activities: '', points: 1300 },
+      { rank: 5, name: 'Chris Brocoum', activities: '', points: 1200 },
+      { rank: 6, name: 'Matthew Koch', activities: '', points: 1200 },
+      { rank: 7, name: 'Victoria DeVesty', activities: '', points: 1200 },
+      { rank: 8, name: 'Francesca Cohen', activities: '', points: 1000 },
+      { rank: 9, name: 'Michael Stachiw', activities: '', points: 1000 },
+      { rank: 10, name: 'Raymond Cheng', activities: '', points: 1000 },
   ],
 };
 

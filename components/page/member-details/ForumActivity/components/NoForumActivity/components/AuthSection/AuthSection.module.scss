@@ -1,0 +1,26 @@
+
+.root {
+  gap: 16px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+
+  margin-bottom: 16px;
+}
+
+.signIn {
+  width: 200px;
+}
+
+.signUpContainer {
+  color: #455468;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+.signUp {
+  color: #1b4dff;
+  font-weight: 500;
+}

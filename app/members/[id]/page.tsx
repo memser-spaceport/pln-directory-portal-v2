@@ -36,6 +36,7 @@ import MemberPageLoader from './loading';
 import Head from 'next/head';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
+import { ForumActivity } from '@/components/page/member-details/ForumActivity';
 
 const shouldShowInvestorProfileForThirdParty = (
   member: IMember,
@@ -161,6 +162,7 @@ const MemberDetails = ({ params }: { params: any }) => {
             )}
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+            <ForumActivity memberUid={memberId} userInfo={userInfo} isOwner={isOwner} />
             <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {!hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
@@ -190,6 +192,7 @@ const MemberDetails = ({ params }: { params: any }) => {
             <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+            <ForumActivity memberUid={memberId} userInfo={userInfo} isOwner={isOwner} />
             <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />

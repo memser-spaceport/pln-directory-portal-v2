@@ -1,12 +1,12 @@
 import compact from 'lodash/compact';
 
-import { formatTime } from './formatTime';
+import { formatTimeAgo } from '@/utils/formatTimeAgo';
 
 import { PushNotification } from '@/types/push-notifications.types';
 
 export function getFooterDetails(notification: PushNotification) {
   const { category, createdAt, metadata } = notification;
-  const timestamp = formatTime(createdAt);
+  const timestamp = formatTimeAgo(createdAt);
 
   const details: (string | null)[] = [timestamp];
 

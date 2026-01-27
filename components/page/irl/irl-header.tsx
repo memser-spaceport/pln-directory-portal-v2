@@ -8,9 +8,9 @@ const IrlHeader = () => {
       <div className="irlheaderCnt">
         <div className="irlHeaderCntr">
           <div className="irlHeaderCntrLeft">
-            <a href={PAGE_ROUTES.EVENTS}>
-              <img src="/icons/rounded-left-arrow.svg" alt="Back To Events" />
-            </a>
+            {/*<a href={PAGE_ROUTES.EVENTS}>*/}
+            {/*  <img src="/icons/rounded-left-arrow.svg" alt="Back To Events" />*/}
+            {/*</a>*/}
             <div className="irlHeader">IRL Gatherings</div>
           </div>
         </div>

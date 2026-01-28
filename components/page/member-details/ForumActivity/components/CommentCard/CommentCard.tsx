@@ -27,8 +27,11 @@ export function CommentCard(props: CommentCardProps) {
         />
         <div className={s.postContent}>
           <div className={s.textContent}>
-            <h3 className={s.title}>{comment.topic?.titleRaw}</h3>
-            <ForumExcerpt content={commentContent} maxLength={150} />
+            <h3 className={s.title}>
+              <span className={s.repliedTo}>Replied to: </span>
+              {comment.topic?.titleRaw}
+            </h3>
+            <ForumExcerpt content={commentContent} maxLength={150} readMoreLabel="Join discussion" />
           </div>
           <ForumStats timestamp={comment.timestamp} likes={comment.votes} replies={comment.replies} />
         </div>

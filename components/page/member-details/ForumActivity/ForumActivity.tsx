@@ -2,10 +2,15 @@ import { useState } from 'react';
 import { useToggle } from 'react-use';
 
 import { EyeIcon } from '@/components/icons';
+import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
 import { HeaderActionBtn } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader/components/HeaderActionBtn';
+
+import { ActiveTab } from './types';
+
+import { hasForumAccess } from './utils/hasForumAccess';
 
 import { useUserForumPosts } from './hooks/useUserForumPosts';
 import { useUserForumActivity } from './hooks/useUserForumActivity';
@@ -14,21 +19,19 @@ import { useUserForumComments } from './hooks/useUserForumComments';
 import { ForumActivityTabs } from './components/ForumActivityTabs';
 import { ForumActivityModal } from './components/ForumActivityModal';
 import { ForumActivityCardsList } from './components/ForumActivityCardsList';
-import { hasForumAccess } from '@/components/page/member-details/ForumActivity/utils/hasForumAccess';
-import { ActiveTab } from '@/components/page/member-details/ForumActivity/types';
 
 interface ForumActivityProps {
-  memberUid: string;
   userInfo: IUserInfo;
   isOwner: boolean;
+  member: IMember;
 }
 
 const ITEMS_TO_DISPLAY = 2;
 
 export function ForumActivity(props: ForumActivityProps) {
-  const { memberUid, userInfo, isOwner } = props;
+  const { member, userInfo, isOwner } = props;
 
-  console.log('>>>', userInfo);
+  const memberUid = member.id;
 
   const [open, toggleOpen] = useToggle(false);
 
@@ -82,6 +85,7 @@ export function ForumActivity(props: ForumActivityProps) {
 
       <ForumActivityCardsList
         isOwner={isOwner}
+        member={member}
         userInfo={userInfo}
         posts={displayedPosts}
         comments={displayedComments}
@@ -95,6 +99,7 @@ export function ForumActivity(props: ForumActivityProps) {
         setActiveTab={setActiveTab}
         isOwner={isOwner}
         userInfo={userInfo}
+        member={member}
         posts={posts}
         comments={comments}
         postsCount={postsCount}

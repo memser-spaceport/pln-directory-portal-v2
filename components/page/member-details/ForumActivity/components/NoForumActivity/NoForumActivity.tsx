@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { Button } from '@/components/common/Button';
 import { ActiveTab } from '@/components/page/member-details/ForumActivity/types';
@@ -13,13 +14,14 @@ import { EmptyIllustration } from './components/EmptyIllustration';
 import s from './NoForumActivity.module.scss';
 
 interface Props {
+  member: IMember;
   isOwner: boolean;
   userInfo: IUserInfo;
   activeTab: ActiveTab;
 }
 
 export function NoForumActivity(props: Props) {
-  const { isOwner, userInfo, activeTab } = props;
+  const { isOwner, userInfo, activeTab, member } = props;
 
   const isLoggedOut = !userInfo;
   const isPostsTab = activeTab === 'posts';
@@ -29,6 +31,7 @@ export function NoForumActivity(props: Props) {
     hasAccess,
     isPostsTab,
     isLoggedOut,
+    member,
   });
 
   return (

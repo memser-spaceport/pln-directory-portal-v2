@@ -1,16 +1,19 @@
+import { IMember } from '@/types/members.types';
+
 interface Input {
   hasAccess: boolean;
   isPostsTab: boolean;
   isLoggedOut: boolean;
+  member: IMember;
 }
 
 export function getLabels(input: Input) {
-  const { hasAccess, isPostsTab, isLoggedOut } = input;
+  const { hasAccess, isPostsTab, isLoggedOut, member } = input;
 
   if (isLoggedOut) {
     return {
       title: 'Sign in to view forum activity',
-      description: 'See John’s posts and comments on the PL Forum and follow discussions across the network.',
+      description: `See ${member.name}’s posts and comments on the PL Forum and follow discussions across the network.`,
     };
   }
 

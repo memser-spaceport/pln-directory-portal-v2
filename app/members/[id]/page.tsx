@@ -162,7 +162,7 @@ const MemberDetails = ({ params }: { params: any }) => {
             )}
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
-            <ForumActivity memberUid={memberId} userInfo={userInfo} isOwner={isOwner} />
+            <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
             <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {!hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
@@ -192,7 +192,7 @@ const MemberDetails = ({ params }: { params: any }) => {
             <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {hasBio && <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
-            <ForumActivity memberUid={memberId} userInfo={userInfo} isOwner={isOwner} />
+            <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
             <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />

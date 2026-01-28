@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
+import { IUserInfo } from '@/types/shared.types';
+import { IMember } from '@/types/members.types';
 import { Topic } from '@/services/forum/hooks/useForumPosts';
 import { ModalBase } from '@/components/common/ModalBase';
 import { Pagination } from '@/components/common/Pagination';
@@ -9,7 +11,6 @@ import { ForumActivityCardsList } from '@/components/page/member-details/ForumAc
 import { ActiveTab } from '@/components/page/member-details/ForumActivity/types';
 
 import s from './ForumActivityModal.module.scss';
-import { IUserInfo } from '@/types/shared.types';
 
 const PAGE_SIZE = 10;
 
@@ -19,6 +20,7 @@ interface Props {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
   isOwner: boolean;
+  member: IMember;
   userInfo: IUserInfo;
   posts: Topic[];
   comments: ForumComment[];
@@ -38,6 +40,7 @@ export function ForumActivityModal(props: Props) {
     toggleOpen,
     activeTab,
     setActiveTab,
+    member,
     isOwner,
     userInfo,
     postsCount,
@@ -133,6 +136,7 @@ export function ForumActivityModal(props: Props) {
 
           <ForumActivityCardsList
             isOwner={isOwner}
+            member={member}
             userInfo={userInfo}
             activeTab={activeTab}
             isLoading={isLoadingCurrentPage}

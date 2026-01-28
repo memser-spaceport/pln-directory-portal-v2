@@ -2,18 +2,18 @@
 const LinkTab = (props: any) => {
   const { resource, handleAdditionalResourceClicked } = props;
   return (
-    <div className="link__tab">
+    <div>
       <a
-        className="link__tab__text"
+        className="link__tab"
         href={resource?.link}
         target="_blank"
         onClick={() => handleAdditionalResourceClicked(resource)}
       >
-        {resource?.name}
+        <span className="link__tab__text">{resource?.name}</span>
+        <span>
+          <img src="/icons/arrow-blue.svg" alt="arrow icon" />
+        </span>
       </a>
-      <div>
-        <img src="/icons/arrow-blue.svg" alt="arrow icon" />
-      </div>
 
       <style jsx>{`
         .link__tab {

@@ -2,6 +2,7 @@ import isEmpty from 'lodash/isEmpty';
 
 import { Topic } from '@/services/forum/hooks/useForumPosts';
 
+import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import type { ForumComment } from '@/components/page/member-details/ForumActivity/hooks/useUserForumComments';
 import { PostCard } from '@/components/page/member-details/ForumActivity/components/PostCard';
@@ -15,6 +16,7 @@ import s from './ForumActivityCardsList.module.scss';
 interface Props {
   isOwner: boolean;
   userInfo: IUserInfo;
+  member: IMember;
   activeTab: ActiveTab;
   isLoading?: boolean;
   posts: Topic[];
@@ -22,7 +24,7 @@ interface Props {
 }
 
 export function ForumActivityCardsList(props: Props) {
-  const { posts, isOwner, userInfo, comments, activeTab, isLoading } = props;
+  const { posts, member, isOwner, userInfo, comments, activeTab, isLoading } = props;
 
   const hasAccess = hasForumAccess(userInfo.accessLevel);
   const hasContent = activeTab === 'posts' ? !isEmpty(posts) : !isEmpty(comments);
@@ -40,5 +42,5 @@ export function ForumActivityCardsList(props: Props) {
     );
   }
 
-  return <NoForumActivity isOwner={isOwner} userInfo={userInfo} activeTab={activeTab} />;
+  return <NoForumActivity isOwner={isOwner} member={member} userInfo={userInfo} activeTab={activeTab} />;
 }

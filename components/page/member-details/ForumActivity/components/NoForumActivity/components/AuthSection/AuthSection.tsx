@@ -17,7 +17,7 @@ export function AuthSection() {
 
       <div className={s.signUpContainer}>
         Don’t have an account?{' '}
-        <Link href={PAGE_ROUTES.SIGNUP} className={s.signUp}>
+        <Link href={`${PAGE_ROUTES.SIGNUP}?returnTo=${window.location.pathname}`} className={s.signUp}>
           Sign Up
         </Link>
       </div>

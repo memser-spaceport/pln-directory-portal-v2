@@ -1,22 +1,25 @@
 import React from 'react';
-import isEmpty from 'lodash/isNil';
 
 import s from './DetailsItem.module.scss';
 
+import { Detail } from '../../types';
+
 interface Props {
-  data: string;
+  data: Detail;
+  showIcon?: boolean;
+  showLabel?: boolean;
 }
 
 export function DetailsItem(props: Props) {
-  const { data } = props;
+  const { data, showIcon = false, showLabel = true } = props;
 
-  if (isEmpty(data)) {
-    return null;
-  }
+  const { icon, value, label } = data;
 
   return (
     <>
-      <div className={s.data}>{data}</div>
+      <div className={s.data}>
+        {showIcon && icon} {value + ''} {showLabel && label}
+      </div>
       <div className={s.delimiter}>·</div>
     </>
   );

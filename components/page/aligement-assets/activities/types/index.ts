@@ -64,6 +64,7 @@ export interface ActivitiesData {
     submitButtonLabel: string;
     suggestLinkText: string;
     suggestLinkHighlight: string;
+    hintText: string;
   };
   activities: Activity[];
 }

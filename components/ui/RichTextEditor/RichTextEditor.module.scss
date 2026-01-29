@@ -80,6 +80,42 @@
     margin-right: 8px;
   }
 
+  // Mention button tooltip
+  :global(.ql-toolbar button.ql-mention) {
+    position: relative;
+
+    &::after {
+      content: 'Mention someone';
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: white;
+      color: #455468;
+      padding: 6px 8px;
+      border: 1px solid rgba(27, 56, 96, 0.24);
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 16px;
+      letter-spacing: -0.2px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      margin-bottom: 4px;
+      z-index: 1000;
+      box-shadow:
+        0px 10px 15px 0px rgba(14, 15, 17, 0.12),
+        0px 4px 6px 0px rgba(14, 15, 17, 0.06);
+    }
+
+    &:hover::after {
+      opacity: 1;
+    }
+  }
+
   // Mention styles
   :global(.ql-mention) {
     color: #1b4dff;

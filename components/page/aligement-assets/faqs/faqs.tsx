@@ -550,7 +550,25 @@ export default function FAQsPage() {
           <h1 className="faqs__header__title">Frequently Asked Questions</h1>
         </div>
 
-        <div className="faqs__header-controls">
+        <div className="faqs__controls faqs__controls--desktop">
+          <div className="faqs__controls__search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search for a query"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </div>
+          <button className="faqs__controls__expand-all" onClick={handleExpandAll} disabled={!!query}>
+            {expandAll ? 'Collapse All' : 'Expand All'}
+            <ChevronDownIcon className={`faqs__controls__expand-all__icon ${expandAll ? 'faqs__controls__expand-all__icon--expanded' : ''}`} />
+          </button>
+        </div>
+
+        <div className="faqs__header-controls faqs--mobile">
            <button className="faqs__controls__expand-all" onClick={handleExpandAll} disabled={!!query}>
             {expandAll ? 'Collapse All' : 'Expand All'}
             <ChevronDownIcon className={`faqs__controls__expand-all__icon ${expandAll ? 'faqs__controls__expand-all__icon--expanded' : ''}`} />
@@ -558,7 +576,7 @@ export default function FAQsPage() {
         </div>
 
         <div className="faqs__container">
-          <div className="faqs__controls__search">
+          <div className="faqs__controls__search faqs--mobile">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -682,6 +700,14 @@ export default function FAQsPage() {
           margin-bottom: 8px;
         }
 
+        .faqs--mobile {
+          display: flex;
+        }
+
+        .faqs__controls--desktop {
+          display: none;
+        }
+
         .faqs__controls__search {
           display: flex;
           align-items: center;
@@ -690,7 +716,11 @@ export default function FAQsPage() {
           background: #ffffff;
           border: 1px solid #e2e8f0;
           border-radius: 6px;
-          margin-bottom: 24px;
+        }
+
+        .faqs__container .faqs__controls__search.faqs--mobile {
+          max-width: none;
+          margin-bottom: 16px;
         }
 
         .faqs__controls__search svg {
@@ -751,6 +781,7 @@ export default function FAQsPage() {
           gap: 24px;
           margin-bottom: 32px;
         }
+
 
         .faqs__disclaimer {
           margin-bottom: 100px;
@@ -899,25 +930,40 @@ export default function FAQsPage() {
             display: none;
           }
 
-          /* Use a grid or flex layout for desktop to put controls back in place if needed, 
-             but simpler to just hide mobile controls and show desktop specific ones? 
-             Actually, distinct layouts might be better. 
-             For now, let's adapt the single layout to work for both. */
-          
-          .faqs__container {
-             padding: 32px;
-             position: relative;
+          .faqs--mobile {
+            display: none !important;
           }
 
-          /* Move search to top right absolute if we want to mimic old desktop layout? 
-             Or keep it in flow. 
-             Let's keep it simple: Search is now inside container. */
-             
-           .faqs__controls__search {
-             max-width: 300px;
-             margin-left: auto; 
-             /* On desktop we might want search on the right? */
-           }
+          .faqs__controls--desktop {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 0;
+            position: sticky;
+            top: calc(var(--app-header-height, 80px) + 75px);
+            background: #f8fafc;
+            padding: 16px 24px;
+            border-radius: 12px 12px 0 0;
+            z-index: 2;
+          }
+
+          .faqs__controls__search {
+            margin-bottom: 0;
+            max-width: 240px;
+            flex: 1;
+          }
+
+          .faqs__controls__expand-all {
+            padding: 6px 12px;
+          }
+
+          .faqs__container {
+            padding: 32px;
+            border-radius: 0 0 12px 12px;
+            padding-top: 24px;
+            margin-top: 0;
+          }
 
           .faqs__container__category__title {
             font-size: 18px;

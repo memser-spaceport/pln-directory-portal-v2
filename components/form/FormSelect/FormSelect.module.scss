@@ -145,3 +145,17 @@
   line-height: 18px; /* 150% */
   letter-spacing: -0.2px;
 }
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #94a3b8;
+  margin-left: 12px;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}

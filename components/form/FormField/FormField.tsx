@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react';
+import React, { PropsWithChildren, ReactNode } from 'react';
 import { clsx } from 'clsx';
 import { Field } from '@base-ui-components/react/field';
 import { useFormContext } from 'react-hook-form';
@@ -18,6 +18,7 @@ interface Props extends PropsWithChildren {
   clearable?: boolean;
   onClear?: () => void;
   rules?: Record<string, unknown>;
+  icon?: ReactNode;
 }
 
 export const FormField = ({
@@ -32,6 +33,7 @@ export const FormField = ({
   clearable,
   onClear,
   rules,
+  icon,
   ...rest
 }: Props) => {
   const {
@@ -67,14 +69,16 @@ export const FormField = ({
       <div
         className={clsx(s.input, {
           [s.error]: !!errors[name],
+          [s.hasIcon]: !!icon,
         })}
       >
+        {icon && <span className={s.icon}>{icon}</span>}
         <div className={s.inputContent}>
           <Field.Control
             {...register(name, rules)}
             disabled={disabled}
             placeholder={placeholder}
-            className={s.inputElement}
+            className={clsx(s.inputElement, { [s.withIcon]: !!icon })}
             id={name}
             {...rest}
           />

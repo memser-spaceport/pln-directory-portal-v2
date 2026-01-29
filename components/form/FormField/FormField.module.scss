@@ -45,6 +45,10 @@
   background: #fff;
   outline: none;
 
+  &.hasIcon {
+    padding-left: 12px;
+  }
+
   &:focus-within {
     border-radius: 8px;
     background: #fff;
@@ -66,6 +70,19 @@
   }
 }
 
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #94a3b8;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
 .inputContent {
   display: flex;
   align-items: center;
@@ -84,6 +101,10 @@
   background: transparent;
   outline: none;
   color: #455468;
+
+  &.withIcon {
+    padding-left: 4px;
+  }
 
   &:disabled {
     cursor: not-allowed;

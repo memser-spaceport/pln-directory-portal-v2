@@ -396,6 +396,7 @@ export function IrlGatheringModal({
             isLoggedIn={isLoggedIn}
             onLoginClick={handleLoginClick}
             shouldAnimate={shouldAnimateLoginButton}
+            gatheringData={gatheringData}
           />
         </form>
       </FormProvider>

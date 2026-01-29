@@ -106,6 +106,8 @@ export const useIrlAnalytics = () => {
     IRL_GATHERING_MODAL_SUBMIT_CLICKED: 'irl-gathering-modal-submit-clicked',
     IRL_GATHERING_MODAL_SUBMIT_SUCCESS: 'irl-gathering-modal-submit-success',
     IRL_GATHERING_MODAL_SUBMIT_ERROR: 'irl-gathering-modal-submit-error',
+    IRL_GATHERING_MODAL_CANCEL_CLICKED: 'irl-gathering-modal-cancel-clicked',
+    IRL_GATHERING_MODAL_LOGIN_TO_RESPOND_CLICKED: 'irl-gathering-modal-login-to-respond-clicked',
   };
 
   const trackShowOnlyPastAttendeesCheckboxClicked = (location: any) => {
@@ -819,6 +821,25 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_SUBMIT_ERROR, { ...params });
   }
 
+  function trackGatheringModalCancelClicked(gatheringData: any, isEditMode: boolean) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+      isEditMode,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_CANCEL_CLICKED, { ...params });
+  }
+
+  function trackGatheringModalLoginToRespondClicked(gatheringData: any) {
+    const params = {
+      gatheringUid: gatheringData?.gatheringUid,
+      gatheringName: gatheringData?.gatheringName,
+      locationName: gatheringData?.locationName,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GATHERING_MODAL_LOGIN_TO_RESPOND_CLICKED, { ...params });
+  }
+
   return {
     trackImGoingBtnClick,
     trackLoginToRespondBtnClick,
@@ -906,5 +927,7 @@ export const useIrlAnalytics = () => {
     trackGatheringModalSubmitClicked,
     trackGatheringModalSubmitSuccess,
     trackGatheringModalSubmitError,
+    trackGatheringModalCancelClicked,
+    trackGatheringModalLoginToRespondClicked,
   };
 };

@@ -8,6 +8,8 @@ import HostSpeakersList from '../hosts-speakers-list';
 import { useEventsAnalytics } from '@/analytics/events.analytics';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
+import s from './ContributorsSection.module.scss';
+
 interface MembersListProps {
   members?: any[];
   userInfo?: any;
@@ -18,7 +20,7 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
   const analytics = useEventsAnalytics();
 
   if (!members || members.length === 0) {
-    return <div className="no-members">No members available</div>;
+    return <div className={s.noResults}>No members available</div>;
   }
 
   const contributors = members.filter(
@@ -28,8 +30,9 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
       (item.events && item.events.some((event: { isHost: any; isSpeaker: any }) => event.isHost || event.isSpeaker)),
   );
 
-  const mobileVisibleMembers = contributors.slice(0, 31);
-  const webVisibleMembers = contributors.slice(0, 154);
+  const MAX_VISIBLE_MEMBERS = 100;
+  const visibleMembers = contributors.slice(0, MAX_VISIBLE_MEMBERS);
+  const remainingCount = contributors.length - MAX_VISIBLE_MEMBERS;
 
   const onCloseContributorsModal = () => {
     analytics.onContributtonModalCloseClicked();
@@ -55,14 +58,14 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
   return (
     <>
       <div className="members-container">
-        <div className="members-grid mobile-grid">
-          {mobileVisibleMembers?.map((member) => {
+        <div className="members-grid">
+          {visibleMembers?.map((member) => {
             const { hostEvents, speakerEvents } = countRoleEvents(member);
             const defaultAvatar = getDefaultAvatar(member?.member?.name);
 
             return (
               <Tooltip
-                key={`mobile-${member.memberUid}`}
+                key={member.memberUid}
                 trigger={
                   <div
                     className={`member-avatar ${hoveredMember === member.memberUid ? 'hovered' : ''}`}
@@ -73,53 +76,6 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
                     <div className="image-container">
                       <Image
                         src={member.member?.image?.url || defaultAvatar}
-                        alt={member.member?.name || 'Unknown'}
-                        width={34}
-                        height={34}
-                        className="member-image"
-                      />
-                    </div>
-                  </div>
-                }
-                content={
-                  <div className="tooltip-content">
-                    <div>{member.member?.name}</div>
-                    {member.isHost || hostEvents > 0 ? (
-                      <div>As Host {hostEvents > 0 ? `(${hostEvents})` : ''}</div>
-                    ) : null}
-                    {member.isSpeaker || speakerEvents > 0 ? (
-                      <div>As Speaker {speakerEvents > 0 ? `(${speakerEvents})` : ''}</div>
-                    ) : null}
-                  </div>
-                }
-              />
-            );
-          })}
-          {contributors.length > 31 && (
-            <>
-              <div className="member-avatar more-members" onClick={() => onOpenContributorsModal()}>
-                <div className="image-container fallback-avatar-mobile">+{contributors.length - 31}</div>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="members-grid web-grid">
-          {webVisibleMembers?.map((member) => {
-            const { hostEvents, speakerEvents } = countRoleEvents(member);
-            return (
-              <Tooltip
-                key={`web-${member.memberUid}`}
-                trigger={
-                  <div
-                    className={`member-avatar ${hoveredMember === member.memberUid ? 'hovered' : ''}`}
-                    onMouseEnter={() => setHoveredMember(member.memberUid)}
-                    onMouseLeave={() => setHoveredMember(null)}
-                    onClick={() => onContributorClick(member)}
-                  >
-                    <div className="image-container">
-                      <Image
-                        src={member.member?.image?.url || getDefaultAvatar(member?.member?.name)}
                         alt={member.member?.name || 'Unknown'}
                         width={36}
                         height={36}
@@ -142,14 +98,10 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
               />
             );
           })}
-          {contributors.length > 154 && (
-            <>
-              <div className="member-avatar more-members">
-                <div className="image-container fallback-avatar-web" onClick={() => onOpenContributorsModal()}>
-                  +{contributors.length - 154}
-                </div>
-              </div>
-            </>
+          {remainingCount > 0 && (
+            <div className="member-avatar more-members" onClick={() => onOpenContributorsModal()}>
+              <div className="image-container remaining-badge">+{remainingCount}</div>
+            </div>
           )}
         </div>
         <HostSpeakersList
@@ -171,28 +123,12 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
           cursor: pointer;
         }
 
-        .popover-content {
-          padding: 10px;
-          border-radius: 10px;
-          background-color: #f1f5f9;
-          max-height: 200px;
-          overflow-y: auto;
-        }
-
         .members-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, 36px);
           grid-gap: 8px;
           justify-content: flex-start;
           width: 100%;
-        }
-
-        .web-grid {
-          display: none;
-        }
-
-        .mobile-grid {
-          display: grid;
         }
 
         .member-avatar {
@@ -216,19 +152,7 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
           justify-content: center;
         }
 
-        .fallback-avatar-mobile {
-          width: 34px;
-          height: 34px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 12px;
-          font-weight: 500;
-          color: #ffffff;
-          background-color: #156ff7;
-        }
-
-        .fallback-avatar-web {
+        .remaining-badge {
           width: 36px;
           height: 36px;
           display: flex;
@@ -241,9 +165,17 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
         }
 
         .no-members {
-          padding: 16px;
-          color: #666;
-          font-style: italic;
+          //padding: 16px;
+          //color: #666;
+          //font-style: italic;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 20px;
+          color: #5e718d;
+          font-size: 14px;
+          text-align: center;
         }
 
         .member-name {
@@ -270,26 +202,17 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
           border: 1.5px solid #4ef286;
         }
 
-        // :global(button .member-avatar) {
-        //   cursor: default !important;
-        // }
-
         /* Mobile styles - optimize for smaller screens */
         @media (max-width: 480px) {
           .members-grid {
             grid-template-columns: repeat(auto-fill, 34px);
             grid-gap: 6px;
           }
-        }
 
-        /* Web styles */
-        @media (min-width: 1024px) {
-          .mobile-grid {
-            display: none;
-          }
-
-          .web-grid {
-            display: grid;
+          .remaining-badge {
+            width: 34px;
+            height: 34px;
+            font-size: 12px;
           }
         }
       `}</style>

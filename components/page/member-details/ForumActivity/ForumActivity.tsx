@@ -70,10 +70,12 @@ export function ForumActivity(props: ForumActivityProps) {
   return (
     <MemberDetailsSection>
       <MemberDetailsSectionHeader title="Forum Activity">
-        <HeaderActionBtn onClick={toggleOpen}>
-          <EyeIcon />
-          Show All
-        </HeaderActionBtn>
+        {!!userInfo && (
+          <HeaderActionBtn onClick={toggleOpen}>
+            <EyeIcon />
+            Show All
+          </HeaderActionBtn>
+        )}
       </MemberDetailsSectionHeader>
 
       <ForumActivityTabs

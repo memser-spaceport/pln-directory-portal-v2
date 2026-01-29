@@ -8,6 +8,15 @@ import { generatePaginationItems } from './utils/generatePaginationItems';
 
 import s from './Pagination.module.scss';
 
+export interface PaginationButtonConfig {
+  /** Whether to render the button at all */
+  show?: boolean;
+  /** Whether to show the text label */
+  showLabel?: boolean;
+  /** Custom label text */
+  label?: string;
+}
+
 export interface PaginationProps {
   /** Total number of pages */
   count: number;
@@ -19,14 +28,10 @@ export interface PaginationProps {
   siblingCount?: number;
   /** Number of pages to show at boundaries */
   boundaryCount?: number;
-  /** Show "Previous" text in button */
-  showPreviousLabel?: boolean;
-  /** Show "Next" text in button */
-  showNextLabel?: boolean;
-  /** Custom "Previous" label */
-  previousLabel?: string;
-  /** Custom "Next" label */
-  nextLabel?: string;
+  /** Previous button configuration */
+  previous?: PaginationButtonConfig;
+  /** Next button configuration */
+  next?: PaginationButtonConfig;
   /** Disable the component */
   disabled?: boolean;
   /** Additional class name */
@@ -40,13 +45,23 @@ export function Pagination(props: PaginationProps) {
     onChange,
     siblingCount = 1,
     boundaryCount = 1,
-    showPreviousLabel = true,
-    showNextLabel = true,
-    previousLabel = 'Preview',
-    nextLabel = 'Next',
+    previous = {},
+    next = {},
     disabled = false,
     className,
   } = props;
+
+  const {
+    show: showPrevious = true,
+    showLabel: showPreviousLabel = true,
+    label: previousLabel = 'Previous',
+  } = previous;
+
+  const {
+    show: showNext = true,
+    showLabel: showNextLabel = true,
+    label: nextLabel = 'Next',
+  } = next;
 
   const items = useMemo(
     () => generatePaginationItems(count, page, siblingCount, boundaryCount),
@@ -77,20 +92,22 @@ export function Pagination(props: PaginationProps) {
 
   return (
     <nav className={clsx(s.root, className)} aria-label="Pagination">
-      <div className={s.actions}>
-        <Button
-          style="border"
-          variant="secondary"
-          size="s"
-          onClick={handlePrevious}
-          disabled={page <= 1 || disabled}
-          aria-label="Go to previous page"
-          className={s.navButton}
-        >
-          <CaretLeftIcon className={s.navIcon} />
-          {showPreviousLabel && <span>{previousLabel}</span>}
-        </Button>
-      </div>
+      {showPrevious && (
+        <div className={s.actions}>
+          <Button
+            style="border"
+            variant="secondary"
+            size="s"
+            onClick={handlePrevious}
+            disabled={page <= 1 || disabled}
+            aria-label="Go to previous page"
+            className={s.navButton}
+          >
+            <CaretLeftIcon className={s.navIcon} />
+            {showPreviousLabel && <span>{previousLabel}</span>}
+          </Button>
+        </div>
+      )}
 
       <div className={s.pages}>
         {items.map((item, index) =>
@@ -114,20 +131,22 @@ export function Pagination(props: PaginationProps) {
         )}
       </div>
 
-      <div className={s.actions}>
-        <Button
-          style="border"
-          variant="secondary"
-          size="s"
-          onClick={handleNext}
-          disabled={page >= count || disabled}
-          aria-label="Go to next page"
-          className={s.navButton}
-        >
-          {showNextLabel && <span>{nextLabel}</span>}
-          <CaretRightIcon className={s.navIcon} />
-        </Button>
-      </div>
+      {showNext && (
+        <div className={s.actions}>
+          <Button
+            style="border"
+            variant="secondary"
+            size="s"
+            onClick={handleNext}
+            disabled={page >= count || disabled}
+            aria-label="Go to next page"
+            className={s.navButton}
+          >
+            {showNextLabel && <span>{nextLabel}</span>}
+            <CaretRightIcon className={s.navIcon} />
+          </Button>
+        </div>
+      )}
     </nav>
   );
 }

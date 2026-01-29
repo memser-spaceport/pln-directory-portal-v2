@@ -7,7 +7,8 @@ export const activitiesData: ActivitiesData = {
     note: 'Please note: Activities marked with * are tracked automatically. We are working on introducing more automation in 2026.',
     submitButtonLabel: 'Submit Activity',
     suggestLinkText: 'Have an idea for a new incentivized activity?',
-    suggestLinkHighlight: 'Suggest one here + collect points'
+    suggestLinkHighlight: 'Suggest one here + collect points',
+    hintText: 'Click on an activity to view the full requirements'
   },
   activities: [
     {

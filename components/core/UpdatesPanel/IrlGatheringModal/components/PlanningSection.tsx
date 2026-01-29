@@ -75,7 +75,7 @@ export function PlanningSection({
               {displayValue || 'Select date range'}
             </span>
           </div>
-          {!isLoggedIn && <span className={s.planningFieldHint}>Log in to select dates and events.</span>}
+          {!isLoggedIn && <span className={s.planningFieldHint}>Log in to select dates and events</span>}
         </button>
 
         {hasEvents && (

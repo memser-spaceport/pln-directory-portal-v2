@@ -12,7 +12,7 @@ import { ActiveTab } from '@/components/page/member-details/ForumActivity/types'
 
 import s from './ForumActivityModal.module.scss';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 interface Props {
   open: boolean;

@@ -139,9 +139,23 @@ export default function ContributorsSection({
       <div id="contributors" className={s.contributorsContainer}>
         <div>
           <div className={s.contributorsHeader}>
-            <div>
-              <h1 className={s.contributorsTitle}>Event Contributors</h1>
-              <p className={s.contributorsSubtitle}>Hosts, Speakers and Sponsors</p>
+            <div className={s.titleRow}>
+              <div>
+                <h1 className={s.contributorsTitle}>Event Contributors</h1>
+                <p className={s.contributorsSubtitle}>Hosts, Speakers and Sponsors</p>
+              </div>
+              <div className={s.mobileContributeButton}>
+                <ShadowButton
+                  buttonColor="#156FF7"
+                  shadowColor="#3DFEB1"
+                  buttonWidth="121px"
+                  onClick={() => {
+                    openContributeModal();
+                  }}
+                >
+                  Contribute
+                </ShadowButton>
+              </div>
             </div>
             <div className={s.headerActions}>
               <div className={s.searchContainer}>
@@ -161,16 +175,18 @@ export default function ContributorsSection({
                   icon={<FilterIcon />}
                 />
               </div>
-              <ShadowButton
-                buttonColor="#156FF7"
-                shadowColor="#3DFEB1"
-                buttonWidth="121px"
-                onClick={() => {
-                  openContributeModal();
-                }}
-              >
-                Contribute
-              </ShadowButton>
+              <div className={s.desktopContributeButton}>
+                <ShadowButton
+                  buttonColor="#156FF7"
+                  shadowColor="#3DFEB1"
+                  buttonWidth="121px"
+                  onClick={() => {
+                    openContributeModal();
+                  }}
+                >
+                  Contribute
+                </ShadowButton>
+              </div>
             </div>
           </div>
 

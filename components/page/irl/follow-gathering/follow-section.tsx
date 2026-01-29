@@ -78,24 +78,23 @@ const FollowSection = (props: IFollowSectionProps) => {
   // IRL Gathering Modal state - derived from URL param
   const [isEditMode, setIsEditMode] = useState(false);
   const [isModalOpenLocal, setIsModalOpenLocal] = useState(false);
+  const [hasOpenModalParam, setHasOpenModalParam] = useState(false);
   const urlSearchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
   // Conditions for showing "I'm Going" button (new attendance)
+  // Show for logged-in advanced users OR logged-out users (when not in past events and there are gatherings)
   const canShowImGoingButton =
-    isUserLoggedIn &&
     !inPastEvents &&
-    accessLevel === 'advanced' &&
-    !isUserGoing &&
-    !userHasUpcomingEvents &&
-    filteredGatherings?.length > 0;
+    filteredGatherings?.length > 0 &&
+    ((isUserLoggedIn && accessLevel === 'advanced' && !isUserGoing && !userHasUpcomingEvents) || !isUserLoggedIn);
 
   // Modal can be opened for new attendance OR for editing existing attendance
   const canOpenModal = canShowImGoingButton || (isEditMode && isUserLoggedIn && accessLevel === 'advanced');
 
-  // Prioritize local state: if false, close immediately. URL param only used to sync initial state.
-  const isIrlGatheringModalOpen = isModalOpenLocal && canOpenModal;
+  // Modal is open if local state is true AND (user can open modal OR URL param is set)
+  const isIrlGatheringModalOpen = isModalOpenLocal && (canOpenModal || hasOpenModalParam);
 
   // Build PushNotification object from available data for IrlGatheringModal
   const irlGatheringNotification = useMemo((): PushNotification => {
@@ -202,15 +201,7 @@ const FollowSection = (props: IFollowSectionProps) => {
     document.dispatchEvent(new CustomEvent(EVENTS.REFRESH_ATTENDEES_LIST));
   }, [router]);
 
-  // Remove open-modal param if user is not logged in
-  useEffect(() => {
-    if (!isUserLoggedIn && urlSearchParams.get('open-modal') === 'true') {
-      const params = new URLSearchParams(urlSearchParams.toString());
-      params.delete('open-modal');
-      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
-      router.replace(newUrl, { scroll: false });
-    }
-  }, [isUserLoggedIn, urlSearchParams, pathname, router]);
+  // Note: We allow open-modal param to persist when logged out to show the modal with login prompt
 
   // Build edit mode data from current guest
   const editModeData = useMemo(() => {
@@ -269,11 +260,24 @@ const FollowSection = (props: IFollowSectionProps) => {
     setFollowProperties((e: any) => getFollowProperties(props.followers));
   }, [eventLocationSummary.uid, props.followers]);
 
+  // Sync URL param to state to avoid SSR/hydration issues
+  const openModalParamString = useMemo(() => urlSearchParams.get('open-modal'), [urlSearchParams]);
+  const isUserGoingValue = useMemo(() => Boolean(isUserGoing), [isUserGoing]);
+  const isUserLoggedInValue = useMemo(() => Boolean(isUserLoggedIn), [isUserLoggedIn]);
+  const accessLevelValue = useMemo(() => accessLevel || null, [accessLevel]);
+  
   useEffect(() => {
-    if (urlSearchParams.get('open-modal') === 'true' && canOpenModal) {
+    const openModalParam = openModalParamString === 'true';
+    setHasOpenModalParam(openModalParam);
+    
+    if (openModalParam) {
       setIsModalOpenLocal(true);
+      // If user is already going, automatically set edit mode
+      if (isUserGoingValue && isUserLoggedInValue && accessLevelValue === 'advanced') {
+        setIsEditMode(true);
+      }
     }
-  }, [urlSearchParams, canOpenModal]);
+  }, [openModalParamString, isUserGoingValue, isUserLoggedInValue, accessLevelValue]);
 
   useEffect(() => {
     function updateFollowers(e: any) {
@@ -570,11 +574,6 @@ const FollowSection = (props: IFollowSectionProps) => {
                   Claim Attendance
                 </button>
               )}
-            {!isUserLoggedIn && (
-              <button onClick={onLoginClick} className="toolbar__actionCn__login">
-                Login to Respond
-              </button>
-            )}
             {isUserGoing &&
               isUserLoggedIn &&
               (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) &&
@@ -602,15 +601,15 @@ const FollowSection = (props: IFollowSectionProps) => {
       </div>
       <PresenceRequestSuccess />
 
-      {/* IRL Gathering Modal - only render when user can open modal */}
-      {canOpenModal && (
+      {/* IRL Gathering Modal - render when user can open modal or when URL param is set (for logged out users) */}
+      {(canOpenModal || hasOpenModalParam) && (
         <IrlGatheringModal
-          isOpen={isIrlGatheringModalOpen}
+          isOpen={isIrlGatheringModalOpen || hasOpenModalParam}
           onClose={handleIrlGatheringModalClose}
           notification={irlGatheringNotification}
           onGoingClick={handleIrlGatheringSuccess}
-          isEditMode={isEditMode}
-          editModeData={isEditMode ? editModeData : undefined}
+          isEditMode={isEditMode || (isUserGoing && isUserLoggedIn && accessLevel === 'advanced')}
+          editModeData={isEditMode || (isUserGoing && isUserLoggedIn && accessLevel === 'advanced') ? editModeData : undefined}
         />
       )}
 

@@ -105,8 +105,8 @@ export function GatheringDetails({
             </a>
           </div>
         )}
-        {publicResources.map((resource) => (
-          <div key={resource.link} className={s.detailRow}>
+        {publicResources.map((resource, index) => (
+          <div key={`${resource.name}-${resource.link}-${index}`} className={s.detailRow}>
             <div className={s.detailLabel}>
               {getResourceIcon(resource)}
               <span>{resource.name}:</span>

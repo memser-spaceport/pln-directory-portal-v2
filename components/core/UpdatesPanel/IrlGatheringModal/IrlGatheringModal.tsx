@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Modal } from '@/components/common/Modal/Modal';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import {
@@ -40,16 +41,28 @@ export function IrlGatheringModal({
 }: IrlGatheringModalProps) {
   const gatheringData = useIrlGatheringData(notification);
   const { userInfo } = getCookiesFromClient();
+  const isLoggedIn = !!userInfo?.uid;
   const defaultTeamUid = userInfo?.leadingTeams?.[0];
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data } = useMemberFormOptions();
   const { data: memberData } = useMember(userInfo?.uid);
   const analytics = useIrlAnalytics();
   const wasOpenRef = useRef(false);
+  const [shouldAnimateLoginButton, setShouldAnimateLoginButton] = useState(false);
 
   const { data: member } = useQuery({
     queryKey: [MembersQueryKeys.GET_MEMBER, userInfo?.uid, !!userInfo, userInfo?.uid],
     queryFn: () =>
-      getMember(userInfo?.uid, { with: 'image,skills,location,teamMemberRoles.team' }, !!userInfo, userInfo, true, true),
+      getMember(
+        userInfo?.uid,
+        { with: 'image,skills,location,teamMemberRoles.team' },
+        !!userInfo,
+        userInfo,
+        true,
+        true,
+      ),
     enabled: !!userInfo?.uid,
     select: (data) => data?.data?.formattedData,
   });
@@ -59,16 +72,14 @@ export function IrlGatheringModal({
     if (!isEditMode || !editModeData) {
       // Prefill with member data if available
       const mainTeam = member?.teams?.find((team: ITeam) => team.mainTeam === true);
-      const selectedTeam = mainTeam && mainTeam.name
-        ? { value: mainTeam.id, label: mainTeam.name }
-        : undefined;
-      
+      const selectedTeam = mainTeam && mainTeam.name ? { value: mainTeam.id, label: mainTeam.name } : undefined;
+
       const telegramHandle = memberData?.memberInfo?.telegramHandler
         ? memberData.memberInfo.telegramHandler.startsWith('@')
           ? memberData.memberInfo.telegramHandler
           : `@${memberData.memberInfo.telegramHandler}`
         : '';
-      
+
       const officeHours = memberData?.memberInfo?.officeHours || '';
 
       return {
@@ -109,7 +120,13 @@ export function IrlGatheringModal({
       telegramHandle: editModeData.telegramId || '',
       officeHours: editModeData.officeHours || '',
     };
-  }, [isEditMode, editModeData, member?.teams, memberData?.memberInfo?.telegramHandler, memberData?.memberInfo?.officeHours]);
+  }, [
+    isEditMode,
+    editModeData,
+    member?.teams,
+    memberData?.memberInfo?.telegramHandler,
+    memberData?.memberInfo?.officeHours,
+  ]);
 
   // Build initial date range for edit mode
   const initialDateRange = useMemo((): [Date, Date] | null => {
@@ -177,6 +194,22 @@ export function IrlGatheringModal({
     onGoingClick?.();
     onClose();
   }, [onGoingClick, onClose]);
+
+  const handleLoginClick = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('open-modal', 'true');
+    const newUrl = `${pathname}?${params.toString()}#login`;
+    router.push(newUrl, { scroll: false });
+  }, [pathname, searchParams, router]);
+
+  const handleDisabledFieldClick = useCallback(() => {
+    if (!isLoggedIn) {
+      setShouldAnimateLoginButton(true);
+      setTimeout(() => {
+        setShouldAnimateLoginButton(false);
+      }, 1000);
+    }
+  }, [isLoggedIn]);
 
   const { handleSubmit: submitForm, isPending } = useIrlGatheringSubmit({
     gatheringData,
@@ -340,18 +373,30 @@ export function IrlGatheringModal({
               onDateInputClick={handleOpenDatePickerWithTracking}
               onTopicsInputClick={handleOpenTopicsPickerWithTracking}
               onEventsInputClick={handleOpenEventsPickerWithTracking}
+              isLoggedIn={isLoggedIn}
+              onDisabledFieldClick={handleDisabledFieldClick}
             />
 
-            <AdditionalDetailsSection
-              teams={member?.teams || []}
-              defaultTeamUid={defaultTeamUid}
-              telegramHandle={memberData?.memberInfo?.telegramHandler}
-              officeHours={memberData?.memberInfo?.officeHours}
-              defaultExpanded={false}
-            />
+            {isLoggedIn && (
+              <AdditionalDetailsSection
+                teams={member?.teams || []}
+                defaultTeamUid={defaultTeamUid}
+                telegramHandle={memberData?.memberInfo?.telegramHandler}
+                officeHours={memberData?.memberInfo?.officeHours}
+                defaultExpanded={false}
+              />
+            )}
           </div>
 
-          <ModalFooter onClose={onClose} isSubmit isLoading={isPending} isEditMode={isEditMode} />
+          <ModalFooter
+            onClose={onClose}
+            isSubmit={isLoggedIn}
+            isLoading={isPending}
+            isEditMode={isEditMode}
+            isLoggedIn={isLoggedIn}
+            onLoginClick={handleLoginClick}
+            shouldAnimate={shouldAnimateLoginButton}
+          />
         </form>
       </FormProvider>
     </Modal>

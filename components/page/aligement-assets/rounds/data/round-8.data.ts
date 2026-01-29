@@ -51,7 +51,7 @@ export const pastRound8Data: IPastRoundData = {
   // Stats Section Data
   // ============================================================================
   stats: {
-    onboardedParticipants: 43,
+    onboardedParticipants: 44,
     regionsUnlocked: ['USA'],
     incentivizedActivities: [
       'Curate X Spaces',
@@ -78,16 +78,19 @@ export const pastRound8Data: IPastRoundData = {
   // Leaderboard Section Data
   // ============================================================================
   leaderboard: [
-    { rank: 1, name: 'David Casey', activities: '', points: 1000 },
-    { rank: 2, name: 'Theresa Therriault', activities: '', points: 950 },
-    { rank: 3, name: 'Dottie Wang', activities: '', points: 200 },
-    { rank: 4, name: 'Anuj Pandey', activities: '', points: 150 },
-    { rank: 5, name: 'Michael Stachiw', activities: '', points: 150 },
-    { rank: 6, name: 'Bradley Holden', activities: '', points: 100 },
-    { rank: 7, name: 'Jeff De Gregorio', activities: '', points: 100 },
-    { rank: 8, name: 'Ian Brunner', activities: '', points: 100 },
-    { rank: 9, name: 'Matthew Koch', activities: '', points: 0 },
-    { rank: 10, name: 'Stefanie Wykoff', activities: '', points: 0 },
+    { rank: 1, name: 'Molly Mackinlay', activities: '', points: 1350 },
+    { rank: 2, name: 'Rich Chang', activities: '', points: 1300 },
+    { rank: 3, name: 'Eshan Chordia', activities: '', points: 800 },
+    { rank: 4, name: 'Theresa Therriault', activities: '', points: 800 },
+    { rank: 5, name: 'Ian Brunner', activities: '', points: 750 },
+    { rank: 6, name: 'Raymond Cheng', activities: '', points: 700 },
+    { rank: 7, name: 'Jeff De Gregorio', activities: '', points: 550 },
+    { rank: 8, name: 'Juan Benet', activities: '', points: 450 },
+    { rank: 9, name: 'Zachary von Naumann', activities: '', points: 400 },
+    { rank: 10, name: 'Chris Brocoum', activities: '', points: 350 },
+    { rank: 11, name: 'Cyril Delattre', activities: '', points: 350 },
+    { rank: 12, name: 'David Casey', activities: '', points: 350 },
+    { rank: 13, name: 'Diana Stern', activities: '', points: 350 },
   ],
 };
 

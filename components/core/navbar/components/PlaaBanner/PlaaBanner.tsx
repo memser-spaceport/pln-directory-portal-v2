@@ -52,7 +52,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
     highlightText: '2×–3×',
     date: 'Submit by Jan 31, 2026',
     buttons: [
-      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/47068372-product-manager-alignment-asset', variant: 'primary' },
+      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/66053676-product-lead-pl-alignment-asset', variant: 'primary' },
       { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
     ],
   },
@@ -93,11 +93,21 @@ export const BANNER_CONTENTS: BannerContent[] = [
     ],
   },
   {
+    id: 'Help shape the future of PLAA',
+    type: 'bonus',
+    title: 'Help shape the future of PLAA',
+    subtitle: "We're hosting 1:1 user interviews to learn how PLAA is working for you — and how it can improve.",
+    date: '',
+    buttons: [
+      { label: '→ Sign up to share your perspective', link: 'https://forms.gle/4fAcyboCdVLCLBxi7', variant: 'primary' },
+    ],
+  },
+  {
     id: 'buyback-auction',
     type: 'event',
     title: 'Upcoming Event',
-    subtitle: 'Buyback Auction Q1 2026',
-    date: 'February 19 - 26',
+    subtitle: 'Buyback Auction March 2026',
+    date: 'date is subject to change',
     buttons: [
       // { label: 'Learn More', link: 'https://protocol.ai', variant: 'secondary' },
     ],

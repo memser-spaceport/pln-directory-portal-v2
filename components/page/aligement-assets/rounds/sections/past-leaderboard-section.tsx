@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { LeaderboardEntry } from '../types';
 
@@ -14,8 +15,16 @@ interface PastLeaderboardSectionProps {
  * @param leaderboardData - Leaderboard data (up to 10 entries)
  */
 export default function PastLeaderboardSection({ roundNumber, leaderboardData }: PastLeaderboardSectionProps) {
-  // Display only the data provided (up to 10 items)
-  const visibleData = leaderboardData.slice(0, 10);
+  const [visibleCount, setVisibleCount] = useState(10);
+  
+  // Get visible data
+  const visibleData = leaderboardData.slice(0, visibleCount);
+  const hasMore = leaderboardData.length > visibleCount;
+  const remainingCount = leaderboardData.length - visibleCount;
+
+  const handleShowMore = () => {
+    setVisibleCount(prev => prev + 10);
+  };
 
   return (
     <>
@@ -25,7 +34,7 @@ export default function PastLeaderboardSection({ roundNumber, leaderboardData }:
           <div className="leaderboard-section__header">
             <h2 className="leaderboard-section__title">Points Leaderboard</h2>
             <p className="leaderboard-section__description">
-              This leaderboard highlights the top 10 contributors who strengthened the network through verified
+              This leaderboard highlights the top contributors who strengthened the network through verified
               activities in Round {roundNumber}.
             </p>
           </div>
@@ -34,16 +43,16 @@ export default function PastLeaderboardSection({ roundNumber, leaderboardData }:
           <div className="leaderboard-section__table-wrapper">
             {/* Table Header */}
             <div className="leaderboard-section__table-header">
-              <h2 className="leaderboard-section__table-title">Round {roundNumber}: Top 10 Leaderboard</h2>
+              <h2 className="leaderboard-section__table-title">Round {roundNumber}: Top Contributors</h2>
             </div>
 
             {/* Table Rows */}
             <div className="leaderboard-section__table-content">
-              <div className="leaderboard-section__table leaderboard-section__table--last">
+              <div className={`leaderboard-section__table ${!hasMore ? 'leaderboard-section__table--last' : ''}`}>
                 {visibleData.map((entry, index) => (
                   <div
                     key={`${entry.name}-${entry.rank}`}
-                    className={`leaderboard-section__row ${index === visibleData.length - 1 ? 'leaderboard-section__row--last' : ''}`}
+                    className={`leaderboard-section__row ${index === visibleData.length - 1 && !hasMore ? 'leaderboard-section__row--last' : ''}`}
                   >
                     <div className="leaderboard-section__row-left">
                       <div className="leaderboard-section__rank-cell">
@@ -87,6 +96,18 @@ export default function PastLeaderboardSection({ roundNumber, leaderboardData }:
                   </div>
                 ))}
               </div>
+
+              {/* Show More */}
+              {hasMore && (
+                <div className="leaderboard-section__show-more">
+                  <button className="leaderboard-section__show-more-btn" onClick={handleShowMore}>
+                    <span>Show +{Math.min(10, remainingCount)} more</span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M4 6L8 10L12 6" stroke="#156FF7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -248,6 +269,37 @@ export default function PastLeaderboardSection({ roundNumber, leaderboardData }:
           font-weight: 400;
           line-height: 20px;
           color: #4b5563;
+        }
+
+        .leaderboard-section__show-more {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          border-left: 1px solid #cbd5e1;
+          border-right: 1px solid #cbd5e1;
+          border-bottom: 1px solid #cbd5e1;
+          border-bottom-left-radius: 24px;
+          border-bottom-right-radius: 24px;
+          background-color: white;
+        }
+
+        .leaderboard-section__show-more-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: none;
+          border: none;
+          font-family: inherit;
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          color: #156ff7;
+          cursor: pointer;
+        }
+
+        .leaderboard-section__show-more-btn:hover {
+          text-decoration: underline;
         }
 
         @media (max-width: 1024px) {

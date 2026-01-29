@@ -27,13 +27,13 @@ const meta = {
       control: { type: 'number', min: 0 },
       description: 'Number of pages to show at boundaries',
     },
-    showPreviousLabel: {
-      control: 'boolean',
-      description: 'Show "Previous" text in button',
+    previous: {
+      control: 'object',
+      description: 'Previous button configuration (show, showLabel, label)',
     },
-    showNextLabel: {
-      control: 'boolean',
-      description: 'Show "Next" text in button',
+    next: {
+      control: 'object',
+      description: 'Next button configuration (show, showLabel, label)',
     },
     disabled: {
       control: 'boolean',
@@ -87,8 +87,8 @@ export const WithoutLabels: Story = {
   args: {
     count: 10,
     page: 5,
-    showPreviousLabel: false,
-    showNextLabel: false,
+    previous: { showLabel: false },
+    next: { showLabel: false },
   },
 };
 
@@ -96,8 +96,33 @@ export const CustomLabels: Story = {
   args: {
     count: 10,
     page: 5,
-    previousLabel: 'Back',
-    nextLabel: 'Forward',
+    previous: { label: 'Back' },
+    next: { label: 'Forward' },
+  },
+};
+
+export const HiddenPrevious: Story = {
+  args: {
+    count: 10,
+    page: 5,
+    previous: { show: false },
+  },
+};
+
+export const HiddenNext: Story = {
+  args: {
+    count: 10,
+    page: 5,
+    next: { show: false },
+  },
+};
+
+export const HiddenBothButtons: Story = {
+  args: {
+    count: 10,
+    page: 5,
+    previous: { show: false },
+    next: { show: false },
   },
 };
 

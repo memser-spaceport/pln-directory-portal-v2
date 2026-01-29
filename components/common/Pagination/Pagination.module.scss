@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 .root {
   display: flex;
   align-items: center;
@@ -12,9 +14,15 @@
 }
 
 .navButton {
+  gap: 4px;
   display: flex;
   align-items: center;
-  gap: 4px;
+
+  min-width: 0;
+
+  @include media.mobile-only {
+    display: none;
+  }
 }
 
 .navIcon {

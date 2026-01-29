@@ -1,3 +1,4 @@
+import { useMedia } from 'react-use';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { IUserInfo } from '@/types/shared.types';
@@ -54,6 +55,8 @@ export function ForumActivityModal(props: Props) {
     hasNextCommentsPage,
     isFetchingNextCommentsPage,
   } = props;
+
+  const isTablet = useMedia('(max-width: 960px)');
 
   const [postsPage, setPostsPage] = useState(1);
   const [commentsPage, setCommentsPage] = useState(1);
@@ -146,11 +149,17 @@ export function ForumActivityModal(props: Props) {
 
           {totalPages > 1 && (
             <Pagination
-              count={totalPages}
+              count={1000}
               page={currentPage}
               onChange={handlePageChange}
               disabled={isFetchingNextPage}
               className={s.pagination}
+              previous={{
+                showLabel: !isTablet,
+              }}
+              next={{
+                showLabel: !isTablet,
+              }}
             />
           )}
         </div>

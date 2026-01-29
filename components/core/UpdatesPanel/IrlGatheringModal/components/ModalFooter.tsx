@@ -8,6 +8,9 @@ interface ModalFooterProps {
   isSubmit?: boolean;
   isLoading?: boolean;
   isEditMode?: boolean;
+  isLoggedIn?: boolean;
+  onLoginClick?: () => void;
+  shouldAnimate?: boolean;
 }
 
 export function ModalFooter({
@@ -16,12 +19,26 @@ export function ModalFooter({
   isSubmit = false,
   isLoading = false,
   isEditMode = false,
+  isLoggedIn = true,
+  onLoginClick,
+  shouldAnimate = false,
 }: ModalFooterProps) {
   const getButtonText = () => {
+    if (!isLoggedIn) {
+      return 'Log in to Respond';
+    }
     if (isLoading) {
       return isEditMode ? 'Saving...' : 'Submitting...';
     }
     return 'Submit';
+  };
+
+  const handleButtonClick = () => {
+    if (!isLoggedIn && onLoginClick) {
+      onLoginClick();
+    } else if (!isSubmit && onGoingClick) {
+      onGoingClick();
+    }
   };
 
   return (
@@ -30,9 +47,9 @@ export function ModalFooter({
         Cancel
       </button>
       <button
-        type={isSubmit ? 'submit' : 'button'}
-        className={s.goingButton}
-        onClick={isSubmit ? undefined : onGoingClick}
+        type={isSubmit && isLoggedIn ? 'submit' : 'button'}
+        className={`${s.goingButton} ${shouldAnimate ? s.goingButtonAnimate : ''}`}
+        onClick={isSubmit && isLoggedIn ? undefined : handleButtonClick}
         disabled={isLoading}
       >
         {getButtonText()}

@@ -161,7 +161,6 @@
   gap: 4px;
 }
 
-
 .detailValue {
   font-family: 'Inter', sans-serif;
   font-size: 14px;
@@ -505,7 +504,9 @@
   border: 1.5px solid rgba(14, 15, 17, 0.16);
   border-radius: 4px;
   background: rgba(14, 15, 17, 0.04);
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .eventCheckboxChecked {
@@ -597,7 +598,7 @@
   line-height: 18px;
   letter-spacing: -0.2px;
   color: #455468;
-  
+
   @media (max-width: 767px) {
     display: none;
   }
@@ -625,7 +626,9 @@
   letter-spacing: -0.2px;
   background: rgba(27, 77, 255, 0.04);
   color: #4174ff;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 
   &:hover {
     background: rgba(27, 77, 255, 0.08);
@@ -670,7 +673,9 @@
   border-radius: 8px;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 
   &:hover {
     background: rgba(27, 77, 255, 0.04);
@@ -789,6 +794,12 @@
   border: none;
   cursor: pointer;
   text-align: left;
+
+  &:disabled,
+  &.planningFieldDisabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 }
 
 .planningFieldLabel {
@@ -810,6 +821,27 @@
   border-radius: 8px;
   box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
   overflow: hidden;
+
+  &.planningFieldInputDisabled {
+    background: #f9fafb;
+    cursor: not-allowed;
+  }
+}
+
+.planningFieldLockIcon {
+  display: flex;
+  align-items: center;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+.planningFieldHint {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  color: #64748b;
+  margin-top: -4px;
 }
 
 .planningFieldPlaceholder {
@@ -1064,7 +1096,7 @@
 
   border-radius: var(--corner-radius-3xl, 20px);
   border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
-  background: var(--background-base-white, #FFF);
+  background: var(--background-base-white, #fff);
   box-shadow: 0 25px 80px -12px var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
   overflow: hidden;
   padding: 16px;
@@ -1423,6 +1455,33 @@
 
   &:hover {
     background: #1a45e6;
+  }
+}
+
+.goingButtonAnimate {
+  animation: pulseHighlight 0.6s ease-in-out;
+}
+
+@keyframes pulseHighlight {
+  0% {
+    transform: scale(1);
+    box-shadow: 0px 1px 5px 0px rgba(27, 77, 255, 0.16);
+  }
+  25% {
+    transform: scale(1.05);
+    box-shadow: 0px 4px 12px 0px rgba(27, 77, 255, 0.4);
+  }
+  50% {
+    transform: scale(1);
+    box-shadow: 0px 1px 5px 0px rgba(27, 77, 255, 0.16);
+  }
+  75% {
+    transform: scale(1.03);
+    box-shadow: 0px 2px 8px 0px rgba(27, 77, 255, 0.3);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0px 1px 5px 0px rgba(27, 77, 255, 0.16);
   }
 }
 .detailRow {

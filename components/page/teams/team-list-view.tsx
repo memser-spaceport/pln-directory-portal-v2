@@ -23,7 +23,6 @@ const TeamListView = (props: ITeamListView) => {
   const description = team?.shortDescription;
   const tags = team?.industryTags ?? [];
   const analytics = useTeamAnalytics();
-  const [activeIndexMob, setActiveIndexMob] = useState<number>(0);
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
   // todo - remove ASKS completely as we move to forum
@@ -40,7 +39,14 @@ const TeamListView = (props: ITeamListView) => {
   //     }) ?? [];
   const carousel: any[] = [];
 
-  const { emblaRef, activeIndex, scrollPrev, scrollNext, setActiveIndex, emblaApi } = useCarousel({
+  const {
+    emblaRef,
+    activeIndex,
+    scrollPrev,
+    scrollNext,
+    setActiveIndex,
+    emblaApi,
+  } = useCarousel({
     slidesToScroll: 'auto',
     loop: true,
     align: 'start',
@@ -48,60 +54,19 @@ const TeamListView = (props: ITeamListView) => {
     isPaused: isTooltipOpen,
   });
 
-  const AUTO_SCROLL_INTERVAL = 10000;
-
-  const options: EmblaOptionsType = { slidesToScroll: 'auto', loop: true, align: 'start', containScroll: 'trimSnaps' };
-  const [emblaRefMob, emblaApiMob] = useEmblaCarousel(options);
-  const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
-
-  const scrollPrevMob = useCallback(() => {
-    if (emblaApiMob) {
-      emblaApiMob.scrollPrev();
-      const index = emblaApiMob.selectedScrollSnap();
-      setActiveIndexMob(index);
-    }
-  }, [emblaApiMob]);
-
-  const scrollNextMob = useCallback(() => {
-    if (emblaApiMob) {
-      emblaApiMob.scrollNext();
-      const index = emblaApiMob.selectedScrollSnap();
-      setActiveIndexMob(index);
-    }
-  }, [emblaApiMob]);
-
-  useEffect(() => {
-    if (!emblaApiMob) return;
-
-    const updateActiveIndex = () => {
-      const index = emblaApiMob.selectedScrollSnap();
-      setActiveIndexMob(index);
-    };
-
-    const startAutoScroll = () => {
-      autoScrollRef.current = setInterval(() => {
-        if (emblaApiMob) {
-          if (emblaApiMob.canScrollNext()) {
-            emblaApiMob.scrollNext();
-          } else {
-            emblaApiMob.scrollTo(0);
-          }
-          updateActiveIndex();
-        }
-      }, AUTO_SCROLL_INTERVAL);
-    };
-
-    const stopAutoScroll = () => {
-      if (autoScrollRef.current) clearInterval(autoScrollRef.current);
-    };
-    startAutoScroll();
-    emblaApiMob.on('select', updateActiveIndex);
-
-    return () => {
-      stopAutoScroll();
-      emblaApiMob.off('select', updateActiveIndex);
-    };
-  }, [emblaApiMob]);
+  const {
+    emblaRef: emblaRefMob,
+    activeIndex: activeIndexMob,
+    scrollPrev: scrollPrevMob,
+    scrollNext: scrollNextMob,
+    setActiveIndex: setActiveIndexMob,
+    emblaApi: emblaApiMob,
+  } = useCarousel({
+    slidesToScroll: 'auto',
+    loop: true,
+    align: 'start',
+    containScroll: 'trimSnaps',
+  });
 
   const handleClick = (e: any) => {
     e.stopPropagation();

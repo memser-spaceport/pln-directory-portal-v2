@@ -15,7 +15,7 @@ export function CommentCard(props: CommentCardProps) {
   const { comment } = props;
 
   const commentContent = comment.content || '';
-  const commentUrl = `/forum/topics/${comment.category?.cid}/${comment.topic?.tid}#post-${comment.pid}`;
+  const commentUrl = `/forum/topics/${comment.category?.cid}/${comment.topic?.tid}?pid=${comment.pid}`;
 
   return (
     <Link href={commentUrl} className={s.card} target="_blank">

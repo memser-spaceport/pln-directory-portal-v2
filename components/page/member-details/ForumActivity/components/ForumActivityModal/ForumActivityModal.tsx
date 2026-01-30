@@ -149,7 +149,7 @@ export function ForumActivityModal(props: Props) {
 
           {totalPages > 1 && (
             <Pagination
-              count={1000}
+              count={totalPages}
               page={currentPage}
               onChange={handlePageChange}
               disabled={isFetchingNextPage}

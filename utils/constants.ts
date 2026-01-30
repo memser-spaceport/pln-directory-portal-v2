@@ -513,6 +513,16 @@ export const FORUM_ANALYTICS_EVENTS = {
   MENTION_INITIATED: 'forum-mention-initiated',
   MENTION_SEARCH: 'forum-mention-search',
   MENTION_SELECTED: 'forum-mention-selected',
+  MEMBER_PROFILE_FORUM_ACTIVITY_TAB_CLICKED: 'member-profile-forum-activity-tab-clicked',
+  MEMBER_PROFILE_FORUM_ACTIVITY_SHOW_ALL_CLICKED: 'member-profile-forum-activity-show-all-clicked',
+  MEMBER_PROFILE_FORUM_ACTIVITY_MODAL_OPENED: 'member-profile-forum-activity-modal-opened',
+  MEMBER_PROFILE_FORUM_ACTIVITY_MODAL_CLOSED: 'member-profile-forum-activity-modal-closed',
+  MEMBER_PROFILE_FORUM_ACTIVITY_POST_CARD_CLICKED: 'member-profile-forum-activity-post-card-clicked',
+  MEMBER_PROFILE_FORUM_ACTIVITY_COMMENT_CARD_CLICKED: 'member-profile-forum-activity-comment-card-clicked',
+  MEMBER_PROFILE_FORUM_ACTIVITY_START_DISCUSSION_CLICKED: 'member-profile-forum-activity-start-discussion-clicked',
+  MEMBER_PROFILE_FORUM_ACTIVITY_BROWSE_DISCUSSIONS_CLICKED: 'member-profile-forum-activity-browse-discussions-clicked',
+  MEMBER_PROFILE_FORUM_ACTIVITY_SIGN_IN_CLICKED: 'member-profile-forum-activity-sign-in-clicked',
+  MEMBER_PROFILE_FORUM_ACTIVITY_SIGN_UP_CLICKED: 'member-profile-forum-activity-sign-up-clicked',
 };
 
 export const IRL_ANALYTICS_EVENTS = {};
@@ -558,6 +568,10 @@ export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_CONTRIBUTE_MODAL_IRL_PROCEED_BUTTON_CLICKED: 'events-page-contribute-modal-irl-proceed-button-clicked',
   EVENTS_PAGE_CONTRIBUTING_TEAM_CLICKED: 'events-page-contributing-team-clicked',
   EVENTS_PAGE_CONTRIBUTING_MEMBERS_CLICKED: 'events-page-contributing-members-clicked',
+  EVENTS_PAGE_CONTRIBUTORS_SEARCH_INPUT_CHANGED: 'events-page-contributors-search-input-changed',
+  EVENTS_PAGE_CONTRIBUTORS_FILTER_SELECTED: 'events-page-contributors-filter-selected',
+  EVENTS_PAGE_CONTRIBUTORS_TEAM_TREEMAP_CLICKED: 'events-page-contributors-team-treemap-clicked',
+  EVENTS_PAGE_CONTRIBUTORS_VIEW_MORE_CLICKED: 'events-page-contributors-view-more-clicked',
   UPCOMING_EVENTS_WIDGET_SHOW_ALL_CLICKED: 'onboarding-upcoming-events-widget-show-all-clicked',
   UPCOMING_EVENTS_WIDGET_DISMISS_CLICKED: 'onboarding-upcoming-events-widget-dismiss-clicked',
   UPCOMING_EVENTS_WIDGET_ITEM_CLICKED: 'onboarding-upcoming-events-widget-item-clicked',
@@ -671,6 +685,20 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.5.4 - Forum Activity & Contributors Discovery',
+    tag: 'Improvements',
+    date: '30, Jan 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Forum & Contributors Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Activity on profiles</span> - View forum posts and comments directly on member profiles to discover community contributions and engage with discussions.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Contributors page updates</span> - Enhanced Contributors page with search by name, filters for Hosts/Speakers/Sponsors, and expanded contributor list including sponsors.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum mention toolbar button</span> - Added @mention button to the post and comment editor toolbar for easier access to mention other members in forum discussions.</li>
+      </ul>
+      </div>`,
+  },
   {
     title: 'Version 4.5.3 - IRL Gatherings & Forum Updates',
     tag: 'Improvements',

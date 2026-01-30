@@ -1,0 +1,47 @@
+.card {
+  display: block;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  border-radius: 12px;
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: var(--background-neutral-hover, #f1f5f9);
+  }
+}
+
+.cardContent {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.postContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.textContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #0f172a;
+  margin: 0;
+}
+
+.repliedTo {
+  font-weight: 400;
+}

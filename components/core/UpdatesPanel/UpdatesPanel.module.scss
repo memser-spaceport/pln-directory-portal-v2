@@ -104,8 +104,9 @@
 
 .content {
   flex: 1;
-  overflow: hidden;
+  overflow: auto;
   padding: 8px;
+  scrollbar-width: none;
 }
 
 .emptyState {

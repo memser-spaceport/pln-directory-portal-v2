@@ -14,7 +14,23 @@ export const Tooltip = RechartsTooltip;
 
 // Custom treemap content component
 export const TreemapCustomContent = (props: any) => {
-  const { x, y, width, height, index, name, depth, colors, root, activeIndex, logo, uid } = props;
+  const {
+    x,
+    y,
+    width,
+    height,
+    index,
+    name,
+    depth,
+    colors,
+    root,
+    activeIndex,
+    logo,
+    uid,
+    payload,
+    onTeamClick,
+    teamsData,
+  } = props;
 
   const analytics = useEventsAnalytics();
   const colorSets = {
@@ -38,7 +54,18 @@ export const TreemapCustomContent = (props: any) => {
               : colorSet[0];
 
   const onContributorClick = (contributor: any) => {
-    analytics.onContributingTeamClicked(contributor);
+    if (onTeamClick && teamsData && typeof index === 'number' && teamsData[index]) {
+      const teamData = teamsData[index];
+      onTeamClick({
+        name: teamData.name,
+        uid: teamData.uid,
+        hosts: teamData.hosts,
+        speakers: teamData.speakers,
+        sponsors: teamData.sponsors,
+      });
+    } else {
+      analytics.onContributingTeamClicked(contributor);
+    }
     window.open('/teams/' + contributor, '_blank');
   };
 
@@ -125,6 +152,7 @@ export const ChartTooltip = ({ active, payload, label }: any) => {
         <p className="tooltip-title">{payload[0].payload.name}</p>
         {payload[0].payload.speakers > 0 && <p className="tooltip-text">{payload[0].payload.speakers} Speaker(s)</p>}
         {payload[0].payload.hosts > 0 && <p className="tooltip-text">{payload[0].payload.hosts} Host(s)</p>}
+        {payload[0].payload.sponsors > 0 && <p className="tooltip-text">{payload[0].payload.sponsors} Sponsor(s)</p>}
         <style jsx>{`
           .custom-tooltip {
             background-color: rgba(0, 0, 0, 0.9);

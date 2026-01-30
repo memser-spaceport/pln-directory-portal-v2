@@ -43,13 +43,19 @@ const officeHours = `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"
 </svg>
 `;
 
+const mentionIcon = `<svg viewBox="0 0 18 18">
+  <circle class="ql-stroke" cx="9" cy="9" r="2"></circle>
+  <path class="ql-stroke" d="M11,14.651A6,6,0,1,1,15,9a2,2,0,0,1-4,0V7"></path>
+</svg>`;
+
 Quill.register('modules/imageUploader', ImageUploader);
 
 // Register mention blot
 registerMentionBlot();
 
-// Register it
+// Register icons
 Quill.import('ui/icons')['officeHours'] = officeHours;
+Quill.import('ui/icons')['mention'] = mentionIcon;
 
 const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
   const {
@@ -125,18 +131,21 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
           [{ color: [] }, { background: [] }],
           [{ list: ['ordered'] }, { list: 'bullet' }],
           [{ align: [] }],
-          ['code-block', 'link', 'image'],
+          ['code-block', 'link', 'mention', 'image'],
           // ['code-block', 'image', 'officeHours'],
         ],
-        // handlers: {
-        //   officeHours: function () {
-        //     const editor = quillRef.current?.getEditor();
-        //     if (editor && member?.memberInfo?.officeHours) {
-        //       const index = editor.getLength();
-        //       editor.insertText(index, 'Book a time with me', 'link', member.memberInfo.officeHours);
-        //     }
-        //   },
-        // },
+        handlers: {
+          mention: function () {
+            const editor = quillRef.current?.getEditor();
+            if (editor) {
+              const selection = editor.getSelection();
+              if (selection) {
+                editor.insertText(selection.index, '@');
+                editor.setSelection(selection.index + 1);
+              }
+            }
+          },
+        },
       },
       imageUploader: {
         upload: (file: File) => {

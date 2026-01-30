@@ -102,6 +102,8 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
       router.refresh();
       reset();
       onClose();
+    } else if (res?.errorData?.message) {
+      toast.error(res.errorData.message);
     }
   };
 

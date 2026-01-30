@@ -146,6 +146,102 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.MENTION_SELECTED, params);
   }
 
+  function onMemberProfileForumActivityTabClicked(params: {
+    memberUid: string;
+    memberName: string;
+    tab: 'posts' | 'comments';
+    previousTab?: 'posts' | 'comments';
+    postsCount: number;
+    commentsCount: number;
+    location?: 'section' | 'modal';
+  }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.MEMBER_PROFILE_FORUM_ACTIVITY_TAB_CLICKED, params);
+  }
+
+  function onMemberProfileForumActivityShowAllClicked(params: {
+    memberUid: string;
+    memberName: string;
+    activeTab: 'posts' | 'comments';
+    postsCount: number;
+    commentsCount: number;
+  }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.MEMBER_PROFILE_FORUM_ACTIVITY_SHOW_ALL_CLICKED, params);
+  }
+
+  function onMemberProfileForumActivityModalOpened(params: {
+    memberUid: string;
+    memberName: string;
+    activeTab: 'posts' | 'comments';
+    postsCount: number;
+    commentsCount: number;
+  }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.MEMBER_PROFILE_FORUM_ACTIVITY_MODAL_OPENED, params);
+  }
+
+  function onMemberProfileForumActivityModalClosed(params: {
+    memberUid: string;
+    memberName: string;
+    activeTab: 'posts' | 'comments';
+  }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.MEMBER_PROFILE_FORUM_ACTIVITY_MODAL_CLOSED, params);
+  }
+
+  function onMemberProfileForumActivityPostCardClicked(params: {
+    memberUid: string;
+    memberName: string;
+    postId: string | number;
+    postTitle?: string;
+    postCategoryId?: string | number;
+    location?: 'section' | 'modal';
+    position?: number;
+  }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.MEMBER_PROFILE_FORUM_ACTIVITY_POST_CARD_CLICKED, params);
+  }
+
+  function onMemberProfileForumActivityCommentCardClicked(params: {
+    memberUid: string;
+    memberName: string;
+    commentId: string | number;
+    topicId?: string | number;
+    topicTitle?: string;
+    location?: 'section' | 'modal';
+    position?: number;
+  }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.MEMBER_PROFILE_FORUM_ACTIVITY_COMMENT_CARD_CLICKED, params);
+  }
+
+  function onMemberProfileForumActivityStartDiscussionClicked(params: {
+    memberUid: string;
+    memberName: string;
+    activeTab: 'posts' | 'comments';
+  }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.MEMBER_PROFILE_FORUM_ACTIVITY_START_DISCUSSION_CLICKED, params);
+  }
+
+  function onMemberProfileForumActivityBrowseDiscussionsClicked(params: {
+    memberUid: string;
+    memberName: string;
+    activeTab: 'posts' | 'comments';
+  }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.MEMBER_PROFILE_FORUM_ACTIVITY_BROWSE_DISCUSSIONS_CLICKED, params);
+  }
+
+  function onMemberProfileForumActivitySignInClicked(params: {
+    memberUid: string;
+    memberName: string;
+    activeTab: 'posts' | 'comments';
+  }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.MEMBER_PROFILE_FORUM_ACTIVITY_SIGN_IN_CLICKED, params);
+  }
+
+  function onMemberProfileForumActivitySignUpClicked(params: {
+    memberUid: string;
+    memberName: string;
+    activeTab: 'posts' | 'comments';
+  }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.MEMBER_PROFILE_FORUM_ACTIVITY_SIGN_UP_CLICKED, params);
+  }
+
   return {
     onForumTopicClicked,
     onForumSortSelected,
@@ -168,5 +264,15 @@ export const useForumAnalytics = () => {
     onMentionInitiated,
     onMentionSearch,
     onMentionSelected,
+    onMemberProfileForumActivityTabClicked,
+    onMemberProfileForumActivityShowAllClicked,
+    onMemberProfileForumActivityModalOpened,
+    onMemberProfileForumActivityModalClosed,
+    onMemberProfileForumActivityPostCardClicked,
+    onMemberProfileForumActivityCommentCardClicked,
+    onMemberProfileForumActivityStartDiscussionClicked,
+    onMemberProfileForumActivityBrowseDiscussionsClicked,
+    onMemberProfileForumActivitySignInClicked,
+    onMemberProfileForumActivitySignUpClicked,
   };
 };

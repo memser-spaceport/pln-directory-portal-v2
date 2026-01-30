@@ -120,6 +120,44 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENTS_ANALYTICS.UPCOMING_EVENTS_WIDGET_ITEM_CLICKED, item);
   }
 
+  function onContributorsSearchInputChanged(params: {
+    searchQuery: string;
+    previousQuery?: string;
+    membersCount: number;
+    teamsCount: number;
+  }) {
+    captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTORS_SEARCH_INPUT_CHANGED, params);
+  }
+
+  function onContributorsFilterSelected(params: {
+    filterValue: 'all' | 'host' | 'speaker' | 'sponsor';
+    previousFilter?: 'all' | 'host' | 'speaker' | 'sponsor';
+    membersCount: number;
+    teamsCount: number;
+    resultsCount: number;
+  }) {
+    captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTORS_FILTER_SELECTED, params);
+  }
+
+  function onContributorsTeamTreemapClicked(params: {
+    teamName: string;
+    teamUid: string;
+    hostsCount: number;
+    speakersCount: number;
+    sponsorsCount: number;
+    size: number;
+  }) {
+    captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTORS_TEAM_TREEMAP_CLICKED, params);
+  }
+
+  function onContributorsViewMoreClicked(params: {
+    remainingCount: number;
+    totalCount: number;
+    visibleCount: number;
+  }) {
+    captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTORS_VIEW_MORE_CLICKED, params);
+  }
+
   return {
     onIrlLocationClicked,
     onEventCardClicked,
@@ -142,5 +180,9 @@ export const useEventsAnalytics = () => {
     onUpcomingEventsWidgetShowAllClicked,
     onUpcomingEventsWidgetDismissClicked,
     onUpcomingEventsItemClicked,
+    onContributorsSearchInputChanged,
+    onContributorsFilterSelected,
+    onContributorsTeamTreemapClicked,
+    onContributorsViewMoreClicked,
   };
 };

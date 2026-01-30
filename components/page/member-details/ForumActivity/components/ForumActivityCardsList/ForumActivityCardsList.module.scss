@@ -1,0 +1,16 @@
+
+.root {
+  gap: 8px;
+  display: flex;
+  flex-direction: column;
+
+  overflow: auto;
+}
+
+.loading {
+  padding: 24px;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

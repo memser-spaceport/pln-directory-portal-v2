@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import Select from 'react-select';
+import Select, { components, ControlProps } from 'react-select';
 import { useMedia, useToggle } from 'react-use';
 import React, { ReactNode, useState } from 'react';
 
@@ -32,6 +32,7 @@ interface Props {
   backLabel?: string;
   onChange?: (value: Option | null) => void;
   renderOption?: (input: RenderOptionInput) => ReactNode;
+  icon?: ReactNode;
 }
 
 export const FormSelect = (props: Props) => {
@@ -47,6 +48,7 @@ export const FormSelect = (props: Props) => {
     backLabel,
     onChange,
     isStickyNoData,
+    icon,
   } = props;
 
   const {
@@ -229,6 +231,12 @@ export const FormSelect = (props: Props) => {
             }),
           }}
           components={{
+            Control: (controlProps: ControlProps<Option, false>) => (
+              <components.Control {...controlProps}>
+                {icon && <span className={s.icon}>{icon}</span>}
+                {controlProps.children}
+              </components.Control>
+            ),
             NoOptionsMessage: () => {
               return (
                 <div className={s.notFound}>

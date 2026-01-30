@@ -7,12 +7,22 @@ import { Tooltip } from '@/components/core/events/treemap';
 import { ChartTooltip } from '@/components/core/events/treemap';
 import { TreemapCustomContent } from '@/components/core/events/treemap';
 import ShadowButton from '@/components/ui/ShadowButton';
-import Link from 'next/link';
 import { useEventsAnalytics } from '@/analytics/events.analytics';
-import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import Modal from '@/components/core/modal';
-import { useRef } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
 import { PAGE_ROUTES, CONTRIBUTE_MODAL_VIDEO_URL } from '@/utils/constants';
+import { FormField } from '@/components/form/FormField';
+import { FormSelect } from '@/components/form/FormSelect';
+import { EmptyState } from '@/components/common/EmptyState';
+import s from './ContributorsSection.module.scss';
+
+const FILTER_OPTIONS = [
+  { label: 'All Contributors', value: 'all' },
+  { label: 'Hosts', value: 'host' },
+  { label: 'Speakers', value: 'speaker' },
+  { label: 'Sponsors', value: 'sponsor' },
+];
 
 interface ContributorsSectionProps {
   members?: any[];
@@ -38,9 +48,125 @@ export default function ContributorsSection({
   },
   userInfo,
 }: ContributorsSectionProps) {
-  const { onContributeButtonClicked, onContributtonModalCloseClicked, onContributeModalIRLProceedButtonClicked } =
-    useEventsAnalytics();
+  const {
+    onContributeButtonClicked,
+    onContributtonModalCloseClicked,
+    onContributeModalIRLProceedButtonClicked,
+    onContributorsSearchInputChanged,
+    onContributorsFilterSelected,
+    onContributorsTeamTreemapClicked,
+  } = useEventsAnalytics();
   const contributeRef = useRef<HTMLDialogElement>(null);
+  const previousSearchRef = useRef<string>('');
+  const previousFilterRef = useRef<string>('all');
+  const isInitialMountRef = useRef<boolean>(true);
+
+  const methods = useForm({
+    defaultValues: {
+      search: '',
+      filter: FILTER_OPTIONS[0],
+    },
+  });
+
+  const { watch, setValue } = methods;
+  const searchValue = watch('search') || '';
+  const filterValue = watch('filter');
+  const activeFilter = filterValue?.value || 'all';
+  const activeSearch = searchValue;
+
+  const filteredMembers = useMemo(() => {
+    let result = members;
+
+    if (activeFilter !== 'all') {
+      result = result.filter((member) => {
+        if (activeFilter === 'host') {
+          return member.isHost || member.events?.some((event: any) => event.isHost);
+        }
+        if (activeFilter === 'speaker') {
+          return member.isSpeaker || member.events?.some((event: any) => event.isSpeaker);
+        }
+        if (activeFilter === 'sponsor') {
+          return member.isSponsor || member.events?.some((event: any) => event.isSponsor);
+        }
+        return true;
+      });
+    }
+
+    if (activeSearch.trim()) {
+      const query = activeSearch.toLowerCase();
+      result = result.filter((member) => member.member?.name?.toLowerCase().includes(query));
+    }
+
+    return result;
+  }, [members, activeFilter, activeSearch]);
+
+  const filteredTeams = useMemo(() => {
+    let result = teams;
+
+    if (activeFilter !== 'all') {
+      result = result.filter((team) => {
+        if (activeFilter === 'host') {
+          return team.hosts > 0;
+        }
+        if (activeFilter === 'speaker') {
+          return team.speakers > 0;
+        }
+        if (activeFilter === 'sponsor') {
+          console.log(team, 'team');
+          return team.sponsors > 0;
+        }
+        return true;
+      });
+    }
+
+    if (activeSearch.trim()) {
+      const query = activeSearch.toLowerCase();
+      result = result.filter((team) => team.name?.toLowerCase().includes(query));
+    }
+
+    return result;
+  }, [teams, activeFilter, activeSearch]);
+
+  // Track search input changes
+  useEffect(() => {
+    if (isInitialMountRef.current) {
+      previousSearchRef.current = activeSearch;
+      isInitialMountRef.current = false;
+      return;
+    }
+    if (activeSearch !== previousSearchRef.current) {
+      onContributorsSearchInputChanged({
+        searchQuery: activeSearch,
+        previousQuery: previousSearchRef.current,
+        membersCount: filteredMembers.length,
+        teamsCount: filteredTeams.length,
+      });
+      previousSearchRef.current = activeSearch;
+    }
+  }, [activeSearch, filteredMembers.length, filteredTeams.length, onContributorsSearchInputChanged]);
+
+  // Track filter selection changes
+  useEffect(() => {
+    if (isInitialMountRef.current) {
+      previousFilterRef.current = activeFilter;
+      return;
+    }
+    if (activeFilter !== previousFilterRef.current) {
+      onContributorsFilterSelected({
+        filterValue: activeFilter as 'all' | 'host' | 'speaker' | 'sponsor',
+        previousFilter: previousFilterRef.current as 'all' | 'host' | 'speaker' | 'sponsor',
+        membersCount: filteredMembers.length,
+        teamsCount: filteredTeams.length,
+        resultsCount: filteredMembers.length + filteredTeams.length,
+      });
+      previousFilterRef.current = activeFilter;
+    }
+  }, [activeFilter, filteredMembers.length, filteredTeams.length, onContributorsFilterSelected]);
+
+  const handleClearSearch = () => {
+    setValue('search', '');
+  };
+
   const onCloseModal = () => {
     if (contributeRef.current) {
       contributeRef.current.close();
@@ -54,437 +180,234 @@ export default function ContributorsSection({
     }
     onContributeButtonClicked();
   };
+
   return (
-    <div id="contributors" className={`contributors-container`}>
-      <div className="contributors-section-container">
-        <div className="contributors-header">
-          <div>
-            <h1 className="contributors-title"> Contributors</h1>
-            <p className="contributors-subtitle">Hosts & Speakers</p>
-          </div>
-          <ShadowButton
-            buttonColor="#156FF7"
-            shadowColor="#3DFEB1"
-            buttonWidth="121px"
-            onClick={() => {
-              openContributeModal();
-            }}
-          >
-            Contribute
-          </ShadowButton>
-        </div>
-
-        <div className="section-container">
-          <MembersList members={members} userInfo={userInfo} />
-        </div>
-      </div>
-
-      <div className="section-container teams-section-container">
-        <div
-          style={{
-            height: treemapConfig.height,
-            backgroundColor: treemapConfig.backgroundColor,
-            width: '100%',
-            borderRadius: '8px',
-            border: '1px solid #e2e8f0',
-            overflow: 'hidden',
-          }}
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <TeamsTreemap
-              data={teams.map((team) => ({
-                name: team.name,
-                size: team.hosts + team.speakers,
-                speakers: team.speakers,
-                hosts: team.hosts,
-                logo: team.logo,
-                uid: team.uid,
-              }))}
-              dataKey="size"
-              content={<TreemapCustomContent />}
-              fill={treemapConfig.backgroundColor}
-            >
-              <Tooltip content={ChartTooltip} />
-            </TeamsTreemap>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <Modal modalRef={contributeRef} onClose={onCloseModal}>
-        <div className="contribute-modal-container">
-          <div className="contribute-modal-header">Ways to contribute</div>
-          <div className="contribute-modal-video-container">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              style={{ width: '100%', height: 'auto', pointerEvents: 'none', borderRadius: '10px' }}
-              className="contribute-modal-video"
-              controls={false}
-            >
-              <source src={CONTRIBUTE_MODAL_VIDEO_URL} type="video/webm" />
-              Your browser does not support this video.
-            </video>
-          </div>
-          <div className="contribute-modal-content">
-            <div className="contribute-modal-content-description">
-              IRL Gatherings thrive when community members contribute in different ways! Here&apos;s how you can be a
-              part of it.
+    <FormProvider {...methods}>
+      <div id="contributors" className={s.contributorsContainer}>
+        <div>
+          <div className={s.contributorsHeader}>
+            <div className={s.titleRow}>
+              <div>
+                <h1 className={s.contributorsTitle}>Event Contributors</h1>
+                <p className={s.contributorsSubtitle}>Hosts, Speakers and Sponsors</p>
+              </div>
+              <div className={s.mobileContributeButton}>
+                <ShadowButton
+                  buttonColor="#156FF7"
+                  shadowColor="#3DFEB1"
+                  buttonWidth="121px"
+                  onClick={() => {
+                    openContributeModal();
+                  }}
+                >
+                  Contribute
+                </ShadowButton>
+              </div>
             </div>
-            <div className="contribute-modal-content-list">
-              <div className="contribute-modal-content-list-item sponsor">
-                <span className="contribute-modal-content-list-item-icon">
-                  <img src="/icons/sponsor_icon.svg" alt="Contribute to a gathering" />
-                  <span>
-                    Sponsor <span className="desktop-view"> -</span>
-                  </span>
-                </span>
-                <div className="contribute-modal-content-list-item-title">
-                  Help make it happen by offering support or resources.
-                </div>
+            <div className={s.headerActions}>
+              <div className={s.searchContainer}>
+                <FormField
+                  name="search"
+                  placeholder="Search"
+                  clearable={!!searchValue}
+                  onClear={handleClearSearch}
+                  icon={<SearchIcon />}
+                />
               </div>
-              <div className="contribute-modal-content-list-item speaker">
-                <span className="contribute-modal-content-list-item-icon">
-                  <img src="/icons/host_icon.svg" alt="Contribute to a gathering" />
-                  <span>
-                    Host <span className="desktop-view"> -</span>
-                  </span>
-                </span>
-                <div className="contribute-modal-content-list-item-title">
-                  Plan or organize a gathering for the community.
-                </div>
+              <div className={s.filterDropdown}>
+                <FormSelect
+                  name="filter"
+                  placeholder="All contributors"
+                  options={FILTER_OPTIONS}
+                  icon={<FilterIcon />}
+                />
               </div>
-              <div className="contribute-modal-content-list-item host">
-                <span className="contribute-modal-content-list-item-icon">
-                  <img src="/icons/speaker_icon.svg" alt="Contribute to a gathering" />
-                  <span>
-                    Speaker <span className="desktop-view"> -</span>
-                  </span>
-                </span>
-                <div className="contribute-modal-content-list-item-title">
-                  Share insights and expertise by speaking at an event.
-                </div>
-              </div>
-              <div className="contribute-modal-content-list-item attendee">
-                <span className="contribute-modal-content-list-item-icon">
-                  <img src="/icons/attendee_icon.svg" alt="Contribute to a gathering" />
-                  <span>
-                    Attendee <span className="desktop-view"> -</span>
-                  </span>
-                </span>
-                <div className="contribute-modal-content-list-item-title">
-                  Be part of the experience and engage with others.
-                </div>
+              <div className={s.desktopContributeButton}>
+                <ShadowButton
+                  buttonColor="#156FF7"
+                  shadowColor="#3DFEB1"
+                  buttonWidth="121px"
+                  onClick={() => {
+                    openContributeModal();
+                  }}
+                >
+                  Contribute
+                </ShadowButton>
               </div>
             </div>
           </div>
-          <div className="contribute-modal-content-description">
-            Once you land on IRL Gatherings, Click “I&apos;m Going” & choose how you&apos;d like to contribute and help
-            make these gatherings valuable for everyone!
+
+          <div className={s.sectionContainer}>
+            <MembersList members={filteredMembers} userInfo={userInfo} />
           </div>
-          <div className="contribute-modal-content-button">
-            <button className="contribute-modal-content-button-cancel" onClick={onCloseModal}>
-              Cancel
-            </button>
-            <button
-              className="contribute-modal-content-button-proceed"
-              onClick={() => {
-                onContributeModalIRLProceedButtonClicked();
-                window.open(PAGE_ROUTES.IRL);
+        </div>
+
+        <div className={s.divider}></div>
+
+        <div className={`${s.sectionContainer}`}>
+          {filteredTeams.length > 0 ? (
+            <div
+              className={s.treemapContainer}
+              style={{
+                height: treemapConfig.height,
+                backgroundColor: treemapConfig.backgroundColor,
               }}
             >
-              Continue to IRL Gatherings
-            </button>
-          </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <TeamsTreemap
+                  data={filteredTeams.map((team) => ({
+                    name: team.name,
+                    size: team.hosts + team.speakers,
+                    speakers: team.speakers,
+                    hosts: team.hosts,
+                    sponsors: team.sponsors,
+                    logo: team.logo,
+                    uid: team.uid,
+                  }))}
+                  dataKey="size"
+                  content={
+                    <TreemapCustomContent
+                      teamsData={filteredTeams}
+                      onTeamClick={(teamData: any) => {
+                        onContributorsTeamTreemapClicked({
+                          teamName: teamData.name,
+                          teamUid: teamData.uid,
+                          hostsCount: teamData.hosts,
+                          speakersCount: teamData.speakers,
+                          sponsorsCount: teamData.sponsors,
+                          size: teamData.hosts + teamData.speakers,
+                        });
+                      }}
+                    />
+                  }
+                  fill={treemapConfig.backgroundColor}
+                >
+                  <Tooltip content={ChartTooltip} />
+                </TeamsTreemap>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <EmptyState
+              title="No teams match your search"
+              description="Try a different keyword or clear filters."
+            />
+          )}
         </div>
-      </Modal>
 
-      <style jsx>{`
-        .contributors-container {
-          width: 100%;
-          //padding-inline: 48px;
-          background: #ffffff;
-        }
-
-        .contributors-section-container {
-          padding: 20px;
-          background: #ffffff;
-        }
-
-        .contributors-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 24px;
-        }
-
-        .contributors-title {
-          font-size: 24px;
-          font-weight: bold;
-          margin: 0;
-        }
-
-        .contribute-modal-video {
-          outline: 1px solid #e1e3e6;
-          border-radius: 10px;
-        }
-
-        .section-title-members {
-          background-color: #e8f2ff;
-        }
-
-        .section-title-teams {
-          background-color: #e0fff3;
-        }
-
-        .contribute-modal-content-list-item-icon {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .teams-section-container {
-          padding: 20px;
-          border-top: 1px solid #e2e8f0;
-          background: #ffffff;
-          margin-top: 20px;
-        }
-
-        .contributors-subtitle {
-          font-size: 16px;
-          margin: 4px 0 0 0;
-          color: #666;
-        }
-
-        .contribute-modal-content {
-          // width: 100%;
-          // height: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-
-        .contribute-modal-content-list {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          // flex-wrap: wrap;
-          font-weight: 600;
-          font-size: 15px;
-          line-height: 20px;
-        }
-
-        .contribute-modal-content-list-item {
-          display: flex;
-          align-items: flex-start;
-          flex-direction: column;
-          gap: 10px;
-          padding: 8px;
-          border-radius: 10px;
-          font-weight: 400;
-          font-size: 14px;
-          line-height: 20px;
-        }
-
-        .contribute-modal-content-description {
-          font-weight: 400;
-          font-size: 14px;
-          line-height: 20px;
-          letter-spacing: 0px;
-        }
-
-        .host {
-          border: 1px solid #48b8bd;
-        }
-
-        .speaker {
-          border: 1px solid #d18aff;
-        }
-
-        .sponsor {
-          border: 1px solid #8aabff;
-        }
-
-        .attendee {
-          border: 1px solid #438dee;
-        }
-
-        .contribute-modal-content-title {
-          font-weight: 600;
-          font-size: 15px;
-          line-height: 20px;
-        }
-
-        .contribute-modal-content-button {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          justify-content: flex-end;
-          flex-direction: column-reverse;
-        }
-
-        .contribute-modal-content-button-cancel {
-          background-color: #ffffff;
-          color: #000000;
-          border: 1px solid #000000;
-          border-radius: 8px;
-          padding: 12px 24px;
-          font-size: 16px;
-          font-weight: 500;
-          width: 100%;
-          cursor: pointer;
-        }
-
-        .contribute-modal-content-button-proceed {
-          background-color: #0070f3;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          padding: 12px 24px;
-          font-size: 16px;
-          font-weight: 500;
-          width: 100%;
-          cursor: pointer;
-        }
-
-        .collaborate-button {
-          background-color: #0070f3;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          padding: 12px 24px;
-          font-size: 16px;
-          font-weight: 500;
-          cursor: pointer;
-          box-shadow: 0 5px 0 #3dfeb1;
-          transition: all 0.2s ease;
-        }
-
-        .collaborate-button:hover {
-          transform: translateY(-2px);
-        }
-
-        .section-container {
-          margin-bottom: 10px;
-        }
-
-        .section-title {
-          display: inline-block;
-          border-radius: 20px;
-          padding: 8px 16px;
-          font-size: 16px;
-          font-weight: 500;
-          margin-bottom: 20px;
-        }
-
-        .contribute-modal-container {
-          display: flex;
-          flex-direction: column;
-          width: 85vw;
-          max-height: 85dvh;
-          min-height: 30vh;
-          overflow-y: auto;
-          padding: 0;
-          gap: 10px;
-        }
-
-        .contribute-modal-header {
-          font-weight: 700;
-          font-size: 24px;
-          line-height: 32px;
-          display: flex;
-          gap: 8px;
-          padding: 15px 15px 8px;
-          position: sticky;
-          top: 0;
-          background: #fff;
-          z-index: 0;
-        }
-
-        .contribute-modal-video-container,
-        .contribute-modal-content,
-        .contribute-modal-content-description,
-        .contribute-modal-content-button {
-          padding-inline: 15px;
-        }
-
-        .contribute-modal-content-button {
-          padding-bottom: 15px;
-        }
-
-        .desktop-view {
-          display: none;
-        }
-
-        @media (max-width: 768px) {
-          .contributors-header {
-            flex-direction: row;
-            align-items: flex-start;
-            gap: 16px;
-          }
-
-          .contributors-title {
-            font-size: 24px;
-          }
-
-          .contributors-subtitle {
-            font-size: 14px;
-          }
-
-          .collaborate-button {
-            align-self: flex-start;
-          }
-        }
-
-        @media (min-width: 1024px) {
-          .teams-section-container {
-            margin-top: unset;
-          }
-
-          .contribute-modal-container {
-            width: 537px;
-            gap: 20px;
-          }
-
-          .contribute-modal-header {
-            padding: 24px 24px 8px;
-          }
-
-          .contribute-modal-video-container,
-          .contribute-modal-content,
-          .contribute-modal-content-description,
-          .contribute-modal-content-button {
-            padding-inline: 24px;
-          }
-
-          .contribute-modal-content-button {
-            padding-bottom: 24px;
-          }
-
-          .contribute-modal-content-list-item {
-            flex-direction: row;
-            align-items: flex-start;
-          }
-
-          .contribute-modal-content-button-proceed,
-          .contribute-modal-content-button-cancel {
-            width: unset;
-          }
-
-          .contribute-modal-content-button {
-            flex-direction: row;
-          }
-
-          .mobile-view {
-            display: none;
-          }
-
-          .desktop-view {
-            display: inline;
-          }
-        }
-      `}</style>
-    </div>
+        <Modal modalRef={contributeRef} onClose={onCloseModal}>
+          <div className={s.contributeModalContainer}>
+            <div className={s.contributeModalHeader}>Ways to contribute</div>
+            <div className={s.contributeModalVideoContainer}>
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                style={{ width: '100%', height: 'auto', pointerEvents: 'none', borderRadius: '10px' }}
+                className={s.contributeModalVideo}
+                controls={false}
+              >
+                <source src={CONTRIBUTE_MODAL_VIDEO_URL} type="video/webm" />
+                Your browser does not support this video.
+              </video>
+            </div>
+            <div className={s.contributeModalContent}>
+              <div className={s.contributeModalContentDescription}>
+                IRL Gatherings thrive when community members contribute in different ways! Here&apos;s how you can be a
+                part of it.
+              </div>
+              <div className={s.contributeModalContentList}>
+                <div className={`${s.contributeModalContentListItem} ${s.sponsor}`}>
+                  <span className={s.contributeModalContentListItemIcon}>
+                    <img src="/icons/sponsor_icon.svg" alt="Contribute to a gathering" />
+                    <span>
+                      Sponsor <span className={s.desktopView}> -</span>
+                    </span>
+                  </span>
+                  <div className={s.contributeModalContentListItemTitle}>
+                    Help make it happen by offering support or resources.
+                  </div>
+                </div>
+                <div className={`${s.contributeModalContentListItem} ${s.speaker}`}>
+                  <span className={s.contributeModalContentListItemIcon}>
+                    <img src="/icons/host_icon.svg" alt="Contribute to a gathering" />
+                    <span>
+                      Host <span className={s.desktopView}> -</span>
+                    </span>
+                  </span>
+                  <div className={s.contributeModalContentListItemTitle}>
+                    Plan or organize a gathering for the community.
+                  </div>
+                </div>
+                <div className={`${s.contributeModalContentListItem} ${s.host}`}>
+                  <span className={s.contributeModalContentListItemIcon}>
+                    <img src="/icons/speaker_icon.svg" alt="Contribute to a gathering" />
+                    <span>
+                      Speaker <span className={s.desktopView}> -</span>
+                    </span>
+                  </span>
+                  <div className={s.contributeModalContentListItemTitle}>
+                    Share insights and expertise by speaking at an event.
+                  </div>
+                </div>
+                <div className={`${s.contributeModalContentListItem} ${s.attendee}`}>
+                  <span className={s.contributeModalContentListItemIcon}>
+                    <img src="/icons/attendee_icon.svg" alt="Contribute to a gathering" />
+                    <span>
+                      Attendee <span className={s.desktopView}> -</span>
+                    </span>
+                  </span>
+                  <div className={s.contributeModalContentListItemTitle}>
+                    Be part of the experience and engage with others.
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className={s.contributeModalContentDescription}>
+              Once you land on IRL Gatherings, Click “I&apos;m Going” & choose how you&apos;d like to contribute and
+              help make these gatherings valuable for everyone!
+            </div>
+            <div className={s.contributeModalContentButton}>
+              <button className={s.contributeModalContentButtonCancel} onClick={onCloseModal}>
+                Cancel
+              </button>
+              <button
+                className={s.contributeModalContentButtonProceed}
+                onClick={() => {
+                  onContributeModalIRLProceedButtonClicked();
+                  window.open(PAGE_ROUTES.IRL);
+                }}
+              >
+                Continue to IRL Gatherings
+              </button>
+            </div>
+          </div>
+        </Modal>
+      </div>
+    </FormProvider>
   );
 }
+
+const SearchIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const FilterIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M5 10H15M2.5 5H17.5M7.5 15H12.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);

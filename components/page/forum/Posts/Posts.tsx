@@ -115,7 +115,7 @@ export const Posts = () => {
                 <div className={s.subItem}>
                   <ViewIcon /> {post.meta.views} Views
                 </div>
-                <div className={s.subItem} onClick={() => null}>
+                <div className={s.subItem}>
                   <LikeIcon /> {post.meta.likes} Likes
                 </div>
                 <div className={s.subItem}>

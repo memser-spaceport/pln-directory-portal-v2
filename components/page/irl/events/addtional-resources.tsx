@@ -54,7 +54,9 @@ const AddtionalResources = (props: any) => {
         <div className={`${searchParams?.type === 'past' ? 'irl__addResWrpr' : ''}`}>
           <div className="irl__addRes__header">
             <img src="/images/quick-link.png" alt="icon" className="irl__addRes__header__icon" />
-            <span className="irl__addRes__header__text">Quick Links for {eventDetails?.location?.split(',')[0]?.trim() || 'Location'}</span>
+            <span className="irl__addRes__header__text">
+              Quick Links for {eventDetails?.location?.split(',')[0]?.trim() || 'Location'}
+            </span>
           </div>
           <div className="irl__addRes">
             <div className="irl__addRes__cntr">
@@ -66,9 +68,7 @@ const AddtionalResources = (props: any) => {
                 ))}
                 {eventDetails?.resources?.length > 2 && (
                   <div className="irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
-                    <div className="irl__showMore__count">
-                      +{eventDetails?.resources?.length - 2}
-                    </div>
+                    <div className="irl__showMore__count">+{eventDetails?.resources?.length - 2}</div>
                     <div>more</div>
                   </div>
                 )}
@@ -92,11 +92,11 @@ const AddtionalResources = (props: any) => {
                     <img src="/icons/hyper-link.svg" alt="icon" />
                   </div>
                   <a href={resource?.link} target="_blank">
-                    {resource?.name}
+                    {resource?.name}{' '}
+                    <span>
+                      <img src="/icons/arrow-blue.svg" alt="arrow icon" />
+                    </span>
                   </a>
-                  <div>
-                    <img src="/icons/arrow-blue.svg" alt="arrow icon" />
-                  </div>
                 </div>
               ))}
             </div>
@@ -123,7 +123,7 @@ const AddtionalResources = (props: any) => {
           font-size: 14px;
           font-weight: 600;
           line-height: 20px;
-          color: #0F172A;
+          color: #0f172a;
         }
 
         .irl__addRes {
@@ -201,7 +201,6 @@ const AddtionalResources = (props: any) => {
           border-radius: 6px;
           color: #156ff7;
           cursor: pointer;
-
         }
 
         /* Mobile count calculation - show count for tags beyond 2 */
@@ -265,7 +264,7 @@ const AddtionalResources = (props: any) => {
             font-size: 24px;
           }
         }
-        
+
         @media (min-width: 425px) {
           .irl__modalHeader {
             gap: 8px;

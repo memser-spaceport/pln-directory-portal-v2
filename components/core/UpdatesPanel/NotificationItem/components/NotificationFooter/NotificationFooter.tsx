@@ -1,4 +1,5 @@
 import React from 'react';
+import { useMedia } from 'react-use';
 
 import { PushNotification } from '@/types/push-notifications.types';
 
@@ -20,13 +21,15 @@ interface Props {
 export function NotificationFooter(props: Props) {
   const { variant, notification, isIrlGathering } = props;
 
+  const isMobile = useMedia('(max-width: 640px)');
+
   const details = getFooterDetails(notification);
 
   return (
     <div className={s.root}>
       <div className={s.details}>
-        {details.map((data) => (
-          <DetailsItem data={data} key={data} />
+        {details.map((data, index) => (
+          <DetailsItem data={data} key={index} showIcon={isMobile} showLabel={!isMobile} />
         ))}
       </div>
 

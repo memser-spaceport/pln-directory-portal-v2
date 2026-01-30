@@ -51,7 +51,7 @@ export const getAggregatedEventsData = async (authToken?: any) => {
 };
 
 export const getEventContributors = async () => {
-  let url = `${process.env.DIRECTORY_API_URL}/v1/irl/events/contributors`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/irl/events/contributors`;
 
   try {
     const response = await fetch(url, {
@@ -72,10 +72,12 @@ export const getEventContributors = async () => {
       ?.map((event: any) => {
         let hostCount = 0;
         let speakerCount = 0;
+        let sponsorsCount = 0;
 
         event.eventGuests.forEach((guest: any) => {
           if (guest.isHost) hostCount++;
           if (guest.isSpeaker) speakerCount++;
+          if (guest.isSponsor) sponsorsCount++;
         });
 
         return {
@@ -83,7 +85,8 @@ export const getEventContributors = async () => {
           name: event.name,
           hosts: hostCount,
           speakers: speakerCount,
-          total: hostCount + speakerCount,
+          sponsors: sponsorsCount,
+          total: hostCount + speakerCount + sponsorsCount,
           logo: event.logo?.url,
         };
       })
@@ -120,6 +123,7 @@ export const getGuestDetail = async () => {
       const isContributor =
         item.isHost ||
         item.isSpeaker ||
+        item.isSponsor ||
         item.events?.some((event: { isHost: any; isSpeaker: any }) => event.isHost || event.isSpeaker);
 
       if (!isContributor) return;
@@ -137,11 +141,13 @@ export const getGuestDetail = async () => {
           },
           isHost: !!item.isHost,
           isSpeaker: !!item.isSpeaker,
+          isSponsor: !!item.isSponsor,
           events: item.events || [],
         });
       } else {
         member.isHost = member.isHost || !!item.isHost;
         member.isSpeaker = member.isSpeaker || !!item.isSpeaker;
+        member.isSponsor = member.isSponsor || !!item.isSponsor;
 
         if (item.events?.length) {
           const existingEventIds = new Set(member.events.map((e: any) => e.uid));

@@ -9,7 +9,7 @@ import s from './ModalBase.module.scss';
 
 interface ModalBaseProps {
   title: ReactNode;
-  titleIcon: ReactNode;
+  titleIcon?: ReactNode;
   description?: ReactNode;
   footer?: ReactNode;
   open: boolean;
@@ -17,20 +17,25 @@ interface ModalBaseProps {
   cancel?: {
     onClick: () => void;
   };
-  submit: {
+  submit?: {
     label: ReactNode;
     onClick: () => void;
     disabled?: boolean;
     className?: string;
   };
   className?: string;
+  classes?: {
+    modal?: {
+      className?: string;
+    };
+  };
 }
 
 export function ModalBase(props: PropsWithChildren<ModalBaseProps>) {
-  const { open, title, titleIcon, description, cancel, submit, footer, children, className, onClose } = props;
+  const { open, title, titleIcon, description, cancel, submit, footer, children, className, onClose, classes } = props;
 
   return (
-    <Modal isOpen={open} onClose={onClose}>
+    <Modal isOpen={open} onClose={onClose} className={classes?.modal?.className}>
       <div className={clsx(s.root, className)}>
         {onClose && (
           <button className={s.close} onClick={onClose} type="button">
@@ -39,13 +44,15 @@ export function ModalBase(props: PropsWithChildren<ModalBaseProps>) {
         )}
 
         <div className={s.body}>
-          <div className={s.iconContainer}>
-            {isValidElement(titleIcon) &&
-              cloneElement(titleIcon, {
-                // @ts-ignore
-                className: s.icon,
-              })}
-          </div>
+          {titleIcon && (
+            <div className={s.iconContainer}>
+              {isValidElement(titleIcon) &&
+                cloneElement(titleIcon, {
+                  // @ts-ignore
+                  className: s.icon,
+                })}
+            </div>
+          )}
 
           <div className={s.description}>
             <div className={s.title}>{title}</div>
@@ -62,9 +69,11 @@ export function ModalBase(props: PropsWithChildren<ModalBaseProps>) {
                 Cancel
               </Button>
             )}
-            <Button onClick={submit.onClick} disabled={submit.disabled} className={clsx(s.btn, submit.className)}>
-              {submit.label}
-            </Button>
+            {submit && (
+              <Button onClick={submit.onClick} disabled={submit.disabled} className={clsx(s.btn, submit.className)}>
+                {submit.label}
+              </Button>
+            )}
           </div>
           {footer}
         </div>

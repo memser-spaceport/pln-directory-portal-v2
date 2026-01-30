@@ -102,6 +102,7 @@ export default function ContributorsSection({
           return team.speakers > 0;
         }
         if (activeFilter === 'sponsor') {
+          console.log(team, 'team');
           return team.sponsors > 0;
         }
         return true;
@@ -213,6 +214,7 @@ export default function ContributorsSection({
                     size: team.hosts + team.speakers,
                     speakers: team.speakers,
                     hosts: team.hosts,
+                    sponsors: team.sponsors,
                     logo: team.logo,
                     uid: team.uid,
                   }))}

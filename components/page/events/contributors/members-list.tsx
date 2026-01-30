@@ -9,6 +9,7 @@ import { useEventsAnalytics } from '@/analytics/events.analytics';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 import s from './ContributorsSection.module.scss';
+import { useMedia } from 'react-use';
 
 interface MembersListProps {
   members?: any[];
@@ -18,6 +19,7 @@ interface MembersListProps {
 const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => {
   const [hoveredMember, setHoveredMember] = useState<number | null>(null);
   const analytics = useEventsAnalytics();
+  const isMobile = useMedia('(max-width: 960px)', false);
 
   if (!members || members.length === 0) {
     return <div className={s.noResults}>No members available</div>;
@@ -30,7 +32,7 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
       (item.events && item.events.some((event: { isHost: any; isSpeaker: any }) => event.isHost || event.isSpeaker)),
   );
 
-  const MAX_VISIBLE_MEMBERS = 100;
+  const MAX_VISIBLE_MEMBERS = isMobile ? 30 : 100;
   const visibleMembers = contributors.slice(0, MAX_VISIBLE_MEMBERS);
   const remainingCount = contributors.length - MAX_VISIBLE_MEMBERS;
 
@@ -52,7 +54,8 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
   const countRoleEvents = (member: { events: any[] }) => {
     const hostEvents = member.events.filter((event: any) => event.isHost).length;
     const speakerEvents = member.events.filter((event: any) => event.isSpeaker).length;
-    return { hostEvents, speakerEvents };
+    const sponsorEvents = member.events.filter((event: any) => event.isSponsor).length;
+    return { hostEvents, speakerEvents, sponsorEvents };
   };
 
   return (
@@ -60,7 +63,7 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
       <div className="members-container">
         <div className="members-grid">
           {visibleMembers?.map((member) => {
-            const { hostEvents, speakerEvents } = countRoleEvents(member);
+            const { hostEvents, speakerEvents, sponsorEvents } = countRoleEvents(member);
             const defaultAvatar = getDefaultAvatar(member?.member?.name);
 
             return (
@@ -92,6 +95,9 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
                     ) : null}
                     {member.isSpeaker || speakerEvents > 0 ? (
                       <div>As Speaker {speakerEvents > 0 ? `(${speakerEvents})` : ''}</div>
+                    ) : null}
+                    {member.isSponsor || sponsorEvents > 0 ? (
+                      <div>As Sponsor {sponsorEvents > 0 ? `(${sponsorEvents})` : ''}</div>
                     ) : null}
                   </div>
                 }

@@ -1,5 +1,5 @@
 import { useMedia } from 'react-use';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 import { IUserInfo } from '@/types/shared.types';
 import { IMember } from '@/types/members.types';
@@ -10,6 +10,7 @@ import type { ForumComment } from '@/components/page/member-details/ForumActivit
 import { ForumActivityTabs } from '@/components/page/member-details/ForumActivity/components/ForumActivityTabs';
 import { ForumActivityCardsList } from '@/components/page/member-details/ForumActivity/components/ForumActivityCardsList';
 import { ActiveTab } from '@/components/page/member-details/ForumActivity/types';
+import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 import s from './ForumActivityModal.module.scss';
 
@@ -56,7 +57,9 @@ export function ForumActivityModal(props: Props) {
     isFetchingNextCommentsPage,
   } = props;
 
+  const { onMemberProfileForumActivityModalOpened, onMemberProfileForumActivityModalClosed } = useForumAnalytics();
   const isTablet = useMedia('(max-width: 960px)');
+  const prevOpenRef = useRef(open);
 
   const [postsPage, setPostsPage] = useState(1);
   const [commentsPage, setCommentsPage] = useState(1);
@@ -97,12 +100,26 @@ export function ForumActivityModal(props: Props) {
     [setCurrentPage],
   );
 
-  // Reset pagination when modal closes
+  // Track modal opened/closed
   useEffect(() => {
-    if (!open) {
+    if (open && !prevOpenRef.current) {
+      onMemberProfileForumActivityModalOpened({
+        memberUid: member.id,
+        memberName: member.name,
+        activeTab,
+        postsCount,
+        commentsCount,
+      });
+    } else if (!open && prevOpenRef.current) {
+      onMemberProfileForumActivityModalClosed({
+        memberUid: member.id,
+        memberName: member.name,
+        activeTab,
+      });
       setPostsPage(1);
       setCommentsPage(1);
     }
+    prevOpenRef.current = open;
   }, [open]);
 
   // Determine if we're loading data for the current page
@@ -129,6 +146,9 @@ export function ForumActivityModal(props: Props) {
             setActiveTab={setActiveTab}
             postsCount={postsCount}
             commentsCount={commentsCount}
+            memberUid={member.id}
+            memberName={member.name}
+            location="modal"
             tabProps={{
               classes: {
                 root: s.tabs,
@@ -145,6 +165,7 @@ export function ForumActivityModal(props: Props) {
             isLoading={isLoadingCurrentPage}
             posts={paginatedPosts}
             comments={paginatedComments}
+            location="modal"
           />
 
           {totalPages > 1 && (

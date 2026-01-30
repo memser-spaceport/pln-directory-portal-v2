@@ -5,6 +5,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { Button } from '@/components/common/Button';
 import { ActiveTab } from '@/components/page/member-details/ForumActivity/types';
 import { hasForumAccess } from '@/components/page/member-details/ForumActivity/utils/hasForumAccess';
+import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 import { getLabels } from './utils/getLabels';
 
@@ -22,6 +23,8 @@ interface Props {
 
 export function NoForumActivity(props: Props) {
   const { isOwner, userInfo, activeTab, member } = props;
+  const { onMemberProfileForumActivityStartDiscussionClicked, onMemberProfileForumActivityBrowseDiscussionsClicked } =
+    useForumAnalytics();
 
   const isLoggedOut = !userInfo;
   const isPostsTab = activeTab === 'posts';
@@ -34,17 +37,37 @@ export function NoForumActivity(props: Props) {
     member,
   });
 
+  const handleStartDiscussionClick = () => {
+    onMemberProfileForumActivityStartDiscussionClicked({
+      memberUid: member.id,
+      memberName: member.name,
+      activeTab,
+    });
+  };
+
+  const handleBrowseDiscussionsClick = () => {
+    onMemberProfileForumActivityBrowseDiscussionsClicked({
+      memberUid: member.id,
+      memberName: member.name,
+      activeTab,
+    });
+  };
+
   return (
     <div className={s.root}>
       <EmptyIllustration />
       <div className={s.title}>{title}</div>
       <div className={s.description}>{description}</div>
       {isOwner && (
-        <Link href="/forum" className={s.link}>
+        <Link
+          href="/forum"
+          className={s.link}
+          onClick={isPostsTab ? handleStartDiscussionClick : handleBrowseDiscussionsClick}
+        >
           <Button style="border">{isPostsTab ? 'Start a discussion' : 'Browse forum discussions'}</Button>
         </Link>
       )}
-      {isLoggedOut && <AuthSection />}
+      {isLoggedOut && <AuthSection memberUid={member.id} memberName={member.name} activeTab={activeTab} />}
     </div>
   );
 }

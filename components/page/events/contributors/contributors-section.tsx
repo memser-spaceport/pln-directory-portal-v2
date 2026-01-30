@@ -9,7 +9,7 @@ import { TreemapCustomContent } from '@/components/core/events/treemap';
 import ShadowButton from '@/components/ui/ShadowButton';
 import { useEventsAnalytics } from '@/analytics/events.analytics';
 import Modal from '@/components/core/modal';
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PAGE_ROUTES, CONTRIBUTE_MODAL_VIDEO_URL } from '@/utils/constants';
 import { FormField } from '@/components/form/FormField';
@@ -48,9 +48,18 @@ export default function ContributorsSection({
   },
   userInfo,
 }: ContributorsSectionProps) {
-  const { onContributeButtonClicked, onContributtonModalCloseClicked, onContributeModalIRLProceedButtonClicked } =
-    useEventsAnalytics();
+  const {
+    onContributeButtonClicked,
+    onContributtonModalCloseClicked,
+    onContributeModalIRLProceedButtonClicked,
+    onContributorsSearchInputChanged,
+    onContributorsFilterSelected,
+    onContributorsTeamTreemapClicked,
+  } = useEventsAnalytics();
   const contributeRef = useRef<HTMLDialogElement>(null);
+  const previousSearchRef = useRef<string>('');
+  const previousFilterRef = useRef<string>('all');
+  const isInitialMountRef = useRef<boolean>(true);
 
   const methods = useForm({
     defaultValues: {
@@ -117,6 +126,42 @@ export default function ContributorsSection({
 
     return result;
   }, [teams, activeFilter, activeSearch]);
+
+  // Track search input changes
+  useEffect(() => {
+    if (isInitialMountRef.current) {
+      previousSearchRef.current = activeSearch;
+      isInitialMountRef.current = false;
+      return;
+    }
+    if (activeSearch !== previousSearchRef.current) {
+      onContributorsSearchInputChanged({
+        searchQuery: activeSearch,
+        previousQuery: previousSearchRef.current,
+        membersCount: filteredMembers.length,
+        teamsCount: filteredTeams.length,
+      });
+      previousSearchRef.current = activeSearch;
+    }
+  }, [activeSearch, filteredMembers.length, filteredTeams.length, onContributorsSearchInputChanged]);
+
+  // Track filter selection changes
+  useEffect(() => {
+    if (isInitialMountRef.current) {
+      previousFilterRef.current = activeFilter;
+      return;
+    }
+    if (activeFilter !== previousFilterRef.current) {
+      onContributorsFilterSelected({
+        filterValue: activeFilter as 'all' | 'host' | 'speaker' | 'sponsor',
+        previousFilter: previousFilterRef.current as 'all' | 'host' | 'speaker' | 'sponsor',
+        membersCount: filteredMembers.length,
+        teamsCount: filteredTeams.length,
+        resultsCount: filteredMembers.length + filteredTeams.length,
+      });
+      previousFilterRef.current = activeFilter;
+    }
+  }, [activeFilter, filteredMembers.length, filteredTeams.length, onContributorsFilterSelected]);
 
   const handleClearSearch = () => {
     setValue('search', '');
@@ -220,7 +265,21 @@ export default function ContributorsSection({
                     uid: team.uid,
                   }))}
                   dataKey="size"
-                  content={<TreemapCustomContent />}
+                  content={
+                    <TreemapCustomContent
+                      teamsData={filteredTeams}
+                      onTeamClick={(teamData: any) => {
+                        onContributorsTeamTreemapClicked({
+                          teamName: teamData.name,
+                          teamUid: teamData.uid,
+                          hostsCount: teamData.hosts,
+                          speakersCount: teamData.speakers,
+                          sponsorsCount: teamData.sponsors,
+                          size: teamData.hosts + teamData.speakers,
+                        });
+                      }}
+                    />
+                  }
                   fill={treemapConfig.backgroundColor}
                 >
                   <Tooltip content={ChartTooltip} />

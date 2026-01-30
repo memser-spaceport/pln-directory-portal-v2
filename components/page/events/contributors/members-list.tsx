@@ -20,6 +20,7 @@ interface MembersListProps {
 const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => {
   const [hoveredMember, setHoveredMember] = useState<number | null>(null);
   const analytics = useEventsAnalytics();
+  const { onContributorsViewMoreClicked } = analytics;
   const isMobile = useMedia('(max-width: 960px)', false);
 
   if (!members || members.length === 0) {
@@ -48,6 +49,11 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
   };
 
   const onOpenContributorsModal = () => {
+    onContributorsViewMoreClicked({
+      remainingCount,
+      totalCount: contributors.length,
+      visibleCount: MAX_VISIBLE_MEMBERS,
+    });
     analytics.onContributtonModalOpenClicked();
     document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: true }));
   };

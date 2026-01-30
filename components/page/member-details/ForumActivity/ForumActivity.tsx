@@ -7,6 +7,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
 import { HeaderActionBtn } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader/components/HeaderActionBtn';
+import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 import { ActiveTab } from './types';
 
@@ -32,6 +33,7 @@ export function ForumActivity(props: ForumActivityProps) {
   const { member, userInfo, isOwner } = props;
 
   const memberUid = member.id;
+  const { onMemberProfileForumActivityShowAllClicked } = useForumAnalytics();
 
   const [open, toggleOpen] = useToggle(false);
 
@@ -71,7 +73,18 @@ export function ForumActivity(props: ForumActivityProps) {
     <MemberDetailsSection>
       <MemberDetailsSectionHeader title="Forum Activity">
         {!!userInfo && hasAccess && (
-          <HeaderActionBtn onClick={toggleOpen}>
+          <HeaderActionBtn
+            onClick={() => {
+              onMemberProfileForumActivityShowAllClicked({
+                memberUid,
+                memberName: member.name,
+                activeTab,
+                postsCount,
+                commentsCount,
+              });
+              toggleOpen();
+            }}
+          >
             <EyeIcon />
             Show All
           </HeaderActionBtn>
@@ -83,6 +96,9 @@ export function ForumActivity(props: ForumActivityProps) {
         setActiveTab={setActiveTab}
         postsCount={postsCount}
         commentsCount={commentsCount}
+        memberUid={memberUid}
+        memberName={member.name}
+        location="section"
       />
 
       <ForumActivityCardsList
@@ -92,6 +108,7 @@ export function ForumActivity(props: ForumActivityProps) {
         posts={displayedPosts}
         comments={displayedComments}
         activeTab={activeTab}
+        location="section"
       />
 
       <ForumActivityModal

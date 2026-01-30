@@ -21,10 +21,11 @@ interface Props {
   isLoading?: boolean;
   posts: Topic[];
   comments: ForumComment[];
+  location?: 'section' | 'modal';
 }
 
 export function ForumActivityCardsList(props: Props) {
-  const { posts, member, isOwner, userInfo, comments, activeTab, isLoading } = props;
+  const { posts, member, isOwner, userInfo, comments, activeTab, isLoading, location = 'section' } = props;
 
   const hasAccess = hasForumAccess(userInfo.accessLevel);
   const hasContent = activeTab === 'posts' ? !isEmpty(posts) : !isEmpty(comments);
@@ -36,8 +37,21 @@ export function ForumActivityCardsList(props: Props) {
   if (hasContent && hasAccess) {
     return (
       <div className={s.root}>
-        {activeTab === 'posts' && posts.map((post) => <PostCard key={post.tid} post={post} />)}
-        {activeTab === 'comments' && comments.map((comment) => <CommentCard key={comment.pid} comment={comment} />)}
+        {activeTab === 'posts' &&
+          posts.map((post, index) => (
+            <PostCard key={post.tid} post={post} memberUid={member.id} memberName={member.name} location={location} position={index} />
+          ))}
+        {activeTab === 'comments' &&
+          comments.map((comment, index) => (
+            <CommentCard
+              key={comment.pid}
+              comment={comment}
+              memberUid={member.id}
+              memberName={member.name}
+              location={location}
+              position={index}
+            />
+          ))}
       </div>
     );
   }

@@ -14,7 +14,23 @@ export const Tooltip = RechartsTooltip;
 
 // Custom treemap content component
 export const TreemapCustomContent = (props: any) => {
-  const { x, y, width, height, index, name, depth, colors, root, activeIndex, logo, uid } = props;
+  const {
+    x,
+    y,
+    width,
+    height,
+    index,
+    name,
+    depth,
+    colors,
+    root,
+    activeIndex,
+    logo,
+    uid,
+    payload,
+    onTeamClick,
+    teamsData,
+  } = props;
 
   const analytics = useEventsAnalytics();
   const colorSets = {
@@ -38,7 +54,18 @@ export const TreemapCustomContent = (props: any) => {
               : colorSet[0];
 
   const onContributorClick = (contributor: any) => {
-    analytics.onContributingTeamClicked(contributor);
+    if (onTeamClick && teamsData && typeof index === 'number' && teamsData[index]) {
+      const teamData = teamsData[index];
+      onTeamClick({
+        name: teamData.name,
+        uid: teamData.uid,
+        hosts: teamData.hosts,
+        speakers: teamData.speakers,
+        sponsors: teamData.sponsors,
+      });
+    } else {
+      analytics.onContributingTeamClicked(contributor);
+    }
     window.open('/teams/' + contributor, '_blank');
   };
 

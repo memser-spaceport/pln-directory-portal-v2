@@ -47,7 +47,7 @@ export function AuthSection(props: AuthSectionProps) {
       </Link>
 
       <div className={s.signUpContainer}>
-        Don't have an account?{' '}
+        Don&apos;t have an account?{' '}
         <Link
           href={`${PAGE_ROUTES.SIGNUP}?returnTo=${typeof window !== 'undefined' ? window.location.pathname : ''}`}
           className={s.signUp}

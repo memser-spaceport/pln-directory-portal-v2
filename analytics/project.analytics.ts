@@ -222,6 +222,14 @@ export const useProjectAnalytics = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_CONTRIBUTOR_PROFILE_CLICKED, params);
   }
 
+  function onProjectDetailContributorsModalSearchChanged(params: {
+    searchQuery: string;
+    resultsCount: number;
+    totalCount: number;
+  }) {
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_CONTRIBUTORS_MODAL_SEARCH_CHANGED, params);
+  }
+
   function onProjectFilterApplied(user: IAnalyticsUserInfo | null, team: any) {
     const params = {
       user,
@@ -388,6 +396,7 @@ export const useProjectAnalytics = () => {
     onProjectDetailSeeAllTeamsClicked,
     onProjDetailSeeAllContributorsClicked,
     onProjectDetailContributorClicked,
+    onProjectDetailContributorsModalSearchChanged,
     onProjectFilterApplied,
     onProjectFilterCleared,
     onProjectClicked,

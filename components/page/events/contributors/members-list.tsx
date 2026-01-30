@@ -25,7 +25,7 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
 
   if (!members || members.length === 0) {
     return (
-      <EmptyState title="No contributors match your search" description="Try a different keyword or clear filters." />
+      <EmptyState title="No matching members found" description="Try a different keyword or clear filters." />
     );
   }
 

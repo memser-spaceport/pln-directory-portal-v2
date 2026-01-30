@@ -60,7 +60,7 @@ export function NoForumActivity(props: Props) {
       <div className={s.description}>{description}</div>
       {isOwner && (
         <Link
-          href="/forum"
+          href={isPostsTab ? '/forum/posts/new' : '/forum'}
           className={s.link}
           onClick={isPostsTab ? handleStartDiscussionClick : handleBrowseDiscussionsClick}
         >

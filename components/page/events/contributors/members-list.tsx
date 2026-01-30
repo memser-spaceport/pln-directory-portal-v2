@@ -24,7 +24,9 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
   const isMobile = useMedia('(max-width: 960px)', false);
 
   if (!members || members.length === 0) {
-    return <EmptyState title="No matching members found" description="Try a different keyword or clear filters." />;
+    return (
+      <EmptyState title="No matching members found" description="Try a different keyword or clear filters." />
+    );
   }
 
   const contributors = members.filter(

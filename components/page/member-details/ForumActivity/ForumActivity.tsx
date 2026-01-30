@@ -70,7 +70,7 @@ export function ForumActivity(props: ForumActivityProps) {
   return (
     <MemberDetailsSection>
       <MemberDetailsSectionHeader title="Forum Activity">
-        {!!userInfo && (
+        {!!userInfo && hasAccess && (
           <HeaderActionBtn onClick={toggleOpen}>
             <EyeIcon />
             Show All

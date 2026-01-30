@@ -7,6 +7,7 @@ import { EVENTS } from '@/utils/constants';
 import HostSpeakersList from '../hosts-speakers-list';
 import { useEventsAnalytics } from '@/analytics/events.analytics';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { EmptyState } from '@/components/common/EmptyState';
 
 import s from './ContributorsSection.module.scss';
 import { useMedia } from 'react-use';
@@ -22,7 +23,12 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
   const isMobile = useMedia('(max-width: 960px)', false);
 
   if (!members || members.length === 0) {
-    return <div className={s.noResults}>No members available</div>;
+    return (
+      <EmptyState
+        title="No contributors match your search"
+        description="Try a different keyword or clear filters."
+      />
+    );
   }
 
   const contributors = members.filter(

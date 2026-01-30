@@ -14,6 +14,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { PAGE_ROUTES, CONTRIBUTE_MODAL_VIDEO_URL } from '@/utils/constants';
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
+import { EmptyState } from '@/components/common/EmptyState';
 import s from './ContributorsSection.module.scss';
 
 const FILTER_OPTIONS = [
@@ -102,6 +103,7 @@ export default function ContributorsSection({
           return team.speakers > 0;
         }
         if (activeFilter === 'sponsor') {
+          console.log(team, 'team');
           return team.sponsors > 0;
         }
         return true;
@@ -213,6 +215,7 @@ export default function ContributorsSection({
                     size: team.hosts + team.speakers,
                     speakers: team.speakers,
                     hosts: team.hosts,
+                    sponsors: team.sponsors,
                     logo: team.logo,
                     uid: team.uid,
                   }))}
@@ -225,7 +228,10 @@ export default function ContributorsSection({
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className={s.noResults}>No matching teams found</div>
+            <EmptyState
+              title="No teams match your search"
+              description="Try a different keyword or clear filters."
+            />
           )}
         </div>
 

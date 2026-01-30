@@ -72,10 +72,12 @@ export const getEventContributors = async () => {
       ?.map((event: any) => {
         let hostCount = 0;
         let speakerCount = 0;
+        let sponsorsCount = 0;
 
         event.eventGuests.forEach((guest: any) => {
           if (guest.isHost) hostCount++;
           if (guest.isSpeaker) speakerCount++;
+          if (guest.isSponsor) sponsorsCount++;
         });
 
         return {
@@ -83,7 +85,8 @@ export const getEventContributors = async () => {
           name: event.name,
           hosts: hostCount,
           speakers: speakerCount,
-          total: hostCount + speakerCount,
+          sponsors: sponsorsCount,
+          total: hostCount + speakerCount + sponsorsCount,
           logo: event.logo?.url,
         };
       })

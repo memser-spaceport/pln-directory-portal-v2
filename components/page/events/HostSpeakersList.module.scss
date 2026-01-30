@@ -1,0 +1,151 @@
+@use 'styles/media';
+
+.container {
+  padding: 24px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  overflow: auto;
+  border-radius: 12px;
+  background: #fff;
+
+  @include media.tablet-landscape {
+    width: 480px;
+    height: 60vh;
+  }
+}
+
+.header {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: 0px;
+  color: #0f172a;
+  background-color: #ffffff;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.contributorsList {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: auto;
+}
+
+.searchWrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  padding-left: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.searchInput {
+  display: flex;
+  width: 100%;
+  padding: 10px 15px 10px 36px;
+  background-color: #ffffff;
+  border-width: 0px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #475569;
+
+  &:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+}
+
+.clearIcon {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.contributorWrapper {
+  padding: 8px;
+  border-bottom: 1px solid #e2e8f0;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f1f5f9;
+  }
+}
+
+.contributor {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.contributorInfo {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.contributorImageWrapper {
+  position: relative;
+}
+
+.contributorImage {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.contributorName {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0px;
+  color: #0f172a;
+}
+
+.contributorNav {
+  display: flex;
+}
+
+.notFound {
+  color: #0f172a;
+  text-align: center;
+  font-size: 14px;
+}
+
+@media (min-width: 1024px) {
+  .container {
+    width: 512px;
+  }
+}
+
+.modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: unset;
+  margin: 0 auto;
+  max-width: unset;
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import HeroSection from './sections/hero-section';
 import ActivityTable from './sections/activity-table';
 import ActivityDetailModal from './sections/activity-detail-modal';
@@ -29,6 +29,8 @@ export default function ActivitiesComponent() {
     });
     setSelectedActivity(activity);
     setIsModalOpen(true);
+    
+    window.history.pushState(null, '', `#${activity.id}`);
   };
 
   const handleCloseModal = () => {
@@ -42,7 +44,40 @@ export default function ActivitiesComponent() {
     }
     setIsModalOpen(false);
     setSelectedActivity(null);
+    
+    window.history.pushState(null, '', window.location.pathname + window.location.search);
   };
+
+
+  const handleHashNavigation = useCallback(() => {
+    const hash = window.location.hash.slice(1); // Remove '#' prefix
+    
+    if (hash) {
+      const activity = activitiesData.activities.find(a => a.id === hash);
+      
+      if (activity) {
+        setSelectedActivity(activity);
+        setIsModalOpen(true);
+      }
+    } else {
+      // No hash, close modal if open
+      if (isModalOpen) {
+        setIsModalOpen(false);
+        setSelectedActivity(null);
+      }
+    }
+  }, [isModalOpen]);
+
+  useEffect(() => {
+    // Check hash on initial load (for direct links like /activities#host-x-space)
+    handleHashNavigation();
+
+    window.addEventListener('hashchange', handleHashNavigation);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashNavigation);
+    };
+  }, [handleHashNavigation]);
 
   return (
     <>

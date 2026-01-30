@@ -112,7 +112,6 @@ export default function ContributorsSection({
           return team.speakers > 0;
         }
         if (activeFilter === 'sponsor') {
-          console.log(team, 'team');
           return team.sponsors > 0;
         }
         return true;
@@ -257,7 +256,7 @@ export default function ContributorsSection({
                 <TeamsTreemap
                   data={filteredTeams.map((team) => ({
                     name: team.name,
-                    size: team.hosts + team.speakers,
+                    size: team.hosts + team.speakers + team.sponsors,
                     speakers: team.speakers,
                     hosts: team.hosts,
                     sponsors: team.sponsors,
@@ -287,10 +286,7 @@ export default function ContributorsSection({
               </ResponsiveContainer>
             </div>
           ) : (
-            <EmptyState
-              title="No teams match your search"
-              description="Try a different keyword or clear filters."
-            />
+            <EmptyState title="No teams match your search" description="Try a different keyword or clear filters." />
           )}
         </div>
 

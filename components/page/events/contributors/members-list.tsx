@@ -25,10 +25,7 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
 
   if (!members || members.length === 0) {
     return (
-      <EmptyState
-        title="No contributors match your search"
-        description="Try a different keyword or clear filters."
-      />
+      <EmptyState title="No contributors match your search" description="Try a different keyword or clear filters." />
     );
   }
 
@@ -36,7 +33,12 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
     (item) =>
       item.isHost ||
       item.isSpeaker ||
-      (item.events && item.events.some((event: { isHost: any; isSpeaker: any }) => event.isHost || event.isSpeaker)),
+      item.isSponsor ||
+      (item.events &&
+        item.events.some(
+          (event: { isHost: any; isSpeaker: any; isSponsor: any }) =>
+            event.isHost || event.isSpeaker || event.isSponsor,
+        )),
   );
 
   const MAX_VISIBLE_MEMBERS = isMobile ? 30 : 100;

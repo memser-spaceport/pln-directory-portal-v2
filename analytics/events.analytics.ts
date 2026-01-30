@@ -57,6 +57,14 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTOR_LIST_OPEN_CLICKED);
   }
 
+  function onContributorListSearchChanged(params: {
+    searchQuery: string;
+    resultsCount: number;
+    totalCount: number;
+  }) {
+    captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTOR_LIST_SEARCH_CHANGED, params);
+  }
+
   function onViewAllGatheringsClicked() {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_VIEW_ALL_GATHERINGS_CLICKED);
   }
@@ -165,6 +173,7 @@ export const useEventsAnalytics = () => {
     onContributorListClicked,
     onContributtonModalCloseClicked,
     onContributtonModalOpenClicked,
+    onContributorListSearchChanged,
     onViewAllGatheringsClicked,
     onViewAllEventsClicked,
     onCarouselLeftClicked,

@@ -124,7 +124,10 @@ export const getGuestDetail = async () => {
         item.isHost ||
         item.isSpeaker ||
         item.isSponsor ||
-        item.events?.some((event: { isHost: any; isSpeaker: any }) => event.isHost || event.isSpeaker);
+        item.events?.some(
+          (event: { isHost: any; isSpeaker: any; isSponsor: any }) =>
+            event.isHost || event.isSpeaker || event.isSponsor,
+        );
 
       if (!isContributor) return;
 

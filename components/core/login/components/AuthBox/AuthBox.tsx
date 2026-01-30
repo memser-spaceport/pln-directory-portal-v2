@@ -23,19 +23,20 @@ const PRIVY_CONFIG = {
  * AuthBox - Main authentication wrapper component
  *
  * Provides Privy authentication context and renders auth-related modals.
- * Shows login modal when URL hash is #login.
+ * Shows login modal when URL hash is #login and user is not authenticated.
  */
-export function AuthBox() {
+export function AuthBox({ isLoggedIn }: { isLoggedIn: boolean }) {
   const hash = useHash();
   const router = useRouter();
-  const isLoginPopup = hash === '#login';
+  const isLoginPopup = hash === '#login' && !isLoggedIn;
 
   // Prevent authenticated users from accessing login modal
   useEffect(() => {
-    if (Cookies.get('refreshToken')) {
+    if (isLoggedIn && hash === '#login') {
+      // Only redirect if the hash is specifically #login, preserve other hashes
       router.push(`${window.location.pathname}${window.location.search}`);
     }
-  }, [router]);
+  }, [router, hash, isLoggedIn]);
 
   return (
     <PrivyProvider appId={process.env.PRIVY_AUTH_ID as string} config={PRIVY_CONFIG}>

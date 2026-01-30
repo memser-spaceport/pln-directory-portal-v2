@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import HeroSection from './sections/hero-section';
 import ActivityTable from './sections/activity-table';
 import ActivityDetailModal from './sections/activity-detail-modal';
@@ -9,6 +9,7 @@ import { activitiesData } from './data';
 import { Activity } from './types';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
+import useHash from '@/hooks/useHash';
 
 /**
  * ActivitiesComponent - Main component for displaying activities and points collection
@@ -19,6 +20,12 @@ export default function ActivitiesComponent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { onActivitiesRowClicked, onActivitiesModalClosed } = useAlignmentAssetsAnalytics();
   useScrollDepthTracking('activities');
+  
+  // Track if we're programmatically updating the hash to avoid triggering hash listener
+  const isUpdatingHashRef = useRef(false);
+  
+  // Get current hash from URL
+  const hash = useHash();
 
   const handleRowClick = (activity: Activity) => {
     onActivitiesRowClicked({
@@ -29,6 +36,13 @@ export default function ActivitiesComponent() {
     });
     setSelectedActivity(activity);
     setIsModalOpen(true);
+    
+    // Update URL hash
+    isUpdatingHashRef.current = true;
+    window.history.pushState(null, '', `#${activity.id}`);
+    setTimeout(() => {
+      isUpdatingHashRef.current = false;
+    }, 0);
   };
 
   const handleCloseModal = () => {
@@ -42,7 +56,34 @@ export default function ActivitiesComponent() {
     }
     setIsModalOpen(false);
     setSelectedActivity(null);
+    
+    // Remove hash from URL
+    isUpdatingHashRef.current = true;
+    window.history.pushState(null, '', window.location.pathname + window.location.search);
+    isUpdatingHashRef.current = false;
   };
+
+  useEffect(() => {
+    // Ignore if we're programmatically updating the hash
+    if (isUpdatingHashRef.current) {
+      return;
+    }
+    
+    if (hash) {
+      // Remove '#' prefix if present
+      const activityId = hash.startsWith('#') ? hash.slice(1) : hash;
+      const activity = activitiesData.activities.find(a => a.id === activityId);
+      
+      if (activity) {
+        setSelectedActivity(activity);
+        setIsModalOpen(true);
+      }
+    } else {
+      // No hash, close modal if open
+      setIsModalOpen(false);
+      setSelectedActivity(null);
+    }
+  }, [hash]);
 
   return (
     <>

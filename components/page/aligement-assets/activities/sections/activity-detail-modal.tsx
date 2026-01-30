@@ -189,6 +189,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           position: relative;
           max-height: 80vh;
           overflow-y: auto;
+          margin: auto;
         }
 
         .activity-modal__close {

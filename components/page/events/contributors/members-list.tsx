@@ -41,7 +41,7 @@ const MembersList: React.FC<MembersListProps> = ({ members = [], userInfo }) => 
         )),
   );
 
-  const MAX_VISIBLE_MEMBERS = isMobile ? 30 : 100;
+  const MAX_VISIBLE_MEMBERS = isMobile ? 30 : 300;
   const visibleMembers = contributors.slice(0, MAX_VISIBLE_MEMBERS);
   const remainingCount = contributors.length - MAX_VISIBLE_MEMBERS;
 

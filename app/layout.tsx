@@ -101,7 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <CompleteYourProfile userInfo={userInfo} />
                   <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
                 </header>
-                <AuthBox />
+                <AuthBox isLoggedIn={isLoggedIn} />
                 <ContactSupport userInfo={userInfo} />
               </ContactSupportContextProvider>
               <DemoDayStats />

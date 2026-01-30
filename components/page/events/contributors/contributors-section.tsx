@@ -112,7 +112,6 @@ export default function ContributorsSection({
           return team.speakers > 0;
         }
         if (activeFilter === 'sponsor') {
-          console.log(team, 'team');
           return team.sponsors > 0;
         }
         return true;

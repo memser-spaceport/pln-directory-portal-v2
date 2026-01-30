@@ -40,6 +40,11 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
 
     if (!searchValue.trim()) {
       setFilteredContriList(contributorsList);
+      analytics.onContributorListSearchChanged({
+        searchQuery: '',
+        resultsCount: contributorsList.length,
+        totalCount: contributorsList.length,
+      });
       return;
     }
 
@@ -48,6 +53,12 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
       member?.member?.name?.toLowerCase()?.includes(searchTermLower),
     );
     setFilteredContriList(filteredMembers);
+
+    analytics.onContributorListSearchChanged({
+      searchQuery: searchValue,
+      resultsCount: filteredMembers.length,
+      totalCount: contributorsList.length,
+    });
   };
 
   const onModalCloseClickHandler = () => {
@@ -79,6 +90,11 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
                 onClick={() => {
                   setSearchTerm('');
                   setFilteredContriList(contributorsList);
+                  analytics.onContributorListSearchChanged({
+                    searchQuery: '',
+                    resultsCount: contributorsList.length,
+                    totalCount: contributorsList.length,
+                  });
                 }}
               >
                 <Image src="/icons/close.svg" alt="Clear search" width={14} height={14} />

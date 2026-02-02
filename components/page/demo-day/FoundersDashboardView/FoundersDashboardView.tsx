@@ -73,17 +73,17 @@ const MOCK_INVESTORS: Investor[] = [
 const columnHelper = createColumnHelper<Investor>();
 
 const LEGEND_ITEMS = [
-  { label: 'Page Views', color: '#156FF7' },
-  { label: 'Slide Views', color: '#44D5BB' },
-  { label: 'Video Views', color: '#F59E0B' },
-  { label: 'Founder', color: '#EF4444' },
-  { label: 'Team Page', color: '#8B5CF6' },
-  { label: 'Team Website', color: '#EC4899' },
-  { label: 'Liked', color: '#10B981' },
-  { label: 'Connected', color: '#6366F1' },
-  { label: 'Invest', color: '#F97316' },
-  { label: 'Intro Requested', color: '#14B8A6' },
-  { label: 'Feedback Requested', color: '#A855F7' },
+  { label: 'Profile Viewed', color: '#156FF7' },
+  { label: 'Investment interest', color: '#44D5BB' },
+  { label: 'Connected', color: '#F59E0B' },
+  { label: 'Liked', color: '#EF4444' },
+  { label: 'Intro made', color: '#8B5CF6' },
+  { label: 'Feedback given', color: '#EC4899' },
+  { label: 'Viewed slide', color: '#10B981' },
+  { label: 'Video watched', color: '#6366F1' },
+  { label: 'Founder profile clicked', color: '#F97316' },
+  { label: 'Team page clicked', color: '#14B8A6' },
+  { label: 'Team website clicked', color: '#A855F7' },
 ];
 
 interface FoundersDashboardViewProps {

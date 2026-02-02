@@ -40,9 +40,10 @@ import {
   CalendarIcon,
   SearchIcon,
 } from '@/components/page/demo-day/FoundersDashboardView/components/Icons';
-import { DateRangeValue, Investor, TableFiltersForm } from './types';
+import { DateRangeValue, EngagementChartDataPoint, Investor, LegendItem, TableFiltersForm } from './types';
 import { ArrowUpRightIcon } from '@/components/icons';
 import { getStatusConfig, INTERACTION_OPTIONS, SORT_OPTIONS } from './helpers';
+import { EngagementChart } from './components/EngagementChart';
 
 const MOCK_INVESTORS: Investor[] = [
   {
@@ -69,7 +70,7 @@ const MOCK_INVESTORS: Investor[] = [
   },
 ];
 
-const MOCK_CHART_DATA = [
+const MOCK_CHART_DATA: EngagementChartDataPoint[] = [
   {
     date: new Date(2026, 0, 20),
     profileViewed: 1590,
@@ -103,7 +104,7 @@ const MOCK_CHART_DATA = [
 // Create column helper for type-safe column definitions
 const columnHelper = createColumnHelper<Investor>();
 
-const LEGEND_ITEMS = [
+const LEGEND_ITEMS: LegendItem[] = [
   { label: 'Profile Viewed', color: '#156FF7' },
   { label: 'Investment interest', color: '#44D5BB' },
   { label: 'Connected', color: '#F59E0B' },
@@ -468,10 +469,7 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
                 </div>
               ))}
             </div>
-            <div className={s.chartPlaceholder}>
-              <p>Chart visualization placeholder</p>
-              <p className={s.chartNote}>Stacked bar chart showing daily engagement data</p>
-            </div>
+            <EngagementChart data={MOCK_CHART_DATA} legendItems={LEGEND_ITEMS} />
           </div>
         </section>
 

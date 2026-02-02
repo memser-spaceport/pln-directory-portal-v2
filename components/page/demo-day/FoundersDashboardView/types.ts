@@ -21,3 +21,25 @@ export type TableFiltersForm = {
   interaction: { label: string; value: string } | null;
   sortBy: { label: string; value: string } | null;
 };
+
+// Type for engagement chart data
+export type EngagementChartDataPoint = {
+  date: Date;
+  profileViewed: number;
+  interested: number;
+  connected: number;
+  liked: number;
+  introMade: number;
+  feedbackGiven: number;
+  viewedSlide: number;
+  videoWatched: number;
+  founderProfileClicked: number;
+  teamPageClicked: number;
+  teamWebsiteClicked: number;
+};
+
+// Type for legend item
+export type LegendItem = {
+  label: string;
+  color: string;
+};

@@ -34,7 +34,12 @@
   display: flex;
   flex-direction: column;
 
-  overflow: hidden;
+  max-height: 60vh;
+}
+
+.scrollContainer {
+  flex: 1;
+  overflow: auto;
 }
 
 .tabs {
@@ -44,11 +49,4 @@
   .tab {
     flex: 1;
   }
-}
-
-.pagination {
-  flex-shrink: 0;
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid rgba(27, 56, 96, 0.12);
 }

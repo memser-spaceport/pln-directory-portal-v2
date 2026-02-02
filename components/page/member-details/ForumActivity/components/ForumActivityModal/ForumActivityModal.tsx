@@ -1,11 +1,9 @@
-import { useMedia } from 'react-use';
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { IUserInfo } from '@/types/shared.types';
 import { IMember } from '@/types/members.types';
 import { Topic } from '@/services/forum/hooks/useForumPosts';
 import { ModalBase } from '@/components/common/ModalBase';
-import { Pagination } from '@/components/common/Pagination';
 import type { ForumComment } from '@/components/page/member-details/ForumActivity/hooks/useUserForumComments';
 import { ForumActivityTabs } from '@/components/page/member-details/ForumActivity/components/ForumActivityTabs';
 import { ForumActivityCardsList } from '@/components/page/member-details/ForumActivity/components/ForumActivityCardsList';
@@ -13,8 +11,6 @@ import { ActiveTab } from '@/components/page/member-details/ForumActivity/types'
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 import s from './ForumActivityModal.module.scss';
-
-const PAGE_SIZE = 5;
 
 interface Props {
   open: boolean;
@@ -35,6 +31,8 @@ interface Props {
   hasNextCommentsPage: boolean;
   isFetchingNextCommentsPage: boolean;
 }
+
+const SCROLL_CONTAINER_ID = 'forum-activity-scroll-container';
 
 export function ForumActivityModal(props: Props) {
   const {
@@ -58,47 +56,11 @@ export function ForumActivityModal(props: Props) {
   } = props;
 
   const { onMemberProfileForumActivityModalOpened, onMemberProfileForumActivityModalClosed } = useForumAnalytics();
-  const isTablet = useMedia('(max-width: 960px)');
   const prevOpenRef = useRef(open);
 
-  const [postsPage, setPostsPage] = useState(1);
-  const [commentsPage, setCommentsPage] = useState(1);
-
-  const totalPostsPages = Math.ceil(postsCount / PAGE_SIZE);
-  const totalCommentsPages = Math.ceil(commentsCount / PAGE_SIZE);
-
-  const currentPage = activeTab === 'posts' ? postsPage : commentsPage;
-  const setCurrentPage = activeTab === 'posts' ? setPostsPage : setCommentsPage;
-  const totalPages = activeTab === 'posts' ? totalPostsPages : totalCommentsPages;
-
-  const items = activeTab === 'posts' ? posts : comments;
   const hasNextPage = activeTab === 'posts' ? hasNextPostsPage : hasNextCommentsPage;
   const isFetchingNextPage = activeTab === 'posts' ? isFetchingNextPostsPage : isFetchingNextCommentsPage;
   const fetchNextPage = activeTab === 'posts' ? fetchNextPostsPage : fetchNextCommentsPage;
-
-  // Calculate which items to display for the current page
-  const startIndex = (currentPage - 1) * PAGE_SIZE;
-  const endIndex = startIndex + PAGE_SIZE;
-
-  const paginatedPosts = useMemo(() => posts.slice(startIndex, endIndex), [posts, startIndex, endIndex]);
-  const paginatedComments = useMemo(() => comments.slice(startIndex, endIndex), [comments, startIndex, endIndex]);
-
-  // Check if we need to fetch more data for the current page
-  const needsMoreData = endIndex > items.length && hasNextPage;
-
-  // Fetch more data when needed
-  useEffect(() => {
-    if (needsMoreData && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [needsMoreData, isFetchingNextPage, fetchNextPage]);
-
-  const handlePageChange = useCallback(
-    (page: number) => {
-      setCurrentPage(page);
-    },
-    [setCurrentPage],
-  );
 
   // Track modal opened/closed
   useEffect(() => {
@@ -116,14 +78,9 @@ export function ForumActivityModal(props: Props) {
         memberName: member.name,
         activeTab,
       });
-      setPostsPage(1);
-      setCommentsPage(1);
     }
     prevOpenRef.current = open;
   }, [open]);
-
-  // Determine if we're loading data for the current page
-  const isLoadingCurrentPage = isFetchingNextPage && needsMoreData;
 
   return (
     <ModalBase
@@ -157,32 +114,20 @@ export function ForumActivityModal(props: Props) {
             }}
           />
 
-          <ForumActivityCardsList
-            isOwner={isOwner}
-            member={member}
-            userInfo={userInfo}
-            activeTab={activeTab}
-            isLoading={isLoadingCurrentPage}
-            posts={paginatedPosts}
-            comments={paginatedComments}
-            location="modal"
-          />
-
-          {totalPages > 1 && (
-            <Pagination
-              count={totalPages}
-              page={currentPage}
-              onChange={handlePageChange}
-              disabled={isFetchingNextPage}
-              className={s.pagination}
-              previous={{
-                showLabel: !isTablet,
-              }}
-              next={{
-                showLabel: !isTablet,
-              }}
+          <div className={s.scrollContainer} id={SCROLL_CONTAINER_ID}>
+            <ForumActivityCardsList
+              isOwner={isOwner}
+              member={member}
+              userInfo={userInfo}
+              activeTab={activeTab}
+              posts={posts}
+              comments={comments}
+              hasMore={hasNextPage}
+              fetchNextPage={fetchNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              scrollableTarget={SCROLL_CONTAINER_ID}
             />
-          )}
+          </div>
         </div>
       </div>
     </ModalBase>

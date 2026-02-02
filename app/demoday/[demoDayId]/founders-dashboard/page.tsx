@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDemoDayState } from '@/app/actions/demo-day.actions';
+import { FoundersDashboardView } from '@/components/page/demo-day/FoundersDashboardView';
 
 export default async function FoundersDashboardPage({ params }: { params: { demoDayId: string } }) {
   const { userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
@@ -14,5 +15,5 @@ export default async function FoundersDashboardPage({ params }: { params: { demo
     redirect(`/demoday/${params.demoDayId}`);
   }
 
-  return <div>Founder dashboard view</div>;
+  return <FoundersDashboardView demoDayState={demoDayState} userInfo={userInfo} />;
 }

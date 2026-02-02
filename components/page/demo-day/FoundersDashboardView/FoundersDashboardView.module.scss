@@ -1,0 +1,863 @@
+@use 'styles/media';
+
+.root {
+  margin: 0 auto;
+  max-width: 1440px;
+  padding: 64px 48px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  @include media.mobile-only {
+    padding: 24px 16px;
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+}
+
+// Header
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+
+  @include media.mobile-only {
+    flex-direction: column;
+  }
+}
+
+.titleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.title {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 42px;
+  letter-spacing: -0.8px;
+  margin: 0;
+
+  @include media.mobile-only {
+    font-size: 24px;
+    line-height: 32px;
+  }
+}
+
+.betaTag {
+  font-size: 12px;
+}
+
+.subtitle {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+.datePickerWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.datePickerLabel {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.dateRangePicker {
+  :global(.react-daterange-picker__wrapper) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(14, 15, 17, 0.24);
+    background: #fff;
+    box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+    height: 48px;
+    min-width: 240px;
+
+    &:hover {
+      border-color: rgba(14, 15, 17, 0.4);
+    }
+
+    &:focus-within {
+      border-color: var(--action-border-neutral-light-focus, rgba(14, 15, 17, 0.24));
+      outline: 2px solid var(--foreground-brand-primary, #156ff7);
+      outline-offset: 1px;
+    }
+  }
+
+  :global(.react-daterange-picker__inputGroup) {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-width: 0;
+  }
+
+  :global(.react-daterange-picker__inputGroup__input) {
+    color: var(--action-foreground-neutral-normal, #455468);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0;
+    min-width: 0;
+
+    &::placeholder {
+      color: var(--action-foreground-neutral-normal, #455468);
+    }
+  }
+
+  :global(.react-daterange-picker__inputGroup__divider) {
+    color: var(--action-foreground-neutral-normal, #455468);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  :global(.react-daterange-picker__range-divider) {
+    color: var(--action-foreground-neutral-normal, #455468);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 0 4px;
+  }
+
+  :global(.react-daterange-picker__button) {
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  :global(.react-daterange-picker__calendar) {
+    z-index: 100;
+  }
+}
+
+.calendar {
+  //:global(.react-calendar) {
+  //  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.12));
+  //  border-radius: 12px;
+  //  box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.1);
+  //  font-family: 'Inter', sans-serif;
+  //}
+  //
+  //:global(.react-calendar__tile--active) {
+  //  background: var(--foreground-brand-primary, #156ff7);
+  //  color: #fff;
+  //}
+  //
+  //:global(.react-calendar__tile--rangeStart),
+  //:global(.react-calendar__tile--rangeEnd) {
+  //  background: var(--foreground-brand-primary, #156ff7);
+  //  color: #fff;
+  //  border-radius: 8px;
+  //}
+  //
+  //:global(.react-calendar__tile--hasActive) {
+  //  background: var(--background-brand-subtle, #e6eeff);
+  //}
+
+  :global {
+    .react-calendar {
+      width: 100%;
+      border: 1px solid rgba(14, 15, 17, 0.16);
+      border-radius: 12px;
+      font-family: 'Inter', sans-serif;
+      background: white;
+      box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+    }
+
+    .react-calendar__navigation {
+      display: flex;
+      height: 44px;
+      margin-bottom: 0;
+
+      button {
+        min-width: 44px;
+        background: none;
+        font-size: 14px;
+        font-weight: 500;
+        color: #0a0c11;
+
+        &:disabled {
+          background-color: transparent;
+          color: #afbaca;
+        }
+
+        &:enabled:hover,
+        &:enabled:focus {
+          background-color: rgba(27, 77, 255, 0.04);
+        }
+      }
+    }
+
+    .react-calendar__month-view__weekdays {
+      text-align: center;
+      text-transform: uppercase;
+      font-size: 11px;
+      font-weight: 600;
+      color: #455468;
+
+      abbr {
+        text-decoration: none;
+      }
+    }
+
+    .react-calendar__month-view__days__day {
+      font-size: 14px;
+      color: #0a0c11;
+
+      &--weekend {
+        color: #0a0c11;
+      }
+
+      &--neighboringMonth {
+        color: #afbaca;
+      }
+    }
+
+    .react-calendar__tile {
+      max-width: 100%;
+      padding: 10px 6px;
+      background: none;
+      text-align: center;
+      line-height: 16px;
+      font-size: 14px;
+      border-radius: 8px;
+
+      &:disabled {
+        background-color: transparent;
+        color: #afbaca;
+      }
+
+      &:enabled:hover,
+      &:enabled:focus {
+        background-color: rgba(27, 77, 255, 0.08);
+      }
+    }
+
+    .react-calendar__tile--now {
+      background: rgba(27, 77, 255, 0.08);
+
+      &:enabled:hover,
+      &:enabled:focus {
+        background: rgba(27, 77, 255, 0.12);
+      }
+    }
+
+    .react-calendar__tile--hasActive {
+      background: #1b4dff;
+      color: white;
+
+      &:enabled:hover,
+      &:enabled:focus {
+        background: #1a45e6;
+      }
+    }
+
+    .react-calendar__tile--active {
+      background: #1b4dff;
+      color: white;
+
+      &:enabled:hover,
+      &:enabled:focus {
+        background: #1a45e6;
+      }
+    }
+
+    .react-calendar__tile--range {
+      background: rgba(27, 77, 255, 0.12);
+      color: #0a0c11;
+      border-radius: 0;
+    }
+
+    .react-calendar__tile--rangeStart {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+      background: #1b4dff;
+      color: white;
+    }
+
+    .react-calendar__tile--rangeEnd {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+      background: #1b4dff;
+      color: white;
+    }
+
+    .react-calendar__tile--rangeBothEnds {
+      border-radius: 8px;
+    }
+  }
+
+  :global {
+    .react-calendar {
+      width: 100%;
+      border: none;
+      border-radius: 0;
+      font-family: 'Inter', sans-serif;
+      background: white;
+    }
+
+    .react-calendar__navigation {
+      display: flex;
+      height: 48px;
+      margin-bottom: 0;
+      padding: 0 0 10px;
+
+      button {
+        min-width: 36px;
+        background: rgba(14, 15, 17, 0.04);
+        border-radius: 9999px;
+        font-size: 20px;
+        font-weight: 500;
+        color: #0a0c11;
+
+        &:disabled {
+          background-color: transparent;
+          color: #afbaca;
+        }
+
+        &:enabled:hover,
+        &:enabled:focus {
+          background-color: rgba(27, 77, 255, 0.08);
+        }
+      }
+
+      .react-calendar__navigation__label {
+        background: transparent;
+        font-size: 16px;
+        font-weight: 500;
+        color: #0a0c11;
+
+        &:enabled:hover,
+        &:enabled:focus {
+          background-color: transparent;
+        }
+      }
+
+      .react-calendar__navigation__arrow {
+        font-size: 14px;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .react-calendar__month-view__weekdays {
+      text-align: center;
+      text-transform: capitalize;
+      font-size: 14px;
+      font-weight: 500;
+      color: #8897ae;
+      padding-bottom: 4px;
+
+      abbr {
+        text-decoration: none;
+      }
+    }
+
+    .react-calendar__month-view__days__day {
+      font-size: 14px;
+      font-weight: 600;
+      color: #455468;
+
+      &--weekend {
+        color: #455468;
+      }
+
+      &--neighboringMonth {
+        color: #d7dfe9;
+      }
+    }
+
+    .react-calendar__tile {
+      max-width: 100%;
+      padding: 12px 4px;
+      background: none;
+      text-align: center;
+      line-height: 24px;
+      font-size: 16px;
+      border-radius: 9999px;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:disabled {
+        background-color: transparent;
+        color: #d7dfe9;
+      }
+
+      &:enabled:hover,
+      &:enabled:focus {
+        background-color: rgba(27, 77, 255, 0.08);
+      }
+    }
+
+    .react-calendar__tile--now {
+      background: rgba(27, 77, 255, 0.08);
+
+      &:enabled:hover,
+      &:enabled:focus {
+        background: rgba(27, 77, 255, 0.12);
+      }
+    }
+
+    .react-calendar__tile--hasActive {
+      background: #1b4dff;
+      color: white;
+
+      &:enabled:hover,
+      &:enabled:focus {
+        background: #1a45e6;
+      }
+    }
+
+    .react-calendar__tile--active {
+      background: #1b4dff;
+      color: white;
+
+      &:enabled:hover,
+      &:enabled:focus {
+        background: #1a45e6;
+      }
+    }
+
+    .react-calendar__tile--range {
+      background: rgba(27, 77, 255, 0.12);
+      color: #0a0c11;
+      border-radius: 0;
+    }
+
+    .react-calendar__tile--rangeStart {
+      border-top-left-radius: 9999px;
+      border-bottom-left-radius: 9999px;
+      background: #1b4dff;
+      color: white;
+    }
+
+    .react-calendar__tile--rangeEnd {
+      border-top-right-radius: 9999px;
+      border-bottom-right-radius: 9999px;
+      background: #1b4dff;
+      color: white;
+    }
+
+    .react-calendar__tile--rangeBothEnds {
+      border-radius: 9999px;
+    }
+  }
+}
+
+.dateLabel {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.badgeActive {
+  border-color: transparent;
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--background-error-soft-surface, rgba(255, 56, 56, 0.08));
+  color: #FF3838;
+
+  svg {
+    color: #FF3838;
+  }
+}
+
+.badgeCompleted {
+  border-color: transparent;
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--background-success-soft-surface, rgba(10, 153, 82, 0.10));
+  color: #11A75C;
+
+  svg {
+    color: #11A75C;
+  }
+}
+
+.badgeArchived {
+  background: rgba(175, 186, 202, 0.04);
+  border-color: #e5e8eb;
+  color: #7d8a9c;
+
+  svg {
+    color: #7d8a9c;
+  }
+}
+
+.badgeDefault {
+  background: rgba(175, 186, 202, 0.08);
+  border-color: #d1d8e0;
+  color: #455468;
+
+  svg {
+    color: #455468;
+  }
+}
+
+
+// Section
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sectionTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.4px;
+  margin: 0;
+}
+
+.sectionSubtitle {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(14, 15, 17, 0.1);
+}
+
+// Stats Grid
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+}
+
+.statIcon {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  padding: var(--spacing-3xs, 6px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-zero, 0);
+  border-radius: var(--corner-radius-sm, 6px);
+  background: var(--action-background-brand-light_normal, rgba(27, 77, 255, 0.04));
+  box-shadow: 0 -1px 4px 0 var(--transparent-brand-8, rgba(27, 77, 255, 0.08)) inset;
+}
+
+.iconPlaceholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--background-brand-subtle, #e6eeff);
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statValue {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.6px;
+}
+
+.statLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.statLabel {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+.statChange {
+  color: var(--foreground-neutral-tertiary, #94a3b8);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14px;
+}
+
+// Chart Card
+.chartCard {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+}
+
+.chartLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legendLabel {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+.chartPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  background: var(--background-neutral-subtle, #f8f9fa);
+  border-radius: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.chartNote {
+  font-size: 12px;
+  color: var(--foreground-neutral-tertiary, #94a3b8);
+}
+
+// Table Section
+.tableActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tableTags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tableFilters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.filterSelect {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+  font-size: 14px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.12));
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+
+  th, td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.12));
+  }
+
+  th {
+    color: var(--foreground-neutral-secondary, #455468);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    background: var(--background-neutral-subtle, #f8f9fa);
+  }
+
+  td {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 24px;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.investorCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.investorAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatarPlaceholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--background-brand-subtle, #e6eeff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.investorInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.investorName {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.investorCompany {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.interestBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.interestBadge {
+  font-size: 12px;
+}
+
+.sentimentBadge {
+  font-size: 12px;
+}
+
+.dateCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dateText {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.timeText {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
+
+.paginationInfo {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+

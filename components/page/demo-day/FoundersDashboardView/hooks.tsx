@@ -1,8 +1,20 @@
 import Image from 'next/image';
 import { columnHelper } from './helpers';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table';
-import { ArrowUpRightIcon } from '@/components/page/demo-day/FoundersDashboardView/components/Icons';
+import {
+  ArrowUpRightIcon,
+  ChartIcon,
+  ConnectionIcon,
+  EyeIcon,
+  GlobeIcon,
+  LayoutIcon,
+  MoneyBagIcon,
+  TVIcon,
+  UserFocusIcon,
+  UserIcon,
+  VideoIcon,
+} from '@/components/page/demo-day/FoundersDashboardView/components/Icons';
 import { Investor } from '@/components/page/demo-day/FoundersDashboardView/types';
 
 import s from './FoundersDashboardView.module.scss';
@@ -145,4 +157,127 @@ export function useActivityTable(filteredData: Investor[], sortByValue: SelectVa
   return {
     table,
   };
+}
+
+export function useStatsCards() {
+  return useMemo(() => {
+    return [
+      {
+        id: 'uniqueInvestors',
+        label: 'Unique Investors',
+        value: 1234,
+        tooltip: (
+          <span>
+            Number of distinct investors
+            <br />
+            who interacted with your team
+            <br /> the selected date range
+          </span>
+        ),
+
+        change: 'Interacted with your profile',
+        icon: <UserIcon />,
+      },
+      {
+        id: 'investorCtas',
+        label: 'Investor CTAs',
+        value: 856,
+        tooltip: (
+          <div>
+            Total number of high-intent actions taken by investors. Includes:
+            <ul style={{ listStyle: 'inside' }}>
+              <li>Investment Interest</li>
+              <li>Connect</li>
+              <li>Like</li>
+              <li>Made Intro</li>
+              <li>Gave Feedback</li>
+            </ul>
+          </div>
+        ),
+
+        change: 'Like, Connect, Investment Interest',
+        icon: <ChartIcon />,
+      },
+      {
+        id: 'profileViews',
+        label: 'Profile Views',
+        value: 423,
+        tooltip: 'Total views of your team’s\n' + 'Demo Day profile. Includes\n' + 'unique and repeat views.',
+        change: '96 unique. 75 repeat ',
+        icon: <EyeIcon />,
+      },
+      {
+        id: 'viewedSlide',
+        label: 'Viewed Slide',
+        value: 312,
+        tooltip:
+          'Number of times investors\n' +
+          'opened your pitch deck.\n' +
+          'Counts slide opens, not\n' +
+          'total slides viewed.',
+        change: '96 investors',
+        icon: <TVIcon />,
+      },
+      {
+        id: 'watchedVideo',
+        label: 'Watched Video',
+        value: 189,
+        tooltip:
+          'Number of investors who\n' +
+          'started watching your pitch\n' +
+          'video. Number of investors\n' +
+          'who started watching\n' +
+          'your pitch video.',
+        change: '67 investors',
+        icon: <VideoIcon />,
+      },
+      {
+        id: 'founderProfileClicks',
+        label: 'Founder profile clicks',
+        value: 145,
+        tooltip:
+          'Clicks on individual founder\n' +
+          'profiles from your team page. Indicates interest in the team\n' +
+          'behind the product.',
+        change: '67 investors',
+        icon: <UserFocusIcon />,
+      },
+      {
+        id: 'teamPageClicks',
+        label: 'Team page clicks',
+        value: 78,
+        tooltip:
+          'Clicks navigating to your\n' +
+          'main team. Indicates investors\n' +
+          'exploring your team context\n' +
+          'beyond the pitch.',
+        change: '67 investors',
+        icon: <LayoutIcon />,
+      },
+      {
+        id: 'teamWebsiteClicks',
+        label: 'Team Website Clicks',
+        value: 45,
+        tooltip: 'Clicks to your external company\n' + 'website. Strong intent signal for\n' + 'further due diligence.',
+        change: '67 investors',
+        icon: <GlobeIcon />,
+      },
+      {
+        id: 'connections',
+        label: 'Connections',
+        value: 12,
+        tooltip: 'Number of investors who\n' + 'requested a connection.',
+        change: '56 investors',
+        icon: <ConnectionIcon />,
+      },
+      {
+        id: 'investmentInterest',
+        label: 'Investment Interest',
+        value: 8,
+        tooltip: 'Number of investors who\n' + 'expressed interest in investing.',
+        change: '24 investors',
+        icon: <MoneyBagIcon />,
+      },
+    ];
+  }, []);
 }

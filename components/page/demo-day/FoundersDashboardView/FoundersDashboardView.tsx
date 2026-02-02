@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { Badge } from '@/components/common/Badge';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { IUserInfo } from '@/types/shared.types';
-import { Tooltip } from '@/components/core/tooltip/tooltip';
+// import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { Button } from '@/components/common/Button';
 import { flexRender } from '@tanstack/react-table';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -13,25 +13,12 @@ import { FormSelect } from '@/components/form/FormSelect';
 
 import s from './FoundersDashboardView.module.scss';
 import { DateRangePicker } from '@/components/form/DateRangePicker';
-import {
-  ChartIcon,
-  ConnectionIcon,
-  EyeIcon,
-  GlobeIcon,
-  LayoutIcon,
-  MoneyBagIcon,
-  TVIcon,
-  UserFocusIcon,
-  UserIcon,
-  VideoIcon,
-  DownloadIcon,
-  InfoIcon,
-  SearchIcon,
-} from '@/components/page/demo-day/FoundersDashboardView/components/Icons';
+import { DownloadIcon, InfoIcon, SearchIcon } from '@/components/page/demo-day/FoundersDashboardView/components/Icons';
 import { EngagementChartDataPoint, Investor, LegendItem, TableFiltersForm } from './types';
 import { getStatusConfig, INTERACTION_OPTIONS, SORT_OPTIONS } from './helpers';
 import { EngagementChart } from './components/EngagementChart';
-import { useActivityTable } from '@/components/page/demo-day/FoundersDashboardView/hooks';
+import { useActivityTable, useStatsCards } from '@/components/page/demo-day/FoundersDashboardView/hooks';
+import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 
 const MOCK_INVESTORS: Investor[] = [
   {
@@ -111,88 +98,7 @@ interface FoundersDashboardViewProps {
 export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ demoDayState, userInfo }) => {
   const statusConfig = getStatusConfig(demoDayState?.status);
 
-  const STATS = [
-    {
-      id: 'uniqueInvestors',
-      label: 'Unique Investors',
-      value: 1234,
-      tooltip: 'Number of distinct investors\n' + 'who interacted with your team\n' + 'during the selected date range.',
-      change: 'Interacted with your profile',
-      icon: <UserIcon />,
-    },
-    {
-      id: 'investorCtas',
-      label: 'Investor CTAs',
-      value: 856,
-      tooltip: '',
-      change: 'Like, Connect, Investment Interest',
-      icon: <ChartIcon />,
-    },
-    {
-      id: 'profileViews',
-      label: 'Profile Views',
-      value: 423,
-      tooltip: '',
-      change: '96 unique. 75 repeat ',
-      icon: <EyeIcon />,
-    },
-    {
-      id: 'viewedSlide',
-      label: 'Viewed Slide',
-      value: 312,
-      tooltip: '',
-      change: '96 investors',
-      icon: <TVIcon />,
-    },
-    {
-      id: 'watchedVideo',
-      label: 'Watched Video',
-      value: 189,
-      tooltip: '',
-      change: '67 investors',
-      icon: <VideoIcon />,
-    },
-    {
-      id: 'founderProfileClicks',
-      label: 'Founder profile clicks',
-      value: 145,
-      tooltip: '',
-      change: '67 investors',
-      icon: <UserFocusIcon />,
-    },
-    {
-      id: 'teamPageClicks',
-      label: 'Team page clicks',
-      value: 78,
-      tooltip: '',
-      change: '67 investors',
-      icon: <LayoutIcon />,
-    },
-    {
-      id: 'teamWebsiteClicks',
-      label: 'Team Wensite Clicks',
-      value: 45,
-      tooltip: '',
-      change: '67 investors',
-      icon: <GlobeIcon />,
-    },
-    {
-      id: 'connections',
-      label: 'Connections',
-      value: 12,
-      tooltip: '',
-      change: '56 investors',
-      icon: <ConnectionIcon />,
-    },
-    {
-      id: 'investmentInterest',
-      label: 'Investment Interest',
-      value: 8,
-      tooltip: '',
-      change: '24 investors',
-      icon: <MoneyBagIcon />,
-    },
-  ];
+  const STATS = useStatsCards();
 
   const [dateRange, setDateRange] = useState<[Date, Date] | null>(() => {
     const endDate = new Date(2026, 0, 26); // Jan 26, 2026
@@ -291,7 +197,7 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
                   <span className={s.statValue}>{stat.value.toLocaleString()}</span>
                   <div className={s.statLabelRow}>
                     <span className={s.statLabel}>{stat.label}</span>
-                    <Tooltip trigger={<InfoIcon />} content={stat.tooltip} />
+                    <CustomTooltip forceTooltip trigger={<InfoIcon />} content={stat.tooltip} className={s.tooltip} />
                   </div>
                   <span className={s.statChange}>{stat.change}</span>
                 </div>

@@ -1,5 +1,7 @@
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import s from './FoundersDashboardView.module.scss';
+import { createColumnHelper } from '@tanstack/react-table';
+import { Investor } from '@/components/page/demo-day/FoundersDashboardView/types';
 
 // Filter options for the table
 export const INTERACTION_OPTIONS = [
@@ -59,3 +61,6 @@ export const getStatusConfig = (status: DemoDayState['status'] | undefined) => {
       };
   }
 };
+
+// Create column helper for type-safe column definitions
+export const columnHelper = createColumnHelper<Investor>();

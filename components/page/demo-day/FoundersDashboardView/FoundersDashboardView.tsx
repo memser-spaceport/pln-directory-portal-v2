@@ -5,17 +5,8 @@ import { Badge } from '@/components/common/Badge';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { IUserInfo } from '@/types/shared.types';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import Image from 'next/image';
 import { Button } from '@/components/common/Button';
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  flexRender,
-  createColumnHelper,
-  ColumnDef,
-  SortingState,
-} from '@tanstack/react-table';
+import { flexRender } from '@tanstack/react-table';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
@@ -41,9 +32,9 @@ import {
   SearchIcon,
 } from '@/components/page/demo-day/FoundersDashboardView/components/Icons';
 import { DateRangeValue, EngagementChartDataPoint, Investor, LegendItem, TableFiltersForm } from './types';
-import { ArrowUpRightIcon } from '@/components/icons';
 import { getStatusConfig, INTERACTION_OPTIONS, SORT_OPTIONS } from './helpers';
 import { EngagementChart } from './components/EngagementChart';
+import { useActivityTable } from '@/components/page/demo-day/FoundersDashboardView/hooks';
 
 const MOCK_INVESTORS: Investor[] = [
   {
@@ -100,9 +91,6 @@ const MOCK_CHART_DATA: EngagementChartDataPoint[] = [
     teamWebsiteClicked: 4,
   },
 ];
-
-// Create column helper for type-safe column definitions
-const columnHelper = createColumnHelper<Investor>();
 
 const LEGEND_ITEMS: LegendItem[] = [
   { label: 'Profile Viewed', color: '#156FF7' },
@@ -209,19 +197,16 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
     },
   ];
 
-  // Date range state - default to last 7 days
   const [dateRange, setDateRange] = useState<DateRangeValue>(() => {
     const endDate = new Date(2026, 0, 26); // Jan 26, 2026
     const startDate = new Date(2026, 0, 20); // Jan 20, 2026
     return [startDate, endDate];
   });
 
-  // Handler for date range change
   const handleDateRangeChange = (value: DateRangeValue) => {
     setDateRange(value);
   };
 
-  // Form for table filters
   const filterMethods = useForm<TableFiltersForm>({
     defaultValues: {
       search: '',
@@ -235,23 +220,19 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
   const interactionValue = watchFilters('interaction');
   const sortByValue = watchFilters('sortBy');
 
-  // Handler for export CSV
   const handleExportCSV = () => {
     // TODO: Implement CSV export functionality
     console.log('Exporting CSV with filters:', { searchValue, interactionValue, sortByValue });
   };
 
-  // Filter data based on search input and interaction dropdown
   const filteredData = useMemo(() => {
     let data = MOCK_INVESTORS;
 
-    // Filter by search (investor name)
     if (searchValue && searchValue.trim() !== '') {
       const searchLower = searchValue.toLowerCase().trim();
       data = data.filter((investor) => investor.name.toLowerCase().includes(searchLower));
     }
 
-    // Filter by interaction type
     if (interactionValue && interactionValue.value !== 'all') {
       const interactionMap: Record<string, string[]> = {
         interested: ['Very Interested', 'Interested'],
@@ -273,132 +254,7 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
     return data;
   }, [searchValue, interactionValue]);
 
-  // Convert sortBy dropdown value to SortingState for the table
-  const sorting = useMemo<SortingState>(() => {
-    const sortValue = sortByValue?.value;
-    switch (sortValue) {
-      case 'recent':
-        return [{ id: 'date', desc: true }];
-      case 'oldest':
-        return [{ id: 'date', desc: false }];
-      case 'engagement_high':
-        return [{ id: 'typicalCheckSize', desc: true }];
-      case 'desc':
-        return [{ id: 'investor', desc: false }]; // A-Z
-      case 'asc':
-        return [{ id: 'investor', desc: true }]; // Z-A
-      default:
-        return [];
-    }
-  }, [sortByValue]);
-
-  // Define columns for the investor table
-  const columns = useMemo<ColumnDef<Investor, any>[]>(
-    () => [
-      columnHelper.accessor((row) => row, {
-        id: 'investor',
-        header: 'Investor',
-        cell: (info) => {
-          const investor = info.getValue();
-          return (
-            <div className={s.investorCell}>
-              <div className={s.investorAvatar}>
-                {investor.avatar ? (
-                  <Image src={investor.avatar} alt={investor.name} width={40} height={40} />
-                ) : (
-                  <div className={s.avatarPlaceholder}>{investor.name.charAt(0)}</div>
-                )}
-              </div>
-              <div className={s.investorInfo}>
-                <span className={s.investorName}>{investor.name}</span>
-                <span className={s.investorCompany}>{investor.company}</span>
-              </div>
-              <ArrowUpRightIcon />
-            </div>
-          );
-        },
-        sortingFn: (rowA, rowB) => {
-          const nameA = rowA.original.name.toLowerCase();
-          const nameB = rowB.original.name.toLowerCase();
-          return nameA.localeCompare(nameB);
-        },
-      }),
-      columnHelper.accessor('investmentFocus', {
-        header: 'Investment Focus',
-        cell: (info) => (
-          <div className={s.interestBadges}>
-            {info.getValue().map((interest: string) => (
-              <Badge key={interest} variant="default" className={s.interestBadge}>
-                {interest}
-              </Badge>
-            ))}
-          </div>
-        ),
-      }),
-      columnHelper.accessor('typicalCheckSize', {
-        header: 'Typical Check Size',
-        cell: (info) => info.getValue(),
-      }),
-      columnHelper.accessor('interaction', {
-        header: 'Interaction',
-        cell: (info) => {
-          const sentiment = info.getValue();
-          return (
-            <Badge
-              variant={sentiment === 'Very Interested' ? 'success' : sentiment === 'Interested' ? 'brand' : 'default'}
-              className={s.sentimentBadge}
-            >
-              {sentiment}
-            </Badge>
-          );
-        },
-      }),
-      columnHelper.accessor((row) => ({ date: row.date, time: row.time }), {
-        id: 'date',
-        header: 'Date',
-        cell: (info) => {
-          const { date, time } = info.getValue();
-          return (
-            <div className={s.dateCell}>
-              <span className={s.dateText}>{date}</span>
-              <span className={s.timeText}>{time}</span>
-            </div>
-          );
-        },
-        sortingFn: (rowA, rowB) => {
-          // Parse date strings like "Jan 26, 2026" and time like "2:30 PM"
-          const parseDateTime = (dateStr: string, timeStr: string) => {
-            const dateTime = new Date(`${dateStr} ${timeStr}`);
-            return dateTime.getTime();
-          };
-          const timeA = parseDateTime(rowA.original.date, rowA.original.time);
-          const timeB = parseDateTime(rowB.original.date, rowB.original.time);
-          return timeA - timeB;
-        },
-      }),
-      columnHelper.display({
-        id: 'action',
-        header: 'Action',
-        cell: () => (
-          <Button variant="secondary" size="s">
-            Request Intro
-          </Button>
-        ),
-      }),
-    ],
-    [],
-  );
-
-  // Initialize the table with sorting and filtered data
-  const table = useReactTable({
-    data: filteredData,
-    columns,
-    state: {
-      sorting,
-    },
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
+  const { table } = useActivityTable(filteredData, sortByValue);
 
   return (
     <div className={s.root}>

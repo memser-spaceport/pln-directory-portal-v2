@@ -12,9 +12,7 @@ import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
 
 import s from './FoundersDashboardView.module.scss';
-import DatePicker from '@wojtekmaj/react-daterange-picker';
-import '@wojtekmaj/react-daterange-picker/dist/DateRangePicker.css';
-import 'react-calendar/dist/Calendar.css';
+import { DateRangePicker } from '@/components/form/DateRangePicker';
 import {
   ChartIcon,
   ConnectionIcon,
@@ -28,10 +26,9 @@ import {
   VideoIcon,
   DownloadIcon,
   InfoIcon,
-  CalendarIcon,
   SearchIcon,
 } from '@/components/page/demo-day/FoundersDashboardView/components/Icons';
-import { DateRangeValue, EngagementChartDataPoint, Investor, LegendItem, TableFiltersForm } from './types';
+import { EngagementChartDataPoint, Investor, LegendItem, TableFiltersForm } from './types';
 import { getStatusConfig, INTERACTION_OPTIONS, SORT_OPTIONS } from './helpers';
 import { EngagementChart } from './components/EngagementChart';
 import { useActivityTable } from '@/components/page/demo-day/FoundersDashboardView/hooks';
@@ -197,13 +194,13 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
     },
   ];
 
-  const [dateRange, setDateRange] = useState<DateRangeValue>(() => {
+  const [dateRange, setDateRange] = useState<[Date, Date] | null>(() => {
     const endDate = new Date(2026, 0, 26); // Jan 26, 2026
     const startDate = new Date(2026, 0, 20); // Jan 20, 2026
     return [startDate, endDate];
   });
 
-  const handleDateRangeChange = (value: DateRangeValue) => {
+  const handleDateRangeChange = (value: [Date, Date] | null) => {
     setDateRange(value);
   };
 
@@ -271,16 +268,11 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
             <p className={s.subtitle}>Track investor engagement with your team. This dashboard is private.</p>
           </div>
           <div className={s.datePickerWrapper}>
-            <label className={s.datePickerLabel}>Select date range</label>
-            <DatePicker
-              onChange={handleDateRangeChange as any}
-              value={dateRange as any}
-              className={s.dateRangePicker}
-              calendarProps={{ className: s.calendar }}
-              clearIcon={null}
-              calendarIcon={CalendarIcon}
-              format="MMM d, y"
-              rangeDivider=" - "
+            <DateRangePicker
+              label="Select date range"
+              placeholder="Select date range"
+              value={dateRange}
+              onChange={handleDateRangeChange}
             />
           </div>
         </div>

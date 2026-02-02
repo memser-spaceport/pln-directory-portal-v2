@@ -144,6 +144,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
                     approximateStartDate={demoDay.approximateStartDate}
                     status={demoDay.status}
                     isHighlighted={toHighlightSlug === demoDay.slugURL}
+                    access={demoDay.access}
                   />
                 ))
               ) : (

@@ -25,6 +25,7 @@ import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDay
 import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
 import { DemoDayPageSkeleton } from '@/components/page/demo-day/DemoDayPageSkeleton';
 import { isDemoDayParticipantInvestor } from '@/utils/member.utils';
+import { ChartIcon } from '@/components/icons';
 
 interface DemodayCompletedViewProps {
   initialDemoDayState?: DemoDayState;
@@ -59,6 +60,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
   const [showAllTeams, toggleShowAllTeams] = useToggle(false);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const isFounder = initialDemoDayState?.access?.toUpperCase() === 'FOUNDER';
 
   const {
     onCompletedViewApplyForNextDemoDayClicked,
@@ -143,11 +145,24 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           </div>
 
           <div className={s.buttons}>
-            <Link href="/demoday" onClick={handleApplyForNextDemoDayClick}>
-              <Button size="l" style="fill" variant="primary">
-                View upcoming Demo Days <ArrowRight />
-              </Button>
-            </Link>
+            <div className={s.linksWrapper}>
+              <Link href="/demoday" onClick={handleApplyForNextDemoDayClick}>
+                <Button size="l" style="fill" variant="primary">
+                  View upcoming Demo Days <ArrowRight />
+                </Button>
+              </Link>
+
+              {isFounder && (
+                <Link
+                  className={s.linkAnalytics}
+                  href={`/demoday/${initialDemoDayState?.uid}/founders-dashboard`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Demo Day Analytics <ChartIcon />
+                </Link>
+              )}
+            </div>
+
             <div className={s.links}>
               {showFeedbackOption && (
                 <button onClick={handleGiveFeedbackClick} className={s.linkButton}>

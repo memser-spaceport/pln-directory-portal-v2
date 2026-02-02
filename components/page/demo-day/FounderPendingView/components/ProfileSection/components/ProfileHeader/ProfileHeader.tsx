@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { PropsWithChildren, useMemo, useRef } from 'react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 
@@ -15,7 +15,7 @@ interface Founder {
   image: { url: string } | null;
 }
 
-interface ProfileHeaderProps {
+interface ProfileHeaderProps extends PropsWithChildren {
   uid?: string;
   image?: string;
   name: string;
@@ -30,7 +30,7 @@ interface ProfileHeaderProps {
 }
 
 export const ProfileHeader = (props: ProfileHeaderProps) => {
-  const { uid, image, name, description, fundingStage, tags, founders, website, classes } = props;
+  const { uid, image, name, description, fundingStage, tags, founders, website, classes, children } = props;
 
   const foundersContainerRef = useRef<HTMLDivElement>(null);
   const founderItemsRef = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -141,6 +141,8 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
                 </span>
               )}
             </Link>
+
+            {children}
           </div>
           <p className={s.memberDescription}>{description}</p>
         </div>

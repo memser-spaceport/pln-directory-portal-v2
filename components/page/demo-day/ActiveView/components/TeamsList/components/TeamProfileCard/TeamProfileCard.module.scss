@@ -154,10 +154,6 @@
 
 .editButtonContainer {
   display: none;
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 1;
 
   @include media.tablet-landscape {
     display: block;
@@ -243,4 +239,30 @@
   }
 
   @include mixins.clampLines(2);
+}
+
+.linksWrapper {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.link {
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
 }

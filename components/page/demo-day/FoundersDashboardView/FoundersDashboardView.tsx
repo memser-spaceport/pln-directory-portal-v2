@@ -209,6 +209,38 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
     console.log('Exporting CSV with filters:', { searchValue, interactionValue, sortByValue });
   };
 
+  // Filter data based on search input and interaction dropdown
+  const filteredData = useMemo(() => {
+    let data = MOCK_INVESTORS;
+
+    // Filter by search (investor name)
+    if (searchValue && searchValue.trim() !== '') {
+      const searchLower = searchValue.toLowerCase().trim();
+      data = data.filter((investor) => investor.name.toLowerCase().includes(searchLower));
+    }
+
+    // Filter by interaction type
+    if (interactionValue && interactionValue.value !== 'all') {
+      const interactionMap: Record<string, string[]> = {
+        interested: ['Very Interested', 'Interested'],
+        connected: ['Connected'],
+        liked: ['Liked'],
+        introMade: ['Intro Made'],
+        feedbackGiven: ['Feedback Given'],
+        viewedSlide: ['Viewed Slide'],
+        pitchVideoWatched: ['Pitch Video Watched'],
+        profileViewed: ['Profile Viewed'],
+        founderProfileClicked: ['Founder Profile Clicked'],
+        teamPageClicked: ['Team Page Clicked'],
+        teamWebsiteClicked: ['Team Website Clicked'],
+      };
+      const allowedInteractions = interactionMap[interactionValue.value] || [];
+      data = data.filter((investor) => allowedInteractions.includes(investor.interaction));
+    }
+
+    return data;
+  }, [searchValue, interactionValue]);
+
   // Convert sortBy dropdown value to SortingState for the table
   const sorting = useMemo<SortingState>(() => {
     const sortValue = sortByValue?.value;
@@ -325,9 +357,9 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
     [],
   );
 
-  // Initialize the table with sorting
+  // Initialize the table with sorting and filtered data
   const table = useReactTable({
-    data: MOCK_INVESTORS,
+    data: filteredData,
     columns,
     state: {
       sorting,
@@ -462,7 +494,9 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
             </table>
           </div>
           <div className={s.pagination}>
-            <span className={s.paginationInfo}>Showing 1-9 of 24 investors</span>
+            <span className={s.paginationInfo}>
+              Showing {filteredData.length > 0 ? 1 : 0}-{filteredData.length} of {MOCK_INVESTORS.length} investors
+            </span>
           </div>
         </section>
       </div>

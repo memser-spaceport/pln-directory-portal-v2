@@ -702,32 +702,56 @@
 // Table Section
 .tableActions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.tableTags {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.tableFilters {
-  display: flex;
   gap: 12px;
-  align-items: center;
+  margin-bottom: 16px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
-.filterSelect {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.12));
-  background: #fff;
-  font-size: 14px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  cursor: pointer;
+.searchField {
+  flex: 1;
+  min-width: 200px;
+
+  :global(.field) {
+    margin-bottom: 0;
+  }
+
+  input {
+    height: 36px;
+    font-size: 14px;
+  }
+
+  @include media.mobile-only {
+    width: 100%;
+  }
+}
+
+.filterField {
+  width: 326px;
+  flex-shrink: 0;
+
+  :global(.field) {
+    margin-bottom: 0;
+  }
+
+  :global(.css-13cymwt-control),
+  :global(.css-t3ipsp-control) {
+    min-height: 36px;
+    height: 36px;
+  }
+
+  :global(.css-1dimb5e-singleValue) {
+    font-size: 14px;
+    color: var(--foreground-neutral-quaternary, #afbaca);
+  }
+
+  @include media.mobile-only {
+    width: 100%;
+  }
 }
 
 .tableWrapper {
@@ -861,3 +885,24 @@
   line-height: 20px;
 }
 
+.exportButton {
+  display: flex;
+  padding: 8px var(--global-size-size-125, 10px);
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  height: 50px;
+
+  border-radius: var(--corner-radius-md, 8px);
+  border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
+  background: var(--action-background-base-white, #FFF);
+  box-shadow: 0 -2px 8px 0 var(--transparent-dark-2, rgba(14, 15, 17, 0.02)) inset, 0 1px 2px 0 var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+
+  color: var(--action-foreground-neutral-normal, #455468);
+  text-align: right;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}

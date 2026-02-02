@@ -8,6 +8,9 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import Image from 'next/image';
 import { Button } from '@/components/common/Button';
 import { useReactTable, getCoreRowModel, flexRender, createColumnHelper, ColumnDef } from '@tanstack/react-table';
+import { FormProvider, useForm } from 'react-hook-form';
+import { FormField } from '@/components/form/FormField';
+import { FormSelect } from '@/components/form/FormSelect';
 
 import s from './FoundersDashboardView.module.scss';
 import DatePicker from '@wojtekmaj/react-daterange-picker';
@@ -24,128 +27,15 @@ import {
   UserFocusIcon,
   UserIcon,
   VideoIcon,
+  DownloadIcon,
+  InfoIcon,
+  CalendarIcon,
+  SearchIcon,
 } from '@/components/page/demo-day/FoundersDashboardView/components/Icons';
+import { DateRangeValue, Investor, TableFiltersForm } from './types';
+import { ArrowUpRightIcon } from '@/components/icons';
+import { getStatusConfig, INTERACTION_OPTIONS, SORT_OPTIONS } from './helpers';
 
-// Type for date range picker value - matches the library's Value type
-type LooseValue = Date | null | [Date | null, Date | null];
-type DateRangeValue = LooseValue;
-
-// Mock data for chart
-const MOCK_CHART_DATA = [
-  {
-    date: 'Jan 20',
-    pageViews: 278,
-    slideViews: 150,
-    videoViews: 100,
-    founderViews: 90,
-    teamPage: 80,
-    teamWebsite: 45,
-    liked: 35,
-    connected: 23,
-    invest: 21,
-    intro: 4,
-    feedback: 3,
-  },
-  {
-    date: 'Jan 21',
-    pageViews: 224,
-    slideViews: 120,
-    videoViews: 83,
-    founderViews: 64,
-    teamPage: 56,
-    teamWebsite: 38,
-    liked: 26,
-    connected: 20,
-    invest: 17,
-    intro: 3,
-    feedback: 2,
-  },
-  {
-    date: 'Jan 22',
-    pageViews: 224,
-    slideViews: 75,
-    videoViews: 46,
-    founderViews: 40,
-    teamPage: 35,
-    teamWebsite: 23,
-    liked: 16,
-    connected: 13,
-    invest: 10,
-    intro: 3,
-    feedback: 2,
-  },
-  {
-    date: 'Jan 23',
-    pageViews: 70,
-    slideViews: 60,
-    videoViews: 40,
-    founderViews: 30,
-    teamPage: 20,
-    teamWebsite: 14,
-    liked: 10,
-    connected: 8,
-    invest: 6,
-    intro: 3,
-    feedback: 1,
-  },
-  {
-    date: 'Jan 24',
-    pageViews: 90,
-    slideViews: 65,
-    videoViews: 46,
-    founderViews: 38,
-    teamPage: 29,
-    teamWebsite: 21,
-    liked: 14,
-    connected: 10,
-    invest: 6,
-    intro: 4,
-    feedback: 2,
-  },
-  {
-    date: 'Jan 25',
-    pageViews: 160,
-    slideViews: 95,
-    videoViews: 60,
-    founderViews: 52,
-    teamPage: 45,
-    teamWebsite: 30,
-    liked: 22,
-    connected: 16,
-    invest: 12,
-    intro: 4,
-    feedback: 2,
-  },
-  {
-    date: 'Jan 26',
-    pageViews: 85,
-    slideViews: 55,
-    videoViews: 40,
-    founderViews: 30,
-    teamPage: 25,
-    teamWebsite: 18,
-    liked: 13,
-    connected: 10,
-    invest: 8,
-    intro: 3,
-    feedback: 2,
-  },
-];
-
-// Type for investor data
-type Investor = {
-  id: number;
-  name: string;
-  company: string;
-  avatar: string;
-  interests: string[];
-  engagementScore: number;
-  sentiment: string;
-  date: string;
-  time: string;
-};
-
-// Mock data for investors table
 const MOCK_INVESTORS: Investor[] = [
   {
     id: 1,
@@ -270,77 +160,6 @@ interface FoundersDashboardViewProps {
   userInfo?: IUserInfo;
 }
 
-const InfoIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M8 10.6667V8M8 5.33333H8.00667M14.6667 8C14.6667 11.6819 11.6819 14.6667 8 14.6667C4.3181 14.6667 1.33333 11.6819 1.33333 8C1.33333 4.3181 4.3181 1.33333 8 1.33333C11.6819 1.33333 14.6667 4.3181 14.6667 8Z"
-      stroke="#94A3B8"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const ArrowUpRightIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M4.66667 11.3333L11.3333 4.66667M11.3333 4.66667H4.66667M11.3333 4.66667V11.3333"
-      stroke="#94A3B8"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const CalendarIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M6.66667 1.66667V4.16667M13.3333 1.66667V4.16667M2.5 7.5H17.5M4.16667 3.33333H15.8333C16.7538 3.33333 17.5 4.07953 17.5 5V16.6667C17.5 17.5871 16.7538 18.3333 15.8333 18.3333H4.16667C3.24619 18.3333 2.5 17.5871 2.5 16.6667V5C2.5 4.07953 3.24619 3.33333 4.16667 3.33333Z"
-      stroke="#455468"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const getStatusConfig = (status: DemoDayState['status'] | undefined) => {
-  switch (status) {
-    case 'UPCOMING':
-      return {
-        label: 'Upcoming',
-        className: s.badgeUpcoming,
-      };
-    case 'ACTIVE':
-      return {
-        label: 'Active',
-        className: s.badgeActive,
-      };
-    case 'COMPLETED':
-      return {
-        label: 'Completed',
-        className: s.badgeCompleted,
-      };
-    case 'ARCHIVED':
-      return {
-        label: 'Archived',
-        className: s.badgeArchived,
-      };
-    case 'REGISTRATION_OPEN':
-      return {
-        label: 'Registration Open',
-        className: s.badgeRegistrationOpen,
-      };
-    default:
-      return {
-        label: status,
-        className: s.badgeDefault,
-      };
-  }
-};
-
 export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ demoDayState, userInfo }) => {
   const statusConfig = getStatusConfig(demoDayState?.status);
 
@@ -437,6 +256,26 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
   // Handler for date range change
   const handleDateRangeChange = (value: DateRangeValue) => {
     setDateRange(value);
+  };
+
+  // Form for table filters
+  const filterMethods = useForm<TableFiltersForm>({
+    defaultValues: {
+      search: '',
+      interaction: INTERACTION_OPTIONS[0],
+      sortBy: SORT_OPTIONS[0],
+    },
+  });
+
+  const { watch: watchFilters } = filterMethods;
+  const searchValue = watchFilters('search');
+  const interactionValue = watchFilters('interaction');
+  const sortByValue = watchFilters('sortBy');
+
+  // Handler for export CSV
+  const handleExportCSV = () => {
+    // TODO: Implement CSV export functionality
+    console.log('Exporting CSV with filters:', { searchValue, interactionValue, sortByValue });
   };
 
   // Define columns for the investor table
@@ -612,25 +451,23 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
             <h2 className={s.sectionTitle}>Investor Activity</h2>
             <p className={s.sectionSubtitle}>Detailed view of investor interactions with your profile</p>
           </div>
-          <div className={s.tableActions}>
-            <div className={s.tableTags}>
-              <Badge variant="brand">All Investors</Badge>
-              <Badge variant="default">Very Interested</Badge>
-              <Badge variant="default">Interested</Badge>
-              <Badge variant="default">Considering</Badge>
-            </div>
-            <div className={s.tableFilters}>
-              <select className={s.filterSelect}>
-                <option>All Sentiments</option>
-              </select>
-              <select className={s.filterSelect}>
-                <option>All Interests</option>
-              </select>
-              <Button variant="secondary" size="s">
-                Export CSV
+          <FormProvider {...filterMethods}>
+            <div className={s.tableActions}>
+              <div className={s.searchField}>
+                <FormField name="search" placeholder="Search investors" icon={<SearchIcon />} />
+              </div>
+              <div className={s.filterField}>
+                <FormSelect name="interaction" placeholder="All interactions" options={INTERACTION_OPTIONS} />
+              </div>
+              <div className={s.filterField}>
+                <FormSelect name="sortBy" placeholder="Most recent" options={SORT_OPTIONS} />
+              </div>
+              <Button variant="secondary" size="l" onClick={handleExportCSV} className={s.exportButton}>
+                <DownloadIcon />
+                Export (CSV)
               </Button>
             </div>
-          </div>
+          </FormProvider>
           <div className={s.tableWrapper}>
             <table className={s.table}>
               <thead>

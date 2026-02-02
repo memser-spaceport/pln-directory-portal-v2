@@ -8,11 +8,11 @@ export type Investor = {
   name: string;
   company: string;
   avatar: string;
-  interests: string[];
-  engagementScore: number;
-  sentiment: string;
+  investmentFocus: string[];
+  interaction: string;
   date: string;
   time: string;
+  typicalCheckSize: string;
 };
 
 // Form type for table filters

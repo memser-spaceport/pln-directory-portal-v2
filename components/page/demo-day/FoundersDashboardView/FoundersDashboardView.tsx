@@ -42,9 +42,9 @@ const MOCK_INVESTORS: Investor[] = [
     name: 'Sarah Chen',
     company: 'Sequoia Capital',
     avatar: '',
-    interests: ['DeFi', 'Infrastructure', 'AI'],
-    engagementScore: 85,
-    sentiment: 'Very Interested',
+    investmentFocus: ['DeFi', 'Infrastructure', 'AI'],
+    typicalCheckSize: '85',
+    interaction: 'Very Interested',
     date: 'Jan 26, 2026',
     time: '2:30 PM',
   },
@@ -53,88 +53,11 @@ const MOCK_INVESTORS: Investor[] = [
     name: 'Michael Park',
     company: 'a16z Crypto',
     avatar: '',
-    interests: ['DeFi', 'Gaming', 'NFT'],
-    engagementScore: 72,
-    sentiment: 'Interested',
+    investmentFocus: ['DeFi', 'Gaming', 'NFT'],
+    typicalCheckSize: '72',
+    interaction: 'Interested',
     date: 'Jan 26, 2026',
     time: '1:15 PM',
-  },
-  {
-    id: 3,
-    name: 'Emily Johnson',
-    company: 'Paradigm',
-    avatar: '',
-    interests: ['Storage', 'AI', 'Decentralized Identity'],
-    engagementScore: 68,
-    sentiment: 'Considering',
-    date: 'Jan 25, 2026',
-    time: '4:45 PM',
-  },
-  {
-    id: 4,
-    name: 'David Kim',
-    company: 'Polychain Capital',
-    avatar: '',
-    interests: ['Storage', 'Infrastructure', 'L2'],
-    engagementScore: 65,
-    sentiment: 'Interested',
-    date: 'Jan 25, 2026',
-    time: '11:20 AM',
-  },
-  {
-    id: 5,
-    name: 'Lisa Wang',
-    company: 'Multicoin Capital',
-    avatar: '',
-    interests: ['Compute', 'Gaming'],
-    engagementScore: 58,
-    sentiment: 'Positive',
-    date: 'Jan 24, 2026',
-    time: '3:00 PM',
-  },
-  {
-    id: 6,
-    name: 'James Wilson',
-    company: 'Electric Capital',
-    avatar: '',
-    interests: ['Developer Tools', 'Decentralized Storage'],
-    engagementScore: 52,
-    sentiment: 'Very Interested',
-    date: 'Jan 24, 2026',
-    time: '10:30 AM',
-  },
-  {
-    id: 7,
-    name: 'Anna Lee',
-    company: 'Dragonfly',
-    avatar: '',
-    interests: ['DeFi', 'AI'],
-    engagementScore: 48,
-    sentiment: 'Positive',
-    date: 'Jan 23, 2026',
-    time: '5:15 PM',
-  },
-  {
-    id: 8,
-    name: 'Robert Brown',
-    company: 'Pantera Capital',
-    avatar: '',
-    interests: ['Infrastructure', 'Decentralized Identity'],
-    engagementScore: 45,
-    sentiment: 'Neutral',
-    date: 'Jan 23, 2026',
-    time: '2:00 PM',
-  },
-  {
-    id: 9,
-    name: 'Jennifer Martinez',
-    company: 'Framework Ventures',
-    avatar: '',
-    interests: ['Developer Tools', 'Decentralized Storage'],
-    engagementScore: 42,
-    sentiment: 'Very Interested',
-    date: 'Jan 22, 2026',
-    time: '11:45 AM',
   },
 ];
 
@@ -304,8 +227,8 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
           );
         },
       }),
-      columnHelper.accessor('interests', {
-        header: 'Interests',
+      columnHelper.accessor('investmentFocus', {
+        header: 'Investment Focus',
         cell: (info) => (
           <div className={s.interestBadges}>
             {info.getValue().map((interest: string) => (
@@ -316,12 +239,12 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
           </div>
         ),
       }),
-      columnHelper.accessor('engagementScore', {
-        header: 'Engagement Score',
+      columnHelper.accessor('typicalCheckSize', {
+        header: 'Typical Check Size',
         cell: (info) => info.getValue(),
       }),
-      columnHelper.accessor('sentiment', {
-        header: 'Sentiment',
+      columnHelper.accessor('interaction', {
+        header: 'Interaction',
         cell: (info) => {
           const sentiment = info.getValue();
           return (

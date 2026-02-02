@@ -4,18 +4,25 @@ import s from './FoundersDashboardView.module.scss';
 // Filter options for the table
 export const INTERACTION_OPTIONS = [
   { label: 'All interactions', value: 'all' },
-  { label: 'Liked', value: 'liked' },
+  { label: 'Showed investment interest', value: 'interested' },
   { label: 'Connected', value: 'connected' },
-  { label: 'Investment Interest', value: 'invest' },
-  { label: 'Intro Requested', value: 'intro' },
-  { label: 'Feedback Requested', value: 'feedback' },
+  { label: 'Liked', value: 'liked' },
+  { label: 'Intro mage', value: 'introMade' },
+  { label: 'Feedback given', value: 'feedbackGiven' },
+  { label: 'Viewed slide', value: 'viewedSlide' },
+  { label: 'Pitch video watched', value: 'pitchVideoWatched' },
+  { label: 'Profile viewed', value: 'profileViewed' },
+  { label: 'Founder profile clicked', value: 'founderProfileClicked' },
+  { label: 'Team page clicked', value: 'teamPageClicked' },
+  { label: 'Team website clicked', value: 'teamWebsiteClicked' },
 ];
 
 export const SORT_OPTIONS = [
   { label: 'Most recent', value: 'recent' },
   { label: 'Oldest first', value: 'oldest' },
-  { label: 'Highest engagement', value: 'engagement_high' },
-  { label: 'Lowest engagement', value: 'engagement_low' },
+  { label: 'Most engaged', value: 'engagement_high' },
+  { label: 'Name A-Z', value: 'desc' },
+  { label: 'Name Z-A', value: 'asc' },
 ];
 
 export const getStatusConfig = (status: DemoDayState['status'] | undefined) => {

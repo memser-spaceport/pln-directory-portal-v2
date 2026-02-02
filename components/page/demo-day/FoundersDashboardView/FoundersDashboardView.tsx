@@ -7,7 +7,15 @@ import { IUserInfo } from '@/types/shared.types';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import Image from 'next/image';
 import { Button } from '@/components/common/Button';
-import { useReactTable, getCoreRowModel, flexRender, createColumnHelper, ColumnDef } from '@tanstack/react-table';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  flexRender,
+  createColumnHelper,
+  ColumnDef,
+  SortingState,
+} from '@tanstack/react-table';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
@@ -201,6 +209,25 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
     console.log('Exporting CSV with filters:', { searchValue, interactionValue, sortByValue });
   };
 
+  // Convert sortBy dropdown value to SortingState for the table
+  const sorting = useMemo<SortingState>(() => {
+    const sortValue = sortByValue?.value;
+    switch (sortValue) {
+      case 'recent':
+        return [{ id: 'date', desc: true }];
+      case 'oldest':
+        return [{ id: 'date', desc: false }];
+      case 'engagement_high':
+        return [{ id: 'typicalCheckSize', desc: true }];
+      case 'desc':
+        return [{ id: 'investor', desc: false }]; // A-Z
+      case 'asc':
+        return [{ id: 'investor', desc: true }]; // Z-A
+      default:
+        return [];
+    }
+  }, [sortByValue]);
+
   // Define columns for the investor table
   const columns = useMemo<ColumnDef<Investor, any>[]>(
     () => [
@@ -225,6 +252,11 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
               <ArrowUpRightIcon />
             </div>
           );
+        },
+        sortingFn: (rowA, rowB) => {
+          const nameA = rowA.original.name.toLowerCase();
+          const nameB = rowB.original.name.toLowerCase();
+          return nameA.localeCompare(nameB);
         },
       }),
       columnHelper.accessor('investmentFocus', {
@@ -269,6 +301,16 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
             </div>
           );
         },
+        sortingFn: (rowA, rowB) => {
+          // Parse date strings like "Jan 26, 2026" and time like "2:30 PM"
+          const parseDateTime = (dateStr: string, timeStr: string) => {
+            const dateTime = new Date(`${dateStr} ${timeStr}`);
+            return dateTime.getTime();
+          };
+          const timeA = parseDateTime(rowA.original.date, rowA.original.time);
+          const timeB = parseDateTime(rowB.original.date, rowB.original.time);
+          return timeA - timeB;
+        },
       }),
       columnHelper.display({
         id: 'action',
@@ -283,11 +325,15 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
     [],
   );
 
-  // Initialize the table
+  // Initialize the table with sorting
   const table = useReactTable({
     data: MOCK_INVESTORS,
     columns,
+    state: {
+      sorting,
+    },
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
 
   return (

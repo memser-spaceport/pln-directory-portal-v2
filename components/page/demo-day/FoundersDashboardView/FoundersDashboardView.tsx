@@ -69,6 +69,37 @@ const MOCK_INVESTORS: Investor[] = [
   },
 ];
 
+const MOCK_CHART_DATA = [
+  {
+    date: new Date(2026, 0, 20),
+    profileViewed: 1590,
+    interested: 800,
+    connected: 23,
+    liked: 12,
+    introMade: 5,
+    feedbackGiven: 3,
+    viewedSlide: 10,
+    videoWatched: 2,
+    founderProfileClicked: 8,
+    teamPageClicked: 6,
+    teamWebsiteClicked: 4,
+  },
+  {
+    date: new Date(2026, 0, 21),
+    profileViewed: 90,
+    interested: 100,
+    connected: 23,
+    liked: 12,
+    introMade: 5,
+    feedbackGiven: 3,
+    viewedSlide: 10,
+    videoWatched: 2,
+    founderProfileClicked: 8,
+    teamPageClicked: 6,
+    teamWebsiteClicked: 4,
+  },
+];
+
 // Create column helper for type-safe column definitions
 const columnHelper = createColumnHelper<Investor>();
 

@@ -57,7 +57,9 @@ const applySchema = yup.object().shape(
       }),
     teamOrProject: yup.mixed<string | Record<string, string>>().when('teamName', {
       is: (teamName: string) => !teamName,
-      then: (schema) => schema.defined().nullable(),
+      then: (schema) => {
+        return schema.nullable();
+      },
       otherwise: (schema) => schema.nullable(),
     }),
     teamName: yup.string().when('teamOrProject', {
@@ -203,6 +205,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   } = methods;
 
   const isInvestor = watch('isInvestor');
+  const teamName = watch('teamName');
 
   // Track field entry (only once per modal open)
   useEffect(() => {
@@ -591,7 +594,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                     name="websiteAddress"
                     placeholder="Enter website address"
                     label="Website address"
-                    isRequired
+                    isRequired={!!teamName}
                   />
                 )}
 

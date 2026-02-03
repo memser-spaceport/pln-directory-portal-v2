@@ -43,13 +43,7 @@ export function PostCard(props: PostCardProps) {
   return (
     <Link href={postUrl} className={s.card} target="_blank" onClick={handleClick}>
       <div className={s.cardContent}>
-        <ForumAvatar
-          src={post.user?.picture}
-          name={post.user?.displayname || post.user?.username || ''}
-          memberUid={post.user?.memberUid}
-          size="md"
-          linkToProfile
-        />
+        <ForumAvatar size="md" src={post.user?.picture} name={post.user?.displayname || post.user?.username || ''} />
         <div className={s.postContent}>
           <div className={s.textContent}>
             <h3 className={s.title}>{post.titleRaw}</h3>

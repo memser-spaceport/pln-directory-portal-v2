@@ -41,9 +41,9 @@ export function CommentCard(props: CommentCardProps) {
     <Link href={commentUrl} className={s.card} target="_blank" onClick={handleClick}>
       <div className={s.cardContent}>
         <ForumAvatar
+          size="md"
           src={comment.user?.picture}
           name={comment.user?.displayname || comment.user?.username || ''}
-          size="md"
         />
         <div className={s.postContent}>
           <div className={s.textContent}>

@@ -3,6 +3,7 @@ import { clsx } from 'clsx';
 import Cookies from 'js-cookie';
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
@@ -136,17 +137,24 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
         }
         hideLogos={demoDaySlug === 'pl-genesis-accelerator'}
       >
-        <div className={s.root}>
-          {!userInfo && <LoginBtn className={clsx(s.btn, s.secondaryButton)}>Already approved? Log in</LoginBtn>}
-          <button className={clsx(s.btn, s.primaryButton)} onClick={handleApplyClick} disabled={data?.isPending}>
-            {data?.isPending ? (
-              <>
-                You have applied <CheckIcon />
-              </>
-            ) : (
-              'Apply'
-            )}
-          </button>
+        <div>
+          <div className={s.root}>
+            {!userInfo && <LoginBtn className={clsx(s.btn, s.secondaryButton)}>Already approved? Log in</LoginBtn>}
+            <button className={clsx(s.btn, s.primaryButton)} onClick={handleApplyClick} disabled={data?.isPending}>
+              {data?.isPending ? (
+                <>
+                  You have applied <CheckIcon />
+                </>
+              ) : (
+                'Apply'
+              )}
+            </button>
+          </div>
+          {!!data?.isPending && userInfo?.accessLevel === 'L0' && (
+            <div className={s.pendingText}>
+              Complete your  <Link href={`/members/${userInfo.uid}`} className={s.link}>investor profile</Link> to join Demo Day 
+            </div>
+          )}
         </div>
       </LandingBase>
 

@@ -10,7 +10,7 @@ interface Props extends ComponentProps<typeof Image> {
 export default function ImageWithFallback(props: Props) {
   const { src: pSrc, fallbackSrc, ...rest } = props;
 
-  const [src, setSrc] = useState(pSrc);
+  const [src, setSrc] = useState(pSrc || fallbackSrc);
 
   return <Image src={src} {...rest} onError={() => setSrc(fallbackSrc)} />;
 }

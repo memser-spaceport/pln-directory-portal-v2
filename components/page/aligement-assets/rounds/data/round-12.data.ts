@@ -77,27 +77,7 @@ export const pastRound12Data: IPastRoundData = {
   // ============================================================================
   // Leaderboard Section Data
   // ============================================================================
-  leaderboard: [
-    { rank: 1, name: 'Ian Brunner', activities: '', points: 350 },
-    { rank: 2, name: 'Theresa Therriault', activities: '', points: 300 },
-    { rank: 3, name: 'Bradley Holden', activities: '', points: 200 },
-    { rank: 4, name: 'Connor Dales', activities: '', points: 200 },
-    { rank: 5, name: 'Cyril Delattre', activities: '', points: 200 },
-    { rank: 6, name: 'Eshan Chordia', activities: '', points: 200 },
-    { rank: 7, name: 'Jeff De Gregorio', activities: '', points: 200 },
-    { rank: 8, name: 'Michael Stachiw', activities: '', points: 200 },
-    { rank: 9, name: 'Juan Benet', activities: '', points: 150 },
-    { rank: 10, name: 'Molly Mackinlay', activities: '', points: 150 },
-    { rank: 11, name: 'David Casey', activities: '', points: 100 },
-    { rank: 12, name: 'Dottie Wang', activities: '', points: 100 },
-    { rank: 13, name: 'Justin Melillo', activities: '', points: 100 },
-    { rank: 14, name: 'Laura Brewer', activities: '', points: 100 },
-    { rank: 15, name: 'Matthew Koch', activities: '', points: 100 },
-    { rank: 16, name: 'Rich Chang', activities: '', points: 100 },
-    { rank: 17, name: 'Rohit Goel', activities: '', points: 100 },
-    { rank: 18, name: 'William Scott', activities: '', points: 100 },
-    { rank: 19, name: 'Zachary von Naumann', activities: '', points: 100 }
-  ],
+  leaderboard: [],
 
   // ============================================================================
   // Buyback Auction Section Data (Round 12 - January 2026)

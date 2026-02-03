@@ -448,7 +448,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} overlayClassname={s.overlay}>
+    <Modal isOpen={isOpen} onClose={handleClose} overlayClassname={s.overlay} closeOnBackdropClick={false} closeOnEscape>
       <div className={s.modal}>
         <button type="button" className={s.closeButton} onClick={handleClose} aria-label="Close">
           <CloseIcon />

@@ -11,17 +11,34 @@ interface ModalProps {
   onClose?: () => void;
   children: React.ReactNode;
   closeOnBackdropClick?: boolean;
+  closeOnEscape?: boolean;
   overlayClassname?: string;
   className?: string;
 }
 
 export const Modal: React.FC<ModalProps> = (props) => {
-  const { isOpen, onClose, children, closeOnBackdropClick = true, overlayClassname, className } = props;
+  const { isOpen, onClose, children, closeOnBackdropClick = true, closeOnEscape = true, overlayClassname, className } = props;
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (closeOnEscape && e.key === 'Escape' && isOpen && onClose) {
+        onClose();
+      }
+    };
+
+    if (isOpen && closeOnEscape) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose, closeOnEscape]);
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (closeOnBackdropClick && e.target === e.currentTarget && onClose) {

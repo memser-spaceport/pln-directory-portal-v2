@@ -5,8 +5,8 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Cookies from 'js-cookie';
-import { format } from 'date-fns';
 import { Modal } from '@/components/common/Modal';
+import { formatDemoDayDate } from '@/utils/demo-day.utils';
 import { FormField } from '@/components/form/FormField';
 import { Button } from '@/components/common/Button';
 import { useApplyForDemoDay, ApplyForDemoDayPayload } from '@/services/demo-day/hooks/useApplyForDemoDay';
@@ -459,9 +459,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
             <h2 className={s.title}>Application for {demoDayData?.title || 'PL Demo Day'}</h2>
             {demoDayData?.date && (
               <div className={s.dateInfo}>
-                <span className={s.dateValue}>
-                  {format(new Date(demoDayData.date), "dd MMMM, yyyy, h:mm a 'GMT'xxx")}
-                </span>
+                <span className={s.dateValue}>{formatDemoDayDate(demoDayData.date)}</span>
               </div>
             )}
           </div>

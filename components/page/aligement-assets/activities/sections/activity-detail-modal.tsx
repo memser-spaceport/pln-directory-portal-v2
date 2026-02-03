@@ -117,6 +117,10 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
               </ul>
             )}
             
+            {popupContent.submissionNoteTitle && (
+              <h4 className="activity-modal__submission-note-title">{popupContent.submissionNoteTitle}</h4>
+            )}
+            
             {popupContent.submissionNote && (
               <p className="activity-modal__submission-note">
                 {renderTextWithLinks(popupContent.submissionNote, allLinks)}
@@ -128,6 +132,24 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
               <div className="activity-modal__points">
                 <h3 className="activity-modal__points-title">{popupContent.pointsAwarded.title}</h3>
                 
+                {popupContent.pointsAwarded.subtitle && popupContent.pointsAwarded.subtitle.length > 0 && (
+                  <div className="activity-modal__points-subtitle">
+                    {popupContent.pointsAwarded.subtitle.map((item, index) => (
+                      <div key={index} className="activity-modal__points-item">
+                        {item.value ? (
+                          <><strong>{item.label}:</strong> {item.value}</>
+                        ) : (
+                          item.label
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {popupContent.pointsAwarded.description && (
+                  <p className="activity-modal__points-description">{popupContent.pointsAwarded.description}</p>
+                )}
+                
                 {popupContent.pointsAwarded.items.length > 0 && (
                   <ul className="activity-modal__points-list">
                     {popupContent.pointsAwarded.items.map((item, index) => (
@@ -137,7 +159,10 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                         ) : item.subItems ? (
                           <><strong>{item.label}:</strong></>
                         ) : (
-                          item.label
+                          <strong>{item.label}</strong>
+                        )}
+                        {item.description && (
+                          <div className="activity-modal__points-item-description">{item.description}</div>
                         )}
                         {item.subItems && (
                           <ul className="activity-modal__points-sublist">
@@ -159,6 +184,9 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                     {popupContent.categories.map((category, catIndex) => (
                       <div key={catIndex} className="activity-modal__category">
                         <h4 className="activity-modal__category-title">{category.title}</h4>
+                        {category.description && (
+                          <p className="activity-modal__category-description">{category.description}</p>
+                        )}
                         <ul className="activity-modal__category-list">
                           {category.tiers.map((tier, tierIndex) => (
                             <li key={tierIndex} className="activity-modal__category-item">
@@ -265,6 +293,13 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           margin: 0;
         }
 
+        .activity-modal__submission-note-title {
+          font-size: 16px;
+          font-weight: 600;
+          line-height: 20px;
+          color: #0f172a;
+        }
+
         .activity-modal__submission-note {
           font-size: 14px;
           font-weight: 400;
@@ -285,6 +320,22 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           margin: 0 0 12px 0;
         }
 
+        .activity-modal__points-subtitle {
+          padding-left: 0;
+          margin: -8px 0 8px 0;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .activity-modal__points-description {
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 22px;
+          color: #475569;
+          margin: -8px 0 12px 0;
+        }
+
         .activity-modal__points-list {
           list-style: disc;
           padding-left: 20px;
@@ -303,6 +354,13 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
         .activity-modal__points-item strong {
           color: #0f172a;
           font-weight: 600;
+        }
+
+        .activity-modal__points-item-description {
+          font-size: 14px;
+          line-height: 20px;
+          color: #475569;
+          margin-top: 4px;
         }
 
         .activity-modal__points-sublist {
@@ -338,6 +396,14 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           line-height: 18px;
           color: #0f172a;
           margin: 0;
+        }
+
+        .activity-modal__category-description {
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 22px;
+          color: #64748b;
+          font-style: italic;
         }
 
         .activity-modal__category-list {

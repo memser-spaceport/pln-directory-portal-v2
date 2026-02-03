@@ -164,7 +164,7 @@ export const activitiesData: ActivitiesData = {
       },
     },
     {
-      id: 'Construct an Alignment Asset Case Study',
+      id: 'construct-alignment-asset-case-study',
       category: 'Knowledge Sharing',
       activity: 'Construct an Alignment Asset Case Study',
       networkValue: 'Write a case study that shows how your participation in the Alignment Asset has led to meaningful outcomes for you and the broader Protocol Labs network.',

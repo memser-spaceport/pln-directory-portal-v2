@@ -194,7 +194,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
         <footer className={s.footer}>
           <div className={s.bottom}>
             <p className={s.labelText}>
-              © 2025 Protocol Labs. All content is provided by the founders. Protocol Labs Demo Day organizers do not
+              © 2026 Protocol Labs. All content is provided by the founders. Protocol Labs Demo Day organizers do not
               endorse or recommend any investment.
             </p>
             <div className={s.footerButtons}>

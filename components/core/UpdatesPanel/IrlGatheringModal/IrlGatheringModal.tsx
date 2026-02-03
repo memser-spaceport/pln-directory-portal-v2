@@ -191,8 +191,10 @@ export function IrlGatheringModal({
   }, [selectedEventUids, gatheringData.events]);
 
   const handleSuccess = useCallback(() => {
-    onGoingClick?.();
     onClose();
+    setTimeout(() => {
+      onGoingClick?.();
+    }, 700);
   }, [onGoingClick, onClose]);
 
   const handleLoginClick = useCallback(() => {

@@ -18,18 +18,21 @@ export const activitiesData: ActivitiesData = {
       networkValue: 'Increase network visibility and strengthen the collective brand.',
       points: '100+',
       popupContent: {
-        title: 'Curate X Space',
-        description: 'Host or co-host an approved X Space. Submit a proposal before scheduling that highlights innovation, collaboration, or thought leadership across the network.',
-        submissionNote: 'To qualify, the Space must reach 50+ concurrent attendees and 500+ total listeners within 24 hours. Points are awarded once metrics are verified.',
+        title: 'Curate X Spaces',
+        description: 'Host or co-host an approved X Space that highlights innovation, collaboration, or thought leadership across the network. Proposals must be submitted and approved before scheduling, and the X Space must be hosted on the official PL X account to ensure metrics can be verified.',
+        submissionNoteTitle: 'Base Points Awarded:',
+        submissionNote: '100 points for hosting or co-hosting an approved X Space, recognizing the effort required to plan and run the session.',
         pointsAwarded: {
-          title: 'Points Awarded:',
+          title: 'Impact Points Awarded (based on Total Listeners within 7 days of the live event)',
+          description: '(Total Listeners = live listeners + replay listeners)',
           items: [
-            { label: 'Tier 1 (0 – 2.5k impressions)', value: '100 points' },
-            { label: 'Tier 2 (2.5k – 5k impressions)', value: '200 points' },
-            { label: 'Tier 3 (5k – 10k impressions)', value: '400 points' },
-            { label: 'Tier 4 (10k+ impressions)', value: '600 points' }
+            { label: 'Tier 1 (50–99 total listeners)', value: '100 points' },
+            { label: 'Tier 2 (100–199 total listeners)', value: '200 points' },
+            { label: 'Tier 3 (200–299 total listeners)', value: '400 points' },
+            { label: 'Tier 4 (300+ total listeners)', value: '500 points' }
           ]
-        }
+        },
+        additionalNote: 'Points are awarded once listener metrics are verified.'
       }
     },
     // {
@@ -158,7 +161,28 @@ export const activitiesData: ActivitiesData = {
             { label: 'Large Initiatives (10+ hours)', value: '1200 points' }
           ]
         }
-      }
+      },
+    },
+    {
+      id: 'Construct an Alignment Asset Case Study',
+      category: 'Knowledge Sharing',
+      activity: 'Construct an Alignment Asset Case Study',
+      networkValue: 'Write a case study that shows how your participation in the Alignment Asset has led to meaningful outcomes for you and the broader Protocol Labs network.',
+      points: 'TBC',
+      popupContent: {
+        title: 'Construct an Alignment Asset Case Study',
+        description: 'Write a case study highlighting how your participation in PLAA created meaningful, measurable outcomes for you and the Protocol Labs network. Describe  the incentivized activity, your actions, and the impact achieved. Must meet PL editorial standards and receive final approval from the Polaris Marketing team in order to be published and eligible for rewards.',
+        submissionNote: 'Include a project description, target audience, success criteria, timeline, point budget, distribution method, point validity period, and program manager.',
+        pointsAwarded: {
+          title: 'Points Awarded:',
+          items: [
+            { label: 'Tier 1: Contributor — 500 points', description: "Highlights a focused contribution through the PL Alignment Asset that led to a clear, practical outcome aligned with your organization's goals and OKRs." },
+            { label: 'Tier 2: Builder — 1,000 points', description: '   Showcases leadership in driving a major initiative or strategic improvement with measurable impact across multiple teams in the network.' },
+            { label: 'Tier 3: Transformer — 3,000 points' , description: '   Documents a transformative, network-wide impact that led to foundational changes in how the Protocol Labs network operates.'}
+          ]
+        }
+      },
+      
     },
     {
       id: 'update-directory-profile',
@@ -209,9 +233,12 @@ export const activitiesData: ActivitiesData = {
       points: '25+',
       popupContent: {
         title: 'Talent Referral Program',
-        description: 'Refer exceptional talent to the Protocol Labs network. Submit referrals through the designated form. Points are awarded when your referral reaches a first-round interview or is hired. Hire-based points are collected after 90 days of employment.',
+        description: 'Refer exceptional talent to the Protocol Labs network by submitting candidates through the designated form. Points can now be collected at multiple stages of the referral process, starting with referral submission and increasing as candidates progress through interviews and hiring. Hired based points are collected after 90 days of employment.',
         pointsAwarded: {
-          title: 'Points Awarded:',
+          title: 'Points Awarded',
+          subtitle: [
+            { label: 'Referral Submission', value: 'awarded once a complete, eligible referral is submitted: 25 points' }
+          ],
           items: []
         },
         categories: [
@@ -229,6 +256,7 @@ export const activitiesData: ActivitiesData = {
           },
           {
             title: 'Hire (IC and/or EE; part-time = 50% points):',
+            description: '(hire-based points are collected after 90 days of employment)',
             tiers: [
               { label: 'Level 1 / Junior', points: '75 points' },
               { label: 'Level 2 / Junior', points: '150 points' },
@@ -265,25 +293,6 @@ export const activitiesData: ActivitiesData = {
             { label: 'Base Reward', value: '150 points for a submission that meets all criteria.' },
             { label: 'First Completed Activity Bonus', value: '200 points if the activity is completed at least once within the first 2 months after becoming active.' },
             { label: 'Approved Activity Bonus', value: 'Collect 10% of all points collected through the activity for the next 3 full snapshot periods (allocated monthly).' }
-          ]
-        }
-      }
-    },
-    {
-      id: 'cross-company-project',
-      category: 'Programs',
-      activity: 'Lead or Join a Cross-Company Project',
-      networkValue: 'Collaborate across teams to deliver measurable outcomes.',
-      points: '2000',
-      popupContent: {
-        title: 'Propose a Cross-Company Project/Initiative',
-        description: 'Lead or participate in a short-term collaboration focused on solving a shared problem or testing a new concept that benefits multiple teams.',
-        submissionNote: 'Projects must strengthen coordination, improve knowledge sharing, or support innovation across the network.',
-        pointsAwarded: {
-          title: 'Points Awarded:',
-          items: [
-            { label: 'Reward', value: '2,000 points for executing and documenting a validated cross-company project sprint.' },
-            { label: 'Collaborators', value: 'Contributors must meaningfully participate (e.g., co-negotiating terms, coordinating logistics, preparing documentation). Points are split equally among all listed collaborators.' }
           ]
         }
       }

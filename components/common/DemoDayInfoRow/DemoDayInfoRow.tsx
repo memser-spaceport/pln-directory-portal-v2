@@ -84,13 +84,14 @@ export const DemoDayInfoRow: React.FC<DemoDayInfoRowProps> = ({
         </div>
       )}
 
-      {formattedDate && (teamsCount !== undefined || investorsCount !== undefined) && (
+      {/* Temporary disabled */}
+      {/* {formattedDate && (teamsCount !== undefined || investorsCount !== undefined) && (
         <div className={s.separator}>
           <DotIcon />
         </div>
-      )}
+      )} */}
 
-      {teamsCount !== undefined && (
+      {/* {teamsCount !== undefined && (
         <div className={s.item}>
           <span className={s.text}>{teamsCount} Teams</span>
         </div>
@@ -100,9 +101,9 @@ export const DemoDayInfoRow: React.FC<DemoDayInfoRowProps> = ({
         <div className={s.separator}>
           <DotIcon />
         </div>
-      )}
+      )} */}
 
-      {investorsCount !== undefined && (
+      {/* {investorsCount !== undefined && (
         <>
           {showInvestorsLink ? (
             <Link
@@ -120,7 +121,7 @@ export const DemoDayInfoRow: React.FC<DemoDayInfoRowProps> = ({
             </div>
           )}
         </>
-      )}
+      )} */}
     </div>
   );
 };

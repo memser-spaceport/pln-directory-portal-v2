@@ -25,17 +25,17 @@ export const TERMS_AND_CONDITIONS_URL = 'https://drive.google.com/file/d/1MjOF66
 
 export const faqItems = [
   {
-    question: 'What is Protocol Labs F25 Demo Day?',
+    question: 'What is Protocol Labs Demo Day?',
     answer: (
       <FaqBulletList
         items={[
           <span key={1}>
-            PL F25 Demo Day is a concentrated virtual event featuring the most promising teams from across the{' '}
+            PL Demo Day is a concentrated virtual event featuring the most promising teams from across the{' '}
             <FaqLink href={PROTOCOL_LABS_LINK}>Protocol Labs (PL)</FaqLink> network. A pre-selected batch of
             high-quality startups will deliver pitches, in a fully asynchronous environment.
           </span>,
-          'Attendees will have access to single-slide company summaries and 3-min video pitches through our online platform which will go live on Oct 23, 16:00 UTC.',
-          "Attendees can directly connect with companies they're interested in by clicking buttons that will automatically send emails on their behalf. Alternatively, the founder's email address and Telegram handle will be available for direct outreach.",
+          'Attendees will have access to single-slide company summaries and 3-min video pitches through our online platform.',
+          "Attendees can directly connect with companies they're interested in by clicking buttons that will automatically send intro emails on their behalf. Alternatively, the founder's email address and Telegram handle will be available for direct outreach.",
         ]}
       />
     ),
@@ -45,10 +45,7 @@ export const faqItems = [
     answer: (
       <FaqBulletList
         items={[
-          'PL F25 Demo Day is an invite-only event for investors. Invitations are being sent to a vetted list of angel investors and VCs.',
-          <span key={1}>
-            If you think you should attend, <FaqLink href={INVITE_FORM_URL}>Register</FaqLink>.
-          </span>,
+          'PL Demo Day is an invite-only event for investors. Invitations are being sent to a vetted list of angel investors and VCs.',
         ]}
       />
     ),

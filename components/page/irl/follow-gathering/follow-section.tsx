@@ -77,8 +77,8 @@ const FollowSection = (props: IFollowSectionProps) => {
 
   // IRL Gathering Modal state - derived from URL param
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isInitOpenModal, setIsInitOpenModal] = useState(false);
   const [isModalOpenLocal, setIsModalOpenLocal] = useState(false);
-  const [hasOpenModalParam, setHasOpenModalParam] = useState(false);
   const urlSearchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -94,7 +94,7 @@ const FollowSection = (props: IFollowSectionProps) => {
   const canOpenModal = canShowImGoingButton || (isEditMode && isUserLoggedIn && accessLevel === 'advanced');
 
   // Modal is open if local state is true AND (user can open modal OR URL param is set)
-  const isIrlGatheringModalOpen = isModalOpenLocal && (canOpenModal || hasOpenModalParam);
+  const isIrlGatheringModalOpen = isModalOpenLocal && (canOpenModal);
 
   // Build PushNotification object from available data for IrlGatheringModal
   const irlGatheringNotification = useMemo((): PushNotification => {
@@ -268,7 +268,6 @@ const FollowSection = (props: IFollowSectionProps) => {
   
   useEffect(() => {
     const openModalParam = openModalParamString === 'true';
-    setHasOpenModalParam(openModalParam);
     
     if (openModalParam) {
       setIsModalOpenLocal(true);
@@ -602,9 +601,9 @@ const FollowSection = (props: IFollowSectionProps) => {
       <PresenceRequestSuccess />
 
       {/* IRL Gathering Modal - render when user can open modal or when URL param is set (for logged out users) */}
-      {(canOpenModal || hasOpenModalParam) && (
+      {canOpenModal && (
         <IrlGatheringModal
-          isOpen={isIrlGatheringModalOpen || hasOpenModalParam}
+          isOpen={isIrlGatheringModalOpen}
           onClose={handleIrlGatheringModalClose}
           notification={irlGatheringNotification}
           onGoingClick={handleIrlGatheringSuccess}

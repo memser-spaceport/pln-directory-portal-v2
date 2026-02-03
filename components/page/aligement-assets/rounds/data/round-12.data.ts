@@ -49,7 +49,7 @@ export const pastRound12Data: IPastRoundData = {
   // Stats Section Data
   // ============================================================================
   stats: {
-    onboardedParticipants: 49,
+    onboardedParticipants: 51,
     regionsUnlocked: ['USA', 'Germany', 'Switzerland'],
     incentivizedActivities: [
       'Curate X Spaces',
@@ -69,8 +69,8 @@ export const pastRound12Data: IPastRoundData = {
       'Alignment Asset Program Contributions',
       'Distinguished Network Contributions'
     ],
-    totalPointsCollected: '3,050',
-    totalTokensAvailable: '10,000',
+    totalPointsCollected: '5,850',
+    totalTokensDistributed: 'TBC',
     numberOfBuybacks: 0
   },
 

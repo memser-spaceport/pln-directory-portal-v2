@@ -144,11 +144,10 @@ export const currentRoundData: CurrentRoundData = {
   // Stats Section Data
   // ============================================================================
   stats: {
-    onboardedParticipants: 49,
+    onboardedParticipants: 51,
     regionsUnlocked: ['USA', 'Germany', 'Switzerland'],
     incentivizedActivities: [
       'Curate X Spaces',
-      'Shared Resource or Cost-Saving Initiative',
       'Create a Replicable Playbook or Template',
       'Host Office Hours',
       'Create a blog for the network',
@@ -157,12 +156,13 @@ export const currentRoundData: CurrentRoundData = {
       'Contribute your compensation data',
       'Talent Referral Program',
       'Create an Incentivized Activity',
-      'Propose a Cross-Company Project/Initiative',
       'Network Introductions',
       'Referral Program',
       'Survey Completion',
       'Alignment Asset Program Contributions',
-      'Distinguished Network Contributions'
+      'Distinguished Network Contributions',
+      'Help Organize an Event',
+      'Construct an Alignment Asset Case Study'
     ],
     totalPointsCollected: '0',
     totalTokensAvailable: '10,000',

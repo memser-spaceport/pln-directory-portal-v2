@@ -168,7 +168,7 @@ export const activitiesData: ActivitiesData = {
       category: 'Knowledge Sharing',
       activity: 'Construct an Alignment Asset Case Study',
       networkValue: 'Write a case study that shows how your participation in the Alignment Asset has led to meaningful outcomes for you and the broader Protocol Labs network.',
-      points: 'TBC',
+      points: '500+',
       popupContent: {
         title: 'Construct an Alignment Asset Case Study',
         description: 'Write a case study highlighting how your participation in PLAA created meaningful, measurable outcomes for you and the Protocol Labs network. Describe  the incentivized activity, your actions, and the impact achieved. Must meet PL editorial standards and receive final approval from the Polaris Marketing team in order to be published and eligible for rewards.',

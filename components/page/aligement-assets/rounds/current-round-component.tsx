@@ -45,15 +45,6 @@ export default function CurrentRoundComponent({
   return (
     <>
       <div className="current-round">
-        {/* Round Selector - Commented out for now */}
-        {/* <div className="current-round__round-selector">
-          <PlaaRoundSelector
-            currentRound={currentRound || data.meta.roundNumber}
-            totalRounds={totalRounds || 12}
-            onRoundChange={onRoundChange || (() => {})}
-          />
-        </div> */}
-
         {/* Hero Section with Title and Action Buttons */}
         <HeroSection data={data.hero} />
 

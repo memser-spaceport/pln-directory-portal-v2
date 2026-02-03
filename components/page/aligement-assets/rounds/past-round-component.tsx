@@ -27,7 +27,7 @@ export default function PastRoundComponent({ pastRoundData }: PastRoundComponent
           tokensAllocated={data.stats.totalTokensAvailable}
         />
         <StatsSection data={data.stats} />
-        <PastLeaderboardSection roundNumber={data.meta.roundNumber} leaderboardData={data.leaderboard} />
+        {data.leaderboard.length > 0 && <PastLeaderboardSection roundNumber={data.meta.roundNumber} leaderboardData={data.leaderboard} />}
         {data.buybackSimulation && <BuybackSimulationSection data={data.buybackSimulation} />}
         <SupportSection />
       </div>

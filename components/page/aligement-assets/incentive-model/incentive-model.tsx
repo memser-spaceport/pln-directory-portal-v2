@@ -8,7 +8,6 @@ import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analyt
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
 // Define all rounds (each round = one month)
-// Note: Round 12 (January 2026) will be added once the snapshot has closed and points/tokens are calculated
 const allRounds = [
   { id: 1, month: 'February 2025' },
   { id: 2, month: 'March 2025' },
@@ -21,11 +20,11 @@ const allRounds = [
   { id: 9, month: 'October 2025' },
   { id: 10, month: 'November 2025' },
   { id: 11, month: 'December 2025' },
+  { id: 12, month: 'January 2026' },
 ];
 
 // Current round (for "Go to current round" functionality)
-// Note: Update to 12 once Round 12 snapshot is closed and points/tokens are calculated
-const CURRENT_ROUND = 11; // December 2025
+const CURRENT_ROUND = 11; // February 2026
 const TOTAL_ROUNDS = 11;
 
 // Mock data for each round (month)
@@ -125,15 +124,16 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Knowledge', points: 450, tokens: 1770 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
-  12: [
-    { category: 'Projects', points: 0, tokens: 0 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 0, tokens: 0 },
-    { category: 'Network Tooling', points: 0, tokens: 0 },
-    { category: 'People/Talent', points: 0, tokens: 0 },
-    { category: 'Knowledge', points: 0, tokens: 0 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
+  // Round 12 (January 2026): Points Collected 3,050 total; Tokens Distributed 0 (not yet distributed)
+  // 12: [
+  //   { category: 'Brand', points: 0, tokens: 0 },
+  //   { category: 'Capital', points: 0, tokens: 0 },
+  //   { category: 'Knowledge', points: 600, tokens: 0 },
+  //   { category: 'Network Tooling', points: 100, tokens: 0 },
+  //   { category: 'People/Talent', points: 50, tokens: 0 },
+  //   { category: 'Programs', points: 0, tokens: 0 },
+  //   { category: 'Projects', points: 2300, tokens: 0 },
+  // ]
 };
 
 // Custom tooltip component with inline styles

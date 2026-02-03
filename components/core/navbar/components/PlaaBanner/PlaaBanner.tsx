@@ -33,66 +33,6 @@ const CONFIRM_REFERRAL_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSfuDNC7f
 // Banner data
 export const BANNER_CONTENTS: BannerContent[] = [
   {
-    id: 'bonus-product-manager',
-    type: 'bonus',
-    title: 'Bonus Points Multiplier: Product Manager',
-    subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
-    highlightText: '2×–3×',
-    date: 'Submit by Jan 31, 2026',
-    buttons: [
-      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/59154950-product-manager-labos-modularization', variant: 'primary' },
-      { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
-    ],
-  },
-  {
-    id: 'bonus-product-lead',
-    type: 'bonus',
-    title: 'Bonus Points Multiplier: Product Lead',
-    subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
-    highlightText: '2×–3×',
-    date: 'Submit by Jan 31, 2026',
-    buttons: [
-      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/66053676-product-lead-pl-alignment-asset', variant: 'primary' },
-      { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
-    ],
-  },
-  {
-    id: 'bonus-network-product-lead',
-    type: 'bonus',
-    title: 'Bonus Points Multiplier: Network Product Lead',
-    subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
-    highlightText: '2x-3x',
-    date: 'Submit by Jan 31, 2026',
-    buttons: [
-      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/60401144-network-product-lead-polaris', variant: 'primary' },
-      { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
-    ],
-  },
-  {
-    id: 'bonus-events-lead',
-    type: 'bonus',
-    title: 'Bonus Points Multiplier: Events Lead',
-    subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
-    highlightText: '2x-3x',
-    date: 'Submit by Jan 31, 2026',
-    buttons: [
-      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/61984015-events-lead#content', variant: 'primary' },
-      { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
-    ],
-  },
-  {
-    id: 'bonus-network-scientist',
-    type: 'bonus',
-    title: 'Bonus Points Multiplier: Network Scientist',
-    subtitle: 'Bonus Points Multiplier on Key Talent Referrals',
-    highlightText: '2x-3x',
-    date: 'Submit by Jan 31, 2026',
-    buttons: [
-      { label: 'View Job Info', link: 'https://jobs.protocol.ai/companies/pl-job-board/jobs/60969057-network-scientist-polaris#content', variant: 'primary' },
-      { label: 'Confirm Referral', link: CONFIRM_REFERRAL_LINK, variant: 'secondary' },
-    ],
-  },
-  {
     id: 'Help shape the future of PLAA',
     type: 'bonus',
     title: 'Help shape the future of PLAA',
@@ -293,16 +233,24 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
               {/* Content hidden in compact mode */}
               <div className={styles.mobileHideOnCompact}>
                 <div className={styles.mobileTextGroup}>
-                  <p className={styles.mobileSubtitle}>
-                    {item.type === 'bonus' && item.highlightText ? (
-                      <>
-                        Bonus Points Multiplier <span className={styles.highlight}>{item.highlightText}</span> on Key Talent Referrals
-                      </>
-                    ) : (
-                      item.subtitle
-                    )}
-                  </p>
-                  <p className={styles.mobileDate}>{item.date}</p>
+                  {item.type === 'event' ? (
+                    <p className={styles.mobileSubtitle}>
+                      {item.subtitle}{item.date && ` - ${item.date}`}
+                    </p>
+                  ) : (
+                    <>
+                      <p className={styles.mobileSubtitle}>
+                        {item.highlightText ? (
+                          <>
+                            Bonus Points Multiplier <span className={styles.highlight}>{item.highlightText}</span> on Key Talent Referrals
+                          </>
+                        ) : (
+                          item.subtitle
+                        )}
+                      </p>
+                      {item.date && <p className={styles.mobileDate}>{item.date}</p>}
+                    </>
+                  )}
                 </div>
                 <div className={styles.mobileButtons}>
                   {item.buttons.map((btn, i) => (

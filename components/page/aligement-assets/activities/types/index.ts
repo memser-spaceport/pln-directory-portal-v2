@@ -9,6 +9,7 @@ export interface PointTier {
 
 export interface PointCategory {
   title: string;
+  description?: string;
   tiers: PointTier[];
 }
 
@@ -27,14 +28,21 @@ export interface ActivityPopupContent {
   subtitle?: string;
   description: string;
   requirements?: RequirementItem[];
+  submissionNoteTitle?: string;
   submissionNote?: string;
   submissionLink?: PopupLink;
   links?: PopupLink[];
   pointsAwarded: {
     title: string;
+    subtitle?: Array<{
+      label: string;
+      value?: string;
+    }>;
+    description?: string;
     items: Array<{
       label: string;
       value?: string;
+      description?: string;
       subItems?: Array<{
         label: string;
         value?: string;

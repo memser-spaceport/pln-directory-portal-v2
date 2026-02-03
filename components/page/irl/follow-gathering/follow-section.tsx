@@ -265,10 +265,10 @@ const FollowSection = (props: IFollowSectionProps) => {
   const isUserGoingValue = useMemo(() => Boolean(isUserGoing), [isUserGoing]);
   const isUserLoggedInValue = useMemo(() => Boolean(isUserLoggedIn), [isUserLoggedIn]);
   const accessLevelValue = useMemo(() => accessLevel || null, [accessLevel]);
-  
+
   useEffect(() => {
     const openModalParam = openModalParamString === 'true';
-    
+
     if (openModalParam) {
       setIsModalOpenLocal(true);
       // If user is already going, automatically set edit mode
@@ -608,7 +608,9 @@ const FollowSection = (props: IFollowSectionProps) => {
           notification={irlGatheringNotification}
           onGoingClick={handleIrlGatheringSuccess}
           isEditMode={isEditMode || (isUserGoing && isUserLoggedIn && accessLevel === 'advanced')}
-          editModeData={isEditMode || (isUserGoing && isUserLoggedIn && accessLevel === 'advanced') ? editModeData : undefined}
+          editModeData={
+            isEditMode || (isUserGoing && isUserLoggedIn && accessLevel === 'advanced') ? editModeData : undefined
+          }
         />
       )}
 

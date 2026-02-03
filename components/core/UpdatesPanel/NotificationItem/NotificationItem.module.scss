@@ -38,6 +38,10 @@
   border-radius: 9999px;
   padding: 9px;
   box-shadow: inset 0px -1px 4px 0px rgba(27, 77, 255, 0.08);
+
+  @media only screen and (max-width: 480px) {
+    display: none;
+  }
 }
 
 .notificationContent {

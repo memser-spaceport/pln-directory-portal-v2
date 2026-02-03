@@ -268,7 +268,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
         {/* Footer */}
         <footer className={s.footer}>
           <div className={s.note}>
-            © 2025 Protocol Labs. All content is provided by the founders. Protocol Labs Demo Day organizers do not
+            © 2026 Protocol Labs. All content is provided by the founders. Protocol Labs Demo Day organizers do not
             endorse or recommend any investment.
           </div>
           <div className={s.bottom}>

@@ -11,7 +11,7 @@ export function Footer() {
         investment.
       </div>
       <div className={s.bottom}>
-        <div className={s.legal}>© 2025 Protocol Labs</div>
+        <div className={s.legal}>© 2026 Protocol Labs</div>
         <div className={s.links}>
           <a className={s.link} href={PRIVACY_POLICY_URL} target="_blank">
             Privacy Policy

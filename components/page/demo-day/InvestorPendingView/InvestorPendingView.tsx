@@ -63,7 +63,7 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
   useDemoDayPageViewAnalytics(
     'onInvestorPendingViewPageOpened',
     DEMO_DAY_ANALYTICS.ON_INVESTOR_PENDING_VIEW_PAGE_OPENED,
-    '/demoday/investor',
+    `/demoday/${initialDemoDayState?.uid}/investor`,
     {
       currentStep: currentStep,
       isProfileComplete: isInvestorProfileComplete,
@@ -85,7 +85,7 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
         userId: userInfo.uid,
         userEmail: userInfo.email,
         userName: userInfo.name,
-        path: '/demoday/investor',
+        path: `/demoday/${initialDemoDayState?.uid}/investor`,
         timestamp: new Date().toISOString(),
         currentStep: currentStep,
         targetPath: `/members/${userInfo.uid}`,
@@ -95,7 +95,7 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
     reportAnalytics.mutate(buttonClickEvent);
 
     // Open in new tab
-    window.open(`/members/${userInfo.uid}?backTo=/demoday/investor`, '_blank');
+    window.open(`/members/${userInfo.uid}?backTo=/demoday/${initialDemoDayState?.uid}/investor`, '_blank');
   };
 
   const handleAddToCalendar = () => {
@@ -113,7 +113,7 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
         userId: userInfo.uid,
         userEmail: userInfo.email,
         userName: userInfo.name,
-        path: '/demoday/investor',
+        path: `/demoday/${initialDemoDayState?.uid}/investor`,
         timestamp: new Date().toISOString(),
         currentStep: currentStep,
       },
@@ -137,7 +137,7 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
         userId: userInfo.uid,
         userEmail: userInfo.email,
         userName: userInfo.name,
-        path: '/demoday/investor',
+        path: `/demoday/${initialDemoDayState?.uid}/investor`,
         timestamp: new Date().toISOString(),
         currentStep: currentStep,
       },

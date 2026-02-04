@@ -182,8 +182,8 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
             subtitle={
               <div className={s.infoText}>
                 Reach out to us on{' '}
-                <a href="mailto:demoday@protocol.ai" className={s.infoLink}>
-                  demoday@protocol.ai
+                <a href="mailto:pldemoday@protocol.ai" className={s.infoLink}>
+                  pldemoday@protocol.ai
                 </a>{' '}
                 for any other questions.
               </div>

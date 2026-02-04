@@ -173,7 +173,7 @@ export function AuthInvalidUser() {
 
     const unsubscribe = authEvents.on('auth:invalid-email', handleInvalidEmail);
     return unsubscribe;
-  }, [pathname, onAccessDeniedModalShown, onAccessDeniedUserNotWhitelistedModalShown, reportAnalytics, router]);
+  }, [pathname, onAccessDeniedModalShown, onAccessDeniedUserNotWhitelistedModalShown, reportAnalytics, router, demoDayState]);
 
   return (
     <ModalBase

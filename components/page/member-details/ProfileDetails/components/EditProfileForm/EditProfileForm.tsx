@@ -15,6 +15,7 @@ import { omit } from 'lodash';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
+import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/services/members/store';
 import { updateMemberInfoCookie } from '@/utils/member.utils';
@@ -32,18 +33,24 @@ import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOpti
 import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { AddTeamModal } from '@/components/page/member-details/ProfileDetails/components/AddTeamModal';
 import { useUpdateMemberSelfRole } from '@/services/members/hooks/useUpdateMemberSelfRole';
+import { BioInput } from '@/components/page/member-details/BioDetails/components/BioInput';
 
 interface Props {
   onClose: () => void;
   member: IMember;
   userInfo: IUserInfo;
+  generateBio?: boolean;
 }
 
-export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
+export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Props) => {
   const router = useRouter();
   const { actions } = useUserStore();
   const [isAddTeamModalOpen, setIsAddTeamModalOpen] = useState(false);
   const [newlyAddedTeamName, setNewlyAddedTeamName] = useState<string | null>(null);
+
+  // Refs for AI bio content tracking
+  const originalAiContentRef = useRef<string | null>(null);
+  const initialBioRef = useRef<string>(member.bio || '');
 
   // Find the main team from member.mainTeam or teamMemberRoles
   const mainTeamData = useMemo(() => {
@@ -89,12 +96,55 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
       openToCollaborate: member.openToWork,
       primaryTeam: mainTeamData.team,
       primaryTeamRole: mainTeamData.team ? mainTeamData.role : member.role,
+      bio: member.bio || '',
     },
     resolver: yupResolver(editProfileSchema),
   });
   const { handleSubmit, reset, watch, setValue } = methods;
   const { mutateAsync } = useUpdateMember();
+  const { mutateAsync: updateMemberParams } = useUpdateMemberParams();
   const { mutateAsync: updateSelfRole } = useUpdateMemberSelfRole();
+
+  const handleAiContentGenerated = (originalContent: string) => {
+    // Store the original content as-is for now
+    // We'll capture the RichTextEditor's processed version after it renders
+    originalAiContentRef.current = originalContent;
+
+    // Use a small delay to capture the processed content after RichTextEditor normalizes it
+    setTimeout(() => {
+      const currentBio = watch('bio');
+      if (currentBio) {
+        // Now store the RichTextEditor's processed version
+        originalAiContentRef.current = currentBio;
+      }
+    }, 100);
+  };
+
+  const modifyDisclaimerIfNeeded = (currentBio: string): string => {
+    // Check if this bio contains the original AI disclaimer (indicating it's AI-generated)
+    const originalDisclaimer = '<p><em>Bio is AI generated &amp; may not be accurate.</em></p>';
+    const hasOriginalDisclaimer = currentBio.includes(originalDisclaimer);
+
+    // Case 1: New AI content was just generated in this session
+    if (originalAiContentRef.current) {
+      if (currentBio === originalAiContentRef.current) {
+        return currentBio;
+      }
+
+      if (hasOriginalDisclaimer) {
+        return currentBio.replace(originalDisclaimer, '');
+      }
+    }
+
+    // Case 2: Editing existing AI-generated bio (no new generation in this session)
+    else if (hasOriginalDisclaimer) {
+      if (currentBio !== initialBioRef.current) {
+        return currentBio.replace(originalDisclaimer, '');
+      }
+    }
+
+    return currentBio;
+  };
   const { data: memberData } = useMember(member.id);
   const {
     onSaveProfileDetailsClicked,
@@ -181,6 +231,16 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
     const res = await mutateAsync({
       uid: memberData.memberInfo.uid,
       payload,
+    });
+
+    // Update bio separately using useUpdateMemberParams
+    const bioPayload = {
+      bio: modifyDisclaimerIfNeeded(formData.bio),
+    };
+
+    await updateMemberParams({
+      uid: memberData.memberInfo.uid,
+      payload: bioPayload,
     });
 
     if (!res.isError) {
@@ -319,6 +379,10 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           <div className={s.infoBlock}>
             <InfoIcon />
             <span className={s.infoText}>Manage additional teams/roles in Teams section below.</span>
+          </div>
+
+          <div className={s.row}>
+            <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} />
           </div>
         </div>
         <EditFormMobileControls />

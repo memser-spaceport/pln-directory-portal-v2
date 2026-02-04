@@ -25,6 +25,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const showIncomplete = !editView && hasMissingRequiredData && isOwner;
   const { onEditProfileDetailsClicked } = useMemberAnalytics();
   useMobileNavVisibility(editView);
+  const hasBio = !!member.bio && member.bio.trim() !== '<p><br></p>';
 
   return (
     <div
@@ -58,6 +59,12 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
               setEditView(true);
             }}
           />
+          {hasBio && member.bio && (
+            <div>
+              <div className={s.bioTitle}>Bio</div>
+              <div className={s.bioContent} dangerouslySetInnerHTML={{ __html: member.bio }} />
+            </div>
+          )}
         </>
       )}
     </div>

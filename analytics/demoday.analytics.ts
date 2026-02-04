@@ -260,6 +260,10 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_APPLICATION_MODAL_SUBMITTED, eventParams);
   }
 
+  function onApplicationModalAutoSubmitted(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_APPLICATION_MODAL_AUTO_SUBMITTED, eventParams);
+  }
+
   function onSubscribeToDemoDayClicked(eventParams = {}) {
     captureEvent(DEMO_DAY_ANALYTICS.ON_SUBSCRIBE_TO_DEMO_DAY_CLICKED, eventParams);
   }
@@ -325,6 +329,7 @@ export const useDemoDayAnalytics = () => {
     onApplicationModalFieldEntered,
     onApplicationModalCanceled,
     onApplicationModalSubmitted,
+    onApplicationModalAutoSubmitted,
     onSubscribeToDemoDayClicked,
   };
 };

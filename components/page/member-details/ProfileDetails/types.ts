@@ -8,4 +8,5 @@ export interface TEditProfileForm {
   openToCollaborate: boolean;
   primaryTeam: { value: string; label: string; role?: string } | null;
   primaryTeamRole: string | null;
+  bio: string;
 }

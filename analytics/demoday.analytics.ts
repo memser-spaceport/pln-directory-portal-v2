@@ -192,6 +192,10 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACCESS_DENIED_REQUEST_INVITE_CLICKED, eventParams);
   }
 
+  function onCompletedViewPageOpened(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_PAGE_OPENED, eventParams);
+  }
+
   function onCompletedViewApplyForNextDemoDayClicked() {
     captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_APPLY_FOR_NEXT_DEMO_DAY_CLICKED);
   }
@@ -238,6 +242,10 @@ export const useDemoDayAnalytics = () => {
 
   function onLandingInvestorsLinkClicked(eventParams = {}) {
     captureEvent(DEMO_DAY_ANALYTICS.ON_LANDING_INVESTORS_LINK_CLICKED, eventParams);
+  }
+
+  function onLandingInvestorProfileLinkClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_LANDING_INVESTOR_PROFILE_LINK_CLICKED, eventParams);
   }
 
   function onApplicationModalFieldEntered(eventParams = {}) {
@@ -300,6 +308,7 @@ export const useDemoDayAnalytics = () => {
     onActiveViewWelcomeVideoViewed,
     onConfidentialityModalSubmitted,
     onConfidentialityModalClosed,
+    onCompletedViewPageOpened,
     onCompletedViewApplyForNextDemoDayClicked,
     onCompletedViewGiveFeedbackClicked,
     onCompletedViewKeepProfileUpdatedClicked,
@@ -312,6 +321,7 @@ export const useDemoDayAnalytics = () => {
     onInvestorCommunicationsSettingsUpdated,
     onDemoDayListCardClicked,
     onLandingInvestorsLinkClicked,
+    onLandingInvestorProfileLinkClicked,
     onApplicationModalFieldEntered,
     onApplicationModalCanceled,
     onApplicationModalSubmitted,

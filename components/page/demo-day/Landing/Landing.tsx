@@ -47,8 +47,12 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
   }, [searchParams]);
 
   // Analytics hooks
-  const { onLandingRequestInviteButtonClicked, onLandingLoginButtonClicked, onLandingInvestorsLinkClicked } =
-    useDemoDayAnalytics();
+  const {
+    onLandingRequestInviteButtonClicked,
+    onLandingLoginButtonClicked,
+    onLandingInvestorsLinkClicked,
+    onLandingInvestorProfileLinkClicked,
+  } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
 
   // Page view analytics - triggers only once on mount
@@ -152,7 +156,43 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
           </div>
           {!!data?.isPending && userInfo?.accessLevel === 'L0' && (
             <div className={s.pendingText}>
-              Complete your  <Link href={`/members/${userInfo.uid}`} className={s.link}>investor profile</Link> to join Demo Day 
+              Complete your{' '}
+              <Link
+                href={`/members/${userInfo.uid}`}
+                className={s.link}
+                onClick={() => {
+                  // PostHog analytics
+                  onLandingInvestorProfileLinkClicked({
+                    demoDayTitle: data?.title,
+                    demoDayDate: data?.date,
+                    demoDayStatus: data?.status,
+                  });
+
+                  // Custom analytics event
+                  if (userInfo?.email) {
+                    const investorProfileLinkEvent: TrackEventDto = {
+                      name: DEMO_DAY_ANALYTICS.ON_LANDING_INVESTOR_PROFILE_LINK_CLICKED,
+                      distinctId: userInfo.email,
+                      properties: {
+                        userId: userInfo.uid,
+                        userEmail: userInfo.email,
+                        userName: userInfo.name,
+                        path: '/demoday',
+                        timestamp: new Date().toISOString(),
+                        demoDayTitle: data?.title,
+                        demoDayDate: data?.date,
+                        demoDayStatus: data?.status,
+                        isLoggedIn: !!userInfo,
+                      },
+                    };
+
+                    reportAnalytics.mutate(investorProfileLinkEvent);
+                  }
+                }}
+              >
+                investor profile
+              </Link>{' '}
+              to join Demo Day
             </div>
           )}
         </div>

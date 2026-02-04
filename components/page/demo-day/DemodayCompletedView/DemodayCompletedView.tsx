@@ -14,6 +14,8 @@ import { faqCompletedItems, PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from 
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { FeedbackDialog } from './components/FeedbackDialog';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import teamsData from '@/components/common/LogosGrid/teams.json';
 
 import s from './DemodayCompletedView.module.scss';
@@ -68,6 +70,20 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
     onCompletedViewKeepProfileUpdatedClicked,
     onCompletedViewShowMoreTeamsClicked,
   } = useDemoDayAnalytics();
+
+  // Page view analytics - triggers only once on mount
+  useDemoDayPageViewAnalytics(
+    'onCompletedViewPageOpened',
+    DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_PAGE_OPENED,
+    '/demoday/completed',
+    {
+      demoDayTitle: initialDemoDayState?.title,
+      demoDayDate: initialDemoDayState?.date,
+      demoDayStatus: initialDemoDayState?.status,
+      teamsCount: initialDemoDayState?.teamsCount,
+      investorsCount: initialDemoDayState?.investorsCount,
+    },
+  );
 
   // Fetch demo days list
   const { data: demoDays, isLoading } = useGetDemoDaysList();

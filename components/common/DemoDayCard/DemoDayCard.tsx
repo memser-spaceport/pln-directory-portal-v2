@@ -178,11 +178,11 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = ({
                 </svg>
               </div>
             )}
-            {access === 'FOUNDER' && (status === 'ACTIVE' || status === 'COMPLETED') && (
-              <Link className={s.link} href={`/demoday/${slug}/founders-dashboard`}>
-                Demo Day Analytics <ChartIcon />
-              </Link>
-            )}
+            {/*{access === 'FOUNDER' && (status === 'ACTIVE' || status === 'COMPLETED') && (*/}
+            {/*  <Link className={s.link} href={`/demoday/${slug}/founders-dashboard`}>*/}
+            {/*    Demo Day Analytics <ChartIcon />*/}
+            {/*  </Link>*/}
+            {/*)}*/}
           </div>
         </div>
       </div>

@@ -152,15 +152,15 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
                 </Button>
               </Link>
 
-              {isFounder && (
-                <Link
-                  className={s.linkAnalytics}
-                  href={`/demoday/${initialDemoDayState?.uid}/founders-dashboard`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Demo Day Analytics <ChartIcon />
-                </Link>
-              )}
+              {/*{isFounder && (*/}
+              {/*  <Link*/}
+              {/*    className={s.linkAnalytics}*/}
+              {/*    href={`/demoday/${initialDemoDayState?.uid}/founders-dashboard`}*/}
+              {/*    onClick={(e) => e.stopPropagation()}*/}
+              {/*  >*/}
+              {/*    Demo Day Analytics <ChartIcon />*/}
+              {/*  </Link>*/}
+              {/*)}*/}
             </div>
 
             <div className={s.links}>

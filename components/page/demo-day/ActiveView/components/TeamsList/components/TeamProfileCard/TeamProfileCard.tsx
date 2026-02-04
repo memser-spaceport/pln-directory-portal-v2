@@ -348,11 +348,11 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         }}
       >
         <div className={s.linksWrapper}>
-          {canEdit && (
-            <Link className={s.link} href={`/demoday/${slug}/founders-dashboard`} onClick={(e) => e.stopPropagation()}>
-              <ChartIcon /> Demo Day Analytics
-            </Link>
-          )}
+          {/*{canEdit && (*/}
+          {/*  <Link className={s.link} href={`/demoday/${slug}/founders-dashboard`} onClick={(e) => e.stopPropagation()}>*/}
+          {/*    <ChartIcon /> Demo Day Analytics*/}
+          {/*  </Link>*/}
+          {/*)}*/}
           <div className={s.editButtonContainer}>
             <div className={s.drawerEditButton}>
               {canEdit ? <EditIcon /> : <EyeIcon />}

@@ -212,7 +212,7 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
         <section className={s.section}>
           <div className={s.sectionHeader}>
             <h2 className={s.sectionTitle}>Engagement Funnel</h2>
-            <p className={s.sectionSubtitle}>Daily breakdown of investor engagement across different touchpoints</p>
+            <p className={s.sectionSubtitle}>Conversion rates through the engagement journey.</p>
           </div>
           <div className={s.chartCard}>
             <div className={s.chartLegend}>
@@ -232,13 +232,13 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
         {/* Section 3: Investor Activity */}
         <section className={s.section}>
           <div className={s.sectionHeader}>
-            <h2 className={s.sectionTitle}>Investor Activity</h2>
-            <p className={s.sectionSubtitle}>Detailed view of investor interactions with your profile</p>
+            <h2 className={s.sectionTitle}>User Activity</h2>
+            <p className={s.sectionSubtitle}>See how users interacted with teams.</p>
           </div>
           <FormProvider {...filterMethods}>
             <div className={s.tableActions}>
               <div className={s.searchField}>
-                <FormField name="search" placeholder="Search investors" icon={<SearchIcon />} />
+                <FormField name="search" placeholder="Search users" icon={<SearchIcon />} />
               </div>
               <div className={s.filterField}>
                 <FormSelect name="interaction" placeholder="All interactions" options={INTERACTION_OPTIONS} />

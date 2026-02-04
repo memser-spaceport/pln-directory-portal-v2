@@ -78,7 +78,7 @@ export function useActivityTable(filteredData: Investor[], sortByValue: SelectVa
         },
       }),
       columnHelper.accessor('investmentFocus', {
-        header: 'Investment Focus',
+        header: 'Engagement with other teams',
         cell: (info) => (
           <div className={s.interestBadges}>
             {info.getValue().map((interest: string) => (
@@ -89,10 +89,10 @@ export function useActivityTable(filteredData: Investor[], sortByValue: SelectVa
           </div>
         ),
       }),
-      columnHelper.accessor('typicalCheckSize', {
-        header: 'Typical Check Size',
-        cell: (info) => info.getValue(),
-      }),
+      // columnHelper.accessor('typicalCheckSize', {
+      //   header: 'Typical Check Size',
+      //   cell: (info) => info.getValue(),
+      // }),
       columnHelper.accessor('interaction', {
         header: 'Interaction',
         cell: (info) => {

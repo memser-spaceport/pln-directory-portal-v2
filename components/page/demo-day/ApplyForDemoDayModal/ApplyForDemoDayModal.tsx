@@ -62,9 +62,9 @@ const applySchema = yup.object().shape(
       },
       otherwise: (schema) => schema.nullable(),
     }),
-    teamName: yup.string().when('teamOrProject', {
-      is: (teamOrProject: any) => !teamOrProject,
-      then: (schema) => schema.nullable(),
+    teamName: yup.string().when('websiteAddress', {
+      is: (v: any) => Boolean(v),
+      then: (schema) => schema.required('Team name is required when adding a new team'),
       otherwise: (schema) => schema.nullable(),
     }),
     websiteAddress: yup.string().when('teamName', {
@@ -500,7 +500,13 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                 <FormField name="linkedin" label="LinkedIn profile" placeholder="Enter link to your LinkedIn profile" />
 
                 <div className={s.column}>
-                  <div className={s.inputsLabel}>Role & Organization/Fund Name</div>
+                  <div
+                    className={clsx(s.inputsLabel, {
+                      [s.required]: isAddingTeam,
+                    })}
+                  >
+                    Role & Organization/Fund Name
+                  </div>
                   {!isAddingTeam ? (
                     <>
                       <div className={s.inputsWrapper}>
@@ -594,7 +600,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                     name="websiteAddress"
                     placeholder="Enter website address"
                     label="Website address"
-                    isRequired={!!teamName}
+                    isRequired
                   />
                 )}
 

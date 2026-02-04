@@ -214,6 +214,29 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+}
 
+.linksWrapper {
   margin-top: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.link {
+  color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
 }

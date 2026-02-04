@@ -4,7 +4,7 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import Cookies from 'js-cookie';
 
 export type DemoDayListResponse = {
-  access: 'none';
+  access: 'none' | 'FOUNDER';
   confidentialityAccepted: boolean;
   date: string;
   description: string;

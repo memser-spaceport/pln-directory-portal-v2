@@ -288,7 +288,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
               <p className={s.infoText}>
                 Reach out to us on{' '}
                 <a href="mailto:demoday@protocol.ai" className={s.infoLink}>
-                  demoday@protocol.ai
+                  pldemoday@protocol.ai
                 </a>{' '}
                 for any other questions.
               </p>

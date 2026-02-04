@@ -256,7 +256,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           <div className={s.row}>
             <ProfileSkillsInput />
           </div>
-          {!isInvestor(userInfo?.accessLevel) && (
+          {!isInvestor(userInfo?.accessLevel) && userInfo?.accessLevel !== 'L0' && userInfo?.accessLevel !== 'L1' && (
             <div className={s.row}>
               <ProfileCollaborateInput />
             </div>

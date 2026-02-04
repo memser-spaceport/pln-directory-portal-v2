@@ -13,8 +13,11 @@ interface Props {
 }
 
 const MESSAGES: Record<string, string> = {
-  L0: 'Access limited - please verify your identity to begin the review process.',
-  L1: "Access limited - profile under review. You'll be notified once approved.",
+  // Previous messages
+  // L0: 'Access limited - please verify your identity to begin the review process.',
+  // L1: "Access limited - profile under review. You'll be notified once approved.",
+  L0: 'Limited access: verify your identity to proceed',
+  L1: "Profile under review — we'll notify you once approved",
 };
 
 export const CompleteYourProfile = ({ userInfo }: Props) => {

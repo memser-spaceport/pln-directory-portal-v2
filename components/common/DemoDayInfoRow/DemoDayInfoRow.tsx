@@ -1,9 +1,8 @@
 'use client';
 
 import React from 'react';
-import { format } from 'date-fns';
-import Link from 'next/link';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { formatDemoDayDate } from '@/utils/demo-day.utils';
 
 import s from './DemoDayInfoRow.module.scss';
 
@@ -67,7 +66,7 @@ export const DemoDayInfoRow: React.FC<DemoDayInfoRowProps> = ({
   const formattedDate = approximateStartDate
     ? approximateStartDate
     : date
-      ? format(new Date(date), 'MMM dd, yyyy, HH:mm')
+      ? formatDemoDayDate(date)
       : null;
 
   const handleInvestorsLinkClick = () => {

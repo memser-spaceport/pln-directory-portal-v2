@@ -101,7 +101,7 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
   };
 
   const generateICSFile = () => {
-    const icsUrl = 'https://pl-directory-uploads-prod.s3.us-west-1.amazonaws.com/pl_f25_demo_day_investor_event.ics';
+    const icsUrl = 'https://pl-directory-uploads-prod.s3.us-west-1.amazonaws.com/pl_w25_demo_day_investor_event.ics';
 
     // Create a hidden iframe to download the file
     const iframe = document.createElement('iframe');
@@ -117,7 +117,7 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
 
   const handleGoogleCalendar = async () => {
     window.open(
-      'https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=MnFjZ2p0cWphYW05YjhxZ2kwM285dHFidm8gY18yMWRlZDg3OGJiNjU3NzA3ZTFhODE0NDNlMTIzNzViMmE3MzgyYzNiYmE0MzY4ZGQ3NDVlYjVlMGZlZmU3MjViQGc&tmsrc=c_21ded878bb657707e1a81443e12375b2a7382c3bba4368dd745eb5e0fefe725b%40group.calendar.google.com',
+      'https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=MWRsOWwydmd2aDVtdmg2NGg5bG1tMzA2aWogY181MzAyZDMzYTg4ODA5MTA5M2Y1YzAyMzY2ZGM1ZWZjYWZlM2RkNTc2MDgxZjE2MWMxNzljZmFiYWNjZjFmOThlQGc&tmsrc=c_5302d33a888091093f5c02366dc5efcafe3dd576081f161c179cfabaccf1f98e%40group.calendar.google.com',
       '_blank',
     );
     await markCalendarAsAdded();

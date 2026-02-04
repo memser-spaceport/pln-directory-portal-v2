@@ -117,7 +117,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   const { mutateAsync, isPending } = useApplyForDemoDay(demoDaySlug);
   const { data } = useMemberFormOptions();
   const memberAnalytics = useMemberAnalytics();
-  const { onApplicationModalFieldEntered, onApplicationModalCanceled, onApplicationModalSubmitted } =
+  const { onApplicationModalFieldEntered, onApplicationModalCanceled, onApplicationModalSubmitted, onApplicationModalAutoSubmitted } =
     useDemoDayAnalytics();
   const [isAddingTeam, setIsAddingTeam] = useState(false);
   const [hasAutoSubmitted, setHasAutoSubmitted] = useState(false);
@@ -261,7 +261,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
 
         // Calculate remaining time to show loader for at least 3 seconds
         const elapsedTime = Date.now() - minLoaderTime;
-        const remainingTime = Math.max(0, 3000 - elapsedTime);
+        const remainingTime = Math.max(0, 4000 - elapsedTime);
 
         // Wait for minimum loader time
         if (remainingTime > 0) {
@@ -291,6 +291,14 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
 
         try {
           await mutateAsync(payload);
+
+          // PostHog analytics
+          onApplicationModalAutoSubmitted({
+            demoDaySlug,
+            demoDayTitle: demoDayData?.title,
+            isAuthenticated,
+            hasTeam: !!team && Object.keys(team).length > 0,
+          });
 
           // Invalidate demo day state queries
           await queryClient.invalidateQueries({
@@ -333,6 +341,9 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     isOpen,
     minLoaderTime,
     isOpenedByLink,
+    demoDaySlug,
+    demoDayData?.title,
+    onApplicationModalAutoSubmitted,
   ]);
 
   const onSubmit = async (formData: ApplyFormData) => {
@@ -472,7 +483,9 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
             <div className={s.loaderContainer}>
               <div className={s.loader} />
               <p className={s.loaderText}>
-                {isAutoSubmitting ? 'Submitting your application...' : 'Loading your information...'}
+                {isAutoSubmitting ? <span>
+                  Submitting your application with your investor profile data... <br />Keep your profile updated for seamless future applications.
+                </span> : 'Loading your information...'}
               </p>
             </div>
           ) : (

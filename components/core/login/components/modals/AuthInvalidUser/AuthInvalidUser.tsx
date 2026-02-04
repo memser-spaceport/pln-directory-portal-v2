@@ -2,7 +2,7 @@
 
 import { useToggle } from 'react-use';
 import { ReactNode, useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
 import { triggerLoader, getParsedValue } from '@/utils/common.utils';
@@ -69,6 +69,7 @@ const DEFAULT_CONTENT: ModalContent = ERROR_CONTENT.unexpected_error;
 export function AuthInvalidUser() {
   const router = useRouter();
   const pathname = usePathname();
+  const params = useParams();
   const { data: demoDayState } = useGetDemoDayState();
   const [open, toggleOpen] = useToggle(false);
   const { openModal } = useContactSupportContext();
@@ -134,6 +135,7 @@ export function AuthInvalidUser() {
             ['rejected_access_level', 'email_not_found'].includes(errorType))
         ) {
           const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+          const demoDaySlug = demoDayState?.slugURL || params.demoDayId;
 
           setContent({
             title: 'Access Denied',
@@ -144,7 +146,7 @@ export function AuthInvalidUser() {
               label: 'Register',
               onClick: () => {
                 handleModalClose();
-                router.push(`/demoday/${demoDayState?.slugURL}?dialog=applyToDemoday`);
+                router.push(demoDaySlug ? `/demoday/${demoDaySlug}?dialog=applyToDemoday` : '/demoday');
               },
             },
             footer: (

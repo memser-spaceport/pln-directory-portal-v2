@@ -36,6 +36,7 @@ interface Props {
   hideHeader?: boolean;
   onHideSection?: () => void;
   isInvestor?: boolean | null;
+  signUpSource?: string;
 }
 
 export const InvestorProfileView = ({
@@ -53,6 +54,7 @@ export const InvestorProfileView = ({
   hideHeader,
   onHideSection,
   isInvestor,
+  signUpSource,
 }: Props) => {
   const investmentTeams = member?.teams.filter((team) => team.investmentTeam) ?? [];
   const { mutate: updateMemberInvestorSettings } = useUpdateMemberInvestorSettings();
@@ -114,7 +116,9 @@ export const InvestorProfileView = ({
   return (
     <>
       {showIncomplete &&
-        (isInvestor === null && !isInvestorAccess(member?.accessLevel || '') ? (
+        (isInvestor === null &&
+        !isInvestorAccess(member?.accessLevel || '') &&
+        !signUpSource?.startsWith('demoday-') ? (
           <div className={s.incompleteWarning}>
             <div className={s.warningContent}>
               <div className={s.warningIcon}>

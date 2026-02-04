@@ -169,6 +169,7 @@ export interface IMember {
     secRulesAccepted: boolean;
     isInvestViaFund: boolean;
   };
+  signUpSource?: string;
 }
 
 export interface ILoggedoutMember {}

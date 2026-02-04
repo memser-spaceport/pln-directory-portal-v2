@@ -209,6 +209,7 @@ export const getMember = async (
     ohHelpWith: result.ohHelpWith,
     ohStatus: result.ohStatus,
     investorProfile: result.investorProfile,
+    signUpSource: result.signUpSource,
   };
 
   const hasEditAccess = userInfo?.roles?.includes(ADMIN_ROLE) || userInfo?.uid === member?.id;

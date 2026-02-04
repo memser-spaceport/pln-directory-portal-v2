@@ -16,6 +16,9 @@ import { ReferCompanyModal } from '../ReferCompanyModal';
 import { GiveFeedbackModal } from '@/components/page/demo-day/GiveFeedbackModal';
 import { clsx } from 'clsx';
 import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
+import { ChartIcon } from '@/components/icons';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
@@ -36,6 +39,8 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
   const descriptionRef = React.useRef<HTMLParagraphElement>(null);
+  const params = useParams();
+  const slug = params.demoDayId as string;
 
   // Analytics hooks
   const {
@@ -329,12 +334,6 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
 
   return (
     <div ref={cardRef} className={s.profileCard} onClick={handleCardClick}>
-      <div className={s.editButtonContainer}>
-        <div className={s.drawerEditButton}>
-          {canEdit ? <EditIcon /> : <EyeIcon />}
-          {canEdit ? <span>Edit</span> : <span>More Info</span>}
-        </div>
-      </div>
       <ProfileHeader
         image={team.team.logo?.url || '/images/demo-day/profile-placeholder.svg'}
         name={team.team?.name || 'Team Name'}
@@ -347,7 +346,21 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         classes={{
           name: s.teamName,
         }}
-      />
+      >
+        <div className={s.linksWrapper}>
+          {/*{canEdit && (*/}
+          {/*  <Link className={s.link} href={`/demoday/${slug}/founders-dashboard`} onClick={(e) => e.stopPropagation()}>*/}
+          {/*    <ChartIcon /> Demo Day Analytics*/}
+          {/*  </Link>*/}
+          {/*)}*/}
+          <div className={s.editButtonContainer}>
+            <div className={s.drawerEditButton}>
+              {canEdit ? <EditIcon /> : <EyeIcon />}
+              {canEdit ? <span>Edit</span> : <span>More Info</span>}
+            </div>
+          </div>
+        </div>
+      </ProfileHeader>
 
       <ProfileContent
         pitchDeckUrl={team?.onePagerUpload?.url}

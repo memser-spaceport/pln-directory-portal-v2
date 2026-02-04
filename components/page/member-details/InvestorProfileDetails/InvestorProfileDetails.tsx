@@ -67,6 +67,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member, isInvesto
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
+  console.log({ member });
 
   // Analytics hooks
   const { onInvestorProfileEditStarted } = useDemoDayAnalytics();
@@ -145,6 +146,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member, isInvesto
           member={member}
           onHideSection={() => setIsHidden(true)}
           isInvestor={isInvestor}
+          signUpSource={member.signUpSource}
         />
       )}
     </MemberDetailsSection>

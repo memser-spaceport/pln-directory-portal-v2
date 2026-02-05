@@ -20,12 +20,10 @@ import { Checkbox } from '@base-ui-components/react/checkbox';
 import { CheckIcon } from '@/components/page/member-details/InvestorProfileDetails/components/EditInvestorProfileForm/icons';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
-import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { ITeam } from '@/types/teams.types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { getMember } from '@/services/members.service';
-import { isValid } from 'zod';
 import { toast } from '@/components/core/ToastContainer';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
@@ -46,15 +44,13 @@ const applySchema = yup.object().shape(
         return domain.includes('.');
       })
       .required('Email is required'),
-    linkedin: yup
-      .string()
-      .defined()
-      .test('linkedin-url', 'Please enter a valid LinkedIn profile URL', (value) => {
-        if (!value || value.trim() === '') return true; // Allow empty values
-        // Match LinkedIn profile URLs with or without protocol
-        const linkedinPattern = /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|pub|profile)\/[\w-]+\/?$/i;
-        return linkedinPattern.test(value.trim());
-      }),
+    linkedin: yup.string().defined(),
+    // .test('linkedin-url', 'Please enter a valid LinkedIn profile URL', (value) => {
+    //   if (!value || value.trim() === '') return true; // Allow empty values
+    //   // Match LinkedIn profile URLs with or without protocol
+    //   const linkedinPattern = /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|pub|profile)\/[\w-]+\/?$/i;
+    //   return linkedinPattern.test(value.trim());
+    // }),
     teamOrProject: yup.mixed<string | Record<string, string>>().when('teamName', {
       is: (teamName: string) => !teamName,
       then: (schema) => {
@@ -116,9 +112,12 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useApplyForDemoDay(demoDaySlug);
   const { data } = useMemberFormOptions();
-  const memberAnalytics = useMemberAnalytics();
-  const { onApplicationModalFieldEntered, onApplicationModalCanceled, onApplicationModalSubmitted, onApplicationModalAutoSubmitted } =
-    useDemoDayAnalytics();
+  const {
+    onApplicationModalFieldEntered,
+    onApplicationModalCanceled,
+    onApplicationModalSubmitted,
+    onApplicationModalAutoSubmitted,
+  } = useDemoDayAnalytics();
   const [isAddingTeam, setIsAddingTeam] = useState(false);
   const [hasAutoSubmitted, setHasAutoSubmitted] = useState(false);
   const [minLoaderTime, setMinLoaderTime] = useState<number | null>(null);
@@ -149,6 +148,15 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     enabled: !!userInfo?.uid && isOpen,
     select: (data) => data?.data?.formattedData,
   });
+
+  useEffect(() => {
+    if (isOpen && !isOpenedByLink) {
+      const currentParams = new URLSearchParams(window.location.search);
+      currentParams.set('dialog', 'applyToDemoday');
+      const newUrl = `${window.location.pathname}?${currentParams.toString()}`;
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [isOpen, isOpenedByLink, router]);
 
   // Track when loading starts to ensure minimum 3 second loader display
   useEffect(() => {
@@ -201,11 +209,13 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     reset,
     watch,
     setValue,
+    trigger,
     formState: { errors, isValid },
   } = methods;
 
   const isInvestor = watch('isInvestor');
   const teamName = watch('teamName');
+  const websiteAddress = watch('websiteAddress');
 
   // Track field entry (only once per modal open)
   useEffect(() => {
@@ -237,6 +247,12 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
       });
     }
   }, [member, mainTeam, userInfo, reset]);
+
+  useEffect(() => {
+    if (websiteAddress) {
+      trigger('teamName');
+    }
+  }, [websiteAddress, trigger]);
 
   // Auto-submit if all required fields are available
   useEffect(() => {
@@ -459,7 +475,13 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} overlayClassname={s.overlay} closeOnBackdropClick={false} closeOnEscape>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      overlayClassname={s.overlay}
+      closeOnBackdropClick={false}
+      closeOnEscape
+    >
       <div className={s.modal}>
         <button type="button" className={s.closeButton} onClick={handleClose} aria-label="Close">
           <CloseIcon />
@@ -483,9 +505,14 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
             <div className={s.loaderContainer}>
               <div className={s.loader} />
               <p className={s.loaderText}>
-                {isAutoSubmitting ? <span>
-                  Submitting your application with your investor profile data... <br />Keep your profile updated for seamless future applications.
-                </span> : 'Loading your information...'}
+                {isAutoSubmitting ? (
+                  <span>
+                    Submitting your application with your investor profile data... <br />
+                    Keep your profile updated for seamless future applications.
+                  </span>
+                ) : (
+                  'Loading your information...'
+                )}
               </p>
             </div>
           ) : (
@@ -574,7 +601,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                                 className={s.link}
                                 onClick={() => {
                                   setIsAddingTeam(true);
-                                  setValue('teamOrProject', undefined, { shouldValidate: true });
+                                  setValue('teamOrProject', undefined, { shouldValidate: true, shouldDirty: true });
                                 }}
                               >
                                 Add your team
@@ -596,8 +623,8 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                             clearable
                             onClear={() => {
                               setIsAddingTeam(false);
-                              setValue('teamName', '', { shouldValidate: true });
-                              setValue('websiteAddress', '', { shouldValidate: true });
+                              setValue('teamName', '', { shouldValidate: true, shouldDirty: true });
+                              setValue('websiteAddress', '', { shouldValidate: true, shouldDirty: true });
                             }}
                           />
                         </div>

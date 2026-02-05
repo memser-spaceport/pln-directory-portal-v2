@@ -50,7 +50,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
   const { data: demoDays, isLoading } = useGetDemoDaysList();
   const [showAll, setShowAll] = useState(false);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState<{ uid: string; isNew: boolean; email: string } | null>(null);
 
   // Auto-open modal if dialog=applyToDemoday query param is present
   useEffect(() => {
@@ -229,11 +229,17 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
             investorsCount: nextDemoDay.investorsCount,
             teamsCount: nextDemoDay.teamsCount,
           }}
-          onSuccessUnauthenticated={() => setShowSuccessModal(true)}
+          onSuccessUnauthenticated={(res) => setShowSuccessModal(res)}
         />
       )}
 
-      <AccountCreatedSuccessModal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} />
+      <AccountCreatedSuccessModal
+        isOpen={!!showSuccessModal}
+        onClose={() => setShowSuccessModal(null)}
+        isNew={showSuccessModal?.isNew}
+        uid={showSuccessModal?.uid}
+        email={showSuccessModal?.email}
+      />
     </div>
   );
 };

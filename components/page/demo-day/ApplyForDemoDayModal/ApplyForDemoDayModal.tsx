@@ -104,7 +104,7 @@ interface Props {
   memberData?: IMember | null;
   demoDaySlug: string;
   demoDayData?: DemoDayState | null;
-  onSuccessUnauthenticated?: () => void;
+  onSuccessUnauthenticated?: ({ uid, isNew, email }: { uid: string; isNew: boolean; email: string }) => void;
 }
 
 const CloseIcon = () => (
@@ -264,7 +264,9 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   }, [member, mainTeam, userInfo, reset]);
 
   useEffect(() => {
-    trigger('email');
+    if (!isAddingTeam) {
+      trigger('role');
+    }
   }, [isAddingTeam, trigger]);
 
   // Auto-submit if all required fields are available
@@ -319,7 +321,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         };
 
         try {
-          await mutateAsync(payload);
+          const res = await mutateAsync(payload);
 
           // PostHog analytics
           onApplicationModalAutoSubmitted({
@@ -334,16 +336,14 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
             queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATE],
           });
 
-          reset();
-          setIsAddingTeam(false);
-          setMinLoaderTime(null);
-          setIsAutoSubmitting(false); // ✅ Reset auto-submitting state
-          onClose();
-
           // Trigger success modal for non-authenticated users
-          if (!isAuthenticated && onSuccessUnauthenticated) {
-            onSuccessUnauthenticated();
+          if (onSuccessUnauthenticated) {
+            onSuccessUnauthenticated({ uid: res.memberUid, isNew: false, email: member.email });
           }
+
+          setTimeout(() => {
+            handleClose();
+          }, 700);
         } catch (error) {
           console.error('Auto-submit failed:', error);
           // Reset flags on error so user can try again
@@ -435,17 +435,12 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         });
 
         // Trigger success modal for non-authenticated users
-        if (!isAuthenticated && onSuccessUnauthenticated) {
-          router.replace(`${window.location.pathname}?prefillEmail=${encodeURIComponent(formData.email)}#login`);
+        if (onSuccessUnauthenticated) {
+          onSuccessUnauthenticated({ uid: res.memberUid, isNew: !userInfo, email: formData.email });
         }
 
         setTimeout(() => {
-          if (onClose) {
-            reset();
-            setIsAddingTeam(false);
-            setMinLoaderTime(null);
-            onClose();
-          }
+          handleClose();
         }, 700);
       } else {
         if (res?.message) {
@@ -484,7 +479,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
       router.replace(newUrl);
     }
 
-    onClose();
+    onClose?.();
   };
 
   return (
@@ -615,6 +610,9 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                                 onClick={() => {
                                   setIsAddingTeam(true);
                                   setValue('teamOrProject', undefined, { shouldValidate: true, shouldDirty: true });
+                                  setValue('teamName', '', { shouldValidate: true });
+                                  setValue('websiteAddress', '', { shouldValidate: true });
+                                  setValue('role', '', { shouldValidate: true });
                                 }}
                               >
                                 Add your team
@@ -640,8 +638,9 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                         className={s.closeButton}
                         onClick={() => {
                           setIsAddingTeam(false);
-                          setValue('teamName', '', { shouldValidate: true, shouldDirty: true });
-                          setValue('websiteAddress', '', { shouldValidate: true, shouldDirty: true });
+                          setValue('teamName', '', { shouldValidate: true });
+                          setValue('websiteAddress', '', { shouldValidate: true });
+                          setValue('role', '', { shouldValidate: true });
                         }}
                       >
                         <CloseIcon />
@@ -716,7 +715,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                   <Button type="button" size="m" variant="secondary" style="border" onClick={handleClose}>
                     Cancel
                   </Button>
-                  <Button type="submit" size="m" style="fill" variant="primary" disabled={isPending || !isValid}>
+                  <Button type="submit" size="m" style="fill" variant="primary" disabled={isPending}>
                     {isPending ? 'Submitting...' : 'Submit'}
                   </Button>
                 </div>

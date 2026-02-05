@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { useToggle } from 'react-use';
+import { useState, useEffect } from 'react';
 
 import { EyeIcon } from '@/components/icons';
 import { IMember } from '@/types/members.types';
@@ -64,6 +64,12 @@ export function ForumActivity(props: ForumActivityProps) {
 
   const isLoading = activeTab === 'posts' ? postsLoading : commentsLoading;
   const hasAccess = hasForumAccess(userInfo.accessLevel);
+
+  useEffect(() => {
+    if (postsCount === 0 && commentsCount > 0) {
+      setActiveTab('comments');
+    }
+  }, [postsCount, commentsCount]);
 
   if (isLoading || (noForumActivity && (!isOwner || !hasAccess))) {
     return null;

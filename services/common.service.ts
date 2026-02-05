@@ -24,7 +24,26 @@ async function fetchData(url: string, tag: string) {
 export async function getFocusAreas(type: string, queryParams: any) {
   const url = `${process.env.DIRECTORY_API_URL}/v1/focus-areas?type=${type}&${new URLSearchParams(queryParams)}`;
 
-  return await fetchData(url, 'focus-areas');
+  // Don't cache focus areas - counts should always be fresh
+  const response = await fetch(url, {
+    method: 'GET',
+    cache: 'no-store',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response?.ok) {
+    return {
+      error: {
+        statusText: response?.statusText,
+      },
+    };
+  }
+
+  return {
+    data: await response.json(),
+  };
 }
 
 export async function getMembershipSource(type: string, queryParams: any) {

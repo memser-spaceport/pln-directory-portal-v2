@@ -10,6 +10,9 @@ import s from './AccountCreatedSuccessModal.module.scss';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  isNew: boolean | undefined;
+  uid: string | undefined;
+  email: string | undefined;
 }
 
 const ConfettiIcon = () => (
@@ -27,12 +30,19 @@ const CloseIcon = () => (
   </svg>
 );
 
-export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose }) => {
+export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose, isNew, uid, email }) => {
   const router = useRouter();
 
   const handleContinueToLogin = () => {
-    onClose();
-    router.replace('#login');
+    if (!isNew) {
+      onClose();
+      router.push(`/members/${uid}`);
+    } else {
+      onClose();
+      router.replace(
+        `${window.location.origin}${window.location.pathname}?prefillEmail=${encodeURIComponent(email ?? '')}&returnTo=members-${uid}#login`,
+      );
+    }
   };
 
   return (
@@ -48,12 +58,15 @@ export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose })
           </div>
 
           <div className={s.text}>
-            <h2 className={s.title}>Account Created Successfully</h2>
+            <h2 className={s.title}>Application Submitted</h2>
             <p className={s.body}>
-              Your account has been created.
-              <br />
-              Please log in to continue your Demo Day application.
+              You have successfully applied for demo day. Admins will review your profile shortly.
             </p>
+            <p className={s.listTitle}>Setting up your investor profile will let you:</p>
+            <ul className={s.list}>
+              <li>Potentially speed up the approval process</li>
+              <li>Get matched with relevant startups (your profile is used to make intros)</li>
+            </ul>
           </div>
 
           <div className={s.footer}>
@@ -65,7 +78,7 @@ export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose })
               onClick={handleContinueToLogin}
               className={s.primaryButton}
             >
-              Continue to Login & Update Profile
+              {isNew ? 'Continue to Login & Set Up Your Investor Profile' : 'Set Up Your Investor Profile'}
             </Button>
           </div>
         </div>

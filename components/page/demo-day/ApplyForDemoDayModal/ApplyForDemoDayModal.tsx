@@ -58,17 +58,32 @@ const applySchema = yup.object().shape(
       },
       otherwise: (schema) => schema.nullable(),
     }),
-    teamName: yup.string().when('websiteAddress', {
-      is: (v: any) => Boolean(v),
-      then: (schema) => schema.required('Team name is required when adding a new team'),
-      otherwise: (schema) => schema.nullable(),
+    teamName: yup.string().test('teamName', 'Team name is required when adding a new team', (value, context) => {
+      if (context.options.context?.isAddingTeam) {
+        return Boolean(value);
+      }
+
+      return true;
     }),
-    websiteAddress: yup.string().when('teamName', {
-      is: (teamName: string) => Boolean(teamName),
-      then: (schema) => schema.required('Website address is required when adding a new team'),
-      otherwise: (schema) => schema.nullable(),
-    }),
-    role: yup.string().defined(),
+    websiteAddress: yup
+      .string()
+      .test('websiteAddress', 'Website address is required when adding a new team', (value, context) => {
+        if (context.options.context?.isAddingTeam) {
+          return Boolean(value);
+        }
+
+        return true;
+      }),
+    role: yup
+      .string()
+      .defined()
+      .test('role', 'Role is required when adding a new team', (value, context) => {
+        if (context.options.context?.isAddingTeam) {
+          return Boolean(value);
+        }
+
+        return true;
+      }),
     isInvestor: yup
       .boolean()
       .oneOf([true], 'You must confirm that you are an accredited investor')
@@ -89,7 +104,7 @@ interface Props {
   memberData?: IMember | null;
   demoDaySlug: string;
   demoDayData?: DemoDayState | null;
-  onSuccessUnauthenticated?: () => void;
+  onSuccessUnauthenticated?: ({ uid, isNew, email }: { uid: string; isNew: boolean; email: string }) => void;
 }
 
 const CloseIcon = () => (
@@ -249,10 +264,10 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   }, [member, mainTeam, userInfo, reset]);
 
   useEffect(() => {
-    if (websiteAddress) {
-      trigger('teamName');
+    if (!isAddingTeam) {
+      trigger('role');
     }
-  }, [websiteAddress, trigger]);
+  }, [isAddingTeam, trigger]);
 
   // Auto-submit if all required fields are available
   useEffect(() => {
@@ -306,7 +321,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         };
 
         try {
-          await mutateAsync(payload);
+          const res = await mutateAsync(payload);
 
           // PostHog analytics
           onApplicationModalAutoSubmitted({
@@ -321,16 +336,14 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
             queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATE],
           });
 
-          reset();
-          setIsAddingTeam(false);
-          setMinLoaderTime(null);
-          setIsAutoSubmitting(false); // ✅ Reset auto-submitting state
-          onClose();
-
           // Trigger success modal for non-authenticated users
-          if (!isAuthenticated && onSuccessUnauthenticated) {
-            onSuccessUnauthenticated();
+          if (onSuccessUnauthenticated) {
+            onSuccessUnauthenticated({ uid: res.memberUid, isNew: false, email: member.email });
           }
+
+          setTimeout(() => {
+            handleClose();
+          }, 700);
         } catch (error) {
           console.error('Auto-submit failed:', error);
           // Reset flags on error so user can try again
@@ -422,17 +435,12 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         });
 
         // Trigger success modal for non-authenticated users
-        if (!isAuthenticated && onSuccessUnauthenticated) {
-          router.replace(`${window.location.pathname}?prefillEmail=${encodeURIComponent(formData.email)}#login`);
+        if (onSuccessUnauthenticated) {
+          onSuccessUnauthenticated({ uid: res.memberUid, isNew: !userInfo, email: formData.email });
         }
 
         setTimeout(() => {
-          if (onClose) {
-            reset();
-            setIsAddingTeam(false);
-            setMinLoaderTime(null);
-            onClose();
-          }
+          handleClose();
         }, 700);
       } else {
         if (res?.message) {
@@ -471,7 +479,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
       router.replace(newUrl);
     }
 
-    onClose();
+    onClose?.();
   };
 
   return (
@@ -537,15 +545,15 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
 
                 <FormField name="linkedin" label="LinkedIn profile" placeholder="Enter link to your LinkedIn profile" />
 
-                <div className={s.column}>
-                  <div
-                    className={clsx(s.inputsLabel, {
-                      [s.required]: isAddingTeam,
-                    })}
-                  >
-                    Role & Organization/Fund Name
-                  </div>
-                  {!isAddingTeam ? (
+                {!isAddingTeam && (
+                  <div className={s.column}>
+                    <div
+                      className={clsx(s.inputsLabel, {
+                        [s.required]: isAddingTeam,
+                      })}
+                    >
+                      Role & Organization/Fund Name
+                    </div>
                     <>
                       <div className={s.inputsWrapper}>
                         <FormField name="role" placeholder="Enter your primary role" />
@@ -602,6 +610,9 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                                 onClick={() => {
                                   setIsAddingTeam(true);
                                   setValue('teamOrProject', undefined, { shouldValidate: true, shouldDirty: true });
+                                  setValue('teamName', '', { shouldValidate: true });
+                                  setValue('websiteAddress', '', { shouldValidate: true });
+                                  setValue('role', '', { shouldValidate: true });
                                 }}
                               >
                                 Add your team
@@ -611,35 +622,51 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                         />
                       </div>
                     </>
-                  ) : (
-                    <div className={s.col}>
-                      <div className={s.column}>
-                        <div className={s.inputsWrapper}>
-                          <FormField name="role" placeholder="Enter your primary role" />
-                          <span>@</span>
-                          <FormField
-                            name="teamName"
-                            placeholder="Enter team name"
-                            clearable
-                            onClear={() => {
-                              setIsAddingTeam(false);
-                              setValue('teamName', '', { shouldValidate: true, shouldDirty: true });
-                              setValue('websiteAddress', '', { shouldValidate: true, shouldDirty: true });
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {isAddingTeam && (
-                  <FormField
-                    name="websiteAddress"
-                    placeholder="Enter website address"
-                    label="Website address"
-                    isRequired
-                  />
+                  <div className={s.addNewTeamContainer}>
+                    <div className={s.addNewTeamHeader}>
+                      <div>
+                        <h3 className={s.addNewTeamTitle}>Add Your Role & Team</h3>
+                        <p className={s.addNewTeamDescription}>Enter your team&apos;s details below.</p>
+                      </div>
+                      <Button
+                        variant="secondary"
+                        type="button"
+                        className={s.closeButton}
+                        onClick={() => {
+                          setIsAddingTeam(false);
+                          setValue('teamName', '', { shouldValidate: true });
+                          setValue('websiteAddress', '', { shouldValidate: true });
+                          setValue('role', '', { shouldValidate: true });
+                        }}
+                      >
+                        <CloseIcon />
+                      </Button>
+                    </div>
+                    <div className={s.separator} />
+                    <div className={s.addNewTeamBody}>
+                      <FormField name="role" placeholder="Enter your primary role" label="Role" isRequired />
+                      <FormField
+                        isRequired
+                        label="Team Name"
+                        name="teamName"
+                        placeholder="Enter team name"
+                        onClear={() => {
+                          setValue('teamName', '', { shouldValidate: true, shouldDirty: true });
+                        }}
+                      />
+                      <FormField
+                        name="websiteAddress"
+                        placeholder="Enter website address"
+                        label="Website address"
+                        isRequired
+                        description="Paste a URL (LinkedIn, company website, etc.)"
+                      />
+                    </div>
+                  </div>
                 )}
 
                 <label className={s.Label}>
@@ -688,7 +715,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                   <Button type="button" size="m" variant="secondary" style="border" onClick={handleClose}>
                     Cancel
                   </Button>
-                  <Button type="submit" size="m" style="fill" variant="primary" disabled={isPending || !isValid}>
+                  <Button type="submit" size="m" style="fill" variant="primary" disabled={isPending}>
                     {isPending ? 'Submitting...' : 'Submit'}
                   </Button>
                 </div>

@@ -459,10 +459,6 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         } else {
           handleClose();
         }
-
-        // setTimeout(() => {
-        //
-        // }, 700);
       } else {
         if (res?.message) {
           toast.error(res?.message);

@@ -26,4 +26,5 @@ export const editProfileSchema = yup.object().shape({
     .nullable()
     .defined(),
   primaryTeamRole: yup.string().defined().nullable(),
+  bio: yup.string().max(2000, 'Bio must be less than 2000 characters').defined(),
 });

@@ -68,3 +68,30 @@
     }
   }
 }
+
+.bioTitle {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+  margin-bottom: 8px;
+}
+
+.bioContent {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  align-self: stretch;
+  border-radius: 12px;
+  background: var(--background-neutral-soft-surface, #F9FAFB);
+
+  color: var(--Neutral-Slate-600, var(--foreground-neutral-secondary, #455468));
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 157.143% */
+  letter-spacing: -0.2px;
+}
+

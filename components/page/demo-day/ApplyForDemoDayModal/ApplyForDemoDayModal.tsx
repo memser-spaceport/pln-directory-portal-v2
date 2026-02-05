@@ -362,6 +362,34 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     onApplicationModalAutoSubmitted,
   ]);
 
+  const handleClose = () => {
+    // Track modal cancellation if user has entered any data
+    if (hasTrackedFieldEntry) {
+      // PostHog analytics
+      onApplicationModalCanceled({ demoDaySlug, demoDayTitle: demoDayData?.title });
+    }
+
+    reset();
+    setIsAddingTeam(false);
+    setHasAutoSubmitted(false);
+    setMinLoaderTime(null);
+    setShowLoader(false);
+    setIsAutoSubmitting(false);
+    setHasTrackedFieldEntry(false);
+
+    // Remove dialog query param if it exists
+    const currentParams = new URLSearchParams(window.location.search);
+    if (currentParams.has('dialog')) {
+      currentParams.delete('dialog');
+      const newUrl = currentParams.toString()
+        ? `${window.location.pathname}?${currentParams.toString()}`
+        : window.location.pathname;
+      router.replace(newUrl);
+    }
+
+    onClose?.();
+  };
+
   const onSubmit = async (formData: ApplyFormData) => {
     try {
       // Build the team/project object
@@ -423,17 +451,18 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
 
         // Trigger success modal for non-authenticated users
         if (!isAuthenticated && onSuccessUnauthenticated) {
-          router.replace(`${window.location.pathname}?prefillEmail=${encodeURIComponent(formData.email)}#login`);
+          const redirectLink = `${window.location.pathname}?prefillEmail=${encodeURIComponent(formData.email)}#login`;
+
+          handleClose();
+
+          router.replace(redirectLink);
+        } else {
+          handleClose();
         }
 
-        setTimeout(() => {
-          if (onClose) {
-            reset();
-            setIsAddingTeam(false);
-            setMinLoaderTime(null);
-            onClose();
-          }
-        }, 700);
+        // setTimeout(() => {
+        //
+        // }, 700);
       } else {
         if (res?.message) {
           toast.error(res?.message);
@@ -444,34 +473,6 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     } catch (error) {
       console.error('Failed to submit application', error);
     }
-  };
-
-  const handleClose = () => {
-    // Track modal cancellation if user has entered any data
-    if (hasTrackedFieldEntry) {
-      // PostHog analytics
-      onApplicationModalCanceled({ demoDaySlug, demoDayTitle: demoDayData?.title });
-    }
-
-    reset();
-    setIsAddingTeam(false);
-    setHasAutoSubmitted(false);
-    setMinLoaderTime(null);
-    setShowLoader(false);
-    setIsAutoSubmitting(false);
-    setHasTrackedFieldEntry(false);
-
-    // Remove dialog query param if it exists
-    const currentParams = new URLSearchParams(window.location.search);
-    if (currentParams.has('dialog')) {
-      currentParams.delete('dialog');
-      const newUrl = currentParams.toString()
-        ? `${window.location.pathname}?${currentParams.toString()}`
-        : window.location.pathname;
-      router.replace(newUrl);
-    }
-
-    onClose();
   };
 
   return (

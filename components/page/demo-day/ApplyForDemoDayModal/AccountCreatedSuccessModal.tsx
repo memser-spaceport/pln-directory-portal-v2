@@ -6,16 +6,23 @@ import { Button } from '@/components/common/Button';
 import { useRouter } from 'next/navigation';
 
 import s from './AccountCreatedSuccessModal.module.scss';
+import { DemoDayState } from '@/app/actions/demo-day.actions';
+import { formatDemoDayDate } from '@/utils/demo-day.utils';
+import Link from 'next/link';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  isNew: boolean | undefined;
+  uid: string | undefined;
+  email: string | undefined;
+  demoDayState: DemoDayState | undefined;
 }
 
-const ConfettiIcon = () => (
+const CalendarStarIcon = () => (
   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
-      d="M13.9373 6.57875C13.7025 6.3445 13.4124 6.17318 13.0938 6.0806C12.7753 5.98802 12.4386 5.97716 12.1147 6.04903C11.7909 6.12089 11.4904 6.27317 11.2409 6.49181C10.9914 6.71044 10.801 6.98839 10.6873 7.3L4.12607 25.3475C4.01829 25.6451 3.98347 25.9642 4.02454 26.2781C4.06562 26.5919 4.18139 26.8914 4.36213 27.1512C4.54288 27.4111 4.78332 27.6238 5.06328 27.7715C5.34324 27.9191 5.65455 27.9975 5.97107 28C6.20412 27.9984 6.43509 27.9561 6.65357 27.875L24.6998 21.3125C25.0115 21.1989 25.2896 21.0086 25.5084 20.7592C25.7271 20.5098 25.8796 20.2093 25.9516 19.8855C26.0235 19.5616 26.0128 19.2248 25.9203 18.9062C25.8278 18.5876 25.6565 18.2975 25.4223 18.0625L13.9373 6.57875ZM8.14357 20.1413L10.5436 13.5425L18.4586 21.4575L11.8586 23.8575L8.14357 20.1413ZM20.0011 9C20.0199 8.32396 20.1835 7.65983 20.4811 7.0525C21.1436 5.72875 22.3936 5 24.0011 5C24.8386 5 25.3761 4.71375 25.7073 4.09875C25.8817 3.75468 25.9818 3.37777 26.0011 2.9925C26.0021 2.72728 26.1084 2.47332 26.2966 2.28649C26.4849 2.09966 26.7396 1.99526 27.0048 1.99625C27.27 1.99724 27.524 2.10356 27.7108 2.29179C27.8977 2.48003 28.0021 2.73478 28.0011 3C28.0011 4.6075 26.9361 7 24.0011 7C23.1636 7 22.6261 7.28625 22.2948 7.90125C22.1204 8.24532 22.0203 8.62223 22.0011 9.0075C22.0006 9.13882 21.9742 9.26876 21.9235 9.3899C21.8728 9.51103 21.7987 9.621 21.7055 9.71351C21.6123 9.80602 21.5018 9.87926 21.3803 9.92906C21.2588 9.97886 21.1286 10.0042 20.9973 10.0037C20.866 10.0033 20.7361 9.9769 20.6149 9.92619C20.4938 9.87548 20.3838 9.80141 20.2913 9.70821C20.1988 9.615 20.1256 9.50448 20.0758 9.38297C20.026 9.26145 20.0006 9.13132 20.0011 9ZM17.0011 5V2C17.0011 1.73478 17.1064 1.48043 17.294 1.29289C17.4815 1.10536 17.7359 1 18.0011 1C18.2663 1 18.5206 1.10536 18.7082 1.29289C18.8957 1.48043 19.0011 1.73478 19.0011 2V5C19.0011 5.26522 18.8957 5.51957 18.7082 5.70711C18.5206 5.89464 18.2663 6 18.0011 6C17.7359 6 17.4815 5.89464 17.294 5.70711C17.1064 5.51957 17.0011 5.26522 17.0011 5ZM29.7086 15.2925C29.8014 15.3854 29.875 15.4957 29.9252 15.6171C29.9754 15.7384 30.0012 15.8685 30.0012 15.9998C30.0011 16.1312 29.9752 16.2612 29.9249 16.3825C29.8746 16.5038 29.8009 16.614 29.7079 16.7069C29.615 16.7997 29.5047 16.8733 29.3834 16.9235C29.262 16.9737 29.132 16.9995 29.0006 16.9995C28.8693 16.9994 28.7393 16.9735 28.6179 16.9232C28.4966 16.8729 28.3864 16.7992 28.2936 16.7062L26.2936 14.7063C26.1059 14.5186 26.0005 14.2641 26.0005 13.9987C26.0005 13.7334 26.1059 13.4789 26.2936 13.2913C26.4812 13.1036 26.7357 12.9982 27.0011 12.9982C27.2664 12.9982 27.5209 13.1036 27.7086 13.2913L29.7086 15.2925ZM30.3173 9.94875L27.3173 10.9487C27.0657 11.0326 26.7911 11.0131 26.5538 10.8945C26.3166 10.7759 26.1362 10.5679 26.0523 10.3162C25.9684 10.0646 25.988 9.78999 26.1066 9.55276C26.2252 9.31552 26.4332 9.13513 26.6848 9.05125L29.6848 8.05125C29.9364 7.96738 30.2111 7.98689 30.4483 8.10551C30.6855 8.22413 30.8659 8.43213 30.9498 8.68375C31.0337 8.93537 31.0142 9.21001 30.8956 9.44724C30.7769 9.68448 30.5689 9.86487 30.3173 9.94875Z"
+      d="M26 4H23V3C23 2.73478 22.8946 2.48043 22.7071 2.29289C22.5196 2.10536 22.2652 2 22 2C21.7348 2 21.4804 2.10536 21.2929 2.29289C21.1054 2.48043 21 2.73478 21 3V4H11V3C11 2.73478 10.8946 2.48043 10.7071 2.29289C10.5196 2.10536 10.2652 2 10 2C9.73478 2 9.48043 2.10536 9.29289 2.29289C9.10536 2.48043 9 2.73478 9 3V4H6C5.46957 4 4.96086 4.21071 4.58579 4.58579C4.21071 4.96086 4 5.46957 4 6V26C4 26.5304 4.21071 27.0391 4.58579 27.4142C4.96086 27.7893 5.46957 28 6 28H26C26.5304 28 27.0391 27.7893 27.4142 27.4142C27.7893 27.0391 28 26.5304 28 26V6C28 5.46957 27.7893 4.96086 27.4142 4.58579C27.0391 4.21071 26.5304 4 26 4ZM9 8V7C9 6.73478 9.10536 6.48043 9.29289 6.29289C9.48043 6.10536 9.73478 6 10 6C10.2652 6 10.5196 6.10536 10.7071 6.29289C10.8946 6.48043 11 6.73478 11 7V8C11 8.26522 10.8946 8.51957 10.7071 8.70711C10.5196 8.89464 10.2652 9 10 9C9.73478 9 9.48043 8.89464 9.29289 8.70711C9.10536 8.51957 9 8.26522 9 8ZM22.3188 15.5875L19.2612 18.1112L20.1938 21.875C20.2175 21.9706 20.2125 22.071 20.1793 22.1637C20.1462 22.2565 20.0864 22.3374 20.0075 22.3962C19.9209 22.4601 19.8163 22.4947 19.7087 22.495C19.6208 22.4945 19.5346 22.4708 19.4587 22.4263L16 20.3975L12.545 22.4312C12.4598 22.4818 12.3614 22.5058 12.2625 22.5004C12.1636 22.4949 12.0685 22.4601 11.9893 22.4005C11.9102 22.3409 11.8505 22.2592 11.8179 22.1656C11.7853 22.072 11.7813 21.9709 11.8062 21.875L12.7388 18.1063L9.68125 15.5875C9.60407 15.5241 9.54764 15.4391 9.51923 15.3433C9.49082 15.2476 9.49174 15.1455 9.52187 15.0503C9.552 14.9551 9.60995 14.871 9.68826 14.8091C9.76657 14.7471 9.86165 14.71 9.96125 14.7025L13.9913 14.3912L15.5413 10.8025C15.58 10.713 15.6441 10.6369 15.7256 10.5834C15.8071 10.5299 15.9025 10.5014 16 10.5014C16.0975 10.5014 16.1929 10.5299 16.2744 10.5834C16.3559 10.6369 16.42 10.713 16.4587 10.8025L18.0088 14.3912L22.0387 14.7025C22.1383 14.71 22.2334 14.7471 22.3117 14.8091C22.39 14.871 22.448 14.9551 22.4781 15.0503C22.5083 15.1455 22.5092 15.2476 22.4808 15.3433C22.4524 15.4391 22.3959 15.5241 22.3188 15.5875ZM23 8C23 8.26522 22.8946 8.51957 22.7071 8.70711C22.5196 8.89464 22.2652 9 22 9C21.7348 9 21.4804 8.89464 21.2929 8.70711C21.1054 8.51957 21 8.26522 21 8V7C21 6.73478 21.1054 6.48043 21.2929 6.29289C21.4804 6.10536 21.7348 6 22 6C22.2652 6 22.5196 6.10536 22.7071 6.29289C22.8946 6.48043 23 6.73478 23 7V8Z"
       fill="#1B4DFF"
     />
   </svg>
@@ -23,16 +30,41 @@ const ConfettiIcon = () => (
 
 const CloseIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 4L4 12M4 4L12 12" stroke="#455468" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M12 4L4 12M4 4L12 12"
+      stroke="currentColor"
+      strokeWidth="1.33"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
-export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose }) => {
+const CheckIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M13.3334 4L6.00008 11.3333L2.66675 8"
+      stroke="white"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose, isNew, uid, email, demoDayState }) => {
   const router = useRouter();
 
   const handleContinueToLogin = () => {
-    onClose();
-    router.replace('#login');
+    if (!isNew) {
+      onClose();
+      router.push(`/members/${uid}`);
+    } else {
+      onClose();
+      router.replace(
+        `${window.location.origin}${window.location.pathname}?prefillEmail=${encodeURIComponent(email ?? '')}&returnTo=members-${uid}#login`,
+      );
+    }
   };
 
   return (
@@ -44,30 +76,92 @@ export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose })
 
         <div className={s.content}>
           <div className={s.icon}>
-            <ConfettiIcon />
+            <CalendarStarIcon />
           </div>
 
           <div className={s.text}>
-            <h2 className={s.title}>Account Created Successfully</h2>
-            <p className={s.body}>
-              Your account has been created.
+            <h2 className={s.title}>
+              Follow these steps to secure
               <br />
-              Please log in to continue your Demo Day application.
-            </p>
-          </div>
+              your access:
+            </h2>
 
-          <div className={s.footer}>
-            <Button
-              type="button"
-              size="m"
-              style="fill"
-              variant="primary"
-              onClick={handleContinueToLogin}
-              className={s.primaryButton}
-            >
-              Continue to Login & Update Profile
-            </Button>
+            <div className={s.steps}>
+              {/* Step 0: Completed */}
+              <div className={s.step}>
+                <div className={s.stepIndicator}>
+                  <div className={s.lineTop} />
+                  <div className={s.stepIconCompleted}>
+                    <CheckIcon />
+                  </div>
+                  <div className={s.lineBottom} />
+                </div>
+                <div className={s.stepContent}>
+                  <p className={s.stepTitle}>Step 0: Application submitted successfully!</p>
+                  <p className={s.stepDescription}>Our team will review your application shortly</p>
+                </div>
+              </div>
+
+              {/* Break line */}
+              <div className={s.breakLine} />
+
+              {/* Step 1: Pending */}
+              <div className={s.step}>
+                <div className={s.stepIndicator}>
+                  <div className={s.lineTop} />
+                  <div className={s.stepIconPending}>
+                    <div className={s.stepDot} />
+                  </div>
+                  <div className={s.lineBottom} />
+                </div>
+                <div className={s.stepContent}>
+                  <p className={s.stepTitle}>Step 1: Set up investor profile</p>
+                  <p className={s.stepDescription}>
+                    Complete your investor profile: shared with founders when you&apos;re introduced
+                  </p>
+                </div>
+              </div>
+
+              {/* Break line */}
+              <div className={s.breakLine} />
+
+              {/* Step 2: Pending */}
+              <div className={s.step}>
+                <div className={s.stepIndicator}>
+                  <div className={s.lineTop} />
+                  <div className={s.stepIconPending}>
+                    <div className={s.stepDot} />
+                  </div>
+                  <div className={s.lineBottomHidden} />
+                </div>
+                <div className={s.stepContent}>
+                  <p className={s.stepTitle}>Step 2: Get approved to join Demo Day</p>
+                  {demoDayState && (
+                    <p className={s.stepDescription}>
+                      Once approved return to{' '}
+                      <Link href={demoDayState.slugURL || '#'} className={s.link} target="_blank">
+                        Demo Day
+                      </Link>{' '}
+                      on {formatDemoDayDate(demoDayState?.date)}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
+
+        <div className={s.footer}>
+          <Button
+            type="button"
+            size="m"
+            style="fill"
+            variant="primary"
+            onClick={handleContinueToLogin}
+            className={s.primaryButton}
+          >
+            {isNew ? 'Step 1: Log In & Set Up Investor Profile' : 'Step 1: Set Up Investor Profile'}
+          </Button>
         </div>
       </div>
     </Modal>

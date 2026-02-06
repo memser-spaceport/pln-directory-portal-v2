@@ -1,7 +1,7 @@
 'use client';
 import { clsx } from 'clsx';
 import Cookies from 'js-cookie';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -37,7 +37,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
     data?.status === 'UPCOMING' || data?.status === 'REGISTRATION_OPEN' || data?.status === 'EARLY_ACCESS';
 
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState<{ uid: string; isNew: boolean; email: string } | null>(null);
 
   // Auto-open modal if dialog=applyToDemoday query param is present
   useEffect(() => {
@@ -47,12 +47,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
   }, [searchParams]);
 
   // Analytics hooks
-  const {
-    onLandingRequestInviteButtonClicked,
-    onLandingLoginButtonClicked,
-    onLandingInvestorsLinkClicked,
-    onLandingInvestorProfileLinkClicked,
-  } = useDemoDayAnalytics();
+  const { onLandingRequestInviteButtonClicked, onLandingInvestorProfileLinkClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
 
   // Page view analytics - triggers only once on mount
@@ -111,6 +106,13 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
 
     setIsApplyModalOpen(true);
   };
+
+  const handleClose = useCallback(() => setShowSuccessModal(null), []);
+  const handleCloseApply = useCallback(() => setIsApplyModalOpen(false), []);
+  const handleSuccess = useCallback(
+    (res: { uid: string; isNew: boolean; email: string }) => setShowSuccessModal(res),
+    [],
+  );
 
   // Show skeleton loader while loading
   if (isLoading || !data) {
@@ -201,16 +203,23 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
       {demoDaySlug && (
         <ApplyForDemoDayModal
           isOpen={isApplyModalOpen && !data?.isPending}
-          onClose={() => setIsApplyModalOpen(false)}
+          onClose={handleCloseApply}
           userInfo={userInfo}
           memberData={null}
           demoDaySlug={demoDaySlug}
           demoDayData={data}
-          onSuccessUnauthenticated={() => setShowSuccessModal(true)}
+          onSuccessUnauthenticated={handleSuccess}
         />
       )}
 
-      <AccountCreatedSuccessModal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} />
+      <AccountCreatedSuccessModal
+        isOpen={!!showSuccessModal}
+        onClose={handleClose}
+        isNew={showSuccessModal?.isNew}
+        uid={showSuccessModal?.uid}
+        email={showSuccessModal?.email}
+        demoDayState={data}
+      />
     </>
   );
 }

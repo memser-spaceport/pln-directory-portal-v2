@@ -72,7 +72,7 @@ export function useApplyForDemoDay(demoDaySlug: string) {
   return useMutation({
     mutationFn: (payload: ApplyForDemoDayPayload) => mutation(demoDaySlug, payload),
     onSuccess: () => {
-      toast.success('Your application has been submitted successfully!');
+      // toast.success('Your application has been submitted successfully!');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to submit application. Please try again.');

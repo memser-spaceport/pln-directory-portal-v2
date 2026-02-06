@@ -2,12 +2,9 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList';
 import { Button } from '@/components/common/Button';
 import { DemoDayCard, DemoDayCardSkeleton } from '@/components/common/DemoDayCard';
-import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
-import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
 
 import s from './DemoDayListPage.module.scss';
 import { IUserInfo } from '@/types/shared.types';
@@ -17,18 +14,6 @@ import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/F
 import { faqCompletedItems } from '@/app/constants/demoday';
 import { DEMODAY_PRIVACY_URL, DEMODAY_TERMS_URL } from '@/components/page/sign-up/components/SignupWizard/constants';
 import { SubscribeSection } from './components/SubscribeSection';
-
-const ArrowRight = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M4.16669 10H15.8334M15.8334 10L10 4.16669M15.8334 10L10 15.8334"
-      stroke="currentColor"
-      strokeWidth="1.67"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 const EditIcon = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -46,18 +31,8 @@ type Props = {
 };
 
 export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => {
-  const searchParams = useSearchParams();
   const { data: demoDays, isLoading } = useGetDemoDaysList();
   const [showAll, setShowAll] = useState(false);
-  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  // Auto-open modal if dialog=applyToDemoday query param is present
-  useEffect(() => {
-    if (searchParams.get('dialog') === 'applyToDemoday') {
-      setIsApplyModalOpen(true);
-    }
-  }, [searchParams]);
 
   // Find demo days with REGISTRATION_OPEN or ACTIVE status
   const applicableDemoDays = demoDays?.filter((dd) => dd.status === 'REGISTRATION_OPEN' || dd.status === 'ACTIVE');
@@ -100,17 +75,6 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
               </div>
             </div>
             <div className={s.buttons} style={{ display: 'none' }}>
-              {shouldShowApplyButton && nextDemoDay && (
-                <Button
-                  size="l"
-                  style="fill"
-                  variant="primary"
-                  className={s.applyButton}
-                  onClick={() => setIsApplyModalOpen(true)}
-                >
-                  Apply for next Demo Day <ArrowRight />
-                </Button>
-              )}
               <div className={s.links}>
                 {isLoggedIn && userInfo && (
                   <Link target="_blank" href={`/members/${userInfo?.uid}?backTo=/demoday`} className={s.linkButton}>
@@ -209,31 +173,6 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
           </div>
         </footer>
       </div>
-
-      {nextDemoDay && (
-        <ApplyForDemoDayModal
-          isOpen={isApplyModalOpen}
-          onClose={() => setIsApplyModalOpen(false)}
-          userInfo={userInfo}
-          memberData={memberData}
-          demoDaySlug={nextDemoDay.slugURL}
-          demoDayData={{
-            uid: '',
-            access: nextDemoDay.access,
-            date: nextDemoDay.date,
-            title: nextDemoDay.title,
-            description: nextDemoDay.description,
-            status: nextDemoDay.status,
-            isDemoDayAdmin: false,
-            confidentialityAccepted: nextDemoDay.confidentialityAccepted,
-            investorsCount: nextDemoDay.investorsCount,
-            teamsCount: nextDemoDay.teamsCount,
-          }}
-          onSuccessUnauthenticated={() => setShowSuccessModal(true)}
-        />
-      )}
-
-      <AccountCreatedSuccessModal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} />
     </div>
   );
 };

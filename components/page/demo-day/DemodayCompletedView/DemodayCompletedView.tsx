@@ -61,7 +61,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [showAllTeams, toggleShowAllTeams] = useToggle(false);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState<{ uid: string; isNew: boolean; email: string } | null>(null);
   const isFounder = initialDemoDayState?.access?.toUpperCase() === 'FOUNDER';
 
   const {
@@ -342,11 +342,18 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
             investorsCount: nextDemoDay.investorsCount,
             teamsCount: nextDemoDay.teamsCount,
           }}
-          onSuccessUnauthenticated={() => setShowSuccessModal(true)}
+          onSuccessUnauthenticated={(res) => setShowSuccessModal(res)}
         />
       )}
 
-      <AccountCreatedSuccessModal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} />
+      <AccountCreatedSuccessModal
+        isOpen={!!showSuccessModal}
+        onClose={() => setShowSuccessModal(null)}
+        isNew={showSuccessModal?.isNew}
+        uid={showSuccessModal?.uid}
+        email={showSuccessModal?.email}
+        demoDayState={initialDemoDayState}
+      />
     </div>
   );
 };

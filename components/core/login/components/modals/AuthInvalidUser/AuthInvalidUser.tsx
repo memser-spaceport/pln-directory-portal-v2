@@ -137,13 +137,17 @@ export function AuthInvalidUser() {
           const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
           const demoDaySlug = demoDayState?.slugURL || params.demoDayId;
 
+          const demoDayTitle = demoDayState?.title || 'Demo Day';
+          const description = !userInfo
+            ? `Your email isn't on our Protocol Labs ${demoDayTitle} invite list yet. Apply below to create an account and request access. If you believe this is an error, our support team can help.`
+            : `You have an account with us, but you're not registered for ${demoDayTitle} yet. Each demo day requires a separate application. Apply below or contact our support team if you believe this is an error.`;
+
           setContent({
             title: 'Access Denied',
-            description:
-              "Your email isn't on our Protocol Labs Demo Day invite list yet. Request access below. If you believe this is an error, our support team can help.",
+            description,
             reason: 'access_denied',
             submit: {
-              label: 'Register',
+              label: 'Apply',
               onClick: () => {
                 handleModalClose();
                 router.push(demoDaySlug ? `/demoday/${demoDaySlug}?dialog=applyToDemoday` : '/demoday');
@@ -155,7 +159,7 @@ export function AuthInvalidUser() {
                   style="link"
                   onClick={() => {
                     handleModalClose();
-                    openModal({ reason: content.reason });
+                    openModal({ reason: 'demo_day_access_denied' });
                   }}
                 >
                   Contact Support
@@ -175,7 +179,19 @@ export function AuthInvalidUser() {
 
     const unsubscribe = authEvents.on('auth:invalid-email', handleInvalidEmail);
     return unsubscribe;
-  }, [pathname, onAccessDeniedModalShown, onAccessDeniedUserNotWhitelistedModalShown, reportAnalytics, router, demoDayState]);
+  }, [
+    pathname,
+    onAccessDeniedModalShown,
+    onAccessDeniedUserNotWhitelistedModalShown,
+    reportAnalytics,
+    router,
+    demoDayState,
+    params.demoDayId,
+    handleModalClose,
+    handleModalOpen,
+    openModal,
+    trackDemoDayAccess,
+  ]);
 
   return (
     <ModalBase

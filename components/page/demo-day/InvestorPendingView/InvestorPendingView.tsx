@@ -63,7 +63,7 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
   useDemoDayPageViewAnalytics(
     'onInvestorPendingViewPageOpened',
     DEMO_DAY_ANALYTICS.ON_INVESTOR_PENDING_VIEW_PAGE_OPENED,
-    '/demoday/investor',
+    `/demoday/${initialDemoDayState?.slugURL}/investor`,
     {
       currentStep: currentStep,
       isProfileComplete: isInvestorProfileComplete,
@@ -113,7 +113,7 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
         userId: userInfo.uid,
         userEmail: userInfo.email,
         userName: userInfo.name,
-        path: `/demoday/${initialDemoDayState?.slugURL}investor`,
+        path: `/demoday/${initialDemoDayState?.slugURL}/investor`,
         timestamp: new Date().toISOString(),
         currentStep: currentStep,
       },

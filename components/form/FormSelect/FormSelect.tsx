@@ -1,11 +1,12 @@
 import { clsx } from 'clsx';
-import Select, { components, ControlProps } from 'react-select';
+import Select, { components, ControlProps, ClearIndicatorProps } from 'react-select';
 import { useMedia, useToggle } from 'react-use';
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useRef, useState } from 'react';
 
 import { Field } from '@base-ui-components/react/field';
 import { useFormContext } from 'react-hook-form';
 import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
+import { CloseIcon } from '@/components/icons';
 
 import { MobileFormSelectView } from './components/MobileFormSelectView';
 
@@ -33,6 +34,8 @@ interface Props {
   onChange?: (value: Option | null) => void;
   renderOption?: (input: RenderOptionInput) => ReactNode;
   icon?: ReactNode;
+  hideOptionsWhenEmpty?: boolean; // Hide options list when search field is empty
+  isClearable?: boolean; // Show cross icon to clear selected value
 }
 
 export const FormSelect = (props: Props) => {
@@ -49,6 +52,8 @@ export const FormSelect = (props: Props) => {
     onChange,
     isStickyNoData,
     icon,
+    hideOptionsWhenEmpty,
+    isClearable,
   } = props;
 
   const {
@@ -113,6 +118,7 @@ export const FormSelect = (props: Props) => {
           setSearchTerm={setSearchTerm}
           notFoundContent={notFoundContent}
           renderSelectOption={renderSelectOption}
+          hideOptionsWhenEmpty={hideOptionsWhenEmpty}
         />
       )}
       <Field.Root className={s.field}>
@@ -141,8 +147,13 @@ export const FormSelect = (props: Props) => {
           }}
           isDisabled={disabled || open}
           inputId={name}
+          isClearable={isClearable}
           filterOption={(option, inputValue) => {
-            // Always include the notFoundContent option
+            if (hideOptionsWhenEmpty && !inputValue.trim()) {
+              return false;
+            }
+
+            // Always include the notFoundContent option when there's input
             if ((option.data as any).isNotFoundContent) {
               return true;
             }
@@ -231,13 +242,40 @@ export const FormSelect = (props: Props) => {
             }),
           }}
           components={{
+            DropdownIndicator: (props) => {
+              if (hideOptionsWhenEmpty) {
+                return null;
+              }
+
+              return <components.DropdownIndicator {...props} />;
+            },
+            Menu: (props) => {
+              if (props.selectProps.inputValue.trim() === '' && hideOptionsWhenEmpty) {
+                return null;
+              }
+
+              return <components.Menu {...props}>{props.children}</components.Menu>;
+            },
             Control: (controlProps: ControlProps<Option, false>) => (
               <components.Control {...controlProps}>
                 {icon && <span className={s.icon}>{icon}</span>}
                 {controlProps.children}
               </components.Control>
             ),
-            NoOptionsMessage: () => {
+            ClearIndicator: (props: ClearIndicatorProps<Option, false>) => (
+              <div
+                {...props.innerProps}
+                className={s.clearIndicator}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setValue(name, null, { shouldValidate: true, shouldDirty: true });
+                  onChange?.(null);
+                }}
+              >
+                <CloseIcon />
+              </div>
+            ),
+            NoOptionsMessage: (props, rest) => {
               return (
                 <div className={s.notFound}>
                   <span>No options found</span>

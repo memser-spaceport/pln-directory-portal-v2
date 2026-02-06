@@ -20,6 +20,7 @@ interface Props {
   notFoundContent?: ReactNode;
   onChange?: (value: Option | null) => void;
   renderSelectOption: (option: Option) => ReactNode;
+  hideOptionsWhenEmpty?: boolean;
 }
 
 export function MobileFormSelectView(props: Props) {
@@ -34,6 +35,7 @@ export function MobileFormSelectView(props: Props) {
     setSearchTerm,
     notFoundContent,
     renderSelectOption,
+    hideOptionsWhenEmpty,
   } = props;
 
   const { watch, setValue } = useFormContext();
@@ -41,6 +43,15 @@ export function MobileFormSelectView(props: Props) {
   const value = watch(name);
 
   function renderMobileOptions() {
+    // If hideOptionsWhenEmpty is true and searchTerm is empty, only show notFoundContent
+    if (hideOptionsWhenEmpty && !searchTerm.trim()) {
+      return (
+        <div className={s.notFound}>
+          {notFoundContent}
+        </div>
+      );
+    }
+
     const filtered = options.filter((item) => item.label.toLowerCase().includes(searchTerm.toLowerCase()));
 
     if (filtered.length === 0) {

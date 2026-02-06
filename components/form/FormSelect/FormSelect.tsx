@@ -243,7 +243,10 @@ export const FormSelect = (props: Props) => {
           }}
           components={{
             Menu: (props) => {
-              console.log(props);
+              if (props.selectProps.inputValue.trim() === '' && hideOptionsWhenEmpty) {
+                return null;
+              }
+
               return <components.Menu {...props}>{props.children}</components.Menu>;
             },
             Control: (controlProps: ControlProps<Option, false>) => (
@@ -265,7 +268,7 @@ export const FormSelect = (props: Props) => {
                 <CloseIcon />
               </div>
             ),
-            NoOptionsMessage: (props, a) => {
+            NoOptionsMessage: (props, rest) => {
               return (
                 <div className={s.notFound}>
                   <span>No options found</span>

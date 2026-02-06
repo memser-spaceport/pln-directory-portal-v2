@@ -34,6 +34,7 @@ interface Props {
   onMentionInitiated?: () => void;
   onMentionSearch?: (query: string, resultsCount?: number) => void;
   onMentionSelected?: (member: { uid: string; name: string }, query?: string) => void;
+  placeholder?: string;
 }
 
 const QL_EDITOR_CLASS = 'ql-editor';
@@ -71,6 +72,7 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     onMentionInitiated,
     onMentionSearch,
     onMentionSelected,
+    placeholder,
   } = props;
 
   const quillRef = useRef<any>(null);
@@ -283,6 +285,7 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
         className={clsx(s.editor, className)}
         readOnly={disabled}
         modules={modules}
+        placeholder={placeholder}
       />
       {errorMessage && <div className={s.error}>{errorMessage}</div>}
       {enableMentions && mentionState.isOpen && (

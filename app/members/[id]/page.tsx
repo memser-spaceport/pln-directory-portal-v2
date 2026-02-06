@@ -97,8 +97,7 @@ const MemberDetails = ({ params }: { params: any }) => {
   });
   const isAvailableToConnect = isMemberAvailableToConnect(member);
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
-
-  const hasBio = member?.bio?.trim() && member?.bio?.trim() !== '<p><br></p>';
+  const isNewInvestor = accessLevel === 'base' && isOwner && member?.signUpSource?.startsWith('demoday-');
 
   // Scroll to top when member data is loaded or member ID changes
   useEffect(() => {
@@ -190,14 +189,19 @@ const MemberDetails = ({ params }: { params: any }) => {
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
             <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {!isNewInvestor && (
+              <>
+                <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+                <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+              </>
+            )}
+
             {member.eventGuests.length > 0 && (
               <div className={styles?.memberDetail__irlContribution}>
                 <IrlMemberContribution member={member} userInfo={userInfo} />
               </div>
             )}
-            <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {!isNewInvestor && <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
           </>
         );
       }

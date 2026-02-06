@@ -45,13 +45,15 @@ const applySchema = yup.object().shape(
         return domain.includes('.');
       })
       .required('Email is required'),
-    linkedin: yup.string().defined(),
-    // .test('linkedin-url', 'Please enter a valid LinkedIn profile URL', (value) => {
-    //   if (!value || value.trim() === '') return true; // Allow empty values
-    //   // Match LinkedIn profile URLs with or without protocol
-    //   const linkedinPattern = /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|pub|profile)\/[\w-]+\/?$/i;
-    //   return linkedinPattern.test(value.trim());
-    // }),
+    linkedin: yup
+      .string()
+      .defined()
+      .test('linkedin-url', 'Please enter a valid LinkedIn profile URL', (value) => {
+        if (!value || value.trim() === '') return true; // Allow empty values
+        // Match LinkedIn profile URLs with or without protocol
+        const linkedinPattern = /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|pub|profile)\/[\w-]+\/?$/i;
+        return linkedinPattern.test(value.trim());
+      }),
     teamOrProject: yup.mixed<string | Record<string, string>>().when('teamName', {
       is: (teamName: string) => !teamName,
       then: (schema) => {
@@ -562,7 +564,11 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                 disabled={isAuthenticated}
               />
 
-              <FormField name="linkedin" label="LinkedIn profile" placeholder="Enter link to your LinkedIn profile" />
+              <FormField
+                name="linkedin"
+                label="LinkedIn profile"
+                placeholder="eg., jbenetcs or https://linkedin.com/in/jbenetcs"
+              />
 
               {!isAddingTeam && (
                 <div className={s.column}>
@@ -583,6 +589,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                         backLabel="Teams & Projects"
                         icon={<SearchIcon />}
                         hideOptionsWhenEmpty
+                        isClearable
                         options={teamsOptions}
                         renderOption={({ option, label, description }) => {
                           return (
@@ -608,7 +615,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                         isStickyNoData
                         notFoundContent={
                           <div className={s.secondaryLabel}>
-                            Not able to find your project or team?
+                            Not able to find your team?
                             <br />
                             <button
                               type="button"

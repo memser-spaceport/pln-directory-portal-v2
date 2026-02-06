@@ -243,7 +243,7 @@ export const FormSelect = (props: Props) => {
           }}
           components={{
             Menu: (props) => {
-              if (props.selectProps.inputValue.trim() === '') {
+              if (props.selectProps.inputValue.trim() === '' && hideOptionsWhenEmpty) {
                 return null;
               }
 

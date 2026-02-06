@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import Select, { components, ControlProps } from 'react-select';
 import { useMedia, useToggle } from 'react-use';
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useRef, useState } from 'react';
 
 import { Field } from '@base-ui-components/react/field';
 import { useFormContext } from 'react-hook-form';
@@ -33,6 +33,7 @@ interface Props {
   onChange?: (value: Option | null) => void;
   renderOption?: (input: RenderOptionInput) => ReactNode;
   icon?: ReactNode;
+  hideOptionsWhenEmpty?: boolean; // Hide options list when search field is empty
 }
 
 export const FormSelect = (props: Props) => {
@@ -49,6 +50,7 @@ export const FormSelect = (props: Props) => {
     onChange,
     isStickyNoData,
     icon,
+    hideOptionsWhenEmpty,
   } = props;
 
   const {
@@ -113,6 +115,7 @@ export const FormSelect = (props: Props) => {
           setSearchTerm={setSearchTerm}
           notFoundContent={notFoundContent}
           renderSelectOption={renderSelectOption}
+          hideOptionsWhenEmpty={hideOptionsWhenEmpty}
         />
       )}
       <Field.Root className={s.field}>
@@ -142,7 +145,11 @@ export const FormSelect = (props: Props) => {
           isDisabled={disabled || open}
           inputId={name}
           filterOption={(option, inputValue) => {
-            // Always include the notFoundContent option
+            if (hideOptionsWhenEmpty && !inputValue.trim()) {
+              return false;
+            }
+
+            // Always include the notFoundContent option when there's input
             if ((option.data as any).isNotFoundContent) {
               return true;
             }
@@ -231,13 +238,17 @@ export const FormSelect = (props: Props) => {
             }),
           }}
           components={{
+            Menu: (props) => {
+              console.log(props);
+              return <components.Menu {...props}>{props.children}</components.Menu>;
+            },
             Control: (controlProps: ControlProps<Option, false>) => (
               <components.Control {...controlProps}>
                 {icon && <span className={s.icon}>{icon}</span>}
                 {controlProps.children}
               </components.Control>
             ),
-            NoOptionsMessage: () => {
+            NoOptionsMessage: (props, a) => {
               return (
                 <div className={s.notFound}>
                   <span>No options found</span>

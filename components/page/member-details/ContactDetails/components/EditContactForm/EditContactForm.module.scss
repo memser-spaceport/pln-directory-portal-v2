@@ -55,6 +55,10 @@
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 166.667% */
+
+  :hover {
+    filter: brightness(80%);
+  }
 }
 
 .Switch {

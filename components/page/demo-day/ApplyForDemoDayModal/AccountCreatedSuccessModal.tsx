@@ -9,6 +9,7 @@ import s from './AccountCreatedSuccessModal.module.scss';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { formatDemoDayDate } from '@/utils/demo-day.utils';
 import Link from 'next/link';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 interface Props {
   isOpen: boolean;
@@ -54,8 +55,17 @@ const CheckIcon = () => (
 
 export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose, isNew, uid, email, demoDayState }) => {
   const router = useRouter();
+  const { onAccountCreatedSuccessModalContinueToLoginClicked } = useDemoDayAnalytics();
 
   const handleContinueToLogin = () => {
+    onAccountCreatedSuccessModalContinueToLoginClicked({
+      isNew,
+      memberUid: uid,
+      email,
+      demoDaySlug: demoDayState?.slugURL,
+      demoDayTitle: demoDayState?.title,
+    });
+
     if (!isNew) {
       onClose();
       router.push(`/members/${uid}`);

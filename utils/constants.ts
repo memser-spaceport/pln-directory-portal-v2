@@ -1901,4 +1901,5 @@ export const DEMO_DAY_ANALYTICS = {
   ON_APPLICATION_MODAL_SUBMITTED: 'demo-day-application-modal-submitted',
   ON_APPLICATION_MODAL_AUTO_SUBMITTED: 'demo-day-application-modal-auto-submitted',
   ON_SUBSCRIBE_TO_DEMO_DAY_CLICKED: 'demo-day-subscribe-to-demo-day-clicked',
+  ON_ACCOUNT_CREATED_SUCCESS_MODAL_CONTINUE_TO_LOGIN_CLICKED: 'demo-day-application-success-modal-continue-clicked',
 };

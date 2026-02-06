@@ -268,6 +268,10 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_SUBSCRIBE_TO_DEMO_DAY_CLICKED, eventParams);
   }
 
+  function onAccountCreatedSuccessModalContinueToLoginClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACCOUNT_CREATED_SUCCESS_MODAL_CONTINUE_TO_LOGIN_CLICKED, eventParams);
+  }
+
   return {
     onLandingPageOpened,
     onLandingLoginButtonClicked,
@@ -331,5 +335,6 @@ export const useDemoDayAnalytics = () => {
     onApplicationModalSubmitted,
     onApplicationModalAutoSubmitted,
     onSubscribeToDemoDayClicked,
+    onAccountCreatedSuccessModalContinueToLoginClicked,
   };
 };

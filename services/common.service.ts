@@ -1,8 +1,7 @@
 async function fetchData(url: string, tag: string) {
   const response = await fetch(url, {
     method: 'GET',
-    cache: 'force-cache',
-    next: { tags: [tag], revalidate: 60 }, // Revalidate every 1 minute
+    next: { tags: [tag], revalidate: 60 }, // Cache with revalidation every 1 minute
     headers: {
       'Content-Type': 'application/json',
     },

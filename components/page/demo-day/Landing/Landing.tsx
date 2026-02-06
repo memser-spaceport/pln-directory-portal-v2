@@ -211,6 +211,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
         isNew={showSuccessModal?.isNew}
         uid={showSuccessModal?.uid}
         email={showSuccessModal?.email}
+        demoDayState={data}
       />
     </>
   );

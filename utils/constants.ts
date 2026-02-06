@@ -688,6 +688,26 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.5 - Investor Application & Profile Updates',
+    tag: 'Improvements',
+    date: '06, Feb 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Investor Application Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">LinkedIn validation</span> - Added LinkedIn URL validation with helpful placeholder and error messages to ensure accurate profile information.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team selection improvements</span> - Enhanced team field with search functionality that only shows dropdown results after typing, plus ability to remove selected teams with a clear action.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Add your team flow</span> - New streamlined flow to add team information directly from the application form.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Application success modal</span> - Added success modal with clear next steps and quick access to log in or open profile after submission.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Member Profile Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Streamlined investor profiles</span> - Newly registered investors now see a cleaner profile view with unnecessary sections hidden, keeping focus on essential information.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Bio field placement</span> - Bio field moved to profile header section for better visibility and easier access.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.4 - Forum Activity & Contributors Discovery',
     tag: 'Improvements',
     date: '30, Jan 2026',

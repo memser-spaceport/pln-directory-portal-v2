@@ -35,8 +35,8 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const bioPlainText = member.bio ? member.bio.replace(/<[^>]*>/g, '') : '';
   const isBioTruncated = bioPlainText.length > BIO_MAX_LENGTH;
 
-  // Truncate bio HTML content
-  const getTruncatedBio = (html: string): string => {
+  // Truncate bio HTML content and append show more button inline
+  const getTruncatedBio = (html: string, showButton: boolean): string => {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
     const text = tempDiv.textContent || '';
@@ -59,7 +59,34 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
       if (html[i] === '>') inTag = false;
     }
 
-    return html.substring(0, cutIndex) + '...';
+    let truncated = html.substring(0, cutIndex) + '...';
+
+    // Remove trailing closing tags and add button before them
+    if (showButton) {
+      // Find and preserve closing tags at the end
+      const closingTagsMatch = truncated.match(/(<\/[^>]+>)+$/);
+      if (closingTagsMatch) {
+        const closingTags = closingTagsMatch[0];
+        const contentWithoutClosingTags = truncated.slice(0, -closingTags.length);
+        truncated = contentWithoutClosingTags + ' <span class="bio-show-more">Show more</span>' + closingTags;
+      } else {
+        truncated += ' <span class="bio-show-more">Show more</span>';
+      }
+    }
+
+    return truncated;
+  };
+
+  // Get full bio with show less button inline
+  const getFullBioWithButton = (html: string): string => {
+    // Find and preserve closing tags at the end
+    const closingTagsMatch = html.match(/(<\/[^>]+>)+$/);
+    if (closingTagsMatch) {
+      const closingTags = closingTagsMatch[0];
+      const contentWithoutClosingTags = html.slice(0, -closingTags.length);
+      return contentWithoutClosingTags + ' <span class="bio-show-less">Show less</span>' + closingTags;
+    }
+    return html + ' <span class="bio-show-less">Show less</span>';
   };
 
   return (
@@ -99,15 +126,20 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
               <div className={s.bioTitle}>Bio</div>
               <div
                 className={s.bioContent}
+                onClick={(e) => {
+                  const target = e.target as HTMLElement;
+                  if (target.classList.contains('bio-show-more') || target.classList.contains('bio-show-less')) {
+                    setIsBioExpanded(!isBioExpanded);
+                  }
+                }}
                 dangerouslySetInnerHTML={{
-                  __html: isBioExpanded ? member.bio : getTruncatedBio(member.bio),
+                  __html: isBioTruncated
+                    ? isBioExpanded
+                      ? getFullBioWithButton(member.bio)
+                      : getTruncatedBio(member.bio, true)
+                    : member.bio,
                 }}
               />
-              {isBioTruncated && (
-                <button type="button" className={s.showMoreButton} onClick={() => setIsBioExpanded(!isBioExpanded)}>
-                  {isBioExpanded ? 'Show less' : 'Show more'}
-                </button>
-              )}
             </div>
           )}
         </>

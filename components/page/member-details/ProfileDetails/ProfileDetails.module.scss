@@ -93,6 +93,86 @@
   line-height: 22px; /* 157.143% */
   letter-spacing: -0.2px;
 
+  // Restore default HTML styles (override global CSS reset)
+  p {
+    margin: 0 0 10px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  ul,
+  ol {
+    margin: 0 0 10px;
+    padding-left: 24px;
+    list-style-position: outside;
+  }
+
+  ul {
+    list-style-type: disc;
+  }
+
+  ol {
+    list-style-type: decimal;
+  }
+
+  li {
+    margin: 0 0 4px;
+    padding-left: 4px;
+  }
+
+  strong,
+  b {
+    font-weight: 600;
+  }
+
+  em,
+  i {
+    font-style: italic;
+  }
+
+  a {
+    color: #156ff7;
+    text-decoration: underline;
+  }
+
+  pre {
+    background-color: #f1f5f9;
+    font-family: monospace, monospace;
+    font-size: 12px;
+    margin: 4px 0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+  }
+
+  code {
+    background-color: #f1f5f9;
+    font-family: monospace, monospace;
+    font-size: 12px;
+    padding: 2px 4px;
+    border-radius: 2px;
+  }
+
+  blockquote {
+    margin: 0 0 10px;
+    padding-left: 16px;
+    border-left: 3px solid #e2e8f0;
+    color: #64748b;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0 0 8px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
   :global(.bio-show-more),
   :global(.bio-show-less) {
     color: #156ff7;

@@ -352,6 +352,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
         isNew={showSuccessModal?.isNew}
         uid={showSuccessModal?.uid}
         email={showSuccessModal?.email}
+        demoDayState={initialDemoDayState}
       />
     </div>
   );

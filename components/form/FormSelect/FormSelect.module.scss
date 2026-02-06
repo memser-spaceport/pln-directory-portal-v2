@@ -159,3 +159,23 @@
     height: 20px;
   }
 }
+
+.clearIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  margin-right: 4px;
+  cursor: pointer;
+  color: #94a3b8;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #455468;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}

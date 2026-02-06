@@ -199,7 +199,7 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
             <FormField
               name="linkedin"
               label="LinkedIn"
-              placeholder="eg., jbenetcs or https://linkedin.com/in/jbenetcs"
+              placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
             />
           </div>
           <div className={s.row}>

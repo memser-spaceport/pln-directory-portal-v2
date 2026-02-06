@@ -578,7 +578,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
               <FormField
                 name="linkedin"
                 label="LinkedIn profile"
-                placeholder="eg., jbenetcs or https://linkedin.com/in/jbenetcs"
+                placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
               />
 
               {!isAddingTeam && (

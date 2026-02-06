@@ -48,11 +48,18 @@ const applySchema = yup.object().shape(
     linkedin: yup
       .string()
       .defined()
-      .test('linkedin-url', 'Please enter a valid LinkedIn profile URL', (value) => {
+      .test('linkedin-url', 'Please enter a valid LinkedIn handle or URL', (value) => {
         if (!value || value.trim() === '') return true; // Allow empty values
+
+        const trimmedValue = value.trim();
+
         // Match LinkedIn profile URLs with or without protocol
-        const linkedinPattern = /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|pub|profile)\/[\w-]+\/?$/i;
-        return linkedinPattern.test(value.trim());
+        const linkedinUrlPattern = /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|pub|profile)\/[\w-]+\/?$/i;
+
+        // Match LinkedIn handle (alphanumeric, hyphens, underscores, typically 3-100 chars)
+        const linkedinHandlePattern = /^[\w-]{3,100}$/;
+
+        return linkedinUrlPattern.test(trimmedValue) || linkedinHandlePattern.test(trimmedValue);
       }),
     teamOrProject: yup.mixed<string | Record<string, string>>().when('teamName', {
       is: (teamName: string) => !teamName,

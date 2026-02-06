@@ -69,7 +69,7 @@ function TeamSocialInfo(props: ITeamSocialInfo) {
           defaultValue={initialValues?.linkedinHandler ?? ''}
           name="linkedinHandler"
           type="text"
-          placeholder="eg., https://www.linkedin.com/in/jbenetcs/"
+          placeholder="eg., https://www.linkedin.com/in/johndoe/"
         />
         <TextField
           id="register-team-twitterHandler"

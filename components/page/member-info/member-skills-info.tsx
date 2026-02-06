@@ -125,7 +125,7 @@ function MemberSkillsInfo({
             defaultValue={initialValues.teamOrProjectURL}
             name="teamOrProjectURL"
             label="Team or Project URL"
-            placeholder="eg.,https://linkedin.com/in/jbenetcs"
+            placeholder="eg.,https://linkedin.com/in/johndoe"
           />
         </div>
         {/**************  TEAMS & ROLES UI  *****************/}

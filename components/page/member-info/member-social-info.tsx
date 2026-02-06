@@ -14,7 +14,7 @@ function MemberSocialInfo(props: any) {
             defaultValue={initialValues.linkedinHandler}
             name="linkedinHandler"
             label="LinkedIn"
-            placeholder="eg.,https://linkedin.com/in/jbenetcs"
+            placeholder="eg.,https://linkedin.com/in/johndoe"
           />
         </div>
         <div className="memberinfo__form__item">

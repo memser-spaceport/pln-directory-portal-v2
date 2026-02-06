@@ -287,6 +287,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     onClose?.();
   }, [demoDayData?.title, demoDaySlug, hasTrackedFieldEntry, onApplicationModalCanceled, onClose, reset, router]);
 
+
   // Track field entry (only once per modal open)
   useEffect(() => {
     const subscription = watch((value, { name }) => {
@@ -433,6 +434,34 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     handleClose,
   ]);
 
+  const handleClose = () => {
+    // Track modal cancellation if user has entered any data
+    if (hasTrackedFieldEntry) {
+      // PostHog analytics
+      onApplicationModalCanceled({ demoDaySlug, demoDayTitle: demoDayData?.title });
+    }
+
+    reset();
+    setIsAddingTeam(false);
+    setHasAutoSubmitted(false);
+    setMinLoaderTime(null);
+    setShowLoader(false);
+    setIsAutoSubmitting(false);
+    setHasTrackedFieldEntry(false);
+
+    // Remove dialog query param if it exists
+    const currentParams = new URLSearchParams(window.location.search);
+    if (currentParams.has('dialog')) {
+      currentParams.delete('dialog');
+      const newUrl = currentParams.toString()
+        ? `${window.location.pathname}?${currentParams.toString()}`
+        : window.location.pathname;
+      router.replace(newUrl);
+    }
+
+    onClose?.();
+  };
+
   const onSubmit = async (formData: ApplyFormData) => {
     try {
       // Build the team/project object
@@ -531,6 +560,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
           {demoDayData?.date && (
             <div className={s.dateInfo}>
               <span className={s.dateValue}>{formatDemoDayDate(demoDayData.date)}</span>
+
             </div>
           )}
         </div>

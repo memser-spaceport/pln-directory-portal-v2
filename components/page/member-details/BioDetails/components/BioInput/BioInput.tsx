@@ -82,7 +82,7 @@ export const BioInput = ({ generateBio, onAiContentGenerated }: Props) => {
         value={bio}
         onChange={(txt) => setValue('bio', txt, { shouldValidate: true, shouldDirty: true })}
         className={clsx(s.editor, { [s.editorError]: hasError })}
-        placeholder="Add a short bio about your background, interests, or what you're working on. You can also connect other profiles (Linkedin, X, GitHub) to generate a bio with Al."
+        placeholder="Add a short bio about your background, interests, or what you’re working on. For best results with AI bio generation: add your role, team, LinkedIn and skills first."
       />
 
       {hasError && <p className={s.errorMessage}>{errors.bio?.message as string}</p>}

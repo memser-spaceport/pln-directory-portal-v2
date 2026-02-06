@@ -109,13 +109,17 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
   const { data: selectedTeamData } = useGetTeam(formValues.name?.value);
 
   const previewData = useMemo(() => {
-    if (!selectedTeamData) {
-      return null;
+    if (selectedTeamData) {
+      return {
+        logo: selectedTeamData?.logo,
+        name: selectedTeamData?.name,
+        role: formValues.role,
+      };
     }
 
     return {
-      logo: selectedTeamData?.logo,
-      name: selectedTeamData?.name,
+      logo: null,
+      name: formValues.name?.label,
       role: formValues.role,
     };
   }, [formValues, selectedTeamData]);

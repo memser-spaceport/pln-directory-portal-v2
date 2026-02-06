@@ -1,7 +1,7 @@
 'use client';
 import { clsx } from 'clsx';
 import Cookies from 'js-cookie';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -107,6 +107,13 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
     setIsApplyModalOpen(true);
   };
 
+  const handleClose = useCallback(() => setShowSuccessModal(null), []);
+  const handleCloseApply = useCallback(() => setIsApplyModalOpen(false), []);
+  const handleSuccess = useCallback(
+    (res: { uid: string; isNew: boolean; email: string }) => setShowSuccessModal(res),
+    [],
+  );
+
   // Show skeleton loader while loading
   if (isLoading || !data) {
     return <DemoDayPageSkeleton />;
@@ -196,18 +203,18 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
       {demoDaySlug && (
         <ApplyForDemoDayModal
           isOpen={isApplyModalOpen && !data?.isPending}
-          onClose={() => setIsApplyModalOpen(false)}
+          onClose={handleCloseApply}
           userInfo={userInfo}
           memberData={null}
           demoDaySlug={demoDaySlug}
           demoDayData={data}
-          onSuccessUnauthenticated={(res) => setShowSuccessModal(res)}
+          onSuccessUnauthenticated={handleSuccess}
         />
       )}
 
       <AccountCreatedSuccessModal
         isOpen={!!showSuccessModal}
-        onClose={() => setShowSuccessModal(null)}
+        onClose={handleClose}
         isNew={showSuccessModal?.isNew}
         uid={showSuccessModal?.uid}
         email={showSuccessModal?.email}

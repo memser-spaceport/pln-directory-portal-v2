@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -301,9 +301,11 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     return () => subscription.unsubscribe();
   }, [watch, hasTrackedFieldEntry, onApplicationModalFieldEntered, demoDaySlug, demoDayData?.title]);
 
+  const initRef = useRef(false);
   // Reinitialize form when member data is fetched
   useEffect(() => {
-    if (member) {
+    if (member && !initRef.current) {
+      initRef.current = true;
       reset({
         email: member.email || userInfo?.email || '',
         name: member.name || userInfo?.name || '',

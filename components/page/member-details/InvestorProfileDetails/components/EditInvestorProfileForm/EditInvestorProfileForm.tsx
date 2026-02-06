@@ -81,6 +81,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
       teamTypicalCheckSize: formatNumberToCurrency(fundTeam?.investorProfile?.typicalCheckSize) || '',
       teamInvestmentFocusAreas: fundTeam?.investorProfile?.investmentFocus || [],
     },
+    // @ts-ignore
     resolver: yupResolver(editInvestorProfileSchema),
     mode: 'all',
   });

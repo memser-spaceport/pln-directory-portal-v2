@@ -66,7 +66,7 @@
 
   &:has(input:disabled) {
     background: rgba(203, 213, 225, 0.1);
-    cursor: not-allowed;
+    cursor: default;
   }
 }
 
@@ -107,7 +107,7 @@
   }
 
   &:disabled {
-    cursor: not-allowed;
+    cursor: default;
     opacity: 0.6;
     background: rgba(203, 213, 225, 0.1);
   }

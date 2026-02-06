@@ -16,9 +16,14 @@ interface Props {
 }
 
 export const BioInput = ({ generateBio, onAiContentGenerated }: Props) => {
-  const { watch, setValue } = useFormContext();
+  const {
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext();
   const { bio } = watch();
   const generateBioRef = useRef(false);
+  const hasError = !!errors.bio;
 
   const { mutateAsync, isPending, reset } = useGenerateBioWithAi();
 
@@ -76,8 +81,11 @@ export const BioInput = ({ generateBio, onAiContentGenerated }: Props) => {
       <RichTextEditor
         value={bio}
         onChange={(txt) => setValue('bio', txt, { shouldValidate: true, shouldDirty: true })}
-        className={s.editor}
+        className={clsx(s.editor, { [s.editorError]: hasError })}
+        placeholder="Add a short bio about your background, interests, or what you're working on. You can also connect other profiles (Linkedin, X, GitHub) to generate a bio with Al."
       />
+
+      {hasError && <p className={s.errorMessage}>{errors.bio?.message as string}</p>}
     </div>
   );
 };

@@ -114,3 +114,25 @@
     border-radius: 0 0 8px 8px;
   }
 }
+
+.editorError {
+  :global(.ql-toolbar) {
+    border-color: var(--action-border-error-focus, #ff574d) !important;
+  }
+
+  :global(.ql-container) {
+    border-color: var(--action-border-error-focus, #ff574d) !important;
+  }
+}
+
+.errorMessage {
+  font-size: 10px;
+  color: var(--action-border-error-focus, #ff574d);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;
+  margin-top: 0.25rem;
+}

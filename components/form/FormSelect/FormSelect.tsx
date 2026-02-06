@@ -242,6 +242,13 @@ export const FormSelect = (props: Props) => {
             }),
           }}
           components={{
+            DropdownIndicator: (props) => {
+              if (hideOptionsWhenEmpty) {
+                return null;
+              }
+
+              return <components.DropdownIndicator {...props} />;
+            },
             Menu: (props) => {
               if (props.selectProps.inputValue.trim() === '' && hideOptionsWhenEmpty) {
                 return null;

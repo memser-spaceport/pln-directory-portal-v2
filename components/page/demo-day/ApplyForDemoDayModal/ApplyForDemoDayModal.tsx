@@ -149,6 +149,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   const [showLoader, setShowLoader] = useState(false);
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
   const [hasTrackedFieldEntry, setHasTrackedFieldEntry] = useState(false);
+  const trackedFieldsRef = useRef<Set<string>>(new Set());
 
   // Check if user is authenticated
   const authToken = Cookies.get('authToken');
@@ -235,12 +236,13 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     watch,
     setValue,
     trigger,
-    formState: { errors, isValid },
+    formState: { errors, isValid, touchedFields },
   } = methods;
 
   const isInvestor = watch('isInvestor');
   const teamName = watch('teamName');
   const websiteAddress = watch('websiteAddress');
+  const formValues = watch();
 
   const teamsOptions = useMemo(() => {
     return [
@@ -273,6 +275,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
     setShowLoader(false);
     setIsAutoSubmitting(false);
     setHasTrackedFieldEntry(false);
+    trackedFieldsRef.current.clear();
 
     // Remove dialog query param if it exists
     const currentParams = new URLSearchParams(window.location.search);
@@ -288,19 +291,28 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   }, [demoDayData?.title, demoDaySlug, hasTrackedFieldEntry, onApplicationModalCanceled, onClose, reset, router]);
 
 
-  // Track field entry (only once per modal open)
+  // Track field blur events when value is entered
   useEffect(() => {
-    const subscription = watch((value, { name }) => {
-      if (!hasTrackedFieldEntry && name) {
-        setHasTrackedFieldEntry(true);
+    if (!isOpen) {
+      trackedFieldsRef.current.clear();
+      return;
+    }
 
-        // PostHog analytics
-        onApplicationModalFieldEntered({ fieldName: name, demoDaySlug, demoDayTitle: demoDayData?.title });
+    Object.keys(touchedFields).forEach((fieldName) => {
+      if (!trackedFieldsRef.current.has(fieldName)) {
+        const fieldValue = formValues[fieldName as keyof ApplyFormData];
+        if (fieldValue && fieldValue !== '') {
+          trackedFieldsRef.current.add(fieldName);
+          setHasTrackedFieldEntry(true);
+          onApplicationModalFieldEntered({
+            fieldName,
+            demoDaySlug,
+            demoDayTitle: demoDayData?.title,
+          });
+        }
       }
     });
-
-    return () => subscription.unsubscribe();
-  }, [watch, hasTrackedFieldEntry, onApplicationModalFieldEntered, demoDaySlug, demoDayData?.title]);
+  }, [touchedFields, formValues, isOpen, onApplicationModalFieldEntered, demoDaySlug, demoDayData?.title]);
 
   const initRef = useRef(false);
   // Reinitialize form when member data is fetched
@@ -698,7 +710,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                   className={s.Checkbox}
                   checked={isInvestor}
                   onCheckedChange={(v: boolean) => {
-                    setValue('isInvestor', v, { shouldValidate: true, shouldDirty: true });
+                    setValue('isInvestor', v, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
                   }}
                 >
                   <Checkbox.Indicator className={s.Indicator}>

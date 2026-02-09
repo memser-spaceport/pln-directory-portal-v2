@@ -335,11 +335,11 @@ export const activitiesData: ActivitiesData = {
         pointsAwarded: {
           title: 'Points Awarded:',
           items: [
-            { label: 'Verified event with 5-10 attendees', value: '50 points' },
-            { label: 'Verified event with 11-20 attendees', value: '150 points' },
-            { label: 'Verified event with 21-50 attendees', value: '250 points' },
-            { label: 'Verified event with 50-100 attendees', value: '500 points' },
-            { label: 'Verified event with 100+ attendees', value: '1,000 points' }
+            { label: 'Verified event with 5-10 attendees', value: '50 points', boldLabel: false },
+            { label: 'Verified event with 11-20 attendees', value: '150 points', boldLabel: false },
+            { label: 'Verified event with 21-50 attendees', value: '250 points', boldLabel: false },
+            { label: 'Verified event with 50-100 attendees', value: '500 points', boldLabel: false },
+            { label: 'Verified event with 100+ attendees', value: '1,000 points', boldLabel: false }
           ]
         },
         categories: [

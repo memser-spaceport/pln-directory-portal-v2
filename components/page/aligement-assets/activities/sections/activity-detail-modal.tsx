@@ -152,14 +152,16 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                 
                 {popupContent.pointsAwarded.items.length > 0 && (
                   <ul className="activity-modal__points-list">
-                    {popupContent.pointsAwarded.items.map((item, index) => (
+                    {popupContent.pointsAwarded.items.map((item, index) => {
+                      const boldLabel = item.boldLabel !== false;
+                      return (
                       <li key={index} className="activity-modal__points-item">
                         {item.value ? (
-                          <><strong>{item.label}:</strong> {item.value}</>
+                          boldLabel ? <><strong>{item.label}:</strong> {item.value}</> : <>{item.label}: {item.value}</>
                         ) : item.subItems ? (
-                          <><strong>{item.label}:</strong></>
+                          boldLabel ? <><strong>{item.label}:</strong></> : <>{item.label}:</>
                         ) : (
-                          <strong>{item.label}</strong>
+                          boldLabel ? <strong>{item.label}</strong> : item.label
                         )}
                         {item.description && (
                           <div className="activity-modal__points-item-description">{item.description}</div>
@@ -174,7 +176,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                           </ul>
                         )}
                       </li>
-                    ))}
+                    );})}
                   </ul>
                 )}
 
@@ -193,7 +195,11 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                           <ul className="activity-modal__category-list">
                             {category.tiers.map((tier, tierIndex) => (
                               <li key={tierIndex} className="activity-modal__category-item">
-                                • {tier.label}: {tier.points}
+                                • {tier.label === 'Default' || tier.label === 'Optional' ? (
+                                  <><strong>{tier.label}:</strong> {tier.points}</>
+                                ) : (
+                                  <>{tier.label}: {tier.points}</>
+                                )}
                               </li>
                             ))}
                           </ul>
@@ -400,7 +406,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
         }
 
         .activity-modal__category-title {
-          font-size: 14px;
+          font-size: 16px;
           font-weight: 600;
           line-height: 22px;
           color: #0f172a;
@@ -439,6 +445,11 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           font-size: 14px;
           line-height: 18px;
           color: #475569;
+        }
+
+        .activity-modal__category-item strong {
+          font-weight: 600;
+          color: #0f172a;
         }
 
         .activity-modal__additional-note {

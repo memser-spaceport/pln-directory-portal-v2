@@ -47,7 +47,7 @@ const FollowSection = (props: IFollowSectionProps) => {
   const isUserGoing = guestDetails?.isUserGoing;
   const [isEdit, seIsEdit] = useState(false);
   const [isAddMemberDropdownOpen, setIsAddMemberDropdownOpen] = useState(false);
-  const [isSpeakerRequestPopupOpen, setIsSpeakerRequestPopupOpen] = useState(false);
+  // const [isSpeakerRequestPopupOpen, setIsSpeakerRequestPopupOpen] = useState(false);
   const type = searchParams?.type;
   const editResponseRef = useRef<HTMLButtonElement>(null);
   const addMemberRef = useRef<HTMLButtonElement>(null);
@@ -291,16 +291,16 @@ const FollowSection = (props: IFollowSectionProps) => {
     // EVENT LISTENER: Listens for OPEN_SPEAKER_REQUEST_POPUP event
     // This event is dispatched from: components/page/irl/follow-gathering/speaker-button.tsx
     // When triggered, it opens the SpeakerRequestForm popup
-    const speakerRequestHandler = (e: any) => {
-      setIsSpeakerRequestPopupOpen(e.detail.isOpen);
-    };
+    // const speakerRequestHandler = (e: any) => {
+    //   setIsSpeakerRequestPopupOpen(e.detail.isOpen);
+    // };
 
     document.addEventListener(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, updateFollowers);
-    document.addEventListener(EVENTS.OPEN_SPEAKER_REQUEST_POPUP, speakerRequestHandler);
+    // document.addEventListener(EVENTS.OPEN_SPEAKER_REQUEST_POPUP, speakerRequestHandler);
     
     return function () {
       document.removeEventListener(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, updateFollowers);
-      document.removeEventListener(EVENTS.OPEN_SPEAKER_REQUEST_POPUP, speakerRequestHandler);
+      // document.removeEventListener(EVENTS.OPEN_SPEAKER_REQUEST_POPUP, speakerRequestHandler);
     };
   }, []);
 
@@ -469,9 +469,9 @@ const FollowSection = (props: IFollowSectionProps) => {
     observer.observe(element);
   }, []);
 
-  const handleSpeakerRequestClose = () => {
-    setIsSpeakerRequestPopupOpen(false);
-  };
+  // const handleSpeakerRequestClose = () => {
+  //   setIsSpeakerRequestPopupOpen(false);
+  // };
 
   return (
     <>
@@ -588,15 +588,6 @@ const FollowSection = (props: IFollowSectionProps) => {
             <SpeakerButton
               eventLocationSummary={location}
             />
-            {
-              isSpeakerRequestPopupOpen && (
-                <SpeakerRequestForm
-                  userInfo={userInfo}
-                  eventLocationSummary={eventLocationSummary}
-                  onClose={handleSpeakerRequestClose}
-                />
-              )
-            }
 
             {/* IRL Gathering Modal Button */}
             {canShowImGoingButton && (

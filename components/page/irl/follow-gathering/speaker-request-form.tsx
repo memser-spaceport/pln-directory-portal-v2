@@ -1,30 +1,225 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { toast } from '@/components/core/ToastContainer';
-import { EVENTS } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { getProfileFromURL } from '@/utils/common.utils';
+import { ProfileSocialLink } from '@/components/page/member-details/profile-social-link';
+import { getMember } from '@/services/members.service';
+import PageLoader from '@/components/core/page-loader';
+import MultiSelect from '@/components/form/MultiSelect';
+// import Loader from '@/components/core/loader';
 
 interface ISpeakerRequestForm {
   userInfo: IUserInfo | null;
   eventLocationSummary: any;
   onClose: () => void;
+  isLoggedIn: boolean;
 }
 
-const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLocationSummary, onClose }) => {
+interface ITopicOption {
+  id: string;
+  name: string;
+}
+
+const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLocationSummary, isLoggedIn, onClose }) => {
   const analytics = useIrlAnalytics();
   const formBodyRef = useRef<HTMLDivElement>(null);
   const [speakerDescription, setSpeakerDescription] = useState('');
-  const [customTags, setCustomTags] = useState<string[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  
+  // Commented out for future use - customTags implementation
+  // const [customTags, setCustomTags] = useState<string[]>([]);
+  // const [inputValue, setInputValue] = useState('');
+  
+  // MultiSelect topics implementation
+  const [selectedTopics, setSelectedTopics] = useState<ITopicOption[]>([]);
+  const topicOptions: ITopicOption[] = [
+    { id: 'ai', name: 'AI' },
+    { id: 'ai_x_crypto', name: 'AI x Crypto' },
+    { id: 'blockchain_infrastructure', name: 'Blockchain Infrastructure' },
+    { id: 'blockchain_security', name: 'Blockchain Security' },
+    { id: 'consensus_scalability', name: 'Consensus & Scalability' },
+    { id: 'defi_fintech', name: 'DeFi/Fintech' },
+    { id: 'decentralized_storage', name: 'Decentralized Storage' },
+    { id: 'decentralized_identity', name: 'Decentralized Identity' },
+    { id: 'desci', name: 'DeSci' },
+    { id: 'developer_tooling', name: 'Developer Tooling' },
+    { id: 'gaming_metaverse', name: 'Gaming/Metaverse' },
+    { id: 'governance', name: 'Governance' },
+    { id: 'nft', name: 'NFT' },
+    { id: 'web3', name: 'Web3' },
+    { id: 'cryptocurrency', name: 'Cryptocurrency' },
+    { id: 'smart_contracts', name: 'Smart Contracts' },
+    { id: 'dapps', name: 'DApps' },
+    { id: 'dao', name: 'DAO' },
+    { id: 'privacy', name: 'Privacy' },
+    { id: 'scalability', name: 'Scalability' },
+    { id: 'interoperability', name: 'Interoperability' },
+    { id: 'sustainability', name: 'Sustainability' },
+    { id: 'education', name: 'Education' },
+    { id: 'research', name: 'Research' },
+  ];
+  
   const [isCloseClicked, setIsCloseClicked] = useState(false);
+  const [memberData, setMemberData] = useState<any>(null);
+  const [isLoadingMember, setIsLoadingMember] = useState(false);
   const isReadOnlyMode = false;
-  const userAvatar = (userInfo as any)?.image?.url || getDefaultAvatar(userInfo?.name || '');
-  const userName = userInfo?.name || 'User';
-  const userTitle = (userInfo as any)?.title || (userInfo as any)?.teamMemberRoles?.[0]?.role || '';
-  const telegramHandle = (userInfo as any)?.telegramHandler || '';
-  const email = (userInfo as any)?.email || '';
+
+  // Social handles mapping - same as ContactDetails
+  // Handle both "Handle" and "Handler" property names
+  const SOCIAL_TO_HANDLE_MAP: Record<string, string[]> = {
+    linkedin: ['linkedinHandle', 'linkedinHandler'],
+    github: ['githubHandle', 'githubHandler'],
+    twitter: ['twitter', 'twitterHandler'],
+    email: ['email'],
+    discord: ['discordHandle', 'discordHandler'],
+    telegram: ['telegramHandle', 'telegramHandler'],
+  };
+
+  // Fetch member data on component mount
+  useEffect(() => {
+    const fetchMemberData = async () => {
+      if (!userInfo?.uid || !isLoggedIn) {
+        return;
+      }
+
+      try {
+        setIsLoadingMember(true);
+        const memberResult = await getMember(
+          userInfo.uid,
+          { with: 'image,skills,location,teamMemberRoles.team' },
+          isLoggedIn,
+          userInfo,
+          false,
+          true,
+        );
+
+        if (!memberResult.error && memberResult?.data?.formattedData) {
+          setMemberData(memberResult.data.formattedData);
+        }
+      } catch (error) {
+        console.error('Error fetching member data:', error);
+      } finally {
+        setIsLoadingMember(false);
+      }
+    };
+
+    fetchMemberData();
+  }, [userInfo?.uid, isLoggedIn]);
+
+  const VISIBLE_HANDLES = ['linkedin', 'github', 'twitter', 'email', 'discord', 'telegram'];
+
+  // Extract user title from member data - Format: "TeamName, Role"
+  // useMemo is used here to memoize the computed value and prevent unnecessary recalculations
+  // on every render. It only recalculates when memberData changes, improving performance.
+  const userTitle = useMemo(() => {
+    if (!memberData) return '';
+
+    let teamName = '';
+    let role = '';
+
+    // Get team name from mainTeam or first teamAndRoles entry
+    if (memberData.mainTeam?.name) {
+      teamName = memberData.mainTeam.name;
+    } else if (memberData.teamAndRoles && memberData.teamAndRoles.length > 0) {
+      teamName = memberData.teamAndRoles[0].teamTitle || '';
+    }
+
+    // Get role from memberData.role or first teamAndRoles entry
+    if (memberData.mainTeam?.role) {
+      role = memberData.mainTeam.role;
+    } else if (memberData.teamAndRoles && memberData.teamAndRoles.length > 0) {
+      role = memberData.teamAndRoles[0].role || '';
+    }
+
+    // Format as "TeamName, Role" or just "Role" if no team name
+    if (teamName && role) {
+      return `${teamName}, ${role}`;
+    } else if (role) {
+      return role;
+    } else if (teamName) {
+      return teamName;
+    }
+
+    return '';
+  }, [memberData]);
+
+  // Extract social handles from member data
+  const socialHandles = useMemo(() => {
+    if (!memberData) return [];
+
+    const memberRecord = memberData as unknown as Record<string, string>;
+
+    return VISIBLE_HANDLES.map((type) => {
+      const handleKeys = SOCIAL_TO_HANDLE_MAP[type];
+      // Try each possible property name
+      let handle: string | undefined;
+      for (const key of handleKeys) {
+        if (memberRecord[key]) {
+          handle = memberRecord[key];
+          break;
+        }
+      }
+      
+      if (!handle) return null;
+
+      const profile = getProfileFromURL(handle, type);
+      
+      return {
+        type,
+        handle,
+        profile,
+      };
+    }).filter(Boolean) as Array<{ type: string; handle: string; profile: string }>;
+  }, [memberData]);
+
+  // Get user avatar, name from member data or userInfo
+  const userAvatar = memberData?.profile || (userInfo as any)?.image?.url || getDefaultAvatar(userInfo?.name || '');
+  const userName = memberData?.name || userInfo?.name || 'User';
+
+  // Get logo by provider
+  const getLogoByProvider = (provider: string): string => {
+    switch (provider) {
+      case 'linkedin':
+        return '/icons/contact/linkedIn-contact-logo.svg';
+      case 'discord':
+        return '/icons/contact/discord-contact-logo.svg';
+      case 'email':
+        return '/icons/contact/email-contact-logo.svg';
+      case 'github':
+        return '/icons/contact/github-contact-logo.svg';
+      case 'telegram':
+        return '/icons/contact/telegram-contact-logo.svg';
+      case 'twitter':
+        return '/icons/contact/twitter-contact-logo.svg';
+      default:
+        return '/icons/contact/website-contact-logo.svg';
+    }
+  };
+
+  console.log(memberData, '-----memberData')
+
+  // Social link callback (for analytics if needed)
+  const handleSocialLinkClick = (type: string, url: string) => {
+    // Can add analytics tracking here if needed
+    console.log('Social link clicked:', type, url);
+  };
+
+  // MultiSelect helper functions
+  const addTopic = (setState: React.Dispatch<React.SetStateAction<ITopicOption[]>>, itemToAdd: ITopicOption) => {
+    setState((prevItems: ITopicOption[]) => {
+      return [...prevItems, itemToAdd];
+    });
+  };
+
+  const removeTopic = (setState: React.Dispatch<React.SetStateAction<ITopicOption[]>>, itemToRemove: ITopicOption) => {
+    setState((prevItems: ITopicOption[]) => {
+      const newItems = prevItems.filter((item) => item.id !== itemToRemove.id);
+      return newItems;
+    });
+  };
+
 
   const handleSubmit = async () => {
     if (!speakerDescription.trim()) {
@@ -32,8 +227,8 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
       return;
     }
 
-    if (customTags.length === 0) {
-      toast.error('Please enter at least one topic');
+    if (selectedTopics.length === 0) {
+      toast.error('Please select at least one topic');
       return;
     }
 
@@ -42,7 +237,7 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
       // const response = await submitSpeakerRequest({
       //   locationId: eventLocationSummary.uid,
       //   description: speakerDescription,
-      //   topics: customTags,
+      //   topics: selectedTopics.map(topic => topic.name),
       // });
 
       // For now, just show success message
@@ -59,20 +254,21 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
     }
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && inputValue.trim()) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (!customTags.includes(inputValue.trim())) {
-        setCustomTags([...customTags, inputValue.trim()]);
-      }
-      setInputValue('');
-    }
-  };
+  // Commented out for future use - customTags handlers
+  // const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  //   if (e.key === 'Enter' && inputValue.trim()) {
+  //     e.preventDefault();
+  //     e.stopPropagation();
+  //     if (!customTags.includes(inputValue.trim())) {
+  //       setCustomTags([...customTags, inputValue.trim()]);
+  //     }
+  //     setInputValue('');
+  //   }
+  // };
 
-  const handleTagDelete = (index: number) => {
-    setCustomTags(customTags.filter((_, i) => i !== index));
-  };
+  // const handleTagDelete = (index: number) => {
+  //   setCustomTags(customTags.filter((_, i) => i !== index));
+  // };
 
   const onCloseClicked = () => {
     setIsCloseClicked(true);
@@ -86,6 +282,10 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
     onClose();
   };
 
+  if(isLoadingMember) {
+    return <PageLoader/>;
+  }
+
   return (
     <div className="speakerRequestFormCnt">
       <form
@@ -96,68 +296,72 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
         }}
         className="speakerRequestForm"
       >
-        <div className="speakerRequestForm__closeBtn">
-          <img
-            src="/icons/close.svg"
-            alt="close"
-            height={20}
-            width={20}
-            onClick={handleClose}
-          />
-        </div>
-        <div className="speakerRequestForm__bdy" ref={formBodyRef}>
-          <h2 className="speakerRequestForm__bdy__ttl">Request to be a speaker</h2>
+        <div className="speakerRequestForm__container" ref={formBodyRef}>
+          <div className="speakerRequestForm__container__header">
+            <div className="speakerRequestForm__container__header__title">Request to be a speaker</div>
+            <div className="speakerRequestForm__container__header__closeBtn">
+              <img src="/icons/close.svg" alt="close" height={20} width={20} onClick={handleClose} />
+            </div>
+          </div>
 
-          <div className="speakerRequestForm__details">
+          <div className="speakerRequestForm__container__body">
             {/* Requesting as Section */}
-            <div className="speakerRequestForm__requestingAs">
-              <span className="speakerRequestForm__requestingAs__label">Requesting as</span>
-              <div className="speakerRequestForm__requestingAs__content">
-                <div className="speakerRequestForm__userInfo">
-                  <div className="speakerRequestForm__avatar">
+            <div className="speakerRequestForm__body__requestingAsSection">
+              <span className="speakerRequestForm__body__requestingAsSection__label">Requesting as</span>
+              <div className="speakerRequestForm__body__requestingAsSection__content">
+                <div className="speakerRequestForm___requestingAsSection__content__userInfo">
+                  <div className="speakerRequestForm__userInfo__avatar">
                     <Image
                       src={userAvatar}
                       alt={userName}
                       width={48}
                       height={48}
-                      className="speakerRequestForm__avatarImg"
+                      className="speakerRequestForm__userInfo__avatarImg"
                     />
                   </div>
-                  <div className="speakerRequestForm__userDetails">
-                    <div className="speakerRequestForm__userName">{userName}</div>
-                    {userTitle && <div className="speakerRequestForm__userTitle">{userTitle}</div>}
-                    <div className="speakerRequestForm__userTags">
-                      {telegramHandle && (
-                        <span className="speakerRequestForm__tag speakerRequestForm__tag--telegram">
-                          <img src="/icons/telegram-solid.svg" alt="telegram" width={12} height={12} />
-                          {telegramHandle}
-                        </span>
-                      )}
-                      {email && (
-                        <>
-                          <span className="speakerRequestForm__tag speakerRequestForm__tag--email">
-                            <span className="speakerRequestForm__tag__at">@</span>
-                            {email}
-                          </span>
-                          <span className="speakerRequestForm__tag speakerRequestForm__tag--email">
-                            <span className="speakerRequestForm__tag__at">@</span>
-                            {email}
-                          </span>
-                        </>
-                      )}
-                    </div>
+                  <div className="speakerRequestForm__userInfo__details">
+                    <div className="speakerRequestForm__userInfo__details__username">{userName}</div>
+                    {userTitle && <div className="speakerRequestForm__userInfo__details__userTitle">{userTitle}</div>}
                   </div>
                 </div>
+                {socialHandles.length > 0 && (
+                      <div className="speakerRequestForm___requestingAsSection__content__userSocialHandles">
+                        {socialHandles.map((social, index) => (
+                          <div key={social.type} className="speakerRequestForm___userSocialHandles__section">
+                            <ProfileSocialLink
+                              type={social.type}
+                              profile={social.profile}
+                              handle={social.handle}
+                              logo={getLogoByProvider(social.type)}
+                              height={12}
+                              width={12}
+                              callback={handleSocialLinkClick}
+                              className={`speakerRequestForm___userSocialHandles__section__link ${
+                                index === 0 ? 'speakerRequestForm___userSocialHandles__section__link--first' : ''
+                              } ${
+                                index === socialHandles.length - 1
+                                  ? 'speakerRequestForm___userSocialHandles__section__link--last'
+                                  : ''
+                              }`}
+                            />
+                            {index < socialHandles.length - 1 && (
+                              <span className="speakerRequestForm__divider">|</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                )}
               </div>
             </div>
 
             {/* Speaker Description */}
-            <div className="speakerRequestForm__section">
-              <label className="speakerRequestForm__label">
-                Speaker Description<span className="speakerRequestForm__required">*</span>
+            <div className="speakerRequestForm__body__speakerdescriptionSection">
+              <label className="speakerRequestForm__body__speakerdescriptionSection__label">
+                Speaker Description
+                <span className="speakerRequestForm__body__speakerdescriptionSection__required">*</span>
               </label>
               <textarea
-                className="speakerRequestForm__textarea"
+                className="speakerRequestForm__body__speakerdescriptionSection__textarea"
                 placeholder="Enter a short description about you or your speech"
                 value={speakerDescription}
                 onChange={(e) => setSpeakerDescription(e.target.value)}
@@ -166,21 +370,42 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
             </div>
 
             {/* Topics Section */}
-            <div className="speakerRequestForm__section">
-              <label className="speakerRequestForm__label">
-                What Would You Like to Talk About?<span className="speakerRequestForm__required">*</span>
+            <div className="speakerRequestForm__body__topicSection">
+              <MultiSelect
+                options={topicOptions}
+                selectedOptions={selectedTopics}
+                onAdd={(itemToAdd) => addTopic(setSelectedTopics, itemToAdd)}
+                onRemove={(itemToRemove) => removeTopic(setSelectedTopics, itemToRemove)}
+                uniqueKey="id"
+                displayKey="name"
+                label={
+                  <>
+                    What Would You Like to Talk About?
+                    <span className="speakerRequestForm__body__topicSection__required">*</span>
+                  </>
+                }
+                placeholder="Search or select topics..."
+                isMandatory
+                closeImgUrl="/icons/close.svg"
+                arrowImgUrl="/icons/arrow-down.svg"
+              />
+              
+              {/* Commented out for future use - customTags implementation */}
+              {/* <label className="speakerRequestForm__body__topicSection__label">
+                What Would You Like to Talk About?
+                <span className="speakerRequestForm__body__topicSection__required">*</span>
               </label>
-              <div className="tag-input-container">
-                <div className="tag-input-wrapper">
+              <div className="speakerRequestForm__body__topicSection__tag-inputContainer">
+                <div className="speakerRequestForm__tag-inputContainer__wrapper">
                   {customTags.map((tag: string, index: number) => (
-                    <div key={index} className="tag-chip">
+                    <div key={index} className="speakerRequestForm__tag-inputContainer__chip">
                       {tag}
-                      <span className="tag-delete" onClick={() => handleTagDelete(index)}>
+                      <span className="speakerRequestForm__tag-inputContainer__delete" onClick={() => handleTagDelete(index)}>
                         <img src="/icons/close.svg" alt="close" height={16} width={16} />
                       </span>
                     </div>
                   ))}
-                  <div className="tag-input-field">
+                  <div className="speakerRequestForm__tag-inputContainer__field">
                     <input
                       type="text"
                       enterKeyHint="done"
@@ -193,23 +418,23 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
                     />
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
 
-        <div className="speakerRequestForm__optns">
+        <div className="speakerRequestForm__footer">
           {isCloseClicked && (
-            <button className="speakerRequestForm__cancelBtn" onClick={handleClose}>
+            <button className="speakerRequestForm__footer__cancelBtn" onClick={handleClose}>
               Confirm Close?
             </button>
           )}
           {!isCloseClicked && (
-            <button type="button" onClick={onCloseClicked} className="speakerRequestForm__cancelBtn">
+            <button type="button" onClick={onCloseClicked} className="speakerRequestForm__footer__cancelBtn">
               Close
             </button>
           )}
-          <button type="submit" className="speakerRequestForm__submitBtn">
+          <button type="submit" className="speakerRequestForm__footer__submitBtn">
             Send Request
           </button>
         </div>
@@ -251,7 +476,7 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
           cursor: pointer;
         }
 
-        .speakerRequestForm__bdy {
+        .speakerRequestForm__container {
           flex: 1;
           overflow: auto;
           display: flex;
@@ -259,18 +484,30 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
           gap: 20px;
         }
 
-        .speakerRequestForm__bdy__ttl {
-          font-size: 17px;
-          font-weight: 600;
+        .speakerRequestForm__container__header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
         }
 
-        .speakerRequestForm__details {
+        .speakerRequestForm__container__header__title {
+          font-weight: 700;
+          font-size: 20px;
+          line-height: 32px;
+          color: rgba(15, 23, 42, 1);
+        }
+
+        .speakerRequestForm__container__header__closeBtn {
+          cursor: pointer;
+        }
+
+        .speakerRequestForm__container__body {
           display: flex;
           flex-direction: column;
           gap: 12px;
         }
 
-        .speakerRequestForm__requestingAs {
+        .speakerRequestForm__body__requestingAsSection {
           position: relative;
           background-color: rgba(248, 250, 252, 1);
           border: 1px solid rgba(219, 234, 254, 1);
@@ -279,7 +516,7 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
           margin-top: 12px;
         }
 
-        .speakerRequestForm__requestingAs__label {
+        .speakerRequestForm__body__requestingAsSection__label {
           position: absolute;
           top: -14px;
           left: 16px;
@@ -295,18 +532,19 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
           z-index: 1;
         }
 
-        .speakerRequestForm__requestingAs__content {
+        .speakerRequestForm__body__requestingAsSection__content {
           display: flex;
           flex-direction: column;
+          gap: 8px;
         }
 
-        .speakerRequestForm__userInfo {
+        .speakerRequestForm___requestingAsSection__content__userInfo {
           display: flex;
-          gap: 12px;
+          gap: 16px;
           align-items: flex-start;
         }
 
-        .speakerRequestForm__avatar {
+        .speakerRequestForm__userInfo__avatar {
           width: 48px;
           height: 48px;
           border-radius: 50%;
@@ -314,115 +552,106 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
           flex-shrink: 0;
         }
 
-        .speakerRequestForm__avatarImg {
+        .speakerRequestForm__userInfo__avatarImg {
           width: 100%;
           height: 100%;
           object-fit: cover;
         }
 
-        .speakerRequestForm__userDetails {
+        .speakerRequestForm__userInfo__details {
           display: flex;
           flex-direction: column;
           gap: 4px;
           flex: 1;
         }
 
-        .speakerRequestForm__userName {
+        .speakerRequestForm__userInfo__details__username {
           font-size: 16px;
           font-weight: 600;
           line-height: 24px;
-          color: #0f172a;
-          margin-bottom: 4px;
+          color: rgba(15, 23, 42, 1);
         }
 
-        .speakerRequestForm__userTitle {
+        .speakerRequestForm__userInfo__details__userTitle {
           font-size: 14px;
           font-weight: 400;
+          letter-spacing: 0%;
           line-height: 20px;
-          color: #64748b;
+          color: rgba(107, 114, 128, 1);
           margin-bottom: 8px;
         }
 
-        .speakerRequestForm__userTags {
-          display: flex;
+        .speakerRequestForm___requestingAsSection__content__userSocialHandles {
+          padding: 4px 8px;
+          height: 28px;
+        }
+
+        .speakerRequestForm___userSocialHandles__section {
+          display: inline-flex;
           flex-wrap: wrap;
-          gap: 6px;
-          margin-top: 8px;
+          align-items: center;
+          background-color: rgba(241, 245, 249, 1);
+        }
+
+        .speakerRequestForm___userSocialHandles__section__link {
+          display: inline-flex;
           align-items: center;
         }
 
-        .speakerRequestForm__tag {
-          font-size: 12px;
-          font-weight: 500;
-          line-height: 16px;
-          color: #475569;
-          background: #f1f5f9;
+        .speakerRequestForm___userSocialHandles__section__link :global(.profile-social-link) {
+          background: transparent;
           padding: 6px 10px;
-          border-radius: 16px;
+          border-radius: 0;
+          border: none;
+        }
+
+        .speakerRequestForm___userSocialHandles__section__link :global(.profile-social-link__link) {
+          font-weight: 400;
+          font-size: 12px;
+          line-height: 20px;
+          color: rgba(15, 23, 42, 1);
+
+        }
+
+        .speakerRequestForm__divider {
+          color: rgba(226, 232, 240, 1);
+          font-size: 14px;
+          line-height: 16px;
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          border: 0.5px solid #e2e8f0;
         }
 
-        .speakerRequestForm__tag--telegram {
-          color: #475569;
-        }
-
-        .speakerRequestForm__tag--telegram img {
-          width: 14px;
-          height: 14px;
-          opacity: 0.9;
-        }
-
-        .speakerRequestForm__tag--email {
-          color: #475569;
-        }
-
-        .speakerRequestForm__tag__at {
-          color: #ffffff;
-          background: #94a3b8;
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 11px;
-          font-weight: 600;
-          flex-shrink: 0;
-        }
-
-        .speakerRequestForm__section {
+        .speakerRequestForm__body__speakerdescriptionSection, .speakerRequestForm__body__topicSection {
           display: flex;
           flex-direction: column;
           gap: 8px;
         }
 
-        .speakerRequestForm__label {
+        .speakerRequestForm__body__speakerdescriptionSection__label, .speakerRequestForm__body__topicSection__label {
           font-size: 14px;
           font-weight: 600;
           line-height: 20px;
           color: #0f172a;
         }
 
-        .speakerRequestForm__required {
+        .speakerRequestForm__body__speakerdescriptionSection__required, .speakerRequestForm__body__topicSection__required {
           margin-left: 2px;
         }
 
-        .tag-input-container {
+        /* Commented out for future use - customTags CSS styles */
+        /* .speakerRequestForm__body__topicSection__tag-inputContainer {
           border-radius: 4px;
         }
 
-        .tag-input-wrapper {
+        .speakerRequestForm__tag-inputContainer__wrapper {
           display: flex;
           width: 100%;
-          padding: 4px;
           gap: 8px;
           flex-wrap: wrap;
           align-items: center;
-          border: 1px solid #cbd5e1;
-          border-radius: 4px;
+          font-size: 14px;
+          border: 1px solid rgba(203, 213, 225, 1);
+          border-radius: 8px;
         }
 
         .tag-grid {
@@ -431,29 +660,29 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
           flex-wrap: wrap;
         }
 
-        .tag-chip {
+        .speakerRequestForm__tag-inputContainer__chip {
           display: flex;
           align-items: center;
           background: #effbfc;
           border: 1px solid #585858;
           border-radius: 4px;
-          padding: 10px 14px;
+          padding: 8px;
         }
 
-        .tag-delete {
+        .speakerRequestForm__tag-inputContainer__delete {
           cursor: pointer;
           font-size: 20px;
           margin-left: 8px;
         }
 
-        .tag-input-field {
+        .speakerRequestForm__tag-inputContainer__field {
           display: flex;
           align-items: center;
           flex: 1;
           padding: 14px;
         }
 
-        .tag-input-field-full {
+        .speakerRequestForm__tag-inputContainer__field-full {
           display: flex;
           align-items: center;
           width: 100%;
@@ -464,19 +693,18 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
           outline: none;
           border: none;
           outline: none;
-          font-weight: 400;
-          font-size: 14px;
+          font-size: 14px !important;
           line-height: 20px;
           background: inherit;
+          font-family: inherit;
         }
 
         .input-element::placeholder {
           font-size: 14px;
-          color: #64748b;
-          opacity: 0.5;
-        }
+          color: rgb(149,164,185);
+        } */
 
-        .speakerRequestForm__textarea {
+        .speakerRequestForm__body__speakerdescriptionSection__textarea {
           width: 100%;
           padding: 12px;
           border: 1px solid rgba(203, 213, 225, 1);
@@ -489,11 +717,11 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
           outline: none;
         }
 
-        .speakerRequestForm__textarea::placeholder {
+        .speakerRequestForm__body__speakerdescriptionSection__textarea::placeholder {
           color: #94a3b8;
         }
 
-        .speakerRequestForm__optns {
+        .speakerRequestForm__footer {
           height: 80px;
           display: flex;
           justify-content: end;
@@ -502,7 +730,7 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
           gap: 8px;
         }
 
-        .speakerRequestForm__cancelBtn {
+        .speakerRequestForm__footer__cancelBtn {
           padding: 10px 24px;
           border: 1px solid rgba(203, 213, 225, 1);
           background: #ffffff;
@@ -515,7 +743,7 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
           box-shadow: 0px 1px 1px 0px rgba(15, 23, 42, 0.08);
         }
 
-        .speakerRequestForm__submitBtn {
+        .speakerRequestForm__footer__submitBtn {
           padding: 10px;
           background: rgba(21, 111, 247, 1);
           border: 1px solid rgba(203, 213, 225, 1);
@@ -529,23 +757,23 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
           box-shadow: 0px 1px 1px 0px rgba(15, 23, 42, 0.08);
         }
 
-        .speakerRequestForm__submitBtn:hover {
+        .speakerRequestForm__footer__submitBtn:hover {
           background: #1d4ed8;
         }
 
         @media (min-width: 360px) {
-          .speakerRequestForm__userInfo {
+          .speakerRequestForm___requestingAsSection__content__userInfo {
             flex-direction: row;
             align-items: flex-start;
           }
 
-          .speakerRequestForm__avatar {
+          .speakerRequestForm__userInfo__avatar {
             margin-bottom: 8px;
           }
         }
 
         @media (min-width: 768px) {
-          .speakerRequestForm__avatar {
+          .speakerRequestForm__userInfo__avatar {
             margin-bottom: 0;
           }
         }

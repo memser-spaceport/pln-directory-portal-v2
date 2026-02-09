@@ -22,6 +22,7 @@ import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 import IrlFollowGathering from '@/components/page/irl/follow-gathering/irl-follow-gathering';
 import IrlHuskyIntegration from '@/components/page/irl/irl-husky/irl-husky-integration';
 import AddtionalResources from '@/components/page/irl/events/addtional-resources';
+import SpeakerForm from '@/components/page/irl/follow-gathering/speaker-form';
 
 export default async function Page({ searchParams }: any) {
   const {
@@ -100,21 +101,8 @@ export default async function Page({ searchParams }: any) {
             guestDetails={guestDetails}
           />
         </section>
-        {/* <section className={styles.irlGatheings__guests}>
-          <AttendeeList
-            location={eventLocationSummary as IAnalyticsGuestLocation}
-            showTelegram={showTelegram as boolean}
-            eventDetails={guestDetails}
-            userInfo={userInfo}
-            isLoggedIn={isLoggedIn}
-            isUserGoing={isUserGoing as boolean}
-            searchParams={searchParams}
-            currentEventNames={currentEventNames}
-            locationEvents={eventDetails}
-            followers={followers}
-            newSearchParams={newSearchParams}
-          />
-        </section> */}
+        <SpeakerForm userInfo={userInfo} eventLocationSummary={eventLocationSummary} isLoggedIn={isLoggedIn} />
+        
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
           <AttendeeList
@@ -251,7 +239,6 @@ const getPageData = async (searchParams: any) => {
         : eventDetails.upcomingEvents;
     guestDetails.events = { upcomingEvents: eventDetails.upcomingEvents, pastEvents: eventDetails.pastEvents };
 
-    console.log(currentGuestResponse, 'currentGuestResponse');
     guestDetails.currentGuest =
       !events?.isError && (events as any)?.guests?.[0]?.memberUid === userInfo?.uid
         ? (currentGuestResponse as any).guests[0]

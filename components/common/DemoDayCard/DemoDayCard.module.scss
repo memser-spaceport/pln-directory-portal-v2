@@ -8,17 +8,21 @@
   transition: all 0.2s ease;
   cursor: pointer;
 
-  &:hover {
-    border-radius: 16px;
-    border: 1px solid var(--action-border-neutral-light_hover, rgba(14, 15, 17, 0.24));
-    background: var(--background-base-white, #FFF);
-    box-shadow: 0 10px 15px -3px var(--transparent-dark-12, rgba(14, 15, 17, 0.12)), 0 4px 6px -2px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  &.nonClickable {
+    cursor: default !important;
+    border: 1px solid rgba(14, 15, 17, 0.16) !important;
+    box-shadow: none !important;
   }
 
-  &.nonClickable {
-    cursor: default;
-    border: 1px solid rgba(14, 15, 17, 0.16);
-    box-shadow: none;
+  &.completed {
+    border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+    .more {
+      color: #455468;
+      border-color: #455468;
+    }
   }
 
   &.highlighted {
@@ -26,6 +30,13 @@
     border: 1px solid var(--border-brand-subtle, #AEBFFF);
     background: var(--action-background-brand-light_normal, rgba(27, 77, 255, 0.04));
     box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  }
+
+  &:hover {
+    border-radius: 16px;
+    border: 1px solid var(--action-border-neutral-light_hover, rgba(14, 15, 17, 0.24));
+    background: var(--background-base-white, #FFF);
+    box-shadow: 0 10px 15px -3px var(--transparent-dark-12, rgba(14, 15, 17, 0.12)), 0 4px 6px -2px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
   }
 }
 
@@ -105,11 +116,11 @@
 .badgeCompleted {
   border-color: transparent;
   border-radius: var(--corner-radius-Full-round, 9999px);
-  background: var(--background-success-soft-surface, rgba(10, 153, 82, 0.10));
-  color: #11A75C;
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  color: #455468;
 
   svg {
-    color: #11A75C;
+    color: #455468;
   }
 }
 

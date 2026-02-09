@@ -93,6 +93,11 @@
   line-height: 22px; /* 157.143% */
   letter-spacing: -0.2px;
 
+  img {
+    width: 100%;
+    //max-height: 400px
+  }
+
   // Restore default HTML styles (override global CSS reset)
   p {
     margin: 0 0 10px;

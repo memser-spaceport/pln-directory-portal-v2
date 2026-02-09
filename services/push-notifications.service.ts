@@ -12,6 +12,15 @@ interface GetUnreadCountResponse {
   unreadCount: number;
 }
 
+interface UnreadLink {
+  uid: string;
+  link: string;
+}
+
+interface GetUnreadLinksResponse {
+  unreadLinks: UnreadLink[];
+}
+
 /**
  * Fetch notifications for the current user
  */
@@ -55,6 +64,27 @@ export async function getUnreadCount(authToken: string): Promise<number> {
 
   const data: GetUnreadCountResponse = await response.json();
   return data.unreadCount;
+}
+
+/**
+ * Get all unread notification links for client-side matching
+ */
+export async function getUnreadLinks(
+  authToken: string,
+): Promise<UnreadLink[]> {
+  const response = await fetch(`${API_URL}/v1/push-notifications/unread-links`, {
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch unread links');
+  }
+
+  const data: GetUnreadLinksResponse = await response.json();
+  return data.unreadLinks;
 }
 
 /**

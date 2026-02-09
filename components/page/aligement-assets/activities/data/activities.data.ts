@@ -328,7 +328,7 @@ export const activitiesData: ActivitiesData = {
       category: 'Programs',
       activity: 'Help Organize an Event',
       networkValue: 'Organize, host, or speak at curated events that deliver real value to the Protocol Labs community.',
-      points: 'TBC',
+      points: '50+',
       popupContent: {
         title: 'Help Organize an Event',
         description: `Organize, host, or speak at a curated activity or event designed to deliver real value to the Protocol Labs community. Events must be run independently without direct PL sponsorship, listed in the "Eligible Events" section of Luma, and events@plrs.xyz must be added as an "Event Manager" in Luma so registration and attendance data can be verified.`,

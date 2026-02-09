@@ -183,17 +183,21 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                   <div className="activity-modal__categories">
                     {popupContent.categories.map((category, catIndex) => (
                       <div key={catIndex} className="activity-modal__category">
-                        <h4 className="activity-modal__category-title">{category.title}</h4>
-                        {category.description && (
-                          <p className="activity-modal__category-description">{category.description}</p>
+                        <div className="activity-modal__category-header">
+                          <span className="activity-modal__category-title">{category.title}</span>
+                          {category.description && (
+                            <span className="activity-modal__category-description activity-modal__category-description--inline">{category.description}</span>
+                          )}
+                        </div>
+                        {category.tiers.length > 0 && (
+                          <ul className="activity-modal__category-list">
+                            {category.tiers.map((tier, tierIndex) => (
+                              <li key={tierIndex} className="activity-modal__category-item">
+                                • {tier.label}: {tier.points}
+                              </li>
+                            ))}
+                          </ul>
                         )}
-                        <ul className="activity-modal__category-list">
-                          {category.tiers.map((tier, tierIndex) => (
-                            <li key={tierIndex} className="activity-modal__category-item">
-                              • {tier.label}: {tier.points}
-                            </li>
-                          ))}
-                        </ul>
                       </div>
                     ))}
                   </div>
@@ -379,9 +383,10 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
         }
 
         .activity-modal__categories {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
+          display: flex;
+          flex-direction: column;
           gap: 24px;
+          margin-top: 24px;
         }
 
         .activity-modal__category {
@@ -390,12 +395,22 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           gap: 8px;
         }
 
+        .activity-modal__category-header {
+          display: block;
+        }
+
         .activity-modal__category-title {
           font-size: 14px;
           font-weight: 600;
-          line-height: 18px;
+          line-height: 22px;
           color: #0f172a;
           margin: 0;
+        }
+
+        .activity-modal__category-title + .activity-modal__category-description--inline {
+          font-weight: 400;
+          color: #475569;
+          font-style: normal;
         }
 
         .activity-modal__category-description {
@@ -404,6 +419,11 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           line-height: 22px;
           color: #64748b;
           font-style: italic;
+        }
+
+        .activity-modal__category-description--inline {
+          font-size: 14px;
+          line-height: 22px;
         }
 
         .activity-modal__category-list {
@@ -438,7 +458,6 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           }
 
           .activity-modal__categories {
-            grid-template-columns: 1fr;
             gap: 16px;
           }
 

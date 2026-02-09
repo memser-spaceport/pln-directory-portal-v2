@@ -95,11 +95,7 @@
 
   // Restore default HTML styles (override global CSS reset)
   p {
-    margin: 0 0 10px;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
+    margin: 0;
   }
 
   ul,

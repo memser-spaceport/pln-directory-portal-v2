@@ -34,7 +34,6 @@ const SpeakerButton = ({ eventLocationSummary }: SpeakerButtonProps) => {
 
           .speakerRoot__followBtn {
             padding: 9px 15px;
-            // min-width: 103px;
             border: 1px solid #cbd5e1;
             background: #fff;
             border-radius: 8px;

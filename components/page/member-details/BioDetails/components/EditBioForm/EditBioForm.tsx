@@ -131,7 +131,7 @@ export const EditBioForm = ({ onClose, member, userInfo, generateBio }: Props) =
 
         <div className={s.body}>
           <div className={s.row}>
-            <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} />
+            <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} simplified />
           </div>
         </div>
 

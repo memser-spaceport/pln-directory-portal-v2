@@ -35,6 +35,7 @@ interface Props {
   onMentionSearch?: (query: string, resultsCount?: number) => void;
   onMentionSelected?: (member: { uid: string; name: string }, query?: string) => void;
   placeholder?: string;
+  toolbarConfig?: (string | Record<string, unknown>)[][];
 }
 
 const QL_EDITOR_CLASS = 'ql-editor';
@@ -73,6 +74,7 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     onMentionSearch,
     onMentionSelected,
     placeholder,
+    toolbarConfig,
   } = props;
 
   const quillRef = useRef<any>(null);
@@ -124,53 +126,63 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
   }, [mentionState.query, mentionState.isOpen, mentionResults?.length, enableMentions, onMentionSearch]);
 
   // 3. Define toolbar modules (with proper nesting)
+  const defaultToolbarContainer = [
+    [{ header: [1, 2, 3, false] }],
+    ['bold', 'italic', 'strike', 'underline'],
+    [{ color: [] }, { background: [] }],
+    [{ list: ['ordered'] }, { list: 'bullet' }],
+    [{ align: [] }],
+    ['code-block', 'link', 'mention', 'image'],
+    // ['code-block', 'image', 'officeHours'],
+  ];
+
   const modules = useMemo(() => {
+    const container = toolbarConfig || defaultToolbarContainer;
+    const hasMention = container.some((group) => group.includes('mention'));
+    const hasImage = container.some((group) => group.includes('image'));
+
     return {
       toolbar: {
-        container: [
-          [{ header: [1, 2, 3, false] }],
-          ['bold', 'italic', 'strike', 'underline'],
-          [{ color: [] }, { background: [] }],
-          [{ list: ['ordered'] }, { list: 'bullet' }],
-          [{ align: [] }],
-          ['code-block', 'link', 'mention', 'image'],
-          // ['code-block', 'image', 'officeHours'],
-        ],
+        container,
         handlers: {
-          mention: function () {
-            const editor = quillRef.current?.getEditor();
-            if (editor) {
-              const selection = editor.getSelection();
-              if (selection) {
-                editor.insertText(selection.index, '@');
-                editor.setSelection(selection.index + 1);
+          ...(hasMention && {
+            mention: function () {
+              const editor = quillRef.current?.getEditor();
+              if (editor) {
+                const selection = editor.getSelection();
+                if (selection) {
+                  editor.insertText(selection.index, '@');
+                  editor.setSelection(selection.index + 1);
+                }
               }
-            }
+            },
+          }),
+        },
+      },
+      ...(hasImage && {
+        imageUploader: {
+          upload: (file: File) => {
+            return new Promise((resolve, reject) => {
+              return saveRegistrationImage(file)
+                .then((imgResponse) => {
+                  if (!imgResponse?.image?.url) {
+                    toast.error('Image upload failed');
+                    reject(new Error('Image upload failed'));
+                  }
+
+                  resolve(imgResponse?.image.url);
+                })
+                .catch(async (err) => {
+                  const b = await err?.cause?.response?.json();
+                  toast.error(`Image upload failed. ${b?.message}`);
+                  reject(err);
+                });
+            });
           },
         },
-      },
-      imageUploader: {
-        upload: (file: File) => {
-          return new Promise((resolve, reject) => {
-            return saveRegistrationImage(file)
-              .then((imgResponse) => {
-                if (!imgResponse?.image?.url) {
-                  toast.error('Image upload failed');
-                  reject(new Error('Image upload failed'));
-                }
-
-                resolve(imgResponse?.image.url);
-              })
-              .catch(async (err) => {
-                const b = await err?.cause?.response?.json();
-                toast.error(`Image upload failed. ${b?.message}`);
-                reject(err);
-              });
-          });
-        },
-      },
+      }),
     };
-  }, []);
+  }, [toolbarConfig]);
 
   useEffect(() => {
     if (quillRef.current && autoFocus) {

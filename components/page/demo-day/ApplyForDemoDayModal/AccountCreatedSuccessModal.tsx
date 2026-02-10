@@ -134,7 +134,7 @@ export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose, i
                   </div>
                 ) : (
                   <div className={s.stepContent}>
-                    <p className={s.stepTitle}>Step 1: Update your investor profile</p>
+                    <p className={s.stepTitle}>Step 1: Review your investor profile</p>
                     <p className={s.stepDescription}>
                       Review and update your profile: shared with founders when you&apos;re introduced
                     </p>

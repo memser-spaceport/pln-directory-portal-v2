@@ -1,9 +1,7 @@
-import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDemoDayState } from '@/app/actions/demo-day.actions';
 import { DemodayCompletedView } from '@/components/page/demo-day/DemodayCompletedView';
-import { DemoDayPageSkeleton } from '@/components/page/demo-day/DemoDayPageSkeleton';
 
 export default async function CompletedPage({ params }: { params: { demoDayId: string } }) {
   const { userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
@@ -18,9 +16,5 @@ export default async function CompletedPage({ params }: { params: { demoDayId: s
     redirect(`/demoday/${params.demoDayId}`);
   }
 
-  return (
-    <Suspense fallback={<DemoDayPageSkeleton />}>
-      <DemodayCompletedView initialDemoDayState={demoDayState} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-    </Suspense>
-  );
+  return <DemodayCompletedView initialDemoDayState={demoDayState} isLoggedIn={isLoggedIn} userInfo={userInfo} />;
 }

@@ -7,9 +7,8 @@ import { useRouter } from 'next/navigation';
 
 import s from './AccountCreatedSuccessModal.module.scss';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
-import { formatDemoDayDate } from '@/utils/demo-day.utils';
-import Link from 'next/link';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { IUserInfo } from '@/types/shared.types';
 
 interface Props {
   isOpen: boolean;
@@ -18,6 +17,7 @@ interface Props {
   uid: string | undefined;
   email: string | undefined;
   demoDayState: DemoDayState | undefined;
+  userInfo?: IUserInfo | null;
 }
 
 const CalendarStarIcon = () => (
@@ -53,9 +53,10 @@ const CheckIcon = () => (
   </svg>
 );
 
-export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose, isNew, uid, email, demoDayState }) => {
+export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose, isNew, uid, email, demoDayState, userInfo }) => {
   const router = useRouter();
   const { onAccountCreatedSuccessModalContinueToLoginClicked } = useDemoDayAnalytics();
+  const isLoggedIn = !!userInfo;
 
   const handleContinueToLogin = () => {
     onAccountCreatedSuccessModalContinueToLoginClicked({
@@ -124,12 +125,21 @@ export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose, i
                   </div>
                   <div className={s.lineBottom} />
                 </div>
-                <div className={s.stepContent}>
-                  <p className={s.stepTitle}>Step 1: Set up investor profile</p>
-                  <p className={s.stepDescription}>
-                    Complete your investor profile: shared with founders when you&apos;re introduced
-                  </p>
-                </div>
+                {isNew ? (
+                  <div className={s.stepContent}>
+                    <p className={s.stepTitle}>Step 1: Set up investor profile</p>
+                    <p className={s.stepDescription}>
+                      Complete your investor profile: shared with founders when you&apos;re introduced
+                    </p>
+                  </div>
+                ) : (
+                  <div className={s.stepContent}>
+                    <p className={s.stepTitle}>Step 1: Update your investor profile</p>
+                    <p className={s.stepDescription}>
+                      Review and update your profile: shared with founders when you&apos;re introduced
+                    </p>
+                  </div>
+                ) }
               </div>
 
               {/* Break line */}
@@ -145,16 +155,11 @@ export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose, i
                   <div className={s.lineBottomHidden} />
                 </div>
                 <div className={s.stepContent}>
-                  <p className={s.stepTitle}>Step 2: Get approved to join Demo Day</p>
-                  {demoDayState && (
-                    <p className={s.stepDescription}>
-                      Once approved return to{' '}
-                      <Link href={demoDayState.slugURL || '#'} className={s.link} target="_blank">
-                        Demo Day
-                      </Link>{' '}
-                      on {formatDemoDayDate(demoDayState?.date)}
-                    </p>
-                  )}
+                  <p className={s.stepTitle}>Step 2: Await approval confirmation</p>
+                
+                  <p className={s.stepDescription}>
+                    You&apos;ll receive an email confirmation once our team approves your Demo Day access
+                  </p>
                 </div>
               </div>
             </div>
@@ -170,7 +175,7 @@ export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose, i
             onClick={handleContinueToLogin}
             className={s.primaryButton}
           >
-            {isNew ? 'Step 1: Log In & Set Up Investor Profile' : 'Step 1: Set Up Investor Profile'}
+            {isNew ? 'Log In & Set Up Investor Profile' : isLoggedIn ? 'Review investor profile' : 'Log In & Review investor profile'}
           </Button>
         </div>
       </div>

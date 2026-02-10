@@ -408,7 +408,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
 
           // Trigger success modal for non-authenticated users
           if (onSuccessUnauthenticated) {
-            onSuccessUnauthenticated({ uid: res.memberUid, isNew: false, email: member.email });
+            onSuccessUnauthenticated({ uid: res.memberUid, isNew: res.isNewMember, email: member.email });
           }
 
           setTimeout(() => {
@@ -507,7 +507,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
 
         // Trigger success modal for non-authenticated users
         if (onSuccessUnauthenticated) {
-          onSuccessUnauthenticated({ uid: res.memberUid, isNew: !userInfo, email: formData.email });
+          onSuccessUnauthenticated({ uid: res.memberUid, isNew: res.isNewMember, email: formData.email });
         }
 
         setTimeout(() => {

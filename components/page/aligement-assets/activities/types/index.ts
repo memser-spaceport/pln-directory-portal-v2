@@ -43,6 +43,7 @@ export interface ActivityPopupContent {
       label: string;
       value?: string;
       description?: string;
+      boldLabel?: boolean;
       subItems?: Array<{
         label: string;
         value?: string;

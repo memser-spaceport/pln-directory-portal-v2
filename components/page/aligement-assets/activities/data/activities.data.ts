@@ -301,26 +301,68 @@ export const activitiesData: ActivitiesData = {
       id: 'network-introduction',
       category: 'Programs',
       activity: 'Make a Network Introduction',
-      networkValue: 'Connect collaborators or organizations to unlock new partnerships. You can also collect points when the referred party completes this form.',
+      networkValue: 'Connect collaborators or organizations to unlock new partnerships.',
       points: '300+',
-      hasFormLink: true,
+      // hasFormLink: true,
       popupContent: {
-        title: 'Network Introductions',
+        title: 'Make a Network Introduction',
         description: 'Facilitate meaningful introductions between individuals or teams that may lead to collaboration, partnerships, or shared opportunities. Quality, verified introductions are prioritized.',
-        submissionNote: 'Submit introductions through the TG PL Hub Introductions channel (automatically logged) or manually via form submission. Points are collected once the introduction is validated.',
-        submissionLink: {
-          text: 'TG PL Hub Introductions',
-          url: 'https://t.me/c/2303844229/278'
-        },
+        submissionNote: 'Submit Network Introductions through the PL Directory Forum under the Intros tab or via the Activity Reporting Form. Points are collected once the introduction is reviewed and validated.',
+        links: [
+          { text: 'PL Directory Forum', url: 'https://directory.plnetwork.io/forum?cid=5' },
+          { text: 'Activity Reporting Form', url: 'https://forms.gle/zUQg2jUBYsWivk5t5' }
+        ],
         pointsAwarded: {
           title: 'Points Awarded:',
           items: [
             { label: 'Basic Introduction', value: '300 points for a verified introduction between two parties with no prior contact.' },
             { label: 'High-Value Introduction', value: '500 points for introductions that lead to confirmed collaboration, partnership, or direct network contribution.' },
             { label: 'Tiered Bonus (Optional)', value: '+300 points for every 5 successful introductions.' },
-            { label: 'Quality Rule', value: 'After 3 unsuccessful or unverified referrals, the account is paused until existing leads are confirmed or resolved.' }
+            { label: 'Quality Rule', value: 'After 3 unsuccessful or unverified introductions, the account is paused until existing leads are confirmed or resolved.' }
           ]
         }
+      }
+    },
+    {
+      id: 'help-organize-event',
+      category: 'Programs',
+      activity: 'Help Organize an Event',
+      networkValue: 'Organize, host, or speak at curated events that deliver real value to the Protocol Labs community.',
+      points: '50+',
+      popupContent: {
+        title: 'Help Organize an Event',
+        description: `Organize, host, or speak at a curated activity or event designed to deliver real value to the Protocol Labs community. Events must be run independently without direct PL sponsorship, listed in the "Eligible Events" section of Luma, and events@plrs.xyz must be added as an "Event Manager" in Luma so registration and attendance data can be verified.`,
+        pointsAwarded: {
+          title: 'Points Awarded:',
+          items: [
+            { label: 'Verified event with 5-10 attendees', value: '50 points', boldLabel: false },
+            { label: 'Verified event with 11-20 attendees', value: '150 points', boldLabel: false },
+            { label: 'Verified event with 21-50 attendees', value: '250 points', boldLabel: false },
+            { label: 'Verified event with 50-100 attendees', value: '500 points', boldLabel: false },
+            { label: 'Verified event with 100+ attendees', value: '1,000 points', boldLabel: false }
+          ]
+        },
+        categories: [
+          {
+            title: 'Bonus Points:',
+            description: ' Submit a post-event satisfaction survey and share results for additional points based upon number of responses:',
+            tiers: [
+              { label: 'Minimum 5 responses', points: '50 points' },
+              { label: 'Minimum 10 responses', points: '100 points' },
+              { label: 'Minimum 25 responses', points: '200 points' },
+              { label: 'Minimum 50 responses', points: '300 points' },
+              { label: 'Minimum 75 responses', points: '400 points' },
+              { label: 'More than 100 responses', points: '500 points' }
+            ]
+          },
+          {
+            title: 'Points Distribution:',
+            tiers: [
+              { label: 'Default', points: 'Points are evenly distributed across all organizers, hosts, and speakers.' },
+              { label: 'Optional', points: 'The total points pool may be distributed based on individual levels of involvement, provided a clear breakdown of roles and contributions is submitted.' }
+            ]
+          }
+        ]
       }
     },
     {

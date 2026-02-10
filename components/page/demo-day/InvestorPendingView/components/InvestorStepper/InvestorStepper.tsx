@@ -100,7 +100,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({
     {
       id: 1,
       title: 'Step 1',
-      description: "Complete your investor profile: shared with founders when you're introduced",
+      description: "Review and update your profile: shared with founders when you're introduced",
       status: step1Status,
       children: (
         <button className={step1ButtonClass} onClick={onFillProfile}>

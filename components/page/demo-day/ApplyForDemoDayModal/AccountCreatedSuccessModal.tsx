@@ -175,7 +175,7 @@ export const AccountCreatedSuccessModal: React.FC<Props> = ({ isOpen, onClose, i
             onClick={handleContinueToLogin}
             className={s.primaryButton}
           >
-            {isNew ? 'Log In & Set Up Investor Profile' : isLoggedIn ? 'Review investor profile' : 'Log In & Review investor profile'}
+            {isNew ? 'Log In & Set Up Investor Profile' : isLoggedIn ? 'Review Investor Profile' : 'Log In & Review Investor Profile'}
           </Button>
         </div>
       </div>

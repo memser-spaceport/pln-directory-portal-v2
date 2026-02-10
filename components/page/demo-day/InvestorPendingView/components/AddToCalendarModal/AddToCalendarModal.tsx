@@ -101,7 +101,7 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
   };
 
   const generateICSFile = () => {
-    const icsUrl = 'https://pl-directory-uploads-prod.s3.us-west-1.amazonaws.com/pl_w25_demo_day_investor_event.ics';
+    const icsUrl = 'https://pl-directory-uploads-prod.s3.us-west-1.amazonaws.com/pl_w26_demo_day_investor_event.ics';
 
     // Create a hidden iframe to download the file
     const iframe = document.createElement('iframe');

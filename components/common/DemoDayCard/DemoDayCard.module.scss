@@ -21,7 +21,9 @@
 
     .more {
       color: #455468;
-      border-color: #455468;
+      border-color: #d5d6d6;
+      box-shadow: 0 -2px 8px 0 var(--transparent-dark-2, rgba(14, 15, 17, 0.02)) inset, 0 1px 2px 0 var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+
     }
   }
 
@@ -35,7 +37,6 @@
   &:hover {
     border-radius: 16px;
     border: 1px solid var(--action-border-neutral-light_hover, rgba(14, 15, 17, 0.24));
-    background: var(--background-base-white, #FFF);
     box-shadow: 0 10px 15px -3px var(--transparent-dark-12, rgba(14, 15, 17, 0.12)), 0 4px 6px -2px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
   }
 }

@@ -61,7 +61,7 @@ export const metadata: Metadata = {
         width: 1280,
         height: 640,
         alt: 'Protocol Labs Directory',
-        type: 'image/jpeg',
+        type: 'image/png',
       },
     ],
   },

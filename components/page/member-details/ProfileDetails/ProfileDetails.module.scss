@@ -79,6 +79,27 @@
   margin-bottom: 8px;
 }
 
+.bioContentWrapper {
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 24px;
+
+  &.collapsed {
+    max-height: 138px;
+  }
+}
+
+.bioGradient {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+  height: 114px;
+  background: linear-gradient(to bottom, transparent 0, transparent 60%, #F9FAFB 100%, var(--background-neutral-soft-surface, #F9FAFB));
+  border-radius: 0 0 12px 12px;
+  pointer-events: none;
+}
+
 .bioContent {
   display: block;
   padding: 16px;
@@ -92,6 +113,10 @@
   font-weight: 400;
   line-height: 22px; /* 157.143% */
   letter-spacing: -0.2px;
+
+  img {
+    width: 100%;
+  }
 
   // Restore default HTML styles (override global CSS reset)
   p {
@@ -168,19 +193,6 @@
     font-weight: 600;
     line-height: 1.4;
   }
-
-  :global(.bio-show-more),
-  :global(.bio-show-less) {
-    color: #156ff7;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 22px;
-    cursor: pointer;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
 }
 
 .bioContainer {
@@ -188,27 +200,24 @@
   flex-direction: column;
 }
 
-.bioContainer {
-  display: flex;
-  flex-direction: column;
-}
-
-.showMoreButton {
+.bioToggleButton {
   color: #156ff7;
   font-size: 12px;
-  //font-style: italic;
   font-weight: 400;
   line-height: 22px;
   cursor: pointer;
   background: none;
   border: none;
-  padding: 0;
-  margin-top: 4px;
-  margin-left: auto;
-  opacity: 0.9;
+  margin: 0 auto;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 24px;
+  background: #f9fafb;
 
   &:hover {
-    opacity: 1;
     text-decoration: underline;
   }
 }

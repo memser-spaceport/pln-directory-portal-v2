@@ -382,7 +382,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
           </div>
 
           <div className={s.row}>
-            <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} />
+            <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} simplified />
           </div>
         </div>
         <EditFormMobileControls />

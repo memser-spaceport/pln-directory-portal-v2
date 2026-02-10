@@ -1479,7 +1479,13 @@ export const tagColors = [
 export const SOCIAL_IMAGE_URL =
   'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
 
-export const DEMO_DAY_SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/demodays.png';
+export const DEMO_DAY_SOCIAL_IMAGES: Record<string, string> = {
+  all: 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_General.png',
+  plw26: 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_W26.png',
+};
+
+export const getDemoDaySocialImageUrl = (demoDaySlug?: string) =>
+  (demoDaySlug && DEMO_DAY_SOCIAL_IMAGES[demoDaySlug]) || DEMO_DAY_SOCIAL_IMAGES.all;
 
 export const OFFICE_HOURS_STEPS = {
   MEETING_INITIATED: {

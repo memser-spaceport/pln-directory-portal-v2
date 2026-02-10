@@ -34,11 +34,36 @@ export const editInvestorProfileSchema = yup.object().shape({
     .defined(),
 
   teamRole: yup.string().defined(),
-  website: yup.string().when('isInvestViaFund', {
-    is: true,
-    then: () => yup.string().url().required(),
-    otherwise: () => yup.string().defined(),
+  website: yup.string().test({
+    message: 'Please enter a valid URL',
+    test: function (value, context) {
+      if (!context.parent.isInvestViaFund) {
+        return true;
+      }
+
+      // @ts-ignore
+      const { member } = context.options.context;
+      const selectedTeam = context.parent.team;
+
+      const isTeamLead = member?.teams.find((team: any) => team.id === selectedTeam?.value)?.teamLead;
+
+      if (!value || !isTeamLead) {
+        return true;
+      }
+
+      try {
+        new URL(value);
+        return true;
+      } catch {
+        return this.createError({ message: 'Please enter a valid URL' });
+      }
+    },
   }),
+  //   .when('isInvestViaFund', {
+  //   is: true,
+  //   then: () => yup.string().url().required(),
+  //   otherwise: () => yup.string().defined(),
+  // }),
   teamTypicalCheckSize: yup.string().defined(),
   teamInvestmentFocusAreas: yup.array().of(yup.string().required()).defined(),
   teamInvestInStartupStages: yup

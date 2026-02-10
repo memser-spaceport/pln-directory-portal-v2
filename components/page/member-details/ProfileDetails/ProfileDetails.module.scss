@@ -82,19 +82,20 @@
 .bioContentWrapper {
   position: relative;
   overflow: hidden;
+  padding-bottom: 24px;
 
   &.collapsed {
-    max-height: 120px;
+    max-height: 138px;
   }
 }
 
 .bioGradient {
   position: absolute;
-  bottom: 0;
+  bottom: 24px;
   left: 0;
   right: 0;
-  height: 48px;
-  background: linear-gradient(to bottom, transparent, var(--background-neutral-soft-surface, #F9FAFB));
+  height: 114px;
+  background: linear-gradient(to bottom, transparent 0, transparent 60%, #F9FAFB 100%, var(--background-neutral-soft-surface, #F9FAFB));
   border-radius: 0 0 12px 12px;
   pointer-events: none;
 }
@@ -201,14 +202,20 @@
 
 .bioToggleButton {
   color: #156ff7;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 400;
   line-height: 22px;
   cursor: pointer;
   background: none;
   border: none;
-  padding: 4px 0 0;
   margin: 0 auto;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 24px;
+  background: #f9fafb;
 
   &:hover {
     text-decoration: underline;

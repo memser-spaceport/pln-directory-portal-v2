@@ -68,18 +68,14 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
             <div className={s.bioContainer}>
               <div className={s.bioTitle}>Bio</div>
               <div className={clsx(s.bioContentWrapper, { [s.collapsed]: !isBioExpanded && isOverflowing })}>
-                <div
-                  ref={bioRef}
-                  className={s.bioContent}
-                  dangerouslySetInnerHTML={{ __html: member.bio }}
-                />
+                <div ref={bioRef} className={s.bioContent} dangerouslySetInnerHTML={{ __html: member.bio }} />
                 {!isBioExpanded && isOverflowing && <div className={s.bioGradient} />}
+                {isOverflowing && (
+                  <button className={s.bioToggleButton} onClick={() => setIsBioExpanded(!isBioExpanded)}>
+                    {isBioExpanded ? 'Show less' : 'Show more'}
+                  </button>
+                )}
               </div>
-              {isOverflowing && (
-                <button className={s.bioToggleButton} onClick={() => setIsBioExpanded(!isBioExpanded)}>
-                  {isBioExpanded ? 'Show less' : 'Show more'}
-                </button>
-              )}
             </div>
           )}
         </>

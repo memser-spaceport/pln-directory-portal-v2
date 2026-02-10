@@ -117,7 +117,7 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
 
   const handleGoogleCalendar = async () => {
     window.open(
-      'https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=MWRsOWwydmd2aDVtdmg2NGg5bG1tMzA2aWogY181MzAyZDMzYTg4ODA5MTA5M2Y1YzAyMzY2ZGM1ZWZjYWZlM2RkNTc2MDgxZjE2MWMxNzljZmFiYWNjZjFmOThlQGc&tmsrc=c_5302d33a888091093f5c02366dc5efcafe3dd576081f161c179cfabaccf1f98e%40group.calendar.google.com',
+      'https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=NThocXJ2bDIwc2FxM2hlNTJzaGtoODRjOWMgY181MzAyZDMzYTg4ODA5MTA5M2Y1YzAyMzY2ZGM1ZWZjYWZlM2RkNTc2MDgxZjE2MWMxNzljZmFiYWNjZjFmOThlQGc&tmsrc=c_5302d33a888091093f5c02366dc5efcafe3dd576081f161c179cfabaccf1f98e%40group.calendar.google.com',
       '_blank',
     );
     await markCalendarAsAdded();

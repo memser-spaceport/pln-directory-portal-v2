@@ -216,6 +216,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
         isOpen={!!showSuccessModal}
         onClose={handleClose}
         isNew={showSuccessModal?.isNew}
+        userInfo={userInfo}
         uid={showSuccessModal?.uid}
         email={showSuccessModal?.email}
         demoDayState={data}

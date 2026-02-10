@@ -84,6 +84,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     // @ts-ignore
     resolver: yupResolver(editInvestorProfileSchema),
     mode: 'all',
+    context: { member },
   });
 
   const {
@@ -565,54 +566,58 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                         )}
                       </div>
 
-                      <div className={s.row}>
-                        <FormField
-                          name="website"
-                          placeholder="Enter website"
-                          label="Website address"
-                          description="Paste a URL (company website, LinkedIn, Notion, X.com, Bluesky, etc.)"
-                          disabled={!selectedTeam}
-                        />
-                      </div>
+                      {isTeamLead && (
+                        <>
+                          <div className={s.row}>
+                            <FormField
+                              name="website"
+                              placeholder="Enter website"
+                              label="Website address"
+                              description="Paste a URL (company website, LinkedIn, Notion, X.com, Bluesky, etc.)"
+                              disabled={!isTeamLead || !selectedTeam}
+                            />
+                          </div>
 
-                      <div className={s.row}>
-                        <FormMultiSelect
-                          name="teamInvestInStartupStages"
-                          label="Startup stage(s) you invest in?"
-                          placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
-                          options={formOptions.fundingStageOptions}
-                          disabled={!isTeamLead || !selectedTeam}
-                        />
-                      </div>
+                          <div className={s.row}>
+                            <FormMultiSelect
+                              name="teamInvestInStartupStages"
+                              label="Startup stage(s) you invest in?"
+                              placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
+                              options={formOptions.fundingStageOptions}
+                              disabled={!isTeamLead || !selectedTeam}
+                            />
+                          </div>
 
-                      <div className={s.row}>
-                        <FormCurrencyField
-                          name="teamTypicalCheckSize"
-                          label="Typical Check Size"
-                          placeholder="Select typical check size (E.g. $25k - $50.000k)"
-                          currency="USD"
-                          disabled={!isTeamLead || !selectedTeam}
-                        />
-                      </div>
+                          <div className={s.row}>
+                            <FormCurrencyField
+                              name="teamTypicalCheckSize"
+                              label="Typical Check Size"
+                              placeholder="Select typical check size (E.g. $25k - $50.000k)"
+                              currency="USD"
+                              disabled={!isTeamLead || !selectedTeam}
+                            />
+                          </div>
 
-                      <div className={s.row}>
-                        <FormTagsInput
-                          selectLabel="Add Investment Focus"
-                          name="teamInvestmentFocusAreas"
-                          placeholder="Add keywords. E.g. AI, Staking, Governance, etc."
-                          disabled={!isTeamLead || !selectedTeam}
-                        />
-                      </div>
+                          <div className={s.row}>
+                            <FormTagsInput
+                              selectLabel="Add Investment Focus"
+                              name="teamInvestmentFocusAreas"
+                              placeholder="Add keywords. E.g. AI, Staking, Governance, etc."
+                              disabled={!isTeamLead || !selectedTeam}
+                            />
+                          </div>
 
-                      <div className={s.row}>
-                        <FormMultiSelect
-                          name="teamInvestInFundTypes"
-                          label="Type of fund(s) you invest in?"
-                          placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
-                          options={formOptions.fundTypeOptions}
-                          disabled={!isTeamLead || !selectedTeam}
-                        />
-                      </div>
+                          <div className={s.row}>
+                            <FormMultiSelect
+                              name="teamInvestInFundTypes"
+                              label="Type of fund(s) you invest in?"
+                              placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
+                              options={formOptions.fundTypeOptions}
+                              disabled={!isTeamLead || !selectedTeam}
+                            />
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
                 </>

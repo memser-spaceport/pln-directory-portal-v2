@@ -10,12 +10,20 @@ import s from './BioInput.module.scss';
 
 const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor/RichTextEditor'), { ssr: false });
 
+const SIMPLIFIED_TOOLBAR = [
+  [{ header: [false] }],
+  ['bold', 'italic', 'underline'],
+  [{ list: 'bullet' }, { list: 'ordered' }],
+  ['link'],
+];
+
 interface Props {
   generateBio?: boolean;
   onAiContentGenerated?: (originalContent: string) => void;
+  simplified?: boolean;
 }
 
-export const BioInput = ({ generateBio, onAiContentGenerated }: Props) => {
+export const BioInput = ({ generateBio, onAiContentGenerated, simplified }: Props) => {
   const {
     watch,
     setValue,
@@ -82,7 +90,8 @@ export const BioInput = ({ generateBio, onAiContentGenerated }: Props) => {
         value={bio}
         onChange={(txt) => setValue('bio', txt, { shouldValidate: true, shouldDirty: true })}
         className={clsx(s.editor, { [s.editorError]: hasError })}
-        placeholder="Add a short bio about your background, interests, or what you’re working on. For best results with AI bio generation: add your role, team, LinkedIn and skills first."
+        placeholder="Add a short bio about your background, interests, or what you're working on. For best results with AI bio generation: add your role, team, LinkedIn and skills first."
+        {...(simplified && { toolbarConfig: SIMPLIFIED_TOOLBAR, enableMentions: false })}
       />
 
       {hasError && <p className={s.errorMessage}>{errors.bio?.message as string}</p>}

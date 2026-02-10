@@ -10,6 +10,10 @@ export async function generateMetadata({
   const imageUrl = getDemoDaySocialImageUrl(params.demoDayId);
 
   return {
+    title: 'Protocol Labs Demo Day',
+    description:
+      'PL Demo Days are virtual events featuring top, pre-selected teams from the PL network. Accredited investors review pitches asynchronously, with 1-click options to connect and invest.',
+    robots: { index: true, follow: true },
     openGraph: {
       type: 'website',
       images: [

@@ -1,6 +1,6 @@
 import { PropsWithChildren } from 'react';
 import { Metadata } from 'next';
-import { DEMO_DAY_SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { getDemoDaySocialImageUrl } from '@/utils/constants';
 
 export const metadata: Metadata = {
   title: 'Protocol Labs Demo Day',
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: DEMO_DAY_SOCIAL_IMAGE_URL,
+        url: getDemoDaySocialImageUrl(),
         alt: 'Demo Day',
         type: 'image/png',
       },
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     images: [
       {
-        url: DEMO_DAY_SOCIAL_IMAGE_URL,
+        url: getDemoDaySocialImageUrl(),
         alt: 'Demo Day',
         type: 'image/png',
       },

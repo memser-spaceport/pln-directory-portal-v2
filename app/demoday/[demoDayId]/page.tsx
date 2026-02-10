@@ -1,9 +1,11 @@
+import { Suspense } from 'react';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDemoDayState, getMemberInfo } from '@/app/actions/demo-day.actions';
 import { IUserInfo } from '@/types/shared.types';
 import { redirect } from 'next/navigation';
 import { checkInvestorProfileComplete, isDemoDayParticipantInvestor } from '@/utils/member.utils';
 import { Landing } from '@/components/page/demo-day/Landing';
+import { DemoDayPageSkeleton } from '@/components/page/demo-day/DemoDayPageSkeleton';
 
 export default async function DemoDayLandingPage({ params }: { params: { demoDayId: string } }) {
   const { userInfo, authToken } = getCookiesFromHeaders();
@@ -65,5 +67,9 @@ export default async function DemoDayLandingPage({ params }: { params: { demoDay
     }
   }
 
-  return <Landing initialDemoDayState={demoDayState || undefined} />;
+  return (
+    <Suspense fallback={<DemoDayPageSkeleton />}>
+      <Landing initialDemoDayState={demoDayState || undefined} />
+    </Suspense>
+  );
 }

@@ -10,3 +10,5 @@ export interface PushNotificationsContextValue {
   markAllAsRead: () => void;
   refreshNotifications: () => Promise<void>;
 }
+
+export type UnreadLinksMap = Map<string, Set<string>>;

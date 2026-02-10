@@ -8,12 +8,15 @@ import {
   NotificationCountPayload,
 } from '@/types/push-notifications.types';
 import {
+  getUnreadLinks,
   getNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '@/services/push-notifications.service';
 
-import { sanitizeNotification } from './utils';
+import { UnreadLinksMap } from './types';
+
+import { sanitizeNotification, addUnreadLinkEntry } from './utils';
 
 import { PushNotificationsContext } from './PushNotificationsContext';
 
@@ -27,6 +30,23 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
   const [notifications, setNotifications] = useState<PushNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Normalized link → set of notification UIDs for auto-marking on navigation
+  const unreadLinksMapRef = useRef<UnreadLinksMap>(new Map());
+
+  const fetchUnreadLinks = useCallback(async () => {
+    if (!authToken) return;
+    try {
+      const links = await getUnreadLinks(authToken);
+      const map = new Map<string, Set<string>>();
+      for (const entry of links) {
+        addUnreadLinkEntry(entry, map);
+      }
+      unreadLinksMapRef.current = map;
+    } catch (err) {
+      console.error('Failed to fetch unread links:', err);
+    }
+  }, [authToken]);
 
   // Fetch initial notifications on mount
   const fetchNotifications = useCallback(async () => {
@@ -54,8 +74,9 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
   useEffect(() => {
     if (enabled && authToken) {
       fetchNotifications();
+      fetchUnreadLinks();
     }
-  }, [enabled, authToken, fetchNotifications]);
+  }, [enabled, authToken, fetchNotifications, fetchUnreadLinks]);
 
   // Handle new notification from WebSocket
   const handleNewNotification = useCallback((notification: PushNotification) => {
@@ -69,6 +90,12 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
       return [{ ...sanitized, isRead: false }, ...prev];
     });
     setUnreadCount((prev) => prev + 1);
+
+    // Add the new notification's link to the unread links map for auto-marking
+    const uid = notification.uid ?? notification.id;
+    if (uid && notification.link) {
+      addUnreadLinkEntry({ uid, link: notification.link }, unreadLinksMapRef.current);
+    }
   }, []);
 
   // Handle notification update from WebSocket (sync across devices)
@@ -119,8 +146,9 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     // If we just reconnected (was disconnected, now connected), refetch notifications
     if (wasDisconnected && isNowConnected && authToken) {
       void fetchNotifications();
+      void fetchUnreadLinks();
     }
-  }, [isConnected, authToken, fetchNotifications]);
+  }, [isConnected, authToken, fetchNotifications, fetchUnreadLinks]);
 
   // Mark single notification as read
   const markAsRead = useCallback(

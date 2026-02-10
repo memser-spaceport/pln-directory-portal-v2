@@ -112,9 +112,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <BroadCastChannel />
               <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
               <MemberRegisterDialog />
-              <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
-              <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
-              <PostLoginRedirectHandler isLoggedIn={isLoggedIn} />
+              <Suspense fallback={null}>
+                <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
+                <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
+                <PostLoginRedirectHandler isLoggedIn={isLoggedIn} />
+              </Suspense>
               {/* <TeamRegisterDialog /> */}
               <UserInfoChecker userInfo={userInfo} />
               <UserInfoValidator userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />

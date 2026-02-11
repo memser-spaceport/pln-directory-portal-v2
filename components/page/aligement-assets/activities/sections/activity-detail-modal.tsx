@@ -42,47 +42,73 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
       return text;
     }
 
-    // Sort links by their position in the text (to process in order)
-    const sortedLinks = [...links].sort((a, b) => {
-      const posA = text.indexOf(a.text);
-      const posB = text.indexOf(b.text);
-      return posA - posB;
-    });
+    // 1. Find all matches for all unique links
+    interface Match {
+      start: number;
+      end: number;
+      link: PopupLink;
+    }
+    const matches: Match[] = [];
 
+    // Deduplicate links to avoid redundant processing
+    const uniqueLinks = links.filter((link, index, self) =>
+      index === self.findIndex((t) => (
+        t.text === link.text && t.url === link.url
+      ))
+    );
+
+    for (const link of uniqueLinks) {
+      let pos = text.indexOf(link.text);
+      while (pos !== -1) {
+        matches.push({
+          start: pos,
+          end: pos + link.text.length,
+          link
+        });
+        pos = text.indexOf(link.text, pos + 1);
+      }
+    }
+
+    // 2. Sort matches by start position
+    matches.sort((a, b) => a.start - b.start);
+
+    // 3. Build content
     const parts: (string | JSX.Element)[] = [];
-    let remainingText = text;
+    let cursor = 0;
+    
+    // Use a simple counter for keys
     let keyIndex = 0;
 
-    for (const link of sortedLinks) {
-      const linkIndex = remainingText.indexOf(link.text);
-      if (linkIndex === -1) continue;
+    for (const match of matches) {
+      // Skip if this match overlaps with current cursor (already processed)
+      if (match.start < cursor) continue;
 
       // Add text before the link
-      if (linkIndex > 0) {
-        parts.push(remainingText.substring(0, linkIndex));
+      if (match.start > cursor) {
+        parts.push(text.substring(cursor, match.start));
       }
 
       // Add the link
       parts.push(
         <Link
           key={keyIndex++}
-          href={link.url}
+          href={match.link.url}
           target="_blank"
           rel="noopener noreferrer"
           className="activity-modal__link"
-          onClick={() => handleLinkClick(link.text, link.url)}
+          onClick={() => handleLinkClick(match.link.text, match.link.url)}
         >
-          {link.text}
+          {match.link.text}
         </Link>
       );
 
-      // Update remaining text
-      remainingText = remainingText.substring(linkIndex + link.text.length);
+      // Update cursor
+      cursor = match.end;
     }
 
     // Add any remaining text
-    if (remainingText) {
-      parts.push(remainingText);
+    if (cursor < text.length) {
+      parts.push(text.substring(cursor));
     }
 
     return parts;
@@ -301,6 +327,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           line-height: 22px;
           color: #475569;
           margin: 0;
+          white-space: pre-wrap;
         }
 
         .activity-modal__submission-note-title {

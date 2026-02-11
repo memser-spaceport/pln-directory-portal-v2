@@ -12,6 +12,15 @@ interface GetUnreadCountResponse {
   unreadCount: number;
 }
 
+export interface UnreadLink {
+  uid: string;
+  link: string;
+}
+
+interface GetUnreadLinksResponse {
+  unreadLinks: UnreadLink[];
+}
+
 /**
  * Fetch notifications for the current user
  */
@@ -92,4 +101,25 @@ export async function markAllNotificationsAsRead(authToken: string): Promise<voi
   if (!response.ok) {
     throw new Error('Failed to mark all notifications as read');
   }
+}
+
+/**
+ * Get all unread notification links for client-side matching
+ */
+export async function getUnreadLinks(
+  authToken: string,
+): Promise<UnreadLink[]> {
+  const response = await fetch(`${API_URL}/v1/push-notifications/unread-links`, {
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch unread links');
+  }
+
+  const data: GetUnreadLinksResponse = await response.json();
+  return data.unreadLinks;
 }

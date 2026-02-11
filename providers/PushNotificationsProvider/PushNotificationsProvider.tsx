@@ -1,6 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import {
   PushNotification,
@@ -8,48 +10,19 @@ import {
   NotificationCountPayload,
 } from '@/types/push-notifications.types';
 import {
+  getUnreadLinks,
   getNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '@/services/push-notifications.service';
-import { processPostContent } from '@/components/page/forum/Post';
 
-/**
- * Strips HTML markup from a string, returning plain text
- */
-export function stripHtml(html: string | undefined | null): string {
-  if (!html) return '';
+import { UnreadLinksMap } from './types';
 
-  const { processedContent } = processPostContent(html);
+import { sanitizeNotification, normalizeLink, addUnreadLinkEntry, removeUnreadLinkUid } from './utils';
 
-  const div = document.createElement('div');
-  div.innerHTML = processedContent;
-  return div.textContent || div.innerText || '';
-}
+import { useAutoMarkOnNavigation } from './hooks/useAutoMarkOnNavigation';
 
-/**
- * Sanitizes notification title and description by removing HTML markup
- */
-function sanitizeNotification<T extends { title?: string; description?: string }>(notification: T): T {
-  return {
-    ...notification,
-    title: stripHtml(notification.title),
-    description: stripHtml(notification.description),
-  };
-}
-
-interface PushNotificationsContextValue {
-  notifications: PushNotification[];
-  unreadCount: number;
-  isConnected: boolean;
-  isLoading: boolean;
-  error: string | null;
-  markAsRead: (id: string) => void;
-  markAllAsRead: () => void;
-  refreshNotifications: () => Promise<void>;
-}
-
-const PushNotificationsContext = createContext<PushNotificationsContextValue | null>(null);
+import { PushNotificationsContext } from './PushNotificationsContext';
 
 interface PushNotificationsProviderProps {
   children: React.ReactNode;
@@ -61,6 +34,28 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
   const [notifications, setNotifications] = useState<PushNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Normalized link → set of notification UIDs for auto-marking on navigation
+  const unreadLinksMapRef = useRef<UnreadLinksMap>(new Map());
+
+  const pathname = usePathname();
+
+  // Ref for wsMarkAsRead — breaks the circular dependency between handleNewNotification and usePushNotifications
+  const wsMarkAsReadRef = useRef<(id: string) => void>(() => {});
+
+  const fetchUnreadLinks = useCallback(async () => {
+    if (!authToken) return;
+    try {
+      const links = await getUnreadLinks(authToken);
+      const map = new Map<string, Set<string>>();
+      for (const entry of links) {
+        addUnreadLinkEntry(entry, map);
+      }
+      unreadLinksMapRef.current = map;
+    } catch (err) {
+      console.error('Failed to fetch unread links:', err);
+    }
+  }, [authToken]);
 
   // Fetch initial notifications on mount
   const fetchNotifications = useCallback(async () => {
@@ -88,22 +83,47 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
   useEffect(() => {
     if (enabled && authToken) {
       fetchNotifications();
+      fetchUnreadLinks();
     }
-  }, [enabled, authToken, fetchNotifications]);
+  }, [enabled, authToken, fetchNotifications, fetchUnreadLinks]);
 
   // Handle new notification from WebSocket
-  const handleNewNotification = useCallback((notification: PushNotification) => {
-    const sanitized = sanitizeNotification(notification);
-    setNotifications((prev) => {
-      // Avoid duplicates
-      const notificationId = sanitized.id;
-      if (prev.some((n) => n.id === notificationId)) {
-        return prev;
+  const handleNewNotification = useCallback(
+    (notification: PushNotification) => {
+      const { link } = notification;
+      const uid = notification.uid ?? notification.id;
+
+      // Mark notification as "read" if we are on the page that is mentioned in the notification
+      if (uid && link && authToken) {
+        const normalized = normalizeLink(link);
+
+        if (normalized === pathname) {
+          markNotificationAsRead(authToken, uid)
+            .then(() => fetchNotifications())
+            .catch((err) => console.error('Failed to auto-mark notification:', err));
+          wsMarkAsReadRef.current(uid);
+
+          return;
+        }
       }
-      return [{ ...sanitized, isRead: false }, ...prev];
-    });
-    setUnreadCount((prev) => prev + 1);
-  }, []);
+
+      const sanitized = sanitizeNotification(notification);
+      setNotifications((prev) => {
+        // Avoid duplicates
+        const notificationId = sanitized.id;
+        if (prev.some((n) => n.id === notificationId)) {
+          return prev;
+        }
+        return [{ ...sanitized, isRead: false }, ...prev];
+      });
+      setUnreadCount((prev) => prev + 1);
+
+      if (uid && link) {
+        addUnreadLinkEntry({ uid, link }, unreadLinksMapRef.current);
+      }
+    },
+    [authToken, pathname, fetchNotifications],
+  );
 
   // Handle notification update from WebSocket (sync across devices)
   const handleNotificationUpdate = useCallback((payload: NotificationUpdatePayload) => {
@@ -153,8 +173,20 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     // If we just reconnected (was disconnected, now connected), refetch notifications
     if (wasDisconnected && isNowConnected && authToken) {
       void fetchNotifications();
+      void fetchUnreadLinks();
     }
-  }, [isConnected, authToken, fetchNotifications]);
+  }, [isConnected, authToken, fetchNotifications, fetchUnreadLinks]);
+
+  // Keep wsMarkAsReadRef in sync
+  wsMarkAsReadRef.current = wsMarkAsRead;
+
+  // Auto-mark notifications as read when user navigates to a matching page
+  useAutoMarkOnNavigation({
+    authToken,
+    unreadLinksMapRef,
+    wsMarkAsReadRef,
+    fetchNotifications,
+  });
 
   // Mark single notification as read
   const markAsRead = useCallback(
@@ -177,6 +209,9 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
 
       // Notify other devices via WebSocket
       wsMarkAsRead(id);
+
+      // Remove from unread links map so auto-marking won't re-trigger
+      removeUnreadLinkUid(id, unreadLinksMapRef.current);
     },
     [notifications, authToken, wsMarkAsRead],
   );
@@ -207,6 +242,9 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
 
     // Notify other devices via WebSocket
     wsMarkAllAsRead();
+
+    // Clear the unread links map — everything is read now
+    unreadLinksMapRef.current.clear();
   }, [notifications, unreadCount, authToken, wsMarkAllAsRead]);
 
   const value = useMemo(
@@ -224,12 +262,4 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
   );
 
   return <PushNotificationsContext.Provider value={value}>{children}</PushNotificationsContext.Provider>;
-}
-
-export function usePushNotificationsContext(): PushNotificationsContextValue {
-  const context = useContext(PushNotificationsContext);
-  if (!context) {
-    throw new Error('usePushNotificationsContext must be used within a PushNotificationsProvider');
-  }
-  return context;
 }

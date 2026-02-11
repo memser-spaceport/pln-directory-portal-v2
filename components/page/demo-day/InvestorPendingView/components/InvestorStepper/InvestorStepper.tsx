@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { AddToCalendarModal } from '../AddToCalendarModal';
 import Link from 'next/link';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
+import { formatDemoDayDateTimeFirst } from '@/utils/demo-day.utils';
 
 interface StepperProps {
   currentStep: number;
@@ -43,32 +44,15 @@ export const InvestorStepper: React.FC<StepperProps> = ({
     onGoToDemoDay?.();
   };
 
-  // Format the date for Step 3 description
-  const formatEventDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const time = date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-    const month = date.toLocaleDateString('en-US', { month: 'long' });
-    const day = date.getDate();
-
-    return `${month} ${day} at ${time} UTC`;
-  };
-
   // Check if demoday is active
   const isDemoDayActive = data?.status === 'ACTIVE';
 
-  const eventDateFormatted = data?.date ? formatEventDate(data.date) : '12:00 UTC, Oct 25';
+  const eventDateFormatted = data?.date ? formatDemoDayDateTimeFirst(data.date) : '9am PT on March 16, 2026';
 
   // Determine Step 2 status and description
   const step2Status = currentStep > 2 ? 'completed' : currentStep === 2 ? 'current' : 'pending';
-  const step2Description = isDemoDayActive
-    ? `You're all set for Demo Day!`
-    : step2Status === 'completed'
-      ? `You're all set for Demo Day! Return to this page on ${eventDateFormatted} to join the event.`
-      : `Return to this page on ${eventDateFormatted} to join the event.`;
+  const step2Title = currentStep === 2 ? 'Add Demo Day to your calendar' : 'You\'re all set for Demo Day!';
+  const step2Description = isDemoDayActive ? `Explore 20+ teams across AI, Web3, and deep tech.` : `Demo Day goes live @ ${eventDateFormatted}`;
 
   // Determine button styles based on step completion
   const step1Status = currentStep > 1 ? 'completed' : currentStep === 1 ? 'current' : 'pending';
@@ -92,30 +76,30 @@ export const InvestorStepper: React.FC<StepperProps> = ({
   const steps: StepData[] = [
     {
       id: 0,
-      title: 'Step 0',
-      description: 'Get approved to join Demo day',
+      title: 'Apply for Demo Day',
+      description: 'Accredited investors must apply and be approved.',
       status: 'completed',
-      height: 60,
+      height: 52,
     },
     {
       id: 1,
-      title: 'Step 1',
-      description: "Review and update your profile: shared with founders when you're introduced",
+      title: 'Review and update your profile (optional)',
+      description: "Keep your information up-to-date; founders see this when you're introduced.",
       status: step1Status,
       children: (
         <button className={step1ButtonClass} onClick={onFillProfile}>
           <EditIcon /> Go to Investor Profile
         </button>
       ),
-      height: 120,
+      height: 116,
     },
     {
       id: 2,
-      title: 'Step 2',
+      title: step2Title,
       description: step2Description,
       status: step2Status,
       children: step2Children,
-      height: 120,
+      height: 116,
     },
   ];
 
@@ -124,7 +108,10 @@ export const InvestorStepper: React.FC<StepperProps> = ({
       <div className={s.stepperCard}>
         {/* Title Section */}
         <div className={s.titleSection}>
-          <h3 className={s.title}>Follow these steps to secure your access:</h3>
+          {/* <h3 className={s.title}>Follow these steps to secure your access:</h3> */}
+          <div className={s.icon}>
+            <CalendarStarIcon />
+          </div>
         </div>
 
         {/* Vertical Stepper */}
@@ -149,7 +136,6 @@ export const InvestorStepper: React.FC<StepperProps> = ({
               <div className={s.stepContent}>
                 <div className={s.stepTitle}>{step.title}</div>
                 <div className={s.stepDescription}>{step.description}</div>
-
                 {step.children}
               </div>
             </div>
@@ -173,6 +159,15 @@ const EditIcon = () => (
     <path
       d="M14.847 2.90307L12.597 0.653073C12.5186 0.574413 12.4254 0.512 12.3229 0.469414C12.2203 0.426829 12.1103 0.404907 11.9993 0.404907C11.8882 0.404907 11.7783 0.426829 11.6757 0.469414C11.5732 0.512 11.48 0.574413 11.4016 0.653073L4.65164 7.40307C4.49396 7.56167 4.4057 7.77638 4.40625 8.00003V10.25C4.40625 10.4738 4.49514 10.6884 4.65338 10.8466C4.81161 11.0049 5.02622 11.0938 5.25 11.0938H7.5C7.61084 11.0939 7.7206 11.0721 7.82303 11.0298C7.92546 10.9874 8.01854 10.9253 8.09695 10.847L14.847 4.09698C14.9254 4.01862 14.9876 3.92556 15.0301 3.82313C15.0726 3.7207 15.0944 3.61091 15.0944 3.50003C15.0944 3.38914 15.0726 3.27935 15.0301 3.17692C14.9876 3.07449 14.9254 2.98143 14.847 2.90307ZM12 2.44534L13.0547 3.50003L12.2812 4.27346L11.2266 3.21878L12 2.44534ZM7.14844 9.40628H6.09375V8.35159L10.0312 4.41409L11.0859 5.46878L7.14844 9.40628ZM14.5312 8.32135V13.625C14.5312 13.998 14.3831 14.3557 14.1194 14.6194C13.8556 14.8831 13.498 15.0313 13.125 15.0313H1.875C1.50204 15.0313 1.14435 14.8831 0.880631 14.6194C0.616908 14.3557 0.46875 13.998 0.46875 13.625V2.37503C0.46875 2.00206 0.616908 1.64438 0.880631 1.38066C1.14435 1.11693 1.50204 0.968776 1.875 0.968776H7.17867C7.40245 0.968776 7.61706 1.05767 7.77529 1.2159C7.93353 1.37414 8.02242 1.58875 8.02242 1.81253C8.02242 2.0363 7.93353 2.25091 7.77529 2.40915C7.61706 2.56738 7.40245 2.65628 7.17867 2.65628H2.15625V13.3438H12.8438V8.32135C12.8438 8.09758 12.9326 7.88297 13.0909 7.72473C13.2491 7.5665 13.4637 7.4776 13.6875 7.4776C13.9113 7.4776 14.1259 7.5665 14.2841 7.72473C14.4424 7.88297 14.5312 8.09758 14.5312 8.32135Z"
       fill="currentColor"
+    />
+  </svg>
+);
+
+const CalendarStarIcon = () => (
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M26 4H23V3C23 2.73478 22.8946 2.48043 22.7071 2.29289C22.5196 2.10536 22.2652 2 22 2C21.7348 2 21.4804 2.10536 21.2929 2.29289C21.1054 2.48043 21 2.73478 21 3V4H11V3C11 2.73478 10.8946 2.48043 10.7071 2.29289C10.5196 2.10536 10.2652 2 10 2C9.73478 2 9.48043 2.10536 9.29289 2.29289C9.10536 2.48043 9 2.73478 9 3V4H6C5.46957 4 4.96086 4.21071 4.58579 4.58579C4.21071 4.96086 4 5.46957 4 6V26C4 26.5304 4.21071 27.0391 4.58579 27.4142C4.96086 27.7893 5.46957 28 6 28H26C26.5304 28 27.0391 27.7893 27.4142 27.4142C27.7893 27.0391 28 26.5304 28 26V6C28 5.46957 27.7893 4.96086 27.4142 4.58579C27.0391 4.21071 26.5304 4 26 4ZM9 8V7C9 6.73478 9.10536 6.48043 9.29289 6.29289C9.48043 6.10536 9.73478 6 10 6C10.2652 6 10.5196 6.10536 10.7071 6.29289C10.8946 6.48043 11 6.73478 11 7V8C11 8.26522 10.8946 8.51957 10.7071 8.70711C10.5196 8.89464 10.2652 9 10 9C9.73478 9 9.48043 8.89464 9.29289 8.70711C9.10536 8.51957 9 8.26522 9 8ZM22.3188 15.5875L19.2612 18.1112L20.1938 21.875C20.2175 21.9706 20.2125 22.071 20.1793 22.1637C20.1462 22.2565 20.0864 22.3374 20.0075 22.3962C19.9209 22.4601 19.8163 22.4947 19.7087 22.495C19.6208 22.4945 19.5346 22.4708 19.4587 22.4263L16 20.3975L12.545 22.4312C12.4598 22.4818 12.3614 22.5058 12.2625 22.5004C12.1636 22.4949 12.0685 22.4601 11.9893 22.4005C11.9102 22.3409 11.8505 22.2592 11.8179 22.1656C11.7853 22.072 11.7813 21.9709 11.8062 21.875L12.7388 18.1063L9.68125 15.5875C9.60407 15.5241 9.54764 15.4391 9.51923 15.3433C9.49082 15.2476 9.49174 15.1455 9.52187 15.0503C9.552 14.9551 9.60995 14.871 9.68826 14.8091C9.76657 14.7471 9.86165 14.71 9.96125 14.7025L13.9913 14.3912L15.5413 10.8025C15.58 10.713 15.6441 10.6369 15.7256 10.5834C15.8071 10.5299 15.9025 10.5014 16 10.5014C16.0975 10.5014 16.1929 10.5299 16.2744 10.5834C16.3559 10.6369 16.42 10.713 16.4587 10.8025L18.0088 14.3912L22.0387 14.7025C22.1383 14.71 22.2334 14.7471 22.3117 14.8091C22.39 14.871 22.448 14.9551 22.4781 15.0503C22.5083 15.1455 22.5092 15.2476 22.4808 15.3433C22.4524 15.4391 22.3959 15.5241 22.3188 15.5875ZM23 8C23 8.26522 22.8946 8.51957 22.7071 8.70711C22.5196 8.89464 22.2652 9 22 9C21.7348 9 21.4804 8.89464 21.2929 8.70711C21.1054 8.51957 21 8.26522 21 8V7C21 6.73478 21.1054 6.48043 21.2929 6.29289C21.4804 6.10536 21.7348 6 22 6C22.2652 6 22.5196 6.10536 22.7071 6.29289C22.8946 6.48043 23 6.73478 23 7V8Z"
+      fill="#1B4DFF"
     />
   </svg>
 );

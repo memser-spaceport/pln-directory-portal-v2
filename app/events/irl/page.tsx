@@ -22,7 +22,9 @@ import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 import IrlFollowGathering from '@/components/page/irl/follow-gathering/irl-follow-gathering';
 import IrlHuskyIntegration from '@/components/page/irl/irl-husky/irl-husky-integration';
 import AddtionalResources from '@/components/page/irl/events/addtional-resources';
-import SpeakerForm from '@/components/page/irl/follow-gathering/speaker-form';
+import SpeakerForm from '@/components/page/irl/speaker-section/speaker-form';
+// import SpeakerForm from '@/components/page/irl/follow-gathering/speaker-form';
+import SpeakerSection from '@/components/page/irl/speaker-section/speaker-section';
 
 export default async function Page({ searchParams }: any) {
   const {
@@ -101,7 +103,10 @@ export default async function Page({ searchParams }: any) {
             guestDetails={guestDetails}
           />
         </section>
-        <SpeakerForm userInfo={userInfo} eventLocationSummary={eventLocationSummary} isLoggedIn={isLoggedIn} />
+        <section className={styles.irlGatheings__speaker}>
+          <SpeakerSection eventLocationSummary={eventLocationSummary} userInfo={userInfo} currentGuest={guestDetails} />
+        </section>
+        <SpeakerForm userInfo={userInfo} eventLocationSummary={eventLocationSummary} isLoggedIn={isLoggedIn}  />
         
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
@@ -125,7 +130,8 @@ export default async function Page({ searchParams }: any) {
 }
 
 const getPageData = async (searchParams: any) => {
-  const { authToken, userInfo, isLoggedIn } = getCookiesFromHeaders();
+  const {userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
+  // console.log('userInfo', userInfo);
   let showTelegram = true;
   let isError = false;
   let isLocationError = false;
@@ -138,6 +144,7 @@ const getPageData = async (searchParams: any) => {
     // Fetch locations data
     const locationDetails = await getAllLocations();
     if (locationDetails?.isError) {
+      console.log('locationDetails error-----', locationDetails);
       return { isError: true };
     }
 
@@ -146,6 +153,7 @@ const getPageData = async (searchParams: any) => {
         (loc: any) => loc.location.split(',')[0].trim() === searchParams.location,
       );
       if (!locationObject) {
+        console.log('locationObject error-----', locationObject);
         return { isLocationError: true };
       }
     }
@@ -174,6 +182,7 @@ const getPageData = async (searchParams: any) => {
     }
 
     if (!eventDetails || !isEventActive || !isEventAvailable) {
+      console.log('eventDetails error-----', eventDetails);
       return { isLocationError: true };
     }
     const eventLocationSummary = { uid, name, flag, description, resources, icon };
@@ -209,8 +218,18 @@ const getPageData = async (searchParams: any) => {
       getGuestEvents(uid, authToken),
       getFollowersByLocation(uid, authToken),
     ]);
+
+
+    // console.log('events-----', (events as any)?.guests?.[0]);
+
+    // console.log('currentGuestResponse.guests-----', (currentGuestResponse as any)?.guests);
     if (events?.isError) {
+      console.log('events error-----', events);
       return { isError: true };
+    }
+    if (currentGuestResponse?.isError) {
+      console.log('currentGuestResponse error-----', currentGuestResponse);
+      // Don't return error, just log it - currentGuest will be null
     }
     if (followersResponse?.isError) {
       followers = [];
@@ -240,7 +259,11 @@ const getPageData = async (searchParams: any) => {
     guestDetails.events = { upcomingEvents: eventDetails.upcomingEvents, pastEvents: eventDetails.pastEvents };
 
     guestDetails.currentGuest =
-      !events?.isError && (events as any)?.guests?.[0]?.memberUid === userInfo?.uid
+      !events?.isError && 
+      !currentGuestResponse?.isError &&
+      (events as any)?.guests?.[0]?.memberUid === userInfo?.uid &&
+      (currentGuestResponse as any)?.guests?.length > 0 &&
+      (currentGuestResponse as any)?.guests?.[0]
         ? (currentGuestResponse as any).guests[0]
         : null;
 
@@ -253,6 +276,7 @@ const getPageData = async (searchParams: any) => {
     if (isLoggedIn) {
       const memberPreferencesResponse = await getMemberPreferences(userInfo.uid, authToken);
       if (memberPreferencesResponse.isError) {
+        console.log('memberPreferencesResponse error-----', memberPreferencesResponse);
         return { isError: true };
       }
       showTelegram = memberPreferencesResponse.memberPreferences?.telegram ?? true;
@@ -260,6 +284,7 @@ const getPageData = async (searchParams: any) => {
 
     let topicsAndReasonResponse = await getTopicsAndReasonForUser(uid, userInfo.uid, authToken);
     if (topicsAndReasonResponse?.isError) {
+      console.log('topicsAndReasonResponse error-----', topicsAndReasonResponse);
       topicsAndReasonResponse = [];
     }
 
@@ -280,7 +305,7 @@ const getPageData = async (searchParams: any) => {
       topicsAndReasonResponse,
     };
   } catch (e) {
-    console.error('Error fetching IRL data', e);
+    console.log('Error fetching IRL data-----', e);
     return { isError: true };
   }
 };

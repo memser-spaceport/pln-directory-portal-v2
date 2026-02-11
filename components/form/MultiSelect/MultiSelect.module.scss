@@ -130,3 +130,21 @@
   justify-content: center;
   margin: 8px;
 }
+
+.customTagOption {
+  color: rgba(21, 111, 247, 1);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  
+  &:hover {
+    background-color: rgba(248, 250, 252, 1);
+  }
+}
+
+.customTagIcon {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1;
+}

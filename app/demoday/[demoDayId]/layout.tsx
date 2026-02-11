@@ -1,18 +1,17 @@
 import { PropsWithChildren } from 'react';
 import { Metadata } from 'next';
-import { getDemoDaySocialImageUrl } from '@/utils/constants';
+import { getDemoDayMetadata } from '@/utils/constants';
 
 export async function generateMetadata({
   params,
 }: {
   params: { demoDayId: string };
 }): Promise<Metadata> {
-  const imageUrl = getDemoDaySocialImageUrl(params.demoDayId);
+  const { title, description, imageUrl } = getDemoDayMetadata(params.demoDayId);
 
   return {
-    title: 'Protocol Labs Demo Day',
-    description:
-      'PL Demo Days are virtual events featuring top, pre-selected teams from the PL network. Accredited investors review pitches asynchronously, with 1-click options to connect and invest.',
+    title,
+    description,
     robots: { index: true, follow: true },
     openGraph: {
       type: 'website',

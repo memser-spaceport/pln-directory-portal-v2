@@ -1,6 +1,8 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import {
   PushNotification,
@@ -16,7 +18,9 @@ import {
 
 import { UnreadLinksMap } from './types';
 
-import { sanitizeNotification, addUnreadLinkEntry } from './utils';
+import { sanitizeNotification, normalizeLink, addUnreadLinkEntry, removeUnreadLinkUid } from './utils';
+
+import { useAutoMarkOnNavigation } from './hooks/useAutoMarkOnNavigation';
 
 import { PushNotificationsContext } from './PushNotificationsContext';
 
@@ -33,6 +37,11 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
 
   // Normalized link → set of notification UIDs for auto-marking on navigation
   const unreadLinksMapRef = useRef<UnreadLinksMap>(new Map());
+
+  const pathname = usePathname();
+
+  // Ref for wsMarkAsRead — breaks the circular dependency between handleNewNotification and usePushNotifications
+  const wsMarkAsReadRef = useRef<(id: string) => void>(() => {});
 
   const fetchUnreadLinks = useCallback(async () => {
     if (!authToken) return;
@@ -79,24 +88,42 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
   }, [enabled, authToken, fetchNotifications, fetchUnreadLinks]);
 
   // Handle new notification from WebSocket
-  const handleNewNotification = useCallback((notification: PushNotification) => {
-    const sanitized = sanitizeNotification(notification);
-    setNotifications((prev) => {
-      // Avoid duplicates
-      const notificationId = sanitized.id;
-      if (prev.some((n) => n.id === notificationId)) {
-        return prev;
-      }
-      return [{ ...sanitized, isRead: false }, ...prev];
-    });
-    setUnreadCount((prev) => prev + 1);
+  const handleNewNotification = useCallback(
+    (notification: PushNotification) => {
+      const { link } = notification;
+      const uid = notification.uid ?? notification.id;
 
-    // Add the new notification's link to the unread links map for auto-marking
-    const uid = notification.uid ?? notification.id;
-    if (uid && notification.link) {
-      addUnreadLinkEntry({ uid, link: notification.link }, unreadLinksMapRef.current);
-    }
-  }, []);
+      // Mark notification as "read" if we are on the page that is mentioned in the notification
+      if (uid && link && authToken) {
+        const normalized = normalizeLink(link);
+
+        if (normalized === pathname) {
+          markNotificationAsRead(authToken, uid)
+            .then(() => fetchNotifications())
+            .catch((err) => console.error('Failed to auto-mark notification:', err));
+          wsMarkAsReadRef.current(uid);
+
+          return;
+        }
+      }
+
+      const sanitized = sanitizeNotification(notification);
+      setNotifications((prev) => {
+        // Avoid duplicates
+        const notificationId = sanitized.id;
+        if (prev.some((n) => n.id === notificationId)) {
+          return prev;
+        }
+        return [{ ...sanitized, isRead: false }, ...prev];
+      });
+      setUnreadCount((prev) => prev + 1);
+
+      if (uid && link) {
+        addUnreadLinkEntry({ uid, link }, unreadLinksMapRef.current);
+      }
+    },
+    [authToken, pathname, fetchNotifications],
+  );
 
   // Handle notification update from WebSocket (sync across devices)
   const handleNotificationUpdate = useCallback((payload: NotificationUpdatePayload) => {
@@ -150,6 +177,17 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     }
   }, [isConnected, authToken, fetchNotifications, fetchUnreadLinks]);
 
+  // Keep wsMarkAsReadRef in sync
+  wsMarkAsReadRef.current = wsMarkAsRead;
+
+  // Auto-mark notifications as read when user navigates to a matching page
+  useAutoMarkOnNavigation({
+    authToken,
+    unreadLinksMapRef,
+    wsMarkAsReadRef,
+    fetchNotifications,
+  });
+
   // Mark single notification as read
   const markAsRead = useCallback(
     async (id: string) => {
@@ -171,6 +209,9 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
 
       // Notify other devices via WebSocket
       wsMarkAsRead(id);
+
+      // Remove from unread links map so auto-marking won't re-trigger
+      removeUnreadLinkUid(id, unreadLinksMapRef.current);
     },
     [notifications, authToken, wsMarkAsRead],
   );
@@ -201,6 +242,9 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
 
     // Notify other devices via WebSocket
     wsMarkAllAsRead();
+
+    // Clear the unread links map — everything is read now
+    unreadLinksMapRef.current.clear();
   }, [notifications, unreadCount, authToken, wsMarkAllAsRead]);
 
   const value = useMemo(

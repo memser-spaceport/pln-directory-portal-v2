@@ -86,7 +86,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
           </div>
 
           {/* Subscribe Section */}
-          <SubscribeSection isLoggedIn={isLoggedIn} userInfo={userInfo} />
+          {applicableDemoDays?.length === 0 && <SubscribeSection isLoggedIn={isLoggedIn} userInfo={userInfo} />}
 
           {/* Cards Section */}
           <div className={s.section2}>

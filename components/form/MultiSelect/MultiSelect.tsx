@@ -18,6 +18,8 @@ interface MultiSelectProps<T> {
   arrowImgUrl?: string;
   closeImgUrl: string;
   label?: ReactNode;
+  onAddCustom?: (customValue: string) => void;
+  customTagLabel?: string;
 }
 
 function MultiSelect<T extends { [K in keyof T]: string }>(props: MultiSelectProps<T>) {
@@ -33,6 +35,8 @@ function MultiSelect<T extends { [K in keyof T]: string }>(props: MultiSelectPro
     arrowImgUrl,
     closeImgUrl,
     label = '',
+    onAddCustom,
+    customTagLabel = 'Add Custom Tag',
   } = props;
 
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -64,10 +68,30 @@ function MultiSelect<T extends { [K in keyof T]: string }>(props: MultiSelectPro
     [options, searchStr, selectedOptionIds],
   );
 
+  // Check if we should show custom tag option
+  const shouldShowCustomTag = useMemo(() => {
+    return (
+      onAddCustom &&
+      searchStr.trim().length > 0 &&
+      availableOptions.length === 0 &&
+      !options.some(
+        (option) => option[displayKey].toString().toLowerCase() === searchStr.toLowerCase().trim()
+      )
+    );
+  }, [onAddCustom, searchStr, availableOptions.length, options, displayKey]);
+
   // Handle adding an option
   const handleOptionClick = (option: T) => {
     onAdd(option);
     focusInput();
+  };
+
+  // Handle adding a custom tag
+  const handleAddCustomTag = () => {
+    if (onAddCustom && searchStr.trim()) {
+      onAddCustom(searchStr.trim());
+      focusInput();
+    }
   };
 
   // Handle removing an option
@@ -173,7 +197,15 @@ function MultiSelect<T extends { [K in keyof T]: string }>(props: MultiSelectPro
                 {option[displayKey]}
               </li>
             ))}
-            {isEmpty(availableOptions) && <p className={s.noResults}>No data available</p>}
+            {shouldShowCustomTag && (
+              <li onClick={handleAddCustomTag} className={clsx(s.option, s.customTagOption)}>
+                <span className={s.customTagIcon}>+</span>
+                {customTagLabel}: &quot;{searchStr.trim()}&quot;
+              </li>
+            )}
+            {isEmpty(availableOptions) && !shouldShowCustomTag && (
+              <p className={s.noResults}>No data available</p>
+            )}
           </ul>
         )}
       </div>

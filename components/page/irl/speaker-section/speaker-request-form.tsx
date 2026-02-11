@@ -9,6 +9,10 @@ import { ProfileSocialLink } from '@/components/page/member-details/profile-soci
 import { getMember } from '@/services/members.service';
 import PageLoader from '@/components/core/page-loader';
 import MultiSelect from '@/components/form/MultiSelect';
+import { useGetTeamsFormOptions } from '@/hooks/createTeam/useGetTeamsFormOptions';
+import { submitSpeakerRequest } from '@/services/irl.service';
+import { EVENTS } from '@/utils/constants';
+import Cookies from 'js-cookie';
 // import Loader from '@/components/core/loader';
 
 interface ISpeakerRequestForm {
@@ -27,39 +31,22 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
   const analytics = useIrlAnalytics();
   const formBodyRef = useRef<HTMLDivElement>(null);
   const [speakerDescription, setSpeakerDescription] = useState('');
-  
+  const authToken = Cookies.get('authToken') || '';
+
   // Commented out for future use - customTags implementation
   // const [customTags, setCustomTags] = useState<string[]>([]);
   // const [inputValue, setInputValue] = useState('');
   
   // MultiSelect topics implementation
   const [selectedTopics, setSelectedTopics] = useState<ITopicOption[]>([]);
-  const topicOptions: ITopicOption[] = [
-    { id: 'ai', name: 'AI' },
-    { id: 'ai_x_crypto', name: 'AI x Crypto' },
-    { id: 'blockchain_infrastructure', name: 'Blockchain Infrastructure' },
-    { id: 'blockchain_security', name: 'Blockchain Security' },
-    { id: 'consensus_scalability', name: 'Consensus & Scalability' },
-    { id: 'defi_fintech', name: 'DeFi/Fintech' },
-    { id: 'decentralized_storage', name: 'Decentralized Storage' },
-    { id: 'decentralized_identity', name: 'Decentralized Identity' },
-    { id: 'desci', name: 'DeSci' },
-    { id: 'developer_tooling', name: 'Developer Tooling' },
-    { id: 'gaming_metaverse', name: 'Gaming/Metaverse' },
-    { id: 'governance', name: 'Governance' },
-    { id: 'nft', name: 'NFT' },
-    { id: 'web3', name: 'Web3' },
-    { id: 'cryptocurrency', name: 'Cryptocurrency' },
-    { id: 'smart_contracts', name: 'Smart Contracts' },
-    { id: 'dapps', name: 'DApps' },
-    { id: 'dao', name: 'DAO' },
-    { id: 'privacy', name: 'Privacy' },
-    { id: 'scalability', name: 'Scalability' },
-    { id: 'interoperability', name: 'Interoperability' },
-    { id: 'sustainability', name: 'Sustainability' },
-    { id: 'education', name: 'Education' },
-    { id: 'research', name: 'Research' },
-  ];
+  const [customTopics, setCustomTopics] = useState<ITopicOption[]>([]);
+  const allData = useGetTeamsFormOptions();
+  const industryTags = allData?.industryTags || [];
+
+  // Combine industry tags with custom topics
+  const allTopics = useMemo(() => {
+    return [...(industryTags || []), ...customTopics];
+  }, [industryTags, customTopics]);
   
   const [isCloseClicked, setIsCloseClicked] = useState(false);
   const [memberData, setMemberData] = useState<any>(null);
@@ -198,7 +185,6 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
     }
   };
 
-  console.log(memberData, '-----memberData')
 
   // Social link callback (for analytics if needed)
   const handleSocialLinkClick = (type: string, url: string) => {
@@ -220,6 +206,33 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
     });
   };
 
+  // Handle adding custom topic
+  const handleAddCustomTopic = (customValue: string) => {
+    if (!customValue.trim()) {
+      return;
+    }
+
+    // Check if topic already exists (case-insensitive)
+    const exists = allTopics.some(
+      (topic) => topic.name.toLowerCase() === customValue.toLowerCase()
+    );
+
+    if (exists) {
+      toast.error('This topic already exists');
+      return;
+    }
+
+    // Create new custom topic
+    const newTopic: ITopicOption = {
+      id: `custom_${Date.now()}_${customValue.trim().toLowerCase().replace(/\s+/g, '_')}`,
+      name: customValue.trim(),
+    };
+
+    // Add to custom topics and selected topics
+    setCustomTopics((prev) => [...prev, newTopic]);
+    setSelectedTopics((prev) => [...prev, newTopic]);
+  };
+
 
   const handleSubmit = async () => {
     if (!speakerDescription.trim()) {
@@ -234,19 +247,35 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
 
     try {
       // TODO: Implement API call to submit speaker request
-      // const response = await submitSpeakerRequest({
-      //   locationId: eventLocationSummary.uid,
-      //   description: speakerDescription,
-      //   topics: selectedTopics.map(topic => topic.name),
-      // });
+      const response = await submitSpeakerRequest({
+        memberUid: userInfo?.uid,
+        description: speakerDescription,
+        tags: selectedTopics.map(topic => topic.name),
+      }, authToken || '');
 
-      // For now, just show success message
-      toast.success('Speaker request submitted successfully!');
-      // TODO: Add analytics tracking when method is available
-      // analytics.trackSpeakerRequestSubmitted(eventLocationSummary, {
-      //   description: speakerDescription,
-      //   topics: selectedTopics,
-      // });
+      if(response?.error) {
+        toast.error('Failed to submit speaker request. Please try again.');
+        analytics.trackSpeakerRequestFormSubmitBtnClicked(eventLocationSummary, userInfo);
+        return;
+      }
+      else if(response?.data) {
+        toast.success('Speaker request submitted successfully!');
+        analytics.trackSpeakerRequestFormSubmitBtnClicked(eventLocationSummary, userInfo);
+      }
+      
+      // Dispatch event to update button state
+      document.dispatchEvent(
+        new CustomEvent(EVENTS.SPEAKER_REQUEST_SUBMITTED, {
+          detail: { 
+            locationId: eventLocationSummary?.uid,
+            memberUid: userInfo?.uid,
+            description: speakerDescription,
+            tags: selectedTopics.map(topic => topic.name),
+            isSubmitted: true 
+          },
+        }),
+      );
+      
       handleClose();
     } catch (error) {
       toast.error('Failed to submit speaker request. Please try again.');
@@ -280,6 +309,7 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
 
   const handleClose = () => {
     onClose();
+    analytics.trackSpeakerRequestFormCloseBtnClicked(eventLocationSummary, userInfo);
   };
 
   if(isLoadingMember) {
@@ -372,7 +402,7 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
             {/* Topics Section */}
             <div className="speakerRequestForm__body__topicSection">
               <MultiSelect
-                options={topicOptions}
+                options={allTopics}
                 selectedOptions={selectedTopics}
                 onAdd={(itemToAdd) => addTopic(setSelectedTopics, itemToAdd)}
                 onRemove={(itemToRemove) => removeTopic(setSelectedTopics, itemToRemove)}
@@ -388,37 +418,9 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
                 isMandatory
                 closeImgUrl="/icons/close.svg"
                 arrowImgUrl="/icons/arrow-down.svg"
+                onAddCustom={handleAddCustomTopic}
+                customTagLabel="Add Custom Tag"
               />
-              
-              {/* Commented out for future use - customTags implementation */}
-              {/* <label className="speakerRequestForm__body__topicSection__label">
-                What Would You Like to Talk About?
-                <span className="speakerRequestForm__body__topicSection__required">*</span>
-              </label>
-              <div className="speakerRequestForm__body__topicSection__tag-inputContainer">
-                <div className="speakerRequestForm__tag-inputContainer__wrapper">
-                  {customTags.map((tag: string, index: number) => (
-                    <div key={index} className="speakerRequestForm__tag-inputContainer__chip">
-                      {tag}
-                      <span className="speakerRequestForm__tag-inputContainer__delete" onClick={() => handleTagDelete(index)}>
-                        <img src="/icons/close.svg" alt="close" height={16} width={16} />
-                      </span>
-                    </div>
-                  ))}
-                  <div className="speakerRequestForm__tag-inputContainer__field">
-                    <input
-                      type="text"
-                      enterKeyHint="done"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      disabled={isReadOnlyMode}
-                      onKeyDown={handleInputKeyDown}
-                      placeholder="Type your tag here"
-                      className="input-element"
-                    />
-                  </div>
-                </div>
-              </div> */}
             </div>
           </div>
         </div>

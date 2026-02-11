@@ -45,6 +45,7 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
     }
   }, [router]);
 
+  console.log('-----', props.guestDetails);
   return (
     <>
       <div className="root">

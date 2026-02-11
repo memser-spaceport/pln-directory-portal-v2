@@ -89,7 +89,7 @@ export const useIrlAnalytics = () => {
     IRL_GUEST_LIST_REGISTER_TODAY_CLICKED: 'irl-guest-list-register-today-clicked',
     IRL_GUEST_LIST_VIEW_PAST_ATTENDEES_CLICKED: 'irl-guest-list-view-past-attendees-clicked',
     IRL_EMPTY_GUEST_LIST_IM_GOING_CLICK: 'irl-empty-guest-list-im-going-click',
-    IRL_SPEAKER_REQUEST_BTN_CLICK: 'irl-speaker-request-btn-click',
+    IRL_BE_A_SPEAKER_BTN_CLICK: 'irl-be-a-speaker-btn-click',
     IRL_SPEAKER_REQUEST_FORM_CLOSE_BTN_CLICK: 'irl-speaker-request-form-close-btn-click',
     IRL_SPEAKER_REQUEST_FORM_SUBMIT_BTN_CLICK: 'irl-speaker-request-form-submit-btn-click',
 
@@ -145,26 +145,29 @@ export const useIrlAnalytics = () => {
     }
   };
 
-  const trackSpeakerRequestBtnClicked = (location: any) => {
+  const trackBeSpeakerBtnClicked = (location: any, userInfo: any) => {
     const params = {
       locationUid: location?.uid,
       locationName: location?.name,
+      userInfo: userInfo,
     };
-    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SPEAKER_REQUEST_BTN_CLICK, { ...params });
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_BE_A_SPEAKER_BTN_CLICK, { ...params });
   };
   
-  const trackSpeakerRequestFormCloseBtnClicked = (location: any) => {
+  const trackSpeakerRequestFormCloseBtnClicked = (location: any, userInfo: any) => {
     const params = {
       locationUid: location?.uid,
       locationName: location?.name,
+      userInfo: userInfo,
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_SPEAKER_REQUEST_FORM_CLOSE_BTN_CLICK, { ...params });
   };
   
-  const trackSpeakerRequestFormSubmitBtnClicked = (location: any) => {
+  const trackSpeakerRequestFormSubmitBtnClicked = (location: any, userInfo: any) => {
     const params = {
       locationUid: location?.uid,
       locationName: location?.name,
+      userInfo: userInfo,
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_SPEAKER_REQUEST_FORM_SUBMIT_BTN_CLICK, { ...params });
   };
@@ -914,7 +917,7 @@ export const useIrlAnalytics = () => {
     trackAdditionalResourcesClicked,
     irlGuestDetailPrivacySettingClick,
     irlGuestDetailOHGuidelineClick,
-    trackSpeakerRequestBtnClicked,
+    trackBeSpeakerBtnClicked,
     trackSpeakerRequestFormCloseBtnClicked,
     trackSpeakerRequestFormSubmitBtnClicked,
     irlGuestDetailEditBtnClick,

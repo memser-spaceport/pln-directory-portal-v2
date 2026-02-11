@@ -43,7 +43,7 @@
     gap: 0px;
     z-index: 0;
   }
-  .irlGatheings__huskyIntegration {
+  .irlGatheings__huskyIntegration, .irlGatheings__speaker {
     max-width: 900px;
     margin-top: 20px;
     overflow: unset;
@@ -97,7 +97,7 @@
     gap: unset;
     z-index: 0;
   }
-  .irlGatheings__huskyIntegration {
+  .irlGatheings__huskyIntegration, .irlGatheings__speaker {
     width: 900px !important;
     margin-top: 20px;
   }

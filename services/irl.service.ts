@@ -330,3 +330,52 @@ export const deleteEventLocation = async (locationId: string, eventId: string, a
 
   return await response.json();
 };
+
+export const submitSpeakerRequest = async (payload: any, authToken: string) => {
+  console.log('payload', JSON.stringify(payload));
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/internals/irl/speaker-requests`,
+    {
+      method: 'POST',
+      cache: 'no-store',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+    }
+  );
+
+  console.log('response----------', response);
+  if (!response?.ok) {
+    return { error: response };
+  }
+
+  return { data: response };
+};
+
+export const getSpeakerRequestStatus = async (locationId: string, memberUid: string, authToken: string) => {
+  try {
+    const response = await fetch(
+      `${process.env.DIRECTORY_API_URL}/v1/internals/irl/speaker-requests?locationId=${locationId}&memberUid=${memberUid}`,
+      {
+        method: 'GET',
+        cache: 'no-store',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+      }
+    );
+
+    if (!response?.ok) {
+      return { isError: true };
+    }
+
+    const data = await response.json();
+    return { data };
+  } catch (error) {
+    console.error('Error fetching speaker request status:', error);
+    return { isError: true };
+  }
+};

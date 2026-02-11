@@ -16,8 +16,6 @@ import PresenceRequestSuccess from './presence-request-success';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { getAccessLevel } from '@/utils/auth.utils';
 import Link from 'next/link';
-import SpeakerButton from './speaker-button';
-import SpeakerRequestForm from './speaker-request-form';
 import { IrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatheringModal';
 import { PushNotification, IrlGatheringMetadata } from '@/types/push-notifications.types';
 interface IFollowSectionProps {
@@ -585,9 +583,6 @@ const FollowSection = (props: IFollowSectionProps) => {
                 </div>
               </div>
             )}
-            <SpeakerButton
-              eventLocationSummary={location}
-            />
 
             {/* IRL Gathering Modal Button */}
             {canShowImGoingButton && (

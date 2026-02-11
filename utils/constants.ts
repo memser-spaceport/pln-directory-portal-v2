@@ -88,6 +88,7 @@ export const EVENTS = {
   UPDATE_OFFICE_HOURS: 'update-office-hours',
   OPEN_IAM_GOING_POPUP: 'open-iam-going-popup',
   OPEN_SPEAKER_REQUEST_POPUP: 'open-speaker-request-popup',
+  SPEAKER_REQUEST_SUBMITTED: 'speaker-request-submitted',
   UPDATE_IRL_LOCATION_FOLLOWERS: 'update-irl-location-followers',
   RESET_ASK_FORM_VALUES: 'reset-ask-form',
   MARK_MY_PRESENCE_SUBMIT_SUCCESS_POPUP: 'open-mark-my-presence-success',

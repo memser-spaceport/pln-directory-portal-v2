@@ -167,18 +167,29 @@ export const activitiesData: ActivitiesData = {
       id: 'construct-alignment-asset-case-study',
       category: 'Knowledge Sharing',
       activity: 'Construct an Alignment Asset Case Study',
-      networkValue: 'Write a case study that shows how your participation in the Alignment Asset has led to meaningful outcomes for you and the broader Protocol Labs network.',
-      points: '500+',
+      networkValue: 'Write a case study highlighting how your participation in PLAA drove meaningful outcomes for you and the Protocol Labs network.',
+      points: '250+',
       popupContent: {
         title: 'Construct an Alignment Asset Case Study',
-        description: 'Write a case study highlighting how your participation in PLAA created meaningful, measurable outcomes for you and the Protocol Labs network. Describe  the incentivized activity, your actions, and the impact achieved. Must meet PL editorial standards and receive final approval from the Polaris Marketing team in order to be published and eligible for rewards.',
-        submissionNote: 'Include a project description, target audience, success criteria, timeline, point budget, distribution method, point validity period, and program manager.',
+        description: `Write a case study highlighting how your participation in PLAA drove meaningful outcomes for you and the Protocol Labs network. Describe the incentivized activity, your actions, and why it mattered. Focus on the real, measurable impacts. Your case study should clearly show how PLAA participation translates into measurable value for the network, not just individual contributions.
+
+To submit an idea for a case study, start by completing this form and selecting the appropriate activity from the drop-down list. Once approved, a PLAA Working Group member will reach out via email. Draft your case study and work with the approver to incorporate feedback until final approval. After approval, you must opt in for the case study to be included in the internal content library. Any case study that is later published in future posts or formats beyond the internal library will collect additional points.
+
+Only approved case studies that are opted into the internal content library are eligible to receive rewards. If a case study reaches the second Impact Tier, the author will collect additional points on top of the rewards from the previous tier.`,
+        links: [
+          { text: 'this form', url: 'https://forms.gle/zUQg2jUBYsWivk5t5' }
+        ],
         pointsAwarded: {
           title: 'Points Awarded:',
           items: [
-            { label: 'Tier 1: Contributor — 500 points', description: "Highlights a focused contribution through the PL Alignment Asset that led to a clear, practical outcome aligned with your organization's goals and OKRs." },
-            { label: 'Tier 2: Builder — 1,000 points', description: '   Showcases leadership in driving a major initiative or strategic improvement with measurable impact across multiple teams in the network.' },
-            { label: 'Tier 3: Transformer — 3,000 points' , description: '   Documents a transformative, network-wide impact that led to foundational changes in how the Protocol Labs network operates.'}
+            { 
+              label: 'Tier 1: Internal Case Study — 250 points', 
+              description: "Recognizes an approved contribution that is documented as a case study and finalized within the internal content library, highlighting a clear outcome aligned with your organization’s goals and OKRs." 
+            },
+            { 
+              label: 'Tier 2: Published Case Study — 500 points', 
+              description: 'Awarded for an approved case study that is published in future posts across various formats beyond the internal content library, showcasing transferable insights, key learnings, and impact relevant to the broader ecosystem' 
+            }
           ]
         }
       },
@@ -315,10 +326,10 @@ export const activitiesData: ActivitiesData = {
         pointsAwarded: {
           title: 'Points Awarded:',
           items: [
-            { label: 'Basic Introduction', value: '300 points for a verified introduction between two parties with no prior contact.' },
-            { label: 'High-Value Introduction', value: '500 points for introductions that lead to confirmed collaboration, partnership, or direct network contribution.' },
-            { label: 'Tiered Bonus (Optional)', value: '+300 points for every 5 successful introductions.' },
-            { label: 'Quality Rule', value: 'After 3 unsuccessful or unverified introductions, the account is paused until existing leads are confirmed or resolved.' }
+            { label: 'Basic Introduction', value: '300 points for a verified introduction between two parties with no prior contact.', boldLabel: false },
+            { label: 'High-Value Introduction', value: '500 points for introductions that lead to confirmed collaboration, partnership, or direct network contribution.', boldLabel: false },
+            { label: 'Tiered Bonus (Optional)', value: '+300 points for every 5 successful introductions.', boldLabel: false },
+            { label: 'Quality Rule', value: 'After 3 unsuccessful or unverified introductions, the account is paused until existing leads are confirmed or resolved.', boldLabel: false }
           ]
         }
       }
@@ -327,40 +338,36 @@ export const activitiesData: ActivitiesData = {
       id: 'help-organize-event',
       category: 'Programs',
       activity: 'Help Organize an Event',
-      networkValue: 'Organize, host, or speak at curated events that deliver real value to the Protocol Labs community.',
+      networkValue: 'Host or speak at a curated activity or event that deliver real value to the Protocol Labs community.',
       points: '50+',
       popupContent: {
         title: 'Help Organize an Event',
-        description: `Organize, host, or speak at a curated activity or event designed to deliver real value to the Protocol Labs community. Events must be run independently without direct PL sponsorship, listed in the "Eligible Events" section of Luma, and events@plrs.xyz must be added as an "Event Manager" in Luma so registration and attendance data can be verified.`,
+        description: `Host or speak at a curated activity or event catered to Protocol Labs participants to aid with an array of topics, ranging from company formation, dedicated development, cross-network collaboration, etc. Events should be intentionally designed, independently run without direct PL sponsorship in the form of direct compensation for time or labor, and focused on delivering real value to the Protocol Labs community.
+
+For Hosts, the event must be created and published in Luma and included on a live, discoverable calendar or listing. You must add events@plrs.xyz as an Event Manager in Luma so registration and attendance data can be accessed, and the Luma "check-in" feature must be enabled to verify attendee participation. The event must also be submitted to the PL events directory by adding it to https://directory.plnetwork.io/events/irl via https://irl.plnetwork.io/events/, with your profile clearly listed under the Host section of the event.
+
+For Speakers, eligibility is contingent on the event being submitted and validated by a Host through the process above. To receive points, your profile must be listed as a Speaker on the event page in https://directory.plnetwork.io/events/irl (I'm Going → Select Event → Role: Speaker).`,
+        submissionNote: 'Points are awarded only once all prerequisites are met and attendance data can be verified.',
+        links: [
+          { text: 'https://directory.plnetwork.io/events/irl', url: 'https://directory.plnetwork.io/events/irl' },
+          { text: 'https://irl.plnetwork.io/events/', url: 'https://irl.plnetwork.io/events/' },
+          { text: 'https://directory.plnetwork.io/events/irl', url: 'https://directory.plnetwork.io/events/irl' }
+        ],
         pointsAwarded: {
           title: 'Points Awarded:',
           items: [
-            { label: 'Verified event with 5-10 attendees', value: '50 points', boldLabel: false },
-            { label: 'Verified event with 11-20 attendees', value: '150 points', boldLabel: false },
-            { label: 'Verified event with 21-50 attendees', value: '250 points', boldLabel: false },
-            { label: 'Verified event with 50-100 attendees', value: '500 points', boldLabel: false },
-            { label: 'Verified event with 100+ attendees', value: '1,000 points', boldLabel: false }
+            { label: 'Verified event with 5–10 attendees', value: '50 points' },
+            { label: 'Verified event with 11–20 attendees', value: '150 points' },
+            { label: 'Verified event with 21–50 attendees', value: '250 points' },
+            { label: 'Verified event with 50–100 attendees', value: '500 points' },
+            { label: 'Verified event with 100+ attendees', value: '1,000 points' }
           ]
         },
         categories: [
           {
-            title: 'Bonus Points:',
-            description: ' Submit a post-event satisfaction survey and share results for additional points based upon number of responses:',
-            tiers: [
-              { label: 'Minimum 5 responses', points: '50 points' },
-              { label: 'Minimum 10 responses', points: '100 points' },
-              { label: 'Minimum 25 responses', points: '200 points' },
-              { label: 'Minimum 50 responses', points: '300 points' },
-              { label: 'Minimum 75 responses', points: '400 points' },
-              { label: 'More than 100 responses', points: '500 points' }
-            ]
-          },
-          {
             title: 'Points Distribution:',
-            tiers: [
-              { label: 'Default', points: 'Points are evenly distributed across all organizers, hosts, and speakers.' },
-              { label: 'Optional', points: 'The total points pool may be distributed based on individual levels of involvement, provided a clear breakdown of roles and contributions is submitted.' }
-            ]
+            description: 'Point values apply uniformly across all eligible roles. Each individual may only receive points once, regardless of role.',
+            tiers: []
           }
         ]
       }

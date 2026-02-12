@@ -249,6 +249,7 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
       // TODO: Implement API call to submit speaker request
       const response = await submitSpeakerRequest({
         memberUid: userInfo?.uid,
+        locationUid: eventLocationSummary?.uid,
         description: speakerDescription,
         tags: selectedTopics.map(topic => topic.name),
       }, authToken || '');

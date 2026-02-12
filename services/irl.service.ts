@@ -357,14 +357,16 @@ export const submitSpeakerRequest = async (payload: any, authToken: string) => {
 export const getSpeakerRequestStatus = async (locationId: string, memberUid: string, authToken: string) => {
   try {
     const response = await fetch(
-      `${process.env.DIRECTORY_API_URL}/v1/internals/irl/speaker-requests?locationId=${locationId}&memberUid=${memberUid}`,
+      `${process.env.DIRECTORY_API_URL}/v1/internals/irl/locations/${locationId}/members/${memberUid}/speaker-requests`,
       {
         method: 'GET',
         cache: 'no-store',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
+          'ngrok-skip-browser-warning': 'true',
         },
+
       }
     );
 

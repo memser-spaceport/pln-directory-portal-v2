@@ -23,7 +23,7 @@ import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
 import { getAccessLevel } from '@/utils/auth.utils';
 import clsx from 'clsx';
-import { isMemberAvailableToConnect } from '@/utils/member.utils';
+import { isDemodaySignUpSource, isMemberAvailableToConnect } from '@/utils/member.utils';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useQuery } from '@tanstack/react-query';
@@ -97,7 +97,7 @@ const MemberDetails = ({ params }: { params: any }) => {
   });
   const isAvailableToConnect = isMemberAvailableToConnect(member);
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
-  const isNewInvestor = accessLevel === 'base' && isOwner && member?.signUpSource?.startsWith('demoday-');
+  const isNewInvestor = accessLevel === 'base' && isOwner && isDemodaySignUpSource(member?.signUpSource);
 
   // Scroll to top when member data is loaded or member ID changes
   useEffect(() => {
@@ -175,7 +175,7 @@ const MemberDetails = ({ params }: { params: any }) => {
 
         return (
           <>
-            <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} isNewInvestor={isNewInvestor} />
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {showInvestorProfile && (
               <InvestorProfileDetails

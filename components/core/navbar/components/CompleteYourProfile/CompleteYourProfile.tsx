@@ -5,6 +5,7 @@ import React from 'react';
 import { IUserInfo } from '@/types/shared.types';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { isDemodaySignUpSource } from '@/utils/member.utils';
 
 import s from './CompleteYourProfile.module.scss';
 
@@ -27,7 +28,7 @@ export const CompleteYourProfile = ({ userInfo }: Props) => {
     return null;
   }
 
-  const message = MESSAGES[userInfo.accessLevel];
+  const message = isDemodaySignUpSource(userInfo.signUpSource) ? MESSAGES.L1 : MESSAGES[userInfo.accessLevel];
 
   if (!message) {
     return null;

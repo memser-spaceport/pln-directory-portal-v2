@@ -9,12 +9,10 @@ interface SpeakerSectionProps {
 }
 
 const SpeakerSection = ({ eventLocationSummary, userInfo, currentGuest }: SpeakerSectionProps) => {
-    console.log('userInfo', userInfo);
-    console.log('currentGuest', currentGuest);
   return (
     <div className="speaker-section">
         <div className="speaker-section__left">
-            <img src="/icons/irl/speaker-section-icon.svg" alt="Speaker" />
+            <img className="speaker-section__icon" src="/icons/irl/speaker-section-icon.svg" alt="Speaker" />
             Contribute as a speaker and connect with our community at an upcoming event
         </div>
         <div className="speaker-section__right">
@@ -30,7 +28,6 @@ const SpeakerSection = ({ eventLocationSummary, userInfo, currentGuest }: Speake
           flex-direction: column;
           gap: 10px;
           box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.25);
-          padding-bottom: 10px;
         }
 
         .speaker-section__left {
@@ -42,10 +39,22 @@ const SpeakerSection = ({ eventLocationSummary, userInfo, currentGuest }: Speake
           line-height: 20px;
           color: rgba(15, 23, 42, 1);
           letter-spacing: 1%;
+          max-width: 480px;
         }
 
-        .speaker-section__right {
-          margin-right: 20px;
+        @media (min-width: 365px) {
+           .speaker-section__icon {
+              content: url("/icons/irl/speaker-section-icon-mobile.svg");
+           }
+
+           .speaker-section {
+           padding: 10px;
+           }
+
+           .speaker-section__right {
+            display: flex;
+            justify-content: flex-end;
+           }
         }
 
         @media (min-width: 768px) {
@@ -55,7 +64,15 @@ const SpeakerSection = ({ eventLocationSummary, userInfo, currentGuest }: Speake
             align-items: center;
             border-radius: 8px;
             gap: 0;
-            padding-bottom: 0;
+            padding: 0;
+          }
+
+          .speaker-section__right {
+            margin-right: 20px;
+          }
+
+          .speaker-section__icon {
+            content: url("/icons/irl/speaker-section-icon.svg");
           }
         }
 

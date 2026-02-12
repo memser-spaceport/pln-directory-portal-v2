@@ -37,6 +37,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
 import { CompleteYourProfile } from '@/components/page/member-details/CompleteYourProfile';
+import { dispatchEditSection } from '@/hooks/useEditSectionParam';
 
 const shouldShowInvestorProfileForThirdParty = (
   member: IMember,
@@ -117,35 +118,30 @@ const MemberDetails = ({ params }: { params: any }) => {
     router.push(`${window.location.pathname}${window.location.search}#login`);
   };
 
-  const handleOnboardingAction = useCallback(
-    (actionType: string) => {
-      const ACTION_SECTION_MAP: Record<string, string> = {
-        update_investor_profile: 'investor-profile',
-        update_contact_details: 'contact-details',
-        add_bio: 'profile',
-        add_additional_teams: 'teams',
-        confirm_identity: 'one-click-verification',
-      };
+  const handleOnboardingAction = useCallback((actionType: string) => {
+    const ACTION_SECTION_MAP: Record<string, string> = {
+      update_investor_profile: 'investor-profile',
+      update_contact_details: 'contact-details',
+      add_bio: 'profile',
+      add_additional_teams: 'teams',
+      confirm_identity: 'one-click-verification',
+    };
 
-      if (actionType === 'manage_notifications') {
-        window.open('/settings', '_blank');
-        return;
-      }
+    if (actionType === 'manage_notifications') {
+      window.open('/settings', '_blank');
+      return;
+    }
 
-      const sectionId = ACTION_SECTION_MAP[actionType];
-      if (!sectionId) return;
+    const sectionId = ACTION_SECTION_MAP[actionType];
+    if (!sectionId) return;
 
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('editSection', sectionId);
-      router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
-      const el = document.getElementById(sectionId);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    },
-    [searchParams, router],
-  );
+    dispatchEditSection(sectionId);
+  }, []);
 
   // Show AccountCreatedView if user is not logged in and has prefillEmail and returnTo params
   if (shouldShowAccountCreated) {

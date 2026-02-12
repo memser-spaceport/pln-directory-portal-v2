@@ -11,7 +11,7 @@ import { MemberDetailsSection } from '@/components/page/member-details/building-
 import s from './ContactDetails.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
-import { useEditSectionParam } from '@/hooks/useEditSectionParam';
+import { useEditSectionListener } from '@/hooks/useEditSectionParam';
 
 interface Props {
   member: IMember;
@@ -23,7 +23,7 @@ export const ContactDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [editView, setEditView] = useState(false);
   const { onEditContactDetailsClicked } = useMemberAnalytics();
   useMobileNavVisibility(editView);
-  useEditSectionParam('contact-details', () => setEditView(true));
+  useEditSectionListener('contact-details', () => setEditView(true));
 
   return (
     <MemberDetailsSection editView={editView} classes={{ root: s.root }} id="contact-details">

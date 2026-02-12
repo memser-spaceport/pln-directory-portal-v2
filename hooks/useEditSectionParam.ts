@@ -1,23 +1,20 @@
-import { useEffect, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-export function useEditSectionParam(sectionId: string, onEdit: () => void) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const triggered = useRef(false);
+const EDIT_SECTION_EVENT = 'open-edit-section';
 
+export function dispatchEditSection(sectionId: string) {
+  window.dispatchEvent(new CustomEvent(EDIT_SECTION_EVENT, { detail: sectionId }));
+}
+
+export function useEditSectionListener(sectionId: string, onEdit: () => void) {
   useEffect(() => {
-    if (triggered.current) return;
-
-    const editSection = searchParams.get('editSection');
-    if (editSection === sectionId) {
-      triggered.current = true;
-      onEdit();
-
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('editSection');
-      const newSearch = params.toString();
-      router.replace(`${window.location.pathname}${newSearch ? `?${newSearch}` : ''}`, { scroll: false });
+    function handler(e: Event) {
+      if ((e as CustomEvent).detail === sectionId) {
+        onEdit();
+      }
     }
-  }, [searchParams, sectionId, onEdit, router]);
+
+    window.addEventListener(EDIT_SECTION_EVENT, handler);
+    return () => window.removeEventListener(EDIT_SECTION_EVENT, handler);
+  }, [sectionId, onEdit]);
 }

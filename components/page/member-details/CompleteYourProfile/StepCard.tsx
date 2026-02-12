@@ -9,6 +9,7 @@ interface StepCardProps {
   step: ProfileOnboardingStep;
   variant: 'done' | 'active' | 'pending';
   onActionClick?: (actionType: string) => void;
+  recentlyCompletedActions?: Set<string>;
 }
 
 function RadioCircleIcon({ color }: { color: string }) {
@@ -31,9 +32,11 @@ function StepIcon({ variant }: { variant: 'done' | 'active' | 'pending' }) {
   }
 }
 
-export function StepCard({ step, variant, onActionClick }: StepCardProps) {
+export function StepCard({ step, variant, onActionClick, recentlyCompletedActions }: StepCardProps) {
+  const cardHasCompletion = recentlyCompletedActions && step.actions.some((a) => recentlyCompletedActions.has(a.type));
+
   return (
-    <div className={clsx(s.stepCard, { [s.stepCardActive]: variant === 'active' })}>
+    <div className={clsx(s.stepCard, { [s.stepCardActive]: variant === 'active', [s.stepCardCompleted]: cardHasCompletion })}>
       <div className={s.stepHeader}>
         <StepIcon variant={variant} />
         <span className={clsx(s.stepLabel, { [s.stepLabelActive]: variant === 'active' })}>{getStepLabel(step.type)}</span>
@@ -42,10 +45,13 @@ export function StepCard({ step, variant, onActionClick }: StepCardProps) {
         {step.actions.map((action) => {
           const isDone = action.state === 'done';
           const clickable = isActionClickable(action.type) && onActionClick;
+          const justCompleted = recentlyCompletedActions?.has(action.type);
 
           return (
             <div key={action.type} className={s.actionItem}>
-              <CheckIcon style={{ color: isDone ? '#16a34a' : '#94a3b8', width: 12, height: 12, flexShrink: 0 }} />
+              <span className={clsx({ [s.checkIconPop]: justCompleted })}>
+                <CheckIcon style={{ color: isDone ? '#16a34a' : '#94a3b8', width: 12, height: 12, flexShrink: 0 }} />
+              </span>
               {clickable ? (
                 <button
                   type="button"

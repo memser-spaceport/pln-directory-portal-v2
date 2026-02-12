@@ -12,7 +12,7 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 
 import s from './InvestorProfileDetails.module.scss';
-import { useEditSectionParam } from '@/hooks/useEditSectionParam';
+import { useEditSectionListener } from '@/hooks/useEditSectionParam';
 
 interface Props {
   member: IMember;
@@ -81,7 +81,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member, isInvesto
   const hasInvestorProfile = !!member?.investorProfile?.type;
 
   useMobileNavVisibility(editView);
-  useEditSectionParam('investor-profile', () => setEditView(true));
+  useEditSectionListener('investor-profile', () => setEditView(true));
 
   // Handle edit mode start
   const handleEditStart = () => {

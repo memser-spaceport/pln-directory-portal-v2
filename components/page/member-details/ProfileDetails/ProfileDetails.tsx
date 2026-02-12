@@ -10,7 +10,7 @@ import { EditProfileForm } from '@/components/page/member-details/ProfileDetails
 import s from './ProfileDetails.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
-import { useEditSectionParam } from '@/hooks/useEditSectionParam';
+import { useEditSectionListener } from '@/hooks/useEditSectionParam';
 
 const BIO_COLLAPSED_HEIGHT = 120;
 
@@ -31,7 +31,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const showIncomplete = !editView && hasMissingRequiredData && isOwner;
   const { onEditProfileDetailsClicked } = useMemberAnalytics();
   useMobileNavVisibility(editView);
-  useEditSectionParam('profile', () => setEditView(true));
+  useEditSectionListener('profile', () => setEditView(true));
   const hasBio = !!member.bio && member.bio.trim() !== '<p><br></p>';
 
   useEffect(() => {

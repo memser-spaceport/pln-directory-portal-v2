@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useProfileOnboardingStatus } from '@/services/members/hooks/useProfileOnboardingStatus';
 import { ProfileOnboardingStep } from '@/services/members/types';
 import { SuccessCircleIcon } from '@/components/icons/SuccessCircleIcon';
@@ -38,6 +38,56 @@ export function CompleteYourProfile({ memberId, onActionClick }: Props) {
     return localStorage.getItem(getCollapseKey(memberId)) === 'true';
   });
 
+  const rootRef = useRef<HTMLDivElement>(null);
+  const prevActionStatesRef = useRef<Map<string, string> | null>(null);
+  const [recentlyCompletedActions, setRecentlyCompletedActions] = useState<Set<string>>(new Set());
+  const clearTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Detect pending → done transitions and trigger scroll + animation
+  useEffect(() => {
+    if (!data) return;
+
+    const currentStates = new Map<string, string>();
+    for (const step of data.steps) {
+      for (const action of step.actions) {
+        currentStates.set(action.type, action.state);
+      }
+    }
+
+    const prev = prevActionStatesRef.current;
+    if (prev) {
+      const newlyDone = new Set<string>();
+      for (const [type, state] of currentStates) {
+        if (state === 'done' && prev.get(type) === 'pending') {
+          newlyDone.add(type);
+        }
+      }
+
+      if (newlyDone.size > 0) {
+        // Expand if collapsed so animation is visible
+        setCollapsed(false);
+
+        // Clear any pending timeout from a previous animation cycle
+        if (clearTimeoutRef.current) {
+          clearTimeout(clearTimeoutRef.current);
+        }
+
+        setRecentlyCompletedActions(newlyDone);
+
+        // Scroll to banner after a brief tick so DOM can update (expand)
+        requestAnimationFrame(() => {
+          rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        clearTimeoutRef.current = setTimeout(() => {
+          setRecentlyCompletedActions(new Set());
+        }, 5500);
+      }
+    }
+
+    prevActionStatesRef.current = currentStates;
+  }, [data]);
+
   useEffect(() => {
     localStorage.setItem(getCollapseKey(memberId), String(collapsed));
   }, [collapsed, memberId]);
@@ -57,7 +107,7 @@ export function CompleteYourProfile({ memberId, onActionClick }: Props) {
 
   if (allDone) {
     return (
-      <div className={s.successRoot}>
+      <div ref={rootRef} className={s.successRoot}>
         <SuccessCircleIcon style={{ color: '#16a34a', width: 24, height: 24, flexShrink: 0 }} />
         <span className={s.successText}>Profile setup complete!</span>
         <button type="button" className={s.headerButton} onClick={toggleCollapsed} style={{ marginLeft: 'auto' }}>
@@ -70,7 +120,7 @@ export function CompleteYourProfile({ memberId, onActionClick }: Props) {
   const firstPendingIndex = steps.findIndex((step) => step.state === 'pending');
 
   return (
-    <div className={s.root}>
+    <div ref={rootRef} className={s.root}>
       <div className={s.header}>
         <div className={s.headerLeft}>
           <span className={s.title}>Complete setting up your profile</span>
@@ -91,6 +141,7 @@ export function CompleteYourProfile({ memberId, onActionClick }: Props) {
               step={step}
               variant={getStepVariant(step, firstPendingIndex, index)}
               onActionClick={onActionClick}
+              recentlyCompletedActions={recentlyCompletedActions}
             />
           ))}
         </div>

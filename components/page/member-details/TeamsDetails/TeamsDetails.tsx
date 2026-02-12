@@ -12,7 +12,7 @@ import { TeamsList } from '@/components/page/member-details/TeamsDetails/compone
 import { EditTeamForm } from '@/components/page/member-details/TeamsDetails/components/EditTeamForm';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
-import { useEditSectionParam } from '@/hooks/useEditSectionParam';
+import { useEditSectionListener } from '@/hooks/useEditSectionParam';
 
 interface Props {
   member: IMember;
@@ -27,7 +27,7 @@ export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
   useMobileNavVisibility(view !== 'view');
-  useEditSectionParam('teams', () => setView('add'));
+  useEditSectionListener('teams', () => setView('add'));
 
   if (!isLoggedIn || (getAccessLevel(userInfo, isLoggedIn) !== 'advanced' && !isOwner)) {
     return null;

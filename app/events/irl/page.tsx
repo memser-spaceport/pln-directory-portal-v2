@@ -131,7 +131,6 @@ export default async function Page({ searchParams }: any) {
 
 const getPageData = async (searchParams: any) => {
   const {userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
-  // console.log('userInfo', userInfo);
   let showTelegram = true;
   let isError = false;
   let isLocationError = false;
@@ -144,7 +143,6 @@ const getPageData = async (searchParams: any) => {
     // Fetch locations data
     const locationDetails = await getAllLocations();
     if (locationDetails?.isError) {
-      console.log('locationDetails error-----', locationDetails);
       return { isError: true };
     }
 
@@ -153,7 +151,6 @@ const getPageData = async (searchParams: any) => {
         (loc: any) => loc.location.split(',')[0].trim() === searchParams.location,
       );
       if (!locationObject) {
-        console.log('locationObject error-----', locationObject);
         return { isLocationError: true };
       }
     }
@@ -182,7 +179,6 @@ const getPageData = async (searchParams: any) => {
     }
 
     if (!eventDetails || !isEventActive || !isEventAvailable) {
-      console.log('eventDetails error-----', eventDetails);
       return { isLocationError: true };
     }
     const eventLocationSummary = { uid, name, flag, description, resources, icon };
@@ -219,16 +215,10 @@ const getPageData = async (searchParams: any) => {
       getFollowersByLocation(uid, authToken),
     ]);
 
-
-    // console.log('events-----', (events as any)?.guests?.[0]);
-
-    // console.log('currentGuestResponse.guests-----', (currentGuestResponse as any)?.guests);
     if (events?.isError) {
-      console.log('events error-----', events);
       return { isError: true };
     }
     if (currentGuestResponse?.isError) {
-      console.log('currentGuestResponse error-----', currentGuestResponse);
       // Don't return error, just log it - currentGuest will be null
     }
     if (followersResponse?.isError) {
@@ -276,7 +266,6 @@ const getPageData = async (searchParams: any) => {
     if (isLoggedIn) {
       const memberPreferencesResponse = await getMemberPreferences(userInfo.uid, authToken);
       if (memberPreferencesResponse.isError) {
-        console.log('memberPreferencesResponse error-----', memberPreferencesResponse);
         return { isError: true };
       }
       showTelegram = memberPreferencesResponse.memberPreferences?.telegram ?? true;
@@ -284,7 +273,6 @@ const getPageData = async (searchParams: any) => {
 
     let topicsAndReasonResponse = await getTopicsAndReasonForUser(uid, userInfo.uid, authToken);
     if (topicsAndReasonResponse?.isError) {
-      console.log('topicsAndReasonResponse error-----', topicsAndReasonResponse);
       topicsAndReasonResponse = [];
     }
 
@@ -305,7 +293,6 @@ const getPageData = async (searchParams: any) => {
       topicsAndReasonResponse,
     };
   } catch (e) {
-    console.log('Error fetching IRL data-----', e);
     return { isError: true };
   }
 };

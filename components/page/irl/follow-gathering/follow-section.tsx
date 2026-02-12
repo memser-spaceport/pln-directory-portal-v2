@@ -252,8 +252,6 @@ const FollowSection = (props: IFollowSectionProps) => {
     isFollowing: followers?.some((follower) => follower.memberUid === userInfo?.uid) ?? false,
   });
 
-  console.log('userInfo', userInfo);
-  console.log(guestDetails.currentGuest, 'guestDetails');
   const getFollowerCountText = () => {
     const count = followProperties.followers.length;
     return `${count} ${count > 1 ? 'members' : 'member'}`;

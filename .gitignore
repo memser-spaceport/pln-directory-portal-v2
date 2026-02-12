@@ -45,3 +45,9 @@ nextjs-rules.mdc
 
 *storybook.log
 storybook-static
+
+#others
+*.log
+CLAUDE.md
+approve-pr.sh
+/docs

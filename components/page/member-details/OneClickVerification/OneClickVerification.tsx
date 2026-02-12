@@ -104,6 +104,7 @@ export const OneClickVerification = ({ userInfo, member }: Props) => {
 
   return (
     <div
+      id="one-click-verification"
       className={clsx(s.root, {
         [s.missingData]: showIncomplete,
       })}

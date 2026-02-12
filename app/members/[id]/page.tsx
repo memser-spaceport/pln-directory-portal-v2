@@ -17,7 +17,7 @@ import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
 import { OfficeHoursDetails } from '@/components/page/member-details/OfficeHoursDetails';
 import { InvestorProfileDetails } from '@/components/page/member-details/InvestorProfileDetails';
 import { BackButton } from '@/components/ui/BackButton';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { BookWithOther } from '@/components/page/member-details/BookWithOther';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
@@ -36,6 +36,7 @@ import Head from 'next/head';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
+import { CompleteYourProfile } from '@/components/page/member-details/CompleteYourProfile';
 
 const shouldShowInvestorProfileForThirdParty = (
   member: IMember,
@@ -116,6 +117,36 @@ const MemberDetails = ({ params }: { params: any }) => {
     router.push(`${window.location.pathname}${window.location.search}#login`);
   };
 
+  const handleOnboardingAction = useCallback(
+    (actionType: string) => {
+      const ACTION_SECTION_MAP: Record<string, string> = {
+        update_investor_profile: 'investor-profile',
+        update_contact_details: 'contact-details',
+        add_bio: 'profile',
+        add_additional_teams: 'teams',
+        confirm_identity: 'one-click-verification',
+      };
+
+      if (actionType === 'manage_notifications') {
+        window.open('/settings', '_blank');
+        return;
+      }
+
+      const sectionId = ACTION_SECTION_MAP[actionType];
+      if (!sectionId) return;
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('editSection', sectionId);
+      router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
+    [searchParams, router],
+  );
+
   // Show AccountCreatedView if user is not logged in and has prefillEmail and returnTo params
   if (shouldShowAccountCreated) {
     return <AccountCreatedView onLoginClick={handleLoginClick} />;
@@ -149,6 +180,7 @@ const MemberDetails = ({ params }: { params: any }) => {
 
         return (
           <>
+            {isOwner && <CompleteYourProfile memberId={memberId} onActionClick={handleOnboardingAction} />}
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {showInvestorProfile && (
               <InvestorProfileDetails
@@ -175,6 +207,7 @@ const MemberDetails = ({ params }: { params: any }) => {
 
         return (
           <>
+            {isOwner && <CompleteYourProfile memberId={memberId} onActionClick={handleOnboardingAction} />}
             <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {showInvestorProfile && (

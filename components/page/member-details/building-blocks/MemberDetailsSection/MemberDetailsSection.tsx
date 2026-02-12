@@ -4,6 +4,7 @@ import { PropsWithChildren } from 'react';
 import s from './MemberDetailsSection.module.scss';
 
 interface Props {
+  id?: string;
   editView?: boolean;
   missingData?: boolean;
   missingDataAlert?: boolean;
@@ -15,10 +16,11 @@ interface Props {
 }
 
 export function MemberDetailsSection(props: PropsWithChildren<Props>) {
-  const { children, editView, missingData, missingDataAlert, classes } = props;
+  const { children, id, editView, missingData, missingDataAlert, classes } = props;
 
   return (
     <div
+      id={id}
       className={clsx(s.root, classes?.root, {
         [s.editView]: editView,
         [s.missingData]: missingData,

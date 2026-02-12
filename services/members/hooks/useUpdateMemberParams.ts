@@ -81,6 +81,10 @@ export function useUpdateMemberParams() {
       queryClient.invalidateQueries({
         queryKey: [MembersQueryKeys.GET_MEMBER_REPOSITORIES],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: [MembersQueryKeys.GET_PROFILE_ONBOARDING_STATUS],
+      });
     },
   });
 }

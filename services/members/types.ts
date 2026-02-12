@@ -28,6 +28,22 @@ export type MemberProfileStatus = {
   completeness: number;
 };
 
+export type ProfileOnboardingAction = {
+  type: string;
+  state: 'done' | 'pending';
+};
+
+export type ProfileOnboardingStep = {
+  type: string;
+  state: 'done' | 'pending';
+  actions: ProfileOnboardingAction[];
+};
+
+export type ProfileOnboardingStatus = {
+  type: string;
+  steps: ProfileOnboardingStep[];
+};
+
 /**
  * @deprecated Use FilterOption from @/services/filters/commonTypes instead
  * Kept for backward compatibility

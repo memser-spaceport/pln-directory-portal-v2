@@ -42,6 +42,10 @@ export function useUpdateMemberNotificationsSettings() {
       queryClient.invalidateQueries({
         queryKey: [MembersQueryKeys.GET_MEMBER],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: [MembersQueryKeys.GET_PROFILE_ONBOARDING_STATUS],
+      });
     },
   });
 }

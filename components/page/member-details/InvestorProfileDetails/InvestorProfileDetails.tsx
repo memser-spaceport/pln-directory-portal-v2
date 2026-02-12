@@ -12,6 +12,7 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 
 import s from './InvestorProfileDetails.module.scss';
+import { useEditSectionParam } from '@/hooks/useEditSectionParam';
 
 interface Props {
   member: IMember;
@@ -80,6 +81,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member, isInvesto
   const hasInvestorProfile = !!member?.investorProfile?.type;
 
   useMobileNavVisibility(editView);
+  useEditSectionParam('investor-profile', () => setEditView(true));
 
   // Handle edit mode start
   const handleEditStart = () => {
@@ -123,6 +125,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member, isInvesto
 
   return (
     <MemberDetailsSection
+      id="investor-profile"
       editView={editView}
       missingData={showIncomplete}
       classes={{ root: s.root, editView: s.editView }}

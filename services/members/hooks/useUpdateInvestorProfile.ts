@@ -45,6 +45,10 @@ export function useUpdateInvestorProfile() {
       queryClient.invalidateQueries({
         queryKey: [MembersQueryKeys.GET_MEMBER_INVESTOR_SETTINGS],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: [MembersQueryKeys.GET_PROFILE_ONBOARDING_STATUS],
+      });
     },
   });
 }

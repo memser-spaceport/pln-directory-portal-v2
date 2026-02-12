@@ -19,6 +19,7 @@ import { useUpdateMemberInvestorSettings } from '@/services/members/hooks/useUpd
 import { toast } from '@/components/core/ToastContainer';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { isInvestor as isInvestorAccess } from '@/utils/isInvestor';
+import { isDemodaySignUpSource } from '@/utils/member.utils';
 
 interface Props {
   isLoggedIn: boolean;
@@ -118,7 +119,7 @@ export const InvestorProfileView = ({
       {showIncomplete &&
         (isInvestor === null &&
         !isInvestorAccess(member?.accessLevel || '') &&
-        !signUpSource?.startsWith('demoday-') ? (
+        !isDemodaySignUpSource(signUpSource) ? (
           <div className={s.incompleteWarning}>
             <div className={s.warningContent}>
               <div className={s.warningIcon}>

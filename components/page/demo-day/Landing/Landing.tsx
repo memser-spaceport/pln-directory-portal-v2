@@ -145,7 +145,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
       >
         <div>
           <div className={s.root}>
-            {!userInfo && <LoginBtn className={clsx(s.btn, s.secondaryButton)}>Already approved? Log in</LoginBtn>}
+            {!userInfo && <LoginBtn className={clsx(s.btn, s.secondaryButton)}>Already applied? Log in</LoginBtn>}
             <button className={clsx(s.btn, s.primaryButton)} onClick={handleApplyClick} disabled={data?.isPending}>
               {data?.isPending ? (
                 <>

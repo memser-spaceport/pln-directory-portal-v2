@@ -36,7 +36,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
     id: 'Celebrate 1 Year of PLAA — Collect Bonus Points',
     type: 'bonus',
     title: 'Celebrate 1 Year of PLAA — Collect Bonus Points  🎉',
-    subtitle: "",
+    subtitle: "Check your email or the Telegram post for details.",
     date: '',
     buttons: [
       // { label: '→ Sign up to share your perspective', link: 'https://forms.gle/4fAcyboCdVLCLBxi7', variant: 'primary' },
@@ -184,8 +184,12 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
                               item.subtitle
                             )}
                           </span>
-                          <span className={styles.separator} />
-                          <span>{item.date}</span>
+                          {item.date && (
+                            <>
+                              <span className={styles.separator} />
+                              <span>{item.date}</span>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>

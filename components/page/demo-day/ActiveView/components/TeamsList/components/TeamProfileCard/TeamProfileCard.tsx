@@ -16,7 +16,7 @@ import { ReferCompanyModal } from '../ReferCompanyModal';
 import { GiveFeedbackModal } from '@/components/page/demo-day/GiveFeedbackModal';
 import { clsx } from 'clsx';
 import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
-import { ChartIcon } from '@/components/icons';
+import { BookmarkIcon, BookmarkIconFilled, ChartIcon } from '@/components/icons';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
@@ -353,6 +353,23 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
           {/*    <ChartIcon /> Demo Day Analytics*/}
           {/*  </Link>*/}
           {/*)}*/}
+          <button
+            className={s.drawerEditButton}
+            onClick={(e) => handleInterestCompanyClick(e, 'like')}
+            disabled={expressInterest.isPending || !team.uid}
+          >
+            {team.liked ? (
+              <>
+                <BookmarkIconFilled />
+                <span>Unsave</span>
+              </>
+            ) : (
+              <>
+                <BookmarkIcon />
+                <span>Save</span>
+              </>
+            )}
+          </button>
           <div className={s.editButtonContainer}>
             <div className={s.drawerEditButton}>
               {canEdit ? <EditIcon /> : <EyeIcon />}
@@ -417,22 +434,6 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
           disabled={!team.uid}
         >
           📝 Give Feedback
-        </button>
-        <button
-          className={s.secondaryButton}
-          onClick={(e) => handleInterestCompanyClick(e, 'like')}
-          disabled={expressInterest.isPending || !team.uid}
-        >
-          {team.liked ? (
-            <>
-              <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Liked Company
-              <CheckIcon />
-            </>
-          ) : (
-            <>
-              <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
-            </>
-          )}
         </button>
         <button
           className={s.secondaryButton}

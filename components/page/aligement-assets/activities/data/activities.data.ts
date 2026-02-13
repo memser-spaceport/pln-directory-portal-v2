@@ -97,26 +97,28 @@ export const activitiesData: ActivitiesData = {
       isAutoTracked: true,
       popupContent: {
         title: 'Create a Replicable Playbook or Template',
-        description: 'Create or share a reusable step-by-step playbook or Google Doc template (e.g., onboarding guides, community moderation frameworks, grant templates).',
-        submissionNote: 'Must be based on proven practices and exclude confidential or personal information. Publish the your playbook or template on Protosphere to be eligible. Refer to this Example.',
+        description: 'Create or share a reusable step-by-step playbook or Google Doc template (e.g., onboarding guides, community moderation frameworks, grant templates, etc.).',
+        submissionNote: 'Must be based on proven practices and exclude confidential or personal information. Publish your playbook or template as a post on Protosphere to be eligible. Only published resources are eligible for validation. Please see this article on Offer Letters as an example.',
         links: [
           { text: 'Protosphere', url: 'https://protosphere.plnetwork.io/' },
-          { text: 'Example', url: 'https://protosphere.plnetwork.io/posts/Offer-Letter-Template-(US-Employee)-cm24z0ud800dopnd769i8g6xw' }
+          { text: 'Offer Letters', url: 'https://protosphere.plnetwork.io/posts/Offer-Letter-Template-(US-Employee)-cm24z0ud800dopnd769i8g6xw' }
         ],
         pointsAwarded: {
           title: 'Points Awarded:',
           items: [
-            { label: 'Base Reward', value: '500 points for executing & documenting the activity' },
+            { label: 'Base Reward', value: `300 points for posting a "Playbook" or "Template" article` },
             {
               label: 'Impact Bonus',
-              value: '(based on total savings achieved):',
+              value: 'Participants may collect additional bonus points, on top of the base reward, if their submitted article meets various engagement thresholds (90 day window beginning with the date of publication).',
+              italicValue: true,
+              valueOnNewLine: true,
               subItems: [
-                { label: 'Tier 1 (<9.99% savings)', value: '+300 points' },
-                { label: 'Tier 2 (10–30% savings)', value: '+700 points' },
-                { label: 'Tier 3 (>30% savings)', value: '+1,200 points' }
+                { label: 'Tier 1 (10-30 views of published resource)', value: '200 points' },
+                { label: 'Tier 2 (31-50 views)', value: '500 points' },
+                { label: 'Tier 3 (51+ views)', value: '900 points' }
               ]
             },
-            { label: 'Collaborators', value: 'Points are split equally among listed contributors' }
+            // { label: 'Collaborators', value: 'Points are split equally among listed contributors' }
           ]
         }
       }
@@ -142,26 +144,6 @@ export const activitiesData: ActivitiesData = {
         },
         additionalNote: 'Each session must run for at least 30 minutes.'
       }
-    },
-    {
-      id: 'design-incentive-experiment',
-      category: 'Knowledge Sharing',
-      activity: 'Design a Custom Incentive Experiment',
-      networkValue: 'Share expertise and insights across the network.',
-      points: 'TBC',
-      popupContent: {
-        title: 'Design a Custom Incentive Experiment',
-        description: 'Propose a short-term incentivized initiative—such as a research study, contributor challenge, pilot test, or community-based campaign—with clear goals, measurable outcomes, and a defined participant group. Must be reviewed and approved by AAWG before launch.',
-        submissionNote: 'Include a project description, target audience, success criteria, timeline, point budget, distribution method, point validity period, and program manager.',
-        pointsAwarded: {
-          title: 'Recommended Participant Pool Sizes:',
-          items: [
-            { label: 'Small Initiatives (couple of hours)', value: '200 points per participant' },
-            { label: 'Medium Initiative (4-10 hours)', value: '600 points' },
-            { label: 'Large Initiatives (10+ hours)', value: '1200 points' }
-          ]
-        }
-      },
     },
     {
       id: 'construct-alignment-asset-case-study',
@@ -216,6 +198,26 @@ Only approved case studies that are opted into the internal content library are 
           ]
         }
       }
+    },
+    {
+      id: 'design-incentive-experiment',
+      category: 'Network Tooling',
+      activity: 'Design a Custom Incentive Experiment',
+      networkValue: 'Share expertise and insights across the network.',
+      points: 'TBC',
+      popupContent: {
+        title: 'Design a Custom Incentive Experiment',
+        description: 'Propose a short-term incentivized initiative—such as a research study, contributor challenge, pilot test, or community-based campaign—with clear goals, measurable outcomes, and a defined participant group. Must be reviewed and approved by AAWG before launch.',
+        submissionNote: 'Include a project description, target audience, success criteria, timeline, point budget, distribution method, point validity period, and program manager.',
+        pointsAwarded: {
+          title: 'Recommended Participant Pool Sizes:',
+          items: [
+            { label: 'Small Initiatives (couple of hours)', value: '200 points per participant' },
+            { label: 'Medium Initiative (4-10 hours)', value: '600 points' },
+            { label: 'Large Initiatives (10+ hours)', value: '1200 points' }
+          ]
+        }
+      },
     },
     {
       id: 'share-compensation-data',

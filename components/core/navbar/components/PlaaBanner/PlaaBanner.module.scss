@@ -83,6 +83,17 @@
   gap: 16px; // Figma: 16px gap
 }
 
+// Title-only slide: center icon + title (no subtitle/buttons)
+.emblaSlideTitleOnly {
+  .textArea {
+    flex: 0 1 auto;
+    text-align: center;
+  }
+  .title {
+    text-align: center;
+  }
+}
+
 // Icon box - Figma: 40px with #1d4ed8 bg, 8px radius
 .iconBox {
   display: flex;
@@ -305,6 +316,15 @@
   flex-direction: column;
   gap: 8px;
   transition: gap 0.3s ease;
+}
+
+// Title-only mobile slide: center the title
+.mobileEmblaSlideTitleOnly {
+  align-items: center;
+  text-align: center;
+  .mobileTitle {
+    text-align: center;
+  }
 }
 
 // Content that hides in compact mode - with smooth transition

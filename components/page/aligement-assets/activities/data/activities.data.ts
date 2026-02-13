@@ -256,7 +256,7 @@ Only approved case studies that are opted into the internal content library are 
         },
         categories: [
           {
-            title: 'First-Round Interview:',
+            title: 'Hiring Manager Screen:',
             tiers: [
               { label: 'Level 1 / Junior', points: '25 points' },
               { label: 'Level 2 / Junior', points: '50 points' },

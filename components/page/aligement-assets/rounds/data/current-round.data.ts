@@ -222,7 +222,9 @@ export const currentRoundData: CurrentRoundData = {
       { rank: 46, name: 'Theresa Therriault', activities: '', points: 0 },
       { rank: 47, name: 'Victoria DeVesty', activities: '', points: 0 },
       { rank: 48, name: 'William Scott', activities: '', points: 0 },
-      { rank: 49, name: 'Zachary von Naumann', activities: '', points: 0 }
+      { rank: 49, name: 'Zachary von Naumann', activities: '', points: 0 },
+      { rank: 50, name: 'Diego Leal Togni', activities: '', points: 0 },
+      { rank: 51, name: 'Sean Escola', activities: '', points: 0 }
     ],
     cumulativeData: [
       { rank: 1, name: 'Bradley Holden', activities: '', points: 8500 },
@@ -266,7 +268,9 @@ export const currentRoundData: CurrentRoundData = {
       { rank: 39, name: 'Julio Garcia', activities: '', points: 350 },
       { rank: 40, name: 'Russell Dempsey', activities: '', points: 300 },
       { rank: 41, name: 'David Huseby', activities: '', points: 300 },
-      { rank: 42, name: 'Arleen Teranishi', activities: '', points: 300 }
+      { rank: 42, name: 'Arleen Teranishi', activities: '', points: 300 },
+      { rank: 43, name: 'Diego Leal Togni', activities: '', points: 0 },
+      { rank: 44, name: 'Sean Escola', activities: '', points: 0 }
     ]
   },
 

@@ -30,9 +30,10 @@ export const currentRoundData: CurrentRoundData = {
     actions: [
       {
         label: 'Submit Activities',
-        url: 'https://forms.gle/DiACtNgcsaAS8B6P8',
+        //url: 'https://forms.gle/DiACtNgcsaAS8B6P8',
+        url: '/alignment-asset/activities',
         type: 'primary',
-        openInNewTab: true
+        openInNewTab: false
       },
       {
         label: 'Check Your Token Balance',

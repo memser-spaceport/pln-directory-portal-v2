@@ -38,9 +38,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
     title: 'Celebrate 1 Year of PLAA — Collect Bonus Points  🎉',
     subtitle: "Check your email or the Telegram post for details.",
     date: '',
-    buttons: [
-      // { label: '→ Sign up to share your perspective', link: 'https://forms.gle/4fAcyboCdVLCLBxi7', variant: 'primary' },
-    ],
+    buttons: [],
   },
   {
     id: 'Help shape the future of PLAA',

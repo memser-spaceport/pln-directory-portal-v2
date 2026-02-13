@@ -118,7 +118,6 @@ export const activitiesData: ActivitiesData = {
                 { label: 'Tier 3 (51+ views)', value: '900 points' }
               ]
             },
-            // { label: 'Collaborators', value: 'Points are split equally among listed contributors' }
           ]
         }
       }

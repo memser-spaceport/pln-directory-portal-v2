@@ -11,6 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import { VideoPlayer } from '@/components/common/VideoPlayer';
 import { VideoProgress } from '@/components/page/demo-day/FounderPendingView/components/MediaPreview/components/VideoProgress';
+import { VideoWatchTimeData } from '@/components/common/VideoPlayer/hooks/useTrackVideoWatchTime';
 
 const PdfViewer = dynamic(() => import('@/components/page/demo-day/FounderPendingView/components/PdfViewer/PdfViewer'));
 
@@ -31,6 +32,8 @@ interface MediaPreviewProps {
   previewImageUrl?: string;
   previewImageSmallUrl?: string;
   videoPoster?: string;
+  /** Callback for video watch time reports */
+  onVideoWatchTime?: (data: VideoWatchTimeData) => void;
 }
 
 const ExpandIcon = () => (
@@ -73,6 +76,7 @@ export const MediaPreview = ({
   previewImageUrl,
   previewImageSmallUrl,
   videoPoster,
+  onVideoWatchTime,
 }: MediaPreviewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -219,7 +223,14 @@ export const MediaPreview = ({
 
   const renderModalContent = () => {
     if (type === 'video') {
-      return <VideoPlayer autoplay src={url} />;
+      return (
+        <VideoPlayer
+          autoplay
+          src={url}
+          onWatchTimeReport={onVideoWatchTime}
+          enableWatchTimeTracking={!!onVideoWatchTime}
+        />
+      );
     } else if (isPDF(url)) {
       if (previewImageUrl) {
         return <img src={previewImageUrl} alt="Media" className={s.modalMedia} />;

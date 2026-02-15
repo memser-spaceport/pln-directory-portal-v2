@@ -5,11 +5,19 @@ import 'video.js/dist/video-js.css';
 
 import { Player } from '@/components/common/VideoPlayer/types';
 import { usePersistWatchProgress } from '@/components/common/VideoPlayer/hooks/usePersistWatchProgress';
+import {
+  useTrackVideoWatchTime,
+  VideoWatchTimeData,
+} from '@/components/common/VideoPlayer/hooks/useTrackVideoWatchTime';
 
 interface VideoPlayerProps {
   src: string;
   poster?: string;
   autoplay?: boolean;
+  /** Callback for watch time reports */
+  onWatchTimeReport?: (data: VideoWatchTimeData) => void;
+  /** Enable watch time tracking (default: false) */
+  enableWatchTimeTracking?: boolean;
 }
 
 // Helper function to detect if source is HLS
@@ -26,7 +34,7 @@ const getSourceType = (src: string): string => {
 };
 
 export function VideoPlayer(props: VideoPlayerProps) {
-  const { src, poster, autoplay = false } = props;
+  const { src, poster, autoplay = false, onWatchTimeReport, enableWatchTimeTracking = false } = props;
 
   const [player, setPlayer] = useState<Player | null>(null);
   const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
@@ -61,6 +69,14 @@ export function VideoPlayer(props: VideoPlayerProps) {
   }, [src, poster, videoEl]);
 
   usePersistWatchProgress({ src, player });
+
+  // Track video watch time if enabled and callback provided
+  useTrackVideoWatchTime({
+    videoUrl: src,
+    player,
+    onWatchTimeReport: onWatchTimeReport || (() => {}),
+    enabled: enableWatchTimeTracking && !!onWatchTimeReport,
+  });
 
   return (
     <div

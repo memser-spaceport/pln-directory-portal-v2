@@ -1908,6 +1908,7 @@ export const DEMO_DAY_ANALYTICS = {
   ON_ACTIVE_VIEW_TEAM_CARD_CLICKED: 'demo-day-active-view-team-card-clicked',
   ON_ACTIVE_VIEW_TEAM_PITCH_DECK_VIEWED: 'demo-day-active-view-team-pitch-deck-viewed',
   ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_VIEWED: 'demo-day-active-view-team-pitch-video-viewed',
+  ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_WATCH_TIME: 'demo-day-active-view-team-pitch-video-watch-time',
   ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED: 'demo-day-active-view-like-company-clicked',
   ON_ACTIVE_VIEW_CONNECT_COMPANY_CLICKED: 'demo-day-active-view-connect-company-clicked',
   ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED: 'demo-day-active-view-invest-company-clicked',

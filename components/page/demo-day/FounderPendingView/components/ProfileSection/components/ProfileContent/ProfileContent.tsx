@@ -1,6 +1,7 @@
 import React from 'react';
 import { ImageIcon, VideoIcon } from '@/components/page/demo-day/icons/DemoDayIcons';
 import { MediaPreview } from '../../../MediaPreview';
+import { VideoWatchTimeData } from '@/components/common/VideoPlayer/hooks/useTrackVideoWatchTime';
 import s from './ProfileContent.module.scss';
 
 interface ProfileContentProps {
@@ -10,6 +11,8 @@ interface ProfileContentProps {
   onPitchVideoView?: () => void;
   pitchDeckPreviewUrl?: string | null;
   pitchDeckPreviewSmallUrl?: string | null;
+  /** Callback for video watch time reports */
+  onVideoWatchTime?: (data: VideoWatchTimeData) => void;
 }
 
 export const ProfileContent = ({
@@ -19,6 +22,7 @@ export const ProfileContent = ({
   onPitchVideoView,
   pitchDeckPreviewUrl,
   pitchDeckPreviewSmallUrl,
+  onVideoWatchTime,
 }: ProfileContentProps) => {
   return (
     <div className={s.profileContent}>
@@ -42,7 +46,14 @@ export const ProfileContent = ({
 
       {/* Video Card */}
       {videoUrl ? (
-        <MediaPreview url={videoUrl} type="video" title="Pitch Video" showMetadata={false} onView={onPitchVideoView} />
+        <MediaPreview
+          url={videoUrl}
+          type="video"
+          title="Pitch Video"
+          showMetadata={false}
+          onView={onPitchVideoView}
+          onVideoWatchTime={onVideoWatchTime}
+        />
       ) : (
         <div className={s.placeholder}>
           <VideoIcon />

@@ -1,16 +1,13 @@
 'use client';
 import { clsx } from 'clsx';
 import Cookies from 'js-cookie';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
-
 import { getParsedValue } from '@/utils/common.utils';
-
+import { isDemodaySignUpSource } from '@/utils/member.utils';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
-
 import LoginBtn from '@/components/core/navbar/login-btn';
 import { LandingBase } from '@/components/page/demo-day/LandingBase';
 import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
@@ -20,7 +17,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { useTimeOnPage } from '@/hooks/useTimeOnPage';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
-import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
+import { AppliedInvestorSteps } from '@/components/page/demo-day/AppliedInvestorSteps';
 import { DemoDayInfoRow } from '@/components/common/DemoDayInfoRow';
 import { CountdownComponent } from '@/components/common/Countdown';
 import { DemoDayPageSkeleton } from '@/components/page/demo-day/DemoDayPageSkeleton';
@@ -37,7 +34,11 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
     data?.status === 'UPCOMING' || data?.status === 'REGISTRATION_OPEN' || data?.status === 'EARLY_ACCESS';
 
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState<{ uid: string; isNew: boolean; email: string } | null>(null);
+  const [applicationResult, setApplicationResult] = useState<{
+    uid: string;
+    isNew: boolean;
+    email: string;
+  } | null>(null);
 
   // Auto-open modal if dialog=applyToDemoday query param is present
   useEffect(() => {
@@ -107,12 +108,36 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
     setIsApplyModalOpen(true);
   };
 
-  const handleClose = useCallback(() => setShowSuccessModal(null), []);
   const handleCloseApply = useCallback(() => setIsApplyModalOpen(false), []);
   const handleSuccess = useCallback(
-    (res: { uid: string; isNew: boolean; email: string }) => setShowSuccessModal(res),
+    (res: { uid: string; isNew: boolean; email: string }) => setApplicationResult(res),
     [],
   );
+
+  const showAppliedSteps = useMemo(() => {
+    if (applicationResult) return true;
+    if (!data?.isPending || !demoDaySlug) return false;
+    if (userInfo?.uid) return true;
+    return false;
+  }, [data?.isPending, demoDaySlug, applicationResult, userInfo?.uid]);
+
+  const appliedStepsProps = useMemo(() => {
+    if (applicationResult) {
+      return {
+        uid: applicationResult.uid,
+        isNew: applicationResult.isNew,
+        email: applicationResult.email,
+      };
+    }
+    if (userInfo?.uid) {
+      return {
+        uid: userInfo.uid,
+        isNew: isDemodaySignUpSource(userInfo.signUpSource, demoDaySlug),
+        email: userInfo.email,
+      };
+    }
+    return null;
+  }, [applicationResult, userInfo, demoDaySlug]);
 
   // Show skeleton loader while loading
   if (isLoading || !data) {
@@ -145,57 +170,23 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
       >
         <div>
           <div className={s.root}>
-            {!userInfo && <LoginBtn className={clsx(s.btn, s.secondaryButton)}>Already applied? Log in</LoginBtn>}
-            <button className={clsx(s.btn, s.primaryButton)} onClick={handleApplyClick} disabled={data?.isPending}>
-              {data?.isPending ? (
-                <>
-                  You have applied <CheckIcon />
-                </>
-              ) : (
-                'Apply'
-              )}
-            </button>
+            {!userInfo && !showAppliedSteps && <LoginBtn className={clsx(s.btn, s.secondaryButton)}>Already applied? Log in</LoginBtn>}
+            {
+              !data?.isPending && !showAppliedSteps && (
+                <button className={clsx(s.btn, s.primaryButton)} onClick={handleApplyClick} disabled={data?.isPending}>
+                  Apply
+                </button>
+              )
+            }
           </div>
-          {!!data?.isPending && userInfo?.accessLevel === 'L0' && (
-            <div className={s.pendingText}>
-              Complete your{' '}
-              <Link
-                href={`/members/${userInfo.uid}`}
-                className={s.link}
-                onClick={() => {
-                  // PostHog analytics
-                  onLandingInvestorProfileLinkClicked({
-                    demoDayTitle: data?.title,
-                    demoDayDate: data?.date,
-                    demoDayStatus: data?.status,
-                  });
-
-                  // Custom analytics event
-                  if (userInfo?.email) {
-                    const investorProfileLinkEvent: TrackEventDto = {
-                      name: DEMO_DAY_ANALYTICS.ON_LANDING_INVESTOR_PROFILE_LINK_CLICKED,
-                      distinctId: userInfo.email,
-                      properties: {
-                        userId: userInfo.uid,
-                        userEmail: userInfo.email,
-                        userName: userInfo.name,
-                        path: '/demoday',
-                        timestamp: new Date().toISOString(),
-                        demoDayTitle: data?.title,
-                        demoDayDate: data?.date,
-                        demoDayStatus: data?.status,
-                        isLoggedIn: !!userInfo,
-                      },
-                    };
-
-                    reportAnalytics.mutate(investorProfileLinkEvent);
-                  }
-                }}
-              >
-                investor profile
-              </Link>{' '}
-              to join Demo Day
-            </div>
+          {showAppliedSteps && appliedStepsProps && (
+            <AppliedInvestorSteps
+              uid={appliedStepsProps.uid}
+              isNew={appliedStepsProps.isNew}
+              isLoggedIn={!!userInfo}
+              email={appliedStepsProps.email}
+              demoDaySlug={demoDaySlug}
+            />
           )}
         </div>
       </LandingBase>
@@ -212,15 +203,6 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
         />
       )}
 
-      <AccountCreatedSuccessModal
-        isOpen={!!showSuccessModal}
-        onClose={handleClose}
-        isNew={showSuccessModal?.isNew}
-        userInfo={userInfo}
-        uid={showSuccessModal?.uid}
-        email={showSuccessModal?.email}
-        demoDayState={data}
-      />
     </>
   );
 }

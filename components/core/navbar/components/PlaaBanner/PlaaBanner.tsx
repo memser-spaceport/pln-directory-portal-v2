@@ -33,6 +33,14 @@ const CONFIRM_REFERRAL_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSfuDNC7f
 // Banner data
 export const BANNER_CONTENTS: BannerContent[] = [
   {
+    id: 'Celebrate 1 Year of PLAA — Collect Bonus Points',
+    type: 'bonus',
+    title: 'Celebrate 1 Year of PLAA — Collect Bonus Points  🎉',
+    subtitle: "Check your email or the Telegram post for details.",
+    date: '',
+    buttons: [],
+  },
+  {
     id: 'Help shape the future of PLAA',
     type: 'bonus',
     title: 'Help shape the future of PLAA',
@@ -144,8 +152,12 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
             {/* Embla Carousel */}
             <div className={styles.emblaViewport} ref={desktopCarousel.emblaRef}>
               <div className={styles.emblaContainer}>
-                {BANNER_CONTENTS.map((item) => (
-                  <div key={item.id} className={styles.emblaSlide}>
+                {BANNER_CONTENTS.map((item) => {
+                  const hasSubtitle = !!(item.subtitle || item.date || item.highlightText);
+                  const hasButtons = item.buttons.length > 0;
+                  const titleOnly = !hasSubtitle && !hasButtons;
+                  return (
+                  <div key={item.id} className={`${styles.emblaSlide} ${titleOnly ? styles.emblaSlideTitleOnly : ''}`}>
                     {/* Icon */}
                     <div className={styles.iconBox}>
                       <Image
@@ -159,38 +171,46 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
                     {/* Text */}
                     <div className={styles.textArea}>
                       <p className={styles.title}>{item.title}</p>
-                      <div className={styles.subtitle}>
-                        <span>
-                          {item.type === 'bonus' && item.highlightText ? (
+                      {hasSubtitle && (
+                        <div className={styles.subtitle}>
+                          <span>
+                            {item.type === 'bonus' && item.highlightText ? (
+                              <>
+                                Bonus Points Multiplier <span className={styles.highlight}>{item.highlightText}</span> on Key Talent Referrals
+                              </>
+                            ) : (
+                              item.subtitle
+                            )}
+                          </span>
+                          {item.date && (
                             <>
-                              Bonus Points Multiplier <span className={styles.highlight}>{item.highlightText}</span> on Key Talent Referrals
+                              <span className={styles.separator} />
+                              <span>{item.date}</span>
                             </>
-                          ) : (
-                            item.subtitle
                           )}
-                        </span>
-                        <span className={styles.separator} />
-                        <span>{item.date}</span>
-                      </div>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Buttons */}
-                    <div className={styles.buttons}>
-                      {item.buttons.map((btn, i) => (
-                        <a
-                          key={i}
-                          href={btn.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={btn.variant === 'primary' ? styles.btnPrimary : styles.btnSecondary}
-                          onClick={() => onBannerButtonClicked(btn.label, btn.link)}
-                        >
-                          {btn.label}
-                        </a>
-                      ))}
-                    </div>
+                    {/* Buttons - only when present */}
+                    {hasButtons && (
+                      <div className={styles.buttons}>
+                        {item.buttons.map((btn, i) => (
+                          <a
+                            key={i}
+                            href={btn.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={btn.variant === 'primary' ? styles.btnPrimary : styles.btnSecondary}
+                            onClick={() => onBannerButtonClicked(btn.label, btn.link)}
+                          >
+                            {btn.label}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                ))}
+                );})}
               </div>
             </div>
           </div>

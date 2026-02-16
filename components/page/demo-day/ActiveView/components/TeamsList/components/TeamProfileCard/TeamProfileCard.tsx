@@ -1,13 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import Image from 'next/image';
 import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader';
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
 import { useSaveTeam } from '@/services/demo-day/hooks/useSaveTeam';
 import s from './TeamProfileCard.module.scss';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
@@ -19,8 +16,8 @@ import { GiveFeedbackModal } from '@/components/page/demo-day/GiveFeedbackModal'
 import { clsx } from 'clsx';
 import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
 import { BookmarkIcon, BookmarkIconFilled, ChartIcon } from '@/components/icons';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { getUserInfo } from '@/utils/cookie.utils';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
@@ -61,7 +58,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest(team.team?.name);
   const saveTeam = useSaveTeam();
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo: IUserInfo = getUserInfo();
   const canEdit = isAdmin || team.founders.some((founder) => founder.uid === userInfo?.uid);
   const isPrepDemoDay = useIsPrepDemoDay();
 

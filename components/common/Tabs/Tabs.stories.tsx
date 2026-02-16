@@ -19,6 +19,11 @@ const meta = {
       control: 'object',
       description: 'Array of tab objects',
     },
+    variant: {
+      control: 'radio',
+      options: ['underline', 'pill'],
+      description: 'Visual variant of the tabs',
+    },
   },
   args: {
     onValueChange: fn(),
@@ -57,6 +62,30 @@ export const WithDisabledTab: Story = {
       { label: 'Active Tab', value: 'tab1' },
       { label: 'Disabled Tab', value: 'tab2', disabled: true },
       { label: 'Another Tab', value: 'tab3' },
+    ],
+  },
+};
+
+export const PillSimple: Story = {
+  args: {
+    variant: 'pill',
+    value: 'tab1',
+    tabs: [
+      { label: 'Tab 1', value: 'tab1' },
+      { label: 'Tab 2', value: 'tab2' },
+      { label: 'Tab 3', value: 'tab3' },
+    ],
+  },
+};
+
+export const PillWithBadges: Story = {
+  args: {
+    variant: 'pill',
+    value: 'posts',
+    tabs: [
+      { label: 'Posts', value: 'posts', badge: '12' },
+      { label: 'Comments', value: 'comments', badge: '24' },
+      { label: 'Likes', value: 'likes', badge: '5' },
     ],
   },
 };

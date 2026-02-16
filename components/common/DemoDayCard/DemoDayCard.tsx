@@ -42,7 +42,7 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = (props) => {
 
   const statusConfig = getStatusConfig(status);
   const isCompleted = status === 'COMPLETED';
-  const formattedDate = approximateStartDate || format(new Date(date), isCompleted ? 'd MMMM, yyyy' : 'MMMM, yyyy');
+  const formattedDate = approximateStartDate || format(new Date(date), 'd MMMM, yyyy');
   const showMore = status !== 'UPCOMING';
 
   const handleDescriptionClick = (e: React.MouseEvent<HTMLParagraphElement>) => {

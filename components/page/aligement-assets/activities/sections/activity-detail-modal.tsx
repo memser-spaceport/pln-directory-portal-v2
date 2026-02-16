@@ -183,7 +183,18 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                       return (
                       <li key={index} className="activity-modal__points-item">
                         {item.value ? (
-                          boldLabel ? <><strong>{item.label}:</strong> {item.value}</> : <>{item.label}: {item.value}</>
+                          item.valueOnNewLine ? (
+                            <>
+                              {boldLabel ? <strong>{item.label}:</strong> : <>{item.label}:</>}
+                              <div className="activity-modal__points-item-value">
+                                {item.italicValue ? <em>{item.value}</em> : item.value}
+                              </div>
+                            </>
+                          ) : boldLabel ? (
+                            <><strong>{item.label}:</strong> {item.italicValue ? <em>{item.value}</em> : item.value}</>
+                          ) : (
+                            <>{item.label}: {item.italicValue ? <em>{item.value}</em> : item.value}</>
+                          )
                         ) : item.subItems ? (
                           boldLabel ? <><strong>{item.label}:</strong></> : <>{item.label}:</>
                         ) : (
@@ -391,6 +402,10 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
         .activity-modal__points-item strong {
           color: #0f172a;
           font-weight: 600;
+        }
+
+        .activity-modal__points-item-value {
+          margin-top: 4px;
         }
 
         .activity-modal__points-item-description {

@@ -12,6 +12,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { VideoWatchTimeData } from '@/components/common/VideoPlayer/hooks/useTrackVideoWatchTime';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { ReferCompanyModal } from '../ReferCompanyModal';
 import { GiveFeedbackModal } from '@/components/page/demo-day/GiveFeedbackModal';
@@ -55,6 +56,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     onActiveViewIntroCompanyConfirmClicked,
     onActiveViewTeamPitchDeckViewed,
     onActiveViewTeamPitchVideoViewed,
+    onActiveViewVideoWatchTime,
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest(team.team?.name);
@@ -323,6 +325,49 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     }
   };
 
+  // Handle video watch time reports
+  const handleVideoWatchTime = (data: VideoWatchTimeData) => {
+    if (!userInfo?.email) return;
+
+    const analyticsData = getTeamAnalyticsData();
+
+    // PostHog analytics
+    onActiveViewVideoWatchTime({
+      ...analyticsData,
+      ...data,
+    });
+
+    // Custom analytics event to backend
+    const watchTimeEvent: TrackEventDto = {
+      name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_WATCH_TIME,
+      distinctId: userInfo.email,
+      properties: {
+        userId: userInfo.uid,
+        userEmail: userInfo.email,
+        userName: userInfo.name,
+        path: '/demoday',
+        timestamp: new Date().toISOString(),
+        ...analyticsData,
+        // Watch time data
+        sessionId: data.sessionId,
+        videoUrl: data.videoUrl,
+        watchTimeMs: data.watchTimeMs,
+        totalWatchTimeMs: data.totalWatchTimeMs,
+        videoDurationMs: data.videoDurationMs,
+        percentWatched: data.percentWatched,
+        currentPosition: data.currentPosition,
+        playbackRate: data.playbackRate,
+        isComplete: data.isComplete,
+        isFinalReport: data.isFinalReport,
+        exitPosition: data.exitPosition,
+        maxPositionReached: data.maxPositionReached,
+        watchedSegments: data.watchedSegments,
+      },
+    };
+
+    reportAnalytics.mutate(watchTimeEvent);
+  };
+
   // Check if description is truncated
   React.useEffect(() => {
     if (descriptionRef.current && team.description) {
@@ -416,6 +461,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         onPitchVideoView={handlePitchVideoView}
         pitchDeckPreviewUrl={team?.onePagerUpload?.previewImageUrl}
         pitchDeckPreviewSmallUrl={team?.onePagerUpload?.previewImageSmallUrl}
+        onVideoWatchTime={handleVideoWatchTime}
       />
 
       {/* Team Description */}

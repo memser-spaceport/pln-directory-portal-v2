@@ -66,7 +66,7 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = (props) => {
       className={clsx(s.card, className, {
         [s.nonClickable]: status === 'UPCOMING',
         [s.highlighted]: isHighlighted,
-        [s.completed]: isCompleted
+        [s.completed]: isCompleted,
       })}
       onClick={(e) => {
         if (status === 'UPCOMING') {
@@ -100,7 +100,12 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = (props) => {
         </div>
       </div>
       {showMore && (
-        <Button size="xs" style="border" variant={isCompleted ? 'secondary' : 'primary'} className={s.moreButton}>
+        <Button
+          size="xs"
+          className={s.moreButton}
+          variant={isCompleted ? 'secondary' : 'primary'}
+          style={['ACTIVE', 'REGISTRATION_OPEN'].includes(status) ? 'fill' : 'border'}
+        >
           <span>More Info</span>
           <ArrowRightIcon />
         </Button>

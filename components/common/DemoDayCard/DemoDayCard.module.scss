@@ -121,11 +121,11 @@
 }
 
 .badgeActive {
-  background: var(--background-error-soft-surface, rgba(255, 56, 56, 0.08));
-  color: #ff3838;
+  background: var(--background-success-soft-surface, rgba(10, 153, 82, 0.10));
+  color: #11a75c;
 
   svg {
-    color: #ff3838;
+    color: #11a75c;
   }
 }
 

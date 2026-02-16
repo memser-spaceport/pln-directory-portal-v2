@@ -151,7 +151,7 @@ export const Filters = () => {
   // Remove invalid activity param values that don't have a corresponding option
   useEffect(() => {
     const activityParam = params.get('activity');
-    if (!activityParam || activityOptions.length === 0) return;
+    if (!activityParam) return;
 
     const selectedValues = activityParam.split(URL_QUERY_VALUE_SEPARATOR);
     const validIds = new Set(activityOptions.map((opt) => opt.id));

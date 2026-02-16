@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 @keyframes shimmer {
   0% {
     background-position: -468px 0;
@@ -8,32 +10,44 @@
 }
 
 .card {
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
   width: 100%;
+  padding: 20px;
   background: #ffffff;
   border: 1px solid rgba(14, 15, 17, 0.16);
   border-radius: 16px;
   pointer-events: none;
+
+  @include media.mobile-only {
+    display: grid;
+    grid-template-columns: auto 1fr;
+  }
+}
+
+.avatarSkeleton {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+  background-size: 800px 56px;
+  animation: shimmer 1.5s infinite linear;
 }
 
 .cardContent {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 20px;
-}
-
-.eventInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
 }
 
 .overline {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 0;
 }
 
 .badgeSkeleton {
@@ -61,7 +75,6 @@
   background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
   background-size: 800px 34px;
   animation: shimmer 1.5s infinite linear;
-  margin-top: 8px;
 
   @media (max-width: 768px) {
     height: 28px;
@@ -92,3 +105,17 @@
   animation: shimmer 1.5s infinite linear;
 }
 
+.buttonSkeleton {
+  flex-shrink: 0;
+  width: 110px;
+  height: 38px;
+  border-radius: 8px;
+  background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+  background-size: 800px 38px;
+  animation: shimmer 1.5s infinite linear;
+
+  @include media.mobile-only {
+    width: 100%;
+    grid-column: span 2;
+  }
+}

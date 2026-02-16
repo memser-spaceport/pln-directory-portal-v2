@@ -1,25 +1,44 @@
 'use client';
 
+import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useEventsAnalytics } from '@/analytics/events.analytics';
 import ShadowButton from '@/components/ui/ShadowButton';
-import { getAnalyticsUserInfo } from '@/utils/common.utils';
-// import { EVENTS_SUBSCRIPTION_URL } from '@/utils/constants';
 import styles from './schedule-section.module.scss';
+
+const EMBED_URL_PARAM = 'embedPath';
+const DEFAULT_EMBED_PATH = '/embed/map/';
 
 export default function ScheduleSection(props: any) {
   const { onSubmitEventButtonClicked, onGoToEventsButtonClicked, onSubscribeForUpdatesButtonClicked } =
     useEventsAnalytics();
+  const searchParams = useSearchParams();
+
+  const [embedPath, setEmbedPath] = useState(() => {
+    return searchParams.get(EMBED_URL_PARAM) || DEFAULT_EMBED_PATH;
+  });
+
+  const handleMessage = useCallback((event: MessageEvent) => {
+    const data = event.data;
+    if (data?.type !== 'pln-embed-url' || typeof data.url !== 'string') return;
+
+    setEmbedPath(data.url);
+
+    const url = new URL(window.location.href);
+    url.searchParams.set(EMBED_URL_PARAM, data.url);
+    window.history.replaceState(null, '', url.toString());
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [handleMessage]);
 
   return (
     <div className={styles.schedule} id="schedule">
       <div className={styles.schedule__hdr}>
         <h2>Event Calendar</h2>
         <div className={styles.schedule__hdr__btn}>
-          {/* <a href={`${EVENTS_SUBSCRIPTION_URL}`} target="_blank" onClick={() => onSubscribeForUpdatesButtonClicked(getAnalyticsUserInfo(props.userInfo), null)}>
-              <ShadowButton buttonColor="#ffffff" shadowColor="#156FF7" buttonHeight="48px" buttonWidth="172px" textColor="#0F172A">
-                Subscribe for updates
-              </ShadowButton>
-            </a> */}
           <a
             href={`${process.env.IRL_SUBMIT_FORM_URL}/add`}
             target="_blank"
@@ -58,7 +77,7 @@ export default function ScheduleSection(props: any) {
         </div>
       </div>
       <iframe
-        src={`${process.env.PL_EVENTS_BASE_URL}/embed/map/`}
+        src={`${process.env.PL_EVENTS_BASE_URL}${embedPath}`}
         className={styles.schedule__iframe}
         title="Event Calendar"
       ></iframe>

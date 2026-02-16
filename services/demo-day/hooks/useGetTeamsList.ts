@@ -37,6 +37,7 @@ export type TeamProfile = {
   }[];
   description: string | null;
   liked: boolean;
+  saved: boolean;
   connected: boolean;
   invested: boolean;
   referral: boolean;

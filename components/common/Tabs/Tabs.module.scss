@@ -1,3 +1,4 @@
+@use 'styles/media';
 @use 'styles/mixins';
 
 .root {
@@ -91,4 +92,55 @@
   transition-property: translate, width;
   transition-duration: 200ms;
   transition-timing-function: ease-in-out;
+}
+
+// Pill variant
+.pill {
+  $indicator-top: 6px;
+
+  .list {
+    background: rgba(14, 15, 17, 0.06);
+    border-radius: 16px;
+    padding: 6px;
+  }
+
+  .tab {
+    flex: 1;
+    border-radius: 8px;
+    padding: 6px 12px;
+
+    &[data-selected] {
+      color: var(--foreground-neutral-primary, #0a0c11);
+    }
+
+    @media (hover: hover) {
+      &[data-selected]:hover {
+        color: var(--foreground-neutral-primary, #0a0c11);
+      }
+    }
+  }
+
+  .indicator {
+    top: $indicator-top;
+    height: calc(100% - 2 * $indicator-top);
+    translate: var(--active-tab-left) 0;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow:
+      0px 4px 6px -1px rgba(14, 15, 17, 0.12),
+      0px 2px 4px -1px rgba(14, 15, 17, 0.06);
+  }
+
+  @include media.mobile-only {
+    height: 32px;
+
+    .tab {
+      padding: 2px 8px;
+    }
+
+    .label {
+      font-size: 12px;
+      line-height: 16px;
+    }
+  }
 }

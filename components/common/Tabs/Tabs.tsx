@@ -1,20 +1,23 @@
+import clsx from 'clsx';
 import React, { ReactNode } from 'react';
 import { Tabs as BaseTabs } from '@base-ui-components/react/tabs';
-import clsx from 'clsx';
 
 import s from './Tabs.module.scss';
 
+type TabValue = string;
+
 export interface Tab {
   label: ReactNode;
-  value: string;
+  value: TabValue;
   badge?: ReactNode;
   disabled?: boolean;
 }
 
 export interface TabsProps {
   tabs: Tab[];
-  value: string;
-  onValueChange: (value: string) => void;
+  value: TabValue;
+  onValueChange: (value: TabValue) => void;
+  variant?: 'underline' | 'pill';
   classes?: {
     root?: string;
     list?: string;
@@ -26,10 +29,14 @@ export interface TabsProps {
 }
 
 export function Tabs(props: TabsProps) {
-  const { tabs, value, onValueChange, classes } = props;
+  const { tabs, value, onValueChange, variant = 'underline', classes } = props;
+
+  const rootClass = clsx(s.root, classes?.root, {
+    [s.pill]: variant === 'pill',
+  });
 
   return (
-    <BaseTabs.Root className={clsx(s.root, classes?.root)} value={value} onValueChange={(v) => onValueChange(v)}>
+    <BaseTabs.Root value={value} className={rootClass} onValueChange={(v) => onValueChange(v)}>
       <BaseTabs.List className={clsx(s.list, classes?.list)}>
         {tabs.map((tab) => (
           <BaseTabs.Tab key={tab.value} className={clsx(s.tab, classes?.tab)} value={tab.value} disabled={tab.disabled}>

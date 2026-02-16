@@ -13,8 +13,8 @@ import { validatePariticipantsEmail } from '@/services/participants-request.serv
 import { validateLocation } from '@/services/location.service';
 import Cookies from 'js-cookie';
 
-export const isDemodaySignUpSource = (signUpSource?: string): boolean =>
-  !!signUpSource?.startsWith('demoday-');
+export const isDemodaySignUpSource = (signUpSource?: string, demoDaySlug = ''): boolean =>
+  !!signUpSource?.startsWith(`demoday-${demoDaySlug}`);
 
 export const getFormattedFilters = (
   searchParams: IMembersSearchParams,

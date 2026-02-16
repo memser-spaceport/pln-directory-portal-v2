@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
+import isEmpty from 'lodash/isEmpty';
+import React, { useMemo, useState } from 'react';
+
 import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList';
 import { Button } from '@/components/common/Button';
-import { DemoDayCard, DemoDayCardSkeleton } from '@/components/common/DemoDayCard';
+import { DemoDayCardSkeleton } from '@/components/common/DemoDayCard';
 
-import s from './DemoDayListPage.module.scss';
 import { IUserInfo } from '@/types/shared.types';
 import { IMember } from '@/types/members.types';
 import { LogosGrid } from '@/components/common/LogosGrid';
@@ -14,15 +15,11 @@ import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/F
 import { faqCompletedItems } from '@/app/constants/demoday';
 import { DEMODAY_PRIVACY_URL, DEMODAY_TERMS_URL } from '@/components/page/sign-up/components/SignupWizard/constants';
 import { SubscribeSection } from './components/SubscribeSection';
+import { TabsWithCards } from '@/components/page/demo-day/DemoDayListPage/components/TabsWithCards';
 
-const EditIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M12.5858 3.85775L10.1423 1.41377C10.0408 1.31216 9.92018 1.23155 9.78746 1.17656C9.65473 1.12157 9.51246 1.09326 9.36879 1.09326C9.22512 1.09326 9.08286 1.12157 8.95013 1.17656C8.8174 1.23155 8.69681 1.31216 8.59524 1.41377L1.85172 8.15783C1.74979 8.2591 1.66897 8.3796 1.61396 8.51234C1.55895 8.64508 1.53084 8.78742 1.53125 8.93111V11.3751C1.53125 11.6652 1.64649 11.9434 1.85161 12.1485C2.05672 12.3536 2.33492 12.4688 2.625 12.4688H5.06899C5.21267 12.4692 5.35501 12.4411 5.48774 12.3861C5.62048 12.3311 5.74098 12.2503 5.84227 12.1484L12.5858 5.40432C12.7908 5.19921 12.906 4.92106 12.906 4.63104C12.906 4.34101 12.7908 4.06286 12.5858 3.85775ZM4.97657 11.1563H2.84375V9.02354L7.4375 4.42979L9.57032 6.5626L4.97657 11.1563ZM10.5 5.63291L8.36719 3.5001L9.37016 2.49713L11.503 4.62994L10.5 5.63291Z"
-      fill="#1B4DFF"
-    />
-  </svg>
-);
+import { EditIcon } from './components/Icons';
+
+import s from './DemoDayListPage.module.scss';
 
 type Props = {
   isLoggedIn?: boolean;
@@ -32,26 +29,13 @@ type Props = {
 
 export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => {
   const { data: demoDays, isLoading } = useGetDemoDaysList();
-  const [showAll, setShowAll] = useState(false);
 
   // Find demo days with REGISTRATION_OPEN or ACTIVE status
   const applicableDemoDays = demoDays?.filter((dd) => dd.status === 'REGISTRATION_OPEN' || dd.status === 'ACTIVE');
 
-  // Only show button if there's exactly 1 applicable demo day
-  const shouldShowApplyButton = applicableDemoDays && applicableDemoDays.length === 1;
-  const nextDemoDay = shouldShowApplyButton ? applicableDemoDays[0] : null;
-
   const toHighlightSlug =
     applicableDemoDays?.find((dd) => dd.status === 'ACTIVE')?.slugURL ??
     applicableDemoDays?.find((dd) => dd.status === 'REGISTRATION_OPEN')?.slugURL;
-
-  const displayedDemoDays = useMemo(() => {
-    if (!demoDays) return [];
-
-    // Filter out archived demo days
-    const visibleDemoDays = demoDays.filter((demoDay) => demoDay.status !== 'ARCHIVED');
-    return showAll ? visibleDemoDays : visibleDemoDays?.slice(0, 3);
-  }, [demoDays, showAll]);
 
   return (
     <div className={s.root}>
@@ -90,43 +74,7 @@ export const DemoDayListPage = ({ isLoggedIn, userInfo, memberData }: Props) => 
 
           {/* Cards Section */}
           <div className={s.section2}>
-            <div className={s.cards}>
-              {isLoading ? (
-                <>
-                  <DemoDayCardSkeleton />
-                  <DemoDayCardSkeleton />
-                  <DemoDayCardSkeleton />
-                </>
-              ) : displayedDemoDays && displayedDemoDays.length > 0 ? (
-                displayedDemoDays.map((demoDay) => (
-                  <DemoDayCard
-                    key={demoDay.slugURL}
-                    slug={demoDay.slugURL}
-                    title={demoDay.title}
-                    description={demoDay.shortDescription || demoDay.description}
-                    date={demoDay.date}
-                    approximateStartDate={demoDay.approximateStartDate}
-                    status={demoDay.status}
-                    isHighlighted={toHighlightSlug === demoDay.slugURL}
-                    access={demoDay.access}
-                  />
-                ))
-              ) : (
-                <div className={s.empty}>No demo days available</div>
-              )}
-            </div>
-
-            {demoDays && demoDays.length > 3 && (
-              <Button
-                size="m"
-                style="border"
-                variant="secondary"
-                onClick={() => setShowAll(!showAll)}
-                className={s.showMoreButton}
-              >
-                {showAll ? 'Show Less' : 'Show All'}
-              </Button>
-            )}
+            <TabsWithCards loading={isLoading} demoDays={demoDays || []} highlightSlug={toHighlightSlug} />
           </div>
         </section>
 

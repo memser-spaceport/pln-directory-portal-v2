@@ -111,6 +111,24 @@
   z-index: 2;
 }
 
+.stepIconCompleted {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #11a75c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0px 1px 3px 0px rgba(14, 15, 17, 0.12),
+    0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+
+  svg {
+    width: 10px;
+    height: 10px;
+  }
+}
+
 .stepDot {
   width: 20px;
   height: 20px;

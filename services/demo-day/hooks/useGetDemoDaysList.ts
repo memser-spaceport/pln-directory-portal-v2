@@ -15,6 +15,9 @@ export type DemoDayListResponse = {
   teamsCount: number;
   title: string;
   approximateStartDate?: string;
+  host?: string;
+  logoUrl?: string | null;
+  supportEmail?: string | null;
 };
 
 async function fetcher(): Promise<DemoDayListResponse[]> {

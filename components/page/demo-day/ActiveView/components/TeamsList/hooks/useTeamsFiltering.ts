@@ -61,6 +61,7 @@ export const useTeamsFiltering = ({ teams, searchTerm, params, isUserFounder }: 
       if (selectedActivities.length > 0) {
         const matchesActivity = selectedActivities.some((activity) => {
           if (activity === 'liked') return team.liked;
+          if (activity === 'saved') return team.saved;
           if (activity === 'connected') return team.connected;
           if (activity === 'invested') return team.invested;
           if (activity === 'referral') return team.referral;

@@ -272,6 +272,10 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACCOUNT_CREATED_SUCCESS_MODAL_CONTINUE_TO_LOGIN_CLICKED, eventParams);
   }
 
+  function onActiveViewVideoWatchTime(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_WATCH_TIME, eventParams);
+  }
+
   return {
     onLandingPageOpened,
     onLandingLoginButtonClicked,
@@ -336,5 +340,6 @@ export const useDemoDayAnalytics = () => {
     onApplicationModalAutoSubmitted,
     onSubscribeToDemoDayClicked,
     onAccountCreatedSuccessModalContinueToLoginClicked,
+    onActiveViewVideoWatchTime,
   };
 };

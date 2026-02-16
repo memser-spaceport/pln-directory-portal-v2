@@ -372,7 +372,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
                     userName: userInfo.name,
                     path: '/demoday',
                     timestamp: new Date().toISOString(),
-                    action: team.liked ? 'unsave_company' : 'save_company',
+                    action: team.saved ? 'unsave_company' : 'save_company',
                     ...analyticsData,
                   },
                 };
@@ -388,7 +388,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
             }}
             disabled={saveTeam.isPending || !team.uid}
           >
-            {team.liked ? (
+            {team.saved ? (
               <>
                 <BookmarkIconFilled />
                 <span>Unsave</span>

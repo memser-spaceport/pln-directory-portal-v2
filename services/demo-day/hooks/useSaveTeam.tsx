@@ -3,11 +3,14 @@ import { useParams } from 'next/navigation';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { toast } from '@/components/core/ToastContainer/utils/toast';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
+import { TeamsListResponse } from '@/services/demo-day/hooks/useGetTeamsList';
 
 interface SaveTeamData {
   teamFundraisingProfileUid: string;
   isPrepDemoDay?: boolean;
 }
+
+type MutationVariables = SaveTeamData & { isSaved: boolean };
 
 async function saveTeam(demoDayId: string, data: SaveTeamData): Promise<boolean> {
   const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/save`;
@@ -53,15 +56,45 @@ async function unsaveTeam(demoDayId: string, data: SaveTeamData): Promise<boolea
   return true;
 }
 
+function toggleSavedInList(list: TeamsListResponse | undefined, uid: string, newSaved: boolean): TeamsListResponse | undefined {
+  if (!list) return list;
+  return list.map((team) => (team.uid === uid ? { ...team, saved: newSaved } : team));
+}
+
 export function useSaveTeam(teamName?: string) {
   const queryClient = useQueryClient();
   const params = useParams();
   const demoDayId = params.demoDayId as string;
 
-  return useMutation<boolean, Error, SaveTeamData & { isSaved: boolean }>({
+  return useMutation<boolean, Error, MutationVariables, { previousTeamsList?: TeamsListResponse; previousAllProfiles?: TeamsListResponse }>({
     mutationFn: (data) => {
       const { isSaved, ...payload } = data;
       return isSaved ? unsaveTeam(demoDayId, payload) : saveTeam(demoDayId, payload);
+    },
+    onMutate: async (variables) => {
+      const { teamFundraisingProfileUid, isSaved } = variables;
+      const newSaved = !isSaved;
+
+      // Cancel in-flight queries so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId] });
+      await queryClient.cancelQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId] });
+      // Snapshot previous values
+      const previousTeamsList = queryClient.getQueryData<TeamsListResponse>([DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId]);
+      const previousAllProfiles = queryClient.getQueryData<TeamsListResponse>([DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId]);
+
+      // Optimistically update teams list
+      queryClient.setQueryData<TeamsListResponse>(
+        [DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId],
+        (old) => toggleSavedInList(old, teamFundraisingProfileUid, newSaved),
+      );
+
+      // Optimistically update all fundraising profiles
+      queryClient.setQueryData<TeamsListResponse>(
+        [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId],
+        (old) => toggleSavedInList(old, teamFundraisingProfileUid, newSaved),
+      );
+
+      return { previousTeamsList, previousAllProfiles };
     },
     onSuccess: (_, variables) => {
       const action = variables.isSaved ? 'unsaved' : 'saved';
@@ -77,12 +110,21 @@ export function useSaveTeam(teamName?: string) {
         },
       );
 
+      // Refetch to ensure server state is in sync
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId] });
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE, demoDayId] });
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId] });
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATS, demoDayId] });
     },
-    onError: (error) => {
+    onError: (error, _, context) => {
+      // Roll back to previous values on error
+      if (context?.previousTeamsList) {
+        queryClient.setQueryData([DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId], context.previousTeamsList);
+      }
+      if (context?.previousAllProfiles) {
+        queryClient.setQueryData([DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId], context.previousAllProfiles);
+      }
+
       toast.error(error?.message || 'Save request failed. Please try again.', {
         autoClose: 3000,
       });

@@ -510,24 +510,24 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     >
                       📝 Give Feedback
                     </button>
-                    <button
-                      className={s.secondaryButton}
-                      onClick={handleLikeCompanyClick}
-                      disabled={expressInterest.isPending || !team.uid}
-                    >
-                      {team.liked ? (
-                        <>
-                          <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />
-                          Liked Company
-                          <CheckIcon />
-                        </>
-                      ) : (
-                        <>
-                          <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />
-                          Like Company
-                        </>
-                      )}
-                    </button>
+                    {/*<button*/}
+                    {/*  className={s.secondaryButton}*/}
+                    {/*  onClick={handleLikeCompanyClick}*/}
+                    {/*  disabled={expressInterest.isPending || !team.uid}*/}
+                    {/*>*/}
+                    {/*  {team.liked ? (*/}
+                    {/*    <>*/}
+                    {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />*/}
+                    {/*      Liked Company*/}
+                    {/*      <CheckIcon />*/}
+                    {/*    </>*/}
+                    {/*  ) : (*/}
+                    {/*    <>*/}
+                    {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />*/}
+                    {/*      Like Company*/}
+                    {/*    </>*/}
+                    {/*  )}*/}
+                    {/*</button>*/}
                     <button
                       className={s.secondaryButton}
                       onClick={handleConnectCompanyClick}

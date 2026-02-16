@@ -697,28 +697,28 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
           <button className={s.feedbackButton} onClick={() => setIsFeedbackModalOpen(true)} disabled={!data?.uid}>
             📝 Give Feedback
           </button>
-          <button
-            className={s.secondaryButton}
-            onClick={() =>
-              expressInterest.mutate({
-                teamFundraisingProfileUid: data?.uid || '',
-                interestType: 'like',
-                isPrepDemoDay,
-              })
-            }
-            disabled={expressInterest.isPending || !data?.uid}
-          >
-            {team?.liked ? (
-              <>
-                <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Liked Company
-                <CheckIcon />
-              </>
-            ) : (
-              <>
-                <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
-              </>
-            )}
-          </button>
+          {/*<button*/}
+          {/*  className={s.secondaryButton}*/}
+          {/*  onClick={() =>*/}
+          {/*    expressInterest.mutate({*/}
+          {/*      teamFundraisingProfileUid: data?.uid || '',*/}
+          {/*      interestType: 'like',*/}
+          {/*      isPrepDemoDay,*/}
+          {/*    })*/}
+          {/*  }*/}
+          {/*  disabled={expressInterest.isPending || !data?.uid}*/}
+          {/*>*/}
+          {/*  {team?.liked ? (*/}
+          {/*    <>*/}
+          {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Liked Company*/}
+          {/*      <CheckIcon />*/}
+          {/*    </>*/}
+          {/*  ) : (*/}
+          {/*    <>*/}
+          {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company*/}
+          {/*    </>*/}
+          {/*  )}*/}
+          {/*</button>*/}
           <button
             className={s.secondaryButton}
             onClick={() =>

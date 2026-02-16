@@ -117,6 +117,7 @@ export const Filters = () => {
     if (!teams) return [];
 
     const likedCount = teams.filter((team) => team.liked).length;
+    const savedCount = teams.filter((team) => team.saved).length;
     const connectedCount = teams.filter((team) => team.connected).length;
     const investedCount = teams.filter((team) => team.invested).length;
     const referredCount = teams.filter((team) => team.referral).length;
@@ -125,6 +126,10 @@ export const Filters = () => {
 
     if (likedCount > 0) {
       options.push({ id: 'liked', name: 'Liked', count: likedCount });
+    }
+
+    if (savedCount > 0) {
+      options.push({ id: 'saved', name: 'Saved', count: savedCount });
     }
 
     if (connectedCount > 0) {

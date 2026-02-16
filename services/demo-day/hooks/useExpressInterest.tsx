@@ -59,7 +59,7 @@ export function useExpressInterest(teamName?: string) {
 
       switch (interestType) {
         case 'like':
-          title = `You liked ${teamName || '[TeamName]'}`;
+          title = `You saved ${teamName || '[TeamName]'}`;
           break;
         case 'connect':
           title = `You're connecting with ${teamName || '[TeamName]'}`;
@@ -81,9 +81,13 @@ export function useExpressInterest(teamName?: string) {
         <div>
           <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{title}</span>
           <br />
-          <span style={{ fontSize: '14px' }}>
-            {isPrepDemoDay ? `Emails aren't sent to founders in showcase mode.` : 'We sent an email to let them know.'}
-          </span>
+          {interestType !== 'like' && (
+            <span style={{ fontSize: '14px' }}>
+              {isPrepDemoDay
+                ? `Emails aren't sent to founders in showcase mode.`
+                : 'We sent an email to let them know.'}
+            </span>
+          )}
         </div>,
         {
           style: {

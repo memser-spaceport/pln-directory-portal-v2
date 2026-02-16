@@ -34,3 +34,4 @@ export * from './ThumbsUpOutlinedIcon';
 export * from './InfoCircleIconOutlined';
 export * from './QuestionCircleStrokeIcon';
 export * from './ChartIcon';
+export * from './BookmarkIcon';

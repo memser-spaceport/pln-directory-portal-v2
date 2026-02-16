@@ -5,6 +5,7 @@ import SignUpForm from './sign-up-form';
 import SignUpSuccess from './sign-up-success';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 
 /**
  * SignUp component renders the sign-up form and success message.
@@ -42,7 +43,7 @@ const SignUp = ({ skillsInfo }: any) => {
       Cookies.set('utm_source', utmSource, { expires: 7 });
     }
 
-    if (Cookies.get('authToken')) {
+    if (getAuthToken()) {
       router.push('/');
     }
   }, []);

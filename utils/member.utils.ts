@@ -6,12 +6,12 @@ import {
   IMembersSearchParams,
   ITeamMemberRole,
 } from '@/types/members.types';
-import { getParsedValue, getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
+import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from './constants';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { validateLocation } from '@/services/location.service';
-import Cookies from 'js-cookie';
+import { getUserInfo as getCookieUserInfo, updateUserInfoCookie } from './cookie.utils';
 
 export const getFormattedFilters = (
   searchParams: IMembersSearchParams,
@@ -802,8 +802,7 @@ export const parseMemberDetailsForTeams = (members: IMemberResponse[], teamId: s
 
 export function updateMemberInfoCookie(url: string) {
   try {
-    const existingUserInfo = Cookies.get('userInfo');
-    const parsedUserInfo = getParsedValue(existingUserInfo);
+    const parsedUserInfo = getCookieUserInfo();
 
     if (parsedUserInfo) {
       const updatedUserInfo = {
@@ -811,9 +810,7 @@ export function updateMemberInfoCookie(url: string) {
         profileImageUrl: url,
       };
 
-      Cookies.set('userInfo', JSON.stringify(updatedUserInfo), {
-        path: '/',
-      });
+      updateUserInfoCookie(updatedUserInfo);
     }
   } catch (error) {
     console.error('Failed to update userInfo cookie:', error);

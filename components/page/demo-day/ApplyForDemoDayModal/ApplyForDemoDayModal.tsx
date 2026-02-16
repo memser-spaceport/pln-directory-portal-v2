@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { Modal } from '@/components/common/Modal';
 import { formatDemoDayDate } from '@/utils/demo-day.utils';
 import { FormField } from '@/components/form/FormField';
@@ -152,7 +152,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   const trackedFieldsRef = useRef<Set<string>>(new Set());
 
   // Check if user is authenticated
-  const authToken = Cookies.get('authToken');
+  const authToken = getAuthToken() ?? '';
   const isAuthenticated = Boolean(authToken);
   const isOpenedByLink = searchParams.get('dialog') === 'applyToDemoday';
 

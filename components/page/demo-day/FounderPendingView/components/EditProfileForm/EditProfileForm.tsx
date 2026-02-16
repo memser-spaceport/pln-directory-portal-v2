@@ -1,5 +1,4 @@
 import * as yup from 'yup';
-import Cookies from 'js-cookie';
 import React, { useEffect, useMemo } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -19,7 +18,7 @@ import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions'
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { getParsedValue } from '@/utils/common.utils';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { ADMIN_ROLE, DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
@@ -84,7 +83,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
   // Analytics hooks
   const { onFounderSaveTeamDetailsClicked, onFounderCancelTeamDetailsClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
-  const currentUserInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const currentUserInfo: IUserInfo = getUserInfo();
   const isDirectoryAdmin = currentUserInfo?.roles?.includes(ADMIN_ROLE);
 
   const options: IndustryFundingOpts = useMemo(() => {

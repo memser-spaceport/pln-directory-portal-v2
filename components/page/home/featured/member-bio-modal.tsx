@@ -4,7 +4,7 @@ import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
-import Cookies from 'js-cookie';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { useEffect, useRef, useState } from 'react';
 
 const MemberBioModal = () => {
@@ -28,7 +28,7 @@ const MemberBioModal = () => {
   };
 
   const onMemberClick = (e: any) => {
-    const userInfo = Cookies.get('userInfo') as unknown as IUserInfo;
+    const userInfo = getUserInfo() as IUserInfo;
     analytics.onMmeberBioPopupViewProfileBtnClicked(
       { ...getAnalyticsMemberInfo(member), bio },
       getAnalyticsUserInfo(userInfo),

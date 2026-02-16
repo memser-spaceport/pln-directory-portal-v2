@@ -14,7 +14,7 @@ import Technologies from './technologies';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { deleteTeam } from '@/app/actions/teams.actions';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 
 import s from './TeamDetails/TeamDetails.module.scss';
@@ -90,14 +90,14 @@ const TeamDetails = (props: ITeamDetails) => {
   const handleDeleteConfirm = async () => {
     setIsDeleting(true);
     try {
-      const authToken = Cookies.get('authToken');
+      const authToken = getAuthToken() ?? '';
       if (!authToken) {
         alert('Authentication token not found');
         setIsDeleting(false);
         return;
       }
 
-      const result = await deleteTeam(team?.id, JSON.parse(authToken));
+      const result = await deleteTeam(team?.id, authToken);
 
       if (result?.isError) {
         alert(`Failed to delete team: ${result.errorMessage}`);

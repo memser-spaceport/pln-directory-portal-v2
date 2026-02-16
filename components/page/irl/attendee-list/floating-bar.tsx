@@ -1,9 +1,9 @@
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { getGuestDetail } from '@/services/irl.service';
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
-import { getParsedValue, triggerLoader } from '@/utils/common.utils';
+import { triggerLoader } from '@/utils/common.utils';
 import { EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
 import { transformGuestDetail } from '@/utils/irl.utils';
 
@@ -24,7 +24,7 @@ const FloatingBar = (props: IFloatingBar) => {
   const location = props.location;
   const searchParams = props.searchParams;
   //variables
-  const authToken = getParsedValue(Cookies.get('authToken'));
+  const authToken = getAuthToken() ?? '';
   const eventType = searchParams?.type === 'past' ? '' : 'upcoming';
 
   //hooks

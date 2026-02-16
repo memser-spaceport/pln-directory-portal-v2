@@ -6,8 +6,9 @@ import HuskyChat from './husky-chat';
 import PageLoader from '../page-loader';
 import HuskyAnswerLoader from './husky-answer-loader';
 import HuskyFeedback from './husky-feedback';
-import { generateUUID, getParsedValue, getUniqueId } from '@/utils/common.utils';
+import { generateUUID, getUniqueId } from '@/utils/common.utils';
 import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
+import { getRefreshToken, getUserInfo as getCookieUserInfo } from '@/utils/cookie.utils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { incrementHuskyShareCount } from '@/services/discovery.service';
 import HuskyAsk from './husky-ask';
@@ -131,7 +132,7 @@ function HuskyAi({
         .optional(),
     }),
     onFinish: (data) => {
-      const userInfo = getParsedValue(Cookies.get('userInfo'));
+      const userInfo = getCookieUserInfo();
 
       setAnswerLoadingStatus(false);
     },
@@ -156,7 +157,7 @@ function HuskyAi({
   };
 
   const checkChatLimit = (userInfo: any): boolean => {
-    const refreshToken = getParsedValue(Cookies.get('refreshToken'));
+    const refreshToken = getRefreshToken();
     if (refreshToken) return true;
     return false;
   };

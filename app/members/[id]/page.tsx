@@ -24,8 +24,7 @@ import qs from 'qs';
 import { getAccessLevel } from '@/utils/auth.utils';
 import clsx from 'clsx';
 import { isMemberAvailableToConnect } from '@/utils/member.utils';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { getUserInfo as getCookieUserInfo } from '@/utils/cookie.utils';
 import { useQuery } from '@tanstack/react-query';
 import { IMember } from '@/types/members.types';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -59,7 +58,7 @@ const MemberDetails = ({ params }: { params: any }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const userInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo = getCookieUserInfo();
   const isAdmin = userInfo && userInfo.roles?.includes(ADMIN_ROLE);
   const isOwner = userInfo && userInfo.uid === memberId;
   const isLoggedIn = !!userInfo;

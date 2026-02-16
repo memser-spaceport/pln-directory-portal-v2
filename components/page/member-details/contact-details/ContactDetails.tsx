@@ -7,8 +7,8 @@ import { IUserInfo } from '@/types/shared.types';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 import s from './ContactDetails.module.scss';
-import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
+import { getRawUserInfoCookie } from '@/utils/cookie.utils';
 import { ADMIN_ROLE, TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
@@ -50,7 +50,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
 
   const onLoginClickHandler = () => {
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = getRawUserInfoCookie();
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

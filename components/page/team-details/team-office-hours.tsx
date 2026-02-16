@@ -5,8 +5,8 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { TEAM_OFFICE_HOURS_MSG, TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
+import { getRawUserInfoCookie } from '@/utils/cookie.utils';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 const TeamOfficeHours = (props: any) => {
@@ -20,7 +20,7 @@ const TeamOfficeHours = (props: any) => {
   const router = useRouter();
 
   const onLoginClickHandler = () => {
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = getRawUserInfoCookie();
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

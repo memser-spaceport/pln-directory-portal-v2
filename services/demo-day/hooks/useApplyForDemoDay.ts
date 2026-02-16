@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
-import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
 import { customFetch } from '@/utils/fetch-wrapper';
+import { getAuthToken } from '@/utils/cookie.utils';
 
 export type ApplyForDemoDayPayload = {
   name: string;
@@ -25,7 +25,7 @@ async function mutation(demoDaySlug: string, payload: ApplyForDemoDayPayload) {
   const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDaySlug}/investor-application`;
 
   // Check if user is authenticated
-  const authToken = Cookies.get('authToken');
+  const authToken = getAuthToken() ?? '';
   const isAuthenticated = Boolean(authToken);
 
   // Transform payload to match an API expected format

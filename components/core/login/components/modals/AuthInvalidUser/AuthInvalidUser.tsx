@@ -3,9 +3,8 @@
 import { useToggle } from 'react-use';
 import { ReactNode, useEffect, useState } from 'react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
-
-import { triggerLoader, getParsedValue } from '@/utils/common.utils';
+import { triggerLoader } from '@/utils/common.utils';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
@@ -134,7 +133,7 @@ export function AuthInvalidUser() {
             ['REGISTRATION_OPEN', 'ACTIVE'].includes(demoDayState?.status) &&
             ['rejected_access_level', 'email_not_found'].includes(errorType))
         ) {
-          const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+          const userInfo: IUserInfo = getUserInfo();
           const demoDaySlug = demoDayState?.slugURL || params.demoDayId;
 
           const demoDayTitle = demoDayState?.title || 'Demo Day';

@@ -6,6 +6,7 @@ import { User } from '@privy-io/react-auth';
 import { usePathname, useRouter, useParams, useSearchParams } from 'next/navigation';
 import Cookies from 'js-cookie';
 
+import { removeAuthCookie, AUTH_COOKIE_NAMES } from '@/utils/cookie.utils';
 import { usePrivyWrapper, useAuthTokens, getLinkedAccounts } from '../../hooks';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { deletePrivyUser, exchangeToken } from '@/services/auth.service';
@@ -356,7 +357,7 @@ export function PrivyModals() {
 
     // Logout handler
     async function handleLogout() {
-      Cookies.remove('authLinkedAccounts');
+      removeAuthCookie(AUTH_COOKIE_NAMES.authLinkedAccounts);
       await logout();
     }
 

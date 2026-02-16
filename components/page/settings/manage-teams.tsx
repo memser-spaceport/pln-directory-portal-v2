@@ -11,7 +11,7 @@ import { getTeamInitialValue, transformRawInputsToFormObj, transformTeamApiToFor
 import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import { updateTeam } from '@/services/teams.service';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { toast } from '@/components/core/ToastContainer';
 import { projectDetailsSchema, socialSchema, basicInfoSchema } from '@/schema/team-forms';
 import Modal from '@/components/core/modal';
@@ -245,11 +245,11 @@ function ManageTeamsSettings(props: any) {
         newData: { ...formattedInputValues },
       };
 
-      const authToken = Cookies.get('authToken');
+      const authToken = getAuthToken() ?? '';
       if (!authToken) {
         return;
       }
-      const { data, isError } = await updateTeam(payload, JSON.parse(authToken), selectedTeam.uid);
+      const { data, isError } = await updateTeam(payload, authToken, selectedTeam.uid);
       triggerLoader(false);
       if (isError) {
         toast.error('Team updated failed. Something went wrong, please try again later');

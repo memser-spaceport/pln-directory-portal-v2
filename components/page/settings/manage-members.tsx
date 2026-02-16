@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { toast } from '@/components/core/ToastContainer';
 import { updateMember } from '@/services/members.service';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { validateLocation } from '@/services/location.service';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
 import Modal from '@/components/core/modal';
@@ -200,11 +200,10 @@ function ManageMembersSettings({
         newData: { ...formattedInputValues },
       };
 
-      const rawToken = Cookies.get('authToken');
-      if (!rawToken) {
+      const authToken = getAuthToken() ?? '';
+      if (!authToken) {
         return;
       }
-      const authToken = JSON.parse(rawToken);
       const { data, isError, errorMessage, errorData } = await updateMember(selectedMember.uid, payload, authToken);
       triggerLoader(false);
       if (isError) {

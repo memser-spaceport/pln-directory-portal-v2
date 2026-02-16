@@ -17,7 +17,6 @@ import {
   getAnalyticsProjectInfo,
   getAnalyticsTeamInfo,
   getAnalyticsUserInfo,
-  getParsedValue,
 } from '@/utils/common.utils';
 import dynamic from 'next/dynamic';
 import { isPastDate } from '@/utils/irl.utils';
@@ -25,7 +24,7 @@ import LocationCard from './location-card';
 import { getFeaturedData } from '@/services/featured.service';
 import { useRouter } from 'next/navigation';
 import { formatFeaturedData } from '@/utils/home.utils';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { useFilter } from '@/hooks/useFilter';
 
 const MemberBioModal = dynamic(() => import('./member-bio-modal'), { ssr: false });
@@ -127,7 +126,7 @@ const Featured = (props: any) => {
   const { activeFilter, onFilterClick: handleFilterSelected } = useFilter<string>('all');
 
   const getFeaturedDataa = async () => {
-    const authToken = getParsedValue(Cookies.get('authToken'));
+    const authToken = getAuthToken() ?? '';
     const featData = await getFeaturedData(authToken, isLoggedIn, isAdmin);
     setUnfilteredFeaturedData(formatFeaturedData(featData.data));
     router.refresh();

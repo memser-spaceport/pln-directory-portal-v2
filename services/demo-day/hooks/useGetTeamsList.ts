@@ -3,7 +3,7 @@ import { useParams } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 
 export type TeamProfile = {
   createdAt: string;
@@ -65,7 +65,7 @@ async function fetcher(demoDayId: string): Promise<TeamsListResponse> {
 }
 
 export function useGetTeamsList() {
-  const authToken = Cookies.get('authToken') || '';
+  const authToken = getAuthToken() || '';
   const params = useParams();
   const demoDayId = params.demoDayId as string;
 

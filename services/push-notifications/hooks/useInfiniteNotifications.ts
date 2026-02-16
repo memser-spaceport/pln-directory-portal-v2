@@ -3,8 +3,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { PushNotification } from '@/types/push-notifications.types';
 import { getNotifications } from '@/services/push-notifications.service';
-import Cookies from 'js-cookie';
-import { getParsedValue } from '@/utils/common.utils';
+import { getAuthToken } from '@/utils/cookie.utils';
 
 const NOTIFICATIONS_PER_PAGE = 10;
 
@@ -34,7 +33,7 @@ export function useInfiniteNotifications(options: UseInfiniteNotificationsOption
     initialPageParam: 0,
     enabled,
     queryFn: async ({ pageParam = 0 }) => {
-      const authToken = getParsedValue(Cookies.get('authToken'));
+      const authToken = getAuthToken() ?? '';
       if (!authToken) {
         return { notifications: [], total: 0, unreadCount: 0 };
       }

@@ -74,7 +74,7 @@ export const SubscribeSection = ({ isLoggedIn, userInfo }: Props) => {
 
   return (
     <div id="subscribe-section" className={s.root}>
-      <p className={s.description}>Stay in the loop with demo day updates, registration announcements, and more.</p>
+      <p className={s.description}>Stay in the loop with PL demo day updates, registration announcements, and more.</p>
       <form className={`${s.form} ${isEmailDisabled ? s.disabled : ''}`} onSubmit={handleSubmit}>
         <input
           type="email"

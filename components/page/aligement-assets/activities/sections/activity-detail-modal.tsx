@@ -42,47 +42,73 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
       return text;
     }
 
-    // Sort links by their position in the text (to process in order)
-    const sortedLinks = [...links].sort((a, b) => {
-      const posA = text.indexOf(a.text);
-      const posB = text.indexOf(b.text);
-      return posA - posB;
-    });
+    // 1. Find all matches for all unique links
+    interface Match {
+      start: number;
+      end: number;
+      link: PopupLink;
+    }
+    const matches: Match[] = [];
 
+    // Deduplicate links to avoid redundant processing
+    const uniqueLinks = links.filter((link, index, self) =>
+      index === self.findIndex((t) => (
+        t.text === link.text && t.url === link.url
+      ))
+    );
+
+    for (const link of uniqueLinks) {
+      let pos = text.indexOf(link.text);
+      while (pos !== -1) {
+        matches.push({
+          start: pos,
+          end: pos + link.text.length,
+          link
+        });
+        pos = text.indexOf(link.text, pos + 1);
+      }
+    }
+
+    // 2. Sort matches by start position
+    matches.sort((a, b) => a.start - b.start);
+
+    // 3. Build content
     const parts: (string | JSX.Element)[] = [];
-    let remainingText = text;
+    let cursor = 0;
+    
+    // Use a simple counter for keys
     let keyIndex = 0;
 
-    for (const link of sortedLinks) {
-      const linkIndex = remainingText.indexOf(link.text);
-      if (linkIndex === -1) continue;
+    for (const match of matches) {
+      // Skip if this match overlaps with current cursor (already processed)
+      if (match.start < cursor) continue;
 
       // Add text before the link
-      if (linkIndex > 0) {
-        parts.push(remainingText.substring(0, linkIndex));
+      if (match.start > cursor) {
+        parts.push(text.substring(cursor, match.start));
       }
 
       // Add the link
       parts.push(
         <Link
           key={keyIndex++}
-          href={link.url}
+          href={match.link.url}
           target="_blank"
           rel="noopener noreferrer"
           className="activity-modal__link"
-          onClick={() => handleLinkClick(link.text, link.url)}
+          onClick={() => handleLinkClick(match.link.text, match.link.url)}
         >
-          {link.text}
+          {match.link.text}
         </Link>
       );
 
-      // Update remaining text
-      remainingText = remainingText.substring(linkIndex + link.text.length);
+      // Update cursor
+      cursor = match.end;
     }
 
     // Add any remaining text
-    if (remainingText) {
-      parts.push(remainingText);
+    if (cursor < text.length) {
+      parts.push(text.substring(cursor));
     }
 
     return parts;
@@ -152,14 +178,27 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                 
                 {popupContent.pointsAwarded.items.length > 0 && (
                   <ul className="activity-modal__points-list">
-                    {popupContent.pointsAwarded.items.map((item, index) => (
+                    {popupContent.pointsAwarded.items.map((item, index) => {
+                      const boldLabel = item.boldLabel !== false;
+                      return (
                       <li key={index} className="activity-modal__points-item">
                         {item.value ? (
-                          <><strong>{item.label}:</strong> {item.value}</>
+                          item.valueOnNewLine ? (
+                            <>
+                              {boldLabel ? <strong>{item.label}:</strong> : <>{item.label}:</>}
+                              <div className="activity-modal__points-item-value">
+                                {item.italicValue ? <em>{item.value}</em> : item.value}
+                              </div>
+                            </>
+                          ) : boldLabel ? (
+                            <><strong>{item.label}:</strong> {item.italicValue ? <em>{item.value}</em> : item.value}</>
+                          ) : (
+                            <>{item.label}: {item.italicValue ? <em>{item.value}</em> : item.value}</>
+                          )
                         ) : item.subItems ? (
-                          <><strong>{item.label}:</strong></>
+                          boldLabel ? <><strong>{item.label}:</strong></> : <>{item.label}:</>
                         ) : (
-                          <strong>{item.label}</strong>
+                          boldLabel ? <strong>{item.label}</strong> : item.label
                         )}
                         {item.description && (
                           <div className="activity-modal__points-item-description">{item.description}</div>
@@ -174,7 +213,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                           </ul>
                         )}
                       </li>
-                    ))}
+                    );})}
                   </ul>
                 )}
 
@@ -183,17 +222,25 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                   <div className="activity-modal__categories">
                     {popupContent.categories.map((category, catIndex) => (
                       <div key={catIndex} className="activity-modal__category">
-                        <h4 className="activity-modal__category-title">{category.title}</h4>
-                        {category.description && (
-                          <p className="activity-modal__category-description">{category.description}</p>
+                        <div className="activity-modal__category-header">
+                          <span className="activity-modal__category-title">{category.title}</span>
+                          {category.description && (
+                            <span className="activity-modal__category-description activity-modal__category-description--inline">{category.description}</span>
+                          )}
+                        </div>
+                        {category.tiers.length > 0 && (
+                          <ul className="activity-modal__category-list">
+                            {category.tiers.map((tier, tierIndex) => (
+                              <li key={tierIndex} className="activity-modal__category-item">
+                                • {tier.label === 'Default' || tier.label === 'Optional' ? (
+                                  <><strong>{tier.label}:</strong> {tier.points}</>
+                                ) : (
+                                  <>{tier.label}: {tier.points}</>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
                         )}
-                        <ul className="activity-modal__category-list">
-                          {category.tiers.map((tier, tierIndex) => (
-                            <li key={tierIndex} className="activity-modal__category-item">
-                              • {tier.label}: {tier.points}
-                            </li>
-                          ))}
-                        </ul>
                       </div>
                     ))}
                   </div>
@@ -291,6 +338,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           line-height: 22px;
           color: #475569;
           margin: 0;
+          white-space: pre-wrap;
         }
 
         .activity-modal__submission-note-title {
@@ -356,6 +404,10 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           font-weight: 600;
         }
 
+        .activity-modal__points-item-value {
+          margin-top: 4px;
+        }
+
         .activity-modal__points-item-description {
           font-size: 14px;
           line-height: 20px;
@@ -379,9 +431,10 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
         }
 
         .activity-modal__categories {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
+          display: flex;
+          flex-direction: column;
           gap: 24px;
+          margin-top: 24px;
         }
 
         .activity-modal__category {
@@ -390,12 +443,22 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           gap: 8px;
         }
 
+        .activity-modal__category-header {
+          display: block;
+        }
+
         .activity-modal__category-title {
-          font-size: 14px;
+          font-size: 16px;
           font-weight: 600;
-          line-height: 18px;
+          line-height: 22px;
           color: #0f172a;
           margin: 0;
+        }
+
+        .activity-modal__category-title + .activity-modal__category-description--inline {
+          font-weight: 400;
+          color: #475569;
+          font-style: normal;
         }
 
         .activity-modal__category-description {
@@ -404,6 +467,11 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           line-height: 22px;
           color: #64748b;
           font-style: italic;
+        }
+
+        .activity-modal__category-description--inline {
+          font-size: 14px;
+          line-height: 22px;
         }
 
         .activity-modal__category-list {
@@ -419,6 +487,11 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           font-size: 14px;
           line-height: 18px;
           color: #475569;
+        }
+
+        .activity-modal__category-item strong {
+          font-weight: 600;
+          color: #0f172a;
         }
 
         .activity-modal__additional-note {
@@ -438,7 +511,6 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           }
 
           .activity-modal__categories {
-            grid-template-columns: 1fr;
             gap: 16px;
           }
 

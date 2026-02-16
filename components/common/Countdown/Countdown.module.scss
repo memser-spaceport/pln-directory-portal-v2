@@ -27,7 +27,7 @@
   align-items: center;
   justify-content: center;
   gap: 28px;
-  padding-top: 12px;
+  padding-top: 4px;
 
   @include media.mobile-only {
     gap: 16px;
@@ -43,20 +43,20 @@
 }
 
 .timeValue {
-  font-size: 30px;
+  font-size: 24px;
   font-style: normal;
   font-weight: 600;
-  line-height: 27px; /* 84.375% */
+  line-height: 28px; /* 84.375% */
   letter-spacing: -0.5px;
   color: #0a0c11;
   min-width: 32px;
 }
 
 .timeLabel {
-  font-size: 16px;
+  font-size: 12px;
   font-style: normal;
   font-weight: 500;
-  line-height: 27px; /* 150% */
+  line-height: 16px; /* 150% */
   letter-spacing: -0.3px;
   color: #5e718d;
   white-space: nowrap;

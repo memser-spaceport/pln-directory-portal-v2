@@ -2,9 +2,10 @@ import { clsx } from 'clsx';
 import { Field } from '@base-ui-components/react/field';
 import { useFormContext } from 'react-hook-form';
 import React, { ReactNode, PropsWithChildren } from 'react';
-
+import dynamic from 'next/dynamic';
 import s from './FormEditor.module.scss';
-import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
+
+const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor/RichTextEditor'), { ssr: false });
 
 interface Props extends PropsWithChildren {
   name: string;

@@ -13,6 +13,9 @@ import { validatePariticipantsEmail } from '@/services/participants-request.serv
 import { validateLocation } from '@/services/location.service';
 import { getUserInfo as getCookieUserInfo, updateUserInfoCookie } from './cookie.utils';
 
+export const isDemodaySignUpSource = (signUpSource?: string, demoDaySlug = ''): boolean =>
+  !!signUpSource?.startsWith(`demoday-${demoDaySlug}`);
+
 export const getFormattedFilters = (
   searchParams: IMembersSearchParams,
   rawFilters: any,

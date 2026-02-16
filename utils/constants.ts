@@ -1479,13 +1479,28 @@ export const tagColors = [
 export const SOCIAL_IMAGE_URL =
   'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
 
-export const DEMO_DAY_SOCIAL_IMAGES: Record<string, string> = {
-  all: 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_General.png',
-  plw26: 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_W26.png',
+export const DEMO_DAY_METADATA: Record<
+  string,
+  { title: string; description: string; imageUrl: string }
+> = {
+  all: {
+    title: 'Protocol Labs Demo Day',
+    description:
+      'Protocol Labs Demo Days are virtual events featuring top, pre-selected teams from the PL network. Accredited investors review pitches asynchronously, with 1-click options to connect and invest.',
+    imageUrl:
+      'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_General_v2.png',
+  },
+  plw26: {
+    title: 'Protocol Labs Demo Day W26',
+    description:
+      'Explore 20+ teams across AI, Web3, and deep tech. Virtual and fully async — optimized for ease of review. For accredited investors and qualifying angels only.',
+    imageUrl:
+      'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_W26_v2.png',
+  },
 };
 
-export const getDemoDaySocialImageUrl = (demoDaySlug?: string) =>
-  (demoDaySlug && DEMO_DAY_SOCIAL_IMAGES[demoDaySlug]) || DEMO_DAY_SOCIAL_IMAGES.all;
+export const getDemoDayMetadata = (demoDaySlug?: string) =>
+  (demoDaySlug && DEMO_DAY_METADATA[demoDaySlug]) || DEMO_DAY_METADATA.all;
 
 export const OFFICE_HOURS_STEPS = {
   MEETING_INITIATED: {
@@ -1893,6 +1908,7 @@ export const DEMO_DAY_ANALYTICS = {
   ON_ACTIVE_VIEW_TEAM_CARD_CLICKED: 'demo-day-active-view-team-card-clicked',
   ON_ACTIVE_VIEW_TEAM_PITCH_DECK_VIEWED: 'demo-day-active-view-team-pitch-deck-viewed',
   ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_VIEWED: 'demo-day-active-view-team-pitch-video-viewed',
+  ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_WATCH_TIME: 'demo-day-active-view-team-pitch-video-watch-time',
   ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED: 'demo-day-active-view-like-company-clicked',
   ON_ACTIVE_VIEW_CONNECT_COMPANY_CLICKED: 'demo-day-active-view-connect-company-clicked',
   ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED: 'demo-day-active-view-invest-company-clicked',

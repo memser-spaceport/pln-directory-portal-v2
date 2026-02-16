@@ -4,18 +4,21 @@ import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/com
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
+import { useSaveTeam } from '@/services/demo-day/hooks/useSaveTeam';
 import s from './TeamProfileCard.module.scss';
-import { getUserInfo } from '@/utils/cookie.utils';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { VideoWatchTimeData } from '@/components/common/VideoPlayer/hooks/useTrackVideoWatchTime';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { ReferCompanyModal } from '../ReferCompanyModal';
 import { GiveFeedbackModal } from '@/components/page/demo-day/GiveFeedbackModal';
 import { clsx } from 'clsx';
 import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
-import { ChartIcon } from '@/components/icons';
+import { BookmarkIcon, BookmarkIconFilled, ChartIcon } from '@/components/icons';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
@@ -53,10 +56,12 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     onActiveViewIntroCompanyConfirmClicked,
     onActiveViewTeamPitchDeckViewed,
     onActiveViewTeamPitchVideoViewed,
+    onActiveViewVideoWatchTime,
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest(team.team?.name);
-  const userInfo: IUserInfo = getUserInfo();
+  const saveTeam = useSaveTeam();
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const canEdit = isAdmin || team.founders.some((founder) => founder.uid === userInfo?.uid);
   const isPrepDemoDay = useIsPrepDemoDay();
 
@@ -172,9 +177,6 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
 
       // PostHog analytics
       switch (interestType) {
-        case 'like':
-          onActiveViewLikeCompanyClicked(analyticsData);
-          break;
         case 'connect':
           onActiveViewConnectCompanyClicked(analyticsData);
           break;
@@ -187,7 +189,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
       const interestEvent: TrackEventDto = {
         name: DEMO_DAY_ANALYTICS[
           `ON_ACTIVE_VIEW_${interestType.toUpperCase()}_COMPANY_CLICKED` as keyof typeof DEMO_DAY_ANALYTICS
-        ],
+          ],
         distinctId: userInfo.email,
         properties: {
           userId: userInfo.uid,
@@ -323,6 +325,49 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     }
   };
 
+  // Handle video watch time reports
+  const handleVideoWatchTime = (data: VideoWatchTimeData) => {
+    if (!userInfo?.email) return;
+
+    const analyticsData = getTeamAnalyticsData();
+
+    // PostHog analytics
+    onActiveViewVideoWatchTime({
+      ...analyticsData,
+      ...data,
+    });
+
+    // Custom analytics event to backend
+    const watchTimeEvent: TrackEventDto = {
+      name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_WATCH_TIME,
+      distinctId: userInfo.email,
+      properties: {
+        userId: userInfo.uid,
+        userEmail: userInfo.email,
+        userName: userInfo.name,
+        path: '/demoday',
+        timestamp: new Date().toISOString(),
+        ...analyticsData,
+        // Watch time data
+        sessionId: data.sessionId,
+        videoUrl: data.videoUrl,
+        watchTimeMs: data.watchTimeMs,
+        totalWatchTimeMs: data.totalWatchTimeMs,
+        videoDurationMs: data.videoDurationMs,
+        percentWatched: data.percentWatched,
+        currentPosition: data.currentPosition,
+        playbackRate: data.playbackRate,
+        isComplete: data.isComplete,
+        isFinalReport: data.isFinalReport,
+        exitPosition: data.exitPosition,
+        maxPositionReached: data.maxPositionReached,
+        watchedSegments: data.watchedSegments,
+      },
+    };
+
+    reportAnalytics.mutate(watchTimeEvent);
+  };
+
   // Check if description is truncated
   React.useEffect(() => {
     if (descriptionRef.current && team.description) {
@@ -352,6 +397,54 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
           {/*    <ChartIcon /> Demo Day Analytics*/}
           {/*  </Link>*/}
           {/*)}*/}
+          <button
+            className={s.drawerEditButton}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+
+              // Report analytics for save/unsave click
+              if (userInfo?.email) {
+                const analyticsData = getTeamAnalyticsData();
+                onActiveViewLikeCompanyClicked(analyticsData);
+
+                const saveEvent: TrackEventDto = {
+                  name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED,
+                  distinctId: userInfo.email,
+                  properties: {
+                    userId: userInfo.uid,
+                    userEmail: userInfo.email,
+                    userName: userInfo.name,
+                    path: '/demoday',
+                    timestamp: new Date().toISOString(),
+                    action: team.saved ? 'unsave_company' : 'save_company',
+                    ...analyticsData,
+                  },
+                };
+
+                reportAnalytics.mutate(saveEvent);
+              }
+
+              saveTeam.mutate({
+                teamFundraisingProfileUid: team.uid,
+                isPrepDemoDay,
+                isSaved: !!team.saved,
+              });
+            }}
+            disabled={saveTeam.isPending || !team.uid}
+          >
+            {team.saved ? (
+              <>
+                <BookmarkIconFilled />
+                <span>Unsave</span>
+              </>
+            ) : (
+              <>
+                <BookmarkIcon />
+                <span>Save</span>
+              </>
+            )}
+          </button>
           <div className={s.editButtonContainer}>
             <div className={s.drawerEditButton}>
               {canEdit ? <EditIcon /> : <EyeIcon />}
@@ -368,6 +461,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         onPitchVideoView={handlePitchVideoView}
         pitchDeckPreviewUrl={team?.onePagerUpload?.previewImageUrl}
         pitchDeckPreviewSmallUrl={team?.onePagerUpload?.previewImageSmallUrl}
+        onVideoWatchTime={handleVideoWatchTime}
       />
 
       {/* Team Description */}
@@ -416,22 +510,6 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
           disabled={!team.uid}
         >
           📝 Give Feedback
-        </button>
-        <button
-          className={s.secondaryButton}
-          onClick={(e) => handleInterestCompanyClick(e, 'like')}
-          disabled={expressInterest.isPending || !team.uid}
-        >
-          {team.liked ? (
-            <>
-              <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Liked Company
-              <CheckIcon />
-            </>
-          ) : (
-            <>
-              <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
-            </>
-          )}
         </button>
         <button
           className={s.secondaryButton}

@@ -6,7 +6,7 @@
   gap: 20px;
   align-items: center;
   justify-content: flex-start;
-  padding: 20px;
+  padding: 0 20px;
   width: 100%;
 
   @include media.mobile-only {
@@ -60,12 +60,23 @@
   }
 }
 
+.icon {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border-radius: var(--corner-radius-full-round, 9999px);
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+}
+
 .verticalStepper {
   display: flex;
   flex-direction: column;
   width: 100%;
   align-items: flex-start;
-  max-width: 345px;
+  max-width: 322px;
   margin: 12px auto 0;
 }
 
@@ -98,6 +109,24 @@
   justify-content: center;
   position: relative;
   z-index: 2;
+}
+
+.stepIconCompleted {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #11a75c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0px 1px 3px 0px rgba(14, 15, 17, 0.12),
+    0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+
+  svg {
+    width: 10px;
+    height: 10px;
+  }
 }
 
 .stepDot {
@@ -142,7 +171,7 @@
   flex-direction: column;
   padding-top: 0;
   //margin-top: -2px;
-  gap: 12px;
+  gap: 4px;
 
   &:not(:last-child) {
     padding-bottom: 24px;
@@ -169,6 +198,7 @@
   font-weight: 400;
   line-height: 18px; /* 150% */
   letter-spacing: -0.2px;
+  margin-bottom: 8px;
 }
 
 // Step status styles

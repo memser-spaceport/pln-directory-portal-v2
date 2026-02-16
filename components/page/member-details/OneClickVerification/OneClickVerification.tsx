@@ -21,6 +21,7 @@ interface Props {
   member: IMember;
   isLoggedIn: boolean;
   userInfo: IUserInfo;
+  isNewInvestor?: boolean;
 }
 
 const fade = {
@@ -29,10 +30,10 @@ const fade = {
   exit: { opacity: 0 },
 };
 
-export const OneClickVerification = ({ userInfo, member }: Props) => {
+export const OneClickVerification = ({ userInfo, member, isNewInvestor }: Props) => {
   const router = useRouter();
   const isOwner = userInfo?.uid === member.id;
-  const hasMissingRequiredData = !member?.linkedinProfile && getAccessLevel(userInfo, true) === 'base';
+  const hasMissingRequiredData = !member?.linkedinProfile && getAccessLevel(userInfo, true) === 'base' && !isNewInvestor;
   const showIncomplete = hasMissingRequiredData && isOwner;
   const searchParams = useSearchParams();
   const { onConnectLinkedInClicked, onSuccessLinkedInVerification, onErrorLinkedInVerification } = useMemberAnalytics();

@@ -6,9 +6,8 @@ import { ProfileSkeleton } from './components/ProfileSkeleton';
 import { ProfileHeader } from './components/ProfileHeader';
 import { ProfileContent } from './components/ProfileContent';
 import { ErrorState } from './components/ErrorState';
-import Image from 'next/image';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
-import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
+import { useExpressInterest } from '@/services/demo-day/hooks/useExpressInterest';
 import { ProfileActions } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileActions';
 import { IUserInfo } from '@/types/shared.types';
 import { getUserInfo } from '@/utils/cookie.utils';
@@ -170,29 +169,29 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
             <ProfileActions onEditProfile={handleEditProfile} />
           ) : (
             <div className={s.actions}>
-              <button
-                className={s.secondaryButton}
-                onClick={() =>
-                  expressInterest.mutate({
-                    teamFundraisingProfileUid: data?.uid,
-                    interestType: 'like',
-                    isPrepDemoDay,
-                  })
-                }
-                disabled={expressInterest.isPending || !data?.uid}
-              >
-                {data?.liked ? (
-                  <>
-                    <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />
-                    Liked Company
-                    <CheckIcon />
-                  </>
-                ) : (
-                  <>
-                    <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company
-                  </>
-                )}
-              </button>
+              {/*<button*/}
+              {/*  className={s.secondaryButton}*/}
+              {/*  onClick={() =>*/}
+              {/*    expressInterest.mutate({*/}
+              {/*      teamFundraisingProfileUid: data?.uid,*/}
+              {/*      interestType: 'like',*/}
+              {/*      isPrepDemoDay,*/}
+              {/*    })*/}
+              {/*  }*/}
+              {/*  disabled={expressInterest.isPending || !data?.uid}*/}
+              {/*>*/}
+              {/*  {data?.liked ? (*/}
+              {/*    <>*/}
+              {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />*/}
+              {/*      Liked Company*/}
+              {/*      <CheckIcon />*/}
+              {/*    </>*/}
+              {/*  ) : (*/}
+              {/*    <>*/}
+              {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company*/}
+              {/*    </>*/}
+              {/*  )}*/}
+              {/*</button>*/}
               <button
                 className={s.secondaryButton}
                 onClick={() =>

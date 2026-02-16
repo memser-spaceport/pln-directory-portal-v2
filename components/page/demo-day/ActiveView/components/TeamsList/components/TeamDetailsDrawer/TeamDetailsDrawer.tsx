@@ -16,6 +16,7 @@ import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { VideoWatchTimeData } from '@/components/common/VideoPlayer/hooks/useTrackVideoWatchTime';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { ReferCompanyModal } from '../ReferCompanyModal';
@@ -84,6 +85,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     onActiveViewIntroCompanyClicked,
     onActiveViewIntroCompanyCancelClicked,
     onActiveViewIntroCompanyConfirmClicked,
+    onActiveViewVideoWatchTime,
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest(team?.team?.name);
@@ -343,6 +345,49 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     }
   };
 
+  // Handle video watch time reports
+  const handleVideoWatchTime = (data: VideoWatchTimeData) => {
+    if (!userInfo?.email) return;
+
+    const analyticsData = getTeamAnalyticsData();
+
+    // PostHog analytics
+    onActiveViewVideoWatchTime({
+      ...analyticsData,
+      ...data,
+    });
+
+    // Custom analytics event to backend
+    const watchTimeEvent: TrackEventDto = {
+      name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_WATCH_TIME,
+      distinctId: userInfo.email,
+      properties: {
+        userId: userInfo.uid,
+        userEmail: userInfo.email,
+        userName: userInfo.name,
+        path: '/demoday',
+        timestamp: new Date().toISOString(),
+        ...analyticsData,
+        // Watch time data
+        sessionId: data.sessionId,
+        videoUrl: data.videoUrl,
+        watchTimeMs: data.watchTimeMs,
+        totalWatchTimeMs: data.totalWatchTimeMs,
+        videoDurationMs: data.videoDurationMs,
+        percentWatched: data.percentWatched,
+        currentPosition: data.currentPosition,
+        playbackRate: data.playbackRate,
+        isComplete: data.isComplete,
+        isFinalReport: data.isFinalReport,
+        exitPosition: data.exitPosition,
+        maxPositionReached: data.maxPositionReached,
+        watchedSegments: data.watchedSegments,
+      },
+    };
+
+    reportAnalytics.mutate(watchTimeEvent);
+  };
+
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -476,6 +521,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                           onPitchVideoView={handlePitchVideoView}
                           pitchDeckPreviewUrl={displayTeam?.onePagerUpload?.previewImageUrl}
                           pitchDeckPreviewSmallUrl={displayTeam?.onePagerUpload?.previewImageSmallUrl}
+                          onVideoWatchTime={handleVideoWatchTime}
                         />
                         {displayTeam?.description && (
                           <CompanyFundraiseParagraph paragraph={displayTeam?.description} editable={false} />
@@ -509,24 +555,24 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     >
                       📝 Give Feedback
                     </button>
-                    <button
-                      className={s.secondaryButton}
-                      onClick={handleLikeCompanyClick}
-                      disabled={expressInterest.isPending || !team.uid}
-                    >
-                      {team.liked ? (
-                        <>
-                          <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />
-                          Liked Company
-                          <CheckIcon />
-                        </>
-                      ) : (
-                        <>
-                          <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />
-                          Like Company
-                        </>
-                      )}
-                    </button>
+                    {/*<button*/}
+                    {/*  className={s.secondaryButton}*/}
+                    {/*  onClick={handleLikeCompanyClick}*/}
+                    {/*  disabled={expressInterest.isPending || !team.uid}*/}
+                    {/*>*/}
+                    {/*  {team.liked ? (*/}
+                    {/*    <>*/}
+                    {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />*/}
+                    {/*      Liked Company*/}
+                    {/*      <CheckIcon />*/}
+                    {/*    </>*/}
+                    {/*  ) : (*/}
+                    {/*    <>*/}
+                    {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />*/}
+                    {/*      Like Company*/}
+                    {/*    </>*/}
+                    {/*  )}*/}
+                    {/*</button>*/}
                     <button
                       className={s.secondaryButton}
                       onClick={handleConnectCompanyClick}

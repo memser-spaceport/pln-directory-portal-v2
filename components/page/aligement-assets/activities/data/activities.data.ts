@@ -97,26 +97,27 @@ export const activitiesData: ActivitiesData = {
       isAutoTracked: true,
       popupContent: {
         title: 'Create a Replicable Playbook or Template',
-        description: 'Create or share a reusable step-by-step playbook or Google Doc template (e.g., onboarding guides, community moderation frameworks, grant templates).',
-        submissionNote: 'Must be based on proven practices and exclude confidential or personal information. Publish the your playbook or template on Protosphere to be eligible. Refer to this Example.',
+        description: 'Create or share a reusable step-by-step playbook or Google Doc template (e.g., onboarding guides, community moderation frameworks, grant templates, etc.).',
+        submissionNote: 'Must be based on proven practices and exclude confidential or personal information. Publish your playbook or template as a post on Protosphere to be eligible. Only published resources are eligible for validation. Please see this article on Offer Letters as an example.',
         links: [
           { text: 'Protosphere', url: 'https://protosphere.plnetwork.io/' },
-          { text: 'Example', url: 'https://protosphere.plnetwork.io/posts/Offer-Letter-Template-(US-Employee)-cm24z0ud800dopnd769i8g6xw' }
+          { text: 'Offer Letters', url: 'https://protosphere.plnetwork.io/posts/Offer-Letter-Template-(US-Employee)-cm24z0ud800dopnd769i8g6xw' }
         ],
         pointsAwarded: {
           title: 'Points Awarded:',
           items: [
-            { label: 'Base Reward', value: '500 points for executing & documenting the activity' },
+            { label: 'Base Reward', value: `300 points for posting a "Playbook" or "Template" article` },
             {
               label: 'Impact Bonus',
-              value: '(based on total savings achieved):',
+              value: 'Participants may collect additional bonus points, on top of the base reward, if their submitted article meets various engagement thresholds (90 day window beginning with the date of publication).',
+              italicValue: true,
+              valueOnNewLine: true,
               subItems: [
-                { label: 'Tier 1 (<9.99% savings)', value: '+300 points' },
-                { label: 'Tier 2 (10–30% savings)', value: '+700 points' },
-                { label: 'Tier 3 (>30% savings)', value: '+1,200 points' }
+                { label: 'Tier 1 (10-30 views of published resource)', value: '200 points' },
+                { label: 'Tier 2 (31-50 views)', value: '500 points' },
+                { label: 'Tier 3 (51+ views)', value: '900 points' }
               ]
             },
-            { label: 'Collaborators', value: 'Points are split equally among listed contributors' }
           ]
         }
       }
@@ -144,41 +145,32 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
-      id: 'design-incentive-experiment',
-      category: 'Knowledge Sharing',
-      activity: 'Design a Custom Incentive Experiment',
-      networkValue: 'Share expertise and insights across the network.',
-      points: 'TBC',
-      popupContent: {
-        title: 'Design a Custom Incentive Experiment',
-        description: 'Propose a short-term incentivized initiative—such as a research study, contributor challenge, pilot test, or community-based campaign—with clear goals, measurable outcomes, and a defined participant group. Must be reviewed and approved by AAWG before launch.',
-        submissionNote: 'Include a project description, target audience, success criteria, timeline, point budget, distribution method, point validity period, and program manager.',
-        pointsAwarded: {
-          title: 'Recommended Participant Pool Sizes:',
-          items: [
-            { label: 'Small Initiatives (couple of hours)', value: '200 points per participant' },
-            { label: 'Medium Initiative (4-10 hours)', value: '600 points' },
-            { label: 'Large Initiatives (10+ hours)', value: '1200 points' }
-          ]
-        }
-      },
-    },
-    {
       id: 'construct-alignment-asset-case-study',
       category: 'Knowledge Sharing',
       activity: 'Construct an Alignment Asset Case Study',
-      networkValue: 'Write a case study that shows how your participation in the Alignment Asset has led to meaningful outcomes for you and the broader Protocol Labs network.',
-      points: '500+',
+      networkValue: 'Write a case study highlighting how your participation in PLAA drove meaningful outcomes for you and the Protocol Labs network.',
+      points: '250+',
       popupContent: {
         title: 'Construct an Alignment Asset Case Study',
-        description: 'Write a case study highlighting how your participation in PLAA created meaningful, measurable outcomes for you and the Protocol Labs network. Describe  the incentivized activity, your actions, and the impact achieved. Must meet PL editorial standards and receive final approval from the Polaris Marketing team in order to be published and eligible for rewards.',
-        submissionNote: 'Include a project description, target audience, success criteria, timeline, point budget, distribution method, point validity period, and program manager.',
+        description: `Write a case study highlighting how your participation in PLAA drove meaningful outcomes for you and the Protocol Labs network. Describe the incentivized activity, your actions, and why it mattered. Focus on the real, measurable impacts. Your case study should clearly show how PLAA participation translates into measurable value for the network, not just individual contributions.
+
+To submit an idea for a case study, start by completing this form and selecting the appropriate activity from the drop-down list. Once approved, a PLAA Working Group member will reach out via email. Draft your case study and work with the approver to incorporate feedback until final approval. After approval, you must opt in for the case study to be included in the internal content library. Any case study that is later published in future posts or formats beyond the internal library will collect additional points.
+
+Only approved case studies that are opted into the internal content library are eligible to receive rewards. If a case study reaches the second Impact Tier, the author will collect additional points on top of the rewards from the previous tier.`,
+        links: [
+          { text: 'this form', url: 'https://forms.gle/zUQg2jUBYsWivk5t5' }
+        ],
         pointsAwarded: {
           title: 'Points Awarded:',
           items: [
-            { label: 'Tier 1: Contributor — 500 points', description: "Highlights a focused contribution through the PL Alignment Asset that led to a clear, practical outcome aligned with your organization's goals and OKRs." },
-            { label: 'Tier 2: Builder — 1,000 points', description: '   Showcases leadership in driving a major initiative or strategic improvement with measurable impact across multiple teams in the network.' },
-            { label: 'Tier 3: Transformer — 3,000 points' , description: '   Documents a transformative, network-wide impact that led to foundational changes in how the Protocol Labs network operates.'}
+            { 
+              label: 'Tier 1: Internal Case Study — 250 points', 
+              description: "Recognizes an approved contribution that is documented as a case study and finalized within the internal content library, highlighting a clear outcome aligned with your organization’s goals and OKRs." 
+            },
+            { 
+              label: 'Tier 2: Published Case Study — 500 points', 
+              description: 'Awarded for an approved case study that is published in future posts across various formats beyond the internal content library, showcasing transferable insights, key learnings, and impact relevant to the broader ecosystem' 
+            }
           ]
         }
       },
@@ -205,6 +197,26 @@ export const activitiesData: ActivitiesData = {
           ]
         }
       }
+    },
+    {
+      id: 'design-incentive-experiment',
+      category: 'Network Tooling',
+      activity: 'Design a Custom Incentive Experiment',
+      networkValue: 'Share expertise and insights across the network.',
+      points: 'TBC',
+      popupContent: {
+        title: 'Design a Custom Incentive Experiment',
+        description: 'Propose a short-term incentivized initiative—such as a research study, contributor challenge, pilot test, or community-based campaign—with clear goals, measurable outcomes, and a defined participant group. Must be reviewed and approved by AAWG before launch.',
+        submissionNote: 'Include a project description, target audience, success criteria, timeline, point budget, distribution method, point validity period, and program manager.',
+        pointsAwarded: {
+          title: 'Recommended Participant Pool Sizes:',
+          items: [
+            { label: 'Small Initiatives (couple of hours)', value: '200 points per participant' },
+            { label: 'Medium Initiative (4-10 hours)', value: '600 points' },
+            { label: 'Large Initiatives (10+ hours)', value: '1200 points' }
+          ]
+        }
+      },
     },
     {
       id: 'share-compensation-data',
@@ -243,7 +255,7 @@ export const activitiesData: ActivitiesData = {
         },
         categories: [
           {
-            title: 'First-Round Interview:',
+            title: 'Hiring Manager Screen:',
             tiers: [
               { label: 'Level 1 / Junior', points: '25 points' },
               { label: 'Level 2 / Junior', points: '50 points' },
@@ -301,26 +313,64 @@ export const activitiesData: ActivitiesData = {
       id: 'network-introduction',
       category: 'Programs',
       activity: 'Make a Network Introduction',
-      networkValue: 'Connect collaborators or organizations to unlock new partnerships. You can also collect points when the referred party completes this form.',
+      networkValue: 'Connect collaborators or organizations to unlock new partnerships.',
       points: '300+',
-      hasFormLink: true,
+      // hasFormLink: true,
       popupContent: {
-        title: 'Network Introductions',
+        title: 'Make a Network Introduction',
         description: 'Facilitate meaningful introductions between individuals or teams that may lead to collaboration, partnerships, or shared opportunities. Quality, verified introductions are prioritized.',
-        submissionNote: 'Submit introductions through the TG PL Hub Introductions channel (automatically logged) or manually via form submission. Points are collected once the introduction is validated.',
-        submissionLink: {
-          text: 'TG PL Hub Introductions',
-          url: 'https://t.me/c/2303844229/278'
-        },
+        submissionNote: 'Submit Network Introductions through the PL Directory Forum under the Intros tab or via the Activity Reporting Form. Points are collected once the introduction is reviewed and validated.',
+        links: [
+          { text: 'PL Directory Forum', url: 'https://directory.plnetwork.io/forum?cid=5' },
+          { text: 'Activity Reporting Form', url: 'https://forms.gle/zUQg2jUBYsWivk5t5' }
+        ],
         pointsAwarded: {
           title: 'Points Awarded:',
           items: [
-            { label: 'Basic Introduction', value: '300 points for a verified introduction between two parties with no prior contact.' },
-            { label: 'High-Value Introduction', value: '500 points for introductions that lead to confirmed collaboration, partnership, or direct network contribution.' },
-            { label: 'Tiered Bonus (Optional)', value: '+300 points for every 5 successful introductions.' },
-            { label: 'Quality Rule', value: 'After 3 unsuccessful or unverified referrals, the account is paused until existing leads are confirmed or resolved.' }
+            { label: 'Basic Introduction', value: '300 points for a verified introduction between two parties with no prior contact.', boldLabel: false },
+            { label: 'High-Value Introduction', value: '500 points for introductions that lead to confirmed collaboration, partnership, or direct network contribution.', boldLabel: false },
+            { label: 'Tiered Bonus (Optional)', value: '+300 points for every 5 successful introductions.', boldLabel: false },
+            { label: 'Quality Rule', value: 'After 3 unsuccessful or unverified introductions, the account is paused until existing leads are confirmed or resolved.', boldLabel: false }
           ]
         }
+      }
+    },
+    {
+      id: 'help-organize-event',
+      category: 'Programs',
+      activity: 'Help Organize an Event',
+      networkValue: 'Host or speak at a curated activity or event that deliver real value to the Protocol Labs community.',
+      points: '50+',
+      popupContent: {
+        title: 'Help Organize an Event',
+        description: `Host or speak at a curated activity or event catered to Protocol Labs participants to aid with an array of topics, ranging from company formation, dedicated development, cross-network collaboration, etc. Events should be intentionally designed, independently run without direct PL sponsorship in the form of direct compensation for time or labor, and focused on delivering real value to the Protocol Labs community.
+
+For Hosts, the event must be created and published in Luma and included on a live, discoverable calendar or listing. You must add events@plrs.xyz as an Event Manager in Luma so registration and attendance data can be accessed, and the Luma "check-in" feature must be enabled to verify attendee participation. The event must also be submitted to the PL events directory by adding it to https://directory.plnetwork.io/events/irl via https://irl.plnetwork.io/events/, with your profile clearly listed under the Host section of the event.
+
+For Speakers, eligibility is contingent on the event being submitted and validated by a Host through the process above. To receive points, your profile must be listed as a Speaker on the event page in https://directory.plnetwork.io/events/irl (I'm Going → Select Event → Role: Speaker).`,
+        submissionNote: 'Points are awarded only once all prerequisites are met and attendance data can be verified.',
+        links: [
+          { text: 'https://directory.plnetwork.io/events/irl', url: 'https://directory.plnetwork.io/events/irl' },
+          { text: 'https://irl.plnetwork.io/events/', url: 'https://irl.plnetwork.io/events/' },
+          { text: 'https://directory.plnetwork.io/events/irl', url: 'https://directory.plnetwork.io/events/irl' }
+        ],
+        pointsAwarded: {
+          title: 'Points Awarded:',
+          items: [
+            { label: 'Verified event with 5–10 attendees', value: '50 points' },
+            { label: 'Verified event with 11–20 attendees', value: '150 points' },
+            { label: 'Verified event with 21–50 attendees', value: '250 points' },
+            { label: 'Verified event with 50–100 attendees', value: '500 points' },
+            { label: 'Verified event with 100+ attendees', value: '1,000 points' }
+          ]
+        },
+        categories: [
+          {
+            title: 'Points Distribution:',
+            description: 'Point values apply uniformly across all eligible roles. Each individual may only receive points once, regardless of role.',
+            tiers: []
+          }
+        ]
       }
     },
     {

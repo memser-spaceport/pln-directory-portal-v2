@@ -28,6 +28,10 @@
   &.completed {
     border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+
+    .avatar {
+      filter: grayscale(100%);
+    }
   }
 
   &.highlighted {

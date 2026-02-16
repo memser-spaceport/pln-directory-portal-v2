@@ -56,17 +56,26 @@ async function unsaveTeam(demoDayId: string, data: SaveTeamData): Promise<boolea
   return true;
 }
 
-function toggleSavedInList(list: TeamsListResponse | undefined, uid: string, newSaved: boolean): TeamsListResponse | undefined {
+function toggleSavedInList(
+  list: TeamsListResponse | undefined,
+  uid: string,
+  newSaved: boolean,
+): TeamsListResponse | undefined {
   if (!list) return list;
   return list.map((team) => (team.uid === uid ? { ...team, saved: newSaved } : team));
 }
 
-export function useSaveTeam(teamName?: string) {
+export function useSaveTeam() {
   const queryClient = useQueryClient();
   const params = useParams();
   const demoDayId = params.demoDayId as string;
 
-  return useMutation<boolean, Error, MutationVariables, { previousTeamsList?: TeamsListResponse; previousAllProfiles?: TeamsListResponse }>({
+  return useMutation<
+    boolean,
+    Error,
+    MutationVariables,
+    { previousTeamsList?: TeamsListResponse; previousAllProfiles?: TeamsListResponse }
+  >({
     mutationFn: (data) => {
       const { isSaved, ...payload } = data;
       return isSaved ? unsaveTeam(demoDayId, payload) : saveTeam(demoDayId, payload);
@@ -79,37 +88,28 @@ export function useSaveTeam(teamName?: string) {
       await queryClient.cancelQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId] });
       await queryClient.cancelQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId] });
       // Snapshot previous values
-      const previousTeamsList = queryClient.getQueryData<TeamsListResponse>([DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId]);
-      const previousAllProfiles = queryClient.getQueryData<TeamsListResponse>([DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId]);
+      const previousTeamsList = queryClient.getQueryData<TeamsListResponse>([
+        DemoDayQueryKeys.GET_TEAMS_LIST,
+        demoDayId,
+      ]);
+      const previousAllProfiles = queryClient.getQueryData<TeamsListResponse>([
+        DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES,
+        demoDayId,
+      ]);
 
       // Optimistically update teams list
-      queryClient.setQueryData<TeamsListResponse>(
-        [DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId],
-        (old) => toggleSavedInList(old, teamFundraisingProfileUid, newSaved),
+      queryClient.setQueryData<TeamsListResponse>([DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId], (old) =>
+        toggleSavedInList(old, teamFundraisingProfileUid, newSaved),
       );
 
       // Optimistically update all fundraising profiles
-      queryClient.setQueryData<TeamsListResponse>(
-        [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId],
-        (old) => toggleSavedInList(old, teamFundraisingProfileUid, newSaved),
+      queryClient.setQueryData<TeamsListResponse>([DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId], (old) =>
+        toggleSavedInList(old, teamFundraisingProfileUid, newSaved),
       );
 
       return { previousTeamsList, previousAllProfiles };
     },
-    onSuccess: (_, variables) => {
-      const action = variables.isSaved ? 'unsaved' : 'saved';
-      toast.success(
-        <div>
-          <span style={{ fontWeight: 'bold', fontSize: '16px' }}>
-            {`You ${action} ${teamName || '[TeamName]'}`}
-          </span>
-        </div>,
-        {
-          style: { width: '320px' },
-          autoClose: 3000,
-        },
-      );
-
+    onSuccess: () => {
       // Refetch to ensure server state is in sync
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId] });
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE, demoDayId] });
@@ -122,7 +122,10 @@ export function useSaveTeam(teamName?: string) {
         queryClient.setQueryData([DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId], context.previousTeamsList);
       }
       if (context?.previousAllProfiles) {
-        queryClient.setQueryData([DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId], context.previousAllProfiles);
+        queryClient.setQueryData(
+          [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId],
+          context.previousAllProfiles,
+        );
       }
 
       toast.error(error?.message || 'Save request failed. Please try again.', {

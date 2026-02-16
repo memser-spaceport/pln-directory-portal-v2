@@ -60,7 +60,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest(team.team?.name);
-  const saveTeam = useSaveTeam(team.team?.name);
+  const saveTeam = useSaveTeam();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const canEdit = isAdmin || team.founders.some((founder) => founder.uid === userInfo?.uid);
   const isPrepDemoDay = useIsPrepDemoDay();

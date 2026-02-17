@@ -68,6 +68,8 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
 
     setIsLoading(true);
     try {
+      await fetchUnreadLinks();
+
       const data = await getNotifications(authToken, { limit: 50 });
       setNotifications(
         data.notifications.map((n) =>
@@ -88,9 +90,8 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
   useEffect(() => {
     if (enabled && authToken) {
       fetchNotifications();
-      fetchUnreadLinks();
     }
-  }, [enabled, authToken, fetchNotifications, fetchUnreadLinks]);
+  }, [enabled, authToken, fetchNotifications]);
 
   // Handle new notification from WebSocket
   const handleNewNotification = useCallback(
@@ -178,9 +179,8 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     // If we just reconnected (was disconnected, now connected), refetch notifications
     if (wasDisconnected && isNowConnected && authToken) {
       void fetchNotifications();
-      void fetchUnreadLinks();
     }
-  }, [isConnected, authToken, fetchNotifications, fetchUnreadLinks]);
+  }, [isConnected, authToken, fetchNotifications]);
 
   // Keep wsMarkAsReadRef in sync
   wsMarkAsReadRef.current = wsMarkAsRead;

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useGetMembersFilterCount } from '@/components/page/members/hooks/useGetMembersFilterCount';
 import { FilterSection } from '@/components/page/members/MembersFilter/FilterSection';
 import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
@@ -12,10 +12,11 @@ import { SupportSection } from '@/components/page/demo-day/components/SupportSec
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 
 import s from './AdminFilters.module.scss';
+import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
 export const AdminFilters = () => {
   const appliedFiltersCount = useGetMembersFilterCount();
-  const { clearParams } = useFilterStore();
+  const { clearParams, params, setParam } = useFilterStore();
 
   // Fetch ALL teams data (without filters) to build filter options
   const { data: teams, isLoading: teamsLoading } = useGetAllFundraisingProfiles();
@@ -120,6 +121,7 @@ export const AdminFilters = () => {
     if (!teams) return [];
 
     const likedCount = teams.filter((team) => team.liked).length;
+    const savedCount = teams.filter((team) => team.saved).length;
     const connectedCount = teams.filter((team) => team.connected).length;
     const investedCount = teams.filter((team) => team.invested).length;
     const referredCount = teams.filter((team) => team.referral).length;
@@ -128,6 +130,10 @@ export const AdminFilters = () => {
 
     if (likedCount > 0) {
       options.push({ id: 'liked', name: 'Liked', count: likedCount });
+    }
+
+    if (savedCount > 0) {
+      options.push({ id: 'saved', name: 'Saved', count: savedCount });
     }
 
     if (connectedCount > 0) {
@@ -144,6 +150,20 @@ export const AdminFilters = () => {
 
     return options;
   }, [teams]);
+
+  // Remove invalid activity param values that don't have a corresponding option
+  useEffect(() => {
+    const activityParam = params.get('activity');
+    if (!activityParam || teamsLoading) return;
+
+    const selectedValues = activityParam.split(URL_QUERY_VALUE_SEPARATOR);
+    const validIds = new Set(activityOptions.map((opt) => opt.id));
+    const validValues = selectedValues.filter((val) => validIds.has(val));
+
+    if (validValues.length !== selectedValues.length) {
+      setParam('activity', validValues.length > 0 ? validValues.join(URL_QUERY_VALUE_SEPARATOR) : undefined);
+    }
+  }, [activityOptions, params, setParam, teamsLoading]);
 
   return (
     <FiltersSidePanel clearParams={clearParams} appliedFiltersCount={appliedFiltersCount} className={s.root}>

@@ -566,51 +566,33 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       }));
     }
 
-    const canSkipGateringsValidation =
-      formInitialValues &&
-      formInitialValues?.events?.length != 0 &&
-      eventType === 'past' &&
-      from != EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE &&
-      mode !== IAM_GOING_POPUP_MODES.ADMINADD;
-    if (formattedData.events.length === 0 && !canSkipGateringsValidation) {
-      isError = true;
-      setErrors((prev: IIrlAttendeeFormErrors) => ({
-        ...prev,
-        participationError: [],
-        gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])),
-      }));
-    } else {
-      let participationErrors: string[] = [];
-      formattedData?.events?.map((event: any) => {
-        event?.hostSubEvents?.map((hostSubEvent: IIrlParticipationEvent) => {
-          if (hostSubEvent?.link && !isLink(hostSubEvent?.link)) {
-            isError = true;
-            participationErrors.push(`${hostSubEvent?.uid}-link`);
-          }
-        });
-
-        event?.speakerSubEvents?.map((speakerSubEvent: IIrlParticipationEvent) => {
-          if (speakerSubEvent?.link && !isLink(speakerSubEvent?.link.trim())) {
-            isError = true;
-            participationErrors.push(`${speakerSubEvent?.uid}-link`);
-          }
-        });
-
-        event?.sponsorSubEvents?.map((sponsorSubEvent: IIrlParticipationEvent) => {
-          if (sponsorSubEvent?.link && !isLink(sponsorSubEvent?.link.trim())) {
-            isError = true;
-            participationErrors.push(`${sponsorSubEvent?.uid}-link`);
-          }
-        });
+    let participationErrors: string[] = [];
+    formattedData?.events?.map((event: any) => {
+      event?.hostSubEvents?.map((hostSubEvent: IIrlParticipationEvent) => {
+        if (hostSubEvent?.link && !isLink(hostSubEvent?.link)) {
+          isError = true;
+          participationErrors.push(`${hostSubEvent?.uid}-link`);
+        }
       });
-      setErrors((prev: IIrlAttendeeFormErrors) => ({
-        ...prev,
-        gatheringErrors: prev.gatheringErrors.filter(
-          (error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING,
-        ),
-        participationErrors: Array.from(new Set([...participationErrors])),
-      }));
-    }
+
+      event?.speakerSubEvents?.map((speakerSubEvent: IIrlParticipationEvent) => {
+        if (speakerSubEvent?.link && !isLink(speakerSubEvent?.link.trim())) {
+          isError = true;
+          participationErrors.push(`${speakerSubEvent?.uid}-link`);
+        }
+      });
+
+      event?.sponsorSubEvents?.map((sponsorSubEvent: IIrlParticipationEvent) => {
+        if (sponsorSubEvent?.link && !isLink(sponsorSubEvent?.link.trim())) {
+          isError = true;
+          participationErrors.push(`${sponsorSubEvent?.uid}-link`);
+        }
+      });
+    });
+    setErrors((prev: IIrlAttendeeFormErrors) => ({
+      ...prev,
+      participationErrors: Array.from(new Set([...participationErrors])),
+    }));
 
     if (formattedData.additionalInfo.checkInDate && !formattedData.additionalInfo.checkOutDate) {
       isError = true;

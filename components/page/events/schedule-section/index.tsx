@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useEventsAnalytics } from '@/analytics/events.analytics';
 import ShadowButton from '@/components/ui/ShadowButton';
@@ -14,15 +14,14 @@ export default function ScheduleSection(props: any) {
     useEventsAnalytics();
   const searchParams = useSearchParams();
 
-  const [embedPath, setEmbedPath] = useState(() => {
+  const embedPath = useMemo(() => {
     return searchParams.get(EMBED_URL_PARAM) || DEFAULT_EMBED_PATH;
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleMessage = useCallback((event: MessageEvent) => {
     const data = event.data;
     if (data?.type !== 'pln-embed-url' || typeof data.url !== 'string') return;
-
-    setEmbedPath(data.url);
 
     const url = new URL(window.location.href);
     url.searchParams.set(EMBED_URL_PARAM, data.url);

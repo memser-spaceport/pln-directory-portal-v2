@@ -1,6 +1,5 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -21,6 +20,7 @@ import { UnreadLinksMap } from './types';
 import { sanitizeNotification, normalizeLink, addUnreadLinkEntry, removeUnreadLinkUid } from './utils';
 
 import { useAutoMarkOnNavigation } from './hooks/useAutoMarkOnNavigation';
+import { useGetPathToCompareNotificationLink } from './hooks/useGetPathToCompareNotificationLink';
 
 import { PushNotificationsContext } from './PushNotificationsContext';
 
@@ -38,13 +38,16 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
   // Normalized link → set of notification UIDs for auto-marking on navigation
   const unreadLinksMapRef = useRef<UnreadLinksMap>(new Map());
 
-  const pathname = usePathname();
+  const pathToCompareNotyLink = useGetPathToCompareNotificationLink();
 
   // Ref for wsMarkAsRead — breaks the circular dependency between handleNewNotification and usePushNotifications
   const wsMarkAsReadRef = useRef<(id: string) => void>(() => {});
 
   const fetchUnreadLinks = useCallback(async () => {
-    if (!authToken) return;
+    if (!authToken) {
+      return;
+    }
+
     try {
       const links = await getUnreadLinks(authToken);
       const map = new Map<string, Set<string>>();
@@ -59,7 +62,9 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
 
   // Fetch initial notifications on mount
   const fetchNotifications = useCallback(async () => {
-    if (!authToken) return;
+    if (!authToken) {
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -97,7 +102,7 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
       if (uid && link && authToken) {
         const normalized = normalizeLink(link);
 
-        if (normalized === pathname) {
+        if (normalized === pathToCompareNotyLink) {
           markNotificationAsRead(authToken, uid)
             .then(() => fetchNotifications())
             .catch((err) => console.error('Failed to auto-mark notification:', err));
@@ -122,7 +127,7 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
         addUnreadLinkEntry({ uid, link }, unreadLinksMapRef.current);
       }
     },
-    [authToken, pathname, fetchNotifications],
+    [authToken, fetchNotifications, pathToCompareNotyLink],
   );
 
   // Handle notification update from WebSocket (sync across devices)

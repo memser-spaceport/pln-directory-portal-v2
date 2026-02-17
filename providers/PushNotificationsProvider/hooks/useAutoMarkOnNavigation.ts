@@ -3,7 +3,8 @@ import { type MutableRefObject, useEffect, useRef } from 'react';
 import { markNotificationAsRead } from '@/services/push-notifications.service';
 
 import { UnreadLinksMap } from '../types';
-import { usePathname } from 'next/navigation';
+
+import { useGetPathToCompareNotificationLink } from './useGetPathToCompareNotificationLink';
 
 interface UseAutoMarkOnNavigationOptions {
   authToken?: string;
@@ -19,15 +20,15 @@ interface UseAutoMarkOnNavigationOptions {
 export function useAutoMarkOnNavigation(input: UseAutoMarkOnNavigationOptions) {
   const { authToken, unreadLinksMapRef, wsMarkAsReadRef, fetchNotifications } = input;
 
-  const pathname = usePathname();
+  const pathToCompareNotyLink = useGetPathToCompareNotificationLink();
   const isAutoMarkingRef = useRef(false);
 
   const unreadMap = unreadLinksMapRef.current;
 
   useEffect(() => {
-    const uids = unreadMap.get(pathname);
+    const uids = unreadMap.get(pathToCompareNotyLink);
 
-    if (!authToken || !pathname || isAutoMarkingRef.current || !uids || uids.size === 0) {
+    if (!authToken || !pathToCompareNotyLink || isAutoMarkingRef.current || !uids || uids.size === 0) {
       return;
     }
 
@@ -35,7 +36,7 @@ export function useAutoMarkOnNavigation(input: UseAutoMarkOnNavigationOptions) {
 
     // Grab UIDs and remove the entry from the map immediately to prevent duplicate runs
     const uidsToMark = [...uids];
-    unreadMap.delete(pathname);
+    unreadMap.delete(pathToCompareNotyLink);
 
     const markAll = async () => {
       try {
@@ -52,5 +53,5 @@ export function useAutoMarkOnNavigation(input: UseAutoMarkOnNavigationOptions) {
     };
 
     markAll();
-  }, [pathname, authToken, unreadLinksMapRef, wsMarkAsReadRef, fetchNotifications, unreadMap.size]);
+  }, [authToken, wsMarkAsReadRef, unreadMap.size, unreadLinksMapRef, fetchNotifications, pathToCompareNotyLink]);
 }

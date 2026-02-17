@@ -6,7 +6,6 @@ import {
   EVENT_TYPE,
   EVENTS_SUBMIT_FORM_TYPES,
   IAM_GOING_POPUP_MODES,
-  IRL_ATTENDEE_FORM_ERRORS,
 } from '@/utils/constants';
 import { filterUpcomingGatherings, getFormattedDateString } from '@/utils/irl.utils';
 import { SetStateAction, useEffect, useState } from 'react';
@@ -85,7 +84,7 @@ const Gatherings = (props: IGatherings) => {
             </p>
           </div>
           <div
-            className={`gatrs__all__gths ${errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING) && !selectedGatherings?.length ? 'error' : ''}`}
+            className="gatrs__all__gths"
           >
             {gatherings?.map((gathering: any, index: number) => {
               const isBooked = getIsAlreadyBooked(gathering);

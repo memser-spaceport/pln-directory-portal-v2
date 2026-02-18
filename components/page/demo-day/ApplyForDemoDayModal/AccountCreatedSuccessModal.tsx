@@ -81,7 +81,7 @@ export const AccountCreatedSuccessModal: React.FC<Props> = ({
     } else {
       onClose();
       router.replace(
-        `${window.location.origin}${window.location.pathname}?prefillEmail=${encodeURIComponent(email ?? '')}&openProfileAfterLogin=${uid}#login`,
+        `${window.location.origin}${window.location.pathname}?prefillEmail=${encodeURIComponent(email ?? '')}#login`,
       );
     }
   };

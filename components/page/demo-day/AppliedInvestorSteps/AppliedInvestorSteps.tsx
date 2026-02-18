@@ -75,9 +75,7 @@ export const AppliedInvestorSteps: React.FC<Props> = ({ isNew, isLoggedIn, uid, 
     if (isLoggedIn) {
       window.open(`/members/${uid}?backTo=${encodeURIComponent(demoDayPath)}`, '_blank');
     } else {
-      router.replace(
-        `${demoDayPath}?prefillEmail=${encodeURIComponent(email ?? '')}&openProfileAfterLogin=${uid}#login`,
-      );
+      router.replace(`${demoDayPath}?prefillEmail=${encodeURIComponent(email ?? '')}#login`);
     }
   };
 

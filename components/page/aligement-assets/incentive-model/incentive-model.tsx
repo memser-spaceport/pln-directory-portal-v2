@@ -452,7 +452,7 @@ export default function IncentiveModel() {
               <Link href="https://directory.plnetwork.io/alignment-asset/activities" className="incentive-model__link" onClick={handleActivitiesLinkClick}>
                 Incentivized Activities
               </Link>
-              . Participants collect points for each verified activity they complete during the snapshot period. At the end of the period, tokens are distributed proportionally based on each participant's share of the total points collected in a single category—with up to 10,000 tokens allocated among all qualifying contributors.
+              . Participants collect points for each verified activity they complete during the snapshot period. At the end of the period, tokens are distributed proportionally based on each participant&apos;s share of the total points collected in a single category—with up to 10,000 tokens allocated among all qualifying contributors.
             </p>
             <p>
               Each category receives a fixed allocation of monthly tokens, and participants receive a portion based on

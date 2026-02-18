@@ -159,6 +159,7 @@ export const getTeam = async (
     investorProfile: result?.investorProfile,
     isFund: result?.isFund,
     tier: getTeamTier(result),
+    associations: result?.eventAssociations
   };
   return { data: { formatedData } };
 };

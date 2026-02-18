@@ -302,9 +302,9 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
               isHost: item?.isHost || false,
               isSpeaker: item?.isSpeaker || false,
               isSponsor: item?.isSponsor || false,
-              hostSubEvents: item?.additionalInfo?.hostSubEvents || [],
-              speakerSubEvents: item?.additionalInfo?.speakerSubEvents || [],
-              sponsorSubEvents: item?.additionalInfo?.sponsorSubEvents || [],
+              hostSubEvents: item?.isHost ? [{ name: item?.event?.name || '', link: '' }] : [],
+              speakerSubEvents: item?.isSpeaker ? [{ name: item?.event?.name || '', link: '' }] : [],
+              sponsorSubEvents: item?.isSponsor ? [{ name: item?.event?.name || '', link: '' }] : [],
             };
           });
 

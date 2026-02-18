@@ -62,7 +62,6 @@ export const AppliedInvestorSteps: React.FC<Props> = ({ isNew, isLoggedIn, uid, 
   );
 
   const demoDayPath = `/demoday/${demoDaySlug}`;
-  const returnTo = `demoday-${demoDaySlug}`;
 
   const handleProfileCta = () => {
     onAccountCreatedSuccessModalContinueToLoginClicked({
@@ -76,7 +75,9 @@ export const AppliedInvestorSteps: React.FC<Props> = ({ isNew, isLoggedIn, uid, 
     if (isLoggedIn) {
       window.open(`/members/${uid}?backTo=${encodeURIComponent(demoDayPath)}`, '_blank');
     } else {
-      router.replace(`${demoDayPath}?prefillEmail=${encodeURIComponent(email ?? '')}&returnTo=${returnTo}#login`);
+      router.replace(
+        `${demoDayPath}?prefillEmail=${encodeURIComponent(email ?? '')}&openProfileAfterLogin=${uid}#login`,
+      );
     }
   };
 

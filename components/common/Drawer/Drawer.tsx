@@ -1,4 +1,5 @@
 import React, { PropsWithChildren } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import s from './Drawer.module.scss';
@@ -18,7 +19,7 @@ export function Drawer(props: PropsWithChildren<DrawerProps>) {
     }
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -41,6 +42,7 @@ export function Drawer(props: PropsWithChildren<DrawerProps>) {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

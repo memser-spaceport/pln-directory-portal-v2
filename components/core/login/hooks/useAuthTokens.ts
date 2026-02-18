@@ -1,8 +1,17 @@
-import Cookies from 'js-cookie';
 import { User } from '@privy-io/react-auth';
 import { decodeToken } from '@/utils/auth.utils';
 import { usePostHog } from 'posthog-js/react';
 import { useCallback } from 'react';
+import {
+  getAuthToken,
+  getRefreshToken,
+  getRawUserInfoCookie,
+  setAuthToken,
+  setRefreshToken,
+  setUserInfoCookie,
+  setAuthLinkedAccountsCookie,
+  clearAuthCookies as clearAllAuthCookiesFromUtils,
+} from '@/utils/cookie.utils';
 
 interface TokenResponse {
   accessToken: string;
@@ -14,8 +23,6 @@ interface TokenResponse {
     isFirstTimeLogin?: boolean;
   };
 }
-
-const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || '';
 
 /**
  * Maps Privy linked account types to our internal account type names
@@ -58,32 +65,10 @@ export function useAuthTokens() {
       // Clear stateUid from localStorage
       localStorage.removeItem('stateUid');
 
-      // Set auth token cookie
-      Cookies.set('authToken', JSON.stringify(response.accessToken), {
-        expires: new Date(accessTokenExpiry.exp * 1000),
-        domain: COOKIE_DOMAIN,
-      });
-
-      // Set refresh token cookie
-      Cookies.set('refreshToken', JSON.stringify(response.refreshToken), {
-        expires: new Date(refreshTokenExpiry.exp * 1000),
-        path: '/',
-        domain: COOKIE_DOMAIN,
-      });
-
-      // Set user info cookie
-      Cookies.set('userInfo', JSON.stringify(response.userInfo), {
-        expires: new Date(accessTokenExpiry.exp * 1000),
-        path: '/',
-        domain: COOKIE_DOMAIN,
-      });
-
-      // Set linked accounts cookie
-      Cookies.set('authLinkedAccounts', JSON.stringify(authLinkedAccounts), {
-        expires: new Date(refreshTokenExpiry.exp * 1000),
-        path: '/',
-        domain: COOKIE_DOMAIN,
-      });
+      setAuthToken(response.accessToken, new Date(accessTokenExpiry.exp * 1000));
+      setRefreshToken(response.refreshToken, new Date(refreshTokenExpiry.exp * 1000));
+      setUserInfoCookie(response.userInfo, new Date(accessTokenExpiry.exp * 1000));
+      setAuthLinkedAccountsCookie(authLinkedAccounts, new Date(refreshTokenExpiry.exp * 1000));
 
       // Identify user in PostHog
       postHog.identify(response.userInfo.uid, {
@@ -99,20 +84,20 @@ export function useAuthTokens() {
    * Checks if user is currently logged in based on cookies
    */
   const isLoggedIn = useCallback((): boolean => {
-    const userInfo = Cookies.get('userInfo');
-    const accessToken = Cookies.get('accessToken');
-    const refreshToken = Cookies.get('refreshToken');
-    return Boolean(userInfo || accessToken || refreshToken);
+    const userInfo = getRawUserInfoCookie();
+    const authToken = getAuthToken();
+    const refreshToken = getRefreshToken();
+    return Boolean(userInfo || authToken || refreshToken);
   }, []);
 
   /**
    * Gets current user info from cookies
    */
   const getUserInfoFromCookie = useCallback(() => {
-    const userInfo = Cookies.get('userInfo');
-    if (!userInfo) return null;
+    const raw = getRawUserInfoCookie();
+    if (!raw) return null;
     try {
-      return JSON.parse(userInfo);
+      return JSON.parse(raw);
     } catch {
       return null;
     }
@@ -122,10 +107,7 @@ export function useAuthTokens() {
    * Clears auth-related cookies
    */
   const clearAuthCookies = useCallback(() => {
-    Cookies.remove('authLinkedAccounts');
-    Cookies.remove('authToken');
-    Cookies.remove('refreshToken');
-    Cookies.remove('userInfo');
+    clearAllAuthCookiesFromUtils();
   }, []);
 
   return {

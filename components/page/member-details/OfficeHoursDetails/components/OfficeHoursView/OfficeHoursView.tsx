@@ -16,11 +16,10 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import {
   getAnalyticsMemberInfo,
   getAnalyticsUserInfo,
-  getParsedValue,
   normalizeOfficeHoursUrl,
 } from '@/utils/common.utils';
 import { useCreateFollowUp } from '@/services/members/hooks/useCreateFollowUp';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { getFollowUps } from '@/services/office-hours.service';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { toast } from '@/components/core/ToastContainer';
@@ -86,11 +85,11 @@ export const OfficeHoursView = ({
       return;
     }
 
-    const authToken = Cookies.get('authToken') || '';
+    const authToken = getAuthToken() || '';
 
     const res = await createFollowUp({
       logInMemberUid: userInfo.uid,
-      authToken: getParsedValue(authToken),
+      authToken,
       data: {
         data: {},
         hasFollowUp: true,
@@ -116,7 +115,7 @@ export const OfficeHoursView = ({
 
     window.open(normalizedOfficeHoursUrl, '_blank');
 
-    const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), 'PENDING,CLOSED');
+    const allFollowups = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING,CLOSED');
 
     if (!allFollowups?.error) {
       const result = allFollowups?.data ?? [];

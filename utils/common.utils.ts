@@ -11,7 +11,7 @@ import {
   TWITTER_URL_REGEX,
 } from './constants';
 import { ITeam } from '@/types/teams.types';
-import Cookies from 'js-cookie';
+import { getRawUserInfoCookie } from './cookie.utils';
 export const triggerLoader = (status: boolean) => {
   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_LOADER, { detail: status }));
 };
@@ -67,7 +67,7 @@ export function compareObjsIfSame(obj1: any, obj2: any) {
 }
 export const getUserInfoFromLocal = () => {
   try {
-    const rawUserInfo = Cookies.get('userInfo');
+    const rawUserInfo = getRawUserInfoCookie();
     if (rawUserInfo) {
       return JSON.parse(rawUserInfo);
     }

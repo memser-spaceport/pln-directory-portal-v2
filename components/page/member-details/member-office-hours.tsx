@@ -3,10 +3,10 @@
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { EVENTS, LEARN_MORE_URL, OFFICE_HOURS_MSG, TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { toast } from '@/components/core/ToastContainer';
 
 const MemberOfficeHours = (props: any) => {
@@ -39,8 +39,8 @@ const MemberOfficeHours = (props: any) => {
     const isLoggedInUser = userInfo?.uid === member?.id;
     try {
       triggerLoader(true);
-      const authToken = Cookies.get('authToken') || '';
-      const response: any = await createFollowUp(userInfo.uid, getParsedValue(authToken), {
+      const authToken = getAuthToken() || '';
+      const response: any = await createFollowUp(userInfo.uid, authToken, {
         data: {},
         hasFollowUp: true,
         type: 'SCHEDULE_MEETING',
@@ -62,7 +62,7 @@ const MemberOfficeHours = (props: any) => {
       setTimeout(() => {
         window.open(officeHours, '_blank');
       });
-      const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), 'PENDING,CLOSED');
+      const allFollowups = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING,CLOSED');
       if (!allFollowups?.error) {
         const result = allFollowups?.data ?? [];
         if (result.length > 0) {

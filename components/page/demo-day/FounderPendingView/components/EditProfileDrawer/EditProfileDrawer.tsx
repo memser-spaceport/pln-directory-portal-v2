@@ -6,8 +6,8 @@ import { SuccessAlert } from '../SuccessAlert';
 import s from './EditProfileDrawer.module.scss';
 import { clsx } from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue, getSocialLinkUrl } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { getSocialLinkUrl } from '@/utils/common.utils';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import Link from 'next/link';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
@@ -92,7 +92,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   hideActions,
   team,
 }) => {
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo: IUserInfo = getUserInfo();
   const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const isPrepDemoDay = useIsPrepDemoDay();
   const [editView, setEditView] = useState(false);

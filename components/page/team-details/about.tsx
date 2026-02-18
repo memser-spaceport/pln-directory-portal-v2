@@ -5,7 +5,7 @@ import { ITeam } from '@/types/teams.types';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { updateTeam } from '@/services/teams.service';
 import { toast } from '@/components/core/ToastContainer';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
@@ -61,7 +61,7 @@ const About = (props: IAbout) => {
     }
     setEditor(false);
     analytics.onTeamDetailAboutEditSaveClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
-    const authToken = Cookies.get('authToken');
+    const authToken = getAuthToken() ?? '';
     if (!authToken) {
       return;
     }
@@ -82,7 +82,7 @@ const About = (props: IAbout) => {
       },
     };
     triggerLoader(true);
-    const { data, isError } = await updateTeam(payload, JSON.parse(authToken), team.id);
+    const { data, isError } = await updateTeam(payload, authToken, team.id);
     triggerLoader(false);
     if (isError) {
       toast.error('Team updated failed. Something went wrong, please try again later');

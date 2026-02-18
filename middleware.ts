@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkIsValidToken, renewAccessToken } from './services/auth.service';
 import { calculateExpiry, decodeToken } from './utils/auth.utils';
+import { AUTH_COOKIE_NAMES } from './utils/cookie.utils';
 
 /**
  * Protected routes that require authentication
@@ -55,9 +56,9 @@ function createLoginRedirect(req: NextRequest, pathname: string): NextResponse {
 
 export async function middleware(req: NextRequest) {
   const response = NextResponse.next();
-  const refreshTokenFromCookie = req?.cookies?.get('refreshToken');
-  const authTokenFromCookie = req?.cookies?.get('authToken');
-  const userInfo = req?.cookies?.get('userInfo');
+  const refreshTokenFromCookie = req?.cookies?.get(AUTH_COOKIE_NAMES.refreshToken);
+  const authTokenFromCookie = req?.cookies?.get(AUTH_COOKIE_NAMES.authToken);
+  const userInfo = req?.cookies?.get(AUTH_COOKIE_NAMES.userInfo);
   const pathname = req.nextUrl.pathname;
   let isValidAuthToken = false;
 
@@ -68,9 +69,9 @@ export async function middleware(req: NextRequest) {
     }
 
     if (!refreshTokenFromCookie) {
-      response.cookies.delete('refreshToken');
-      response.cookies.delete('authToken');
-      response.cookies.delete('userInfo');
+      response.cookies.delete(AUTH_COOKIE_NAMES.refreshToken);
+      response.cookies.delete(AUTH_COOKIE_NAMES.authToken);
+      response.cookies.delete(AUTH_COOKIE_NAMES.userInfo);
       return response;
     }
 
@@ -80,9 +81,9 @@ export async function middleware(req: NextRequest) {
 
       // Priority 1: Check for force logout (regardless of active status)
       if (validCheckResponse?.forceLogout) {
-        response.cookies.delete('refreshToken');
-        response.cookies.delete('authToken');
-        response.cookies.delete('userInfo');
+        response.cookies.delete(AUTH_COOKIE_NAMES.refreshToken);
+        response.cookies.delete(AUTH_COOKIE_NAMES.authToken);
+        response.cookies.delete(AUTH_COOKIE_NAMES.userInfo);
 
         // Redirect to login if accessing protected route after force logout
         if (isProtectedRoute(pathname)) {
@@ -112,15 +113,15 @@ export async function middleware(req: NextRequest) {
       const refreshTokenExpiry = decodeToken(refreshToken) as any;
       if (accessToken && refreshToken && userInfo && userInfo.uid) {
         // Only set logged in if userInfo has a valid uid
-        response.cookies.set('refreshToken', JSON.stringify(refreshToken), {
+        response.cookies.set(AUTH_COOKIE_NAMES.refreshToken, JSON.stringify(refreshToken), {
           maxAge: calculateExpiry(refreshTokenExpiry?.exp),
           domain: process.env.COOKIE_DOMAIN,
         });
-        response.cookies.set('authToken', JSON.stringify(accessToken), {
+        response.cookies.set(AUTH_COOKIE_NAMES.authToken, JSON.stringify(accessToken), {
           maxAge: calculateExpiry(accessTokenExpiry?.exp),
           domain: process.env.COOKIE_DOMAIN,
         });
-        response.cookies.set('userInfo', JSON.stringify(userInfo), {
+        response.cookies.set(AUTH_COOKIE_NAMES.userInfo, JSON.stringify(userInfo), {
           maxAge: calculateExpiry(accessTokenExpiry?.exp),
           domain: process.env.COOKIE_DOMAIN,
         });
@@ -131,9 +132,9 @@ export async function middleware(req: NextRequest) {
         return response;
       }
     } else {
-      response.cookies.delete('refreshToken');
-      response.cookies.delete('authToken');
-      response.cookies.delete('userInfo');
+      response.cookies.delete(AUTH_COOKIE_NAMES.refreshToken);
+      response.cookies.delete(AUTH_COOKIE_NAMES.authToken);
+      response.cookies.delete(AUTH_COOKIE_NAMES.userInfo);
 
       // Redirect to login if accessing protected route with invalid tokens
       if (isProtectedRoute(pathname)) {
@@ -143,9 +144,9 @@ export async function middleware(req: NextRequest) {
     }
   } catch (err) {
     console.error(err);
-    response.cookies.delete('refreshToken');
-    response.cookies.delete('authToken');
-    response.cookies.delete('userInfo');
+    response.cookies.delete(AUTH_COOKIE_NAMES.refreshToken);
+    response.cookies.delete(AUTH_COOKIE_NAMES.authToken);
+    response.cookies.delete(AUTH_COOKIE_NAMES.userInfo);
 
     // Redirect to login if accessing protected route and an error occurred
     if (isProtectedRoute(pathname)) {

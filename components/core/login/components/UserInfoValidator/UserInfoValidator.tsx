@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
 import { usePostHog } from 'posthog-js/react';
 
 import { renewAccessToken } from '@/services/auth.service';
@@ -12,6 +11,7 @@ import { broadcastLogout } from '../BroadcastChannel';
 import { SessionExpiredModal } from '../modals/SessionExpiredModal';
 import { IUserInfo } from '@/types/shared.types';
 import { decodeToken } from '@/utils/auth.utils';
+import { getRawUserInfoCookie, getRefreshToken, getAuthToken, setRefreshToken, setAuthToken, setUserInfoCookie } from '@/utils/cookie.utils';
 
 interface UserInfoValidatorProps {
   userInfo: IUserInfo | null | undefined;
@@ -53,9 +53,9 @@ export function UserInfoValidator({ userInfo, isLoggedIn, authToken }: UserInfoV
       return;
     }
 
-    const refreshToken = Cookies.get('refreshToken');
-    const authTokenFromCookie = Cookies.get('authToken');
-    const userInfoFromCookie = Cookies.get('userInfo');
+    const refreshToken = getRefreshToken();
+    const authTokenFromCookie = getAuthToken();
+    const userInfoFromCookie = getRawUserInfoCookie();
 
     // Parse userInfo from cookie to check if it's valid
     let parsedUserInfo: IUserInfo | null = null;
@@ -88,21 +88,9 @@ export function UserInfoValidator({ userInfo, isLoggedIn, authToken }: UserInfoV
               const accessTokenExpiry = decodeToken(accessToken) as any;
               const refreshTokenExpiry = decodeToken(newRefreshToken) as any;
 
-              Cookies.set('refreshToken', JSON.stringify(newRefreshToken), {
-                expires: new Date(refreshTokenExpiry.exp * 1000),
-                domain: process.env.COOKIE_DOMAIN,
-                path: '/',
-              });
-              Cookies.set('authToken', JSON.stringify(accessToken), {
-                expires: new Date(accessTokenExpiry.exp * 1000),
-                domain: process.env.COOKIE_DOMAIN,
-                path: '/',
-              });
-              Cookies.set('userInfo', JSON.stringify(newUserInfo), {
-                expires: new Date(accessTokenExpiry.exp * 1000),
-                domain: process.env.COOKIE_DOMAIN,
-                path: '/',
-              });
+              setRefreshToken(newRefreshToken, new Date(refreshTokenExpiry.exp * 1000));
+              setAuthToken(accessToken, new Date(accessTokenExpiry.exp * 1000));
+              setUserInfoCookie(newUserInfo, new Date(accessTokenExpiry.exp * 1000));
 
               // Refresh the page to reload with valid userInfo
               router.refresh();

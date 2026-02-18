@@ -15,12 +15,12 @@ import { getProfileFromURL } from '@/utils/common.utils';
 import s from './EditContactForm.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { authEvents } from '@/components/core/login/utils';
 import { toast } from '@/components/core/ToastContainer';
 import { updateUserDirectoryEmail } from '@/services/members.service';
 import { decodeToken } from '@/utils/auth.utils';
+import { getAuthToken, setAuthToken, setRefreshToken, setUserInfoCookie } from '@/utils/cookie.utils';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { clsx } from 'clsx';
 import { useUpdateMemberPreferences } from '@/services/members/hooks/useUpdateMemberPreferences';
@@ -112,7 +112,7 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
     e.preventDefault();
 
     analytics.onUpdateEmailClicked(getAnalyticsUserInfo(userInfo));
-    const authToken = Cookies.get('authToken');
+    const authToken = getAuthToken() ?? '';
     if (!authToken) {
       return;
     }
@@ -124,12 +124,12 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
     async function updateUserEmail(data: { newEmail: string }) {
       try {
         const { newEmail } = data;
-        const oldAccessToken = Cookies.get('authToken');
+        const oldAccessToken = getAuthToken();
         if (!oldAccessToken) {
           return;
         }
         const header = {
-          Authorization: `Bearer ${JSON.parse(oldAccessToken)}`,
+          Authorization: `Bearer ${oldAccessToken}`,
           'Content-Type': 'application/json',
         };
         if (newEmail === member.email) {
@@ -143,18 +143,9 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
         if (refreshToken && accessToken) {
           const accessTokenExpiry = decodeToken(accessToken);
           const refreshTokenExpiry = decodeToken(refreshToken);
-          Cookies.set('authToken', JSON.stringify(accessToken), {
-            expires: new Date(accessTokenExpiry.exp * 1000),
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
-          Cookies.set('refreshToken', JSON.stringify(refreshToken), {
-            expires: new Date(refreshTokenExpiry.exp * 1000),
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
-          Cookies.set('userInfo', JSON.stringify(newUserInfo), {
-            expires: new Date(refreshTokenExpiry.exp * 1000),
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
+          setAuthToken(accessToken, new Date(accessTokenExpiry.exp * 1000));
+          setRefreshToken(refreshToken, new Date(refreshTokenExpiry.exp * 1000));
+          setUserInfoCookie(newUserInfo, new Date(refreshTokenExpiry.exp * 1000));
           document.dispatchEvent(new CustomEvent('app-loader-status'));
           analytics.onUpdateEmailSuccess({ newEmail, oldEmail: member.email });
           toast.success('Email Updated Successfully');

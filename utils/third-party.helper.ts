@@ -1,20 +1,17 @@
 import Cookies from 'js-cookie';
-import { getParsedValue } from './common.utils';
 import { z } from 'zod';
+import { clearAuthCookies, removeAuthCookie, getAuthToken, getRefreshToken, getUserInfo as getCookieUserInfo } from './cookie.utils';
 
 export const clearAllAuthCookies = () => {
   removeCookie('directory_idToken');
   removeCookie('verified');
   removeCookie('directory_isEmailVerification');
-  removeCookie('authToken');
-  removeCookie('refreshToken');
-  removeCookie('userInfo');
   removeCookie('page_params');
   removeCookie('privy-token');
   removeCookie('privy-session');
-  removeCookie('authLinkedAccounts');
   removeCookie('lastNotificationCall');
   removeCookie('privy-refresh-token');
+  clearAuthCookies();
   localStorage.clear();
 };
 
@@ -33,14 +30,10 @@ export const removeCookie = (name: string) => {
 
 export const getUserInfo = () => {
   try {
-    let userInfo;
     if (typeof window !== 'undefined') {
-      const rawUserInfo = Cookies.get('userInfo');
-      if (rawUserInfo) {
-        userInfo = getParsedValue(rawUserInfo);
-      }
+      return getCookieUserInfo();
     }
-    return userInfo;
+    return undefined;
   } catch (e) {
     console.error(e);
     return null;
@@ -58,8 +51,8 @@ export const isLink = (text: string): boolean => {
 };
 
 export const getCookiesFromClient = () => {
-  const authToken = Cookies.get('authToken')?.replace(/"/g, '');
-  const refreshToken = Cookies.get('refreshToken')?.replace(/"/g, '');
+  const authToken = getAuthToken();
+  const refreshToken = getRefreshToken();
   const userInfo = getUserInfo();
   return { authToken, refreshToken, userInfo };
 };

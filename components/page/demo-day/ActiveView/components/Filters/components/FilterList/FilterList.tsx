@@ -4,8 +4,7 @@ import { URL_QUERY_VALUE_SEPARATOR, DEMO_DAY_ANALYTICS } from '@/utils/constants
 import s from './FilterList.module.scss';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { IUserInfo } from '@/types/shared.types';
 import { SearchIcon, CloseIcon } from '@/components/icons';
 import { clsx } from 'clsx';
@@ -46,7 +45,7 @@ export const FilterList: React.FC<FilterListProps> = ({
   // Analytics hooks
   const { onActiveViewFiltersApplied } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo: IUserInfo = getUserInfo();
 
   // Get selected options from URL parameters
   const selectedOptions = useMemo(() => {

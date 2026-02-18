@@ -9,15 +9,14 @@ import { Alert } from '@/components/page/demo-day/shared/Alert';
 import { MediaPreview } from '../../../FounderPendingView/components/MediaPreview';
 import { PITCH_VIDEO_POSTER, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
 import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 
 export const Content = () => {
   const { data } = useGetDemoDayState();
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo: IUserInfo = getUserInfo();
   const { onActiveViewWelcomeVideoViewed } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
 

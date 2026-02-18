@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { getMemberListForQuery } from '@/app/actions/members.actions';
 import { getParsedValue } from '@/utils/common.utils';
+import { AUTH_COOKIE_NAMES } from '@/utils/cookie.utils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     }
 
     const cookieStore = await cookies();
-    const authToken = getParsedValue(cookieStore.get('authToken')?.value);
+    const authToken = getParsedValue(cookieStore.get(AUTH_COOKIE_NAMES.authToken)?.value);
 
     const result = await getMemberListForQuery(`search=${encodeURIComponent(search)}`, page, limit, authToken);
 

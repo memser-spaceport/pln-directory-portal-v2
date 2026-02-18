@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 
 import { MembersListQueryParams } from '@/services/members/types';
@@ -11,7 +11,7 @@ import { ITEMS_PER_PAGE, TOAST_MESSAGES } from '@/utils/constants';
 import qs from 'qs';
 
 async function infiniteFetcher(searchParams: MembersListQueryParams['searchParams'], page: number) {
-  const authToken = cookies.get('authToken');
+  const authToken = getAuthToken() ?? '';
 
   const invType = searchParams.investorType?.split('|') || [];
 

@@ -11,8 +11,7 @@ import { PITCH_VIDEO_POSTER, PITCH_VIDEO_URL } from '@/utils/constants/team-cons
 import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 export const AdminContent = ({
@@ -25,7 +24,7 @@ export const AdminContent = ({
   const { data: demoDayData } = useGetDemoDayState();
   const { data: profiles, isLoading } = useGetAllFundraisingProfiles();
 
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo: IUserInfo = getUserInfo();
   const { onActiveViewWelcomeVideoViewed } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
 

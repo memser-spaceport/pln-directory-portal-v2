@@ -2,9 +2,8 @@
 
 import React, { useEffect } from 'react';
 import { redirect } from 'next/navigation';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { ADMIN_ROLE } from '@/utils/constants';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { SyncParamsToUrl } from '@/components/core/SyncParamsToUrl';
@@ -14,7 +13,7 @@ import { AdminContent } from '@/components/page/demo-day/AdminView/components/Ad
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 function DemoDayDemoShowcasePage({ params }: { params: { demoDayId: string } }) {
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo: IUserInfo = getUserInfo();
   const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const { data } = useGetDemoDayState();
   const hasAccess = isDirectoryAdmin || data?.isDemoDayAdmin;

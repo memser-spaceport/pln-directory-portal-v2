@@ -5,8 +5,8 @@ import HuskyAi from '@/components/core/husky/husky-ai';
 import PageLoader from '@/components/core/page-loader';
 import {} from '@/services/husky.service';
 import { useRouter, useSearchParams } from 'next/navigation';
-import cookies from 'js-cookie';
 import { useEffect, useRef, useState } from 'react';
+import { getUserInfo as getCookieUserInfo } from '@/utils/cookie.utils';
 import { toast } from '@/components/core/ToastContainer';
 import { getHuskyResponseBySlug, incrementHuskyViewCount } from '@/services/discovery.service';
 
@@ -43,13 +43,7 @@ function HuskyDiscover(props: any) {
   };
 
   const getUserInfoFromCookie = () => {
-    const rawUserInfo = cookies.get('userInfo');
-    if (rawUserInfo) {
-      const parsedUserInfo = JSON.parse(rawUserInfo);
-      return parsedUserInfo;
-    }
-
-    return null;
+    return getCookieUserInfo();
   };
 
   useEffect(() => {

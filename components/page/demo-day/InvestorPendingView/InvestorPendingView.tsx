@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useEffect, useMemo } from 'react';
-import { getParsedValue } from '@/utils/common.utils';
 import { checkInvestorProfileComplete } from '@/utils/member.utils';
-import Cookies from 'js-cookie';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { IUserInfo } from '@/types/shared.types';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useGetEngagement } from '@/services/demo-day/hooks/useGetEngagement';
@@ -23,7 +22,7 @@ interface InvestorPendingViewProps {
 }
 
 export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: InvestorPendingViewProps) => {
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo: IUserInfo = getUserInfo();
   const { data: loadedMemberData } = useMember(userInfo?.uid);
   const memberData = loadedMemberData?.memberInfo || initialMemberData;
   const { data: engagementData } = useGetEngagement();

@@ -1,5 +1,5 @@
-import cookies from 'js-cookie';
 import Link from 'next/link';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from '@/components/core/ToastContainer';
 
@@ -107,8 +107,8 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
     const isLoggedInUser = userInfo?.uid === memberUid;
     try {
-      const authToken = cookies.get('authToken') || '';
-      const response = await createFollowUp(userInfo?.uid as string, getParsedValue(authToken), {
+      const authToken = getAuthToken() || '';
+      const response = await createFollowUp(userInfo?.uid as string, authToken, {
         data: {},
         hasFollowUp: true,
         type: 'SCHEDULE_MEETING',

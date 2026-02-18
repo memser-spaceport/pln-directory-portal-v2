@@ -9,11 +9,11 @@ import ProjectKpisInfo from './project-kpis-info';
 import { ProjectMoreDetails } from './project-more-details';
 import { generalInfoSchema, kpiSchema, projectKpiSchema } from '@/schema/project-form';
 import { saveRegistrationImage } from '@/services/registration.service';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { toast } from '@/components/core/ToastContainer';
 import { addProject, updateProject } from '@/services/projects.service';
 import { useRouter } from 'next/navigation';
-import { getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import { IProjectResponse } from '@/types/project.types';
@@ -165,7 +165,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
         formattedData.logoUid = null;
       }
 
-      const authToken = getParsedValue(Cookies.get('authToken'));
+      const authToken = getAuthToken() ?? '';
 
       if (!authToken) {
         toast.success(TOAST_MESSAGES.LOGOUT_MSG);

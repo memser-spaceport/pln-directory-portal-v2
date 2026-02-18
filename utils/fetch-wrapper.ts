@@ -1,16 +1,15 @@
 import { renewAccessToken } from '@/services/auth.service';
 import { decodeToken } from './auth.utils';
-import Cookies from 'js-cookie';
-import { getParsedValue } from './common.utils';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from './constants';
 import { clearAllAuthCookies } from './third-party.helper';
 import { authEvents } from '@/components/core/login/utils';
+import { getAuthToken, getRefreshToken, getUserInfo, setAuthToken, setRefreshToken, setUserInfoCookie } from './cookie.utils';
 
 const getAuthInfoFromCookie = () => {
-  const userInfo = getParsedValue(Cookies.get('userInfo'));
-  const authToken = getParsedValue(Cookies.get('authToken'));
-  const refreshToken = getParsedValue(Cookies.get('refreshToken'));
+  const userInfo = getUserInfo();
+  const authToken = getAuthToken();
+  const refreshToken = getRefreshToken();
   return { userInfo, authToken, refreshToken };
 };
 
@@ -87,22 +86,9 @@ export const setNewTokenAndUserInfoAtClientSide = (details: any) => {
   const refreshTokenExpiry = decodeToken(refreshToken) as any;
 
   if (refreshToken && accessToken && userInfo) {
-    Cookies.set('authToken', JSON.stringify(accessToken), {
-      expires: new Date(accessTokenExpiry.exp * 1000),
-      path: '/',
-      domain: process.env.COOKIE_DOMAIN || '',
-    });
-
-    Cookies.set('refreshToken', JSON.stringify(refreshToken), {
-      expires: new Date(refreshTokenExpiry.exp * 1000),
-      path: '/',
-      domain: process.env.COOKIE_DOMAIN || '',
-    });
-    Cookies.set('userInfo', JSON.stringify(userInfo), {
-      expires: new Date(accessTokenExpiry.exp * 1000),
-      path: '/',
-      domain: process.env.COOKIE_DOMAIN || '',
-    });
+    setAuthToken(accessToken, new Date(accessTokenExpiry.exp * 1000));
+    setRefreshToken(refreshToken, new Date(refreshTokenExpiry.exp * 1000));
+    setUserInfoCookie(userInfo, new Date(accessTokenExpiry.exp * 1000));
   }
 };
 

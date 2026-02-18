@@ -27,15 +27,18 @@ interface ITopicOption {
   name: string;
 }
 
+const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024; // 4 MB
+const ACCEPTED_FILE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+const ACCEPTED_FILE_EXTENSIONS = '.png,.jpg,.jpeg,.pdf';
+
 const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLocationSummary, isLoggedIn, onClose }) => {
   const analytics = useIrlAnalytics();
   const formBodyRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [speakerDescription, setSpeakerDescription] = useState('');
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
   const authToken = Cookies.get('authToken') || '';
-
-  // Commented out for future use - customTags implementation
-  // const [customTags, setCustomTags] = useState<string[]>([]);
-  // const [inputValue, setInputValue] = useState('');
   
   // MultiSelect topics implementation
   const [selectedTopics, setSelectedTopics] = useState<ITopicOption[]>([]);
@@ -204,6 +207,51 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
       const newItems = prevItems.filter((item) => item.id !== itemToRemove.id);
       return newItems;
     });
+  };
+
+  // Validate and add files (4 MB max, PNG/JPEG/PDF only)
+  const validateAndAddFiles = (files: FileList | null): boolean => {
+    if (!files?.length) return false;
+    const valid: File[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        toast.error(`"${file.name}" exceeds 4 MB. Please upload files up to 4 MB.`);
+        return false;
+      }
+      if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
+        toast.error(`"${file.name}" is not allowed. Please upload PNG, JPEG, or PDF only.`);
+        return false;
+      }
+      valid.push(file);
+    }
+    setAttachedFiles((prev) => [...prev, ...valid]);
+    return true;
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    validateAndAddFiles(e.target.files);
+    e.target.value = '';
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    validateAndAddFiles(e.dataTransfer.files);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const removeAttachedFile = (index: number) => {
+    setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Handle adding custom topic
@@ -400,6 +448,62 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
               />
             </div>
 
+            {/* Attach Any Relevant Files */}
+            <div className="speakerRequestForm__body__attachSection">
+              <label className="speakerRequestForm__body__attachSection__label">
+                Attach Any Relevant Files
+              </label>
+              <div
+                className={`speakerRequestForm__body__attachSection__zone ${isDragging ? 'speakerRequestForm__body__attachSection__zone--dragging' : ''}`}
+                onClick={() => fileInputRef.current?.click()}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={ACCEPTED_FILE_EXTENSIONS}
+                  multiple
+                  className="speakerRequestForm__body__attachSection__input"
+                  onChange={handleFileInputChange}
+                />
+                {attachedFiles.length > 0 ? (
+                  <div className="speakerRequestForm__body__attachSection__chips">
+                    {attachedFiles.map((file, index) => (
+                      <div key={`${file.name}-${index}`} className="speakerRequestForm__body__attachSection__chip">
+                        <Image
+                          src={file.type === 'application/pdf' ? '/icons/doc.svg' : '/icons/search-img.svg'}
+                          alt=""
+                          width={16}
+                          height={16}
+                          className="speakerRequestForm__body__attachSection__chipIcon"
+                        />
+                        <span className="speakerRequestForm__body__attachSection__chipName">{file.name}</span>
+                        <button
+                          type="button"
+                          className="speakerRequestForm__body__attachSection__chipRemove"
+                          onClick={(e) => { e.stopPropagation(); removeAttachedFile(index); }}
+                          aria-label="Remove file"
+                        >
+                          <Image src="/icons/close-red.svg" alt="" width={14} height={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <Image src="/icons/clip.svg" alt="" width={20} height={20} className="speakerRequestForm__body__attachSection__icon" />
+                    <span className="speakerRequestForm__body__attachSection__text">Upload file here</span>
+                  </>
+                )}
+              </div>
+              <div className="speakerRequestForm__body__attachSection__hint">
+                <Image src="/icons/info.svg" alt="info icon" width={16} height={16} className="" />
+                <span>Upload files up to 4 MB (PNG, JPEG, or PDF only)</span>
+              </div>
+            </div>
+
             {/* Topics Section */}
             <div className="speakerRequestForm__body__topicSection">
               <MultiSelect
@@ -507,7 +611,7 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
         .speakerRequestForm__container__body {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 25px;
         }
 
         .speakerRequestForm__body__requestingAsSection {
@@ -624,13 +728,13 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
           align-items: center;
         }
 
-        .speakerRequestForm__body__speakerdescriptionSection, .speakerRequestForm__body__topicSection {
+        .speakerRequestForm__body__speakerdescriptionSection, .speakerRequestForm__body__topicSection, .speakerRequestForm__body__attachSection {
           display: flex;
           flex-direction: column;
           gap: 8px;
         }
 
-        .speakerRequestForm__body__speakerdescriptionSection__label, .speakerRequestForm__body__topicSection__label {
+        .speakerRequestForm__body__speakerdescriptionSection__label, .speakerRequestForm__body__topicSection__label, .speakerRequestForm__body__attachSection__label {
           font-size: 14px;
           font-weight: 600;
           line-height: 20px;
@@ -722,6 +826,113 @@ const SpeakerRequestForm: React.FC<ISpeakerRequestForm> = ({ userInfo, eventLoca
 
         .speakerRequestForm__body__speakerdescriptionSection__textarea::placeholder {
           color: #94a3b8;
+        }
+
+        .speakerRequestForm__body__attachSection__zone {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 10px;
+          padding: 8px 12px;
+          border: 2px dashed #CBD5E1;
+          border-radius: 8px;
+          cursor: pointer;
+          background: #fafafa;
+          transition: border-color 0.2s, background 0.2s;
+        }
+
+        .speakerRequestForm__body__attachSection__zone:hover,
+        .speakerRequestForm__body__attachSection__zone--dragging {
+          border-color: #156ff7;
+          background: rgba(21, 111, 247, 0.04);
+        }
+
+        .speakerRequestForm__body__attachSection__input {
+          position: absolute;
+          width: 0;
+          height: 0;
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .speakerRequestForm__body__attachSection__icon {
+          flex-shrink: 0;
+        }
+
+        .speakerRequestForm__body__attachSection__zone > img.speakerRequestForm__body__attachSection__icon,
+        .speakerRequestForm__body__attachSection__zone > span.speakerRequestForm__body__attachSection__text {
+          pointer-events: none;
+        }
+
+        .speakerRequestForm__body__attachSection__zone img.speakerRequestForm__body__attachSection__icon {
+          filter: brightness(0) saturate(100%) invert(32%) sepia(98%) saturate(2500%) hue-rotate(212deg) brightness(97%) contrast(96%);
+        }
+
+        .speakerRequestForm__body__attachSection__chips {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 10px;
+          width: 100%;
+        }
+
+        .speakerRequestForm__body__attachSection__chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 4px 8px;
+          background: #F1F5F9;
+          border-radius: 8px;
+          border: none;
+          pointer-events: auto;
+        }
+
+        .speakerRequestForm__body__attachSection__chipIcon {
+          flex-shrink: 0;
+        }
+
+        .speakerRequestForm__body__attachSection__chipName {
+          font-size: 13px;
+          line-height: 18px;
+          color: #0f172a;
+          max-width: 180px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .speakerRequestForm__body__attachSection__chipRemove {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
+          border: none;
+          background: none;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+
+        .speakerRequestForm__body__attachSection__chipRemove:hover {
+          opacity: 0.85;
+        }
+
+        .speakerRequestForm__body__attachSection__text {
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          color: #156ff7;
+        }
+
+        .speakerRequestForm__body__attachSection__hint {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          line-height: 16px;
+          color: #64748b;
         }
 
         .speakerRequestForm__footer {

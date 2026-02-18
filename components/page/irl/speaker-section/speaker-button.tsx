@@ -2,6 +2,7 @@ import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { EVENTS } from '@/utils/constants';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { getSpeakerRequestStatus } from '@/services/irl.service';
 import { getParsedValue } from '@/utils/common.utils';
@@ -16,6 +17,8 @@ interface SpeakerButtonProps {
 type SpeakerRequestStatus = '' | 'PENDING' | 'APPROVED';
 
 const SpeakerButton = ({ eventLocationSummary, userInfo, currentGuest }: SpeakerButtonProps) => {
+  const router = useRouter();
+  const authToken = Cookies.get('authToken');
   const analytics = useIrlAnalytics();
   const [status, setStatus] = useState<SpeakerRequestStatus>('');
   const [approvedEvents, setApprovedEvents] = useState<any[]>([]);
@@ -33,7 +36,6 @@ const SpeakerButton = ({ eventLocationSummary, userInfo, currentGuest }: Speaker
 
       try {
         setIsLoading(true);
-        const authToken = getParsedValue(Cookies.get('authToken'));
         
         if (!authToken) {
           setIsLoading(false);
@@ -112,6 +114,10 @@ const SpeakerButton = ({ eventLocationSummary, userInfo, currentGuest }: Speaker
   }, [isApprovedDropdownOpen]);
 
   const handleClickSpeakerPopUp = () => {
+    if (!authToken) {
+      router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
+      return;
+    }
     document.dispatchEvent(
       new CustomEvent(EVENTS.OPEN_SPEAKER_REQUEST_POPUP, {
         detail: { isOpen: true },

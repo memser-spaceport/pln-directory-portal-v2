@@ -544,3 +544,78 @@
     border-radius: 4px;
   }
 }
+
+.noAccessInfoBox {
+  display: flex;
+  padding: 16px;
+  gap: 8px;
+  align-items: flex-start;
+  border-radius: 12px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  margin-top: 8px;
+}
+
+.noAccessIcon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.noAccessContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.noAccessTitle {
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.noAccessDescription {
+  color: var(--foreground-brand-secondary, #4174ff);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.noAccessActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.contactSupportLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-decoration: none;
+  border-bottom: 1px solid var(--action-border-brand-normal, #1b4dff);
+  padding: 0;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.noAccessActionText {
+  color: var(--foreground-brand-secondary, #4174ff);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}

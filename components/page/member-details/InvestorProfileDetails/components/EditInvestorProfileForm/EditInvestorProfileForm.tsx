@@ -25,7 +25,7 @@ import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions'
 
 import { editInvestorProfileSchema } from './schema';
 import { formatNumberToCurrency } from './utils';
-import { CheckIcon, ExternalLinkIcon, InfoIcon, LinkIcon } from './icons';
+import { CheckIcon, ExternalLinkIcon, ExternalLinkIconBlue, InfoIcon, InfoIconFilled, LinkIcon } from './icons';
 import s from './EditInvestorProfileForm.module.scss';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { useMember } from '@/services/members/hooks/useMember';
@@ -711,7 +711,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                           label="Role"
                           disabled={!selectedTeam}
                         />
-                        {!isTeamLead && (
+                        {!isTeamLead && !useInlineAddTeam && (
                           <div className={s.infoSection}>
                             <div className={s.infoIcon}>
                               <InfoIcon />
@@ -720,6 +720,31 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               <p className={s.infoText}>
                                 Update to fund&apos;s investment details can only be made by team lead
                               </p>
+                            </div>
+                          </div>
+                        )}
+                        {!isTeamLead && useInlineAddTeam && (
+                          <div className={s.noAccessInfoBox}>
+                            <div className={s.noAccessIcon}>
+                              <InfoIconFilled />
+                            </div>
+                            <div className={s.noAccessContent}>
+                              <p className={s.noAccessTitle}>
+                                You don&apos;t have access to edit team information
+                              </p>
+                              <p className={s.noAccessDescription}>
+                                Only team leads can update investment details for {selectedTeam?.label}.
+                              </p>
+                              <div className={s.noAccessActions}>
+                                <a
+                                  href={`mailto:support@plnetwork.io?subject=Request%20Team%20Lead%20Reassignment&body=Hi%20Support%2C%0A%0AI%20would%20like%20to%20request%20team%20lead%20reassignment%20for%20${encodeURIComponent(selectedTeam?.label || 'my team')}.%0A%0AThank%20you.`}
+                                  className={s.contactSupportLink}
+                                >
+                                  Contact Support
+                                  <ExternalLinkIconBlue />
+                                </a>
+                                <span className={s.noAccessActionText}>to request lead reassignment.</span>
+                              </div>
                             </div>
                           </div>
                         )}

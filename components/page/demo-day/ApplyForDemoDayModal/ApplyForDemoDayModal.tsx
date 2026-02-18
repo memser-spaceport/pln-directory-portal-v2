@@ -135,7 +135,8 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending } = useApplyForDemoDay(demoDaySlug);
+  const { mutateAsync } = useApplyForDemoDay(demoDaySlug);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { data } = useMemberFormOptions();
   const {
     onApplicationModalFieldEntered,
@@ -289,7 +290,6 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
 
     onClose?.();
   }, [demoDayData?.title, demoDaySlug, hasTrackedFieldEntry, onApplicationModalCanceled, onClose, reset, router]);
-
 
   // Track field blur events when value is entered
   useEffect(() => {
@@ -447,6 +447,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
   ]);
 
   const onSubmit = async (formData: ApplyFormData) => {
+    setIsSubmitting(true);
     try {
       // Build the team/project object
       let team: { uid?: string; name?: string; website?: string } = {};
@@ -511,9 +512,11 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         }
 
         setTimeout(() => {
+          setIsSubmitting(false);
           handleClose();
         }, 700);
       } else {
+        setIsSubmitting(false);
         if (res?.message) {
           toast.error(res?.message);
         } else {
@@ -522,6 +525,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
       }
     } catch (error) {
       console.error('Failed to submit application', error);
+      setIsSubmitting(false);
     }
   };
 
@@ -544,7 +548,6 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
           {demoDayData?.date && (
             <div className={s.dateInfo}>
               <span className={s.dateValue}>{formatDemoDayDate(demoDayData.date)}</span>
-
             </div>
           )}
         </div>
@@ -751,8 +754,8 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                 <Button type="button" size="m" variant="secondary" style="border" onClick={handleClose}>
                   Cancel
                 </Button>
-                <Button type="submit" size="m" style="fill" variant="primary" disabled={isPending}>
-                  {isPending ? 'Submitting...' : 'Submit'}
+                <Button type="submit" size="m" style="fill" variant="primary" disabled={isSubmitting}>
+                  {isSubmitting ? 'Submitting...' : 'Submit'}
                 </Button>
               </div>
             </form>

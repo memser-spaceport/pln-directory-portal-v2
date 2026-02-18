@@ -151,7 +151,7 @@ export const Filters = () => {
   // Remove invalid activity param values that don't have a corresponding option
   useEffect(() => {
     const activityParam = params.get('activity');
-    if (!activityParam) return;
+    if (!activityParam || teamsLoading) return;
 
     const selectedValues = activityParam.split(URL_QUERY_VALUE_SEPARATOR);
     const validIds = new Set(activityOptions.map((opt) => opt.id));
@@ -160,7 +160,7 @@ export const Filters = () => {
     if (validValues.length !== selectedValues.length) {
       setParam('activity', validValues.length > 0 ? validValues.join(URL_QUERY_VALUE_SEPARATOR) : undefined);
     }
-  }, [activityOptions, params, setParam]);
+  }, [activityOptions, params, setParam, teamsLoading]);
 
   return (
     <FiltersSidePanel clearParams={clearParams} appliedFiltersCount={appliedFiltersCount} className={s.root} hideFooter>

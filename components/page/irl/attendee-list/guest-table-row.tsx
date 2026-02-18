@@ -17,7 +17,7 @@ import {
 } from '@/utils/irl.utils';
 import { Tooltip as Popover } from './attendee-popover';
 import EventSummary from './event-summary';
-import GuestDescription from './guest-description';
+import { GuestDescription } from './GuestDescription';
 import { IGuest, IIrlEvent } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
 import { SyntheticEvent } from 'react';

@@ -175,7 +175,12 @@ const MemberDetails = ({ params }: { params: any }) => {
 
         return (
           <>
-            <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} isNewInvestor={isNewInvestor} />
+            <OneClickVerification
+              userInfo={userInfo}
+              member={member}
+              isLoggedIn={isLoggedIn}
+              isNewInvestor={isNewInvestor}
+            />
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             {showInvestorProfile && (
               <InvestorProfileDetails

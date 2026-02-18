@@ -91,4 +91,9 @@ export const editInvestorProfileSchema = yup.object().shape({
 
   // Fund investment checkbox
   isInvestViaFund: yup.boolean().required(),
+
+  // Inline add team fields
+  newTeamName: yup.string().defined(),
+  newTeamWebsite: yup.string().defined(),
+  newTeamRole: yup.string().defined(),
 });

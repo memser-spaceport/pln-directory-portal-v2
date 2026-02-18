@@ -46,8 +46,7 @@ export function useGetSaveTeam(onSuccess: (newData: any) => void) {
       if (response.ok) {
         if (isFunction(onSuccess)) {
           const res = await response.json();
-
-          onSuccess(res?.newData);
+          onSuccess(res?.newData ?? res);
         }
 
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));

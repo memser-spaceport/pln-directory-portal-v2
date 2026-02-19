@@ -20,11 +20,14 @@ import { MemberDetailsSectionHeader } from '@/components/page/member-details/bui
 import { getAccessLevel } from '@/utils/auth.utils';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
 
+type ContactDetailsVariant = 'default' | 'drawer';
+
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
   userInfo: IUserInfo;
   onEdit: () => void;
+  variant?: ContactDetailsVariant;
 }
 
 const SOCIAL_TO_HANDLE_MAP: Record<string, string> = {
@@ -37,8 +40,9 @@ const SOCIAL_TO_HANDLE_MAP: Record<string, string> = {
 };
 
 const VISIBLE_HANDLES = ['linkedin', 'github', 'twitter', 'email', 'discord', 'telegram'];
+const DRAWER_HANDLES = ['email', 'linkedin', 'telegram', 'twitter'];
 
-export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) => {
+export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant = 'default' }: Props) => {
   const router = useRouter();
   const { visibleHandles } = member;
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
@@ -46,7 +50,8 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   const hasMissingRequiredData = !member?.telegramHandle;
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
-  const showIncomplete = hasMissingRequiredData && isOwner;
+  const isDrawer = variant === 'drawer';
+  const showIncomplete = hasMissingRequiredData && isOwner && !isDrawer;
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
 
   const onLoginClickHandler = () => {
@@ -85,34 +90,51 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
           {isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEdit} />}
         </MemberDetailsSectionHeader>
         <div className={s.container}>
-          {isLoggedIn && (accessLevel === 'advanced' || isOwner) ? (
+          {isDrawer || (isLoggedIn && (accessLevel === 'advanced' || isOwner)) ? (
             <div className={s.social}>
               <div className={s.top}>
                 <div className={s.content}>
-                  {VISIBLE_HANDLES?.map((item) => {
-                    const handle = (member as unknown as Record<string, string>)[SOCIAL_TO_HANDLE_MAP[item]];
+                  {(isDrawer ? DRAWER_HANDLES : VISIBLE_HANDLES)
+                    ?.map((item) => {
+                      const handle = (member as unknown as Record<string, string>)[SOCIAL_TO_HANDLE_MAP[item]];
 
-                    return {
-                      completed: !!handle,
-                      content: (
-                        <Fragment key={item}>
-                          <ProfileSocialLink
-                            profile={getProfileFromURL(handle, item)}
-                            height={24}
-                            width={24}
-                            callback={callback}
-                            type={item}
-                            handle={handle}
-                            logo={getLogoByProvider(item, !handle)}
-                            className={clsx({
-                              [s.incomplete]: !handle,
-                            })}
-                          />
-                          <div className={s.divider} />
-                        </Fragment>
-                      ),
-                    };
-                  })
+                      if (isDrawer && item === 'linkedin' && !handle) {
+                        return {
+                          completed: false,
+                          content: (
+                            <Fragment key={item}>
+                              <button type="button" className={s.addLinkedinButton} onClick={onEdit}>
+                                <AddIcon />
+                                <span>Add LinkedIn</span>
+                              </button>
+                              <div className={s.divider} />
+                            </Fragment>
+                          ),
+                        };
+                      }
+
+                      return {
+                        completed: !!handle,
+                        content: (
+                          <Fragment key={item}>
+                            <ProfileSocialLink
+                              profile={getProfileFromURL(handle, item)}
+                              height={24}
+                              width={24}
+                              callback={callback}
+                              type={item}
+                              handle={handle}
+                              logo={getLogoByProvider(item, !handle)}
+                              className={clsx({
+                                [s.incomplete]: !handle && !isDrawer,
+                                [s.grayscale]: !handle && isDrawer,
+                              })}
+                            />
+                            <div className={s.divider} />
+                          </Fragment>
+                        ),
+                      };
+                    })
                     .sort((a) => (a.completed ? -1 : 1))
                     .map((item) => item.content)}
                 </div>
@@ -166,6 +188,18 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   );
 };
 
+const AddIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M8 3.5V12.5M3.5 8H12.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 function getLogoByProvider(provider: string, isIncomplete?: boolean): string {
   switch (provider) {
     case 'linkedin': {
@@ -185,11 +219,14 @@ function getLogoByProvider(provider: string, isIncomplete?: boolean): string {
     }
     case 'telegram': {
       if (isIncomplete) {
-        return '/icons/contact/telegram-contact-logo-orange.svg';
+        return '/icons/contact/t.svg';
       }
       return '/icons/contact/telegram-contact-logo.svg';
     }
     case 'twitter': {
+      if (isIncomplete) {
+        return '/icons/contact/x.svg';
+      }
       return '/icons/contact/twitter-contact-logo.svg';
     }
     default: {

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import s from './AddToCalendarModal.module.scss';
 import { useSetCalendarAdded } from '@/services/demo-day/hooks/useSetCalendarAdded';
 import { toast } from '@/components/core/ToastContainer';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 const CalendarPlusIcon = () => (
   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -101,6 +102,7 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
   eventTitle = 'Protocol Labs Demo Day',
 }) => {
   const setCalendarAddedMutation = useSetCalendarAdded();
+  const { onAddToCalendarModalGoogleCalendarClicked, onAddToCalendarModalIcalClicked } = useDemoDayAnalytics();
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -151,6 +153,7 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
   };
 
   const handleGoogleCalendar = async () => {
+    onAddToCalendarModalGoogleCalendarClicked();
     window.open(
       'https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=NThocXJ2bDIwc2FxM2hlNTJzaGtoODRjOWMgY181MzAyZDMzYTg4ODA5MTA5M2Y1YzAyMzY2ZGM1ZWZjYWZlM2RkNTc2MDgxZjE2MWMxNzljZmFiYWNjZjFmOThlQGc&tmsrc=c_5302d33a888091093f5c02366dc5efcafe3dd576081f161c179cfabaccf1f98e%40group.calendar.google.com',
       '_blank',
@@ -160,6 +163,7 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
   };
 
   const handleOutlookCalendar = async () => {
+    onAddToCalendarModalIcalClicked();
     generateICSFile();
     await markCalendarAsAdded();
     onClose();

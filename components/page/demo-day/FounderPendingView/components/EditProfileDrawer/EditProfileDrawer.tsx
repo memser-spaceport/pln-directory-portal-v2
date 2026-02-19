@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { EditProfileForm } from '../EditProfileForm';
 import { DemoMaterials } from '../DemoMaterials';

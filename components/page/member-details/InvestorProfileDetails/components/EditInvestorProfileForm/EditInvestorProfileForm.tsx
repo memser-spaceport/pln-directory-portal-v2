@@ -109,7 +109,10 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
   const isInvestViaFund = watch('isInvestViaFund');
   const selectedTeam = watch('team');
 
-  const isTeamLead = member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead;
+  const isTeamLead =
+    member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead || selectedTeam?.originalObject?.teamLead;
+
+  console.log(isTeamLead, selectedTeam, member.teams);
 
   const [isAddTeamDrawerOpen, setIsAddTeamDrawerOpen] = React.useState(false);
   const [isAddingTeamInline, setIsAddingTeamInline] = React.useState(false);
@@ -137,6 +140,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
         role: '',
         logo: null,
         website: teamWebsite || newData.website || '',
+        teamLead: true,
       };
 
       // Manually add the new team to the cached options
@@ -152,6 +156,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
         value: teamUid,
         label: teamTitle,
         originalObject: newTeamEntry,
+        teamLead: true,
       };
 
       setValue('team', teamOption, { shouldValidate: true, shouldDirty: true });
@@ -647,11 +652,19 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                       </div>
                       <div className={s.separator} />
                       <div className={s.addNewTeamBody}>
-                        <FormField name="newTeamRole" placeholder="Enter your primary role" label="Role" />
+                        <FormField
+                          name="newTeamRole"
+                          placeholder="Enter your primary role"
+                          label="Role"
+                          isRequired={useInlineAddTeam}
+                          rules={useInlineAddTeam ? { required: 'Role is required' } : undefined}
+                        />
                         <FormField
                           name="newTeamName"
                           placeholder="Enter team name"
                           label="Team Name"
+                          isRequired={useInlineAddTeam}
+                          rules={useInlineAddTeam ? { required: 'Team name is required' } : undefined}
                           onClear={() => {
                             setValue('newTeamName', '', { shouldValidate: true, shouldDirty: true });
                           }}
@@ -661,6 +674,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                           placeholder="Enter website address"
                           label="Website Address"
                           description="Paste a URL (LinkedIn, company website, etc.)"
+                          isRequired={useInlineAddTeam}
+                          rules={useInlineAddTeam ? { required: 'Website is required' } : undefined}
                         />
                         <div className={s.addNewTeamActions}>
                           <Button
@@ -685,6 +700,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               const teamWebsite = watch('newTeamWebsite');
                               const teamRole = watch('newTeamRole');
                               if (!teamName) return;
+                              if (useInlineAddTeam && (!teamWebsite || !teamRole)) return;
                               saveTeamFn({
                                 name: teamName,
                                 website: teamWebsite || '',
@@ -693,7 +709,10 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                                 shortDescription: '',
                               });
                             }}
-                            disabled={!watch('newTeamName')}
+                            disabled={
+                              !watch('newTeamName') ||
+                              (useInlineAddTeam && (!watch('newTeamWebsite') || !watch('newTeamRole')))
+                            }
                           >
                             Add Team
                           </Button>
@@ -729,9 +748,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               <InfoIconFilled />
                             </div>
                             <div className={s.noAccessContent}>
-                              <p className={s.noAccessTitle}>
-                                You don&apos;t have access to edit team information
-                              </p>
+                              <p className={s.noAccessTitle}>You don&apos;t have access to edit team information</p>
                               <p className={s.noAccessDescription}>
                                 Only team leads can update investment details for {selectedTeam?.label}.
                               </p>

@@ -448,24 +448,21 @@ export default function IncentiveModel() {
           <h1 className="incentive-model__title">Incentive Model</h1>
           <div className="incentive-model__description">
             <p>
-              Participants{' '}
-              <Link href="/alignment-asset/activities" className="incentive-model__link" onClick={handleActivitiesLinkClick}>
-                collect points
-              </Link>{' '}
-              by completing verified activities that benefit the network each month. Points are collected during the
-              snapshot period, and those points determine the number of tokens allocated to each contributor—with an
-              available pool of up to 10,000 tokens issued per snapshot period.
+              Each snapshot period, a pool of 10,000 tokens is available to reward participants who complete verified{' '}
+              <Link href="https://directory.plnetwork.io/alignment-asset/activities" className="incentive-model__link" onClick={handleActivitiesLinkClick}>
+                Incentivized Activities
+              </Link>
+              . Participants collect points for each verified activity they complete during the snapshot period.
             </p>
             <p>
-              Each category receives a fixed allocation of monthly tokens, and participants receive a portion based on
-              the points they collect in that category.
+              Each category receives a fixed allocation of the token pool. At the end of the period, tokens are distributed proportionally based on each participant&apos;s share of the total points collected in a single category—with up to 10,000 tokens allocated among all qualifying contributors.
             </p>
             <p>
               When more people contribute in the same category, the token pool is more widely distributed; when activity
               is lower in a category, more tokens are available per contributor.
             </p>
             <p>
-              Available token amounts and allocations may also shift between snapshot periods as the experiment adapts
+              Available token amounts and allocations for completing incentivized activities may also shift between snapshot periods as the experiment adapts
               to network activity and evolving needs.
             </p>
           </div>

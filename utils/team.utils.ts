@@ -81,7 +81,10 @@ export function processFilters(input: Input) {
       formattedAvailableValuesByFilter?.askTags,
       searchParams?.asks,
     ),
-    tiers: getTiersFromValues(formattedValuesByFilter?.tiers, searchParams?.tiers),
+    priorities: getPrioritiesFromValues(
+      formattedValuesByFilter?.priorities ?? formattedValuesByFilter?.tiers,
+      searchParams?.priorities ?? searchParams?.tiers,
+    ),
   };
 }
 
@@ -155,12 +158,24 @@ export function getTagsFromValues(allValues: string[], availableValues: string[]
   });
 }
 
-export function getTiersFromValues(allValues: { tier: string; count: number }[], queryValues: string | string[] = []) {
-  const queryValuesArr = Array.isArray(queryValues) ? queryValues : queryValues.split(URL_QUERY_VALUE_SEPARATOR);
-  return allValues?.map((value) => {
-    const selected = queryValuesArr.includes(value.tier);
-
-    return { value: value.tier, selected, disabled: false, count: value.count };
+export function getPrioritiesFromValues(
+  allValues: { priority?: string; tier?: string; count: number }[],
+  queryValues: string | string[] = [],
+) {
+  const queryValuesArr = Array.isArray(queryValues) ? queryValues : (queryValues ?? '').split(URL_QUERY_VALUE_SEPARATOR);
+  const toPriority = (v: string | undefined) => (v === '-1' ? '99' : v ?? '');
+  const normalized = (allValues ?? [])
+    .map((v) => ({ value: toPriority(v.priority ?? v.tier), count: v.count }))
+    .filter((v): v is { value: string; count: number } => v.value !== '');
+  const sorted = [...normalized].sort((a, b) => {
+    const na = 99;
+    const numA = a.value === String(na) ? na : parseInt(a.value, 10) || 0;
+    const numB = b.value === String(na) ? na : parseInt(b.value, 10) || 0;
+    return numA - numB;
+  });
+  return sorted.map((item) => {
+    const selected = queryValuesArr.includes(item.value);
+    return { value: item.value, selected, disabled: false, count: item.count };
   });
 }
 
@@ -450,24 +465,28 @@ export function getTierColor(tier: number): string {
     4: '#d9d2e9',
   };
 
-  return tierColors[tier] || '#d9d2e9'; // Default to tier 0/4 color if tier not found
+  return tierColors[tier] || '#d9d2e9';
 }
 
-export function getTierLabel(tier: number | string, full?: boolean): string {
-  const tierLabels: Record<string, string> = {
-    '0': 'Tier 0',
-    '1': 'Tier 1',
-    '2': 'Tier 2',
-    '3': 'Tier 3',
-    '4': 'Tier 4',
-    '-1': full ? 'Tier NA (Not Assigned)' : 'Tier NA',
+export function getPriorityLabel(priority: number | string, full?: boolean): string {
+  const priorityLabels: Record<string, string> = {
+    '1': 'Priority 1',
+    '2': 'Priority 2',
+    '3': 'Priority 3',
+    '4': 'Priority 4',
+    '5': 'Priority 5',
+    '99': full ? 'Priority NA (Not Assigned)' : 'Priority NA',
   };
 
-  return tierLabels[String(tier)] || 'Tier ?';
+  return priorityLabels[String(priority)] || 'Priority ?';
 }
 
-export function getTeamTier(team: { tier?: number | string | null }): number | string | undefined {
-  return typeof team?.tier === 'number' && team?.tier <= 4 ? team?.tier : undefined;
+export function getTeamPriority(team: { priority?: number | null; tier?: number | string | null }): number | undefined {
+  if (typeof team?.priority === 'number') {
+    return team.priority;
+  }
+
+  return 99;
 }
 
 export function parseFocusAreasParams(queryParams: any) {

@@ -21,7 +21,7 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { FilterCheckSizeInput } from '@/components/page/members/MembersFilter/FilterCheckSizeInput';
 import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
 import { InvestmentFocusFilter } from '@/components/page/teams/TeamsFilter/components/InvestmentFocusFilter';
-import { getTierLabel } from '@/utils/team.utils';
+import { getPriorityLabel } from '@/utils/team.utils';
 
 export interface TeamsFilterProps {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -50,8 +50,8 @@ export function TeamsFilter(props: TeamsFilterProps) {
   const getTeamTags = createFilterGetter(filterValues?.tags);
   const getMembershipSources = createFilterGetter(filterValues?.membershipSources);
   const getFundingStages = createFilterGetter(filterValues?.fundingStage);
-  const getTiers = createFilterGetter(filterValues?.tiers, {
-    formatLabel: (tier) => getTierLabel(tier.value, true),
+  const getPriorities = createFilterGetter(filterValues?.priorities, {
+    formatLabel: (item) => getPriorityLabel(item.value, true),
   });
 
   // Wrap clearParams to include analytics
@@ -95,9 +95,8 @@ export function TeamsFilter(props: TeamsFilterProps) {
     analytics.onTeamsFundingStageFilterSearched({ page: 'Teams', searchText });
   };
 
-  // Analytics callback for Tiers filter
-  const handleTiersChange = (key: string, values: string[]) => {
-    analytics.onTeamsTiersFilterSelected({ page: 'Teams', tiers: values });
+  const handlePrioritiesChange = (key: string, values: string[]) => {
+    analytics.onTeamsPrioritiesFilterSelected({ page: 'Teams', priorities: values });
   };
 
   return (
@@ -132,24 +131,24 @@ export function TeamsFilter(props: TeamsFilterProps) {
 
       {isTierViewer && (
         <FilterSection
-          title="Tiers"
+          title="Priority"
           titleIcon={<Image src="/icons/stack-blue.svg" alt="stack" width={18} height={20} />}
         >
           <GenericCheckboxList
             hint={
               <div>
-                Higher number = higher <br /> membership level
+                Lower number = higher <br /> importance level
               </div>
             }
-            paramKey="tiers"
-            placeholder="E.g. Tier 1, Tier 2..."
+            paramKey="priorities"
+            placeholder="E.g. Priority 1, Priority 2..."
             filterStore={useTeamFilterStore}
-            useGetDataHook={getTiers}
+            useGetDataHook={getPriorities}
             defaultItemsToShow={6}
             hideSearch
             onChange={(key, values) => {
               triggerLoader(true);
-              handleTiersChange(key, values);
+              handlePrioritiesChange(key, values);
             }}
           />
         </FilterSection>

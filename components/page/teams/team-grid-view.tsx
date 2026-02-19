@@ -9,7 +9,7 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { useCarousel } from '@/hooks/use-embla-carousel';
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
-import { getTeamTier, getTierLabel } from '@/utils/team.utils';
+import { getTeamPriority, getPriorityLabel } from '@/utils/team.utils';
 
 interface ITeamGridView {
   userInfo?: IUserInfo;
@@ -26,18 +26,18 @@ const TeamGridView = (props: ITeamGridView) => {
   const carousel: any[] = [];
   const isTierViewer = props?.userInfo?.isTierViewer || props?.userInfo?.roles?.includes(ADMIN_ROLE);
   const tags = useMemo(() => {
-    const tier = getTeamTier(team);
-    if (isTierViewer && typeof tier === 'number') {
+    const priority = getTeamPriority(team);
+    if (isTierViewer && priority !== undefined) {
       return [
         {
-          title: getTierLabel(tier),
+          title: getPriorityLabel(priority),
           icon: <Image src="/icons/stack.svg" alt="stack" width={14} height={12} />,
         } as ITag,
         ...(team?.industryTags ?? []),
       ];
     }
     return team?.industryTags;
-  }, [team?.industryTags, isTierViewer, team.tier]);
+  }, [team?.industryTags, isTierViewer, team?.priority, team?.tier]);
 
   const { emblaRef, activeIndex, scrollPrev, scrollNext, setActiveIndex, emblaApi } = useCarousel({
     slidesToScroll: 'auto',

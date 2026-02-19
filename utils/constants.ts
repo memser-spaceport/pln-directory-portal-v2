@@ -370,6 +370,7 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAMS_FUNDING_STAGE_FILTER_SEARCHED: 'team-funding-stage-filter-searched',
   TEAMS_FUNDING_STAGE_FILTER_SELECTED: 'team-funding-stage-filter-selected',
   TEAMS_TIERS_FILTER_SELECTED: 'team-tiers-filter-selected',
+  TEAMS_PRIORITIES_FILTER_SELECTED: 'team-priorities-filter-selected',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {

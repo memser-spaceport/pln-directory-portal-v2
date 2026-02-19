@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       membershipSources: result?.data?.membershipSources || [],
       technology: result?.data?.technology || [],
       askTags,
-      tiers: result?.data?.tiers || null,
+      priorities: result?.data?.priorities ?? null,
     });
   } catch (error) {
     console.error('Error fetching filters:', error);

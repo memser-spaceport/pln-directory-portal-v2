@@ -171,7 +171,10 @@ export function getPrioritiesFromValues(
     const na = 99;
     const numA = a.value === String(na) ? na : parseInt(a.value, 10) || 0;
     const numB = b.value === String(na) ? na : parseInt(b.value, 10) || 0;
-    return numA - numB;
+    if (numA === na && numB === na) return 0;
+    if (numA === na) return 1;
+    if (numB === na) return -1;
+    return numB - numA;
   });
   return sorted.map((item) => {
     const selected = queryValuesArr.includes(item.value);

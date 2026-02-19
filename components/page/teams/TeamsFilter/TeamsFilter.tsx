@@ -137,7 +137,10 @@ export function TeamsFilter(props: TeamsFilterProps) {
           <GenericCheckboxList
             hint={
               <div>
-                Lower number = higher <br /> importance level
+                <ul style={{ listStyleType: 'disc', paddingLeft: '16px' }}>
+                  <li>PL network team prioritization</li>
+                  <li>Lower number = higher importance level</li>
+                </ul>
               </div>
             }
             paramKey="priorities"

@@ -215,7 +215,7 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
                   <OutlookIcon />
                   <div className={s.labelWrapper}>
                     <span>iCal (Apple / Outlook)</span>
-                    <span className={s.labelSub}>Best option if you're on mobile</span>
+                    <span className={s.labelSub}>Best option if you&apos;re on mobile</span>
                   </div>
                 </button>
               </div>

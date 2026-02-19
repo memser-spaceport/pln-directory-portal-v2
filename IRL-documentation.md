@@ -23,7 +23,7 @@
 
 ### Purpose
 
-The IRL page is a part of protocol labs and this document covers only about IRL page.
+IRL Gatherings is a centralized module that curates in-person community events across global locations. It enables members to discover city-based meetups, track past and upcoming gatherings, and evaluate regional ecosystem activity. The module strengthens community growth by driving real-world networking, collaboration, and deeper participation within the broader network. IRL Gathering page is part of the Protocol Labs Directory, and this document covers only IRL Gathering page.
 
 The IRL Gatherings page allows network members to:
 
@@ -35,7 +35,7 @@ The IRL Gatherings page allows network members to:
 
 ### Events sync
 
- A sync from the backend brings events from Event Submission to the IRL page. See [PL Events Submission - Technical Documentation](https://github.com/memser-spaceport/pl-events-submission) for full details.
+Events and gathering data originate from the Event Submission application and are stored in the events service database (MongoDB). The events service is the single source of truth. Data is transformed and synced from the events service to the IRL page (via the backend). See [PL Events Submission - Technical Documentation](https://github.com/memser-spaceport/pl-events-submission) for full details.
 
 ### Complete Workflow
 
@@ -222,8 +222,7 @@ There are two possible user workflows depending on login state:
 
 | Service | Purpose |
 |---------|---------|
-| DIRECTORY_API_URL | IRL locations, guests, topics, presence, followers |
-| preferences.service | Member preferences (e.g. show Telegram) |
+| Directory backend | Used to load and manage IRL page data: locations (with events), guest/attendee list, topics per location, presence (“I’m Going”) requests, and followers. The IRL page calls it via `DIRECTORY_API_URL` for all locations, guests, topics, presence, and follower APIs. |
 
 ---
 
@@ -251,7 +250,6 @@ There are two possible user workflows depending on login state:
 app/events/irl/
 ├── page.tsx              # Server Component, getPageData, layout
 ├── page.module.css       # Page layout styles
-└── IRL DOCUMENTATION.md  # This document
 
 components/page/irl/
 ├── irl-header.tsx
@@ -335,6 +333,7 @@ utils/
 
 ### 2. Location Selection
 
+- **Purpose**: When you click a location card, the URL updates to `?location={name}` and the page switches context to that gathering: you see that location’s quick links, followers, “I’m Going” / Add attendee area, and attendee list. “See more” (or mobile popup) lets you choose from additional locations. Selecting a location is required to see location-specific content below.
 - **Component**: `IrlLocation` (uses `IrlLocationCard`, `IrlSeeMoreLocationCard`, `IrlLocationPopupView` for mobile).
 - **Behavior**: Renders location cards from `locationDetails`; click sets `?location={name}` (and clears `type`/`event`). “See more” expands to show more locations; mobile can use a popup.
 - **Data**: `locationDetails` from `getAllLocations()`; `searchParams` for current selection.
@@ -342,12 +341,14 @@ utils/
 
 ### 3. Additional Resources (Quick Links)
 
+- **Purpose**: When you use quick links, you open external resources (e.g. schedule, Slack, docs) that organisers have set for that location. First two links are visible inline; “+N more” opens a modal with all links for the selected location.
 - **Component**: `AddtionalResources`
 - **Behavior**: Shows “Quick Links for {location}” when location has `resources`; first two visible, “+N more” opens modal with all links. Shown for web and mobile in separate sections when `eventDetails?.resources?.length > 0`.
 - **Implementation**: `components/page/irl/events/addtional-resources.tsx`
 
 ### 4. Follow Gathering
 
+- **Purpose**: When you follow a location, you subscribe to that gathering (entity) so you can receive updates and stay informed. The section also shows who else is following, a link to the external schedule, and (if logged in and eligible) “I’m Going” to declare presence or “Edit my attendance” to update it. Admins see “+ Add attendee” to add another member as a guest.
 - **Components**: `IrlFollowGathering` → `FollowSection`
 - **Behavior**:
   - **Followers**: List of members following the location (from `getFollowersByLocation`).
@@ -359,6 +360,7 @@ utils/
 
 ### 5. Attendee List
 
+- **Purpose**: When you switch Upcoming / Past, the list shows guests for that event type for the selected location. When you search or use filters (attending, attendees, topics, sort), the table updates to show only matching guests. When you select one or more guests (admin), a floating bar appears with “Remove” to delete the selected guests from the event(s). Per-row Edit opens the attendance modal; Remove (admin) removes that guest.
 - **Components**: `AttendeeList` → `Toolbar`, `AttendeeTableHeader`, `GuestList` → `GuestTableRow`, `FloatingBar`, `DeleteAttendeesPopup`, `AttendeeForm` (I’m Going modal).
 - **Behavior**:
   - **Toolbar**: Switch Upcoming / Past; search; filters (attending, attendees, topics); sort; admin “Add attendee” (if allowed); “Remove” when guests selected.
@@ -368,6 +370,7 @@ utils/
 
 ### 6. Add / Edit Attendee (I’m Going modal)
 
+- **Purpose**: When you submit the form, your presence is recorded or updated: for “I’m Going” or admin “Add attendee”, a new guest/presence is created; for “Edit”, existing attendance is updated. You (or the admin) choose which events (gatherings) you’re attending, add topics and reason, and optionally arrival/departure, office hours, Telegram, etc. On success, the list refreshes and the modal closes.
 - **Component**: `AttendeeForm`
 - **Modes**: New (I’m Going), Edit (own or admin), Add (admin adding another member).
 - **Fields**: Gatherings (events) selection, topics, reason, optional details (arrival/departure, office hours, Telegram, etc.). Validation and submit call `createEventGuest`, `markMyPresence`, or `editEventGuest` as appropriate.

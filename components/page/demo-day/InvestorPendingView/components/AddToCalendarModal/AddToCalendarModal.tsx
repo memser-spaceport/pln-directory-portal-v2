@@ -23,7 +23,14 @@ const IconX = () => (
 );
 
 const GoogleCalendarIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    width="28"
+    height="28"
+    viewBox="0 0 28 28"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={s.desktopIcon}
+  >
     <path
       d="M26.2515 14.2721C26.2515 13.2649 26.1681 12.5299 25.9876 11.7676H14.2515V16.3137H21.1403C21.0015 17.4435 20.2515 19.1448 18.5848 20.2881L18.5614 20.4403L22.2721 23.2575L22.5292 23.2826C24.8903 21.1457 26.2515 18.0015 26.2515 14.2721Z"
       fill="white"
@@ -39,6 +46,34 @@ const GoogleCalendarIcon = () => (
     <path
       d="M14.2507 6.48663C16.5979 6.48663 18.1812 7.48024 19.084 8.31057L22.6118 4.935C20.4452 2.96139 17.6257 1.75 14.2507 1.75C9.36176 1.75 5.13952 4.49942 3.08398 8.50106L7.12564 11.5772C8.13962 8.6236 10.9452 6.48663 14.2507 6.48663Z"
       fill="white"
+    />
+  </svg>
+);
+
+const GoogleCalendarIconColorful = () => (
+  <svg
+    width="28"
+    height="28"
+    viewBox="0 0 28 28"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={s.mobileIcon}
+  >
+    <path
+      d="M26.25 14.272C26.25 13.2648 26.1666 12.5298 25.9861 11.7676H14.25V16.3136H21.1388C21 17.4434 20.25 19.1448 18.5833 20.2881L18.5599 20.4403L22.2707 23.2574L22.5278 23.2826C24.8888 21.1456 26.25 18.0014 26.25 14.272Z"
+      fill="#4285F4"
+    />
+    <path
+      d="M14.2526 26.2502C17.6275 26.2502 20.4608 25.1612 22.5303 23.2829L18.5859 20.2884C17.5303 21.0098 16.1137 21.5134 14.2526 21.5134C10.9471 21.5134 8.14155 19.3765 7.14146 16.4229L6.99487 16.4351L3.1364 19.3615L3.08594 19.4989C5.14146 23.5006 9.36368 26.2502 14.2526 26.2502Z"
+      fill="#34A853"
+    />
+    <path
+      d="M7.13883 16.4227C6.87495 15.6605 6.72223 14.8438 6.72223 13.9999C6.72223 13.156 6.87495 12.3394 7.12495 11.5771L7.11796 11.4148L3.21112 8.44141L3.0833 8.50099C2.23612 10.1616 1.75 12.0263 1.75 13.9999C1.75 15.9735 2.23612 17.8382 3.0833 19.4988L7.13883 16.4227Z"
+      fill="#FBBC05"
+    />
+    <path
+      d="M14.2527 6.48663C16.5998 6.48663 18.1831 7.48024 19.086 8.31057L22.6137 4.935C20.4471 2.96139 17.6276 1.75 14.2527 1.75C9.36371 1.75 5.14148 4.49942 3.08594 8.50106L7.12759 11.5772C8.14158 8.6236 10.9471 6.48663 14.2527 6.48663Z"
+      fill="#EB4335"
     />
   </svg>
 );
@@ -173,11 +208,15 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
               <div className={s.calendarButtons}>
                 <button className={s.calendarButton} onClick={handleGoogleCalendar}>
                   <GoogleCalendarIcon />
+                  <GoogleCalendarIconColorful />
                   <span>Google Calendar</span>
                 </button>
                 <button className={s.calendarButton2} onClick={handleOutlookCalendar}>
                   <OutlookIcon />
-                  <span>iCal (Apple / Outlook)</span>
+                  <div className={s.labelWrapper}>
+                    <span>iCal (Apple / Outlook)</span>
+                    <span className={s.labelSub}>Best option if you're on mobile</span>
+                  </div>
                 </button>
               </div>
 

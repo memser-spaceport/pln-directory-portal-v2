@@ -117,9 +117,7 @@ export const InvestorProfileView = ({
   return (
     <>
       {showIncomplete &&
-        (isInvestor === null &&
-        !isInvestorAccess(member?.accessLevel || '') &&
-        !isDemodaySignUpSource(signUpSource) ? (
+        (isInvestor === null && !isInvestorAccess(member?.accessLevel || '') && !isDemodaySignUpSource(signUpSource) ? (
           <div className={s.incompleteWarning}>
             <div className={s.warningContent}>
               <div className={s.warningIcon}>

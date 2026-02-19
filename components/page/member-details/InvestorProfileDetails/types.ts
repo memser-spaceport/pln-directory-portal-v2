@@ -15,6 +15,10 @@ export interface TEditInvestorProfileForm {
 
   secRulesAccepted: boolean;
   isInvestViaFund: boolean;
+
+  newTeamName: string;
+  newTeamWebsite: string;
+  newTeamRole: string;
 }
 
 export interface TEditInvestorProfileFormTeam {

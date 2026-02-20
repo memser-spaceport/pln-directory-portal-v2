@@ -37,7 +37,7 @@ import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import clsx from 'clsx';
-import { useContactSupportContext } from '@/components/ContactSupport/context/ContactSupportContext';
+import { useContactSupportStore } from '@/services/contact-support/store';
 
 interface Props {
   onClose: () => void;
@@ -55,7 +55,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
   // Analytics hooks
   const { onInvestorProfileUpdated } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
-  const { openModal: openContactSupport } = useContactSupportContext();
+  const { openModal: openContactSupport } = useContactSupportStore((s) => s.actions);
 
   const { data: options } = useTeamsFormOptions();
   const { data } = useMemberFormOptions();
@@ -757,9 +757,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                                   type="button"
                                   className={s.contactSupportLink}
                                   onClick={() => {
-                                    debugger;
                                     const teamRole = watch('teamRole');
-                                    const message = `Fund: ${selectedTeam?.label || 'N/A'}\nMy Role: ${teamRole || 'N/A'}\nReason: Request team lead reassignment`;
+                                    const message = `Fund: ${selectedTeam?.label || 'N/A'}\nMy Role: ${teamRole || 'N/A'}\nReason:`;
                                     openContactSupport(undefined, 'contactSupport', message);
                                   }}
                                 >

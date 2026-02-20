@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { useCallback, useEffect } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import { useContactSupportContext } from '@/components/ContactSupport/context/ContactSupportContext';
+import { useContactSupportStore } from '@/services/contact-support/store';
 import { ModalBase } from '@/components/common/ModalBase';
 import { QuestionCircleIcon } from '@/components/icons';
 import { LabeledInput } from '@/components/common/form/LabeledInput';
@@ -81,7 +81,8 @@ const getFieldPlaceholderByTopic = (topic: string): string => {
 
 export function ContactSupport(props: Props) {
   const { userInfo } = props;
-  const { open, metadata, topic: contextTopic, prefillMessage, closeModal, updateTopic } = useContactSupportContext();
+  const { open, metadata, topic: contextTopic, prefillMessage, actions } = useContactSupportStore();
+  const { closeModal, updateTopic } = actions;
   const contactSupportMutation = useContactSupport();
 
   const getDefaultValues = useCallback(() => {

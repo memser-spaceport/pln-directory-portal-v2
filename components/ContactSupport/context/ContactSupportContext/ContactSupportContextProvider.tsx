@@ -30,6 +30,7 @@ export function ContactSupportContextProvider(props: PropsWithChildren<{}>) {
   const [open, toggleOpen] = useToggle(false);
   const [metadata, setMetadata] = useState<Metadata>();
   const [topic, setTopic] = useState<string>();
+  const [prefillMessage, setPrefillMessage] = useState<string>();
   const isInitializedRef = useRef(false);
   const expectedDialogRef = useRef<string | null>(null);
 
@@ -73,7 +74,8 @@ export function ContactSupportContextProvider(props: PropsWithChildren<{}>) {
   }, [open, topic]);
 
   const openModal = useCallback(
-    (metadata?: Metadata, dialogParam?: keyof typeof DIALOG_PARAM_VALUES) => {
+    (metadata?: Metadata, dialogParam?: keyof typeof DIALOG_PARAM_VALUES, prefillMsg?: string) => {
+      debugger;
       if (metadata) {
         setMetadata(metadata);
       }
@@ -83,6 +85,7 @@ export function ContactSupportContextProvider(props: PropsWithChildren<{}>) {
         setTopic(DIALOG_TO_TOPIC_MAP[DIALOG_PARAM_VALUES[dialog]]);
       }
 
+      setPrefillMessage(prefillMsg);
       toggleOpen(true);
     },
     [toggleOpen],
@@ -92,6 +95,7 @@ export function ContactSupportContextProvider(props: PropsWithChildren<{}>) {
     toggleOpen(false);
     setMetadata(undefined);
     setTopic(undefined);
+    setPrefillMessage(undefined);
   }, [toggleOpen]);
 
   const updateTopic = useCallback((newTopic: string) => {
@@ -103,11 +107,12 @@ export function ContactSupportContextProvider(props: PropsWithChildren<{}>) {
       open,
       metadata,
       topic,
+      prefillMessage,
       openModal,
       closeModal,
       updateTopic,
     }),
-    [open, metadata, topic, openModal, closeModal, updateTopic],
+    [open, metadata, topic, prefillMessage, openModal, closeModal, updateTopic],
   );
 
   return <ContactSupportContext.Provider value={value}>{children}</ContactSupportContext.Provider>;

@@ -81,7 +81,7 @@ const getFieldPlaceholderByTopic = (topic: string): string => {
 
 export function ContactSupport(props: Props) {
   const { userInfo } = props;
-  const { open, metadata, topic: contextTopic, closeModal, updateTopic } = useContactSupportContext();
+  const { open, metadata, topic: contextTopic, prefillMessage, closeModal, updateTopic } = useContactSupportContext();
   const contactSupportMutation = useContactSupport();
 
   const getDefaultValues = useCallback(() => {
@@ -91,9 +91,9 @@ export function ContactSupport(props: Props) {
       topic: contextTopic || CONTACT_SUPPORT_TOPICS[0].value,
       email,
       name,
-      message: '',
+      message: prefillMessage || '',
     };
-  }, [userInfo, contextTopic]);
+  }, [userInfo, contextTopic, prefillMessage]);
 
   const methods = useForm<ContactSupportFormData>({
     resolver: yupResolver(contactSupportSchema),

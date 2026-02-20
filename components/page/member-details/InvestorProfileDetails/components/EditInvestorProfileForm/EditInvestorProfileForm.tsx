@@ -37,6 +37,7 @@ import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import clsx from 'clsx';
+import { useContactSupportContext } from '@/components/ContactSupport/context/ContactSupportContext';
 
 interface Props {
   onClose: () => void;
@@ -54,6 +55,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
   // Analytics hooks
   const { onInvestorProfileUpdated } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
+  const { openModal: openContactSupport } = useContactSupportContext();
 
   const { data: options } = useTeamsFormOptions();
   const { data } = useMemberFormOptions();
@@ -111,8 +113,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
 
   const isTeamLead =
     member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead || selectedTeam?.originalObject?.teamLead;
-
-  console.log(isTeamLead, selectedTeam, member.teams);
 
   const [isAddTeamDrawerOpen, setIsAddTeamDrawerOpen] = React.useState(false);
   const [isAddingTeamInline, setIsAddingTeamInline] = React.useState(false);
@@ -753,13 +753,19 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                                 Only team leads can update investment details for {selectedTeam?.label}.
                               </p>
                               <div className={s.noAccessActions}>
-                                <a
-                                  href={`mailto:support@plnetwork.io?subject=Request%20Team%20Lead%20Reassignment&body=Hi%20Support%2C%0A%0AI%20would%20like%20to%20request%20team%20lead%20reassignment%20for%20${encodeURIComponent(selectedTeam?.label || 'my team')}.%0A%0AThank%20you.`}
+                                <button
+                                  type="button"
                                   className={s.contactSupportLink}
+                                  onClick={() => {
+                                    debugger;
+                                    const teamRole = watch('teamRole');
+                                    const message = `Fund: ${selectedTeam?.label || 'N/A'}\nMy Role: ${teamRole || 'N/A'}\nReason: Request team lead reassignment`;
+                                    openContactSupport(undefined, 'contactSupport', message);
+                                  }}
                                 >
                                   Contact Support
                                   <ExternalLinkIconBlue />
-                                </a>
+                                </button>
                                 <span className={s.noAccessActionText}>to request lead reassignment.</span>
                               </div>
                             </div>

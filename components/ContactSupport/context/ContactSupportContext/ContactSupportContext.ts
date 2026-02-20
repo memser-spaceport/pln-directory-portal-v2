@@ -8,10 +8,12 @@ export interface IContactSupportContext {
   openModal: (
     metadata?: Metadata,
     dialogParam?: 'contactSupport' | 'askQuestion' | 'giveFeedback' | 'shareIdea' | 'reportBug',
+    prefillMessage?: string,
   ) => void;
   closeModal: () => void;
   metadata?: Metadata;
   topic?: string;
+  prefillMessage?: string;
   updateTopic: (topic: string) => void;
 }
 
@@ -20,9 +22,11 @@ export const ContactSupportContext = createContext<IContactSupportContext>({
   openModal: (
     metadata?: Metadata,
     dialogParam?: 'contactSupport' | 'askQuestion' | 'giveFeedback' | 'shareIdea' | 'reportBug',
+    prefillMessage?: string,
   ) => {},
   closeModal: () => {},
   metadata: {},
   topic: undefined,
+  prefillMessage: undefined,
   updateTopic: () => {},
 });

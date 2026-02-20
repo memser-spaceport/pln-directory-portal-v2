@@ -144,6 +144,9 @@ export function ContactSupport(props: Props) {
 
   const isLoading = contactSupportMutation.isPending;
 
+  const isEmailPrefilled = !!userInfo?.email;
+  const isNamePrefilled = !!userInfo?.name;
+
   const description = getDescriptionByReason(metadata?.reason as string);
   const fieldLabel = getFieldLabelByTopic(selectedTopic);
   const fieldPlaceholder = getFieldPlaceholderByTopic(selectedTopic);
@@ -188,20 +191,24 @@ export function ContactSupport(props: Props) {
       />
 
       <LabeledInput
-        label="Email Address"
+        label={isEmailPrefilled ? 'Email Address (Prefilled)' : 'Email Address'}
         error={errors.email?.message}
         input={{
           type: 'email',
           placeholder: 'Enter your email',
+          readOnly: isEmailPrefilled,
+          disabled: isEmailPrefilled,
           ...register('email'),
         }}
       />
 
       <LabeledInput
-        label="Name"
+        label={isNamePrefilled ? 'Name (Prefilled)' : 'Name'}
         error={errors.name?.message}
         input={{
           placeholder: 'Enter your name',
+          readOnly: isNamePrefilled,
+          disabled: isNamePrefilled,
           ...register('name'),
         }}
       />

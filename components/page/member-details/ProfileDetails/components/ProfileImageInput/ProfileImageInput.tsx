@@ -21,6 +21,7 @@ interface Props {
 export const ProfileImageInput = ({ member, classes }: Props) => {
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDeleted, setIsDeleted] = useState(false);
   const { setValue } = useFormContext<OnboardingForm>();
 
   const { getInputProps, getRootProps } = useDropzone({
@@ -57,6 +58,7 @@ export const ProfileImageInput = ({ member, classes }: Props) => {
 
         reader.readAsDataURL(file);
 
+        setIsDeleted(false);
         setValue('image', file, { shouldValidate: true, shouldDirty: true });
       }
     },
@@ -68,26 +70,51 @@ export const ProfileImageInput = ({ member, classes }: Props) => {
     },
   });
 
+  const hasCustomImage = !!(imagePreview || (!isDeleted && member?.profile));
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setImagePreview(null);
+    setIsDeleted(true);
+    setValue('image', null as any, { shouldValidate: true, shouldDirty: true });
+  };
+
   return (
     <div className={clsx(s.dropzone, classes?.root)} {...getRootProps()}>
       <input {...getInputProps()} />
       <Image
-        src={imagePreview || member?.profile || defaultAvatarImage}
+        src={imagePreview || (!isDeleted && member?.profile) || defaultAvatarImage}
         alt="Preview"
         className={s.imagePreview}
         fill
       />
-      <div className={clsx(s.dropzoneHint, classes?.dropzoneIcon)}>
-        <EditIcon />
+      <div className={s.overlay}>
+        <div className={clsx(s.dropzoneHint, classes?.dropzoneIcon)}>
+          <ReplaceIcon />
+        </div>
+        {hasCustomImage && (
+          <button type="button" className={s.deleteBtn} onClick={handleDelete} aria-label="Remove image">
+            <DeleteIcon />
+          </button>
+        )}
       </div>
     </div>
   );
 };
 
-const EditIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+const ReplaceIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
-      d="M10.1992 1.43359C10.9648 0.667969 12.1953 0.667969 12.9609 1.43359L13.3164 1.78906C14.082 2.55469 14.082 3.78516 13.3164 4.55078L7.90234 9.96484C7.68359 10.1836 7.38281 10.375 7.05469 10.457L4.32031 11.25C4.10156 11.3047 3.85547 11.25 3.69141 11.0586C3.5 10.8945 3.44531 10.6484 3.5 10.4297L4.29297 7.69531C4.375 7.36719 4.56641 7.06641 4.78516 6.84766L10.1992 1.43359ZM12.0312 2.36328C11.7852 2.11719 11.375 2.11719 11.1289 2.36328L10.3086 3.15625L11.5938 4.44141L12.3867 3.62109C12.6328 3.375 12.6328 2.96484 12.3867 2.71875L12.0312 2.36328ZM5.55078 8.05078L5.08594 9.66406L6.69922 9.19922C6.80859 9.17188 6.89062 9.11719 6.97266 9.03516L10.6641 5.34375L9.40625 4.08594L5.71484 7.77734C5.63281 7.85938 5.57812 7.94141 5.55078 8.05078ZM5.46875 2.5C5.82422 2.5 6.125 2.80078 6.125 3.15625C6.125 3.53906 5.82422 3.8125 5.46875 3.8125H2.40625C1.77734 3.8125 1.3125 4.30469 1.3125 4.90625V12.3438C1.3125 12.9727 1.77734 13.4375 2.40625 13.4375H9.84375C10.4453 13.4375 10.9375 12.9727 10.9375 12.3438V9.28125C10.9375 8.92578 11.2109 8.625 11.5938 8.625C11.9492 8.625 12.25 8.92578 12.25 9.28125V12.3438C12.25 13.6836 11.1562 14.75 9.84375 14.75H2.40625C1.06641 14.75 0 13.6836 0 12.3438V4.90625C0 3.59375 1.06641 2.5 2.40625 2.5H5.46875Z"
+      d="M13.65 2.35C12.2 0.9 10.21 0 8 0C3.58 0 0.01 3.58 0.01 8C0.01 12.42 3.58 16 8 16C11.73 16 14.84 13.45 15.73 10H13.65C12.83 12.33 10.61 14 8 14C4.69 14 2 11.31 2 8C2 4.69 4.69 2 8 2C9.66 2 11.14 2.69 12.22 3.78L9 7H16V0L13.65 2.35Z"
+      fill="white"
+    />
+  </svg>
+);
+
+const DeleteIcon = () => (
+  <svg width="14" height="16" viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M4.5 0.5V1H0V3H1V14C1 14.5523 1.22386 15.0523 1.58579 15.4142C1.94772 15.7761 2.44772 16 3 16H11C11.5523 16 12.0523 15.7761 12.4142 15.4142C12.7761 15.0523 13 14.5523 13 14V3H14V1H9.5V0.5C9.5 0.223858 9.27614 0 9 0H5C4.72386 0 4.5 0.223858 4.5 0.5ZM3 3H11V14H3V3ZM4.5 5V12H6.5V5H4.5ZM7.5 5V12H9.5V5H7.5Z"
       fill="white"
     />
   </svg>

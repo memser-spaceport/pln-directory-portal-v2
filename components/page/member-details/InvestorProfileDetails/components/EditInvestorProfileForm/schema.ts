@@ -1,5 +1,12 @@
 import * as yup from 'yup';
 
+function isTeamLeadForSelectedTeam(context: yup.TestContext): boolean {
+  // @ts-ignore
+  const { member } = context.options.context;
+  const selectedTeam = context.parent.team;
+  return !!member?.teams.find((team: any) => team.id === selectedTeam?.value)?.teamLead || !!selectedTeam?.teamLead;
+}
+
 export const editInvestorProfileSchema = yup.object().shape({
   // Team selection - optional
   team: yup
@@ -12,7 +19,11 @@ export const editInvestorProfileSchema = yup.object().shape({
     .nullable(),
 
   // Angel investor fields
-  typicalCheckSize: yup.string().defined(),
+  typicalCheckSize: yup.string().when('secRulesAccepted', {
+    is: true,
+    then: (schema) => schema.required('Typical check size is required'),
+    otherwise: (schema) => schema.defined(),
+  }),
   investmentFocusAreas: yup.array().of(yup.string().required()).defined(),
   investInStartupStages: yup
     .array()
@@ -22,7 +33,11 @@ export const editInvestorProfileSchema = yup.object().shape({
         value: yup.string().required(),
       }),
     )
-    .defined(),
+    .when('secRulesAccepted', {
+      is: true,
+      then: (schema) => schema.min(1, 'Select at least one startup stage'),
+      otherwise: (schema) => schema.defined(),
+    }),
   investInFundTypes: yup
     .array()
     .of(
@@ -33,22 +48,24 @@ export const editInvestorProfileSchema = yup.object().shape({
     )
     .defined(),
 
-  teamRole: yup.string().defined(),
-  website: yup.string().test({
-    message: 'Please enter a valid URL',
+  teamRole: yup.string().test({
+    message: 'Role is required',
     test: function (value, context) {
-      if (!context.parent.isInvestViaFund) {
+      if (!context.parent.isInvestViaFund || !isTeamLeadForSelectedTeam(context)) {
+        return true;
+      }
+      return !!value && value.trim().length > 0;
+    },
+  }),
+  website: yup.string().test({
+    message: 'Website is required',
+    test: function (value, context) {
+      if (!context.parent.isInvestViaFund || !isTeamLeadForSelectedTeam(context)) {
         return true;
       }
 
-      // @ts-ignore
-      const { member } = context.options.context;
-      const selectedTeam = context.parent.team;
-
-      const isTeamLead = member?.teams.find((team: any) => team.id === selectedTeam?.value)?.teamLead;
-
-      if (!value || !isTeamLead) {
-        return true;
+      if (!value || !value.trim()) {
+        return this.createError({ message: 'Website is required' });
       }
 
       try {
@@ -64,7 +81,15 @@ export const editInvestorProfileSchema = yup.object().shape({
   //   then: () => yup.string().url().required(),
   //   otherwise: () => yup.string().defined(),
   // }),
-  teamTypicalCheckSize: yup.string().defined(),
+  teamTypicalCheckSize: yup.string().test({
+    message: 'Typical check size is required',
+    test: function (value, context) {
+      if (!context.parent.isInvestViaFund || !isTeamLeadForSelectedTeam(context)) {
+        return true;
+      }
+      return !!value;
+    },
+  }),
   teamInvestmentFocusAreas: yup.array().of(yup.string().required()).defined(),
   teamInvestInStartupStages: yup
     .array()
@@ -74,7 +99,15 @@ export const editInvestorProfileSchema = yup.object().shape({
         value: yup.string().required(),
       }),
     )
-    .defined(),
+    .test({
+      message: 'Select at least one startup stage',
+      test: function (value, context) {
+        if (!context.parent.isInvestViaFund || !isTeamLeadForSelectedTeam(context)) {
+          return true;
+        }
+        return !!value && value.length > 0;
+      },
+    }),
 
   teamInvestInFundTypes: yup
     .array()

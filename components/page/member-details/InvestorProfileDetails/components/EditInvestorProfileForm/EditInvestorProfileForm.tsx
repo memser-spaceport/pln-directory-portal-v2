@@ -95,7 +95,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
     },
     // @ts-ignore
     resolver: yupResolver(editInvestorProfileSchema),
-    mode: 'all',
+    mode: 'onSubmit',
+    reValidateMode: 'onBlur',
     context: { member },
   });
 
@@ -105,7 +106,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
     setValue,
     watch,
     trigger,
-    formState: { isValid },
+    formState: { isValid, isSubmitted },
   } = methods;
   const secRulesAccepted = watch('secRulesAccepted');
   const isInvestViaFund = watch('isInvestViaFund');
@@ -433,7 +434,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
         }}
         noValidate
       >
-        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Profile" />
+        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Details" />
         <div className={s.body}>
           <div className={s.block}>
             <div className={s.sectionHeader}>
@@ -446,7 +447,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                   checked={secRulesAccepted}
                   onCheckedChange={(v: boolean) => {
                     setValue('secRulesAccepted', v, { shouldValidate: true, shouldDirty: true });
-                    trigger();
+                    if (isSubmitted) trigger();
                   }}
                 >
                   <Checkbox.Indicator className={s.Indicator}>
@@ -475,6 +476,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                       label="Startup stage(s) you invest in?"
                       placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                       options={formOptions.fundingStageOptions}
+                      isRequired
                       // showNone
                     />
                   </div>
@@ -485,6 +487,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                       placeholder="E.g. $250.000"
                       currency="USD"
                       disabled={!secRulesAccepted}
+                      isRequired
                     />
                   </div>
                   <div className={s.row}>
@@ -507,7 +510,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                   checked={isInvestViaFund}
                   onCheckedChange={(v: boolean) => {
                     setValue('isInvestViaFund', v, { shouldValidate: true, shouldDirty: true });
-                    trigger();
+                    if (isSubmitted) trigger();
                   }}
                 >
                   <Checkbox.Indicator className={s.Indicator}>
@@ -729,6 +732,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                           placeholder="Enter your role"
                           label="Role"
                           disabled={!selectedTeam}
+                          isRequired={!!isTeamLead}
                         />
                         {!isTeamLead && !useInlineAddTeam && (
                           <div className={s.infoSection}>
@@ -781,6 +785,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               label="Website address"
                               description="Paste a URL (company website, LinkedIn, Notion, X.com, Bluesky, etc.)"
                               disabled={!isTeamLead || !selectedTeam}
+                              isRequired
                             />
                           </div>
 
@@ -791,6 +796,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                               options={formOptions.fundingStageOptions}
                               disabled={!isTeamLead || !selectedTeam}
+                              isRequired
                             />
                           </div>
 
@@ -801,6 +807,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               placeholder="Select typical check size (E.g. $25k - $50.000k)"
                               currency="USD"
                               disabled={!isTeamLead || !selectedTeam}
+                              isRequired
                             />
                           </div>
 
@@ -831,7 +838,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
             </section>
           </div>
 
-          {secRulesAccepted && (
+          {secRulesAccepted && !useInlineAddTeam && (
             <div className={clsx(s.block, s.ctaBlock)}>
               <Link href="/settings/email" target="_blank" className={s.cta}>
                 <div className={s.ctaIcon}>

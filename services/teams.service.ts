@@ -1,7 +1,7 @@
 import { ITeamMemberRole } from '@/types/members.types';
 import { ITeamResponse } from '@/types/teams.types';
 import { getHeader } from '@/utils/common.utils';
-import { getTeamTier } from '@/utils/team.utils';
+import { getTeamPriority } from '@/utils/team.utils';
 
 const teamsAPI = `${process.env.DIRECTORY_API_URL}/v1/teams`;
 
@@ -36,7 +36,7 @@ export const getTeamListFilters = async (options: any, authToken: string, userId
     membershipSources: result?.membershipSources || [],
     technology: result?.technologies || [],
     askTags: asks || [],
-    tiers: result?.tiers || null,
+    priorities: result?.priorities ?? null,
   };
 
   return { data: formattedData };
@@ -158,7 +158,7 @@ export const getTeam = async (
     asks: result?.asks ?? [],
     investorProfile: result?.investorProfile,
     isFund: result?.isFund,
-    tier: getTeamTier(result),
+    priority: getTeamPriority(result),
   };
   return { data: { formatedData } };
 };

@@ -9,12 +9,18 @@ import { getTeamList } from '@/app/actions/teams.actions';
 import qs from 'qs';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 
+const toPriorityValues = (val: string | undefined) =>
+  (val ?? '')
+    ?.split('|')
+    .filter(Boolean)
+    .map((v) => (v === '-1' ? '99' : v));
+
 async function infiniteFetcher(searchParams: TeamsListQueryParams['searchParams'], page: number) {
   const { authToken } = getCookiesFromClient();
   const query = qs.stringify({
     ...searchParams,
     investmentFocus: searchParams.investmentFocus?.split('|').filter(Boolean),
-    tiers: searchParams.tiers?.split('|').filter(Boolean),
+    priorities: toPriorityValues(searchParams.priorities),
   });
 
   const res = await getTeamList(query, page, ITEMS_PER_PAGE, authToken);

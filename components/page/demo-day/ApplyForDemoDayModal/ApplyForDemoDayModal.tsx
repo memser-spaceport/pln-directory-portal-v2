@@ -651,7 +651,6 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
                                 setValue('teamOrProject', undefined, { shouldValidate: true, shouldDirty: true });
                                 setValue('teamName', '', { shouldValidate: true });
                                 setValue('websiteAddress', '', { shouldValidate: true });
-                                setValue('role', '', { shouldValidate: true });
                               }}
                             >
                               Add your team

@@ -12,27 +12,33 @@ import s from './ContactDetails.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
+export type ContactDetailsVariant = 'default' | 'drawer';
+
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
   userInfo: IUserInfo;
+  variant?: ContactDetailsVariant;
 }
 
-export const ContactDetails = ({ isLoggedIn, userInfo, member }: Props) => {
+export const ContactDetails = ({ isLoggedIn, userInfo, member, variant = 'default' }: Props) => {
   const [editView, setEditView] = useState(false);
   const { onEditContactDetailsClicked } = useMemberAnalytics();
   useMobileNavVisibility(editView);
 
+  const isDrawer = variant === 'drawer';
+
   return (
     <MemberDetailsSection editView={editView} classes={{ root: s.root }}>
-      {!isLoggedIn && <MemberProfileLoginStrip member={member} variant="secondary" />}
+      {!isLoggedIn && !isDrawer && <MemberProfileLoginStrip member={member} variant="secondary" />}
       {editView ? (
-        <EditContactForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} />
+        <EditContactForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} linkedinRequired={isDrawer} />
       ) : (
         <ContactDetailsView
           member={member}
           isLoggedIn={isLoggedIn}
           userInfo={userInfo}
+          variant={variant}
           onEdit={() => {
             onEditContactDetailsClicked();
             setEditView(true);

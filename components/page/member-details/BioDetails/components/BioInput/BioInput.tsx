@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { clsx } from 'clsx';
 import { useGenerateBioWithAi } from '@/services/members/hooks/useGenerateBioWithAi';
@@ -32,6 +32,15 @@ export const BioInput = ({ generateBio, onAiContentGenerated, simplified }: Prop
   const { bio } = watch();
   const generateBioRef = useRef(false);
   const hasError = !!errors.bio;
+
+  const MAX_BIO_LENGTH = 2000;
+
+  const bioTextLength = useMemo(() => {
+    if (!bio) return 0;
+    const div = document.createElement('div');
+    div.innerHTML = bio;
+    return (div.textContent || '').length;
+  }, [bio]);
 
   const { mutateAsync, isPending, reset } = useGenerateBioWithAi();
 
@@ -90,11 +99,18 @@ export const BioInput = ({ generateBio, onAiContentGenerated, simplified }: Prop
         value={bio}
         onChange={(txt) => setValue('bio', txt, { shouldValidate: true, shouldDirty: true })}
         className={clsx(s.editor, { [s.editorError]: hasError })}
-        placeholder="Add a short bio about your background, interests, or what you're working on. For best results with AI bio generation: add your role, team, LinkedIn and skills first."
+        placeholder="For best results with AI bio generation populate these fields first: your role, team, LinkedIn and skills. Add a short bio introducing yourself: your background, interests, current focus etc."
+        maxLength={MAX_BIO_LENGTH}
         {...(simplified && { toolbarConfig: SIMPLIFIED_TOOLBAR, enableMentions: false })}
       />
 
       {hasError && <p className={s.errorMessage}>{errors.bio?.message as string}</p>}
+
+      <p className={s.charCount}>
+        {bioTextLength > 0
+          ? `${MAX_BIO_LENGTH - bioTextLength}/${MAX_BIO_LENGTH} characters left`
+          : `Max. ${MAX_BIO_LENGTH} characters`}
+      </p>
     </div>
   );
 };

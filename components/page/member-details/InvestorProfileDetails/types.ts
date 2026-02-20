@@ -1,6 +1,6 @@
 export interface TEditInvestorProfileForm {
   // type: { label: string; value: string } | null;
-  team: { label: string; value: string } | null;
+  team: { label: string; value: string; originalObject?: any } | null;
   typicalCheckSize: string;
   investmentFocusAreas: string[];
   investInStartupStages: { label: string; value: string }[];

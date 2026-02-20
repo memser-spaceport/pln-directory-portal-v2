@@ -13,7 +13,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { authEvents, AuthErrorCode, isDemoDayScopePage } from '../../../utils/authEvents';
 import { ModalBase } from '@/components/common/ModalBase';
 import { Button } from '@/components/common/Button';
-import { useContactSupportContext } from '@/components/ContactSupport/context/ContactSupportContext';
+import { useContactSupportStore } from '@/services/contact-support/store';
 import { WarningCircleIcon } from '@/components/icons';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
@@ -72,7 +72,7 @@ export function AuthInvalidUser() {
   const params = useParams();
   const { data: demoDayState } = useGetDemoDayState();
   const [open, toggleOpen] = useToggle(false);
-  const { openModal } = useContactSupportContext();
+  const { openModal } = useContactSupportStore((s) => s.actions);
 
   const { onAccessDeniedModalShown, onAccessDeniedUserNotWhitelistedModalShown } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();

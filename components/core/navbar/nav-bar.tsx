@@ -13,7 +13,7 @@ import { NotificationBell } from '@/components/core/NotificationBell';
 import { useMemberProfileStatus } from '@/services/members/hooks/useMemberProfileStatus';
 import { Signup } from './components/Signup';
 import { NavigationMenu } from '@base-ui-components/react';
-import { useContactSupportContext } from '@/components/ContactSupport/context/ContactSupportContext';
+import { useContactSupportStore } from '@/services/contact-support/store';
 
 import { DIRECTORY_LINKS, EVENT_LINKS } from './constants/navLinks';
 
@@ -36,7 +36,7 @@ function Navbar(props: Readonly<INavbar>) {
   const analytics = useCommonAnalytics();
   const authToken = props?.authToken;
   const [showNotifications, setShowNotifications] = useState(false);
-  const { openModal } = useContactSupportContext();
+  const { openModal } = useContactSupportStore((s) => s.actions);
 
   const closeNavigationMenu = () => {
     setTimeout(() => {

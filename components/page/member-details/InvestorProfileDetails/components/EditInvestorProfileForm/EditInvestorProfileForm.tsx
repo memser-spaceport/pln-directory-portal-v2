@@ -37,6 +37,7 @@ import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import clsx from 'clsx';
+import { useContactSupportStore } from '@/services/contact-support/store';
 
 interface Props {
   onClose: () => void;
@@ -54,6 +55,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
   // Analytics hooks
   const { onInvestorProfileUpdated } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
+  const { openModal: openContactSupport } = useContactSupportStore((s) => s.actions);
 
   const { data: options } = useTeamsFormOptions();
   const { data } = useMemberFormOptions();
@@ -93,7 +95,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
     },
     // @ts-ignore
     resolver: yupResolver(editInvestorProfileSchema),
-    mode: 'all',
+    mode: 'onSubmit',
+    reValidateMode: 'onBlur',
     context: { member },
   });
 
@@ -103,13 +106,14 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
     setValue,
     watch,
     trigger,
-    formState: { isValid },
+    formState: { isValid, isSubmitted },
   } = methods;
   const secRulesAccepted = watch('secRulesAccepted');
   const isInvestViaFund = watch('isInvestViaFund');
   const selectedTeam = watch('team');
 
-  const isTeamLead = member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead;
+  const isTeamLead =
+    member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead || selectedTeam?.originalObject?.teamLead;
 
   const [isAddTeamDrawerOpen, setIsAddTeamDrawerOpen] = React.useState(false);
   const [isAddingTeamInline, setIsAddingTeamInline] = React.useState(false);
@@ -137,6 +141,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
         role: '',
         logo: null,
         website: teamWebsite || newData.website || '',
+        teamLead: true,
       };
 
       // Manually add the new team to the cached options
@@ -152,6 +157,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
         value: teamUid,
         label: teamTitle,
         originalObject: newTeamEntry,
+        teamLead: true,
       };
 
       setValue('team', teamOption, { shouldValidate: true, shouldDirty: true });
@@ -428,7 +434,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
         }}
         noValidate
       >
-        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Profile" />
+        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Details" />
         <div className={s.body}>
           <div className={s.block}>
             <div className={s.sectionHeader}>
@@ -441,7 +447,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                   checked={secRulesAccepted}
                   onCheckedChange={(v: boolean) => {
                     setValue('secRulesAccepted', v, { shouldValidate: true, shouldDirty: true });
-                    trigger();
+                    if (isSubmitted) trigger();
                   }}
                 >
                   <Checkbox.Indicator className={s.Indicator}>
@@ -470,6 +476,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                       label="Startup stage(s) you invest in?"
                       placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                       options={formOptions.fundingStageOptions}
+                      isRequired
                       // showNone
                     />
                   </div>
@@ -480,6 +487,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                       placeholder="E.g. $250.000"
                       currency="USD"
                       disabled={!secRulesAccepted}
+                      isRequired
                     />
                   </div>
                   <div className={s.row}>
@@ -502,7 +510,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                   checked={isInvestViaFund}
                   onCheckedChange={(v: boolean) => {
                     setValue('isInvestViaFund', v, { shouldValidate: true, shouldDirty: true });
-                    trigger();
+                    if (isSubmitted) trigger();
                   }}
                 >
                   <Checkbox.Indicator className={s.Indicator}>
@@ -647,11 +655,19 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                       </div>
                       <div className={s.separator} />
                       <div className={s.addNewTeamBody}>
-                        <FormField name="newTeamRole" placeholder="Enter your primary role" label="Role" />
+                        <FormField
+                          name="newTeamRole"
+                          placeholder="Enter your primary role"
+                          label="Role"
+                          isRequired={useInlineAddTeam}
+                          rules={useInlineAddTeam ? { required: 'Role is required' } : undefined}
+                        />
                         <FormField
                           name="newTeamName"
                           placeholder="Enter team name"
                           label="Team Name"
+                          isRequired={useInlineAddTeam}
+                          rules={useInlineAddTeam ? { required: 'Team name is required' } : undefined}
                           onClear={() => {
                             setValue('newTeamName', '', { shouldValidate: true, shouldDirty: true });
                           }}
@@ -661,6 +677,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                           placeholder="Enter website address"
                           label="Website Address"
                           description="Paste a URL (LinkedIn, company website, etc.)"
+                          isRequired={useInlineAddTeam}
+                          rules={useInlineAddTeam ? { required: 'Website is required' } : undefined}
                         />
                         <div className={s.addNewTeamActions}>
                           <Button
@@ -685,6 +703,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               const teamWebsite = watch('newTeamWebsite');
                               const teamRole = watch('newTeamRole');
                               if (!teamName) return;
+                              if (useInlineAddTeam && (!teamWebsite || !teamRole)) return;
                               saveTeamFn({
                                 name: teamName,
                                 website: teamWebsite || '',
@@ -693,7 +712,10 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                                 shortDescription: '',
                               });
                             }}
-                            disabled={!watch('newTeamName')}
+                            disabled={
+                              !watch('newTeamName') ||
+                              (useInlineAddTeam && (!watch('newTeamWebsite') || !watch('newTeamRole')))
+                            }
                           >
                             Add Team
                           </Button>
@@ -710,6 +732,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                           placeholder="Enter your role"
                           label="Role"
                           disabled={!selectedTeam}
+                          isRequired={!!isTeamLead}
                         />
                         {!isTeamLead && !useInlineAddTeam && (
                           <div className={s.infoSection}>
@@ -729,20 +752,23 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               <InfoIconFilled />
                             </div>
                             <div className={s.noAccessContent}>
-                              <p className={s.noAccessTitle}>
-                                You don&apos;t have access to edit team information
-                              </p>
+                              <p className={s.noAccessTitle}>You don&apos;t have access to edit team information</p>
                               <p className={s.noAccessDescription}>
                                 Only team leads can update investment details for {selectedTeam?.label}.
                               </p>
                               <div className={s.noAccessActions}>
-                                <a
-                                  href={`mailto:support@plnetwork.io?subject=Request%20Team%20Lead%20Reassignment&body=Hi%20Support%2C%0A%0AI%20would%20like%20to%20request%20team%20lead%20reassignment%20for%20${encodeURIComponent(selectedTeam?.label || 'my team')}.%0A%0AThank%20you.`}
+                                <button
+                                  type="button"
                                   className={s.contactSupportLink}
+                                  onClick={() => {
+                                    const teamRole = watch('teamRole');
+                                    const message = `Fund: ${selectedTeam?.label || 'N/A'}\nMy Role: ${teamRole || 'N/A'}\nReason:`;
+                                    openContactSupport(undefined, 'contactSupport', message);
+                                  }}
                                 >
                                   Contact Support
                                   <ExternalLinkIconBlue />
-                                </a>
+                                </button>
                                 <span className={s.noAccessActionText}>to request lead reassignment.</span>
                               </div>
                             </div>
@@ -759,6 +785,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               label="Website address"
                               description="Paste a URL (company website, LinkedIn, Notion, X.com, Bluesky, etc.)"
                               disabled={!isTeamLead || !selectedTeam}
+                              isRequired
                             />
                           </div>
 
@@ -769,6 +796,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                               options={formOptions.fundingStageOptions}
                               disabled={!isTeamLead || !selectedTeam}
+                              isRequired
                             />
                           </div>
 
@@ -779,6 +807,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               placeholder="Select typical check size (E.g. $25k - $50.000k)"
                               currency="USD"
                               disabled={!isTeamLead || !selectedTeam}
+                              isRequired
                             />
                           </div>
 
@@ -809,7 +838,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
             </section>
           </div>
 
-          {secRulesAccepted && (
+          {secRulesAccepted && !useInlineAddTeam && (
             <div className={clsx(s.block, s.ctaBlock)}>
               <Link href="/settings/email" target="_blank" className={s.cta}>
                 <div className={s.ctaIcon}>

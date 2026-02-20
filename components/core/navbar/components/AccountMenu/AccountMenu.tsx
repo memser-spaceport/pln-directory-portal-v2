@@ -11,7 +11,7 @@ import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { broadcastLogout } from '@/components/core/login/components/BroadcastChannel';
-import { useContactSupportContext } from '@/components/ContactSupport/context/ContactSupportContext';
+import { useContactSupportStore } from '@/services/contact-support/store';
 import { authEvents } from '@/components/core/login/utils';
 import { usePostHog } from 'posthog-js/react';
 
@@ -36,7 +36,7 @@ export const AccountMenu = ({ userInfo }: Props) => {
   const postHogProps = usePostHog();
   const router = useRouter();
   const { profileImage } = useUserStore();
-  const { openModal } = useContactSupportContext();
+  const { openModal } = useContactSupportStore((s) => s.actions);
 
   const handleLogout = useCallback(() => {
     clearAllAuthCookies();

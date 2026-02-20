@@ -63,7 +63,7 @@ export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps>
   const { data: investorSettings } = useGetMemberInvestorSettings(uid);
 
   return (
-    <Drawer isOpen={isOpen} onClose={onClose} width={720}>
+    <Drawer isOpen={isOpen} onClose={() => {}} width={720}>
       <div className={s.drawerHeader}>
         <div className={s.breadcrumbs}>
           <button className={s.backButton} onClick={onClose}>
@@ -86,7 +86,7 @@ export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps>
               isInvestor={investorSettings?.isInvestor}
               useInlineAddTeam
             />
-            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />
           </>
         )}
       </div>

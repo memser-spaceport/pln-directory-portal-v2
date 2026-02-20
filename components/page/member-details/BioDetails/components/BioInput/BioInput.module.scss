@@ -125,6 +125,18 @@
   }
 }
 
+.charCount {
+  font-size: 12px;
+  color: #475569;
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
+  margin-top: 0.25rem;
+}
+
 .errorMessage {
   font-size: 10px;
   color: var(--action-border-error-focus, #ff574d);

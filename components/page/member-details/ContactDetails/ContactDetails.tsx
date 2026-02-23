@@ -32,7 +32,12 @@ export const ContactDetails = ({ isLoggedIn, userInfo, member, variant = 'defaul
     <MemberDetailsSection editView={editView} classes={{ root: s.root }}>
       {!isLoggedIn && !isDrawer && <MemberProfileLoginStrip member={member} variant="secondary" />}
       {editView ? (
-        <EditContactForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} linkedinRequired={isDrawer} />
+        <EditContactForm
+          onClose={() => setEditView(false)}
+          member={member}
+          userInfo={userInfo}
+          linkedinRequired={false}
+        />
       ) : (
         <ContactDetailsView
           member={member}

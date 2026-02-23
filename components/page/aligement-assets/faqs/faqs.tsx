@@ -65,29 +65,6 @@ const faqCategories: FAQCategoryData[] = [
     ],
   },
   {
-    id: 'aa-points',
-    title: 'AA Points & KPI Pillars',
-    icon: '/icons/notes-icon.png',
-    items: [
-      {
-        question: 'When can I start collecting points?',
-        answer: 'You become eligible to collect points after your onboarding to the Surus platform is confirmed by Surus. However, you may start working on the incentivized activities as soon as you submit your accreditation letter to Surus for verification. Once your account is approved by Surus, we will retroactively award the points you collected based on your incentivized activities.',
-      },
-      {
-        question: 'What if there are no points collected in a particular KPI Pillar in a snapshot period?',
-        answer: 'If no points are collected in any of the KPI Pillars in a particular snapshot period, then the token emissions for that particular KPI Pillar shall be 0 for the corresponding snapshot period.',
-      },
-      {
-        question: 'What if everyone tries to collect points in one particular KPI Pillar?',
-        answer: 'The PLAA conversion mechanism is designed to reward efforts in less crowded pillars. If many participants target one pillar, its total emissions will spread thinly. Conversely, if you collect points in a pillar with lower overall participation, you will receive a proportionately larger share of that pillar\'s emissions. This balancing feature is intentional—it encourages diverse contributions across all network dimensions.',
-      },
-      {
-        question: 'Can you collect AA points in multiple KPI Pillars in the same snapshot period?',
-        answer: 'Yes. For more information, please review Calculating PLAA Token Emissions Per KPI Pillar Per Snapshot Period.',
-      },
-    ],
-  },
-  {
     id: 'onboarding',
     title: 'Onboarding',
     icon: '/icons/settings-icon.png',
@@ -107,32 +84,25 @@ const faqCategories: FAQCategoryData[] = [
     ],
   },
   {
-    id: 'token-issuance',
-    title: 'Token Issuance',
-    icon: '/icons/coin-icon.png',
+    id: 'aa-points',
+    title: 'AA Points & KPI Pillars',
+    icon: '/icons/notes-icon.png',
     items: [
       {
-        question: 'Why are my token calculations "rounded down"? What is the rundown function and why does it exist?',
-        answer: 'The Points-to-Token algorithm converts participant points into AA tokens based on a predefined formula tied to the KPI emissions schedule and the monthly token cap (see more here Incentivized Activities & KPI Weights). This formula calculates each participant\'s share of the month\'s token allocation relative to total points earned across the network for each of the applicable KPIs. Because only whole AA tokens can be distributed(fractional tokens are not currently issued), the calculated token amount may be, for instance, rounded down to the nearest whole token. This rounding down (also known as a round down function) ensures compliance with the 10,000-token monthly cap and avoids impermissible over-distribution. The same rounding rule is applied consistently to all participants to maintain fairness for all AA participants.',
+        question: 'When can I start collecting points?',
+        answer: 'You become eligible to collect points after your onboarding to the Surus platform is confirmed by Surus. However, you may start working on the incentivized activities as soon as you submit your accreditation letter to Surus for verification. Once your account is approved by Surus, we will retroactively award the points you collected based on your incentivized activities.',
       },
       {
-        question: 'I\'m not based in the US. When will I be eligible to collect points and receive tokens?',
-        answer: 'The current token issuance is limited to individual accredited investors in the United States. We\'re actively working to expand eligibility to other jurisdictions and will communicate updates as soon as we have more information.',
-      },
-    ],
-  },
-  {
-    id: 'tax-implications',
-    title: 'Tax Implications',
-    icon: '/icons/bank-icon.png',
-    items: [
-      {
-        question: 'What are the tax implications of collecting points?',
-        answer: 'We cannot provide tax advice and the response to this question should not be construed as tax advice. We encourage you to consult with a tax professional. The points you collect are not guaranteed to convert into tokens and may never have value for that reason. The points are a way of measuring the activities that you are doing in the network. Additionally, unless you sign your token agreement, you will not receive the converted tokens.',
+        question: 'What if there are no points collected in a particular KPI Pillar in a snapshot period?',
+        answer: 'If no points are collected in any of the KPI Pillars in a particular snapshot period, then the token emissions for that particular KPI Pillar shall be 0 for the corresponding snapshot period.',
       },
       {
-        question: 'What are the tax implications of receiving tokens?',
-        answer: 'We cannot provide tax advice and the response to this question should not be construed as tax advice. We encourage you to consult with a tax professional. The tokens may be considered income upon receipt commensurate with the tokens\' value. The trust is exploring conversations with third party valuation firms for the initial issuance. Additionally, buybacks of tokens may trigger a capital gain in addition to any income realized upon receipt of tokens or a capital loss event, which may not be available to offset income realized from the receipt of tokens. You are not required to participate in any token buyback event.',
+        question: 'What if everyone tries to collect points in one particular KPI Pillar?',
+        answer: 'The PLAA conversion mechanism is designed to reward efforts in less crowded pillars. If many participants target one pillar, its total emissions will spread thinly. Conversely, if you collect points in a pillar with lower overall participation, you will receive a proportionately larger share of that pillar\'s emissions. This balancing feature is intentional—it encourages diverse contributions across all network dimensions.',
+      },
+      {
+        question: 'Can you collect AA points in multiple KPI Pillars in the same snapshot period?',
+        answer: 'Yes. For more information, please review Calculating PLAA Token Emissions Per KPI Pillar Per Snapshot Period.',
       },
     ],
   },
@@ -343,6 +313,56 @@ const faqCategories: FAQCategoryData[] = [
           </div>
         ),
       },
+    ],
+  },
+  {
+    id: 'tax-implications',
+    title: 'Tax Implications',
+    icon: '/icons/bank-icon.png',
+    items: [
+      {
+        question: 'What are the tax implications of collecting points?',
+        answer: 'We cannot provide tax advice and the response to this question should not be construed as tax advice. We encourage you to consult with a tax professional. The points you collect are not guaranteed to convert into tokens and may never have value for that reason. The points are a way of measuring the activities that you are doing in the network. Additionally, unless you sign your token agreement, you will not receive the converted tokens.',
+      },
+      {
+        question: 'What are the tax implications of receiving tokens?',
+        answer: 'We cannot provide tax advice and the response to this question should not be construed as tax advice. We encourage you to consult with a tax professional. The tokens may be considered income upon receipt commensurate with the tokens\' value. The trust is exploring conversations with third party valuation firms for the initial issuance. Additionally, buybacks of tokens may trigger a capital gain in addition to any income realized upon receipt of tokens or a capital loss event, which may not be available to offset income realized from the receipt of tokens. You are not required to participate in any token buyback event.',
+      },
+    ],
+  },
+  {
+    id: 'token-issuance',
+    title: 'Token Issuance',
+    icon: '/icons/coin-icon.png',
+    items: [
+      {
+        question: 'Why are my token calculations "rounded down"? What is the rundown function and why does it exist?',
+        answer: 'The Points-to-Token algorithm converts participant points into AA tokens based on a predefined formula tied to the KPI emissions schedule and the monthly token cap (see more here Incentivized Activities & KPI Weights). This formula calculates each participant\'s share of the month\'s token allocation relative to total points earned across the network for each of the applicable KPIs. Because only whole AA tokens can be distributed(fractional tokens are not currently issued), the calculated token amount may be, for instance, rounded down to the nearest whole token. This rounding down (also known as a round down function) ensures compliance with the 10,000-token monthly cap and avoids impermissible over-distribution. The same rounding rule is applied consistently to all participants to maintain fairness for all AA participants.',
+      },
+      {
+        question: 'I\'m not based in the US. When will I be eligible to collect points and receive tokens?',
+        answer: 'The current token issuance is limited to individual accredited investors in the United States. We\'re actively working to expand eligibility to other jurisdictions and will communicate updates as soon as we have more information.',
+      },
+      {
+        question: 'Why are additional tokens being issued?',
+        answer: (
+          <div>
+            <p style={{ marginBottom: '16px' }}>
+              Additional PLAA1 tokens will be distributed to PL Infra team service providers as reward  for their contributions to maintaining and supporting the network (also referred to as PL Infra Rewards). As a result, you may see additional tokens being issued beyond those associated with incentivized activity participation.
+            </p>
+            <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>Importantly:</p>
+            <ul style={{ paddingLeft: '20px', listStyleType: 'disc', marginBottom: '0' }}>
+              <li style={{ marginBottom: '4px' }}>The structure of the PLAA program otherwise remains unchanged.</li>
+              <li style={{ marginBottom: '4px' }}>PLAA1 tokens distributed for PL Infra Rewards are separate from and will not be drawn from, nor funded by, incentivized activity allocations.</li>
+              <li style={{ marginBottom: '4px' }}>The distribution of PLAA1 tokens for PL Infra Rewards will not impact baseline PLAA activities.</li>
+              <li>The monthly PLAA1 token pool of 10,000 tokens reserved for PLAA participants who complete incentivized activities during a snapshot period will not be reduced nor diluted as a result of additional token distributions for PL Infra team services providers.</li>
+            </ul>
+            <p style={{ marginTop: '8px' }}>
+              This reflects an expansion in how the PLAA1 token is being utilized, not a change to how participant rewards operate.
+            </p>
+          </div>
+        ),
+      }
     ],
   },
   {

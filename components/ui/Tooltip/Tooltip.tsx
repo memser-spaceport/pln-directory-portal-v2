@@ -62,7 +62,7 @@ export default function CustomTooltip({
       <Tooltip.Root>
         <Tooltip.Trigger render={(props) => <div {...props}>{clonedTrigger}</div>} />
         <Tooltip.Portal>
-          <Tooltip.Positioner side={side} sideOffset={sideOffset}>
+          <Tooltip.Positioner side={side} sideOffset={sideOffset} style={{ zIndex: 11 }}>
             <Tooltip.Popup className={clsx(styles.Popup, className)}>
               <Tooltip.Arrow className={styles.Arrow}>
                 <ArrowSvg />

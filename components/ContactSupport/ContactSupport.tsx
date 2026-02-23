@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { useCallback, useEffect } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import { useContactSupportContext } from '@/components/ContactSupport/context/ContactSupportContext';
+import { useContactSupportStore } from '@/services/contact-support/store';
 import { ModalBase } from '@/components/common/ModalBase';
 import { QuestionCircleIcon } from '@/components/icons';
 import { LabeledInput } from '@/components/common/form/LabeledInput';
@@ -81,7 +81,8 @@ const getFieldPlaceholderByTopic = (topic: string): string => {
 
 export function ContactSupport(props: Props) {
   const { userInfo } = props;
-  const { open, metadata, topic: contextTopic, closeModal, updateTopic } = useContactSupportContext();
+  const { open, metadata, topic: contextTopic, prefillMessage, actions } = useContactSupportStore();
+  const { closeModal, updateTopic } = actions;
   const contactSupportMutation = useContactSupport();
 
   const getDefaultValues = useCallback(() => {
@@ -91,9 +92,9 @@ export function ContactSupport(props: Props) {
       topic: contextTopic || CONTACT_SUPPORT_TOPICS[0].value,
       email,
       name,
-      message: '',
+      message: prefillMessage || '',
     };
-  }, [userInfo, contextTopic]);
+  }, [userInfo, contextTopic, prefillMessage]);
 
   const methods = useForm<ContactSupportFormData>({
     resolver: yupResolver(contactSupportSchema),
@@ -143,6 +144,9 @@ export function ContactSupport(props: Props) {
 
   const isLoading = contactSupportMutation.isPending;
 
+  const isEmailPrefilled = !!userInfo?.email;
+  const isNamePrefilled = !!userInfo?.name;
+
   const description = getDescriptionByReason(metadata?.reason as string);
   const fieldLabel = getFieldLabelByTopic(selectedTopic);
   const fieldPlaceholder = getFieldPlaceholderByTopic(selectedTopic);
@@ -187,20 +191,24 @@ export function ContactSupport(props: Props) {
       />
 
       <LabeledInput
-        label="Email Address"
+        label={isEmailPrefilled ? 'Email Address (Prefilled)' : 'Email Address'}
         error={errors.email?.message}
         input={{
           type: 'email',
           placeholder: 'Enter your email',
+          readOnly: isEmailPrefilled,
+          disabled: isEmailPrefilled,
           ...register('email'),
         }}
       />
 
       <LabeledInput
-        label="Name"
+        label={isNamePrefilled ? 'Name (Prefilled)' : 'Name'}
         error={errors.name?.message}
         input={{
           placeholder: 'Enter your name',
+          readOnly: isNamePrefilled,
+          disabled: isNamePrefilled,
           ...register('name'),
         }}
       />

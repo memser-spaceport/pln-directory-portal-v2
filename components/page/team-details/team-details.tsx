@@ -5,7 +5,7 @@ import { Tag } from '@/components/ui/tag';
 import { IUserInfo } from '@/types/shared.types';
 import { ITag, ITeam } from '@/types/teams.types';
 import { ADMIN_ROLE } from '@/utils/constants';
-import { getTeamTier, getTechnologyImage, getTierLabel } from '@/utils/team.utils';
+import { getTeamPriority, getTechnologyImage, getPriorityLabel } from '@/utils/team.utils';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { Fragment, useEffect, useMemo, useState } from 'react';
@@ -32,18 +32,18 @@ const TeamDetails = (props: ITeamDetails) => {
   const userInfo = props?.userInfo;
   const isTierViewer = userInfo?.isTierViewer || userInfo?.roles?.includes(ADMIN_ROLE);
   const tags = useMemo(() => {
-    const tier = getTeamTier(team);
-    if (isTierViewer && typeof tier === 'number') {
+    const priority = getTeamPriority(team);
+    if (isTierViewer && priority !== undefined) {
       return [
         {
-          title: getTierLabel(tier),
+          title: getPriorityLabel(priority),
           icon: <Image src="/icons/stack.svg" alt="stack" width={16} height={14} />,
         } as ITag,
         ...(team?.industryTags ?? []),
       ];
     }
     return team?.industryTags;
-  }, [team?.industryTags, isTierViewer, team.tier]);
+  }, [team?.industryTags, isTierViewer, team?.priority, team?.tier]);
   const teamId = params?.id;
   const about = team?.longDescription ?? '';
   const technologies =

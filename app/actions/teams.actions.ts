@@ -24,7 +24,7 @@ export const getTeamList = async (query: string, currentPage = 1, limit = ITEMS_
       id: team?.uid,
       name: team?.name,
       logo: team?.logo?.url,
-      tier: team?.tier,
+      priority: team?.priority,
       shortDescription: team?.shortDescription,
       industryTags: team?.industryTags || [],
       asks: team?.asks || [],

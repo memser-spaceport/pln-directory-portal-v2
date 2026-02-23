@@ -405,6 +405,10 @@ export const useTeamAnalytics = () => {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_TIERS_FILTER_SELECTED, params);
   }
 
+  function onTeamsPrioritiesFilterSelected(params: { page: string; priorities: string[] }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_PRIORITIES_FILTER_SELECTED, params);
+  }
+
   return {
     onOfficeHoursSelected,
     onFriendsOfProtocolSelected,
@@ -462,5 +466,6 @@ export const useTeamAnalytics = () => {
     onTeamsFundingStageFilterSearched,
     onTeamsFundingStageFilterSelected,
     onTeamsTiersFilterSelected,
+    onTeamsPrioritiesFilterSelected,
   };
 };

@@ -1,0 +1,1 @@
+export { GuestDescription } from './GuestDescription';

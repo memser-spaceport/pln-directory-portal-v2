@@ -17,9 +17,10 @@ interface Props {
   member: IMember;
   isLoggedIn: boolean;
   userInfo: IUserInfo;
+  variant?: 'investor-drawer';
 }
 
-export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
+export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props) => {
   const [editView, setEditView] = useState(false);
   const [isBioExpanded, setIsBioExpanded] = useState(false);
   const [isOverflowing, setIsOverflowing] = useState(false);
@@ -52,6 +53,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
           }}
           member={member}
           userInfo={userInfo}
+          variant={variant}
         />
       ) : (
         <>

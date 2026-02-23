@@ -1,0 +1,71 @@
+@use 'styles/media';
+
+.drawerHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 64px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px;
+  box-shadow: 0px 1px 4px 0px #e2e8f0;
+  background: #fff;
+  flex-shrink: 0;
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.breadcrumbs {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.backButton {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #455468;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(69, 84, 104, 0.1);
+  }
+}
+
+.drawerContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 20px;
+  width: 100%;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 40px 0;
+  color: #455468;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}

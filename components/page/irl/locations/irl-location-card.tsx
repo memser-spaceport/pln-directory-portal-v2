@@ -1,6 +1,5 @@
-import { IIrlLocationCard } from '@/types/irl.types';
+import { useMount } from 'react-use';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
 interface IrlLocationCardProps {
   isActive: boolean;
@@ -14,14 +13,25 @@ interface IrlLocationCardProps {
   icon?: string;
 }
 
-const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardProps) => {
-  //props
-  const id = props?.uid;
-  const locationName = props?.location.split(',')[0].trim();
-  const locationUrl = props?.flag || '';
-  const pastEvents = props?.pastEvents?.length ?? 0;
-  const upcomingEvents = props?.upcomingEvents?.length ?? 0;
-  const bannerImage = props?.icon || '';
+const IrlLocationCard = (props: IrlLocationCardProps) => {
+  const { isActive, onCardClick, location, icon, flag, ...rest } = props;
+
+  const locationName = location.split(',')[0].trim();
+  const locationUrl = flag || '';
+  const pastEvents = rest.pastEvents?.length ?? 0;
+  const upcomingEvents = rest.upcomingEvents?.length ?? 0;
+  const bannerImage = icon || '';
+
+  const router = useRouter();
+
+  useMount(() => {
+    if (isActive) {
+      const params = new URLSearchParams();
+      params.set('location', locationName);
+
+      router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+    }
+  });
 
   return (
     <>
@@ -108,6 +118,7 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
           border: 2px solid #156ff7;
           border-radius: 8px;
         }
+
         .root__irlCard {
           display: flex;
           flex-direction: column;

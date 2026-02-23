@@ -91,6 +91,7 @@
   position: relative;
   overflow: hidden;
   padding-bottom: 24px;
+  word-break: break-word;
 
   &.collapsed {
     max-height: 138px;

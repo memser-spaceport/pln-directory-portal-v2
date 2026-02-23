@@ -78,7 +78,7 @@ export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps>
 
         {member && (
           <>
-            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="investor-drawer" />
             <InvestorProfileDetails
               userInfo={userInfo}
               member={member}

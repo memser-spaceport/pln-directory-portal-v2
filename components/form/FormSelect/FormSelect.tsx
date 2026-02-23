@@ -87,6 +87,8 @@ export const FormSelect = (props: Props) => {
     });
   };
 
+  const internalSelectRef = useRef<SelectInstance | null>(null);
+
   const [open, toggleOpen] = useToggle(false);
   const isMobile = useMedia('(max-width: 960px)', false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -134,7 +136,12 @@ export const FormSelect = (props: Props) => {
           </Field.Label>
         )}
         <Select
-          ref={externalSelectRef as any}
+          ref={((instance: SelectInstance | null) => {
+            internalSelectRef.current = instance;
+            if (externalSelectRef) {
+              (externalSelectRef as React.MutableRefObject<SelectInstance | null>).current = instance;
+            }
+          }) as any}
           menuPlacement="auto"
           placeholder={placeholder}
           options={enhancedOptions}
@@ -294,6 +301,7 @@ export const FormSelect = (props: Props) => {
                     className={clsx(s.notFoundContent, {
                       [s.sticky]: isStickyNoData,
                     })}
+                    onClick={() => internalSelectRef.current?.blur()}
                   >
                     {notFoundContent}
                   </div>

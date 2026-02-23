@@ -115,6 +115,13 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
   const isTeamLead =
     member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead || selectedTeam?.originalObject?.teamLead;
 
+  const ensureProtocol = (fieldName: 'website' | 'newTeamWebsite') => {
+    const val = (watch(fieldName) as string)?.trim();
+    if (val && !/^https?:\/\//i.test(val)) {
+      setValue(fieldName, `https://${val}`, { shouldValidate: true, shouldDirty: true });
+    }
+  };
+
   const [isAddTeamDrawerOpen, setIsAddTeamDrawerOpen] = React.useState(false);
   const [isAddingTeamInline, setIsAddingTeamInline] = React.useState(false);
   const teamSelectRef = React.useRef(null);
@@ -679,6 +686,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                           description="Paste a URL (LinkedIn, company website, etc.)"
                           isRequired={useInlineAddTeam}
                           rules={useInlineAddTeam ? { required: 'Website is required' } : undefined}
+                          onBlur={() => ensureProtocol('newTeamWebsite')}
                         />
                         <div className={s.addNewTeamActions}>
                           <Button
@@ -786,6 +794,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               description="Paste a URL (company website, LinkedIn, Notion, X.com, Bluesky, etc.)"
                               disabled={!isTeamLead || !selectedTeam}
                               isRequired
+                              onBlur={() => ensureProtocol('website')}
                             />
                           </div>
 

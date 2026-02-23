@@ -41,9 +41,10 @@ interface Props {
   member: IMember;
   userInfo: IUserInfo;
   generateBio?: boolean;
+  variant?: 'investor-drawer';
 }
 
-export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Props) => {
+export const EditProfileForm = ({ onClose, member, userInfo, generateBio, variant }: Props) => {
   const router = useRouter();
   const { actions } = useUserStore();
   const [isAddTeamModalOpen, setIsAddTeamModalOpen] = useState(false);
@@ -238,7 +239,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
       uniqueIdentifier: member.email,
       newData: {
         ...formatPayload(memberData.memberInfo, formData),
-        imageUid: formData.isImageDeleted ? null : (image ? image : memberData.memberInfo.imageUid),
+        imageUid: formData.isImageDeleted ? null : image ? image : memberData.memberInfo.imageUid,
         role: formData.primaryTeamRole,
       },
     };
@@ -389,12 +390,16 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
                 }
               />
             </div>
-            <div className={s.description}>Add your role and team so others can connect with you.</div>
+            {variant !== 'investor-drawer' && (
+              <div className={s.description}>Add your role and team so others can connect with you.</div>
+            )}
           </div>
-          <div className={s.infoBlock}>
-            <InfoIcon />
-            <span className={s.infoText}>Manage additional teams/roles in Teams section below.</span>
-          </div>
+          {variant !== 'investor-drawer' && (
+            <div className={s.infoBlock}>
+              <InfoIcon />
+              <span className={s.infoText}>Manage additional teams/roles in Teams section below.</span>
+            </div>
+          )}
 
           <div className={s.row}>
             <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} simplified />

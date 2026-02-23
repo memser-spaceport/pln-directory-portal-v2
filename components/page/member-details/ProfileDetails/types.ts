@@ -1,5 +1,6 @@
 export interface TEditProfileForm {
   image: File | null;
+  isImageDeleted: boolean;
   name: string;
   country: string;
   state: string;

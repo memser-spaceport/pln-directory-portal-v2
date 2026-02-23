@@ -352,7 +352,7 @@ const faqCategories: FAQCategoryData[] = [
             </p>
             <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>Importantly:</p>
             <ul style={{ paddingLeft: '20px', listStyleType: 'disc', marginBottom: '0' }}>
-              <li style={{ marginBottom: '4px' }}>The structure of the PLAA program otherwise ****remains unchanged.</li>
+              <li style={{ marginBottom: '4px' }}>The structure of the PLAA program otherwise remains unchanged.</li>
               <li style={{ marginBottom: '4px' }}>PLAA1 tokens distributed for PL Infra Rewards are separate from and will not be drawn from, nor funded by, incentivized activity allocations.</li>
               <li style={{ marginBottom: '4px' }}>The distribution of PLAA1 tokens for PL Infra Rewards will not impact baseline PLAA activities.</li>
               <li>The monthly PLAA1 token pool of 10,000 tokens reserved for PLAA participants who complete incentivized activities during a snapshot period will not be reduced nor diluted as a result of additional token distributions for PL Infra team services providers.</li>

@@ -15,9 +15,10 @@ interface Props {
     root?: string;
     dropzoneIcon?: string;
   };
+  allowDelete?: boolean;
 }
 
-export const ProfileImageInput = ({ member, classes }: Props) => {
+export const ProfileImageInput = ({ member, classes, allowDelete }: Props) => {
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDeleted, setIsDeleted] = useState(false);
@@ -98,7 +99,7 @@ export const ProfileImageInput = ({ member, classes }: Props) => {
           fill
         />
       </div>
-      {hasCustomImage && (
+      {allowDelete && hasCustomImage && (
         <button type="button" className={s.deleteBtn} onClick={handleDelete} aria-label="Remove image">
           <DeleteIcon />
         </button>

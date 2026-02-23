@@ -321,7 +321,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
         <EditFormControls onClose={onClose} title="Edit Profile Details" />
         <div className={s.body}>
           <div className={s.row}>
-            <ProfileImageInput member={member} />
+            <ProfileImageInput member={member} allowDelete />
             <FormField name="name" label="Name" isRequired placeholder="Text" max={MAX_NAME_LENGTH} />
           </div>
 

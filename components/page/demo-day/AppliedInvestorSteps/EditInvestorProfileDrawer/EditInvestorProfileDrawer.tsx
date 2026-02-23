@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Cookies from 'js-cookie';
 import { useQuery } from '@tanstack/react-query';
 
 import { Drawer } from '@/components/common/Drawer';
@@ -11,10 +10,10 @@ import { ContactDetails } from '@/components/page/member-details/ContactDetails'
 import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
-import { getParsedValue } from '@/utils/common.utils';
 import { ADMIN_ROLE } from '@/utils/constants';
 
 import s from './EditInvestorProfileDrawer.module.scss';
+import { getUserInfo } from '@/utils/cookie.utils';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -41,7 +40,7 @@ export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps>
   uid,
   isLoggedIn,
 }) => {
-  const userInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo = getUserInfo();
   const isAdmin = userInfo && userInfo.roles?.includes(ADMIN_ROLE);
   const isOwner = userInfo && userInfo.uid === uid;
 

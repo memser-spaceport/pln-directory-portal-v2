@@ -39,7 +39,7 @@ const SOCIAL_TO_HANDLE_MAP: Record<string, string> = {
   telegram: 'telegramHandle',
 };
 
-const VISIBLE_HANDLES = ['linkedin', 'github', 'twitter', 'email', 'discord', 'telegram'];
+const VISIBLE_HANDLES = ['email', 'linkedin', 'telegram', 'twitter', 'discord', 'github'];
 const DRAWER_HANDLES = ['email', 'linkedin', 'telegram', 'twitter'];
 
 export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant = 'default' }: Props) => {
@@ -51,7 +51,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant =
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
   const isDrawer = variant === 'drawer';
-  const showIncomplete = hasMissingRequiredData && isOwner && !isDrawer;
+  const showIncomplete = hasMissingRequiredData && isOwner;
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
 
   const onLoginClickHandler = () => {
@@ -126,7 +126,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant =
                               handle={handle}
                               logo={getLogoByProvider(item, !handle)}
                               className={clsx({
-                                [s.incomplete]: !handle && !isDrawer,
+                                [s.incomplete]: !handle,
                                 [s.grayscale]: !handle && isDrawer,
                               })}
                             />
@@ -135,7 +135,6 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant =
                         ),
                       };
                     })
-                    .sort((a) => (a.completed ? -1 : 1))
                     .map((item) => item.content)}
                 </div>
               </div>
@@ -218,15 +217,15 @@ function getLogoByProvider(provider: string, isIncomplete?: boolean): string {
       return '/icons/contact/team-contact-logo.svg';
     }
     case 'telegram': {
-      if (isIncomplete) {
-        return '/icons/contact/t.svg';
-      }
+      // if (isIncomplete) {
+      //   return '/icons/contact/t.svg';
+      // }
       return '/icons/contact/telegram-contact-logo.svg';
     }
     case 'twitter': {
-      if (isIncomplete) {
-        return '/icons/contact/x.svg';
-      }
+      // if (isIncomplete) {
+      //   return '/icons/contact/x.svg';
+      // }
       return '/icons/contact/twitter-contact-logo.svg';
     }
     default: {

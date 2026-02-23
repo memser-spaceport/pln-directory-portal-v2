@@ -2,7 +2,6 @@ import clsx from 'clsx';
 import React, { useState } from 'react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useFormContext } from 'react-hook-form';
-import { OnboardingForm } from '@/components/page/onboarding/components/OnboardingWizard/types';
 import { useDropzone } from 'react-dropzone';
 import Image from 'next/image';
 
@@ -22,7 +21,7 @@ export const ProfileImageInput = ({ member, classes }: Props) => {
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDeleted, setIsDeleted] = useState(false);
-  const { setValue } = useFormContext<OnboardingForm>();
+  const { setValue } = useFormContext<{ image: File | null; isImageDeleted?: boolean }>();
 
   const { getInputProps, getRootProps, open } = useDropzone({
     onError: (err) => {
@@ -60,6 +59,7 @@ export const ProfileImageInput = ({ member, classes }: Props) => {
 
         setIsDeleted(false);
         setValue('image', file, { shouldValidate: true, shouldDirty: true });
+        setValue('isImageDeleted', false);
       }
     },
     maxFiles: 1,
@@ -79,6 +79,7 @@ export const ProfileImageInput = ({ member, classes }: Props) => {
     setImagePreview(null);
     setIsDeleted(true);
     setValue('image', null as any, { shouldValidate: true, shouldDirty: true });
+    setValue('isImageDeleted', true, { shouldDirty: true });
   };
 
   const handleReplace = (e: React.MouseEvent) => {

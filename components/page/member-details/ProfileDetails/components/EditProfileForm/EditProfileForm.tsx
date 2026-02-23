@@ -33,6 +33,7 @@ import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOpti
 import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { AddTeamModal } from '@/components/page/member-details/ProfileDetails/components/AddTeamModal';
 import { useUpdateMemberSelfRole } from '@/services/members/hooks/useUpdateMemberSelfRole';
+import { useDeleteMemberImage } from '@/services/members/hooks/useDeleteMemberImage';
 import { BioInput } from '@/components/page/member-details/BioDetails/components/BioInput';
 
 interface Props {
@@ -83,6 +84,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
   const methods = useForm<TEditProfileForm>({
     defaultValues: {
       image: null,
+      isImageDeleted: false,
       name: member.name || '',
 
       country: member.location?.country || '',
@@ -104,6 +106,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
   const { mutateAsync } = useUpdateMember();
   const { mutateAsync: updateMemberParams } = useUpdateMemberParams();
   const { mutateAsync: updateSelfRole } = useUpdateMemberSelfRole();
+  const { mutateAsync: deleteMemberImage } = useDeleteMemberImage();
 
   const handleAiContentGenerated = (originalContent: string) => {
     // Store the original content as-is for now
@@ -206,7 +209,19 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
     let image;
     let imageUrl = '';
 
-    if (formData.image) {
+    if (formData.isImageDeleted) {
+      try {
+        await deleteMemberImage(memberData.memberInfo.uid);
+      } catch {
+        toast.error('Failed to delete profile image. Please try again.');
+        return;
+      }
+
+      if (member.id === userInfo.uid) {
+        actions.setProfileImage(null);
+        updateMemberInfoCookie('');
+      }
+    } else if (formData.image) {
       const imgResponse = await saveRegistrationImage(formData.image);
       image = imgResponse?.image.uid;
       imageUrl = imgResponse?.image.url;
@@ -223,7 +238,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
       uniqueIdentifier: member.email,
       newData: {
         ...formatPayload(memberData.memberInfo, formData),
-        imageUid: image ? image : memberData.memberInfo.imageUid,
+        imageUid: formData.isImageDeleted ? null : (image ? image : memberData.memberInfo.imageUid),
         role: formData.primaryTeamRole,
       },
     };

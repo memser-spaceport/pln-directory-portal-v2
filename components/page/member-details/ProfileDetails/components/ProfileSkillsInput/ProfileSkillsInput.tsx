@@ -12,7 +12,7 @@ export const ProfileSkillsInput = () => {
         <span className={s.label}>Professional skills</span>
       </div>
       <FormMultiSelect
-        placeholder="Select applicable skills"
+        placeholder="Add your skills"
         options={
           data?.skills.map((item: { id: string; name: string }) => ({
             value: item.id,
@@ -21,7 +21,7 @@ export const ProfileSkillsInput = () => {
         }
         name="skills"
       />
-      <p className={s.hint}>Sharing your skills help other network members & teams connect with you.</p>
+      <p className={s.hint}>Sharing your skills help founders & teams connect with you.</p>
     </div>
   );
 };

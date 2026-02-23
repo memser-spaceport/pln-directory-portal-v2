@@ -109,7 +109,7 @@ export const LocationSelect: React.FC<LocationSelectProps> = ({
         options={options}
         onInputChange={(val) => setInput(val)}
         onChange={(val) => handleSelect(val as PlaceOption)}
-        placeholder="Search for a location..."
+        placeholder="Enter your location"
         noOptionsMessage={() => 'No locations found'}
         styles={{
           container: (base) => ({

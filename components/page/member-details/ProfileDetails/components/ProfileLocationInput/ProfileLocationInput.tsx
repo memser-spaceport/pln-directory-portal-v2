@@ -25,7 +25,7 @@ export const ProfileLocationInput = () => {
         }}
       />
       <p className={s.hint}>
-        Please share location details to receive invitations for the network events happening in your area.
+        Please share location details to receive invitations for relevant PL events happening in your area.
       </p>
     </div>
   );

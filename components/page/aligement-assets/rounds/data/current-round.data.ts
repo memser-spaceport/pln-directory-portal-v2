@@ -137,7 +137,7 @@ export const currentRoundData: CurrentRoundData = {
       { name: 'Network Tooling', value: 272 },
       { name: 'People/Talent', value: 523 },
       { name: 'Programs', value: 0 },
-      { name: 'Projects', value: 700 }
+      { name: 'Projects', value: 200 }
     ]
   },
 

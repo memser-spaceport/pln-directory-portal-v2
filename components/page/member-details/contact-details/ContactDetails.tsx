@@ -47,7 +47,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant =
   const { visibleHandles } = member;
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
-  const hasMissingRequiredData = !member?.telegramHandle;
+  const hasMissingRequiredData = !member?.linkedinHandle;
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
   const isDrawer = variant === 'drawer';

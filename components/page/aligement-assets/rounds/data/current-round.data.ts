@@ -165,7 +165,7 @@ export const currentRoundData: CurrentRoundData = {
       'Help Organize an Event',
       'Construct an Alignment Asset Case Study'
     ],
-    totalPointsCollected: '699',
+    totalPointsCollected: '1,595',
     totalTokensAvailable: '10,000',
     numberOfBuybacks: 0
   },

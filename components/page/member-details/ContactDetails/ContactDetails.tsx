@@ -37,6 +37,7 @@ export const ContactDetails = ({ isLoggedIn, userInfo, member, variant = 'defaul
           member={member}
           userInfo={userInfo}
           linkedinRequired={false}
+          variant={variant}
         />
       ) : (
         <ContactDetailsView

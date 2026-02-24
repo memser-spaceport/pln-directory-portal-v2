@@ -130,6 +130,10 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
     const role = watch('newTeamRole');
     const teamName = watch('newTeamName');
     const teamWebsite = watch('newTeamWebsite');
+    const teamInvestInFundTypes = watch('teamInvestInFundTypes');
+    const teamInvestInStartupStages = watch('teamInvestInStartupStages');
+    const teamTypicalCheckSize = watch('teamTypicalCheckSize');
+    const teamInvestmentFocusAreas = watch('teamInvestmentFocusAreas');
 
     setIsAddingTeamInline(false);
     setValue('newTeamName', '', { shouldValidate: true });
@@ -144,7 +148,12 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
       const newTeamEntry = {
         teamUid,
         teamTitle,
-        investorProfile: null,
+        investorProfile: {
+          investInFundTypes: teamInvestInFundTypes?.map((item: any) => item.value),
+          investInStartupStages: teamInvestInStartupStages?.map((item: any) => item.value),
+          typicalCheckSize: parseCurrencyToNumber(teamTypicalCheckSize ?? ''),
+          investmentFocus: teamInvestmentFocusAreas,
+        },
         role: '',
         logo: null,
         website: teamWebsite || newData.website || '',
@@ -688,6 +697,35 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                           rules={useInlineAddTeam ? { required: 'Website is required' } : undefined}
                           onBlur={() => ensureProtocol('newTeamWebsite')}
                         />
+                        <FormMultiSelect
+                          name="teamInvestInStartupStages"
+                          label="Startup stage(s) you invest in?"
+                          placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
+                          options={formOptions.fundingStageOptions}
+                          disabled={!isTeamLead || !selectedTeam}
+                          // isRequired
+                        />
+                        <FormCurrencyField
+                          name="teamTypicalCheckSize"
+                          label="Typical Check Size"
+                          placeholder="Select typical check size (E.g. $25k - $50.000k)"
+                          currency="USD"
+                          disabled={!isTeamLead || !selectedTeam}
+                          // isRequired
+                        />
+                        <FormTagsInput
+                          selectLabel="Add Investment Focus"
+                          name="teamInvestmentFocusAreas"
+                          placeholder="Add keywords. E.g. AI, Staking, Governance, etc."
+                          disabled={!isTeamLead || !selectedTeam}
+                        />
+                        <FormMultiSelect
+                          name="teamInvestInFundTypes"
+                          label="Type of fund(s) you invest in?"
+                          placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
+                          options={formOptions.fundTypeOptions}
+                          disabled={!isTeamLead || !selectedTeam}
+                        />
                         <div className={s.addNewTeamActions}>
                           <Button
                             type="button"
@@ -732,7 +770,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                     </div>
                   )}
 
-                  {selectedTeam && (
+                  {selectedTeam && !isAddingTeamInline && (
                     <>
                       <div className={s.row}>
                         <FormField

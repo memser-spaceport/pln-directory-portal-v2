@@ -137,7 +137,7 @@ export const currentRoundData: CurrentRoundData = {
       { name: 'Network Tooling', value: 272 },
       { name: 'People/Talent', value: 523 },
       { name: 'Programs', value: 0 },
-      { name: 'Projects', value: 200 }
+      { name: 'Projects', value: 700 }
     ]
   },
 
@@ -165,7 +165,7 @@ export const currentRoundData: CurrentRoundData = {
       'Help Organize an Event',
       'Construct an Alignment Asset Case Study'
     ],
-    totalPointsCollected: '1,595',
+    totalPointsCollected: '2,095',
     totalTokensAvailable: '10,000',
     numberOfBuybacks: 0
   },
@@ -175,25 +175,25 @@ export const currentRoundData: CurrentRoundData = {
   // ============================================================================
   leaderboard: {
     currentSnapshotData: [
-      { rank: 1, name: 'Jennifer Denini', activities: '', points: 412 },
-      { rank: 2, name: 'Michael Stachiw', activities: '', points: 300 },
+      { rank: 1, name: 'Jennifer Denini', activities: '', points: 512 },
+      { rank: 2, name: 'Michael Stachiw', activities: '', points: 400 },
       { rank: 3, name: 'Derrick Lam', activities: '', points: 200 },
-      { rank: 4, name: 'Bradley Holden', activities: '', points: 150 },
-      { rank: 5, name: 'Corey James', activities: '', points: 150 },
-      { rank: 6, name: 'Camille Bagnall', activities: '', points: 100 },
-      { rank: 7, name: 'Ian Brunner', activities: '', points: 98 },
-      { rank: 8, name: 'Jeff De Gregorio', activities: '', points: 98 },
-      { rank: 9, name: 'Raymond Cheng', activities: '', points: 62 },
-      { rank: 10, name: 'Theresa Therriault', activities: '', points: 25 },
-      { rank: 11, name: 'Alex Feerst', activities: '', points: 0 },
-      { rank: 12, name: 'Anuj Pandey', activities: '', points: 0 },
-      { rank: 13, name: 'Arleen Teranishi', activities: '', points: 0 },
-      { rank: 14, name: 'Ashley Franck', activities: '', points: 0 },
-      { rank: 15, name: 'Carl Cervone', activities: '', points: 0 },
-      { rank: 16, name: 'Chris Brocoum', activities: '', points: 0 },
-      { rank: 17, name: 'Connor Dales', activities: '', points: 0 },
-      { rank: 18, name: 'Cyril Delattre', activities: '', points: 0 },
-      { rank: 19, name: 'David Casey', activities: '', points: 0 },
+      { rank: 4, name: 'Ian Brunner', activities: '', points: 198 },
+      { rank: 5, name: 'Jeff De Gregorio', activities: '', points: 198 },
+      { rank: 6, name: 'Bradley Holden', activities: '', points: 150 },
+      { rank: 7, name: 'Corey James', activities: '', points: 150 },
+      { rank: 8, name: 'Camille Bagnall', activities: '', points: 100 },
+      { rank: 9, name: 'David Casey', activities: '', points: 100 },
+      { rank: 10, name: 'Raymond Cheng', activities: '', points: 62 },
+      { rank: 11, name: 'Theresa Therriault', activities: '', points: 25 },
+      { rank: 12, name: 'Alex Feerst', activities: '', points: 0 },
+      { rank: 13, name: 'Anuj Pandey', activities: '', points: 0 },
+      { rank: 14, name: 'Arleen Teranishi', activities: '', points: 0 },
+      { rank: 15, name: 'Ashley Franck', activities: '', points: 0 },
+      { rank: 16, name: 'Carl Cervone', activities: '', points: 0 },
+      { rank: 17, name: 'Chris Brocoum', activities: '', points: 0 },
+      { rank: 18, name: 'Connor Dales', activities: '', points: 0 },
+      { rank: 19, name: 'Cyril Delattre', activities: '', points: 0 },
       { rank: 20, name: 'David Huseby', activities: '', points: 0 },
       { rank: 21, name: 'Diana Stern', activities: '', points: 0 },
       { rank: 22, name: 'Diego Leal Togni', activities: '', points: 0 },
@@ -220,13 +220,12 @@ export const currentRoundData: CurrentRoundData = {
       { rank: 43, name: 'Rohit Goel', activities: '', points: 0 },
       { rank: 44, name: 'Russell Dempsey', activities: '', points: 0 },
       { rank: 45, name: 'Sabeen Ali', activities: '', points: 0 },
-      { rank: 46, name: 'Sean Escola', activities: '', points: 0 },
-      { rank: 47, name: 'Shae Biron', activities: '', points: 0 },
-      { rank: 48, name: 'Stefaan Vervaet', activities: '', points: 0 },
-      { rank: 49, name: 'Stefanie Wykoff', activities: '', points: 0 },
-      { rank: 50, name: 'Victoria DeVesty', activities: '', points: 0 },
-      { rank: 51, name: 'William Scott', activities: '', points: 0 },
-      { rank: 52, name: 'Zachary von Naumann', activities: '', points: 0 }
+      { rank: 46, name: 'Shae Biron', activities: '', points: 0 },
+      { rank: 47, name: 'Stefaan Vervaet', activities: '', points: 0 },
+      { rank: 48, name: 'Stefanie Wykoff', activities: '', points: 0 },
+      { rank: 49, name: 'Victoria DeVesty', activities: '', points: 0 },
+      { rank: 50, name: 'William Scott', activities: '', points: 0 },
+      { rank: 51, name: 'Zachary von Naumann', activities: '', points: 0 }
     ],
     cumulativeData: [
       { rank: 1, name: 'Bradley Holden', activities: '', points: 9900 },

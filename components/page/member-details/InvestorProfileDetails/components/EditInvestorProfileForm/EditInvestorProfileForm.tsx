@@ -703,7 +703,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                           placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                           options={formOptions.fundingStageOptions}
                           // disabled={!isTeamLead || !selectedTeam}
-                          // isRequired
+                          isRequired
                         />
                         <FormCurrencyField
                           name="teamTypicalCheckSize"
@@ -711,7 +711,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                           placeholder="Select typical check size (E.g. $25k - $50.000k)"
                           currency="USD"
                           // disabled={!isTeamLead || !selectedTeam}
-                          // isRequired
+                          isRequired
                         />
                         <FormTagsInput
                           selectLabel="Add Investment Focus"
@@ -760,6 +760,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                             }}
                             disabled={
                               !watch('newTeamName') ||
+                              !watch('teamInvestInStartupStages')?.length ||
+                              !watch('teamTypicalCheckSize') ||
                               (useInlineAddTeam && (!watch('newTeamWebsite') || !watch('newTeamRole')))
                             }
                           >

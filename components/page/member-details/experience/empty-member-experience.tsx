@@ -2,9 +2,9 @@
 
 import PopupTriggerIconButton from '@/components/ui/popup-trigger-icon-button';
 import { EVENTS } from '@/utils/constants';
-import cookies from 'js-cookie';
+import { getRawUserInfoCookie } from '@/utils/cookie.utils';
 const EmptyMemberExperience = ({ member }: { member: any }) => {
-  const userInfo = cookies.get('userInfo');
+  const userInfo = getRawUserInfoCookie();
   const addExperienceData = {
     experience: {
       memberId: member?.id,

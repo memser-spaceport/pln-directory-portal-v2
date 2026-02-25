@@ -8,6 +8,7 @@ import { usePostHog } from 'posthog-js/react';
 import { useMember } from '@/services/members/hooks/useMember';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { authEvents } from '@/components/core/login/utils';
+import { AUTH_COOKIE_NAMES } from '@/utils/cookie.utils';
 import { broadcastLogout } from '../BroadcastChannel';
 import { IUserInfo } from '@/types/shared.types';
 
@@ -34,7 +35,7 @@ function areRolesEqual(roles1: string[] | undefined, roles2: string[] | undefine
  * and updates cookies accordingly. Also handles rejected access levels by logging out.
  */
 export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
-  const [userInfoCookie, setUserInfoCookie] = useCookie('userInfo');
+  const [userInfoCookie, setUserInfoCookie] = useCookie(AUTH_COOKIE_NAMES.userInfo);
   const { data: member } = useMember(userInfo.uid);
   const router = useRouter();
   const rejectedRef = useRef(false);

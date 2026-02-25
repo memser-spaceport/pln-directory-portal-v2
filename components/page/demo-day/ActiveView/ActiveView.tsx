@@ -10,8 +10,7 @@ import { ConfidentialityModal } from './components/ConfidentialityModal';
 import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 import { useTimeOnPage } from '@/hooks/useTimeOnPage';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { IUserInfo } from '@/types/shared.types';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
@@ -24,7 +23,7 @@ interface ActiveViewProps {
 
 export const ActiveView = ({ initialDemoDayState }: ActiveViewProps) => {
   const { data: loadedDemoDayData, isLoading } = useGetDemoDayState(initialDemoDayState);
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo: IUserInfo = getUserInfo();
 
   // Use initial data if available, otherwise use data from hook
   const demoDayData = loadedDemoDayData || initialDemoDayState;

@@ -4,7 +4,7 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { useState } from 'react';
 import clip from 'text-clipper';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { toast } from '@/components/core/ToastContainer';
 import { updateMember, updateMemberBio } from '@/services/members.service';
 import { ADMIN_ROLE } from '@/utils/constants';
@@ -94,11 +94,10 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
         bio: content,
       };
 
-      const rawToken = Cookies.get('authToken');
-      if (!rawToken) {
+      const authToken = getAuthToken() ?? '';
+      if (!authToken) {
         return;
       }
-      const authToken = JSON.parse(rawToken);
       const { data, isError, errorMessage, errorData } = await updateMemberBio(member.id, payload, authToken);
       triggerLoader(false);
       if (isError) {

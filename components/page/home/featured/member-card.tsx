@@ -4,8 +4,8 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import DOMPurify from 'isomorphic-dompurify';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { EVENTS } from '@/utils/constants';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
@@ -36,7 +36,7 @@ const MemberCard = (props: any) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const userInfo = Cookies.get('userInfo') as unknown as IUserInfo;
+    const userInfo = getUserInfo() as IUserInfo;
     analytics.onMemberBioSeeMoreClicked({ ...getAnalyticsMemberInfo(member), bio }, getAnalyticsUserInfo(userInfo));
     document.dispatchEvent(
       new CustomEvent(EVENTS.OPEN_MEMBER_BIO_POPUP, {

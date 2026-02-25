@@ -8,8 +8,8 @@ import { useState, useRef, useEffect, MouseEventHandler } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { toast } from '@/components/core/ToastContainer';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
 import { triggerLoader } from '@/utils/common.utils';
+import { getRawUserInfoCookie } from '@/utils/cookie.utils';
 
 interface HuskyEmptyChatProps {
   limitReached: any;
@@ -107,7 +107,7 @@ function HuskyEmptyChat({
 
   const onLoginClickHandler = () => {
     analytics.trackSignupFromHuskyChat('home-search');
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = getRawUserInfoCookie();
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

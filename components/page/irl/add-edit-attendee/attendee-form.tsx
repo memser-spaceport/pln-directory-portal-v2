@@ -33,7 +33,6 @@ import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import {
   getAnalyticsLocationInfo,
   getAnalyticsUserInfo,
-  getParsedValue,
   getTelegramUsername,
   removeAtSymbol,
   triggerLoader,
@@ -41,7 +40,7 @@ import {
 import { useSearchParams } from 'next/navigation';
 import AttendeeOptions from './attendee-options';
 import { getGatherings } from '@/utils/irl.utils';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 
 interface IAttendeeForm {
   selectedLocation: IIrlLocation;
@@ -138,7 +137,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       const isUpcomingView = eventType === 'upcoming' || (!eventType && !from) || from === 'upcoming';
       const isPastView = eventType === 'past' || from === 'past';
 
-      const authToken = getParsedValue(Cookies.get('authToken'));
+      const authToken = getAuthToken() ?? '';
       
       // Fetch additional data (opposite type)
       let additionalResult: any[] = [];

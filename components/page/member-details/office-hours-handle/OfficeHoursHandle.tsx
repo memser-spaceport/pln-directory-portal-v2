@@ -2,11 +2,10 @@ import React from 'react';
 import {
   getAnalyticsMemberInfo,
   getAnalyticsUserInfo,
-  getParsedValue,
   triggerLoader,
   normalizeOfficeHoursUrl,
 } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
 import { toast } from '@/components/core/ToastContainer';
 import { EVENTS, LEARN_MORE_URL, TOAST_MESSAGES } from '@/utils/constants';
@@ -37,8 +36,8 @@ export const OfficeHoursHandle = ({ userInfo, member, isLoggedIn }: Props) => {
 
     try {
       triggerLoader(true);
-      const authToken = Cookies.get('authToken') || '';
-      const response: any = await createFollowUp(userInfo.uid, getParsedValue(authToken), {
+      const authToken = getAuthToken() || '';
+      const response: any = await createFollowUp(userInfo.uid, authToken, {
         data: {},
         hasFollowUp: true,
         type: 'SCHEDULE_MEETING',
@@ -61,7 +60,7 @@ export const OfficeHoursHandle = ({ userInfo, member, isLoggedIn }: Props) => {
         const normalizedOfficeHoursUrl = normalizeOfficeHoursUrl(officeHours);
         window.open(normalizedOfficeHoursUrl, '_blank');
       });
-      const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), 'PENDING,CLOSED');
+      const allFollowups = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING,CLOSED');
       if (!allFollowups?.error) {
         const result = allFollowups?.data ?? [];
         if (result.length > 0) {

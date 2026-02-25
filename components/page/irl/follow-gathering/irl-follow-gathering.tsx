@@ -7,7 +7,7 @@ import { checkAdminInAllEvents, getNearestEventDate } from '@/utils/irl.utils';
 import { useCallback } from 'react';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import router from 'next/router';
-import Cookies from 'js-cookie';
+import { getRefreshToken } from '@/utils/cookie.utils';
 import { useRouter } from 'next/navigation';
 
 interface IrlFollowGatheringProps {
@@ -37,7 +37,7 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
   );
   const onLogin = useCallback(async () => {
     const toast = (await import('react-toastify')).toast;
-    if (Cookies.get('refreshToken')) {
+    if (getRefreshToken()) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       window.location.reload();
     } else {

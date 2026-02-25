@@ -1,6 +1,5 @@
-import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue } from '@/utils/common.utils';
+import { getAuthToken, getRefreshToken, getRawUserInfoCookie, getUserInfo } from '@/utils/cookie.utils';
 
 /**
  * Centralized auth status utilities for checking authentication state
@@ -8,15 +7,13 @@ import { getParsedValue } from '@/utils/common.utils';
  */
 export const authStatus = {
   isLoggedIn: () => {
-    const userInfo = Cookies.get('userInfo');
-    const accessToken = Cookies.get('authToken');
-    const refreshToken = Cookies.get('refreshToken');
+    const userInfo = getRawUserInfoCookie();
+    const accessToken = getAuthToken();
+    const refreshToken = getRefreshToken();
     return Boolean(userInfo || accessToken || refreshToken);
   },
 
   getUserInfo: (): IUserInfo | null => {
-    const userInfo = Cookies.get('userInfo');
-    if (!userInfo) return null;
-    return getParsedValue(userInfo);
+    return getUserInfo() || null;
   },
 };

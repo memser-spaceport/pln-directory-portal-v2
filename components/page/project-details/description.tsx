@@ -1,10 +1,10 @@
 'use client';
 
 import { updateProject } from '@/services/projects.service';
-import { getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import Image from 'next/image';
 import { useState } from 'react';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { toast } from '@/components/core/ToastContainer';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
@@ -73,7 +73,7 @@ const Description = (props: IDescription) => {
     triggerLoader(true);
     analytics.onProjectDetailDescEditSaveClicked(getAnalyticsUserInfo(props?.user), project?.id);
     try {
-      const authToken = getParsedValue(Cookies.get('authToken') ?? '');
+      const authToken = getAuthToken() ?? '';
       if (!authToken) {
         return;
       }

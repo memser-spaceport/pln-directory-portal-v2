@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 
 import { getParsedValue } from './common.utils';
+import { AUTH_COOKIE_NAMES } from './cookie.utils';
 
 export type ForumErrorInfo = {
   status: string;
@@ -11,7 +12,7 @@ export type ForumFetchResult = { data: Response; error: null } | { data: null; e
 
 export async function fetchForumActivity(url: string): Promise<ForumFetchResult> {
   const cookieStore = await cookies();
-  const authToken = getParsedValue(cookieStore.get('authToken')?.value);
+  const authToken = getParsedValue(cookieStore.get(AUTH_COOKIE_NAMES.authToken)?.value);
 
   const response = await fetch(url, {
     headers: {

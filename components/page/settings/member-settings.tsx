@@ -14,7 +14,7 @@ import {
 } from '@/utils/member.utils';
 import SettingsAction from './actions';
 import SingleSelect from '@/components/form/single-select';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
@@ -264,11 +264,10 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         newData: { ...formattedForms },
       };
 
-      const rawAuthToken = Cookies.get('authToken');
-      if (!rawAuthToken) {
+      const authToken = getAuthToken() ?? '';
+      if (!authToken) {
         return;
       }
-      const authToken = JSON.parse(rawAuthToken);
 
       const formResult = await updateMember(memberInfo?.uid, bodyData, authToken);
 

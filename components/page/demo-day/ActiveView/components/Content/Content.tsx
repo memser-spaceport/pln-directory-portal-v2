@@ -8,8 +8,7 @@ import { Alert } from '@/components/page/demo-day/shared/Alert';
 import { MediaPreview } from '../../../FounderPendingView/components/MediaPreview';
 import { getDemoDayMaterials } from '@/constants/demoDay';
 import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
@@ -20,7 +19,7 @@ export const Content = () => {
   const slug = params.demoDayId as string;
   const materials = getDemoDayMaterials(slug);
   const { data } = useGetDemoDayState();
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo: IUserInfo = getUserInfo();
   const { onActiveViewWelcomeVideoViewed } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const hasVideo = !!materials?.pitchVideoUrl;

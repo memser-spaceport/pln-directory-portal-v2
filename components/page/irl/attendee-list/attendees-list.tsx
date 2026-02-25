@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
+import { getAuthToken, getRefreshToken } from '@/utils/cookie.utils';
 
 import { ADMIN_ROLE, EVENTS, IRL_DEFAULT_TOPICS, TOAST_MESSAGES } from '@/utils/constants';
 import Toolbar from './toolbar';
@@ -10,7 +10,7 @@ import GuestList from './guest-list';
 import FloatingBar from './floating-bar';
 import Modal from '@/components/core/modal';
 import DeleteAttendeesPopup from './delete-attendees-popup';
-import { getParsedValue, triggerLoader } from '@/utils/common.utils';
+import { triggerLoader } from '@/utils/common.utils';
 import { getGuestEvents, getGuestsByLocation, getTopicsByLocation } from '@/services/irl.service';
 import AttendeeForm from '../add-edit-attendee/attendee-form';
 import AttendeeTableHeader from './attendee-table-header';
@@ -83,7 +83,7 @@ const AttendeeList = (props: IAttendeeList) => {
 
   const onLogin = useCallback(async () => {
     const toast = (await import('react-toastify')).toast;
-    if (Cookies.get('refreshToken')) {
+    if (getRefreshToken()) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       window.location.reload();
     } else {
@@ -92,7 +92,7 @@ const AttendeeList = (props: IAttendeeList) => {
   }, [router]);
 
   const getEventDetails = async () => {
-    const authToken = getParsedValue(Cookies.get('authToken'));
+    const authToken = getAuthToken() ?? '';
 
     if (tableRef.current) {
       tableRef.current.scrollTop = 0;
@@ -210,7 +210,7 @@ const AttendeeList = (props: IAttendeeList) => {
     if (currentPage !== 1) {
       setIsAttendeeLoading(true);
       const getEventDetails = async () => {
-        const authToken = getParsedValue(Cookies.get('authToken'));
+        const authToken = getAuthToken() ?? '';
         const eventInfo: any = await getGuestsByLocation(
           location?.uid,
           parseSearchParams(

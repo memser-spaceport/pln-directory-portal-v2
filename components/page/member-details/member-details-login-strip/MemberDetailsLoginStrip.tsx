@@ -2,8 +2,8 @@
 import { IMember } from '@/types/members.types';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
+import { getRawUserInfoCookie } from '@/utils/cookie.utils';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { clsx } from 'clsx';
 
@@ -19,7 +19,7 @@ export const MemberProfileLoginStrip = ({ member, variant = 'primary' }: IMember
   const authAnalytics = useAuthAnalytics();
 
   const onLoginClickHandler = () => {
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = getRawUserInfoCookie();
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

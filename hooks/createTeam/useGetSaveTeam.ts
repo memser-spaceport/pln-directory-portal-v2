@@ -1,4 +1,3 @@
-import Cookies from 'js-cookie';
 import isEmpty from 'lodash/isEmpty';
 import isFunction from 'lodash/isFunction';
 
@@ -9,6 +8,7 @@ import { saveRegistrationImage } from '@/services/registration.service';
 import { createParticipantRequest } from '@/services/participants-request.service';
 
 import { useJoinNetworkAnalytics } from '@/analytics/join-network.analytics';
+import { getAuthToken } from '@/utils/cookie.utils';
 
 export function useGetSaveTeam(onSuccess: (newData: any) => void) {
   const analytics = useJoinNetworkAnalytics();
@@ -40,7 +40,7 @@ export function useGetSaveTeam(onSuccess: (newData: any) => void) {
         newData: { ...formattedData },
       };
 
-      const authToken = Cookies.get('authToken') || '';
+      const authToken = getAuthToken() || '';
       const response = await createParticipantRequest(data, authToken);
 
       if (response.ok) {

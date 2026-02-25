@@ -3,6 +3,7 @@ import { getTeamList } from '@/app/actions/teams.actions';
 import { INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
 import { cookies } from 'next/headers';
 import { getParsedValue } from '@/utils/common.utils';
+import { AUTH_COOKIE_NAMES } from '@/utils/cookie.utils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     // Get auth token from cookies
     const cookieStore = await cookies();
-    const authToken = getParsedValue(cookieStore.get('authToken')?.value);
+    const authToken = getParsedValue(cookieStore.get(AUTH_COOKIE_NAMES.authToken)?.value);
 
     // Fetch teams list
     const result = await getTeamList(query, 1, INITIAL_ITEMS_PER_PAGE, authToken);

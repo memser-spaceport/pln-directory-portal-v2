@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Cookies from 'js-cookie';
 import { decodeToken } from '@/utils/auth.utils';
 import { authEvents, LinkMethod } from '@/components/core/login/utils';
+import { getAuthLinkedAccounts, getRefreshToken, setAuthLinkedAccountsCookie } from '@/utils/cookie.utils';
 
 function LinkAuthAccounts() {
   const [userLinkedAccounts, setUserLinkedAccounts] = useState<any>([]);
@@ -24,22 +24,18 @@ function LinkAuthAccounts() {
   };
 
   useEffect(() => {
-    const rawLinkedAccounts = Cookies.get('authLinkedAccounts');
+    const rawLinkedAccounts = getAuthLinkedAccounts();
     if (rawLinkedAccounts) {
-      const parsedLinkedAccounts = JSON.parse(rawLinkedAccounts);
+      const parsedLinkedAccounts = typeof rawLinkedAccounts === 'string' ? rawLinkedAccounts : JSON.parse(rawLinkedAccounts);
       setUserLinkedAccounts(parsedLinkedAccounts.split(','));
     } else {
       setUserLinkedAccounts([]);
     }
     function authAccountsHandler(linkedAccounts: string) {
-      const refreshToken = Cookies.get('refreshToken');
+      const refreshToken = getRefreshToken();
       if (refreshToken) {
-        const refreshTokenExpiry = decodeToken(JSON.parse(refreshToken));
-        Cookies.set('authLinkedAccounts', JSON.stringify(linkedAccounts), {
-          expires: new Date(refreshTokenExpiry.exp * 1000),
-          path: '/',
-          domain: process.env.COOKIE_DOMAIN || '',
-        });
+        const refreshTokenExpiry = decodeToken(refreshToken);
+        setAuthLinkedAccountsCookie(linkedAccounts, new Date(refreshTokenExpiry.exp * 1000));
         const accounts = linkedAccounts.split(',');
         setUserLinkedAccounts(accounts);
       }

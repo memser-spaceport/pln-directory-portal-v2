@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from '@/components/core/ToastContainer';
-import Cookies from 'js-cookie';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { decodeToken } from '@/utils/auth.utils';
 import { useRouter } from 'next/navigation';
@@ -10,6 +9,7 @@ import { updateUserDirectoryEmail } from '@/services/members.service';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { getUserInfo } from '@/utils/third-party.helper';
 import { authEvents } from '@/components/core/login/utils';
+import { getAuthToken, setAuthToken, setRefreshToken, setUserInfoCookie } from '@/utils/cookie.utils';
 function SelfEmailUpdate(props: any) {
   const email = props.email;
   const uid = props.uid;
@@ -23,7 +23,7 @@ function SelfEmailUpdate(props: any) {
     e.preventDefault();
 
     analytics.onUpdateEmailClicked(getAnalyticsUserInfo(userInfo));
-    const authToken = Cookies.get('authToken');
+    const authToken = getAuthToken() ?? '';
     if (!authToken) {
       return;
     }
@@ -39,12 +39,12 @@ function SelfEmailUpdate(props: any) {
     async function updateUserEmail(data: { newEmail: string }) {
       try {
         const { newEmail } = data;
-        const oldAccessToken = Cookies.get('authToken');
+        const oldAccessToken = getAuthToken();
         if (!oldAccessToken) {
           return;
         }
         const header = {
-          Authorization: `Bearer ${JSON.parse(oldAccessToken)}`,
+          Authorization: `Bearer ${oldAccessToken}`,
           'Content-Type': 'application/json',
         };
         if (newEmail === email) {
@@ -59,18 +59,9 @@ function SelfEmailUpdate(props: any) {
         if (refreshToken && accessToken) {
           const accessTokenExpiry = decodeToken(accessToken);
           const refreshTokenExpiry = decodeToken(refreshToken);
-          Cookies.set('authToken', JSON.stringify(accessToken), {
-            expires: new Date(accessTokenExpiry.exp * 1000),
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
-          Cookies.set('refreshToken', JSON.stringify(refreshToken), {
-            expires: new Date(refreshTokenExpiry.exp * 1000),
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
-          Cookies.set('userInfo', JSON.stringify(newUserInfo), {
-            expires: new Date(refreshTokenExpiry.exp * 1000),
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
+          setAuthToken(accessToken, new Date(accessTokenExpiry.exp * 1000));
+          setRefreshToken(refreshToken, new Date(refreshTokenExpiry.exp * 1000));
+          setUserInfoCookie(newUserInfo, new Date(refreshTokenExpiry.exp * 1000));
           document.dispatchEvent(new CustomEvent('app-loader-status'));
           analytics.onUpdateEmailSuccess({ newEmail, oldEmail: currentEmail });
           toast.success('Email Updated Successfully');

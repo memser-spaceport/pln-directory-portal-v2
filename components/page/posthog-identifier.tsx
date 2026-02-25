@@ -2,8 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { usePostHog } from 'posthog-js/react';
-import Cookies from 'js-cookie';
-import { getParsedValue } from '@/utils/common.utils';
+import { getUserInfo } from '@/utils/cookie.utils';
 
 export default function PostHogIdentifier() {
   const posthog = usePostHog();
@@ -12,10 +11,9 @@ export default function PostHogIdentifier() {
   useEffect(() => {
     const identifyUser = () => {
       try {
-        const userCookie = Cookies.get('userInfo');
+        const userInfo = getUserInfo();
 
-        if (userCookie && posthog) {
-          const userInfo = getParsedValue(userCookie);
+        if (userInfo && posthog) {
 
           if (userInfo?.uid || userInfo?.id) {
             const userId = userInfo.uid || userInfo.id;

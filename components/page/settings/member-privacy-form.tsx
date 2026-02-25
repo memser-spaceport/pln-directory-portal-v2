@@ -1,7 +1,7 @@
 'use client';
 import CustomToggle from '@/components/form/custom-toggle';
 import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { toast } from '@/components/core/ToastContainer';
@@ -135,7 +135,7 @@ function MemberPrivacyForm(props: any) {
       delete payload.githubHandle;
       delete payload.newsLetter;
 
-      const authToken: any = Cookies.get('authToken');
+      const authToken = getAuthToken() ?? '';
       if (!authToken) {
         analytics.recordMemberPreferenceChange('error', getAnalyticsUserInfo(userInfo), payload);
         return;
@@ -146,7 +146,7 @@ function MemberPrivacyForm(props: any) {
         body: JSON.stringify(payload),
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${JSON.parse(authToken)}`,
+          Authorization: `Bearer ${authToken}`,
         },
       });
 
@@ -157,7 +157,7 @@ function MemberPrivacyForm(props: any) {
         }),
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${JSON.parse(authToken)}`,
+          Authorization: `Bearer ${authToken}`,
         },
       });
 

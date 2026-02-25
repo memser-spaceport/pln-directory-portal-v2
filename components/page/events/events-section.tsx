@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import LocationCard from '../home/featured/location-card';
-import { getAnalyticsLocationCardInfo, getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
+import { getAnalyticsLocationCardInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import CurrentEventCard from './current-events-card';
 import { getAggregatedEventsData } from '@/services/events.service';
 import { useEventsAnalytics } from '@/analytics/events.analytics';
@@ -58,7 +58,7 @@ export default function EventsSection({ eventLocations, userInfo }: EventsSectio
   const analytics = useEventsAnalytics();
 
   const getFeaturedDataa = async () => {
-    const authToken = getParsedValue(Cookies.get('authToken'));
+    const authToken = getAuthToken() ?? '';
     const featData = await getAggregatedEventsData(authToken);
     setfeaturedData(formatFeaturedData(featData.data));
     router.refresh();

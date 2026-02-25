@@ -15,6 +15,7 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { toast } from '@/components/core/ToastContainer';
 import { useCookie } from 'react-use';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { AUTH_COOKIE_NAMES } from '@/utils/cookie.utils';
 
 interface Props {
   member: IMember;
@@ -36,7 +37,7 @@ export const OneClickVerification = ({ userInfo, member, isNewInvestor }: Props)
   const showIncomplete = hasMissingRequiredData && isOwner;
   const searchParams = useSearchParams();
   const { onConnectLinkedInClicked, onSuccessLinkedInVerification, onErrorLinkedInVerification } = useMemberAnalytics();
-  const [userInfoCookie, setUserInfoCookie] = useCookie('userInfo');
+  const [userInfoCookie, setUserInfoCookie] = useCookie(AUTH_COOKIE_NAMES.userInfo);
   const errorReported = useRef(false);
 
   const { mutate, isPending } = useLinkedInVerification();

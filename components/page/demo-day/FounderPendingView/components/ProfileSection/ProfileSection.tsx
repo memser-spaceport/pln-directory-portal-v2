@@ -10,8 +10,7 @@ import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { useExpressInterest } from '@/services/demo-day/hooks/useExpressInterest';
 import { ProfileActions } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileActions';
 import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
@@ -42,7 +41,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
   const isPrepDemoDay = useIsPrepDemoDay();
 
   const { data, isLoading, error } = useGetFundraisingProfile();
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo: IUserInfo = getUserInfo();
 
   // Analytics hooks
   const { onFounderTeamFundraisingCardClicked, onFounderEditTeamProfileButtonClicked } = useDemoDayAnalytics();

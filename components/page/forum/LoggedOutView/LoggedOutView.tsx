@@ -4,8 +4,8 @@ import React from 'react';
 import s from './LoggedOutView.module.scss';
 import { Avatar } from '@base-ui-components/react/avatar';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
+import { getRawUserInfoCookie } from '@/utils/cookie.utils';
 import { TOAST_MESSAGES } from '@/utils/constants';
 
 const items = new Array(5).fill(0).map((_, i) => (
@@ -29,7 +29,7 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
   const router = useRouter();
 
   const onLoginClickHandler = () => {
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = getRawUserInfoCookie();
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

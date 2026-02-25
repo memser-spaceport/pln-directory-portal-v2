@@ -3,13 +3,14 @@ import { getTeamListFilters } from '@/services/teams.service';
 import { DEFAULT_ASK_TAGS } from '@/utils/constants';
 import { cookies } from 'next/headers';
 import { getParsedValue } from '@/utils/common.utils';
+import { AUTH_COOKIE_NAMES } from '@/utils/cookie.utils';
 
 export async function GET(request: NextRequest) {
   try {
     // Get auth token from cookies
     const cookieStore = await cookies();
-    const authToken = getParsedValue(cookieStore.get('authToken')?.value);
-    const userInfo = getParsedValue(cookieStore.get('userInfo')?.value);
+    const authToken = getParsedValue(cookieStore.get(AUTH_COOKIE_NAMES.authToken)?.value);
+    const userInfo = getParsedValue(cookieStore.get(AUTH_COOKIE_NAMES.userInfo)?.value);
 
     // Fetch filter data
     const result = await getTeamListFilters({}, authToken, userInfo?.uid || '');

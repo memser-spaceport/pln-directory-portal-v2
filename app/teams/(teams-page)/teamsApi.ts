@@ -74,7 +74,7 @@ const toPriorityValues = (val: string | undefined) =>
     .map((v) => (v === '-1' ? '99' : v));
 
 export const fetchTeamsList = async (searchParams: ITeamsSearchParams): Promise<TeamListResponse> => {
-  const authToken = getAuthToken();
+  const authToken = getAuthToken() ?? '';
 
   const query = qs.stringify({
     ...searchParams,
@@ -99,7 +99,7 @@ export const fetchTeamsList = async (searchParams: ITeamsSearchParams): Promise<
  * Fetch filter data from API
  */
 export const fetchFiltersData = async (): Promise<FilterDataResponse> => {
-  const authToken = getAuthToken();
+  const authToken = getAuthToken() ?? '';
 
   const response = await fetch(`/api/teams/filters`, {
     headers: getHeaders(authToken),

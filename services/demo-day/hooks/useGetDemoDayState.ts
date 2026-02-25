@@ -2,8 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { useParams } from 'next/navigation';
 
 type DemoDayState = {
@@ -49,7 +48,7 @@ export async function getDemoDayState(demoDaySlug: string, memberUid?: string) {
 }
 
 export function useGetDemoDayState(initialData?: any) {
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo: IUserInfo = getUserInfo();
   const params = useParams();
 
   return useQuery({

@@ -5,10 +5,10 @@ import { getMember, getMembersForAttendeeForm, getMembersForProjectForm } from '
 import { getMemberPreferences } from '@/services/preferences.service';
 import { IIrlAttendeeFormErrors, IIrlEvent, IIrlLocation } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue, getUserInfoFromLocal, triggerLoader } from '@/utils/common.utils';
+import { getUserInfoFromLocal, triggerLoader } from '@/utils/common.utils';
 import { EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
 import { SetStateAction, useEffect, useState } from 'react';
-import Cookies from 'js-cookie';
+import { getAuthToken } from '@/utils/cookie.utils';
 import { getGuestDetail, getTopicsAndReasonForUser } from '@/services/irl.service';
 import { transformGuestDetail } from '@/utils/irl.utils';
 
@@ -45,7 +45,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
   const [initialTeams, setInitialTeams] = useState(initialValues?.teams ?? []);
 
   //variables
-  const authToken = getParsedValue(Cookies.get('authToken'));
+  const authToken = getAuthToken() ?? '';
 
   const [selectedTeam, setSelectedTeam] = useState(initialValues?.team ?? { name: '', logo: '', uid: '' });
   const [selectedMember, setSelectedMember] = useState<IUserInfo>(member || { name: '', uid: '' });

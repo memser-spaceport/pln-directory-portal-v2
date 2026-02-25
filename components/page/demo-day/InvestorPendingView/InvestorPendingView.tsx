@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { getParsedValue } from '@/utils/common.utils';
 import { checkInvestorProfileComplete } from '@/utils/member.utils';
-import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useGetEngagement } from '@/services/demo-day/hooks/useGetEngagement';
@@ -17,6 +15,7 @@ import { EditInvestorProfileDrawer } from '../AppliedInvestorSteps/EditInvestorP
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { CountdownComponent } from '@/components/common/Countdown';
 import { DemoDayInfoRow } from '@/components/common/DemoDayInfoRow';
+import { getUserInfo } from '@/utils/cookie.utils';
 
 interface InvestorPendingViewProps {
   initialDemoDayState?: DemoDayState;
@@ -24,7 +23,7 @@ interface InvestorPendingViewProps {
 }
 
 export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: InvestorPendingViewProps) => {
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo: IUserInfo = getUserInfo();
   const { data: loadedMemberData } = useMember(userInfo?.uid);
   const memberData = loadedMemberData?.memberInfo || initialMemberData;
   const { data: engagementData } = useGetEngagement();

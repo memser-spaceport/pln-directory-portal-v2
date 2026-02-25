@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useGetTeamsList, TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { useFilterStore } from '@/services/members/store';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { getUserInfo } from '@/utils/cookie.utils';
 import { IUserInfo } from '@/types/shared.types';
 import { TeamProfileCard } from './components/TeamProfileCard';
 import { TeamDetailsDrawer } from './components/TeamDetailsDrawer';
@@ -25,7 +24,7 @@ export const TeamsList: React.FC = () => {
   const { params } = useFilterStore();
 
   // Get current user info
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const userInfo: IUserInfo = getUserInfo();
 
   // Function to check if current user is a founder of a team
   const isUserFounder = (team: TeamProfile): boolean => {

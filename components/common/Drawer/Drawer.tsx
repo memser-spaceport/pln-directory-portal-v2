@@ -5,16 +5,18 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import s from './Drawer.module.scss';
+import clsx from 'clsx';
 
 export interface DrawerProps {
   isOpen: boolean;
   onClose: () => void;
   width?: number;
   fullScreen?: boolean;
+  noBlur?: boolean;
 }
 
 export function Drawer(props: PropsWithChildren<DrawerProps>) {
-  const { isOpen, onClose, children, width = 720, fullScreen } = props;
+  const { isOpen, onClose, children, width = 720, fullScreen, noBlur } = props;
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -33,7 +35,9 @@ export function Drawer(props: PropsWithChildren<DrawerProps>) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className={s.overlay}
+          className={clsx(s.overlay, {
+            [s.noBlur]: noBlur,
+          })}
           onClick={handleOverlayClick}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

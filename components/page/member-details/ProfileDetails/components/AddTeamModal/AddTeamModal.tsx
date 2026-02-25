@@ -33,7 +33,8 @@ const addTeamSchema = yup.object({
       }
 
       return urlRegex.test(value); // Validate URL format if populated
-    }),
+    })
+    .required('Required'),
 });
 
 interface Props {
@@ -126,6 +127,7 @@ export const AddTeamModal = ({ isOpen, onClose, requesterEmailId, onSuccess }: P
                 label="Website Address"
                 description="Paste a URL (LinkedIn, company website, etc.)"
                 placeholder="Enter website address"
+                isRequired
               />
             </div>
 

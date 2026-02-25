@@ -12,6 +12,11 @@
   z-index: 10;
   display: flex;
   justify-content: flex-end;
+
+  &.noBlur {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: none;
+  }
 }
 
 .container {

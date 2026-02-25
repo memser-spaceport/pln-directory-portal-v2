@@ -60,7 +60,7 @@ export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps>
   const { data: investorSettings } = useGetMemberInvestorSettings(uid);
 
   return (
-    <Drawer isOpen={isOpen} onClose={() => {}} fullScreen>
+    <Drawer isOpen={isOpen} onClose={() => {}} noBlur>
       <div className={s.drawerHeader}>
         <div className={s.breadcrumbs}>
           <button className={s.backButton} onClick={onClose}>

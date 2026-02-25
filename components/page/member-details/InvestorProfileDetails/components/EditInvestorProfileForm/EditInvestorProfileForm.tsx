@@ -25,29 +25,37 @@ import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions'
 
 import { editInvestorProfileSchema } from './schema';
 import { formatNumberToCurrency } from './utils';
-import { CheckIcon, ExternalLinkIcon, InfoIcon, LinkIcon } from './icons';
+import { CheckIcon, ExternalLinkIcon, ExternalLinkIconBlue, InfoIcon, InfoIconFilled, LinkIcon } from './icons';
 import s from './EditInvestorProfileForm.module.scss';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { useMember } from '@/services/members/hooks/useMember';
 import { findPreferredTeam } from './utils/findPreferredTeam';
 import { AddTeamDrawer } from './components/AddTeamDrawer/AddTeamDrawer';
+import { useGetSaveTeam } from '@/hooks/createTeam/useGetSaveTeam';
+import { Button } from '@/components/common/Button';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
+import { useQueryClient } from '@tanstack/react-query';
+import { MembersQueryKeys } from '@/services/members/constants';
 import clsx from 'clsx';
+import { useContactSupportStore } from '@/services/contact-support/store';
 
 interface Props {
   onClose: () => void;
   member: IMember;
   userInfo: IUserInfo;
+  useInlineAddTeam?: boolean;
 }
 
-export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) => {
+export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAddTeam }: Props) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const updateInvestorProfileMutation = useUpdateInvestorProfile();
   const updateTeamInvestorProfileMutation = useUpdateTeamInvestorProfile();
 
   // Analytics hooks
   const { onInvestorProfileUpdated } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
+  const { openModal: openContactSupport } = useContactSupportStore((s) => s.actions);
 
   const { data: options } = useTeamsFormOptions();
   const { data } = useMemberFormOptions();
@@ -80,10 +88,15 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         fundTeam?.investorProfile?.investInStartupStages?.map((item) => ({ label: item, value: item })) || [],
       teamTypicalCheckSize: formatNumberToCurrency(fundTeam?.investorProfile?.typicalCheckSize) || '',
       teamInvestmentFocusAreas: fundTeam?.investorProfile?.investmentFocus || [],
+
+      newTeamName: '',
+      newTeamWebsite: '',
+      newTeamRole: '',
     },
     // @ts-ignore
     resolver: yupResolver(editInvestorProfileSchema),
-    mode: 'all',
+    mode: 'onSubmit',
+    reValidateMode: 'onBlur',
     context: { member },
   });
 
@@ -93,15 +106,83 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     setValue,
     watch,
     trigger,
-    formState: { isValid },
+    formState: { isValid, isSubmitted },
   } = methods;
   const secRulesAccepted = watch('secRulesAccepted');
   const isInvestViaFund = watch('isInvestViaFund');
   const selectedTeam = watch('team');
 
-  const isTeamLead = member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead;
+  const isTeamLead =
+    member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead || selectedTeam?.originalObject?.teamLead;
+
+  const ensureProtocol = (fieldName: 'website' | 'newTeamWebsite') => {
+    const val = (watch(fieldName) as string)?.trim();
+    if (val && !/^https?:\/\//i.test(val)) {
+      setValue(fieldName, `https://${val}`, { shouldValidate: true, shouldDirty: true });
+    }
+  };
 
   const [isAddTeamDrawerOpen, setIsAddTeamDrawerOpen] = React.useState(false);
+  const [isAddingTeamInline, setIsAddingTeamInline] = React.useState(false);
+  const teamSelectRef = React.useRef(null);
+
+  const saveTeamFn = useGetSaveTeam((newData: any) => {
+    const role = watch('newTeamRole');
+    const teamName = watch('newTeamName');
+    const teamWebsite = watch('newTeamWebsite');
+    const teamInvestInFundTypes = watch('teamInvestInFundTypes');
+    const teamInvestInStartupStages = watch('teamInvestInStartupStages');
+    const teamTypicalCheckSize = watch('teamTypicalCheckSize');
+    const teamInvestmentFocusAreas = watch('teamInvestmentFocusAreas');
+
+    setIsAddingTeamInline(false);
+    setValue('newTeamName', '', { shouldValidate: true });
+    setValue('newTeamWebsite', '', { shouldValidate: true });
+    setValue('newTeamRole', '', { shouldValidate: true });
+
+    if (newData) {
+      // Build a team entry matching the shape from useMemberFormOptions
+      const teamUid = newData.uid || newData.id || newData.teamUid || '';
+      const teamTitle = newData.name || newData.teamTitle || teamName || '';
+
+      const newTeamEntry = {
+        teamUid,
+        teamTitle,
+        investorProfile: {
+          investInFundTypes: teamInvestInFundTypes?.map((item: any) => item.value),
+          investInStartupStages: teamInvestInStartupStages?.map((item: any) => item.value),
+          typicalCheckSize: parseCurrencyToNumber(teamTypicalCheckSize ?? ''),
+          investmentFocus: teamInvestmentFocusAreas,
+        },
+        role: '',
+        logo: null,
+        website: teamWebsite || newData.website || '',
+        teamLead: true,
+      };
+
+      // Manually add the new team to the cached options
+      queryClient.setQueryData([MembersQueryKeys.GET_SKILLS_OPTIONS], (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          teams: [...(oldData.teams || []), newTeamEntry],
+        };
+      });
+
+      const teamOption = {
+        value: teamUid,
+        label: teamTitle,
+        originalObject: newTeamEntry,
+        teamLead: true,
+      };
+
+      setValue('team', teamOption, { shouldValidate: true, shouldDirty: true });
+      handleTeamSelect(teamOption);
+      if (role) {
+        setValue('teamRole', role, { shouldValidate: true, shouldDirty: true });
+      }
+    }
+  });
 
   const formOptions = useMemo(() => {
     if (!options) {
@@ -369,7 +450,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         }}
         noValidate
       >
-        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Profile" />
+        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Details" />
         <div className={s.body}>
           <div className={s.block}>
             <div className={s.sectionHeader}>
@@ -382,7 +463,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   checked={secRulesAccepted}
                   onCheckedChange={(v: boolean) => {
                     setValue('secRulesAccepted', v, { shouldValidate: true, shouldDirty: true });
-                    trigger();
+                    if (isSubmitted) trigger();
                   }}
                 >
                   <Checkbox.Indicator className={s.Indicator}>
@@ -411,6 +492,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       label="Startup stage(s) you invest in?"
                       placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                       options={formOptions.fundingStageOptions}
+                      isRequired
                       // showNone
                     />
                   </div>
@@ -421,6 +503,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       placeholder="E.g. $250.000"
                       currency="USD"
                       disabled={!secRulesAccepted}
+                      isRequired
                     />
                   </div>
                   <div className={s.row}>
@@ -443,7 +526,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   checked={isInvestViaFund}
                   onCheckedChange={(v: boolean) => {
                     setValue('isInvestViaFund', v, { shouldValidate: true, shouldDirty: true });
-                    trigger();
+                    if (isSubmitted) trigger();
                   }}
                 >
                   <Checkbox.Indicator className={s.Indicator}>
@@ -525,6 +608,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       }}
                       onChange={(value) => handleTeamSelect(value)}
                       isStickyNoData
+                      selectRef={teamSelectRef}
                       notFoundContent={
                         <div className={s.secondaryLabel}>
                           If you don&apos;t see your team on this list, please{' '}
@@ -533,7 +617,13 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                             className={s.link}
                             onClick={() => {
                               handleAddTeamLinkClick();
-                              setIsAddTeamDrawerOpen(true);
+                              // Close the dropdown menu
+                              (teamSelectRef.current as any)?.blur();
+                              if (useInlineAddTeam) {
+                                setIsAddingTeamInline(true);
+                              } else {
+                                setIsAddTeamDrawerOpen(true);
+                              }
                             }}
                           >
                             add your team
@@ -543,7 +633,144 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                       }
                     />
                   </div>
-                  {selectedTeam && (
+
+                  {isAddingTeamInline && useInlineAddTeam && (
+                    <div className={s.addNewTeamContainer}>
+                      <div className={s.addNewTeamHeader}>
+                        <div>
+                          <h3 className={s.addNewTeamTitle}>Add Your Team</h3>
+                          <p className={s.addNewTeamDescription}>Enter your team&apos;s details below.</p>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          type="button"
+                          className={s.closeButton}
+                          onClick={() => {
+                            setIsAddingTeamInline(false);
+                            setValue('newTeamName', '', { shouldValidate: true });
+                            setValue('newTeamWebsite', '', { shouldValidate: true });
+                            setValue('newTeamRole', '', { shouldValidate: true });
+                          }}
+                        >
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M3.13 10.87L10.87 3.13M10.87 10.87L3.13 3.13"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </Button>
+                      </div>
+                      <div className={s.separator} />
+                      <div className={s.addNewTeamBody}>
+                        <FormField
+                          name="newTeamRole"
+                          placeholder="Enter your primary role"
+                          label="Role"
+                          isRequired={useInlineAddTeam}
+                          rules={useInlineAddTeam ? { required: 'Role is required' } : undefined}
+                        />
+                        <FormField
+                          name="newTeamName"
+                          placeholder="Enter team name"
+                          label="Team Name"
+                          isRequired={useInlineAddTeam}
+                          rules={useInlineAddTeam ? { required: 'Team name is required' } : undefined}
+                          onClear={() => {
+                            setValue('newTeamName', '', { shouldValidate: true, shouldDirty: true });
+                          }}
+                        />
+                        <FormField
+                          name="newTeamWebsite"
+                          placeholder="Enter website address"
+                          label="Website Address"
+                          description="Paste a URL (LinkedIn, company website, etc.)"
+                          isRequired={useInlineAddTeam}
+                          rules={useInlineAddTeam ? { required: 'Website is required' } : undefined}
+                          onBlur={() => ensureProtocol('newTeamWebsite')}
+                        />
+                        <FormMultiSelect
+                          name="teamInvestInStartupStages"
+                          label="Startup stage(s) you invest in?"
+                          placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
+                          options={formOptions.fundingStageOptions}
+                          // disabled={!isTeamLead || !selectedTeam}
+                          // isRequired
+                        />
+                        <FormCurrencyField
+                          name="teamTypicalCheckSize"
+                          label="Typical Check Size"
+                          placeholder="Select typical check size (E.g. $25k - $50.000k)"
+                          currency="USD"
+                          // disabled={!isTeamLead || !selectedTeam}
+                          // isRequired
+                        />
+                        <FormTagsInput
+                          selectLabel="Add Investment Focus"
+                          name="teamInvestmentFocusAreas"
+                          placeholder="Add keywords. E.g. AI, Staking, Governance, etc."
+                          // disabled={!isTeamLead || !selectedTeam}
+                        />
+                        <FormMultiSelect
+                          name="teamInvestInFundTypes"
+                          label="Type of fund(s) you invest in?"
+                          placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
+                          options={formOptions.fundTypeOptions}
+                          // disabled={!isTeamLead || !selectedTeam}
+                        />
+                        <div className={s.addNewTeamActions}>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            style="border"
+                            onClick={() => {
+                              setIsAddingTeamInline(false);
+                              setValue('newTeamName', '', { shouldValidate: true });
+                              setValue('newTeamWebsite', '', { shouldValidate: true });
+                              setValue('newTeamRole', '', { shouldValidate: true });
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="primary"
+                            style="fill"
+                            onClick={async () => {
+                              const teamName = watch('newTeamName');
+                              const teamWebsite = watch('newTeamWebsite');
+                              const teamRole = watch('newTeamRole');
+                              if (!teamName) return;
+                              if (useInlineAddTeam && (!teamWebsite || !teamRole)) return;
+                              saveTeamFn({
+                                name: teamName,
+                                website: teamWebsite || '',
+                                role: teamRole || '',
+                                requestorEmail: userInfo?.email,
+                                shortDescription: '',
+                              });
+                            }}
+                            disabled={
+                              !watch('newTeamName') ||
+                              (useInlineAddTeam && (!watch('newTeamWebsite') || !watch('newTeamRole')))
+                            }
+                          >
+                            Add Team
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedTeam && !isAddingTeamInline && (
                     <>
                       <div className={s.row}>
                         <FormField
@@ -551,8 +778,9 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                           placeholder="Enter your role"
                           label="Role"
                           disabled={!selectedTeam}
+                          isRequired={!!isTeamLead}
                         />
-                        {!isTeamLead && (
+                        {!isTeamLead && !useInlineAddTeam && (
                           <div className={s.infoSection}>
                             <div className={s.infoIcon}>
                               <InfoIcon />
@@ -561,6 +789,34 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                               <p className={s.infoText}>
                                 Update to fund&apos;s investment details can only be made by team lead
                               </p>
+                            </div>
+                          </div>
+                        )}
+                        {!isTeamLead && useInlineAddTeam && (
+                          <div className={s.noAccessInfoBox}>
+                            <div className={s.noAccessIcon}>
+                              <InfoIconFilled />
+                            </div>
+                            <div className={s.noAccessContent}>
+                              <p className={s.noAccessTitle}>You don&apos;t have access to edit team information</p>
+                              <p className={s.noAccessDescription}>
+                                Only team leads can update investment details for {selectedTeam?.label}.
+                              </p>
+                              <div className={s.noAccessActions}>
+                                <button
+                                  type="button"
+                                  className={s.contactSupportLink}
+                                  onClick={() => {
+                                    const teamRole = watch('teamRole');
+                                    const message = `Fund: ${selectedTeam?.label || 'N/A'}\nMy Role: ${teamRole || 'N/A'}\nReason:`;
+                                    openContactSupport(undefined, 'contactSupport', message);
+                                  }}
+                                >
+                                  Contact Support
+                                  <ExternalLinkIconBlue />
+                                </button>
+                                <span className={s.noAccessActionText}>to request lead reassignment.</span>
+                              </div>
                             </div>
                           </div>
                         )}
@@ -575,6 +831,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                               label="Website address"
                               description="Paste a URL (company website, LinkedIn, Notion, X.com, Bluesky, etc.)"
                               disabled={!isTeamLead || !selectedTeam}
+                              isRequired
+                              onBlur={() => ensureProtocol('website')}
                             />
                           </div>
 
@@ -585,6 +843,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                               placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
                               options={formOptions.fundingStageOptions}
                               disabled={!isTeamLead || !selectedTeam}
+                              isRequired
                             />
                           </div>
 
@@ -595,6 +854,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                               placeholder="Select typical check size (E.g. $25k - $50.000k)"
                               currency="USD"
                               disabled={!isTeamLead || !selectedTeam}
+                              isRequired
                             />
                           </div>
 
@@ -625,7 +885,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
             </section>
           </div>
 
-          {secRulesAccepted && (
+          {secRulesAccepted && !useInlineAddTeam && (
             <div className={clsx(s.block, s.ctaBlock)}>
               <Link href="/settings/email" target="_blank" className={s.cta}>
                 <div className={s.ctaIcon}>
@@ -645,12 +905,14 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         <EditOfficeHoursMobileControls />
       </form>
 
-      <AddTeamDrawer
-        isOpen={isAddTeamDrawerOpen}
-        onClose={() => setIsAddTeamDrawerOpen(false)}
-        userInfo={userInfo}
-        onSuccess={handleTeamCreated}
-      />
+      {!useInlineAddTeam && (
+        <AddTeamDrawer
+          isOpen={isAddTeamDrawerOpen}
+          onClose={() => setIsAddTeamDrawerOpen(false)}
+          userInfo={userInfo}
+          onSuccess={handleTeamCreated}
+        />
+      )}
     </FormProvider>
   );
 };

@@ -46,7 +46,7 @@ export function MobileFormSelectView(props: Props) {
     // If hideOptionsWhenEmpty is true and searchTerm is empty, only show notFoundContent
     if (hideOptionsWhenEmpty && !searchTerm.trim()) {
       return (
-        <div className={s.notFound}>
+        <div className={s.notFound} onClick={toggleOpen}>
           {notFoundContent}
         </div>
       );
@@ -56,7 +56,7 @@ export function MobileFormSelectView(props: Props) {
 
     if (filtered.length === 0) {
       return (
-        <div className={s.notFound}>
+        <div className={s.notFound} onClick={toggleOpen}>
           <span>No options found</span>
           {notFoundContent}
         </div>
@@ -105,7 +105,11 @@ export function MobileFormSelectView(props: Props) {
         <SearchIcon className={s.searchIcon} />
       </div>
       <div className={s.options}>{renderMobileOptions()}</div>
-      {notFoundContent && <div className={s.notFound}>{notFoundContent}</div>}
+      {notFoundContent && (
+        <div className={s.notFound} onClick={toggleOpen}>
+          {notFoundContent}
+        </div>
+      )}
     </div>
   );
 }

@@ -117,9 +117,7 @@ export const InvestorProfileView = ({
   return (
     <>
       {showIncomplete &&
-        (isInvestor === null &&
-        !isInvestorAccess(member?.accessLevel || '') &&
-        !isDemodaySignUpSource(signUpSource) ? (
+        (isInvestor === null && !isInvestorAccess(member?.accessLevel || '') && !isDemodaySignUpSource(signUpSource) ? (
           <div className={s.incompleteWarning}>
             <div className={s.warningContent}>
               <div className={s.warningIcon}>
@@ -163,7 +161,7 @@ export const InvestorProfileView = ({
           </div>
         ) : (
           <DataIncomplete className={s.incompleteStrip}>
-            Update investor details to be eligible for demo day participation.
+            Review your investor details; founders see this when you&apos;re introduced.
           </DataIncomplete>
         ))}
 
@@ -172,7 +170,7 @@ export const InvestorProfileView = ({
           [s.missingData]: showIncomplete && isLoggedIn,
         })}
       >
-        <MemberDetailsSectionHeader title="Investor Profile">
+        <MemberDetailsSectionHeader title="Investor Details">
           {isEditable && onEdit && <EditButton onClick={onEdit} />}
         </MemberDetailsSectionHeader>
 

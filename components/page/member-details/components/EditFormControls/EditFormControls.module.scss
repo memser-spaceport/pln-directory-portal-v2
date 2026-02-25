@@ -36,14 +36,16 @@
 }
 
 .title {
-  color: #0f172a;
   font-feature-settings:
     'liga' off,
     'clig' off;
+
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
 }
 
 .btn {

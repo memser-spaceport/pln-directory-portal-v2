@@ -327,6 +327,27 @@
   }
 }
 
+.addPill {
+  display: flex;
+  padding: 2px 8px;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  border-radius: 9999px;
+  background: rgba(14, 15, 17, 0.06);
+  color: #455468;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  border: none;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.1);
+  }
+}
+
 .sectionContent {
   width: 100%;
 }

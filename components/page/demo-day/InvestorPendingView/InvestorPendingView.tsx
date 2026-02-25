@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { getParsedValue } from '@/utils/common.utils';
 import { checkInvestorProfileComplete } from '@/utils/member.utils';
 import Cookies from 'js-cookie';
@@ -13,6 +13,7 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { LandingBase } from '../LandingBase';
+import { EditInvestorProfileDrawer } from '../AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { CountdownComponent } from '@/components/common/Countdown';
 import { DemoDayInfoRow } from '@/components/common/DemoDayInfoRow';
@@ -27,6 +28,7 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
   const { data: loadedMemberData } = useMember(userInfo?.uid);
   const memberData = loadedMemberData?.memberInfo || initialMemberData;
   const { data: engagementData } = useGetEngagement();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Analytics hooks
   const {
@@ -94,8 +96,7 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
 
     reportAnalytics.mutate(buttonClickEvent);
 
-    // Open in new tab
-    window.open(`/members/${userInfo.uid}?backTo=/demoday/${initialDemoDayState?.slugURL}/investor`, '_blank');
+    setDrawerOpen(true);
   };
 
   const handleAddToCalendar = () => {
@@ -147,27 +148,37 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
   };
 
   return (
-    <LandingBase
-      initialDemoDayState={initialDemoDayState}
-      countdown={
-        <CountdownComponent targetDate={initialDemoDayState?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />
-      }
-      information={
-        <DemoDayInfoRow
-          date={initialDemoDayState?.date}
-          teamsCount={initialDemoDayState?.teamsCount}
-          investorsCount={initialDemoDayState?.investorsCount}
-          showInvestorsLink={true}
-        />
-      }
-    >
-      <InvestorStepper
+    <>
+      <LandingBase
         initialDemoDayState={initialDemoDayState}
-        currentStep={currentStep}
-        onFillProfile={handleFillProfile}
-        onAddToCalendar={handleAddToCalendar}
-        onGoToDemoDay={handleGoToDemoDay}
+        countdown={
+          <CountdownComponent
+            targetDate={initialDemoDayState?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)}
+          />
+        }
+        information={
+          <DemoDayInfoRow
+            date={initialDemoDayState?.date}
+            teamsCount={initialDemoDayState?.teamsCount}
+            investorsCount={initialDemoDayState?.investorsCount}
+            showInvestorsLink={true}
+          />
+        }
+      >
+        <InvestorStepper
+          initialDemoDayState={initialDemoDayState}
+          currentStep={currentStep}
+          onFillProfile={handleFillProfile}
+          onAddToCalendar={handleAddToCalendar}
+          onGoToDemoDay={handleGoToDemoDay}
+        />
+      </LandingBase>
+      <EditInvestorProfileDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        uid={userInfo?.uid ?? ''}
+        isLoggedIn={!!userInfo}
       />
-    </LandingBase>
+    </>
   );
 };

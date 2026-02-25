@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import clsx from 'clsx';
@@ -10,6 +10,7 @@ import { checkInvestorProfileComplete } from '@/utils/member.utils';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
+import { EditInvestorProfileDrawer } from './EditInvestorProfileDrawer/EditInvestorProfileDrawer';
 import s from './AppliedInvestorSteps.module.scss';
 
 interface Props {
@@ -55,6 +56,7 @@ export const AppliedInvestorSteps: React.FC<Props> = ({ isNew, isLoggedIn, uid, 
   const userInfo = getParsedValue(Cookies.get('userInfo'));
   const { data: memberData } = useMember(isLoggedIn ? uid : undefined);
   const { onAccountCreatedSuccessModalContinueToLoginClicked } = useDemoDayAnalytics();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isInvestorProfileComplete = useMemo(
     () => checkInvestorProfileComplete(memberData?.memberInfo, userInfo),
@@ -73,7 +75,7 @@ export const AppliedInvestorSteps: React.FC<Props> = ({ isNew, isLoggedIn, uid, 
     });
 
     if (isLoggedIn) {
-      window.open(`/members/${uid}?backTo=${encodeURIComponent(demoDayPath)}`, '_blank');
+      setDrawerOpen(true);
     } else {
       router.replace(`${demoDayPath}?prefillEmail=${encodeURIComponent(email ?? '')}#login`);
     }
@@ -122,6 +124,7 @@ export const AppliedInvestorSteps: React.FC<Props> = ({ isNew, isLoggedIn, uid, 
   ];
 
   return (
+    <>
     <div className={s.stepperCard}>
       <div className={s.titleSection}>
         <div className={s.icon}>
@@ -158,5 +161,7 @@ export const AppliedInvestorSteps: React.FC<Props> = ({ isNew, isLoggedIn, uid, 
         ))}
       </div>
     </div>
+    <EditInvestorProfileDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} uid={uid} isLoggedIn={isLoggedIn} />
+    </>
   );
 };

@@ -35,6 +35,7 @@ export const useTeamFilterStore = createFilterStore({
     'fundingStage', // Funding stage
     'technology', // Technology tags
     'asks', // Team asks/requests
+    'priorities', // Team priorities
     'investmentFocus', // Investment focus areas
 
     // Focus areas (hierarchical)

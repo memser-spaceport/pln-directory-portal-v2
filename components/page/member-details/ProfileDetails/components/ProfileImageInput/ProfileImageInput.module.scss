@@ -1,18 +1,68 @@
 @use 'styles/mixins';
 
-.dropzone {
-  @include mixins.centralize;
+.avatarContainer {
   position: relative;
-  border-radius: 72px;
-  border: 1px solid var(--Neutral-Slate-200, #e2e8f0);
   width: 72px;
   min-width: 72px;
   height: 72px;
-  overflow: hidden;
 }
 
-.dropzoneHint {
+.avatarWrapper {
+  @include mixins.centralize;
   position: relative;
+  border-radius: 9999px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #afbaca;
+}
+
+.imagePreview {
+  object-fit: cover;
+}
+
+.replaceBtn,
+.deleteBtn {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  background: var(--action-background-base-white, white);
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.08);
   z-index: 1;
-  background: transparent;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0px -2px 8px 0px rgba(14, 15, 17, 0.02);
+    pointer-events: none;
+  }
+
+  &:hover {
+    background: var(--action-background-base-white-hover, #f8fafc);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.replaceBtn {
+  bottom: -1px;
+  right: -1px;
+}
+
+.deleteBtn {
+  top: -3px;
+  right: -3px;
 }

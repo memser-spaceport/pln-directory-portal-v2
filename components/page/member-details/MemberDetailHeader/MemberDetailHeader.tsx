@@ -45,6 +45,8 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const { onEdit } = props;
 
   const showInvestorTag = shouldShowInvestorTag(member);
+  const hasBio = !!member.bio && member.bio.trim() !== '<p><br></p>';
+  const hasSkills = skills && skills.length > 0;
 
   let mainTeam: IMemberTeam | ITeam | null = member?.mainTeam;
   const otherTeams = member.teams
@@ -198,39 +200,64 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
             </div>
           )}
 
-          {skills?.map((skill: any, index: number) => (
-            <Fragment key={`${skill} + ${index}`}>
-              {index < 3 && (
+          {hasSkills ? (
+            <>
+              {skills?.map((skill: any, index: number) => (
+                <Fragment key={`${skill} + ${index}`}>
+                  {index < 3 && (
+                    <CustomTooltip
+                      trigger={
+                        <div>
+                          <Tag value={skill?.title} tagsLength={skills?.length} />
+                        </div>
+                      }
+                      content={skill?.title}
+                    />
+                  )}
+                </Fragment>
+              ))}
+              {skills?.length > 3 && (
                 <CustomTooltip
+                  forceTooltip
                   trigger={
                     <div>
-                      <Tag value={skill?.title} tagsLength={skills?.length} />
+                      <Tag variant="primary" value={'+' + (skills?.length - 3).toString()}></Tag>{' '}
                     </div>
                   }
-                  content={skill?.title}
+                  content={
+                    <div>
+                      {skills
+                        ?.slice(3, skills?.length)
+                        .map((skill) => skill?.title)
+                        .join(',|')
+                        .split('|')
+                        .map((skill) => <div key={skill}>{skill}</div>)}
+                    </div>
+                  }
                 />
               )}
-            </Fragment>
-          ))}
-          {skills?.length > 3 && (
-            <CustomTooltip
-              forceTooltip
-              trigger={
-                <div>
-                  <Tag variant="primary" value={'+' + (skills?.length - 3).toString()}></Tag>{' '}
-                </div>
-              }
-              content={
-                <div>
-                  {skills
-                    ?.slice(3, skills?.length)
-                    .map((skill) => skill?.title)
-                    .join(',|')
-                    .split('|')
-                    .map((skill) => <div key={skill}>{skill}</div>)}
-                </div>
-              }
-            />
+            </>
+          ) : (
+            isLoggedIn &&
+            (isOwner || isAdmin) && (
+              <>
+                {(showInvestorTag || isOpenToWork || isTeamLead) && <div className={s.tagDivider} />}
+                <button type="button" className={s.addPill} onClick={onEdit}>
+                  <PlusIcon />
+                  <span>Add skills</span>
+                </button>
+              </>
+            )
+          )}
+
+          {isLoggedIn && (isOwner || isAdmin) && !hasBio && (
+            <>
+              <div className={s.tagDivider} />
+              <button type="button" className={s.addPill} onClick={onEdit}>
+                <PlusIcon />
+                <span>Add bio</span>
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -279,6 +306,15 @@ const LocationIcon = () => (
     <path
       d="M10 4.6875C9.32013 4.6875 8.65552 4.88911 8.09023 5.26682C7.52493 5.64454 7.08434 6.1814 6.82416 6.80953C6.56399 7.43765 6.49591 8.12881 6.62855 8.79562C6.76119 9.46243 7.08858 10.0749 7.56932 10.5557C8.05006 11.0364 8.66257 11.3638 9.32938 11.4964C9.99619 11.6291 10.6874 11.561 11.3155 11.3008C11.9436 11.0407 12.4805 10.6001 12.8582 10.0348C13.2359 9.46948 13.4375 8.80487 13.4375 8.125C13.4365 7.21363 13.074 6.33989 12.4295 5.69546C11.7851 5.05103 10.9114 4.68853 10 4.6875ZM10 9.6875C9.69097 9.6875 9.38887 9.59586 9.13192 9.42417C8.87497 9.25248 8.6747 9.00845 8.55644 8.72294C8.43818 8.43743 8.40723 8.12327 8.46752 7.82017C8.52781 7.51708 8.67663 7.23866 8.89515 7.02014C9.11367 6.80163 9.39208 6.65281 9.69517 6.59252C9.99827 6.53223 10.3124 6.56318 10.5979 6.68144C10.8835 6.7997 11.1275 6.99997 11.2992 7.25692C11.4709 7.51387 11.5625 7.81597 11.5625 8.125C11.5625 8.5394 11.3979 8.93683 11.1049 9.22985C10.8118 9.52288 10.4144 9.6875 10 9.6875ZM10 0.9375C8.09439 0.939568 6.26742 1.69748 4.91995 3.04495C3.57248 4.39242 2.81457 6.21939 2.8125 8.125C2.8125 14.1687 9.19063 18.7031 9.4625 18.893C9.62005 19.0032 9.8077 19.0624 10 19.0624C10.1923 19.0624 10.3799 19.0032 10.5375 18.893C11.7455 18.0027 12.8508 16.9808 13.8328 15.8461C16.0273 13.3258 17.1875 10.6539 17.1875 8.125C17.1854 6.21939 16.4275 4.39242 15.08 3.04495C13.7326 1.69748 11.9056 0.939568 10 0.9375ZM12.4453 14.5867C11.7004 15.4424 10.8822 16.2313 10 16.9445C9.1178 16.2313 8.29958 15.4424 7.55469 14.5867C6.25 13.0758 4.6875 10.7273 4.6875 8.125C4.6875 6.71604 5.24721 5.36478 6.2435 4.36849C7.23978 3.37221 8.59104 2.8125 10 2.8125C11.409 2.8125 12.7602 3.37221 13.7565 4.36849C14.7528 5.36478 15.3125 6.71604 15.3125 8.125C15.3125 10.7273 13.75 13.0758 12.4453 14.5867Z"
       fill="#455468"
+    />
+  </svg>
+);
+
+const PlusIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M13.5 8C13.5 8.13261 13.4473 8.25979 13.3536 8.35355C13.2598 8.44732 13.1326 8.5 13 8.5H8.5V13C8.5 13.1326 8.44732 13.2598 8.35355 13.3536C8.25979 13.4473 8.13261 13.5 8 13.5C7.86739 13.5 7.74021 13.4473 7.64645 13.3536C7.55268 13.2598 7.5 13.1326 7.5 13V8.5H3C2.86739 8.5 2.74021 8.44732 2.64645 8.35355C2.55268 8.25979 2.5 8.13261 2.5 8C2.5 7.86739 2.55268 7.74021 2.64645 7.64645C2.74021 7.55268 2.86739 7.5 3 7.5H7.5V3C7.5 2.86739 7.55268 2.74021 7.64645 2.64645C7.74021 2.55268 7.86739 2.5 8 2.5C8.13261 2.5 8.25979 2.55268 8.35355 2.64645C8.44732 2.74021 8.5 2.86739 8.5 3V7.5H13C13.1326 7.5 13.2598 7.55268 13.3536 7.64645C13.4473 7.74021 13.5 7.86739 13.5 8Z"
+      fill="currentColor"
     />
   </svg>
 );

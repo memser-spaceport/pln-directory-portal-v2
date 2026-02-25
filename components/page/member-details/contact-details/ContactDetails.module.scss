@@ -167,6 +167,36 @@
   user-select: none;
 }
 
+.grayscale {
+  //filter: grayscale(1) contrast(0.05) brightness(1.8);
+  pointer-events: none;
+  user-select: none;
+}
+
+.addLinkedinButton {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+  white-space: nowrap;
+  display: flex;
+  padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+
+
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+  &:hover {
+    color: #156ff7;
+  }
+}
+
 .missingDataHeader {
   border-radius: 0;
   background: #eebd6c;

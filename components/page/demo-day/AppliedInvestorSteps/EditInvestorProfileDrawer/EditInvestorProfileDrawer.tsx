@@ -30,6 +30,7 @@ interface EditInvestorProfileDrawerProps {
   onClose: () => void;
   uid: string;
   isLoggedIn: boolean;
+  isInvestor?: boolean | null;
 }
 
 export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps> = ({
@@ -37,6 +38,7 @@ export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps>
   onClose,
   uid,
   isLoggedIn,
+  isInvestor: isInvestorProp,
 }) => {
   const userInfo = getParsedValue(Cookies.get('userInfo'));
   const isAdmin = userInfo && userInfo.roles?.includes(ADMIN_ROLE);
@@ -58,6 +60,7 @@ export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps>
   });
 
   const { data: investorSettings } = useGetMemberInvestorSettings(uid);
+  const isInvestor = isInvestorProp ?? investorSettings?.isInvestor;
 
   return (
     <Drawer isOpen={isOpen} onClose={() => {}} noBlur>
@@ -80,7 +83,7 @@ export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps>
               userInfo={userInfo}
               member={member}
               isLoggedIn={isLoggedIn}
-              isInvestor={investorSettings?.isInvestor}
+              isInvestor={isInvestor}
               useInlineAddTeam
             />
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />

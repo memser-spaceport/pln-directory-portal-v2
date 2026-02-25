@@ -178,6 +178,7 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
         onClose={() => setDrawerOpen(false)}
         uid={userInfo?.uid ?? ''}
         isLoggedIn={!!userInfo}
+        isInvestor={true}
       />
     </>
   );

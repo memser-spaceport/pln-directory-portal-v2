@@ -161,7 +161,7 @@ export const AppliedInvestorSteps: React.FC<Props> = ({ isNew, isLoggedIn, uid, 
         ))}
       </div>
     </div>
-    <EditInvestorProfileDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} uid={uid} isLoggedIn={isLoggedIn} />
+    <EditInvestorProfileDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} uid={uid} isLoggedIn={isLoggedIn} isInvestor={true} />
     </>
   );
 };

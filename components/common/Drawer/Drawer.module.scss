@@ -26,4 +26,8 @@
   @include media.mobile-only {
     width: 100vw;
   }
+
+  &.fullScreen {
+    width: 100vw;
+  }
 }

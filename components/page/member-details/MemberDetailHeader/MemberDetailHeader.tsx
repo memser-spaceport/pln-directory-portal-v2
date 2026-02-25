@@ -30,6 +30,7 @@ interface IMemberDetailHeader {
   userInfo: IUserInfo;
   isLoggedIn: boolean;
   onEdit: () => void;
+  variant?: 'investor-drawer';
 }
 
 export const MemberDetailHeader = (props: IMemberDetailHeader) => {
@@ -42,7 +43,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const isOpenToWork = member?.openToWork;
   const skills = member?.skills;
   const userInfo = props?.userInfo;
-  const { onEdit } = props;
+  const { onEdit, variant } = props;
 
   const showInvestorTag = shouldShowInvestorTag(member);
   const hasBio = !!member.bio && member.bio.trim() !== '<p><br></p>';
@@ -139,10 +140,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
                   className={s.addButton}
                   type="button"
                   onClick={() => {
-                    analytics.onAddYourRoleClicked(
-                      getAnalyticsUserInfo(userInfo),
-                      getAnalyticsMemberInfo(member),
-                    );
+                    analytics.onAddYourRoleClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
                     onEdit();
                   }}
                 >
@@ -200,7 +198,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
             </div>
           )}
 
-          {hasSkills ? (
+          {hasSkills && variant !== 'investor-drawer' ? (
             <>
               {skills?.map((skill: any, index: number) => (
                 <Fragment key={`${skill} + ${index}`}>
@@ -239,7 +237,8 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
             </>
           ) : (
             isLoggedIn &&
-            (isOwner || isAdmin) && (
+            (isOwner || isAdmin) &&
+            variant !== 'investor-drawer' && (
               <>
                 {(showInvestorTag || isOpenToWork || isTeamLead) && <div className={s.tagDivider} />}
                 <button type="button" className={s.addPill} onClick={onEdit}>
@@ -250,7 +249,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
             )
           )}
 
-          {isLoggedIn && (isOwner || isAdmin) && !hasBio && (
+          {isLoggedIn && (isOwner || isAdmin) && !hasBio && variant !== 'investor-drawer' && (
             <>
               <div className={s.tagDivider} />
               <button type="button" className={s.addPill} onClick={onEdit}>

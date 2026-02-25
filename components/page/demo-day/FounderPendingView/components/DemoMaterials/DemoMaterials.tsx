@@ -5,6 +5,8 @@ import s from './DemoMaterials.module.scss';
 import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { DemoMaterialAnalyticsHandlers } from '../EditProfileDrawer/EditProfileDrawer';
 import dynamic from 'next/dynamic';
+import { getDemoDayMaterials } from '@/constants/demoDay';
+import { useParams } from 'next/navigation';
 
 const PitchDeckUpload = dynamic(() => import('../PitchDeckUpload'), { ssr: false });
 
@@ -59,19 +61,20 @@ export const DemoMaterials = ({
   companyFundraiseParagraph,
   teamUid,
 }: DemoMaterialsProps) => {
+  const params = useParams();
+  const materials = getDemoDayMaterials(params.demoDayId as string);
+  const materialDocPrep = materials?.materialDocPrep;
+
   return (
     <div className={s.demoMaterialsSection}>
       <div className={s.sectionHeader}>
         <h3 className={s.sectionTitle}>Demo Day Materials</h3>
-        <Link
-          href="https://docs.google.com/document/d/1Rtrbs6684K5XMAlAUiqdt2XESrkAiSTzEYhl5j8coOI/edit?tab=t.0#heading=h.th9rcgmw87qq"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={s.prepDocLink}
-        >
-          <span>Materials prep doc</span>
-          <ExternalLinkIcon />
-        </Link>
+        {materialDocPrep && (
+          <Link href={materialDocPrep} target="_blank" rel="noopener noreferrer" className={s.prepDocLink}>
+            <span>Materials prep doc</span>
+            <ExternalLinkIcon />
+          </Link>
+        )}
       </div>
       <div className={s.materialsContainer}>
         <div className={s.materials}>

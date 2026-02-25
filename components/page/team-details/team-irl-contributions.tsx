@@ -41,14 +41,48 @@ interface ITeamMembers {
   userInfo: IAnalyticsUserInfo;
 }
 
+function mergeContributions(eventGuests: IEventGuest[], associations: any[]): IEventGuest[] {
+  const eventMap = new Map<string, IEventGuest>();
+
+  for (const guest of eventGuests) {
+    eventMap.set(guest.event.uid, { ...guest });
+  }
+
+  for (const assoc of associations) {
+    const eventUid = assoc.event?.uid;
+    if (!eventUid) continue;
+
+    const isHost = assoc.role === 'HOST';
+    const isSponsor = assoc.role === 'SPONSOR';
+
+    const existing = eventMap.get(eventUid);
+    if (existing) {
+      if (isHost) existing.isHost = true;
+      if (isSponsor) existing.isSponsor = true;
+    } else {
+      eventMap.set(eventUid, {
+        uid: assoc.uid,
+        isHost,
+        isSponsor,
+        event: assoc.event,
+      });
+    }
+  }
+
+  return Array.from(eventMap.values());
+}
+
 const TeamIrlContributions = (props: ITeamMembers) => {
   const userInfo = props?.userInfo;
   const modalRef = useRef<HTMLDialogElement>(null);
   const [selectedRole, setSelectedRole] = useState('');
   const analytics = useTeamAnalytics();
 
-  const team = props?.team?.eventGuests;
-  const sortedEvents = sortEventsByDate(team);
+  const eventGuests: IEventGuest[] = props?.team?.eventGuests ?? [];
+  const associations: any[] = props?.team?.associations ?? [];
+
+  const mergedContributions = mergeContributions(eventGuests, associations);
+  const sortedEvents = sortEventsByDate(mergedContributions);
 
   const transformData = (event: IEventGuest[]): GroupedEvents => {
     return event.reduce(
@@ -67,7 +101,7 @@ const TeamIrlContributions = (props: ITeamMembers) => {
     );
   };
 
-  const groupedData: GroupedEvents = team ? transformData(sortedEvents) : { Host: [], Sponsor: [] };
+  const groupedData: GroupedEvents = mergedContributions.length > 0 ? transformData(sortedEvents) : { Host: [], Sponsor: [] };
 
   const onClose = () => {
     if (modalRef.current) {
@@ -114,12 +148,10 @@ const TeamIrlContributions = (props: ITeamMembers) => {
     return format(dateInTargetTimezone, 'MMM yyyy', { timeZone });
   };
 
-  console.log(sortedEvents);
-
   return (
     <>
       <div className="root">
-        <div className="root__header">Contributions ({team?.length})</div>
+        <div className="root__header">Contributions ({mergedContributions?.length})</div>
         <div className="root__irlCrbts">
           {Object.entries(groupedData).map(([role, events]) => {
             const visibleEvents = events?.slice(0, 5);

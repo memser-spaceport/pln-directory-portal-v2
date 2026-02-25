@@ -123,6 +123,7 @@ export interface ITeam {
   officeHours?: string | null;
   teamFocusAreas: any[];
   eventGuests?: any;
+  associations?: any;
   isFund?: boolean;
   investmentTeam?: boolean;
   investorProfile?: {

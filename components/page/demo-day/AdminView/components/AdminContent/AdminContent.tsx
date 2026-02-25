@@ -7,13 +7,14 @@ import { PageTitle } from '@/components/page/demo-day/PageTitle';
 import { AdminTeamsList } from '../AdminTeamsList';
 import { Alert } from '@/components/page/demo-day/shared/Alert';
 import { MediaPreview } from '../../../FounderPendingView/components/MediaPreview';
-import { PITCH_VIDEO_POSTER, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
+import { getDemoDayMaterials } from '@/constants/demoDay';
 import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { useParams } from 'next/navigation';
 
 export const AdminContent = ({
   isDirectoryAdmin,
@@ -22,22 +23,24 @@ export const AdminContent = ({
   isDirectoryAdmin: boolean;
   label?: string;
 }) => {
+  const params = useParams();
+  const slug = params.demoDayId as string;
+  const materials = getDemoDayMaterials(slug);
   const { data: demoDayData } = useGetDemoDayState();
   const { data: profiles, isLoading } = useGetAllFundraisingProfiles();
 
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const { onActiveViewWelcomeVideoViewed } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
+  const hasVideo = !!materials?.pitchVideoUrl;
 
   const handleWelcomeVideoViewClicked = () => {
-    if (userInfo?.email) {
-      // PostHog analytics via hook
+    if (userInfo?.email && materials?.pitchVideoUrl) {
       onActiveViewWelcomeVideoViewed({
-        videoUrl: PITCH_VIDEO_URL,
+        videoUrl: materials.pitchVideoUrl,
         pageContext: 'active-view',
       });
 
-      // Direct API analytics event
       const welcomeVideoEvent: TrackEventDto = {
         name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_WELCOME_VIDEO_VIEWED,
         distinctId: userInfo.email,
@@ -92,16 +95,18 @@ export const AdminContent = ({
               }
             />
           </div>
-          <div className={s.videoWrapper}>
-            <MediaPreview
-              url={PITCH_VIDEO_URL}
-              videoPoster={PITCH_VIDEO_POSTER}
-              type="video"
-              title="Pitch Video"
-              showMetadata={false}
-              onView={handleWelcomeVideoViewClicked}
-            />
-          </div>
+          {hasVideo && materials && (
+            <div className={s.videoWrapper}>
+              <MediaPreview
+                url={materials.pitchVideoUrl}
+                videoPoster={materials.pitchVideoPoster}
+                type="video"
+                title="Pitch Video"
+                showMetadata={false}
+                onView={handleWelcomeVideoViewClicked}
+              />
+            </div>
+          )}
 
           <Alert>
             <p>

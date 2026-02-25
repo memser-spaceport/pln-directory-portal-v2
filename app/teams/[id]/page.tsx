@@ -115,7 +115,7 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
             </div>
           )}
           {/* Irl Contribuions */}
-          {team.eventGuests.length > 0 && (
+          {(team.eventGuests?.length > 0 || team.associations?.length > 0) && (
             <div className={styles?.teamDetail__irlContributions}>
               <TeamIrlContributions team={team} userInfo={userInfo} members={members} teamId={teamId} />
             </div>

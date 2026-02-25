@@ -2,34 +2,36 @@ import React from 'react';
 import s from '@/components/page/demo-day/FounderPendingView/FounderPendingView.module.scss';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import Link from 'next/link';
-import { format } from 'date-fns-tz';
 import { TeamsList } from '@/components/page/demo-day/ActiveView/components/TeamsList';
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
 import { Alert } from '@/components/page/demo-day/shared/Alert';
 import { MediaPreview } from '../../../FounderPendingView/components/MediaPreview';
-import { PITCH_VIDEO_POSTER, PITCH_VIDEO_URL } from '@/utils/constants/team-constants';
+import { getDemoDayMaterials } from '@/constants/demoDay';
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { useParams } from 'next/navigation';
 
 export const Content = () => {
+  const params = useParams();
+  const slug = params.demoDayId as string;
+  const materials = getDemoDayMaterials(slug);
   const { data } = useGetDemoDayState();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const { onActiveViewWelcomeVideoViewed } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
+  const hasVideo = !!materials?.pitchVideoUrl;
 
   const handleWelcomeVideoViewClicked = () => {
-    if (userInfo?.email) {
-      // PostHog analytics via hook
+    if (userInfo?.email && materials?.pitchVideoUrl) {
       onActiveViewWelcomeVideoViewed({
-        videoUrl: PITCH_VIDEO_URL,
+        videoUrl: materials.pitchVideoUrl,
         pageContext: 'active-view',
       });
 
-      // Direct API analytics event
       const welcomeVideoEvent: TrackEventDto = {
         name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_WELCOME_VIDEO_VIEWED,
         distinctId: userInfo.email,
@@ -90,16 +92,18 @@ export const Content = () => {
               }
             />
           </div>
-          <div className={s.videoWrapper}>
-            <MediaPreview
-              url={PITCH_VIDEO_URL}
-              videoPoster={PITCH_VIDEO_POSTER}
-              type="video"
-              title="Pitch Video"
-              showMetadata={false}
-              onView={handleWelcomeVideoViewClicked}
-            />
-          </div>
+          {hasVideo && materials && (
+            <div className={s.videoWrapper}>
+              <MediaPreview
+                url={materials.pitchVideoUrl}
+                videoPoster={materials.pitchVideoPoster}
+                type="video"
+                title="Pitch Video"
+                showMetadata={false}
+                onView={handleWelcomeVideoViewClicked}
+              />
+            </div>
+          )}
           {/*<ProfileContent pitchDeckUrl={PITCH_DECK_URL} videoUrl={PITCH_VIDEO_URL} />*/}
 
           <Alert>

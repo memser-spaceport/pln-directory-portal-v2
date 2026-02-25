@@ -93,29 +93,28 @@ export const activitiesData: ActivitiesData = {
       category: 'Knowledge Sharing',
       activity: 'Create a Playbook or Template*',
       networkValue: 'Document best practices others can easily use across the network.',
-      points: '300+',
+      points: '200+',
       isAutoTracked: true,
       popupContent: {
         title: 'Create a Replicable Playbook or Template',
         description: 'Create or share a reusable step-by-step playbook or Google Doc template (e.g., onboarding guides, community moderation frameworks, grant templates, etc.).',
-        submissionNote: 'Must be based on proven practices and exclude confidential or personal information. Publish your playbook or template as a post on Protosphere to be eligible. Only published resources are eligible for validation. Please see this article on Offer Letters as an example.',
+        submissionNote: 'Must be based on proven practices and exclude confidential or personal information. Publish your playbook or template as a post on the PL Directory Forum. Your post title must begin with [Playbook] or [Template] (typed manually in the title) to be eligible. Only published resources are eligible for validation.',
         links: [
-          { text: 'Protosphere', url: 'https://protosphere.plnetwork.io/' },
-          { text: 'Offer Letters', url: 'https://protosphere.plnetwork.io/posts/Offer-Letter-Template-(US-Employee)-cm24z0ud800dopnd769i8g6xw' }
+          { text: 'PL Directory Forum', url: 'https://directory.plnetwork.io/forum' },
         ],
         pointsAwarded: {
           title: 'Points Awarded:',
           items: [
-            { label: 'Base Reward', value: `300 points for posting a "Playbook" or "Template" article` },
+            { label: 'Base Reward', value: `200 points for posting a "Playbook" or "Template" article` },
             {
               label: 'Impact Bonus',
               value: 'Participants may collect additional bonus points, on top of the base reward, if their submitted article meets various engagement thresholds (90 day window beginning with the date of publication).',
               italicValue: true,
               valueOnNewLine: true,
               subItems: [
-                { label: 'Tier 1 (10-30 views of published resource)', value: '200 points' },
-                { label: 'Tier 2 (31-50 views)', value: '500 points' },
-                { label: 'Tier 3 (51+ views)', value: '900 points' }
+                { label: 'Tier 1 (50-75 forum post views)', value: '50 points' },
+                { label: 'Tier 2 (76-100 forum post views)', value: '150 points' },
+                { label: 'Tier 3 (101+ forum post view)', value: '300 points' }
               ]
             },
           ]

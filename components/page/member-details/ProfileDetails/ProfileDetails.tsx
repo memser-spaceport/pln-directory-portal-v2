@@ -65,8 +65,9 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props)
               onEditProfileDetailsClicked();
               setEditView(true);
             }}
+            variant={variant}
           />
-          {hasBio && member.bio && (
+          {hasBio && member.bio && variant !== 'investor-drawer' && (
             <div className={s.bioContainer}>
               <div className={s.bioTitle}>Bio</div>
               <div className={clsx(s.bioContentWrapper, { [s.collapsed]: !isBioExpanded && isOverflowing })}>

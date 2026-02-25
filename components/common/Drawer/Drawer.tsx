@@ -10,10 +10,11 @@ export interface DrawerProps {
   isOpen: boolean;
   onClose: () => void;
   width?: number;
+  fullScreen?: boolean;
 }
 
 export function Drawer(props: PropsWithChildren<DrawerProps>) {
-  const { isOpen, onClose, children, width = 720 } = props;
+  const { isOpen, onClose, children, width = 720, fullScreen } = props;
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -40,11 +41,11 @@ export function Drawer(props: PropsWithChildren<DrawerProps>) {
           transition={{ duration: 0.3, ease: 'easeOut' }}
         >
           <motion.div
-            className={s.container}
-            style={{ width }}
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
+            className={`${s.container} ${fullScreen ? s.fullScreen : ''}`}
+            style={fullScreen ? undefined : { width }}
+            initial={fullScreen ? { opacity: 0 } : { x: '100%' }}
+            animate={fullScreen ? { opacity: 1 } : { x: 0 }}
+            exit={fullScreen ? { opacity: 0 } : { x: '100%' }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
           >
             {children}

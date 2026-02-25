@@ -329,9 +329,11 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
           <div className={s.row}>
             <ProfileLocationInput />
           </div>
-          <div className={s.row}>
-            <ProfileSkillsInput />
-          </div>
+          {variant !== 'investor-drawer' && (
+            <div className={s.row}>
+              <ProfileSkillsInput />
+            </div>
+          )}
           {!isInvestor(userInfo?.accessLevel) && userInfo?.accessLevel !== 'L0' && userInfo?.accessLevel !== 'L1' && (
             <div className={s.row}>
               <ProfileCollaborateInput />
@@ -401,9 +403,11 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
             </div>
           )}
 
-          <div className={s.row}>
-            <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} simplified />
-          </div>
+          {variant !== 'investor-drawer' && (
+            <div className={s.row}>
+              <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} simplified />
+            </div>
+          )}
         </div>
         <EditFormMobileControls />
       </form>

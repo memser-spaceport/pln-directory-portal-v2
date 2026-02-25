@@ -65,11 +65,14 @@
   }
 }
 
-.overline {
+.badge {
   display: flex;
-  align-items: center;
-  gap: 4px;
+  padding: 2px 12px 2px 8px;
   justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 }
 
 .badgeDot {
@@ -82,11 +85,15 @@
 
 .overlineText {
   color: var(--foreground-neutral-secondary, #455468);
-  font-size: 16px;
+  font-size: 14px;
   font-style: normal;
-  font-weight: 400;
-  line-height: 16px; /* 133.333% */
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .break {
@@ -591,7 +598,7 @@
 .overline {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 16px;
   justify-content: center;
 }
 
@@ -607,7 +614,7 @@
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 16px;
   font-style: normal;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 24px; /* 150% */
   letter-spacing: -0.3px;
 }

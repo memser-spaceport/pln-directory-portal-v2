@@ -334,11 +334,14 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
               <ProfileSkillsInput />
             </div>
           )}
-          {!isInvestor(userInfo?.accessLevel) && userInfo?.accessLevel !== 'L0' && userInfo?.accessLevel !== 'L1' && (
-            <div className={s.row}>
-              <ProfileCollaborateInput />
-            </div>
-          )}
+          {variant !== 'investor-drawer' &&
+            !isInvestor(userInfo?.accessLevel) &&
+            userInfo?.accessLevel !== 'L0' &&
+            userInfo?.accessLevel !== 'L1' && (
+              <div className={s.row}>
+                <ProfileCollaborateInput />
+              </div>
+            )}
 
           <div className={s.column}>
             <div className={s.inputsLabel}>Primary Role & Team</div>

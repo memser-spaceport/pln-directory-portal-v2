@@ -32,6 +32,7 @@ interface Props {
   investInStartupStages: string[] | undefined;
   investInFundTypes: string[] | undefined;
   secRulesAccepted: boolean | undefined;
+  isInvestViaFund?: boolean;
   type: InvestorProfileType | undefined;
   member?: IMember;
   hideHeader?: boolean;
@@ -46,6 +47,7 @@ export const InvestorProfileView = ({
   investInStartupStages,
   investInFundTypes,
   secRulesAccepted,
+  isInvestViaFund,
   isLoggedIn,
   isEditable,
   showIncomplete,
@@ -117,7 +119,11 @@ export const InvestorProfileView = ({
   return (
     <>
       {showIncomplete &&
-        (isInvestor === null && !isInvestorAccess(member?.accessLevel || '') && !isDemodaySignUpSource(signUpSource) ? (
+        (isInvestor === null &&
+          !isInvestorAccess(member?.accessLevel || '') &&
+          !isDemodaySignUpSource(signUpSource) &&
+          !isInvestViaFund &&
+          !secRulesAccepted ? (
           <div className={s.incompleteWarning}>
             <div className={s.warningContent}>
               <div className={s.warningIcon}>

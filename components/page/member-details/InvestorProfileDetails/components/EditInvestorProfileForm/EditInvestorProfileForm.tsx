@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from '@/components/core/ToastContainer';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
@@ -44,16 +44,41 @@ interface Props {
   member: IMember;
   userInfo: IUserInfo;
   useInlineAddTeam?: boolean;
+  source?: 'investor-drawer';
 }
 
-export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAddTeam }: Props) => {
+const INVESTOR_PROFILE_FIELDS = [
+  'secRulesAccepted',
+  'typicalCheckSize',
+  'investmentFocusAreas',
+  'investInStartupStages',
+  'isInvestViaFund',
+  'team',
+  'teamRole',
+  'website',
+  'teamInvestmentFocusAreas',
+  'teamTypicalCheckSize',
+  'teamInvestInStartupStages',
+  'teamInvestInFundTypes',
+] as const;
+
+function formatValueForAnalytics(value: unknown): unknown {
+  if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && value[0] !== null && 'value' in value[0]) {
+    return value.map((item: { value: string }) => item.value);
+  }
+  if (typeof value === 'object' && value !== null && 'value' in (value as object)) {
+    return (value as { value: string }).value;
+  }
+  return value;
+}
+
+export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAddTeam, source }: Props) => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const updateInvestorProfileMutation = useUpdateInvestorProfile();
   const updateTeamInvestorProfileMutation = useUpdateTeamInvestorProfile();
 
-  // Analytics hooks
-  const { onInvestorProfileUpdated } = useDemoDayAnalytics();
+  const { onInvestorProfileUpdated, onInvestorDrawerInputChanged, onInvestorDrawerFormSaved } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const { openModal: openContactSupport } = useContactSupportStore((s) => s.actions);
 
@@ -106,8 +131,38 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
     setValue,
     watch,
     trigger,
+    control,
     formState: { isValid, isSubmitted },
   } = methods;
+
+  const watchedValues = useWatch({ control });
+  const prevValuesRef = React.useRef<Record<string, unknown> | null>(null);
+  const isInitialMountRef = React.useRef(true);
+
+  React.useEffect(() => {
+    if (source !== 'investor-drawer' || !userInfo?.email) return;
+    const values = (watchedValues || {}) as Record<string, unknown>;
+    if (isInitialMountRef.current) {
+      prevValuesRef.current = values;
+      isInitialMountRef.current = false;
+      return;
+    }
+    const prev = prevValuesRef.current || {};
+    for (const field of INVESTOR_PROFILE_FIELDS) {
+      const currentVal = values[field];
+      const prevVal = prev[field];
+      if (JSON.stringify(currentVal) !== JSON.stringify(prevVal)) {
+        onInvestorDrawerInputChanged({ field, value: formatValueForAnalytics(currentVal) });
+        const inputChangedEvent: TrackEventDto = {
+          name: DEMO_DAY_ANALYTICS.ON_INVESTOR_DRAWER_INPUT_CHANGED,
+          distinctId: userInfo.email,
+          properties: { field, value: formatValueForAnalytics(currentVal), userId: userInfo.uid },
+        };
+        reportAnalytics.mutate(inputChangedEvent);
+      }
+    }
+    prevValuesRef.current = values;
+  }, [watchedValues, source, userInfo?.email, userInfo?.uid, onInvestorDrawerInputChanged, reportAnalytics]);
   const secRulesAccepted = watch('secRulesAccepted');
   const isInvestViaFund = watch('isInvestViaFund');
   const selectedTeam = watch('team');
@@ -396,9 +451,35 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
 
       await updateInvestorProfileMutation.mutateAsync({ memberUid: member.id, payload });
 
-      // Report successful profile update analytics
       if (userInfo?.email) {
-        // PostHog analytics
+        if (source === 'investor-drawer') {
+          const drawerFormValues: Record<string, unknown> = {
+            typicalCheckSize: typicalCheckSizeNumber,
+            investInStartupStages: formData.investInStartupStages.map((item) => item.label),
+            investmentFocus: formData.investmentFocusAreas,
+            secRulesAccepted: formData.secRulesAccepted,
+            isInvestViaFund: formData.isInvestViaFund,
+          };
+          if (formData.team && isTeamLead) {
+            drawerFormValues.teamTypicalCheckSize = teamTypicalCheckSizeNumber;
+            drawerFormValues.teamInvestInStartupStages = formData.teamInvestInStartupStages.map((item) => item.value);
+            drawerFormValues.teamInvestmentFocusAreas = formData.teamInvestmentFocusAreas;
+            drawerFormValues.teamInvestInFundTypes = formData.teamInvestInFundTypes.map((item) => item.value);
+          }
+          onInvestorDrawerFormSaved({ from: 'investorProfile', values: drawerFormValues });
+          reportAnalytics.mutate({
+            name: DEMO_DAY_ANALYTICS.ON_INVESTOR_DRAWER_FORM_SAVED,
+            distinctId: userInfo.email,
+            properties: {
+              from: 'investorProfile',
+              values: drawerFormValues,
+              userId: userInfo.uid,
+              userEmail: userInfo.email,
+              userName: userInfo.name,
+            },
+          });
+        }
+
         onInvestorProfileUpdated({
           hasInvestmentFocus: formData.investmentFocusAreas?.length > 0,
           hasTypicalCheckSize: !!formData.typicalCheckSize,

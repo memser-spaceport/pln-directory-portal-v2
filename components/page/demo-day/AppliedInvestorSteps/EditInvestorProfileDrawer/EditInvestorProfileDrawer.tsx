@@ -85,6 +85,7 @@ export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps>
               isLoggedIn={isLoggedIn}
               isInvestor={isInvestor}
               useInlineAddTeam
+              source="investor-drawer"
             />
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />
           </>

@@ -38,6 +38,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import clsx from 'clsx';
 import { useContactSupportStore } from '@/services/contact-support/store';
+import { TeamsQueryKeys } from '@/services/teams/constants';
 
 interface Props {
   onClose: () => void;
@@ -63,7 +64,13 @@ const INVESTOR_PROFILE_FIELDS = [
 ] as const;
 
 function formatValueForAnalytics(value: unknown): unknown {
-  if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && value[0] !== null && 'value' in value[0]) {
+  if (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    typeof value[0] === 'object' &&
+    value[0] !== null &&
+    'value' in value[0]
+  ) {
     return value.map((item: { value: string }) => item.value);
   }
   if (typeof value === 'object' && value !== null && 'value' in (value as object)) {
@@ -222,6 +229,9 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
           ...oldData,
           teams: [...(oldData.teams || []), newTeamEntry],
         };
+      });
+      queryClient.invalidateQueries({
+        queryKey: [TeamsQueryKeys.GET_TEAMS_FORM_OPTIONS],
       });
 
       const teamOption = {

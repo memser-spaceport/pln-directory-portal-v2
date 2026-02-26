@@ -1,7 +1,7 @@
 import Error from '@/components/core/error';
 import ContactInfo from '@/components/page/team-details/contact-info';
 import Funding from '@/components/page/team-details/funding';
-import TeamDetails from '@/components/page/team-details/TeamDetails';
+import { TeamDetails } from '@/components/page/team-details/TeamDetails';
 import { getMembers } from '@/services/members.service';
 import { getAllTeams, getTeam, getTeamUIDByAirtableId } from '@/services/teams.service';
 import { IMember } from '@/types/members.types';

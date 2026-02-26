@@ -689,6 +689,24 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.6 - Investor Onboarding & Contact Updates',
+    tag: 'Improvements',
+    date: '26, Feb 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Investor Onboarding</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Profile completion drawer</span> - After submitting an investor application, a drawer opens to complete your profile details in one streamlined flow.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Profile & Discovery Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Contact details</span> - Telegram is no longer required; LinkedIn is now required for member contact information.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Map view on mobile</span> - Tapping an event on the IRL map now properly opens the event detail card.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Focus area rename</span> - "Public Goods" has been renamed to "Economies & Governance" across teams, projects, and home page.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.5 - Investor Application & Profile Updates',
     tag: 'Improvements',
     date: '06, Feb 2026',

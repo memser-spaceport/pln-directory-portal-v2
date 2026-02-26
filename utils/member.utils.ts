@@ -374,6 +374,7 @@ export const getMemberInfoFormValues = async () => {
           investorProfile: d.investorProfile,
           role: '',
           logo: d.logo?.url,
+          website: d.website,
         };
       })
       .sort((a: any, b: any) => a.teamTitle - b.teamTitle),

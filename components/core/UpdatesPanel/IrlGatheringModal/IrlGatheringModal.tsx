@@ -16,12 +16,13 @@ import {
   DatePickerView,
   TopicsPickerView,
   EventsPickerView,
+  InfoBanner,
 } from './components';
 import { useIrlGatheringModal, useIrlGatheringData, useIrlGatheringSubmit } from './hooks';
 import { buildGatheringLink } from './helpers';
 import { IrlGatheringModalProps, IrlGatheringFormData, EventRoleSelection } from './types';
 import s from './IrlGatheringModal.module.scss';
-import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
+// import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useQuery } from '@tanstack/react-query';
@@ -43,10 +44,11 @@ export function IrlGatheringModal({
   const { userInfo } = getCookiesFromClient();
   const isLoggedIn = !!userInfo?.uid;
   const defaultTeamUid = userInfo?.leadingTeams?.[0];
+  const isRestrictedAccess = userInfo?.accessLevel === 'L0' || userInfo?.accessLevel === 'L1';
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { data } = useMemberFormOptions();
+  // const { data } = useMemberFormOptions();
   const { data: memberData } = useMember(userInfo?.uid);
   const analytics = useIrlAnalytics();
   const wasOpenRef = useRef(false);
@@ -420,7 +422,11 @@ export function IrlGatheringModal({
             )}
           </div>
 
-          {step === 1 ? (
+          {isRestrictedAccess ? (
+            <div className={s.infoBannerWrapper}>
+              <InfoBanner />
+            </div>
+          ) : step === 1 ? (
             <div className={s.footer}>
               <button type="button" className={s.cancelButton} onClick={onClose}>
                 {isLoggedIn ? 'No' : 'Cancel'}

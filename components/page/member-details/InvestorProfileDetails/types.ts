@@ -1,6 +1,6 @@
 export interface TEditInvestorProfileForm {
   // type: { label: string; value: string } | null;
-  team: { label: string; value: string } | null;
+  team: { label: string; value: string; originalObject?: any } | null;
   typicalCheckSize: string;
   investmentFocusAreas: string[];
   investInStartupStages: { label: string; value: string }[];
@@ -15,6 +15,10 @@ export interface TEditInvestorProfileForm {
 
   secRulesAccepted: boolean;
   isInvestViaFund: boolean;
+
+  newTeamName: string;
+  newTeamWebsite: string;
+  newTeamRole: string;
 }
 
 export interface TEditInvestorProfileFormTeam {

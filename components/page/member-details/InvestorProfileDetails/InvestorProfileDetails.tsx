@@ -18,6 +18,8 @@ interface Props {
   isLoggedIn: boolean;
   userInfo: IUserInfo;
   isInvestor?: boolean | null;
+  useInlineAddTeam?: boolean;
+  source?: 'investor-drawer';
 }
 
 /**
@@ -61,7 +63,14 @@ const shouldShowIncompleteDataWarning = (member?: IMember): boolean => {
   }
 };
 
-export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member, isInvestor }: Props) => {
+export const InvestorProfileDetails = ({
+  isLoggedIn,
+  userInfo,
+  member,
+  isInvestor,
+  useInlineAddTeam,
+  source,
+}: Props) => {
   const [editView, setEditView] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
@@ -128,7 +137,13 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member, isInvesto
       classes={{ root: s.root, editView: s.editView }}
     >
       {editView ? (
-        <EditInvestorProfileForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} />
+        <EditInvestorProfileForm
+          onClose={() => setEditView(false)}
+          member={member}
+          userInfo={userInfo}
+          useInlineAddTeam={useInlineAddTeam}
+          source={source}
+        />
       ) : (
         <InvestorProfileView
           investmentFocusAreas={member?.investorProfile?.investmentFocus}
@@ -136,6 +151,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member, isInvesto
           investInStartupStages={member?.investorProfile?.investInStartupStages}
           investInFundTypes={member?.investorProfile?.investInFundTypes}
           secRulesAccepted={member?.investorProfile?.secRulesAccepted}
+          isInvestViaFund={member?.investorProfile?.isInvestViaFund}
           isLoggedIn={isLoggedIn}
           userInfo={userInfo}
           isEditable={isEditable}

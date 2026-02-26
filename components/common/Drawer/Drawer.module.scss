@@ -9,9 +9,14 @@
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  z-index: 1000;
+  z-index: 10;
   display: flex;
   justify-content: flex-end;
+
+  &.noBlur {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: none;
+  }
 }
 
 .container {
@@ -24,6 +29,10 @@
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
 
   @include media.mobile-only {
+    width: 100vw;
+  }
+
+  &.fullScreen {
     width: 100vw;
   }
 }

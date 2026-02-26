@@ -10,6 +10,7 @@ export const editProfileSchema = yup.object().shape({
     .test('fileType', 'Only image files are allowed', (file) => {
       return !file || file.type.startsWith('image/');
     }),
+  isImageDeleted: yup.boolean().defined(),
   name: yup.string().max(MAX_NAME_LENGTH).required('Name is required'),
   country: yup.string().defined(),
   state: yup.string().defined(),

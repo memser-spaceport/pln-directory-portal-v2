@@ -32,6 +32,7 @@ interface Props {
   investInStartupStages: string[] | undefined;
   investInFundTypes: string[] | undefined;
   secRulesAccepted: boolean | undefined;
+  isInvestViaFund?: boolean;
   type: InvestorProfileType | undefined;
   member?: IMember;
   hideHeader?: boolean;
@@ -46,6 +47,7 @@ export const InvestorProfileView = ({
   investInStartupStages,
   investInFundTypes,
   secRulesAccepted,
+  isInvestViaFund,
   isLoggedIn,
   isEditable,
   showIncomplete,
@@ -118,8 +120,10 @@ export const InvestorProfileView = ({
     <>
       {showIncomplete &&
         (isInvestor === null &&
-        !isInvestorAccess(member?.accessLevel || '') &&
-        !isDemodaySignUpSource(signUpSource) ? (
+          !isInvestorAccess(member?.accessLevel || '') &&
+          !isDemodaySignUpSource(signUpSource) &&
+          !isInvestViaFund &&
+          !secRulesAccepted ? (
           <div className={s.incompleteWarning}>
             <div className={s.warningContent}>
               <div className={s.warningIcon}>
@@ -163,7 +167,7 @@ export const InvestorProfileView = ({
           </div>
         ) : (
           <DataIncomplete className={s.incompleteStrip}>
-            Update investor details to be eligible for demo day participation.
+            Review your investor details; founders see this when you&apos;re introduced.
           </DataIncomplete>
         ))}
 
@@ -172,7 +176,7 @@ export const InvestorProfileView = ({
           [s.missingData]: showIncomplete && isLoggedIn,
         })}
       >
-        <MemberDetailsSectionHeader title="Investor Profile">
+        <MemberDetailsSectionHeader title="Investor Details">
           {isEditable && onEdit && <EditButton onClick={onEdit} />}
         </MemberDetailsSectionHeader>
 

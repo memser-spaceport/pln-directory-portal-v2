@@ -17,9 +17,10 @@ interface Props {
   member: IMember;
   isLoggedIn: boolean;
   userInfo: IUserInfo;
+  variant?: 'investor-drawer';
 }
 
-export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
+export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props) => {
   const [editView, setEditView] = useState(false);
   const [isBioExpanded, setIsBioExpanded] = useState(false);
   const [isOverflowing, setIsOverflowing] = useState(false);
@@ -52,6 +53,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
           }}
           member={member}
           userInfo={userInfo}
+          variant={variant}
         />
       ) : (
         <>
@@ -63,8 +65,9 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
               onEditProfileDetailsClicked();
               setEditView(true);
             }}
+            variant={variant}
           />
-          {hasBio && member.bio && (
+          {hasBio && member.bio && variant !== 'investor-drawer' && (
             <div className={s.bioContainer}>
               <div className={s.bioTitle}>Bio</div>
               <div className={clsx(s.bioContentWrapper, { [s.collapsed]: !isBioExpanded && isOverflowing })}>

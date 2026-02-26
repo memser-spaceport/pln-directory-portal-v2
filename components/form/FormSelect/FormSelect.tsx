@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import Select, { components, ControlProps, ClearIndicatorProps } from 'react-select';
+import Select, { components, ControlProps, ClearIndicatorProps, SelectInstance } from 'react-select';
 import { useMedia, useToggle } from 'react-use';
 import React, { ReactNode, useRef, useState } from 'react';
 
@@ -36,6 +36,7 @@ interface Props {
   icon?: ReactNode;
   hideOptionsWhenEmpty?: boolean; // Hide options list when search field is empty
   isClearable?: boolean; // Show cross icon to clear selected value
+  selectRef?: React.RefObject<SelectInstance | null>;
 }
 
 export const FormSelect = (props: Props) => {
@@ -54,6 +55,7 @@ export const FormSelect = (props: Props) => {
     icon,
     hideOptionsWhenEmpty,
     isClearable,
+    selectRef: externalSelectRef,
   } = props;
 
   const {
@@ -84,6 +86,8 @@ export const FormSelect = (props: Props) => {
       description: description && <div className={s.optionDesc}>{description}</div>,
     });
   };
+
+  const internalSelectRef = useRef<SelectInstance | null>(null);
 
   const [open, toggleOpen] = useToggle(false);
   const isMobile = useMedia('(max-width: 960px)', false);
@@ -132,6 +136,12 @@ export const FormSelect = (props: Props) => {
           </Field.Label>
         )}
         <Select
+          ref={((instance: SelectInstance | null) => {
+            internalSelectRef.current = instance;
+            if (externalSelectRef) {
+              (externalSelectRef as React.MutableRefObject<SelectInstance | null>).current = instance;
+            }
+          }) as any}
           menuPlacement="auto"
           placeholder={placeholder}
           options={enhancedOptions}
@@ -291,6 +301,7 @@ export const FormSelect = (props: Props) => {
                     className={clsx(s.notFoundContent, {
                       [s.sticky]: isStickyNoData,
                     })}
+                    onClick={() => internalSelectRef.current?.blur()}
                   >
                     {notFoundContent}
                   </div>

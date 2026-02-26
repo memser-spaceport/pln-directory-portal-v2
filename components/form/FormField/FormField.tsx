@@ -19,6 +19,7 @@ interface Props extends PropsWithChildren {
   onClear?: () => void;
   rules?: Record<string, unknown>;
   icon?: ReactNode;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
 }
 
 export const FormField = ({
@@ -34,6 +35,7 @@ export const FormField = ({
   onClear,
   rules,
   icon,
+  onBlur,
   ...rest
 }: Props) => {
   const {
@@ -75,7 +77,17 @@ export const FormField = ({
         {icon && <span className={s.icon}>{icon}</span>}
         <div className={s.inputContent}>
           <Field.Control
-            {...register(name, rules)}
+            {...(() => {
+              const registered = register(name, rules);
+              if (!onBlur) return registered;
+              return {
+                ...registered,
+                onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+                  onBlur(e);
+                  registered.onBlur(e);
+                },
+              };
+            })()}
             disabled={disabled}
             placeholder={placeholder}
             className={clsx(s.inputElement, { [s.withIcon]: !!icon })}

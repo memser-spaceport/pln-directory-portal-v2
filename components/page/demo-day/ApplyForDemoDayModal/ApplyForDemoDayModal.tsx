@@ -354,6 +354,8 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
         member.email &&
         member.name &&
         member.investorProfile?.secRulesAccepted &&
+        member.investorProfile?.typicalCheckSize &&
+        member.investorProfile?.investInStartupStages?.length &&
         isOpen &&
         minLoaderTime !== null
       ) {

@@ -20,6 +20,7 @@ export interface ITeamsSearchParams {
   minTypicalCheckSize?: string;
   maxTypicalCheckSize?: string;
   investmentFocus?: string;
+  priorities?: string;
   tiers?: string;
 }
 
@@ -37,7 +38,7 @@ export interface ITeamFilterSelectedItems {
   technology: CheckboxFilterOption[];
   focusAreas: any;
   asks: CheckboxFilterOption[];
-  tiers: { value: string; count: number; selected: boolean; disabled: boolean }[];
+  priorities: { value: string; count: number; selected: boolean; disabled: boolean }[];
 }
 
 export type ITeamListOptions = IListOptions & {
@@ -53,6 +54,7 @@ export type ITeamListOptions = IListOptions & {
 export interface ITeamResponse {
   uid?: string;
   tier?: string | number;
+  priority?: number;
   logo?: { url: string | null };
   name?: string | null;
   shortDescription?: string | null;
@@ -97,6 +99,7 @@ export interface ITeamAsk {
 
 export interface ITeam {
   tier?: string | number;
+  priority?: number;
   asks: ITeamAsk[];
   role?: string;
   id: string;

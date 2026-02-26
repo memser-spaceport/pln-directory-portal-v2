@@ -3,6 +3,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { getMemberInfoFormValues } from '@/utils/member.utils';
 
 async function fetcher() {
+  console.log('Fetching member form options');
   return getMemberInfoFormValues();
 }
 

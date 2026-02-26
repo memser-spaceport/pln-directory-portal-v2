@@ -56,6 +56,14 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_PROFILE_UPDATED, eventParams);
   }
 
+  function onInvestorDrawerInputChanged(eventParams: { field: string; value: unknown }) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_DRAWER_INPUT_CHANGED, eventParams);
+  }
+
+  function onInvestorDrawerFormSaved(eventParams: { from: string; values: Record<string, unknown> }) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_INVESTOR_DRAWER_FORM_SAVED, eventParams);
+  }
+
   function onFounderPendingViewPageOpened(eventParams = {}) {
     captureEvent(DEMO_DAY_ANALYTICS.ON_FOUNDER_PENDING_VIEW_PAGE_OPENED, eventParams);
   }
@@ -302,6 +310,8 @@ export const useDemoDayAnalytics = () => {
     onInvestorProfilePageOpened,
     onInvestorProfileEditStarted,
     onInvestorProfileUpdated,
+    onInvestorDrawerInputChanged,
+    onInvestorDrawerFormSaved,
     onFounderPendingViewPageOpened,
     onFounderTeamFundraisingCardClicked,
     onFounderEditTeamProfileButtonClicked,

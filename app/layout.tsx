@@ -23,7 +23,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { DemoDayBanner } from '@/components/core/navbar/components/DemoDayBanner';
 import { DemoDayStats } from '@/components/core/DemoDayStats';
 import { ContactSupport } from '@/components/ContactSupport/ContactSupport';
-import { ContactSupportContextProvider } from '@/components/ContactSupport/context/ContactSupportContext';
+import { ContactSupportUrlSync } from '@/components/ContactSupport/ContactSupportUrlSync';
 import { PushNotificationsProvider } from '@/providers/PushNotificationsProvider';
 import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
 
@@ -93,17 +93,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <PushNotificationsProvider authToken={authToken} enabled={isLoggedIn}>
               <StoreInitializer userInfo={userInfo} />
               <PostHogIdentifier />
-              <ContactSupportContextProvider>
-                <header className="layout__header">
-                  {/* <DemoDayBanner /> */}
-                  <PlaaBanner />
-                  {false && <SubscribeToRecoomendations userInfo={userInfo} />}
-                  <CompleteYourProfile userInfo={userInfo} />
-                  <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
-                </header>
-                <AuthBox isLoggedIn={isLoggedIn} />
-                <ContactSupport userInfo={userInfo} />
-              </ContactSupportContextProvider>
+              <ContactSupportUrlSync />
+              <header className="layout__header">
+                {/* <DemoDayBanner /> */}
+                <PlaaBanner />
+                {false && <SubscribeToRecoomendations userInfo={userInfo} />}
+                <CompleteYourProfile userInfo={userInfo} />
+                <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
+              </header>
+              <AuthBox isLoggedIn={isLoggedIn} />
+              <ContactSupport userInfo={userInfo} />
               <DemoDayStats />
               <main className="layout__main">{children}</main>
               <MobileBottomNav />

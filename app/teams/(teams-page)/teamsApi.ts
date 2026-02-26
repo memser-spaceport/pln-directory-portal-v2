@@ -42,7 +42,7 @@ export interface FilterDataResponse {
   membershipSources: string[];
   technology: string[];
   askTags: string[];
-  tiers?: Array<{ tier: string; count: number }>;
+  priorities?: Array<{ priority?: string; tier?: string; count: number }>;
 }
 
 export interface FocusAreasResponse {
@@ -67,13 +67,19 @@ export interface TeamsCountResponse {
 /**
  * Fetch teams list from API
  */
+const toPriorityValues = (val: string | undefined) =>
+  (val ?? '')
+    ?.split('|')
+    .filter(Boolean)
+    .map((v) => (v === '-1' ? '99' : v));
+
 export const fetchTeamsList = async (searchParams: ITeamsSearchParams): Promise<TeamListResponse> => {
   const authToken = getAuthToken();
 
   const query = qs.stringify({
     ...searchParams,
     investmentFocus: searchParams.investmentFocus?.split('|').filter(Boolean),
-    tiers: searchParams.tiers?.split('|').filter(Boolean),
+    priorities: toPriorityValues(searchParams.priorities ?? searchParams.tiers),
   });
 
   const response = await fetch(`/api/teams/list?${query}`, {
@@ -85,7 +91,8 @@ export const fetchTeamsList = async (searchParams: ITeamsSearchParams): Promise<
     throw new Error('Failed to fetch teams list');
   }
 
-  return response.json();
+  const teams = await response.json();
+  return teams;
 };
 
 /**

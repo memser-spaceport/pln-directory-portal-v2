@@ -26,14 +26,17 @@ import { clsx } from 'clsx';
 import { useUpdateMemberPreferences } from '@/services/members/hooks/useUpdateMemberPreferences';
 import { FormSwitch } from '@/components/form/FormSwitch';
 import { ADMIN_ROLE } from '@/utils/constants';
+import { ContactDetailsVariant } from '@/components/page/member-details/ContactDetails';
 
 interface Props {
   onClose: () => void;
   member: IMember;
   userInfo: IUserInfo;
+  linkedinRequired?: boolean;
+  variant?: ContactDetailsVariant;
 }
 
-export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
+export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, variant }: Props) => {
   const router = useRouter();
   const methods = useForm<TEditContactForm>({
     defaultValues: {
@@ -178,7 +181,7 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
         <div className={s.body}>
           <div className={s.row}>
             <Image src={getLogoByProvider('email')} alt="Email" height={24} width={24} />
-            <FormField name="email" label="Email" placeholder="Enter your email" disabled={isOwner}>
+            <FormField name="email" label="Email" placeholder="Enter your email" disabled={isOwner} isRequired>
               {member.id === userInfo.uid && (
                 <button type="button" className={s.editEmailBtn} onClick={onEmailEdit}>
                   <EditIcon />
@@ -187,40 +190,52 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
             </FormField>
           </div>
           <div className={s.row}>
+            <Image src={getLogoByProvider('linkedin')} alt="Linkedin" height={24} width={24} />
+            <FormField
+              name="linkedin"
+              label="LinkedIn"
+              placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
+              isRequired={linkedinRequired}
+              rules={linkedinRequired ? { required: 'LinkedIn is required' } : undefined}
+            />
+          </div>
+          <div className={s.row}>
             <Image src={getLogoByProvider('telegram')} alt="Telegram" height={24} width={24} />
             <FormField name="telegram" label="Telegram" placeholder="eg., @username or https://t.me/username" />
           </div>
-          <div className={s.row}>
-            <Image src={getLogoByProvider('github')} alt="Github" height={24} width={24} />
-            <FormField name="github" label="Github" placeholder="eg., username or https://github.com/username" />
-          </div>
-          <div className={s.row}>
-            <Image src={getLogoByProvider('linkedin')} alt="Linkedin" height={24} width={24} />
-            <FormField name="linkedin" label="LinkedIn" placeholder="eg., johndoe or https://linkedin.com/in/johndoe" />
-          </div>
-          <div className={s.row}>
-            <Image src={getLogoByProvider('discord')} alt="Discord" height={24} width={24} />
-            <FormField
-              name="discord"
-              label="Discord"
-              placeholder="eg., username or https://discord.com/users/username"
-            />
-          </div>
+          {variant !== 'drawer' && (
+            <div className={s.row}>
+              <Image src={getLogoByProvider('github')} alt="Github" height={24} width={24} />
+              <FormField name="github" label="Github" placeholder="eg., username or https://github.com/username" />
+            </div>
+          )}
+          {variant !== 'drawer' && (
+            <div className={s.row}>
+              <Image src={getLogoByProvider('discord')} alt="Discord" height={24} width={24} />
+              <FormField
+                name="discord"
+                label="Discord"
+                placeholder="eg., username or https://discord.com/users/username"
+              />
+            </div>
+          )}
           <div className={s.row}>
             <Image src={getLogoByProvider('twitter')} alt="Twitter" height={24} width={24} />
             <FormField
               name="twitter"
-              label="Twitter"
+              label="X (Twitter)"
               placeholder="eg., @protocollabs or https://twitter.com/protocollabs"
             />
           </div>
-          <div className={clsx(s.row, s.center)}>
-            <div className={s.switchLabelWrapper}>
-              <div className={s.switchLabel}>Show contact details to PL network members</div>
-              <div className={s.switchDesc}>Contact details are never displayed publicly</div>
+          {variant !== 'drawer' && (
+            <div className={clsx(s.row, s.center)}>
+              <div className={s.switchLabelWrapper}>
+                <div className={s.switchLabel}>Show contact details to PL network members</div>
+                <div className={s.switchDesc}>Contact details are never displayed publicly</div>
+              </div>
+              <FormSwitch name="shareContacts" />
             </div>
-            <FormSwitch name="shareContacts" />
-          </div>
+          )}
         </div>
         <EditFormMobileControls />
       </form>

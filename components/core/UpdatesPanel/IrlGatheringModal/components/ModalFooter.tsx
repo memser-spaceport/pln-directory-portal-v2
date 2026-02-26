@@ -36,7 +36,7 @@ export function ModalFooter({
     if (isLoading) {
       return isEditMode ? 'Saving...' : 'Submitting...';
     }
-    return 'Submit';
+    return 'Save';
   };
 
   const handleButtonClick = () => {

@@ -600,8 +600,8 @@ const FollowSection = (props: IFollowSectionProps) => {
       </div>
       <PresenceRequestSuccess />
 
-      {/* IRL Gathering Modal - render when user can open modal or when URL param is set (for logged out users) */}
-      {canOpenModal && (
+      {/* IRL Gathering Modal - render when user can open modal or while modal is open (prevents unmount during refresh) */}
+      {(canOpenModal || isModalOpenLocal) && (
         <IrlGatheringModal
           isOpen={isIrlGatheringModalOpen}
           onClose={handleIrlGatheringModalClose}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Modal } from '@/components/common/Modal/Modal';
@@ -21,6 +21,7 @@ import {
 import { useIrlGatheringModal, useIrlGatheringData, useIrlGatheringSubmit } from './hooks';
 import { buildGatheringLink } from './helpers';
 import { IrlGatheringModalProps, IrlGatheringFormData, EventRoleSelection } from './types';
+import { EVENTS } from '@/utils/constants';
 import s from './IrlGatheringModal.module.scss';
 // import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { useMember } from '@/services/members/hooks/useMember';
@@ -54,6 +55,8 @@ export function IrlGatheringModal({
   const wasOpenRef = useRef(false);
   const [shouldAnimateLoginButton, setShouldAnimateLoginButton] = useState(false);
   const [step, setStep] = useState<1 | 2>(isEditMode ? 2 : 1);
+  const [createdGuestUid, setCreatedGuestUid] = useState<string | null>(null);
+  const [isRefreshing, startRefreshTransition] = useTransition();
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef(0);
 
@@ -150,6 +153,7 @@ export function IrlGatheringModal({
     if (isOpen) {
       methods.reset(initialFormValues);
       setStep(isEditMode ? 2 : 1);
+      setCreatedGuestUid(null);
     }
   }, [isOpen, methods, initialFormValues, isEditMode]);
 
@@ -219,12 +223,15 @@ export function IrlGatheringModal({
     }
   }, [isLoggedIn]);
 
-  const { handleSubmit: submitForm, isPending } = useIrlGatheringSubmit({
+  const isEffectiveEditMode = isEditMode || !!createdGuestUid;
+  const effectiveGuestUid = editModeData?.guestUid || createdGuestUid || undefined;
+
+  const { handleSubmit: submitForm, handleFirstStepSubmit: firstStepSubmit, isPending } = useIrlGatheringSubmit({
     gatheringData,
     selectedDateRange,
     onSuccess: handleSuccess,
-    isEditMode,
-    guestUid: editModeData?.guestUid,
+    isEditMode: isEffectiveEditMode,
+    guestUid: effectiveGuestUid,
   });
 
   const handleFormSubmit = methods.handleSubmit((data) => {
@@ -434,9 +441,18 @@ export function IrlGatheringModal({
               <button
                 type="button"
                 className={`${s.goingButton} ${shouldAnimateLoginButton ? s.goingButtonAnimate : ''}`}
+                disabled={isPending}
                 onClick={() => {
                   if (isLoggedIn) {
-                    setStep(2);
+                    const formData = methods.getValues();
+                    firstStepSubmit(formData, (guestUid) => {
+                      setCreatedGuestUid(guestUid);
+                      setStep(2);
+                      startRefreshTransition(() => {
+                        router.refresh();
+                      });
+                      document.dispatchEvent(new CustomEvent(EVENTS.REFRESH_ATTENDEES_LIST));
+                    });
                   } else {
                     if (gatheringData) {
                       analytics.trackGatheringModalLoginToRespondClicked(gatheringData);
@@ -445,7 +461,7 @@ export function IrlGatheringModal({
                   }
                 }}
               >
-                {isLoggedIn ? "Yes, I'm going" : 'Log in to Respond'}
+                {isLoggedIn ? (isPending ? 'Processing...' : "Yes, I'm going") : 'Log in to Respond'}
               </button>
             </div>
           ) : (
@@ -453,6 +469,7 @@ export function IrlGatheringModal({
               onClose={onClose}
               isSubmit={isLoggedIn}
               isLoading={isPending}
+              isDisabled={isRefreshing}
               isEditMode={isEditMode}
               isLoggedIn={isLoggedIn}
               onLoginClick={handleLoginClick}

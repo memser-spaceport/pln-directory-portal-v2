@@ -9,6 +9,7 @@ interface ModalFooterProps {
   onGoingClick?: () => void;
   isSubmit?: boolean;
   isLoading?: boolean;
+  isDisabled?: boolean;
   isEditMode?: boolean;
   isLoggedIn?: boolean;
   onLoginClick?: () => void;
@@ -21,6 +22,7 @@ export function ModalFooter({
   onGoingClick,
   isSubmit = false,
   isLoading = false,
+  isDisabled = false,
   isEditMode = false,
   isLoggedIn = true,
   onLoginClick,
@@ -66,7 +68,7 @@ export function ModalFooter({
         type={isSubmit && isLoggedIn ? 'submit' : 'button'}
         className={`${s.goingButton} ${shouldAnimate ? s.goingButtonAnimate : ''}`}
         onClick={isSubmit && isLoggedIn ? undefined : handleButtonClick}
-        disabled={isLoading}
+        disabled={isLoading || isDisabled}
       >
         {getButtonText()}
       </button>

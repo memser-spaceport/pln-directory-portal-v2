@@ -9,4 +9,5 @@ export { ModalFooter } from './ModalFooter';
 export { DatePickerView } from './DatePickerView';
 export { TopicsPickerView } from './TopicsPickerView';
 export { EventsPickerView } from './EventsPickerView';
+export { InfoBanner } from './InfoBanner';
 

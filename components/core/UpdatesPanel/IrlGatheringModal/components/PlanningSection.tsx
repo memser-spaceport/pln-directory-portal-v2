@@ -50,10 +50,10 @@ export function PlanningSection({
   return (
     <div className={s.planningContainer}>
       <div className={s.planningHeader}>
-        <p className={s.planningTitle}>{planningQuestion}</p>
+        <p className={s.planningTitle}>Thanks for confirming! 🎉</p>
         <p className={s.planningSubtitle}>
           {isLoggedIn
-            ? 'Let others know if you are attending.'
+            ? 'Share a bit more to help others find you IRL.'
             : "Log in to let others know if you're attending and what you're interested in."}
         </p>
       </div>

@@ -1427,6 +1427,11 @@
   width: 100%;
 }
 
+.infoBannerWrapper {
+  padding: 16px 24px 24px;
+  background: white;
+}
+
 .footer {
   display: flex;
   align-items: center;
@@ -1434,6 +1439,7 @@
   padding: 12px 16px 16px;
   border-top: 1px solid rgba(27, 56, 96, 0.12);
   background: white;
+  gap: 16px
 }
 
 .cancelButton {
@@ -1453,6 +1459,7 @@
   letter-spacing: -0.2px;
   color: #455468;
   transition: all 0.15s ease;
+  flex: 1;
 
   &:hover {
     background: rgba(14, 15, 17, 0.02);
@@ -1476,6 +1483,7 @@
   letter-spacing: -0.2px;
   color: white;
   transition: all 0.15s ease;
+  flex: 1;
 
   &:hover {
     background: #1a45e6;

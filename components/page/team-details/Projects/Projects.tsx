@@ -1,4 +1,8 @@
 'use client';
+import Image from 'next/image';
+import { useRef } from 'react';
+import isEmpty from 'lodash/isEmpty';
+import { useRouter } from 'next/navigation';
 
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import Modal from '@/components/core/modal';
@@ -6,11 +10,10 @@ import { IUserInfo } from '@/types/shared.types';
 import { IFormatedTeamProject, ITeam } from '@/types/teams.types';
 import { getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
-import { useRef } from 'react';
 import AllProjects from '../all-projects';
 import TeamProjectCard from '../team-project-card';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+
+import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
 
 import s from './Projects.module.scss';
 
@@ -69,6 +72,10 @@ export const Projects = (props: Props) => {
     );
     router.push(`/projects/update/${project.uid}`);
   };
+
+  if (isEmpty(projects) && team?.isFund && !isTeamLeaderOrAdmin(userInfo, team?.id)) {
+    return null;
+  }
 
   return (
     <>

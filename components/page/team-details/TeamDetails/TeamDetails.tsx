@@ -1,23 +1,29 @@
 'use client';
 
-import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { Tag } from '@/components/ui/tag';
-import { IUserInfo } from '@/types/shared.types';
-import { ITag, ITeam } from '@/types/teams.types';
-import { ADMIN_ROLE } from '@/utils/constants';
-import { getTeamPriority, getTechnologyImage, getPriorityLabel } from '@/utils/team.utils';
 import Image from 'next/image';
+import Cookies from 'js-cookie';
 import { useParams, useRouter } from 'next/navigation';
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import About from '../about';
-import Technologies from '../technologies';
-import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+
+import { IUserInfo } from '@/types/shared.types';
+import { ITag, ITeam } from '@/types/teams.types';
+
+import { ADMIN_ROLE } from '@/utils/constants';
+
 import { deleteTeam } from '@/app/actions/teams.actions';
-import Cookies from 'js-cookie';
+import { getTeamPriority, getPriorityLabel, getTechnologyImage } from '@/utils/team.utils';
+import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
+
+import { Tag } from '@/components/ui/tag';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 
 import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
+
+import Technologies from '../technologies';
+import { About } from './components/About';
 
 import s from './TeamDetails.module.scss';
 

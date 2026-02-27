@@ -8,7 +8,7 @@ interface UpdateFundraisingProfileData {
   name: string;
   shortDescription: string;
   industryTags: string[];
-  fundingStage: string;
+  fundingStage?: string;
   teamUid?: string; // Optional team UID for admin edits
 }
 
@@ -19,7 +19,7 @@ async function updateFundraisingProfile(
   const { teamUid, ...bodyData } = data;
 
   // If teamUid is provided, use the admin endpoint; otherwise, use the regular endpoint
-  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/demo-days/${demoDayId}/teams/${teamUid}/fundraising-profile/team`;
 
   const response = await customFetch(
     url,

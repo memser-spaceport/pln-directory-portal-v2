@@ -23,6 +23,7 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { ReferCompanyModal } from '../ReferCompanyModal';
 import { GiveFeedbackModal } from '@/components/page/demo-day/GiveFeedbackModal';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
+import { DemoDayActionButtons } from '@/components/page/demo-day/DemoDayActionButtons';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -30,18 +31,6 @@ const BackIcon = () => (
       d="M12.5 5L7.5 10L12.5 15"
       stroke="currentColor"
       strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const CheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M13.3337 4L6.00033 11.3333L2.66699 8"
-      stroke="currentColor"
-      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
@@ -534,75 +523,19 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
                 {/* Footer Actions */}
                 <div className={s.drawerFooter}>
-                  <div className={s.actions}>
-                    <button
-                      className={s.secondaryButton}
-                      onClick={handleReferCompanyClick}
-                      disabled={expressInterest.isPending || !team.uid}
-                    >
-                      {team.referral ? (
-                        <>
-                          ✉️ Make an Intro
-                          <CheckIcon />
-                        </>
-                      ) : (
-                        <>✉️ Make an Intro</>
-                      )}
-                    </button>
-                    <button
-                      className={s.feedbackButton}
-                      onClick={() => setIsFeedbackModalOpen(true)}
-                      disabled={!team.uid}
-                    >
-                      📝 Give Feedback
-                    </button>
-                    {/*<button*/}
-                    {/*  className={s.secondaryButton}*/}
-                    {/*  onClick={handleLikeCompanyClick}*/}
-                    {/*  disabled={expressInterest.isPending || !team.uid}*/}
-                    {/*>*/}
-                    {/*  {team.liked ? (*/}
-                    {/*    <>*/}
-                    {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />*/}
-                    {/*      Liked Company*/}
-                    {/*      <CheckIcon />*/}
-                    {/*    </>*/}
-                    {/*  ) : (*/}
-                    {/*    <>*/}
-                    {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />*/}
-                    {/*      Like Company*/}
-                    {/*    </>*/}
-                    {/*  )}*/}
-                    {/*</button>*/}
-                    <button
-                      className={s.secondaryButton}
-                      onClick={handleConnectCompanyClick}
-                      disabled={expressInterest.isPending || !team.uid}
-                    >
-                      {team.connected ? (
-                        <>
-                          🤝 Connected with Company
-                          <CheckIcon />
-                        </>
-                      ) : (
-                        <>🤝 Connect with Company</>
-                      )}
-                    </button>
-                    <button
-                      className={s.primaryButton}
-                      onClick={handleInvestCompanyClick}
-                      disabled={expressInterest.isPending || !team.uid}
-                    >
-                      {team.invested ? (
-                        <>
-                          💰 Invest in Company
-                          <CheckIcon />
-                        </>
-                      ) : (
-                        <>💰 Invest in Company</>
-                      )}
-                    </button>
-                  </div>
+                  <DemoDayActionButtons
+                    teamUid={team.uid}
+                    teamName={team.team?.name || ''}
+                    isReferralExpressed={team.referral}
+                    isConnected={team.connected}
+                    isInvested={team.invested}
+                    onMakeIntro={handleReferCompanyClick}
+                    onGiveFeedback={() => setIsFeedbackModalOpen(true)}
+                    onConnect={handleConnectCompanyClick}
+                    onInvest={handleInvestCompanyClick}
+                    isLoading={expressInterest.isPending}
+                    variant="drawer"
+                  />
                 </div>
               </div>
             </motion.div>

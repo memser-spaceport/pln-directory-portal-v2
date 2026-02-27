@@ -145,7 +145,7 @@ export const currentRoundData: CurrentRoundData = {
   // Stats Section Data
   // ============================================================================
   stats: {
-    onboardedParticipants: 52,
+    onboardedParticipants: 55,
     regionsUnlocked: ['USA', 'Germany', 'Switzerland', 'Portugal'],
     incentivizedActivities: [
       'Curate X Spaces',

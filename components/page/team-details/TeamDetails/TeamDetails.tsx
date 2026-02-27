@@ -17,6 +17,8 @@ import { deleteTeam } from '@/app/actions/teams.actions';
 import Cookies from 'js-cookie';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 
+import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
+
 import s from './TeamDetails.module.scss';
 
 interface Props {
@@ -48,7 +50,7 @@ export const TeamDetails = (props: Props) => {
   const about = team?.longDescription ?? '';
   const technologies =
     team?.technologies?.map((item) => ({ name: item?.title, url: getTechnologyImage(item?.title) })) ?? [];
-  const hasTeamEditAccess = getHasTeamEditAccess();
+  const hasTeamEditAccess = isTeamLeaderOrAdmin(userInfo, team?.id);
   const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
 
   const [isTechnologyPopup, setIsTechnologyPopup] = useState(false);
@@ -61,17 +63,6 @@ export const TeamDetails = (props: Props) => {
   const onTagCountClickHandler = () => {
     setIsTechnologyPopup(!isTechnologyPopup);
   };
-
-  function getHasTeamEditAccess() {
-    try {
-      if (userInfo?.roles?.includes(ADMIN_ROLE) || userInfo?.leadingTeams?.includes(team?.id)) {
-        return true;
-      }
-      return false;
-    } catch (e) {
-      return false;
-    }
-  }
 
   const onEditTeamClickHandler = () => {
     if (userInfo?.roles?.includes(ADMIN_ROLE)) {

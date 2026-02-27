@@ -19,12 +19,12 @@ import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 
 import s from './TeamDetails.module.scss';
 
-interface ITeamDetails {
+interface Props {
   team: ITeam;
   userInfo: IUserInfo | undefined;
 }
 
-const TeamDetails = (props: ITeamDetails) => {
+export const TeamDetails = (props: Props) => {
   const params = useParams();
   const team = props?.team;
   const logo = team?.logo ?? '/icons/team-default-profile.svg';
@@ -131,22 +131,9 @@ const TeamDetails = (props: ITeamDetails) => {
         {/* Name and about section */}
         <div className={s.profile}>
           <div className={s.logoTagsContainer}>
-            <img
-              loading="lazy"
-              alt="team-profile"
-              className={s.teamLogo}
-              src={logo}
-            />
+            <img loading="lazy" alt="team-profile" className={s.teamLogo} src={logo} />
             <div className={s.nameTagContainer}>
-              <Tooltip
-                asChild
-                trigger={
-                  <h1 className={s.teamName}>
-                    {teamName}
-                  </h1>
-                }
-                content={teamName}
-              />
+              <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
               <div>
                 {/* Tags Mobile */}
                 <div className={s.tagsMobile}>
@@ -256,11 +243,7 @@ const TeamDetails = (props: ITeamDetails) => {
             )}
 
             {isAdmin && (
-              <button
-                className={s.delete}
-                onClick={onDeleteTeamClickHandler}
-                disabled={isDeleting}
-              >
+              <button className={s.delete} onClick={onDeleteTeamClickHandler} disabled={isDeleting}>
                 <Image src="/icons/trash.svg" alt="Delete" height={16} width={16} />
                 Delete Team
               </button>
@@ -287,5 +270,3 @@ const TeamDetails = (props: ITeamDetails) => {
     </>
   );
 };
-
-export default TeamDetails;

@@ -31,7 +31,7 @@ export const EditFormControls = ({ title, onClose }: Props) => {
         <Button size="s" style="border" onClick={cancel} type="button" className={s.btn}>
           Cancel
         </Button>
-        <Button size="s" type="submit" disabled={isSubmitting || !isDirty || !isValid} className={s.btn}>
+        <Button size="s" type="submit" disabled={isSubmitting || !isDirty} className={s.btn}>
           {getSaveBtnLabel({ isDirty, isSubmitting })}
         </Button>
       </div>

@@ -138,7 +138,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
         name: formData.name,
         shortDescription: formData.shortDescription,
         industryTags: formData.tags.map((t) => t.value),
-        fundingStage: formData.fundingStage?.value || profileData?.team?.fundingStage?.uid || '',
+        fundingStage: formData.fundingStage?.value || profileData?.team?.fundingStage?.uid || undefined,
         logo: image || profileData?.team.logo?.uid,
         website: formData.website,
         teamUid: profileDataProp?.teamUid,

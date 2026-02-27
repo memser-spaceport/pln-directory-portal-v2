@@ -125,12 +125,12 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   12: [
-    { category: 'Projects', points: 0, tokens: 1522 },
+    { category: 'Projects', points: 3300, tokens: 1522 },
     { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 0, tokens: 1702 },
-    { category: 'Network Tooling', points: 0, tokens: 1724 },
-    { category: 'People/Talent', points: 0, tokens: 1603 },
-    { category: 'Knowledge', points: 0, tokens: 1764 },
+    { category: 'Programs', points: 3700, tokens: 1702 },
+    { category: 'Network Tooling', points: 1400, tokens: 1724 },
+    { category: 'People/Talent', points: 300, tokens: 1603 },
+    { category: 'Knowledge', points: 2100, tokens: 1764 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
 };

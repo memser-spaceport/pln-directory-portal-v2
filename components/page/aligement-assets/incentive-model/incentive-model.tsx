@@ -24,8 +24,8 @@ const allRounds = [
 ];
 
 // Current round (for "Go to current round" functionality)
-const CURRENT_ROUND = 11; // February 2026
-const TOTAL_ROUNDS = 11;
+const CURRENT_ROUND = 12; // January 2026
+const TOTAL_ROUNDS = 12;
 
 // Mock data for each round (month)
 const chartDataByRound: Record<number, Array<{ category: string; points: number; tokens: number }>> = {
@@ -124,16 +124,15 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Knowledge', points: 450, tokens: 1770 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
-  // Round 12 (January 2026): Points Collected 3,050 total; Tokens Distributed 0 (not yet distributed)
-  // 12: [
-  //   { category: 'Brand', points: 0, tokens: 0 },
-  //   { category: 'Capital', points: 0, tokens: 0 },
-  //   { category: 'Knowledge', points: 600, tokens: 0 },
-  //   { category: 'Network Tooling', points: 100, tokens: 0 },
-  //   { category: 'People/Talent', points: 50, tokens: 0 },
-  //   { category: 'Programs', points: 0, tokens: 0 },
-  //   { category: 'Projects', points: 2300, tokens: 0 },
-  // ]
+  12: [
+    { category: 'Projects', points: 3300, tokens: 1522 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 3700, tokens: 1702 },
+    { category: 'Network Tooling', points: 1400, tokens: 1724 },
+    { category: 'People/Talent', points: 300, tokens: 1603 },
+    { category: 'Knowledge', points: 2100, tokens: 1764 },
+    { category: 'Capital', points: 0, tokens: 0 },
+  ],
 };
 
 // Custom tooltip component with inline styles

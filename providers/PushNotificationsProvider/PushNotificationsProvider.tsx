@@ -35,6 +35,11 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Ref mirror of notifications for synchronous access in callbacks
+  // (avoids calling setUnreadCount inside setNotifications updater, which React strict mode double-invokes)
+  const notificationsRef = useRef<PushNotification[]>([]);
+  notificationsRef.current = notifications;
+
   // Normalized link → set of notification UIDs for auto-marking on navigation
   const unreadLinksMapRef = useRef<UnreadLinksMap>(new Map());
 
@@ -114,15 +119,27 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
       }
 
       const sanitized = sanitizeNotification(notification);
+      const notificationId = sanitized.id;
+
+      // Check current state via ref (synchronous, not inside a state updater)
+      const existing = notificationsRef.current.find((n) => n.id === notificationId);
+      const shouldIncrementCount = !existing || existing.isRead;
+
       setNotifications((prev) => {
-        // Avoid duplicates
-        const notificationId = sanitized.id;
-        if (prev.some((n) => n.id === notificationId)) {
-          return prev;
+        const existingIndex = prev.findIndex((n) => n.id === notificationId);
+        if (existingIndex !== -1) {
+          // Already exists — replace with updated content and move to top
+          const updated = [...prev];
+          updated.splice(existingIndex, 1);
+          return [{ ...sanitized, isRead: false }, ...updated];
         }
+        // New notification
         return [{ ...sanitized, isRead: false }, ...prev];
       });
-      setUnreadCount((prev) => prev + 1);
+
+      if (shouldIncrementCount) {
+        setUnreadCount((c) => c + 1);
+      }
 
       if (uid && link) {
         addUnreadLinkEntry({ uid, link }, unreadLinksMapRef.current);
@@ -134,13 +151,11 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
   // Handle notification update from WebSocket (sync across devices)
   const handleNotificationUpdate = useCallback((payload: NotificationUpdatePayload) => {
     if (payload.status === 'deleted') {
-      setNotifications((prev) => {
-        const notification = prev.find((n) => n.id === payload.id);
-        if (notification && !notification.isRead) {
-          setUnreadCount((c) => Math.max(0, c - 1));
-        }
-        return prev.filter((n) => n.id !== payload.id);
-      });
+      const notification = notificationsRef.current.find((n) => n.id === payload.id);
+      if (notification && !notification.isRead) {
+        setUnreadCount((c) => Math.max(0, c - 1));
+      }
+      setNotifications((prev) => prev.filter((n) => n.id !== payload.id));
     }
   }, []);
 

@@ -88,4 +88,4 @@ npm run test
 
 #### This app is used by admin to approve/reject/edit member and team join requests.
 
-Follow the instructions [here](https://github.com/memser-spaceport/pln-directory-portal) to setup and run the directory admin frontend.
+Follow the instructions [here](https://github.com/memser-spaceport/pln-directory-portal) to setup and run the directory admin frontend

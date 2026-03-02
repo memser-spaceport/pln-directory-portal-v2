@@ -3,6 +3,8 @@ import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 
+export const dynamic = 'force-dynamic';
+
 export default function Layout({ filters, content }: { filters: ReactNode; content: ReactNode }) {
   return <DashboardPagesLayout filters={filters} content={content} />;
 }

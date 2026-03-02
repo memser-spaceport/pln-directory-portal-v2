@@ -74,7 +74,7 @@ export function useIrlGatheringSubmit({
           uid,
           isHost,
           isSpeaker,
-          isSponsor: false, // Sponsor role is not available in the form UI
+          isSponsor,
           hostSubEvents: isHost ? [subEventData] : [],
           speakerSubEvents: isSpeaker ? [subEventData] : [],
           sponsorSubEvents: isSponsor ? [subEventData] : [],

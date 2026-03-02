@@ -1,6 +1,8 @@
 import { getFundingStages } from '@/services/common.service';
 import { getTeamFilterRouterWithOptionCounters } from '@/utils/team.utils';
 
+export const dynamic = 'force-dynamic';
+
 export const GET = getTeamFilterRouterWithOptionCounters({
   serviceFn: getFundingStages,
   entityType: 'Team',

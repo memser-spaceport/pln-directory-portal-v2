@@ -4,6 +4,8 @@ import { DEFAULT_ASK_TAGS } from '@/utils/constants';
 import { cookies } from 'next/headers';
 import { getParsedValue } from '@/utils/common.utils';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Get auth token from cookies

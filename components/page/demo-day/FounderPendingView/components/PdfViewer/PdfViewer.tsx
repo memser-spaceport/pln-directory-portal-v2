@@ -32,7 +32,6 @@ export default function PdfViewer({ fileUrl, isPreview = false }: PdfViewerProps
             pageNumber={pageNumber}
             width={undefined}
             height={undefined}
-            scale={1}
             renderTextLayer={!isPreview}
             renderAnnotationLayer={!isPreview}
           />

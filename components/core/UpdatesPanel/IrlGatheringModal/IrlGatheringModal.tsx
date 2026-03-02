@@ -226,7 +226,11 @@ export function IrlGatheringModal({
   const isEffectiveEditMode = isEditMode || !!createdGuestUid;
   const effectiveGuestUid = editModeData?.guestUid || createdGuestUid || undefined;
 
-  const { handleSubmit: submitForm, handleFirstStepSubmit: firstStepSubmit, isPending } = useIrlGatheringSubmit({
+  const {
+    handleSubmit: submitForm,
+    handleFirstStepSubmit: firstStepSubmit,
+    isPending,
+  } = useIrlGatheringSubmit({
     gatheringData,
     selectedDateRange,
     onSuccess: handleSuccess,

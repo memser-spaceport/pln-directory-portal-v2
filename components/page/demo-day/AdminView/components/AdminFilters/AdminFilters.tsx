@@ -166,7 +166,7 @@ export const AdminFilters = () => {
   }, [activityOptions, params, setParam, teamsLoading]);
 
   return (
-    <FiltersSidePanel clearParams={clearParams} appliedFiltersCount={appliedFiltersCount} className={s.root}>
+    <FiltersSidePanel clearParams={clearParams} appliedFiltersCount={appliedFiltersCount} className={s.root} hideFooter>
       {activityOptions.length > 0 && (
         <FilterSection title="My Activity">
           <FilterList

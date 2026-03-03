@@ -455,6 +455,7 @@ export function IrlGatheringModal({
                 disabled={isPending}
                 onClick={() => {
                   if (isLoggedIn) {
+                    analytics.trackGatheringModalYesImGoingClicked(gatheringData);
                     const formData = methods.getValues();
                     firstStepSubmit(formData, (guestUid) => {
                       setCreatedGuestUid(guestUid);

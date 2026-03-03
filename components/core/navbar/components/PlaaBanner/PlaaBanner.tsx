@@ -125,9 +125,11 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
       <HighlightsBar variant="plaa">
         <div className={styles.banner}>
           {/* Left Arrow - far left */}
-          <button className={styles.navBtnLeft} onClick={handlePrevClick} aria-label="Previous">
-            <Image src="/icons/chevron-left-white.svg" alt="" width={16} height={16} />
-          </button>
+          {totalSlides > 1 && (
+            <button className={styles.navBtnLeft} onClick={handlePrevClick} aria-label="Previous">
+              <Image src="/icons/chevron-left-white.svg" alt="" width={16} height={16} />
+            </button>
+          )}
 
           {/* Center Content */}
           <div className={styles.centerContent}>
@@ -201,9 +203,11 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
           <span className={styles.pagination}>{desktopCarousel.activeIndex + 1}/{totalSlides}</span>
 
           {/* Right Arrow - far right */}
-          <button className={styles.navBtnRight} onClick={handleNextClick} aria-label="Next">
-            <Image src="/icons/chevron-right-white.svg" alt="" width={16} height={16} />
-          </button>
+          {totalSlides > 1 && (
+            <button className={styles.navBtnRight} onClick={handleNextClick} aria-label="Next">
+              <Image src="/icons/chevron-right-white.svg" alt="" width={16} height={16} />
+            </button>
+          )}
         </div>
       </HighlightsBar>
     );

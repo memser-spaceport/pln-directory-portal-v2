@@ -25,6 +25,7 @@ import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { ReferCompanyModal } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/ReferCompanyModal';
 import { GiveFeedbackModal } from '@/components/page/demo-day/GiveFeedbackModal';
 import { FoundersListModal } from '../FoundersListModal';
+import { DemoDayActionButtons } from '@/components/page/demo-day/DemoDayActionButtons';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -54,18 +55,6 @@ const WarningIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="9" cy="9" r="8" fill="#F59E0B" />
     <path d="M9 5v4M9 13h.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const CheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M13.3337 4L6.00033 11.3333L2.66699 8"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
   </svg>
 );
 
@@ -682,85 +671,32 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
       {/* Footer - Always Visible */}
       {!hideActions && (
         <div className={s.drawerFooter}>
-          <button
-            className={s.secondaryButton}
-            onClick={() => setIsReferModalOpen(true)}
-            disabled={expressInterest.isPending || !data?.uid}
-          >
-            {team?.referral ? (
-              <>
-                ✉️ Make an Intro
-                <CheckIcon />
-              </>
-            ) : (
-              <>✉️ Make an Intro</>
-            )}
-          </button>
-          <button className={s.feedbackButton} onClick={() => setIsFeedbackModalOpen(true)} disabled={!data?.uid}>
-            📝 Give Feedback
-          </button>
-          {/*<button*/}
-          {/*  className={s.secondaryButton}*/}
-          {/*  onClick={() =>*/}
-          {/*    expressInterest.mutate({*/}
-          {/*      teamFundraisingProfileUid: data?.uid || '',*/}
-          {/*      interestType: 'like',*/}
-          {/*      isPrepDemoDay,*/}
-          {/*    })*/}
-          {/*  }*/}
-          {/*  disabled={expressInterest.isPending || !data?.uid}*/}
-          {/*>*/}
-          {/*  {team?.liked ? (*/}
-          {/*    <>*/}
-          {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Liked Company*/}
-          {/*      <CheckIcon />*/}
-          {/*    </>*/}
-          {/*  ) : (*/}
-          {/*    <>*/}
-          {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company*/}
-          {/*    </>*/}
-          {/*  )}*/}
-          {/*</button>*/}
-          <button
-            className={s.secondaryButton}
-            onClick={() =>
+          <DemoDayActionButtons
+            teamUid={data?.team?.uid || ''}
+            teamName={data?.team?.name || ''}
+            isReferralExpressed={team?.referral}
+            isConnected={team?.connected}
+            isInvested={team?.invested}
+            onMakeIntro={() => setIsReferModalOpen(true)}
+            onGiveFeedback={() => setIsFeedbackModalOpen(true)}
+            onConnect={() =>
               expressInterest.mutate({
                 teamFundraisingProfileUid: data?.uid || '',
                 interestType: 'connect',
                 isPrepDemoDay,
               })
             }
-            disabled={expressInterest.isPending || !data?.uid}
-          >
-            {team?.connected ? (
-              <>
-                🤝 Connected with Company
-                <CheckIcon />
-              </>
-            ) : (
-              <>🤝 Connect with Company</>
-            )}
-          </button>
-          <button
-            className={s.primaryButton}
-            onClick={() =>
+            onInvest={() =>
               expressInterest.mutate({
                 teamFundraisingProfileUid: data?.uid || '',
                 interestType: 'invest',
                 isPrepDemoDay,
               })
             }
-            disabled={expressInterest.isPending || !data?.uid}
-          >
-            {team?.invested ? (
-              <>
-                💰 Invest in Company
-                <CheckIcon />
-              </>
-            ) : (
-              <>💰 Invest in Company</>
-            )}
-          </button>
+            isLoading={expressInterest.isPending}
+            disabled={!data?.uid}
+            variant="drawer"
+          />
         </div>
       )}
 

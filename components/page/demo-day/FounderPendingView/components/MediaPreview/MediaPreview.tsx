@@ -232,9 +232,6 @@ export const MediaPreview = ({
         />
       );
     } else if (isPDF(url)) {
-      if (previewImageUrl) {
-        return <img src={previewImageUrl} alt="Media" className={s.modalMedia} />;
-      }
       return (
         <div className={`${s.modalMedia} ${s.pdfModal}`}>
           <PdfViewer fileUrl={url} isPreview={false} />

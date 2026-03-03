@@ -16,6 +16,7 @@ interface UseIrlGatheringSubmitParams {
 
 interface UseIrlGatheringSubmitReturn {
   handleSubmit: (data: IrlGatheringFormData) => void;
+  handleFirstStepSubmit: (data: IrlGatheringFormData, onCreated: (guestUid: string) => void) => void;
   isPending: boolean;
 }
 
@@ -73,7 +74,7 @@ export function useIrlGatheringSubmit({
           uid,
           isHost,
           isSpeaker,
-          isSponsor: false, // Sponsor role is not available in the form UI
+          isSponsor,
           hostSubEvents: isHost ? [subEventData] : [],
           speakerSubEvents: isSpeaker ? [subEventData] : [],
           sponsorSubEvents: isSponsor ? [subEventData] : [],
@@ -137,8 +138,62 @@ export function useIrlGatheringSubmit({
     [userInfo, gatheringData, selectedDateRange, createGuest, editGuest, onSuccess, isEditMode, guestUid],
   );
 
+  const handleFirstStepSubmit = useCallback(
+    (data: IrlGatheringFormData, onCreated: (guestUid: string) => void) => {
+      if (!userInfo?.uid || !gatheringData.gatheringUid) {
+        console.error('Missing required data for submission');
+        return;
+      }
+
+      const checkInDate = selectedDateRange
+        ? formatDateForApi(selectedDateRange[0])
+        : gatheringData.eventDates.start
+          ? formatDateForApi(new Date(gatheringData.eventDates.start))
+          : '';
+      const checkOutDate = selectedDateRange
+        ? formatDateForApi(selectedDateRange[1])
+        : gatheringData.eventDates.end
+          ? formatDateForApi(new Date(gatheringData.eventDates.end))
+          : '';
+
+      const payload = {
+        memberUid: userInfo.uid,
+        teamUid: data.selectedTeam?.value || userInfo.leadingTeams?.[0] || '',
+        reason: data.additionalDetails || '',
+        telegramId: data.telegramHandle || '',
+        officeHours: data.officeHours || '',
+        events: [],
+        additionalInfo: {
+          checkInDate,
+          checkOutDate,
+        },
+        topics: data.topics,
+        locationName: gatheringData.locationName,
+      };
+
+      createGuest(
+        {
+          locationId: gatheringData.gatheringUid,
+          payload,
+          type: 'upcoming',
+        },
+        {
+          onSuccess: () => {
+            onCreated(userInfo!.uid);
+          },
+          onError: (error) => {
+            console.error('Failed to create IRL gathering guest:', error);
+            toast.error(error?.message ?? 'Failed to register for the gathering. Please try again.');
+          },
+        },
+      );
+    },
+    [userInfo, gatheringData, selectedDateRange, createGuest],
+  );
+
   return {
     handleSubmit,
+    handleFirstStepSubmit,
     isPending,
   };
 }

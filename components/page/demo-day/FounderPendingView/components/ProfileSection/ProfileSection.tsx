@@ -15,18 +15,7 @@ import Cookies from 'js-cookie';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
-
-const CheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M13.3337 4L6.00033 11.3333L2.66699 8"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+import { DemoDayActionButtons } from '@/components/page/demo-day/DemoDayActionButtons';
 
 interface ProfileSectionProps {
   investorData?: {
@@ -169,71 +158,32 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
           {isNotCompleted ? (
             <ProfileActions onEditProfile={handleEditProfile} />
           ) : (
-            <div className={s.actions}>
-              {/*<button*/}
-              {/*  className={s.secondaryButton}*/}
-              {/*  onClick={() =>*/}
-              {/*    expressInterest.mutate({*/}
-              {/*      teamFundraisingProfileUid: data?.uid,*/}
-              {/*      interestType: 'like',*/}
-              {/*      isPrepDemoDay,*/}
-              {/*    })*/}
-              {/*  }*/}
-              {/*  disabled={expressInterest.isPending || !data?.uid}*/}
-              {/*>*/}
-              {/*  {data?.liked ? (*/}
-              {/*    <>*/}
-              {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} />*/}
-              {/*      Liked Company*/}
-              {/*      <CheckIcon />*/}
-              {/*    </>*/}
-              {/*  ) : (*/}
-              {/*    <>*/}
-              {/*      <Image src="/images/demo-day/heart.png" alt="Like" width={16} height={16} /> Like Company*/}
-              {/*    </>*/}
-              {/*  )}*/}
-              {/*</button>*/}
-              <button
-                className={s.secondaryButton}
-                onClick={() =>
-                  expressInterest.mutate({
-                    teamFundraisingProfileUid: data?.uid,
-                    interestType: 'connect',
-                    isPrepDemoDay,
-                  })
-                }
-                disabled={expressInterest.isPending || !data?.uid}
-              >
-                {data?.connected ? (
-                  <>
-                    🤝 Connected with Company
-                    <CheckIcon />
-                  </>
-                ) : (
-                  <>🤝 Connect with Company</>
-                )}
-              </button>
-              <button
-                className={s.primaryButton}
-                onClick={() =>
-                  expressInterest.mutate({
-                    teamFundraisingProfileUid: data?.uid,
-                    interestType: 'invest',
-                    isPrepDemoDay,
-                  })
-                }
-                disabled={expressInterest.isPending || !data?.uid}
-              >
-                {data?.invested ? (
-                  <>
-                    💰 Invest in Company
-                    <CheckIcon />
-                  </>
-                ) : (
-                  <>💰 Invest in Company</>
-                )}
-              </button>
-            </div>
+            <DemoDayActionButtons
+              teamUid={data?.team?.uid || ''}
+              teamName={data?.team?.name || ''}
+              isConnected={data?.connected}
+              isInvested={data?.invested}
+              onMakeIntro={() => {}}
+              onGiveFeedback={() => {}}
+              onConnect={() =>
+                expressInterest.mutate({
+                  teamFundraisingProfileUid: data?.uid,
+                  interestType: 'connect',
+                  isPrepDemoDay,
+                })
+              }
+              onInvest={() =>
+                expressInterest.mutate({
+                  teamFundraisingProfileUid: data?.uid,
+                  interestType: 'invest',
+                  isPrepDemoDay,
+                })
+              }
+              isLoading={expressInterest.isPending}
+              disabled={!data?.uid}
+              variant="card"
+              className={s.actions}
+            />
           )}
         </div>
       </div>

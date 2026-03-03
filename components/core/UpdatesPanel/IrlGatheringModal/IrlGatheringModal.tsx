@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Modal } from '@/components/common/Modal/Modal';
@@ -16,12 +16,14 @@ import {
   DatePickerView,
   TopicsPickerView,
   EventsPickerView,
+  InfoBanner,
 } from './components';
 import { useIrlGatheringModal, useIrlGatheringData, useIrlGatheringSubmit } from './hooks';
 import { buildGatheringLink } from './helpers';
 import { IrlGatheringModalProps, IrlGatheringFormData, EventRoleSelection } from './types';
+import { EVENTS } from '@/utils/constants';
 import s from './IrlGatheringModal.module.scss';
-import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
+// import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useQuery } from '@tanstack/react-query';
@@ -43,14 +45,20 @@ export function IrlGatheringModal({
   const { userInfo } = getCookiesFromClient();
   const isLoggedIn = !!userInfo?.uid;
   const defaultTeamUid = userInfo?.leadingTeams?.[0];
+  const isRestrictedAccess = userInfo?.accessLevel === 'L0' || userInfo?.accessLevel === 'L1';
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { data } = useMemberFormOptions();
+  // const { data } = useMemberFormOptions();
   const { data: memberData } = useMember(userInfo?.uid);
   const analytics = useIrlAnalytics();
   const wasOpenRef = useRef(false);
   const [shouldAnimateLoginButton, setShouldAnimateLoginButton] = useState(false);
+  const [step, setStep] = useState<1 | 2>(isEditMode ? 2 : 1);
+  const [createdGuestUid, setCreatedGuestUid] = useState<string | null>(null);
+  const [isRefreshing, startRefreshTransition] = useTransition();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef(0);
 
   const { data: member } = useQuery({
     queryKey: [MembersQueryKeys.GET_MEMBER, userInfo?.uid, !!userInfo, userInfo?.uid],
@@ -140,12 +148,14 @@ export function IrlGatheringModal({
     defaultValues: initialFormValues,
   });
 
-  // Reset form when modal opens
+  // Reset form and step when modal opens
   useEffect(() => {
     if (isOpen) {
       methods.reset(initialFormValues);
+      setStep(isEditMode ? 2 : 1);
+      setCreatedGuestUid(null);
     }
-  }, [isOpen, methods, initialFormValues]);
+  }, [isOpen, methods, initialFormValues, isEditMode]);
 
   // Track modal open/close
   useEffect(() => {
@@ -213,12 +223,19 @@ export function IrlGatheringModal({
     }
   }, [isLoggedIn]);
 
-  const { handleSubmit: submitForm, isPending } = useIrlGatheringSubmit({
+  const isEffectiveEditMode = isEditMode || !!createdGuestUid;
+  const effectiveGuestUid = editModeData?.guestUid || createdGuestUid || undefined;
+
+  const {
+    handleSubmit: submitForm,
+    handleFirstStepSubmit: firstStepSubmit,
+    isPending,
+  } = useIrlGatheringSubmit({
     gatheringData,
     selectedDateRange,
     onSuccess: handleSuccess,
-    isEditMode,
-    guestUid: editModeData?.guestUid,
+    isEditMode: isEffectiveEditMode,
+    guestUid: effectiveGuestUid,
   });
 
   const handleFormSubmit = methods.handleSubmit((data) => {
@@ -226,52 +243,73 @@ export function IrlGatheringModal({
     submitForm(data);
   });
 
-  // Wrapped handlers with analytics tracking
+  // Save/restore scroll position when switching to/from picker views
+  const saveScrollPosition = useCallback(() => {
+    scrollPositionRef.current = contentRef.current?.scrollTop ?? 0;
+  }, []);
+
+  const restoreScrollPosition = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (contentRef.current) {
+        contentRef.current.scrollTop = scrollPositionRef.current;
+      }
+    });
+  }, []);
+
+  // Wrapped handlers with analytics tracking and scroll preservation
   const handleOpenDatePickerWithTracking = useCallback(() => {
+    saveScrollPosition();
     analytics.trackGatheringModalDatePickerOpened(gatheringData);
     handleOpenDatePicker();
-  }, [analytics, gatheringData, handleOpenDatePicker]);
+  }, [saveScrollPosition, analytics, gatheringData, handleOpenDatePicker]);
 
   const handleDatePickerCancelWithTracking = useCallback(() => {
     analytics.trackGatheringModalDatePickerCancelled(gatheringData);
     handleDatePickerCancel();
-  }, [analytics, gatheringData, handleDatePickerCancel]);
+    restoreScrollPosition();
+  }, [analytics, gatheringData, handleDatePickerCancel, restoreScrollPosition]);
 
   const handleDatePickerApplyWithTracking = useCallback(
     (range: [Date, Date] | null) => {
       analytics.trackGatheringModalDatePickerApplied(gatheringData, range);
       handleDatePickerApply(range);
+      restoreScrollPosition();
     },
-    [analytics, gatheringData, handleDatePickerApply],
+    [analytics, gatheringData, handleDatePickerApply, restoreScrollPosition],
   );
 
   const handleOpenTopicsPickerWithTracking = useCallback(() => {
+    saveScrollPosition();
     analytics.trackGatheringModalTopicsPickerOpened(gatheringData);
     handleOpenTopicsPicker();
-  }, [analytics, gatheringData, handleOpenTopicsPicker]);
+  }, [saveScrollPosition, analytics, gatheringData, handleOpenTopicsPicker]);
 
   const handleTopicsPickerCancelWithTracking = useCallback(() => {
     analytics.trackGatheringModalTopicsPickerCancelled(gatheringData);
     handleTopicsPickerCancel();
-  }, [analytics, gatheringData, handleTopicsPickerCancel]);
+    restoreScrollPosition();
+  }, [analytics, gatheringData, handleTopicsPickerCancel, restoreScrollPosition]);
 
   const handleTopicsApply = useCallback(
     (topics: string[]) => {
       analytics.trackGatheringModalTopicsPickerApplied(gatheringData, topics);
       handleTopicsPickerApply(topics, (t) => methods.setValue('topics', t));
+      restoreScrollPosition();
     },
-    [analytics, gatheringData, handleTopicsPickerApply, methods],
+    [analytics, gatheringData, handleTopicsPickerApply, methods, restoreScrollPosition],
   );
 
   const handleOpenEventsPickerWithTracking = useCallback(() => {
+    saveScrollPosition();
     analytics.trackGatheringModalEventsPickerOpened(gatheringData);
     handleOpenEventsPicker();
-  }, [analytics, gatheringData, handleOpenEventsPicker]);
+  }, [saveScrollPosition, analytics, gatheringData, handleOpenEventsPicker]);
 
   const handleEventsPickerCancelWithTracking = useCallback(() => {
     analytics.trackGatheringModalEventsPickerCancelled(gatheringData);
     handleEventsPickerCancel();
-  }, [analytics, gatheringData, handleEventsPickerCancel]);
+    restoreScrollPosition();
+  }, [analytics, gatheringData, handleEventsPickerCancel, restoreScrollPosition]);
 
   const handleEventsApply = useCallback(
     (uids: string[], roles: EventRoleSelection[]) => {
@@ -282,8 +320,9 @@ export function IrlGatheringModal({
         (u) => methods.setValue('selectedEventUids', u),
         (r) => methods.setValue('eventRoles', r),
       );
+      restoreScrollPosition();
     },
-    [analytics, gatheringData, handleEventsPickerApply, methods],
+    [analytics, gatheringData, handleEventsPickerApply, methods, restoreScrollPosition],
   );
 
   if (currentView === 'datePicker') {
@@ -349,7 +388,7 @@ export function IrlGatheringModal({
             onClose={onClose}
           />
 
-          <div className={s.content}>
+          <div ref={contentRef} className={s.content}>
             {gatheringData.aboutDescription && <AboutSection description={gatheringData.aboutDescription} />}
 
             <GatheringDetails
@@ -366,40 +405,89 @@ export function IrlGatheringModal({
               gatheringLink={buildGatheringLink(gatheringData.locationName)}
             />
 
-            <PlanningSection
-              planningQuestion={gatheringData.planningQuestion}
-              selectedDateRange={selectedDateRange}
-              selectedTopics={selectedTopics}
-              selectedEvents={selectedEvents}
-              events={gatheringData.events}
-              onDateInputClick={handleOpenDatePickerWithTracking}
-              onTopicsInputClick={handleOpenTopicsPickerWithTracking}
-              onEventsInputClick={handleOpenEventsPickerWithTracking}
-              isLoggedIn={isLoggedIn}
-              onDisabledFieldClick={handleDisabledFieldClick}
-            />
+            {step === 1 && userInfo.accessLevel !== 'L0' && userInfo.accessLevel !== 'L1' && (
+              <div>
+                <div className={s.step1Title}>Are you going to {gatheringData.gatheringName}?</div>
+                <div className={s.step1Subtitle}>Let others know if you’ll be around and what you’re interested in</div>
+              </div>
+            )}
 
-            {isLoggedIn && (
-              <AdditionalDetailsSection
-                teams={member?.teams || []}
-                defaultTeamUid={defaultTeamUid}
-                telegramHandle={memberData?.memberInfo?.telegramHandler}
-                officeHours={memberData?.memberInfo?.officeHours}
-                defaultExpanded={false}
-              />
+            {step === 2 && (
+              <>
+                <PlanningSection
+                  planningQuestion={gatheringData.planningQuestion}
+                  selectedDateRange={selectedDateRange}
+                  selectedTopics={selectedTopics}
+                  selectedEvents={selectedEvents}
+                  events={gatheringData.events}
+                  onDateInputClick={handleOpenDatePickerWithTracking}
+                  onTopicsInputClick={handleOpenTopicsPickerWithTracking}
+                  onEventsInputClick={handleOpenEventsPickerWithTracking}
+                  isLoggedIn={isLoggedIn}
+                  onDisabledFieldClick={handleDisabledFieldClick}
+                />
+
+                {isLoggedIn && (
+                  <AdditionalDetailsSection
+                    teams={member?.teams || []}
+                    defaultTeamUid={defaultTeamUid}
+                    telegramHandle={memberData?.memberInfo?.telegramHandler}
+                    officeHours={memberData?.memberInfo?.officeHours}
+                    defaultExpanded={false}
+                  />
+                )}
+              </>
             )}
           </div>
 
-          <ModalFooter
-            onClose={onClose}
-            isSubmit={isLoggedIn}
-            isLoading={isPending}
-            isEditMode={isEditMode}
-            isLoggedIn={isLoggedIn}
-            onLoginClick={handleLoginClick}
-            shouldAnimate={shouldAnimateLoginButton}
-            gatheringData={gatheringData}
-          />
+          {isRestrictedAccess ? (
+            <div className={s.infoBannerWrapper}>
+              <InfoBanner />
+            </div>
+          ) : step === 1 ? (
+            <div className={s.footer}>
+              <button type="button" className={s.cancelButton} onClick={onClose}>
+                {isLoggedIn ? 'No' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                className={`${s.goingButton} ${shouldAnimateLoginButton ? s.goingButtonAnimate : ''}`}
+                disabled={isPending}
+                onClick={() => {
+                  if (isLoggedIn) {
+                    const formData = methods.getValues();
+                    firstStepSubmit(formData, (guestUid) => {
+                      setCreatedGuestUid(guestUid);
+                      setStep(2);
+                      startRefreshTransition(() => {
+                        router.refresh();
+                      });
+                      document.dispatchEvent(new CustomEvent(EVENTS.REFRESH_ATTENDEES_LIST));
+                    });
+                  } else {
+                    if (gatheringData) {
+                      analytics.trackGatheringModalLoginToRespondClicked(gatheringData);
+                    }
+                    handleLoginClick();
+                  }
+                }}
+              >
+                {isLoggedIn ? (isPending ? 'Processing...' : "Yes, I'm going") : 'Log in to Respond'}
+              </button>
+            </div>
+          ) : (
+            <ModalFooter
+              onClose={onClose}
+              isSubmit={isLoggedIn}
+              isLoading={isPending}
+              isDisabled={isRefreshing}
+              isEditMode={isEditMode}
+              isLoggedIn={isLoggedIn}
+              onLoginClick={handleLoginClick}
+              shouldAnimate={shouldAnimateLoginButton}
+              gatheringData={gatheringData}
+            />
+          )}
         </form>
       </FormProvider>
     </Modal>

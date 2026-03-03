@@ -1,3 +1,108 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: #fff;
+  padding: 16px;
+  border-radius: 0px 8px;
+  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+}
+
+.profile {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.logoTagsContainer {
+  display: flex;
+  gap: 8px;
+  width: 80%;
+}
+
+.teamLogo {
+  height: 48px;
+  border: 1px solid #CBD5E1;
+  border-radius: 4px;
+  background-color: #e2e8f0;
+  width: 48px;
+}
+
+.nameTagContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.teamName {
+  color: #0F172A;
+  font-size: 16px;
+  font-weight: 700;
+  overflow: hidden;
+  display: -webkit-box;
+  width: fit-content;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+}
+
+.tagsMobile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tagsWeb {
+  display: none;
+}
+
+.notification {
+  border-radius: 24px;
+  border: none;
+  height: 40px;
+  width: 40px;
+  background-color: inherit;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.edit {
+  display: flex;
+  font-size: 14px;
+  font-weight: 500;
+  color: #156FF7;
+  align-items: center;
+  height: fit-content;
+  background: none;
+  border: none;
+  white-space: nowrap;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.delete {
+  display: flex;
+  font-size: 14px;
+  font-weight: 500;
+  color: #DC2626;
+  align-items: center;
+  height: fit-content;
+  background: none;
+  border: none;
+  white-space: nowrap;
+  gap: 8px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 .investorTag {
   display: flex;
   padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
@@ -12,6 +117,44 @@
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
-  line-height: 20px; /* 142.857% */
+  line-height: 20px;
   letter-spacing: -0.2px;
+}
+
+@media (min-width: 1024px) {
+  .root {
+    border-radius: 8px;
+    background: #FFF;
+    padding: 20px;
+    box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+  }
+
+  .logoTagsContainer {
+    gap: 24px;
+  }
+
+  .nameTagContainer {
+    gap: 12px;
+  }
+
+  .teamName {
+    font-size: 24px;
+    line-height: 32px;
+    width: 100%;
+  }
+
+  .tagsMobile {
+    display: none;
+  }
+
+  .teamLogo {
+    height: 80px;
+    width: 80px;
+  }
+
+  .tagsWeb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }

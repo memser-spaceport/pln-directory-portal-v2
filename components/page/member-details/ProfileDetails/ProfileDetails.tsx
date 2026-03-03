@@ -1,17 +1,18 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
 import { clsx } from 'clsx';
+import React, { useRef, useState } from 'react';
+
 import { MemberDetailHeader } from '@/components/page/member-details/MemberDetailHeader';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { EditProfileForm } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm';
 
-import s from './ProfileDetails.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
+import { ExpandableDescription } from '@/components/common/ExpandableDescription';
 
-const BIO_COLLAPSED_HEIGHT = 120;
+import s from './ProfileDetails.module.scss';
 
 interface Props {
   member: IMember;
@@ -22,8 +23,7 @@ interface Props {
 
 export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props) => {
   const [editView, setEditView] = useState(false);
-  const [isBioExpanded, setIsBioExpanded] = useState(false);
-  const [isOverflowing, setIsOverflowing] = useState(false);
+
   const bioRef = useRef<HTMLDivElement>(null);
 
   const isOwner = userInfo?.uid === member.id;
@@ -32,12 +32,6 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props)
   const { onEditProfileDetailsClicked } = useMemberAnalytics();
   useMobileNavVisibility(editView);
   const hasBio = !!member.bio && member.bio.trim() !== '<p><br></p>';
-
-  useEffect(() => {
-    if (bioRef.current) {
-      setIsOverflowing(bioRef.current.scrollHeight > BIO_COLLAPSED_HEIGHT);
-    }
-  }, [member.bio]);
 
   return (
     <div
@@ -70,15 +64,9 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props)
           {hasBio && member.bio && variant !== 'investor-drawer' && (
             <div className={s.bioContainer}>
               <div className={s.bioTitle}>Bio</div>
-              <div className={clsx(s.bioContentWrapper, { [s.collapsed]: !isBioExpanded && isOverflowing })}>
-                <div ref={bioRef} className={s.bioContent} dangerouslySetInnerHTML={{ __html: member.bio }} />
-                {!isBioExpanded && isOverflowing && <div className={s.bioGradient} />}
-                {isOverflowing && (
-                  <button className={s.bioToggleButton} onClick={() => setIsBioExpanded(!isBioExpanded)}>
-                    {isBioExpanded ? 'Show less' : 'Show more'}
-                  </button>
-                )}
-              </div>
+              <ExpandableDescription>
+                <div className={s.bioContent} dangerouslySetInnerHTML={{ __html: member.bio }} />
+              </ExpandableDescription>
             </div>
           )}
         </>

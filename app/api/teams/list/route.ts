@@ -4,6 +4,8 @@ import { INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
 import { cookies } from 'next/headers';
 import { getParsedValue } from '@/utils/common.utils';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -17,10 +19,7 @@ export async function GET(request: NextRequest) {
     const result = await getTeamList(query, 1, INITIAL_ITEMS_PER_PAGE, authToken);
 
     if (result?.isError) {
-      return NextResponse.json(
-        { error: 'Failed to fetch teams' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to fetch teams' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -29,9 +28,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching teams list:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

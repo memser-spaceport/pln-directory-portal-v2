@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
 import { getParsedValue } from '@/utils/common.utils';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;

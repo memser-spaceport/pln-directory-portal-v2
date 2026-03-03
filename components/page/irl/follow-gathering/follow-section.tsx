@@ -88,13 +88,13 @@ const FollowSection = (props: IFollowSectionProps) => {
   const canShowImGoingButton =
     !inPastEvents &&
     filteredGatherings?.length > 0 &&
-    ((isUserLoggedIn && accessLevel === 'advanced' && !isUserGoing && !userHasUpcomingEvents) || !isUserLoggedIn);
+    ((isUserLoggedIn && !isUserGoing && !userHasUpcomingEvents) || !isUserLoggedIn);
 
   // Modal can be opened for new attendance OR for editing existing attendance
   const canOpenModal = canShowImGoingButton || (isEditMode && isUserLoggedIn && accessLevel === 'advanced');
 
   // Modal is open if local state is true AND (user can open modal OR URL param is set)
-  const isIrlGatheringModalOpen = isModalOpenLocal && (canOpenModal);
+  const isIrlGatheringModalOpen = isModalOpenLocal && canOpenModal;
 
   // Build PushNotification object from available data for IrlGatheringModal
   const irlGatheringNotification = useMemo((): PushNotification => {
@@ -560,7 +560,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             {/* IRL Gathering Modal Button */}
             {canShowImGoingButton && (
               <button onClick={handleIrlGatheringModalOpen} className="toolbar__actionCn__imGoingBtn">
-                I&apos;m Going
+                {userInfo.accessLevel === 'L0' || userInfo.accessLevel === 'L1' ? 'More info' : "I'm Going"}
               </button>
             )}
 
@@ -600,8 +600,8 @@ const FollowSection = (props: IFollowSectionProps) => {
       </div>
       <PresenceRequestSuccess />
 
-      {/* IRL Gathering Modal - render when user can open modal or when URL param is set (for logged out users) */}
-      {canOpenModal && (
+      {/* IRL Gathering Modal - render when user can open modal or while modal is open (prevents unmount during refresh) */}
+      {(canOpenModal || isModalOpenLocal) && (
         <IrlGatheringModal
           isOpen={isIrlGatheringModalOpen}
           onClose={handleIrlGatheringModalClose}

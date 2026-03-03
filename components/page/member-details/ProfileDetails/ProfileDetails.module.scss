@@ -38,11 +38,13 @@
       //  0 4px 4px 0 rgba(15, 23, 42, 0.04);
 
       border-radius: 8px;
-      border: 1px solid var(--border-brand-subtle, #AEBFFF);
-      background: var(--background-brand-soft-surface, #F2F5FF);
+      border: 1px solid var(--border-brand-subtle, #aebfff);
+      background: var(--background-brand-soft-surface, #f2f5ff);
 
       /* Card Shadow */
-      box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+      box-shadow:
+        0 0 1px 0 rgba(15, 23, 42, 0.12),
+        0 4px 4px 0 rgba(15, 23, 42, 0.04);
     }
   }
 
@@ -87,35 +89,9 @@
   margin-bottom: 8px;
 }
 
-.bioContentWrapper {
-  position: relative;
-  overflow: hidden;
-  padding-bottom: 24px;
-  word-break: break-word;
-
-  &.collapsed {
-    max-height: 138px;
-  }
-}
-
-.bioGradient {
-  position: absolute;
-  bottom: 24px;
-  left: 0;
-  right: 0;
-  height: 114px;
-  background: linear-gradient(to bottom, transparent 0, transparent 60%, #F9FAFB 100%, var(--background-neutral-soft-surface, #F9FAFB));
-  border-radius: 0 0 12px 12px;
-  pointer-events: none;
-}
-
 .bioContent {
   display: block;
-  padding: 16px;
   align-self: stretch;
-  border-radius: 12px;
-  background: var(--background-neutral-soft-surface, #F9FAFB);
-
   color: var(--Neutral-Slate-600, var(--foreground-neutral-secondary, #455468));
   font-size: 14px;
   font-style: normal;
@@ -208,26 +184,3 @@
   display: flex;
   flex-direction: column;
 }
-
-.bioToggleButton {
-  color: #156ff7;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 22px;
-  cursor: pointer;
-  background: none;
-  border: none;
-  margin: 0 auto;
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  height: 24px;
-  background: #f9fafb;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-

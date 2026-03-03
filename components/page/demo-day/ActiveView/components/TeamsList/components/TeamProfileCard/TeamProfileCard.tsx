@@ -21,6 +21,7 @@ import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
 import { BookmarkIcon, BookmarkIconFilled, ChartIcon } from '@/components/icons';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { DemoDayActionButtons } from '@/components/page/demo-day/DemoDayActionButtons';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
@@ -485,61 +486,19 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
       )}
 
       <div className={s.profileDivider} />
-      <div className={s.actions}>
-        <button
-          className={s.secondaryButton}
-          onClick={(e) => handleInterestCompanyClick(e, 'referral')}
-          disabled={expressInterest.isPending || !team.uid}
-        >
-          {team.referral ? (
-            <>
-              ✉️ Make an Intro
-              <CheckIcon />
-            </>
-          ) : (
-            <>✉️ Make an Intro</>
-          )}
-        </button>
-        <button
-          className={s.feedbackButton}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsFeedbackModalOpen(true);
-          }}
-          disabled={!team.uid}
-        >
-          📝 Give Feedback
-        </button>
-        <button
-          className={s.secondaryButton}
-          onClick={(e) => handleInterestCompanyClick(e, 'connect')}
-          disabled={expressInterest.isPending || !team.uid}
-        >
-          {team.connected ? (
-            <>
-              🤝 Connected with Company
-              <CheckIcon />
-            </>
-          ) : (
-            <>🤝 Connect with Company</>
-          )}
-        </button>
-        <button
-          className={s.primaryButton}
-          onClick={(e) => handleInterestCompanyClick(e, 'invest')}
-          disabled={expressInterest.isPending || !team.uid}
-        >
-          {team.invested ? (
-            <>
-              💰 Invest in Company
-              <CheckIcon />
-            </>
-          ) : (
-            <>💰 Invest in Company</>
-          )}
-        </button>
-      </div>
+      <DemoDayActionButtons
+        teamUid={team.uid}
+        teamName={team.team?.name || ''}
+        isReferralExpressed={team.referral}
+        isConnected={team.connected}
+        isInvested={team.invested}
+        onMakeIntro={(e) => handleInterestCompanyClick(e, 'referral')}
+        onGiveFeedback={() => setIsFeedbackModalOpen(true)}
+        onConnect={(e) => handleInterestCompanyClick(e, 'connect')}
+        onInvest={(e) => handleInterestCompanyClick(e, 'invest')}
+        isLoading={expressInterest.isPending}
+        variant="card"
+      />
 
       {/* Refer Company Modal */}
       <ReferCompanyModal
@@ -658,17 +617,5 @@ const EditIcon = () => (
         <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_9353_10999" result="shape" />
       </filter>
     </defs>
-  </svg>
-);
-
-const CheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M13.3332 4L5.99984 11.3333L2.6665 8"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
   </svg>
 );

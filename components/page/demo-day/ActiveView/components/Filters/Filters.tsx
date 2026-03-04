@@ -122,6 +122,7 @@ export const Filters = () => {
     const connectedCount = teams.filter((team) => team.connected).length;
     const investedCount = teams.filter((team) => team.invested).length;
     const referredCount = teams.filter((team) => team.referral).length;
+    const feedbackCount = teams.filter((team) => team.feedback).length;
 
     const options: FilterOption[] = [];
 
@@ -143,6 +144,10 @@ export const Filters = () => {
 
     if (referredCount > 0) {
       options.push({ id: 'referral', name: 'Intros made', count: referredCount });
+    }
+
+    if (feedbackCount > 0) {
+      options.push({ id: 'feedback', name: 'Feedback given', count: feedbackCount });
     }
 
     return options;

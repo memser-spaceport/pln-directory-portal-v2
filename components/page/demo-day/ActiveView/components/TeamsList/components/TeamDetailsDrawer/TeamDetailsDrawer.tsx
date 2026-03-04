@@ -9,6 +9,7 @@ import s from './TeamDetailsDrawer.module.scss';
 import { EditProfileDrawer } from '@/components/page/demo-day/FounderPendingView/components/EditProfileDrawer';
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { useExpressInterest } from '@/services/demo-day/hooks/useExpressInterest';
+import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
@@ -61,6 +62,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   const { data: demoDayData } = useGetDemoDayState();
   const { data } = useGetFundraisingProfile(demoDayData?.access === 'FOUNDER');
   const isPrepDemoDay = useIsPrepDemoDay();
+  const demoDayMode = useDemoDayMode();
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
@@ -128,6 +130,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
       teamFundraisingProfileUid: team.uid,
       interestType: 'like',
       isPrepDemoDay,
+      demoDayMode: demoDayMode ?? undefined,
     });
   };
 
@@ -159,6 +162,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
       teamFundraisingProfileUid: team.uid,
       interestType: 'connect',
       isPrepDemoDay,
+      demoDayMode: demoDayMode ?? undefined,
     });
   };
 
@@ -190,6 +194,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
       teamFundraisingProfileUid: team.uid,
       interestType: 'invest',
       isPrepDemoDay,
+      demoDayMode: demoDayMode ?? undefined,
     });
   };
 
@@ -258,6 +263,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
       teamFundraisingProfileUid: team.uid,
       interestType: 'referral',
       isPrepDemoDay,
+      demoDayMode: demoDayMode ?? undefined,
       referralData,
     });
 
@@ -274,6 +280,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
         teamFundraisingProfileUid: team.uid,
         interestType: 'feedback' as any,
         isPrepDemoDay,
+        demoDayMode: demoDayMode ?? undefined,
         feedbackData,
       },
       {

@@ -4,6 +4,7 @@ import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/com
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
+import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
 import { useSaveTeam } from '@/services/demo-day/hooks/useSaveTeam';
 import s from './TeamProfileCard.module.scss';
 import { getParsedValue } from '@/utils/common.utils';
@@ -22,6 +23,7 @@ import { BookmarkIcon, BookmarkIconFilled, ChartIcon } from '@/components/icons'
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { DemoDayActionButtons } from '@/components/page/demo-day/DemoDayActionButtons';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
@@ -65,6 +67,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const canEdit = isAdmin || team.founders.some((founder) => founder.uid === userInfo?.uid);
   const isPrepDemoDay = useIsPrepDemoDay();
+  const demoDayMode = useDemoDayMode();
 
   // Analytics helper function for team details
   const getTeamAnalyticsData = () => ({
@@ -210,6 +213,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
       teamFundraisingProfileUid: team.uid,
       interestType: interestType,
       isPrepDemoDay,
+      demoDayMode: demoDayMode ?? undefined,
     });
   };
 
@@ -249,6 +253,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
       teamFundraisingProfileUid: team.uid,
       interestType: 'referral',
       isPrepDemoDay,
+      demoDayMode: demoDayMode ?? undefined,
       referralData,
     });
 
@@ -265,6 +270,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         teamFundraisingProfileUid: team.uid,
         interestType: 'feedback' as InterestType,
         isPrepDemoDay,
+        demoDayMode: demoDayMode ?? undefined,
         feedbackData,
       },
       {
@@ -380,7 +386,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   return (
     <div ref={cardRef} className={s.profileCard} onClick={handleCardClick}>
       <ProfileHeader
-        image={team.team.logo?.url || '/images/demo-day/profile-placeholder.svg'}
+        image={team.team.logo?.url || getDefaultAvatar(team?.team?.name) || '/images/demo-day/profile-placeholder.svg'}
         name={team.team?.name || 'Team Name'}
         description={team?.team?.shortDescription || '-'}
         fundingStage={team?.team?.fundingStage?.title || '-'}
@@ -492,6 +498,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         isReferralExpressed={team.referral}
         isConnected={team.connected}
         isInvested={team.invested}
+        isFeedbackGiven={team.feedback}
         onMakeIntro={(e) => handleInterestCompanyClick(e, 'referral')}
         onGiveFeedback={() => setIsFeedbackModalOpen(true)}
         onConnect={(e) => handleInterestCompanyClick(e, 'connect')}

@@ -178,6 +178,10 @@
   padding: 4px 8px;
   transition: background-color 0.2s ease;
 
+  > span {
+    white-space: nowrap;
+  }
+
   &:hover {
     background: rgba(69, 84, 104, 0.1);
   }
@@ -244,7 +248,7 @@
 .linksWrapper {
   display: flex;
   gap: 16px;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-end;
   margin-left: auto;
 }

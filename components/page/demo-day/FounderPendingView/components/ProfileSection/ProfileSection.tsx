@@ -165,6 +165,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
               teamName={data?.team?.name || ''}
               isConnected={data?.connected}
               isInvested={data?.invested}
+              isFeedbackGiven={data?.feedback}
               onMakeIntro={() => {}}
               onGiveFeedback={() => {}}
               onConnect={() =>

@@ -105,14 +105,8 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
 
   return (
     <div className={s.profileHeader}>
-      <div
-        className={s.profileImage}
-        style={{
-          backgroundImage: image ? `url(${image})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
+      <div className={s.profileImage}>
+        {image && <img src={image} alt={name || 'Team Logo'} />}
         {!image && <div className={s.profileImagePlaceholder} />}
       </div>
       <div className={s.memberDetails}>

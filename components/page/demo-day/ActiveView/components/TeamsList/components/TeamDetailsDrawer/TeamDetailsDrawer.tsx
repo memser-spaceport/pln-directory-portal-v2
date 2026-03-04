@@ -438,7 +438,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                           name: s.teamName,
                         }}
                         uid={displayTeam.team.uid}
-                        image={displayTeam.team.logo?.url || '/images/demo-day/profile-placeholder.svg'}
+                        image={
+                          displayTeam.team.logo?.url ||
+                          getDefaultAvatar(displayTeam?.team?.name) ||
+                          '/images/demo-day/profile-placeholder.svg'
+                        }
                         name={displayTeam.team?.name || 'Team Name'}
                         description={displayTeam?.team?.shortDescription || '-'}
                         fundingStage={displayTeam?.team?.fundingStage?.title || '-'}
@@ -536,6 +540,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     isReferralExpressed={team.referral}
                     isConnected={team.connected}
                     isInvested={team.invested}
+                    isFeedbackGiven={team.feedback}
                     onMakeIntro={handleReferCompanyClick}
                     onGiveFeedback={() => setIsFeedbackModalOpen(true)}
                     onConnect={handleConnectCompanyClick}

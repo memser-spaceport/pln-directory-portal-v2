@@ -681,6 +681,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             isReferralExpressed={team?.referral}
             isConnected={team?.connected}
             isInvested={team?.invested}
+            isFeedbackGiven={team?.feedback}
             onMakeIntro={() => setIsReferModalOpen(true)}
             onGiveFeedback={() => setIsFeedbackModalOpen(true)}
             onConnect={() =>

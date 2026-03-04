@@ -22,6 +22,7 @@ import { BookmarkIcon, BookmarkIconFilled, ChartIcon } from '@/components/icons'
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { DemoDayActionButtons } from '@/components/page/demo-day/DemoDayActionButtons';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface TeamProfileCardProps {
   team: TeamProfile;
@@ -380,7 +381,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   return (
     <div ref={cardRef} className={s.profileCard} onClick={handleCardClick}>
       <ProfileHeader
-        image={team.team.logo?.url || '/images/demo-day/profile-placeholder.svg'}
+        image={team.team.logo?.url || getDefaultAvatar(team?.team?.name) || '/images/demo-day/profile-placeholder.svg'}
         name={team.team?.name || 'Team Name'}
         description={team?.team?.shortDescription || '-'}
         fundingStage={team?.team?.fundingStage?.title || '-'}

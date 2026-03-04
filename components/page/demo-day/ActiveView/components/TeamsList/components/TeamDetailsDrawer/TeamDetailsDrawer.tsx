@@ -529,6 +529,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     isReferralExpressed={team.referral}
                     isConnected={team.connected}
                     isInvested={team.invested}
+                    isFeedbackGiven={team.feedback}
                     onMakeIntro={handleReferCompanyClick}
                     onGiveFeedback={() => setIsFeedbackModalOpen(true)}
                     onConnect={handleConnectCompanyClick}

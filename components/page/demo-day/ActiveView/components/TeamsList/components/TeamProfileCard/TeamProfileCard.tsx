@@ -492,6 +492,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         isReferralExpressed={team.referral}
         isConnected={team.connected}
         isInvested={team.invested}
+        isFeedbackGiven={team.feedback}
         onMakeIntro={(e) => handleInterestCompanyClick(e, 'referral')}
         onGiveFeedback={() => setIsFeedbackModalOpen(true)}
         onConnect={(e) => handleInterestCompanyClick(e, 'connect')}

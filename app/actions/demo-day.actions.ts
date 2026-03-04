@@ -11,6 +11,7 @@ export type DemoDayState = {
   description: string;
   status: 'NONE' | 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED' | 'REGISTRATION_OPEN';
   isDemoDayAdmin: boolean;
+  isDemoDayReadOnlyAdmin?: boolean;
   isEarlyAccess?: boolean;
   confidentialityAccepted: boolean;
   investorsCount: number;

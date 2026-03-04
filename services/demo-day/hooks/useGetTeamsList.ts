@@ -41,6 +41,7 @@ export type TeamProfile = {
   connected: boolean;
   invested: boolean;
   referral: boolean;
+  feedback?: boolean;
 };
 
 export type TeamsListResponse = TeamProfile[];

@@ -7,6 +7,7 @@ import { ProfileHeader } from './components/ProfileHeader';
 import { ProfileContent } from './components/ProfileContent';
 import { ErrorState } from './components/ErrorState';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
+import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
 import { useExpressInterest } from '@/services/demo-day/hooks/useExpressInterest';
 import { ProfileActions } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileActions';
 import { IUserInfo } from '@/types/shared.types';
@@ -29,6 +30,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const scrollPositionRef = React.useRef<number>(0);
   const isPrepDemoDay = useIsPrepDemoDay();
+  const demoDayMode = useDemoDayMode();
 
   const { data, isLoading, error } = useGetFundraisingProfile();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -170,6 +172,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
                   teamFundraisingProfileUid: data?.uid,
                   interestType: 'connect',
                   isPrepDemoDay,
+                  demoDayMode: demoDayMode ?? undefined,
                 })
               }
               onInvest={() =>
@@ -177,6 +180,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
                   teamFundraisingProfileUid: data?.uid,
                   interestType: 'invest',
                   isPrepDemoDay,
+                  demoDayMode: demoDayMode ?? undefined,
                 })
               }
               isLoading={expressInterest.isPending}

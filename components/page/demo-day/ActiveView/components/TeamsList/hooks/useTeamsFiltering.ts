@@ -57,7 +57,7 @@ export const useTeamsFiltering = ({ teams, searchTerm, params, isUserFounder }: 
         }
       }
 
-      // Activity filter (liked, connected, invested, referred)
+      // Activity filter (liked, saved, connected, invested, referred, feedback)
       if (selectedActivities.length > 0) {
         const matchesActivity = selectedActivities.some((activity) => {
           if (activity === 'liked') return team.liked;
@@ -65,6 +65,7 @@ export const useTeamsFiltering = ({ teams, searchTerm, params, isUserFounder }: 
           if (activity === 'connected') return team.connected;
           if (activity === 'invested') return team.invested;
           if (activity === 'referral') return team.referral;
+          if (activity === 'feedback') return team.feedback;
           return false;
         });
         if (!matchesActivity) {

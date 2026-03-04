@@ -13,6 +13,7 @@ import Cookies from 'js-cookie';
 import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import Link from 'next/link';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
+import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { ADMIN_ROLE, DEMO_DAY_ANALYTICS } from '@/utils/constants';
@@ -86,6 +87,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const isPrepDemoDay = useIsPrepDemoDay();
+  const demoDayMode = useDemoDayMode();
   const [editView, setEditView] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
@@ -416,6 +418,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
           teamFundraisingProfileUid: data.uid,
           interestType: 'referral',
           isPrepDemoDay,
+          demoDayMode: demoDayMode ?? undefined,
           referralData,
         },
         {
@@ -436,6 +439,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
           teamFundraisingProfileUid: data.uid,
           interestType: 'feedback' as any,
           isPrepDemoDay,
+          demoDayMode: demoDayMode ?? undefined,
           feedbackData,
         },
         {
@@ -684,6 +688,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
                 teamFundraisingProfileUid: data?.uid || '',
                 interestType: 'connect',
                 isPrepDemoDay,
+                demoDayMode: demoDayMode ?? undefined,
               })
             }
             onInvest={() =>
@@ -691,6 +696,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
                 teamFundraisingProfileUid: data?.uid || '',
                 interestType: 'invest',
                 isPrepDemoDay,
+                demoDayMode: demoDayMode ?? undefined,
               })
             }
             isLoading={expressInterest.isPending}

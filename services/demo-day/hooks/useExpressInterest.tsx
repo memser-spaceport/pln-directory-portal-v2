@@ -16,10 +16,13 @@ interface FeedbackData {
   feedback: string;
 }
 
+import type { DemoDayModeType } from './useDemoDayMode';
+
 interface ExpressInterestData {
   teamFundraisingProfileUid: string;
   interestType: InterestType;
   isPrepDemoDay?: boolean;
+  demoDayMode?: DemoDayModeType;
   referralData?: ReferralData;
   feedbackData?: FeedbackData;
 }
@@ -54,41 +57,67 @@ export function useExpressInterest(teamName?: string) {
   return useMutation<boolean, Error, ExpressInterestData>({
     mutationFn: (data: ExpressInterestData) => expressInterest(demoDayId, data),
     onSuccess: (_, variables) => {
-      const { interestType, isPrepDemoDay } = variables;
-      let title = '';
+      const { interestType, isPrepDemoDay, demoDayMode } = variables;
+      const mode = demoDayMode ?? (isPrepDemoDay ? 'showcase' : null);
+      const teamDisplay = teamName || '[TeamName]';
 
-      switch (interestType) {
-        case 'like':
-          title = `You saved ${teamName || '[TeamName]'}`;
-          break;
-        case 'connect':
-          title = `You're connecting with ${teamName || '[TeamName]'}`;
-          break;
-        case 'invest':
-          title = `You expressed interest to invest in ${teamName || '[TeamName]'}`;
-          break;
-        case 'referral':
-          title = `${teamName || '[TeamName]'} introduction sent`;
-          break;
-        case 'feedback':
-          title = `Feedback sent to ${teamName || '[TeamName]'}`;
-          break;
-        default:
-          title = 'Connection request sent!';
+      const getPrepShowcaseMessage = (action: string) =>
+        `${mode === 'prep' ? 'Prep' : 'Showcase'} mode — ${action} not sent to ${teamDisplay}\n(In live Demo Day, founders would receive this)`;
+
+      let content: React.ReactNode;
+      if (mode && interestType !== 'like') {
+        const messages: Record<string, string> = {
+          connect: getPrepShowcaseMessage('Connection request'),
+          feedback: getPrepShowcaseMessage('Feedback'),
+          referral: getPrepShowcaseMessage('Introduction'),
+          invest: getPrepShowcaseMessage('Investment interest'),
+        };
+        const msg = messages[interestType];
+        content = msg ? (
+          <div>
+            <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{msg.split('\n')[0]}</span>
+            <br />
+            <span style={{ fontSize: '14px' }}>{msg.split('\n')[1]}</span>
+          </div>
+        ) : null;
+      }
+
+      if (!content) {
+        let title = '';
+        switch (interestType) {
+          case 'like':
+            title = `You saved ${teamDisplay}`;
+            break;
+          case 'connect':
+            title = `You're connecting with ${teamDisplay}`;
+            break;
+          case 'invest':
+            title = `You expressed interest to invest in ${teamDisplay}`;
+            break;
+          case 'referral':
+            title = `${teamDisplay} introduction sent`;
+            break;
+          case 'feedback':
+            title = `Feedback sent to ${teamDisplay}`;
+            break;
+          default:
+            title = 'Connection request sent!';
+        }
+        content = (
+          <div>
+            <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{title}</span>
+            {interestType !== 'like' && (
+              <>
+                <br />
+                <span style={{ fontSize: '14px' }}>We sent an email to let them know.</span>
+              </>
+            )}
+          </div>
+        );
       }
 
       toast.success(
-        <div>
-          <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{title}</span>
-          <br />
-          {interestType !== 'like' && (
-            <span style={{ fontSize: '14px' }}>
-              {isPrepDemoDay
-                ? `Emails aren't sent to founders in showcase mode.`
-                : 'We sent an email to let them know.'}
-            </span>
-          )}
-        </div>,
+        content,
         {
           style: {
             width: '320px',

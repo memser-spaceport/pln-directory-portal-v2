@@ -4,6 +4,7 @@ import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/com
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
+import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
 import { useSaveTeam } from '@/services/demo-day/hooks/useSaveTeam';
 import s from './TeamProfileCard.module.scss';
 import { getParsedValue } from '@/utils/common.utils';
@@ -65,6 +66,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const canEdit = isAdmin || team.founders.some((founder) => founder.uid === userInfo?.uid);
   const isPrepDemoDay = useIsPrepDemoDay();
+  const demoDayMode = useDemoDayMode();
 
   // Analytics helper function for team details
   const getTeamAnalyticsData = () => ({
@@ -210,6 +212,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
       teamFundraisingProfileUid: team.uid,
       interestType: interestType,
       isPrepDemoDay,
+      demoDayMode: demoDayMode ?? undefined,
     });
   };
 
@@ -249,6 +252,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
       teamFundraisingProfileUid: team.uid,
       interestType: 'referral',
       isPrepDemoDay,
+      demoDayMode: demoDayMode ?? undefined,
       referralData,
     });
 
@@ -265,6 +269,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         teamFundraisingProfileUid: team.uid,
         interestType: 'feedback' as InterestType,
         isPrepDemoDay,
+        demoDayMode: demoDayMode ?? undefined,
         feedbackData,
       },
       {

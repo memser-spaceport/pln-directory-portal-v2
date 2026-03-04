@@ -25,6 +25,7 @@ export interface DemoDayActionButtonsProps {
   isReferralExpressed?: boolean;
   isConnected?: boolean;
   isInvested?: boolean;
+  isFeedbackGiven?: boolean;
 
   // Callbacks
   onMakeIntro: (e: React.MouseEvent) => void;
@@ -48,6 +49,7 @@ export const DemoDayActionButtons: React.FC<DemoDayActionButtonsProps> = ({
   isReferralExpressed = false,
   isConnected = false,
   isInvested = false,
+  isFeedbackGiven = false,
   onMakeIntro,
   onGiveFeedback,
   onConnect,
@@ -85,13 +87,15 @@ export const DemoDayActionButtons: React.FC<DemoDayActionButtonsProps> = ({
       </button>
 
       {/* Give Feedback Button */}
-      <button
-        className={s.feedbackButton}
-        onClick={handleClick(onGiveFeedback)}
-        disabled={isDisabled}
-        type="button"
-      >
-        📝 Give Feedback
+      <button className={s.feedbackButton} onClick={handleClick(onGiveFeedback)} disabled={isDisabled} type="button">
+        {isFeedbackGiven ? (
+          <>
+            📝 Feedback Given
+            <CheckIcon />
+          </>
+        ) : (
+          <>📝 Give Feedback</>
+        )}
       </button>
 
       {/* Connect with Company Button */}
@@ -130,4 +134,3 @@ export const DemoDayActionButtons: React.FC<DemoDayActionButtonsProps> = ({
     </div>
   );
 };
-

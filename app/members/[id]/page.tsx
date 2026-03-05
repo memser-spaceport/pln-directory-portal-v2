@@ -156,6 +156,7 @@ const MemberDetails = ({ params }: { params: any }) => {
                 member={member}
                 isLoggedIn={isLoggedIn}
                 isInvestor={memberInvestorSettings?.isInvestor}
+                useInlineAddTeam
               />
             )}
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
@@ -188,6 +189,7 @@ const MemberDetails = ({ params }: { params: any }) => {
                 member={member}
                 isLoggedIn={isLoggedIn}
                 isInvestor={memberInvestorSettings?.isInvestor}
+                useInlineAddTeam
               />
             )}
             <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />

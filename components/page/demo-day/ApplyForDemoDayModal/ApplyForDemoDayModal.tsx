@@ -9,6 +9,7 @@ import { Modal } from '@/components/common/Modal';
 import { formatDemoDayDate } from '@/utils/demo-day.utils';
 import { FormField } from '@/components/form/FormField';
 import { Button } from '@/components/common/Button';
+import { AddTeamInlineForm } from '@/components/form/AddTeamInlineForm';
 import { useApplyForDemoDay, ApplyForDemoDayPayload } from '@/services/demo-day/hooks/useApplyForDemoDay';
 import { IUserInfo } from '@/types/shared.types';
 import { IMember, IMemberTeam } from '@/types/members.types';
@@ -666,47 +667,17 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
               )}
 
               {isAddingTeam && (
-                <div className={s.addNewTeamContainer}>
-                  <div className={s.addNewTeamHeader}>
-                    <div>
-                      <h3 className={s.addNewTeamTitle}>Add Your Role & Team</h3>
-                      <p className={s.addNewTeamDescription}>Enter your team&apos;s details below.</p>
-                    </div>
-                    <Button
-                      variant="secondary"
-                      type="button"
-                      className={s.closeButton}
-                      onClick={() => {
-                        setIsAddingTeam(false);
-                        setValue('teamName', '', { shouldValidate: true });
-                        setValue('websiteAddress', '', { shouldValidate: true });
-                        setValue('role', '', { shouldValidate: true });
-                      }}
-                    >
-                      <CloseIcon />
-                    </Button>
-                  </div>
-                  <div className={s.separator} />
-                  <div className={s.addNewTeamBody}>
-                    <FormField name="role" placeholder="Enter your primary role" label="Role" isRequired />
-                    <FormField
-                      isRequired
-                      label="Team Name"
-                      name="teamName"
-                      placeholder="Enter team name"
-                      onClear={() => {
-                        setValue('teamName', '', { shouldValidate: true, shouldDirty: true });
-                      }}
-                    />
-                    <FormField
-                      name="websiteAddress"
-                      placeholder="Enter website address"
-                      label="Website address"
-                      isRequired
-                      description="Paste a URL (LinkedIn, company website, etc.)"
-                    />
-                  </div>
-                </div>
+                <AddTeamInlineForm
+                  title="Add Your Role & Team"
+                  fieldNames={{
+                    role: 'role',
+                    name: 'teamName',
+                    website: 'websiteAddress',
+                  }}
+                  onClose={() => {
+                    setIsAddingTeam(false);
+                  }}
+                />
               )}
 
               <label className={s.Label}>

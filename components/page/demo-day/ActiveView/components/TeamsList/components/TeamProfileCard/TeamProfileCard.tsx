@@ -37,9 +37,10 @@ interface TeamProfileCardProps {
   onConnectCompany?: (team: TeamProfile) => void;
   onInvestCompany?: (team: TeamProfile) => void;
   isAdmin?: boolean;
+  canEdit?: boolean;
 }
 
-export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick, isAdmin = false }) => {
+export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick, isAdmin = false, canEdit: canEditTeams }) => {
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
@@ -65,7 +66,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   const expressInterest = useExpressInterest(team.team?.name);
   const saveTeam = useSaveTeam();
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
-  const canEdit = isAdmin || team.founders.some((founder) => founder.uid === userInfo?.uid);
+  const canEdit = isAdmin ? (canEditTeams ?? true) : team.founders.some((founder) => founder.uid === userInfo?.uid);
   const isPrepDemoDay = useIsPrepDemoDay();
   const demoDayMode = useDemoDayMode();
 

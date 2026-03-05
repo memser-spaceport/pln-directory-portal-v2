@@ -348,6 +348,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
             description: nextDemoDay.description,
             status: nextDemoDay.status,
             isDemoDayAdmin: false,
+            isDemoDayReadOnlyAdmin: false,
             confidentialityAccepted: nextDemoDay.confidentialityAccepted,
             investorsCount: nextDemoDay.investorsCount,
             teamsCount: nextDemoDay.teamsCount,

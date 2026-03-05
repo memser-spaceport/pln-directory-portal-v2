@@ -10,33 +10,24 @@ export const signupSchema = yup.object().shape({
   name: yup.string().max(MAX_NAME_LENGTH).required('Required'),
   email: yup.string().email('Must be a valid email').required('Required'),
   teamOrProject: yup.mixed<string | Record<string, string>>().defined().nullable(),
-  teamName: yup
-    .string()
-    .optional()
-    .test({
-      test: (value, context) => {
-        if (context.options.context?.isAddingTeam) {
-          return !!value;
-        }
-
-        return true;
-      },
-      message: 'Team name is required',
-    }),
-  websiteAddress: yup
-    .string()
-    .optional()
-    .test({
-      test: (value, context) => {
-        if (context.options.context?.isAddingTeam) {
-          return !!value;
-        }
-
-        return true;
-      },
-      message: 'Website is required when adding a new team',
-    }),
+  teamName: yup.string().optional(),
+  websiteAddress: yup.string().optional(),
   about: yup.string().max(400, 'Maximum 400 characters allowed').optional(),
   subscribe: yup.boolean().required('Required'),
   agreed: yup.boolean().isTrue().required('Required'),
+  newTeamRole: yup.string().default('').when('$isAddingTeam', {
+    is: true,
+    then: (schema) => schema.required('Role is required'),
+    otherwise: (schema) => schema.defined(),
+  }),
+  newTeamName: yup.string().default('').when('$isAddingTeam', {
+    is: true,
+    then: (schema) => schema.required('Team name is required'),
+    otherwise: (schema) => schema.defined(),
+  }),
+  newTeamWebsite: yup.string().default('').when('$isAddingTeam', {
+    is: true,
+    then: (schema) => schema.required('Website is required'),
+    otherwise: (schema) => schema.defined(),
+  }),
 });

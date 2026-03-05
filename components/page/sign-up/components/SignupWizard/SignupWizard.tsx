@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { clsx } from 'clsx';
 import Image from 'next/image';
 import Cookies from 'js-cookie';
@@ -31,6 +31,7 @@ import { FormSelect } from '@/components/form/FormSelect';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { AddTeamInlineForm } from '@/components/form/AddTeamInlineForm';
 
 interface Props {
   onClose?: () => void;
@@ -56,6 +57,9 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
       about: '',
       subscribe: true,
       agreed: true,
+      newTeamRole: '',
+      newTeamName: '',
+      newTeamWebsite: '',
     },
     mode: 'all',
     context: { isAddingTeam },
@@ -72,6 +76,11 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
   const { subscribe, agreed } = watch();
 
   const { mutateAsync } = useSignupV2();
+
+  // Re-trigger validation when isAddingTeam changes (yup context dependency)
+  // useEffect(() => {
+  //   trigger(['newTeamRole', 'newTeamName', 'newTeamWebsite']);
+  // }, [isAddingTeam, trigger]);
 
   // Get returnTo parameter from URL
   const returnTo = searchParams.get('returnTo');
@@ -121,36 +130,36 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     let team: { uid?: string; name?: string; website?: string } = {};
     let isTeamNew = false;
     let project: { projectUid: string } | null = null;
+    let role = formData.role || '';
 
-    if (formData.teamOrProject) {
+    if (isAddingTeam && formData.newTeamName) {
+      isTeamNew = true;
+      role = formData.newTeamRole || '';
+      team = {
+        name: formData.newTeamName,
+        ...(formData.newTeamWebsite && { website: formData.newTeamWebsite }),
+      };
+    } else if (formData.teamOrProject) {
       isTeamNew = false;
 
       // Check if it's a team or project
       if (formData.teamOrProject.type === 'project') {
-        // For projects, we'll use projectContributions
         project = {
           projectUid: formData.teamOrProject.value,
         };
       } else {
-        // For teams, use the team object
         team = {
           uid: formData.teamOrProject.value,
         };
       }
-    } else if (formData.teamName) {
-      isTeamNew = true;
-      team = {
-        name: formData.teamName,
-        ...(formData.websiteAddress && { website: formData.websiteAddress }),
-      };
     }
 
     // Build the payload for useSignupV2
     const payload: any = {
       uniqueIdentifier: formData.email,
-      role: formData.role || '',
+      role,
       isTeamNew,
-      ...(project ? { project } : formData.teamName || (team && Object.keys(team).length > 0) ? { team } : {}),
+      ...(project ? { project } : formData.newTeamName || (team && Object.keys(team).length > 0) ? { team } : {}),
       newData,
     };
 
@@ -228,105 +237,85 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
 
                 <div className={s.column}>
                   <div className={s.inputsLabel}>Add Role & Team</div>
-                  {!isAddingTeam ? (
-                    <>
-                      <div className={s.inputsWrapper}>
-                        <FormField name="role" placeholder="Enter your primary role" />
-                        <span>@</span>
-                        <FormSelect
-                          name="teamOrProject"
-                          placeholder="Search or add a team"
-                          backLabel="Teams & Projects"
-                          options={[
-                            ...(data?.teams?.map((item: { teamUid: string; teamTitle: string; logo?: string }) => ({
-                              value: item.teamUid,
-                              label: item.teamTitle,
-                              type: 'team' as const,
+                  {!isAddingTeam && (
+                    <div className={s.inputsWrapper}>
+                      <FormField name="role" placeholder="Enter your primary role" />
+                      <span>@</span>
+                      <FormSelect
+                        name="teamOrProject"
+                        placeholder="Search or add a team"
+                        backLabel="Teams & Projects"
+                        options={[
+                          ...(data?.teams?.map((item: { teamUid: string; teamTitle: string; logo?: string }) => ({
+                            value: item.teamUid,
+                            label: item.teamTitle,
+                            type: 'team' as const,
+                            originalObject: item,
+                          })) ?? []),
+                          ...(data?.projects?.map(
+                            (item: { projectUid: string; projectName: string; projectLogo?: string }) => ({
+                              value: item.projectUid,
+                              label: item.projectName,
+                              type: 'project' as const,
                               originalObject: item,
-                            })) ?? []),
-                            ...(data?.projects?.map(
-                              (item: { projectUid: string; projectName: string; projectLogo?: string }) => ({
-                                value: item.projectUid,
-                                label: item.projectName,
-                                type: 'project' as const,
-                                originalObject: item,
-                              }),
-                            ) ?? []),
-                          ].sort((a, b) => a.label.localeCompare(b.label))}
-                          renderOption={({ option, label, description }) => {
-                            return (
-                              <div className={s.teamOption}>
-                                <ImageWithFallback
-                                  width={24}
-                                  height={24}
-                                  alt={option.label}
-                                  className={s.optImg}
-                                  fallbackSrc="/icons/camera.svg"
-                                  src={option.originalObject.logo || option.originalObject.projectLogo}
-                                />
-                                <div className={s.optionContent}>
-                                  {label}
-                                  {description}
-                                </div>
-                                <span className={s.badge} data-type={option.type}>
-                                  {option.type === 'team' ? 'Team' : 'Project'}
-                                </span>
+                            }),
+                          ) ?? []),
+                        ].sort((a, b) => a.label.localeCompare(b.label))}
+                        renderOption={({ option, label, description }) => {
+                          return (
+                            <div className={s.teamOption}>
+                              <ImageWithFallback
+                                width={24}
+                                height={24}
+                                alt={option.label}
+                                className={s.optImg}
+                                fallbackSrc="/icons/camera.svg"
+                                src={option.originalObject.logo || option.originalObject.projectLogo}
+                              />
+                              <div className={s.optionContent}>
+                                {label}
+                                {description}
                               </div>
-                            );
-                          }}
-                          isStickyNoData
-                          notFoundContent={
-                            <div className={s.secondaryLabel}>
-                              Not able to find your project or team?
-                              <br />
-                              <button
-                                type="button"
-                                className={s.link}
-                                onClick={() => {
-                                  memberAnalytics.onAddTeamDropdownClicked('signup');
-                                  setIsAddingTeam(true);
-                                  setValue('teamOrProject', null, { shouldValidate: true });
-                                }}
-                              >
-                                Add your team
-                              </button>
+                              <span className={s.badge} data-type={option.type}>
+                                {option.type === 'team' ? 'Team' : 'Project'}
+                              </span>
                             </div>
-                          }
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <div className={s.col}>
-                      <div className={s.column}>
-                        <div className={s.inputsWrapper}>
-                          <FormField name="role" placeholder="Enter your primary role" />
-                          <span>@</span>
-                          <FormField
-                            name="teamName"
-                            placeholder="Enter team name"
-                            clearable
-                            onClear={() => {
-                              setIsAddingTeam(false);
-                              setValue('teamName', '', { shouldValidate: true });
-                              setValue('websiteAddress', '', { shouldValidate: true });
-                            }}
-                          />
-                        </div>
-                      </div>
+                          );
+                        }}
+                        isStickyNoData
+                        notFoundContent={
+                          <div className={s.secondaryLabel}>
+                            Not able to find your project or team?
+                            <br />
+                            <button
+                              type="button"
+                              className={s.link}
+                              onClick={() => {
+                                memberAnalytics.onAddTeamDropdownClicked('signup');
+                                setIsAddingTeam(true);
+                                setValue('teamOrProject', null, { shouldValidate: true });
+                              }}
+                            >
+                              Add your team
+                            </button>
+                          </div>
+                        }
+                      />
                     </div>
                   )}
-                </div>
-
-                {isAddingTeam && (
-                  <div className={s.row}>
-                    <FormField
-                      name="websiteAddress"
-                      placeholder="Enter website address"
-                      label="Website address"
-                      isRequired
+                  {isAddingTeam && (
+                    <AddTeamInlineForm
+                      fieldNames={{
+                        role: 'newTeamRole',
+                        name: 'newTeamName',
+                        website: 'newTeamWebsite',
+                      }}
+                      onClose={() => {
+                        setIsAddingTeam(false);
+                      }}
                     />
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/*<div className={s.row}>*/}
                 {/*  <Field.Root className={s.field}>*/}

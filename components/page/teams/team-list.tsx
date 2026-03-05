@@ -66,9 +66,9 @@ const TeamList = (props: any) => {
         style={{ overflow: 'unset' }}
       >
         <div className="team-list__grid">
-          {userInfo && accessLevel === 'advanced' && data?.length > 0 && (
-            <TeamAddCard userInfo={userInfo} viewType={VIEW_TYPE_OPTIONS.GRID} />
-          )}
+          {/*{userInfo && accessLevel === 'advanced' && data?.length > 0 && (*/}
+          {/*  <TeamAddCard userInfo={userInfo} viewType={VIEW_TYPE_OPTIONS.GRID} />*/}
+          {/*)}*/}
           {data?.map((team: ITeam, index: number) => (
             <div
               key={`teamitem-${team.id}-${index}`}

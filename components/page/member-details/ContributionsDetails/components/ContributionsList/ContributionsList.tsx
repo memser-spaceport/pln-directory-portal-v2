@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AddButton } from '@/components/page/member-details/components/AddButton';
-import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
+import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 
 import { IMember, IProjectContribution } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -29,9 +29,9 @@ export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) 
 
   return (
     <div className={s.root}>
-      <MemberDetailsSectionHeader title={`Project Contributions ${data?.length ? `(${data.length})` : ''}`}>
+      <DetailsSectionHeader title={`Project Contributions ${data?.length ? `(${data.length})` : ''}`}>
         {isEditable && <AddButton onClick={onAdd} />}
-      </MemberDetailsSectionHeader>
+      </DetailsSectionHeader>
       {!!data?.length && (
         <ul className={s.list}>
           {data?.map((item) => (

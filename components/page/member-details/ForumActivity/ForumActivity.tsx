@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { EyeIcon } from '@/components/icons';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
-import { HeaderActionBtn } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader/components/HeaderActionBtn';
+import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
+import { HeaderActionBtn } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader/components/HeaderActionBtn';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 
@@ -77,7 +77,7 @@ export function ForumActivity(props: ForumActivityProps) {
 
   return (
     <DetailsSection>
-      <MemberDetailsSectionHeader title="Forum Activity">
+      <DetailsSectionHeader title="Forum Activity">
         {!!userInfo && hasAccess && (
           <HeaderActionBtn
             onClick={() => {
@@ -95,7 +95,7 @@ export function ForumActivity(props: ForumActivityProps) {
             Show All
           </HeaderActionBtn>
         )}
-      </MemberDetailsSectionHeader>
+      </DetailsSectionHeader>
 
       <ForumActivityTabs
         activeTab={activeTab}

@@ -1,5 +1,5 @@
 import React from 'react';
-import s from '../InvestorProfileView.module.scss';
+import s from './InvestorProfileField.module.scss';
 
 interface Props {
   label: string;

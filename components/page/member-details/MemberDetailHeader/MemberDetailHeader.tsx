@@ -18,7 +18,7 @@ import { useRecommendationLinkAnalyticsReport } from '@/services/members/hooks/u
 
 import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
-import { EditButton } from '@/components/page/member-details/components/EditButton';
+import { EditButton } from '@/components/common/profile/EditButton';
 
 import { shouldShowInvestorTag } from './utils/shouldShowInvestorTag';
 

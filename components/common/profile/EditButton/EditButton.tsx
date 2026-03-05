@@ -1,7 +1,7 @@
 import React from 'react';
 import { clsx } from 'clsx';
 
-import { HeaderActionBtn } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
+import { HeaderActionBtn } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 
 import s from './EditButton.module.scss';
 

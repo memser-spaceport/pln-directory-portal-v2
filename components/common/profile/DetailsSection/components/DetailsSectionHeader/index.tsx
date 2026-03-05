@@ -1,2 +1,2 @@
 export * from './components/HeaderActionBtn';
-export * from './MemberDetailsSectionHeader';
+export * from './DetailsSectionHeader';

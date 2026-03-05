@@ -1,6 +1,5 @@
 import Error from '@/components/core/error';
 import ContactInfo from '@/components/page/team-details/contact-info';
-import Funding from '@/components/page/team-details/funding';
 import { Projects } from '@/components/page/team-details/Projects';
 import { TeamDetails } from '@/components/page/team-details/TeamDetails';
 import TeamMembers from '@/components/page/team-details/team-members';
@@ -21,10 +20,8 @@ import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
-import { InvestorProfileView } from '@/components/page/member-details/InvestorProfileDetails/components/InvestorProfileView';
-import { clsx } from 'clsx';
-import s from '@/components/page/member-details/InvestorProfileDetails/InvestorProfileDetails.module.scss';
-import { TeamInvestorDetails } from '@/components/page/teams/TeamInvestorDetails';
+import { TeamInvestorDetails } from '@/components/page/team-details/TeamInvestorDetails';
+import { TeamMembershipSource, TeamCommunitiesSection } from '@/components/page/team-details/TeamsTagsListSection';
 
 async function Page({ params, searchParams }: { params: ITeamDetailParams; searchParams: { backTo?: string } }) {
   const teamId: string = params?.id;
@@ -89,12 +86,10 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
               />
             )}
           </div>
-          {/* Funding */}
-          {team?.fundingStage || team?.membershipSources?.length ? (
-            <div className={styles?.teamDetail__container__funding}>
-              <Funding team={team} />
-            </div>
-          ) : null}
+
+          <TeamMembershipSource team={team} userInfo={userInfo} />
+          <TeamCommunitiesSection team={team} userInfo={userInfo} />
+
           {/* Focus Area */}
           {team.teamFocusAreas && team?.teamFocusAreas?.length > 0 && focusAreas && focusAreas?.length > 0 && (
             <div className={styles?.teamDetail__container__focusarea}>

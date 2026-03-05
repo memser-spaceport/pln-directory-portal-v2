@@ -4,8 +4,8 @@ import React from 'react';
 import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { EditButton } from '@/components/page/member-details/components/EditButton';
-import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
+import { EditButton } from '@/components/common/profile/EditButton';
+import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 
 import s from './BioView.module.scss';
 
@@ -24,9 +24,9 @@ export const BioView = ({ member, isLoggedIn, userInfo, isEditable, showIncomple
 
   return (
     <div className={s.root}>
-      <MemberDetailsSectionHeader title="Bio" className={s.header}>
+      <DetailsSectionHeader title="Bio" className={s.header}>
         {isLoggedIn && isEditable && <EditButton onClick={onEdit} />}
-      </MemberDetailsSectionHeader>
+      </DetailsSectionHeader>
 
       <div className={clsx(s.content)}>
         {hasBio && member.bio ? (

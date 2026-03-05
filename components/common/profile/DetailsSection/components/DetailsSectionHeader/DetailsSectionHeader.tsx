@@ -1,14 +1,14 @@
 import { clsx } from 'clsx';
 import React, { PropsWithChildren, ReactNode } from 'react';
 
-import s from './MemberDetailsSectionHeader.module.scss';
+import s from './DetailsSectionHeader.module.scss';
 
 interface Props {
   title: ReactNode;
   className?: string;
 }
 
-export function MemberDetailsSectionHeader(props: PropsWithChildren<Props>) {
+export function DetailsSectionHeader(props: PropsWithChildren<Props>) {
   const { title, children, className } = props;
 
   return (

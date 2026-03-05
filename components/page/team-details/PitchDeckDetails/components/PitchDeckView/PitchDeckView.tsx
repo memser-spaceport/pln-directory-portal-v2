@@ -4,7 +4,7 @@ import React from 'react';
 import { clsx } from 'clsx';
 
 import { FileUploader } from '@/components/ui/FileUploader';
-import { EditButton } from '@/components/page/member-details/components/EditButton';
+import { EditButton } from '@/components/common/profile/EditButton';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
 
 import s from './PitchDeckView.module.scss';

@@ -1,8 +1,11 @@
 'use client';
 
 import clsx from 'clsx';
-import { Fragment } from 'react';
 import Link from 'next/link';
+
+import { ITeam } from '@/types/teams.types';
+import { IUserInfo } from '@/types/shared.types';
+import { IMember, IMemberTeam } from '@/types/members.types';
 
 import { ADMIN_ROLE } from '@/utils/constants';
 
@@ -13,17 +16,13 @@ import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useRecommendationLinkAnalyticsReport } from '@/services/members/hooks/useRecommendationLinkAnalyticsReport';
 
-import { Tag } from '@/components/ui/tag';
-import { IMember, IMemberTeam } from '@/types/members.types';
-import { IUserInfo } from '@/types/shared.types';
 import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
+import { TagsList } from '@/components/common/profile/TagsList';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
 
 import { shouldShowInvestorTag } from './utils/shouldShowInvestorTag';
 
 import s from './MemberDetailHeader.module.scss';
-import { Button } from '@/components/common/Button';
-import { ITeam } from '@/types/teams.types';
 
 interface IMemberDetailHeader {
   member: IMember;
@@ -199,42 +198,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
           )}
 
           {hasSkills && variant !== 'investor-drawer' ? (
-            <>
-              {skills?.map((skill: any, index: number) => (
-                <Fragment key={`${skill} + ${index}`}>
-                  {index < 3 && (
-                    <CustomTooltip
-                      trigger={
-                        <div>
-                          <Tag value={skill?.title} tagsLength={skills?.length} />
-                        </div>
-                      }
-                      content={skill?.title}
-                    />
-                  )}
-                </Fragment>
-              ))}
-              {skills?.length > 3 && (
-                <CustomTooltip
-                  forceTooltip
-                  trigger={
-                    <div>
-                      <Tag variant="primary" value={'+' + (skills?.length - 3).toString()}></Tag>{' '}
-                    </div>
-                  }
-                  content={
-                    <div>
-                      {skills
-                        ?.slice(3, skills?.length)
-                        .map((skill) => skill?.title)
-                        .join(',|')
-                        .split('|')
-                        .map((skill) => <div key={skill}>{skill}</div>)}
-                    </div>
-                  }
-                />
-              )}
-            </>
+            <TagsList tags={skills} />
           ) : (
             isLoggedIn &&
             (isOwner || isAdmin) &&

@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import { PropsWithChildren } from 'react';
 
-import s from './MemberDetailsSection.module.scss';
+import s from './DetailsSection.module.scss';
 
 interface Props {
   editView?: boolean;
@@ -14,7 +14,7 @@ interface Props {
   };
 }
 
-export function MemberDetailsSection(props: PropsWithChildren<Props>) {
+export function DetailsSection(props: PropsWithChildren<Props>) {
   const { children, editView, missingData, missingDataAlert, classes } = props;
 
   return (

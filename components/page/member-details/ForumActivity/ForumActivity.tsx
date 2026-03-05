@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { EyeIcon } from '@/components/icons';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
 import { HeaderActionBtn } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader/components/HeaderActionBtn';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 import { ActiveTab } from './types';
@@ -76,7 +76,7 @@ export function ForumActivity(props: ForumActivityProps) {
   }
 
   return (
-    <MemberDetailsSection>
+    <DetailsSection>
       <MemberDetailsSectionHeader title="Forum Activity">
         {!!userInfo && hasAccess && (
           <HeaderActionBtn
@@ -136,6 +136,6 @@ export function ForumActivity(props: ForumActivityProps) {
         hasNextCommentsPage={hasNextCommentsPage}
         isFetchingNextCommentsPage={isFetchingNextCommentsPage}
       />
-    </MemberDetailsSection>
+    </DetailsSection>
   );
 }

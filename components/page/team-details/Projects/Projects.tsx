@@ -4,16 +4,21 @@ import { useRef } from 'react';
 import isEmpty from 'lodash/isEmpty';
 import { useRouter } from 'next/navigation';
 
-import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import Modal from '@/components/core/modal';
 import { IUserInfo } from '@/types/shared.types';
 import { IFormatedTeamProject, ITeam } from '@/types/teams.types';
-import { getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+
 import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
-import AllProjects from '../all-projects';
-import TeamProjectCard from '../team-project-card';
+
+import { getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
+
+import Modal from '@/components/core/modal';
 
 import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
+
+import AllProjects from '../all-projects';
+import TeamProjectCard from '../team-project-card';
 
 import s from './Projects.module.scss';
 

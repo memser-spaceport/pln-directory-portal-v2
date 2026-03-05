@@ -6,8 +6,8 @@ import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
 
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { RepositoriesList } from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList';
-import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 
 import { getAccessLevel } from '@/utils/auth.utils';
 
@@ -27,8 +27,8 @@ export const RepositoriesDetails = ({ isLoggedIn, userInfo, member }: Props) => 
   }
 
   return (
-    <MemberDetailsSection>
+    <DetailsSection>
       <RepositoriesList member={member} userInfo={userInfo} isEditable={isEditable} />
-    </MemberDetailsSection>
+    </DetailsSection>
   );
 };

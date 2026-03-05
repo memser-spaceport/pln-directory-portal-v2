@@ -11,7 +11,7 @@ import { ITeam } from '@/types/teams.types';
 import { TeamsList } from '@/components/page/member-details/TeamsDetails/components/TeamsList';
 import { EditTeamForm } from '@/components/page/member-details/TeamsDetails/components/EditTeamForm';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
-import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
 
 interface Props {
   member: IMember;
@@ -32,7 +32,7 @@ export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   }
 
   return (
-    <MemberDetailsSection editView={view !== 'view'}>
+    <DetailsSection editView={view !== 'view'}>
       {view === 'view' && (
         <TeamsList
           member={member}
@@ -49,6 +49,6 @@ export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
       )}
       {view === 'edit' && <EditTeamForm onClose={() => setView('view')} member={member} initialData={selectedItem} />}
       {view === 'add' && <EditTeamForm onClose={() => setView('view')} member={member} />}
-    </MemberDetailsSection>
+    </DetailsSection>
   );
 };

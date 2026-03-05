@@ -1,7 +1,7 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { Tag } from '@/components/ui/tag';
+import { Tag } from '@/components/ui/Tag';
 import { IMember } from '@/types/members.types';
 import { parseMemberLocation } from '@/utils/member.utils';
 import MemberSkillList from './member-skill-list';

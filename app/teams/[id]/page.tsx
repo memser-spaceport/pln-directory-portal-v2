@@ -24,6 +24,7 @@ import React from 'react';
 import { InvestorProfileView } from '@/components/page/member-details/InvestorProfileDetails/components/InvestorProfileView';
 import { clsx } from 'clsx';
 import s from '@/components/page/member-details/InvestorProfileDetails/InvestorProfileDetails.module.scss';
+import { TeamInvestorDetails } from '@/components/page/teams/TeamInvestorDetails';
 
 async function Page({ params, searchParams }: { params: ITeamDetailParams; searchParams: { backTo?: string } }) {
   const teamId: string = params?.id;
@@ -72,21 +73,7 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
           </div>
 
           {isLoggedIn && team?.isFund && team.investorProfile && !!hasInvestorData() && (
-            <div className={clsx(s.root)}>
-              <InvestorProfileView
-                investmentFocusAreas={team?.investorProfile?.investmentFocus}
-                typicalCheckSize={team?.investorProfile?.typicalCheckSize}
-                isLoggedIn={isLoggedIn}
-                userInfo={userInfo}
-                isEditable={false}
-                showIncomplete={false}
-                secRulesAccepted
-                investInStartupStages={team?.investorProfile?.investInStartupStages}
-                investInFundTypes={team?.investorProfile?.investInFundTypes}
-                type={'ANGEL'}
-                hideHeader
-              />
-            </div>
+            <TeamInvestorDetails team={team} userInfo={userInfo} isLoggedIn={isLoggedIn} />
           )}
 
           {/* contact */}
@@ -301,6 +288,7 @@ type IGenerateMetadata = {
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
 };
+
 export async function generateMetadata(
   { params, searchParams }: IGenerateMetadata,
   parent: ResolvingMetadata,

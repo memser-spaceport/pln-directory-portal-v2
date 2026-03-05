@@ -8,10 +8,10 @@ import { ADMIN_ROLE } from '@/utils/constants';
 
 import { ContributionsList } from '@/components/page/member-details/ContributionsDetails/components/ContributionsList';
 import { EditContributionsForm } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm';
-import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAccessLevel } from '@/utils/auth.utils';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
 
 interface Props {
   member: IMember;
@@ -33,7 +33,7 @@ export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) =>
   }
 
   return (
-    <MemberDetailsSection editView={view !== 'view'}>
+    <DetailsSection editView={view !== 'view'}>
       {view === 'view' && (
         <ContributionsList
           member={member}
@@ -54,6 +54,6 @@ export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) =>
         <EditContributionsForm onClose={() => setView('view')} member={member} initialData={selectedItem} />
       )}
       {view === 'add' && <EditContributionsForm onClose={() => setView('view')} member={member} />}
-    </MemberDetailsSection>
+    </DetailsSection>
   );
 };

@@ -1,5 +1,5 @@
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { Tag } from '@/components/ui/tag';
+import { Tag } from '@/components/ui/Tag';
 import { Fragment } from 'react';
 
 const MemberSkillList = (props: any) => {
@@ -17,7 +17,11 @@ const MemberSkillList = (props: any) => {
                 asChild
                 trigger={
                   <div>
-                    <Tag value={skill?.title} variant={isListView ? '' : 'primary'} tagsLength={skills?.length} />
+                    <Tag
+                      value={skill?.title}
+                      tagsLength={skills?.length}
+                      variant={isListView ? undefined : 'primary'}
+                    />
                   </div>
                 }
                 content={skill?.title}

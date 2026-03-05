@@ -1,10 +1,10 @@
 'use client';
-import { useCommonAnalytics } from '@/analytics/common.analytics';
+import { useEffect, useState } from 'react';
+
 import { IFilterSelectedItem, IUserInfo } from '@/types/shared.types';
 import { triggerLoader } from '@/utils/common.utils';
-import { PAGE_ROUTES, PRIVATE_FILTERS } from '@/utils/constants';
-import { useEffect, useState } from 'react';
-import { Tag } from './tag';
+import { PRIVATE_FILTERS } from '@/utils/constants';
+import { Tag } from '@/components/ui/Tag';
 import { getAccessLevel } from '@/utils/auth.utils';
 
 interface ITagContainer {

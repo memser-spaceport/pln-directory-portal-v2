@@ -19,9 +19,9 @@ function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
   const { data } = useGetDemoDayState();
 
   // User has admin access if they are a directory admin OR a demo day admin (with correct host scope)
-  const hasAdminAccess = isDirectoryAdmin || data?.isDemoDayAdmin;
+  const hasAdminAccess = isDirectoryAdmin || data?.isDemoDayAdmin || data?.isDemoDayReadOnlyAdmin;
 
-  // User can view the prep page if they have admin access OR are a founder
+  // User can view the prep page if they have admin access, read-only admin access, OR are a founder
   const hasAccess =
     data?.status === 'COMPLETED' ? isDirectoryAdmin : hasAdminAccess || data?.access === 'FOUNDER';
 

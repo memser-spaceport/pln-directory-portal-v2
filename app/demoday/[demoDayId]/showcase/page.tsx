@@ -20,6 +20,7 @@ function DemoDayDemoShowcasePage({ params }: { params: { demoDayId: string } }) 
   const hasAccess = isDirectoryAdmin || data?.isDemoDayAdmin || data?.isDemoDayReadOnlyAdmin;
   const canEdit = isDirectoryAdmin || !!data?.isDemoDayAdmin;
 
+
   useEffect(() => {
     // Redirect non-admins to regular demo day page
     if (!hasAccess && data) {

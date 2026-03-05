@@ -33,6 +33,7 @@ import { findPreferredTeam } from './utils/findPreferredTeam';
 import { AddTeamDrawer } from './components/AddTeamDrawer/AddTeamDrawer';
 import { useGetSaveTeam } from '@/hooks/createTeam/useGetSaveTeam';
 import { Button } from '@/components/common/Button';
+import { AddTeamInlineForm } from '@/components/form/AddTeamInlineForm';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
@@ -177,10 +178,10 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
   const isTeamLead =
     member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead || selectedTeam?.originalObject?.teamLead;
 
-  const ensureProtocol = (fieldName: 'website' | 'newTeamWebsite') => {
-    const val = (watch(fieldName) as string)?.trim();
+  const ensureProtocol = () => {
+    const val = (watch('website') as string)?.trim();
     if (val && !/^https?:\/\//i.test(val)) {
-      setValue(fieldName, `https://${val}`, { shouldValidate: true, shouldDirty: true });
+      setValue('website', `https://${val}`, { shouldValidate: true, shouldDirty: true });
     }
   };
 
@@ -188,41 +189,35 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
   const [isAddingTeamInline, setIsAddingTeamInline] = React.useState(false);
   const teamSelectRef = React.useRef(null);
 
+  const pendingTeamDataRef = React.useRef<any>(null);
+  const createdTeamRef = React.useRef<{ uid: string; name: string } | null>(null);
+
   const saveTeamFn = useGetSaveTeam((newData: any) => {
-    const role = watch('newTeamRole');
-    const teamName = watch('newTeamName');
-    const teamWebsite = watch('newTeamWebsite');
-    const teamInvestInFundTypes = watch('teamInvestInFundTypes');
-    const teamInvestInStartupStages = watch('teamInvestInStartupStages');
-    const teamTypicalCheckSize = watch('teamTypicalCheckSize');
-    const teamInvestmentFocusAreas = watch('teamInvestmentFocusAreas');
-
+    const pendingData = pendingTeamDataRef.current;
     setIsAddingTeamInline(false);
-    setValue('newTeamName', '', { shouldValidate: true });
-    setValue('newTeamWebsite', '', { shouldValidate: true });
-    setValue('newTeamRole', '', { shouldValidate: true });
 
-    if (newData) {
-      // Build a team entry matching the shape from useMemberFormOptions
+    if (newData && pendingData) {
       const teamUid = newData.uid || newData.id || newData.teamUid || '';
-      const teamTitle = newData.name || newData.teamTitle || teamName || '';
+      const teamTitle = newData.name || newData.teamTitle || pendingData.name || '';
+
+      // Store for use in onSubmit after await
+      createdTeamRef.current = { uid: teamUid, name: teamTitle };
 
       const newTeamEntry = {
         teamUid,
         teamTitle,
         investorProfile: {
-          investInFundTypes: teamInvestInFundTypes?.map((item: any) => item.value),
-          investInStartupStages: teamInvestInStartupStages?.map((item: any) => item.value),
-          typicalCheckSize: parseCurrencyToNumber(teamTypicalCheckSize ?? ''),
-          investmentFocus: teamInvestmentFocusAreas,
+          investInFundTypes: pendingData.fundTypes?.map((item: any) => item.value),
+          investInStartupStages: pendingData.startupStages?.map((item: any) => item.value),
+          typicalCheckSize: parseCurrencyToNumber(pendingData.typicalCheckSize ?? ''),
+          investmentFocus: pendingData.investmentFocusAreas,
         },
         role: '',
         logo: null,
-        website: teamWebsite || newData.website || '',
+        website: pendingData.website || newData.website || '',
         teamLead: true,
       };
 
-      // Manually add the new team to the cached options
       queryClient.setQueryData([MembersQueryKeys.GET_SKILLS_OPTIONS], (oldData: any) => {
         if (!oldData) return oldData;
         return {
@@ -243,10 +238,11 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
 
       setValue('team', teamOption, { shouldValidate: true, shouldDirty: true });
       handleTeamSelect(teamOption);
-      if (role) {
-        setValue('teamRole', role, { shouldValidate: true, shouldDirty: true });
+      if (pendingData.role) {
+        setValue('teamRole', pendingData.role, { shouldValidate: true, shouldDirty: true });
       }
     }
+    pendingTeamDataRef.current = null;
   });
 
   const formOptions = useMemo(() => {
@@ -389,7 +385,8 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
     }
   };
 
-  const onSubmit = async (formData: TEditInvestorProfileForm) => {
+  const onSubmit = async (initialFormData: TEditInvestorProfileForm) => {
+    let formData = initialFormData;
     if (!isValid) {
       return;
     }
@@ -398,9 +395,52 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
       return;
     }
 
+    // If the inline add-team form is open, create the team first, then continue with fresh values
+    if (isAddingTeamInline && useInlineAddTeam) {
+      const teamName = watch('newTeamName');
+      const teamWebsite = watch('newTeamWebsite');
+      const teamRole = watch('newTeamRole');
+      if (!teamName || !teamWebsite || !teamRole) return;
+      pendingTeamDataRef.current = {
+        name: teamName,
+        website: teamWebsite,
+        role: teamRole,
+        startupStages: watch('teamInvestInStartupStages'),
+        typicalCheckSize: watch('teamTypicalCheckSize'),
+        investmentFocusAreas: watch('teamInvestmentFocusAreas'),
+        fundTypes: watch('teamInvestInFundTypes'),
+      };
+      await saveTeamFn({
+        name: teamName,
+        website: teamWebsite || '',
+        role: teamRole || '',
+        requestorEmail: userInfo?.email,
+        shortDescription: '',
+      });
+      // Use the created team uid directly from the API response
+      formData = methods.getValues() as TEditInvestorProfileForm;
+      if (createdTeamRef.current) {
+        formData = {
+          ...formData,
+          team: {
+            ...formData.team,
+            value: createdTeamRef.current.uid,
+            label: createdTeamRef.current.name,
+          },
+        };
+        createdTeamRef.current = null;
+      }
+    }
+
     // Parse the currency string to get numeric value
     const typicalCheckSizeNumber = parseCurrencyToNumber(formData.typicalCheckSize ?? '');
     const teamTypicalCheckSizeNumber = parseCurrencyToNumber(formData.teamTypicalCheckSize ?? '');
+
+    // Re-derive isTeamLead from fresh formData (the closure value may be stale after team creation)
+    const currentIsTeamLead =
+      member?.teams.find((team) => team.id === formData.team?.value)?.teamLead ||
+      formData.team?.originalObject?.teamLead;
+
     try {
       if (formData.team) {
         const teamPayload: any = {
@@ -410,7 +450,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
           ...(formData.website && { website: formData.website }),
         };
 
-        if (isTeamLead) {
+        if (currentIsTeamLead) {
           teamPayload.investorProfile = {
             investmentFocus: formData.teamInvestmentFocusAreas,
             investInStartupStages: formData.teamInvestInStartupStages.map((item) => item.value),
@@ -470,7 +510,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
             secRulesAccepted: formData.secRulesAccepted,
             isInvestViaFund: formData.isInvestViaFund,
           };
-          if (formData.team && isTeamLead) {
+          if (formData.team && currentIsTeamLead) {
             drawerFormValues.teamTypicalCheckSize = teamTypicalCheckSizeNumber;
             drawerFormValues.teamInvestInStartupStages = formData.teamInvestInStartupStages.map((item) => item.value);
             drawerFormValues.teamInvestmentFocusAreas = formData.teamInvestmentFocusAreas;
@@ -726,141 +766,23 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                   </div>
 
                   {isAddingTeamInline && useInlineAddTeam && (
-                    <div className={s.addNewTeamContainer}>
-                      <div className={s.addNewTeamHeader}>
-                        <div>
-                          <h3 className={s.addNewTeamTitle}>Add Your Team</h3>
-                          <p className={s.addNewTeamDescription}>Enter your team&apos;s details below.</p>
-                        </div>
-                        <Button
-                          variant="secondary"
-                          type="button"
-                          className={s.closeButton}
-                          onClick={() => {
-                            setIsAddingTeamInline(false);
-                            setValue('newTeamName', '', { shouldValidate: true });
-                            setValue('newTeamWebsite', '', { shouldValidate: true });
-                            setValue('newTeamRole', '', { shouldValidate: true });
-                          }}
-                        >
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M3.13 10.87L10.87 3.13M10.87 10.87L3.13 3.13"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </Button>
-                      </div>
-                      <div className={s.separator} />
-                      <div className={s.addNewTeamBody}>
-                        <FormField
-                          name="newTeamRole"
-                          placeholder="Enter your primary role"
-                          label="Role"
-                          isRequired={useInlineAddTeam}
-                          rules={useInlineAddTeam ? { required: 'Role is required' } : undefined}
-                        />
-                        <FormField
-                          name="newTeamName"
-                          placeholder="Enter team name"
-                          label="Team Name"
-                          isRequired={useInlineAddTeam}
-                          rules={useInlineAddTeam ? { required: 'Team name is required' } : undefined}
-                          onClear={() => {
-                            setValue('newTeamName', '', { shouldValidate: true, shouldDirty: true });
-                          }}
-                        />
-                        <FormField
-                          name="newTeamWebsite"
-                          placeholder="Enter website address"
-                          label="Website Address"
-                          description="Paste a URL (LinkedIn, company website, etc.)"
-                          isRequired={useInlineAddTeam}
-                          rules={useInlineAddTeam ? { required: 'Website is required' } : undefined}
-                          onBlur={() => ensureProtocol('newTeamWebsite')}
-                        />
-                        <FormMultiSelect
-                          name="teamInvestInStartupStages"
-                          label="Startup stage(s) you invest in?"
-                          placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
-                          options={formOptions.fundingStageOptions}
-                          // disabled={!isTeamLead || !selectedTeam}
-                          isRequired
-                        />
-                        <FormCurrencyField
-                          name="teamTypicalCheckSize"
-                          label="Typical Check Size"
-                          placeholder="Select typical check size (E.g. $25k - $50.000k)"
-                          currency="USD"
-                          // disabled={!isTeamLead || !selectedTeam}
-                          isRequired
-                        />
-                        <FormTagsInput
-                          selectLabel="Add Investment Focus"
-                          name="teamInvestmentFocusAreas"
-                          placeholder="Add keywords. E.g. AI, Staking, Governance, etc."
-                          // disabled={!isTeamLead || !selectedTeam}
-                        />
-                        <FormMultiSelect
-                          name="teamInvestInFundTypes"
-                          label="Type of fund(s) you invest in?"
-                          placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
-                          options={formOptions.fundTypeOptions}
-                          // disabled={!isTeamLead || !selectedTeam}
-                        />
-                        <div className={s.addNewTeamActions}>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            style="border"
-                            onClick={() => {
-                              setIsAddingTeamInline(false);
-                              setValue('newTeamName', '', { shouldValidate: true });
-                              setValue('newTeamWebsite', '', { shouldValidate: true });
-                              setValue('newTeamRole', '', { shouldValidate: true });
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="primary"
-                            style="fill"
-                            onClick={async () => {
-                              const teamName = watch('newTeamName');
-                              const teamWebsite = watch('newTeamWebsite');
-                              const teamRole = watch('newTeamRole');
-                              if (!teamName) return;
-                              if (useInlineAddTeam && (!teamWebsite || !teamRole)) return;
-                              saveTeamFn({
-                                name: teamName,
-                                website: teamWebsite || '',
-                                role: teamRole || '',
-                                requestorEmail: userInfo?.email,
-                                shortDescription: '',
-                              });
-                            }}
-                            disabled={
-                              !watch('newTeamName') ||
-                              !watch('teamInvestInStartupStages')?.length ||
-                              !watch('teamTypicalCheckSize') ||
-                              (useInlineAddTeam && (!watch('newTeamWebsite') || !watch('newTeamRole')))
-                            }
-                          >
-                            Add Team
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+                    <AddTeamInlineForm
+                      showInvestorFields
+                      investorFieldsConfig={{
+                        fundingStageOptions: formOptions.fundingStageOptions,
+                        fundTypeOptions: formOptions.fundTypeOptions,
+                      }}
+                      fieldNames={{
+                        role: 'newTeamRole',
+                        name: 'newTeamName',
+                        website: 'newTeamWebsite',
+                        startupStages: 'teamInvestInStartupStages',
+                        typicalCheckSize: 'teamTypicalCheckSize',
+                        investmentFocusAreas: 'teamInvestmentFocusAreas',
+                        fundTypes: 'teamInvestInFundTypes',
+                      }}
+                      onClose={() => setIsAddingTeamInline(false)}
+                    />
                   )}
 
                   {selectedTeam && !isAddingTeamInline && (
@@ -925,7 +847,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               description="Paste a URL (company website, LinkedIn, Notion, X.com, Bluesky, etc.)"
                               disabled={!isTeamLead || !selectedTeam}
                               isRequired
-                              onBlur={() => ensureProtocol('website')}
+                              onBlur={() => ensureProtocol()}
                             />
                           </div>
 

@@ -9,4 +9,7 @@ export interface SignupForm {
   about?: string;
   subscribe: boolean;
   agreed: true;
+  newTeamRole: string;
+  newTeamName: string;
+  newTeamWebsite: string;
 }

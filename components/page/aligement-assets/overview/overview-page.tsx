@@ -80,6 +80,31 @@ const howItems = [
   },
 ];
 
+const workingGroupRows = [
+  {
+    team: 'Surus',
+    contributors: ['Patrick Murck', 'Tyler Whirty'],
+    responsibilities:
+      'State-chartered PL Alignment Asset Trustee - maintains the PLAA1 Trust ("Trust") and is responsible for day-to-day Trust operations.',
+  },
+  {
+    team: 'Polaris',
+    contributors: ['Victoria DeVesty', 'Kevin Houng'],
+    responsibilities:
+      'Provides input on Distribution and Allocation Strategy (network incentives) to Surus and Telegram Forum DRI.',
+  },
+  {
+    team: 'PL Init',
+    contributors: ['Juan Benet', 'Diana Stern', 'Chris Broom', 'Patrick Kim', 'Derrick Lam', 'Theresa Therriault'],
+    responsibilities: 'Originator of the Trust.',
+  },
+  {
+    team: 'PL Capital',
+    contributors: ['Danielle Andrzejewski'],
+    responsibilities: 'Potential pathway to indexing the value of the Trust over PL value creation.',
+  },
+];
+
 const Overview = () => {
   const [buttonState, setButtonState] = useState<'start' | 'floating' | 'end'>('start');
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -351,6 +376,46 @@ const Overview = () => {
                 <span>Create Your Account</span>
               </button>
             )}
+          </div>
+        </div>
+
+        <div className="overview__content__working-group">
+          <div className="overview__section-title">Alignment Asset Working Group</div>
+          <div className="overview__content__working-group__description">
+            The PL Alignment Asset Working Group (PLAA WG) brings together exceptional contributors from across the
+            Protocol Labs ecosystem to guide the design, governance, and long-term evolution of the PLAA. This
+            cross-functional team represents leaders from Surus, Polaris, PL Init, and PL Capital - combining
+            expertise across legal, compliance infrastructure, ecosystem operations, incentivized activities design,
+            and capital strategy. Together, the Working Group ensures that PLAA is transparent, compliant, and
+            structurally aligned with the network&apos;s long-term growth and contributor recognition. Meet the leaders
+            driving this initiative forward:
+          </div>
+
+          <div className="overview__content__working-group__table-wrapper">
+            <table className="overview__content__working-group__table">
+              <thead>
+                <tr>
+                  <th>Team / Project</th>
+                  <th>Core Contributors</th>
+                  <th>Roles + Responsibilities</th>
+                </tr>
+              </thead>
+              <tbody>
+                {workingGroupRows.map((row) => (
+                  <tr key={row.team}>
+                    <td className="overview__content__working-group__table__team">{row.team}</td>
+                    <td>
+                      <ul className="overview__content__working-group__table__contributors">
+                        {row.contributors.map((contributor) => (
+                          <li key={contributor}>{contributor}</li>
+                        ))}
+                      </ul>
+                    </td>
+                    <td>{row.responsibilities}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -711,6 +776,82 @@ const Overview = () => {
             font-size: 14px;
             line-height: 22px;
             color: #475569;
+          }
+
+          .overview__content__working-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+
+          .overview__content__working-group__description {
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 22px;
+            color: #475569;
+          }
+
+          .overview__content__working-group__table-wrapper {
+            width: 100%;
+            max-width: 980px;
+            margin: 0 auto;
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            background-color: #f8fafc;
+          }
+
+          .overview__content__working-group__table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 760px;
+            font-size: 14px;
+            line-height: 20px;
+            color: #475569;
+          }
+
+          .overview__content__working-group__table th,
+          .overview__content__working-group__table td {
+            text-align: left;
+            vertical-align: top;
+            padding: 14px 18px;
+            border-bottom: 1px solid #cbd5e1;
+          }
+
+          .overview__content__working-group__table th {
+            font-weight: 600;
+            color: #334155;
+            background-color: #e2e8f0;
+          }
+
+          .overview__content__working-group__table td + td,
+          .overview__content__working-group__table th + th {
+            border-left: 1px solid #cbd5e1;
+          }
+
+          .overview__content__working-group__table th:nth-child(2),
+          .overview__content__working-group__table td:nth-child(2) {
+            width: 280px;
+            min-width: 280px;
+          }
+
+          .overview__content__working-group__table tbody tr:last-child td {
+            border-bottom: none;
+          }
+
+          .overview__content__working-group__table__team {
+            font-weight: 600;
+            color: #334155;
+            min-width: 140px;
+          }
+
+          .overview__content__working-group__table__contributors {
+            margin: 0;
+            padding-left: 18px;
+          }
+
+          .overview__content__working-group__table__contributors li {
+            white-space: nowrap;
           }
 
           .overview__floating-trigger {

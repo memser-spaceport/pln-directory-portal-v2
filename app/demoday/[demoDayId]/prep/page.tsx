@@ -20,6 +20,7 @@ function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
 
   // User has admin access if they are a directory admin OR a demo day admin (with correct host scope)
   const hasAdminAccess = isDirectoryAdmin || data?.isDemoDayAdmin || data?.isDemoDayReadOnlyAdmin;
+  const canEdit = isDirectoryAdmin || !!data?.isDemoDayAdmin;
 
   // User can view the prep page if they have admin access, read-only admin access, OR are a founder
   const hasAccess =
@@ -42,7 +43,7 @@ function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
       <SyncParamsToUrl debounceTime={0} />
       <DashboardPagesLayout
         filters={<AdminFilters />}
-        content={<AdminContent isDirectoryAdmin={!!hasAdminAccess} />}
+        content={<AdminContent isDirectoryAdmin={!!hasAdminAccess} canEdit={canEdit} />}
       />
     </FiltersHydrator>
   );

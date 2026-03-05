@@ -33,24 +33,6 @@ const CONFIRM_REFERRAL_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSfuDNC7f
 // Banner data
 export const BANNER_CONTENTS: BannerContent[] = [
   {
-    id: 'Celebrate 1 Year of PLAA — Collect Bonus Points',
-    type: 'bonus',
-    title: 'Celebrate 1 Year of PLAA — Collect Bonus Points  🎉',
-    subtitle: "Check your email or the Telegram post for details.",
-    date: '',
-    buttons: [],
-  },
-  {
-    id: 'Help shape the future of PLAA',
-    type: 'bonus',
-    title: 'Help shape the future of PLAA',
-    subtitle: "We're hosting 1:1 user interviews to learn how PLAA is working for you — and how it can improve.",
-    date: '',
-    buttons: [
-      { label: '→ Sign up to share your perspective', link: 'https://forms.gle/4fAcyboCdVLCLBxi7', variant: 'primary' },
-    ],
-  },
-  {
     id: 'buyback-auction',
     type: 'event',
     title: 'Upcoming Event',
@@ -143,9 +125,11 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
       <HighlightsBar variant="plaa">
         <div className={styles.banner}>
           {/* Left Arrow - far left */}
-          <button className={styles.navBtnLeft} onClick={handlePrevClick} aria-label="Previous">
-            <Image src="/icons/chevron-left-white.svg" alt="" width={16} height={16} />
-          </button>
+          {totalSlides > 1 && (
+            <button className={styles.navBtnLeft} onClick={handlePrevClick} aria-label="Previous">
+              <Image src="/icons/chevron-left-white.svg" alt="" width={16} height={16} />
+            </button>
+          )}
 
           {/* Center Content */}
           <div className={styles.centerContent}>
@@ -219,9 +203,11 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
           <span className={styles.pagination}>{desktopCarousel.activeIndex + 1}/{totalSlides}</span>
 
           {/* Right Arrow - far right */}
-          <button className={styles.navBtnRight} onClick={handleNextClick} aria-label="Next">
-            <Image src="/icons/chevron-right-white.svg" alt="" width={16} height={16} />
-          </button>
+          {totalSlides > 1 && (
+            <button className={styles.navBtnRight} onClick={handleNextClick} aria-label="Next">
+              <Image src="/icons/chevron-right-white.svg" alt="" width={16} height={16} />
+            </button>
+          )}
         </div>
       </HighlightsBar>
     );

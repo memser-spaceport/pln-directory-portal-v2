@@ -373,6 +373,30 @@ For Speakers, eligibility is contingent on the event being submitted and validat
       }
     },
     {
+      id: 'respond-irl-gathering',
+      category: 'Programs',
+      activity: 'Respond to an IRL Gathering',
+      networkValue: 'Indicate your planned attendance to help others coordinate and strengthen the network.',
+      points: '25',
+      popupContent: {
+        title: 'Respond to an IRL Gathering',
+        description: `Indicate your planned attendance to help others coordinate and strengthen the network.
+
+Respond "I'm Going" on the relevant event page via IRL Gatherings before attending to qualify for points. Click I'm Going -> Select Event -> Role: Attendee, and ensure you are listed as an Attendee on the event page through your directory profile.`,
+        submissionNote: 'For PL Hosted Events, attendance is verified automatically via Luma. For Non-PL Hosted Events, you must submit the required feedback form after attending to receive points.',
+        links: [
+          { text: 'IRL Gatherings', url: 'https://directory.plnetwork.io/events/irl' },
+          { text: 'feedback form', url: 'https://docs.google.com/forms/d/e/1FAIpQLSdy1sUpeqRJPec7eAWkbcHjBtiXxkKUEngIZWfc5-B0zdA6zw/viewform?usp=dialog' }
+        ],
+        pointsAwarded: {
+          title: 'Points Awarded:',
+          items: [
+            { label: '25 points per event after attendance is verified', value: '' }
+          ]
+        }
+      }
+    },
+    {
       id: 'monthly-feedback-survey',
       category: 'Projects',
       activity: 'Complete the Monthly Feedback Survey or Promote Your Own Survey',

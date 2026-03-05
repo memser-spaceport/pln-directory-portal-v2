@@ -568,6 +568,9 @@ export default function FAQsPage() {
       <div className="faqs">
         <div className="faqs__header">
           <h1 className="faqs__header__title">Frequently Asked Questions</h1>
+          <p className="faqs__header__header__date">
+            <em>Last Updated: February 20, 2025</em>
+          </p>
         </div>
 
         <div className="faqs__controls faqs__controls--desktop">
@@ -712,6 +715,13 @@ export default function FAQsPage() {
           font-weight: 600;
           line-height: 40px;
           color: #000000;
+        }
+
+        .faqs__header__header__date {
+          font-size: 14px;
+          line-height: 20px;
+          font-weight: 500;
+          color: rgba(100, 116, 139, 1);
         }
 
         .faqs__header-controls {

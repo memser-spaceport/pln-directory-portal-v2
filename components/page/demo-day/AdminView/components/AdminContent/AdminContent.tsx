@@ -18,9 +18,11 @@ import { useParams } from 'next/navigation';
 
 export const AdminContent = ({
   isDirectoryAdmin,
+  canEdit = true,
   label = 'Demo Day Prep',
 }: {
   isDirectoryAdmin: boolean;
+  canEdit?: boolean;
   label?: string;
 }) => {
   const params = useParams();
@@ -118,7 +120,7 @@ export const AdminContent = ({
         </div>
       </div>
 
-      <AdminTeamsList profiles={profiles} isLoading={isLoading} isDirectoryAdmin={isDirectoryAdmin} />
+      <AdminTeamsList profiles={profiles} isLoading={isLoading} isDirectoryAdmin={isDirectoryAdmin} canEdit={canEdit} />
     </div>
   );
 };

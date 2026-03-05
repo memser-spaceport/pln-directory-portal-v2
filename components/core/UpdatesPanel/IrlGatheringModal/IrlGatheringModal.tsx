@@ -408,7 +408,7 @@ export function IrlGatheringModal({
             {step === 1 && userInfo?.accessLevel !== 'L0' && userInfo?.accessLevel !== 'L1' && (
               <div>
                 <div className={s.step1Title}>Are you going to {gatheringData.gatheringName}?</div>
-                <div className={s.step1Subtitle}>Let others know if you’ll be around and what you’re interested in</div>
+                <div className={s.step1Subtitle}>Let others know if you are attending.</div>
               </div>
             )}
 

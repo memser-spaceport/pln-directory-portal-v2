@@ -18,6 +18,7 @@ function DemoDayDemoShowcasePage({ params }: { params: { demoDayId: string } }) 
   const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const { data } = useGetDemoDayState();
   const hasAccess = isDirectoryAdmin || data?.isDemoDayAdmin || data?.isDemoDayReadOnlyAdmin;
+  const canEdit = isDirectoryAdmin || !!data?.isDemoDayAdmin;
 
   useEffect(() => {
     // Redirect non-admins to regular demo day page
@@ -36,7 +37,7 @@ function DemoDayDemoShowcasePage({ params }: { params: { demoDayId: string } }) 
       <SyncParamsToUrl debounceTime={0} />
       <DashboardPagesLayout
         filters={<AdminFilters />}
-        content={<AdminContent isDirectoryAdmin={!!isDirectoryAdmin} label="Showcase" />}
+        content={<AdminContent isDirectoryAdmin={!!hasAccess} canEdit={canEdit} label="Showcase" />}
       />
     </FiltersHydrator>
   );

@@ -19,9 +19,15 @@ interface AdminTeamsListProps {
   profiles?: TeamProfile[];
   isLoading: boolean;
   isDirectoryAdmin?: boolean;
+  canEdit?: boolean;
 }
 
-export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoading, isDirectoryAdmin = false }) => {
+export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({
+  profiles,
+  isLoading,
+  isDirectoryAdmin = false,
+  canEdit = true,
+}) => {
   const [sortBy, setSortBy] = useState<string>('stage-asc');
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -107,7 +113,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
           >
             <h3 className={s.stageGroupHeader}>{group.label}</h3>
             {group.teams.map((profile) => (
-              <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={isDirectoryAdmin} />
+              <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={isDirectoryAdmin} canEdit={canEdit} />
             ))}
           </div>
         ))}
@@ -133,6 +139,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({ profiles, isLoad
         team={latestTeamData || selectedTeam}
         scrollPosition={scrollPositionRef.current}
         isAdmin={isDirectoryAdmin}
+        canEdit={canEdit}
       />
 
       {/* Filters Drawer */}

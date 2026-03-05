@@ -28,4 +28,19 @@ export const editProfileSchema = yup.object().shape({
     .defined(),
   primaryTeamRole: yup.string().defined().nullable(),
   bio: yup.string().max(2000, 'Bio must be less than 2000 characters').defined(),
+  newTeamRole: yup.string().default('').when('$isAddingTeamInline', {
+    is: true,
+    then: (schema) => schema.required('Role is required'),
+    otherwise: (schema) => schema.defined(),
+  }),
+  newTeamName: yup.string().default('').when('$isAddingTeamInline', {
+    is: true,
+    then: (schema) => schema.required('Team name is required'),
+    otherwise: (schema) => schema.defined(),
+  }),
+  newTeamWebsite: yup.string().default('').when('$isAddingTeamInline', {
+    is: true,
+    then: (schema) => schema.required('Website is required'),
+    otherwise: (schema) => schema.defined(),
+  }),
 });

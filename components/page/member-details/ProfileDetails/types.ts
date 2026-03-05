@@ -7,7 +7,10 @@ export interface TEditProfileForm {
   city: string;
   skills: { [key: string]: any }[];
   openToCollaborate: boolean;
-  primaryTeam: { value: string; label: string; role?: string } | null;
+  primaryTeam: { value: string; label: string; role?: string; originalObject?: any } | null;
   primaryTeamRole: string | null;
   bio: string;
+  newTeamRole: string;
+  newTeamName: string;
+  newTeamWebsite: string;
 }

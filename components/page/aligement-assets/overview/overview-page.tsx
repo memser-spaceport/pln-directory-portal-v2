@@ -248,7 +248,7 @@ const Overview = () => {
             <div className="overview__content__who__header__content__info">
               <img src="/icons/info-upt.svg" alt="Info" />
               <div>
-                Currently, the PL Alignment Asset is available to Germany, Switzerland, and accredited investors in the
+                Currently, the PL Alignment Asset is available to Germany, Switzerland, Portugal, and accredited investors in the
                 US. To be notified as it becomes more widely available, please fill out this{' '}
                 <a
                   href="https://forms.gle/yh5dv85X8ZsVDrZ77"

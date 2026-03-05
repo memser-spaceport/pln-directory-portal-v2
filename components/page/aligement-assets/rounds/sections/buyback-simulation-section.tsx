@@ -39,7 +39,7 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
           {/* Header */}
           <div className="buyback-section__header">
             <div className="buyback-section__header-left">
-              <h2 className="buyback-section__title">Live Buyback Auction</h2>
+              <h2 className="buyback-section__title">{data.title}</h2>
               <p className="buyback-section__description">
                 {data.headerDescription}
               </p>

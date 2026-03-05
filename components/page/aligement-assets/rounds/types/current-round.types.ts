@@ -167,6 +167,7 @@ export interface BuybackAuctionSectionData {
 }
 
 export interface BuybackSimulationSectionData {
+  title: string;
   headerDescription: string;
   totalFilled?: string;
   summary: BuybackSummary;

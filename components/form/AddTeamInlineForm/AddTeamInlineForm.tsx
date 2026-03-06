@@ -72,13 +72,6 @@ export const AddTeamInlineForm = ({
       <div className={s.separator} />
       <div className={s.body}>
         <FormField
-          name={fieldNames.role}
-          placeholder="Enter your primary role"
-          label="Role"
-          isRequired
-          rules={{ required: 'Role is required' }}
-        />
-        <FormField
           name={fieldNames.name}
           placeholder="Enter team name"
           label="Team Name"
@@ -88,6 +81,7 @@ export const AddTeamInlineForm = ({
             setValue(fieldNames.name, '', { shouldValidate: true, shouldDirty: true });
           }}
         />
+
         <FormField
           name={fieldNames.website}
           placeholder="Enter website address"
@@ -98,19 +92,27 @@ export const AddTeamInlineForm = ({
           onBlur={() => ensureProtocol()}
         />
 
+        <FormField
+          name={fieldNames.role}
+          placeholder="Enter your primary role"
+          label="Role"
+          isRequired
+          rules={{ required: 'Role is required' }}
+        />
+
         {showInvestorFields && investorFieldsConfig && fieldNames.startupStages && fieldNames.typicalCheckSize && (
           <>
             <FormMultiSelect
               name={fieldNames.startupStages}
               label="Startup stage(s) you invest in?"
-              placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A\u2026)"
+              placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A...)"
               options={investorFieldsConfig.fundingStageOptions}
               isRequired
             />
             <FormCurrencyField
               name={fieldNames.typicalCheckSize}
               label="Typical Check Size"
-              placeholder="Select typical check size (E.g. $25k - $50.000k)"
+              placeholder="Add check size"
               currency="USD"
               isRequired
             />

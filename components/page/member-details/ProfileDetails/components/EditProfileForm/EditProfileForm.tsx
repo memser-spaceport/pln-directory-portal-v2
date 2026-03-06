@@ -369,57 +369,61 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
             )}
 
           <div className={s.column}>
-            <div className={s.inputsLabel}>Primary Role & Team</div>
-            <div className={s.inputsWrapper}>
-              <FormField name="primaryTeamRole" placeholder="Enter your primary role" />
-              <span>@</span>
-              <FormSelect
-                name="primaryTeam"
-                placeholder="Search or add a team"
-                backLabel="Teams"
-                options={
-                  data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
-                    value: item.teamUid,
-                    label: item.teamTitle,
-                    originalObject: item,
-                  })) ?? []
-                }
-                renderOption={({ option, label, description }) => {
-                  return (
-                    <div className={s.teamOption}>
-                      <ImageWithFallback
-                        width={24}
-                        height={24}
-                        alt={option.label}
-                        className={s.optImg}
-                        fallbackSrc="/icons/camera.svg"
-                        src={option.originalObject.logo}
-                      />
-                      <div className={s.optionContent}>
-                        {label}
-                        {description}
+            {!isAddingTeamInline && (
+              <>
+                <div className={s.inputsLabel}>Primary Role & Team</div>
+                <div className={s.inputsWrapper}>
+                  <FormField name="primaryTeamRole" placeholder="Enter your primary role" />
+                  <span>@</span>
+                  <FormSelect
+                    name="primaryTeam"
+                    placeholder="Search or add a team"
+                    backLabel="Teams"
+                    options={
+                      data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                        value: item.teamUid,
+                        label: item.teamTitle,
+                        originalObject: item,
+                      })) ?? []
+                    }
+                    renderOption={({ option, label, description }) => {
+                      return (
+                        <div className={s.teamOption}>
+                          <ImageWithFallback
+                            width={24}
+                            height={24}
+                            alt={option.label}
+                            className={s.optImg}
+                            fallbackSrc="/icons/camera.svg"
+                            src={option.originalObject.logo}
+                          />
+                          <div className={s.optionContent}>
+                            {label}
+                            {description}
+                          </div>
+                        </div>
+                      );
+                    }}
+                    isStickyNoData
+                    notFoundContent={
+                      <div className={s.secondaryLabel}>
+                        Not able to find your project or team?{' '}
+                        <button
+                          type="button"
+                          className={s.link}
+                          onClick={() => {
+                            onAddTeamDropdownClicked('profile-edit');
+                            setIsAddingTeamInline(true);
+                          }}
+                        >
+                          Add your team
+                        </button>
                       </div>
-                    </div>
-                  );
-                }}
-                isStickyNoData
-                notFoundContent={
-                  <div className={s.secondaryLabel}>
-                    Not able to find your project or team?{' '}
-                    <button
-                      type="button"
-                      className={s.link}
-                      onClick={() => {
-                        onAddTeamDropdownClicked('profile-edit');
-                        setIsAddingTeamInline(true);
-                      }}
-                    >
-                      Add your team
-                    </button>
-                  </div>
-                }
-              />
-            </div>
+                    }
+                  />
+                </div>
+              </>
+            )}
 
             {isAddingTeamInline && (
               <div style={{ marginTop: '16px' }}>

@@ -900,7 +900,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
             </section>
           </div>
 
-          {secRulesAccepted && !useInlineAddTeam && (
+          {secRulesAccepted && (
             <div className={clsx(s.block, s.ctaBlock)}>
               <Link href="/settings/email" target="_blank" className={s.cta}>
                 <div className={s.ctaIcon}>

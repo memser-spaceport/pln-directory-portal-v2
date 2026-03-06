@@ -25,6 +25,7 @@ import { ReferCompanyModal } from '../ReferCompanyModal';
 import { GiveFeedbackModal } from '@/components/page/demo-day/GiveFeedbackModal';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { DemoDayActionButtons } from '@/components/page/demo-day/DemoDayActionButtons';
+import { usePathname } from 'next/navigation';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -59,6 +60,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   investorData,
   isAdmin = false,
 }) => {
+  const pathname = usePathname();
   const { data: demoDayData } = useGetDemoDayState();
   const { data } = useGetFundraisingProfile(demoDayData?.access === 'FOUNDER');
   const isPrepDemoDay = useIsPrepDemoDay();
@@ -492,7 +494,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                                 />
                               )}
                             </div>
-                            <Link href={`/members/${founder.uid}`} target="_blank" className={s.founderArrow}>
+                            <Link
+                              href={`/members/${founder.uid}?backTo=${encodeURIComponent(pathname)}`}
+                              target="_blank"
+                              className={s.founderArrow}
+                            >
                               <svg
                                 width="16"
                                 height="16"

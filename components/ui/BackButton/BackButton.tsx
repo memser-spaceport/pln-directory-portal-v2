@@ -5,6 +5,21 @@ import s from './BackButton.module.scss';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { clsx } from 'clsx';
 
+let navDepth = 0;
+
+if (typeof window !== 'undefined') {
+  const originalPushState = history.pushState.bind(history);
+
+  history.pushState = function (...args) {
+    navDepth++;
+    return originalPushState(...args);
+  };
+
+  window.addEventListener('popstate', () => {
+    navDepth = Math.max(0, navDepth - 1);
+  });
+}
+
 export const BackButton = ({
   to,
   className,
@@ -23,13 +38,12 @@ export const BackButton = ({
       <button
         className={s.backBtn}
         onClick={() => {
-          // Check if backTo query parameter exists
           if (backTo) {
             router.push(backTo);
-          } else if (window.history.length > 1 && !forceTo) {
+          } else if (!forceTo && navDepth > 0) {
             router.back();
           } else {
-            router.push(to); // fallback route
+            router.push(to);
           }
         }}
       >

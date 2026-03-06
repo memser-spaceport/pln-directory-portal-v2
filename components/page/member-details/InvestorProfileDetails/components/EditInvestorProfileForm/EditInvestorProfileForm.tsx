@@ -692,99 +692,108 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
 
               {isInvestViaFund && (
                 <>
-                  {selectedTeam && (
-                    <div className={s.fundInfoBox}>
-                      <div className={s.fundInfo}>
-                        <div className={s.fundAvatar}>
-                          <img
-                            src={
-                              data?.teams.find((t: any) => t.teamUid === selectedTeam.value)?.teamLogo ||
-                              '/images/demo-day/profile-placeholder.svg'
-                            }
-                            alt={selectedTeam.label}
-                          />
-                        </div>
-                        <div className={s.fundDetails}>
-                          <div className={s.fundName}>{selectedTeam.label}</div>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        className={s.removeButton}
-                        onClick={() => setValue('team', null, { shouldValidate: true, shouldDirty: true })}
-                        aria-label="Remove team"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path
-                            d="M3.13 10.87L10.87 3.13M10.87 10.87L3.13 3.13"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-
-                  <div className={s.infoSectionContent}>
-                    <FormSelect
-                      name="team"
-                      backLabel="Teams"
-                      placeholder="Search by org name"
-                      label="Search and add an investment fund"
-                      options={
-                        data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
-                          value: item.teamUid,
-                          label: item.teamTitle,
-                          originalObject: item,
-                        })) ?? []
-                      }
-                      renderOption={({ option, label, description }) => {
-                        return (
-                          <div className={s.teamOption}>
-                            <ImageWithFallback
-                              width={24}
-                              height={24}
-                              alt={option.label}
-                              className={s.optImg}
-                              fallbackSrc="/icons/camera.svg"
-                              src={option.originalObject.logo}
-                            />
-                            <div>
-                              {label}
-                              {description}
+                  {!isAddingTeamInline && (
+                    <>
+                      {selectedTeam && (
+                        <div className={s.fundInfoBox}>
+                          <div className={s.fundInfo}>
+                            <div className={s.fundAvatar}>
+                              <img
+                                src={
+                                  data?.teams.find((t: any) => t.teamUid === selectedTeam.value)?.teamLogo ||
+                                  '/images/demo-day/profile-placeholder.svg'
+                                }
+                                alt={selectedTeam.label}
+                              />
+                            </div>
+                            <div className={s.fundDetails}>
+                              <div className={s.fundName}>{selectedTeam.label}</div>
                             </div>
                           </div>
-                        );
-                      }}
-                      onChange={(value) => handleTeamSelect(value)}
-                      isStickyNoData
-                      selectRef={teamSelectRef}
-                      notFoundContent={
-                        <div className={s.secondaryLabel}>
-                          If you don&apos;t see your team on this list, please{' '}
                           <button
                             type="button"
-                            className={s.link}
-                            onClick={() => {
-                              handleAddTeamLinkClick();
-                              // Close the dropdown menu
-                              (teamSelectRef.current as any)?.blur();
-                              if (useInlineAddTeam) {
-                                setIsAddingTeamInline(true);
-                              } else {
-                                setIsAddTeamDrawerOpen(true);
-                              }
-                            }}
+                            className={s.removeButton}
+                            onClick={() => setValue('team', null, { shouldValidate: true, shouldDirty: true })}
+                            aria-label="Remove team"
                           >
-                            add your team
-                          </button>{' '}
-                          first.
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 16 16"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M3.13 10.87L10.87 3.13M10.87 10.87L3.13 3.13"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
                         </div>
-                      }
-                    />
-                  </div>
+                      )}
+                      <div className={s.infoSectionContent}>
+                        <FormSelect
+                          name="team"
+                          backLabel="Teams"
+                          placeholder="Search by org name"
+                          label="Search and add an investment fund"
+                          options={
+                            data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                              value: item.teamUid,
+                              label: item.teamTitle,
+                              originalObject: item,
+                            })) ?? []
+                          }
+                          renderOption={({ option, label, description }) => {
+                            return (
+                              <div className={s.teamOption}>
+                                <ImageWithFallback
+                                  width={24}
+                                  height={24}
+                                  alt={option.label}
+                                  className={s.optImg}
+                                  fallbackSrc="/icons/camera.svg"
+                                  src={option.originalObject.logo}
+                                />
+                                <div>
+                                  {label}
+                                  {description}
+                                </div>
+                              </div>
+                            );
+                          }}
+                          onChange={(value) => handleTeamSelect(value)}
+                          isStickyNoData
+                          selectRef={teamSelectRef}
+                          notFoundContent={
+                            <div className={s.secondaryLabel}>
+                              If you don&apos;t see your team on this list, please{' '}
+                              <button
+                                type="button"
+                                className={s.link}
+                                onClick={() => {
+                                  handleAddTeamLinkClick();
+                                  // Close the dropdown menu
+                                  (teamSelectRef.current as any)?.blur();
+                                  if (useInlineAddTeam) {
+                                    setIsAddingTeamInline(true);
+                                  } else {
+                                    setIsAddTeamDrawerOpen(true);
+                                  }
+                                }}
+                              >
+                                add your team
+                              </button>{' '}
+                              first.
+                            </div>
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
 
                   {isAddingTeamInline && useInlineAddTeam && (
                     <AddTeamInlineForm

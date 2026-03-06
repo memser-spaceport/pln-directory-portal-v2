@@ -85,7 +85,7 @@ export const FormMultiSelect = ({
   useScrollIntoViewOnFocus<HTMLInputElement>({ id: name });
 
   return (
-    <Field.Root className={s.field}>
+    <Field.Root className={s.field} invalid={!!errors[name]}>
       {label && (
         <Field.Label
           className={clsx(s.label, {
@@ -180,6 +180,11 @@ export const FormMultiSelect = ({
               borderColor: '#5E718D !important',
               boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12) !important',
             },
+            ...(!!errors[name]
+              ? {
+                  borderColor: 'var(--action-border-error-focus) !important',
+                }
+              : {}),
             '> div': {
               gap: '2px',
               padding: '2px 4px',

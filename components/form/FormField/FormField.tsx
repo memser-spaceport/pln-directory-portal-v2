@@ -56,7 +56,7 @@ export const FormField = ({
   };
 
   return (
-    <Field.Root className={s.field}>
+    <Field.Root className={s.field} invalid={!!errors[name]}>
       {label && (
         <div className={s.labelWrapper}>
           <Field.Label

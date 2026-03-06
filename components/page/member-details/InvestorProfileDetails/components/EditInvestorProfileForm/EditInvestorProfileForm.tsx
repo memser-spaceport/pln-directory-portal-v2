@@ -137,10 +137,11 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
     handleSubmit,
     reset,
     setValue,
+    setError,
     watch,
     trigger,
     control,
-    formState: { isValid, isSubmitted },
+    formState: { isSubmitted },
   } = methods;
 
   const watchedValues = useWatch({ control });
@@ -387,9 +388,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
 
   const onSubmit = async (initialFormData: TEditInvestorProfileForm) => {
     let formData = initialFormData;
-    if (!isValid) {
-      return;
-    }
 
     if (!memberData) {
       return;
@@ -400,7 +398,30 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
       const teamName = watch('newTeamName');
       const teamWebsite = watch('newTeamWebsite');
       const teamRole = watch('newTeamRole');
-      if (!teamName || !teamWebsite || !teamRole) return;
+      let hasInlineErrors = false;
+      if (!teamName) {
+        setError('newTeamName', { type: 'manual', message: 'Team name is required' });
+        hasInlineErrors = true;
+      }
+      if (!teamWebsite) {
+        setError('newTeamWebsite', { type: 'manual', message: 'Website is required' });
+        hasInlineErrors = true;
+      }
+      if (!teamRole) {
+        setError('newTeamRole', { type: 'manual', message: 'Role is required' });
+        hasInlineErrors = true;
+      }
+      const teamStartupStages = watch('teamInvestInStartupStages');
+      if (!teamStartupStages || teamStartupStages.length === 0) {
+        setError('teamInvestInStartupStages', { type: 'manual', message: 'Select at least one startup stage' });
+        hasInlineErrors = true;
+      }
+      const teamCheckSize = watch('teamTypicalCheckSize');
+      if (!teamCheckSize) {
+        setError('teamTypicalCheckSize', { type: 'manual', message: 'Typical check size is required' });
+        hasInlineErrors = true;
+      }
+      if (hasInlineErrors) return;
       pendingTeamDataRef.current = {
         name: teamName,
         website: teamWebsite,
@@ -581,7 +602,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
         }}
         noValidate
       >
-        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Details" />
+        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Details" alwaysEnabled />
         <div className={s.body}>
           <div className={s.block}>
             <div className={s.sectionHeader}>
@@ -671,99 +692,108 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
 
               {isInvestViaFund && (
                 <>
-                  {selectedTeam && (
-                    <div className={s.fundInfoBox}>
-                      <div className={s.fundInfo}>
-                        <div className={s.fundAvatar}>
-                          <img
-                            src={
-                              data?.teams.find((t: any) => t.teamUid === selectedTeam.value)?.teamLogo ||
-                              '/images/demo-day/profile-placeholder.svg'
-                            }
-                            alt={selectedTeam.label}
-                          />
-                        </div>
-                        <div className={s.fundDetails}>
-                          <div className={s.fundName}>{selectedTeam.label}</div>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        className={s.removeButton}
-                        onClick={() => setValue('team', null, { shouldValidate: true, shouldDirty: true })}
-                        aria-label="Remove team"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path
-                            d="M3.13 10.87L10.87 3.13M10.87 10.87L3.13 3.13"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-
-                  <div className={s.infoSectionContent}>
-                    <FormSelect
-                      name="team"
-                      backLabel="Teams"
-                      placeholder="Search by org name"
-                      label="Search and add an investment fund"
-                      options={
-                        data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
-                          value: item.teamUid,
-                          label: item.teamTitle,
-                          originalObject: item,
-                        })) ?? []
-                      }
-                      renderOption={({ option, label, description }) => {
-                        return (
-                          <div className={s.teamOption}>
-                            <ImageWithFallback
-                              width={24}
-                              height={24}
-                              alt={option.label}
-                              className={s.optImg}
-                              fallbackSrc="/icons/camera.svg"
-                              src={option.originalObject.logo}
-                            />
-                            <div>
-                              {label}
-                              {description}
+                  {!isAddingTeamInline && (
+                    <>
+                      {selectedTeam && (
+                        <div className={s.fundInfoBox}>
+                          <div className={s.fundInfo}>
+                            <div className={s.fundAvatar}>
+                              <img
+                                src={
+                                  data?.teams.find((t: any) => t.teamUid === selectedTeam.value)?.teamLogo ||
+                                  '/images/demo-day/profile-placeholder.svg'
+                                }
+                                alt={selectedTeam.label}
+                              />
+                            </div>
+                            <div className={s.fundDetails}>
+                              <div className={s.fundName}>{selectedTeam.label}</div>
                             </div>
                           </div>
-                        );
-                      }}
-                      onChange={(value) => handleTeamSelect(value)}
-                      isStickyNoData
-                      selectRef={teamSelectRef}
-                      notFoundContent={
-                        <div className={s.secondaryLabel}>
-                          If you don&apos;t see your team on this list, please{' '}
                           <button
                             type="button"
-                            className={s.link}
-                            onClick={() => {
-                              handleAddTeamLinkClick();
-                              // Close the dropdown menu
-                              (teamSelectRef.current as any)?.blur();
-                              if (useInlineAddTeam) {
-                                setIsAddingTeamInline(true);
-                              } else {
-                                setIsAddTeamDrawerOpen(true);
-                              }
-                            }}
+                            className={s.removeButton}
+                            onClick={() => setValue('team', null, { shouldValidate: true, shouldDirty: true })}
+                            aria-label="Remove team"
                           >
-                            add your team
-                          </button>{' '}
-                          first.
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 16 16"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M3.13 10.87L10.87 3.13M10.87 10.87L3.13 3.13"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
                         </div>
-                      }
-                    />
-                  </div>
+                      )}
+                      <div className={s.infoSectionContent}>
+                        <FormSelect
+                          name="team"
+                          backLabel="Teams"
+                          placeholder="Search by org name"
+                          label="Search and add an investment fund"
+                          options={
+                            data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                              value: item.teamUid,
+                              label: item.teamTitle,
+                              originalObject: item,
+                            })) ?? []
+                          }
+                          renderOption={({ option, label, description }) => {
+                            return (
+                              <div className={s.teamOption}>
+                                <ImageWithFallback
+                                  width={24}
+                                  height={24}
+                                  alt={option.label}
+                                  className={s.optImg}
+                                  fallbackSrc="/icons/camera.svg"
+                                  src={option.originalObject.logo}
+                                />
+                                <div>
+                                  {label}
+                                  {description}
+                                </div>
+                              </div>
+                            );
+                          }}
+                          onChange={(value) => handleTeamSelect(value)}
+                          isStickyNoData
+                          selectRef={teamSelectRef}
+                          notFoundContent={
+                            <div className={s.secondaryLabel}>
+                              If you don&apos;t see your team on this list, please{' '}
+                              <button
+                                type="button"
+                                className={s.link}
+                                onClick={() => {
+                                  handleAddTeamLinkClick();
+                                  // Close the dropdown menu
+                                  (teamSelectRef.current as any)?.blur();
+                                  if (useInlineAddTeam) {
+                                    setIsAddingTeamInline(true);
+                                  } else {
+                                    setIsAddTeamDrawerOpen(true);
+                                  }
+                                }}
+                              >
+                                add your team
+                              </button>{' '}
+                              first.
+                            </div>
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
 
                   {isAddingTeamInline && useInlineAddTeam && (
                     <AddTeamInlineForm
@@ -900,7 +930,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
             </section>
           </div>
 
-          {secRulesAccepted && !useInlineAddTeam && (
+          {secRulesAccepted && (
             <div className={clsx(s.block, s.ctaBlock)}>
               <Link href="/settings/email" target="_blank" className={s.cta}>
                 <div className={s.ctaIcon}>
@@ -917,7 +947,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
             </div>
           )}
         </div>
-        <EditOfficeHoursMobileControls />
+        <EditOfficeHoursMobileControls alwaysEnabled />
       </form>
 
       {!useInlineAddTeam && (

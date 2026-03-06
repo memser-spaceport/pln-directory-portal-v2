@@ -137,10 +137,11 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
     handleSubmit,
     reset,
     setValue,
+    setError,
     watch,
     trigger,
     control,
-    formState: { isValid, isSubmitted },
+    formState: { isSubmitted },
   } = methods;
 
   const watchedValues = useWatch({ control });
@@ -387,9 +388,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
 
   const onSubmit = async (initialFormData: TEditInvestorProfileForm) => {
     let formData = initialFormData;
-    if (!isValid) {
-      return;
-    }
 
     if (!memberData) {
       return;
@@ -400,7 +398,30 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
       const teamName = watch('newTeamName');
       const teamWebsite = watch('newTeamWebsite');
       const teamRole = watch('newTeamRole');
-      if (!teamName || !teamWebsite || !teamRole) return;
+      let hasInlineErrors = false;
+      if (!teamName) {
+        setError('newTeamName', { type: 'manual', message: 'Team name is required' });
+        hasInlineErrors = true;
+      }
+      if (!teamWebsite) {
+        setError('newTeamWebsite', { type: 'manual', message: 'Website is required' });
+        hasInlineErrors = true;
+      }
+      if (!teamRole) {
+        setError('newTeamRole', { type: 'manual', message: 'Role is required' });
+        hasInlineErrors = true;
+      }
+      const teamStartupStages = watch('teamInvestInStartupStages');
+      if (!teamStartupStages || teamStartupStages.length === 0) {
+        setError('teamInvestInStartupStages', { type: 'manual', message: 'Select at least one startup stage' });
+        hasInlineErrors = true;
+      }
+      const teamCheckSize = watch('teamTypicalCheckSize');
+      if (!teamCheckSize) {
+        setError('teamTypicalCheckSize', { type: 'manual', message: 'Typical check size is required' });
+        hasInlineErrors = true;
+      }
+      if (hasInlineErrors) return;
       pendingTeamDataRef.current = {
         name: teamName,
         website: teamWebsite,
@@ -581,7 +602,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
         }}
         noValidate
       >
-        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Details" />
+        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Details" alwaysEnabled />
         <div className={s.body}>
           <div className={s.block}>
             <div className={s.sectionHeader}>
@@ -917,7 +938,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
             </div>
           )}
         </div>
-        <EditOfficeHoursMobileControls />
+        <EditOfficeHoursMobileControls alwaysEnabled />
       </form>
 
       {!useInlineAddTeam && (

@@ -1,6 +1,6 @@
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { Tag } from '@/components/ui/tag';
+import { Tag } from '@/components/ui/Tag';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { ITag, ITeam } from '@/types/teams.types';

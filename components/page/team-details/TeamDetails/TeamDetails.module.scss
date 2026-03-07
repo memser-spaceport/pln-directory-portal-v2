@@ -1,12 +1,4 @@
-.root {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  background: #fff;
-  padding: 16px;
-  border-radius: 0px 8px;
-  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
-}
+@use 'styles/media';
 
 .profile {
   display: flex;
@@ -17,25 +9,46 @@
 .logoTagsContainer {
   display: flex;
   gap: 8px;
-  width: 80%;
+  width: 100%;
+
+  @include media.breakpoint-1024 {
+    gap: 24px;
+  }
 }
 
 .teamLogo {
   height: 48px;
-  border: 1px solid #CBD5E1;
+  border: 1px solid #cbd5e1;
   border-radius: 4px;
   background-color: #e2e8f0;
   width: 48px;
+
+  @include media.breakpoint-1024 {
+    height: 80px;
+    width: 80px;
+  }
 }
 
 .nameTagContainer {
+  flex: 1;
   display: flex;
   flex-direction: column;
+
   gap: 8px;
+
+  @include media.breakpoint-1024 {
+    gap: 12px;
+  }
+}
+
+.nameAndActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .teamName {
-  color: #0F172A;
+  color: #0f172a;
   font-size: 16px;
   font-weight: 700;
   overflow: hidden;
@@ -44,16 +57,35 @@
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   text-overflow: ellipsis;
+
+  @include media.breakpoint-1024 {
+    font-size: 24px;
+    line-height: 32px;
+    width: 100%;
+  }
 }
 
-.tagsMobile {
+.tags {
+  gap: 8px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
 }
 
-.tagsWeb {
-  display: none;
+.delimiter {
+  height: 24px;
+  border-right: 1px solid rgba(14, 15, 17, 0.06);
+}
+
+.fundingStage {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(14, 15, 17, 0.16);
+  color: #455468;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
 }
 
 .notification {
@@ -74,7 +106,7 @@
   display: flex;
   font-size: 14px;
   font-weight: 500;
-  color: #156FF7;
+  color: #156ff7;
   align-items: center;
   height: fit-content;
   background: none;
@@ -88,7 +120,7 @@
   display: flex;
   font-size: 14px;
   font-weight: 500;
-  color: #DC2626;
+  color: #dc2626;
   align-items: center;
   height: fit-content;
   background: none;
@@ -103,58 +135,7 @@
   }
 }
 
-.investorTag {
-  display: flex;
-  padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
-  justify-content: center;
-  align-items: center;
-  gap: var(--spacing-5xs, 2px);
-
-  border-radius: var(--corner-radius-Full-round, 9999px);
-  background: var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
-
-  color: var(--foreground-brand-secondary_inverted, #4174ff);
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-}
-
-@media (min-width: 1024px) {
-  .root {
-    border-radius: 8px;
-    background: #FFF;
-    padding: 20px;
-    box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
-  }
-
-  .logoTagsContainer {
-    gap: 24px;
-  }
-
-  .nameTagContainer {
-    gap: 12px;
-  }
-
-  .teamName {
-    font-size: 24px;
-    line-height: 32px;
-    width: 100%;
-  }
-
-  .tagsMobile {
-    display: none;
-  }
-
-  .teamLogo {
-    height: 80px;
-    width: 80px;
-  }
-
-  .tagsWeb {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
+.iTag {
+  color: #4174ff;
+  background: rgba(27, 77, 255, 0.16);
 }

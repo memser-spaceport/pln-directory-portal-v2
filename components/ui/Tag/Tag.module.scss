@@ -1,0 +1,89 @@
+@use 'styles/media';
+
+.root {
+  display: flex;
+  align-items: center;
+
+  padding: 6px 10px;
+
+  border: none;
+  outline: none;
+  border-radius: 24px;
+
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+}
+
+.value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.default {
+  color: #475569;
+  white-space: nowrap;
+  overflow: hidden;
+  background: var(--tag-color, #f1f5f9);
+  cursor: default;
+  max-width: 80px;
+
+  @include media.breakpoint-1024 {
+    max-width: 150px;
+  }
+}
+
+.primary {
+  white-space: nowrap;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+  background: var(--tag-color, #f1f5f9);
+  color: #475569;
+  cursor: default;
+  max-width: 74px;
+  padding: 2px 5px;
+}
+
+.secondary {
+  border: 1px solid #cbd5e1;
+  white-space: wrap;
+  text-align: left;
+  color: #0f172a;
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(21, 111, 247, 0.25);
+  }
+
+  &:hover {
+    border: 1px solid rgb(148 163 184);
+  }
+}
+
+.active {
+  border: 1px solid rgb(29 78 216);
+  color: rgb(29 78 216);
+  text-align: left;
+  background-color: rgb(219 234 254);
+}
+
+.inactive {
+  pointer-events: none;
+  border: 1px solid #cbd5e1;
+  background-color: rgb(248 250 252);
+  color: rgb(100 116 139);
+  text-align: left;
+}
+
+.md {
+  max-width: 100px;
+
+  @include media.breakpoint-1024 {
+    max-width: 120px;
+  }
+}
+
+.icon {
+  display: inline-block;
+  margin-right: 2px;
+  height: 14px;
+}

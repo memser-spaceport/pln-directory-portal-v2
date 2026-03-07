@@ -6,7 +6,6 @@ import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { EditOfficeHoursForm } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursForm';
 import { OfficeHoursView } from '@/components/page/member-details/OfficeHoursDetails/components/OfficeHoursView';
-import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './OfficeHoursDetails.module.scss';
@@ -16,6 +15,7 @@ import {
   useFixBrokenOfficeHoursLinkEventCapture,
 } from '@/components/page/member-details/hooks';
 import { usePathname, useRouter } from 'next/navigation';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
 
 interface Props {
   member: IMember;
@@ -68,7 +68,7 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   }
 
   return (
-    <MemberDetailsSection
+    <DetailsSection
       editView={editView}
       missingData={showIncomplete}
       missingDataAlert={officeHoursValidation && !officeHoursValidation.isValid && isOwner && !editView}
@@ -96,6 +96,6 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
           isOfficeHoursValid={officeHoursValidation?.isValid ?? true}
         />
       )}
-    </MemberDetailsSection>
+    </DetailsSection>
   );
 };

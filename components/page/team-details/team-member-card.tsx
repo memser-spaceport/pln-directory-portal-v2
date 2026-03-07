@@ -2,7 +2,7 @@ import { Fragment } from 'react';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { ITag, ITeam } from '@/types/teams.types';
 import { IMember } from '@/types/members.types';
-import { Tag } from '@/components/ui/tag';
+import { Tag } from '@/components/ui/Tag';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 import { isMemberAvailableToConnect } from '@/utils/member.utils';

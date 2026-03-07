@@ -10,7 +10,7 @@ import { ADMIN_ROLE } from '@/utils/constants';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
-import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
 
 interface Props {
   member: IMember;
@@ -34,7 +34,7 @@ export const BioDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   }
 
   return (
-    <MemberDetailsSection editView={editView}>
+    <DetailsSection editView={editView}>
       {editView ? (
         <EditBioForm
           onClose={() => {
@@ -62,6 +62,6 @@ export const BioDetails = ({ isLoggedIn, userInfo, member }: Props) => {
           }}
         />
       )}
-    </MemberDetailsSection>
+    </DetailsSection>
   );
 };

@@ -1,16 +1,14 @@
 'use client';
+import Image from 'next/image';
+import { Fragment, useState } from 'react';
 
 import { ITag, ITeam } from '@/types/teams.types';
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { Tooltip } from '../../core/tooltip/tooltip';
-import { Tag } from '../../ui/tag';
-import Image from 'next/image';
-import useEmblaCarousel from 'embla-carousel-react';
-import { EmblaOptionsType } from 'embla-carousel';
-import * as TooltipPrimitive from '@radix-ui/react-tooltip';
+import { Tag } from '@/components/ui/Tag';
 import Popover from './asks-popover';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { useCarousel } from '@/hooks/use-embla-carousel';
+
 interface ITeamListView {
   team: ITeam;
   viewType: string;

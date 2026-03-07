@@ -13,7 +13,7 @@ import { EditExperienceForm } from '@/components/page/member-details/ExperienceD
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAccessLevel } from '@/utils/auth.utils';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
-import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
 
 interface Props {
   member: IMember;
@@ -35,7 +35,7 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   }
 
   return (
-    <MemberDetailsSection editView={view !== 'view'}>
+    <DetailsSection editView={view !== 'view'}>
       {view === 'view' && (
         <ExperiencesList
           member={member}
@@ -56,6 +56,6 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
         <EditExperienceForm onClose={() => setView('view')} member={member} initialData={selectedItem} />
       )}
       {view === 'add' && <EditExperienceForm onClose={() => setView('view')} member={member} />}
-    </MemberDetailsSection>
+    </DetailsSection>
   );
 };

@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Cookies from 'js-cookie';
 import { useParams, useRouter } from 'next/navigation';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { IUserInfo } from '@/types/shared.types';
 import { ITag, ITeam } from '@/types/teams.types';
@@ -16,8 +16,10 @@ import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/uti
 
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 
-import { Tag } from '@/components/ui/tag';
+import { Tag } from '@/components/ui/Tag';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { TagsList } from '@/components/common/profile/TagsList';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 
 import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
@@ -123,147 +125,63 @@ export const TeamDetails = (props: Props) => {
   }, [router]);
 
   return (
-    <>
-      <div className={s.root}>
-        {/* Name and about section */}
-        <div className={s.profile}>
-          <div className={s.logoTagsContainer}>
-            <img loading="lazy" alt="team-profile" className={s.teamLogo} src={logo} />
-            <div className={s.nameTagContainer}>
+    <DetailsSection>
+      {/* Name and about section */}
+      <div className={s.profile}>
+        <div className={s.logoTagsContainer}>
+          <img loading="lazy" alt="team-profile" className={s.teamLogo} src={logo} />
+          <div className={s.nameTagContainer}>
+            <div className={s.nameAndActions}>
               <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
-              <div>
-                {/* Tags Mobile */}
-                <div className={s.tagsMobile}>
-                  {team?.isFund && <div className={s.investorTag}>Investment Fund</div>}
-                  {tags?.map((tag: ITag, index: number) => (
-                    <Fragment key={`${tag} + ${index}`}>
-                      {index < 3 && (
-                        <div>
-                          {
-                            <Tooltip
-                              asChild
-                              trigger={
-                                <div>
-                                  <Tag
-                                    value={tag?.title}
-                                    variant="primary"
-                                    tagsLength={tags?.length}
-                                    color={tag?.color}
-                                  />{' '}
-                                </div>
-                              }
-                              content={tag?.title}
-                            />
-                          }
-                        </div>
-                      )}
-                    </Fragment>
-                  ))}
-                  {!!tags?.length && tags?.length > 3 && (
-                    <Tooltip
-                      asChild
-                      trigger={
-                        <div>
-                          <Tag
-                            callback={onTagCountClickHandler}
-                            variant="primary"
-                            value={'+' + (tags?.length - 3).toString()}
-                          />{' '}
-                        </div>
-                      }
-                      content={
-                        <div>
-                          {tags?.slice(3, tags?.length).map((tag, index) => (
-                            <div key={`${tag} + ${tag} + ${index}`}>
-                              {tag?.title} {index !== tags?.slice(3, tags?.length - 1)?.length ? ',' : ''}
-                            </div>
-                          ))}
-                        </div>
-                      }
-                    />
-                  )}
-                </div>
-                {/* Tags web */}
-                <div className={s.tagsWeb}>
-                  {team?.isFund && <div className={s.investorTag}>Investment Fund</div>}
-                  {tags?.map((tag: ITag, index: number) => (
-                    <Fragment key={`${tag} + ${index}`}>
-                      {index < 5 && (
-                        <div>
-                          <Tooltip
-                            asChild
-                            trigger={
-                              <div>
-                                <Tag value={tag?.title} color={tag?.color} icon={tag?.icon} />{' '}
-                              </div>
-                            }
-                            content={tag?.title}
-                          />
-                        </div>
-                      )}
-                    </Fragment>
-                  ))}
-                  {!!tags?.length && tags?.length > 5 && (
-                    <Tooltip
-                      asChild
-                      trigger={
-                        <div>
-                          <Tag
-                            callback={onTagCountClickHandler}
-                            variant="primary"
-                            value={'+' + (tags?.length - 5).toString()}
-                          />
-                        </div>
-                      }
-                      content={
-                        <div>
-                          {tags?.slice(5, tags?.length).map((tag, index) => (
-                            <div key={`${tag} + ${tag} + ${index}`}>
-                              {tag?.title} {index !== tags?.slice(3, tags?.length - 1)?.length ? ',' : ''}
-                            </div>
-                          ))}
-                        </div>
-                      }
-                    />
-                  )}
-                </div>
+
+              <div className={s.actions}>
+                {hasTeamEditAccess && (
+                  <button className={s.edit} onClick={onEditTeamClickHandler}>
+                    <Image src="/icons/edit.svg" alt="Edit" height={16} width={16} />
+                    Edit
+                  </button>
+                )}
+
+                {isAdmin && (
+                  <button className={s.delete} onClick={onDeleteTeamClickHandler} disabled={isDeleting}>
+                    <Image src="/icons/trash.svg" alt="Delete" height={16} width={16} />
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
+            <div>
+              <div className={s.tags}>
+                <div className={s.fundingStage}>Stage: {team?.fundingStage?.title}</div>
+                <div className={s.delimiter} />
+                {team?.isFund && (
+                  <>
+                    <Tag value="Investment Fund" className={s.iTag} />
+                    <div className={s.delimiter} />
+                  </>
+                )}
+                <TagsList tags={tags || []} />
               </div>
             </div>
           </div>
-
-          <div className={s.actions}>
-            {hasTeamEditAccess && (
-              <button className={s.edit} onClick={onEditTeamClickHandler}>
-                <Image src="/icons/edit.svg" alt="Edit" height={16} width={16} />
-                Edit Team
-              </button>
-            )}
-
-            {isAdmin && (
-              <button className={s.delete} onClick={onDeleteTeamClickHandler} disabled={isDeleting}>
-                <Image src="/icons/trash.svg" alt="Delete" height={16} width={16} />
-                Delete Team
-              </button>
-            )}
-          </div>
         </div>
-
-        <ConfirmDialog
-          isOpen={isDeleteModalOpen}
-          title="Confirm Delete"
-          desc={`Are you sure you want to delete the team ${teamName}?`}
-          onClose={handleDeleteCancel}
-          onConfirm={handleDeleteConfirm}
-          confirmTitle="Delete"
-          disabled={isDeleting}
-        />
-
-        {/* About */}
-        <About team={team} userInfo={userInfo} about={about} hasTeamEditAccess={hasTeamEditAccess} />
-
-        {/* Technology */}
-        <Technologies technologies={technologies} team={team} userInfo={userInfo} />
       </div>
-    </>
+
+      <ConfirmDialog
+        isOpen={isDeleteModalOpen}
+        title="Confirm Delete"
+        desc={`Are you sure you want to delete the team ${teamName}?`}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        confirmTitle="Delete"
+        disabled={isDeleting}
+      />
+
+      {/* About */}
+      <About team={team} userInfo={userInfo} about={about} hasTeamEditAccess={hasTeamEditAccess} />
+
+      {/* Technology */}
+      <Technologies technologies={technologies} team={team} userInfo={userInfo} />
+    </DetailsSection>
   );
 };

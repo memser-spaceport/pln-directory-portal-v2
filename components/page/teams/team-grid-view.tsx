@@ -8,23 +8,28 @@ import Popover from './asks-popover';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { useCarousel } from '@/hooks/use-embla-carousel';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE } from '@/utils/constants';
 import { getTeamPriority, getPriorityLabel } from '@/utils/team.utils';
+import { isAdminUser } from '@/utils/user/isAdminUser';
+import { isTierUser } from '@/utils/user/isTierUser';
 
 interface ITeamGridView {
   userInfo?: IUserInfo;
   team: ITeam;
   viewType: string;
 }
+
 const TeamGridView = (props: ITeamGridView) => {
-  const team = props?.team;
+  const { team, userInfo } = props;
+
   const profile = team?.logo ?? '/icons/team-default-profile.svg';
   const teamName = team?.name;
   const description = team?.shortDescription;
   const analytics = useTeamAnalytics();
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
   const carousel: any[] = [];
-  const isTierViewer = props?.userInfo?.isTierViewer || props?.userInfo?.roles?.includes(ADMIN_ROLE);
+
+  const isTierViewer = isTierUser(userInfo) || isAdminUser(userInfo);
+
   const tags = useMemo(() => {
     const priority = getTeamPriority(team);
     if (isTierViewer && priority !== undefined) {
@@ -187,6 +192,7 @@ const TeamGridView = (props: ITeamGridView) => {
             text-decoration: underline;
             cursor: pointer;
           }
+
           .hoverable-name {
             display: flex;
           }
@@ -373,6 +379,7 @@ const TeamGridView = (props: ITeamGridView) => {
           .team-grid__tags__mob {
             display: block;
           }
+
           .team-grid__tags__desc {
             display: none;
           }
@@ -422,9 +429,11 @@ const TeamGridView = (props: ITeamGridView) => {
               font-size: 13px;
               align-items: center;
             }
+
             .embla__slide {
               align-items: center;
             }
+
             .team-grid__details-container__tagscontainer {
               margin-left: 0;
             }
@@ -465,6 +474,7 @@ const TeamGridView = (props: ITeamGridView) => {
             .team-grid__tags__mob {
               display: none;
             }
+
             .team-grid__tags__desc {
               display: block;
             }

@@ -7,8 +7,7 @@ import { ITeam } from '@/types/teams.types';
 import { IUserInfo } from '@/types/shared.types';
 import { IMember, IMemberTeam } from '@/types/members.types';
 
-import { ADMIN_ROLE } from '@/utils/constants';
-
+import { isAdminUser } from '@/utils/user/isAdminUser';
 import { parseMemberLocation } from '@/utils/member.utils';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 
@@ -56,7 +55,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
   mainTeam = !mainTeam && member?.teams.length === 1 ? member.teams[0] : mainTeam;
 
   const isOwner = userInfo?.uid === member.id;
-  const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
+  const isAdmin = isAdminUser(userInfo)
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const profile = member?.profile ?? defaultAvatarImage;
   const analytics = useMemberAnalytics();

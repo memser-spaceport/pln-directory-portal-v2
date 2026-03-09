@@ -4,12 +4,13 @@ import React from 'react';
 
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE } from '@/utils/constants';
+
+import { getAccessLevel } from '@/utils/auth.utils';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { RepositoriesList } from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList';
 
-import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
   member: IMember;
@@ -18,7 +19,7 @@ interface Props {
 }
 
 export const RepositoriesDetails = ({ isLoggedIn, userInfo, member }: Props) => {
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo)
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
 

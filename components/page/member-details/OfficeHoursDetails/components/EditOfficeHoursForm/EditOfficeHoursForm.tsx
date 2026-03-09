@@ -151,7 +151,6 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
     mode: 'all',
   });
 
-  const isAdmin = !!(userInfo && userInfo.roles?.includes(ADMIN_ROLE));
   const { handleSubmit, reset, trigger, watch } = methods;
   const { mutateAsync } = useUpdateMemberParams();
   const { data: memberData } = useMember(member.id);

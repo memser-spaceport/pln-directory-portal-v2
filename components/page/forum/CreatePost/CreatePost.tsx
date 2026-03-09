@@ -19,11 +19,11 @@ import { useEditPost } from '@/services/forum/hooks/useEditPost';
 import useBlockNavigation from '@/hooks/useUnsavedChangesWarning';
 import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE } from '@/utils/constants';
 import { useAllMembers } from '@/services/members/hooks/useAllMembers';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { clsx } from 'clsx';
 import { PostFormEditorLabel } from './components/PostFormEditorLabel';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 export type CreatePostForm = {
   user: Record<string, string> | null;
@@ -48,7 +48,7 @@ export const CreatePost = (props: Props) => {
   const searchParams = useSearchParams();
   const fromCategory = searchParams.get('from');
   useMobileNavVisibility(true);
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo);
   const { data: allMembers } = useAllMembers();
   const membersOptions = useMemo(() => {
     return (

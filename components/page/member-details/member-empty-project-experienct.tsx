@@ -1,19 +1,21 @@
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { ADMIN_ROLE, MEMBER_ANALYTICS_EVENTS, PAGE_ROUTES } from '@/utils/constants';
+import { PAGE_ROUTES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 interface IMemberEmptyProjectExperience {
   userInfo: any;
   member: any;
   profileType: string;
 }
+
 const MemberEmptyProjectExperience = (props: IMemberEmptyProjectExperience) => {
   const userInfo = props?.userInfo;
   const member = props?.member;
   const router = useRouter();
 
   const isOwner = userInfo.uid === member.id;
-  const isAdmin = userInfo.roles?.length > 0 && userInfo.roles.includes(ADMIN_ROLE);
+  const isAdmin = isAdminUser(userInfo);
 
   const analytics = useMemberAnalytics();
 

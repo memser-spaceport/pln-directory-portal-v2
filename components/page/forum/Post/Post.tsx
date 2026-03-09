@@ -28,8 +28,8 @@ import { BackButton } from '@/components/ui/BackButton';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 import forumStyles from '@/app/forum/page.module.scss';
-import { ADMIN_ROLE } from '@/utils/constants';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 // Function to process markdown images and prepare content for Linkify
 export const processPostContent = (content: string) => {
@@ -95,7 +95,7 @@ export const Post = () => {
         likes: data.posts[0]?.votes,
         comments: data.postcount - 1,
       },
-      isEditable: data.posts[0]?.user?.memberUid === userInfo?.uid || userInfo?.roles?.includes(ADMIN_ROLE),
+      isEditable: data.posts[0]?.user?.memberUid === userInfo?.uid || isAdminUser(userInfo),
       isAvailableToConnect:
         data.posts[0]?.user?.officeHours &&
         (data.posts[0]?.user?.ohStatus === 'OK' ||

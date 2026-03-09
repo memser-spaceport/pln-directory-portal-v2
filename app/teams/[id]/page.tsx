@@ -8,7 +8,7 @@ import { getAllTeams, getTeam, getTeamUIDByAirtableId } from '@/services/teams.s
 import { IMember } from '@/types/members.types';
 import { IFormatedTeamProject, ITeam, ITeamDetailParams } from '@/types/teams.types';
 import { hasProjectEditAccess, sortMemberByRole } from '@/utils/common.utils';
-import { ADMIN_ROLE, AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata, ResolvingMetadata } from 'next';
 import { RedirectType, redirect } from 'next/navigation';
@@ -22,6 +22,7 @@ import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
 import { TeamInvestorDetails } from '@/components/page/team-details/TeamInvestorDetails';
 import { TeamMembershipSource, TeamCommunitiesSection } from '@/components/page/team-details/TeamsTagsListSection';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 async function Page({ params, searchParams }: { params: ITeamDetailParams; searchParams: { backTo?: string } }) {
   const teamId: string = params?.id;
@@ -227,7 +228,7 @@ async function getPageData(teamId: string) {
     members = teamMembersResponse?.data?.formattedData?.sort(sortMemberByRole);
     hasEditAsksAccess =
       members.some((member: any) => member.id === userInfo.uid) ||
-      (Array.isArray(userInfo?.roles) ? userInfo?.roles?.includes(ADMIN_ROLE) : false);
+      (Array.isArray(userInfo?.roles) ? isAdminUser(userInfo) : false);
     focusAreas = focusAreaResponse.data;
     focusAreas = focusAreas.filter((data: IFocusArea) => !data.parentUid);
     const maintainingProjects = team?.maintainingProjects?.map((project: any) => {
@@ -254,7 +255,7 @@ async function getPageData(teamId: string) {
           hasEditAccess: hasProjectEditAccess(userInfo, project, isLoggedIn, memberTeams),
         };
       });
-    if (userInfo?.roles && userInfo?.roles?.length && userInfo?.roles?.includes(ADMIN_ROLE) && authToken) {
+    if (isAdminUser(userInfo) && authToken) {
       hasProjectsEditAccess = true;
     }
     if (hasProjectsEditAccess) {

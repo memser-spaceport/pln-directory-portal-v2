@@ -8,8 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { IUserInfo } from '@/types/shared.types';
 import { ITag, ITeam } from '@/types/teams.types';
 
-import { ADMIN_ROLE } from '@/utils/constants';
-
+import { isAdminUser } from '@/utils/user/isAdminUser';
 import { deleteTeam } from '@/app/actions/teams.actions';
 import { getTeamPriority, getPriorityLabel, getTechnologyImage } from '@/utils/team.utils';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
@@ -29,6 +28,7 @@ import Technologies from '../technologies';
 import { About } from './components/About';
 
 import s from './TeamDetails.module.scss';
+import { isTierUser } from '@/utils/user/isTierUser';
 
 interface Props {
   team: ITeam;
@@ -41,7 +41,10 @@ export const TeamDetails = (props: Props) => {
   const logo = team?.logo ?? '/icons/team-default-profile.svg';
   const teamName = team?.name ?? '';
   const userInfo = props?.userInfo;
-  const isTierViewer = userInfo?.isTierViewer || userInfo?.roles?.includes(ADMIN_ROLE);
+
+  const isAdmin = isAdminUser(userInfo);
+
+  const isTierViewer = isTierUser(userInfo) || isAdmin;
   const tags = useMemo(() => {
     const priority = getTeamPriority(team);
     if (isTierViewer && priority !== undefined) {
@@ -60,7 +63,7 @@ export const TeamDetails = (props: Props) => {
   const technologies =
     team?.technologies?.map((item) => ({ name: item?.title, url: getTechnologyImage(item?.title) })) ?? [];
   const hasTeamEditAccess = isTeamLeaderOrAdmin(userInfo, team?.id);
-  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
+
 
   const [isTechnologyPopup, setIsTechnologyPopup] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -74,7 +77,7 @@ export const TeamDetails = (props: Props) => {
   };
 
   const onEditTeamClickHandler = () => {
-    if (userInfo?.roles?.includes(ADMIN_ROLE)) {
+    if (isAdmin) {
       analytics.onEditTeamByAdmin(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
     } else {
       analytics.onEditTeamByLead(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));

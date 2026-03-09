@@ -25,8 +25,8 @@ import { EditFormMobileControls } from '@/components/page/member-details/compone
 import { clsx } from 'clsx';
 import { useUpdateMemberPreferences } from '@/services/members/hooks/useUpdateMemberPreferences';
 import { FormSwitch } from '@/components/form/FormSwitch';
-import { ADMIN_ROLE } from '@/utils/constants';
 import { ContactDetailsVariant } from '@/components/page/member-details/ContactDetails';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 interface Props {
   onClose: () => void;
@@ -49,7 +49,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
       shareContacts: getDefaultToggleValue(member.preferences),
     },
   });
-  const isAdmin = !!(userInfo && userInfo.roles?.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo)
   const isOwner = userInfo && userInfo.uid === member.id;
   const { handleSubmit, reset } = methods;
   const { mutateAsync } = useUpdateMember();

@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE } from '@/utils/constants';
 
 import { ExperiencesList } from '@/components/page/member-details/ExperienceDetails/components/ExperiencesList';
 
@@ -14,6 +13,7 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAccessLevel } from '@/utils/auth.utils';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 interface Props {
   member: IMember;
@@ -24,7 +24,7 @@ interface Props {
 export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [view, setView] = useState<'view' | 'add' | 'edit'>('view');
   const [selectedItem, setSelectedItem] = useState<null | FormattedMemberExperience>(null);
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
   const { onAddExperienceDetailsClicked, onEditExperienceDetailsClicked } = useMemberAnalytics();

@@ -17,13 +17,13 @@ import { LikesButton } from '@/components/page/forum/LikesButton';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
 import { IUserInfo } from '@/types/shared.types';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
-import { ADMIN_ROLE } from '@/utils/constants';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 import { processPostContent } from '@/components/page/forum/Post';
 
 import { NestedComment } from '../../types';
 
 import s from './CommentItem.module.scss';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 const MAX_DEPTH = 2; // Support 3 levels: 0 (comment), 1 (reply), 2 (reply to reply)
 
@@ -100,7 +100,7 @@ export const CommentItem = (props: Props) => {
               {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
             </div>
           </div>
-          {(userInfo.uid === item.user.memberUid || userInfo.roles?.includes(ADMIN_ROLE)) && (
+          {(userInfo.uid === item.user.memberUid || isAdminUser(userInfo)) && (
             <div className={s.menuWrapper}>
               <ItemMenu
                 onEdit={() => {

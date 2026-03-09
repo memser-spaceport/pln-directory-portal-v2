@@ -1,8 +1,9 @@
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE, URL_QUERY_VALUE_SEPARATOR } from './constants';
+import { URL_QUERY_VALUE_SEPARATOR } from './constants';
 import { format, toZonedTime } from 'date-fns-tz';
 import { isSameDay } from 'date-fns';
 import { CalendarDate, EventDuration, IIrlEvent } from '@/types/irl.types';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 export const isPastDate = (date: any) => {
   const currentDate = new Date();
@@ -189,6 +190,7 @@ export function formatDateRangeForDescription(startDate: any, endDate: any) {
     return '';
   }
 }
+
 export const getAttendingStartAndEndDate = (events: any) => {
   if (events.length === 0) {
     return { checkInDate: null, checkOutDate: null };
@@ -409,13 +411,11 @@ export const getFilteredEventsForUser = (
 ) => {
   const uniqueEventsMap = new Map();
 
-  // Determine if the user has the admin role
-  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const publicEvents = currentEvents.filter((event: any) => event.type !== 'INVITE_ONLY');
 
   // Combine events based on the user's login and role status
   const eventsToConsider = isLoggedIn
-    ? isAdmin
+    ? isAdminUser(userInfo)
       ? currentEvents
       : [...loggedInUserEvents, ...publicEvents]
     : publicEvents;
@@ -478,6 +478,7 @@ export const transformGuestDetail = (result: any, gatherings: any) => {
     count: detail?.count || 0,
   };
 };
+
 export function checkAdminInAllEvents(searchType: any, upcomingEvents: any, pastEvents: any) {
   // If type is specified (past or upcoming), check if user can admin that specific type
   if (
@@ -657,14 +658,14 @@ export function getGatherings(type: string, events: any, from: string): IIrlEven
 function getEventTimestamp(dateStr: string): number {
   // Extract only YYYY-MM-DD (avoid timezone shifts)
   const dateOnly = dateStr.slice(0, 10); // "YYYY-MM-DD"
-  return Date.parse(dateOnly + "T00:00:00Z");
+  return Date.parse(dateOnly + 'T00:00:00Z');
 }
 
 function evaluateDate(
   timestamp: number,
   now: number,
   nearestFuture: { value: number | null },
-  latestPast: { value: number | null }
+  latestPast: { value: number | null },
 ) {
   if (isNaN(timestamp)) return;
 
@@ -679,9 +680,10 @@ function evaluateDate(
   }
 }
 
-export function getNearestEventDate<
-  T extends { startDate: string; endDate: string }
->(events: T[], type?: 'past' | 'current'): string | null {
+export function getNearestEventDate<T extends { startDate: string; endDate: string }>(
+  events: T[],
+  type?: 'past' | 'current',
+): string | null {
   const now = Date.now();
 
   const nearestFuture = { value: null as number | null };

@@ -27,6 +27,7 @@ import { useRouter } from 'next/navigation';
 import { formatFeaturedData } from '@/utils/home.utils';
 import Cookies from 'js-cookie';
 import { useFilter } from '@/hooks/useFilter';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 const MemberBioModal = dynamic(() => import('./member-bio-modal'), { ssr: false });
 
@@ -116,9 +117,10 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any, getFeaturedDa
 }
 
 const Featured = (props: any) => {
-  const isLoggedIn = props?.isLoggedIn;
-  const userInfo = props?.userInfo;
-  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
+  const { userInfo, isLoggedIn } = props;
+
+  const isAdmin = isAdminUser(userInfo);
+
   const options: EmblaOptionsType = { slidesToScroll: 'auto', loop: true, align: 'start' };
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const cauroselActions = usePrevNextButtons(emblaApi);

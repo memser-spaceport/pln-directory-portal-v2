@@ -1,6 +1,5 @@
 import { IUserInfo } from '@/types/shared.types';
 import {
-  ADMIN_ROLE,
   DISCORD_URL_REGEX,
   EMAIL_REGEX,
   EVENTS,
@@ -12,6 +11,7 @@ import {
 } from './constants';
 import { ITeam } from '@/types/teams.types';
 import Cookies from 'js-cookie';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 export const triggerLoader = (status: boolean) => {
   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_LOADER, { detail: status }));
 };
@@ -316,7 +316,7 @@ export const hasProjectEditAccess = (
       return false;
     }
 
-    if (userInfo?.roles && userInfo.roles.length && userInfo?.roles?.includes(ADMIN_ROLE)) {
+    if (isAdminUser(userInfo)) {
       return true;
     }
 
@@ -342,7 +342,7 @@ export const hasProjectDeleteAccess = (userInfo: any, project: any, isUserLogged
     return false;
   }
 
-  if (userInfo?.roles?.length && userInfo.roles.includes(ADMIN_ROLE)) {
+  if (isAdminUser(userInfo)) {
     return true;
   }
 

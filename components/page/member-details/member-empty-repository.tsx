@@ -2,7 +2,8 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
-import { ADMIN_ROLE, PAGE_ROUTES } from '@/utils/constants';
+import { PAGE_ROUTES } from '@/utils/constants';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 interface IMemberEmptyProject {
   userInfo: IUserInfo;
@@ -15,7 +16,7 @@ const MemberEmptyProject = (props: IMemberEmptyProject) => {
   const member = props?.member;
 
   const isOwner = userInfo.uid === member.id;
-  const isAdmin = userInfo.roles && userInfo.roles?.length > 0 && userInfo.roles.includes(ADMIN_ROLE);
+  const isAdmin = isAdminUser(userInfo);
 
   const analytics = useMemberAnalytics();
 

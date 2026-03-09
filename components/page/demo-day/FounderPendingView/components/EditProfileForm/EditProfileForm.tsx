@@ -4,6 +4,7 @@ import React, { useEffect, useMemo } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { isAdminUser } from '@/utils/user/isAdminUser';
 import { toast } from '@/components/core/ToastContainer';
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
@@ -20,7 +21,7 @@ import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { getParsedValue } from '@/utils/common.utils';
-import { ADMIN_ROLE, DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
 import { IndustryFundingOpts } from './type';
@@ -85,7 +86,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
   const { onFounderSaveTeamDetailsClicked, onFounderCancelTeamDetailsClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const currentUserInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
-  const isDirectoryAdmin = currentUserInfo?.roles?.includes(ADMIN_ROLE);
+  const isDirectoryAdmin = isAdminUser(currentUserInfo);
 
   const options: IndustryFundingOpts = useMemo(() => {
     if (!data) {

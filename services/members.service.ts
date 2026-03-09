@@ -1,6 +1,6 @@
 import { IMemberListOptions } from '@/types/members.types';
 import { getHeader } from '@/utils/common.utils';
-import { ADMIN_ROLE, PRIVACY_CONSTANTS } from '@/utils/constants';
+import { PRIVACY_CONSTANTS } from '@/utils/constants';
 import {
   hidePreferences,
   parseMemberDetails,
@@ -10,6 +10,7 @@ import {
   getVisibleSocialHandles,
 } from '@/utils/member.utils';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
   handleHostAndSpeaker(options);
@@ -212,7 +213,7 @@ export const getMember = async (
     signUpSource: result.signUpSource,
   };
 
-  const hasEditAccess = userInfo?.roles?.includes(ADMIN_ROLE) || userInfo?.uid === member?.id;
+  const hasEditAccess = isAdminUser(userInfo) || userInfo?.uid === member?.id;
 
   if (!hasEditAccess && ['Rejected', 'L0', 'L1'].includes(member?.accessLevel)) {
     return { error: { status: 404, statusText: 'Member not found' } };

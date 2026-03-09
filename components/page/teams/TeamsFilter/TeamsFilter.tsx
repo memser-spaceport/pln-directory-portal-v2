@@ -5,7 +5,7 @@ import last from 'lodash/last';
 import isEmpty from 'lodash/isEmpty';
 import { IAnalyticsUserInfo, IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems } from '@/types/teams.types';
-import { ADMIN_ROLE, FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
+import { FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
 import { triggerLoader } from '@/utils/common.utils';
 
 import { createFilterGetter } from '@/services/teams/utils/createFilterGetter';
@@ -22,6 +22,8 @@ import { FilterCheckSizeInput } from '@/components/page/members/MembersFilter/Fi
 import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
 import { InvestmentFocusFilter } from '@/components/page/teams/TeamsFilter/components/InvestmentFocusFilter';
 import { getPriorityLabel } from '@/utils/team.utils';
+import { isAdminUser } from '@/utils/user/isAdminUser';
+import { isTierUser } from '@/utils/user/isTierUser';
 
 export interface TeamsFilterProps {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -42,8 +44,8 @@ export function TeamsFilter(props: TeamsFilterProps) {
   const { clearParams, params } = useTeamFilterStore();
   const appliedFiltersCount = useTeamFilterCount();
   const analytics = useTeamAnalytics();
-  const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
-  const isTierViewer = isDirectoryAdmin || !!userInfo?.isTierViewer;
+  const isDirectoryAdmin = isAdminUser(userInfo);
+  const isTierViewer = isDirectoryAdmin || isTierUser(userInfo);
 
   // Create data hooks at the top level (not conditionally)
   // These factory functions return data hooks that can be passed to GenericCheckboxList

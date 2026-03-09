@@ -16,11 +16,10 @@ import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { ADMIN_ROLE, DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
-import Image from 'next/image';
 import { Drawer } from '@/components/common/Drawer';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { ReferCompanyModal } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/ReferCompanyModal';
@@ -85,7 +84,6 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   team,
 }) => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
-  const isDirectoryAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const isPrepDemoDay = useIsPrepDemoDay();
   const demoDayMode = useDemoDayMode();
   const [editView, setEditView] = useState(false);

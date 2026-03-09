@@ -9,7 +9,7 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import s from './ContactDetails.module.scss';
 import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
-import { ADMIN_ROLE, TOAST_MESSAGES } from '@/utils/constants';
+import { TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 
@@ -19,6 +19,7 @@ import { EditButton } from '@/components/common/profile/EditButton';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { getAccessLevel } from '@/utils/auth.utils';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 type ContactDetailsVariant = 'default' | 'drawer';
 
@@ -45,7 +46,7 @@ const DRAWER_HANDLES = ['email', 'linkedin', 'telegram', 'twitter'];
 export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant = 'default' }: Props) => {
   const router = useRouter();
   const { visibleHandles } = member;
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
   const hasMissingRequiredData = !member?.linkedinHandle;
   const authAnalytics = useAuthAnalytics();

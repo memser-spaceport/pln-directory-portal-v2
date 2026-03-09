@@ -1,17 +1,12 @@
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import CustomCheckbox from '@/components/form/custom-checkbox';
 import { IUserInfo } from '@/types/shared.types';
-import {
-  ADMIN_ROLE,
-  EVENT_TYPE,
-  EVENTS_SUBMIT_FORM_TYPES,
-  IAM_GOING_POPUP_MODES,
-  IRL_ATTENDEE_FORM_ERRORS,
-} from '@/utils/constants';
+import { EVENT_TYPE, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
 import { filterUpcomingGatherings, getFormattedDateString } from '@/utils/irl.utils';
 import { SetStateAction, useEffect, useState } from 'react';
 import ParticipationDetails from './participation-details';
 import { IIrlAttendeeFormErrors, IIrlEvent, IIrlLocation } from '@/types/irl.types';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 interface IGatherings {
   selectedLocation: IIrlLocation;
@@ -46,11 +41,12 @@ const Gatherings = (props: IGatherings) => {
   const isVerifiedMember = props?.isVerifiedMember;
   const isLoggedInUserEventDetails = userInfo?.uid === loggedInUserInfo?.uid;
 
-  const isAdmin = Array.isArray(loggedInUserInfo?.roles) && loggedInUserInfo?.roles.includes(ADMIN_ROLE);
+  const isAdmin = isAdminUser(loggedInUserInfo);
 
   const isGatheringsError = errors?.gatheringErrors?.length > 0 ? true : false;
 
   const [selectedGatherings, setSelectedGatherings] = useState<any[]>([]);
+
   function getIsAlreadyBooked(gathering: any) {
     return initialValues?.events?.some((selectedGathering: any) => selectedGathering?.uid === gathering?.uid);
   }

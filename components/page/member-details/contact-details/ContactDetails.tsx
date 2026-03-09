@@ -15,8 +15,8 @@ import { useAuthAnalytics } from '@/analytics/auth.analytics';
 
 import React, { Fragment } from 'react';
 import { clsx } from 'clsx';
-import { EditButton } from '@/components/page/member-details/components/EditButton';
-import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
+import { EditButton } from '@/components/common/profile/EditButton';
+import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { getAccessLevel } from '@/utils/auth.utils';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
 
@@ -86,9 +86,9 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant =
         </DataIncomplete>
       )}
       <div className={s.contentRoot}>
-        <MemberDetailsSectionHeader title="Contact Details">
+        <DetailsSectionHeader title="Contact Details">
           {isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEdit} />}
-        </MemberDetailsSectionHeader>
+        </DetailsSectionHeader>
         <div className={s.container}>
           {isDrawer || (isLoggedIn && (accessLevel === 'advanced' || isOwner)) ? (
             <div className={s.social}>

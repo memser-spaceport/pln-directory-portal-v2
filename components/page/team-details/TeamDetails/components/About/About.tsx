@@ -12,6 +12,7 @@ import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/uti
 
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 
+import { EditButton } from '@/components/common/profile/EditButton';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 import { ExpandableDescription } from '@/components/common/ExpandableDescription';
 
@@ -99,11 +100,7 @@ export const About = (props: Props) => {
     <div className={s.root}>
       <div className={s.header}>
         <h2 className={s.title}>About</h2>
-        {!showEditor && hasTeamEditAccess && (
-          <button className={s.editBtn} onClick={onEditClickHandler}>
-            Edit
-          </button>
-        )}
+        {!showEditor && hasTeamEditAccess && <EditButton onClick={onEditClickHandler} />}
         {showEditor && (
           <div className={s.headerActions}>
             <button className={s.cancelBtn} onClick={onCancelClickHandler}>

@@ -21,6 +21,7 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
+import { EditButton } from '@/components/common/profile/EditButton';
 
 import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
 
@@ -135,12 +136,7 @@ export const TeamDetails = (props: Props) => {
               <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
 
               <div className={s.actions}>
-                {hasTeamEditAccess && (
-                  <button className={s.edit} onClick={onEditTeamClickHandler}>
-                    <Image src="/icons/edit.svg" alt="Edit" height={16} width={16} />
-                    Edit
-                  </button>
-                )}
+                {hasTeamEditAccess && <EditButton onClick={onEditTeamClickHandler} />}
 
                 {isAdmin && (
                   <button className={s.delete} onClick={onDeleteTeamClickHandler} disabled={isDeleting}>

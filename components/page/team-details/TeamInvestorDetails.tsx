@@ -1,9 +1,10 @@
 import React from 'react';
 
+import { ITeam } from '@/types/teams.types';
+import { IUserInfo } from '@/types/shared.types';
+
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { InvestorProfileView } from '@/components/page/member-details/InvestorProfileDetails/components/InvestorProfileView';
-import { IUserInfo } from '@/types/shared.types';
-import { ITeam } from '@/types/teams.types';
 
 interface Props {
   team: ITeam;

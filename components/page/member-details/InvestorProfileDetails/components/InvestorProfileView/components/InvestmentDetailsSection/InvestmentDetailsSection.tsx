@@ -1,6 +1,6 @@
 import React from 'react';
 import { formatUSD } from '@/utils/formatUSD';
-import s from '../InvestorProfileView.module.scss';
+import s from './InvestmentDetailsSection.module.scss';
 
 interface Props {
   typicalCheckSize?: string | undefined;

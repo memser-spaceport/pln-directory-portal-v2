@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { EditButton } from '@/components/page/member-details/components/EditButton';
-import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
+import { EditButton } from '@/components/common/profile/EditButton';
+import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { OfficeHoursDialog } from '@/components/page/member-details/OfficeHoursDetails/components/OfficeHoursDialog';
 import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
 
@@ -245,7 +245,7 @@ export const OfficeHoursView = ({
           [s.missingData]: (showIncomplete || showAlert) && isLoggedIn,
         })}
       >
-        <MemberDetailsSectionHeader
+        <DetailsSectionHeader
           title={
             <>
               Office Hours{' '}
@@ -262,7 +262,7 @@ export const OfficeHoursView = ({
               }}
             />
           )}
-        </MemberDetailsSectionHeader>
+        </DetailsSectionHeader>
 
         <div className={s.content}>
           <div className={s.officeHoursSection}>

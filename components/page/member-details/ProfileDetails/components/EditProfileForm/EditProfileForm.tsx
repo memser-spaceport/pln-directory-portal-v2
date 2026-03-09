@@ -107,7 +107,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
     resolver: yupResolver(editProfileSchema),
     context: { isAddingTeamInline },
   });
-  const { handleSubmit, reset, watch, setValue, trigger } = methods;
+  const { handleSubmit, reset, watch, setValue, getValues } = methods;
   const { mutateAsync } = useUpdateMember();
   const { mutateAsync: updateMemberParams } = useUpdateMemberParams();
   const { mutateAsync: updateSelfRole } = useUpdateMemberSelfRole();
@@ -413,6 +413,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
                           className={s.link}
                           onClick={() => {
                             onAddTeamDropdownClicked('profile-edit');
+                            setValue('newTeamRole', getValues().primaryTeamRole ?? '');
                             setIsAddingTeamInline(true);
                           }}
                         >

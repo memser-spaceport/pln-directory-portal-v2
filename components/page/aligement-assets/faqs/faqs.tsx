@@ -490,6 +490,8 @@ export default function FAQsPage() {
       const category = faqCategories.find(cat => cat.id === hash);
       if (!category) {
         window.history.replaceState(null, '', pathname);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
         return;
       }
 

@@ -36,7 +36,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
     id: 'buyback-auction',
     type: 'event',
     title: 'Upcoming Event',
-    subtitle: 'Buyback Auction March 2026',
+    subtitle: 'Buyback Auction April 2026',
     date: 'date is subject to change',
     buttons: [
       // { label: 'Learn More', link: 'https://protocol.ai', variant: 'secondary' },

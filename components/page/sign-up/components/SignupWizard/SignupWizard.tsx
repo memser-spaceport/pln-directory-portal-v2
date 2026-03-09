@@ -71,6 +71,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
     setValue,
     watch,
     trigger,
+    getValues,
     formState: { isSubmitting, isValid, submitCount },
   } = methods;
   const { subscribe, agreed } = watch();
@@ -294,6 +295,7 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
                                 memberAnalytics.onAddTeamDropdownClicked('signup');
                                 setIsAddingTeam(true);
                                 setValue('teamOrProject', null, { shouldValidate: true });
+                                setValue('newTeamRole', getValues().role ?? '', { shouldValidate: true });
                               }}
                             >
                               Add your team

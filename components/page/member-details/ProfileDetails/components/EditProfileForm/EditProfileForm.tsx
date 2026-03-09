@@ -485,7 +485,7 @@ function formatPayload(memberInfo: any, formData: TEditProfileForm) {
         if (tmr.teamUid === formData.primaryTeam?.value) {
           return {
             ...tmr,
-            role: formData.primaryTeamRole || tmr.role,
+            role: formData.primaryTeamRole,
             mainTeam: true,
           };
         }

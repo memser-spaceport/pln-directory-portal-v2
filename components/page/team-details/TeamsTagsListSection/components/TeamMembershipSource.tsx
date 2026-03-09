@@ -2,7 +2,8 @@ import { ITeam } from '@/types/teams.types';
 
 import { IUserInfo } from '@/types/shared.types';
 
-import { isTeamLeaderOrAdmin } from '@/components/page/team-details/utils/isTeamLeaderOrAdmin';
+import { isAdminUser } from '@/utils/user/isAdminUser';
+import { isTierUser } from '@/utils/user/isTierUser';
 
 import { TeamsTagsListSection } from '../TeamsTagsListSection';
 
@@ -14,9 +15,9 @@ interface Props {
 export function TeamMembershipSource(props: Props) {
   const { team, userInfo } = props;
 
-  const isTLOrAdmin = isTeamLeaderOrAdmin(userInfo, team?.id);
+  const canView = isTierUser(userInfo) || isAdminUser(userInfo);
 
-  if (isTLOrAdmin) {
+  if (canView) {
     return (
       <TeamsTagsListSection
         tags={team?.membershipSources}

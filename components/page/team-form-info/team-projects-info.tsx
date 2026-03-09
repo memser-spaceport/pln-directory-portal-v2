@@ -6,6 +6,9 @@ import { useEffect, useRef, useState } from 'react';
 import FocusAreasList from './focus-area/focus-area-list';
 import FocusAreasPopup from './focus-area/focus-areas-popup';
 import Modal from '@/components/core/modal';
+import { IUserInfo } from '@/types/shared.types';
+import { isTierUser } from '@/utils/user/isTierUser';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 interface ICommonProperties {
   id: string;
@@ -30,11 +33,13 @@ interface ITeamProjectsInfo {
   initialValues: any;
   showFocusArea?: boolean;
   isInvestmentFund: boolean;
+  userInfo: IUserInfo;
 }
 
 const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
   const {
     errors,
+    userInfo,
     focusAreas = [],
     initialValues,
     isInvestmentFund,
@@ -185,29 +190,31 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
             name="fundingStage-title"
           />
         </div>
-        <div className="teamProject__form__item">
-          <MultiSelect
-            options={membershipSourceOptions}
-            selectedOptions={selectedMembershipSources}
-            onAdd={(itemToAdd) => addItem(setSelectedMembershipSources, itemToAdd)}
-            onRemove={(itemToRemove) => removeItem(setSelectedMembershipSources, itemToRemove)}
-            uniqueKey="id"
-            displayKey="name"
-            label="Membership Source"
-            placeholder="Select the Membership Sources"
-            isMandatory={false}
-            closeImgUrl="/icons/close.svg"
-            arrowImgUrl="/icons/arrow-down.svg"
-          />
-          <div className="hidden">
-            {selectedMembershipSources.map((source, index) => (
-              <div key={`team-membershipSource-${source.id}-${index}`}>
-                <HiddenField value={source.name} defaultValue={source.name} name={`membershipSource${index}-title`} />
-                <HiddenField value={source.id} defaultValue={source.id} name={`membershipSource${index}-uid`} />
-              </div>
-            ))}
+        {(isAdminUser(userInfo) || isTierUser(userInfo)) &&
+          <div className="teamProject__form__item">
+            <MultiSelect
+              options={membershipSourceOptions}
+              selectedOptions={selectedMembershipSources}
+              onAdd={(itemToAdd) => addItem(setSelectedMembershipSources, itemToAdd)}
+              onRemove={(itemToRemove) => removeItem(setSelectedMembershipSources, itemToRemove)}
+              uniqueKey="id"
+              displayKey="name"
+              label="Membership Source"
+              placeholder="Select the Membership Sources"
+              isMandatory={false}
+              closeImgUrl="/icons/close.svg"
+              arrowImgUrl="/icons/arrow-down.svg"
+            />
+            <div className="hidden">
+              {selectedMembershipSources.map((source, index) => (
+                <div key={`team-membershipSource-${source.id}-${index}`}>
+                  <HiddenField value={source.name} defaultValue={source.name} name={`membershipSource${index}-title`} />
+                  <HiddenField value={source.id} defaultValue={source.id} name={`membershipSource${index}-uid`} />
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        }
         <div className="teamProject__form__item">
           <MultiSelect
             options={industryTagOptions}

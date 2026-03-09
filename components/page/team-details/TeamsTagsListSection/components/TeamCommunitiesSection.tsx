@@ -20,9 +20,9 @@ export function TeamCommunitiesSection(props: Props) {
 
   const isTLOrAdmin = isTeamLeaderOrAdmin(userInfo, team?.id);
 
-  if (isTLOrAdmin || !isEmpty(tags)) {
+  if (!isEmpty(tags)) {
     return (
-      <TeamsTagsListSection tags={team?.membershipSources} title="Communities" emptyMessage="No communities added." />
+      <TeamsTagsListSection tags={team?.membershipSources} title="Community Affiliations" emptyMessage="No communities added." />
     );
   }
 

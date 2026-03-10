@@ -134,6 +134,8 @@ export const getTeam = async (
   if (!response?.ok) {
     return { error: { statusText: response?.statusText } };
   }
+
+  console.log({ result });
   const formatedData = {
     id: result?.uid,
     name: result?.name,
@@ -159,7 +161,8 @@ export const getTeam = async (
     investorProfile: result?.investorProfile,
     isFund: result?.isFund,
     priority: getTeamPriority(result),
-    associations: result?.eventAssociations
+    associations: result?.eventAssociations,
+    dataEnrichment: result.dataEnrichment,
   };
   return { data: { formatedData } };
 };

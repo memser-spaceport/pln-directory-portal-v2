@@ -138,6 +138,11 @@ export interface ITeam {
     investInStartupStages: string[];
     investInFundTypes: string[];
   };
+  dataEnrichment?: {
+    isAIGenerated?: boolean;
+    status?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface ITeamDetailParams {

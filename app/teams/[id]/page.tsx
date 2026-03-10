@@ -1,6 +1,7 @@
 import Error from '@/components/core/error';
 import ContactInfo from '@/components/page/team-details/contact-info';
 import { Projects } from '@/components/page/team-details/Projects';
+import { AiGeneratedTeamProfileBanner } from '@/components/page/team-details/AiGeneratedTeamProfileBanner';
 import { TeamDetails } from '@/components/page/team-details/TeamDetails';
 import TeamMembers from '@/components/page/team-details/team-members';
 import { getMembers } from '@/services/members.service';
@@ -60,6 +61,11 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
     );
   }
 
+  const showAiGeneratedTeamProfileBanner =
+    !!userInfo?.leadingTeams?.includes(team.id) &&
+    !!team?.dataEnrichment?.isAIGenerated &&
+    team?.dataEnrichment?.status !== 'Reviewed';
+
   return (
     <>
       <div className={styles?.teamDetail}>
@@ -67,6 +73,7 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
         <div className={styles?.teamDetail__container}>
           {/* Details */}
           <div className={styles?.teamDetail__Container__details}>
+            {showAiGeneratedTeamProfileBanner && <AiGeneratedTeamProfileBanner team={team} />}
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
 

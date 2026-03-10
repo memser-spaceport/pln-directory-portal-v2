@@ -1,5 +1,5 @@
 import Error from '@/components/core/error';
-import ContactInfo from '@/components/page/team-details/contact-info';
+import { TeamContactInfo } from '@/components/page/team-details/TeamContactInfo';
 import Funding from '@/components/page/team-details/funding';
 import { TeamDetails } from '@/components/page/team-details/TeamDetails';
 import { getMembers } from '@/services/members.service';
@@ -77,7 +77,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
 
           {/* Contact Information */}
           <div className={styles?.fundraisingDetail__container__contact}>
-            <ContactInfo team={team} userInfo={userInfo} />
+            <TeamContactInfo team={team} userInfo={userInfo} />
           </div>
         </div>
       </div>

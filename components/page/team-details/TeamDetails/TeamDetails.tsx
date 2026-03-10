@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { IUserInfo } from '@/types/shared.types';
 import { ITag, ITeam } from '@/types/teams.types';
 
+import { isTierUser } from '@/utils/user/isTierUser';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { deleteTeam } from '@/app/actions/teams.actions';
 import { getTeamPriority, getPriorityLabel, getTechnologyImage } from '@/utils/team.utils';
@@ -21,6 +22,7 @@ import { TagsList } from '@/components/common/profile/TagsList';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 import { EditButton } from '@/components/common/profile/EditButton';
+import { Divider } from '@/components/common/profile/Divider';
 
 import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
 
@@ -28,7 +30,6 @@ import Technologies from '../technologies';
 import { About } from './components/About';
 
 import s from './TeamDetails.module.scss';
-import { isTierUser } from '@/utils/user/isTierUser';
 
 interface Props {
   team: ITeam;
@@ -63,7 +64,6 @@ export const TeamDetails = (props: Props) => {
   const technologies =
     team?.technologies?.map((item) => ({ name: item?.title, url: getTechnologyImage(item?.title) })) ?? [];
   const hasTeamEditAccess = isTeamLeaderOrAdmin(userInfo, team?.id);
-
 
   const [isTechnologyPopup, setIsTechnologyPopup] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -152,11 +152,11 @@ export const TeamDetails = (props: Props) => {
             <div>
               <div className={s.tags}>
                 <div className={s.fundingStage}>Stage: {team?.fundingStage?.title}</div>
-                <div className={s.delimiter} />
+                <Divider />
                 {team?.isFund && (
                   <>
                     <Tag value="Investment Fund" className={s.iTag} />
-                    <div className={s.delimiter} />
+                    <Divider />
                   </>
                 )}
                 <TagsList tags={tags || []} />

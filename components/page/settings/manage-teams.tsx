@@ -474,6 +474,7 @@ function ManageTeamsSettings(props: any) {
           </div>
           <div className={`${activeTab.name !== 'team details' ? 'hidden' : ''}`}>
             <TeamProjectsInfo
+              userInfo={userInfo}
               isInvestmentFund={isInvestmentFund}
               errors={errors.projectErrors}
               protocolOptions={allData?.technologies}

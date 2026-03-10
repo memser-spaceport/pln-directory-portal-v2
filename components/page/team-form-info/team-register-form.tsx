@@ -200,6 +200,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
             </div>
             <div className={currentStep !== TEAM_FORM_STEPS[1] ? 'hidden' : 'form'}>
               <TeamProjectsInfo
+                userInfo={userInfo}
                 errors={projectDetailsErrors}
                 isInvestmentFund={isInvestmentFund}
                 protocolOptions={allData?.technologies}

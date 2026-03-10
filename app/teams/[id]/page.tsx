@@ -1,5 +1,5 @@
 import Error from '@/components/core/error';
-import ContactInfo from '@/components/page/team-details/contact-info';
+import { TeamContactInfo } from '@/components/page/team-details/TeamContactInfo';
 import { Projects } from '@/components/page/team-details/Projects';
 import { TeamDetails } from '@/components/page/team-details/TeamDetails';
 import TeamMembers from '@/components/page/team-details/team-members';
@@ -76,7 +76,7 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
 
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>
-            <ContactInfo team={team} userInfo={userInfo} />
+            <TeamContactInfo team={team} userInfo={userInfo} />
             {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && (
               <TeamOfficeHours
                 isLoggedIn={isLoggedIn}

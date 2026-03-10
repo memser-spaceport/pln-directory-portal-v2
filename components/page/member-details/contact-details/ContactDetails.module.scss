@@ -149,18 +149,6 @@
   gap: 8px;
 }
 
-.divider {
-  height: 24px;
-  background: #e2e8f0;
-  width: 1px;
-  margin-inline: 8px;
-  display: none;
-
-  @include media.tablet-portrait {
-    display: block;
-  }
-}
-
 .incomplete {
   opacity: 0.35;
   pointer-events: none;
@@ -187,7 +175,6 @@
   justify-content: center;
   align-items: center;
   gap: var(--spacing-5xs, 2px);
-
 
   border-radius: var(--corner-radius-Full-round, 9999px);
   background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));

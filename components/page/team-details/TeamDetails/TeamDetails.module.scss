@@ -101,13 +101,13 @@
   display: flex;
   font-size: 14px;
   font-weight: 500;
-  color: #dc2626;
+  color: #dc2626 !important;
   align-items: center;
   height: fit-content;
   background: none;
   border: none;
   white-space: nowrap;
-  gap: 8px;
+  gap: 4px;
   cursor: pointer;
 
   &:disabled {
@@ -119,4 +119,30 @@
 .iTag {
   color: #4174ff;
   background: rgba(27, 77, 255, 0.16);
+}
+
+.aboutContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.aboutTitle {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  margin-bottom: 8px;
+}
+
+.aboutContent {
+  display: block;
+  align-self: stretch;
+  color: var(--Neutral-Slate-600, var(--foreground-neutral-secondary, #455468));
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
 }

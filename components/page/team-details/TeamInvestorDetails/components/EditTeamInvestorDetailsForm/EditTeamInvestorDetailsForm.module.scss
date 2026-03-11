@@ -1,0 +1,100 @@
+@use 'styles/media';
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 16px 92px;
+  border-radius: 16px;
+  background: #fff;
+  overflow: auto;
+  max-height: calc(100dvh - 56px);
+
+  @include media.tablet-landscape {
+    padding: 32px 130px;
+    max-height: none;
+  }
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+}
+
+.checkboxText {
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.infoBox {
+  display: flex;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  margin-top: 8px;
+}
+
+.infoIcon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.infoContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.infoTitle {
+  color: #0a0c11;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.infoText {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.infoLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

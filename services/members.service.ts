@@ -398,6 +398,8 @@ export const getMemberInfo = async (memberUid: string) => {
       role: tm.role,
       team: tm.team,
       investmentTeam: tm.investmentTeam,
+      mainTeam: tm.mainTeam,
+      teamLead: tm.teamLead,
     };
   });
 

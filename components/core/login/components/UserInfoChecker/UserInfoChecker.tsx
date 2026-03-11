@@ -15,6 +15,12 @@ interface UserInfoCheckerProps {
   userInfo: IUserInfo;
 }
 
+type TeamMemberRoleLike = {
+  teamLead?: boolean;
+  team?: { uid?: string | null } | null;
+  teamUid?: string | null;
+};
+
 /**
  * Compares two arrays of roles for equality (order-independent)
  */
@@ -25,6 +31,17 @@ function areRolesEqual(roles1: string[] | undefined, roles2: string[] | undefine
   const sorted1 = [...roles1].sort();
   const sorted2 = [...roles2].sort();
   return sorted1.every((role, index) => role === sorted2[index]);
+}
+
+function getLeadingTeamIds(teamMemberRoles: TeamMemberRoleLike[] | undefined): string[] {
+  return Array.from(
+    new Set(
+      (teamMemberRoles ?? [])
+        .filter((teamMemberRole) => teamMemberRole.teamLead)
+        .map((teamMemberRole) => teamMemberRole.team?.uid || teamMemberRole.teamUid)
+        .filter((teamUid): teamUid is string => Boolean(teamUid)),
+    ),
+  );
 }
 
 /**
@@ -96,6 +113,30 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
       return;
     }
 
+    // Handle missing leading teams for team leads
+    const serverLeadingTeams = getLeadingTeamIds(memberInfo.teamMemberRoles);
+    const missingLeadingTeams = serverLeadingTeams.filter((teamUid) => !(userInfo.leadingTeams ?? []).includes(teamUid));
+
+    if (missingLeadingTeams.length > 0) {
+      try {
+        const parsedCookie = JSON.parse(userInfoCookie);
+
+        if (parsedCookie.uid === memberInfo.uid) {
+          setUserInfoCookie(
+            JSON.stringify({
+              ...parsedCookie,
+              leadingTeams: Array.from(new Set([...(parsedCookie.leadingTeams ?? []), ...missingLeadingTeams])),
+            }),
+            { domain: process.env.COOKIE_DOMAIN || '' },
+          );
+          router.refresh();
+        }
+      } catch (e) {
+        console.error('Failed to parse userInfo cookie:', e);
+      }
+      return;
+    }
+
     // Handle name or profile image changes
     if (memberInfo.name !== userInfo.name || memberInfo.imageUrl !== userInfo.profileImageUrl) {
       try {
@@ -108,7 +149,7 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
               name: memberInfo.name,
               profileImageUrl: memberInfo.imageUrl,
             }),
-            { domain: process.env.COOKIE_DOMAIN || '' }
+            { domain: process.env.COOKIE_DOMAIN || '' },
           );
           router.refresh();
         }

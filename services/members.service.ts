@@ -391,6 +391,7 @@ export const getMemberInfo = async (memberUid: string) => {
   }
 
   const result = await response?.json();
+
   const teamMemberRoles = result.teamMemberRoles.map((tm: any) => {
     return {
       teamTitle: tm.team.name,
@@ -398,6 +399,8 @@ export const getMemberInfo = async (memberUid: string) => {
       role: tm.role,
       team: tm.team,
       investmentTeam: tm.investmentTeam,
+      mainTeam: tm.mainTeam,
+      teamLead: tm.teamLead,
     };
   });
 

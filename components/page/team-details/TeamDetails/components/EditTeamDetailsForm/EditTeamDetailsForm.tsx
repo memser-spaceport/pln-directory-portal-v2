@@ -79,6 +79,7 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       industryTags: defaultIndustryTags,
       about: team?.longDescription || '',
     },
+    // @ts-ignore
     resolver: yupResolver(editTeamDetailsSchema),
   });
 
@@ -144,6 +145,7 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
 
   return (
     <FormProvider {...methods}>
+      {/* @ts-ignore */}
       <form className={s.form} onSubmit={handleSubmit(onSubmit)}>
         <EditFormControls title="Edit Profile Details" onClose={onClose} />
         <div className={s.panel}>
@@ -176,7 +178,13 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
             isRequired
             description="Add industries that you had worked in. This will make it easier for people to find & connect based on shared professional interests."
           />
-          <BioInput name="about" label="About" simplified />
+          <BioInput
+            name="about"
+            label="About"
+            simplified
+            showGenerateWithAiButton={false}
+            placeholder="Add long description"
+          />
         </div>
         <EditFormMobileControls />
       </form>

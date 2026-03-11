@@ -21,11 +21,12 @@ const allRounds = [
   { id: 10, month: 'November 2025' },
   { id: 11, month: 'December 2025' },
   { id: 12, month: 'January 2026' },
+  { id: 13, month: 'February 2026' },
 ];
 
 // Current round (for "Go to current round" functionality)
-const CURRENT_ROUND = 12; // January 2026
-const TOTAL_ROUNDS = 12;
+const CURRENT_ROUND = 13; // January 2026
+const TOTAL_ROUNDS = 13;
 
 // Mock data for each round (month)
 const chartDataByRound: Record<number, Array<{ category: string; points: number; tokens: number }>> = {
@@ -131,6 +132,15 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Network Tooling', points: 1400, tokens: 1724 },
     { category: 'People/Talent', points: 300, tokens: 1603 },
     { category: 'Knowledge', points: 2100, tokens: 1764 },
+    { category: 'Capital', points: 0, tokens: 0 },
+  ],
+  13: [
+    { category: 'Projects', points: 2050, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 0, tokens: 0 },
+    { category: 'Network Tooling', points: 4996, tokens: 0 },
+    { category: 'People/Talent', points: 585, tokens: 0 },
+    { category: 'Knowledge', points: 900, tokens: 0 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
 };

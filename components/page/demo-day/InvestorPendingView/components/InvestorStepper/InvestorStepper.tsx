@@ -51,9 +51,10 @@ export const InvestorStepper: React.FC<StepperProps> = ({
 
   // Determine Step 2 status and description
   const step2Status = currentStep > 2 ? 'completed' : currentStep === 2 ? 'current' : 'pending';
-  const step2Title = currentStep > 2 ? "You're all set for Demo Day!" : 'Add Demo Day to your calendar';
+  const step2Title =
+    currentStep > 2 || isDemoDayActive ? "You're all set for Demo Day!" : 'Add Demo Day to your calendar';
   const step2Description = isDemoDayActive
-    ? `Explore 20+ teams across AI, Web3, and deep tech.`
+    ? `Explore 10+ teams across AI, Web3, and deep tech.`
     : `Demo Day goes live @ ${eventDateFormatted}`;
 
   // Determine button styles based on step completion

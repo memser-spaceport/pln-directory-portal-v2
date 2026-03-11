@@ -95,6 +95,7 @@ export const pastRound9Data: IPastRoundData = {
   // Buyback Auction Section Data (Round 11 - December 2025)
   // ============================================================================
   buybackSimulation: {
+    title: 'Buyback Simulation',
     headerDescription: 'This second simulation, compared with the first, showed how different bid patterns and participation levels affect clearing prices, pool usage, and token allocation outcomes. With a wider spread of bid values and higher activity, it produced clearer differences in demand, fill rates, and bidder distribution. These insights informed refinements to handling partial fills, applying the cap, and understanding how bid density shapes the final clearing price.',
     totalFilled: '$35,300',
     summary: {

@@ -464,8 +464,10 @@ export default function FAQsPage() {
   const [expandedQuestions, setExpandedQuestions] = useState<Record<string, boolean>>({});
   const [expandAll, setExpandAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [copiedCategoryId, setCopiedCategoryId] = useState<string | null>(null);
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const copyTooltipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pathname = usePathname();
   const { onFaqsSearchUsed, onFaqsExpandAllClicked, onFaqsQuestionToggled, onFaqsClearSearchClicked } = useAlignmentAssetsAnalytics();
 
@@ -483,9 +485,17 @@ export default function FAQsPage() {
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash.slice(1);
-      if (hash) {
-        handleHashNavigation(hash);
+      if (!hash) return;
+
+      const category = faqCategories.find(cat => cat.id === hash);
+      if (!category) {
+        window.history.replaceState(null, '', pathname);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        return;
       }
+
+      handleHashNavigation(hash);
     };
 
     handleHash();
@@ -495,7 +505,40 @@ export default function FAQsPage() {
     return () => {
       window.removeEventListener('hashchange', handleHash);
     };
-  }, [pathname]);
+  }, [pathname, handleHashNavigation]);
+
+  // Update URL hash when user scrolls to a category
+  useEffect(() => {
+    const refs = categoryRefs.current;
+    const ids = Object.keys(refs).filter((id) => refs[id] != null);
+    if (ids.length === 0) return;
+
+    const ratios = new Map<string, number>();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          const id = (e.target as HTMLElement).id;
+          if (id) ratios.set(id, e.intersectionRatio);
+        });
+        const byRatio = [...ratios.entries()]
+          .filter(([, r]) => r > 0)
+          .sort((a, b) => b[1] - a[1]);
+        const topId = byRatio[0]?.[0];
+        if (topId && window.location.hash.slice(1) !== topId) {
+          window.history.replaceState(null, '', `${pathname}#${topId}`);
+        }
+      },
+      { root: null, rootMargin: '-30% 0px -50% 0px', threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] }
+    );
+
+    ids.forEach((id) => {
+      const el = refs[id];
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [pathname, searchQuery]);
 
   const toggleQuestion = (questionId: string, categoryId: string, questionText: string) => {
     const newExpandedState = !expandedQuestions[questionId];
@@ -542,6 +585,18 @@ export default function FAQsPage() {
     onFaqsClearSearchClicked(searchQuery);
     setSearchQuery('');
   };
+
+  const handleCopyLink = useCallback((categoryId: string) => {
+    const url = `${typeof window !== 'undefined' ? window.location.origin : ''}${pathname}#${categoryId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      if (copyTooltipTimeoutRef.current) clearTimeout(copyTooltipTimeoutRef.current);
+      setCopiedCategoryId(categoryId);
+      copyTooltipTimeoutRef.current = setTimeout(() => {
+        setCopiedCategoryId(null);
+        copyTooltipTimeoutRef.current = null;
+      }, 2000);
+    });
+  }, [pathname]);
 
   // Filter logic
   const query = searchQuery.toLowerCase().trim();
@@ -620,15 +675,37 @@ export default function FAQsPage() {
                 className="faqs__container__category"
               >
                 <div className="faqs__container__category__header">
-                  <Image 
-                    src={category.icon} 
-                    alt="" 
-                    width={16} 
-                    height={16}
-                    style={{ objectFit: 'contain' }}
-                    priority={false}
-                  />
-                  <span className="faqs__container__category__title">{category.title}</span>
+                  <div className="faqs__container__category__header__content">
+                    <Image 
+                      src={category.icon} 
+                      alt="" 
+                      width={16} 
+                      height={16}
+                      style={{ objectFit: 'contain' }}
+                      priority={false}
+                    />
+                    <span className="faqs__container__category__title">{category.title}</span>
+                  </div>
+                  <div className="faqs__container__category__header__copy-wrap">
+                    <button
+                      type="button"
+                      className="faqs__container__category__header__copy"
+                      onClick={() => handleCopyLink(category.id)}
+                      aria-label="Copy link to this section"
+                    >
+                      <Image
+                        src="/icons/link-gray.svg"
+                        alt=""
+                        width={20}
+                        height={20}
+                      />
+                    </button>
+                    {copiedCategoryId === category.id && (
+                      <span className="faqs__container__category__header__copy-tooltip" role="status">
+                        Link copied
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {category.id === 'point-to-token-conversion' && (
@@ -824,8 +901,69 @@ export default function FAQsPage() {
         .faqs__container__category__header {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 12px;
           padding: 16px 0;
+        }
+
+        .faqs__container__category__header__content {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 0;
+        }
+
+        .faqs__container__category__header__copy-wrap {
+          position: relative;
+          flex-shrink: 0;
+        }
+
+        .faqs__container__category__header__copy {
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: opacity 0.2s;
+        }
+
+        .faqs__container__category__header__copy:hover {
+          opacity: 0.7;
+        }
+
+        .faqs__container__category__header__copy-tooltip {
+          position: absolute;
+          left: 50%;
+          bottom: calc(100% + 6px);
+          transform: translateX(-50%);
+          padding: 4px 8px;
+          background: #0f172a;
+          color: #fff;
+          font-size: 12px;
+          font-weight: 500;
+          white-space: nowrap;
+          border-radius: 4px;
+          pointer-events: none;
+          animation: faqsTooltipFade 0.2s ease;
+        }
+
+        .faqs__container__category__header__copy-tooltip::after {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border: 4px solid transparent;
+          border-top-color: #0f172a;
+        }
+
+        @keyframes faqsTooltipFade {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
         }
 
         .faqs__container__category__title {

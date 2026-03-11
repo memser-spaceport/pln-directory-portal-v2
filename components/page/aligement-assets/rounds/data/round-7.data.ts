@@ -96,6 +96,7 @@ export const pastRound7Data: IPastRoundData = {
   // Buyback Auction Section Data (Round 11 - December 2025)
   // ============================================================================
   buybackSimulation: {
+    title: 'Buyback Simulation',
     headerDescription:
       'This first simulation tested the core mechanics of the reverse auction model — how participants submitted bids, how the clearing price was determined, and how tokens were allocated under the buyback pool. It revealed early patterns such as faster fills at lower bid prices and concentrated pool usage, establishing a baseline for understanding participation behavior and operational flow before later refinements.',
     totalFilled: '$35,312.40',

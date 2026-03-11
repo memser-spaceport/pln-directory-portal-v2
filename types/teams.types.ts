@@ -143,6 +143,8 @@ export interface ITeam {
     status?: string;
     [key: string]: unknown;
   };
+  telegramHandler?: string | null;
+  blog?: string | null;
 }
 
 export interface ITeamDetailParams {

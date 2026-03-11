@@ -1,13 +1,13 @@
 export function getContactLogoByProvider(provider: string): string {
   switch (provider) {
     case 'linkedin': {
-      return '/icons/contact/linkedIn-contact-logo.svg';
+      return '/icons/contact/linkedIn-contact-logo-v2.svg';
     }
     case 'discord': {
       return '/icons/contact/discord-contact-logo.svg';
     }
     case 'email': {
-      return '/icons/contact/email-contact-logo.svg';
+      return '/icons/contact/email-contact-logo-v2.svg';
     }
     case 'github': {
       return '/icons/contact/github-contact-logo.svg';
@@ -22,7 +22,7 @@ export function getContactLogoByProvider(provider: string): string {
       return '/icons/contact/twitter-contact-logo.svg';
     }
     default: {
-      return '/icons/contact/website-contact-logo.svg';
+      return '/icons/contact/website-contact-logo-v2.svg';
     }
   }
 }

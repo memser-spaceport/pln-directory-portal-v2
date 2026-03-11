@@ -15,11 +15,13 @@ import { getTeamPriority, getPriorityLabel, getTechnologyImage } from '@/utils/t
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
+import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
+import { ExpandableDescription } from '@/components/common/ExpandableDescription';
 import { Tag } from '@/components/ui/Tag';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
-import { DetailsSection } from '@/components/common/profile/DetailsSection';
+import { DetailsSection, HeaderActionBtn } from '@/components/common/profile/DetailsSection';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 import { EditButton } from '@/components/common/profile/EditButton';
 import { Divider } from '@/components/common/profile/Divider';
@@ -27,9 +29,10 @@ import { Divider } from '@/components/common/profile/Divider';
 import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
 
 import Technologies from '../technologies';
-import { About } from './components/About';
+import { EditTeamDetailsForm } from './components/EditTeamDetailsForm';
 
 import s from './TeamDetails.module.scss';
+import { DeleteIcon } from '@storybook/icons';
 
 interface Props {
   team: ITeam;
@@ -58,19 +61,21 @@ export const TeamDetails = (props: Props) => {
       ];
     }
     return team?.industryTags;
-  }, [team?.industryTags, isTierViewer, team?.priority, team?.tier]);
+  }, [team, isTierViewer]);
   const teamId = params?.id;
   const about = team?.longDescription ?? '';
   const technologies =
     team?.technologies?.map((item) => ({ name: item?.title, url: getTechnologyImage(item?.title) })) ?? [];
   const hasTeamEditAccess = isTeamLeaderOrAdmin(userInfo, team?.id);
 
+  const [editView, setEditView] = useState(false);
   const [isTechnologyPopup, setIsTechnologyPopup] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const analytics = useTeamAnalytics();
 
   const router = useRouter();
+  useMobileNavVisibility(editView);
 
   const onTagCountClickHandler = () => {
     setIsTechnologyPopup(!isTechnologyPopup);
@@ -82,8 +87,7 @@ export const TeamDetails = (props: Props) => {
     } else {
       analytics.onEditTeamByLead(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
     }
-    triggerLoader(true);
-    router.push(`/settings/teams?id=${team?.id}`);
+    setEditView(true);
   };
 
   const onDeleteTeamClickHandler = () => {
@@ -125,8 +129,18 @@ export const TeamDetails = (props: Props) => {
   };
 
   useEffect(() => {
-    triggerLoader(false);
-  }, [router]);
+    if (!editView) {
+      triggerLoader(false);
+    }
+  }, [editView, router]);
+
+  if (editView) {
+    return (
+      <DetailsSection editView>
+        <EditTeamDetailsForm team={team} userInfo={userInfo} onClose={() => setEditView(false)} />
+      </DetailsSection>
+    );
+  }
 
   return (
     <DetailsSection>
@@ -142,10 +156,13 @@ export const TeamDetails = (props: Props) => {
                 {hasTeamEditAccess && <EditButton onClick={onEditTeamClickHandler} />}
 
                 {isAdmin && (
-                  <button className={s.delete} onClick={onDeleteTeamClickHandler} disabled={isDeleting}>
-                    <Image src="/icons/trash.svg" alt="Delete" height={16} width={16} />
+                  <HeaderActionBtn onClick={onDeleteTeamClickHandler} disabled={isDeleting} className={s.delete}>
+                    <DeleteIcon src="/icons/trash.svg" alt="Delete" height={16} width={16} />
                     Delete
-                  </button>
+                  </HeaderActionBtn>
+                  // <button className={s.delete} onClick={onDeleteTeamClickHandler} disabled={isDeleting}>
+                  //
+                  // </button>
                 )}
               </div>
             </div>
@@ -177,7 +194,14 @@ export const TeamDetails = (props: Props) => {
       />
 
       {/* About */}
-      <About team={team} userInfo={userInfo} about={about} hasTeamEditAccess={hasTeamEditAccess} />
+      {about && (
+        <div className={s.aboutContainer}>
+          <div className={s.aboutTitle}>About</div>
+          <ExpandableDescription>
+            <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: about }} />
+          </ExpandableDescription>
+        </div>
+      )}
 
       {/* Technology */}
       <Technologies technologies={technologies} team={team} userInfo={userInfo} />

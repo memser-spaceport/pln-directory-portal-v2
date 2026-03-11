@@ -18,20 +18,22 @@ const SIMPLIFIED_TOOLBAR = [
 ];
 
 interface Props {
+  name?: string;
+  label?: string;
   generateBio?: boolean;
   onAiContentGenerated?: (originalContent: string) => void;
   simplified?: boolean;
 }
 
-export const BioInput = ({ generateBio, onAiContentGenerated, simplified }: Props) => {
+export const BioInput = ({ name = 'bio', label = 'Bio', generateBio, onAiContentGenerated, simplified }: Props) => {
   const {
     watch,
     setValue,
     formState: { errors },
   } = useFormContext();
-  const { bio } = watch();
+  const bio = watch(name);
   const generateBioRef = useRef(false);
-  const hasError = !!errors.bio;
+  const hasError = !!errors[name];
 
   const MAX_BIO_LENGTH = 2000;
 
@@ -54,7 +56,7 @@ export const BioInput = ({ generateBio, onAiContentGenerated, simplified }: Prop
         return;
       }
 
-      setValue('bio', res.bio, { shouldValidate: true, shouldDirty: true });
+      setValue(name, res.bio, { shouldValidate: true, shouldDirty: true });
       onAiContentGenerated?.(res.bio);
     }
 
@@ -62,12 +64,12 @@ export const BioInput = ({ generateBio, onAiContentGenerated, simplified }: Prop
       generateBioRef.current = true;
       prefillBio();
     }
-  }, [generateBio, mutateAsync, onAiContentGenerated, reset, setValue]);
+  }, [generateBio, mutateAsync, name, onAiContentGenerated, reset, setValue]);
 
   return (
     <div className={s.root}>
       <div className={s.header}>
-        <span className={s.label}>Bio</span>
+        <span className={s.label}>{label}</span>
         <button
           type="button"
           className={clsx(s.genButton, {
@@ -81,7 +83,7 @@ export const BioInput = ({ generateBio, onAiContentGenerated, simplified }: Prop
               return;
             }
 
-            setValue('bio', res.bio, { shouldValidate: true, shouldDirty: true });
+            setValue(name, res.bio, { shouldValidate: true, shouldDirty: true });
             onAiContentGenerated?.(res.bio);
           }}
         >
@@ -114,14 +116,14 @@ export const BioInput = ({ generateBio, onAiContentGenerated, simplified }: Prop
 
       <RichTextEditor
         value={bio}
-        onChange={(txt) => setValue('bio', txt, { shouldValidate: true, shouldDirty: true })}
+        onChange={(txt) => setValue(name, txt, { shouldValidate: true, shouldDirty: true })}
         className={clsx(s.editor, { [s.editorError]: hasError })}
         placeholder="For best results with AI bio generation populate these fields first: your role, team, LinkedIn and skills. Add a short bio introducing yourself: your background, interests, current focus etc."
         maxLength={MAX_BIO_LENGTH}
         {...(simplified && { toolbarConfig: SIMPLIFIED_TOOLBAR, enableMentions: false })}
       />
 
-      {hasError && <p className={s.errorMessage}>{errors.bio?.message as string}</p>}
+      {hasError && <p className={s.errorMessage}>{errors[name]?.message as string}</p>}
 
       <p className={s.charCount}>
         {bioTextLength > 0

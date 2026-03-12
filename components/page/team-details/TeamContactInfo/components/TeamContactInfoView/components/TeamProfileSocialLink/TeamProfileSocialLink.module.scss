@@ -1,21 +1,20 @@
-@use '../../../../../../../../styles/media';
+@use 'styles/media';
 
 .root {
   gap: 4px;
   display: flex;
   align-items: center;
 
+  border-radius: 4px;
   padding: 6px 12px;
 
   cursor: pointer;
   background-color: transparent;
 
-  &.preferred {
-    border-radius: 0 4px 4px 0;
-  }
-
-  &.notPreferred {
-    border-radius: 4px;
+  &.incomplete {
+    opacity: 0.35;
+    pointer-events: none;
+    user-select: none;
   }
 }
 

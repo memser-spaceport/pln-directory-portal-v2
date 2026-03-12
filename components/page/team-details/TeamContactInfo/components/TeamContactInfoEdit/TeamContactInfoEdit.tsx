@@ -42,8 +42,8 @@ export function TeamContactInfoEdit(props: Props) {
     await commonOnSubmit({
       website: formData.website,
       contactMethod: formData.contactMethod,
-      linkedinHandle: formData.linkedin,
-      twitter: formData.twitter,
+      linkedinHandler: formData.linkedin,
+      twitterHandler: formData.twitter,
       telegramHandler: formData.telegram,
       blog: formData.blog,
     });

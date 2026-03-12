@@ -11,7 +11,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { FormCurrencyField } from '@/components/form/FormCurrencyField';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { FormTagsInput } from '@/components/form/FormTagsInput';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import {
   InfoIcon,

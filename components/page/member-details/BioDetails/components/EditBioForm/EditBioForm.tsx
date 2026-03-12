@@ -6,7 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useRouter } from 'next/navigation';

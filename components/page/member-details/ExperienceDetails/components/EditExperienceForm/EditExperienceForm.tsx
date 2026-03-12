@@ -3,7 +3,7 @@ import React, { useEffect, useTransition } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
 import { IMember } from '@/types/members.types';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { FormattedMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { TEditExperienceForm } from '@/components/page/member-details/ExperienceDetails/types';
 import { ExperienceDescriptionInput } from '@/components/page/member-details/ExperienceDetails/components/ExperienceDescriptionInput';

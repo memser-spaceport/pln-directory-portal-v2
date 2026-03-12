@@ -161,21 +161,18 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
             maxLength={1000}
             showCharCount
             rows={4}
-            isRequired
           />
           <FormSelect
             name="fundingStage"
             label="Company Stage"
             placeholder="Select stage"
             options={fundingStageOptions}
-            isRequired
           />
           <FormMultiSelect
             name="industryTags"
             label="Industry Tags"
             placeholder="Select industry tags"
             options={industryTagOptions}
-            isRequired
             description="Add industries that you had worked in. This will make it easier for people to find & connect based on shared professional interests."
           />
           <BioInput

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
 import { IMember, IProjectContribution } from '@/types/members.types';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 
 import { TEditContributionsForm } from '@/components/page/member-details/ContributionsDetails/types';
 import { ContributionsDescriptionInput } from '@/components/page/member-details/ContributionsDetails/components/ContributionsDescriptionInput';

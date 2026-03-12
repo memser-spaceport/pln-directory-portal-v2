@@ -11,7 +11,7 @@ import { FormSelect } from '@/components/form/FormSelect';
 import { FormTextArea } from '@/components/form/FormTextArea';
 import { BioInput } from '@/components/page/member-details/BioDetails/components/BioInput';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { ProfileImageInput } from '@/components/page/member-details/ProfileDetails/components/ProfileImageInput';
 import { toast } from '@/components/core/ToastContainer';
 import { saveRegistrationImage } from '@/services/registration.service';

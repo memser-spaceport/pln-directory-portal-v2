@@ -12,7 +12,7 @@ import { toast } from '@/components/core/ToastContainer';
 
 import { FormField } from '@/components/form/FormField';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
 import { teamContactInfoSchema } from './formSchema';

@@ -1,6 +1,5 @@
 'use client';
 
-import Cookies from 'js-cookie';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -16,11 +15,11 @@ import { ProfileImageInput } from '@/components/page/member-details/ProfileDetai
 import { toast } from '@/components/core/ToastContainer';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
-import { updateTeam } from '@/services/teams.service';
 import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions';
 import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';
 import { ENROLLMENT_TYPE } from '@/utils/constants';
+import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
 
 import { editTeamDetailsSchema } from './helpers';
 
@@ -85,10 +84,9 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
 
   const { handleSubmit, reset } = methods;
 
-  const onSubmit = async (formData: TEditTeamDetailsForm) => {
-    const authToken = Cookies.get('authToken');
-    if (!authToken) return;
+  const commonOnSubmit = useOnSubmit(team, onClose);
 
+  const onSubmit = async (formData: TEditTeamDetailsForm) => {
     if (formData.name.trim() !== (team?.name || '').trim()) {
       const nameVerification = await validatePariticipantsEmail(formData.name, ENROLLMENT_TYPE.TEAM);
       if (!nameVerification.isValid) {
@@ -106,41 +104,16 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       logoUid = undefined;
     }
 
-    const payload = {
-      participantType: 'TEAM',
-      referenceUid: team.id,
-      uniqueIdentifier: team.name,
-      newData: {
-        name: formData.name.trim(),
-        shortDescription: formData.shortDescription.trim(),
-        longDescription: formData.about,
-        fundingStage: formData.fundingStage
-          ? { uid: formData.fundingStage.value, title: formData.fundingStage.label }
-          : undefined,
-        industryTags: formData.industryTags.map((item) => ({ uid: item.value, title: item.label })),
-        contactMethod: team.contactMethod,
-        website: team.website,
-        twitterHandler: team.twitter,
-        linkedinHandler: team.linkedinHandle,
-        membershipSources: team.membershipSources,
-        technologies: team.technologies,
-        investorProfile: team.investorProfile,
-        isFund: team.isFund,
-        logoUid,
-      },
-    };
-
-    const { isError } = await updateTeam(payload, JSON.parse(authToken), team.id);
-
-    if (isError) {
-      toast.error('Team updated failed. Something went wrong, please try again later');
-      return;
-    }
-
-    toast.success('Team updated successfully');
-    reset(formData);
-    onClose();
-    router.refresh();
+    await commonOnSubmit({
+      name: formData.name.trim(),
+      shortDescription: formData.shortDescription.trim(),
+      longDescription: formData.about,
+      fundingStage: formData.fundingStage
+        ? { uid: formData.fundingStage.value, title: formData.fundingStage.label }
+        : undefined,
+      industryTags: formData.industryTags.map((item) => ({ uid: item.value, title: item.label })),
+      logoUid,
+    });
   };
 
   return (

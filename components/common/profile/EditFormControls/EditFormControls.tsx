@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { CloseIcon } from '@/components/icons';
@@ -10,7 +10,7 @@ import s from './EditFormControls.module.scss';
 
 interface Props {
   onClose: () => void;
-  title: string;
+  title: ReactNode;
 }
 
 export const EditFormControls = ({ title, onClose }: Props) => {

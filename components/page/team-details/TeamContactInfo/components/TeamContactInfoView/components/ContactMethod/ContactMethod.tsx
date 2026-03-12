@@ -26,7 +26,6 @@ export const ContactMethod = (props: Props) => {
       height={24}
       width={24}
       type={type}
-      preferred={true}
     />
   );
 };

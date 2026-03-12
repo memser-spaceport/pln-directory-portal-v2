@@ -1,4 +1,6 @@
-import React from 'react';
+import map from 'lodash/map';
+import get from 'lodash/get';
+import React, { Fragment } from 'react';
 
 import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';
@@ -15,6 +17,8 @@ import { EditButton } from '@/components/common/profile/EditButton';
 import { TeamProfileSocialLink } from './components/TeamProfileSocialLink';
 import { DetailsSectionHeader, DetailsSectionGreyContentContainer } from '@/components/common/profile/DetailsSection';
 
+import { KEY_TO_HANDLER } from './constants';
+
 import s from './TeamContactInfoView.module.scss';
 
 interface Props {
@@ -25,7 +29,7 @@ interface Props {
 
 export function TeamContactInfoView(props: Props) {
   const { team, userInfo, toggleIsEditMode } = props;
-  const { blog, website, twitter, contactMethod, linkedinHandle, telegramHandler } = team ?? {};
+  const { contactMethod } = team ?? {};
 
   const analytics = useTeamAnalytics();
 
@@ -47,76 +51,25 @@ export function TeamContactInfoView(props: Props) {
             <Divider />
           </>
         )}
-        {website && (
-          <>
-            <TeamProfileSocialLink
-              callback={callback}
-              profile={getProfileFromURL(website, 'website')}
-              type="website"
-              handle={website}
-              logo={getContactLogoByProvider('website')}
-              height={24}
-              width={24}
-            />
-            <Divider />
-          </>
-        )}
-        {twitter && (
-          <>
-            <TeamProfileSocialLink
-              callback={callback}
-              profile={getProfileFromURL(twitter, 'twitter')}
-              handle={twitter}
-              type="twitter"
-              logo={getContactLogoByProvider('twitter')}
-              height={24}
-              width={24}
-            />
-            <Divider />
-          </>
-        )}
-        {linkedinHandle && (
-          <>
-            <TeamProfileSocialLink
-              callback={callback}
-              profile={getProfileFromURL(linkedinHandle, 'linkedin')}
-              handle={linkedinHandle}
-              type="linkedin"
-              logo={getContactLogoByProvider('linkedin')}
-              height={24}
-              width={24}
-            />
-            <Divider />
-          </>
-        )}
-        {telegramHandler && (
-          <>
-            <TeamProfileSocialLink
-              callback={callback}
-              profile={getProfileFromURL(telegramHandler, 'telegram')}
-              handle={telegramHandler}
-              type="telegram"
-              logo={getContactLogoByProvider('telegram')}
-              height={24}
-              width={24}
-            />
-            <Divider />
-          </>
-        )}
-        {blog && (
-          <>
-            <TeamProfileSocialLink
-              callback={callback}
-              profile={getProfileFromURL(blog, 'website')}
-              handle={blog}
-              type="website"
-              logo={getContactLogoByProvider('website')}
-              height={24}
-              width={24}
-            />
-            <Divider />
-          </>
-        )}
+
+        {map(KEY_TO_HANDLER, (handler, key) => {
+          const value = get(team, key);
+
+          return (
+            <Fragment key={key}>
+              <TeamProfileSocialLink
+                callback={callback}
+                profile={value ? getProfileFromURL(value, handler) : ''}
+                handle={value}
+                type={handler}
+                logo={getContactLogoByProvider(handler)}
+                height={24}
+                width={24}
+              />
+              <Divider />
+            </Fragment>
+          );
+        })}
       </DetailsSectionGreyContentContainer>
     </>
   );

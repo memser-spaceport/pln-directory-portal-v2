@@ -52,6 +52,13 @@ export interface ActivityPopupContent {
       }>;
     }>;
   };
+  additionalPointsAwarded?: {
+    title: string;
+    items: Array<{
+      label: string;
+      value?: string;
+    }>;
+  };
   categories?: PointCategory[];
   additionalNote?: string;
 }

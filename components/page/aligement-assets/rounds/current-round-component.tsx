@@ -8,6 +8,7 @@ import ChartSection from './sections/chart-section';
 import StatsSection from './sections/stats-section';
 import LeaderboardSection from './sections/leaderboard-section';
 import BuybackAuctionSection from './sections/buyback-auction-section';
+import TokenDashboardSection from './sections/token-dashboard-section';
 import LearnMoreSection from './sections/learn-more-section';
 import DisclaimerSection from './sections/disclaimer-section';
 import SupportSection from './sections/support-section';
@@ -47,6 +48,9 @@ export default function CurrentRoundComponent({
       <div className="current-round">
         {/* Hero Section with Title and Action Buttons */}
         <HeroSection data={data.hero} />
+
+        {/* Token Dashboard Section */}
+        <TokenDashboardSection />
 
         {/* Round Description Section */}
         <RoundDescriptionSection 

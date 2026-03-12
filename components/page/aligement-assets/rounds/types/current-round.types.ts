@@ -227,6 +227,21 @@ export interface CurrentRoundData {
 }
 
 
+// ============================================================================
+// Token Dashboard Section Types
+// ============================================================================
+
+export interface TokenDashboardData {
+  totalTokens: number;
+  tokenName: string;
+  entitledTokens: number;
+  settledTokens: number;
+  soldTokens: number;
+  settlementElectionStatus: string;
+  electedOn: string;
+  lastUpdated: string;
+}
+
 export interface IPastRoundData {
   meta: {
     roundId: string;

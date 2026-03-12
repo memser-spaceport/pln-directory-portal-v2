@@ -1,14 +1,11 @@
 import React from 'react';
-import { useRouter } from 'next/navigation';
-import { FormProvider, useForm } from 'react-hook-form';
 import { InferType } from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import Cookies from 'js-cookie';
+import { FormProvider, useForm } from 'react-hook-form';
 
 import { ITeam } from '@/types/teams.types';
 
-import { updateTeam } from '@/services/teams.service';
-import { toast } from '@/components/core/ToastContainer';
+import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
 
 import { FormField } from '@/components/form/FormField';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
@@ -20,13 +17,12 @@ import { teamContactInfoSchema } from './formSchema';
 type EditTeamContactForm = InferType<typeof teamContactInfoSchema>;
 
 type Props = {
-  team: ITeam | undefined;
+  team: ITeam;
   toggleIsEditMode: () => void;
 };
 
 export function TeamContactInfoEdit(props: Props) {
   const { team, toggleIsEditMode } = props;
-  const router = useRouter();
 
   const methods = useForm<EditTeamContactForm>({
     defaultValues: {
@@ -40,41 +36,17 @@ export function TeamContactInfoEdit(props: Props) {
     resolver: yupResolver(teamContactInfoSchema),
   });
 
+  const commonOnSubmit = useOnSubmit(team, toggleIsEditMode);
+
   const onSubmit = async (formData: EditTeamContactForm) => {
-    const authToken = Cookies.get('authToken');
-    if (!authToken || !team) {
-      return;
-    }
-
-    const payload = {
-      participantType: 'TEAM',
-      referenceUid: team.id,
-      uniqueIdentifier: team.name,
-      newData: {
-        ...team,
-        website: formData.website,
-        contactMethod: formData.contactMethod,
-        linkedinHandler: formData.linkedin,
-        twitterHandler: formData.twitter,
-        telegramHandler: formData.telegram,
-        blog: formData.blog,
-      },
-    };
-
-    try {
-      const { isError } = await updateTeam(payload, JSON.parse(authToken), team.id);
-
-      if (isError) {
-        toast.error('Team updated failed. Something went wrong, please try again later');
-        return;
-      }
-
-      toast.success('Team updated successfully');
-      router.refresh();
-      toggleIsEditMode();
-    } catch {
-      toast.error('Team updated failed. Something went wrong, please try again later');
-    }
+    await commonOnSubmit({
+      website: formData.website,
+      contactMethod: formData.contactMethod,
+      linkedinHandle: formData.linkedin,
+      twitter: formData.twitter,
+      telegramHandler: formData.telegram,
+      blog: formData.blog,
+    });
   };
 
   const { handleSubmit } = methods;

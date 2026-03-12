@@ -76,6 +76,7 @@ export interface ITeamResponse {
 }
 
 export interface ITag {
+  uid: string;
   title: string;
   color?: string;
   icon?: React.ReactNode;

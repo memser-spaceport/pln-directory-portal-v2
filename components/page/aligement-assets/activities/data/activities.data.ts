@@ -469,9 +469,10 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
       points: '100+',
       popupContent: {
         title: 'Referral Program',
-        description: 'Refer eligible participants to join the Alignment Asset program. Before sending an invitation, email [plaa-wg@plrs.xyz](mailto:plaa-wg@plrs.xyz) with the individual’s name and email you wish to invite for validation. Once approved, you may send the referral invitation using the template we’ll provide in response. When sending the initial validation email, please do not include the referring user in the thread.',
+        description: 'Refer eligible participants to join the Alignment Asset program. Before sending an invitation, email plaa-wg@plrs.xyz with the individual’s name and email you wish to invite for validation. Once approved, you may send the referral invitation using the template we’ll provide in response. When sending the initial validation email, please do not include the referring user in the thread.',
         submissionNote: 'Referrals must come from the existing PL Directory member list and must successfully pass KYC + accreditation to be point-eligible.',
         links: [
+          { text: 'plaa-wg@plrs.xyz', url: 'mailto:plaa-wg@plrs.xyz' },
           { text: 'PL Directory', url: 'https://directory.plnetwork.io/members' }
         ],
         pointsAwarded: {

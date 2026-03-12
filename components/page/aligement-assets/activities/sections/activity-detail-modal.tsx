@@ -217,6 +217,24 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                   </ul>
                 )}
 
+                {/* Additional Points Awarded Section */}
+                {popupContent.additionalPointsAwarded && (
+                  <div className="activity-modal__points-additional">
+                    <h3 className="activity-modal__points-title">{popupContent.additionalPointsAwarded.title}</h3>
+                    <ul className="activity-modal__points-list">
+                      {popupContent.additionalPointsAwarded.items.map((item, index) => (
+                        <li key={index} className="activity-modal__points-item">
+                          {item.value ? (
+                            <><strong>{item.label}:</strong> {item.value}</>
+                          ) : (
+                            <strong>{item.label}</strong>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 {/* Categories (for talent referral with two columns) */}
                 {popupContent.categories && (
                   <div className="activity-modal__categories">
@@ -428,6 +446,10 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           font-size: 14px;
           line-height: 18px;
           color: #475569;
+        }
+
+        .activity-modal__points-additional {
+          margin-top: 16px;
         }
 
         .activity-modal__categories {

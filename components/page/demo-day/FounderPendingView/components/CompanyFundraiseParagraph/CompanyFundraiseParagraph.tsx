@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Linkify from 'react-linkify';
 import { useForm } from 'react-hook-form';
 import { toast } from '@/components/core/ToastContainer';
 import { useUpdateFundraiseDescription } from '@/services/demo-day/hooks/useUpdateFundraiseDescription';
@@ -124,7 +125,21 @@ export const CompanyFundraiseParagraph: React.FC<CompanyFundraiseParagraphProps>
         )}
       </div>
       <div className={s.content}>
-        <p className={s.text}>{paragraph || 'No fundraise paragraph yet.'}</p>
+        <p className={s.text}>
+          {paragraph ? (
+            <Linkify
+              componentDecorator={(decoratedHref, decoratedText, key) => (
+                <a key={key} href={decoratedHref} target="_blank" rel="noreferrer noopener" className={s.link}>
+                  {decoratedText}
+                </a>
+              )}
+            >
+              {paragraph}
+            </Linkify>
+          ) : (
+            'No fundraise paragraph yet.'
+          )}
+        </p>
       </div>
     </div>
   );

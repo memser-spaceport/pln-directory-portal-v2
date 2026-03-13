@@ -689,6 +689,23 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.7 - Team Profile Enhancements',
+    tag: 'Improvements',
+    date: '13, Mar 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Auto-populated profiles</span> - New funds now get their profiles auto-filled using publicly available information from their website, saving time during setup.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Team leads can now edit profile details, contact information, and fund details directly on the team page without navigating to separate forms.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Improved Workflows</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Streamlined team addition</span> - Adding teams to your profile is now more consistent across different forms with an improved inline flow.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.6 - Investor Onboarding & Contact Updates',
     tag: 'Improvements',
     date: '26, Feb 2026',

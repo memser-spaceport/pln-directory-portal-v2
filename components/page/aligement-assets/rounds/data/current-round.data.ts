@@ -149,7 +149,6 @@ export const currentRoundData: CurrentRoundData = {
     regionsUnlocked: ['USA', 'Germany', 'Switzerland', 'Portugal'],
     incentivizedActivities: [
       'Curate X Spaces',
-      'Create a Replicable Playbook or Template',
       'Host Office Hours',
       'Create a blog for the network',
       'Complete or update your PL Directory Profile',

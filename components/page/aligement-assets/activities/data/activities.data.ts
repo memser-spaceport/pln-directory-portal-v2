@@ -180,7 +180,7 @@ Only approved case studies that are opted into the internal content library are 
       category: 'Network Tooling',
       activity: 'Complete or Update Your PL Directory Profile*',
       networkValue: 'Make yourself discoverable and strengthen the network map.',
-      points: '500+',
+      points: '100+',
       isAutoTracked: true,
       popupContent: {
         title: 'Complete or Update Your PL Directory Profile',

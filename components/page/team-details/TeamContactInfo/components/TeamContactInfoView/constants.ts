@@ -3,5 +3,5 @@ export const KEY_TO_HANDLER = {
   twitter: 'twitter',
   linkedinHandle: 'linkedin',
   telegramHandler: 'telegram',
-  blog: 'website',
+  blog: 'blog',
 }

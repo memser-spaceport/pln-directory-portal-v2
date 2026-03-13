@@ -25,12 +25,12 @@ export const TeamsListAlert: React.FC = () => {
             visibility. Your order is unique — no two users see the same list.
           </p>
           <p className={s.textLine}>
-            <strong>Invest in Company button:</strong> Sends an introduction email to the company founder(s) and you,
-            expressing your intent to invest.
+            Invest in Company button: Sends an introduction email to the company founder(s) and you, expressing your
+            intent to invest.
           </p>
           <p className={s.textLine}>
-            <strong>Connect with Company button:</strong> Sends an email to the company founder(s) and you, expressing
-            your intent to connect.
+            Connect with Company button: Sends an email to the company founder(s) and you, expressing your intent to
+            connect.
           </p>
         </div>
       </div>

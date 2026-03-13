@@ -5,7 +5,7 @@ import { FormField } from '@/components/form/FormField';
 import { IMember, IMemberPreferences } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { TEditContactForm } from '@/components/page/member-details/ContactDetails/types';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import Image from 'next/image';
 import { omit } from 'lodash';
 import { useMember } from '@/services/members/hooks/useMember';

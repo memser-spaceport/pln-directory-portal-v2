@@ -6,7 +6,7 @@ import { IUserInfo } from '@/types/shared.types';
 
 import { isTeamLeaderOrAdmin } from '@/components/page/team-details/utils/isTeamLeaderOrAdmin';
 
-import { TeamsTagsListSection } from '../TeamsTagsListSection';
+import { TeamsTagsListSectionView } from './components/TeamsTagsListSectionView/TeamsTagsListSectionView';
 
 interface Props {
   team: ITeam;
@@ -20,11 +20,11 @@ export function TeamCommunitiesSection(props: Props) {
 
   const isTLOrAdmin = isTeamLeaderOrAdmin(userInfo, team?.id);
 
-  if (!isEmpty(tags)) {
-    return (
-      <TeamsTagsListSection tags={team?.membershipSources} title="Community Affiliations" emptyMessage="No communities added." />
-    );
-  }
+  // if (!isEmpty(tags)) {
+  //   return (
+  //     <TeamsTagsListSectionView tags={team?.membershipSources} title="Community Affiliations" emptyMessage="No communities added." />
+  //   );
+  // }
 
   return null;
 }

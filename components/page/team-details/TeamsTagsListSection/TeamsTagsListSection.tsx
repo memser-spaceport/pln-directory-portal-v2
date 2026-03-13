@@ -1,43 +1,36 @@
-import isEmpty from 'lodash/isEmpty';
+'use client';
 
-import { ITag } from '@/types/teams.types';
+import { useToggle } from 'react-use';
 
-import {
-  DetailsSection,
-  DetailsSectionHeader,
-  DetailsSectionGreyContentContainer,
-} from '@/components/common/profile/DetailsSection';
-import { TagsList } from '@/components/common/profile/TagsList';
+import { ITeam } from '@/types/teams.types';
 
-import s from './TeamsTagsListSection.module.scss';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
+
+import { TeamsTagsListSectionView, TeamsTagsListSectionViewProps } from './components/TeamsTagsListSectionView';
+import { TeamsTagsListSectionEdit, TeamsTagsListSectionEditProps } from './components/TeamsTagsListSectionEdit';
 
 interface Props {
-  tags?: ITag[];
-  title: string;
-  emptyMessage: string;
+  team: ITeam;
+  view: Omit<TeamsTagsListSectionViewProps, 'toggleIsEditMode'>;
+  edit: Omit<TeamsTagsListSectionEditProps, 'team' | 'toggleIsEditMode'>;
 }
 
 export function TeamsTagsListSection(props: Props) {
-  const { tags = [], title, emptyMessage } = props;
+  const { team, view, edit } = props;
 
-  const noTags = isEmpty(tags);
+  const [isEditMode, toggleIsEditMode] = useToggle(false);
 
   return (
-    <DetailsSection>
-      <DetailsSectionHeader title={title} />
-      <DetailsSectionGreyContentContainer>
-        {noTags ? (
-          <span className={s.emptyMessage}>{emptyMessage}</span>
-        ) : (
-          <TagsList
-            tags={tags}
-            tagsToShow={5}
-            classes={{
-              tag: s.tag,
-            }}
-          />
-        )}
-      </DetailsSectionGreyContentContainer>
+    <DetailsSection editView={isEditMode}>
+      {isEditMode ? (
+        <TeamsTagsListSectionEdit
+          {...edit}
+          team={team}
+          toggleIsEditMode={toggleIsEditMode}
+        />
+      ) : (
+        <TeamsTagsListSectionView {...view} toggleIsEditMode={toggleIsEditMode} />
+      )}
     </DetailsSection>
   );
 }

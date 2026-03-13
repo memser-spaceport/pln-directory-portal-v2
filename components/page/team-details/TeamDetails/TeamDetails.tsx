@@ -179,9 +179,6 @@ export const TeamDetails = (props: Props) => {
                     </svg>
                     Delete
                   </HeaderActionBtn>
-                  // <button className={s.delete} onClick={onDeleteTeamClickHandler} disabled={isDeleting}>
-                  //
-                  // </button>
                 )}
               </div>
             </div>

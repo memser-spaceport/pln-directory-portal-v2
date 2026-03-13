@@ -1,0 +1,14 @@
+@use 'styles/media';
+
+.root {
+  width: 1px;
+  height: 24px;
+
+  background: #e2e8f0;
+
+  display: none;
+
+  @include media.tablet-portrait {
+    display: block;
+  }
+}

@@ -6,11 +6,11 @@ import { IUserInfo } from '@/types/shared.types';
 import { ContactDetails as ContactDetailsView } from '@/components/page/member-details/contact-details';
 import { MemberProfileLoginStrip } from '@/components/page/member-details/member-details-login-strip';
 import { EditContactForm } from '@/components/page/member-details/ContactDetails/components/EditContactForm';
-import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 
 import s from './ContactDetails.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
 
 export type ContactDetailsVariant = 'default' | 'drawer';
 
@@ -29,7 +29,7 @@ export const ContactDetails = ({ isLoggedIn, userInfo, member, variant = 'defaul
   const isDrawer = variant === 'drawer';
 
   return (
-    <MemberDetailsSection editView={editView} classes={{ root: s.root }}>
+    <DetailsSection editView={editView} classes={{ root: s.root }}>
       {!isLoggedIn && !isDrawer && <MemberProfileLoginStrip member={member} variant="secondary" />}
       {editView ? (
         <EditContactForm
@@ -51,6 +51,6 @@ export const ContactDetails = ({ isLoggedIn, userInfo, member, variant = 'defaul
           }}
         />
       )}
-    </MemberDetailsSection>
+    </DetailsSection>
   );
 };

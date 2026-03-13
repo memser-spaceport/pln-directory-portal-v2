@@ -4,14 +4,14 @@ import React, { useState } from 'react';
 
 import { IMember, IProjectContribution } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE } from '@/utils/constants';
 
 import { ContributionsList } from '@/components/page/member-details/ContributionsDetails/components/ContributionsList';
 import { EditContributionsForm } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm';
-import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAccessLevel } from '@/utils/auth.utils';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 interface Props {
   member: IMember;
@@ -22,7 +22,7 @@ interface Props {
 export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [view, setView] = useState<'view' | 'add' | 'edit'>('view');
   const [selectedItem, setSelectedItem] = useState<null | IProjectContribution>(null);
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo)
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
   const { onEditContributionDetailsClicked, onAddContributionDetailsClicked } = useMemberAnalytics();
@@ -33,7 +33,7 @@ export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) =>
   }
 
   return (
-    <MemberDetailsSection editView={view !== 'view'}>
+    <DetailsSection editView={view !== 'view'}>
       {view === 'view' && (
         <ContributionsList
           member={member}
@@ -54,6 +54,6 @@ export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) =>
         <EditContributionsForm onClose={() => setView('view')} member={member} initialData={selectedItem} />
       )}
       {view === 'add' && <EditContributionsForm onClose={() => setView('view')} member={member} />}
-    </MemberDetailsSection>
+    </DetailsSection>
   );
 };

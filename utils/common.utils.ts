@@ -1,6 +1,5 @@
 import { IUserInfo } from '@/types/shared.types';
 import {
-  ADMIN_ROLE,
   DISCORD_URL_REGEX,
   EMAIL_REGEX,
   EVENTS,
@@ -12,6 +11,7 @@ import {
 } from './constants';
 import { ITeam } from '@/types/teams.types';
 import Cookies from 'js-cookie';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 export const triggerLoader = (status: boolean) => {
   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_LOADER, { detail: status }));
 };
@@ -257,15 +257,12 @@ export function getSocialLinkUrl(linkContent: string, type: string, url?: string
     twitter: `https://twitter.com/${linkContent}`,
     github: `https://github.com/${linkContent}`,
     telegram: `https://t.me/${linkContent}`,
-    linkedin:
-      type === 'linkedin' && linkContent !== url
-        ? url
-        : `https://www.linkedin.com/search/results/all/?keywords=${linkContent}`,
+    linkedin: getLinkedInUrl(linkContent),
     discord: 'https://discord.com/app',
   };
 
-  // For website type, ensure protocol is present
-  if (type === 'website') {
+  // For website and blog types, ensure protocol is present
+  if (type === 'website' || type === 'blog') {
     if (!linkContent.startsWith('http://') && !linkContent.startsWith('https://')) {
       return `https://${linkContent}`;
     }
@@ -273,6 +270,30 @@ export function getSocialLinkUrl(linkContent: string, type: string, url?: string
   }
 
   return socialUrls[type] || linkContent;
+}
+
+function getLinkedInUrl(linkContent: string): string {
+  if (!linkContent) {
+    return '';
+  }
+
+  // If it's already a full URL, return as is
+  if (linkContent.startsWith('http://') || linkContent.startsWith('https://')) {
+    return linkContent;
+  }
+
+  // If it already starts with "company/", "in/", or "profile/", prepend base URL only
+  if (linkContent.startsWith('company/') || linkContent.startsWith('in/') || linkContent.startsWith('profile/')) {
+    return `https://www.linkedin.com/${linkContent}`;
+  }
+
+  // If it's a plain handle (no slashes), assume it's a company
+  if (!linkContent.includes('/') && !linkContent.includes(' ')) {
+    return `https://www.linkedin.com/company/${linkContent}`;
+  }
+
+  // For other cases, use search
+  return `https://www.linkedin.com/search/results/all/?keywords=${linkContent}`;
 }
 
 export const getProfileFromURL = (handle: string, type: string) => {
@@ -316,7 +337,7 @@ export const hasProjectEditAccess = (
       return false;
     }
 
-    if (userInfo?.roles && userInfo.roles.length && userInfo?.roles?.includes(ADMIN_ROLE)) {
+    if (isAdminUser(userInfo)) {
       return true;
     }
 
@@ -342,7 +363,7 @@ export const hasProjectDeleteAccess = (userInfo: any, project: any, isUserLogged
     return false;
   }
 
-  if (userInfo?.roles?.length && userInfo.roles.includes(ADMIN_ROLE)) {
+  if (isAdminUser(userInfo)) {
     return true;
   }
 

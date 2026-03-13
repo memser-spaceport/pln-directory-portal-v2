@@ -3,4 +3,7 @@ export interface TEditTeamForm {
   name: Record<string, string>;
   role: string;
   mainTeam: boolean;
+  newTeamName: string;
+  newTeamWebsite: string;
+  newTeamRole: string;
 }

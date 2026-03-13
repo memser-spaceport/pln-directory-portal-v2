@@ -1,2 +1,5 @@
-export { InvestmentDetailsSection } from './InvestmentDetailsSection';
-export { InvestorProfileField } from './InvestorProfileField';
+export * from './InvestorProfileField';
+export * from './InvestmentDetailsSection';
+export * from './FundTeamCard';
+export * from './InvestorPromptBanner';
+export { InfoCircleIcon, PlusSmIcon, CloseSmIcon } from './icons';

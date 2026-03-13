@@ -1,15 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
 import { clsx } from 'clsx';
+import React, { useState } from 'react';
+
+import { ITeam } from '@/types/teams.types';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE } from '@/utils/constants';
+
+import { isAdminUser } from '@/utils/user/isAdminUser';
+
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
-import s from './VideoPitchDetails.module.scss';
-import { ITeam } from '@/types/teams.types';
 import { VideoPitchView } from '@/components/page/team-details/VideoPitchDetails/components/VideoPitchView';
 import { EditVideoPitchForm } from '@/components/page/team-details/VideoPitchDetails/components/EditVideoPitchForm';
+
+import s from './VideoPitchDetails.module.scss';
 
 interface Props {
   team: ITeam;
@@ -19,7 +23,7 @@ interface Props {
 
 export const VideoPitchDetails = ({ isLoggedIn, userInfo, team }: Props) => {
   const [editView, setEditView] = useState(false);
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo);
   const isEditable = userInfo?.leadingTeams?.includes(team?.id) || isAdmin;
 
   const showWarningUseCaseA = true;

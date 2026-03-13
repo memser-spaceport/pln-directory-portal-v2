@@ -12,7 +12,7 @@ import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { getParsedValue } from '@/utils/common.utils';
-import { ADMIN_ROLE } from '@/utils/constants';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 import s from './EditInvestorProfileDrawer.module.scss';
 
@@ -41,7 +41,7 @@ export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps>
   isInvestor: isInvestorProp,
 }) => {
   const userInfo = getParsedValue(Cookies.get('userInfo'));
-  const isAdmin = userInfo && userInfo.roles?.includes(ADMIN_ROLE);
+  const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo && userInfo.uid === uid;
 
   const { data: member, isLoading } = useQuery({

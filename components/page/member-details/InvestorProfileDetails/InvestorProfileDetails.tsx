@@ -1,15 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { IMember, InvestorProfileType } from '@/types/members.types';
+import React, { useState } from 'react';
+import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE, DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { EditInvestorProfileForm } from '@/components/page/member-details/InvestorProfileDetails/components/EditInvestorProfileForm';
 import { InvestorProfileView } from '@/components/page/member-details/InvestorProfileDetails/components/InvestorProfileView';
-import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 import s from './InvestorProfileDetails.module.scss';
 
@@ -73,7 +74,7 @@ export const InvestorProfileDetails = ({
 }: Props) => {
   const [editView, setEditView] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo)
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
 
@@ -131,7 +132,7 @@ export const InvestorProfileDetails = ({
   }
 
   return (
-    <MemberDetailsSection
+    <DetailsSection
       editView={editView}
       missingData={showIncomplete}
       classes={{ root: s.root, editView: s.editView }}
@@ -164,6 +165,6 @@ export const InvestorProfileDetails = ({
           signUpSource={member.signUpSource}
         />
       )}
-    </MemberDetailsSection>
+    </DetailsSection>
   );
 };

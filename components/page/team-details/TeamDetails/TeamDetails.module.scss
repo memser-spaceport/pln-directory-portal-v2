@@ -1,12 +1,4 @@
-.root {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  background: #fff;
-  padding: 16px;
-  border-radius: 0px 8px;
-  box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
-}
+@use 'styles/media';
 
 .profile {
   display: flex;
@@ -17,25 +9,47 @@
 .logoTagsContainer {
   display: flex;
   gap: 8px;
-  width: 80%;
+  width: 100%;
+
+  @include media.breakpoint-1024 {
+    gap: 24px;
+  }
 }
 
 .teamLogo {
-  height: 48px;
-  border: 1px solid #CBD5E1;
+  border: 1px solid #cbd5e1;
   border-radius: 4px;
   background-color: #e2e8f0;
-  width: 48px;
+  object-fit: cover;
+  width: 55px !important;
+  height: 55px !important;
+
+  @include media.breakpoint-1024 {
+    height: 74px !important;
+    width: 74px !important;
+  }
 }
 
 .nameTagContainer {
+  flex: 1;
   display: flex;
   flex-direction: column;
+
   gap: 8px;
+
+  @include media.breakpoint-1024 {
+    gap: 16px;
+  }
+}
+
+.nameAndActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .teamName {
-  color: #0F172A;
+  color: #0f172a;
   font-size: 16px;
   font-weight: 700;
   overflow: hidden;
@@ -44,16 +58,50 @@
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   text-overflow: ellipsis;
+
+  @include media.breakpoint-1024 {
+    font-size: 24px;
+    line-height: 32px;
+    width: 100%;
+  }
 }
 
-.tagsMobile {
+.tagsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tags {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
 }
 
-.tagsWeb {
-  display: none;
+.tags2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tags3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.fundingStage {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(14, 15, 17, 0.16);
+  color: #455468;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
 }
 
 .notification {
@@ -70,31 +118,17 @@
   align-items: center;
 }
 
-.edit {
-  display: flex;
-  font-size: 14px;
-  font-weight: 500;
-  color: #156FF7;
-  align-items: center;
-  height: fit-content;
-  background: none;
-  border: none;
-  white-space: nowrap;
-  gap: 8px;
-  cursor: pointer;
-}
-
 .delete {
   display: flex;
   font-size: 14px;
   font-weight: 500;
-  color: #DC2626;
+  color: #dc2626 !important;
   align-items: center;
   height: fit-content;
   background: none;
   border: none;
   white-space: nowrap;
-  gap: 8px;
+  gap: 4px;
   cursor: pointer;
 
   &:disabled {
@@ -103,58 +137,69 @@
   }
 }
 
-.investorTag {
+.iTag {
+  color: #4174ff;
+  background: rgba(27, 77, 255, 0.16);
+}
+
+.emptyTag {
+  max-width: none;
+}
+
+.tagDivider {
+  width: 1px;
+  height: 24px;
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.addPill {
   display: flex;
-  padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
+  padding: 2px 8px;
   justify-content: center;
   align-items: center;
-  gap: var(--spacing-5xs, 2px);
+  gap: 2px;
+  border-radius: 9999px;
+  background: rgba(14, 15, 17, 0.06);
+  color: #455468;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  border: none;
 
-  border-radius: var(--corner-radius-Full-round, 9999px);
-  background: var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  &:hover {
+    background: rgba(14, 15, 17, 0.1);
+  }
+}
 
-  color: var(--foreground-brand-secondary_inverted, #4174ff);
+.addPill1 {
+  border-radius: var(--corner-radius-xsm, 4px);
+  background: var(--transparent-dark-16, rgba(14, 15, 17, 0.16));
+}
+
+.aboutContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.aboutTitle {
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.2px;
+  margin-bottom: 8px;
 }
 
-@media (min-width: 1024px) {
-  .root {
-    border-radius: 8px;
-    background: #FFF;
-    padding: 20px;
-    box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
-  }
-
-  .logoTagsContainer {
-    gap: 24px;
-  }
-
-  .nameTagContainer {
-    gap: 12px;
-  }
-
-  .teamName {
-    font-size: 24px;
-    line-height: 32px;
-    width: 100%;
-  }
-
-  .tagsMobile {
-    display: none;
-  }
-
-  .teamLogo {
-    height: 80px;
-    width: 80px;
-  }
-
-  .tagsWeb {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
+.aboutContent {
+  display: block;
+  align-self: stretch;
+  color: var(--Neutral-Slate-600, var(--foreground-neutral-secondary, #455468));
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
 }

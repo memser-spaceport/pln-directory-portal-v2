@@ -1,8 +1,9 @@
 'use client';
 import React, { useState } from 'react';
 
-import { ADMIN_ROLE } from '@/utils/constants';
 import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/constants/filters';
+
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 import { useFilterStore } from '@/services/members/store';
 import { useGetRoles } from '@/services/members/hooks/useGetRoles';
@@ -23,10 +24,9 @@ import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { FilterSearch } from './FilterSearch';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { FilterCheckboxListWithSearch } from './FilterCheckboxListWithSearch';
+import { GenericCheckboxList } from '@/components/common/filters/GenericCheckboxList';
 
 import s from './MembersFilter.module.scss';
-import { FilterList } from '@/components/page/demo-day/ActiveView/components/Filters/components/FilterList';
-import { GenericCheckboxList } from '@/components/common/filters/GenericCheckboxList';
 
 export interface IMembersFilter {
   filterValues: any | undefined;
@@ -39,7 +39,7 @@ export interface IMembersFilter {
 export const MembersFilter = (props: IMembersFilter) => {
   const { userInfo, onClose } = props;
 
-  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
+  const isAdmin = isAdminUser(userInfo);
 
   const { setParam, clearParams, params } = useFilterStore();
   const appliedFiltersCount = useGetMembersFilterCount();

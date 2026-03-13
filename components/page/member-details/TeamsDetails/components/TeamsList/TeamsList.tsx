@@ -7,7 +7,7 @@ import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 
 import { AddButton } from '@/components/page/member-details/components/AddButton';
-import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
+import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 
 import s from './TeamsList.module.scss';
 
@@ -22,9 +22,9 @@ interface Props {
 export const TeamsList = ({ isEditable, onAdd, onEdit, member }: Props) => {
   return (
     <div className={s.root}>
-      <MemberDetailsSectionHeader title={`Teams ${member.teams?.length ? `(${member.teams.length})` : ''}`}>
+      <DetailsSectionHeader title={`Teams ${member.teams?.length ? `(${member.teams.length})` : ''}`}>
         {isEditable && <AddButton onClick={onAdd} />}
-      </MemberDetailsSectionHeader>
+      </DetailsSectionHeader>
 
       {!!member.teams?.length && (
         <ul className={s.list}>

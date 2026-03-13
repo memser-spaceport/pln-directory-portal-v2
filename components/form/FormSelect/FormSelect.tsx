@@ -125,7 +125,7 @@ export const FormSelect = (props: Props) => {
           hideOptionsWhenEmpty={hideOptionsWhenEmpty}
         />
       )}
-      <Field.Root className={s.field}>
+      <Field.Root className={s.field} invalid={!!errors[name]}>
         {label && (
           <Field.Label
             className={clsx(s.label, {

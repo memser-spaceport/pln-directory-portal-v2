@@ -3,13 +3,13 @@
 import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE } from '@/utils/constants';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './PitchDeckDetails.module.scss';
 import { PitchDeckView } from '@/components/page/team-details/PitchDeckDetails/components/PitchDeckView';
 import { EditPitchDeckForm } from '@/components/page/team-details/PitchDeckDetails/components/EditPitchDeckForm';
 import { ITeam } from '@/types/teams.types';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 interface Props {
   team: ITeam;
@@ -19,7 +19,7 @@ interface Props {
 
 export const PitchDeckDetails = ({ isLoggedIn, userInfo, team }: Props) => {
   const [editView, setEditView] = useState(false);
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo)
   const isEditable = userInfo?.leadingTeams?.includes(team?.id) || isAdmin;
 
   const showWarningUseCaseA = true;

@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
-import { Tag } from '@/components/ui/tag';
+
+import { Tag } from '@/components/ui/Tag';
 
 interface TooltipProps {
   name: string;

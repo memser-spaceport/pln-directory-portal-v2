@@ -1,7 +1,6 @@
 'use client';
 
 import Error from '@/components/core/error';
-import { ADMIN_ROLE } from '@/utils/constants';
 import styles from './page.module.scss';
 import { getMember } from '@/services/members.service';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
@@ -36,6 +35,7 @@ import Head from 'next/head';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 const shouldShowInvestorProfileForThirdParty = (
   member: IMember,
@@ -60,7 +60,7 @@ const MemberDetails = ({ params }: { params: any }) => {
   const router = useRouter();
 
   const userInfo = getParsedValue(Cookies.get('userInfo'));
-  const isAdmin = userInfo && userInfo.roles?.includes(ADMIN_ROLE);
+  const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo && userInfo.uid === memberId;
   const isLoggedIn = !!userInfo;
 
@@ -156,6 +156,7 @@ const MemberDetails = ({ params }: { params: any }) => {
                 member={member}
                 isLoggedIn={isLoggedIn}
                 isInvestor={memberInvestorSettings?.isInvestor}
+                useInlineAddTeam
               />
             )}
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
@@ -188,6 +189,7 @@ const MemberDetails = ({ params }: { params: any }) => {
                 member={member}
                 isLoggedIn={isLoggedIn}
                 isInvestor={memberInvestorSettings?.isInvestor}
+                useInlineAddTeam
               />
             )}
             <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />

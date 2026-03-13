@@ -1,7 +1,7 @@
 import Error from '@/components/core/error';
-import ContactInfo from '@/components/page/team-details/contact-info';
-import Funding from '@/components/page/team-details/funding';
+import { TeamContactInfo } from '@/components/page/team-details/TeamContactInfo';
 import { Projects } from '@/components/page/team-details/Projects';
+import { AiGeneratedTeamProfileBanner } from '@/components/page/team-details/AiGeneratedTeamProfileBanner';
 import { TeamDetails } from '@/components/page/team-details/TeamDetails';
 import TeamMembers from '@/components/page/team-details/team-members';
 import { getMembers } from '@/services/members.service';
@@ -9,7 +9,7 @@ import { getAllTeams, getTeam, getTeamUIDByAirtableId } from '@/services/teams.s
 import { IMember } from '@/types/members.types';
 import { IFormatedTeamProject, ITeam, ITeamDetailParams } from '@/types/teams.types';
 import { hasProjectEditAccess, sortMemberByRole } from '@/utils/common.utils';
-import { ADMIN_ROLE, AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata, ResolvingMetadata } from 'next';
 import { RedirectType, redirect } from 'next/navigation';
@@ -21,9 +21,9 @@ import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
-import { InvestorProfileView } from '@/components/page/member-details/InvestorProfileDetails/components/InvestorProfileView';
-import { clsx } from 'clsx';
-import s from '@/components/page/member-details/InvestorProfileDetails/InvestorProfileDetails.module.scss';
+import { TeamInvestorDetails } from '@/components/page/team-details/TeamInvestorDetails';
+import { TeamMembershipSource, TeamCommunitiesSection } from '@/components/page/team-details/TeamsTagsListSection';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 async function Page({ params, searchParams }: { params: ITeamDetailParams; searchParams: { backTo?: string } }) {
   const teamId: string = params?.id;
@@ -61,6 +61,11 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
     );
   }
 
+  const showAiGeneratedTeamProfileBanner =
+    !!userInfo?.leadingTeams?.includes(team.id) &&
+    !!team?.dataEnrichment?.isAIGenerated &&
+    team?.dataEnrichment?.status !== 'Reviewed';
+
   return (
     <>
       <div className={styles?.teamDetail}>
@@ -68,30 +73,17 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
         <div className={styles?.teamDetail__container}>
           {/* Details */}
           <div className={styles?.teamDetail__Container__details}>
+            {showAiGeneratedTeamProfileBanner && <AiGeneratedTeamProfileBanner team={team} />}
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
 
-          {isLoggedIn && team?.isFund && team.investorProfile && !!hasInvestorData() && (
-            <div className={clsx(s.root)}>
-              <InvestorProfileView
-                investmentFocusAreas={team?.investorProfile?.investmentFocus}
-                typicalCheckSize={team?.investorProfile?.typicalCheckSize}
-                isLoggedIn={isLoggedIn}
-                userInfo={userInfo}
-                isEditable={false}
-                showIncomplete={false}
-                secRulesAccepted
-                investInStartupStages={team?.investorProfile?.investInStartupStages}
-                investInFundTypes={team?.investorProfile?.investInFundTypes}
-                type={'ANGEL'}
-                hideHeader
-              />
-            </div>
+          {isLoggedIn && team?.isFund && (
+            <TeamInvestorDetails team={team} userInfo={userInfo} isLoggedIn={isLoggedIn} />
           )}
 
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>
-            <ContactInfo team={team} userInfo={userInfo} />
+            <TeamContactInfo team={team} userInfo={userInfo} />
             {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && (
               <TeamOfficeHours
                 isLoggedIn={isLoggedIn}
@@ -102,12 +94,10 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
               />
             )}
           </div>
-          {/* Funding */}
-          {team?.fundingStage || team?.membershipSources?.length ? (
-            <div className={styles?.teamDetail__container__funding}>
-              <Funding team={team} />
-            </div>
-          ) : null}
+
+          {false && <TeamMembershipSource team={team} userInfo={userInfo} />}
+          {false && <TeamCommunitiesSection team={team} userInfo={userInfo} />}
+
           {/* Focus Area */}
           {team.teamFocusAreas && team?.teamFocusAreas?.length > 0 && focusAreas && focusAreas?.length > 0 && (
             <div className={styles?.teamDetail__container__focusarea}>
@@ -245,7 +235,7 @@ async function getPageData(teamId: string) {
     members = teamMembersResponse?.data?.formattedData?.sort(sortMemberByRole);
     hasEditAsksAccess =
       members.some((member: any) => member.id === userInfo.uid) ||
-      (Array.isArray(userInfo?.roles) ? userInfo?.roles?.includes(ADMIN_ROLE) : false);
+      (Array.isArray(userInfo?.roles) ? isAdminUser(userInfo) : false);
     focusAreas = focusAreaResponse.data;
     focusAreas = focusAreas.filter((data: IFocusArea) => !data.parentUid);
     const maintainingProjects = team?.maintainingProjects?.map((project: any) => {
@@ -272,7 +262,7 @@ async function getPageData(teamId: string) {
           hasEditAccess: hasProjectEditAccess(userInfo, project, isLoggedIn, memberTeams),
         };
       });
-    if (userInfo?.roles && userInfo?.roles?.length && userInfo?.roles?.includes(ADMIN_ROLE) && authToken) {
+    if (isAdminUser(userInfo) && authToken) {
       hasProjectsEditAccess = true;
     }
     if (hasProjectsEditAccess) {
@@ -301,6 +291,7 @@ type IGenerateMetadata = {
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
 };
+
 export async function generateMetadata(
   { params, searchParams }: IGenerateMetadata,
   parent: ResolvingMetadata,

@@ -4,14 +4,14 @@ import React, { useState } from 'react';
 
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE } from '@/utils/constants';
 
 import { getAccessLevel } from '@/utils/auth.utils';
 import { ITeam } from '@/types/teams.types';
 import { TeamsList } from '@/components/page/member-details/TeamsDetails/components/TeamsList';
 import { EditTeamForm } from '@/components/page/member-details/TeamsDetails/components/EditTeamForm';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
-import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 interface Props {
   member: IMember;
@@ -22,7 +22,7 @@ interface Props {
 export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [view, setView] = useState<'view' | 'add' | 'edit'>('view');
   const [selectedItem, setSelectedItem] = useState<null | ITeam>(null);
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
   useMobileNavVisibility(view !== 'view');
@@ -32,7 +32,7 @@ export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   }
 
   return (
-    <MemberDetailsSection editView={view !== 'view'}>
+    <DetailsSection editView={view !== 'view'}>
       {view === 'view' && (
         <TeamsList
           member={member}
@@ -49,6 +49,6 @@ export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
       )}
       {view === 'edit' && <EditTeamForm onClose={() => setView('view')} member={member} initialData={selectedItem} />}
       {view === 'add' && <EditTeamForm onClose={() => setView('view')} member={member} />}
-    </MemberDetailsSection>
+    </DetailsSection>
   );
 };

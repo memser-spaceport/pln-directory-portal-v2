@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
 import { IMember } from '@/types/members.types';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { useRouter } from 'next/navigation';
 
 import s from './EditTeamForm.module.scss';
@@ -23,6 +23,8 @@ import { useGetTeam } from '@/services/teams/hooks/useGetTeam';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import Link from 'next/link';
+import { AddTeamInlineForm } from '@/components/form/AddTeamInlineForm/AddTeamInlineForm';
+import { useCreateTeamRequest } from '@/services/teams/hooks/useCreateTeamRequest';
 
 interface Props {
   onClose: () => void;
@@ -33,6 +35,8 @@ interface Props {
 export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
   const isNew = !initialData;
   const router = useRouter();
+  const [isAddingTeamInline, setIsAddingTeamInline] = useState(false);
+  const { mutateAsync: createTeamRequest } = useCreateTeamRequest();
   const methods = useForm<TEditTeamForm>({
     defaultValues: {
       url: initialData?.website ?? '',
@@ -44,19 +48,53 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
         : undefined,
       role: initialData?.role ?? '',
       mainTeam: initialData?.mainTeam ?? false,
+      newTeamName: '',
+      newTeamWebsite: '',
+      newTeamRole: '',
     },
     resolver: yupResolver(editTeamSchema),
+    context: { isAddingTeamInline },
   });
-  const { handleSubmit, reset, watch } = methods;
+  const { handleSubmit, reset, watch, setValue } = methods;
   const formValues = watch();
   const { data } = useMemberFormOptions();
   const [isOpenDelete, setIsOpenDelete] = React.useState(false);
   const { data: memberData } = useMember(member.id);
   const { mutateAsync } = useUpdateMember();
 
-  const onSubmit = async (formData: TEditTeamForm) => {
+  const onSubmit = async (initialFormData: TEditTeamForm) => {
     if (!memberData) {
       return;
+    }
+
+    let formData = initialFormData;
+
+    if (isAddingTeamInline) {
+      const teamName = watch('newTeamName');
+      const teamWebsite = watch('newTeamWebsite');
+      const teamRole = watch('newTeamRole');
+      if (!teamName) return;
+
+      try {
+        const result = await createTeamRequest({
+          requesterEmailId: member.email!,
+          teamName,
+          websiteAddress: teamWebsite || undefined,
+        });
+
+        const teamUid = result?.uid || result?.id || result?.teamUid || '';
+        const teamTitle = result?.name || result?.teamTitle || teamName;
+
+        const teamOption = { value: teamUid, label: teamTitle };
+        setValue('name', teamOption, { shouldValidate: true, shouldDirty: true });
+        setValue('role', teamRole, { shouldValidate: true, shouldDirty: true });
+        setIsAddingTeamInline(false);
+
+        formData = methods.getValues() as TEditTeamForm;
+        formData = { ...formData, name: teamOption, role: teamRole };
+      } catch {
+        return;
+      }
     }
 
     const payload = {
@@ -129,7 +167,7 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
         <EditFormControls onClose={onClose} title={isNew ? 'Add Team' : 'Edit Team'} />
         <div className={s.body}>
-          {previewData ? (
+          {!isAddingTeamInline && previewData ? (
             <div className={s.expItem}>
               {previewData?.logo ? (
                 <Image
@@ -152,6 +190,7 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
               </div>
             </div>
           ) : (
+            !isAddingTeamInline &&
             formValues?.name?.value && (
               <div className={s.expItem}>
                 <Skeleton
@@ -187,36 +226,59 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
             )
           )}
 
-          {/*<div className={s.row}>*/}
-          {/*  <FormField name="url" label="Team URL" placeholder="Enter team url" />*/}
-          {/*</div>*/}
-          <div className={s.row}>
-            <FormSelect
-              name="name"
-              placeholder="Enter your team"
-              backLabel="Teams"
-              label="Team"
-              isRequired
-              options={
-                data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
-                  value: item.teamUid,
-                  label: item.teamTitle,
-                })) ?? []
-              }
-              notFoundContent={
-                <div className={s.secondaryLabel}>
-                  If you don&apos;t see your team on this list, please{' '}
-                  <Link href="/teams/add" className={s.link} target="_blank">
-                    add your team
-                  </Link>{' '}
-                  first.
-                </div>
-              }
+          {!isAddingTeamInline && (
+            <>
+              <div className={s.row}>
+                <FormSelect
+                  name="name"
+                  placeholder="Enter your team"
+                  backLabel="Teams"
+                  label="Team"
+                  isRequired
+                  options={
+                    data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                      value: item.teamUid,
+                      label: item.teamTitle,
+                    })) ?? []
+                  }
+                  notFoundContent={
+                    isNew ? (
+                      <div className={s.secondaryLabel}>
+                        If you don&apos;t see your team on this list,{' '}
+                        <button type="button" className={s.link} onClick={() => setIsAddingTeamInline(true)}>
+                          add your team
+                        </button>
+                        .
+                      </div>
+                    ) : (
+                      <div className={s.secondaryLabel}>
+                        If you don&apos;t see your team on this list, please{' '}
+                        <Link href="/teams/add" className={s.link} target="_blank">
+                          add your team
+                        </Link>{' '}
+                        first.
+                      </div>
+                    )
+                  }
+                />
+              </div>
+              <div className={s.row}>
+                <FormField name="role" label="Role" placeholder="Enter your title/role" />
+              </div>
+            </>
+          )}
+
+          {isAddingTeamInline && (
+            <AddTeamInlineForm
+              fieldNames={{
+                role: 'newTeamRole',
+                name: 'newTeamName',
+                website: 'newTeamWebsite',
+              }}
+              onClose={() => setIsAddingTeamInline(false)}
             />
-          </div>
-          <div className={s.row}>
-            <FormField name="role" label="Role" placeholder="Enter your title/role" />
-          </div>
+          )}
+
           {!isNew && (
             <>
               <button className={s.deleteBtn} type="button" onClick={() => setIsOpenDelete(true)}>

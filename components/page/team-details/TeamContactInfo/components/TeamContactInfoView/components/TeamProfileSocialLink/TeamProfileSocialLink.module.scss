@@ -1,0 +1,35 @@
+@use 'styles/media';
+
+.root {
+  gap: 4px;
+  display: flex;
+  align-items: center;
+
+  border-radius: 4px;
+  padding: 6px 12px;
+
+  cursor: pointer;
+  background-color: transparent;
+
+  &.incomplete {
+    opacity: 0.35;
+    pointer-events: none;
+    user-select: none;
+  }
+}
+
+.link {
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+  display: inline-block;
+  overflow: hidden;
+  text-wrap: nowrap;
+  max-width: 100px;
+  text-overflow: ellipsis;
+
+  @include media.breakpoint-1024 {
+    max-width: 150px;
+  }
+}

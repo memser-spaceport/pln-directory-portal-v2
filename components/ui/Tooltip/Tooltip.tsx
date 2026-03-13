@@ -1,7 +1,11 @@
-import * as React from 'react';
-import { Tooltip } from '@base-ui-components/react/tooltip';
-import styles from './Tooltip.module.scss';
+'use client';
+
 import clsx from 'clsx';
+import React, { useRef, useState, useEffect } from 'react';
+
+import { Tooltip } from '@base-ui-components/react/tooltip';
+
+import styles from './Tooltip.module.scss';
 
 interface Props {
   trigger: React.ReactElement;
@@ -22,10 +26,10 @@ export default function CustomTooltip({
   delay = 0,
   forceTooltip = false, // ✅ default to false
 }: Props) {
-  const triggerRef = React.useRef<HTMLElement>(null);
-  const [isTruncated, setIsTruncated] = React.useState(false);
+  const triggerRef = useRef<HTMLElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (forceTooltip) return;
 
     const checkTruncation = () => {

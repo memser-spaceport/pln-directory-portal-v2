@@ -409,6 +409,14 @@ export const useTeamAnalytics = () => {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_PRIORITIES_FILTER_SELECTED, params);
   }
 
+  function onTeamDetailEditInputChanged(params: { field: string; value: unknown }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_EDIT_INPUT_CHANGED, params);
+  }
+
+  function onTeamDetailEditFormSaved(params: { from: string; values: Record<string, unknown> }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_EDIT_FORM_SAVED, params);
+  }
+
   return {
     onOfficeHoursSelected,
     onFriendsOfProtocolSelected,
@@ -467,5 +475,7 @@ export const useTeamAnalytics = () => {
     onTeamsFundingStageFilterSelected,
     onTeamsTiersFilterSelected,
     onTeamsPrioritiesFilterSelected,
+    onTeamDetailEditInputChanged,
+    onTeamDetailEditFormSaved,
   };
 };

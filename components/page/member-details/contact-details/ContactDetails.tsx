@@ -9,16 +9,19 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import s from './ContactDetails.module.scss';
 import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
-import { ADMIN_ROLE, TOAST_MESSAGES } from '@/utils/constants';
+import { TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 
 import React, { Fragment } from 'react';
 import { clsx } from 'clsx';
-import { EditButton } from '@/components/page/member-details/components/EditButton';
-import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
+import { EditButton } from '@/components/common/profile/EditButton';
+import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { getAccessLevel } from '@/utils/auth.utils';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
+import { isAdminUser } from '@/utils/user/isAdminUser';
+import { Divider } from '@/components/common/profile/Divider';
+import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 
 type ContactDetailsVariant = 'default' | 'drawer';
 
@@ -45,7 +48,7 @@ const DRAWER_HANDLES = ['email', 'linkedin', 'telegram', 'twitter'];
 export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant = 'default' }: Props) => {
   const router = useRouter();
   const { visibleHandles } = member;
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
   const hasMissingRequiredData = !member?.linkedinHandle;
   const authAnalytics = useAuthAnalytics();
@@ -86,9 +89,9 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant =
         </DataIncomplete>
       )}
       <div className={s.contentRoot}>
-        <MemberDetailsSectionHeader title="Contact Details">
+        <DetailsSectionHeader title="Contact Details">
           {isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEdit} />}
-        </MemberDetailsSectionHeader>
+        </DetailsSectionHeader>
         <div className={s.container}>
           {isDrawer || (isLoggedIn && (accessLevel === 'advanced' || isOwner)) ? (
             <div className={s.social}>
@@ -107,7 +110,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant =
                                 <AddIcon />
                                 <span>Add LinkedIn</span>
                               </button>
-                              <div className={s.divider} />
+                              <Divider />
                             </Fragment>
                           ),
                         };
@@ -124,13 +127,13 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant =
                               callback={callback}
                               type={item}
                               handle={handle}
-                              logo={getLogoByProvider(item, !handle)}
+                              logo={getContactLogoByProvider(item)}
                               className={clsx({
                                 [s.incomplete]: !handle,
                                 [s.grayscale]: !handle && isDrawer,
                               })}
                             />
-                            <div className={s.divider} />
+                            <Divider />
                           </Fragment>
                         ),
                       };
@@ -156,10 +159,10 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant =
                           callback={callback}
                           type={item}
                           handle={consistentRandomString(`${member.name}__${item}`)}
-                          logo={getLogoByProvider(item)}
+                          logo={getContactLogoByProvider(item)}
                           isPreview
                         />
-                        {i === arr.length - 1 ? null : <div className={s.divider} />}
+                        {i === arr.length - 1 ? null : <Divider />}
                       </Fragment>
                     );
                   })}
@@ -198,41 +201,6 @@ const AddIcon = () => (
     />
   </svg>
 );
-
-function getLogoByProvider(provider: string, isIncomplete?: boolean): string {
-  switch (provider) {
-    case 'linkedin': {
-      return '/icons/contact/linkedIn-contact-logo.svg';
-    }
-    case 'discord': {
-      return '/icons/contact/discord-contact-logo.svg';
-    }
-    case 'email': {
-      return '/icons/contact/email-contact-logo.svg';
-    }
-    case 'github': {
-      return '/icons/contact/github-contact-logo.svg';
-    }
-    case 'team': {
-      return '/icons/contact/team-contact-logo.svg';
-    }
-    case 'telegram': {
-      // if (isIncomplete) {
-      //   return '/icons/contact/t.svg';
-      // }
-      return '/icons/contact/telegram-contact-logo.svg';
-    }
-    case 'twitter': {
-      // if (isIncomplete) {
-      //   return '/icons/contact/x.svg';
-      // }
-      return '/icons/contact/twitter-contact-logo.svg';
-    }
-    default: {
-      return '/icons/contact/website-contact-logo.svg';
-    }
-  }
-}
 
 function consistentRandomString(input: string): string {
   const base62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

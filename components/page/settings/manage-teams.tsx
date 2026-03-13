@@ -22,6 +22,7 @@ import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import AlertMessage from './alert-message';
 import TeamsMemberInfo from './teams-member-info';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
+import { useSearchParams } from 'next/navigation';
 
 function ManageTeamsSettings(props: any) {
   //props
@@ -38,6 +39,7 @@ function ManageTeamsSettings(props: any) {
   ];
   const [activeTab, setActiveTab] = useState({ name: 'basic', label: 'BASIC' });
   const router = useRouter();
+  const searchParams = useSearchParams();
   const formRef = useRef<HTMLFormElement | null>(null);
   const [allData, setAllData] = useState({
     technologies: [],
@@ -413,6 +415,19 @@ function ManageTeamsSettings(props: any) {
     );
   }, [teamMembers]);
 
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab) {
+      setActiveTab({ name: tab, label: tab.toUpperCase() });
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('tab');
+      const nextParams = params.toString();
+
+      router.replace(nextParams ? `?${nextParams}` : '?id=' + selectedTeam.uid);
+    }
+  }, [router, searchParams, selectedTeam.uid]);
+
   const isAlertInfo = isAlertInfoDismissed ? false : Boolean(numberOfChanges) ? true : false;
   return (
     <>
@@ -474,6 +489,7 @@ function ManageTeamsSettings(props: any) {
           </div>
           <div className={`${activeTab.name !== 'team details' ? 'hidden' : ''}`}>
             <TeamProjectsInfo
+              userInfo={userInfo}
               isInvestmentFund={isInvestmentFund}
               errors={errors.projectErrors}
               protocolOptions={allData?.technologies}

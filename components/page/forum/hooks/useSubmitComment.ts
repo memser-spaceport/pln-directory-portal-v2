@@ -1,5 +1,3 @@
-import { ADMIN_ROLE } from '@/utils/constants';
-
 import { toast } from '@/components/core/ToastContainer';
 import { replaceImagesWithMarkdown } from '@/utils/decode';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
@@ -8,6 +6,7 @@ import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { EditPostMutationParams, useEditPost } from '@/services/forum/hooks/useEditPost';
 import { usePostComment } from '@/services/forum/hooks/usePostComment';
 import { useUpdateMemberNotificationSettings } from '@/services/notifications/hooks/useUpdateMemberNotificationSettings';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 interface Input {
   tid: number;
@@ -30,7 +29,7 @@ export function useSubmitComment(input: Input) {
   const analytics = useForumAnalytics();
   const { mutateAsync: updateNotificationSettings } = useUpdateMemberNotificationSettings();
 
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo);
 
   const onSubmitComment = async (data: any) => {
     try {

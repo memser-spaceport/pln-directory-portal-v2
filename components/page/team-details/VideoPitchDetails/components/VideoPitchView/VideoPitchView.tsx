@@ -5,7 +5,7 @@ import { clsx } from 'clsx';
 
 import { FileUploader } from '@/components/ui/FileUploader';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
-import { EditButton } from '@/components/page/member-details/components/EditButton';
+import { EditButton } from '@/components/common/profile/EditButton';
 
 import s from './VideoPitchView.module.scss';
 

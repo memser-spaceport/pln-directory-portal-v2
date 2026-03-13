@@ -76,6 +76,7 @@ export interface ITeamResponse {
 }
 
 export interface ITag {
+  uid: string;
   title: string;
   color?: string;
   icon?: React.ReactNode;
@@ -138,6 +139,13 @@ export interface ITeam {
     investInStartupStages: string[];
     investInFundTypes: string[];
   };
+  dataEnrichment?: {
+    isAIGenerated?: boolean;
+    status?: string;
+    [key: string]: unknown;
+  };
+  telegramHandler?: string | null;
+  blog?: string | null;
 }
 
 export interface ITeamDetailParams {

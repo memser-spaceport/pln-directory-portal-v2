@@ -6,15 +6,16 @@ import s from './EditOfficeHoursFormControls.module.scss';
 interface Props {
   onClose: () => void;
   title: string;
+  alwaysEnabled?: boolean;
 }
 
-export const EditOfficeHoursFormControls = ({ title, onClose }: Props) => {
+export const EditOfficeHoursFormControls = ({ title, onClose, alwaysEnabled }: Props) => {
   const {
     reset,
     formState: { isSubmitting, isDirty, isValidating },
   } = useFormContext();
 
-  const isDisabled = isSubmitting || !isDirty || isValidating;
+  const isDisabled = isSubmitting || isValidating || (!alwaysEnabled && !isDirty);
 
   return (
     <div className={s.root}>

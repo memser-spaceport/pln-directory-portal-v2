@@ -6,19 +6,18 @@ import { useState } from 'react';
 import clip from 'text-clipper';
 import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
-import { updateMember, updateMemberBio } from '@/services/members.service';
-import { ADMIN_ROLE } from '@/utils/constants';
+import { updateMemberBio } from '@/services/members.service';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
   const contentLength = 1000;
 
   const [content, setContent] = useState(member?.bio ?? '');
   const isOwner = userInfo?.uid === member.id;
-  const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
-  // const [clippedHtml,setClippedHtml] = useState(clip(content, contentLength, { html: true, maxLines: 5 }));
+  const isAdmin = isAdminUser(userInfo);
 
   const analytics = useMemberAnalytics();
 

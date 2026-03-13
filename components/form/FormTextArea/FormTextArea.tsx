@@ -10,7 +10,7 @@ interface Props extends PropsWithChildren {
   name: string;
   placeholder: string;
   label?: string;
-  description?: string;
+  description?: string | React.ReactNode;
   disabled?: boolean;
   isRequired?: boolean;
   rows?: number;

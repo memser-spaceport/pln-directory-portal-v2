@@ -1,7 +1,7 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { Tag } from '@/components/ui/tag';
+import { Tag } from '@/components/ui/Tag';
 import { ITag, ITeam } from '@/types/teams.types';
 import { Fragment } from 'react';
 

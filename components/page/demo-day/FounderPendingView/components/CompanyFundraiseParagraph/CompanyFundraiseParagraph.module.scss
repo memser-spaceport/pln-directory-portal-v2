@@ -87,6 +87,12 @@
   word-break: break-word;
 }
 
+.link {
+  color: #1b4dff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .actions {
   display: flex;
   align-items: center;

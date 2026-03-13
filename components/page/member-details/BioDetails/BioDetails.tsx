@@ -3,14 +3,15 @@
 import React, { useState } from 'react';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { BioView } from '@/components/page/member-details/BioDetails/components/BioView';
-import { EditBioForm } from '@/components/page/member-details/BioDetails/components/EditBioForm';
-import { ADMIN_ROLE } from '@/utils/constants';
+
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
-import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
+import { BioView } from '@/components/page/member-details/BioDetails/components/BioView';
+import { EditBioForm } from '@/components/page/member-details/BioDetails/components/EditBioForm';
 
 interface Props {
   member: IMember;
@@ -21,7 +22,7 @@ interface Props {
 export const BioDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [editView, setEditView] = useState(false);
   const [generateBio, setGenerateBio] = useState(false);
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo)
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
   const hasMissingData = !member?.bio;
@@ -34,7 +35,7 @@ export const BioDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   }
 
   return (
-    <MemberDetailsSection editView={editView}>
+    <DetailsSection editView={editView}>
       {editView ? (
         <EditBioForm
           onClose={() => {
@@ -62,6 +63,6 @@ export const BioDetails = ({ isLoggedIn, userInfo, member }: Props) => {
           }}
         />
       )}
-    </MemberDetailsSection>
+    </DetailsSection>
   );
 };

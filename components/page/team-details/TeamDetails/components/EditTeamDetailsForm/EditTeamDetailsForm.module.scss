@@ -1,0 +1,61 @@
+@use 'styles/media';
+
+.form {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px;
+  background: #fff;
+  min-height: calc(100vh - 72px);
+
+  @include media.tablet-landscape {
+    min-height: unset;
+    border-radius: 8px;
+    border: 1px solid rgba(27, 56, 96, 0.12);
+    box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+    padding: 24px;
+  }
+}
+
+.imageRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+}
+
+.checkboxText {
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.aboutLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.aiBadge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(27, 77, 255, 0.12);
+  color: #1b4dff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}

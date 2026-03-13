@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AddButton } from '@/components/page/member-details/components/AddButton';
-import { MemberDetailsSectionHeader } from '@/components/page/member-details/building-blocks/MemberDetailsSectionHeader';
+import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -24,9 +24,9 @@ export const ExperiencesList = ({ isEditable, onAdd, onEdit, member }: Props) =>
 
   return (
     <div className={s.root}>
-      <MemberDetailsSectionHeader title={`Experience ${data?.length ? `(${data.length})` : ''}`}>
+      <DetailsSectionHeader title={`Experience ${data?.length ? `(${data.length})` : ''}`}>
         {isEditable && <AddButton onClick={onAdd} />}
-      </MemberDetailsSectionHeader>
+      </DetailsSectionHeader>
       {!!data?.length && (
         <ul className={s.list}>
           {data?.map((item) => (

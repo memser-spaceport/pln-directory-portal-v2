@@ -5,7 +5,7 @@ import { FormField } from '@/components/form/FormField';
 import { IMember, IMemberPreferences } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { TEditContactForm } from '@/components/page/member-details/ContactDetails/types';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import Image from 'next/image';
 import { omit } from 'lodash';
 import { useMember } from '@/services/members/hooks/useMember';
@@ -25,8 +25,9 @@ import { EditFormMobileControls } from '@/components/page/member-details/compone
 import { clsx } from 'clsx';
 import { useUpdateMemberPreferences } from '@/services/members/hooks/useUpdateMemberPreferences';
 import { FormSwitch } from '@/components/form/FormSwitch';
-import { ADMIN_ROLE } from '@/utils/constants';
 import { ContactDetailsVariant } from '@/components/page/member-details/ContactDetails';
+import { isAdminUser } from '@/utils/user/isAdminUser';
+import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 
 interface Props {
   onClose: () => void;
@@ -49,7 +50,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
       shareContacts: getDefaultToggleValue(member.preferences),
     },
   });
-  const isAdmin = !!(userInfo && userInfo.roles?.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo && userInfo.uid === member.id;
   const { handleSubmit, reset } = methods;
   const { mutateAsync } = useUpdateMember();
@@ -180,7 +181,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
         <EditFormControls onClose={onClose} title="Edit Contact Details" />
         <div className={s.body}>
           <div className={s.row}>
-            <Image src={getLogoByProvider('email')} alt="Email" height={24} width={24} />
+            <Image src={getContactLogoByProvider('email')} alt="Email" height={24} width={24} />
             <FormField name="email" label="Email" placeholder="Enter your email" disabled={isOwner} isRequired>
               {member.id === userInfo.uid && (
                 <button type="button" className={s.editEmailBtn} onClick={onEmailEdit}>
@@ -190,7 +191,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
             </FormField>
           </div>
           <div className={s.row}>
-            <Image src={getLogoByProvider('linkedin')} alt="Linkedin" height={24} width={24} />
+            <Image src={getContactLogoByProvider('linkedin')} alt="Linkedin" height={24} width={24} />
             <FormField
               name="linkedin"
               label="LinkedIn"
@@ -200,18 +201,18 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
             />
           </div>
           <div className={s.row}>
-            <Image src={getLogoByProvider('telegram')} alt="Telegram" height={24} width={24} />
+            <Image src={getContactLogoByProvider('telegram')} alt="Telegram" height={24} width={24} />
             <FormField name="telegram" label="Telegram" placeholder="eg., @username or https://t.me/username" />
           </div>
           {variant !== 'drawer' && (
             <div className={s.row}>
-              <Image src={getLogoByProvider('github')} alt="Github" height={24} width={24} />
+              <Image src={getContactLogoByProvider('github')} alt="Github" height={24} width={24} />
               <FormField name="github" label="Github" placeholder="eg., username or https://github.com/username" />
             </div>
           )}
           {variant !== 'drawer' && (
             <div className={s.row}>
-              <Image src={getLogoByProvider('discord')} alt="Discord" height={24} width={24} />
+              <Image src={getContactLogoByProvider('discord')} alt="Discord" height={24} width={24} />
               <FormField
                 name="discord"
                 label="Discord"
@@ -220,7 +221,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
             </div>
           )}
           <div className={s.row}>
-            <Image src={getLogoByProvider('twitter')} alt="Twitter" height={24} width={24} />
+            <Image src={getContactLogoByProvider('twitter')} alt="Twitter" height={24} width={24} />
             <FormField
               name="twitter"
               label="X (Twitter)"
@@ -242,35 +243,6 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
     </FormProvider>
   );
 };
-
-function getLogoByProvider(provider: string): string {
-  switch (provider) {
-    case 'linkedin': {
-      return '/icons/contact/linkedIn-contact-logo.svg';
-    }
-    case 'discord': {
-      return '/icons/contact/discord-contact-logo.svg';
-    }
-    case 'email': {
-      return '/icons/contact/email-contact-logo.svg';
-    }
-    case 'github': {
-      return '/icons/contact/github-contact-logo.svg';
-    }
-    case 'team': {
-      return '/icons/contact/team-contact-logo.svg';
-    }
-    case 'telegram': {
-      return '/icons/contact/telegram-contact-logo.svg';
-    }
-    case 'twitter': {
-      return '/icons/contact/twitter-contact-logo.svg';
-    }
-    default: {
-      return '/icons/contact/website-contact-logo.svg';
-    }
-  }
-}
 
 function formatPayload(memberInfo: any, formData: TEditContactForm, isAdmin: boolean) {
   // Normalize social handles - extract handles from URLs if provided

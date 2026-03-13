@@ -1,0 +1,79 @@
+.incompleteWarning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background: #f2f5ff;
+  border-radius: 8px 8px 0 0;
+  gap: 4px;
+}
+
+.warningIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.warningContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.warningText {
+  color: #1b4dff;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+}
+
+.warningButtons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.linkButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #1b4dff;
+  color: #1b4dff;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:active {
+    opacity: 0.6;
+  }
+}
+
+.incompleteStrip {
+  color: var(--foreground-warning-secondary, #d97706);
+}

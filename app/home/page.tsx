@@ -3,7 +3,6 @@ import styles from './page.module.css';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDiscoverData } from '@/services/discovery.service';
 import Error from '@/components/core/error';
-import Featured from '@/components/page/home/featured/featured';
 // import Discover from '@/components/page/home/discover/discover';
 import LandingFocusAreas from '@/components/page/home/focus-area/focus-area-section';
 import { getFocusAreas } from '@/services/common.service';
@@ -11,11 +10,12 @@ import { IFocusArea } from '@/components/page/team-form-info/focus-area/focus-ar
 import HuskyDialog from '@/components/page/home/husky-dialog';
 import HuskyDiscover from '@/components/page/home/husky-discover';
 import { Metadata } from 'next';
-import { ADMIN_ROLE, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
 import { formatFeaturedData } from '@/utils/home.utils';
 import { RecentUpdatesSection } from '@/components/page/home/recent-updates';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 export default async function Home() {
   const { isLoggedIn, isError, userInfo, focusAreas } = await getPageData();
@@ -60,12 +60,12 @@ const getPageData = async () => {
   let discoverData = [] as any;
   let teamFocusAreas: IFocusArea[] = [];
   let projectFocusAreas: IFocusArea[] = [];
-  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
+
   try {
     const [teamFocusAreaResponse, projectFocusAreaResponse, featuredResponse, discoverResponse] = await Promise.all([
       getFocusAreas('Team', {}),
       getFocusAreas('Project', {}),
-      getFeaturedData(authToken, isLoggedIn, isAdmin),
+      getFeaturedData(authToken, isLoggedIn, isAdminUser(userInfo)),
       getDiscoverData(),
     ]);
     if (

@@ -1,15 +1,16 @@
 'use client';
 
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useRef } from 'react';
 import MemberEmptyProjectExperience from './member-empty-project-experienct';
 import MemberProjectExperienceCard from './member-project-experience-card';
-import { ADMIN_ROLE, PAGE_ROUTES } from '@/utils/constants';
+import { PAGE_ROUTES } from '@/utils/constants';
 import MemberProjectContributions from './member-project-contributions';
 import Modal from '@/components/core/modal';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useRouter } from 'next/navigation';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import dynamic from 'next/dynamic';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 dynamic(() => import('@/components/core/modal'), { ssr: false });
 
@@ -30,8 +31,7 @@ const MemberProjectContribution = (props: IMemberProjectExperience) => {
     .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
   const contributions = [...presentContributions, ...pastContributions];
   const isOwner = userInfo?.uid == member?.id;
-  const isAdmin =
-    userInfo?.uid === member?.id || (userInfo?.roles?.length > 0 && userInfo?.roles?.includes(ADMIN_ROLE));
+  const isAdmin = userInfo?.uid === member?.id || isAdminUser(userInfo);
 
   // const analytics = useMemberDetailAnalytics();
   const modalRef = useRef<HTMLDialogElement>(null);
@@ -124,6 +124,7 @@ const MemberProjectContribution = (props: IMemberProjectExperience) => {
             display: flex;
             justify-content: space-between;
           }
+
           .member-project-experience__unable-to-load {
             background-color: rgb(249 250 251);
             border-radius: 12px;

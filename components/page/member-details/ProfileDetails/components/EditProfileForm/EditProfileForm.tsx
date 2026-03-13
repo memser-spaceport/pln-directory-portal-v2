@@ -10,7 +10,7 @@ import { TEditProfileForm } from '@/components/page/member-details/ProfileDetail
 import { ProfileCollaborateInput } from '@/components/page/member-details/ProfileDetails/components/ProfileCollaborateInput';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { omit } from 'lodash';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { useMember } from '@/services/members/hooks/useMember';
@@ -31,10 +31,11 @@ import { isInvestor } from '@/utils/isInvestor';
 import { FormSelect } from '@/components/form/FormSelect';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
-import { AddTeamModal } from '@/components/page/member-details/ProfileDetails/components/AddTeamModal';
+import { AddTeamInlineForm } from '@/components/form/AddTeamInlineForm';
 import { useUpdateMemberSelfRole } from '@/services/members/hooks/useUpdateMemberSelfRole';
 import { useDeleteMemberImage } from '@/services/members/hooks/useDeleteMemberImage';
 import { BioInput } from '@/components/page/member-details/BioDetails/components/BioInput';
+import { useCreateTeamRequest } from '@/services/teams/hooks/useCreateTeamRequest';
 
 interface Props {
   onClose: () => void;
@@ -47,8 +48,7 @@ interface Props {
 export const EditProfileForm = ({ onClose, member, userInfo, generateBio, variant }: Props) => {
   const router = useRouter();
   const { actions } = useUserStore();
-  const [isAddTeamModalOpen, setIsAddTeamModalOpen] = useState(false);
-  const [newlyAddedTeamName, setNewlyAddedTeamName] = useState<string | null>(null);
+  const [isAddingTeamInline, setIsAddingTeamInline] = useState(false);
 
   // Refs for AI bio content tracking
   const originalAiContentRef = useRef<string | null>(null);
@@ -100,14 +100,19 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
       primaryTeam: mainTeamData.team,
       primaryTeamRole: mainTeamData.team ? mainTeamData.role : member.role,
       bio: member.bio || '',
+      newTeamRole: '',
+      newTeamName: '',
+      newTeamWebsite: '',
     },
     resolver: yupResolver(editProfileSchema),
+    context: { isAddingTeamInline },
   });
-  const { handleSubmit, reset, watch, setValue } = methods;
+  const { handleSubmit, reset, watch, setValue, getValues } = methods;
   const { mutateAsync } = useUpdateMember();
   const { mutateAsync: updateMemberParams } = useUpdateMemberParams();
   const { mutateAsync: updateSelfRole } = useUpdateMemberSelfRole();
   const { mutateAsync: deleteMemberImage } = useDeleteMemberImage();
+  const { mutateAsync: createTeamRequest } = useCreateTeamRequest();
 
   const handleAiContentGenerated = (originalContent: string) => {
     // Store the original content as-is for now
@@ -175,8 +180,47 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
     }
   }, [selectedPrimaryTeam, member.teamMemberRoles, setValue]);
 
-  const onSubmit = async (formData: TEditProfileForm) => {
+  const onSubmit = async (initialFormData: TEditProfileForm) => {
+    let formData = initialFormData;
     onSaveProfileDetailsClicked();
+
+    // If the inline add-team form is open, create the team first
+    if (isAddingTeamInline) {
+      const teamName = watch('newTeamName');
+      const teamWebsite = watch('newTeamWebsite');
+      const teamRole = watch('newTeamRole');
+      if (!teamName || !teamWebsite || !teamRole) return;
+
+      try {
+        const result = await createTeamRequest({
+          requesterEmailId: userInfo.email!,
+          teamName,
+          websiteAddress: teamWebsite,
+        });
+
+        const teamUid = result?.uid || result?.id || result?.teamUid || '';
+        const teamTitle = result?.name || result?.teamTitle || teamName;
+
+        const teamOption = {
+          value: teamUid,
+          label: teamTitle,
+          originalObject: result?.newData ?? result,
+        };
+
+        setValue('primaryTeam', teamOption, { shouldValidate: true, shouldDirty: true });
+        setValue('primaryTeamRole', teamRole, { shouldValidate: true, shouldDirty: true });
+        setIsAddingTeamInline(false);
+
+        formData = methods.getValues() as TEditProfileForm;
+        formData = {
+          ...formData,
+          primaryTeam: teamOption,
+          primaryTeamRole: teamRole,
+        };
+      } catch {
+        return;
+      }
+    }
 
     // Track primary team change if it has changed
     const hasTeamChanged =
@@ -270,29 +314,10 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
 
   const { data } = useMemberFormOptions();
 
-  // Auto-select newly added team when it becomes available in the options
-  useEffect(() => {
-    if (newlyAddedTeamName && data?.teams) {
-      const newTeam = data.teams.find(
-        (team: { teamUid: string; teamTitle: string }) =>
-          team.teamTitle.toLowerCase() === newlyAddedTeamName.toLowerCase(),
-      );
-
-      if (newTeam) {
-        setValue(
-          'primaryTeam',
-          {
-            value: newTeam.teamUid,
-            label: newTeam.teamTitle,
-            // @ts-ignore
-            originalObject: newTeam,
-          },
-          { shouldValidate: true, shouldDirty: true },
-        );
-        setNewlyAddedTeamName(null); // Clear the flag
-      }
-    }
-  }, [data?.teams, newlyAddedTeamName, setValue]);
+  // Re-trigger validation when isAddingTeamInline changes (yup context dependency)
+  // useEffect(() => {
+  //   trigger(['newTeamRole', 'newTeamName', 'newTeamWebsite']);
+  // }, [isAddingTeamInline, trigger]);
 
   // Track primary role selection
   useEffect(() => {
@@ -344,57 +369,78 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
             )}
 
           <div className={s.column}>
-            <div className={s.inputsLabel}>Primary Role & Team</div>
-            <div className={s.inputsWrapper}>
-              <FormField name="primaryTeamRole" placeholder="Enter your primary role" />
-              <span>@</span>
-              <FormSelect
-                name="primaryTeam"
-                placeholder="Search or add a team"
-                backLabel="Teams"
-                options={
-                  data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
-                    value: item.teamUid,
-                    label: item.teamTitle,
-                    originalObject: item,
-                  })) ?? []
-                }
-                renderOption={({ option, label, description }) => {
-                  return (
-                    <div className={s.teamOption}>
-                      <ImageWithFallback
-                        width={24}
-                        height={24}
-                        alt={option.label}
-                        className={s.optImg}
-                        fallbackSrc="/icons/camera.svg"
-                        src={option.originalObject.logo}
-                      />
-                      <div className={s.optionContent}>
-                        {label}
-                        {description}
+            {!isAddingTeamInline && (
+              <>
+                <div className={s.inputsLabel}>Primary Role & Team</div>
+                <div className={s.inputsWrapper}>
+                  <FormField name="primaryTeamRole" placeholder="Enter your primary role" />
+                  <span>@</span>
+                  <FormSelect
+                    name="primaryTeam"
+                    placeholder="Search or add a team"
+                    backLabel="Teams"
+                    options={
+                      data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                        value: item.teamUid,
+                        label: item.teamTitle,
+                        originalObject: item,
+                      })) ?? []
+                    }
+                    renderOption={({ option, label, description }) => {
+                      return (
+                        <div className={s.teamOption}>
+                          <ImageWithFallback
+                            width={24}
+                            height={24}
+                            alt={option.label}
+                            className={s.optImg}
+                            fallbackSrc="/icons/camera.svg"
+                            src={option.originalObject.logo}
+                          />
+                          <div className={s.optionContent}>
+                            {label}
+                            {description}
+                          </div>
+                        </div>
+                      );
+                    }}
+                    isStickyNoData
+                    notFoundContent={
+                      <div className={s.secondaryLabel}>
+                        Not able to find your project or team?{' '}
+                        <button
+                          type="button"
+                          className={s.link}
+                          onClick={() => {
+                            onAddTeamDropdownClicked('profile-edit');
+                            setValue('newTeamRole', getValues().primaryTeamRole ?? '');
+                            setIsAddingTeamInline(true);
+                          }}
+                        >
+                          Add your team
+                        </button>
                       </div>
-                    </div>
-                  );
-                }}
-                isStickyNoData
-                notFoundContent={
-                  <div className={s.secondaryLabel}>
-                    Not able to find your project or team?{' '}
-                    <button
-                      type="button"
-                      className={s.link}
-                      onClick={() => {
-                        onAddTeamDropdownClicked('profile-edit');
-                        setIsAddTeamModalOpen(true);
-                      }}
-                    >
-                      Add your team
-                    </button>
-                  </div>
-                }
-              />
-            </div>
+                    }
+                  />
+                </div>
+              </>
+            )}
+
+            {isAddingTeamInline && (
+              <div style={{ marginTop: '16px' }}>
+                <AddTeamInlineForm
+                  fieldNames={{
+                    role: 'newTeamRole',
+                    name: 'newTeamName',
+                    website: 'newTeamWebsite',
+                  }}
+                  onClose={() => {
+                    setIsAddingTeamInline(false);
+                  }}
+                />
+              </div>
+            )}
+
             {variant !== 'investor-drawer' && (
               <div className={s.description}>Add your role and team so others can connect with you.</div>
             )}
@@ -414,19 +460,6 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
         </div>
         <EditFormMobileControls />
       </form>
-
-      {/* Add Team Modal */}
-      <AddTeamModal
-        isOpen={isAddTeamModalOpen}
-        onClose={() => setIsAddTeamModalOpen(false)}
-        requesterEmailId={userInfo.email!}
-        onSuccess={(teamName: string) => {
-          // Store the newly added team name to auto-select it when data refreshes
-          setNewlyAddedTeamName(teamName);
-          // Refresh the page to show the new team
-          router.refresh();
-        }}
-      />
     </FormProvider>
   );
 };
@@ -452,7 +485,7 @@ function formatPayload(memberInfo: any, formData: TEditProfileForm) {
         if (tmr.teamUid === formData.primaryTeam?.value) {
           return {
             ...tmr,
-            role: formData.primaryTeamRole || tmr.role,
+            role: formData.primaryTeamRole,
             mainTeam: true,
           };
         }

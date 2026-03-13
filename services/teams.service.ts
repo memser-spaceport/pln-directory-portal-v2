@@ -131,9 +131,11 @@ export const getTeam = async (
   };
   const response = await fetch(`${teamsAPI}/${id}?${new URLSearchParams(options)}`, requestOPtions);
   const result = await response?.json();
+
   if (!response?.ok) {
     return { error: { statusText: response?.statusText } };
   }
+
   const formatedData = {
     id: result?.uid,
     name: result?.name,
@@ -159,7 +161,10 @@ export const getTeam = async (
     investorProfile: result?.investorProfile,
     isFund: result?.isFund,
     priority: getTeamPriority(result),
-    associations: result?.eventAssociations
+    associations: result?.eventAssociations,
+    dataEnrichment: result.dataEnrichment,
+    blog: result?.blog,
+    telegramHandler: result?.telegramHandler,
   };
   return { data: { formatedData } };
 };

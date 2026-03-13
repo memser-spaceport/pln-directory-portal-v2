@@ -1,14 +1,16 @@
 import React from 'react';
+import { redirect } from 'next/navigation';
+
+import { TopicResponse } from '@/services/forum/hooks/useForumPost';
+
+import { isAdminUser } from '@/utils/user/isAdminUser';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
+
+import { BackButton } from '@/components/ui/BackButton';
+import { CreatePost } from '@/components/page/forum/CreatePost';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 
-import { CreatePost } from '@/components/page/forum/CreatePost';
-import { TopicResponse } from '@/services/forum/hooks/useForumPost';
-import { redirect } from 'next/navigation';
-import { ADMIN_ROLE } from '@/utils/constants';
-
 import s from './page.module.scss';
-import { BackButton } from '@/components/ui/BackButton';
 
 interface PageProps {
   params: {
@@ -22,7 +24,7 @@ interface PageProps {
 
 const EditPostPage = async ({ params, searchParams }: PageProps) => {
   const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo);
 
   if (!isLoggedIn) {
     return (

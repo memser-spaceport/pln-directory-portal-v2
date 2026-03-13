@@ -1,11 +1,11 @@
 'use client';
+import { useState } from 'react';
+import Image from 'next/image';
+
 import { IFilterSelectedItem, IUserInfo } from '@/types/shared.types';
 import { PRIVATE_FILTERS } from '@/utils/constants';
-import { useEffect, useState } from 'react';
-import { Tag } from '../ui/tag';
-import { triggerLoader } from '@/utils/common.utils';
+import { Tag } from '@/components/ui/Tag';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import Image from 'next/image';
 import Toggle from '../ui/toogle';
 
 interface ITagContainer {

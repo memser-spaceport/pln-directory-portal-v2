@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+
 import { TeamsQueryKeys } from '@/services/teams/constants';
 import { getTeam } from '@/services/teams.service';
 

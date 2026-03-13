@@ -3,10 +3,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE } from '@/utils/constants';
 import { EditOfficeHoursForm } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursForm';
 import { OfficeHoursView } from '@/components/page/member-details/OfficeHoursDetails/components/OfficeHoursView';
-import { MemberDetailsSection } from '@/components/page/member-details/building-blocks/MemberDetailsSection';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './OfficeHoursDetails.module.scss';
@@ -16,6 +14,8 @@ import {
   useFixBrokenOfficeHoursLinkEventCapture,
 } from '@/components/page/member-details/hooks';
 import { usePathname, useRouter } from 'next/navigation';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 interface Props {
   member: IMember;
@@ -28,7 +28,7 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const router = useRouter();
   const pathname = usePathname();
   const [editView, setEditView] = useState(false);
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
   const showWarningUseCaseA = !member?.officeHours;
@@ -68,7 +68,7 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   }
 
   return (
-    <MemberDetailsSection
+    <DetailsSection
       editView={editView}
       missingData={showIncomplete}
       missingDataAlert={officeHoursValidation && !officeHoursValidation.isValid && isOwner && !editView}
@@ -96,6 +96,6 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
           isOfficeHoursValid={officeHoursValidation?.isValid ?? true}
         />
       )}
-    </MemberDetailsSection>
+    </DetailsSection>
   );
 };

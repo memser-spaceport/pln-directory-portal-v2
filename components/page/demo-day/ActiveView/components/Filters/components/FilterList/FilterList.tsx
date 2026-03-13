@@ -25,6 +25,7 @@ interface FilterListProps {
   showAllLabel?: ReactNode;
   hideSearch?: boolean;
   useScrollOnly?: boolean;
+  upfrontOptionNames?: readonly string[];
 }
 
 export const FilterList: React.FC<FilterListProps> = ({
@@ -36,6 +37,7 @@ export const FilterList: React.FC<FilterListProps> = ({
   initialDisplayCount = 5,
   hideSearch = false,
   useScrollOnly = false,
+  upfrontOptionNames,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAll, setShowAll] = useState(false);
@@ -113,11 +115,19 @@ export const FilterList: React.FC<FilterListProps> = ({
   // Determine which options to display based on showAll state and search
   const displayedOptions = useMemo(() => {
     if (searchTerm.trim()) {
-      // When searching, always show all results
       return filteredOptions;
     }
 
-    // If useScrollOnly is true, show all options (CSS max-height will handle scrolling)
+    if (upfrontOptionNames?.length) {
+      const upfrontSet = new Set(upfrontOptionNames);
+      const selectedIds = new Set(selectedOptions);
+      return filteredOptions.filter(
+        (opt) =>
+          upfrontSet.has(opt.name) ||
+          opt.id.split(',').some((uid) => selectedIds.has(uid)),
+      );
+    }
+
     if (useScrollOnly) {
       return filteredOptions;
     }
@@ -127,7 +137,7 @@ export const FilterList: React.FC<FilterListProps> = ({
     }
 
     return filteredOptions.slice(0, initialDisplayCount);
-  }, [filteredOptions, showAll, searchTerm, initialDisplayCount, useScrollOnly]);
+  }, [filteredOptions, showAll, searchTerm, initialDisplayCount, useScrollOnly, upfrontOptionNames, selectedOptions]);
 
   const hasMoreOptions = !useScrollOnly && filteredOptions.length > initialDisplayCount;
   const isSearching = searchTerm.trim().length > 0;

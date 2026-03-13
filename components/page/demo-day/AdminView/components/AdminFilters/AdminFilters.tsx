@@ -13,6 +13,7 @@ import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 
 import s from './AdminFilters.module.scss';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { DEMO_DAY_UPFRONT_INDUSTRY_TAGS } from '@/constants/demoDay';
 
 export const AdminFilters = () => {
   const appliedFiltersCount = useGetMembersFilterCount();
@@ -198,6 +199,7 @@ export const AdminFilters = () => {
           emptyMessage={teamsLoading ? 'Loading industries...' : 'No industries found'}
           initialDisplayCount={6}
           useScrollOnly
+          upfrontOptionNames={DEMO_DAY_UPFRONT_INDUSTRY_TAGS}
         />
       </FilterSection>
 

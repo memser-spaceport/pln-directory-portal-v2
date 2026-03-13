@@ -1,7 +1,6 @@
 'use client';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { Checkbox } from '@/components/common/Checkbox';
@@ -51,7 +50,6 @@ const toOption = (item?: { title?: string; uid?: string }, fallbackValue?: strin
 };
 
 export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
-  const router = useRouter();
   const { data: formOptions } = useTeamsFormOptions();
 
   const fundingStageOptions =
@@ -107,41 +105,26 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       logoUid = undefined;
     }
 
-    const payload = {
-      participantType: 'TEAM',
-      referenceUid: team.id,
-      uniqueIdentifier: team.name,
-      newData: {
-        name: formData.name.trim(),
-        shortDescription: formData.shortDescription.trim(),
-        longDescription: formData.about,
-        isFund: formData.isFund,
-        fundingStage: formData.fundingStage
-          ? { uid: formData.fundingStage.value, title: formData.fundingStage.label }
-          : undefined,
-        industryTags: formData.industryTags.map((item) => ({ uid: item.value, title: item.label })),
-        contactMethod: team.contactMethod,
-        website: team.website,
-        twitterHandler: team.twitter,
-        linkedinHandler: team.linkedinHandle,
-        membershipSources: team.membershipSources,
-        technologies: team.technologies,
-        investorProfile: team.investorProfile,
-        logoUid,
-      },
-    };
+    await commonOnSubmit({
+      name: formData.name.trim(),
+      shortDescription: formData.shortDescription.trim(),
+      longDescription: formData.about,
+      isFund: formData.isFund,
+      fundingStage: formData.fundingStage
+        ? { uid: formData.fundingStage.value, title: formData.fundingStage.label }
+        : undefined,
+      industryTags: formData.industryTags.map((item) => ({ uid: item.value, title: item.label })),
+      contactMethod: team.contactMethod,
+      website: team.website,
+      twitterHandler: team.twitter,
+      linkedinHandler: team.linkedinHandle,
+      membershipSources: team.membershipSources,
+      technologies: team.technologies,
+      investorProfile: team.investorProfile,
+      logoUid,
+    });
 
-    const { isError } = await updateTeam(payload, JSON.parse(authToken), team.id);
-
-    if (isError) {
-      toast.error('Team updated failed. Something went wrong, please try again later');
-      return;
-    }
-
-    toast.success('Team updated successfully');
     reset(formData);
-    onClose();
-    router.refresh();
   };
 
   return (

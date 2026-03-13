@@ -350,6 +350,8 @@ export const TEAMS_ANALYTICS_EVENTS = {
   PROJECT_EDIT_CLICKED: 'project-edit-clicked',
   TEAM_OFFICEHOURS_LOGIN_BTN_CLICKED: 'team-officehours-login-btn-clicked',
   TEAM_DETAIL_ABOUT_SAVE: 'team-detail-about-save',
+  TEAM_DETAIL_EDIT_INPUT_CHANGED: 'team-detail-edit-input-changed',
+  TEAM_DETAIL_EDIT_FORM_SAVED: 'team-detail-edit-form-saved',
   ON_CLICK_SEE_MORE_BUTTON_IRL_CONTRIBUTIONS: 'on_click_see_more_button_irl_contributions',
   TEAM_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS: 'team-details-on-click-irl-contributions',
   CAROUSEL_PREV_BTN_CLICKED: 'carousel-previous-btn-clicked',

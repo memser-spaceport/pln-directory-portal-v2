@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { Checkbox } from '@/components/common/Checkbox';
 import { FormField } from '@/components/form/FormField';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
@@ -51,6 +53,7 @@ const toOption = (item?: { title?: string; uid?: string }, fallbackValue?: strin
 
 export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
   const { data: formOptions } = useTeamsFormOptions();
+  const analytics = useTeamAnalytics();
 
   const fundingStageOptions =
     formOptions?.fundingStage?.map((item: { id: string; name: string }) => ({ label: item.name, value: item.id })) ||
@@ -83,7 +86,34 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
     resolver: yupResolver(editTeamDetailsSchema),
   });
 
-  const { handleSubmit, reset } = methods;
+  const { handleSubmit, reset, watch } = methods;
+  const formValues = watch();
+  const prevValuesRef = useRef<Record<string, unknown>>({});
+  const isFirstRenderRef = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      prevValuesRef.current = JSON.parse(JSON.stringify(formValues));
+      isFirstRenderRef.current = false;
+      return;
+    }
+    for (const key of Object.keys(formValues)) {
+      const prev = prevValuesRef.current[key];
+      const curr = formValues[key as keyof TEditTeamDetailsForm];
+      if (JSON.stringify(prev) !== JSON.stringify(curr)) {
+        const currVal = curr as unknown;
+        const value =
+          Array.isArray(currVal) && currVal[0] && typeof currVal[0] === 'object' && 'value' in currVal[0]
+            ? (currVal as { value: string }[]).map((o) => o.value)
+            : currVal && typeof currVal === 'object' && 'value' in currVal
+              ? (currVal as { value: string }).value
+              : currVal;
+        analytics.onTeamDetailEditInputChanged({ field: key, value });
+        break;
+      }
+    }
+    prevValuesRef.current = JSON.parse(JSON.stringify(formValues));
+  }, [formValues, analytics]);
 
   const commonOnSubmit = useOnSubmit(team, onClose);
 
@@ -122,6 +152,18 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       technologies: team.technologies,
       investorProfile: team.investorProfile,
       logoUid,
+    });
+
+    analytics.onTeamDetailEditFormSaved({
+      from: 'teamProfile',
+      values: {
+        name: formData.name.trim(),
+        shortDescription: formData.shortDescription.trim(),
+        isFund: formData.isFund,
+        fundingStage: formData.fundingStage?.value ?? null,
+        industryTags: formData.industryTags.map((item) => item.value),
+        about: formData.about,
+      },
     });
 
     reset(formData);

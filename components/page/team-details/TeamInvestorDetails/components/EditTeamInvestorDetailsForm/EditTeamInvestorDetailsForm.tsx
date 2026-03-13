@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useMemo, useRef } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useMemo } from 'react';
 
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { toast } from '@/components/core/ToastContainer';
 import { FormCurrencyField } from '@/components/form/FormCurrencyField';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
@@ -40,6 +41,7 @@ const FUND_TYPE_OPTIONS: TOption[] = [
 export const EditTeamInvestorDetailsForm = ({ team, onClose }: Props) => {
   const router = useRouter();
   const { data: options } = useTeamsFormOptions();
+  const analytics = useTeamAnalytics();
   const updateTeamInvestorProfileMutation = useUpdateTeamInvestorProfile();
 
   const fundingStageOptions = useMemo(
@@ -67,7 +69,34 @@ export const EditTeamInvestorDetailsForm = ({ team, onClose }: Props) => {
     mode: 'onSubmit',
   });
 
-  const { handleSubmit, reset } = methods;
+  const { handleSubmit, reset, watch } = methods;
+  const formValues = watch();
+  const prevValuesRef = useRef<Record<string, unknown>>({});
+  const isFirstRenderRef = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      prevValuesRef.current = JSON.parse(JSON.stringify(formValues));
+      isFirstRenderRef.current = false;
+      return;
+    }
+    for (const key of Object.keys(formValues)) {
+      const prev = prevValuesRef.current[key];
+      const curr = formValues[key as keyof TTeamInvestorDetailsForm];
+      if (JSON.stringify(prev) !== JSON.stringify(curr)) {
+        const currVal = curr as unknown;
+        const value =
+          Array.isArray(currVal) && currVal[0] && typeof currVal[0] === 'object' && 'value' in currVal[0]
+            ? (currVal as { value: string }[]).map((o) => o.value)
+            : currVal && typeof currVal === 'object' && 'value' in currVal
+              ? (currVal as { value: string }).value
+              : currVal;
+        analytics.onTeamDetailEditInputChanged({ field: key, value });
+        break;
+      }
+    }
+    prevValuesRef.current = JSON.parse(JSON.stringify(formValues));
+  }, [formValues, analytics]);
 
   const onSubmit = async (formData: TTeamInvestorDetailsForm) => {
     try {
@@ -85,6 +114,15 @@ export const EditTeamInvestorDetailsForm = ({ team, onClose }: Props) => {
       });
 
       toast.success('Fund details updated successfully');
+      analytics.onTeamDetailEditFormSaved({
+        from: 'investorProfile',
+        values: {
+          investInStartupStages: formData.investInStartupStages.map((item) => item.value),
+          typicalCheckSize: parseCurrencyToNumber(formData.typicalCheckSize),
+          investmentFocusAreas: formData.investmentFocusAreas,
+          investInFundTypes: formData.investInFundTypes.map((item) => item.value),
+        },
+      });
       reset(formData);
       onClose();
       router.refresh();

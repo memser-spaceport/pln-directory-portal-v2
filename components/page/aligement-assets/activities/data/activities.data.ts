@@ -88,39 +88,39 @@ export const activitiesData: ActivitiesData = {
         additionalNote: 'If a post does not meet standards after two rounds of edits and is not published, no points are awarded.'
       }
     },
-    {
-      id: 'create-playbook',
-      category: 'Knowledge Sharing',
-      activity: 'Create a Playbook or Template*',
-      networkValue: 'Document best practices others can easily use across the network.',
-      points: '200+',
-      isAutoTracked: true,
-      popupContent: {
-        title: 'Create a Replicable Playbook or Template',
-        description: 'Create or share a reusable step-by-step playbook or Google Doc template (e.g., onboarding guides, community moderation frameworks, grant templates, etc.).',
-        submissionNote: 'Must be based on proven practices and exclude confidential or personal information. Publish your playbook or template as a post on the PL Directory Forum. Your post title must begin with [Playbook] or [Template] (typed manually in the title) to be eligible. Only published resources are eligible for validation.',
-        links: [
-          { text: 'PL Directory Forum', url: 'https://directory.plnetwork.io/forum' },
-        ],
-        pointsAwarded: {
-          title: 'Points Awarded:',
-          items: [
-            { label: 'Base Reward', value: `200 points for posting a "Playbook" or "Template" article` },
-            {
-              label: 'Impact Bonus',
-              value: 'Participants may collect additional bonus points, on top of the base reward, if their submitted article meets various engagement thresholds (90 day window beginning with the date of publication).',
-              italicValue: true,
-              valueOnNewLine: true,
-              subItems: [
-                { label: 'Tier 1 (50-75 forum post views)', value: '50 points' },
-                { label: 'Tier 2 (76-100 forum post views)', value: '150 points' },
-                { label: 'Tier 3 (101+ forum post view)', value: '300 points' }
-              ]
-            },
-          ]
-        }
-      }
-    },
+    // {
+    //   id: 'create-playbook',
+    //   category: 'Knowledge Sharing',
+    //   activity: 'Create a Playbook or Template*',
+    //   networkValue: 'Document best practices others can easily use across the network.',
+    //   points: '200+',
+    //   isAutoTracked: true,
+    //   popupContent: {
+    //     title: 'Create a Replicable Playbook or Template',
+    //     description: 'Create or share a reusable step-by-step playbook or Google Doc template (e.g., onboarding guides, community moderation frameworks, grant templates, etc.).',
+    //     submissionNote: 'Must be based on proven practices and exclude confidential or personal information. Publish your playbook or template as a post on the PL Directory Forum. Your post title must begin with [Playbook] or [Template] (typed manually in the title) to be eligible. Only published resources are eligible for validation.',
+    //     links: [
+    //       { text: 'PL Directory Forum', url: 'https://directory.plnetwork.io/forum' },
+    //     ],
+    //     pointsAwarded: {
+    //       title: 'Points Awarded:',
+    //       items: [
+    //         { label: 'Base Reward', value: `200 points for posting a "Playbook" or "Template" article` },
+    //         {
+    //           label: 'Impact Bonus',
+    //           value: 'Participants may collect additional bonus points, on top of the base reward, if their submitted article meets various engagement thresholds (90 day window beginning with the date of publication).',
+    //           italicValue: true,
+    //           valueOnNewLine: true,
+    //           subItems: [
+    //             { label: 'Tier 1 (50-75 forum post views)', value: '50 points' },
+    //             { label: 'Tier 2 (76-100 forum post views)', value: '150 points' },
+    //             { label: 'Tier 3 (101+ forum post view)', value: '300 points' }
+    //           ]
+    //         },
+    //       ]
+    //     }
+    //   }
+    // },
     {
       id: 'host-office-hours',
       category: 'Knowledge Sharing',
@@ -466,18 +466,26 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
       category: 'Projects',
       activity: 'Bring New Members into the Alignment Asset',
       networkValue: 'Help grow the experiment by referring new members.',
-      points: '200+',
+      points: '100+',
       popupContent: {
         title: 'Referral Program',
-        description: 'Refer eligible participants to join the Alignment Asset program. Referrals must come from the existing PL Directory member list and must successfully pass KYC + accreditation to be point-eligible.',
+        description: 'Refer eligible participants to join the Alignment Asset program. Before sending an invitation, email plaa-wg@plrs.xyz with the individual’s name and email you wish to invite for validation. Once approved, you may send the referral invitation using the template we’ll provide in response. When sending the initial validation email, please do not include the referring user in the thread.',
+        submissionNote: 'Referrals must come from the existing PL Directory member list and must successfully pass KYC + accreditation to be point-eligible.',
         links: [
+          { text: 'plaa-wg@plrs.xyz', url: 'mailto:plaa-wg@plrs.xyz' },
           { text: 'PL Directory', url: 'https://directory.plnetwork.io/members' }
         ],
         pointsAwarded: {
-          title: 'Points Awarded:',
+          title: 'Points Awarded to You:',
           items: [
-            { label: 'Onboarding Award', value: '200 points when your referral completes onboarding (passes KYC + accreditation).' },
-            { label: 'Referral Activity Bonus', value: '750 points when your referral completes onboarding and 1 activity. Bonus may be collected in addition to the onboarding award.' }
+            { label: 'Onboarding Award', value: '100 points when your referral completes onboarding (passes KYC + accreditation)' },
+            { label: 'Referral Activity Bonus', value: '400 points when your referral completes onboarding and 1 activity. Bonus may be collected in addition to the onboarding award.' }
+          ]
+        },
+        additionalPointsAwarded: {
+          title: 'Points Awarded to Your Referral:',
+          items: [
+            { label: 'Onboarding Award', value: '100 points when onboarding is successfully completed. Additional activities completed by the new user earn points according to the standard activity rules.' }
           ]
         }
       }

@@ -1531,7 +1531,7 @@ export const DEMO_DAY_METADATA: Record<
   plw26: {
     title: 'Protocol Labs Demo Day W26',
     description:
-      'Explore 10+ teams across AI, Web3, and deep tech. Virtual and fully async — optimized for ease of review. For accredited investors and qualifying angels only.',
+      'Explore 12 teams across AI, Web3, and deep tech. Virtual and fully async — optimized for ease of review. For accredited investors and qualifying angels only.',
     imageUrl:
       'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_W26_v2.png',
   },

@@ -8,6 +8,7 @@ import { useFilterStore } from '@/services/members/store';
 import { SupportSection } from '@/components/page/demo-day/components/SupportSection';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { DEMO_DAY_UPFRONT_INDUSTRY_TAGS } from '@/constants/demoDay';
 
 import s from './Filters.module.scss';
 
@@ -195,6 +196,7 @@ export const Filters = () => {
           emptyMessage={teamsLoading ? 'Loading industries...' : 'No industries found'}
           initialDisplayCount={6}
           useScrollOnly
+          upfrontOptionNames={DEMO_DAY_UPFRONT_INDUSTRY_TAGS}
         />
       </FilterSection>
 

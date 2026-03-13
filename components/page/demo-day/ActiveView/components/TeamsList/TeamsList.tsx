@@ -9,8 +9,7 @@ import { TeamDetailsDrawer } from './components/TeamDetailsDrawer';
 import { FiltersDrawer } from './components/FiltersDrawer';
 import { TeamsListLoading, TeamsListError } from '@/components/page/demo-day/shared/TeamsListStates';
 import { TeamsListHeader } from './components/TeamsListHeader';
-import { RandomizationAlert } from './components/RandomizationAlert';
-import { CTAExplainerAlert } from './components/CTAExplainerAlert';
+import { TeamsListAlert } from './components/TeamsListAlert';
 import { useTeamsFiltering } from './hooks/useTeamsFiltering';
 import { useTeamsSorting } from './hooks/useTeamsSorting';
 import { useGroupNavigation } from './hooks/useGroupNavigation';
@@ -94,8 +93,7 @@ export const TeamsList: React.FC = () => {
 
   return (
     <div className={s.container}>
-      <RandomizationAlert />
-      <CTAExplainerAlert />
+      <TeamsListAlert />
 
       <TeamsListHeader
         allGroupsWithCounts={allGroupsWithCounts}

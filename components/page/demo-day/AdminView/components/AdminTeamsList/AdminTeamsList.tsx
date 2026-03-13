@@ -10,8 +10,7 @@ import { getParsedValue } from '@/utils/common.utils';
 import { IUserInfo } from '@/types/shared.types';
 import Cookies from 'js-cookie';
 import { TeamsListHeader } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamsListHeader';
-import { RandomizationAlert } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/RandomizationAlert';
-import { CTAExplainerAlert } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/CTAExplainerAlert';
+import { TeamsListAlert } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamsListAlert';
 import { useTeamsFiltering } from '@/components/page/demo-day/ActiveView/components/TeamsList/hooks/useTeamsFiltering';
 import { useGroupNavigation } from '@/components/page/demo-day/ActiveView/components/TeamsList/hooks/useGroupNavigation';
 import { useTeamsSorting } from '@/components/page/demo-day/ActiveView/components/TeamsList/hooks/useTeamsSorting';
@@ -90,8 +89,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({
 
   return (
     <div className={s.container}>
-      <RandomizationAlert />
-      <CTAExplainerAlert />
+      <TeamsListAlert />
 
       <TeamsListHeader
         allGroupsWithCounts={allGroupsWithCounts}

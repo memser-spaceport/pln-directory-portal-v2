@@ -1,5 +1,5 @@
 import React from 'react';
-import s from './CTAExplainerAlert.module.scss';
+import s from './TeamsListAlert.module.scss';
 
 const InfoIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -12,7 +12,7 @@ const InfoIcon = () => (
   </svg>
 );
 
-export const CTAExplainerAlert: React.FC = () => {
+export const TeamsListAlert: React.FC = () => {
   return (
     <div className={s.alert}>
       <div className={s.alertContent}>
@@ -20,6 +20,10 @@ export const CTAExplainerAlert: React.FC = () => {
           <InfoIcon />
         </div>
         <div className={s.alertText}>
+          <p className={s.textLine}>
+            The list is split into stages. Within each stage, the sort order is randomized to give every team equal
+            visibility. Your order is unique — no two users see the same list.
+          </p>
           <p className={s.textLine}>
             <strong>Invest in Company button:</strong> Sends an introduction email to the company founder(s) and you,
             expressing your intent to invest.

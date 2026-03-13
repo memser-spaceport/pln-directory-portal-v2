@@ -23,10 +23,12 @@
   background-color: #e2e8f0;
   width: 48px;
   object-fit: cover;
+  max-width: 80px !important;
 
   @include media.breakpoint-1024 {
-    height: 80px;
+    height: 80px !important;
     width: 80px;
+
   }
 }
 
@@ -67,6 +69,14 @@
 }
 
 .tags {
+  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tags2 {
+  margin-top: 8px;
   gap: 8px;
   display: flex;
   flex-wrap: wrap;
@@ -151,6 +161,11 @@
   &:hover {
     background: rgba(14, 15, 17, 0.1);
   }
+}
+
+.addPill1 {
+  background: transparent !important;
+  color: var(--action-foreground-warning-normal, #D97706);
 }
 
 .aboutContainer {

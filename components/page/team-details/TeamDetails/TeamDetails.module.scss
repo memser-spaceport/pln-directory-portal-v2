@@ -121,6 +121,10 @@
   background: rgba(27, 77, 255, 0.16);
 }
 
+.emptyTag {
+  max-width: none;
+}
+
 .aboutContainer {
   display: flex;
   flex-direction: column;

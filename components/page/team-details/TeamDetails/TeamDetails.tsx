@@ -63,6 +63,7 @@ export const TeamDetails = (props: Props) => {
   }, [team, isTierViewer]);
   const teamId = params?.id;
   const about = team?.longDescription ?? '';
+  const hasAbout = !!about && about.trim() !== '<p><br></p>';
   const technologies =
     team?.technologies?.map((item) => ({ name: item?.title, url: getTechnologyImage(item?.title) })) ?? [];
   const hasTeamEditAccess = isTeamLeaderOrAdmin(userInfo, team?.id);
@@ -88,6 +89,8 @@ export const TeamDetails = (props: Props) => {
     }
     setEditView(true);
   };
+
+  const emptyTagCallback = hasTeamEditAccess ? () => onEditTeamClickHandler() : undefined;
 
   const onDeleteTeamClickHandler = () => {
     setIsDeleteModalOpen(true);
@@ -172,15 +175,36 @@ export const TeamDetails = (props: Props) => {
             </div>
             <div>
               <div className={s.tags}>
-                <div className={s.fundingStage}>Stage: {team?.fundingStage?.title}</div>
-                <Divider />
+                {team?.fundingStage?.title ? (
+                  <>
+                    <div className={s.fundingStage}>Stage: {team.fundingStage.title}</div>
+                    <Divider />
+                  </>
+                ) : (
+                  <>
+                    <Tag
+                      value={hasTeamEditAccess ? 'Company Stage +' : 'Company Stage not provided'}
+                      className={s.emptyTag}
+                      callback={emptyTagCallback}
+                    />
+                    <Divider />
+                  </>
+                )}
                 {team?.isFund && (
                   <>
                     <Tag value="Investment Fund" className={s.iTag} />
                     <Divider />
                   </>
                 )}
-                <TagsList tags={tags || []} />
+                {!!tags?.length ? (
+                  <TagsList tags={tags || []} />
+                ) : (
+                  <Tag
+                    value={hasTeamEditAccess ? 'Industry Tags +' : 'Industry Tags not provided'}
+                    className={s.emptyTag}
+                    callback={emptyTagCallback}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -198,14 +222,20 @@ export const TeamDetails = (props: Props) => {
       />
 
       {/* About */}
-      {about && (
-        <div className={s.aboutContainer}>
-          <div className={s.aboutTitle}>About</div>
+      <div className={s.aboutContainer}>
+        <div className={s.aboutTitle}>About</div>
+        {hasAbout ? (
           <ExpandableDescription>
             <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: about }} />
           </ExpandableDescription>
-        </div>
-      )}
+        ) : (
+          <Tag
+            value={hasTeamEditAccess ? 'About +' : 'About not provided'}
+            className={s.emptyTag}
+            callback={emptyTagCallback}
+          />
+        )}
+      </div>
 
       {/* Technology */}
       <Technologies technologies={technologies} team={team} userInfo={userInfo} />

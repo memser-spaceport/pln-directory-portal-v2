@@ -5,6 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { Checkbox } from '@/components/common/Checkbox';
 import { FormField } from '@/components/form/FormField';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { FormSelect } from '@/components/form/FormSelect';
@@ -33,6 +34,7 @@ type TEditTeamDetailsForm = {
   isImageDeleted: boolean;
   name: string;
   shortDescription: string;
+  isFund: boolean;
   fundingStage: TOption | null;
   industryTags: TOption[];
   about: string;
@@ -75,6 +77,7 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       isImageDeleted: false,
       name: team?.name || '',
       shortDescription: team?.shortDescription || '',
+      isFund: team?.isFund ?? false,
       fundingStage: defaultFundingStage,
       industryTags: defaultIndustryTags,
       about: team?.longDescription || '',
@@ -114,6 +117,7 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
         name: formData.name.trim(),
         shortDescription: formData.shortDescription.trim(),
         longDescription: formData.about,
+        isFund: formData.isFund,
         fundingStage: formData.fundingStage
           ? { uid: formData.fundingStage.value, title: formData.fundingStage.label }
           : undefined,
@@ -125,7 +129,6 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
         membershipSources: team.membershipSources,
         technologies: team.technologies,
         investorProfile: team.investorProfile,
-        isFund: team.isFund,
         logoUid,
       },
     };
@@ -162,6 +165,13 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
             showCharCount
             rows={4}
           />
+          <div className={s.checkboxLabel}>
+            <Checkbox
+              checked={!!methods.watch('isFund')}
+              onChange={(checked) => methods.setValue('isFund', !!checked, { shouldValidate: true, shouldDirty: true })}
+            />
+            <span className={s.checkboxText}>This team is an investment fund.</span>
+          </div>
           <FormSelect
             name="fundingStage"
             label="Company Stage"

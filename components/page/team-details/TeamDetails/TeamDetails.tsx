@@ -34,6 +34,7 @@ import { EditTeamDetailsForm } from './components/EditTeamDetailsForm';
 
 import s from './TeamDetails.module.scss';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import clsx from 'clsx';
 
 interface Props {
   team: ITeam;
@@ -161,7 +162,6 @@ export const TeamDetails = (props: Props) => {
             className={s.teamLogo}
             src={logo ?? defaultAvatarImage}
           />
-          {/*<img loading="lazy" alt="team-profile" className={s.teamLogo} src={logo ?? defaultAvatarImage} />*/}
           <div className={s.nameTagContainer}>
             <div className={s.nameAndActions}>
               <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
@@ -184,21 +184,11 @@ export const TeamDetails = (props: Props) => {
             </div>
             <div>
               <div className={s.tags}>
-                {team?.fundingStage?.title ? (
+                {team?.fundingStage?.title && (
                   <>
                     <div className={s.fundingStage}>Stage: {team.fundingStage.title}</div>
                     <Divider />
                   </>
-                ) : (
-                  hasTeamEditAccess && (
-                    <>
-                      <button type="button" className={s.addPill} onClick={onEditTeamClickHandler}>
-                        <PlusIcon />
-                        <span>Add company stage</span>
-                      </button>
-                      <Divider />
-                    </>
-                  )
                 )}
                 {team?.isFund && (
                   <>
@@ -207,9 +197,19 @@ export const TeamDetails = (props: Props) => {
                   </>
                 )}
                 {!!tags?.length && <TagsList tags={tags || []} />}{' '}
+                {hasTeamEditAccess && !team?.fundingStage?.title && (
+                  <>
+                    <button type="button" className={clsx(s.addPill, s.addPill1)} onClick={onEditTeamClickHandler}>
+                      <PlusIcon />
+                      <span>Add company stage</span>
+                    </button>
+                    <Divider />
+                  </>
+                )}
+              </div>
+              <div className={s.tags2}>
                 {!team?.industryTags?.length && hasTeamEditAccess && (
                   <>
-                    {!!tags?.length && <Divider />}
                     <button type="button" className={s.addPill} onClick={onEditTeamClickHandler}>
                       <PlusIcon />
                       <span>Add industry tags</span>
@@ -218,7 +218,7 @@ export const TeamDetails = (props: Props) => {
                 )}
                 {!hasAbout && hasTeamEditAccess && (
                   <>
-                    <Divider />
+                    {!team?.industryTags?.length && hasTeamEditAccess && <Divider />}
                     <button type="button" className={s.addPill} onClick={onEditTeamClickHandler}>
                       <PlusIcon />
                       <span>Add about</span>

@@ -26,6 +26,7 @@ import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
 import { editTeamDetailsSchema } from './helpers';
 
 import s from './EditTeamDetailsForm.module.scss';
+import Link from 'next/link';
 
 type TOption = { label: string; value: string };
 
@@ -185,8 +186,17 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
             placeholder="Add a short description"
             label="Short Description"
             maxLength={1000}
-            showCharCount
+            // showCharCount
             rows={4}
+            description={
+              <>
+                This description appears on your team&apos;s card in the{' '}
+                <Link style={{ color: '#1b4dff' }} href="/teams" target="_blank">
+                  Teams Page
+                </Link>
+                , not on this page. Keep it brief: 1–2 sentences work best.
+              </>
+            }
           />
           <div className={s.checkboxLabel}>
             <Checkbox

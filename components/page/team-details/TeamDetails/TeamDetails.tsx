@@ -33,6 +33,7 @@ import Technologies from '../technologies';
 import { EditTeamDetailsForm } from './components/EditTeamDetailsForm';
 
 import s from './TeamDetails.module.scss';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface Props {
   team: ITeam;
@@ -42,9 +43,11 @@ interface Props {
 export const TeamDetails = (props: Props) => {
   const params = useParams();
   const team = props?.team;
-  const logo = team?.logo ?? '/icons/team-default-profile.svg';
+
   const teamName = team?.name ?? '';
   const userInfo = props?.userInfo;
+  const defaultAvatarImage = useDefaultAvatar(team?.name ?? '');
+  const logo = team?.logo ?? defaultAvatarImage ?? '/icons/team-default-profile.svg';
 
   const isAdmin = isAdminUser(userInfo);
 
@@ -148,7 +151,17 @@ export const TeamDetails = (props: Props) => {
       {/* Name and about section */}
       <div className={s.profile}>
         <div className={s.logoTagsContainer}>
-          <img loading="lazy" alt="team-profile" className={s.teamLogo} src={logo} />
+          <Image
+            alt="profile"
+            loading="eager"
+            height={72}
+            width={72}
+            layout="intrinsic"
+            priority={true}
+            className={s.teamLogo}
+            src={logo ?? defaultAvatarImage}
+          />
+          {/*<img loading="lazy" alt="team-profile" className={s.teamLogo} src={logo ?? defaultAvatarImage} />*/}
           <div className={s.nameTagContainer}>
             <div className={s.nameAndActions}>
               <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
@@ -166,9 +179,6 @@ export const TeamDetails = (props: Props) => {
                     </svg>
                     Delete
                   </HeaderActionBtn>
-                  // <button className={s.delete} onClick={onDeleteTeamClickHandler} disabled={isDeleting}>
-                  //
-                  // </button>
                 )}
               </div>
             </div>

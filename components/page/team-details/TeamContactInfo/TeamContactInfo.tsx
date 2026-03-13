@@ -11,16 +11,14 @@ import { TeamContactInfoView } from './components/TeamContactInfoView';
 import { TeamContactInfoEdit } from './components/TeamContactInfoEdit';
 
 interface Props {
-  team: ITeam | undefined;
-  userInfo: IUserInfo | undefined;
+  team: ITeam;
+  userInfo: IUserInfo;
 }
 
 export const TeamContactInfo = (props: Props) => {
   const { team, userInfo } = props;
 
   const [isEditMode, toggleIsEditMode] = useToggle(false);
-
-  console.log('>>>', team);
 
   return (
     <DetailsSection editView={isEditMode}>

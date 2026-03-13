@@ -21,6 +21,9 @@ export function getContactLogoByProvider(provider: string): string {
     case 'twitter': {
       return '/icons/contact/twitter-contact-logo.svg';
     }
+    case 'blog': {
+      return '/icons/contact/blog-contact-logo.svg';
+    }
     default: {
       return '/icons/contact/website-contact-logo-v2.svg';
     }

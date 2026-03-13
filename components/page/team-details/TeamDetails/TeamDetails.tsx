@@ -27,6 +27,7 @@ import { EditButton } from '@/components/common/profile/EditButton';
 import { Divider } from '@/components/common/profile/Divider';
 
 import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
+import { isEditorEmpty } from '@/utils/isEditorEmpty';
 
 import Technologies from '../technologies';
 import { EditTeamDetailsForm } from './components/EditTeamDetailsForm';

@@ -10,7 +10,7 @@ import { TEditProfileForm } from '@/components/page/member-details/ProfileDetail
 import { ProfileCollaborateInput } from '@/components/page/member-details/ProfileDetails/components/ProfileCollaborateInput';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { omit } from 'lodash';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { useMember } from '@/services/members/hooks/useMember';

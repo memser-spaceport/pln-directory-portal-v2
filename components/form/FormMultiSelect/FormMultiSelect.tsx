@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { Field } from '@base-ui-components/react/field';
+import { clsx } from 'clsx';
 import { useFormContext } from 'react-hook-form';
+import React, { ReactNode, useState } from 'react';
+import { Field } from '@base-ui-components/react/field';
 
 import Select, { GroupBase, OptionsOrGroups, components } from 'react-select';
 
-import s from './FormMultiSelect.module.scss';
-import { clsx } from 'clsx';
 import { TRecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm/types';
-import { useToggle } from 'react-use';
 import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
+
+import s from './FormMultiSelect.module.scss';
 
 interface Props {
   name: string;
   placeholder: string;
-  label?: string;
+  label?: ReactNode;
   description?: string;
   options: { label: string; value: string }[];
   disabled?: boolean;

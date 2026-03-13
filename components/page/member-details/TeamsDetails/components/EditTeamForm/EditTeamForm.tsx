@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
 import { IMember } from '@/types/members.types';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { useRouter } from 'next/navigation';
 
 import s from './EditTeamForm.module.scss';

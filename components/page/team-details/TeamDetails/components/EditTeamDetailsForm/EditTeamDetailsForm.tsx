@@ -1,6 +1,5 @@
 'use client';
 
-import Cookies from 'js-cookie';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -12,16 +11,16 @@ import { FormSelect } from '@/components/form/FormSelect';
 import { FormTextArea } from '@/components/form/FormTextArea';
 import { BioInput } from '@/components/page/member-details/BioDetails/components/BioInput';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { ProfileImageInput } from '@/components/page/member-details/ProfileDetails/components/ProfileImageInput';
 import { toast } from '@/components/core/ToastContainer';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
-import { updateTeam } from '@/services/teams.service';
 import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions';
 import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';
 import { ENROLLMENT_TYPE } from '@/utils/constants';
+import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
 
 import { editTeamDetailsSchema } from './helpers';
 
@@ -88,10 +87,9 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
 
   const { handleSubmit, reset } = methods;
 
-  const onSubmit = async (formData: TEditTeamDetailsForm) => {
-    const authToken = Cookies.get('authToken');
-    if (!authToken) return;
+  const commonOnSubmit = useOnSubmit(team, onClose);
 
+  const onSubmit = async (formData: TEditTeamDetailsForm) => {
     if (formData.name.trim() !== (team?.name || '').trim()) {
       const nameVerification = await validatePariticipantsEmail(formData.name, ENROLLMENT_TYPE.TEAM);
       if (!nameVerification.isValid) {

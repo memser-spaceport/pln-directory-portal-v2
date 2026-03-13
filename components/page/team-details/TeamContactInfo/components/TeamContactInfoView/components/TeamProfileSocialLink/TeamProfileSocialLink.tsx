@@ -10,14 +10,13 @@ interface Props {
   logo?: string;
   height?: number;
   width?: number;
-  preferred?: boolean;
   profile: string;
-  handle: string;
+  handle?: string;
   callback: (type: string, url: string) => void;
 }
 
 export const TeamProfileSocialLink = (props: Props) => {
-  const { callback, profile, type, logo, height, width, handle, preferred = false } = props;
+  const { callback, profile, type, logo, height, width, handle } = props;
 
   const href = getSocialLinkUrl(profile, type, handle);
 
@@ -29,10 +28,12 @@ export const TeamProfileSocialLink = (props: Props) => {
       target="_blank"
       rel="noreferrer noopener"
       data-testid="profile-social-link"
-      className={clsx(s.root, preferred ? s.preferred : s.notPreferred)}
+      className={clsx(s.root, {
+        [s.incomplete]: !handle,
+      })}
     >
       <img loading="lazy" src={logo} alt={type} height={height} width={width} />
-      <p className={s.link}>{profile ? profile : handle}</p>
+      {(profile || handle) && <p className={s.link}>{profile ? profile : handle}</p>}
     </a>
   );
 };

@@ -3,10 +3,9 @@
 import Link from 'next/link';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
-import { FormProvider, useForm, useWatch } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useMemo } from 'react';
 
-import { Checkbox } from '@/components/common/Checkbox';
 import { toast } from '@/components/core/ToastContainer';
 import { FormCurrencyField } from '@/components/form/FormCurrencyField';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
@@ -58,7 +57,6 @@ export const EditTeamInvestorDetailsForm = ({ team, onClose }: Props) => {
 
   const methods = useForm<TTeamInvestorDetailsForm>({
     defaultValues: {
-      isFund: team?.isFund ?? false,
       investInStartupStages:
         team?.investorProfile?.investInStartupStages?.map((item) => ({ label: item, value: item })) || [],
       typicalCheckSize: formatNumberToCurrency(team?.investorProfile?.typicalCheckSize) || '',
@@ -69,25 +67,20 @@ export const EditTeamInvestorDetailsForm = ({ team, onClose }: Props) => {
     mode: 'onSubmit',
   });
 
-  const { control, handleSubmit, reset, setValue } = methods;
-  const isFund = useWatch({ control, name: 'isFund' });
+  const { handleSubmit, reset } = methods;
 
   const onSubmit = async (formData: TTeamInvestorDetailsForm) => {
     try {
       await updateTeamInvestorProfileMutation.mutateAsync({
         teamUid: team.id,
         payload: {
-          isFund: formData.isFund,
-          ...(formData.isFund
-            ? {
-                investorProfile: {
-                  investmentFocus: formData.investmentFocusAreas,
-                  investInStartupStages: formData.investInStartupStages.map((item) => item.value),
-                  investInFundTypes: formData.investInFundTypes.map((item) => item.value),
-                  typicalCheckSize: parseCurrencyToNumber(formData.typicalCheckSize),
-                },
-              }
-            : {}),
+          isFund: true,
+          investorProfile: {
+            investmentFocus: formData.investmentFocusAreas,
+            investInStartupStages: formData.investInStartupStages.map((item) => item.value),
+            investInFundTypes: formData.investInFundTypes.map((item) => item.value),
+            typicalCheckSize: parseCurrencyToNumber(formData.typicalCheckSize),
+          },
         },
       });
 
@@ -106,21 +99,12 @@ export const EditTeamInvestorDetailsForm = ({ team, onClose }: Props) => {
         <EditFormControls title="Edit Fund Details" onClose={onClose} />
 
         <div className={s.panel}>
-          <div className={s.checkboxLabel}>
-            <Checkbox
-              checked={!!isFund}
-              onChange={(checked) => setValue('isFund', !!checked, { shouldValidate: true, shouldDirty: true })}
-            />
-            <span className={s.checkboxText}>This team is an investment fund.</span>
-          </div>
-
           <div className={s.row}>
             <FormMultiSelect
               name="investInStartupStages"
               label="Startup stage(s) you invest in?"
               placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
               options={fundingStageOptions}
-              disabled={!isFund}
               isRequired
             />
           </div>
@@ -131,7 +115,6 @@ export const EditTeamInvestorDetailsForm = ({ team, onClose }: Props) => {
               label="Typical Check Size"
               placeholder="Add check size"
               currency="USD"
-              disabled={!isFund}
               isRequired
             />
           </div>
@@ -141,7 +124,6 @@ export const EditTeamInvestorDetailsForm = ({ team, onClose }: Props) => {
               selectLabel="Add Investment Focus"
               name="investmentFocusAreas"
               placeholder="Add keywords. E.g. AI, Staking, Governance, etc."
-              disabled={!isFund}
             />
           </div>
 
@@ -151,7 +133,6 @@ export const EditTeamInvestorDetailsForm = ({ team, onClose }: Props) => {
               label="Type of fund(s) you invest in?"
               placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
               options={FUND_TYPE_OPTIONS}
-              disabled={!isFund}
             />
           </div>
 

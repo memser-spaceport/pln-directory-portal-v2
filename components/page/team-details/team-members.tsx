@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';
@@ -9,12 +10,14 @@ import TeamDetailsMembersCard from './team-member-card';
 import AllMembers from './all-members';
 import Modal from '@/components/core/modal';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
+import { EditButton } from '@/components/common/profile/EditButton';
 import {
   getAnalyticsMemberInfo,
   getAnalyticsTeamInfo,
   getAnalyticsUserInfo,
   triggerLoader,
 } from '@/utils/common.utils';
+import { isTeamLeaderOrAdmin } from './utils/isTeamLeaderOrAdmin';
 
 interface ITeamMembers {
   members: IMember[] | undefined;
@@ -31,6 +34,8 @@ const TeamMembers = (props: ITeamMembers) => {
 
   const analytics = useTeamAnalytics();
   const allMembersRef = useRef<HTMLDialogElement>(null);
+  const router = useRouter();
+  const hasEditAccess = isTeamLeaderOrAdmin(userInfo, team?.id);
 
   const onClose = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.TEAM_DETAIL_ALL_MEMBERS_CLOSE, { detail: '' }));
@@ -54,16 +59,25 @@ const TeamMembers = (props: ITeamMembers) => {
     );
   };
 
+  const onEditMembersClickHandler = () => {
+    if (!team?.id) return;
+    triggerLoader(true);
+    router.push(`${PAGE_ROUTES.SETTINGS}/teams?id=${team.id}&tab=members`);
+  };
+
   return (
     <>
       <div className="team-members">
         <div className="team-members__header">
           <h2 className="team-members__header__title">Members ({members?.length ? members?.length : 0})</h2>
-          {members?.length > 3 && (
-            <button className="team-members__header__seeall-btn" onClick={onSeeAllClickHandler}>
-              See All
-            </button>
-          )}
+          <div className="team-members__header__actions">
+            {members?.length > 3 && (
+              <button className="team-members__header__seeall-btn" onClick={onSeeAllClickHandler}>
+                See All
+              </button>
+            )}
+            {hasEditAccess && <EditButton onClick={onEditMembersClickHandler} />}
+          </div>
         </div>
 
         {/* Projects web */}
@@ -111,6 +125,13 @@ const TeamMembers = (props: ITeamMembers) => {
           .team-members__header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+          }
+
+          .team-members__header__actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
           }
 
           .team-members__header__title {

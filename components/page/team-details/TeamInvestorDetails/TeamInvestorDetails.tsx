@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Tag } from '@/components/ui/Tag';
 
 import { ITeam } from '@/types/teams.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -35,14 +36,20 @@ export function TeamInvestorDetails(props: Props) {
   const [editView, setEditView] = useState(false);
 
   const hasEditAccess = isTeamLeaderOrAdmin(userInfo, team?.id);
-
   const { investmentFocus, typicalCheckSize, investInFundTypes, investInStartupStages } = team?.investorProfile || {};
+  const hasInvestorData =
+    !!investmentFocus?.length || !!typicalCheckSize || !!investInFundTypes?.length || !!investInStartupStages?.length;
 
   useMobileNavVisibility(editView);
 
   if (!isLoggedIn) {
     return null;
   }
+
+  const onEditFundDetailsClickHandler = () => {
+    if (!hasEditAccess) return;
+    setEditView(true);
+  };
 
   if (editView) {
     return (
@@ -58,15 +65,27 @@ export function TeamInvestorDetails(props: Props) {
         {hasEditAccess && <EditButton onClick={() => setEditView(true)} />}
       </DetailsSectionHeader>
       <DetailsSectionGreyContentContainer className={s.content}>
-        <InvestorProfileField label="Fund Type(s)">{getValueFromArray(investInFundTypes)}</InvestorProfileField>
+        {hasInvestorData ? (
+          <>
+            <InvestorProfileField label="Fund Type(s)">{getValueFromArray(investInFundTypes)}</InvestorProfileField>
 
-        <InvestorProfileField label="Typical Check Size">
-          {!!typicalCheckSize ? formatUSD.format(+(typicalCheckSize ?? 0)) : '-'}
-        </InvestorProfileField>
+            <InvestorProfileField label="Typical Check Size">
+              {!!typicalCheckSize ? formatUSD.format(+(typicalCheckSize ?? 0)) : '-'}
+            </InvestorProfileField>
 
-        <InvestorProfileField label="Startup Stages">{getValueFromArray(investInStartupStages)}</InvestorProfileField>
+            <InvestorProfileField label="Startup Stages">
+              {getValueFromArray(investInStartupStages)}
+            </InvestorProfileField>
 
-        <InvestorProfileField label="Investment  Focus">{getValueFromArray(investmentFocus)}</InvestorProfileField>
+            <InvestorProfileField label="Investment  Focus">{getValueFromArray(investmentFocus)}</InvestorProfileField>
+          </>
+        ) : (
+          <Tag
+            value={hasEditAccess ? 'Fund Details +' : 'Fund Details not provided'}
+            className={s.emptyTag}
+            callback={hasEditAccess ? onEditFundDetailsClickHandler : undefined}
+          />
+        )}
       </DetailsSectionGreyContentContainer>
     </DetailsSection>
   );

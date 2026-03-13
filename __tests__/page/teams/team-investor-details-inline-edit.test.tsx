@@ -27,22 +27,24 @@ describe('TeamInvestorDetails inline edit', () => {
   it('shows readonly fund details and switches to edit mode for team leads', () => {
     render(
       <TeamInvestorDetails
-        team={{
-          id: 'team-1',
-          isFund: true,
-          investorProfile: {
-            uid: 'profile-1',
-            investmentFocus: ['AI', 'Infra'],
-            typicalCheckSize: '250000',
-            createdAt: '',
-            updatedAt: '',
-            teamUid: 'team-1',
-            memberUid: null,
-            secRulesAccepted: true,
-            investInStartupStages: ['Seed'],
-            investInFundTypes: ['Early stage'],
-          },
-        } as any}
+        team={
+          {
+            id: 'team-1',
+            isFund: true,
+            investorProfile: {
+              uid: 'profile-1',
+              investmentFocus: ['AI', 'Infra'],
+              typicalCheckSize: '250000',
+              createdAt: '',
+              updatedAt: '',
+              teamUid: 'team-1',
+              memberUid: null,
+              secRulesAccepted: true,
+              investInStartupStages: ['Seed'],
+              investInFundTypes: ['Early stage'],
+            },
+          } as any
+        }
         userInfo={{ uid: 'user-1', leadingTeams: ['team-1'], roles: [] } as any}
         isLoggedIn
       />,
@@ -63,27 +65,89 @@ describe('TeamInvestorDetails inline edit', () => {
   it('does not show edit action for viewers without team access', () => {
     render(
       <TeamInvestorDetails
-        team={{
-          id: 'team-1',
-          isFund: true,
-          investorProfile: {
-            uid: 'profile-1',
-            investmentFocus: ['AI'],
-            typicalCheckSize: '50000',
-            createdAt: '',
-            updatedAt: '',
-            teamUid: 'team-1',
-            memberUid: null,
-            secRulesAccepted: true,
-            investInStartupStages: ['Pre-seed'],
-            investInFundTypes: ['Growth'],
-          },
-        } as any}
+        team={
+          {
+            id: 'team-1',
+            isFund: true,
+            investorProfile: {
+              uid: 'profile-1',
+              investmentFocus: ['AI'],
+              typicalCheckSize: '50000',
+              createdAt: '',
+              updatedAt: '',
+              teamUid: 'team-1',
+              memberUid: null,
+              secRulesAccepted: true,
+              investInStartupStages: ['Pre-seed'],
+              investInFundTypes: ['Growth'],
+            },
+          } as any
+        }
         userInfo={{ uid: 'user-2', leadingTeams: [], roles: [] } as any}
         isLoggedIn
       />,
     );
 
     expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument();
+  });
+
+  it('renders empty state when fund details are missing', () => {
+    render(
+      <TeamInvestorDetails
+        team={
+          {
+            id: 'team-1',
+            isFund: true,
+            investorProfile: {
+              uid: 'profile-1',
+              investmentFocus: [],
+              typicalCheckSize: '',
+              createdAt: '',
+              updatedAt: '',
+              teamUid: 'team-1',
+              memberUid: null,
+              secRulesAccepted: true,
+              investInStartupStages: [],
+              investInFundTypes: [],
+            },
+          } as any
+        }
+        userInfo={{ uid: 'user-1', leadingTeams: ['team-1'], roles: [] } as any}
+        isLoggedIn
+      />,
+    );
+
+    expect(screen.getByText('Fund Details +')).toBeInTheDocument();
+  });
+
+  it('opens fund edit mode when clicking the empty state tag', () => {
+    render(
+      <TeamInvestorDetails
+        team={
+          {
+            id: 'team-1',
+            isFund: true,
+            investorProfile: {
+              uid: 'profile-1',
+              investmentFocus: [],
+              typicalCheckSize: '',
+              createdAt: '',
+              updatedAt: '',
+              teamUid: 'team-1',
+              memberUid: null,
+              secRulesAccepted: true,
+              investInStartupStages: [],
+              investInFundTypes: [],
+            },
+          } as any
+        }
+        userInfo={{ uid: 'user-1', leadingTeams: ['team-1'], roles: [] } as any}
+        isLoggedIn
+      />,
+    );
+
+    fireEvent.click(screen.getByText('Fund Details +'));
+
+    expect(screen.getByText('Edit Fund Details Form')).toBeInTheDocument();
   });
 });

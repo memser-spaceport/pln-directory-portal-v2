@@ -77,7 +77,7 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
 
-          {isLoggedIn && team?.isFund && team.investorProfile && !!hasInvestorData() && (
+          {isLoggedIn && team?.isFund && (
             <TeamInvestorDetails team={team} userInfo={userInfo} isLoggedIn={isLoggedIn} />
           )}
 

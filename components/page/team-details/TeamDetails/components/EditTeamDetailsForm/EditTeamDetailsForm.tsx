@@ -4,6 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { Checkbox } from '@/components/common/Checkbox';
 import { FormField } from '@/components/form/FormField';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { FormSelect } from '@/components/form/FormSelect';
@@ -32,6 +33,7 @@ type TEditTeamDetailsForm = {
   isImageDeleted: boolean;
   name: string;
   shortDescription: string;
+  isFund: boolean;
   fundingStage: TOption | null;
   industryTags: TOption[];
   about: string;
@@ -74,6 +76,7 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       isImageDeleted: false,
       name: team?.name || '',
       shortDescription: team?.shortDescription || '',
+      isFund: team?.isFund ?? false,
       fundingStage: defaultFundingStage,
       industryTags: defaultIndustryTags,
       about: team?.longDescription || '',
@@ -104,16 +107,41 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       logoUid = undefined;
     }
 
-    await commonOnSubmit({
-      name: formData.name.trim(),
-      shortDescription: formData.shortDescription.trim(),
-      longDescription: formData.about,
-      fundingStage: formData.fundingStage
-        ? { uid: formData.fundingStage.value, title: formData.fundingStage.label }
-        : undefined,
-      industryTags: formData.industryTags.map((item) => ({ uid: item.value, title: item.label })),
-      logoUid,
-    });
+    const payload = {
+      participantType: 'TEAM',
+      referenceUid: team.id,
+      uniqueIdentifier: team.name,
+      newData: {
+        name: formData.name.trim(),
+        shortDescription: formData.shortDescription.trim(),
+        longDescription: formData.about,
+        isFund: formData.isFund,
+        fundingStage: formData.fundingStage
+          ? { uid: formData.fundingStage.value, title: formData.fundingStage.label }
+          : undefined,
+        industryTags: formData.industryTags.map((item) => ({ uid: item.value, title: item.label })),
+        contactMethod: team.contactMethod,
+        website: team.website,
+        twitterHandler: team.twitter,
+        linkedinHandler: team.linkedinHandle,
+        membershipSources: team.membershipSources,
+        technologies: team.technologies,
+        investorProfile: team.investorProfile,
+        logoUid,
+      },
+    };
+
+    const { isError } = await updateTeam(payload, JSON.parse(authToken), team.id);
+
+    if (isError) {
+      toast.error('Team updated failed. Something went wrong, please try again later');
+      return;
+    }
+
+    toast.success('Team updated successfully');
+    reset(formData);
+    onClose();
+    router.refresh();
   };
 
   return (
@@ -135,6 +163,13 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
             showCharCount
             rows={4}
           />
+          <div className={s.checkboxLabel}>
+            <Checkbox
+              checked={!!methods.watch('isFund')}
+              onChange={(checked) => methods.setValue('isFund', !!checked, { shouldValidate: true, shouldDirty: true })}
+            />
+            <span className={s.checkboxText}>This team is an investment fund.</span>
+          </div>
           <FormSelect
             name="fundingStage"
             label="Company Stage"

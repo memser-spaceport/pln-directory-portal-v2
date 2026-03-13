@@ -4,9 +4,11 @@ import type { ReactNode } from 'react';
 
 import { TeamDetails } from '@/components/page/team-details/TeamDetails';
 
+const pushMock = jest.fn();
+
 jest.mock('next/navigation', () => ({
   useParams: jest.fn(() => ({ id: 'team-1' })),
-  useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn(), prefetch: jest.fn(), refresh: jest.fn() })),
+  useRouter: jest.fn(() => ({ push: pushMock, replace: jest.fn(), prefetch: jest.fn(), refresh: jest.fn() })),
 }));
 
 jest.mock('@/analytics/teams.analytics', () => ({
@@ -65,21 +67,23 @@ describe('TeamDetails inline edit', () => {
   it('switches to inline edit mode after clicking Edit', () => {
     render(
       <TeamDetails
-        team={{
-          id: 'team-1',
-          name: 'Team Alpha',
-          logo: '/team.png',
-          shortDescription: 'Short description',
-          longDescription: '<p>About team</p>',
-          fundingStage: { title: 'Seed' },
-          industryTags: [{ title: 'AI' }],
-          technologies: [],
-          membershipSources: [],
-          asks: [],
-          maintainingProjects: [],
-          contributingProjects: [],
-          teamFocusAreas: [],
-        }}
+        team={
+          {
+            id: 'team-1',
+            name: 'Team Alpha',
+            logo: '/team.png',
+            shortDescription: 'Short description',
+            longDescription: '<p>About team</p>',
+            fundingStage: { title: 'Seed' },
+            industryTags: [{ title: 'AI' }],
+            technologies: [],
+            membershipSources: [],
+            asks: [],
+            maintainingProjects: [],
+            contributingProjects: [],
+            teamFocusAreas: [],
+          } as any
+        }
         userInfo={{ uid: 'user-1', leadingTeams: ['team-1'], roles: [] } as any}
       />,
     );
@@ -94,5 +98,61 @@ describe('TeamDetails inline edit', () => {
     expect(screen.getByText('Profile Image Input')).toBeInTheDocument();
     expect(screen.getByText('About Editor')).toBeInTheDocument();
     expect(screen.queryByText('About team')).not.toBeInTheDocument();
+  });
+
+  it('renders empty state tags for missing details', () => {
+    render(
+      <TeamDetails
+        team={
+          {
+            id: 'team-1',
+            name: 'Team Alpha',
+            logo: '/team.png',
+            shortDescription: '',
+            longDescription: '',
+            technologies: [],
+            membershipSources: [],
+            asks: [],
+            maintainingProjects: [],
+            contributingProjects: [],
+            teamFocusAreas: [],
+            industryTags: [],
+          } as any
+        }
+        userInfo={{ uid: 'user-1', leadingTeams: ['team-1'], roles: [] } as any}
+      />,
+    );
+
+    expect(screen.getByText('Company Stage +')).toBeInTheDocument();
+    expect(screen.getByText('Industry Tags +')).toBeInTheDocument();
+    expect(screen.getByText('About +')).toBeInTheDocument();
+  });
+
+  it('opens edit mode when clicking an empty state tag', () => {
+    render(
+      <TeamDetails
+        team={
+          {
+            id: 'team-1',
+            name: 'Team Alpha',
+            logo: '/team.png',
+            shortDescription: '',
+            longDescription: '',
+            technologies: [],
+            membershipSources: [],
+            asks: [],
+            maintainingProjects: [],
+            contributingProjects: [],
+            teamFocusAreas: [],
+            industryTags: [],
+          } as any
+        }
+        userInfo={{ uid: 'user-1', leadingTeams: ['team-1'], roles: [] } as any}
+      />,
+    );
+
+    fireEvent.click(screen.getByText('Company Stage +'));
+
+    expect(screen.getByText('Edit Profile Details')).toBeInTheDocument();
   });
 });

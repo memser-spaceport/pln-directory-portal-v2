@@ -6,7 +6,6 @@ export type TOption = {
 };
 
 export type TTeamInvestorDetailsForm = {
-  isFund: boolean;
   investInStartupStages: TOption[];
   typicalCheckSize: string;
   investmentFocusAreas: string[];
@@ -14,7 +13,6 @@ export type TTeamInvestorDetailsForm = {
 };
 
 export const editTeamInvestorDetailsSchema = yup.object().shape({
-  isFund: yup.boolean().defined(),
   investInStartupStages: yup
     .array()
     .of(
@@ -23,19 +21,11 @@ export const editTeamInvestorDetailsSchema = yup.object().shape({
         value: yup.string().required(),
       }),
     )
-    .when('isFund', {
-      is: true,
-      then: (schema) => schema.min(1, 'Select at least one startup stage'),
-      otherwise: (schema) => schema.defined(),
-    })
+    .min(1, 'Select at least one startup stage')
     .defined(),
   typicalCheckSize: yup
     .string()
-    .when('isFund', {
-      is: true,
-      then: (schema) => schema.required('Typical check size is required'),
-      otherwise: (schema) => schema.defined(),
-    })
+    .required('Typical check size is required')
     .defined(),
   investmentFocusAreas: yup.array().of(yup.string().required()).defined(),
   investInFundTypes: yup

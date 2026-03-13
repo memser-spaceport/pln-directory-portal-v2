@@ -29,21 +29,6 @@
   width: 100%;
 }
 
-.checkboxLabel {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: fit-content;
-}
-
-.checkboxText {
-  color: var(--action-foreground-neutral-normal, #455468);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-}
-
 .infoBox {
   display: flex;
   gap: 8px;

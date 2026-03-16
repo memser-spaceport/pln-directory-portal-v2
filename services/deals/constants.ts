@@ -2,6 +2,7 @@ export enum DealsQueryKeys {
   DEALS_LIST = 'deals-list',
   DEAL_BY_ID = 'deal-by-id',
   DEAL_FILTER_VALUES = 'deal-filter-values',
+  DEALS_ACCESS = 'deals-access',
 }
 
 export const DEALS_PER_PAGE = 10;

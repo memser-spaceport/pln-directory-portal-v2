@@ -16,7 +16,7 @@ import { NavigationMenu } from '@base-ui-components/react';
 import { useContactSupportStore } from '@/services/contact-support/store';
 
 import { DIRECTORY_LINKS, EVENT_LINKS } from './constants/navLinks';
-import { hasDealsAccess } from '@/utils/user/hasDealsAccess';
+import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 
 import { AppLogo, HelpIcon, ForumIcon, EventsIcon, DemoDayIcon, DirectoryIcon } from './components/icons';
 import { NavLink } from './components/NavLink';
@@ -83,8 +83,10 @@ function Navbar(props: Readonly<INavbar>) {
 
   const { data: profileStatus } = useMemberProfileStatus(userInfo?.uid);
 
+  const { hasAccess: hasDealsPageAccess } = useDealsAccess(isLoggedIn);
+
   const directoryLinks = DIRECTORY_LINKS.filter((link) => {
-    if (link.href === '/deals') return hasDealsAccess(userInfo);
+    if (link.href === '/deals') return hasDealsPageAccess;
     return true;
   });
 

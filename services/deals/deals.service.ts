@@ -62,6 +62,18 @@ export async function getDealById(id: string): Promise<IDeal | null> {
   return MOCK_DEALS.find((deal) => deal.id === id) || null;
 }
 
+/**
+ * Check if the current user has access to the Deals page.
+ * Mock: always returns true. Replace with real API call when ready.
+ */
+export async function checkDealsAccess(): Promise<boolean> {
+  // TODO: Replace with real API call, e.g.:
+  // const response = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/deals/access`);
+  // return response?.hasAccess ?? false;
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  return true;
+}
+
 export async function getDealFilterValues(): Promise<IDealFilterValues> {
   await new Promise((resolve) => setTimeout(resolve, 200));
 

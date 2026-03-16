@@ -1,9 +1,11 @@
 'use client';
 
 import { useQueryStates } from 'nuqs';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { dealsFilterParsers } from '../searchParams';
 import { useGetDeals } from '@/services/deals/hooks/useGetDeals';
+import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 import { IDealsSearchParams } from '@/types/deals.types';
 import { DealsToolbar } from '@/components/page/deals/DealsToolbar/DealsToolbar';
 import { DealsList } from '@/components/page/deals/DealsList/DealsList';
@@ -17,6 +19,14 @@ import { DEAL_SORT_OPTIONS } from '@/services/deals/constants';
 import s from './page.module.scss';
 
 export default function DealsContent() {
+  const router = useRouter();
+  const { hasAccess, isLoading: isAccessLoading } = useDealsAccess();
+
+  useEffect(() => {
+    if (!isAccessLoading && !hasAccess) {
+      router.replace('/members');
+    }
+  }, [hasAccess, isAccessLoading, router]);
   const [filters, setFilters] = useQueryStates(dealsFilterParsers, {
     history: 'replace',
     shallow: true,
@@ -75,6 +85,10 @@ export default function DealsContent() {
     },
     [setFilters]
   );
+
+  if (isAccessLoading || !hasAccess) {
+    return <ContentPanelSkeletonLoader />;
+  }
 
   if (isError) {
     return <Error />;

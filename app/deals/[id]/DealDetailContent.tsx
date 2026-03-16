@@ -1,7 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useGetDealById } from '@/services/deals/hooks/useGetDealById';
+import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 import { DEAL_CATEGORY_LABELS, DEAL_AUDIENCE_LABELS } from '@/services/deals/constants';
 import s from './page.module.scss';
 
@@ -10,7 +13,23 @@ interface DealDetailContentProps {
 }
 
 export default function DealDetailContent({ id }: DealDetailContentProps) {
+  const router = useRouter();
+  const { hasAccess, isLoading: isAccessLoading } = useDealsAccess();
   const { data: deal, isLoading, isError } = useGetDealById(id);
+
+  useEffect(() => {
+    if (!isAccessLoading && !hasAccess) {
+      router.replace('/members');
+    }
+  }, [hasAccess, isAccessLoading, router]);
+
+  if (isAccessLoading || !hasAccess) {
+    return (
+      <div className={s.root}>
+        <div className={s.skeleton} />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

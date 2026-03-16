@@ -1,18 +1,9 @@
 import { ReactNode } from 'react';
 import { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
-import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { hasDealsAccess } from '@/utils/user/hasDealsAccess';
 
 export default function Layout({ filters, content }: { filters: ReactNode; content: ReactNode }) {
-  const { userInfo } = getCookiesFromHeaders();
-
-  if (!hasDealsAccess(userInfo)) {
-    redirect('/members');
-  }
-
   return <DashboardPagesLayout filters={filters} content={content} />;
 }
 

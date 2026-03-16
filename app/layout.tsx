@@ -9,6 +9,7 @@ import React, { Suspense } from 'react';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import dynamic from 'next/dynamic';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import QueryProvider from '@/providers/QueryProvider';
 import StoreInitializer from '@/providers/StoreInitializer';
 import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
@@ -90,6 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Suspense>
         <StyledJsxRegistry>
           <QueryProvider>
+            <NuqsAdapter>
             <PushNotificationsProvider authToken={authToken} enabled={isLoggedIn}>
               <StoreInitializer userInfo={userInfo} />
               <PostHogIdentifier />
@@ -120,6 +122,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <CookieChecker isLoggedIn={isLoggedIn} />
               {/*<ReactQueryDevtools initialIsOpen={false} />*/}
             </PushNotificationsProvider>
+            </NuqsAdapter>
           </QueryProvider>
         </StyledJsxRegistry>
       </body>

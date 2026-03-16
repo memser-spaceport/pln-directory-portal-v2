@@ -1,0 +1,170 @@
+@import 'styles/media.scss';
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 42px;
+  letter-spacing: -0.75px;
+  color: #0a0c11;
+  white-space: nowrap;
+
+  @include mobile-only {
+    font-size: 24px;
+    line-height: 34px;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.sortDropdown {
+  position: relative;
+}
+
+.sortButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: rgba(14, 15, 17, 0.24);
+  }
+}
+
+.sortCaret {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.15s ease;
+}
+
+.sortCaretOpen {
+  transform: rotate(180deg);
+}
+
+.sortMenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 10;
+  background: #fff;
+  border: 1px solid rgba(14, 15, 17, 0.08);
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px rgba(14, 15, 17, 0.08);
+  overflow: hidden;
+  min-width: 160px;
+}
+
+.sortOption {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #455468;
+  text-align: left;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+.sortOptionActive {
+  font-weight: 500;
+  color: #0a0c11;
+  background: #f1f5f9;
+}
+
+.submitButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  background: #1b4dff;
+  box-shadow: 0px 1px 5px 0px rgba(27, 77, 255, 0.16);
+  cursor: default;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #fff;
+  white-space: nowrap;
+  position: relative;
+
+  @include mobile-only {
+    display: none;
+  }
+}
+
+.submitIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #0a0c11;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  white-space: nowrap;
+  pointer-events: none;
+
+  .submitButton:hover & {
+    display: block;
+  }
+}
+
+.subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #455468;
+
+  @include mobile-only {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}

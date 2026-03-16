@@ -1,0 +1,149 @@
+.root {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.backLink {
+  display: inline-block;
+  margin-bottom: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1b4dff;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.card {
+  background: #fff;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  background: #f9fafb;
+  border: 1px solid rgba(27, 56, 96, 0.24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatarPlaceholder {
+  font-size: 28px;
+  font-weight: 600;
+  color: #455468;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 38px;
+  letter-spacing: -0.5px;
+  color: #0a0c11;
+  margin-bottom: 4px;
+}
+
+.description {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #455468;
+}
+
+.tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: rgba(14, 15, 17, 0.06);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #455468;
+}
+
+.tagBrand {
+  background: rgba(27, 77, 255, 0.04);
+  color: #4174ff;
+}
+
+.meta {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+  color: #455468;
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: #1b4dff;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #1640d6;
+  }
+}
+
+.skeleton {
+  height: 300px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.notFound {
+  text-align: center;
+  padding: 60px 0;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #0a0c11;
+    margin-bottom: 16px;
+  }
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 60px 0;
+}

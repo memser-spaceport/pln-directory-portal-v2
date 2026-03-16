@@ -58,6 +58,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     onActiveViewIntroCompanyClicked,
     onActiveViewIntroCompanyCancelClicked,
     onActiveViewIntroCompanyConfirmClicked,
+    onActiveViewGiveFeedbackClicked,
     onActiveViewTeamPitchDeckViewed,
     onActiveViewTeamPitchVideoViewed,
     onActiveViewVideoWatchTime,
@@ -262,9 +263,36 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     setIsReferModalOpen(false);
   };
 
-  const handleFeedbackSubmit = (feedbackData: { feedback: string }) => {
-    // TODO: Add analytics for feedback submission
+  const handleGiveFeedbackClick = () => {
+    // Report give feedback clicked analytics
+    if (userInfo?.email) {
+      const analyticsData = getTeamAnalyticsData();
 
+      // PostHog analytics
+      onActiveViewGiveFeedbackClicked(analyticsData);
+
+      // Custom analytics event
+      const feedbackEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_GIVE_FEEDBACK_CLICKED,
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          action: 'give_feedback',
+          ...analyticsData,
+        },
+      };
+
+      reportAnalytics.mutate(feedbackEvent);
+    }
+
+    setIsFeedbackModalOpen(true);
+  };
+
+  const handleFeedbackSubmit = (feedbackData: { feedback: string }) => {
     // Express interest via API with feedback data
     expressInterest.mutate(
       {
@@ -501,7 +529,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         isInvested={team.invested}
         isFeedbackGiven={team.feedback}
         onMakeIntro={(e) => handleInterestCompanyClick(e, 'referral')}
-        onGiveFeedback={() => setIsFeedbackModalOpen(true)}
+        onGiveFeedback={handleGiveFeedbackClick}
         onConnect={(e) => handleInterestCompanyClick(e, 'connect')}
         onInvest={(e) => handleInterestCompanyClick(e, 'invest')}
         isLoading={expressInterest.isPending}

@@ -74,7 +74,8 @@ export default function DealsFiltersContent() {
           .fw__web {
             display: none;
             position: fixed;
-            background: #f1f5f9;
+            background: #fff;
+            z-index: 1;
           }
 
           @media (min-width: 1024px) {

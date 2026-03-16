@@ -1,20 +1,48 @@
 'use client';
 
+import { ComponentType } from 'react';
 import Link from 'next/link';
 import { IDeal } from '@/types/deals.types';
 import { DEAL_CATEGORY_LABELS, DEAL_AUDIENCE_LABELS } from '@/services/deals/constants';
+import {
+  VercelIcon,
+  GithubIcon,
+  LinearIcon,
+  FigmaIcon,
+  NotionIcon,
+  SupabaseIcon,
+  DatadogIcon,
+  SentryIcon,
+  PosthogIcon,
+  CloudflareIcon,
+} from '../dealsIcons';
 import s from './DealCard.module.scss';
+
+const DEAL_ICONS: Record<string, ComponentType> = {
+  vercel: VercelIcon,
+  github: GithubIcon,
+  linear: LinearIcon,
+  figma: FigmaIcon,
+  notion: NotionIcon,
+  supabase: SupabaseIcon,
+  datadog: DatadogIcon,
+  sentry: SentryIcon,
+  posthog: PosthogIcon,
+  cloudflare: CloudflareIcon,
+};
 
 interface DealCardProps {
   deal: IDeal;
 }
 
 export function DealCard({ deal }: DealCardProps) {
+  const IconComponent = DEAL_ICONS[deal.title.toLowerCase()];
+
   return (
     <Link href={`/deals/${deal.id}`} className={s.card}>
       <div className={s.content}>
         <div className={s.avatar}>
-          <div className={s.avatarPlaceholder}>{deal.title.charAt(0)}</div>
+          {IconComponent ? <IconComponent /> : <div className={s.avatarPlaceholder}>{deal.title.charAt(0)}</div>}
         </div>
         <div className={s.details}>
           <div className={s.description}>

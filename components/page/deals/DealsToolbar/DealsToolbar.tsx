@@ -1,8 +1,7 @@
 'use client';
 
-import { useRef, useState } from 'react';
 import { clsx } from 'clsx';
-import useClickedOutside from '@/hooks/useClickedOutside';
+import { Menu } from '@base-ui-components/react/menu';
 import { DEAL_SORT_OPTIONS } from '@/services/deals/constants';
 import s from './DealsToolbar.module.scss';
 
@@ -12,11 +11,6 @@ interface DealsToolbarProps {
 }
 
 export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
-  const [isSortOpen, setIsSortOpen] = useState(false);
-  const sortRef = useRef<HTMLDivElement>(null);
-
-  useClickedOutside({ callback: () => setIsSortOpen(false), ref: sortRef });
-
   const currentSortLabel = DEAL_SORT_OPTIONS.find((o) => o.value === currentSort)?.label || 'Most recent';
 
   return (
@@ -24,15 +18,10 @@ export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
       <div className={s.titleRow}>
         <h1 className={s.title}>Deals</h1>
         <div className={s.actions}>
-          <div className={s.sortDropdown} ref={sortRef}>
-            <button className={s.sortButton} onClick={() => setIsSortOpen(!isSortOpen)}>
+          <Menu.Root modal={false}>
+            <Menu.Trigger className={clsx(s.sortDropdown, s.sortButton)}>
               {currentSortLabel}
-              <svg
-                className={clsx(s.sortCaret, isSortOpen && s.sortCaretOpen)}
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
+              <svg className={s.sortCaret} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                   d="M4 6L8 10L12 6"
                   stroke="currentColor"
@@ -41,24 +30,23 @@ export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
                   strokeLinejoin="round"
                 />
               </svg>
-            </button>
-            {isSortOpen && (
-              <div className={s.sortMenu}>
-                {DEAL_SORT_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    className={clsx(s.sortOption, currentSort === option.value && s.sortOptionActive)}
-                    onClick={() => {
-                      onSortChange(option.value);
-                      setIsSortOpen(false);
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+            </Menu.Trigger>
+            <Menu.Portal>
+              <Menu.Positioner className={s.sortPositioner} align="end" sideOffset={4}>
+                <Menu.Popup className={s.sortMenu}>
+                  {DEAL_SORT_OPTIONS.map((option) => (
+                    <Menu.Item
+                      key={option.value}
+                      className={clsx(s.sortOption, currentSort === option.value && s.sortOptionActive)}
+                      onClick={() => onSortChange(option.value)}
+                    >
+                      {option.label}
+                    </Menu.Item>
+                  ))}
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
           <div className={s.submitButton}>
             <svg className={s.submitIcon} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path

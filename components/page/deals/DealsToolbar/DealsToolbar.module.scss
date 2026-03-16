@@ -49,8 +49,6 @@
 }
 
 .sortDropdown {
-  position: relative;
-
   @include mobile-only {
     display: none;
   }
@@ -81,23 +79,34 @@
   width: 16px;
   height: 16px;
   transition: transform 0.15s ease;
+
+  [data-popup-open] > & {
+    transform: rotate(180deg);
+  }
 }
 
-.sortCaretOpen {
-  transform: rotate(180deg);
+.sortPositioner {
+  z-index: 10;
 }
 
 .sortMenu {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  z-index: 10;
   background: #fff;
   border: 1px solid rgba(14, 15, 17, 0.08);
   border-radius: 8px;
   box-shadow: 0px 4px 12px rgba(14, 15, 17, 0.08);
   overflow: hidden;
   min-width: 160px;
+
+  transform-origin: top right;
+  transition:
+          transform 150ms,
+          opacity 150ms;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.9);
+  }
 }
 
 .sortOption {

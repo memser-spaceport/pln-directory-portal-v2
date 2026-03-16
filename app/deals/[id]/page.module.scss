@@ -7,6 +7,11 @@
   padding-bottom: 80px;
   min-height: 100vh;
   background: #f0f3f9;
+
+  @include mobile-only {
+    background: #fff;
+    padding-bottom: 0;
+  }
 }
 
 .headerContainer {
@@ -27,11 +32,21 @@
   max-width: 900px;
 
   @include mobile-only {
-    padding: 0 16px;
+    padding: 24px 16px 64px;
   }
 
   @include tablet-portrait {
     padding: 0 24px;
+  }
+}
+
+.mobileDivider {
+  display: none;
+
+  @include mobile-only {
+    display: block;
+    height: 1px;
+    background: rgba(14, 15, 17, 0.06);
   }
 }
 
@@ -40,17 +55,33 @@
   border-radius: 20px;
   box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
   overflow: hidden;
+
+  @include mobile-only {
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+  }
 }
 
 .mainContent {
   display: flex;
   flex-direction: column;
   padding-bottom: 20px;
+
+  @include mobile-only {
+    padding-bottom: 0;
+    gap: 20px;
+  }
 }
 
 .header {
   padding: 20px;
   border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+
+  @include mobile-only {
+    padding: 0;
+    border-bottom: none;
+  }
 }
 
 .headerContent {
@@ -60,7 +91,7 @@
   align-items: flex-start;
 
   @include mobile-only {
-    flex-direction: column;
+    gap: 12px;
   }
 }
 
@@ -75,6 +106,11 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+
+  @include mobile-only {
+    width: 56px;
+    height: 56px;
+  }
 }
 
 .avatarPlaceholder {
@@ -106,7 +142,7 @@
 
   @include mobile-only {
     font-size: 24px;
-    line-height: 32px;
+    line-height: 34px;
     letter-spacing: -0.4px;
   }
 }
@@ -189,6 +225,10 @@
   flex-direction: column;
   gap: 20px;
   padding: 20px;
+
+  @include mobile-only {
+    padding: 0;
+  }
 }
 
 .aboutSection {
@@ -206,7 +246,9 @@
 
   @include mobile-only {
     font-size: 20px;
-    line-height: 28px;
+    font-weight: 600;
+    line-height: 27px;
+    letter-spacing: -0.3px;
   }
 }
 
@@ -219,6 +261,11 @@
     color: #0a0c11;
     margin-top: 20px;
     margin-bottom: 12px;
+
+    @include mobile-only {
+      font-size: 18px;
+      line-height: 24px;
+    }
   }
 
   p {
@@ -305,7 +352,8 @@
 
   @include mobile-only {
     font-size: 20px;
-    line-height: 28px;
+    line-height: 27px;
+    letter-spacing: -0.3px;
   }
 }
 
@@ -390,19 +438,20 @@
   }
 
   li {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
     font-size: 16px;
     font-weight: 400;
     line-height: 24px;
     letter-spacing: -0.3px;
     color: #455468;
     counter-increment: step-counter;
+    padding-left: 36px;
+    position: relative;
 
     &::before {
       content: counter(step-counter);
-      flex-shrink: 0;
+      position: absolute;
+      left: 0;
+      top: 0;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -436,6 +485,7 @@
 
   @include mobile-only {
     flex-direction: column-reverse;
+    margin-top: 24px;
 
     > button {
       width: 100%;

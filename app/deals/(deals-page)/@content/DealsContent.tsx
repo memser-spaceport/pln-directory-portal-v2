@@ -10,7 +10,7 @@ import { IDealsSearchParams } from '@/types/deals.types';
 import { DealsToolbar } from '@/components/page/deals/DealsToolbar/DealsToolbar';
 import { DealsList } from '@/components/page/deals/DealsList/DealsList';
 import { DealsSkeletonLoader } from '@/components/page/deals/DealsSkeletonLoader/DealsSkeletonLoader';
-import EmptyResult from '@/components/core/empty-result';
+import { DealsEmptyState } from '@/components/page/deals/DealsEmptyState/DealsEmptyState';
 import Error from '@/components/core/error';
 import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWrapper/MobileFilterWrapper';
 import { DealsFilter } from '@/components/page/deals/DealsFilter/DealsFilter';
@@ -135,7 +135,7 @@ export default function DealsContent() {
       {deals.length > 0 ? (
         <DealsList deals={deals} hasMore={hasMore} isLoadingMore={loadingMore} onShowMore={handleShowMore} />
       ) : (
-        <EmptyResult />
+        <DealsEmptyState onClearFilters={handleClearAll} />
       )}
     </div>
   );

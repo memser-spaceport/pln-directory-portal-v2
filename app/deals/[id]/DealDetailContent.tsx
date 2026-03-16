@@ -246,6 +246,8 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
               )}
             </div>
 
+            <div className={s.mobileDivider} />
+
             <div className={s.content}>
               {deal.aboutHtml && (
                 <div className={s.aboutSection}>

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -9,7 +10,6 @@ import { Checkbox } from '@/components/common/Checkbox';
 import { FormField } from '@/components/form/FormField';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { FormSelect } from '@/components/form/FormSelect';
-import { FormTextArea } from '@/components/form/FormTextArea';
 import { BioInput } from '@/components/page/member-details/BioDetails/components/BioInput';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { EditFormControls } from '@/components/common/profile/EditFormControls';
@@ -26,7 +26,6 @@ import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
 import { editTeamDetailsSchema } from './helpers';
 
 import s from './EditTeamDetailsForm.module.scss';
-import Link from 'next/link';
 
 type TOption = { label: string; value: string };
 
@@ -181,13 +180,11 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
             <FormField name="name" placeholder="Enter team name" label="Team Name" max={150} isRequired />
           </div>
 
-          <FormTextArea
+          <FormField
             name="shortDescription"
             placeholder="Add a short description"
             label="Short Description"
-            maxLength={1000}
-            // showCharCount
-            rows={4}
+            max={100}
             description={
               <>
                 This description appears on your team&apos;s card in the{' '}

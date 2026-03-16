@@ -91,7 +91,9 @@ export default function DealsContent() {
 
   return (
     <div className={s.root}>
-      {/* Mobile filters */}
+      <DealsToolbar currentSort={filters.sort} onSortChange={handleSortChange} />
+
+      {/* Mobile filters + sort (visible on mobile only) */}
       {filterValues && (
         <MobileFilterWrapper
           filterCount={filters.categories.length + filters.audience.length + (filters.q ? 1 : 0)}
@@ -115,8 +117,6 @@ export default function DealsContent() {
           )}
         />
       )}
-
-      <DealsToolbar currentSort={filters.sort} onSortChange={handleSortChange} />
 
       {deals.length > 0 ? (
         <DealsList deals={deals} hasMore={hasMore} isLoadingMore={loadingMore} onShowMore={handleShowMore} />

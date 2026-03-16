@@ -2,7 +2,7 @@ import React from 'react';
 
 import { ISubItem } from '@/components/core/navbar/type';
 import { CalendarBlankIcon, ContributorIcon, UsersThreeIcon } from '@/components/icons';
-import { MembersIcon, TeamsIcon, ProjectsIcon, DealsIcon } from '../components/icons';
+import { MembersIcon, TeamsIcon, ProjectsIcon } from '../components/icons';
 
 export const DIRECTORY_LINKS: ISubItem[] = [
   {
@@ -22,12 +22,6 @@ export const DIRECTORY_LINKS: ISubItem[] = [
     href: '/projects',
     title: 'Projects',
     description: 'See what the network is building',
-  },
-  {
-    icon: <DealsIcon />,
-    href: '/deals',
-    title: 'Deals',
-    description: 'Exclusive software deals for PL network founders',
   },
 ] as const;
 

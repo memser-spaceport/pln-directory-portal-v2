@@ -9,7 +9,7 @@ import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 import { IDealsSearchParams } from '@/types/deals.types';
 import { DealsToolbar } from '@/components/page/deals/DealsToolbar/DealsToolbar';
 import { DealsList } from '@/components/page/deals/DealsList/DealsList';
-import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
+import { DealsSkeletonLoader } from '@/components/page/deals/DealsSkeletonLoader/DealsSkeletonLoader';
 import EmptyResult from '@/components/core/empty-result';
 import Error from '@/components/core/error';
 import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWrapper/MobileFilterWrapper';
@@ -87,7 +87,7 @@ export default function DealsContent() {
   );
 
   if (isAccessLoading || !hasAccess) {
-    return <ContentPanelSkeletonLoader />;
+    return <DealsSkeletonLoader />;
   }
 
   if (isError) {
@@ -95,7 +95,7 @@ export default function DealsContent() {
   }
 
   if (isLoading && !dealsData) {
-    return <ContentPanelSkeletonLoader />;
+    return <DealsSkeletonLoader />;
   }
 
   const deals = dealsData?.deals || [];

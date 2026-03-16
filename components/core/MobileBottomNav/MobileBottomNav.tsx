@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 
 import { DIRECTORY_LINKS, EVENT_LINKS } from '@/components/core/navbar/constants/navLinks';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
+import { DealsIcon } from '@/components/core/navbar/components/icons';
 
 import { NavigationMenu } from '@base-ui-components/react';
 
@@ -27,11 +28,6 @@ export function MobileBottomNav() {
   const scrollDirection = useScrollDirection();
   const { hasAccess: hasDealsPageAccess } = useDealsAccess();
 
-  const directoryLinks = DIRECTORY_LINKS.filter((link) => {
-    if (link.href === '/deals') return hasDealsPageAccess;
-    return true;
-  });
-
   return (
     <div
       className={clsx(s.wrapper, {
@@ -41,7 +37,7 @@ export function MobileBottomNav() {
     >
       <NavigationMenu.Root style={{ width: '100%' }}>
         <NavigationMenu.List className={s.list}>
-          <MobileNavItemWithMenu icon={<DirectoryIcon />} label="Directory" items={directoryLinks} />
+          <MobileNavItemWithMenu icon={<DirectoryIcon />} label="Directory" items={DIRECTORY_LINKS} />
           <MobileNavItemWithMenu icon={<EventsIcon />} label="Events" items={EVENT_LINKS} />
 
           {/* Other Nav Items */}
@@ -60,6 +56,20 @@ export function MobileBottomNav() {
               </NavigationMenu.Item>
             );
           })}
+
+          {hasDealsPageAccess && (
+            <NavigationMenu.Item>
+              <Link
+                href="/deals"
+                className={clsx(s.item, {
+                  [s.itemActive]: pathname.startsWith('/deals'),
+                })}
+              >
+                <DealsIcon />
+                <span>Deals</span>
+              </Link>
+            </NavigationMenu.Item>
+          )}
         </NavigationMenu.List>
       </NavigationMenu.Root>
     </div>

@@ -1,5 +1,5 @@
-import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
+import { DealsSkeletonLoader } from '@/components/page/deals/DealsSkeletonLoader/DealsSkeletonLoader';
 
 export default function Loading() {
-  return <ContentPanelSkeletonLoader />;
+  return <DealsSkeletonLoader />;
 }

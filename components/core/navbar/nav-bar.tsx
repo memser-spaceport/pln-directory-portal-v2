@@ -18,7 +18,7 @@ import { useContactSupportStore } from '@/services/contact-support/store';
 import { DIRECTORY_LINKS, EVENT_LINKS } from './constants/navLinks';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 
-import { AppLogo, HelpIcon, ForumIcon, EventsIcon, DemoDayIcon, DirectoryIcon } from './components/icons';
+import { AppLogo, HelpIcon, ForumIcon, EventsIcon, DemoDayIcon, DirectoryIcon, DealsIcon } from './components/icons';
 import { NavLink } from './components/NavLink';
 import { NavItemWithMenu } from './components/NavItemWithMenu';
 
@@ -85,11 +85,6 @@ function Navbar(props: Readonly<INavbar>) {
 
   const { hasAccess: hasDealsPageAccess } = useDealsAccess(isLoggedIn);
 
-  const directoryLinks = DIRECTORY_LINKS.filter((link) => {
-    if (link.href === '/deals') return hasDealsPageAccess;
-    return true;
-  });
-
   return (
     <NavigationMenu.Root className={s.Root}>
       <NavigationMenu.List className={s.List}>
@@ -100,7 +95,7 @@ function Navbar(props: Readonly<INavbar>) {
         <NavItemWithMenu
           icon={<DirectoryIcon />}
           label="Directory"
-          items={directoryLinks}
+          items={DIRECTORY_LINKS}
           onNavItemClickHandler={onNavItemClickHandler}
         />
 
@@ -121,6 +116,13 @@ function Navbar(props: Readonly<INavbar>) {
             <DemoDayIcon /> Demo Day
           </NavLink>
         </NavigationMenu.Item>
+        {hasDealsPageAccess && (
+          <NavigationMenu.Item className={s.menuItem}>
+            <NavLink className={s.Trigger} href="/deals" onClick={() => onNavItemClickHandler('/deals', 'Deals')}>
+              <DealsIcon /> Deals
+            </NavLink>
+          </NavigationMenu.Item>
+        )}
 
         <div className={s.right}>
           <NotificationsMenu

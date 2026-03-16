@@ -1,16 +1,17 @@
-import React, { PropsWithChildren, ReactNode } from 'react';
 import { clsx } from 'clsx';
-import { Field } from '@base-ui-components/react/field';
 import { useFormContext } from 'react-hook-form';
+import React, { PropsWithChildren, ReactNode } from 'react';
+
+import { Field } from '@base-ui-components/react/field';
+import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
 
 import s from './FormField.module.scss';
-import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
 
 interface Props extends PropsWithChildren {
   name: string;
   placeholder: string;
   label?: string;
-  description?: string;
+  description?: ReactNode;
   disabled?: boolean;
   isRequired?: boolean;
   onClick?: () => void;

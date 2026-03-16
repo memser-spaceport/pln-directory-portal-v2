@@ -16,9 +16,11 @@
 }
 
 .badgesWrapper {
+  gap: 10px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+
+  word-break: break-word;
 
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;

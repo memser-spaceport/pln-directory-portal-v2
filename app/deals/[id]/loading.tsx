@@ -3,6 +3,9 @@ import s from './page.module.scss';
 export default function Loading() {
   return (
     <div className={s.root}>
+      <div className={s.headerContainer}>
+        <div className={s.backButtonSkeleton} />
+      </div>
       <div className={s.page}>
         <div className={s.card}>
           <div className={s.mainContent}>

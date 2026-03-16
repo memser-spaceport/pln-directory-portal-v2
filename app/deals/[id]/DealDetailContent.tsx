@@ -177,7 +177,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                       openContactSupport(
                         { dealId: deal.id, dealTitle: deal.title },
                         'reportBug',
-                        `I'd like to report a problem with the "${deal.title}" deal.`
+                        `I'd like to report a problem with the "${deal.title}" deal.`,
                       )
                     }
                   >
@@ -338,6 +338,9 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
 function DealDetailSkeleton() {
   return (
     <div className={s.root}>
+      <div className={s.headerContainer}>
+        <div className={s.backButtonSkeleton} />
+      </div>
       <div className={s.page}>
         <div className={s.card}>
           <div className={s.mainContent}>

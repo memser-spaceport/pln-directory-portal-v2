@@ -30,6 +30,7 @@
 .page {
   width: 100%;
   max-width: 900px;
+  animation: pageEnter 0.35s ease-out both;
 
   @include mobile-only {
     padding: 24px 16px 64px;
@@ -621,6 +622,17 @@
   }
 }
 
+.backButtonSkeleton {
+  display: none;
+  height: 64px;
+  width: 100%;
+  box-shadow: 0px 1px 4px 0px #e2e8f0;
+
+  @include tablet-landscape {
+    display: block;
+  }
+}
+
 // Skeleton / loading
 .skeleton {
   background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
@@ -633,6 +645,17 @@
   background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes shimmer {

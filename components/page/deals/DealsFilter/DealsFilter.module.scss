@@ -6,6 +6,8 @@
   gap: 20px;
   width: 100%;
   padding: 20px 10px 40px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
 }
 
 .header {

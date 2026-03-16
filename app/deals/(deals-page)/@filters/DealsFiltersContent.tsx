@@ -50,15 +50,41 @@ export default function DealsFiltersContent() {
   }
 
   return (
-    <DealsFilter
-      filterValues={filterValues}
-      searchQuery={filters.q}
-      selectedCategories={filters.categories}
-      selectedAudiences={filters.audience}
-      onSearchChange={handleSearchChange}
-      onCategoriesChange={handleCategoriesChange}
-      onAudiencesChange={handleAudiencesChange}
-      onClearAll={handleClearAll}
-    />
+    <div className="fw">
+      <div className="fw__web">
+        <DealsFilter
+          filterValues={filterValues}
+          searchQuery={filters.q}
+          selectedCategories={filters.categories}
+          selectedAudiences={filters.audience}
+          onSearchChange={handleSearchChange}
+          onCategoriesChange={handleCategoriesChange}
+          onAudiencesChange={handleAudiencesChange}
+          onClearAll={handleClearAll}
+        />
+      </div>
+
+      <style jsx>
+        {`
+          .fw {
+            width: inherit;
+            height: inherit;
+          }
+
+          .fw__web {
+            display: none;
+            position: fixed;
+          }
+
+          @media (min-width: 1024px) {
+            .fw__web {
+              display: unset;
+              width: inherit;
+              height: inherit;
+            }
+          }
+        `}
+      </style>
+    </div>
   );
 }

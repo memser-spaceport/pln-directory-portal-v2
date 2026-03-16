@@ -204,3 +204,18 @@ export const CloudflareIcon = () => (
     />
   </svg>
 );
+
+import { ComponentType } from 'react';
+
+export const DEAL_ICONS: Record<string, ComponentType> = {
+  vercel: VercelIcon,
+  github: GithubIcon,
+  linear: LinearIcon,
+  figma: FigmaIcon,
+  notion: NotionIcon,
+  supabase: SupabaseIcon,
+  datadog: DatadogIcon,
+  sentry: SentryIcon,
+  posthog: PosthogIcon,
+  cloudflare: CloudflareIcon,
+};

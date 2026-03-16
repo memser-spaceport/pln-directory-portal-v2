@@ -11,6 +11,7 @@ export interface IDeal {
   id: string;
   title: string;
   description: string;
+  aboutHtml?: string;
   logoUrl: string;
   externalUrl: string;
   categories: DealCategory[];

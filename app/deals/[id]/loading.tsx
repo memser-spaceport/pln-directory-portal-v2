@@ -1,15 +1,42 @@
+import s from './page.module.scss';
+
 export default function Loading() {
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 20px' }}>
-      <div
-        style={{
-          height: 300,
-          borderRadius: 12,
-          background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)',
-          backgroundSize: '200% 100%',
-          animation: 'shimmer 1.5s infinite',
-        }}
-      />
+    <div className={s.root}>
+      <div className={s.page}>
+        <div className={s.card}>
+          <div className={s.mainContent}>
+            <div className={s.header}>
+              <div className={s.headerContent}>
+                <div className={`${s.avatar} ${s.skeleton}`} />
+                <div className={s.dealDetails}>
+                  <div className={s.skeletonBlock} style={{ width: '200px', height: '42px' }} />
+                  <div className={s.skeletonBlock} style={{ width: '300px', height: '22px' }} />
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <div
+                      className={s.skeletonBlock}
+                      style={{ width: '140px', height: '24px', borderRadius: '9999px' }}
+                    />
+                    <div
+                      className={s.skeletonBlock}
+                      style={{ width: '100px', height: '24px', borderRadius: '9999px' }}
+                    />
+                  </div>
+                  <div className={s.skeletonBlock} style={{ width: '180px', height: '18px' }} />
+                </div>
+              </div>
+            </div>
+            <div className={s.content}>
+              <div className={s.aboutSection}>
+                <div className={s.skeletonBlock} style={{ width: '200px', height: '34px' }} />
+                <div className={s.skeletonBlock} style={{ width: '100%', height: '24px' }} />
+                <div className={s.skeletonBlock} style={{ width: '90%', height: '24px' }} />
+              </div>
+              <div className={s.skeletonBlock} style={{ width: '100%', height: '224px', borderRadius: '12px' }} />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -347,6 +347,206 @@
   }
 }
 
+.redemptionInstructions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.redemptionInstructionsTitle {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.4px;
+  color: #0a0c11;
+
+  @include mobile-only {
+    font-size: 20px;
+    line-height: 28px;
+  }
+}
+
+.redemptionInstructionsBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  h3 {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 27px;
+    letter-spacing: -0.4px;
+    color: #0a0c11;
+  }
+
+  ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    counter-reset: step-counter;
+  }
+
+  li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    letter-spacing: -0.3px;
+    color: #455468;
+    counter-increment: step-counter;
+
+    &::before {
+      content: counter(step-counter);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 9999px;
+      background: #f2f5ff;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1;
+      color: #1b4dff;
+    }
+  }
+
+  a {
+    color: #1b4dff;
+    text-decoration: underline;
+
+    &:hover {
+      color: #1640d6;
+    }
+  }
+}
+
+.headerActions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+
+  @include mobile-only {
+    flex-direction: column-reverse;
+
+    > button {
+      width: 100%;
+    }
+  }
+}
+
+.headerActionSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  background: #fff;
+  box-shadow:
+    0px 1px 2px 0px rgba(14, 15, 17, 0.08),
+    inset 0px -2px 8px 0px rgba(14, 15, 17, 0.02);
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f9fafb;
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: #455468;
+    flex-shrink: 0;
+    filter: drop-shadow(0px 1px 2px rgba(14, 15, 17, 0.06));
+  }
+
+  span {
+    padding: 0 4px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+    color: #455468;
+    white-space: nowrap;
+    filter: drop-shadow(0px 1px 2px rgba(14, 15, 17, 0.06));
+  }
+}
+
+.headerActionPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  background: #1b4dff;
+  box-shadow:
+    0px 1px 5px 0px rgba(27, 77, 255, 0.16),
+    inset 0px 1px 3px 0px rgba(255, 255, 255, 0.32),
+    inset 0px 4px 6px 0px rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #1640d6;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: #fff;
+    flex-shrink: 0;
+    filter: drop-shadow(0px 1px 3px rgba(14, 15, 17, 0.12)) drop-shadow(0px 1px 2px rgba(14, 15, 17, 0.06));
+  }
+
+  span {
+    padding: 0 4px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+    color: #fff;
+    white-space: nowrap;
+    filter: drop-shadow(0px 1px 3px rgba(14, 15, 17, 0.12)) drop-shadow(0px 1px 2px rgba(14, 15, 17, 0.06));
+  }
+}
+
+.headerActionPrimaryActive {
+  background: rgba(10, 153, 82, 0.12);
+  border-color: rgba(14, 15, 17, 0.02);
+  box-shadow: inset 0px -2px 4px 0px rgba(14, 15, 17, 0.02);
+
+  &:hover {
+    background: rgba(10, 153, 82, 0.18);
+  }
+
+  svg {
+    color: #0a9952;
+    filter: drop-shadow(0px 1px 2px rgba(14, 15, 17, 0.06));
+  }
+
+  span {
+    color: #0a9952;
+    filter: drop-shadow(0px 1px 2px rgba(14, 15, 17, 0.06));
+  }
+}
+
 // Not found state
 .notFound {
   text-align: center;

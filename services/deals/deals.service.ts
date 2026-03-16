@@ -1,4 +1,4 @@
-import { IDeal, IDealsListResponse, IDealFilterValues, IDealsSearchParams } from '@/types/deals.types';
+import { IDeal, IDealsListResponse, IDealFilterValues, IDealsSearchParams, IUserDealStatus } from '@/types/deals.types';
 import { MOCK_DEALS } from './mock-data';
 import { DEALS_PER_PAGE, DEAL_CATEGORY_LABELS, DEAL_AUDIENCE_LABELS } from './constants';
 
@@ -72,6 +72,22 @@ export async function checkDealsAccess(): Promise<boolean> {
   // return response?.hasAccess ?? false;
   await new Promise((resolve) => setTimeout(resolve, 100));
   return true;
+}
+
+// Mock in-memory store for user-deal status
+const userDealStatuses = new Map<string, IUserDealStatus>();
+
+export async function getUserDealStatus(dealId: string): Promise<IUserDealStatus> {
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  return userDealStatuses.get(dealId) || { dealId, using: false };
+}
+
+export async function toggleDealUsing(dealId: string): Promise<IUserDealStatus> {
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  const current = userDealStatuses.get(dealId) || { dealId, using: false };
+  const status: IUserDealStatus = { ...current, using: !current.using };
+  userDealStatuses.set(dealId, status);
+  return status;
 }
 
 export async function getDealFilterValues(): Promise<IDealFilterValues> {

@@ -12,6 +12,7 @@ export interface IDeal {
   title: string;
   description: string;
   aboutHtml?: string;
+  redemptionHtml?: string;
   logoUrl: string;
   externalUrl: string;
   categories: DealCategory[];
@@ -44,4 +45,9 @@ export interface IDealsSearchParams {
   audience?: string;
   sort?: string;
   page?: string;
+}
+
+export interface IUserDealStatus {
+  dealId: string;
+  using: boolean;
 }

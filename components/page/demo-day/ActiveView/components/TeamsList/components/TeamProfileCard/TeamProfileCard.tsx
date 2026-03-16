@@ -59,6 +59,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     onActiveViewIntroCompanyCancelClicked,
     onActiveViewIntroCompanyConfirmClicked,
     onActiveViewGiveFeedbackClicked,
+    onActiveViewFeedbackSubmitted,
     onActiveViewTeamPitchDeckViewed,
     onActiveViewTeamPitchVideoViewed,
     onActiveViewVideoWatchTime,
@@ -293,6 +294,35 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
   };
 
   const handleFeedbackSubmit = (feedbackData: { feedback: string }) => {
+    // Report feedback submitted analytics
+    if (userInfo?.email) {
+      const analyticsData = getTeamAnalyticsData();
+
+      // PostHog analytics
+      onActiveViewFeedbackSubmitted({
+        ...analyticsData,
+        feedbackLength: feedbackData.feedback.length,
+      });
+
+      // Custom analytics event
+      const feedbackSubmittedEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_FEEDBACK_SUBMITTED,
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          action: 'feedback_submitted',
+          feedbackLength: feedbackData.feedback.length,
+          ...analyticsData,
+        },
+      };
+
+      reportAnalytics.mutate(feedbackSubmittedEvent);
+    }
+
     // Express interest via API with feedback data
     expressInterest.mutate(
       {

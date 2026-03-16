@@ -1957,6 +1957,7 @@ export const DEMO_DAY_ANALYTICS = {
   ON_ACTIVE_VIEW_INTRO_COMPANY_CANCEL_CLICKED: 'demo-day-active-view-intro-company-cancel-clicked',
   ON_ACTIVE_VIEW_INTRO_COMPANY_CONFIRM_CLICKED: 'demo-day-active-view-intro-company-confirm-clicked',
   ON_ACTIVE_VIEW_GIVE_FEEDBACK_CLICKED: 'demo-day-active-view-give-feedback-clicked',
+  ON_ACTIVE_VIEW_FEEDBACK_SUBMITTED: 'demo-day-active-view-feedback-submitted',
   ON_INVESTOR_PROFILE_ADD_TEAM_LINK_CLICKED: 'demo-day-investor-profile-add-team-link-clicked',
   ON_INVESTOR_PROFILE_TEAM_SELECTED: 'demo-day-investor-profile-team-selected',
   ON_TEAM_PROFILE_READY: 'demo-day-team-profile-ready',

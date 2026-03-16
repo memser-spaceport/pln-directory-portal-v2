@@ -1,11 +1,15 @@
 'use client';
 
 import clsx from 'clsx';
-import React from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Cookies from 'js-cookie';
 
 import { DIRECTORY_LINKS, EVENT_LINKS } from '@/components/core/navbar/constants/navLinks';
+import { hasDealsAccess } from '@/utils/user/hasDealsAccess';
+import { getParsedValue } from '@/utils/common.utils';
+import { IUserInfo } from '@/types/shared.types';
 
 import { NavigationMenu } from '@base-ui-components/react';
 
@@ -24,6 +28,12 @@ const navItems = [
 export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+
+  const directoryLinks = useMemo(
+    () => DIRECTORY_LINKS.filter((link) => (link.href === '/deals' ? hasDealsAccess(userInfo) : true)),
+    [userInfo]
+  );
 
   return (
     <div
@@ -34,7 +44,7 @@ export function MobileBottomNav() {
     >
       <NavigationMenu.Root style={{ width: '100%' }}>
         <NavigationMenu.List className={s.list}>
-          <MobileNavItemWithMenu icon={<DirectoryIcon />} label="Directory" items={DIRECTORY_LINKS} />
+          <MobileNavItemWithMenu icon={<DirectoryIcon />} label="Directory" items={directoryLinks} />
           <MobileNavItemWithMenu icon={<EventsIcon />} label="Events" items={EVENT_LINKS} />
 
           {/* Other Nav Items */}

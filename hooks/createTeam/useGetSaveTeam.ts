@@ -52,8 +52,10 @@ export function useGetSaveTeam(onSuccess: (newData: any) => void) {
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
         analytics.recordTeamJoinNetworkSave('save-success', data);
       } else {
+        const result = await response.json();
+
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        toast.error(result?.message || TOAST_MESSAGES.SOMETHING_WENT_WRONG);
         analytics.recordTeamJoinNetworkSave('save-error', data);
       }
     } catch (err) {

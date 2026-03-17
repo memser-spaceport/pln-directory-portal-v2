@@ -1,12 +1,14 @@
 export const getTeamsFormOptions = async () => {
   const [
     membershipSourcesResponse,
-    fundingTagsresponse,
+    communityAffiliationsResponse,
+    fundingTagsResponse,
     industryTagsResponse,
     technologiesResponse,
     focusAreaResponse,
   ] = await Promise.all([
     fetch(`${process.env.DIRECTORY_API_URL}/v1/membership-sources`, { method: 'GET' }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/community-affiliations`, { method: 'GET' }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/funding-stages?pagination=false`, { method: 'GET' }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/industry-tags?pagination=false`, { method: 'GET' }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/technologies?pagination=false`, { method: 'GET' }),
@@ -14,14 +16,16 @@ export const getTeamsFormOptions = async () => {
   ]);
 
   const membershipSources = await membershipSourcesResponse.json();
-  const fundingTags = await fundingTagsresponse.json();
+  const communityAffiliations = await communityAffiliationsResponse.json();
+  const fundingTags = await fundingTagsResponse.json();
   const industryTags = await industryTagsResponse.json();
   const technologies = await technologiesResponse.json();
   const focusAreas = await focusAreaResponse.json();
 
   if (
     !membershipSourcesResponse.ok ||
-    !fundingTagsresponse.ok ||
+    !communityAffiliationsResponse.ok ||
+    !fundingTagsResponse.ok ||
     !industryTagsResponse.ok ||
     !technologiesResponse.ok ||
     !focusAreaResponse.ok
@@ -45,6 +49,11 @@ export const getTeamsFormOptions = async () => {
     name: source?.title,
   }));
 
+  const formattedCommunityAffiliationsResources = communityAffiliations?.map((source: any) => ({
+    id: source?.uid,
+    name: source?.title,
+  }));
+
   const formattedIndustryTags = industryTags
     .map((tag: any) => ({ id: tag?.uid, name: tag?.title }))
     .sort((a: any, b: any) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
@@ -54,6 +63,7 @@ export const getTeamsFormOptions = async () => {
     focusAreas: formattedFocusAreas,
     fundingStage: formattedFundingStages,
     membershipSources: formattedMembershipResources,
+    communityAffiliations: formattedCommunityAffiliationsResources,
     industryTags: formattedIndustryTags,
   };
 };

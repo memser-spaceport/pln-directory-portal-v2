@@ -56,7 +56,7 @@ export const TeamFundraisingCard = ({ onPitchDeckClick, onVideoClick }: TeamFund
             </div>
             <div className={s.textContent}>
               <div className={s.paragraph}>
-                <h3 className={s.cardTitle}>PL Demo Day</h3>
+                <h3 className={s.cardTitle}>PL Demo Day Preview</h3>
                 <p className={s.cardDescription}>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
                   dolore magna aliqua.

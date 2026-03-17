@@ -110,7 +110,6 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
 
         if (normalized === pathToCompareNotyLink) {
           markNotificationAsRead(authToken, uid)
-            .then(() => fetchNotifications())
             .catch((err) => console.error('Failed to auto-mark notification:', err));
           wsMarkAsReadRef.current(uid);
 
@@ -145,7 +144,7 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
         addUnreadLinkEntry({ uid, link }, unreadLinksMapRef.current);
       }
     },
-    [authToken, fetchNotifications, pathToCompareNotyLink],
+    [authToken, pathToCompareNotyLink],
   );
 
   // Handle notification update from WebSocket (sync across devices)
@@ -200,12 +199,24 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
   // Keep wsMarkAsReadRef in sync
   wsMarkAsReadRef.current = wsMarkAsRead;
 
+  // Callback for auto-mark: update local state instead of refetching
+  const onMarkedAsRead = useCallback((uids: string[]) => {
+    const currentNotifications = notificationsRef.current;
+    const newlyReadCount = uids.filter((uid) => {
+      const n = currentNotifications.find((notif) => notif.id === uid);
+      return n && !n.isRead;
+    }).length;
+
+    setNotifications((prev) => prev.map((n) => (uids.includes(n.id) ? { ...n, isRead: true } : n)));
+    setUnreadCount((c) => Math.max(0, c - newlyReadCount));
+  }, []);
+
   // Auto-mark notifications as read when user navigates to a matching page
   useAutoMarkOnNavigation({
     authToken,
     unreadLinksMapRef,
     wsMarkAsReadRef,
-    fetchNotifications,
+    onMarkedAsRead,
   });
 
   // Mark single notification as read
@@ -214,11 +225,14 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
       const notification = notifications.find((n) => n.id === id);
       if (!notification || notification.isRead) return;
 
+      // Optimistic update
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+
       // Call REST API
       if (authToken) {
         try {
           await markNotificationAsRead(authToken, id);
-          await fetchNotifications();
         } catch (err) {
           console.error('Failed to mark notification as read:', err);
           // Revert optimistic update on error
@@ -251,7 +265,6 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     if (authToken) {
       try {
         await markAllNotificationsAsRead(authToken);
-        await fetchNotifications();
       } catch (err) {
         console.error('Failed to mark all notifications as read:', err);
         // Revert optimistic update on error

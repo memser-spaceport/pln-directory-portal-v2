@@ -1,0 +1,60 @@
+@import 'styles/media.scss';
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+  width: 100%;
+
+  @include mobile-only {
+    gap: 0;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0px 0px 1px 0px rgba(15, 23, 42, 0.08);
+  }
+}
+
+.cardWrapper {
+  width: 100%;
+
+  @include mobile-only {
+    padding: 0 16px;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid rgba(14, 15, 17, 0.08);
+    }
+  }
+}
+
+.showMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  background: #fff;
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.08);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f8fafc;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @include mobile-only {
+    margin-top: 16px;
+  }
+}

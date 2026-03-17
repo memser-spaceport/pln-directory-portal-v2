@@ -39,6 +39,42 @@ export const ProjectsIcon = () => (
   </svg>
 );
 
+export const DealsIcon = () => (
+  <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g filter="url(#filter0_d_196_12199)">
+      <path
+        d="M17.3387 9.36422L10.3552 2.38079C10.225 2.24973 10.0701 2.14582 9.89944 2.07509C9.72877 2.00436 9.54576 1.96822 9.36102 1.96876H2.84376C2.61998 1.96876 2.40537 2.05765 2.24713 2.21588C2.0889 2.37412 2.00001 2.58873 2.00001 2.81251V9.32977C1.99947 9.51451 2.03561 9.69752 2.10634 9.86819C2.17707 10.0389 2.28098 10.1938 2.41204 10.324L9.39547 17.3074C9.65918 17.5711 10.0168 17.7192 10.3897 17.7192C10.7626 17.7192 11.1202 17.5711 11.3839 17.3074L17.3387 11.3527C17.6023 11.089 17.7504 10.7313 17.7504 10.3584C17.7504 9.98556 17.6023 9.62793 17.3387 9.36422ZM10.3897 15.9152L3.68751 9.21094V3.65626H9.24219L15.9444 10.3584L10.3897 15.9152ZM7.06251 5.90626C7.06251 6.12876 6.99653 6.34627 6.87291 6.53127C6.74929 6.71628 6.57359 6.86047 6.36802 6.94562C6.16246 7.03077 5.93626 7.05305 5.71803 7.00964C5.4998 6.96623 5.29935 6.85908 5.14201 6.70175C4.98468 6.54442 4.87753 6.34396 4.83412 6.12573C4.79071 5.9075 4.81299 5.6813 4.89814 5.47574C4.98329 5.27017 5.12748 5.09447 5.31249 4.97085C5.49749 4.84724 5.715 4.78126 5.93751 4.78126C6.23587 4.78126 6.52202 4.89978 6.733 5.11076C6.94398 5.32174 7.06251 5.60789 7.06251 5.90626Z"
+        fill="#455468"
+      />
+    </g>
+    <defs>
+      <filter
+        id="filter0_d_196_12199"
+        x="-1.96875"
+        y="-1"
+        width="22"
+        height="22"
+        filterUnits="userSpaceOnUse"
+        color-interpolation-filters="sRGB"
+      >
+        <feFlood flood-opacity="0" result="BackgroundImageFix" />
+        <feColorMatrix
+          in="SourceAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          result="hardAlpha"
+        />
+        <feOffset dy="1" />
+        <feGaussianBlur stdDeviation="1" />
+        <feComposite in2="hardAlpha" operator="out" />
+        <feColorMatrix type="matrix" values="0 0 0 0 0.054902 0 0 0 0 0.0588235 0 0 0 0 0.0666667 0 0 0 0.06 0" />
+        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_196_12199" />
+        <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_196_12199" result="shape" />
+      </filter>
+    </defs>
+  </svg>
+);
+
 export const EventsIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g clipPath="url(#clip0_3785_16476)">

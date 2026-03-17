@@ -117,7 +117,7 @@ export function MobileFilterWrapper({
             {/* Sort Menu using base-ui */}
             <Menu.Root modal={false}>
               <Menu.Trigger className={s.filtersButton}>
-                Sort <ChevronDownIcon color="#455468" />
+                {sortOptions.find((o) => o.value === currentSort)?.label || 'Sort'} <ChevronDownIcon color="#455468" />
               </Menu.Trigger>
               <Menu.Portal>
                 <Menu.Positioner className={s.menuPositioner} align="end" sideOffset={8}>

@@ -12,19 +12,20 @@ import s from './TeamsTagsListSectionView.module.scss';
 export interface TeamsTagsListSectionViewProps {
   tags?: ITag[];
   title: ReactNode;
+  canEdit: boolean;
   emptyMessage: ReactNode;
   toggleIsEditMode: () => void;
 }
 
 export function TeamsTagsListSectionView(props: TeamsTagsListSectionViewProps) {
-  const { tags = [], title, emptyMessage, toggleIsEditMode } = props;
+  const { tags = [], title, canEdit, emptyMessage, toggleIsEditMode } = props;
 
   const noTags = isEmpty(tags);
 
   return (
     <>
       <DetailsSectionHeader title={title}>
-        <EditButton onClick={toggleIsEditMode} />
+        {canEdit && <EditButton onClick={toggleIsEditMode} />}
       </DetailsSectionHeader>
       <DetailsSectionGreyContentContainer>
         {noTags ? (

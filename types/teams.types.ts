@@ -114,6 +114,7 @@ export interface ITeam {
   contactMethod?: string | null;
   fundingStage?: { title: string };
   membershipSources?: ITag[];
+  communityAffiliations?: ITag[];
   industryTags?: ITag[];
   technologies?: ITag[];
   mainTeam?: boolean;

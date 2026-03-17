@@ -10,7 +10,7 @@
   margin: 0 auto;
 
   @include mobile-only {
-    padding: 20px 16px;
-    gap: 24px;
+    padding: 24px 16px;
+    gap: 16px;
   }
 }

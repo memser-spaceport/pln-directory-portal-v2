@@ -16,7 +16,10 @@ export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
   return (
     <div className={s.toolbar}>
       <div className={s.titleRow}>
-        <h1 className={s.title}>Deals</h1>
+        <div className={s.titleSection}>
+          <h1 className={s.title}>Deals</h1>
+          <p className={s.subtitle}>Exclusive deals for Protocol Labs founders.</p>
+        </div>
         <div className={s.actions}>
           <Menu.Root modal={false}>
             <Menu.Trigger className={clsx(s.sortDropdown, s.sortButton)}>
@@ -69,7 +72,28 @@ export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
           </div>
         </div>
       </div>
-      <p className={s.subtitle}>Exclusive deals for Protocol Labs founders.</p>
+      <div className={s.mobileActions}>
+        <div className={s.submitButton}>
+          <svg className={s.submitIcon} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M9 3.75V14.25"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M3.75 9H14.25"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Submit Deal
+          <span className={s.tooltip}>Coming soon</span>
+        </div>
+      </div>
     </div>
   );
 }

@@ -7,7 +7,17 @@
   width: 100%;
 
   @include mobile-only {
-    gap: 16px;
+    gap: 12px;
+  }
+}
+
+.titleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  @include mobile-only {
+    gap: 4px;
   }
 }
 
@@ -16,10 +26,6 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-
-  @include mobile-only {
-    flex-wrap: wrap;
-  }
 }
 
 .title {
@@ -43,8 +49,17 @@
   margin-left: auto;
 
   @include mobile-only {
+    display: none;
+  }
+}
+
+.mobileActions {
+  display: none;
+
+  @include mobile-only {
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    margin-left: 0;
   }
 }
 
@@ -157,6 +172,11 @@
 
   @include mobile-only {
     width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 16px;
+    line-height: 24px;
+    gap: 6px;
   }
 }
 
@@ -194,7 +214,7 @@
   color: #455468;
 
   @include mobile-only {
-    font-size: 14px;
-    line-height: 20px;
+    font-size: 16px;
+    line-height: 24px;
   }
 }

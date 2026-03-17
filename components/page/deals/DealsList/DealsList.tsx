@@ -15,7 +15,9 @@ export function DealsList({ deals, hasMore, isLoadingMore, onShowMore }: DealsLi
   return (
     <div className={s.list}>
       {deals.map((deal) => (
-        <DealCard key={deal.uid} deal={deal} />
+        <div key={deal.uid} className={s.cardWrapper}>
+          <DealCard deal={deal} />
+        </div>
       ))}
       {hasMore && (
         <button className={s.showMore} onClick={onShowMore} disabled={isLoadingMore}>

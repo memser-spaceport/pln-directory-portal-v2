@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useGetDealById } from '@/services/deals/hooks/useGetDealById';
@@ -25,7 +25,6 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   const toggleUsingMutation = useToggleDealUsing(id);
   const redeemMutation = useRedeemDeal(id);
   const openContactSupport = useContactSupportStore((state) => state.actions.openModal);
-  const [showRedemption, setShowRedemption] = useState(false);
 
   useEffect(() => {
     if (!isAccessLoading && !isAccessError && !hasAccess) {
@@ -77,7 +76,6 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   const IconComponent = DEAL_ICONS[deal.vendorName.toLowerCase()];
 
   const handleRedeem = async () => {
-    setShowRedemption(true);
     try {
       await redeemMutation.mutateAsync();
     } catch {
@@ -86,7 +84,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   };
 
   const handleToggleUsing = () => {
-    toggleUsingMutation.mutate(!!deal.isUsing);
+    toggleUsingMutation.mutate(deal.isUsing);
   };
 
   return (
@@ -141,7 +139,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                   </div>
                 </div>
               </div>
-              {showRedemption && (
+              {deal.isRedeemed && (
                 <div className={s.headerActions}>
                   <button
                     type="button"
@@ -229,7 +227,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                 </div>
               )}
 
-              {showRedemption && deal.redemptionInstructions ? (
+              {deal.isRedeemed && deal.redemptionInstructions ? (
                 <div className={s.redemptionInstructions}>
                   <h2 className={s.redemptionInstructionsTitle}>Redemption Instructions</h2>
                   <div

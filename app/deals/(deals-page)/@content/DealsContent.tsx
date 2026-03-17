@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { dealsFilterParsers } from '../searchParams';
 import { useGetDeals } from '@/services/deals/hooks/useGetDeals';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
-import { IDealsSearchParams } from '@/types/deals.types';
 import { DealsToolbar } from '@/components/page/deals/DealsToolbar/DealsToolbar';
 import { DealsList } from '@/components/page/deals/DealsList/DealsList';
 import { DealsSkeletonLoader } from '@/components/page/deals/DealsSkeletonLoader/DealsSkeletonLoader';
@@ -20,13 +19,13 @@ import s from './page.module.scss';
 
 export default function DealsContent() {
   const router = useRouter();
-  const { hasAccess, isLoading: isAccessLoading } = useDealsAccess();
+  const { hasAccess, isLoading: isAccessLoading, isError: isAccessError } = useDealsAccess();
 
   useEffect(() => {
-    if (!isAccessLoading && !hasAccess) {
+    if (!isAccessLoading && !isAccessError && !hasAccess) {
       router.replace('/members');
     }
-  }, [hasAccess, isAccessLoading, router]);
+  }, [hasAccess, isAccessLoading, isAccessError, router]);
   const [filters, setFilters] = useQueryStates(dealsFilterParsers, {
     history: 'replace',
     shallow: true,
@@ -34,13 +33,12 @@ export default function DealsContent() {
 
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const searchParams: IDealsSearchParams = useMemo(
+  const searchParams = useMemo(
     () => ({
       q: filters.q || undefined,
       categories: filters.categories.length > 0 ? filters.categories.join(',') : undefined,
-      audience: filters.audience.length > 0 ? filters.audience.join(',') : undefined,
       sort: filters.sort,
-      page: String(filters.page),
+      page: filters.page,
     }),
     [filters]
   );
@@ -62,7 +60,7 @@ export default function DealsContent() {
   }, [filters.page, setFilters]);
 
   const handleClearAll = useCallback(() => {
-    setFilters({ q: null, categories: null, audience: null, sort: null, page: null });
+    setFilters({ q: null, categories: null, sort: null, page: null });
   }, [setFilters]);
 
   const handleSearchChange = useCallback(
@@ -79,18 +77,11 @@ export default function DealsContent() {
     [setFilters]
   );
 
-  const handleAudiencesChange = useCallback(
-    (audiences: string[]) => {
-      setFilters({ audience: audiences.length > 0 ? audiences : null, page: 1 });
-    },
-    [setFilters]
-  );
-
-  if (isAccessLoading || !hasAccess) {
+  if (isAccessLoading || (!hasAccess && !isAccessError)) {
     return <DealsSkeletonLoader />;
   }
 
-  if (isError) {
+  if (isAccessError || isError) {
     return <Error />;
   }
 
@@ -110,7 +101,7 @@ export default function DealsContent() {
       {/* Mobile filters + sort (visible on mobile only) */}
       {filterValues && (
         <MobileFilterWrapper
-          filterCount={filters.categories.length + filters.audience.length + (filters.q ? 1 : 0)}
+          filterCount={filters.categories.length + (filters.q ? 1 : 0)}
           currentSort={filters.sort}
           sortOptions={sortOptions}
           onSortChange={handleSortChange}
@@ -119,10 +110,8 @@ export default function DealsContent() {
               filterValues={filterValues}
               searchQuery={filters.q}
               selectedCategories={filters.categories}
-              selectedAudiences={filters.audience}
               onSearchChange={handleSearchChange}
               onCategoriesChange={handleCategoriesChange}
-              onAudiencesChange={handleAudiencesChange}
               onClearAll={() => {
                 handleClearAll();
                 onClose();

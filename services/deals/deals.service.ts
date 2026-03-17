@@ -1,120 +1,77 @@
-import { IDeal, IDealsListResponse, IDealFilterValues, IDealsSearchParams, IUserDealStatus } from '@/types/deals.types';
-import { MOCK_DEALS } from './mock-data';
-import { DEALS_PER_PAGE, DEAL_CATEGORY_LABELS, DEAL_AUDIENCE_LABELS } from './constants';
+import { IDeal } from '@/types/deals.types';
+import { customFetch } from '@/utils/fetch-wrapper';
 
-function filterDeals(deals: IDeal[], params: IDealsSearchParams): IDeal[] {
-  let filtered = [...deals];
+const DEALS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/deals`;
 
-  // Search by title/description
-  if (params.q) {
-    const query = params.q.toLowerCase();
-    filtered = filtered.filter(
-      (deal) => deal.title.toLowerCase().includes(query) || deal.description.toLowerCase().includes(query)
-    );
-  }
-
-  // Filter by categories
-  if (params.categories) {
-    const selectedCategories = params.categories.split(',');
-    filtered = filtered.filter((deal) => deal.categories.some((cat) => selectedCategories.includes(cat)));
-  }
-
-  // Filter by audience
-  if (params.audience) {
-    const selectedAudiences = params.audience.split(',');
-    filtered = filtered.filter((deal) => deal.audience.some((aud) => selectedAudiences.includes(aud)));
-  }
-
-  return filtered;
-}
-
-function sortDeals(deals: IDeal[], sort?: string): IDeal[] {
-  const sorted = [...deals];
-  switch (sort) {
-    case 'alphabetical':
-      return sorted.sort((a, b) => a.title.localeCompare(b.title));
-    case 'newest':
-    default:
-      return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }
-}
-
-export async function getDeals(params: IDealsSearchParams): Promise<IDealsListResponse> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300));
-
-  const filtered = filterDeals(MOCK_DEALS, params);
-  const sorted = sortDeals(filtered, params.sort);
-
-  const page = parseInt(params.page || '1', 10);
-  const end = page * DEALS_PER_PAGE;
-  const paginated = sorted.slice(0, end);
-
-  return {
-    deals: paginated,
-    totalItems: sorted.length,
-    hasMore: end < sorted.length,
-  };
-}
-
-export async function getDealById(id: string): Promise<IDeal | null> {
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  return MOCK_DEALS.find((deal) => deal.id === id) || null;
-}
-
-/**
- * Check if the current user has access to the Deals page.
- * Mock: always returns true. Replace with real API call when ready.
- */
 export async function checkDealsAccess(): Promise<boolean> {
-  // TODO: Replace with real API call, e.g.:
-  // const response = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/deals/access`);
-  // return response?.hasAccess ?? false;
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  return true;
+  const response = await customFetch(`${DEALS_API_URL}/access`, { method: 'GET' }, true);
+  if (!response || !response.ok) {
+    return false;
+  }
+  const data = await response.json();
+
+  return data?.canAccessDeals ?? false;
 }
 
-// Mock in-memory store for user-deal status
-const userDealStatuses = new Map<string, IUserDealStatus>();
+export async function getAllDeals(): Promise<IDeal[]> {
+  const response = await customFetch(DEALS_API_URL, { method: 'GET' }, true);
 
-export async function getUserDealStatus(dealId: string): Promise<IUserDealStatus> {
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  return userDealStatuses.get(dealId) || { dealId, using: false };
+  if (!response || !response.ok) {
+    throw new Error('Failed to fetch deals');
+  }
+
+  return response.json();
 }
 
-export async function toggleDealUsing(dealId: string): Promise<IUserDealStatus> {
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  const current = userDealStatuses.get(dealId) || { dealId, using: false };
-  const status: IUserDealStatus = { ...current, using: !current.using };
-  userDealStatuses.set(dealId, status);
-  return status;
+export async function getDealById(uid: string): Promise<IDeal | null> {
+  const response = await customFetch(`${DEALS_API_URL}/${uid}`, { method: 'GET' }, true);
+
+  if (!response || !response.ok) {
+    if (response?.status === 404) return null;
+    throw new Error('Failed to fetch deal');
+  }
+
+  return response.json();
 }
 
-export async function getDealFilterValues(): Promise<IDealFilterValues> {
-  await new Promise((resolve) => setTimeout(resolve, 200));
+export async function redeemDeal(dealUid: string): Promise<IDeal | null> {
+  const response = await customFetch(
+    `${DEALS_API_URL}/${dealUid}/redeem`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    },
+    true,
+  );
 
-  const categoryMap = new Map<string, number>();
-  const audienceMap = new Map<string, number>();
+  if (!response || !response.ok) {
+    throw new Error('Failed to redeem deal');
+  }
 
-  MOCK_DEALS.forEach((deal) => {
-    deal.categories.forEach((cat) => {
-      categoryMap.set(cat, (categoryMap.get(cat) || 0) + 1);
-    });
-    deal.audience.forEach((aud) => {
-      audienceMap.set(aud, (audienceMap.get(aud) || 0) + 1);
-    });
-  });
+  return response.json();
+}
 
-  return {
-    categories: Array.from(categoryMap.entries()).map(([value, count]) => ({
-      value,
-      label: DEAL_CATEGORY_LABELS[value] || value,
-      count,
-    })),
-    audiences: Array.from(audienceMap.entries()).map(([value, count]) => ({
-      value,
-      label: DEAL_AUDIENCE_LABELS[value] || value,
-      count,
-    })),
-  };
+export async function markDealAsUsing(dealUid: string): Promise<void> {
+  const response = await customFetch(
+    `${DEALS_API_URL}/${dealUid}/using`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) },
+    true,
+  );
+
+  if (!response || !response.ok) {
+    throw new Error('Failed to mark deal as using');
+  }
+}
+
+export async function unmarkDealAsUsing(dealUid: string): Promise<void> {
+  const response = await customFetch(
+    `${DEALS_API_URL}/${dealUid}/using`,
+    { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) },
+    true,
+  );
+
+  if (!response || !response.ok) {
+    throw new Error('Failed to unmark deal as using');
+  }
 }

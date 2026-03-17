@@ -17,7 +17,7 @@ export default function DealsFiltersContent() {
   const { data: filterValues, isLoading, isError } = useGetDealFilterValues();
 
   const handleClearAll = useCallback(() => {
-    setFilters({ q: null, categories: null, audience: null, sort: null, page: null });
+    setFilters({ q: null, categories: null, sort: null, page: null });
   }, [setFilters]);
 
   const handleSearchChange = useCallback(
@@ -30,13 +30,6 @@ export default function DealsFiltersContent() {
   const handleCategoriesChange = useCallback(
     (categories: string[]) => {
       setFilters({ categories: categories.length > 0 ? categories : null, page: 1 });
-    },
-    [setFilters]
-  );
-
-  const handleAudiencesChange = useCallback(
-    (audiences: string[]) => {
-      setFilters({ audience: audiences.length > 0 ? audiences : null, page: 1 });
     },
     [setFilters]
   );
@@ -56,10 +49,8 @@ export default function DealsFiltersContent() {
           filterValues={filterValues}
           searchQuery={filters.q}
           selectedCategories={filters.categories}
-          selectedAudiences={filters.audience}
           onSearchChange={handleSearchChange}
           onCategoriesChange={handleCategoriesChange}
-          onAudiencesChange={handleAudiencesChange}
           onClearAll={handleClearAll}
         />
       </div>

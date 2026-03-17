@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useGetDealById } from '@/services/deals/hooks/useGetDealById';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
-import { useUserDealStatus, useToggleDealUsing } from '@/services/deals/hooks/useUserDealStatus';
+import { useToggleDealUsing } from '@/services/deals/hooks/useUserDealStatus';
+import { useRedeemDeal } from '@/services/deals/hooks/useRedeemDeal';
 import { useContactSupportStore } from '@/services/contact-support/store';
-import { DEAL_CATEGORY_LABELS, DEAL_AUDIENCE_LABELS } from '@/services/deals/constants';
+import { DEAL_CATEGORY_LABELS } from '@/services/deals/constants';
 import { DEAL_ICONS } from '@/components/page/deals/dealsIcons';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
+import { toast } from '@/components/core/ToastContainer';
 import s from './page.module.scss';
 
 interface DealDetailContentProps {
@@ -18,21 +20,38 @@ interface DealDetailContentProps {
 
 export default function DealDetailContent({ id }: DealDetailContentProps) {
   const router = useRouter();
-  const { hasAccess, isLoading: isAccessLoading } = useDealsAccess();
+  const { hasAccess, isLoading: isAccessLoading, isError: isAccessError } = useDealsAccess();
   const { data: deal, isLoading, isError } = useGetDealById(id);
-  const { data: userDealStatus } = useUserDealStatus(id);
   const toggleUsingMutation = useToggleDealUsing(id);
+  const redeemMutation = useRedeemDeal(id);
   const openContactSupport = useContactSupportStore((state) => state.actions.openModal);
   const [showRedemption, setShowRedemption] = useState(false);
 
   useEffect(() => {
-    if (!isAccessLoading && !hasAccess) {
+    if (!isAccessLoading && !isAccessError && !hasAccess) {
       router.replace('/members');
     }
-  }, [hasAccess, isAccessLoading, router]);
+  }, [hasAccess, isAccessLoading, isAccessError, router]);
 
-  if (isAccessLoading || !hasAccess) {
+  if (isAccessLoading || (!hasAccess && !isAccessError)) {
     return <DealDetailSkeleton />;
+  }
+
+  if (isAccessError) {
+    return (
+      <div className={s.root}>
+        <BackButton to="/deals" />
+        <div className={s.page}>
+          <div className={s.notFound}>
+            <h1>Unable to verify access</h1>
+            <p>Please try again later.</p>
+            <Link href="/deals" className={s.notFoundLink}>
+              Back to Deals
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (isLoading) {
@@ -55,7 +74,20 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
     );
   }
 
-  const IconComponent = DEAL_ICONS[deal.title.toLowerCase()];
+  const IconComponent = DEAL_ICONS[deal.vendorName.toLowerCase()];
+
+  const handleRedeem = async () => {
+    setShowRedemption(true);
+    try {
+      await redeemMutation.mutateAsync();
+    } catch {
+      toast.error('Failed to redeem deal. Please try again.');
+    }
+  };
+
+  const handleToggleUsing = () => {
+    toggleUsingMutation.mutate(!!deal.isUsing);
+  };
 
   return (
     <div className={s.root}>
@@ -71,28 +103,20 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                   {IconComponent ? (
                     <IconComponent />
                   ) : (
-                    <span className={s.avatarPlaceholder}>{deal.title.charAt(0)}</span>
+                    <span className={s.avatarPlaceholder}>{deal.vendorName.charAt(0)}</span>
                   )}
                 </div>
                 <div className={s.dealDetails}>
                   <div className={s.dealDescription}>
-                    <h1 className={s.title}>{deal.title}</h1>
-                    <p className={s.description}>{deal.description}</p>
+                    <h1 className={s.title}>{deal.vendorName}</h1>
+                    <p className={s.description}>{deal.shortDescription}</p>
                   </div>
                   <div className={s.tags}>
-                    {deal.categories.map((cat) => (
-                      <span key={cat} className={`${s.tag} ${s.tagDefault}`}>
-                        {DEAL_CATEGORY_LABELS[cat] || cat}
+                    {deal.category && (
+                      <span className={`${s.tag} ${s.tagDefault}`}>
+                        {DEAL_CATEGORY_LABELS[deal.category] || deal.category}
                       </span>
-                    ))}
-                    {deal.audience.map((aud) => (
-                      <span
-                        key={aud}
-                        className={`${s.tag} ${aud === 'pl-funded-founders' ? s.tagBrand : s.tagDefault}`}
-                      >
-                        {DEAL_AUDIENCE_LABELS[aud] || aud}
-                      </span>
-                    ))}
+                    )}
                   </div>
                   <div className={s.meta}>
                     <div className={s.metaItem}>
@@ -112,58 +136,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <span>{deal.usersCount} using</span>
-                    </div>
-                    <span className={s.metaDot} />
-                    <div className={s.metaItem}>
-                      {deal.issuesCount === 0 ? (
-                        <>
-                          <svg
-                            className={s.metaIcon}
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z"
-                              stroke="currentColor"
-                              strokeWidth="1.2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M5.5 8L7 9.5L10.5 6"
-                              stroke="currentColor"
-                              strokeWidth="1.2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          <span>No issues</span>
-                        </>
-                      ) : (
-                        <>
-                          <svg
-                            className={s.metaIcon}
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z"
-                              stroke="currentColor"
-                              strokeWidth="1.2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path d="M8 5.5V8.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-                            <circle cx="8" cy="10.5" r="0.5" fill="currentColor" />
-                          </svg>
-                          <span>
-                            {deal.issuesCount} {deal.issuesCount === 1 ? 'Issue' : 'Issues'}
-                          </span>
-                        </>
-                      )}
+                      <span>{deal.teamsUsingCount} using</span>
                     </div>
                   </div>
                 </div>
@@ -175,9 +148,9 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                     className={s.headerActionSecondary}
                     onClick={() =>
                       openContactSupport(
-                        { dealId: deal.id, dealTitle: deal.title },
+                        { dealId: deal.uid, dealTitle: deal.vendorName },
                         'reportBug',
-                        `I'd like to report a problem with the "${deal.title}" deal.`,
+                        `I'd like to report a problem with the "${deal.vendorName}" deal.`,
                       )
                     }
                   >
@@ -194,11 +167,11 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                   </button>
                   <button
                     type="button"
-                    className={`${s.headerActionPrimary} ${userDealStatus?.using ? s.headerActionPrimaryActive : ''}`}
+                    className={`${s.headerActionPrimary} ${deal.isUsing ? s.headerActionPrimaryActive : ''}`}
                     disabled={toggleUsingMutation.isPending}
-                    onClick={() => toggleUsingMutation.mutate()}
+                    onClick={handleToggleUsing}
                   >
-                    {userDealStatus?.using ? (
+                    {deal.isUsing ? (
                       <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
                           d="M15 4.5L6.75 12.75L3 9"
@@ -240,7 +213,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                         />
                       </svg>
                     )}
-                    <span>{userDealStatus?.using ? 'Currently Using' : 'Mark as Using'}</span>
+                    <span>{deal.isUsing ? 'Currently Using' : 'Mark as Using'}</span>
                   </button>
                 </div>
               )}
@@ -249,19 +222,19 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
             <div className={s.mobileDivider} />
 
             <div className={s.content}>
-              {deal.aboutHtml && (
+              {deal.fullDescription && (
                 <div className={s.aboutSection}>
                   <h2 className={s.aboutTitle}>About the deal</h2>
-                  <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: deal.aboutHtml }} />
+                  <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: deal.fullDescription }} />
                 </div>
               )}
 
-              {showRedemption && deal.redemptionHtml ? (
+              {showRedemption && deal.redemptionInstructions ? (
                 <div className={s.redemptionInstructions}>
                   <h2 className={s.redemptionInstructionsTitle}>Redemption Instructions</h2>
                   <div
                     className={s.redemptionInstructionsBody}
-                    dangerouslySetInnerHTML={{ __html: deal.redemptionHtml }}
+                    dangerouslySetInnerHTML={{ __html: deal.redemptionInstructions }}
                   />
                 </div>
               ) : (
@@ -297,7 +270,12 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                         <div className={s.redemptionText}>
                           <h2 className={s.redemptionTitle}>Redemption Instructions</h2>
                         </div>
-                        <button type="button" className={s.redemptionButton} onClick={() => setShowRedemption(true)}>
+                        <button
+                          type="button"
+                          className={s.redemptionButton}
+                          disabled={redeemMutation.isPending}
+                          onClick={handleRedeem}
+                        >
                           <svg
                             width="20"
                             height="20"
@@ -320,7 +298,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                               strokeLinejoin="round"
                             />
                           </svg>
-                          <span>Show How to Redeem Deal</span>
+                          <span>{redeemMutation.isPending ? 'Redeeming...' : 'Show How to Redeem Deal'}</span>
                         </button>
                       </div>
                     </div>

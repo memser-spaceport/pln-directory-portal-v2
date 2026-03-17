@@ -1,31 +1,19 @@
-export type DealCategory =
-  | 'hosting-infrastructure'
-  | 'developer-tools'
-  | 'design-collaboration'
-  | 'analytics-monitoring'
-  | 'security-compliance';
-
-export type DealAudience = 'all-founders' | 'pl-funded-founders';
-
 export interface IDeal {
-  id: string;
-  title: string;
-  description: string;
-  aboutHtml?: string;
-  redemptionHtml?: string;
-  logoUrl: string;
-  externalUrl: string;
-  categories: DealCategory[];
-  audience: DealAudience[];
-  usersCount: number;
-  issuesCount: number;
+  uid: string;
+  vendorName: string;
+  vendorTeamUid: string | null;
+  logoUid: string | null;
+  category: string;
+  shortDescription: string;
+  fullDescription?: string;
+  redemptionInstructions?: string;
+  status: string;
   createdAt: string;
-}
-
-export interface IDealsListResponse {
-  deals: IDeal[];
-  totalItems: number;
-  hasMore: boolean;
+  updatedAt: string;
+  isRedeemed: boolean;
+  isUsing: boolean;
+  teamsRedemptionCount: number;
+  teamsUsingCount: number;
 }
 
 export interface IDealFilterOption {
@@ -36,18 +24,4 @@ export interface IDealFilterOption {
 
 export interface IDealFilterValues {
   categories: IDealFilterOption[];
-  audiences: IDealFilterOption[];
-}
-
-export interface IDealsSearchParams {
-  q?: string;
-  categories?: string;
-  audience?: string;
-  sort?: string;
-  page?: string;
-}
-
-export interface IUserDealStatus {
-  dealId: string;
-  using: boolean;
 }

@@ -1,24 +1,19 @@
 export enum DealsQueryKeys {
   DEALS_LIST = 'deals-list',
   DEAL_BY_ID = 'deal-by-id',
-  DEAL_FILTER_VALUES = 'deal-filter-values',
   DEALS_ACCESS = 'deals-access',
-  USER_DEAL_STATUS = 'user-deal-status',
+  DEAL_REDEEM = 'deal-redeem',
 }
 
 export const DEALS_PER_PAGE = 10;
 
 export const DEAL_CATEGORY_LABELS: Record<string, string> = {
+  Hosting: 'Hosting',
   'hosting-infrastructure': 'Hosting & Infrastructure',
   'developer-tools': 'Developer Tools',
   'design-collaboration': 'Design & Collaboration',
   'analytics-monitoring': 'Analytics & Monitoring',
   'security-compliance': 'Security & Compliance',
-};
-
-export const DEAL_AUDIENCE_LABELS: Record<string, string> = {
-  'all-founders': 'All Founders',
-  'pl-funded-founders': 'PL Funded Founders',
 };
 
 export const DEAL_SORT_OPTIONS = [

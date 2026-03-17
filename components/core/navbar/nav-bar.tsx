@@ -83,7 +83,7 @@ function Navbar(props: Readonly<INavbar>) {
 
   const { data: profileStatus } = useMemberProfileStatus(userInfo?.uid);
 
-  const { hasAccess: hasDealsPageAccess } = useDealsAccess(isLoggedIn);
+  const { hasAccess: hasDealsPageAccess } = useDealsAccess();
 
   return (
     <NavigationMenu.Root className={s.Root}>

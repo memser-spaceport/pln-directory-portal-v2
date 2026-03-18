@@ -2,7 +2,7 @@
 title: "Hiring Your First 10 Engineers in Web3"
 slug: "hiring-your-first-10-engineers-in-web3"
 summary: "How to attract, evaluate, and retain top technical talent in the web3 ecosystem — including compensation benchmarks, equity structures, and where to find builders who get it."
-category: "Team Building"
+category: "Hire Handbook"
 tags: ["hiring", "engineering", "talent", "compensation", "equity", "culture"]
 author: "PL Venture Studio Team"
 authorUid: ""
@@ -21,6 +21,14 @@ readingTime: 6
 The best engineers in the web3 space aren't just motivated by salary — they're motivated by mission, ownership, and the chance to build things that matter. This creates both a challenge and an opportunity for founders: you're competing for talent not just with other startups, but with well-funded protocols offering large token grants.
 
 Understanding this dynamic is the first step to building a great team.
+
+## Two Principles Before You Start Hiring
+
+**1. Don't hire until it hurts.** Y Combinator is explicit about this: every hire before product-market fit is a bet that you know what the company needs. Premature hiring is one of the leading causes of startup failure — you burn runway, slow decision-making, and lock in early assumptions. Do the work yourself until you literally cannot. When you're dropping things because there's too much work, that's when to hire.
+
+**2. Hire for slope, not Y-intercept.** The best early hires are growing faster than their current title suggests. A brilliant engineer who shipped a complex side project solo and is clearly accelerating will outperform a senior engineer from a large company who has always worked on one layer of a massive system. YC consistently finds that candidates with high learning velocity outperform those with higher starting credentials over a 2–3 year horizon.
+
+**3. Hire T-shaped generalists for your first 10.** Your early engineers must be able to do frontend, backend, and infra — not specialize in one layer. Specialists are for teams of 20+. If your fifth engineer can only write Solidity smart contracts and nothing else, you'll hit a wall the moment the contract work slows down. Look for people who have shipped full-stack features end-to-end, ideally solo.
 
 ## Where to Find Web3 Engineers
 
@@ -105,3 +113,12 @@ As a PLVS founder, you have access to:
 - **Founder peer advice** — dozens of founders in the network have recently made engineering hires
 
 Book an office hours session with a PLVS mentor who has built technical teams in the web3 space.
+
+---
+
+## References & Further Reading
+
+- **[YC — How to Hire](https://www.ycombinator.com/library/8g-how-to-hire)** (Dalton Caldwell) · The source for "don't hire until it hurts," the bar-raiser concept, and the principle that references are the most underused hiring tool. Caldwell's framing of premature hiring as a startup killer directly informs this article.
+- **[Paul Graham — "The 18 Mistakes That Kill Startups"](http://paulgraham.com/startupmistakes.html)** · PG's essays on the A-player compounding effect ("A players hire A players") and why domain expertise is overrated at early stage.
+- **[a16z — Building Great Engineering Teams](https://a16z.com/2014/07/21/building-great-engineering-teams/)** · a16z's guidance on hiring from your personal network for the first 5 engineers, the T-shaped generalist requirement, and async-first engineering culture for remote teams.
+- **[Levels.fyi](https://www.levels.fyi)** · Industry reference for compensation benchmarking; recommended for validating the salary ranges in this article against current market data.

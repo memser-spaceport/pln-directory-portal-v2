@@ -2,7 +2,7 @@
 title: "Fundraising in Web3: A Founder's Guide"
 slug: "fundraising-in-web3-a-founders-guide"
 summary: "A practical guide to raising your first and second rounds in the web3 ecosystem — from SAFE notes to token structures, and how Protocol Labs investors think about valuation."
-category: "Fundraising"
+category: "Seed / Series A"
 tags: ["fundraising", "web3", "SAFE", "tokens", "investors", "term sheets"]
 author: "PL Venture Studio Team"
 authorUid: ""
@@ -67,3 +67,11 @@ Higher regulatory risk. Work with legal counsel experienced in token offerings. 
 - Book office hours with the PLCS Legal Team for term sheet review
 - Reach out to your PLVS program lead for warm introductions to aligned investors
 - Browse the PL Network Directory to find founders who've recently closed rounds
+
+---
+
+## References & Further Reading
+
+- **[YC — A Guide to Seed Fundraising](https://www.ycombinator.com/library/4A-a-guide-to-seed-fundraising)** (Geoff Ralston) · YC's authoritative guide on raising a seed round: when to start, how to run the process, how to use warm intros, and how to set pricing.
+- **[YC — SAFE Primer](https://www.ycombinator.com/library/Am-safe-primer)** · Background on how SAFEs work and when to use them vs convertible notes for early web3 raises.
+- **[a16z Crypto](https://a16z.com/crypto/)** · a16z's thinking on token raises, token economics, and how crypto-native investors evaluate protocol projects differently from traditional equity investments.

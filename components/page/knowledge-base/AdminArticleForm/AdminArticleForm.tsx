@@ -146,7 +146,7 @@ readingTime: ${readingTime}
               <code>{publishMessage}</code>
               <br />
               <span className={s.successNote}>
-                In production, this commits directly to the branch via GitHub API — no PR needed. Deploy picks it up automatically.
+                This is a simulated save — no file was written. In the MVP, this will commit directly to the branch via GitHub API (not yet wired up).
               </span>
             </p>
           </div>
@@ -348,7 +348,7 @@ readingTime: ${readingTime}
               </div>
             </div>
             <p className={s.publishNote}>
-              Publishes directly to the branch via GitHub API — no PR or manual review needed.
+              <strong>Prototype:</strong> Save simulates publishing only. Intended MVP flow: commits <code>.md</code> directly to branch via GitHub API — no PR needed.
             </p>
           </div>
         </aside>

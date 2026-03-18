@@ -25,7 +25,7 @@ export function AdminKBListPage({ articles }: Props) {
       <div className={s.note}>
         <InfoIcon />
         <span>
-          Publishing saves a <code>.md</code> file directly to <code>design-preview</code> via GitHub API — no PR or manual deploy needed. Changes go live automatically on next deploy.
+          <strong>Prototype mode:</strong> The save button simulates publishing and shows a success message, but does not write any files. The intended MVP flow is to commit <code>.md</code> files directly to <code>design-preview</code> via the GitHub Contents API — no PR or manual deploy needed. That integration is not yet wired up.
         </span>
       </div>
 

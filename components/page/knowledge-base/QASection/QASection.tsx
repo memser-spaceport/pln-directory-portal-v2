@@ -53,7 +53,7 @@ export function QASection({ isLoggedIn, articleSlug: _ }: Props) {
   return (
     <div className={s.root}>
       <h2 className={s.heading}>
-        <CommentIcon /> Discussion
+        <CommentIcon /> Q&amp;A
         <span className={s.count}>{comments.length}</span>
       </h2>
 
@@ -77,25 +77,25 @@ export function QASection({ isLoggedIn, articleSlug: _ }: Props) {
           <>
             <textarea
               className={s.textarea}
-              placeholder="Ask a question or share your experience..."
+              placeholder="Have a question about this article? Ask away..."
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               rows={3}
             />
             <div className={s.inputFooter}>
-              <span className={s.inputHint}>Be specific and constructive</span>
+              <span className={s.inputHint}>Be specific — the more context you give, the better the answer</span>
               <button
                 className={s.submitButton}
                 onClick={handleSubmit}
                 disabled={!draft.trim()}
               >
-                Post comment
+                Post question
               </button>
             </div>
           </>
         ) : (
           <p className={s.loginPrompt}>
-            <a href="/sign-up" className={s.loginLink}>Log in</a> to join the discussion
+            <a href="/sign-up" className={s.loginLink}>Log in</a> to ask a question
           </p>
         )}
       </div>

@@ -2,7 +2,7 @@
 title: "PLVS Legal Resources: Empowering Founders in Protocol Labs"
 slug: "plvs-legal-resources-for-founders"
 summary: "Exclusive access to the PLCS Legal Team — monthly office hours, a legal template library, referral network, and 1:1 support for PLVS founders navigating web3 legal challenges."
-category: "Legal"
+category: "Legal & Finance"
 tags: ["legal", "fundraising", "web3", "compliance", "IP", "talent"]
 author: "PLCS Legal Team"
 authorUid: ""

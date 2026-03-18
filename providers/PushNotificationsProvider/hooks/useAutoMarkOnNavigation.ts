@@ -10,7 +10,7 @@ interface UseAutoMarkOnNavigationOptions {
   authToken?: string;
   unreadLinksMapRef: MutableRefObject<UnreadLinksMap>;
   wsMarkAsReadRef: MutableRefObject<(id: string) => void>;
-  fetchNotifications: () => Promise<void>;
+  onMarkedAsRead: (uids: string[]) => void;
 }
 
 /**
@@ -18,7 +18,7 @@ interface UseAutoMarkOnNavigationOptions {
  * that matches an entry in the unread links map.
  */
 export function useAutoMarkOnNavigation(input: UseAutoMarkOnNavigationOptions) {
-  const { authToken, unreadLinksMapRef, wsMarkAsReadRef, fetchNotifications } = input;
+  const { authToken, unreadLinksMapRef, wsMarkAsReadRef, onMarkedAsRead } = input;
 
   const pathToCompareNotyLink = useGetPathToCompareNotificationLink();
   const isAutoMarkingRef = useRef(false);
@@ -46,12 +46,12 @@ export function useAutoMarkOnNavigation(input: UseAutoMarkOnNavigationOptions) {
             wsMarkAsReadRef.current(uid);
           }),
         );
-        await fetchNotifications();
+        onMarkedAsRead(uidsToMark);
       } finally {
         isAutoMarkingRef.current = false;
       }
     };
 
     markAll();
-  }, [authToken, wsMarkAsReadRef, unreadMap.size, unreadLinksMapRef, fetchNotifications, pathToCompareNotyLink]);
+  }, [authToken, wsMarkAsReadRef, unreadMap.size, unreadLinksMapRef, onMarkedAsRead, pathToCompareNotyLink]);
 }

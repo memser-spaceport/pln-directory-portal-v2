@@ -123,9 +123,9 @@ describe('TeamDetails inline edit', () => {
       />,
     );
 
-    expect(screen.getByText('Company Stage +')).toBeInTheDocument();
-    expect(screen.getByText('Industry Tags +')).toBeInTheDocument();
-    expect(screen.getByText('About +')).toBeInTheDocument();
+    expect(screen.getByText('Add Company Stage')).toBeInTheDocument();
+    expect(screen.getByText('Add Industry Tags')).toBeInTheDocument();
+    expect(screen.getByText('Add About Section')).toBeInTheDocument();
   });
 
   it('opens edit mode when clicking an empty state tag', () => {
@@ -151,7 +151,7 @@ describe('TeamDetails inline edit', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Company Stage +'));
+    fireEvent.click(screen.getByText('Add Company Stage'));
 
     expect(screen.getByText('Edit Profile Details')).toBeInTheDocument();
   });

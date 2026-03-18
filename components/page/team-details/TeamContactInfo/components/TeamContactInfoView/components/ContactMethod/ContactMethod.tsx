@@ -22,7 +22,7 @@ export const ContactMethod = (props: Props) => {
       callback={callback}
       profile={contactMethod}
       handle={contactMethod}
-      logo={'/icons/contact/team-contact-logo.svg'}
+      logo={'/icons/contact/email-contact-logo-v2.svg'}
       height={24}
       width={24}
       type={type}

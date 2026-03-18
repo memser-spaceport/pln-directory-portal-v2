@@ -17,16 +17,16 @@
 }
 
 .teamLogo {
-  height: 48px;
   border: 1px solid #cbd5e1;
   border-radius: 4px;
   background-color: #e2e8f0;
-  width: 48px;
   object-fit: cover;
+  width: 55px !important;
+  height: 55px !important;
 
   @include media.breakpoint-1024 {
-    height: 80px;
-    width: 80px;
+    height: 74px !important;
+    width: 74px !important;
   }
 }
 
@@ -38,7 +38,7 @@
   gap: 8px;
 
   @include media.breakpoint-1024 {
-    gap: 12px;
+    gap: 16px;
   }
 }
 
@@ -66,11 +66,31 @@
   }
 }
 
+.tagsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .tags {
-  gap: 8px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  gap: 8px;
+}
+
+.tags2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tags3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
 .fundingStage {
@@ -151,6 +171,11 @@
   &:hover {
     background: rgba(14, 15, 17, 0.1);
   }
+}
+
+.addPill1 {
+  border-radius: var(--corner-radius-xsm, 4px);
+  background: var(--transparent-dark-16, rgba(14, 15, 17, 0.16));
 }
 
 .aboutContainer {

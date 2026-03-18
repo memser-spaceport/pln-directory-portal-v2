@@ -95,8 +95,8 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
             )}
           </div>
 
-          {false && <TeamMembershipSource team={team} userInfo={userInfo} />}
-          {false && <TeamCommunitiesSection team={team} userInfo={userInfo} />}
+          <TeamMembershipSource team={team} userInfo={userInfo} />
+          <TeamCommunitiesSection team={team} userInfo={userInfo} />
 
           {/* Focus Area */}
           {team.teamFocusAreas && team?.teamFocusAreas?.length > 0 && focusAreas && focusAreas?.length > 0 && (

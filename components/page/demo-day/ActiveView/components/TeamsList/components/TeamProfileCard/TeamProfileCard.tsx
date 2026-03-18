@@ -58,6 +58,8 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     onActiveViewIntroCompanyClicked,
     onActiveViewIntroCompanyCancelClicked,
     onActiveViewIntroCompanyConfirmClicked,
+    onActiveViewGiveFeedbackClicked,
+    onActiveViewFeedbackSubmitted,
     onActiveViewTeamPitchDeckViewed,
     onActiveViewTeamPitchVideoViewed,
     onActiveViewVideoWatchTime,
@@ -262,8 +264,64 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
     setIsReferModalOpen(false);
   };
 
+  const handleGiveFeedbackClick = () => {
+    // Report give feedback clicked analytics
+    if (userInfo?.email) {
+      const analyticsData = getTeamAnalyticsData();
+
+      // PostHog analytics
+      onActiveViewGiveFeedbackClicked(analyticsData);
+
+      // Custom analytics event
+      const feedbackEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_GIVE_FEEDBACK_CLICKED,
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          action: 'give_feedback',
+          ...analyticsData,
+        },
+      };
+
+      reportAnalytics.mutate(feedbackEvent);
+    }
+
+    setIsFeedbackModalOpen(true);
+  };
+
   const handleFeedbackSubmit = (feedbackData: { feedback: string }) => {
-    // TODO: Add analytics for feedback submission
+    // Report feedback submitted analytics
+    if (userInfo?.email) {
+      const analyticsData = getTeamAnalyticsData();
+
+      // PostHog analytics
+      onActiveViewFeedbackSubmitted({
+        ...analyticsData,
+        feedbackLength: feedbackData.feedback.length,
+      });
+
+      // Custom analytics event
+      const feedbackSubmittedEvent: TrackEventDto = {
+        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_FEEDBACK_SUBMITTED,
+        distinctId: userInfo.email,
+        properties: {
+          userId: userInfo.uid,
+          userEmail: userInfo.email,
+          userName: userInfo.name,
+          path: '/demoday',
+          timestamp: new Date().toISOString(),
+          action: 'feedback_submitted',
+          feedbackLength: feedbackData.feedback.length,
+          ...analyticsData,
+        },
+      };
+
+      reportAnalytics.mutate(feedbackSubmittedEvent);
+    }
 
     // Express interest via API with feedback data
     expressInterest.mutate(
@@ -501,7 +559,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         isInvested={team.invested}
         isFeedbackGiven={team.feedback}
         onMakeIntro={(e) => handleInterestCompanyClick(e, 'referral')}
-        onGiveFeedback={() => setIsFeedbackModalOpen(true)}
+        onGiveFeedback={handleGiveFeedbackClick}
         onConnect={(e) => handleInterestCompanyClick(e, 'connect')}
         onInvest={(e) => handleInterestCompanyClick(e, 'invest')}
         isLoading={expressInterest.isPending}

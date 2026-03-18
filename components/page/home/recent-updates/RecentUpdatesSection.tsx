@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { stripHtml, usePushNotificationsContext } from '@/providers/PushNotificationsProvider';
 import { useInfiniteNotifications } from '@/services/push-notifications/hooks';
@@ -26,9 +26,9 @@ function sanitizeNotification(notification: PushNotification): PushNotification 
 
 export function RecentUpdatesSection() {
   const isLoggedIn = authStatus.isLoggedIn();
-  const { markAsRead, unreadCount: globalUnreadCount } = usePushNotificationsContext();
+  const { markAsRead } = usePushNotificationsContext();
   const analytics = useNotificationAnalytics();
-  const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, unreadCount, refetch } =
+  const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, unreadCount } =
     useInfiniteNotifications({
       enabled: isLoggedIn,
     });
@@ -36,12 +36,6 @@ export function RecentUpdatesSection() {
   // Sanitize notifications to remove HTML markup from title and description
   // TODO: REMOVE MOCK_IRL_GATHERING_NOTIFICATION from the array below when done testing
   const sanitizedNotifications = useMemo(() => notifications.map(sanitizeNotification), [notifications]);
-
-  useEffect(() => {
-    if (globalUnreadCount !== unreadCount) {
-      void refetch();
-    }
-  }, [globalUnreadCount, unreadCount, refetch]);
 
   const handleNotificationClick = (notification: PushNotification) => {
     analytics.onRecentUpdatesNotificationClicked(notification);

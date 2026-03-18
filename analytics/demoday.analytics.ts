@@ -168,6 +168,14 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INTRO_COMPANY_CONFIRM_CLICKED, eventParams);
   }
 
+  function onActiveViewGiveFeedbackClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_GIVE_FEEDBACK_CLICKED, eventParams);
+  }
+
+  function onActiveViewFeedbackSubmitted(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_FEEDBACK_SUBMITTED, eventParams);
+  }
+
   function onActiveViewWelcomeVideoViewed(eventParams = {}) {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_WELCOME_VIDEO_VIEWED, eventParams);
   }
@@ -337,6 +345,8 @@ export const useDemoDayAnalytics = () => {
     onActiveViewIntroCompanyClicked,
     onActiveViewIntroCompanyCancelClicked,
     onActiveViewIntroCompanyConfirmClicked,
+    onActiveViewGiveFeedbackClicked,
+    onActiveViewFeedbackSubmitted,
     onActiveViewWelcomeVideoViewed,
     onConfidentialityModalSubmitted,
     onConfidentialityModalClosed,

@@ -1,6 +1,14 @@
+@use 'styles/media';
+
 .content {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 12px;
+  align-items: flex-start;
+  grid-template-columns: 1fr;
+
+  @include media.desktop {
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  }
 }
 
 .addPill {

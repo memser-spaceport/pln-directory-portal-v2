@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -9,7 +10,6 @@ import { Checkbox } from '@/components/common/Checkbox';
 import { FormField } from '@/components/form/FormField';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { FormSelect } from '@/components/form/FormSelect';
-import { FormTextArea } from '@/components/form/FormTextArea';
 import { BioInput } from '@/components/page/member-details/BioDetails/components/BioInput';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { EditFormControls } from '@/components/common/profile/EditFormControls';
@@ -180,13 +180,20 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
             <FormField name="name" placeholder="Enter team name" label="Team Name" max={150} isRequired />
           </div>
 
-          <FormTextArea
+          <FormField
             name="shortDescription"
             placeholder="Add a short description"
             label="Short Description"
-            maxLength={1000}
-            showCharCount
-            rows={4}
+            max={100}
+            description={
+              <>
+                This description appears on your team&apos;s card in the{' '}
+                <Link style={{ color: '#1b4dff' }} href="/teams" target="_blank">
+                  Teams Page
+                </Link>
+                , not on this page. Keep it brief: 1–2 sentences work best.
+              </>
+            }
           />
           <div className={s.checkboxLabel}>
             <Checkbox

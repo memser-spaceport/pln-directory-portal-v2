@@ -17,7 +17,7 @@ import { useContactSupportStore } from '@/services/contact-support/store';
 
 import { DIRECTORY_LINKS, EVENT_LINKS } from './constants/navLinks';
 
-import { AppLogo, HelpIcon, ForumIcon, EventsIcon, DemoDayIcon, DirectoryIcon } from './components/icons';
+import { AppLogo, HelpIcon, ForumIcon, EventsIcon, DemoDayIcon, DirectoryIcon, KnowledgeBaseIcon } from './components/icons';
 import { NavLink } from './components/NavLink';
 import { NavItemWithMenu } from './components/NavItemWithMenu';
 
@@ -102,6 +102,12 @@ function Navbar(props: Readonly<INavbar>) {
           items={EVENT_LINKS}
           onNavItemClickHandler={onNavItemClickHandler}
         />
+
+        <NavigationMenu.Item className={s.menuItem}>
+          <NavLink className={s.Trigger} href="/knowledge-base" onClick={() => onNavItemClickHandler('/knowledge-base', 'Knowledge Base')}>
+            <KnowledgeBaseIcon /> Knowledge Base
+          </NavLink>
+        </NavigationMenu.Item>
 
         <NavigationMenu.Item className={s.menuItem}>
           <NavLink className={s.Trigger} href="/forum?cid=0" onClick={() => onNavItemClickHandler('/forum', 'Forum')}>

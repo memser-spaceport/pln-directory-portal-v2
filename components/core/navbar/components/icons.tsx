@@ -87,6 +87,17 @@ export const AppLogo = () => (
   </svg>
 );
 
+export const KnowledgeBaseIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M3.5 3C3.5 2.17157 4.17157 1.5 5 1.5H15C15.8284 1.5 16.5 2.17157 16.5 3V17C16.5 17.8284 15.8284 18.5 15 18.5H5C4.17157 18.5 3.5 17.8284 3.5 17V3Z"
+      stroke="currentColor"
+      strokeWidth="1.3"
+    />
+    <path d="M6.5 6H13.5M6.5 9.5H13.5M6.5 13H10.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+  </svg>
+);
+
 export function HelpIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" fill="none" {...props}>

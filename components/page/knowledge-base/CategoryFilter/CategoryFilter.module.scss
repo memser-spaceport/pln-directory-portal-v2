@@ -1,0 +1,29 @@
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  padding: 6px 14px;
+  border-radius: 100px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: #94a3b8;
+    background: #f8fafc;
+  }
+
+  &.active {
+    background: #0f172a;
+    border-color: #0f172a;
+    color: #fff;
+  }
+}

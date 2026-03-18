@@ -12,11 +12,12 @@ import { NavigationMenu } from '@base-ui-components/react';
 import { useScrollDirection } from './useScrollDirection';
 
 import { MobileNavItemWithMenu } from './components/MobileMenuItem';
-import { EventsIcon, ForumIcon, DemoDayIcon, DirectoryIcon } from './components/icons';
+import { EventsIcon, ForumIcon, DemoDayIcon, DirectoryIcon, KnowledgeBaseIcon } from './components/icons';
 
 import s from './MobileBottomNav.module.scss';
 
 const navItems = [
+  { href: '/knowledge-base', label: 'Knowledge Base', icon: KnowledgeBaseIcon },
   { href: '/forum?cid=0', label: 'Forum', icon: ForumIcon },
   { href: '/demoday', label: 'Demo Day', icon: DemoDayIcon },
 ];

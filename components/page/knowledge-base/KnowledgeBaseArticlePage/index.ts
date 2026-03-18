@@ -1,0 +1,1 @@
+export { KnowledgeBaseArticlePage } from './KnowledgeBaseArticlePage';

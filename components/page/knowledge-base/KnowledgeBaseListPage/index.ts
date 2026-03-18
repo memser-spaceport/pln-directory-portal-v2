@@ -1,0 +1,1 @@
+export { KnowledgeBaseListPage } from './KnowledgeBaseListPage';

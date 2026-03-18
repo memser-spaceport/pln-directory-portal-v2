@@ -1,0 +1,37 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+  justify-content: center;
+
+  &:hover {
+    border-color: #94a3b8;
+    color: #0f172a;
+    background: #f8fafc;
+  }
+
+  &.voted {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #16a34a;
+  }
+}
+
+.count {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.label {
+  font-size: 13px;
+}

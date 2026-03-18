@@ -1,0 +1,44 @@
+.root {
+  padding: 48px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.skeletonTitle {
+  height: 36px;
+  width: 280px;
+  background: #e2e8f0;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeletonSubtitle {
+  height: 20px;
+  width: 420px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.skeletonCard {
+  height: 220px;
+  background: #e2e8f0;
+  border-radius: 12px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

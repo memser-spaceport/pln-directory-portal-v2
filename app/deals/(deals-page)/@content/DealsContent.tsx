@@ -37,6 +37,7 @@ export default function DealsContent() {
     () => ({
       q: filters.q || undefined,
       categories: filters.categories.length > 0 ? filters.categories.join(',') : undefined,
+      audiences: filters.audiences.length > 0 ? filters.audiences.join(',') : undefined,
       sort: filters.sort,
       page: filters.page,
     }),
@@ -60,7 +61,7 @@ export default function DealsContent() {
   }, [filters.page, setFilters]);
 
   const handleClearAll = useCallback(() => {
-    setFilters({ q: null, categories: null, sort: null, page: null });
+    setFilters({ q: null, categories: null, audiences: null, sort: null, page: null });
   }, [setFilters]);
 
   const handleSearchChange = useCallback(
@@ -73,6 +74,13 @@ export default function DealsContent() {
   const handleCategoriesChange = useCallback(
     (categories: string[]) => {
       setFilters({ categories: categories.length > 0 ? categories : null, page: 1 });
+    },
+    [setFilters]
+  );
+
+  const handleAudiencesChange = useCallback(
+    (audiences: string[]) => {
+      setFilters({ audiences: audiences.length > 0 ? audiences : null, page: 1 });
     },
     [setFilters]
   );
@@ -101,7 +109,7 @@ export default function DealsContent() {
       {/* Mobile filters + sort (visible on mobile only) */}
       {filterValues && (
         <MobileFilterWrapper
-          filterCount={filters.categories.length + (filters.q ? 1 : 0)}
+          filterCount={filters.categories.length + filters.audiences.length + (filters.q ? 1 : 0)}
           currentSort={filters.sort}
           sortOptions={sortOptions}
           onSortChange={handleSortChange}
@@ -110,8 +118,10 @@ export default function DealsContent() {
               filterValues={filterValues}
               searchQuery={filters.q}
               selectedCategories={filters.categories}
+              selectedAudiences={filters.audiences}
               onSearchChange={handleSearchChange}
               onCategoriesChange={handleCategoriesChange}
+              onAudiencesChange={handleAudiencesChange}
               onClearAll={() => {
                 handleClearAll();
                 onClose();

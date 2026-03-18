@@ -16,6 +16,13 @@ export const DEAL_CATEGORY_LABELS: Record<string, string> = {
   'security-compliance': 'Security & Compliance',
 };
 
+export const DEAL_AUDIENCE_LABELS: Record<string, string> = {
+  DEVELOPERS: 'Developers',
+  FOUNDERS: 'Founders',
+  ALL_FOUNDERS: 'All Founders',
+  PL_FUNDED_FOUNDERS: 'PL Funded Founders',
+};
+
 export const DEAL_SORT_OPTIONS = [
   { value: 'newest', label: 'Most recent' },
   { value: 'alphabetical', label: 'Alphabetical' },

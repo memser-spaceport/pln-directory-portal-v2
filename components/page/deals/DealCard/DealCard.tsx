@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { IDeal } from '@/types/deals.types';
-import { DEAL_CATEGORY_LABELS } from '@/services/deals/constants';
+import { DEAL_CATEGORY_LABELS, DEAL_AUDIENCE_LABELS } from '@/services/deals/constants';
 import { DEAL_ICONS } from '../dealsIcons';
 import s from './DealCard.module.scss';
 
@@ -28,6 +28,11 @@ export function DealCard({ deal }: DealCardProps) {
             {deal.category && (
               <span className={`${s.tag} ${s.tagDefault}`}>
                 {DEAL_CATEGORY_LABELS[deal.category] || deal.category}
+              </span>
+            )}
+            {deal.audience && (
+              <span className={`${s.tag} ${s.tagBrand}`}>
+                {DEAL_AUDIENCE_LABELS[deal.audience] || deal.audience}
               </span>
             )}
           </div>

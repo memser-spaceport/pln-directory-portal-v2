@@ -8,8 +8,10 @@ interface DealsFilterProps {
   filterValues: IDealFilterValues;
   searchQuery: string;
   selectedCategories: string[];
+  selectedAudiences: string[];
   onSearchChange: (value: string) => void;
   onCategoriesChange: (categories: string[]) => void;
+  onAudiencesChange: (audiences: string[]) => void;
   onClearAll: () => void;
 }
 
@@ -17,8 +19,10 @@ export function DealsFilter({
   filterValues,
   searchQuery,
   selectedCategories,
+  selectedAudiences,
   onSearchChange,
   onCategoriesChange,
+  onAudiencesChange,
   onClearAll,
 }: DealsFilterProps) {
   const toggleCategory = useCallback(
@@ -32,7 +36,18 @@ export function DealsFilter({
     [selectedCategories, onCategoriesChange]
   );
 
-  const hasActiveFilters = searchQuery || selectedCategories.length > 0;
+  const toggleAudience = useCallback(
+    (value: string) => {
+      if (selectedAudiences.includes(value)) {
+        onAudiencesChange(selectedAudiences.filter((a) => a !== value));
+      } else {
+        onAudiencesChange([...selectedAudiences, value]);
+      }
+    },
+    [selectedAudiences, onAudiencesChange]
+  );
+
+  const hasActiveFilters = searchQuery || selectedCategories.length > 0 || selectedAudiences.length > 0;
 
   return (
     <div className={s.root}>
@@ -85,6 +100,31 @@ export function DealsFilter({
           </div>
         </div>
       </div>
+
+      {/* Audience */}
+      {filterValues.audiences.length > 0 && (
+        <div className={s.section}>
+          <div className={s.sectionHeader}>
+            <h3 className={s.sectionTitle}>Audience</h3>
+          </div>
+          <div className={s.sectionContent}>
+            <div className={s.checkboxList}>
+              {filterValues.audiences.map((option) => (
+                <label key={option.value} className={s.checkboxItem}>
+                  <input
+                    type="checkbox"
+                    className={s.checkbox}
+                    checked={selectedAudiences.includes(option.value)}
+                    onChange={() => toggleAudience(option.value)}
+                  />
+                  <span className={s.checkboxLabel}>{option.label}</span>
+                  {option.count > 0 && <span className={s.checkboxCount}>{option.count}</span>}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

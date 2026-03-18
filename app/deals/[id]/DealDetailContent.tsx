@@ -8,7 +8,7 @@ import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 import { useToggleDealUsing } from '@/services/deals/hooks/useUserDealStatus';
 import { useRedeemDeal } from '@/services/deals/hooks/useRedeemDeal';
 import { useContactSupportStore } from '@/services/contact-support/store';
-import { DEAL_CATEGORY_LABELS } from '@/services/deals/constants';
+import { DEAL_CATEGORY_LABELS, DEAL_AUDIENCE_LABELS } from '@/services/deals/constants';
 import { DEAL_ICONS } from '@/components/page/deals/dealsIcons';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { toast } from '@/components/core/ToastContainer';
@@ -113,6 +113,11 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                     {deal.category && (
                       <span className={`${s.tag} ${s.tagDefault}`}>
                         {DEAL_CATEGORY_LABELS[deal.category] || deal.category}
+                      </span>
+                    )}
+                    {deal.audience && (
+                      <span className={`${s.tag} ${s.tagBrand}`}>
+                        {DEAL_AUDIENCE_LABELS[deal.audience] || deal.audience}
                       </span>
                     )}
                   </div>

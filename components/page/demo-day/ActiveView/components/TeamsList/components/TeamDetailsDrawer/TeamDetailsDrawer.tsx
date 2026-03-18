@@ -584,7 +584,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                       <div className={s.sectionMaterials}>
                         <ProfileContent
                           pitchDeckUrl={displayTeam?.onePagerUpload?.url}
-                          videoUrl={displayTeam?.videoUpload?.streamUrl ?? displayTeam?.videoUpload?.url}
+                          videoUrl={displayTeam?.videoUpload?.url}
                           onPitchDeckView={handlePitchDeckView}
                           onPitchVideoView={handlePitchVideoView}
                           pitchDeckPreviewUrl={displayTeam?.onePagerUpload?.previewImageUrl}

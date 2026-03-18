@@ -12,6 +12,7 @@ export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
     sort,
     tags,
     membershipSources,
+    communityAffiliations,
     fundingStage,
     searchBy,
     technology,
@@ -30,6 +31,7 @@ export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
     ...(officeHoursOnly ? { officeHours__not: 'null' } : {}),
     ...(technology ? { 'technologies.title__with': stringifyQueryValues(technology) } : {}),
     ...(membershipSources ? { 'membershipSources.title__with': stringifyQueryValues(membershipSources) } : {}),
+    ...(communityAffiliations ? { 'communityAffiliations.title__with': stringifyQueryValues(communityAffiliations) } : {}),
     ...(fundingStage ? { 'fundingStage.title__with': stringifyQueryValues(fundingStage) } : {}),
     ...(tags ? { 'industryTags.title__with': stringifyQueryValues(tags) } : {}),
     ...(includeFriends ? {} : { plnFriend: false }),
@@ -49,6 +51,7 @@ type Input = {
   formattedAvailableValuesByFilter: any;
   focusAreaData: any;
   membershipSourceData: OptionWithTeams[];
+  communityAffiliationsData: OptionWithTeams[];
   industryTags: OptionWithTeams[];
   fundingStages: OptionWithTeams[];
 };
@@ -66,6 +69,7 @@ export function processFilters(input: Input) {
   return {
     tags: formatIndustryTagFilterOptions(input),
     membershipSources: formatMembershipSourceFilterOptions(input),
+    communityAffiliations: formatCommunityAffiliationsFilterOptions(input),
     fundingStage: formatFundingStageFilterOptions(input),
     technology: getTagsFromValues(
       formattedValuesByFilter?.technology,
@@ -121,6 +125,19 @@ function formatMembershipSourceFilterOptions(input: Input) {
     formattedValuesByFilter?.membershipSources,
     formattedAvailableValuesByFilter?.membershipSources,
     searchParams?.membershipSources,
+  );
+}
+
+function formatCommunityAffiliationsFilterOptions(input: Input) {
+  const { searchParams, communityAffiliationsData } = input;
+
+  const allValues = communityAffiliationsData.map((item) => item.title);
+
+  return formatFilterOptionsWithCounts(
+    communityAffiliationsData,
+    allValues,
+    allValues,
+    searchParams?.communityAffiliations,
   );
 }
 

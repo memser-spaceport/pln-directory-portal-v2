@@ -43,3 +43,9 @@ export async function getFundingStages(type: string, queryParams: any) {
 
   return await fetchData(url, 'funding-stages');
 }
+
+export async function getCommunityAffiliations(type: string, queryParams: any) {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/community-affiliations?type=${type}&${new URLSearchParams(queryParams)}`;
+
+  return await fetchData(url, 'community-affiliations');
+}

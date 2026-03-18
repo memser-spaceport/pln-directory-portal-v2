@@ -7,6 +7,7 @@ import { DealsQueryKeys, DEALS_PER_PAGE } from '../constants';
 interface UseGetDealsParams {
   q?: string;
   categories?: string;
+  audiences?: string;
   sort?: string;
   page?: number;
 }
@@ -25,6 +26,11 @@ function filterAndSort(deals: IDeal[], params: UseGetDealsParams) {
   if (params.categories) {
     const selected = params.categories.split(',');
     filtered = filtered.filter((deal) => selected.includes(deal.category));
+  }
+
+  if (params.audiences) {
+    const selected = params.audiences.split(',');
+    filtered = filtered.filter((deal) => selected.includes(deal.audience));
   }
 
   const sorted = [...filtered];

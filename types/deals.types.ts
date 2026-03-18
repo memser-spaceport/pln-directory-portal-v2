@@ -4,6 +4,7 @@ export interface IDeal {
   vendorTeamUid: string | null;
   logoUid: string | null;
   category: string;
+  audience: string;
   shortDescription: string;
   fullDescription?: string;
   redemptionInstructions?: string;
@@ -24,4 +25,5 @@ export interface IDealFilterOption {
 
 export interface IDealFilterValues {
   categories: IDealFilterOption[];
+  audiences: IDealFilterOption[];
 }

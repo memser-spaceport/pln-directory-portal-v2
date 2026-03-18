@@ -22,6 +22,7 @@ export interface ITeamsSearchParams {
   investmentFocus?: string;
   priorities?: string;
   tiers?: string;
+  communityAffiliations?: string;
 }
 
 export interface CheckboxFilterOption {
@@ -34,6 +35,7 @@ export interface CheckboxFilterOption {
 export interface ITeamFilterSelectedItems {
   tags: CheckboxFilterOption[];
   membershipSources: CheckboxFilterOption[];
+  communityAffiliations: CheckboxFilterOption[];
   fundingStage: CheckboxFilterOption[];
   technology: CheckboxFilterOption[];
   focusAreas: any;

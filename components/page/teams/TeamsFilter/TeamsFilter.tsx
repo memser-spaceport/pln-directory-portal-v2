@@ -51,6 +51,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
   // These factory functions return data hooks that can be passed to GenericCheckboxList
   const getTeamTags = createFilterGetter(filterValues?.tags);
   const getMembershipSources = createFilterGetter(filterValues?.membershipSources);
+  const getCommunityAffiliations = createFilterGetter(filterValues?.communityAffiliations);
   const getFundingStages = createFilterGetter(filterValues?.fundingStage);
   const getPriorities = createFilterGetter(filterValues?.priorities, {
     formatLabel: (item) => getPriorityLabel(item.value, true),
@@ -110,7 +111,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
       )}
 
       {/* Membership Source */}
-      {isDirectoryAdmin && filterValues?.membershipSources && filterValues.membershipSources.length > 0 && (
+      {isDirectoryAdmin && !isEmpty(filterValues?.membershipSources) && (
         <FilterSection title="Membership Source">
           <GenericCheckboxList
             label="Search or select membership source"
@@ -127,6 +128,22 @@ export function TeamsFilter(props: TeamsFilterProps) {
               }
             }}
             onSearch={handleMembershipSourcesSearch}
+          />
+        </FilterSection>
+      )}
+
+      {/* Community Affiliations */}
+      {!isEmpty(filterValues?.communityAffiliations) && (
+        <FilterSection title="Community Affiliations">
+          <GenericCheckboxList
+            label="Search or select community affiliations"
+            paramKey="communityAffiliations"
+            placeholder="E.g. FIL Dev..."
+            filterStore={useTeamFilterStore}
+            useGetDataHook={getCommunityAffiliations}
+            onChange={(key, values) => {
+              triggerLoader(true);
+            }}
           />
         </FilterSection>
       )}

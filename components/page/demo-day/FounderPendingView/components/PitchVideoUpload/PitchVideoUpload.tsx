@@ -351,7 +351,7 @@ export const PitchVideoUpload = ({ existingFile, analyticsHandlers, teamUid }: P
   };
 
   if (existingFile) {
-    const fileUrl = existingFile?.url ?? '';
+    const fileUrl = existingFile?.streamUrl ?? existingFile?.url ?? '';
     const fileName = existingFile?.filename ?? '';
     const fileSize = existingFile?.size ?? 0;
 

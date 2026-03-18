@@ -1,0 +1,1 @@
+export { AdminKBListPage } from './AdminKBListPage';

@@ -38,14 +38,9 @@ export function ArticleHeader({ article, isAdmin }: Props) {
       <div className={s.topRow}>
         <span className={s.category}>{article.category}</span>
         {isAdmin && (
-          <a
-            href={`https://github.com/memser-spaceport/pln-directory-portal-v2/edit/design-preview/content/knowledge-base/${article.slug}.md`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={s.editLink}
-          >
-            <EditIcon /> Edit on GitHub
-          </a>
+          <Link href={`/admin/knowledge-base/edit/${article.slug}`} className={s.editLink}>
+            <EditIcon /> Edit Article
+          </Link>
         )}
       </div>
 

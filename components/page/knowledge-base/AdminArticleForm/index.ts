@@ -1,0 +1,1 @@
+export { AdminArticleForm } from './AdminArticleForm';

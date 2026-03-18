@@ -148,7 +148,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
           {/* Content */}
           <ProfileContent
             pitchDeckUrl={data?.onePagerUpload?.url}
-            videoUrl={data?.videoUpload?.url}
+            videoUrl={data?.videoUpload?.streamUrl ?? data?.videoUpload?.url}
             pitchDeckPreviewUrl={data?.onePagerUpload?.previewImageUrl}
             pitchDeckPreviewSmallUrl={data?.onePagerUpload?.previewImageSmallUrl}
           />

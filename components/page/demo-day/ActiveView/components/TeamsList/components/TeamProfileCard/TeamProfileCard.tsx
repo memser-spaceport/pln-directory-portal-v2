@@ -40,7 +40,12 @@ interface TeamProfileCardProps {
   canEdit?: boolean;
 }
 
-export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick, isAdmin = false, canEdit: canEditTeams }) => {
+export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
+  team,
+  onClick,
+  isAdmin = false,
+  canEdit: canEditTeams,
+}) => {
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
@@ -522,7 +527,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
 
       <ProfileContent
         pitchDeckUrl={team?.onePagerUpload?.url}
-        videoUrl={team?.videoUpload?.url}
+        videoUrl={team?.videoUpload?.streamUrl ?? team?.videoUpload?.url}
         onPitchDeckView={handlePitchDeckView}
         onPitchVideoView={handlePitchVideoView}
         pitchDeckPreviewUrl={team?.onePagerUpload?.previewImageUrl}

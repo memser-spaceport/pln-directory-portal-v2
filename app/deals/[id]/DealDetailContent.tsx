@@ -216,7 +216,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                         />
                       </svg>
                     )}
-                    <span>{deal.isUsing ? 'Currently Using' : 'Mark as Using'}</span>
+                    <span>{deal.isUsing ? 'Mark as Unused' : 'Mark as Using'}</span>
                   </button>
                 </div>
               )}

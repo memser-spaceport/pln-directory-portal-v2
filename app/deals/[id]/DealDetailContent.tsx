@@ -146,28 +146,28 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
               </div>
               {deal.isRedeemed && (
                 <div className={s.headerActions}>
-                  <button
-                    type="button"
-                    className={s.headerActionSecondary}
-                    onClick={() =>
-                      openContactSupport(
-                        { dealId: deal.uid, dealTitle: deal.vendorName },
-                        'reportBug',
-                        `I'd like to report a problem with the "${deal.vendorName}" deal.`,
-                      )
-                    }
-                  >
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M3.75 10.5V3.75C3.75 3.35218 3.90804 2.97064 4.18934 2.68934C4.47064 2.40804 4.85218 2.25 5.25 2.25H14.25C14.6478 2.25 15.0294 2.40804 15.3107 2.68934C15.592 2.97064 15.75 3.35218 15.75 3.75V10.5C15.75 10.8978 15.592 11.2794 15.3107 11.5607C15.0294 11.842 14.6478 12 14.25 12H12L9.75 14.25L7.5 12H5.25C4.85218 12 4.47064 11.842 4.18934 11.5607C3.90804 11.2794 3.75 10.8978 3.75 10.5Z"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span>Report a Problem</span>
-                  </button>
+                  {/*<button*/}
+                  {/*  type="button"*/}
+                  {/*  className={s.headerActionSecondary}*/}
+                  {/*  onClick={() =>*/}
+                  {/*    openContactSupport(*/}
+                  {/*      { dealId: deal.uid, dealTitle: deal.vendorName },*/}
+                  {/*      'reportBug',*/}
+                  {/*      `I'd like to report a problem with the "${deal.vendorName}" deal.`,*/}
+                  {/*    )*/}
+                  {/*  }*/}
+                  {/*>*/}
+                  {/*  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">*/}
+                  {/*    <path*/}
+                  {/*      d="M3.75 10.5V3.75C3.75 3.35218 3.90804 2.97064 4.18934 2.68934C4.47064 2.40804 4.85218 2.25 5.25 2.25H14.25C14.6478 2.25 15.0294 2.40804 15.3107 2.68934C15.592 2.97064 15.75 3.35218 15.75 3.75V10.5C15.75 10.8978 15.592 11.2794 15.3107 11.5607C15.0294 11.842 14.6478 12 14.25 12H12L9.75 14.25L7.5 12H5.25C4.85218 12 4.47064 11.842 4.18934 11.5607C3.90804 11.2794 3.75 10.8978 3.75 10.5Z"*/}
+                  {/*      stroke="currentColor"*/}
+                  {/*      strokeWidth="1.5"*/}
+                  {/*      strokeLinecap="round"*/}
+                  {/*      strokeLinejoin="round"*/}
+                  {/*    />*/}
+                  {/*  </svg>*/}
+                  {/*  <span>Report a Problem</span>*/}
+                  {/*</button>*/}
                   <button
                     type="button"
                     className={`${s.headerActionPrimary} ${deal.isUsing ? s.headerActionPrimaryActive : ''}`}

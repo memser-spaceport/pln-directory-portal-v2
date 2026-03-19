@@ -37,6 +37,7 @@ export function useToggleDealUsing(dealUid: string) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [DealsQueryKeys.DEAL_BY_ID, dealUid] });
+      queryClient.invalidateQueries({ queryKey: [DealsQueryKeys.DEALS_LIST] });
     },
   });
 }

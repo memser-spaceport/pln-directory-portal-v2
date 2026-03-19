@@ -21,7 +21,10 @@ export const DEAL_AUDIENCE_LABELS: Record<string, string> = {
   FOUNDERS: 'Founders',
   ALL_FOUNDERS: 'All Founders',
   PL_FUNDED_FOUNDERS: 'PL Funded Founders',
+  FOUNDERS_FORGE: 'Founders Forge',
 };
+
+export const REQUIRED_AUDIENCES = ['All Founders', 'PL Funded Founders', 'Founders Forge'] as const;
 
 export const DEAL_SORT_OPTIONS = [
   { value: 'newest', label: 'Most recent' },

@@ -19,12 +19,17 @@
   max-width: 900px;
 
   @include mobile-only {
-    padding: 0 16px;
+    padding: 0;
   }
 
   @include tablet-portrait {
     padding: 0;
   }
+}
+
+.backButton {
+  display: flex;
+  padding: 0 16px;
 }
 
 .page {
@@ -154,6 +159,7 @@
   line-height: 22px;
   letter-spacing: -0.2px;
   color: #455468;
+  word-break: break-word;
 }
 
 .tags {

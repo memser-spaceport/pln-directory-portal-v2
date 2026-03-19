@@ -90,7 +90,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   return (
     <div className={s.root}>
       <div className={s.headerContainer}>
-        <BackButton to="/deals" />
+        <BackButton to="/deals" className={s.backButton} />
       </div>
       <div className={s.page}>
         <div className={s.card}>
@@ -121,27 +121,29 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                       </span>
                     )}
                   </div>
-                  <div className={s.meta}>
-                    <div className={s.metaItem}>
-                      <svg className={s.metaIcon} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          d="M8 8C9.65685 8 11 6.65685 11 5C11 3.34315 9.65685 2 8 2C6.34315 2 5 3.34315 5 5C5 6.65685 6.34315 8 8 8Z"
-                          stroke="currentColor"
-                          strokeWidth="1.2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M13 14C13 11.2386 10.7614 9 8 9C5.23858 9 3 11.2386 3 14"
-                          stroke="currentColor"
-                          strokeWidth="1.2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span>{deal.teamsUsingCount} using</span>
+                  {deal.teamsUsingCount > 0 && (
+                    <div className={s.meta}>
+                      <div className={s.metaItem}>
+                        <svg className={s.metaIcon} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path
+                            d="M8 8C9.65685 8 11 6.65685 11 5C11 3.34315 9.65685 2 8 2C6.34315 2 5 3.34315 5 5C5 6.65685 6.34315 8 8 8Z"
+                            stroke="currentColor"
+                            strokeWidth="1.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M13 14C13 11.2386 10.7614 9 8 9C5.23858 9 3 11.2386 3 14"
+                            stroke="currentColor"
+                            strokeWidth="1.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span>{deal.teamsUsingCount} using</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
               {deal.isRedeemed && (
@@ -216,7 +218,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                         />
                       </svg>
                     )}
-                    <span>{deal.isUsing ? 'Currently Using' : 'Mark as Using'}</span>
+                    <span>{deal.isUsing ? 'Mark as Unused' : 'Mark as Using'}</span>
                   </button>
                 </div>
               )}

@@ -2,6 +2,8 @@
 
 import { useCallback } from 'react';
 import { IDealFilterValues } from '@/types/deals.types';
+import { CloseIcon, SearchIcon } from '@/components/icons';
+import FilterCount from '@/components/ui/filter-count';
 import s from './DealsFilter.module.scss';
 
 interface DealsFilterProps {
@@ -47,12 +49,16 @@ export function DealsFilter({
     [selectedAudiences, onAudiencesChange]
   );
 
-  const hasActiveFilters = searchQuery || selectedCategories.length > 0 || selectedAudiences.length > 0;
+  const appliedFiltersCount = selectedCategories.length + selectedAudiences.length + (searchQuery ? 1 : 0);
+  const hasActiveFilters = appliedFiltersCount > 0;
 
   return (
     <div className={s.root}>
       <div className={s.header}>
-        <h2 className={s.headerTitle}>Filters</h2>
+        <h2 className={s.headerTitle}>
+          Filters
+          {appliedFiltersCount > 0 && <FilterCount count={appliedFiltersCount} />}
+        </h2>
         {hasActiveFilters && (
           <button className={s.clearAll} onClick={onClearAll}>
             Clear All
@@ -68,13 +74,25 @@ export function DealsFilter({
           <h3 className={s.sectionTitle}>Deal Search</h3>
         </div>
         <div className={s.sectionContent}>
-          <input
-            type="text"
-            className={s.searchInput}
-            placeholder="Search for a deal"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
+          <div className={s.searchInputContainer}>
+            <input
+              type="text"
+              className={s.searchInput}
+              placeholder="Search for a deal"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+            {!searchQuery && (
+              <div className={s.searchIcon}>
+                <SearchIcon />
+              </div>
+            )}
+            {searchQuery && (
+              <button type="button" className={s.clearButton} onClick={() => onSearchChange('')} aria-label="Clear search">
+                <CloseIcon />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

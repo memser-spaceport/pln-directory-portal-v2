@@ -7,14 +7,7 @@ export enum DealsQueryKeys {
 
 export const DEALS_PER_PAGE = 10;
 
-export const DEAL_CATEGORY_LABELS: Record<string, string> = {
-  Hosting: 'Hosting',
-  'hosting-infrastructure': 'Hosting & Infrastructure',
-  'developer-tools': 'Developer Tools',
-  'design-collaboration': 'Design & Collaboration',
-  'analytics-monitoring': 'Analytics & Monitoring',
-  'security-compliance': 'Security & Compliance',
-};
+export const DEAL_CATEGORY_LABELS: Record<string, string> = {};
 
 export const DEAL_AUDIENCE_LABELS: Record<string, string> = {
   DEVELOPERS: 'Developers',

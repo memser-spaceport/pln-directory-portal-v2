@@ -50,50 +50,50 @@ export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
               </Menu.Positioner>
             </Menu.Portal>
           </Menu.Root>
-          <div className={s.submitButton}>
-            <svg className={s.submitIcon} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M9 3.75V14.25"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M3.75 9H14.25"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Submit a Deal
-            <span className={s.tooltip}>Coming soon</span>
-          </div>
+          {/*<div className={s.submitButton}>*/}
+          {/*  <svg className={s.submitIcon} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">*/}
+          {/*    <path*/}
+          {/*      d="M9 3.75V14.25"*/}
+          {/*      stroke="currentColor"*/}
+          {/*      strokeWidth="1.5"*/}
+          {/*      strokeLinecap="round"*/}
+          {/*      strokeLinejoin="round"*/}
+          {/*    />*/}
+          {/*    <path*/}
+          {/*      d="M3.75 9H14.25"*/}
+          {/*      stroke="currentColor"*/}
+          {/*      strokeWidth="1.5"*/}
+          {/*      strokeLinecap="round"*/}
+          {/*      strokeLinejoin="round"*/}
+          {/*    />*/}
+          {/*  </svg>*/}
+          {/*  Submit a Deal*/}
+          {/*  <span className={s.tooltip}>Coming soon</span>*/}
+          {/*</div>*/}
         </div>
       </div>
-      <div className={s.mobileActions}>
-        <div className={s.submitButton}>
-          <svg className={s.submitIcon} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M9 3.75V14.25"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M3.75 9H14.25"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Submit Deal
-          <span className={s.tooltip}>Coming soon</span>
-        </div>
-      </div>
+      {/*<div className={s.mobileActions}>*/}
+      {/*  <div className={s.submitButton}>*/}
+      {/*    <svg className={s.submitIcon} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">*/}
+      {/*      <path*/}
+      {/*        d="M9 3.75V14.25"*/}
+      {/*        stroke="currentColor"*/}
+      {/*        strokeWidth="1.5"*/}
+      {/*        strokeLinecap="round"*/}
+      {/*        strokeLinejoin="round"*/}
+      {/*      />*/}
+      {/*      <path*/}
+      {/*        d="M3.75 9H14.25"*/}
+      {/*        stroke="currentColor"*/}
+      {/*        strokeWidth="1.5"*/}
+      {/*        strokeLinecap="round"*/}
+      {/*        strokeLinejoin="round"*/}
+      {/*      />*/}
+      {/*    </svg>*/}
+      {/*    Submit Deal*/}
+      {/*    <span className={s.tooltip}>Coming soon</span>*/}
+      {/*  </div>*/}
+      {/*</div>*/}
     </div>
   );
 }

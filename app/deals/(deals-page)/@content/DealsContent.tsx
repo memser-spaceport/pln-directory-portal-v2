@@ -113,6 +113,7 @@ export default function DealsContent() {
           currentSort={filters.sort}
           sortOptions={sortOptions}
           onSortChange={handleSortChange}
+          onClearFilters={handleClearAll}
           renderFilter={(onClose) => (
             <DealsFilter
               filterValues={filterValues}

@@ -41,6 +41,11 @@ export interface MobileFilterWrapperProps {
   renderFilter: (onClose: () => void) => ReactNode;
 
   /**
+   * Handler to clear all filters
+   */
+  onClearFilters?: () => void;
+
+  /**
    * Optional callback when filter panel is closed via X button or swipe
    */
   onFilterClose?: () => void;
@@ -77,6 +82,7 @@ export function MobileFilterWrapper({
   sortOptions,
   onSortChange,
   renderFilter,
+  onClearFilters,
   onFilterClose,
 }: MobileFilterWrapperProps) {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
@@ -153,6 +159,19 @@ export function MobileFilterWrapper({
               </button>
             </div>
             <div className={s.dialogContent}>{renderFilter(handleCloseFilterDrawer)}</div>
+            <div className={s.dialogFooter}>
+              <button
+                className={s.clearButton}
+                onClick={() => {
+                  onClearFilters?.();
+                }}
+              >
+                Clear Filters
+              </button>
+              <button className={s.applyButton} onClick={handleCloseFilterDrawer}>
+                Apply Filters
+              </button>
+            </div>
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>

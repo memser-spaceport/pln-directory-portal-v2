@@ -6,6 +6,11 @@
   gap: 8px;
   padding-inline: 0;
   margin-bottom: 12px;
+  position: sticky;
+  top: var(--app-header-height);
+  z-index: 4;
+  background: #f1f5f9;
+  padding-block: 8px;
 
   @include media.breakpoint-1024 {
     display: none;

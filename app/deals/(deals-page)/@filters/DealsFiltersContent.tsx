@@ -7,6 +7,7 @@ import { useGetDealFilterValues } from '@/services/deals/hooks/useGetDealFilterV
 import { DealsFilter } from '@/components/page/deals/DealsFilter/DealsFilter';
 import { FiltersPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout';
 import Error from '@/components/core/error';
+import s from './DealsFiltersContent.module.scss';
 
 export default function DealsFiltersContent() {
   const [filters, setFilters] = useQueryStates(dealsFilterParsers, {
@@ -50,8 +51,8 @@ export default function DealsFiltersContent() {
   }
 
   return (
-    <div className="fw">
-      <div className="fw__web">
+    <div className={s.root}>
+      <div className={s.web}>
         <DealsFilter
           filterValues={filterValues}
           searchQuery={filters.q}
@@ -63,30 +64,6 @@ export default function DealsFiltersContent() {
           onClearAll={handleClearAll}
         />
       </div>
-
-      <style jsx>
-        {`
-          .fw {
-            width: inherit;
-            height: inherit;
-          }
-
-          .fw__web {
-            display: none;
-            position: fixed;
-            background: #fff;
-            z-index: 1;
-          }
-
-          @media (min-width: 1024px) {
-            .fw__web {
-              display: unset;
-              width: inherit;
-              height: inherit;
-            }
-          }
-        `}
-      </style>
     </div>
   );
 }

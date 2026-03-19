@@ -1,0 +1,17 @@
+.root {
+  width: inherit;
+  height: inherit;
+}
+
+.web {
+  display: none;
+  position: fixed;
+  background: #fff;
+  z-index: 1;
+
+  @media (min-width: 1024px) {
+    display: unset;
+    width: inherit;
+    height: inherit;
+  }
+}

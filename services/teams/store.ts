@@ -32,6 +32,7 @@ export const useTeamFilterStore = createFilterStore({
     // Multi-select filters
     'tags', // Team tags
     'membershipSources', // Membership sources
+    'communityAffiliations', // Community affiliations
     'fundingStage', // Funding stage
     'technology', // Technology tags
     'asks', // Team asks/requests

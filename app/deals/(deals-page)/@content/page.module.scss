@@ -1,0 +1,16 @@
+@import 'styles/media.scss';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding: 40px 20px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+
+  @include mobile-only {
+    padding: 24px 16px;
+    gap: 16px;
+  }
+}

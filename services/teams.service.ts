@@ -165,6 +165,7 @@ export const getTeam = async (
     dataEnrichment: result.dataEnrichment,
     blog: result?.blog,
     telegramHandler: result?.telegramHandler,
+    communityAffiliations: result?.communityAffiliations,
   };
   return { data: { formatedData } };
 };

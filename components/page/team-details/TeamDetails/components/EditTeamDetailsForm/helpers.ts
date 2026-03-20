@@ -2,7 +2,7 @@ import * as yup from 'yup';
 
 export const editTeamDetailsSchema = yup.object({
   name: yup.string().trim().required('Please add Team Name').max(150),
-  shortDescription: yup.string().trim().max(1000).defined(),
+  shortDescription: yup.string().trim().max(100, 'Max. 100 characters').defined(),
   isFund: yup.boolean().defined(),
   fundingStage: yup.object().nullable().defined(),
   industryTags: yup.array().of(yup.object()).defined(),

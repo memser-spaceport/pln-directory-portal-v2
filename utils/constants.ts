@@ -691,6 +691,24 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.8 - Deals Launch & Team Profile Enhancements',
+    tag: 'New Feature',
+    date: '20, Mar 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Deals directory</span> - Browse and discover exclusive deals and offers available to the community.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Deal redemption</span> - Redeem offers and track their usage status directly from each deal page.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Edit Membership Source and Community Affiliations directly on the team page.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Community filters</span> - New filter options for Community Affiliations across the directory.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.7 - Team Profile Enhancements',
     tag: 'Improvements',
     date: '13, Mar 2026',

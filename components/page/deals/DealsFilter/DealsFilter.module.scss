@@ -14,7 +14,7 @@
   display: none;
   align-items: center;
   justify-content: space-between;
-  padding: 0 6px;
+  padding: 0 24px;
 
   @include tablet-landscape {
     display: flex;
@@ -24,8 +24,6 @@
 .headerTitle {
   font-size: 18px;
   font-weight: 500;
-  line-height: 24px;
-  letter-spacing: -0.4px;
   color: #0a0c11;
   display: flex;
   align-items: center;
@@ -33,18 +31,21 @@
 }
 
 .clearAll {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
   color: #1b4dff;
   background: none;
   border: none;
-  cursor: pointer;
+  cursor: default;
   padding: 0;
+  opacity: 0.5;
+  pointer-events: none;
 
-  &:hover {
-    text-decoration: underline;
+  &.clearAllActive {
+    color: #1b4dff;
+    cursor: pointer;
+    pointer-events: auto;
+    opacity: 1;
   }
 }
 

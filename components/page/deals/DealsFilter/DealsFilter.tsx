@@ -5,6 +5,7 @@ import { IDealFilterValues } from '@/types/deals.types';
 import { CloseIcon, SearchIcon } from '@/components/icons';
 import FilterCount from '@/components/ui/filter-count';
 import s from './DealsFilter.module.scss';
+import clsx from 'clsx';
 
 interface DealsFilterProps {
   filterValues: IDealFilterValues;
@@ -35,7 +36,7 @@ export function DealsFilter({
         onCategoriesChange([...selectedCategories, value]);
       }
     },
-    [selectedCategories, onCategoriesChange]
+    [selectedCategories, onCategoriesChange],
   );
 
   const toggleAudience = useCallback(
@@ -46,7 +47,7 @@ export function DealsFilter({
         onAudiencesChange([...selectedAudiences, value]);
       }
     },
-    [selectedAudiences, onAudiencesChange]
+    [selectedAudiences, onAudiencesChange],
   );
 
   const appliedFiltersCount = selectedCategories.length + selectedAudiences.length + (searchQuery ? 1 : 0);
@@ -59,11 +60,14 @@ export function DealsFilter({
           Filters
           {appliedFiltersCount > 0 && <FilterCount count={appliedFiltersCount} />}
         </h2>
-        {hasActiveFilters && (
-          <button className={s.clearAll} onClick={onClearAll}>
-            Clear All
-          </button>
-        )}
+        <button
+          className={clsx(s.clearAll, {
+            [s.clearAllActive]: hasActiveFilters,
+          })}
+          onClick={onClearAll}
+        >
+          Clear All
+        </button>
       </div>
 
       <div className={s.divider} />
@@ -88,7 +92,12 @@ export function DealsFilter({
               </div>
             )}
             {searchQuery && (
-              <button type="button" className={s.clearButton} onClick={() => onSearchChange('')} aria-label="Clear search">
+              <button
+                type="button"
+                className={s.clearButton}
+                onClick={() => onSearchChange('')}
+                aria-label="Clear search"
+              >
                 <CloseIcon />
               </button>
             )}

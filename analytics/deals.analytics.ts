@@ -1,18 +1,18 @@
 import { usePostHog } from 'posthog-js/react';
 import { useCallback } from 'react';
 
-const DEALS_EVENTS = {
-  PAGE_VIEW: 'deals_page_viewed',
-  DEAL_CARD_CLICKED: 'deals_card_clicked',
-  FILTER_APPLIED: 'deals_filter_applied',
-  FILTER_CLEARED: 'deals_filter_cleared',
-  SORT_CHANGED: 'deals_sort_changed',
-  SHOW_MORE_CLICKED: 'deals_show_more_clicked',
-  SEARCH_PERFORMED: 'deals_search_performed',
-  DEAL_DETAIL_VIEWED: 'deals_detail_viewed',
-  DEAL_REDEEM_CLICKED: 'deals_redeem_clicked',
-  DEAL_TOGGLE_USING_CLICKED: 'deals_toggle_using_clicked',
-  DEAL_BACK_CLICKED: 'deals_back_clicked',
+const DEALS_ANALYTICS_EVENTS = {
+  DEALS_PAGE_VIEWED: 'deals-page-viewed',
+  DEALS_CARD_CLICKED: 'deals-card-clicked',
+  DEALS_FILTER_APPLIED: 'deals-filter-applied',
+  DEALS_FILTER_CLEARED: 'deals-filter-cleared',
+  DEALS_SORT_CHANGED: 'deals-sort-changed',
+  DEALS_SHOW_MORE_CLICKED: 'deals-show-more-clicked',
+  DEALS_SEARCH_PERFORMED: 'deals-search-performed',
+  DEALS_DETAIL_VIEWED: 'deals-detail-viewed',
+  DEALS_REDEEM_CLICKED: 'deals-redeem-clicked',
+  DEALS_TOGGLE_USING_CLICKED: 'deals-toggle-using-clicked',
+  DEALS_BACK_CLICKED: 'deals-back-clicked',
 };
 
 export function useDealsAnalytics() {
@@ -20,67 +20,67 @@ export function useDealsAnalytics() {
 
   const trackDealCardClicked = useCallback(
     (dealId: string, dealTitle: string) => {
-      posthog?.capture(DEALS_EVENTS.DEAL_CARD_CLICKED, { dealId, dealTitle });
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_CARD_CLICKED, { dealId, dealTitle });
     },
     [posthog],
   );
 
   const trackFilterApplied = useCallback(
     (filterType: string, values: string[]) => {
-      posthog?.capture(DEALS_EVENTS.FILTER_APPLIED, { filterType, values });
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_FILTER_APPLIED, { filterType, values });
     },
     [posthog],
   );
 
   const trackFilterCleared = useCallback(() => {
-    posthog?.capture(DEALS_EVENTS.FILTER_CLEARED);
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_FILTER_CLEARED);
   }, [posthog]);
 
   const trackSortChanged = useCallback(
     (sort: string) => {
-      posthog?.capture(DEALS_EVENTS.SORT_CHANGED, { sort });
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_SORT_CHANGED, { sort });
     },
     [posthog],
   );
 
   const trackShowMoreClicked = useCallback(
     (page: number) => {
-      posthog?.capture(DEALS_EVENTS.SHOW_MORE_CLICKED, { page });
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_SHOW_MORE_CLICKED, { page });
     },
     [posthog],
   );
 
   const trackSearchPerformed = useCallback(
     (query: string) => {
-      posthog?.capture(DEALS_EVENTS.SEARCH_PERFORMED, { query });
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_SEARCH_PERFORMED, { query });
     },
     [posthog],
   );
 
   const trackDealDetailViewed = useCallback(
     (dealId: string, dealTitle: string) => {
-      posthog?.capture(DEALS_EVENTS.DEAL_DETAIL_VIEWED, { dealId, dealTitle });
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_DETAIL_VIEWED, { dealId, dealTitle });
     },
     [posthog],
   );
 
   const trackRedeemClicked = useCallback(
     (dealId: string, dealTitle: string) => {
-      posthog?.capture(DEALS_EVENTS.DEAL_REDEEM_CLICKED, { dealId, dealTitle });
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_REDEEM_CLICKED, { dealId, dealTitle });
     },
     [posthog],
   );
 
   const trackToggleUsingClicked = useCallback(
     (dealId: string, dealTitle: string, isUsing: boolean) => {
-      posthog?.capture(DEALS_EVENTS.DEAL_TOGGLE_USING_CLICKED, { dealId, dealTitle, isUsing });
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_TOGGLE_USING_CLICKED, { dealId, dealTitle, isUsing });
     },
     [posthog],
   );
 
   const trackBackClicked = useCallback(
     (dealId: string, dealTitle: string) => {
-      posthog?.capture(DEALS_EVENTS.DEAL_BACK_CLICKED, { dealId, dealTitle });
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_BACK_CLICKED, { dealId, dealTitle });
     },
     [posthog],
   );

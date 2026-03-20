@@ -2,13 +2,14 @@
 
 import React from 'react';
 import last from 'lodash/last';
+import filter from 'lodash/filter';
 import isEmpty from 'lodash/isEmpty';
 import { IAnalyticsUserInfo, IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems } from '@/types/teams.types';
 import { FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
 import { triggerLoader } from '@/utils/common.utils';
 
-import { createFilterGetter } from '@/services/teams/utils/createFilterGetter';
+import { BaseFilterItem, createFilterGetter } from '@/services/teams/utils/createFilterGetter';
 import Image from 'next/image';
 import { useTeamFilterStore, useTeamFilterCount } from '@/services/teams';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
@@ -51,7 +52,11 @@ export function TeamsFilter(props: TeamsFilterProps) {
   // These factory functions return data hooks that can be passed to GenericCheckboxList
   const getTeamTags = createFilterGetter(filterValues?.tags);
   const getMembershipSources = createFilterGetter(filterValues?.membershipSources);
-  const getCommunityAffiliations = createFilterGetter(filterValues?.communityAffiliations);
+  const getCommunityAffiliations = createFilterGetter(filterValues?.communityAffiliations, {
+    filter: (items: BaseFilterItem[]) => {
+      return filter(items, (item) => !!item.count);
+    },
+  });
   const getFundingStages = createFilterGetter(filterValues?.fundingStage);
   const getPriorities = createFilterGetter(filterValues?.priorities, {
     formatLabel: (item) => getPriorityLabel(item.value, true),

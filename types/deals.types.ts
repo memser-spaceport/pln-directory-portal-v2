@@ -15,6 +15,7 @@ export interface IDeal {
   isUsing: boolean;
   teamsRedemptionCount: number;
   teamsUsingCount: number;
+  logoUrl: string | null;
 }
 
 export interface IDealFilterOption {

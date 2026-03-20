@@ -98,7 +98,9 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
             <div className={s.header}>
               <div className={s.headerContent}>
                 <div className={s.avatar}>
-                  {IconComponent ? (
+                  {deal.logoUrl ? (
+                    <img src={deal.logoUrl} alt={deal.vendorName} className={s.avatarImg} />
+                  ) : IconComponent ? (
                     <IconComponent />
                   ) : (
                     <span className={s.avatarPlaceholder}>{deal.vendorName.charAt(0)}</span>

@@ -148,7 +148,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                       </svg>
                       <span>{deal.teamsUsingCount} using</span>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
               {deal.isRedeemed && (

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { IDeal } from '@/types/deals.types';
 import { DEAL_CATEGORY_LABELS, DEAL_AUDIENCE_LABELS } from '@/services/deals/constants';
 import { DEAL_ICONS } from '../dealsIcons';
+import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import s from './DealCard.module.scss';
 
 interface DealCardProps {
@@ -12,9 +13,10 @@ interface DealCardProps {
 
 export function DealCard({ deal }: DealCardProps) {
   const IconComponent = DEAL_ICONS[deal.vendorName.toLowerCase()];
+  const analytics = useDealsAnalytics();
 
   return (
-    <Link href={`/deals/${deal.uid}`} className={s.card}>
+    <Link href={`/deals/${deal.uid}`} className={s.card} onClick={() => analytics.trackDealCardClicked(deal.uid, deal.vendorName)}>
       <div className={s.content}>
         <div className={s.avatar}>
           {deal.logoUrl ? (

@@ -15,6 +15,7 @@ import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWra
 import { DealsFilter } from '@/components/page/deals/DealsFilter/DealsFilter';
 import { useGetDealFilterValues } from '@/services/deals/hooks/useGetDealFilterValues';
 import { DEAL_SORT_OPTIONS } from '@/services/deals/constants';
+import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import s from './page.module.scss';
 
 export default function DealsContent() {
@@ -46,43 +47,52 @@ export default function DealsContent() {
 
   const { data: dealsData, isLoading, isError } = useGetDeals(searchParams);
   const { data: filterValues } = useGetDealFilterValues();
+  const analytics = useDealsAnalytics();
 
   const handleSortChange = useCallback(
     (sort: string) => {
+      analytics.trackSortChanged(sort);
       setFilters({ sort: sort as 'newest' | 'alphabetical', page: 1 });
     },
-    [setFilters]
+    [setFilters, analytics]
   );
 
   const handleShowMore = useCallback(async () => {
+    analytics.trackShowMoreClicked(filters.page + 1);
     setLoadingMore(true);
     await setFilters({ page: filters.page + 1 });
     setLoadingMore(false);
-  }, [filters.page, setFilters]);
+  }, [filters.page, setFilters, analytics]);
 
   const handleClearAll = useCallback(() => {
+    analytics.trackFilterCleared();
     setFilters({ q: null, categories: null, audiences: null, sort: null, page: null });
-  }, [setFilters]);
+  }, [setFilters, analytics]);
 
   const handleSearchChange = useCallback(
     (value: string) => {
+      if (value) {
+        analytics.trackSearchPerformed(value);
+      }
       setFilters({ q: value || null, page: 1 });
     },
-    [setFilters]
+    [setFilters, analytics]
   );
 
   const handleCategoriesChange = useCallback(
     (categories: string[]) => {
+      analytics.trackFilterApplied('categories', categories);
       setFilters({ categories: categories.length > 0 ? categories : null, page: 1 });
     },
-    [setFilters]
+    [setFilters, analytics]
   );
 
   const handleAudiencesChange = useCallback(
     (audiences: string[]) => {
+      analytics.trackFilterApplied('audiences', audiences);
       setFilters({ audiences: audiences.length > 0 ? audiences : null, page: 1 });
     },
-    [setFilters]
+    [setFilters, analytics]
   );
 
   if (isAccessLoading || (!hasAccess && !isAccessError)) {

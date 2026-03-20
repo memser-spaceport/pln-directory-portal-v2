@@ -12,6 +12,7 @@ import { DEAL_CATEGORY_LABELS, DEAL_AUDIENCE_LABELS } from '@/services/deals/con
 import { DEAL_ICONS } from '@/components/page/deals/dealsIcons';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { toast } from '@/components/core/ToastContainer';
+import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import s from './page.module.scss';
 import clsx from 'clsx';
 
@@ -26,12 +27,19 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   const toggleUsingMutation = useToggleDealUsing(id);
   const redeemMutation = useRedeemDeal(id);
   const openContactSupport = useContactSupportStore((state) => state.actions.openModal);
+  const analytics = useDealsAnalytics();
 
   useEffect(() => {
     if (!isAccessLoading && !isAccessError && !hasAccess) {
       router.replace('/members');
     }
   }, [hasAccess, isAccessLoading, isAccessError, router]);
+
+  useEffect(() => {
+    if (deal) {
+      analytics.trackDealDetailViewed(deal.uid, deal.vendorName);
+    }
+  }, [deal?.uid]);
 
   if (isAccessLoading || (!hasAccess && !isAccessError)) {
     return <DealDetailSkeleton />;
@@ -77,6 +85,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   const IconComponent = DEAL_ICONS[deal.vendorName.toLowerCase()];
 
   const handleRedeem = async () => {
+    analytics.trackRedeemClicked(deal.uid, deal.vendorName);
     try {
       await redeemMutation.mutateAsync();
     } catch {
@@ -85,6 +94,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   };
 
   const handleToggleUsing = () => {
+    analytics.trackToggleUsingClicked(deal.uid, deal.vendorName, !deal.isUsing);
     toggleUsingMutation.mutate(deal.isUsing);
   };
 

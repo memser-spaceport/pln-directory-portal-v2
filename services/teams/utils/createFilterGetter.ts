@@ -1,10 +1,12 @@
 import isEmpty from 'lodash/isEmpty';
+import isFunction from 'lodash/isFunction';
+
 import { FilterOption } from '@/services/filters';
 
 /**
  * Base interface for filter items with common properties
  */
-interface BaseFilterItem {
+export interface BaseFilterItem {
   value: string;
   disabled: boolean;
   count?: number;
@@ -20,6 +22,13 @@ interface FilterGetterOptions<T extends BaseFilterItem> {
    * @returns The formatted label string
    */
   formatLabel?: (item: T) => string;
+
+  /**
+   * Custom function to filter items
+   * @param items
+   * @returns The filtered array of items
+   */
+  filter?: (items: T[]) => T[];
 }
 
 /**
@@ -52,7 +61,7 @@ interface FilterGetterOptions<T extends BaseFilterItem> {
  * ```
  */
 export function createFilterGetter<T extends BaseFilterItem>(items: T[] | undefined, options?: FilterGetterOptions<T>) {
-  const { formatLabel = (item: T) => item.value } = options || {};
+  const { formatLabel = (item: T) => item.value, filter } = options || {};
 
   return (input: string): { data?: FilterOption[] } => {
     if (!items || isEmpty(items)) {
@@ -60,13 +69,17 @@ export function createFilterGetter<T extends BaseFilterItem>(items: T[] | undefi
     }
 
     // Filter by search input (case-insensitive)
-    const filtered = items.filter((item) => {
+    let filtered = items.filter((item) => {
       if (!input) {
         return true;
       }
 
       return item.value.toLowerCase().includes(input.toLowerCase());
     });
+
+    if (isFunction(filter)) {
+      filtered = filter(filtered);
+    }
 
     // Map to FilterOption format
     const data = filtered.map((item) => ({

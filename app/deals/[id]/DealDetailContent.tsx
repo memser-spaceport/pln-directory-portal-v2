@@ -40,7 +40,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   if (isAccessError) {
     return (
       <div className={s.root}>
-        <BackButton to="/deals" />
+        <BackButton to="/deals" className={s.backButton} />
         <div className={s.page}>
           <div className={s.notFound}>
             <h1>Unable to verify access</h1>
@@ -61,7 +61,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   if (isError || !deal) {
     return (
       <div className={s.root}>
-        <BackButton to="/deals" />
+        <BackButton to="/deals" className={s.backButton} />
         <div className={s.page}>
           <div className={s.notFound}>
             <h1>Deal not found</h1>

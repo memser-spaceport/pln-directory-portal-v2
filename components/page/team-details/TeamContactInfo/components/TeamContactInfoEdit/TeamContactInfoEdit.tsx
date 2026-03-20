@@ -12,6 +12,7 @@ import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
+import s from './TeamContactInfoEdit.module.scss';
 import { teamContactInfoSchema } from './formSchema';
 
 type EditTeamContactForm = InferType<typeof teamContactInfoSchema>;
@@ -56,7 +57,7 @@ export function TeamContactInfoEdit(props: Props) {
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
         <EditFormControls title="Edit Contact Details" onClose={toggleIsEditMode} />
 
-        <DetailsSection>
+        <DetailsSection classes={{ root: s.detailsSection }}>
           <FormField name="website" label="Website" placeholder="Enter website" isRequired />
 
           <FormField

@@ -42,7 +42,7 @@ export default function DealsContent() {
       sort: filters.sort,
       page: filters.page,
     }),
-    [filters]
+    [filters],
   );
 
   const { data: dealsData, isLoading, isError } = useGetDeals(searchParams);
@@ -54,7 +54,7 @@ export default function DealsContent() {
       analytics.trackSortChanged(sort);
       setFilters({ sort: sort as 'newest' | 'alphabetical', page: 1 });
     },
-    [setFilters, analytics]
+    [setFilters, analytics],
   );
 
   const handleShowMore = useCallback(async () => {
@@ -76,7 +76,7 @@ export default function DealsContent() {
       }
       setFilters({ q: value || null, page: 1 });
     },
-    [setFilters, analytics]
+    [setFilters, analytics],
   );
 
   const handleCategoriesChange = useCallback(
@@ -84,7 +84,7 @@ export default function DealsContent() {
       analytics.trackFilterApplied('categories', categories);
       setFilters({ categories: categories.length > 0 ? categories : null, page: 1 });
     },
-    [setFilters, analytics]
+    [setFilters, analytics],
   );
 
   const handleAudiencesChange = useCallback(
@@ -92,7 +92,7 @@ export default function DealsContent() {
       analytics.trackFilterApplied('audiences', audiences);
       setFilters({ audiences: audiences.length > 0 ? audiences : null, page: 1 });
     },
-    [setFilters, analytics]
+    [setFilters, analytics],
   );
 
   if (isAccessLoading || (!hasAccess && !isAccessError)) {
@@ -145,7 +145,10 @@ export default function DealsContent() {
       {deals.length > 0 ? (
         <DealsList deals={deals} hasMore={hasMore} isLoadingMore={loadingMore} onShowMore={handleShowMore} />
       ) : (
-        <DealsEmptyState onClearFilters={handleClearAll} />
+        <DealsEmptyState
+          onClearFilters={handleClearAll}
+          hasFilters={filters.categories.length > 0 || filters.audiences.length > 0 || !!filters.q}
+        />
       )}
     </div>
   );

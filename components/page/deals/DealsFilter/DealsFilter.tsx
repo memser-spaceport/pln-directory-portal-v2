@@ -106,27 +106,29 @@ export function DealsFilter({
       </div>
 
       {/* Categories */}
-      <div className={s.section}>
-        <div className={s.sectionHeader}>
-          <h3 className={s.sectionTitle}>Categories</h3>
-        </div>
-        <div className={s.sectionContent}>
-          <div className={s.checkboxList}>
-            {filterValues.categories.map((option) => (
-              <label key={option.value} className={s.checkboxItem}>
-                <input
-                  type="checkbox"
-                  className={s.checkbox}
-                  checked={selectedCategories.includes(option.value)}
-                  onChange={() => toggleCategory(option.value)}
-                />
-                <span className={s.checkboxLabel}>{option.label}</span>
-                {option.count > 0 && <span className={s.checkboxCount}>{option.count}</span>}
-              </label>
-            ))}
+      {filterValues.categories.length > 0 && (
+        <div className={s.section}>
+          <div className={s.sectionHeader}>
+            <h3 className={s.sectionTitle}>Categories</h3>
+          </div>
+          <div className={s.sectionContent}>
+            <div className={s.checkboxList}>
+              {filterValues.categories.map((option) => (
+                <label key={option.value} className={s.checkboxItem}>
+                  <input
+                    type="checkbox"
+                    className={s.checkbox}
+                    checked={selectedCategories.includes(option.value)}
+                    onChange={() => toggleCategory(option.value)}
+                  />
+                  <span className={s.checkboxLabel}>{option.label}</span>
+                  {option.count > 0 && <span className={s.checkboxCount}>{option.count}</span>}
+                </label>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Audience */}
       {filterValues.audiences.length > 0 && (

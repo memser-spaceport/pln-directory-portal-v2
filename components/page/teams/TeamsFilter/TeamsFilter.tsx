@@ -26,6 +26,8 @@ import { getPriorityLabel } from '@/utils/team.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { isTierUser } from '@/utils/user/isTierUser';
 
+import { processCommunityAffiliationsFilterOptions } from './utils/processCommunityAffiliationsFilterOptions';
+
 export interface TeamsFilterProps {
   filterValues: ITeamFilterSelectedItems | undefined;
   userInfo?: IUserInfo;
@@ -53,9 +55,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
   const getTeamTags = createFilterGetter(filterValues?.tags);
   const getMembershipSources = createFilterGetter(filterValues?.membershipSources);
   const getCommunityAffiliations = createFilterGetter(filterValues?.communityAffiliations, {
-    filter: (items: BaseFilterItem[]) => {
-      return filter(items, (item) => !!item.count);
-    },
+    processFilterItems: processCommunityAffiliationsFilterOptions,
   });
   const getFundingStages = createFilterGetter(filterValues?.fundingStage);
   const getPriorities = createFilterGetter(filterValues?.priorities, {

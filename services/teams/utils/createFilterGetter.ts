@@ -24,11 +24,11 @@ interface FilterGetterOptions<T extends BaseFilterItem> {
   formatLabel?: (item: T) => string;
 
   /**
-   * Custom function to filter items
+   * Custom function to process items (e.g. filter, sort, whatever) before mapping to FilterOption
    * @param items
-   * @returns The filtered array of items
+   * @returns Processed array of items
    */
-  filter?: (items: T[]) => T[];
+  processFilterItems?: (items: T[]) => T[];
 }
 
 /**
@@ -61,7 +61,7 @@ interface FilterGetterOptions<T extends BaseFilterItem> {
  * ```
  */
 export function createFilterGetter<T extends BaseFilterItem>(items: T[] | undefined, options?: FilterGetterOptions<T>) {
-  const { formatLabel = (item: T) => item.value, filter } = options || {};
+  const { formatLabel = (item: T) => item.value, processFilterItems } = options || {};
 
   return (input: string): { data?: FilterOption[] } => {
     if (!items || isEmpty(items)) {
@@ -77,8 +77,8 @@ export function createFilterGetter<T extends BaseFilterItem>(items: T[] | undefi
       return item.value.toLowerCase().includes(input.toLowerCase());
     });
 
-    if (isFunction(filter)) {
-      filtered = filter(filtered);
+    if (isFunction(processFilterItems)) {
+      filtered = processFilterItems(filtered);
     }
 
     // Map to FilterOption format

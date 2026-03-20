@@ -17,7 +17,13 @@ export function DealCard({ deal }: DealCardProps) {
     <Link href={`/deals/${deal.uid}`} className={s.card}>
       <div className={s.content}>
         <div className={s.avatar}>
-          {IconComponent ? <IconComponent /> : <div className={s.avatarPlaceholder}>{deal.vendorName.charAt(0)}</div>}
+          {deal.logoUrl ? (
+            <img src={deal.logoUrl} alt={deal.vendorName} className={s.avatarImg} />
+          ) : IconComponent ? (
+            <IconComponent />
+          ) : (
+            <div className={s.avatarPlaceholder}>{deal.vendorName.charAt(0)}</div>
+          )}
         </div>
         <div className={s.details}>
           <div className={s.description}>

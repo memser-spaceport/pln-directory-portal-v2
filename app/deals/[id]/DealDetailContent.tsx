@@ -13,6 +13,7 @@ import { DEAL_ICONS } from '@/components/page/deals/dealsIcons';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { toast } from '@/components/core/ToastContainer';
 import s from './page.module.scss';
+import clsx from 'clsx';
 
 interface DealDetailContentProps {
   id: string;
@@ -39,7 +40,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   if (isAccessError) {
     return (
       <div className={s.root}>
-        <BackButton to="/deals" />
+        <BackButton to="/deals" className={s.backButton} />
         <div className={s.page}>
           <div className={s.notFound}>
             <h1>Unable to verify access</h1>
@@ -60,7 +61,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   if (isError || !deal) {
     return (
       <div className={s.root}>
-        <BackButton to="/deals" />
+        <BackButton to="/deals" className={s.backButton} />
         <div className={s.page}>
           <div className={s.notFound}>
             <h1>Deal not found</h1>
@@ -98,7 +99,9 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
             <div className={s.header}>
               <div className={s.headerContent}>
                 <div className={s.avatar}>
-                  {IconComponent ? (
+                  {deal.logoUrl ? (
+                    <img src={deal.logoUrl} alt={deal.vendorName} className={s.avatarImg} />
+                  ) : IconComponent ? (
                     <IconComponent />
                   ) : (
                     <span className={s.avatarPlaceholder}>{deal.vendorName.charAt(0)}</span>
@@ -121,27 +124,29 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                       </span>
                     )}
                   </div>
-                  {deal.teamsUsingCount > 0 && (
-                    <div className={s.meta}>
-                      <div className={s.metaItem}>
-                        <svg className={s.metaIcon} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path
-                            d="M8 8C9.65685 8 11 6.65685 11 5C11 3.34315 9.65685 2 8 2C6.34315 2 5 3.34315 5 5C5 6.65685 6.34315 8 8 8Z"
-                            stroke="currentColor"
-                            strokeWidth="1.2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M13 14C13 11.2386 10.7614 9 8 9C5.23858 9 3 11.2386 3 14"
-                            stroke="currentColor"
-                            strokeWidth="1.2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <span>{deal.teamsUsingCount} using</span>
-                      </div>
+                  <div
+                    className={clsx(s.meta, {
+                      [s.visible]: deal.teamsUsingCount > 0,
+                    })}
+                  >
+                    <div className={s.metaItem}>
+                      <svg className={s.metaIcon} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M8 8C9.65685 8 11 6.65685 11 5C11 3.34315 9.65685 2 8 2C6.34315 2 5 3.34315 5 5C5 6.65685 6.34315 8 8 8Z"
+                          stroke="currentColor"
+                          strokeWidth="1.2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M13 14C13 11.2386 10.7614 9 8 9C5.23858 9 3 11.2386 3 14"
+                          stroke="currentColor"
+                          strokeWidth="1.2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span>{deal.teamsUsingCount} using</span>
                     </div>
                   )}
                 </div>

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { IDealFilterValues } from '@/types/deals.types';
 import { getAllDeals } from '../deals.service';
-import { DealsQueryKeys, DEAL_CATEGORY_LABELS, DEAL_AUDIENCE_LABELS, REQUIRED_AUDIENCES } from '../constants';
+import { DealsQueryKeys, DEAL_CATEGORY_LABELS, DEAL_AUDIENCE_LABELS } from '../constants';
 
 export function useGetDealFilterValues() {
   const { data: allDeals, isLoading, isError } = useQuery({
@@ -25,13 +25,6 @@ export function useGetDealFilterValues() {
         audienceMap.set(deal.audience, (audienceMap.get(deal.audience) || 0) + 1);
       }
     });
-
-    // Ensure required audiences always appear
-    for (const audience of REQUIRED_AUDIENCES) {
-      if (!audienceMap.has(audience)) {
-        audienceMap.set(audience, 0);
-      }
-    }
 
     return {
       categories: Array.from(categoryMap.entries()).map(([value, count]) => ({

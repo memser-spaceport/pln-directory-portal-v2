@@ -7,12 +7,13 @@ import { useGetDealById } from '@/services/deals/hooks/useGetDealById';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 import { useToggleDealUsing } from '@/services/deals/hooks/useUserDealStatus';
 import { useRedeemDeal } from '@/services/deals/hooks/useRedeemDeal';
-import { useContactSupportStore } from '@/services/contact-support/store';
+import { useReportProblemModalStore } from '@/services/deals/store';
 import { DEAL_CATEGORY_LABELS, DEAL_AUDIENCE_LABELS } from '@/services/deals/constants';
 import { DEAL_ICONS } from '@/components/page/deals/dealsIcons';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { toast } from '@/components/core/ToastContainer';
 import { useDealsAnalytics } from '@/analytics/deals.analytics';
+import { ReportProblemModal } from '@/components/page/deals/ReportProblemModal/ReportProblemModal';
 import s from './page.module.scss';
 import clsx from 'clsx';
 
@@ -26,7 +27,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   const { data: deal, isLoading, isError } = useGetDealById(id);
   const toggleUsingMutation = useToggleDealUsing(id);
   const redeemMutation = useRedeemDeal(id);
-  const openContactSupport = useContactSupportStore((state) => state.actions.openModal);
+  const openReportProblem = useReportProblemModalStore((state) => state.actions.openModal);
   const analytics = useDealsAnalytics();
 
   useEffect(() => {
@@ -163,28 +164,22 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
               </div>
               {deal.isRedeemed && (
                 <div className={s.headerActions}>
-                  {/*<button*/}
-                  {/*  type="button"*/}
-                  {/*  className={s.headerActionSecondary}*/}
-                  {/*  onClick={() =>*/}
-                  {/*    openContactSupport(*/}
-                  {/*      { dealId: deal.uid, dealTitle: deal.vendorName },*/}
-                  {/*      'reportBug',*/}
-                  {/*      `I'd like to report a problem with the "${deal.vendorName}" deal.`,*/}
-                  {/*    )*/}
-                  {/*  }*/}
-                  {/*>*/}
-                  {/*  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">*/}
-                  {/*    <path*/}
-                  {/*      d="M3.75 10.5V3.75C3.75 3.35218 3.90804 2.97064 4.18934 2.68934C4.47064 2.40804 4.85218 2.25 5.25 2.25H14.25C14.6478 2.25 15.0294 2.40804 15.3107 2.68934C15.592 2.97064 15.75 3.35218 15.75 3.75V10.5C15.75 10.8978 15.592 11.2794 15.3107 11.5607C15.0294 11.842 14.6478 12 14.25 12H12L9.75 14.25L7.5 12H5.25C4.85218 12 4.47064 11.842 4.18934 11.5607C3.90804 11.2794 3.75 10.8978 3.75 10.5Z"*/}
-                  {/*      stroke="currentColor"*/}
-                  {/*      strokeWidth="1.5"*/}
-                  {/*      strokeLinecap="round"*/}
-                  {/*      strokeLinejoin="round"*/}
-                  {/*    />*/}
-                  {/*  </svg>*/}
-                  {/*  <span>Report a Problem</span>*/}
-                  {/*</button>*/}
+                  <button
+                    type="button"
+                    className={s.headerActionSecondary}
+                    onClick={() => openReportProblem(deal.uid)}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M3.75 10.5V3.75C3.75 3.35218 3.90804 2.97064 4.18934 2.68934C4.47064 2.40804 4.85218 2.25 5.25 2.25H14.25C14.6478 2.25 15.0294 2.40804 15.3107 2.68934C15.592 2.97064 15.75 3.35218 15.75 3.75V10.5C15.75 10.8978 15.592 11.2794 15.3107 11.5607C15.0294 11.842 14.6478 12 14.25 12H12L9.75 14.25L7.5 12H5.25C4.85218 12 4.47064 11.842 4.18934 11.5607C3.90804 11.2794 3.75 10.8978 3.75 10.5Z"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span>Report a Problem</span>
+                  </button>
                   <button
                     type="button"
                     className={`${s.headerActionPrimary} ${deal.isUsing ? s.headerActionPrimaryActive : ''}`}
@@ -329,6 +324,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
           </div>
         </div>
       </div>
+      <ReportProblemModal />
     </div>
   );
 }

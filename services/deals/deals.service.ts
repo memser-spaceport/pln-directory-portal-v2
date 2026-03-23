@@ -93,6 +93,24 @@ export async function submitDeal(payload: SubmitDealPayload) {
   return response.json();
 }
 
+export async function reportDealIssue(dealUid: string, description: string) {
+  const response = await customFetch(
+    `${DEALS_API_URL}/${dealUid}/issues`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description }),
+    },
+    true,
+  );
+
+  if (!response || !response.ok) {
+    throw new Error('Failed to report issue');
+  }
+
+  return response.json();
+}
+
 export async function unmarkDealAsUsing(dealUid: string): Promise<void> {
   const response = await customFetch(
     `${DEALS_API_URL}/${dealUid}/using`,

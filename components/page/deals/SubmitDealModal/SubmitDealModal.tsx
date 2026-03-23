@@ -106,7 +106,10 @@ export function SubmitDealModal() {
         contact: data.contact,
       },
       {
-        onSuccess: () => onClose(),
+        onSuccess: () => {
+          reset();
+          actions.showSuccess();
+        },
       },
     );
   };

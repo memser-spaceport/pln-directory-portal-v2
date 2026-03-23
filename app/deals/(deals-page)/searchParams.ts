@@ -1,12 +1,18 @@
-import { createSearchParamsCache, parseAsString, parseAsArrayOf, parseAsStringLiteral, parseAsInteger } from 'nuqs/server';
+import {
+  createSearchParamsCache,
+  parseAsString,
+  parseAsArrayOf,
+  parseAsStringLiteral,
+  parseAsInteger,
+} from 'nuqs/server';
 
-export const DEAL_SORT_VALUES = ['newest', 'alphabetical'] as const;
+export const DEAL_SORT_VALUES = ['alphabetical'] as const;
 
 export const dealsFilterParsers = {
   q: parseAsString.withDefault(''),
   categories: parseAsArrayOf(parseAsString, ',').withDefault([]),
   audiences: parseAsArrayOf(parseAsString, ',').withDefault([]),
-  sort: parseAsStringLiteral(DEAL_SORT_VALUES).withDefault('newest'),
+  sort: parseAsStringLiteral(DEAL_SORT_VALUES).withDefault('alphabetical'),
   page: parseAsInteger.withDefault(1),
 };
 

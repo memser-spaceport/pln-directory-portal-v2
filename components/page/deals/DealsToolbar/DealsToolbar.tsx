@@ -11,7 +11,8 @@ interface DealsToolbarProps {
 }
 
 export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
-  const currentSortLabel = DEAL_SORT_OPTIONS.find((o) => o.value === currentSort)?.label || 'Most recent';
+  const currentSortLabel =
+    DEAL_SORT_OPTIONS.find((o) => o.value === currentSort)?.label ?? DEAL_SORT_OPTIONS[0].label;
 
   return (
     <div className={s.toolbar}>

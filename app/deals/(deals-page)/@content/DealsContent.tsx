@@ -17,6 +17,7 @@ import { useGetDealFilterValues } from '@/services/deals/hooks/useGetDealFilterV
 import { DEAL_SORT_OPTIONS } from '@/services/deals/constants';
 import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import { SubmitDealModal } from '@/components/page/deals/SubmitDealModal/SubmitDealModal';
+import { SubmitDealSuccessModal } from '@/components/page/deals/SubmitDealSuccessModal/SubmitDealSuccessModal';
 import s from './page.module.scss';
 
 export default function DealsContent() {
@@ -116,6 +117,7 @@ export default function DealsContent() {
     <div className={s.root}>
       <DealsToolbar currentSort={filters.sort} onSortChange={handleSortChange} />
       <SubmitDealModal />
+      <SubmitDealSuccessModal />
 
       {/* Mobile filters + sort (visible on mobile only) */}
       {filterValues && (

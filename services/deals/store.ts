@@ -21,3 +21,21 @@ export const useSubmitDealModalStore = create<SubmitDealModalState>((set) => ({
     closeSuccess: () => set({ successOpen: false }),
   },
 }));
+
+interface ReportProblemModalState {
+  readonly open: boolean;
+  readonly dealUid: string | null;
+  readonly actions: {
+    openModal: (dealUid: string) => void;
+    closeModal: () => void;
+  };
+}
+
+export const useReportProblemModalStore = create<ReportProblemModalState>((set) => ({
+  open: false,
+  dealUid: null,
+  actions: {
+    openModal: (dealUid: string) => set({ open: true, dealUid }),
+    closeModal: () => set({ open: false, dealUid: null }),
+  },
+}));

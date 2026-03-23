@@ -3,6 +3,8 @@
 import { clsx } from 'clsx';
 import { Menu } from '@base-ui-components/react/menu';
 import { DEAL_SORT_OPTIONS } from '@/services/deals/constants';
+import { useSubmitDealModalStore } from '@/services/deals/store';
+import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import s from './DealsToolbar.module.scss';
 
 interface DealsToolbarProps {
@@ -12,6 +14,13 @@ interface DealsToolbarProps {
 
 export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
   const currentSortLabel = DEAL_SORT_OPTIONS.find((o) => o.value === currentSort)?.label || 'Most recent';
+  const { openModal } = useSubmitDealModalStore((state) => state.actions);
+  const { trackSubmitModalOpened } = useDealsAnalytics();
+
+  const handleSubmitClick = () => {
+    trackSubmitModalOpened();
+    openModal();
+  };
 
   return (
     <div className={s.toolbar}>
@@ -50,50 +59,48 @@ export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
               </Menu.Positioner>
             </Menu.Portal>
           </Menu.Root>
-          {/*<div className={s.submitButton}>*/}
-          {/*  <svg className={s.submitIcon} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">*/}
-          {/*    <path*/}
-          {/*      d="M9 3.75V14.25"*/}
-          {/*      stroke="currentColor"*/}
-          {/*      strokeWidth="1.5"*/}
-          {/*      strokeLinecap="round"*/}
-          {/*      strokeLinejoin="round"*/}
-          {/*    />*/}
-          {/*    <path*/}
-          {/*      d="M3.75 9H14.25"*/}
-          {/*      stroke="currentColor"*/}
-          {/*      strokeWidth="1.5"*/}
-          {/*      strokeLinecap="round"*/}
-          {/*      strokeLinejoin="round"*/}
-          {/*    />*/}
-          {/*  </svg>*/}
-          {/*  Submit a Deal*/}
-          {/*  <span className={s.tooltip}>Coming soon</span>*/}
-          {/*</div>*/}
+          <button type="button" className={s.submitButton} onClick={handleSubmitClick}>
+            <svg className={s.submitIcon} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M9 3.75V14.25"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M3.75 9H14.25"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Submit a Deal
+          </button>
         </div>
       </div>
-      {/*<div className={s.mobileActions}>*/}
-      {/*  <div className={s.submitButton}>*/}
-      {/*    <svg className={s.submitIcon} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">*/}
-      {/*      <path*/}
-      {/*        d="M9 3.75V14.25"*/}
-      {/*        stroke="currentColor"*/}
-      {/*        strokeWidth="1.5"*/}
-      {/*        strokeLinecap="round"*/}
-      {/*        strokeLinejoin="round"*/}
-      {/*      />*/}
-      {/*      <path*/}
-      {/*        d="M3.75 9H14.25"*/}
-      {/*        stroke="currentColor"*/}
-      {/*        strokeWidth="1.5"*/}
-      {/*        strokeLinecap="round"*/}
-      {/*        strokeLinejoin="round"*/}
-      {/*      />*/}
-      {/*    </svg>*/}
-      {/*    Submit Deal*/}
-      {/*    <span className={s.tooltip}>Coming soon</span>*/}
-      {/*  </div>*/}
-      {/*</div>*/}
+      <div className={s.mobileActions}>
+        <button type="button" className={s.submitButton} onClick={handleSubmitClick}>
+          <svg className={s.submitIcon} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M9 3.75V14.25"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M3.75 9H14.25"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Submit a Deal
+        </button>
+      </div>
     </div>
   );
 }

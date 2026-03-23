@@ -3,6 +3,7 @@ export enum DealsQueryKeys {
   DEAL_BY_ID = 'deal-by-id',
   DEALS_ACCESS = 'deals-access',
   DEAL_REDEEM = 'deal-redeem',
+  DEAL_SUBMISSION = 'deal-submission',
 }
 
 export const DEALS_PER_PAGE = 10;

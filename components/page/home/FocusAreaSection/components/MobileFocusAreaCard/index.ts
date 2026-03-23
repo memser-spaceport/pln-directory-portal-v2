@@ -1,0 +1,1 @@
+export { MobileFocusAreaCard } from './MobileFocusAreaCard';

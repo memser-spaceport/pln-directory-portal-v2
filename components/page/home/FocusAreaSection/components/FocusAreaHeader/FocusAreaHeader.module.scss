@@ -1,0 +1,61 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.titleContainer {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+  gap: 12px;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  color: #0a0c11;
+  margin: 0;
+  font-size: 32px;
+  line-height: 42px;
+  letter-spacing: -0.75px;
+}
+
+.description {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+.visionLink {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  color: #156ff7;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.actionButton {
+  background: transparent;
+}
+
+.disabled {
+  pointer-events: none;
+}
+
+.actionButton:hover img {
+  content: url('/icons/left-arrow-circle-blue.svg');
+}

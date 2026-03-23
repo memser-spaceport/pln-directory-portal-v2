@@ -1,0 +1,1 @@
+export { FocusAreaCard } from './FocusAreaCard';

@@ -8,6 +8,7 @@ import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
+import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
 type Option = {
   label: string;
@@ -83,6 +84,8 @@ export function TeamsTagsListSectionEdit(props: TeamsTagsListSectionEditProps) {
         <DetailsSection>
           <FormMultiSelect name="tags" label={label} options={options} placeholder={placeholder} />
         </DetailsSection>
+
+        <EditFormMobileControls />
       </form>
     </FormProvider>
   );

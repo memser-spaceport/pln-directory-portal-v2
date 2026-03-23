@@ -1,0 +1,60 @@
+@use 'styles/media';
+
+.root {
+  gap: 8px;
+  display: inline-flex;
+  margin: 8px 16px 8px 0;
+
+  @include media.mobile-only {
+    flex-direction: column;
+  }
+}
+
+.rootExpanded {
+  grid-column: 1 / -1;
+}
+
+.parentTag {
+  gap: 4px;
+  align-items: center;
+  display: inline-flex;
+
+  height: fit-content;
+  padding: 2px 10px 2px 10px;
+  border-radius: 24px;
+  border: 1px solid rgb(29 78 216);
+
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+  color: rgb(29 78 216);
+  background-color: rgb(219 234 254);
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(21, 111, 247, 0.25);
+  }
+}
+
+.arrowCollapsed {
+  transform: rotate(-90deg);
+  transition: transform 0.2s ease;
+}
+
+.arrowExpanded {
+  transform: rotate(0deg);
+  transition: transform 0.2s ease;
+}
+
+.children {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.childTag {
+  max-width: none;
+}

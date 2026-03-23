@@ -64,6 +64,35 @@ export async function markDealAsUsing(dealUid: string): Promise<void> {
   }
 }
 
+export interface SubmitDealPayload {
+  vendorName: string;
+  category: string;
+  audience: string;
+  shortDescription: string;
+  fullDescription: string;
+  redemptionInstructions: string;
+  websiteUrl: string;
+  contact: string;
+}
+
+export async function submitDeal(payload: SubmitDealPayload) {
+  const response = await customFetch(
+    `${DEALS_API_URL}/submissions`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    },
+    true,
+  );
+
+  if (!response || !response.ok) {
+    throw new Error('Failed to submit deal');
+  }
+
+  return response.json();
+}
+
 export async function unmarkDealAsUsing(dealUid: string): Promise<void> {
   const response = await customFetch(
     `${DEALS_API_URL}/${dealUid}/using`,

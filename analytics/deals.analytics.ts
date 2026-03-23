@@ -13,6 +13,9 @@ const DEALS_ANALYTICS_EVENTS = {
   DEALS_REDEEM_CLICKED: 'deals-redeem-clicked',
   DEALS_TOGGLE_USING_CLICKED: 'deals-toggle-using-clicked',
   DEALS_BACK_CLICKED: 'deals-back-clicked',
+  DEALS_SUBMIT_MODAL_OPENED: 'deals-submit-modal-opened',
+  DEALS_DEAL_SUBMITTED: 'deals-deal-submitted',
+  DEALS_DEAL_SUBMIT_FAILED: 'deals-deal-submit-failed',
 };
 
 export function useDealsAnalytics() {
@@ -85,6 +88,21 @@ export function useDealsAnalytics() {
     [posthog],
   );
 
+  const trackSubmitModalOpened = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_SUBMIT_MODAL_OPENED);
+  }, [posthog]);
+
+  const trackDealSubmitted = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_DEAL_SUBMITTED);
+  }, [posthog]);
+
+  const trackDealSubmitFailed = useCallback(
+    (error: string) => {
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_DEAL_SUBMIT_FAILED, { error });
+    },
+    [posthog],
+  );
+
   return {
     trackDealCardClicked,
     trackFilterApplied,
@@ -96,5 +114,8 @@ export function useDealsAnalytics() {
     trackRedeemClicked,
     trackToggleUsingClicked,
     trackBackClicked,
+    trackSubmitModalOpened,
+    trackDealSubmitted,
+    trackDealSubmitFailed,
   };
 }

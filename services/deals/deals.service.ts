@@ -65,13 +65,13 @@ export async function markDealAsUsing(dealUid: string): Promise<void> {
 }
 
 export interface SubmitDealPayload {
-  vendorName: string;
-  category: string;
-  audience: string;
+  // vendorName: string;
+  // category: string;
+  // audience: string;
   shortDescription: string;
   fullDescription: string;
   redemptionInstructions: string;
-  websiteUrl: string;
+  // websiteUrl: string;
   contact: string;
 }
 

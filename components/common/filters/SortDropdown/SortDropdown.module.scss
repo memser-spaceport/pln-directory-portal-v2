@@ -1,0 +1,78 @@
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: rgba(14, 15, 17, 0.24);
+  }
+}
+
+.caret {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.15s ease;
+
+  [data-popup-open] > & {
+    transform: rotate(180deg);
+  }
+}
+
+.positioner {
+  z-index: 10;
+}
+
+.menu {
+  background: #fff;
+  border: 1px solid rgba(14, 15, 17, 0.08);
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px rgba(14, 15, 17, 0.08);
+  overflow: hidden;
+  min-width: 160px;
+
+  transform-origin: top right;
+  transition:
+    transform 150ms,
+    opacity 150ms;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.option {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #455468;
+  text-align: left;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+.optionActive {
+  font-weight: 500;
+  color: #0a0c11;
+  background: #f1f5f9;
+}

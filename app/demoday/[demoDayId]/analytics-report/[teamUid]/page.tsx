@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useGetTeamFundraisingProfile } from '@/services/demo-day/hooks/useGetTeamFundraisingProfile';
+import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
 import { DemoDayPageSkeleton } from '@/components/page/demo-day/DemoDayPageSkeleton';
 import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 import { useTimeOnPage } from '@/hooks/useTimeOnPage';
@@ -14,6 +15,7 @@ import Cookies from 'js-cookie';
 export default function AnalyticsReportPage() {
   const router = useRouter();
   const { data, isLoading, isError } = useGetTeamFundraisingProfile();
+  const { data: teamsList, isLoading: isTeamsListLoading } = useGetTeamsList();
   const params = useParams();
   const demoDayId = params?.demoDayId as string;
   const teamUid = params?.teamUid as string;
@@ -22,10 +24,28 @@ export default function AnalyticsReportPage() {
 
   const path = `/demoday/${demoDayId}/analytics-report/${teamUid}`;
 
-  useDemoDayPageViewAnalytics('onAnalyticsReportPageOpened', DEMO_DAY_ANALYTICS.ON_ANALYTICS_REPORT_PAGE_OPENED, path, {
-    demoDayId,
-    teamUid,
-  });
+  const teamName = useMemo(() => {
+    if (!teamsList?.length || !teamUid) return undefined;
+    const profile = teamsList.find((p) => p.teamUid === teamUid || p.team?.uid === teamUid);
+    return profile?.team?.name;
+  }, [teamsList, teamUid]);
+
+  const analyticsReportPageOpenedProps = useMemo(
+    () => ({
+      demoDayId,
+      teamUid,
+      teamName,
+    }),
+    [demoDayId, teamUid, teamName],
+  );
+
+  useDemoDayPageViewAnalytics(
+    'onAnalyticsReportPageOpened',
+    DEMO_DAY_ANALYTICS.ON_ANALYTICS_REPORT_PAGE_OPENED,
+    path,
+    analyticsReportPageOpenedProps,
+    { skip: isTeamsListLoading },
+  );
 
   useTimeOnPage({
     onTimeReport: (timeSpent, sessionId) => {

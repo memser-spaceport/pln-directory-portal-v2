@@ -3,9 +3,8 @@
 import { useCallback } from 'react';
 import { IDealFilterValues } from '@/types/deals.types';
 import { CloseIcon, SearchIcon } from '@/components/icons';
-import FilterCount from '@/components/ui/filter-count';
+import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import s from './DealsFilter.module.scss';
-import clsx from 'clsx';
 
 interface DealsFilterProps {
   filterValues: IDealFilterValues;
@@ -51,27 +50,14 @@ export function DealsFilter({
   );
 
   const appliedFiltersCount = selectedCategories.length + selectedAudiences.length + (searchQuery ? 1 : 0);
-  const hasActiveFilters = appliedFiltersCount > 0;
 
   return (
-    <div className={s.root}>
-      <div className={s.header}>
-        <h2 className={s.headerTitle}>
-          Filters
-          {appliedFiltersCount > 0 && <FilterCount count={appliedFiltersCount} />}
-        </h2>
-        <button
-          className={clsx(s.clearAll, {
-            [s.clearAllActive]: hasActiveFilters,
-          })}
-          onClick={onClearAll}
-        >
-          Clear All
-        </button>
-      </div>
-
-      <div className={s.divider} />
-
+    <FiltersSidePanel
+      clearParams={onClearAll}
+      appliedFiltersCount={appliedFiltersCount}
+      className={s.root}
+      hideFooter
+    >
       {/* Deal Search */}
       <div className={s.section}>
         <div className={s.sectionHeader}>
@@ -154,6 +140,6 @@ export function DealsFilter({
           </div>
         </div>
       )}
-    </div>
+    </FiltersSidePanel>
   );
 }

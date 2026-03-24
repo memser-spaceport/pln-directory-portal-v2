@@ -8,6 +8,7 @@ interface UseGetDealsParams {
   q?: string;
   categories?: string;
   audiences?: string;
+  sort?: string;
   page?: number;
 }
 
@@ -33,7 +34,11 @@ function filterAndSort(deals: IDeal[], params: UseGetDealsParams) {
   }
 
   const sorted = [...filtered];
-  sorted.sort((a, b) => a.vendorName.localeCompare(b.vendorName));
+  sorted.sort((a, b) =>
+    params.sort === 'desc'
+      ? b.vendorName.localeCompare(a.vendorName)
+      : a.vendorName.localeCompare(b.vendorName)
+  );
 
   const page = params.page || 1;
   const end = page * DEALS_PER_PAGE;

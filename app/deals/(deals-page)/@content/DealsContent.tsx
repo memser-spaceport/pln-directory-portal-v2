@@ -41,6 +41,7 @@ export default function DealsContent() {
       q: filters.q || undefined,
       categories: filters.categories.length > 0 ? filters.categories.join(',') : undefined,
       audiences: filters.audiences.length > 0 ? filters.audiences.join(',') : undefined,
+      sort: filters.sort,
       page: filters.page,
     }),
     [filters],
@@ -53,7 +54,7 @@ export default function DealsContent() {
   const handleSortChange = useCallback(
     (sort: string) => {
       analytics.trackSortChanged(sort);
-      setFilters({ sort: sort as 'alphabetical', page: 1 });
+      setFilters({ sort: sort as 'asc' | 'desc', page: 1 });
     },
     [setFilters, analytics],
   );

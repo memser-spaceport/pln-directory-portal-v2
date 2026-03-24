@@ -2,16 +2,20 @@
 
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import FilterCount from '@/components/ui/filter-count';
-import SortByDropdown from '@/components/ui/sort-by-dropdown';
 import ViewType from '@/components/ui/view-type';
-import useClickedOutside from '@/hooks/useClickedOutside';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { IMembersSearchParams } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
 import { EVENTS, SORT_OPTIONS, VIEW_TYPE_OPTIONS } from '@/utils/constants';
+import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import Image from 'next/image';
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
+
+const MEMBERS_SORT_OPTIONS = [
+  { value: SORT_OPTIONS.ASCENDING, label: 'A-Z (Ascending)' },
+  { value: SORT_OPTIONS.DESCENDING, label: 'Z-A (Descending)' },
+];
 
 interface IMembersToolbar {
   searchParams: Record<string, string>;
@@ -30,11 +34,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
   const view = searchParams['viewType'] || VIEW_TYPE_OPTIONS.GRID;
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const sortByRef = useRef<HTMLButtonElement>(null);
   const [searchInput, setSearchInput] = useState(searchBy);
-  const [isSortBy, setIsSortBy] = useState(false);
-
-  useClickedOutside({ callback: () => setIsSortBy(false), ref: sortByRef });
   const analytics = useMemberAnalytics();
 
   const query = getQuery(searchParams);
@@ -78,29 +78,11 @@ const MembersToolbar = (props: IMembersToolbar) => {
     updateQueryParams('searchBy', searchInput, searchParams);
   };
 
-  const onSortClickHandler = (device: string) => {
-    if (device === 'mobile') {
-      if (sortBy === SORT_OPTIONS.ASCENDING) {
-        analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.DESCENDING);
-        updateQueryParams('sort', SORT_OPTIONS.DESCENDING, searchParams);
-        return;
-      }
-      analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.ASCENDING);
-      updateQueryParams('sort', '', searchParams);
-    } else {
-      setIsSortBy(!isSortBy);
-    }
-  };
-
-  const onSortOptionClickHandler = (option: string) => {
+  const onSortChange = (value: string) => {
+    if (value === sortBy) return;
     triggerLoader(true);
-    setIsSortBy(false);
-    if (option === sortBy) {
-      triggerLoader(false);
-      return;
-    }
-    analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.ASCENDING);
-    updateQueryParams('sort', option, searchParams);
+    analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), value);
+    updateQueryParams('sort', value, searchParams);
   };
 
   useEffect(() => {
@@ -150,37 +132,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
         </div>
 
         <div className="toolbar__right">
-          <div className="toolbar__right__mobile">
-            <button className="toolbar__right__mobile__sort-by" onClick={() => onSortClickHandler('mobile')}>
-              {sortBy === SORT_OPTIONS.ASCENDING && (
-                <img loading="lazy" alt="sort" src="/icons/ascending-gray.svg" height={20} width={20} />
-              )}
-              {sortBy === SORT_OPTIONS.DESCENDING && (
-                <img loading="lazy" alt="sort" src="/icons/descending-gray.svg" height={20} width={20} />
-              )}
-            </button>
-          </div>
-          <div className="toolbar__right__web">
-            <p className="toolbar__right__web__sort-by-text">Sort by:</p>
-            <button ref={sortByRef} className="toolbar__right__web__sort-by" onClick={() => onSortClickHandler('web')}>
-              <img
-                loading="lazy"
-                alt="sort"
-                src={sortBy === SORT_OPTIONS.ASCENDING ? '/icons/ascending-gray.svg' : '/icons/descending-gray.svg'}
-                height={20}
-                width={20}
-              />
-              <p className="toolbar__right__web__sord-by__name">
-                {sortBy === SORT_OPTIONS.ASCENDING ? 'Ascending' : 'Descending'}
-              </p>
-              <img loading="lazy" alt="dropdown" src="/icons/dropdown-gray.svg" />
-            </button>
-            {isSortBy && (
-              <div className="toolbar__right__web__drop-downc">
-                <SortByDropdown selectedItem={sortBy} callback={onSortOptionClickHandler} />
-              </div>
-            )}
-          </div>
+          <SortDropdown options={MEMBERS_SORT_OPTIONS} currentSort={sortBy} onSortChange={onSortChange} />
         </div>
       </div>
 
@@ -197,19 +149,6 @@ const MembersToolbar = (props: IMembersToolbar) => {
           .toolbar__left {
             display: flex;
             gap: 8px;
-          }
-
-          .toolbar__right__web {
-            display: none;
-            color: #000;
-          }
-
-          .toolbar__right__web__sort-by-text {
-            color: #0f172a;
-            font-size: 15px;
-            font-style: normal;
-            font-weight: 400;
-            line-height: 24px; /* 160% */
           }
 
           .toolbar__left__filterbtn {
@@ -328,76 +267,12 @@ const MembersToolbar = (props: IMembersToolbar) => {
           .toolbar__right {
             display: flex;
             gap: 8px;
-          }
-
-          .toolbar__right__mobile__sort-by {
-            border-radius: 8px;
-            background: #fff;
-            box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
-            border: none;
-            padding: 8px 12px;
-            display: flex;
-            height: 40px;
             align-items: center;
           }
 
-          .toolbar__right__web__sort-by {
-            background: #fff;
-            color: #000;
-            border: none;
-          }
-
           @media (min-width: 1024px) {
-            .toolbar__right__mobile {
-              display: none;
-            }
-
             .toolbar__right {
               gap: 16px;
-            }
-
-            .toolbar__right__web {
-              display: flex;
-              gap: 8px;
-              align-items: center;
-              position: relative;
-            }
-
-            .toolbar__right__web__sort-by {
-              display: flex;
-              height: 40px;
-              padding: 8px 12px;
-              align-items: center;
-              gap: 8px;
-              width: 160px;
-              justify-content: space-between;
-              border-radius: 8px;
-              background: #fff;
-              color: #000;
-              border: none;
-              box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
-              border: 1px solid #fff;
-
-              &:focus {
-                border: 1px solid #156ff7;
-                box-shadow:
-                  0px 1px 2px 0px rgba(15, 23, 42, 0.16),
-                  0px 0px 0px 2px rgba(21, 111, 247, 0.25);
-              }
-            }
-
-            .toolbar__right__web__sort-by__name {
-              color: #0f172a;
-              font-size: 15px;
-              font-weight: 400;
-              line-height: 24px;
-            }
-
-            .toolbar__right__web__drop-downc {
-              position: absolute;
-              top: 45px;
-              right: 0px;
-              width: inherit;
             }
 
             .toolbar {

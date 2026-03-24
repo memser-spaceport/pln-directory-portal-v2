@@ -6,13 +6,13 @@ import {
   parseAsInteger,
 } from 'nuqs/server';
 
-export const DEAL_SORT_VALUES = ['alphabetical'] as const;
+export const DEAL_SORT_VALUES = ['asc', 'desc'] as const;
 
 export const dealsFilterParsers = {
   q: parseAsString.withDefault(''),
   categories: parseAsArrayOf(parseAsString, ',').withDefault([]),
   audiences: parseAsArrayOf(parseAsString, ',').withDefault([]),
-  sort: parseAsStringLiteral(DEAL_SORT_VALUES).withDefault('alphabetical'),
+  sort: parseAsStringLiteral(DEAL_SORT_VALUES).withDefault('asc'),
   page: parseAsInteger.withDefault(1),
 };
 

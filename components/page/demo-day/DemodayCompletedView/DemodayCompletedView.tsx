@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useToggle } from 'react-use';
 import clsx from 'clsx';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useParams } from 'next/navigation';
 
 import { Button } from '@/components/common/Button';
 import { LogosGrid } from '@/components/common/LogosGrid';
@@ -28,6 +28,7 @@ import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForD
 import { DemoDayPageSkeleton } from '@/components/page/demo-day/DemoDayPageSkeleton';
 import { isDemoDayParticipantInvestor } from '@/utils/member.utils';
 import { ChartIcon } from '@/components/icons';
+import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 
 interface DemodayCompletedViewProps {
   initialDemoDayState?: DemoDayState;
@@ -53,16 +54,17 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
   userInfo,
 }) => {
   const searchParams = useSearchParams();
+  const params = useParams();
+  const demoDayId = params.demoDayId as string;
   const showFeedbackOption =
-    isLoggedIn &&
-    initialDemoDayState?.access &&
-    (isDemoDayParticipantInvestor(initialDemoDayState?.access) ||
-      initialDemoDayState?.access?.toUpperCase() === 'FOUNDER');
+    isLoggedIn && initialDemoDayState?.access && isDemoDayParticipantInvestor(initialDemoDayState?.access);
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [showAllTeams, toggleShowAllTeams] = useToggle(false);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState<{ uid: string; isNew: boolean; email: string } | null>(null);
   const isFounder = initialDemoDayState?.access?.toUpperCase() === 'FOUNDER';
+  const { data: fundraisingProfile } = useGetFundraisingProfile(isFounder);
+  const showAnalyticsReportOption = isFounder && fundraisingProfile?.analyticsReportUrl;
 
   const {
     onCompletedViewApplyForNextDemoDayClicked,
@@ -172,21 +174,23 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
 
           <div className={s.buttons}>
             <div className={s.linksWrapper}>
-              <Link href="/demoday" onClick={handleApplyForNextDemoDayClick}>
-                <Button size="l" style="fill" variant="primary">
-                  View upcoming Demo Days <ArrowRight />
-                </Button>
-              </Link>
-
-              {/*{isFounder && (*/}
-              {/*  <Link*/}
-              {/*    className={s.linkAnalytics}*/}
-              {/*    href={`/demoday/${initialDemoDayState?.uid}/founders-dashboard`}*/}
-              {/*    onClick={(e) => e.stopPropagation()}*/}
-              {/*  >*/}
-              {/*    Demo Day Analytics <ChartIcon />*/}
-              {/*  </Link>*/}
-              {/*)}*/}
+              {showAnalyticsReportOption && (
+                <Link
+                  className={s.linkAnalytics}
+                  href={`/demoday/${demoDayId}/analytics-report/${fundraisingProfile.teamUid}`}
+                  onClick={(e) => e.stopPropagation()}
+                  target="_blank"
+                >
+                  Your Demo Day Stats <ChartIcon />
+                </Link>
+              )}
+              {!showAnalyticsReportOption && (
+                <Link href="/demoday" onClick={handleApplyForNextDemoDayClick}>
+                  <Button size="l" style="fill" variant="primary">
+                    View all Demo Days <ArrowRight />
+                  </Button>
+                </Link>
+              )}
             </div>
 
             <div className={s.links}>
@@ -194,6 +198,11 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
                 <button onClick={handleGiveFeedbackClick} className={s.linkButton}>
                   Give Feedback <ChatIcon />
                 </button>
+              )}
+              {showAnalyticsReportOption && (
+                <Link href="/demoday" onClick={handleApplyForNextDemoDayClick} className={s.linkButton}>
+                  View all Demo Days <ArrowRight width={16} height={16} color="#1b4dff" />
+                </Link>
               )}
               {isLoggedIn && userInfo && (
                 <Link
@@ -369,12 +378,20 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
   );
 };
 
-const ArrowRight = () => (
-  <svg width="22" height="21" viewBox="0 0 22 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+const ArrowRight = ({
+  color = 'white',
+  width = 22,
+  height = 21,
+}: {
+  color?: string;
+  width?: number;
+  height?: number;
+}) => (
+  <svg width={width} height={height} viewBox="0 0 22 21" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g>
       <path
         d="M18.5383 10.6631L12.9133 16.2881C12.7372 16.4642 12.4983 16.5631 12.2492 16.5631C12.0001 16.5631 11.7613 16.4642 11.5852 16.2881C11.409 16.1119 11.3101 15.8731 11.3101 15.624C11.3101 15.3749 11.409 15.136 11.5852 14.9599L15.6094 10.9373H4.125C3.87636 10.9373 3.6379 10.8385 3.46209 10.6627C3.28627 10.4869 3.1875 10.2484 3.1875 9.99977C3.1875 9.75113 3.28627 9.51267 3.46209 9.33686C3.6379 9.16104 3.87636 9.06227 4.125 9.06227H15.6094L11.5867 5.03727C11.4106 4.86115 11.3117 4.62228 11.3117 4.37321C11.3117 4.12414 11.4106 3.88527 11.5867 3.70915C11.7628 3.53303 12.0017 3.43408 12.2508 3.43408C12.4999 3.43408 12.7387 3.53303 12.9148 3.70915L18.5398 9.33414C18.6273 9.42136 18.6966 9.52498 18.7438 9.63907C18.7911 9.75315 18.8153 9.87544 18.8152 9.99892C18.815 10.1224 18.7905 10.2446 18.743 10.3586C18.6955 10.4726 18.6259 10.576 18.5383 10.6631Z"
-        fill="white"
+        fill={color}
       />
     </g>
   </svg>

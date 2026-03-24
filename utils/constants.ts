@@ -2006,4 +2006,6 @@ export const DEMO_DAY_ANALYTICS = {
   ON_ACCOUNT_CREATED_SUCCESS_MODAL_CONTINUE_TO_LOGIN_CLICKED: 'demo-day-application-success-modal-continue-clicked',
   ON_INVESTOR_DRAWER_INPUT_CHANGED: 'demo-day-investor-drawer-input-changed',
   ON_INVESTOR_DRAWER_FORM_SAVED: 'demo-day-investor-drawer-form-saved',
+  ON_ANALYTICS_REPORT_PAGE_OPENED: 'demo-day-analytics-report-page-opened',
+  ON_ANALYTICS_REPORT_TIME_ON_PAGE: 'demo-day-analytics-report-time-on-page',
 };

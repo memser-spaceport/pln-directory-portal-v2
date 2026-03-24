@@ -463,11 +463,16 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         }}
       >
         <div className={s.linksWrapper}>
-          {/*{canEdit && (*/}
-          {/*  <Link className={s.link} href={`/demoday/${slug}/founders-dashboard`} onClick={(e) => e.stopPropagation()}>*/}
-          {/*    <ChartIcon /> Demo Day Analytics*/}
-          {/*  </Link>*/}
-          {/*)}*/}
+          {team.analyticsReportUrl && (
+            <Link
+              className={s.link}
+              href={`/demoday/${slug}/analytics-report/${team.team?.uid}`}
+              target="_blank"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ChartIcon /> Demo Day Stats
+            </Link>
+          )}
           <button
             className={s.drawerEditButton}
             onClick={(e) => {

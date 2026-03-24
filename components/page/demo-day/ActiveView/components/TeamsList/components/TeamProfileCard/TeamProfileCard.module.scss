@@ -248,7 +248,7 @@
 .linksWrapper {
   display: flex;
   gap: 16px;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-end;
   margin-left: auto;
 }
@@ -260,6 +260,8 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+  padding: 4px 8px;
+  border-radius: 8px;
 
   display: flex;
   align-items: center;
@@ -268,5 +270,9 @@
   svg {
     width: 20px;
     height: 20px;
+  }
+
+  &:hover {
+    background: rgba(69, 84, 104, 0.1);
   }
 }

@@ -42,6 +42,7 @@ export type TeamProfile = {
   invested: boolean;
   referral: boolean;
   feedback: boolean;
+  analyticsReportUrl?: string;
 };
 
 export type TeamsListResponse = TeamProfile[];

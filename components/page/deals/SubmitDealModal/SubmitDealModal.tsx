@@ -74,19 +74,23 @@ export function SubmitDealModal() {
   const methods = useForm<SubmitDealFormData>({
     resolver: yupResolver(submitDealSchema) as any,
     defaultValues: {
-      vendorName: '',
-      category: '',
-      audience: null,
+      // vendorName: '',
+      // category: '',
+      // audience: null,
       shortDescription: '',
       fullDescription: '',
       redemptionInstructions: '',
-      websiteUrl: '',
+      // websiteUrl: '',
       contact: '',
     },
     mode: 'onChange',
   });
 
-  const { handleSubmit, reset, formState: { isValid } } = methods;
+  const {
+    handleSubmit,
+    reset,
+    formState: { isValid },
+  } = methods;
 
   const onClose = () => {
     reset();
@@ -96,13 +100,13 @@ export function SubmitDealModal() {
   const onSubmit = (data: SubmitDealFormData) => {
     mutate(
       {
-        vendorName: data.vendorName,
-        category: data.category,
-        audience: data.audience?.label || '',
+        // vendorName: data.vendorName,
+        // category: data.category,
+        // audience: data.audience?.label || '',
         shortDescription: data.shortDescription,
         fullDescription: data.fullDescription,
         redemptionInstructions: data.redemptionInstructions,
-        websiteUrl: data.websiteUrl,
+        // websiteUrl: data.websiteUrl,
         contact: data.contact,
       },
       {
@@ -132,28 +136,28 @@ export function SubmitDealModal() {
         <div className={s.content}>
           <FormProvider {...methods}>
             <div className={s.form}>
-              <FormField
-                name="vendorName"
-                label="Vendor Name"
-                placeholder="e.g. Stripe, Vercel, AWS"
-                isRequired
-                max={100}
-              />
+              {/*<FormField*/}
+              {/*  name="vendorName"*/}
+              {/*  label="Vendor Name"*/}
+              {/*  placeholder="e.g. Stripe, Vercel, AWS"*/}
+              {/*  isRequired*/}
+              {/*  max={100}*/}
+              {/*/>*/}
 
-              <FormField
-                name="category"
-                label="Category"
-                placeholder="e.g. Payments, Hosting & Infrastructure, Cloud"
-                isRequired
-              />
+              {/*<FormField*/}
+              {/*  name="category"*/}
+              {/*  label="Category"*/}
+              {/*  placeholder="e.g. Payments, Hosting & Infrastructure, Cloud"*/}
+              {/*  isRequired*/}
+              {/*/>*/}
 
-              <FormSelect
-                name="audience"
-                label="Audience"
-                placeholder="Select target audience"
-                options={AUDIENCE_OPTIONS}
-                isRequired
-              />
+              {/*<FormSelect*/}
+              {/*  name="audience"*/}
+              {/*  label="Audience"*/}
+              {/*  placeholder="Select target audience"*/}
+              {/*  options={AUDIENCE_OPTIONS}*/}
+              {/*  isRequired*/}
+              {/*/>*/}
 
               <FormField
                 name="shortDescription"
@@ -178,12 +182,7 @@ export function SubmitDealModal() {
                 helperText="Max 600 characters."
               />
 
-              <FormField
-                name="websiteUrl"
-                label="Website URL"
-                placeholder="https://example.com"
-                isRequired
-              />
+              {/*<FormField name="websiteUrl" label="Website URL" placeholder="https://example.com" isRequired />*/}
 
               <FormField
                 name="contact"

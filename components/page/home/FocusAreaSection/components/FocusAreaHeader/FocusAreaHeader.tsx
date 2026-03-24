@@ -40,9 +40,9 @@ export function FocusAreaHeader(props: Props) {
               onClick={onProtocolVisionUrlClick}
             >
               {' '}
-              Protocol Labs&apos; vision{' '}
+              Protocol Labs’ vision{' '}
             </a>{' '}
-            for the future is built on four core focus areas that aim to harness humanity&apos;s potential for good,
+            for the future is built on four core focus areas that aim to harness humanity’s potential for good,
             navigate potential pitfalls, and ensure a future where technology empowers humanity.
           </p>
         </div>

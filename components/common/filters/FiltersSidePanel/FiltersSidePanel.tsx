@@ -11,11 +11,14 @@ interface Props {
   clearParams: () => void;
   appliedFiltersCount: number;
   className?: string;
+  bodyClassName?: string;
   hideFooter?: boolean;
+  applyLabel?: string;
 }
 
 export function FiltersSidePanel(props: PropsWithChildren<Props>) {
-  const { onClose, clearParams, children, appliedFiltersCount, className, hideFooter } = props;
+  const { onClose, clearParams, children, appliedFiltersCount, className, bodyClassName, hideFooter, applyLabel } =
+    props;
 
   return (
     <div className={clsx(s.root, className)}>
@@ -29,7 +32,7 @@ export function FiltersSidePanel(props: PropsWithChildren<Props>) {
         </button>
       </div>
 
-      <div className={s.body}>{children}</div>
+      <div className={clsx(s.body, bodyClassName)}>{children}</div>
 
       {!hideFooter && (
         <div className={s.footer}>
@@ -37,7 +40,7 @@ export function FiltersSidePanel(props: PropsWithChildren<Props>) {
             Clear filters
           </Button>
 
-          <Button onClick={onClose}>Apply filters</Button>
+          <Button onClick={onClose}>{applyLabel || 'Apply filters'}</Button>
         </div>
       )}
     </div>

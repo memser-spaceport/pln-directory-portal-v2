@@ -2,15 +2,20 @@
 
 import FilterCount from '../../ui/filter-count';
 import ViewType from '../../ui/view-type';
-import useClickedOutside from '../../../hooks/useClickedOutside';
 import useUpdateQueryParams from '../../../hooks/useUpdateQueryParams';
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { EVENTS, VIEW_TYPE_OPTIONS } from '@/utils/constants';
 import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
-import SortByDropdown from './sort-dropdown';
-import { PROJECT_SORT_ICONS, SORT_OPTIONS } from '@/utils/projects.utils';
+import { SORT_OPTIONS } from '@/utils/projects.utils';
 import Image from 'next/image';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
+import { SortDropdown } from '@/components/common/filters/SortDropdown';
+
+const PROJECT_SORT_OPTIONS = [
+  { value: SORT_OPTIONS.DEFAULT, label: 'Default' },
+  { value: SORT_OPTIONS.ASCENDING, label: 'A-Z (Ascending)' },
+  { value: SORT_OPTIONS.DESCENDING, label: 'Z-A (Descending)' },
+];
 
 const ProjectsToolbar = (props: any) => {
   //props
@@ -18,14 +23,9 @@ const ProjectsToolbar = (props: any) => {
   const userInfo = props?.userInfo;
   const searchParams = props?.searchParams;
 
-  //Ref
   const inputRef = useRef<HTMLInputElement>(null);
-  const sortByRef = useRef<HTMLDivElement>(null);
-
-  //hooks
   const { updateQueryParams } = useUpdateQueryParams();
 
-  //variables
   const searchBy = searchParams['searchBy'] || '';
   const sortBy = searchParams['sort'] ?? SORT_OPTIONS.DEFAULT;
   const view = searchParams['viewType'] ?? VIEW_TYPE_OPTIONS.GRID;
@@ -33,16 +33,7 @@ const ProjectsToolbar = (props: any) => {
   const filterCount = getFilterCount(query);
   const analytics = useProjectAnalytics();
 
-  //state
   const [searchInput, setSearchInput] = useState(searchBy);
-  const [isSortBy, setIsSortBy] = useState(false);
-
-  //methods
-  const onSortClick = () => {
-    setIsSortBy(!isSortBy);
-  };
-
-  useClickedOutside({ callback: () => setIsSortBy(false), ref: sortByRef });
 
   const onFilterClickHandler = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.SHOW_PROJECTS_FILTER, { detail: true }));
@@ -84,33 +75,11 @@ const ProjectsToolbar = (props: any) => {
     updateQueryParams('searchBy', inputVal, searchParams);
   };
 
-  const onSortClickHandler = () => {
+  const onSortChange = (value: string) => {
+    if (value === sortBy) return;
     triggerLoader(true);
-    if (sortBy === SORT_OPTIONS.DEFAULT) {
-      analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.ASCENDING);
-      updateQueryParams('sort', SORT_OPTIONS.ASCENDING, searchParams);
-      return;
-    } else if (sortBy === SORT_OPTIONS.ASCENDING) {
-      analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.DESCENDING);
-      updateQueryParams('sort', SORT_OPTIONS.DESCENDING, searchParams);
-      return;
-    }
-    analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.DEFAULT);
-    updateQueryParams('sort', '', searchParams);
-  };
-
-  const onSortOptionClickHandler = (option: any) => {
-    if (option.name !== searchParams['sort']) {
-      triggerLoader(true);
-    }
-    if (option.name === SORT_OPTIONS.ASCENDING || option.name === SORT_OPTIONS.DESCENDING) {
-      analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), option.name);
-      updateQueryParams('sort', option.name, searchParams);
-    } else {
-      analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.DEFAULT);
-      updateQueryParams('sort', '', searchParams);
-    }
-    setIsSortBy(false);
+    analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), value);
+    updateQueryParams('sort', value === SORT_OPTIONS.DEFAULT ? '' : value, searchParams);
   };
 
   useEffect(() => {
@@ -164,30 +133,7 @@ const ProjectsToolbar = (props: any) => {
         </div>
 
         <div className="toolbar__right">
-          <div className="toolbar__right__mobile">
-            <button className="toolbar__right__mobile__sort-by" onClick={onSortClickHandler}>
-              {sortBy === SORT_OPTIONS.ASCENDING && (
-                <img alt="sort" src="/icons/ascending-gray.svg" height={20} width={20} />
-              )}
-              {sortBy === SORT_OPTIONS.DESCENDING && (
-                <img alt="sort" src="/icons/descending-gray.svg" height={20} width={20} />
-              )}
-              {sortBy === SORT_OPTIONS.DEFAULT && (
-                <img alt="sort" src="/icons/star-outline-gray.svg" height={20} width={20} />
-              )}
-            </button>
-          </div>
-          <div className="toolbar__right__web">
-            <p className="toolbar__right__web__sort">Sort by:</p>
-            <SortByDropdown
-              isSortOpen={isSortBy}
-              sortOptions={PROJECT_SORT_ICONS}
-              sortByRef={sortByRef}
-              sortBy={sortBy}
-              onSortClick={onSortClick}
-              onSortItemClick={onSortOptionClickHandler}
-            />
-          </div>
+          <SortDropdown options={PROJECT_SORT_OPTIONS} currentSort={sortBy} onSortChange={onSortChange} />
           <ViewType callback={onViewtypeClickHandler} view={view} />
         </div>
       </div>
@@ -205,15 +151,6 @@ const ProjectsToolbar = (props: any) => {
           .toolbar__left {
             display: flex;
             gap: 8px;
-          }
-
-          .toolbar__right__web {
-            display: none;
-            color: #000;
-          }
-
-          .toolbar__right__web__sort {
-            color: #000;
           }
 
           .toolbar__left__filterbtn {
@@ -311,23 +248,7 @@ const ProjectsToolbar = (props: any) => {
           .toolbar__right {
             display: flex;
             gap: 8px;
-          }
-
-          .toolbar__right__mobile__sort-by {
-            border-radius: 8px;
-            background: #fff;
-            box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
-            border: none;
-            padding: 8px 12px;
-            display: flex;
-            height: 40px;
             align-items: center;
-          }
-
-          .toolbar__right__web__sort-by {
-            background: #fff;
-            color: #000;
-            border: none;
           }
 
           .toolbar__left__search-container__searchfrm__optns {
@@ -350,55 +271,8 @@ const ProjectsToolbar = (props: any) => {
           }
 
           @media (min-width: 1024px) {
-            .toolbar__right__mobile {
-              display: none;
-            }
-
             .toolbar__right {
               gap: 16px;
-            }
-
-            .toolbar__right__web {
-              display: flex;
-              gap: 8px;
-              align-items: center;
-              position: relative;
-            }
-
-            .toolbar__right__web__sort-by {
-              display: flex;
-              height: 40px;
-              padding: 8px 12px;
-              align-items: center;
-              gap: 8px;
-              width: 130px;
-              justify-content: space-between;
-              border-radius: 8px;
-              background: #fff;
-              border: none;
-              box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
-              border: 1px solid #fff;
-            }
-
-            .toolbar__right__web__sort-by:focus {
-              border: 1px solid #156ff7;
-              box-shadow:
-                0px 1px 2px 0px rgba(15, 23, 42, 0.16),
-                0px 0px 0px 2px rgba(21, 111, 247, 0.25);
-            }
-
-            .toolbar__right__web__sort-by__name {
-              color: #0f172a;
-              font-size: 15px;
-              font-weight: 400;
-              line-height: 24px;
-            }
-
-            .toolbar__right__web__drop-downc {
-              position: absolute;
-              top: 45px;
-              right: 0px;
-              width: inherit;
             }
 
             .toolbar {

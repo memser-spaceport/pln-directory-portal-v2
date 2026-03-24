@@ -56,6 +56,12 @@
   pointer-events: none;
 }
 
-.actionButton:hover img {
-  content: url('/icons/left-arrow-circle-blue.svg');
+.actionButton:hover {
+  img {
+    content: url('/icons/left-arrow-circle-blue.svg');
+  }
+
+  &.right img {
+    content: url('/icons/right-arrow-circle-blue.svg');
+  }
 }

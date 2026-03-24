@@ -4,22 +4,26 @@ import { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { EmblaCarouselType, EmblaOptionsType } from 'embla-carousel';
 
-import { IFocusArea } from '@/types/shared.types';
+import { IFocusArea, IUserInfo } from '@/types/shared.types';
 import { HOME, HOME_PAGE_LINKS } from '@/utils/constants';
 import { usePrevNextButtons } from '@/hooks/use-prev-next-buttons';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo, getAnalyticsFocusAreaInfo } from '@/utils/common.utils';
 
-import { FocusAreaSectionProps } from './types';
+import { FocusAreasData } from './types';
 
 import { FocusAreaHeader } from './components/FocusAreaHeader';
 import { FocusAreaCard } from './components/FocusAreaCard';
-import { MobileFocusAreaCard } from './components/MobileFocusAreaCard';
 import { FocusAreaDialog } from './components/FocusAreaDialog';
 
 import s from './FocusAreaSection.module.scss';
 
 const EMBLA_OPTIONS: EmblaOptionsType = { align: 'start' };
+
+interface FocusAreaSectionProps {
+  focusAreas: FocusAreasData;
+  userInfo: IUserInfo;
+}
 
 export function FocusAreaSection(props: FocusAreaSectionProps) {
   const { focusAreas, userInfo } = props;
@@ -118,7 +122,7 @@ export function FocusAreaSection(props: FocusAreaSectionProps) {
         <div className={s.mobileEmbla} ref={mbEmblaRef}>
           <div className={s.mobileEmblaContainer}>
             {focusAreas?.teamFocusAreas.map((focusArea: any, index: number) => (
-              <MobileFocusAreaCard
+              <FocusAreaCard
                 key={`focusArea-${index}`}
                 focusArea={focusArea}
                 projectAncestorFocusAreas={getProjectFocusAreas(focusArea)}

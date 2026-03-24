@@ -59,7 +59,7 @@ export function FocusAreaHeader(props: Props) {
             />
           </button>
           <button
-            className={clsx(s.actionButton, { [s.disabled]: nextBtnDisabled })}
+            className={clsx(s.actionButton, s.right, { [s.disabled]: nextBtnDisabled })}
             onClick={onNextButtonClick}
           >
             <img

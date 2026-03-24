@@ -13,7 +13,6 @@ interface Props {
 export function FocusAreaCard(props: Props) {
   const { focusArea, projectAncestorFocusAreas, onTeamClick, onProjectClick, onSeeMoreClick } = props;
 
-  const image = `/icons/${focusArea?.title?.toLowerCase()}.svg`;
   const teamAncestorFocusAreas = focusArea?.teamAncestorFocusAreas;
   const descriptionTruncateLength = 140;
 
@@ -27,10 +26,7 @@ export function FocusAreaCard(props: Props) {
           ) : (
             <div>
               {focusArea?.description?.slice(0, descriptionTruncateLength) + '...'}
-              <span
-                className={s.seeMore}
-                onClick={() => onSeeMoreClick({ ...focusArea, projectAncestorFocusAreas })}
-              >
+              <span className={s.seeMore} onClick={() => onSeeMoreClick({ ...focusArea, projectAncestorFocusAreas })}>
                 see more
               </span>
             </div>
@@ -46,17 +42,19 @@ export function FocusAreaCard(props: Props) {
             </div>
             <div className={s.avatarsContainer}>
               <div className={s.avatars}>
-                {teamAncestorFocusAreas?.slice(0, 3).map((item: any) => (
-                  <img
-                    title="Team"
-                    key={item?.team?.uid}
-                    width={24}
-                    height={24}
-                    src={item?.team?.logo?.url || '/icons/team-default-profile.svg'}
-                    alt="team"
-                    className={s.avatar}
-                  />
-                ))}
+                {teamAncestorFocusAreas
+                  ?.slice(0, 3)
+                  .map((item: any) => (
+                    <img
+                      title="Team"
+                      key={item?.team?.uid}
+                      width={24}
+                      height={24}
+                      src={item?.team?.logo?.url || '/icons/team-default-profile.svg'}
+                      alt="team"
+                      className={s.avatar}
+                    />
+                  ))}
               </div>
               <img src="/icons/arrow-blue-right.svg" alt="project" />
             </div>
@@ -70,24 +68,25 @@ export function FocusAreaCard(props: Props) {
             </div>
             <div className={s.avatarsContainer}>
               <div className={s.avatars}>
-                {projectAncestorFocusAreas?.slice(0, 3).map((item: any) => (
-                  <img
-                    title="Project"
-                    key={item?.project?.uid}
-                    width={24}
-                    height={24}
-                    src={item?.project?.logo?.url || '/icons/project-default.svg'}
-                    alt="project"
-                    className={s.avatar}
-                  />
-                ))}
+                {projectAncestorFocusAreas
+                  ?.slice(0, 3)
+                  .map((item: any) => (
+                    <img
+                      title="Project"
+                      key={item?.project?.uid}
+                      width={24}
+                      height={24}
+                      src={item?.project?.logo?.url || '/icons/project-default.svg'}
+                      alt="project"
+                      className={s.avatar}
+                    />
+                  ))}
               </div>
               <img src="/icons/arrow-blue-right.svg" alt="project" />
             </div>
           </div>
         )}
       </div>
-      <img className={s.icon} alt={focusArea?.title} src={image} />
     </div>
   );
 }

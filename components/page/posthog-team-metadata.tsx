@@ -8,7 +8,7 @@ import { authEvents } from '@/components/core/login/utils/authEvents';
 import { getHeader } from '@/utils/common.utils';
 
 const TEAM_CACHE_KEY = 'ph_team_cache';
-const TEAMS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/teams`;
+const MEMBERS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/members`;
 
 interface TeamCacheData {
   teamUid: string;
@@ -44,12 +44,26 @@ function clearTeamCache() {
   }
 }
 
-async function fetchTeamDetails(
-  teamUid: string,
+interface TeamMemberRole {
+  mainTeam?: boolean;
+  team?: {
+    uid?: string;
+    name?: string;
+    priority?: number;
+  };
+}
+
+interface MemberResponse {
+  uid?: string;
+  teamMemberRoles?: TeamMemberRole[];
+}
+
+async function fetchMainTeamFromMember(
+  memberUid: string,
   authToken: string,
-): Promise<{ name: string; priority: string } | null> {
+): Promise<{ teamUid: string; name: string; priority: string } | null> {
   try {
-    const response = await fetch(`${TEAMS_API_URL}/${teamUid}`, {
+    const response = await fetch(`${MEMBERS_API_URL}/${memberUid}`, {
       method: 'GET',
       headers: getHeader(authToken),
       cache: 'no-store',
@@ -59,14 +73,23 @@ async function fetchTeamDetails(
       return null;
     }
 
-    const result = await response.json();
+    const result: MemberResponse = await response.json();
+
+    // Find the main team from teamMemberRoles array
+    const mainTeamRole = result?.teamMemberRoles?.find((role) => role.mainTeam === true);
+    const team = mainTeamRole?.team;
+
+    if (!team?.uid) {
+      return null;
+    }
 
     // Priority logic: if priority >= 99, set to 'NA' equivalent (we store as string for PostHog)
-    const rawPriority = typeof result?.priority === 'number' ? result.priority : 99;
+    const rawPriority = typeof team.priority === 'number' ? team.priority : 99;
     const priority = rawPriority >= 99 ? 'NA' : String(rawPriority);
 
     return {
-      name: result?.name || '',
+      teamUid: team.uid,
+      name: team.name || '',
       priority: priority,
     };
   } catch {
@@ -91,26 +114,33 @@ export default function PostHogTeamMetadata() {
         const userInfo = getParsedValue(userCookie);
         const authToken = authTokenCookie ? JSON.parse(authTokenCookie) : '';
 
-        // Get teamUid from mainTeam or leadingTeams
-        const teamUid = userInfo?.mainTeam?.id || userInfo?.mainTeam?.uid || userInfo?.leadingTeams?.[0];
+        // Get memberUid from userInfo
+        const memberUid = userInfo?.uid;
 
-        if (!teamUid) {
+        if (!memberUid) {
+          return;
+        }
+
+        // Fetch fresh data (member data contains teamMemberRoles with mainTeam flag)
+        const mainTeamData = await fetchMainTeamFromMember(memberUid, authToken);
+
+        if (!mainTeamData) {
           return;
         }
 
         // Check if teamUid changed
-        if (lastTeamUidRef.current !== teamUid) {
+        if (lastTeamUidRef.current !== mainTeamData.teamUid) {
           // Clear previous registration if team changed
           if (lastTeamUidRef.current) {
             posthog.unregister('mainTeamName');
             posthog.unregister('mainTeamPriority');
           }
-          lastTeamUidRef.current = teamUid;
+          lastTeamUidRef.current = mainTeamData.teamUid;
         }
 
         // Check cache first
         const cached = getTeamCache();
-        if (cached && cached.teamUid === teamUid) {
+        if (cached && cached.teamUid === mainTeamData.teamUid) {
           // Use cached values
           const priorityValue = Number(cached.priority) >= 99 ? 'NA' : cached.priority;
           posthog.register({
@@ -120,23 +150,18 @@ export default function PostHogTeamMetadata() {
           return;
         }
 
-        // Fetch fresh data
-        const teamData = await fetchTeamDetails(teamUid, authToken);
+        // Cache the team data (only team object: name and priority)
+        setTeamCache({
+          teamUid: mainTeamData.teamUid,
+          name: mainTeamData.name,
+          priority: mainTeamData.priority,
+        });
 
-        if (teamData) {
-          // Cache the data
-          setTeamCache({
-            teamUid,
-            name: teamData.name,
-            priority: teamData.priority,
-          });
-
-          // Register with PostHog
-          posthog.register({
-            mainTeamName: teamData.name,
-            mainTeamPriority: teamData.priority,
-          });
-        }
+        // Register with PostHog
+        posthog.register({
+          mainTeamName: mainTeamData.name,
+          mainTeamPriority: mainTeamData.priority,
+        });
       } catch (error) {
         console.error('PostHog Team Metadata error:', error);
       }

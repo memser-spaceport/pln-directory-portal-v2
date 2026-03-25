@@ -126,8 +126,10 @@ export function SubmitDealModal() {
                 name="fullDescription"
                 label="Full Deal Description"
                 placeholder="Explain the full details of the deal.&#10;Include eligibility, limits, and terms if known."
-                description="Max 600 characters."
+                description="Max. 600 characters."
                 enableMentions={false}
+                maxLength={600}
+                showCharCount
                 isRequired
               />
 
@@ -135,8 +137,10 @@ export function SubmitDealModal() {
                 name="redemptionInstructions"
                 label="Redemption instructions"
                 placeholder="Explain how founders can redeem the deal."
-                description="Max 600 characters."
+                description="Max. 600 characters."
                 enableMentions={false}
+                maxLength={600}
+                showCharCount
                 isRequired
               />
 

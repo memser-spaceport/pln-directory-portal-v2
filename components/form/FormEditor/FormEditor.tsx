@@ -26,6 +26,7 @@ interface Props extends PropsWithChildren {
   onMentionInitiated?: () => void;
   onMentionSearch?: (query: string, resultsCount?: number) => void;
   onMentionSelected?: (member: { uid: string; name: string }, query?: string) => void;
+  minHeight?: number;
 }
 
 export const FormEditor = (props: Props) => {
@@ -45,6 +46,7 @@ export const FormEditor = (props: Props) => {
     onMentionInitiated,
     onMentionSearch,
     onMentionSelected,
+    minHeight,
   } = props;
 
   const {
@@ -83,6 +85,7 @@ export const FormEditor = (props: Props) => {
         onMentionInitiated={onMentionInitiated}
         onMentionSearch={onMentionSearch}
         onMentionSelected={onMentionSelected}
+        minHeight={minHeight}
       />
       {errors[name] ? (
         <Field.Error className={s.errorMsg} match={!!errors[name]}>

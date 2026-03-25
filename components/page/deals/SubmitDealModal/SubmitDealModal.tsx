@@ -125,9 +125,9 @@ export function SubmitDealModal() {
               <FormEditor
                 name="fullDescription"
                 label="Full Deal Description"
-                placeholder="Explain the full details of the deal.&#10;Include eligibility, limits, and terms if known."
+                placeholder={'Explain the full details of the deal.\nInclude eligibility, limits, and terms if known.'}
                 description="Max. 600 characters."
-                enableMentions={false}
+                enableMentions={true}
                 maxLength={600}
                 showCharCount
                 isRequired
@@ -136,12 +136,15 @@ export function SubmitDealModal() {
               <FormEditor
                 name="redemptionInstructions"
                 label="Redemption instructions"
-                placeholder="Explain how founders can redeem the deal."
+                placeholder={
+                  'Explain how founders can redeem the deal.\nExample:\n1. Visit the signup link\n2. Create an account\n3. Enter the promo code during onboarding'
+                }
                 description="Max. 600 characters."
-                enableMentions={false}
+                enableMentions={true}
                 maxLength={600}
                 showCharCount
                 isRequired
+                minHeight={150}
               />
 
               {/*<FormField name="websiteUrl" label="Website URL" placeholder="https://example.com" isRequired />*/}

@@ -149,6 +149,7 @@ export function SubmitDealModal() {
                 isRequired
                 max={200}
                 description="In case our team has questions about this deal before publishing it."
+                descriptionPosition="top"
               />
             </div>
           </FormProvider>

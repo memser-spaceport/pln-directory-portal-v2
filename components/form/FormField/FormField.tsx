@@ -21,6 +21,7 @@ interface Props extends PropsWithChildren {
   rules?: Record<string, unknown>;
   icon?: ReactNode;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
+  descriptionPosition?: 'top' | 'bottom';
 }
 
 export const FormField = ({
@@ -37,6 +38,7 @@ export const FormField = ({
   rules,
   icon,
   onBlur,
+  descriptionPosition = 'bottom',
   ...rest
 }: Props) => {
   const {
@@ -68,6 +70,9 @@ export const FormField = ({
             {label}
           </Field.Label>
         </div>
+      )}
+      {description && descriptionPosition === 'top' && (
+        <Field.Description className={clsx(s.fieldDescription, s.fieldDescriptionTop)}>{description}</Field.Description>
       )}
       <div
         className={clsx(s.input, {
@@ -105,7 +110,7 @@ export const FormField = ({
       </div>
       <div className={s.sub}>
         <div>
-          {!errors[name] && description ? (
+          {!errors[name] && description && descriptionPosition === 'bottom' ? (
             <Field.Description className={s.fieldDescription}>{description}</Field.Description>
           ) : (
             <Field.Error className={s.errorMsg} match={!!errors[name]}>

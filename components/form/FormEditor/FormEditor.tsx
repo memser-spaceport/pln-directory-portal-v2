@@ -29,6 +29,7 @@ interface Props extends PropsWithChildren {
 export const FormEditor = (props: Props) => {
   const {
     name,
+    placeholder,
     label,
     classes,
     description,
@@ -66,6 +67,7 @@ export const FormEditor = (props: Props) => {
       <RichTextEditor
         disabled={disabled}
         value={value}
+        placeholder={placeholder}
         autoFocus={autoFocus}
         enableMentions={enableMentions}
         onChange={(txt) => setValue(name, txt, { shouldValidate: true, shouldDirty: true })}

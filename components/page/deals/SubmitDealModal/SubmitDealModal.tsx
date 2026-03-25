@@ -1,7 +1,6 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { Controller, FormProvider, useForm, useFormContext } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import { Modal } from '@/components/common/Modal';
@@ -9,6 +8,7 @@ import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
+import { FormEditor } from '@/components/form/FormEditor/FormEditor';
 import { useSubmitDealModalStore } from '@/services/deals/store';
 import { useSubmitDeal } from '@/services/deals/hooks/useSubmitDeal';
 import { DEAL_AUDIENCE_LABELS } from '@/services/deals/constants';
@@ -16,56 +16,10 @@ import { submitDealSchema, SubmitDealFormData } from './helpers';
 
 import s from './SubmitDealModal.module.scss';
 
-const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor/RichTextEditor'), { ssr: false });
-
-const TOOLBAR_CONFIG = [
-  ['bold', 'italic', 'strike'],
-  ['mention', 'link'],
-  [{ list: 'bullet' }, { list: 'ordered' }],
-  ['code-block', 'image'],
-];
-
 const AUDIENCE_OPTIONS = Object.entries(DEAL_AUDIENCE_LABELS).map(([value, label]) => ({
   value,
   label,
 }));
-
-function RichTextField({
-  name,
-  label,
-  placeholder,
-  helperText,
-}: {
-  name: 'fullDescription' | 'redemptionInstructions';
-  label: string;
-  placeholder: string;
-  helperText: string;
-}) {
-  const { control } = useFormContext<SubmitDealFormData>();
-
-  return (
-    <div className={s.fieldGroup}>
-      <div className={s.fieldLabel}>
-        {label} <span className={s.required}>*</span>
-      </div>
-      <Controller
-        name={name}
-        control={control}
-        render={({ field, fieldState }) => (
-          <RichTextEditor
-            value={field.value || ''}
-            onChange={field.onChange}
-            placeholder={placeholder}
-            toolbarConfig={TOOLBAR_CONFIG}
-            enableMentions={false}
-            errorMessage={fieldState.error?.message}
-          />
-        )}
-      />
-      <span className={s.helperText}>{helperText}</span>
-    </div>
-  );
-}
 
 export function SubmitDealModal() {
   const { open, actions } = useSubmitDealModalStore();
@@ -168,18 +122,22 @@ export function SubmitDealModal() {
                 description="Max. 100 characters."
               />
 
-              <RichTextField
+              <FormEditor
                 name="fullDescription"
                 label="Full Deal Description"
                 placeholder="Explain the full details of the deal.&#10;Include eligibility, limits, and terms if known."
-                helperText="Max 600 characters."
+                description="Max 600 characters."
+                enableMentions={false}
+                isRequired
               />
 
-              <RichTextField
+              <FormEditor
                 name="redemptionInstructions"
                 label="Redemption instructions"
                 placeholder="Explain how founders can redeem the deal."
-                helperText="Max 600 characters."
+                description="Max 600 characters."
+                enableMentions={false}
+                isRequired
               />
 
               {/*<FormField name="websiteUrl" label="Website URL" placeholder="https://example.com" isRequired />*/}
@@ -197,7 +155,7 @@ export function SubmitDealModal() {
         </div>
 
         <div className={s.footer}>
-          <Button style="border" onClick={onClose}>
+          <Button style="border" variant="neutral" onClick={onClose}>
             Cancel
           </Button>
           <Button onClick={handleSubmit(onSubmit)} disabled={!isValid || isPending}>

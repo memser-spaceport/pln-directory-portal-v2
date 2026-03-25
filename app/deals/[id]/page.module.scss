@@ -498,11 +498,12 @@
   width: 100%;
 
   @include mobile-only {
-    flex-direction: column-reverse;
     margin-top: 24px;
+    gap: 8px;
 
     > button {
-      width: 100%;
+      flex: 1;
+      padding-inline: 8px;
     }
   }
 }

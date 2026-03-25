@@ -15,6 +15,7 @@ import StoreInitializer from '@/providers/StoreInitializer';
 import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
 import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
 import PostHogIdentifier from '@/components/page/posthog-identifier';
+import PostHogTeamMetadata from '@/components/page/posthog-team-metadata';
 import PostLoginRedirectHandler from '@/components/page/recommendations/components/RecommendationsPreloader/PostLoginRedirectHandler';
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginFlowTrigger';
@@ -92,36 +93,37 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <StyledJsxRegistry>
           <QueryProvider>
             <NuqsAdapter>
-            <PushNotificationsProvider authToken={authToken} enabled={isLoggedIn}>
-              <StoreInitializer userInfo={userInfo} />
-              <PostHogIdentifier />
-              <ContactSupportUrlSync />
-              <header className="layout__header">
-                {/* <DemoDayBanner /> */}
-                <PlaaBanner />
-                {false && <SubscribeToRecoomendations userInfo={userInfo} />}
-                <CompleteYourProfile userInfo={userInfo} />
-                <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
-              </header>
-              <AuthBox isLoggedIn={isLoggedIn} />
-              <ContactSupport userInfo={userInfo} />
-              <DemoDayStats />
-              <main className="layout__main">{children}</main>
-              <MobileBottomNav />
-              <Loader />
-              <ToastContainer />
-              <BroadCastChannel />
-              <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
-              <MemberRegisterDialog />
-              <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
-              <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
-              <PostLoginRedirectHandler isLoggedIn={isLoggedIn} />
-              {/* <TeamRegisterDialog /> */}
-              <UserInfoChecker userInfo={userInfo} />
-              <UserInfoValidator userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
-              <CookieChecker isLoggedIn={isLoggedIn} />
-              {/*<ReactQueryDevtools initialIsOpen={false} />*/}
-            </PushNotificationsProvider>
+              <PushNotificationsProvider authToken={authToken} enabled={isLoggedIn}>
+                <StoreInitializer userInfo={userInfo} />
+                <PostHogIdentifier />
+                <PostHogTeamMetadata />
+                <ContactSupportUrlSync />
+                <header className="layout__header">
+                  {/* <DemoDayBanner /> */}
+                  <PlaaBanner />
+                  {false && <SubscribeToRecoomendations userInfo={userInfo} />}
+                  <CompleteYourProfile userInfo={userInfo} />
+                  <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
+                </header>
+                <AuthBox isLoggedIn={isLoggedIn} />
+                <ContactSupport userInfo={userInfo} />
+                <DemoDayStats />
+                <main className="layout__main">{children}</main>
+                <MobileBottomNav />
+                <Loader />
+                <ToastContainer />
+                <BroadCastChannel />
+                <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                <MemberRegisterDialog />
+                <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
+                <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
+                <PostLoginRedirectHandler isLoggedIn={isLoggedIn} />
+                {/* <TeamRegisterDialog /> */}
+                <UserInfoChecker userInfo={userInfo} />
+                <UserInfoValidator userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                <CookieChecker isLoggedIn={isLoggedIn} />
+                {/*<ReactQueryDevtools initialIsOpen={false} />*/}
+              </PushNotificationsProvider>
             </NuqsAdapter>
           </QueryProvider>
         </StyledJsxRegistry>

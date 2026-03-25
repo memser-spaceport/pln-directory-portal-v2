@@ -18,6 +18,8 @@ interface Props extends PropsWithChildren {
   autoFocus?: boolean;
   className?: string;
   enableMentions?: boolean;
+  maxLength?: number;
+  showCharCount?: boolean;
   classes?: {
     label?: string;
   };
@@ -29,6 +31,7 @@ interface Props extends PropsWithChildren {
 export const FormEditor = (props: Props) => {
   const {
     name,
+    placeholder,
     label,
     classes,
     description,
@@ -37,6 +40,8 @@ export const FormEditor = (props: Props) => {
     autoFocus,
     className,
     enableMentions = true,
+    maxLength,
+    showCharCount = false,
     onMentionInitiated,
     onMentionSearch,
     onMentionSelected,
@@ -48,6 +53,8 @@ export const FormEditor = (props: Props) => {
     formState: { errors },
   } = useFormContext();
   const value = watch(name);
+  const charCount = showCharCount ? (value as string)?.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').length ?? 0 : 0;
+  const isOverLimit = showCharCount && maxLength != null && charCount > maxLength;
 
   return (
     <Field.Root className={s.field}>
@@ -66,6 +73,7 @@ export const FormEditor = (props: Props) => {
       <RichTextEditor
         disabled={disabled}
         value={value}
+        placeholder={placeholder}
         autoFocus={autoFocus}
         enableMentions={enableMentions}
         onChange={(txt) => setValue(name, txt, { shouldValidate: true, shouldDirty: true })}
@@ -76,13 +84,20 @@ export const FormEditor = (props: Props) => {
         onMentionSearch={onMentionSearch}
         onMentionSelected={onMentionSelected}
       />
-      {!errors[name] && description ? (
-        <Field.Description className={s.fieldDescription}>{description}</Field.Description>
-      ) : (
+      {errors[name] ? (
         <Field.Error className={s.errorMsg} match={!!errors[name]}>
           {(errors?.[name]?.message as string) ?? ''}
         </Field.Error>
-      )}
+      ) : showCharCount && maxLength != null ? (
+        <div className={s.charCounterRow}>
+          {description && <span className={s.fieldDescription}>{description}</span>}
+          <span className={clsx(s.charCount, { [s.charCountError]: isOverLimit })}>
+            {charCount} / {maxLength}
+          </span>
+        </div>
+      ) : description ? (
+        <Field.Description className={s.fieldDescription}>{description}</Field.Description>
+      ) : null}
     </Field.Root>
   );
 };

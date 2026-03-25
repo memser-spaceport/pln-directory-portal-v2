@@ -46,6 +46,7 @@
   :global(.ql-container) {
     border-color: rgba(203, 213, 225, 0.5);
     border-radius: 0 0 8px 8px;
+    min-height: 70px;
   }
 
   :global(.ql-editor) {

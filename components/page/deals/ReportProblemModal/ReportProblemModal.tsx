@@ -54,7 +54,7 @@ export function ReportProblemModal() {
           </div>
         </div>
         <div className={s.footer}>
-          <Button style="border" onClick={onClose}>
+          <Button style="border" variant="neutral" onClick={onClose}>
             Cancel
           </Button>
           <Button onClick={onSubmit} disabled={isPending}>

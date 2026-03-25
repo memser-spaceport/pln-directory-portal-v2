@@ -71,7 +71,7 @@
   line-height: 22px;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-primary, #0a0c11);
-  resize: vertical;
+  resize: none;
 
   &::placeholder {
     color: var(--foreground-neutral-tertiary, #8897ae);

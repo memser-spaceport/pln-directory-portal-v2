@@ -21,7 +21,8 @@ export function ReportProblemModal() {
   const { mutate, isPending } = useReportDealIssue(dealUid || '');
 
   const methods = useForm<FormValues>({ defaultValues: { description: '' } });
-  const { handleSubmit, reset } = methods;
+  const { handleSubmit, reset, watch } = methods;
+  const isOverLimit = watch('description').length > MAX_LENGTH;
 
   const onClose = () => {
     reset();
@@ -57,7 +58,7 @@ export function ReportProblemModal() {
           <Button style="border" variant="neutral" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={onSubmit} disabled={isPending}>
+          <Button onClick={onSubmit} disabled={isPending || isOverLimit}>
             {isPending ? 'Submitting...' : 'Submit'}
           </Button>
         </div>

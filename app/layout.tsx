@@ -15,7 +15,6 @@ import StoreInitializer from '@/providers/StoreInitializer';
 import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
 import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
 import PostHogIdentifier from '@/components/page/posthog-identifier';
-import PostHogTeamMetadata from '@/components/page/posthog-team-metadata';
 import PostLoginRedirectHandler from '@/components/page/recommendations/components/RecommendationsPreloader/PostLoginRedirectHandler';
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginFlowTrigger';
@@ -96,7 +95,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <PushNotificationsProvider authToken={authToken} enabled={isLoggedIn}>
                 <StoreInitializer userInfo={userInfo} />
                 <PostHogIdentifier />
-                <PostHogTeamMetadata />
                 <ContactSupportUrlSync />
                 <header className="layout__header">
                   {/* <DemoDayBanner /> */}

@@ -128,7 +128,10 @@ export default function PostHogIdentifier() {
         }
 
         // Fetch team metadata
-        let teamProperties = {};
+        let teamProperties = {
+          mainTeamName: 'none',
+          mainTeamPriority: 'NA',
+        };
         if (userInfo?.uid && authToken) {
           const cached = getTeamCache();
           let mainTeamData = cached;

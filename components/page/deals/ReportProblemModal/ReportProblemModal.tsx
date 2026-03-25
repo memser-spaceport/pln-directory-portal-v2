@@ -1,35 +1,38 @@
 'use client';
 
-import { useState } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
+import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { CloseIcon, WarningCircleIcon } from '@/components/icons';
 import { useReportProblemModalStore } from '@/services/deals/store';
 import { useReportDealIssue } from '@/services/deals/hooks/useReportDealIssue';
 
 import s from './ReportProblemModal.module.scss';
 
+const MAX_LENGTH = 600;
+
+interface FormValues {
+  description: string;
+}
+
 export function ReportProblemModal() {
   const { open, dealUid, actions } = useReportProblemModalStore();
   const { mutate, isPending } = useReportDealIssue(dealUid || '');
-  const [description, setDescription] = useState('');
-  const [error, setError] = useState('');
+
+  const methods = useForm<FormValues>({ defaultValues: { description: '' } });
+  const { handleSubmit, reset } = methods;
 
   const onClose = () => {
-    setDescription('');
-    setError('');
+    reset();
     actions.closeModal();
   };
 
-  const onSubmit = () => {
-    if (!description.trim()) {
-      setError('Please describe the issue.');
-      return;
-    }
+  const onSubmit = handleSubmit(({ description }) => {
     mutate(description.trim(), {
       onSuccess: () => onClose(),
     });
-  };
+  });
 
   return (
     <Modal isOpen={open} onClose={onClose}>
@@ -39,22 +42,19 @@ export function ReportProblemModal() {
             <WarningCircleIcon width={32} height={32} color="#1b4dff" />
           </div>
           <h2 className={s.title}>Report a problem</h2>
-          <div className={s.fieldGroup}>
-            <label className={s.fieldLabel}>Describe the issue</label>
-            <textarea
-              className={s.textarea}
+          <FormProvider {...methods}>
+            <FormTextArea
+              name="description"
+              label="Describe the issue"
               placeholder="e.g. The redemption code is no longer valid, the link is broken, the offer terms have changed"
-              value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-                if (error) setError('');
-              }}
+              maxLength={MAX_LENGTH}
+              showCharCount
+              rows={5}
             />
-            {error && <span className={s.errorText}>{error}</span>}
-          </div>
+          </FormProvider>
         </div>
         <div className={s.footer}>
-          <Button style="border" onClick={onClose}>
+          <Button style="border" variant="neutral" onClick={onClose}>
             Cancel
           </Button>
           <Button onClick={onSubmit} disabled={isPending}>

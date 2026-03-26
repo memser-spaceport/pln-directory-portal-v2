@@ -1,13 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { EmblaCarouselType, EmblaOptionsType } from 'embla-carousel';
 
 import { IFocusArea, IUserInfo } from '@/types/shared.types';
 import { HOME, HOME_PAGE_LINKS } from '@/utils/constants';
+
 import { usePrevNextButtons } from '@/hooks/use-prev-next-buttons';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
+
+import { sortFocusAreas } from '@/utils/sortFocusAreas';
 import { getAnalyticsUserInfo, getAnalyticsFocusAreaInfo } from '@/utils/common.utils';
 
 import { FocusAreasData } from './types';
@@ -49,7 +52,9 @@ export function FocusAreaSection(props: FocusAreaSectionProps) {
   }, [mbEmblaApi, onScroll]);
 
   const getProjectFocusAreas = (focusArea: IFocusArea) => {
-    return focusAreas?.projectFocusAreas?.find((pf: any) => pf.title === focusArea.title)?.projectAncestorFocusAreas || [];
+    return (
+      focusAreas?.projectFocusAreas?.find((pf: any) => pf.title === focusArea.title)?.projectAncestorFocusAreas || []
+    );
   };
 
   const onTeamClick = (focusArea: IFocusArea) => {
@@ -74,6 +79,8 @@ export function FocusAreaSection(props: FocusAreaSectionProps) {
     analytics.onFocusAreaProtocolLabsVisionUrlClicked(protocolVisionUrl, getAnalyticsUserInfo(userInfo));
   };
 
+  const focusAreasToRender = useMemo(() => sortFocusAreas(focusAreas?.teamFocusAreas), [focusAreas?.teamFocusAreas]);
+
   return (
     <>
       {/* Desktop */}
@@ -81,7 +88,7 @@ export function FocusAreaSection(props: FocusAreaSectionProps) {
         <FocusAreaHeader userInfo={userInfo} {...carouselActions} />
         <div className={s.embla} ref={emblaRef}>
           <div className={s.emblaContainer}>
-            {focusAreas?.teamFocusAreas.map((focusArea: any, index: number) => (
+            {focusAreasToRender.map((focusArea: any, index: number) => (
               <FocusAreaCard
                 key={`focusArea-${index}`}
                 focusArea={focusArea}
@@ -121,7 +128,7 @@ export function FocusAreaSection(props: FocusAreaSectionProps) {
         </div>
         <div className={s.mobileEmbla} ref={mbEmblaRef}>
           <div className={s.mobileEmblaContainer}>
-            {focusAreas?.teamFocusAreas.map((focusArea: any, index: number) => (
+            {focusAreasToRender.map((focusArea: any, index: number) => (
               <FocusAreaCard
                 key={`focusArea-${index}`}
                 focusArea={focusArea}
@@ -135,10 +142,7 @@ export function FocusAreaSection(props: FocusAreaSectionProps) {
         </div>
         <div className={s.progressBar}>
           <div className={s.progressTrack}>
-            <div
-              className={s.progressFill}
-              style={{ transform: `translate3d(${scrollProgress}%,0px,0px)` }}
-            />
+            <div className={s.progressFill} style={{ transform: `translate3d(${scrollProgress}%,0px,0px)` }} />
           </div>
         </div>
       </div>

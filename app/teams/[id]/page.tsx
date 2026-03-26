@@ -98,13 +98,6 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
 
           <TeamMembershipSource team={team} userInfo={userInfo} />
           <TeamCommunitiesSection team={team} userInfo={userInfo} />
-          
-          <TeamFocusAreas
-            team={team}
-            userInfo={userInfo}
-            focusAreas={focusAreas || []}
-            teamFocusAreas={team?.teamFocusAreas || []}
-          />
 
           {/* Irl Contribuions */}
           {(team.eventGuests?.length > 0 || team.associations?.length > 0) && (
@@ -127,6 +120,13 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
               hasProjectsEditAccess={hasProjectsEditAccess}
             />
           </div>
+
+          <TeamFocusAreas
+            team={team}
+            userInfo={userInfo}
+            focusAreas={focusAreas || []}
+            teamFocusAreas={team?.teamFocusAreas || []}
+          />
         </div>
       </div>
     </>

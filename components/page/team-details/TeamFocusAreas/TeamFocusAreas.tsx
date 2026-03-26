@@ -1,8 +1,11 @@
 'use client';
+import { useMemo } from 'react';
 import { useToggle } from 'react-use';
 
 import { ITeam } from '@/types/teams.types';
 import { IFocusArea, IUserInfo } from '@/types/shared.types';
+
+import { sortFocusAreas } from '@/utils/sortFocusAreas';
 
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 
@@ -25,12 +28,14 @@ export function TeamFocusAreas(props: Props) {
 
   const [isEditMode, toggleIsEditMode] = useToggle(false);
 
-  const teamFocusAreasToDisplay = useGetFocusAreasToDisplay(focusAreas, teamFocusAreas);
+  const sortedFocusAreas = useMemo(() => sortFocusAreas(focusAreas), [focusAreas]);
+
+  const teamFocusAreasToDisplay = useGetFocusAreasToDisplay(sortedFocusAreas, teamFocusAreas);
 
   return (
     <DetailsSection editView={isEditMode}>
       {isEditMode ? (
-        <TeamFocusAreasEdit team={team} focusAreas={focusAreas} toggleIsEditMode={toggleIsEditMode} />
+        <TeamFocusAreasEdit team={team} focusAreas={sortedFocusAreas} toggleIsEditMode={toggleIsEditMode} />
       ) : (
         <TeamFocusAreasView
           team={team}

@@ -37,7 +37,7 @@ export function TeamContactInfoEdit(props: Props) {
     resolver: yupResolver(teamContactInfoSchema),
   });
 
-  const commonOnSubmit = useOnSubmit(team, toggleIsEditMode);
+  const { onSubmit: commonOnSubmit, isPending } = useOnSubmit(team, toggleIsEditMode);
 
   const onSubmit = async (formData: EditTeamContactForm) => {
     await commonOnSubmit({
@@ -55,7 +55,7 @@ export function TeamContactInfoEdit(props: Props) {
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls title="Edit Contact Details" onClose={toggleIsEditMode} />
+        <EditFormControls title="Edit Contact Details" onClose={toggleIsEditMode} isProcessing={isPending} />
 
         <DetailsSection classes={{ root: s.detailsSection }}>
           <FormField name="website" label="Website" placeholder="Enter website" isRequired />

@@ -115,7 +115,7 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
     prevValuesRef.current = JSON.parse(JSON.stringify(formValues));
   }, [formValues, analytics]);
 
-  const commonOnSubmit = useOnSubmit(team, onClose);
+  const { onSubmit: commonOnSubmit, isPending } = useOnSubmit(team, onClose);
 
   const onSubmit = async (formData: TEditTeamDetailsForm) => {
     if (formData.name.trim() !== (team?.name || '').trim()) {
@@ -173,7 +173,7 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
     <FormProvider {...methods}>
       {/* @ts-ignore */}
       <form className={s.form} onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls title="Edit Profile Details" onClose={onClose} />
+        <EditFormControls title="Edit Profile Details" onClose={onClose} isProcessing={isPending} />
         <div className={s.panel}>
           <div className={s.imageRow}>
             <ProfileImageInput member={{ name: team?.name || '', profile: team?.logo }} allowDelete />

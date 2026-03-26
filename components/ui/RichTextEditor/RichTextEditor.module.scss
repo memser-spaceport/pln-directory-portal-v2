@@ -47,7 +47,7 @@
     border-color: rgba(203, 213, 225, 0.5);
     border-radius: 0 0 8px 8px;
     min-height: var(--ql-min-height, 70px);
-    overflow: hidden;
+    overflow: visible;
   }
 
   :global(.ql-editor) {
@@ -80,6 +80,12 @@
 
   :global(.ql-formats.ql-formats) {
     margin-right: 8px;
+  }
+
+  // Prevent link tooltip from overflowing container edges
+  :global(.ql-tooltip) {
+    left: 0 !important;
+    max-width: 100%;
   }
 
   // Mention button tooltip

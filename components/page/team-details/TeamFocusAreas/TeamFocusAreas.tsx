@@ -1,11 +1,13 @@
 'use client';
 import { useMemo } from 'react';
+import isEmpty from 'lodash/isEmpty';
 import { useToggle } from 'react-use';
 
 import { ITeam } from '@/types/teams.types';
 import { IFocusArea, IUserInfo } from '@/types/shared.types';
 
 import { sortFocusAreas } from '@/utils/sortFocusAreas';
+import { isTeamLeaderOrAdmin } from '@/components/page/team-details/utils/isTeamLeaderOrAdmin';
 
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 
@@ -31,6 +33,12 @@ export function TeamFocusAreas(props: Props) {
   const sortedFocusAreas = useMemo(() => sortFocusAreas(focusAreas), [focusAreas]);
 
   const teamFocusAreasToDisplay = useGetFocusAreasToDisplay(sortedFocusAreas, teamFocusAreas);
+
+  const hasTeamEditAccess = isTeamLeaderOrAdmin(userInfo, team?.id);
+
+  if (isEmpty(teamFocusAreas) && !hasTeamEditAccess) {
+    return null;
+  }
 
   return (
     <DetailsSection editView={isEditMode}>

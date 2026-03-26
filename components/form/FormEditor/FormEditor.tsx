@@ -7,6 +7,13 @@ import s from './FormEditor.module.scss';
 
 const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor/RichTextEditor'), { ssr: false });
 
+const SIMPLIFIED_TOOLBAR = [
+  [{ header: [false] }],
+  ['bold', 'italic', 'underline'],
+  [{ list: 'bullet' }, { list: 'ordered' }],
+  ['link'],
+];
+
 interface Props extends PropsWithChildren {
   name: string;
   placeholder: string;
@@ -27,6 +34,7 @@ interface Props extends PropsWithChildren {
   onMentionSearch?: (query: string, resultsCount?: number) => void;
   onMentionSelected?: (member: { uid: string; name: string }, query?: string) => void;
   minHeight?: number;
+  simplified?: boolean;
 }
 
 export const FormEditor = (props: Props) => {
@@ -47,6 +55,7 @@ export const FormEditor = (props: Props) => {
     onMentionSearch,
     onMentionSelected,
     minHeight,
+    simplified,
   } = props;
 
   const {
@@ -77,7 +86,8 @@ export const FormEditor = (props: Props) => {
         value={value}
         placeholder={placeholder}
         autoFocus={autoFocus}
-        enableMentions={enableMentions}
+        enableMentions={simplified ? false : enableMentions}
+        {...(simplified && { toolbarConfig: SIMPLIFIED_TOOLBAR })}
         onChange={(txt) => setValue(name, txt, { shouldValidate: true, shouldDirty: true })}
         className={clsx(className, {
           [s.error]: !!errors[name],

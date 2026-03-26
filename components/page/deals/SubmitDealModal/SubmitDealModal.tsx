@@ -131,6 +131,7 @@ export function SubmitDealModal() {
                 maxLength={600}
                 showCharCount
                 isRequired
+                simplified
               />
 
               <FormEditor
@@ -145,6 +146,7 @@ export function SubmitDealModal() {
                 showCharCount
                 isRequired
                 minHeight={150}
+                simplified
               />
 
               {/*<FormField name="websiteUrl" label="Website URL" placeholder="https://example.com" isRequired />*/}

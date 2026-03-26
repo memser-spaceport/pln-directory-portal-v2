@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { IFocusArea } from '@/types/shared.types';
 import { ITeamsSearchParams } from '@/types/teams.types';
 import { FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { sortFocusAreas } from '@/utils/sortFocusAreas';
 import { getUserInfo } from '@/utils/third-party.helper';
 
 import { FocusAreaItem } from './components/FocusAreaItem';
@@ -20,16 +21,20 @@ interface IFocusAreaFilter {
 }
 
 export const FocusAreaFilter = (props: IFocusAreaFilter) => {
-  const focusAreas = props.focusAreaRawData?.filter((focusArea: IFocusArea) => !focusArea.parentUid);
+  const { uniqueKey, selectedItems = [], searchParams, focusAreaRawData } = props;
 
-  const uniqueKey = props?.uniqueKey;
+  const focusAreas = useMemo(() => {
+    const filtered = focusAreaRawData?.filter((focusArea: IFocusArea) => !focusArea.parentUid);
+
+    return sortFocusAreas(filtered);
+  }, [focusAreaRawData]);
+
   const pageName = getPageName(uniqueKey);
-  const selectedItems = props?.selectedItems ?? [];
-  const parents = getAllParents(props?.selectedItems) ?? [];
+  const parents = getAllParents(selectedItems) ?? [];
 
   const [isHelpActive, setIsHelpActive] = useState(false);
   const { updateQueryParams } = useUpdateQueryParams();
-  const searchParams = props?.searchParams;
+
   const user = getUserInfo();
   const analytics = useTeamAnalytics();
 

@@ -11,9 +11,12 @@ import s from './EditFormControls.module.scss';
 interface Props {
   onClose: () => void;
   title: ReactNode;
+  isProcessing?: boolean;
 }
 
-export const EditFormControls = ({ title, onClose }: Props) => {
+export const EditFormControls = (props: Props) => {
+  const { title, onClose, isProcessing: pIsProcessing = false } = props;
+
   const {
     reset,
     formState: { isSubmitting, isDirty, isValid },
@@ -24,6 +27,8 @@ export const EditFormControls = ({ title, onClose }: Props) => {
     onClose();
   };
 
+  const isProcessing = isSubmitting || pIsProcessing;
+
   return (
     <div className={s.root}>
       <div className={s.title}>{title}</div>
@@ -31,8 +36,8 @@ export const EditFormControls = ({ title, onClose }: Props) => {
         <Button size="s" style="border" onClick={cancel} type="button" className={s.btn}>
           Cancel
         </Button>
-        <Button size="s" type="submit" disabled={isSubmitting || !isDirty} className={s.btn}>
-          {getSaveBtnLabel({ isDirty, isSubmitting })}
+        <Button size="s" type="submit" disabled={isProcessing || !isDirty} className={s.btn}>
+          {getSaveBtnLabel({ isDirty, isProcessing })}
         </Button>
       </div>
       <button className={s.mobileCloseButton} onClick={cancel} type="button">

@@ -37,7 +37,7 @@ export function TeamFocusAreasEdit(props: Props) {
     defaultValues,
   });
 
-  const commonOnSubmit = useOnSubmit(team, toggleIsEditMode);
+  const { onSubmit: commonOnSubmit, isPending } = useOnSubmit(team, toggleIsEditMode);
 
   const onSubmit = async (formData: FormValues) => {
     const flatFocusAreas = Object.values(formData)
@@ -57,7 +57,7 @@ export function TeamFocusAreasEdit(props: Props) {
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls title="Edit Focus Areas" onClose={toggleIsEditMode} />
+        <EditFormControls title="Edit Focus Areas" onClose={toggleIsEditMode} isProcessing={isPending} />
 
         <DetailsSection
           classes={{

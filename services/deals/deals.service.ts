@@ -72,7 +72,7 @@ export interface SubmitDealPayload {
   fullDescription: string;
   redemptionInstructions: string;
   // websiteUrl: string;
-  contact: string;
+  howToReachOutToYou: string;
 }
 
 export async function submitDeal(payload: SubmitDealPayload) {

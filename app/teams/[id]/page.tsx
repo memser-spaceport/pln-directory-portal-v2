@@ -110,22 +110,19 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
             <TeamMembers team={team} userInfo={userInfo} members={members} teamId={teamId} />
           </div>
 
-          {/* Projects */}
-          <div className={styles?.teamDetail__container__projects}>
-            <Projects
-              isLoggedIn={isLoggedIn}
-              projects={teamProjectList}
-              team={team}
-              userInfo={userInfo}
-              hasProjectsEditAccess={hasProjectsEditAccess}
-            />
-          </div>
-
           <TeamFocusAreas
             team={team}
             userInfo={userInfo}
             focusAreas={focusAreas || []}
             teamFocusAreas={team?.teamFocusAreas || []}
+          />
+
+          <Projects
+            isLoggedIn={isLoggedIn}
+            projects={teamProjectList}
+            team={team}
+            userInfo={userInfo}
+            hasProjectsEditAccess={hasProjectsEditAccess}
           />
         </div>
       </div>

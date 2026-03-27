@@ -51,7 +51,7 @@ export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
                 strokeLinejoin="round"
               />
             </svg>
-            Submit a Deal
+            List your Product
           </button>
         </div>
       </div>

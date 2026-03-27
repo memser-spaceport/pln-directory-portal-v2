@@ -64,7 +64,7 @@ export function SubmitDealModal() {
         fullDescription: data.fullDescription,
         redemptionInstructions: data.redemptionInstructions,
         // websiteUrl: data.websiteUrl,
-        contact: data.howToReachOutToYou,
+        howToReachOutToYou: data.howToReachOutToYou,
       },
       {
         onSuccess: () => {

@@ -2,6 +2,7 @@
 
 import { useQueryStates } from 'nuqs';
 import { useCallback } from 'react';
+import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import { dealsFilterParsers } from '../searchParams';
 import { useGetDealFilterValues } from '@/services/deals/hooks/useGetDealFilterValues';
 import { DealsFilter } from '@/components/page/deals/DealsFilter/DealsFilter';
@@ -16,30 +17,37 @@ export default function DealsFiltersContent() {
   });
 
   const { data: filterValues, isLoading, isError } = useGetDealFilterValues();
+  const analytics = useDealsAnalytics();
 
   const handleClearAll = useCallback(() => {
+    analytics.trackFilterCleared();
     setFilters({ q: null, categories: null, audiences: null, sort: null, page: null });
-  }, [setFilters]);
+  }, [setFilters, analytics]);
 
   const handleSearchChange = useCallback(
     (value: string) => {
+      if (value) {
+        analytics.trackSearchPerformed(value);
+      }
       setFilters({ q: value || null, page: 1 });
     },
-    [setFilters]
+    [setFilters, analytics],
   );
 
   const handleCategoriesChange = useCallback(
     (categories: string[]) => {
+      analytics.trackFilterApplied('categories', categories);
       setFilters({ categories: categories.length > 0 ? categories : null, page: 1 });
     },
-    [setFilters]
+    [setFilters, analytics],
   );
 
   const handleAudiencesChange = useCallback(
     (audiences: string[]) => {
+      analytics.trackFilterApplied('audiences', audiences);
       setFilters({ audiences: audiences.length > 0 ? audiences : null, page: 1 });
     },
-    [setFilters]
+    [setFilters, analytics],
   );
 
   if (isError) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useGetDealById } from '@/services/deals/hooks/useGetDealById';
@@ -23,24 +23,35 @@ interface DealDetailContentProps {
 
 export default function DealDetailContent({ id }: DealDetailContentProps) {
   const router = useRouter();
+  const analytics = useDealsAnalytics();
   const { hasAccess, isLoading: isAccessLoading, isError: isAccessError } = useDealsAccess();
   const { data: deal, isLoading, isError } = useGetDealById(id);
   const toggleUsingMutation = useToggleDealUsing(id);
   const redeemMutation = useRedeemDeal(id);
   const openReportProblem = useReportProblemModalStore((state) => state.actions.openModal);
-  const analytics = useDealsAnalytics();
+  const detailNotFoundLogged = useRef<string | null>(null);
 
   useEffect(() => {
     if (!isAccessLoading && !isAccessError && !hasAccess) {
+      analytics.trackAccessDeniedRedirect();
       router.replace('/members');
     }
-  }, [hasAccess, isAccessLoading, isAccessError, router]);
+  }, [hasAccess, isAccessLoading, isAccessError, router, analytics]);
 
   useEffect(() => {
     if (deal) {
       analytics.trackDealDetailViewed(deal.uid, deal.vendorName);
     }
-  }, [deal?.uid]);
+  }, [deal?.uid, deal?.vendorName, analytics]);
+
+  useEffect(() => {
+    if (isAccessLoading || isAccessError || !hasAccess) return;
+    if (isLoading) return;
+    if (deal) return;
+    if (detailNotFoundLogged.current === id) return;
+    detailNotFoundLogged.current = id;
+    analytics.trackDealDetailNotFound(id);
+  }, [id, isAccessLoading, isAccessError, hasAccess, isLoading, deal, analytics]);
 
   if (isAccessLoading || (!hasAccess && !isAccessError)) {
     return <DealDetailSkeleton />;
@@ -49,7 +60,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   if (isAccessError) {
     return (
       <div className={s.root}>
-        <BackButton to="/deals" className={s.backButton} />
+        <BackButton to="/deals" className={s.backButton} onNavigate={() => analytics.trackBackClicked(id, '')} />
         <div className={s.page}>
           <div className={s.notFound}>
             <h1>Unable to verify access</h1>
@@ -70,7 +81,7 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
   if (isError || !deal) {
     return (
       <div className={s.root}>
-        <BackButton to="/deals" className={s.backButton} />
+        <BackButton to="/deals" className={s.backButton} onNavigate={() => analytics.trackBackClicked(id, '')} />
         <div className={s.page}>
           <div className={s.notFound}>
             <h1>Deal not found</h1>
@@ -89,20 +100,30 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
     analytics.trackRedeemClicked(deal.uid, deal.vendorName);
     try {
       await redeemMutation.mutateAsync();
+      analytics.trackRedeemSucceeded(deal.uid, deal.vendorName);
     } catch {
       toast.error('Failed to redeem deal. Please try again.');
     }
   };
 
   const handleToggleUsing = () => {
-    analytics.trackToggleUsingClicked(deal.uid, deal.vendorName, !deal.isUsing);
-    toggleUsingMutation.mutate(deal.isUsing);
+    const nextUsing = !deal.isUsing;
+    analytics.trackToggleUsingClicked(deal.uid, deal.vendorName, nextUsing);
+    toggleUsingMutation.mutate(deal.isUsing, {
+      onSuccess: () => {
+        analytics.trackToggleUsingSucceeded(deal.uid, deal.vendorName, nextUsing);
+      },
+    });
   };
 
   return (
     <div className={s.root}>
       <div className={s.headerContainer}>
-        <BackButton to="/deals" className={s.backButton} />
+        <BackButton
+          to="/deals"
+          className={s.backButton}
+          onNavigate={() => analytics.trackBackClicked(deal.uid, deal.vendorName)}
+        />
       </div>
       <div className={s.page}>
         <div className={s.card}>
@@ -164,7 +185,14 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
               </div>
               {deal.isRedeemed && (
                 <div className={s.headerActions}>
-                  <button type="button" className={s.headerActionSecondary} onClick={() => openReportProblem(deal.uid)}>
+                  <button
+                    type="button"
+                    className={s.headerActionSecondary}
+                    onClick={() => {
+                      analytics.trackReportProblemOpened(deal.uid, deal.vendorName);
+                      openReportProblem(deal.uid);
+                    }}
+                  >
                     <svg width="19" height="20" viewBox="0 0 19 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <g filter="url(#filter0_d_556_4426)">
                         <path

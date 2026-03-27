@@ -43,7 +43,7 @@ export const submitDealSchema = yup.object().shape({
       return !value || stripHtml(value).length <= 600;
     }),
   // websiteUrl: yup.string().required('Website URL is required').url('Must be a valid URL'),
-  contact: yup.string().required('Contact info is required').max(200, 'Max 200 characters'),
+  howToReachOutToYou: yup.string().required('Contact info is required').max(200, 'Max 200 characters'),
 });
 
 export interface SubmitDealFormData {
@@ -54,5 +54,5 @@ export interface SubmitDealFormData {
   fullDescription: string;
   redemptionInstructions: string;
   // websiteUrl: string;
-  contact: string;
+  howToReachOutToYou: string;
 }

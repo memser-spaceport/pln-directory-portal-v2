@@ -35,7 +35,7 @@ export function SubmitDealModal() {
       fullDescription: '',
       redemptionInstructions: '',
       // websiteUrl: '',
-      contact: '',
+      howToReachOutToYou: '',
     },
     mode: 'onChange',
   });
@@ -61,7 +61,7 @@ export function SubmitDealModal() {
         fullDescription: data.fullDescription,
         redemptionInstructions: data.redemptionInstructions,
         // websiteUrl: data.websiteUrl,
-        contact: data.contact,
+        contact: data.howToReachOutToYou,
       },
       {
         onSuccess: () => {
@@ -152,7 +152,7 @@ export function SubmitDealModal() {
               {/*<FormField name="websiteUrl" label="Website URL" placeholder="https://example.com" isRequired />*/}
 
               <FormField
-                name="contact"
+                name="howToReachOutToYou"
                 label="How to reach out to you"
                 placeholder="Enter email, Telegram handle, etc."
                 isRequired

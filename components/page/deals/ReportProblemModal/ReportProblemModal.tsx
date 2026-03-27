@@ -7,6 +7,7 @@ import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { CloseIcon, WarningCircleIcon } from '@/components/icons';
 import { useReportProblemModalStore } from '@/services/deals/store';
 import { useReportDealIssue } from '@/services/deals/hooks/useReportDealIssue';
+import { useDealsAnalytics } from '@/analytics/deals.analytics';
 
 import s from './ReportProblemModal.module.scss';
 
@@ -19,6 +20,7 @@ interface FormValues {
 export function ReportProblemModal() {
   const { open, dealUid, actions } = useReportProblemModalStore();
   const { mutate, isPending } = useReportDealIssue(dealUid || '');
+  const { trackReportProblemSubmitted } = useDealsAnalytics();
 
   const methods = useForm<FormValues>({ defaultValues: { description: '' } });
   const { handleSubmit, reset, watch } = methods;
@@ -31,7 +33,12 @@ export function ReportProblemModal() {
 
   const onSubmit = handleSubmit(({ description }) => {
     mutate(description.trim(), {
-      onSuccess: () => onClose(),
+      onSuccess: () => {
+        if (dealUid) {
+          trackReportProblemSubmitted(dealUid);
+        }
+        onClose();
+      },
     });
   });
 

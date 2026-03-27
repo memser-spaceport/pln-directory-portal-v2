@@ -11,6 +11,7 @@ import { FormSelect } from '@/components/form/FormSelect';
 import { FormEditor } from '@/components/form/FormEditor/FormEditor';
 import { useSubmitDealModalStore } from '@/services/deals/store';
 import { useSubmitDeal } from '@/services/deals/hooks/useSubmitDeal';
+import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import { DEAL_AUDIENCE_LABELS } from '@/services/deals/constants';
 import { submitDealSchema, SubmitDealFormData } from './helpers';
 
@@ -24,6 +25,7 @@ const AUDIENCE_OPTIONS = Object.entries(DEAL_AUDIENCE_LABELS).map(([value, label
 export function SubmitDealModal() {
   const { open, actions } = useSubmitDealModalStore();
   const { mutate, isPending } = useSubmitDeal();
+  const { trackSubmitModalClosed } = useDealsAnalytics();
 
   const methods = useForm<SubmitDealFormData>({
     resolver: yupResolver(submitDealSchema) as any,
@@ -47,6 +49,7 @@ export function SubmitDealModal() {
   } = methods;
 
   const onClose = () => {
+    trackSubmitModalClosed();
     reset();
     actions.closeModal();
   };

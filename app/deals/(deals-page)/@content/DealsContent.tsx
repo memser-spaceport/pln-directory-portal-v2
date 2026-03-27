@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryStates } from 'nuqs';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { dealsFilterParsers } from '../searchParams';
 import { useGetDeals } from '@/services/deals/hooks/useGetDeals';
@@ -22,13 +22,15 @@ import s from './page.module.scss';
 
 export default function DealsContent() {
   const router = useRouter();
+  const analytics = useDealsAnalytics();
   const { hasAccess, isLoading: isAccessLoading, isError: isAccessError } = useDealsAccess();
 
   useEffect(() => {
     if (!isAccessLoading && !isAccessError && !hasAccess) {
+      analytics.trackAccessDeniedRedirect();
       router.replace('/members');
     }
-  }, [hasAccess, isAccessLoading, isAccessError, router]);
+  }, [hasAccess, isAccessLoading, isAccessError, router, analytics]);
   const [filters, setFilters] = useQueryStates(dealsFilterParsers, {
     history: 'replace',
     shallow: true,
@@ -49,7 +51,6 @@ export default function DealsContent() {
 
   const { data: dealsData, isLoading, isError } = useGetDeals(searchParams);
   const { data: filterValues } = useGetDealFilterValues();
-  const analytics = useDealsAnalytics();
 
   const handleSortChange = useCallback(
     (sort: string) => {
@@ -96,6 +97,36 @@ export default function DealsContent() {
     },
     [setFilters, analytics],
   );
+
+  const pageViewedRef = useRef(false);
+  useEffect(() => {
+    if (!isAccessLoading && hasAccess && !isAccessError && !pageViewedRef.current) {
+      pageViewedRef.current = true;
+      analytics.trackDealsPageViewed();
+    }
+  }, [isAccessLoading, hasAccess, isAccessError, analytics]);
+
+  useEffect(() => {
+    if (isAccessLoading || isAccessError || !hasAccess) return;
+    if (isError || isLoading || !dealsData) return;
+    const deals = dealsData.deals || [];
+    const hasFilters =
+      filters.categories.length > 0 || filters.audiences.length > 0 || !!filters.q;
+    if (deals.length === 0 && hasFilters) {
+      analytics.trackEmptyResultsShown();
+    }
+  }, [
+    isAccessLoading,
+    isAccessError,
+    hasAccess,
+    isError,
+    isLoading,
+    dealsData,
+    filters.categories,
+    filters.audiences,
+    filters.q,
+    analytics,
+  ]);
 
   if (isAccessLoading || (!hasAccess && !isAccessError)) {
     return <DealsSkeletonLoader />;

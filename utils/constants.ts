@@ -691,6 +691,28 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.9 - Deals Flows, Focus Areas & Office Hours',
+    tag: 'Improvements',
+    date: '27, Mar 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">List your product</span> - Submit a deal from the Deals page using a dedicated submission flow.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Report a problem</span> - Flag issues with a deal directly from the deal detail page.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Teams & Focus Areas</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Expanded taxonomy</span> - New focus area tags including Digital Human Rights, Economies & Governance, Neurotech, AI & Robotics, and Build Innovation Network, with team filters updated to match.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Team leads can update Focus Areas directly on the team page.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Member Profiles</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours visibility</span> - The Office Hours section is no longer shown on profiles for members who are not yet approved.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.8 - Deals Launch & Team Profile Enhancements',
     tag: 'New Feature',
     date: '20, Mar 2026',

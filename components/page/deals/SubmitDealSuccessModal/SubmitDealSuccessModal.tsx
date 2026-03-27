@@ -1,17 +1,31 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { CloseIcon, ConfettiIcon } from '@/components/icons';
 import { useSubmitDealModalStore } from '@/services/deals/store';
+import { useDealsAnalytics } from '@/analytics/deals.analytics';
 
 import s from './SubmitDealSuccessModal.module.scss';
 
 export function SubmitDealSuccessModal() {
   const { successOpen, actions } = useSubmitDealModalStore();
+  const { trackSubmitSuccessViewed, trackSubmitSuccessClosed } = useDealsAnalytics();
+
+  useEffect(() => {
+    if (successOpen) {
+      trackSubmitSuccessViewed();
+    }
+  }, [successOpen, trackSubmitSuccessViewed]);
+
+  const handleCloseSuccess = () => {
+    trackSubmitSuccessClosed();
+    actions.closeSuccess();
+  };
 
   return (
-    <Modal isOpen={successOpen} onClose={actions.closeSuccess}>
+    <Modal isOpen={successOpen} onClose={handleCloseSuccess}>
       <div className={s.root}>
         <div className={s.content}>
           <div className={s.iconWrapper}>
@@ -31,10 +45,10 @@ export function SubmitDealSuccessModal() {
             If we need additional details, we may reach out to you by the contact method provided.
           </p>
         </div>
-        <Button className={s.fullWidthButton} onClick={actions.closeSuccess}>
+        <Button className={s.fullWidthButton} onClick={handleCloseSuccess}>
           Back to Deals
         </Button>
-        <button type="button" className={s.closeButton} onClick={actions.closeSuccess}>
+        <button type="button" className={s.closeButton} onClick={handleCloseSuccess}>
           <CloseIcon width={16} height={16} color="#0a0c11" />
         </button>
       </div>

@@ -77,7 +77,7 @@ export function SubmitDealModal() {
       <div className={s.root}>
         <div className={s.header}>
           <div className={s.headerText}>
-            <h2 className={s.title}>Submit a Deal</h2>
+            <h2 className={s.title}>List your Product</h2>
             <p className={s.subtitle}>
               Suggest a deal for the Protocol Labs network. Our team will review it before publishing.
             </p>

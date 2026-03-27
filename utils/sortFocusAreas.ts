@@ -3,8 +3,8 @@ import { IFocusArea } from '@/types/shared.types';
 const FOCUS_AREA_ORDER = [
   'Digital Human Rights',
   'Economies & Governance',
-  'AI & Robotics',
   'Neurotech',
+  'AI & Robotics',
   'Build Innovation Network',
 ];
 

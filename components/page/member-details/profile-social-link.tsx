@@ -1,7 +1,7 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { getSocialLinkUrl } from '@/utils/common.utils';
+import { getSocialLinkUrl, type LinkedinProfileKind } from '@/utils/common.utils';
 import { ReactNode } from 'react';
 import Image from 'next/image';
 import { clsx } from 'clsx';
@@ -18,6 +18,7 @@ interface IProfileSocialLink {
   isPreview?: boolean;
   suffix?: ReactNode;
   className?: string;
+  linkedinProfileKind?: LinkedinProfileKind;
 }
 
 export function ProfileSocialLink(props: IProfileSocialLink) {
@@ -33,9 +34,10 @@ export function ProfileSocialLink(props: IProfileSocialLink) {
     preferred = false,
     callback,
     className,
+    linkedinProfileKind = 'member',
   } = props;
 
-  const href = getSocialLinkUrl(profile, type, handle);
+  const href = getSocialLinkUrl(profile, type, handle, linkedinProfileKind);
 
   return (
     <>

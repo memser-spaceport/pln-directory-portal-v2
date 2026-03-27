@@ -3,6 +3,16 @@ import { useCallback } from 'react';
 
 const DEALS_ANALYTICS_EVENTS = {
   DEALS_PAGE_VIEWED: 'deals-page-viewed',
+  DEALS_REPORT_PROBLEM_OPENED: 'deals-report-problem-opened',
+  DEALS_REPORT_PROBLEM_SUBMITTED: 'deals-report-problem-submitted',
+  DEALS_SUBMIT_MODAL_CLOSED: 'deals-submit-modal-closed',
+  DEALS_SUBMIT_SUCCESS_VIEWED: 'deals-submit-success-viewed',
+  DEALS_SUBMIT_SUCCESS_CLOSED: 'deals-submit-success-closed',
+  DEALS_REDEEM_SUCCEEDED: 'deals-redeem-succeeded',
+  DEALS_TOGGLE_USING_SUCCEEDED: 'deals-toggle-using-succeeded',
+  DEALS_EMPTY_RESULTS_SHOWN: 'deals-empty-results-shown',
+  DEALS_ACCESS_DENIED_REDIRECT: 'deals-access-denied-redirect',
+  DEALS_DETAIL_NOT_FOUND: 'deals-detail-not-found',
   DEALS_CARD_CLICKED: 'deals-card-clicked',
   DEALS_FILTER_APPLIED: 'deals-filter-applied',
   DEALS_FILTER_CLEARED: 'deals-filter-cleared',
@@ -13,6 +23,9 @@ const DEALS_ANALYTICS_EVENTS = {
   DEALS_REDEEM_CLICKED: 'deals-redeem-clicked',
   DEALS_TOGGLE_USING_CLICKED: 'deals-toggle-using-clicked',
   DEALS_BACK_CLICKED: 'deals-back-clicked',
+  DEALS_SUBMIT_MODAL_OPENED: 'deals-submit-modal-opened',
+  DEALS_DEAL_SUBMITTED: 'deals-deal-submitted',
+  DEALS_DEAL_SUBMIT_FAILED: 'deals-deal-submit-failed',
 };
 
 export function useDealsAnalytics() {
@@ -85,7 +98,92 @@ export function useDealsAnalytics() {
     [posthog],
   );
 
+  const trackSubmitModalOpened = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_SUBMIT_MODAL_OPENED);
+  }, [posthog]);
+
+  const trackDealSubmitted = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_DEAL_SUBMITTED);
+  }, [posthog]);
+
+  const trackDealSubmitFailed = useCallback(
+    (error: string) => {
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_DEAL_SUBMIT_FAILED, { error });
+    },
+    [posthog],
+  );
+
+  const trackDealsPageViewed = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_PAGE_VIEWED);
+  }, [posthog]);
+
+  const trackReportProblemOpened = useCallback(
+    (dealId: string, dealTitle: string) => {
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_REPORT_PROBLEM_OPENED, { dealId, dealTitle });
+    },
+    [posthog],
+  );
+
+  const trackReportProblemSubmitted = useCallback(
+    (dealId: string) => {
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_REPORT_PROBLEM_SUBMITTED, { dealId });
+    },
+    [posthog],
+  );
+
+  const trackSubmitModalClosed = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_SUBMIT_MODAL_CLOSED);
+  }, [posthog]);
+
+  const trackSubmitSuccessViewed = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_SUBMIT_SUCCESS_VIEWED);
+  }, [posthog]);
+
+  const trackSubmitSuccessClosed = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_SUBMIT_SUCCESS_CLOSED);
+  }, [posthog]);
+
+  const trackRedeemSucceeded = useCallback(
+    (dealId: string, dealTitle: string) => {
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_REDEEM_SUCCEEDED, { dealId, dealTitle });
+    },
+    [posthog],
+  );
+
+  const trackToggleUsingSucceeded = useCallback(
+    (dealId: string, dealTitle: string, isUsing: boolean) => {
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_TOGGLE_USING_SUCCEEDED, { dealId, dealTitle, isUsing });
+    },
+    [posthog],
+  );
+
+  const trackEmptyResultsShown = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_EMPTY_RESULTS_SHOWN);
+  }, [posthog]);
+
+  const trackAccessDeniedRedirect = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_ACCESS_DENIED_REDIRECT);
+  }, [posthog]);
+
+  const trackDealDetailNotFound = useCallback(
+    (dealId: string) => {
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_DETAIL_NOT_FOUND, { dealId });
+    },
+    [posthog],
+  );
+
   return {
+    trackDealsPageViewed,
+    trackReportProblemOpened,
+    trackReportProblemSubmitted,
+    trackSubmitModalClosed,
+    trackSubmitSuccessViewed,
+    trackSubmitSuccessClosed,
+    trackRedeemSucceeded,
+    trackToggleUsingSucceeded,
+    trackEmptyResultsShown,
+    trackAccessDeniedRedirect,
+    trackDealDetailNotFound,
     trackDealCardClicked,
     trackFilterApplied,
     trackFilterCleared,
@@ -96,5 +194,8 @@ export function useDealsAnalytics() {
     trackRedeemClicked,
     trackToggleUsingClicked,
     trackBackClicked,
+    trackSubmitModalOpened,
+    trackDealSubmitted,
+    trackDealSubmitFailed,
   };
 }

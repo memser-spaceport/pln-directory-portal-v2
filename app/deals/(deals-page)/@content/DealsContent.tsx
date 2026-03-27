@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryStates } from 'nuqs';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { dealsFilterParsers } from '../searchParams';
 import { useGetDeals } from '@/services/deals/hooks/useGetDeals';
@@ -16,17 +16,21 @@ import { DealsFilter } from '@/components/page/deals/DealsFilter/DealsFilter';
 import { useGetDealFilterValues } from '@/services/deals/hooks/useGetDealFilterValues';
 import { DEAL_SORT_OPTIONS } from '@/services/deals/constants';
 import { useDealsAnalytics } from '@/analytics/deals.analytics';
+import { SubmitDealModal } from '@/components/page/deals/SubmitDealModal/SubmitDealModal';
+import { SubmitDealSuccessModal } from '@/components/page/deals/SubmitDealSuccessModal/SubmitDealSuccessModal';
 import s from './page.module.scss';
 
 export default function DealsContent() {
   const router = useRouter();
+  const analytics = useDealsAnalytics();
   const { hasAccess, isLoading: isAccessLoading, isError: isAccessError } = useDealsAccess();
 
   useEffect(() => {
     if (!isAccessLoading && !isAccessError && !hasAccess) {
+      analytics.trackAccessDeniedRedirect();
       router.replace('/members');
     }
-  }, [hasAccess, isAccessLoading, isAccessError, router]);
+  }, [hasAccess, isAccessLoading, isAccessError, router, analytics]);
   const [filters, setFilters] = useQueryStates(dealsFilterParsers, {
     history: 'replace',
     shallow: true,
@@ -39,6 +43,7 @@ export default function DealsContent() {
       q: filters.q || undefined,
       categories: filters.categories.length > 0 ? filters.categories.join(',') : undefined,
       audiences: filters.audiences.length > 0 ? filters.audiences.join(',') : undefined,
+      sort: filters.sort,
       page: filters.page,
     }),
     [filters],
@@ -46,12 +51,11 @@ export default function DealsContent() {
 
   const { data: dealsData, isLoading, isError } = useGetDeals(searchParams);
   const { data: filterValues } = useGetDealFilterValues();
-  const analytics = useDealsAnalytics();
 
   const handleSortChange = useCallback(
     (sort: string) => {
       analytics.trackSortChanged(sort);
-      setFilters({ sort: sort as 'alphabetical', page: 1 });
+      setFilters({ sort: sort as 'asc' | 'desc', page: 1 });
     },
     [setFilters, analytics],
   );
@@ -94,6 +98,36 @@ export default function DealsContent() {
     [setFilters, analytics],
   );
 
+  const pageViewedRef = useRef(false);
+  useEffect(() => {
+    if (!isAccessLoading && hasAccess && !isAccessError && !pageViewedRef.current) {
+      pageViewedRef.current = true;
+      analytics.trackDealsPageViewed();
+    }
+  }, [isAccessLoading, hasAccess, isAccessError, analytics]);
+
+  useEffect(() => {
+    if (isAccessLoading || isAccessError || !hasAccess) return;
+    if (isError || isLoading || !dealsData) return;
+    const deals = dealsData.deals || [];
+    const hasFilters =
+      filters.categories.length > 0 || filters.audiences.length > 0 || !!filters.q;
+    if (deals.length === 0 && hasFilters) {
+      analytics.trackEmptyResultsShown();
+    }
+  }, [
+    isAccessLoading,
+    isAccessError,
+    hasAccess,
+    isError,
+    isLoading,
+    dealsData,
+    filters.categories,
+    filters.audiences,
+    filters.q,
+    analytics,
+  ]);
+
   if (isAccessLoading || (!hasAccess && !isAccessError)) {
     return <DealsSkeletonLoader />;
   }
@@ -114,6 +148,8 @@ export default function DealsContent() {
   return (
     <div className={s.root}>
       <DealsToolbar currentSort={filters.sort} onSortChange={handleSortChange} />
+      <SubmitDealModal />
+      <SubmitDealSuccessModal />
 
       {/* Mobile filters + sort (visible on mobile only) */}
       {filterValues && (

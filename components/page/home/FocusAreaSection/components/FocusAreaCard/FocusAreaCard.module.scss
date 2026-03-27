@@ -1,0 +1,95 @@
+.card {
+  flex: 0 0 289px;
+  min-width: 0;
+  background-color: white;
+  border-radius: 8px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 30px;
+  position: relative;
+  z-index: 1;
+}
+
+.headerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+
+.description {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.seeMore {
+  font-weight: 500;
+  color: #156ff7;
+  cursor: pointer;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footerRow {
+  display: flex;
+  padding: 8px;
+  background-color: #f1f5f9;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 20px;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.footerInfo {
+  display: flex;
+  align-items: center;
+}
+
+.footerCount {
+  font-size: 18px;
+  font-weight: 600;
+  padding-right: 5px;
+  line-height: 20px;
+}
+
+.footerText {
+  font-size: 11px;
+  line-height: 20px;
+}
+
+.avatarsContainer {
+  display: flex;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.avatars {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.avatar {
+  border-radius: 4px;
+  background-color: #e2e8f0;
+  object-fit: cover;
+  border: 1px solid #cbd5e1;
+  margin-right: -10px;
+}

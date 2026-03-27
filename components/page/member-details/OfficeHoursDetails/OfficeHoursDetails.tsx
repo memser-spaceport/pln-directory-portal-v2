@@ -16,6 +16,7 @@ import {
 import { usePathname, useRouter } from 'next/navigation';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { isAdminUser } from '@/utils/user/isAdminUser';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
   member: IMember;
@@ -30,6 +31,7 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [editView, setEditView] = useState(false);
   const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
+  const accessLevel = getAccessLevel(userInfo, isLoggedIn);
   const isEditable = isOwner || isAdmin;
   const showWarningUseCaseA = !member?.officeHours;
   const showWarningUseCaseB = !member?.ohInterest?.length || !member?.ohHelpWith?.length;
@@ -60,6 +62,10 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   }
 
   if (!isEditable && !member?.officeHours) {
+    return null;
+  }
+
+  if (accessLevel === 'base') {
     return null;
   }
 

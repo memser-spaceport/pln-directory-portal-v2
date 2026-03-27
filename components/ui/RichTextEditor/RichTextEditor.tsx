@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import ReactQuill, { Quill } from 'react-quill';
 import ImageUploader from 'quill-image-uploader';
 import React, { forwardRef, useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 import 'react-quill/dist/quill.snow.css';
 import 'quill-image-uploader/dist/quill.imageUploader.min.css';
@@ -36,6 +37,7 @@ interface Props {
   onMentionSelected?: (member: { uid: string; name: string }, query?: string) => void;
   placeholder?: string;
   toolbarConfig?: (string | Record<string, unknown>)[][];
+  minHeight?: number;
 }
 
 const QL_EDITOR_CLASS = 'ql-editor';
@@ -75,6 +77,7 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     onMentionSelected,
     placeholder,
     toolbarConfig,
+    minHeight,
   } = props;
 
   const quillRef = useRef<any>(null);
@@ -281,6 +284,17 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     }
   };
 
+  const isMultilinePlaceholder = placeholder?.includes('\n');
+  const isEmpty = !value || value === '<p><br></p>';
+  const [qlContainer, setQlContainer] = useState<Element | null>(null);
+
+  useEffect(() => {
+    if (isMultilinePlaceholder && quillRef.current) {
+      const editor = quillRef.current.getEditor();
+      if (editor?.container) setQlContainer(editor.container);
+    }
+  }, [isMultilinePlaceholder]);
+
   return (
     <div
       ref={editorContainerRef}
@@ -295,10 +309,15 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
         value={value}
         onChange={handleChange}
         className={clsx(s.editor, className)}
+        style={minHeight != null ? ({ '--ql-min-height': `${minHeight}px` } as React.CSSProperties) : undefined}
         readOnly={disabled}
         modules={modules}
-        placeholder={placeholder}
+        placeholder={isMultilinePlaceholder ? '' : placeholder}
       />
+      {isMultilinePlaceholder && isEmpty && qlContainer && createPortal(
+        <div className={s.multilinePlaceholder}>{placeholder}</div>,
+        qlContainer
+      )}
       {errorMessage && <div className={s.error}>{errorMessage}</div>}
       {enableMentions && mentionState.isOpen && (
         <MentionDropdown

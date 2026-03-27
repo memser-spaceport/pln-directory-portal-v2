@@ -46,6 +46,8 @@
   :global(.ql-container) {
     border-color: rgba(203, 213, 225, 0.5);
     border-radius: 0 0 8px 8px;
+    min-height: var(--ql-min-height, 70px);
+    overflow: visible;
   }
 
   :global(.ql-editor) {
@@ -78,6 +80,12 @@
 
   :global(.ql-formats.ql-formats) {
     margin-right: 8px;
+  }
+
+  // Prevent link tooltip from overflowing container edges
+  :global(.ql-tooltip) {
+    left: 0 !important;
+    max-width: 100%;
   }
 
   // Mention button tooltip
@@ -141,6 +149,20 @@
     line-height: 22px; /* 157.143% */
     letter-spacing: -0.2px;
   }
+
+}
+
+.multilinePlaceholder {
+  position: absolute;
+  inset: 0;
+  padding: 12px 15px;
+  pointer-events: none;
+  white-space: pre-line;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
 }
 
 // Container for positioning the mention dropdown

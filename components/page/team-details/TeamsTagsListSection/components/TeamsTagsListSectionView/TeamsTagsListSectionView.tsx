@@ -3,9 +3,13 @@ import isEmpty from 'lodash/isEmpty';
 
 import { ITag } from '@/types/teams.types';
 
+import {
+  NoDataBlock,
+  DetailsSectionHeader,
+  DetailsSectionGreyContentContainer,
+} from '@/components/common/profile/DetailsSection';
 import { TagsList } from '@/components/common/profile/TagsList';
 import { EditButton } from '@/components/common/profile/EditButton';
-import { DetailsSectionHeader, DetailsSectionGreyContentContainer } from '@/components/common/profile/DetailsSection';
 
 import s from './TeamsTagsListSectionView.module.scss';
 
@@ -24,12 +28,10 @@ export function TeamsTagsListSectionView(props: TeamsTagsListSectionViewProps) {
 
   return (
     <>
-      <DetailsSectionHeader title={title}>
-        {canEdit && <EditButton onClick={toggleIsEditMode} />}
-      </DetailsSectionHeader>
+      <DetailsSectionHeader title={title}>{canEdit && <EditButton onClick={toggleIsEditMode} />}</DetailsSectionHeader>
       <DetailsSectionGreyContentContainer>
         {noTags ? (
-          <span className={s.emptyMessage}>{emptyMessage}</span>
+          <NoDataBlock>{emptyMessage}</NoDataBlock>
         ) : (
           <TagsList
             tags={tags}

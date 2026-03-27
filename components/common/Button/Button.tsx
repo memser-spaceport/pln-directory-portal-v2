@@ -8,7 +8,7 @@ import s from './Button.module.scss';
 
 interface Props extends Omit<HTMLAttributes<HTMLButtonElement>, 'style'> {
   style?: 'fill' | 'border' | 'link';
-  variant?: 'primary' | 'secondary' | 'error' | 'success' | 'warning' | 'light';
+  variant?: 'primary' | 'secondary' | 'neutral' | 'error' | 'success' | 'warning' | 'light';
   size?: 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl';
   underline?: boolean;
   disabled?: boolean;
@@ -36,6 +36,7 @@ export function Button(props: Props) {
   const variantClass = clsx({
     [s.primary]: variant === 'primary',
     [s.secondary]: variant === 'secondary',
+    [s.neutral]: variant === 'neutral',
     [s.error]: variant === 'error',
     [s.success]: variant === 'success',
     [s.warning]: variant === 'warning',

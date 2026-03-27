@@ -33,6 +33,10 @@ export const getTeamList = async (query: string, currentPage = 1, limit = ITEMS_
   return { data: formattedData, totalItems: result?.total };
 };
 
+export const revalidateTeamDetail = async () => {
+  revalidateTag('team-detail');
+};
+
 export const deleteTeam = async (teamUid: string, authToken: string) => {
   try {
     const result = await fetch(`${teamsAPI}/${teamUid}`, {

@@ -8,6 +8,7 @@ import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
+import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
 type Option = {
   label: string;
@@ -60,7 +61,7 @@ export function TeamsTagsListSectionEdit(props: TeamsTagsListSectionEditProps) {
     prevValuesRef.current = JSON.parse(JSON.stringify(formValues));
   }, [formValues, analytics, dataKey]);
 
-  const commonOnSubmit = useOnSubmit(team, toggleIsEditMode);
+  const { onSubmit: commonOnSubmit, isPending } = useOnSubmit(team, toggleIsEditMode);
 
   const onSubmit = async (formData: EditTeamMembershipSource) => {
     await commonOnSubmit({
@@ -78,11 +79,13 @@ export function TeamsTagsListSectionEdit(props: TeamsTagsListSectionEditProps) {
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls title={title} onClose={toggleIsEditMode} />
+        <EditFormControls title={title} onClose={toggleIsEditMode} isProcessing={isPending} />
 
         <DetailsSection>
           <FormMultiSelect name="tags" label={label} options={options} placeholder={placeholder} />
         </DetailsSection>
+
+        <EditFormMobileControls />
       </form>
     </FormProvider>
   );

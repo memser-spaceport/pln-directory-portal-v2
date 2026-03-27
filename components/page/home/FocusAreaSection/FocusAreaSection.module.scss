@@ -1,0 +1,114 @@
+@import 'styles/media.scss';
+
+.desktop {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+
+  @include breakpoint-1024 {
+    display: flex;
+  }
+}
+
+.embla {
+  position: relative;
+  overflow: hidden;
+  padding: 10px 0 20px 2px;
+}
+
+.emblaContainer {
+  display: flex;
+  gap: 14px;
+}
+
+// Mobile section
+.mobile {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+
+  @include breakpoint-1024 {
+    display: none;
+  }
+}
+
+.mobileHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobileHeaderTitle {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobileTitleSection {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mobileTitle {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  color: #0a0c11;
+  margin: 0;
+  font-size: 24px;
+}
+
+.mobileDescription {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+.mobileVisionLink {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  color: #156ff7;
+  cursor: pointer;
+}
+
+.mobileEmbla {
+  position: relative;
+  overflow: hidden;
+  padding: 10px 0 20px 2px;
+}
+
+.mobileEmblaContainer {
+  display: flex;
+  gap: 8px;
+}
+
+.progressBar {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+
+  @include breakpoint-1024 {
+    display: none;
+  }
+}
+
+.progressTrack {
+  border-radius: 6px;
+  background-color: #cbd5e1;
+  position: relative;
+  height: 7px;
+  align-self: center;
+  width: 99px;
+  max-width: 90%;
+  overflow: hidden;
+}
+
+.progressFill {
+  background-color: #156ff7;
+  position: absolute;
+  width: 100%;
+  top: 0;
+  bottom: 0;
+  left: -100%;
+}

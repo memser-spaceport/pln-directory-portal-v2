@@ -15,6 +15,7 @@ interface DealsFilterProps {
   onCategoriesChange: (categories: string[]) => void;
   onAudiencesChange: (audiences: string[]) => void;
   onClearAll: () => void;
+  onRequestDeal?: () => void;
 }
 
 export function DealsFilter({
@@ -26,6 +27,7 @@ export function DealsFilter({
   onCategoriesChange,
   onAudiencesChange,
   onClearAll,
+  onRequestDeal,
 }: DealsFilterProps) {
   const toggleCategory = useCallback(
     (value: string) => {
@@ -140,6 +142,20 @@ export function DealsFilter({
           </div>
         </div>
       )}
+      {/* Missing a deal? */}
+      <div className={s.section}>
+        <div className={s.sectionHeader}>
+          <h3 className={s.sectionTitle}>Missing a deal?</h3>
+        </div>
+        <div className={s.requestContent}>
+          <p className={s.requestDescription}>
+            {"Tell us what tools or offers you'd like to see. We use this to prioritize new deals."}
+          </p>
+          <button type="button" className={s.requestButton} onClick={onRequestDeal}>
+            Request a Deal
+          </button>
+        </div>
+      </div>
     </FiltersSidePanel>
   );
 }

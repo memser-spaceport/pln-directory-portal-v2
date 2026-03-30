@@ -18,11 +18,15 @@ import { DEAL_SORT_OPTIONS } from '@/services/deals/constants';
 import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import { SubmitDealModal } from '@/components/page/deals/SubmitDealModal/SubmitDealModal';
 import { SubmitDealSuccessModal } from '@/components/page/deals/SubmitDealSuccessModal/SubmitDealSuccessModal';
+import { RequestDealModal } from '@/components/page/deals/RequestDealModal/RequestDealModal';
+import { RequestDealSuccessModal } from '@/components/page/deals/RequestDealSuccessModal/RequestDealSuccessModal';
+import { useRequestDealModalStore } from '@/services/deals/store';
 import s from './page.module.scss';
 
 export default function DealsContent() {
   const router = useRouter();
   const analytics = useDealsAnalytics();
+  const { actions: requestDealActions } = useRequestDealModalStore();
   const { hasAccess, isLoading: isAccessLoading, isError: isAccessError } = useDealsAccess();
 
   useEffect(() => {
@@ -150,6 +154,8 @@ export default function DealsContent() {
       <DealsToolbar currentSort={filters.sort} onSortChange={handleSortChange} />
       <SubmitDealModal />
       <SubmitDealSuccessModal />
+      <RequestDealModal />
+      <RequestDealSuccessModal />
 
       {/* Mobile filters + sort (visible on mobile only) */}
       {filterValues && (
@@ -171,6 +177,10 @@ export default function DealsContent() {
               onClearAll={() => {
                 handleClearAll();
                 onClose();
+              }}
+              onRequestDeal={() => {
+                onClose();
+                requestDealActions.openModal();
               }}
             />
           )}

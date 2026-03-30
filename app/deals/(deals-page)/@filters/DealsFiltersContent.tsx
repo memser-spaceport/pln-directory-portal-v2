@@ -8,6 +8,7 @@ import { useGetDealFilterValues } from '@/services/deals/hooks/useGetDealFilterV
 import { DealsFilter } from '@/components/page/deals/DealsFilter/DealsFilter';
 import { FiltersPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout';
 import Error from '@/components/core/error';
+import { useRequestDealModalStore } from '@/services/deals/store';
 import s from './DealsFiltersContent.module.scss';
 
 export default function DealsFiltersContent() {
@@ -18,6 +19,7 @@ export default function DealsFiltersContent() {
 
   const { data: filterValues, isLoading, isError } = useGetDealFilterValues();
   const analytics = useDealsAnalytics();
+  const { actions: requestDealActions } = useRequestDealModalStore();
 
   const handleClearAll = useCallback(() => {
     analytics.trackFilterCleared();
@@ -70,6 +72,7 @@ export default function DealsFiltersContent() {
           onCategoriesChange={handleCategoriesChange}
           onAudiencesChange={handleAudiencesChange}
           onClearAll={handleClearAll}
+          onRequestDeal={requestDealActions.openModal}
         />
       </div>
     </div>

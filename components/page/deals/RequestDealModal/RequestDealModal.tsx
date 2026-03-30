@@ -30,8 +30,9 @@ export function RequestDealModal() {
   const methods = useForm<RequestDealFormData>({
     resolver: yupResolver(requestDealSchema) as any,
     defaultValues: {
-      dealName: '',
-      reason: '',
+      whatDealAreYouLookingFor: '',
+      description: '',
+      howToReachOutToYou: '',
     },
     mode: 'onChange',
   });
@@ -50,7 +51,12 @@ export function RequestDealModal() {
 
   const onSubmit = (data: RequestDealFormData) => {
     mutate(
-      { dealName: data.dealName, reason: data.reason },
+      {
+        dealUid: '',
+        whatDealAreYouLookingFor: data.whatDealAreYouLookingFor,
+        description: data.description,
+        howToReachOutToYou: data.howToReachOutToYou,
+      },
       {
         onSuccess: () => {
           reset();
@@ -79,14 +85,14 @@ export function RequestDealModal() {
           <FormProvider {...methods}>
             <div className={s.form}>
               <FormField
-                name="dealName"
+                name="whatDealAreYouLookingFor"
                 label="What deal are you looking for?"
                 placeholder="e.g. Vercel credits, Stripe discount, AI tools, analytics tools"
                 isRequired
               />
 
               <FormEditor
-                name="reason"
+                name="description"
                 label="Why would this be useful?"
                 placeholder="Describe how your team (or others) would benefit"
                 description="Max. 600 characters."
@@ -94,6 +100,16 @@ export function RequestDealModal() {
                 showCharCount
                 isRequired
                 simplified
+              />
+
+              <FormField
+                name="howToReachOutToYou"
+                label="How to reach out to you"
+                placeholder="Enter email, Telegram handle, etc."
+                isRequired
+                max={200}
+                description="In case we have follow-up questions."
+                descriptionPosition="top"
               />
             </div>
           </FormProvider>

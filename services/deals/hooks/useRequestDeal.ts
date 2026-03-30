@@ -7,7 +7,8 @@ export function useRequestDeal() {
   const { trackRequestDealSubmitted, trackRequestDealSubmitFailed } = useDealsAnalytics();
 
   return useMutation({
-    mutationFn: (payload: RequestDealPayload) => requestDeal(payload),
+    mutationFn: ({ dealUid, ...payload }: RequestDealPayload & { dealUid: string }) =>
+      requestDeal(dealUid, payload),
     onSuccess: () => {
       trackRequestDealSubmitted();
     },

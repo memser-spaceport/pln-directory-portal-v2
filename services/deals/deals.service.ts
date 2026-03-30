@@ -112,13 +112,14 @@ export async function reportDealIssue(dealUid: string, description: string) {
 }
 
 export interface RequestDealPayload {
-  dealName: string;
-  reason: string;
+  whatDealAreYouLookingFor: string;
+  description: string;
+  howToReachOutToYou: string;
 }
 
-export async function requestDeal(payload: RequestDealPayload) {
+export async function requestDeal(dealUid: string, payload: RequestDealPayload) {
   const response = await customFetch(
-    `${DEALS_API_URL}/requests`,
+    `${DEALS_API_URL}/${dealUid}/requests`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

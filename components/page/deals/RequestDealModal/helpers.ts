@@ -8,8 +8,11 @@ function stripHtml(html: string): string {
 }
 
 export const requestDealSchema = yup.object().shape({
-  dealName: yup.string().required('Please describe the deal you are looking for').max(200, 'Max 200 characters'),
-  reason: yup
+  whatDealAreYouLookingFor: yup
+    .string()
+    .required('Please describe the deal you are looking for')
+    .max(200, 'Max 200 characters'),
+  description: yup
     .string()
     .required('Please describe why this would be useful')
     .test('not-empty-html', 'Please describe why this would be useful', (value) => {
@@ -18,9 +21,11 @@ export const requestDealSchema = yup.object().shape({
     .test('max-length', 'Max 600 characters', (value) => {
       return !value || stripHtml(value).length <= 600;
     }),
+  howToReachOutToYou: yup.string().required('Contact info is required').max(200, 'Max 200 characters'),
 });
 
 export interface RequestDealFormData {
-  dealName: string;
-  reason: string;
+  whatDealAreYouLookingFor: string;
+  description: string;
+  howToReachOutToYou: string;
 }

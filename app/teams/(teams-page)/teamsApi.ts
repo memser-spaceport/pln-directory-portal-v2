@@ -162,3 +162,7 @@ export async function fetchIndustryTags(searchParams: ITeamsSearchParams): Promi
 export async function fetchFundingStages(searchParams: ITeamsSearchParams): Promise<TeamsCountResponse> {
   return fetchFilterData('funding-stages', searchParams, 'Failed to fetch funding stages');
 }
+
+export async function fetchCommunityAffiliations(searchParams: ITeamsSearchParams): Promise<TeamsCountResponse> {
+  return fetchFilterData('community-affiliations', searchParams, 'Failed to fetch community affiliations');
+}

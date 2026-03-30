@@ -40,7 +40,12 @@ interface TeamProfileCardProps {
   canEdit?: boolean;
 }
 
-export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick, isAdmin = false, canEdit: canEditTeams }) => {
+export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
+  team,
+  onClick,
+  isAdmin = false,
+  canEdit: canEditTeams,
+}) => {
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
@@ -458,11 +463,16 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
         }}
       >
         <div className={s.linksWrapper}>
-          {/*{canEdit && (*/}
-          {/*  <Link className={s.link} href={`/demoday/${slug}/founders-dashboard`} onClick={(e) => e.stopPropagation()}>*/}
-          {/*    <ChartIcon /> Demo Day Analytics*/}
-          {/*  </Link>*/}
-          {/*)}*/}
+          {team.analyticsReportUrl && (
+            <Link
+              className={s.link}
+              href={`/demoday/${slug}/analytics-report/${team.team?.uid}`}
+              target="_blank"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ChartIcon /> Demo Day Stats
+            </Link>
+          )}
           <button
             className={s.drawerEditButton}
             onClick={(e) => {
@@ -522,7 +532,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({ team, onClick,
 
       <ProfileContent
         pitchDeckUrl={team?.onePagerUpload?.url}
-        videoUrl={team?.videoUpload?.url}
+        videoUrl={team?.videoUpload?.streamUrl ?? team?.videoUpload?.url}
         onPitchDeckView={handlePitchDeckView}
         onPitchVideoView={handlePitchVideoView}
         pitchDeckPreviewUrl={team?.onePagerUpload?.previewImageUrl}

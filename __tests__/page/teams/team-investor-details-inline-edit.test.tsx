@@ -117,10 +117,14 @@ describe('TeamInvestorDetails inline edit', () => {
       />,
     );
 
-    expect(screen.getByText('Fund Details +')).toBeInTheDocument();
+    expect(screen.getByText('Fund Details')).toBeInTheDocument();
+    expect(screen.getByText('Add fund types')).toBeInTheDocument();
+    expect(screen.getByText('Add typical check size')).toBeInTheDocument();
+    expect(screen.getByText('Add startup stages')).toBeInTheDocument();
+    expect(screen.getByText('Add investment focus')).toBeInTheDocument();
   });
 
-  it('opens fund edit mode when clicking the empty state tag', () => {
+  it('opens fund edit mode when clicking an empty state add button', () => {
     render(
       <TeamInvestorDetails
         team={
@@ -146,7 +150,7 @@ describe('TeamInvestorDetails inline edit', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Fund Details +'));
+    fireEvent.click(screen.getByText('Add fund types'));
 
     expect(screen.getByText('Edit Fund Details Form')).toBeInTheDocument();
   });

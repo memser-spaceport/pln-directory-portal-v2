@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -9,7 +10,6 @@ import { Checkbox } from '@/components/common/Checkbox';
 import { FormField } from '@/components/form/FormField';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { FormSelect } from '@/components/form/FormSelect';
-import { FormTextArea } from '@/components/form/FormTextArea';
 import { BioInput } from '@/components/page/member-details/BioDetails/components/BioInput';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { EditFormControls } from '@/components/common/profile/EditFormControls';
@@ -26,7 +26,6 @@ import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
 import { editTeamDetailsSchema } from './helpers';
 
 import s from './EditTeamDetailsForm.module.scss';
-import Link from 'next/link';
 
 type TOption = { label: string; value: string };
 
@@ -116,7 +115,7 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
     prevValuesRef.current = JSON.parse(JSON.stringify(formValues));
   }, [formValues, analytics]);
 
-  const commonOnSubmit = useOnSubmit(team, onClose);
+  const { onSubmit: commonOnSubmit, isPending } = useOnSubmit(team, onClose);
 
   const onSubmit = async (formData: TEditTeamDetailsForm) => {
     if (formData.name.trim() !== (team?.name || '').trim()) {
@@ -174,20 +173,18 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
     <FormProvider {...methods}>
       {/* @ts-ignore */}
       <form className={s.form} onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls title="Edit Profile Details" onClose={onClose} />
+        <EditFormControls title="Edit Profile Details" onClose={onClose} isProcessing={isPending} />
         <div className={s.panel}>
           <div className={s.imageRow}>
             <ProfileImageInput member={{ name: team?.name || '', profile: team?.logo }} allowDelete />
             <FormField name="name" placeholder="Enter team name" label="Team Name" max={150} isRequired />
           </div>
 
-          <FormTextArea
+          <FormField
             name="shortDescription"
             placeholder="Add a short description"
             label="Short Description"
-            maxLength={1000}
-            // showCharCount
-            rows={4}
+            max={100}
             description={
               <>
                 This description appears on your team&apos;s card in the{' '}

@@ -1,14 +1,14 @@
 type Input = {
   isDirty: boolean;
-  isSubmitting: boolean;
-}
+  isProcessing: boolean;
+};
 
 export function getSaveBtnLabel(input: Input) {
-  const { isDirty, isSubmitting } = input;
+  const { isDirty, isProcessing } = input;
 
   if (!isDirty) {
     return 'No Changes';
   }
 
-  return isSubmitting ? 'Processing... ' : 'Save'
+  return isProcessing ? 'Processing... ' : 'Save';
 }

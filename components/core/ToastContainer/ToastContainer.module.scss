@@ -1,3 +1,5 @@
+@use "styles/media.scss" as *;
+
 .root {
   --toastify-toast-min-height: 32px;
 
@@ -7,7 +9,7 @@
   margin-top: calc(var(--app-header-height) + 10px);
 
   min-width: var(--toast-default-width);
-  max-width: min(500px, 90vw);
+  max-width: min(500px, 100vw);
   width: fit-content;
 
   gap: 12px;
@@ -37,6 +39,10 @@
     margin-bottom: 0px;
 
     max-width: 100%;
+
+    @include mobile-only {
+      width: 100%;
+    }
   }
 
   :global(.Toastify__toast-body) {

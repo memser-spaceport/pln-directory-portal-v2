@@ -19,6 +19,8 @@ export interface PageViewAnalyticsConfig {
   requireAuth?: boolean;
   /** Custom distinct ID (if not provided, uses userInfo.email) */
   distinctId?: string;
+  /** When true, reporting is deferred until this becomes false (e.g. while async data needed for properties is loading) */
+  skip?: boolean;
 }
 
 /**
@@ -65,6 +67,7 @@ export const usePageViewAnalytics = (config: PageViewAnalyticsConfig) => {
     additionalProperties = {},
     requireAuth = true,
     distinctId: customDistinctId,
+    skip = false,
   } = config;
 
   const reportAnalytics = useReportAnalyticsEvent();
@@ -74,6 +77,10 @@ export const usePageViewAnalytics = (config: PageViewAnalyticsConfig) => {
   useEffect(() => {
     // Prevent multiple executions
     if (hasReported.current) {
+      return;
+    }
+
+    if (skip) {
       return;
     }
 
@@ -136,6 +143,7 @@ export const usePageViewAnalytics = (config: PageViewAnalyticsConfig) => {
     customDistinctId,
     reportAnalytics,
     utmParams,
+    skip,
   ]);
 
   // Return whether the analytics has been reported (useful for debugging)
@@ -151,6 +159,7 @@ export const useDemoDayPageViewAnalytics = (
   customEventName: string,
   path: string,
   additionalProperties?: Record<string, any>,
+  options?: { skip?: boolean },
 ) => {
   const demoDayAnalytics = useDemoDayAnalytics();
   const utmParams = useUtmParams();
@@ -163,5 +172,6 @@ export const useDemoDayPageViewAnalytics = (
     customEventName,
     path,
     additionalProperties,
+    skip: options?.skip,
   });
 };

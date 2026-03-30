@@ -22,6 +22,7 @@ export type UploadInfo = {
   updatedAt: string;
   uploaderUid: string | null;
   url: string;
+  streamUrl: string;
   freshUrl: string;
   previewImageUrl: string;
   previewImageSmallUrl: string;
@@ -63,6 +64,7 @@ export type FundraisingProfile = {
   connected: boolean;
   invested: boolean;
   feedback: boolean;
+  analyticsReportUrl?: string;
 };
 
 async function fetcher(demoDayId: string) {

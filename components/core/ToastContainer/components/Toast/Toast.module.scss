@@ -14,6 +14,7 @@
   font-size: 14px;
   border-radius: 8px;
   padding: 4px 8px;
+  width: 100%;
 
   @include media.tablet-landscape {
     min-height: 52px;

@@ -3,32 +3,35 @@ import isEmpty from 'lodash/isEmpty';
 
 import { ITag } from '@/types/teams.types';
 
+import {
+  NoDataBlock,
+  DetailsSectionHeader,
+  DetailsSectionGreyContentContainer,
+} from '@/components/common/profile/DetailsSection';
 import { TagsList } from '@/components/common/profile/TagsList';
 import { EditButton } from '@/components/common/profile/EditButton';
-import { DetailsSectionHeader, DetailsSectionGreyContentContainer } from '@/components/common/profile/DetailsSection';
 
 import s from './TeamsTagsListSectionView.module.scss';
 
 export interface TeamsTagsListSectionViewProps {
   tags?: ITag[];
   title: ReactNode;
+  canEdit: boolean;
   emptyMessage: ReactNode;
   toggleIsEditMode: () => void;
 }
 
 export function TeamsTagsListSectionView(props: TeamsTagsListSectionViewProps) {
-  const { tags = [], title, emptyMessage, toggleIsEditMode } = props;
+  const { tags = [], title, canEdit, emptyMessage, toggleIsEditMode } = props;
 
   const noTags = isEmpty(tags);
 
   return (
     <>
-      <DetailsSectionHeader title={title}>
-        <EditButton onClick={toggleIsEditMode} />
-      </DetailsSectionHeader>
+      <DetailsSectionHeader title={title}>{canEdit && <EditButton onClick={toggleIsEditMode} />}</DetailsSectionHeader>
       <DetailsSectionGreyContentContainer>
         {noTags ? (
-          <span className={s.emptyMessage}>{emptyMessage}</span>
+          <NoDataBlock>{emptyMessage}</NoDataBlock>
         ) : (
           <TagsList
             tags={tags}

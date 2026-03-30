@@ -25,10 +25,12 @@
     position: fixed;
     inset: 0;
     z-index: 10;
+    overflow-y: auto;
 
     @include media.tablet-landscape {
       padding: 16px;
 
+      overflow-y: visible;
       position: relative;
       inset: unset;
       z-index: unset;

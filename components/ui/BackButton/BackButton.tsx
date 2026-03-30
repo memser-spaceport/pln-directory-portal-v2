@@ -24,10 +24,13 @@ export const BackButton = ({
   to,
   className,
   forceTo = false,
+  onNavigate,
 }: {
   to: string;
   className?: string;
   forceTo?: boolean;
+  /** Called before navigation (e.g. analytics). */
+  onNavigate?: () => void;
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -38,6 +41,7 @@ export const BackButton = ({
       <button
         className={s.backBtn}
         onClick={() => {
+          onNavigate?.();
           if (backTo) {
             router.push(backTo);
           } else if (!forceTo && navDepth > 0) {

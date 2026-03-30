@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { IUserInfo } from '@/types/shared.types';
 import '@testing-library/jest-dom';
-import FocusAreaHeader from '@/components/page/home/focus-area/focus-area-header';
+import { FocusAreaHeader } from '@/components/page/home/FocusAreaSection/components/FocusAreaHeader';
 
 const mockAnalytics = {
   onFocusAreaProtocolLabsVisionUrlClicked: jest.fn(),

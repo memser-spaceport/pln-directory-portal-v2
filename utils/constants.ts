@@ -691,6 +691,46 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.9 - Deals Flows, Focus Areas & Office Hours',
+    tag: 'Improvements',
+    date: '27, Mar 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">List your product</span> - Submit a deal from the Deals page using a dedicated submission flow.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Report a problem</span> - Flag issues with a deal directly from the deal detail page.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Teams & Focus Areas</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Expanded taxonomy</span> - New focus area tags including Digital Human Rights, Economies & Governance, Neurotech, AI & Robotics, and Build Innovation Network, with team filters updated to match.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Team leads can update Focus Areas directly on the team page.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Member Profiles</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours visibility</span> - The Office Hours section is no longer shown on profiles for members who are not yet approved.</li>
+      </ul>
+      </div>`,
+  },
+  {
+    title: 'Version 4.5.8 - Deals Launch & Team Profile Enhancements',
+    tag: 'New Feature',
+    date: '20, Mar 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Deals directory</span> - Browse and discover exclusive deals and offers available to the community.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Deal redemption</span> - Redeem offers and track their usage status directly from each deal page.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Edit Membership Source and Community Affiliations directly on the team page.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Community filters</span> - New filter options for Community Affiliations across the directory.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.7 - Team Profile Enhancements',
     tag: 'Improvements',
     date: '13, Mar 2026',
@@ -1988,4 +2028,6 @@ export const DEMO_DAY_ANALYTICS = {
   ON_ACCOUNT_CREATED_SUCCESS_MODAL_CONTINUE_TO_LOGIN_CLICKED: 'demo-day-application-success-modal-continue-clicked',
   ON_INVESTOR_DRAWER_INPUT_CHANGED: 'demo-day-investor-drawer-input-changed',
   ON_INVESTOR_DRAWER_FORM_SAVED: 'demo-day-investor-drawer-form-saved',
+  ON_ANALYTICS_REPORT_PAGE_OPENED: 'demo-day-analytics-report-page-opened',
+  ON_ANALYTICS_REPORT_TIME_ON_PAGE: 'demo-day-analytics-report-time-on-page',
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { getSocialLinkUrl } from '@/utils/common.utils';
+import { getSocialLinkUrl, type LinkedinProfileKind } from '@/utils/common.utils';
 
 import s from './TeamProfileSocialLink.module.scss';
 
@@ -13,12 +13,13 @@ interface Props {
   profile: string;
   handle?: string;
   callback: (type: string, url: string) => void;
+  linkedinProfileKind?: LinkedinProfileKind;
 }
 
 export const TeamProfileSocialLink = (props: Props) => {
-  const { callback, profile, type, logo, height, width, handle } = props;
+  const { callback, profile, type, logo, height, width, handle, linkedinProfileKind = 'company' } = props;
 
-  const href = getSocialLinkUrl(profile, type, handle);
+  const href = getSocialLinkUrl(profile, type, handle, linkedinProfileKind);
 
   return (
     <a

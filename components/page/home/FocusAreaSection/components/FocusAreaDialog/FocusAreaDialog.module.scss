@@ -1,0 +1,165 @@
+@import 'styles/media.scss';
+
+.desktop {
+  background-color: white;
+  border-radius: 12px;
+  padding: 24px;
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  width: 656px;
+  z-index: 1;
+
+  @include breakpoint-1024 {
+    display: flex;
+  }
+}
+
+.mobile {
+  flex: 1;
+  background-color: white;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 1;
+  width: 327px;
+
+  @include breakpoint-1024 {
+    display: none;
+  }
+}
+
+.headerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+}
+
+.description {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.footer {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.footerRow {
+  display: flex;
+  padding: 8px;
+  background-color: #f1f5f9;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 20px;
+  justify-content: space-between;
+  align-items: center;
+  width: 50%;
+}
+
+.footerCount {
+  font-size: 18px;
+  font-weight: 600;
+  padding-right: 5px;
+  line-height: 20px;
+}
+
+.footerText {
+  font-size: 11px;
+  line-height: 20px;
+  font-weight: 400;
+}
+
+.avatarsContainer {
+  display: flex;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.avatars {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.avatar {
+  border-radius: 4px;
+  background-color: #e2e8f0;
+  object-fit: cover;
+  border: 1px solid #cbd5e1;
+  margin-right: -10px;
+}
+
+// Mobile dialog
+.mobileHeaderSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 32px 24px 24px 24px;
+}
+
+.mobileTitle {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+
+.mobileDescription {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.mobileFooter {
+  height: 56px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  background-color: white;
+}
+
+.mobileTeamsSection {
+  flex: 1;
+  border-right: 1px solid #e2e8f0;
+  padding: 16px;
+  font-size: 11px;
+  line-height: 20px;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.mobileProjectsSection {
+  flex: 1;
+  padding: 16px;
+  font-size: 11px;
+  line-height: 20px;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: center;
+}
+
+.mobileCount {
+  font-size: 20px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.mobileCountText {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}

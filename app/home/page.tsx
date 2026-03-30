@@ -4,7 +4,7 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDiscoverData } from '@/services/discovery.service';
 import Error from '@/components/core/error';
 // import Discover from '@/components/page/home/discover/discover';
-import LandingFocusAreas from '@/components/page/home/focus-area/focus-area-section';
+import { FocusAreaSection } from '@/components/page/home/FocusAreaSection';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/components/page/team-form-info/focus-area/focus-area';
 import HuskyDialog from '@/components/page/home/husky-dialog';
@@ -30,7 +30,7 @@ export default async function Home() {
         <div className={styles.home__cn}>
           {/* Focus Area section */}
           <div className={styles.home__cn__focusarea}>
-            <LandingFocusAreas focusAreas={focusAreas} userInfo={userInfo} />
+            <FocusAreaSection focusAreas={focusAreas} userInfo={userInfo} />
           </div>
           {/* Recent Updates section */}
           <div className={styles.home__cn__recentupdates}>

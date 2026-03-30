@@ -1,16 +1,17 @@
-import React, { PropsWithChildren, ReactNode } from 'react';
 import { clsx } from 'clsx';
-import { Field } from '@base-ui-components/react/field';
 import { useFormContext } from 'react-hook-form';
+import React, { PropsWithChildren, ReactNode } from 'react';
+
+import { Field } from '@base-ui-components/react/field';
+import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
 
 import s from './FormField.module.scss';
-import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
 
 interface Props extends PropsWithChildren {
   name: string;
   placeholder: string;
   label?: string;
-  description?: string;
+  description?: ReactNode;
   disabled?: boolean;
   isRequired?: boolean;
   onClick?: () => void;
@@ -20,6 +21,7 @@ interface Props extends PropsWithChildren {
   rules?: Record<string, unknown>;
   icon?: ReactNode;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
+  descriptionPosition?: 'top' | 'bottom';
 }
 
 export const FormField = ({
@@ -36,6 +38,7 @@ export const FormField = ({
   rules,
   icon,
   onBlur,
+  descriptionPosition = 'bottom',
   ...rest
 }: Props) => {
   const {
@@ -67,6 +70,9 @@ export const FormField = ({
             {label}
           </Field.Label>
         </div>
+      )}
+      {description && descriptionPosition === 'top' && (
+        <Field.Description className={clsx(s.fieldDescription, s.fieldDescriptionTop)}>{description}</Field.Description>
       )}
       <div
         className={clsx(s.input, {
@@ -104,7 +110,7 @@ export const FormField = ({
       </div>
       <div className={s.sub}>
         <div>
-          {!errors[name] && description ? (
+          {!errors[name] && description && descriptionPosition === 'bottom' ? (
             <Field.Description className={s.fieldDescription}>{description}</Field.Description>
           ) : (
             <Field.Error className={s.errorMsg} match={!!errors[name]}>

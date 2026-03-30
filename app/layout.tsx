@@ -9,6 +9,7 @@ import React, { Suspense } from 'react';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import dynamic from 'next/dynamic';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import QueryProvider from '@/providers/QueryProvider';
 import StoreInitializer from '@/providers/StoreInitializer';
 import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
@@ -90,36 +91,38 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Suspense>
         <StyledJsxRegistry>
           <QueryProvider>
-            <PushNotificationsProvider authToken={authToken} enabled={isLoggedIn}>
-              <StoreInitializer userInfo={userInfo} />
-              <PostHogIdentifier />
-              <ContactSupportUrlSync />
-              <header className="layout__header">
-                {/* <DemoDayBanner /> */}
-                <PlaaBanner />
-                {false && <SubscribeToRecoomendations userInfo={userInfo} />}
-                <CompleteYourProfile userInfo={userInfo} />
-                <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
-              </header>
-              <AuthBox isLoggedIn={isLoggedIn} />
-              <ContactSupport userInfo={userInfo} />
-              <DemoDayStats />
-              <main className="layout__main">{children}</main>
-              <MobileBottomNav />
-              <Loader />
-              <ToastContainer />
-              <BroadCastChannel />
-              <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
-              <MemberRegisterDialog />
-              <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
-              <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
-              <PostLoginRedirectHandler isLoggedIn={isLoggedIn} />
-              {/* <TeamRegisterDialog /> */}
-              <UserInfoChecker userInfo={userInfo} />
-              <UserInfoValidator userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
-              <CookieChecker isLoggedIn={isLoggedIn} />
-              {/*<ReactQueryDevtools initialIsOpen={false} />*/}
-            </PushNotificationsProvider>
+            <NuqsAdapter>
+              <PushNotificationsProvider authToken={authToken} enabled={isLoggedIn}>
+                <StoreInitializer userInfo={userInfo} />
+                <PostHogIdentifier />
+                <ContactSupportUrlSync />
+                <header className="layout__header">
+                  {/* <DemoDayBanner /> */}
+                  <PlaaBanner />
+                  {false && <SubscribeToRecoomendations userInfo={userInfo} />}
+                  <CompleteYourProfile userInfo={userInfo} />
+                  <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
+                </header>
+                <AuthBox isLoggedIn={isLoggedIn} />
+                <ContactSupport userInfo={userInfo} />
+                <DemoDayStats />
+                <main className="layout__main">{children}</main>
+                <MobileBottomNav />
+                <Loader />
+                <ToastContainer />
+                <BroadCastChannel />
+                <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                <MemberRegisterDialog />
+                <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
+                <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
+                <PostLoginRedirectHandler isLoggedIn={isLoggedIn} />
+                {/* <TeamRegisterDialog /> */}
+                <UserInfoChecker userInfo={userInfo} />
+                <UserInfoValidator userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                <CookieChecker isLoggedIn={isLoggedIn} />
+                {/*<ReactQueryDevtools initialIsOpen={false} />*/}
+              </PushNotificationsProvider>
+            </NuqsAdapter>
           </QueryProvider>
         </StyledJsxRegistry>
       </body>

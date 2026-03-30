@@ -300,6 +300,14 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_WATCH_TIME, eventParams);
   }
 
+  function onAnalyticsReportPageOpened(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ANALYTICS_REPORT_PAGE_OPENED, eventParams);
+  }
+
+  function onAnalyticsReportTimeOnPage(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_ANALYTICS_REPORT_TIME_ON_PAGE, eventParams);
+  }
+
   return {
     onLandingPageOpened,
     onLandingLoginButtonClicked,
@@ -371,5 +379,7 @@ export const useDemoDayAnalytics = () => {
     onSubscribeToDemoDayClicked,
     onAccountCreatedSuccessModalContinueToLoginClicked,
     onActiveViewVideoWatchTime,
+    onAnalyticsReportPageOpened,
+    onAnalyticsReportTimeOnPage,
   };
 };

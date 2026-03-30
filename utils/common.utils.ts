@@ -251,13 +251,20 @@ export const validateEmail = (email: string) => {
   return EMAIL_REGEX?.test(email) ? true : false;
 };
 
-export function getSocialLinkUrl(linkContent: string, type: string, url?: string) {
+export type LinkedinProfileKind = 'member' | 'company';
+
+export function getSocialLinkUrl(
+  linkContent: string,
+  type: string,
+  url?: string,
+  linkedinProfileKind: LinkedinProfileKind = 'company',
+) {
   const socialUrls: any = {
     email: `mailto:${linkContent}`,
     twitter: `https://twitter.com/${linkContent}`,
     github: `https://github.com/${linkContent}`,
     telegram: `https://t.me/${linkContent}`,
-    linkedin: getLinkedInUrl(linkContent),
+    linkedin: getLinkedInUrl(linkContent, linkedinProfileKind),
     discord: 'https://discord.com/app',
   };
 
@@ -272,28 +279,43 @@ export function getSocialLinkUrl(linkContent: string, type: string, url?: string
   return socialUrls[type] || linkContent;
 }
 
-function getLinkedInUrl(linkContent: string): string {
+function getLinkedInUrl(linkContent: string, profileKind: LinkedinProfileKind = 'company'): string {
   if (!linkContent) {
     return '';
   }
 
-  // If it's already a full URL, return as is
-  if (linkContent.startsWith('http://') || linkContent.startsWith('https://')) {
+  if (/^https?:\/\//.test(linkContent)) {
     return linkContent;
   }
 
-  // If it already starts with "company/", "in/", or "profile/", prepend base URL only
-  if (linkContent.startsWith('company/') || linkContent.startsWith('in/') || linkContent.startsWith('profile/')) {
-    return `https://www.linkedin.com/${linkContent}`;
+  if (/^(?:www\.)?linkedin\.com/.test(linkContent)) {
+    return `https://${linkContent}`;
   }
 
-  // If it's a plain handle (no slashes), assume it's a company
-  if (!linkContent.includes('/') && !linkContent.includes(' ')) {
-    return `https://www.linkedin.com/company/${linkContent}`;
+  const trimmedInput = linkContent.trim();
+  if (!trimmedInput) {
+    return '';
   }
 
-  // For other cases, use search
-  return `https://www.linkedin.com/search/results/all/?keywords=${linkContent}`;
+  const path = trimmedInput.replace(/^\/+/, '');
+  const isPathStyle =
+    path.startsWith('in/') ||
+    path.startsWith('company/') ||
+    path.startsWith('profile/') ||
+    ((path === 'in' || path === 'company') && trimmedInput.startsWith('/'));
+
+  if (isPathStyle) {
+    const pathForUrl = path.replace(/\/+$/, '');
+    return `https://www.linkedin.com/${pathForUrl}`;
+  }
+
+  const handle = trimmedInput.replace(/^\/+|\/+$/g, '');
+  if (handle && !handle.includes('/') && !handle.includes(' ')) {
+    const segment = profileKind === 'member' ? 'in' : 'company';
+    return `https://www.linkedin.com/${segment}/${handle}`;
+  }
+
+  return `https://www.linkedin.com/search/results/all/?keywords=${handle || trimmedInput}`;
 }
 
 export const getProfileFromURL = (handle: string, type: string) => {

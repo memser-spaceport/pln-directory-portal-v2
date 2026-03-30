@@ -2,13 +2,14 @@
 
 import React from 'react';
 import last from 'lodash/last';
+import filter from 'lodash/filter';
 import isEmpty from 'lodash/isEmpty';
 import { IAnalyticsUserInfo, IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems } from '@/types/teams.types';
 import { FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
 import { triggerLoader } from '@/utils/common.utils';
 
-import { createFilterGetter } from '@/services/teams/utils/createFilterGetter';
+import { BaseFilterItem, createFilterGetter } from '@/services/teams/utils/createFilterGetter';
 import Image from 'next/image';
 import { useTeamFilterStore, useTeamFilterCount } from '@/services/teams';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
@@ -24,6 +25,8 @@ import { InvestmentFocusFilter } from '@/components/page/teams/TeamsFilter/compo
 import { getPriorityLabel } from '@/utils/team.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { isTierUser } from '@/utils/user/isTierUser';
+
+import { processCommunityAffiliationsFilterOptions } from './utils/processCommunityAffiliationsFilterOptions';
 
 export interface TeamsFilterProps {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -51,6 +54,9 @@ export function TeamsFilter(props: TeamsFilterProps) {
   // These factory functions return data hooks that can be passed to GenericCheckboxList
   const getTeamTags = createFilterGetter(filterValues?.tags);
   const getMembershipSources = createFilterGetter(filterValues?.membershipSources);
+  const getCommunityAffiliations = createFilterGetter(filterValues?.communityAffiliations, {
+    processFilterItems: processCommunityAffiliationsFilterOptions,
+  });
   const getFundingStages = createFilterGetter(filterValues?.fundingStage);
   const getPriorities = createFilterGetter(filterValues?.priorities, {
     formatLabel: (item) => getPriorityLabel(item.value, true),
@@ -110,7 +116,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
       )}
 
       {/* Membership Source */}
-      {isDirectoryAdmin && filterValues?.membershipSources && filterValues.membershipSources.length > 0 && (
+      {isDirectoryAdmin && !isEmpty(filterValues?.membershipSources) && (
         <FilterSection title="Membership Source">
           <GenericCheckboxList
             label="Search or select membership source"
@@ -127,6 +133,22 @@ export function TeamsFilter(props: TeamsFilterProps) {
               }
             }}
             onSearch={handleMembershipSourcesSearch}
+          />
+        </FilterSection>
+      )}
+
+      {/* Community Affiliations */}
+      {!isEmpty(filterValues?.communityAffiliations) && (
+        <FilterSection title="Community Affiliations">
+          <GenericCheckboxList
+            label="Search or select community affiliations"
+            paramKey="communityAffiliations"
+            placeholder="E.g. FIL Dev..."
+            filterStore={useTeamFilterStore}
+            useGetDataHook={getCommunityAffiliations}
+            onChange={(key, values) => {
+              triggerLoader(true);
+            }}
           />
         </FilterSection>
       )}

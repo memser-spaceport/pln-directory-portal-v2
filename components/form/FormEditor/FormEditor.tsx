@@ -7,6 +7,13 @@ import s from './FormEditor.module.scss';
 
 const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor/RichTextEditor'), { ssr: false });
 
+const SIMPLIFIED_TOOLBAR = [
+  [{ header: [false] }],
+  ['bold', 'italic', 'underline'],
+  [{ list: 'bullet' }, { list: 'ordered' }],
+  ['link'],
+];
+
 interface Props extends PropsWithChildren {
   name: string;
   placeholder: string;
@@ -18,17 +25,22 @@ interface Props extends PropsWithChildren {
   autoFocus?: boolean;
   className?: string;
   enableMentions?: boolean;
+  maxLength?: number;
+  showCharCount?: boolean;
   classes?: {
     label?: string;
   };
   onMentionInitiated?: () => void;
   onMentionSearch?: (query: string, resultsCount?: number) => void;
   onMentionSelected?: (member: { uid: string; name: string }, query?: string) => void;
+  minHeight?: number;
+  simplified?: boolean;
 }
 
 export const FormEditor = (props: Props) => {
   const {
     name,
+    placeholder,
     label,
     classes,
     description,
@@ -37,9 +49,13 @@ export const FormEditor = (props: Props) => {
     autoFocus,
     className,
     enableMentions = true,
+    maxLength,
+    showCharCount = false,
     onMentionInitiated,
     onMentionSearch,
     onMentionSelected,
+    minHeight,
+    simplified,
   } = props;
 
   const {
@@ -48,6 +64,8 @@ export const FormEditor = (props: Props) => {
     formState: { errors },
   } = useFormContext();
   const value = watch(name);
+  const charCount = showCharCount ? (value as string)?.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').length ?? 0 : 0;
+  const isOverLimit = showCharCount && maxLength != null && charCount > maxLength;
 
   return (
     <Field.Root className={s.field}>
@@ -66,8 +84,10 @@ export const FormEditor = (props: Props) => {
       <RichTextEditor
         disabled={disabled}
         value={value}
+        placeholder={placeholder}
         autoFocus={autoFocus}
-        enableMentions={enableMentions}
+        enableMentions={simplified ? false : enableMentions}
+        {...(simplified && { toolbarConfig: SIMPLIFIED_TOOLBAR })}
         onChange={(txt) => setValue(name, txt, { shouldValidate: true, shouldDirty: true })}
         className={clsx(className, {
           [s.error]: !!errors[name],
@@ -75,14 +95,22 @@ export const FormEditor = (props: Props) => {
         onMentionInitiated={onMentionInitiated}
         onMentionSearch={onMentionSearch}
         onMentionSelected={onMentionSelected}
+        minHeight={minHeight}
       />
-      {!errors[name] && description ? (
-        <Field.Description className={s.fieldDescription}>{description}</Field.Description>
-      ) : (
+      {errors[name] ? (
         <Field.Error className={s.errorMsg} match={!!errors[name]}>
           {(errors?.[name]?.message as string) ?? ''}
         </Field.Error>
-      )}
+      ) : showCharCount && maxLength != null ? (
+        <div className={s.charCounterRow}>
+          {description && <span className={s.fieldDescription}>{description}</span>}
+          <span className={clsx(s.charCount, { [s.charCountError]: isOverLimit })}>
+            {charCount} / {maxLength}
+          </span>
+        </div>
+      ) : description ? (
+        <Field.Description className={s.fieldDescription}>{description}</Field.Description>
+      ) : null}
     </Field.Root>
   );
 };

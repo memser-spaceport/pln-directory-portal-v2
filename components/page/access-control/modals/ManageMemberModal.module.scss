@@ -1,0 +1,208 @@
+.modal {
+  max-width: 600px;
+  width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.root {
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+.header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.section {
+  margin-bottom: 24px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 12px 0;
+}
+
+.currentItems {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #f1f5f9;
+  border-radius: 8px;
+
+  &.permissionItem {
+    background: #dcfce7;
+  }
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.itemDescription {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.removeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #e2e8f0;
+    color: #ef4444;
+  }
+}
+
+.noItems {
+  font-size: 13px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.addSection {
+  position: relative;
+}
+
+.searchInput {
+  width: 100%;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.dropdownItem {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+
+  &:first-child {
+    border-radius: 8px 8px 0 0;
+  }
+
+  &:last-child {
+    border-radius: 0 0 8px 8px;
+  }
+}
+
+.dropdownItemName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.dropdownItemDescription {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.permissionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.permissionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 6px;
+}
+
+.permissionCode {
+  font-size: 13px;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.permissionDescription {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 8px 0 0 0;
+  font-style: italic;
+}

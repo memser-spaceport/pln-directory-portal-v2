@@ -1,0 +1,115 @@
+.root {
+  padding: 24px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.searchWrapper {
+  flex: 1;
+  max-width: 400px;
+}
+
+.searchInput {
+  width: 100%;
+}
+
+.tableContainer {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th,
+  td {
+    text-align: left;
+    padding: 16px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  th {
+    font-weight: 500;
+    color: #64748b;
+    background: #f8fafc;
+    white-space: nowrap;
+  }
+
+  td {
+    color: #334155;
+  }
+
+  tbody tr:hover {
+    background: #f8fafc;
+  }
+}
+
+.actionCol {
+  width: 100px;
+  text-align: center;
+}
+
+.memberInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.memberName {
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.memberEmail {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.roleTag {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.permissionTag {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.noTags {
+  color: #94a3b8;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 48px 16px;
+  color: #64748b;
+}
+
+.loadingState {
+  text-align: center;
+  padding: 48px 16px;
+  color: #64748b;
+}

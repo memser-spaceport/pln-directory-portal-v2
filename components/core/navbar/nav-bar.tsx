@@ -15,7 +15,7 @@ import { Signup } from './components/Signup';
 import { NavigationMenu } from '@base-ui-components/react';
 import { useContactSupportStore } from '@/services/contact-support/store';
 
-import { DIRECTORY_LINKS, EVENT_LINKS } from './constants/navLinks';
+import { DIRECTORY_LINKS, EVENT_LINKS, PROTOTYPE_LINKS } from './constants/navLinks';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 
 import {
@@ -25,8 +25,8 @@ import {
   EventsIcon,
   DemoDayIcon,
   DirectoryIcon,
-  KnowledgeBaseIcon,
   DealsIcon,
+  PrototypesIcon,
 } from './components/icons';
 
 import { NavLink } from './components/NavLink';
@@ -116,15 +116,12 @@ function Navbar(props: Readonly<INavbar>) {
           onNavItemClickHandler={onNavItemClickHandler}
         />
 
-        <NavigationMenu.Item className={s.menuItem}>
-          <NavLink
-            className={s.Trigger}
-            href="/knowledge-base"
-            onClick={() => onNavItemClickHandler('/knowledge-base', 'Knowledge Base')}
-          >
-            <KnowledgeBaseIcon /> Knowledge Base
-          </NavLink>
-        </NavigationMenu.Item>
+        <NavItemWithMenu
+          icon={<PrototypesIcon />}
+          label="Prototypes"
+          items={PROTOTYPE_LINKS}
+          onNavItemClickHandler={onNavItemClickHandler}
+        />
 
         <NavigationMenu.Item className={s.menuItem}>
           <NavLink className={s.Trigger} href="/forum?cid=0" onClick={() => onNavItemClickHandler('/forum', 'Forum')}>

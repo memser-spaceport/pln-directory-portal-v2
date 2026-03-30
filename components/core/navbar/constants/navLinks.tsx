@@ -2,7 +2,7 @@ import React from 'react';
 
 import { ISubItem } from '@/components/core/navbar/type';
 import { CalendarBlankIcon, ContributorIcon, UsersThreeIcon } from '@/components/icons';
-import { MembersIcon, TeamsIcon, ProjectsIcon } from '../components/icons';
+import { MembersIcon, TeamsIcon, ProjectsIcon, KnowledgeBaseIcon, AccessControlIcon } from '../components/icons';
 
 export const DIRECTORY_LINKS: ISubItem[] = [
   {
@@ -43,5 +43,20 @@ export const EVENT_LINKS: ISubItem[] = [
     icon: <ContributorIcon />,
     title: 'Event Contributors',
     description: 'Hosts, speakers, and sponsors',
+  },
+] as const;
+
+export const PROTOTYPE_LINKS: ISubItem[] = [
+  {
+    href: '/knowledge-base',
+    icon: <KnowledgeBaseIcon />,
+    title: 'Knowledge Base',
+    description: 'Articles and resources from the network',
+  },
+  {
+    href: '/access-control',
+    icon: <AccessControlIcon />,
+    title: 'Access Control',
+    description: 'RBAC management interface mockup',
   },
 ] as const;

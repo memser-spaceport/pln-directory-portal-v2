@@ -600,6 +600,7 @@ export const getMembersWithRoles = async () => {
   const formattedData = result?.members?.map((member: any) => ({
     uid: member.uid,
     name: member.name,
+    email: member.email,
     profile: member.image?.url,
     teamMemberRoles: member.teamMemberRoles,
     isVerified: member.isVerified,

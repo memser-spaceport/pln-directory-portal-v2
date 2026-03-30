@@ -1,0 +1,113 @@
+.root {
+  padding: 24px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
+.buttonContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tableContainer {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th,
+  td {
+    text-align: left;
+    padding: 16px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  th {
+    font-weight: 500;
+    color: #64748b;
+    background: #f8fafc;
+    white-space: nowrap;
+  }
+
+  td {
+    color: #334155;
+  }
+
+  tbody tr:hover {
+    background: #f8fafc;
+  }
+}
+
+.actionCol {
+  width: 100px;
+  text-align: center;
+}
+
+.permissionCode {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  font-weight: 500;
+  color: #0f172a;
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.description {
+  color: #64748b;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 48px 16px;
+  color: #64748b;
+}
+
+.createModal {
+  padding: 24px;
+  min-width: 400px;
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+.createModalTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 24px 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}

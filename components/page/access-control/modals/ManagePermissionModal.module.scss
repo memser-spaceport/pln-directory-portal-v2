@@ -1,0 +1,146 @@
+.modal {
+  max-width: 600px;
+  width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.root {
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+.header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.section {
+  margin-bottom: 24px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 12px 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.saveBtnWrapper {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.itemDescription {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.removeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #e2e8f0;
+    color: #ef4444;
+  }
+}
+
+.revokeBtn {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #fecaca;
+    color: #991b1b;
+  }
+}
+
+.noItems {
+  font-size: 13px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}

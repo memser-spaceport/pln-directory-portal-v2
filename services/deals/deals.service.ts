@@ -111,6 +111,29 @@ export async function reportDealIssue(dealUid: string, description: string) {
   return response.json();
 }
 
+export interface RequestDealPayload {
+  dealName: string;
+  reason: string;
+}
+
+export async function requestDeal(payload: RequestDealPayload) {
+  const response = await customFetch(
+    `${DEALS_API_URL}/requests`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    },
+    true,
+  );
+
+  if (!response || !response.ok) {
+    throw new Error('Failed to submit deal request');
+  }
+
+  return response.json();
+}
+
 export async function unmarkDealAsUsing(dealUid: string): Promise<void> {
   const response = await customFetch(
     `${DEALS_API_URL}/${dealUid}/using`,

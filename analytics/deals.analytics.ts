@@ -26,6 +26,10 @@ const DEALS_ANALYTICS_EVENTS = {
   DEALS_SUBMIT_MODAL_OPENED: 'deals-submit-modal-opened',
   DEALS_DEAL_SUBMITTED: 'deals-deal-submitted',
   DEALS_DEAL_SUBMIT_FAILED: 'deals-deal-submit-failed',
+  DEALS_REQUEST_MODAL_OPENED: 'deals-request-modal-opened',
+  DEALS_REQUEST_MODAL_CLOSED: 'deals-request-modal-closed',
+  DEALS_REQUEST_SUBMITTED: 'deals-request-submitted',
+  DEALS_REQUEST_SUBMIT_FAILED: 'deals-request-submit-failed',
 };
 
 export function useDealsAnalytics() {
@@ -143,6 +147,25 @@ export function useDealsAnalytics() {
     posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_SUBMIT_SUCCESS_CLOSED);
   }, [posthog]);
 
+  const trackRequestModalOpened = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_REQUEST_MODAL_OPENED);
+  }, [posthog]);
+
+  const trackRequestModalClosed = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_REQUEST_MODAL_CLOSED);
+  }, [posthog]);
+
+  const trackRequestDealSubmitted = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_REQUEST_SUBMITTED);
+  }, [posthog]);
+
+  const trackRequestDealSubmitFailed = useCallback(
+    (error: string) => {
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_REQUEST_SUBMIT_FAILED, { error });
+    },
+    [posthog],
+  );
+
   const trackRedeemSucceeded = useCallback(
     (dealId: string, dealTitle: string) => {
       posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_REDEEM_SUCCEEDED, { dealId, dealTitle });
@@ -197,5 +220,9 @@ export function useDealsAnalytics() {
     trackSubmitModalOpened,
     trackDealSubmitted,
     trackDealSubmitFailed,
+    trackRequestModalOpened,
+    trackRequestModalClosed,
+    trackRequestDealSubmitted,
+    trackRequestDealSubmitFailed,
   };
 }

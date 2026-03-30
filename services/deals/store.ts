@@ -39,3 +39,19 @@ export const useReportProblemModalStore = create<ReportProblemModalState>((set) 
     closeModal: () => set({ open: false, dealUid: null }),
   },
 }));
+
+interface RequestDealModalState {
+  readonly open: boolean;
+  readonly actions: {
+    openModal: () => void;
+    closeModal: () => void;
+  };
+}
+
+export const useRequestDealModalStore = create<RequestDealModalState>((set) => ({
+  open: false,
+  actions: {
+    openModal: () => set({ open: true }),
+    closeModal: () => set({ open: false }),
+  },
+}));

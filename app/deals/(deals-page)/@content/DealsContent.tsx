@@ -19,6 +19,7 @@ import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import { SubmitDealModal } from '@/components/page/deals/SubmitDealModal/SubmitDealModal';
 import { SubmitDealSuccessModal } from '@/components/page/deals/SubmitDealSuccessModal/SubmitDealSuccessModal';
 import { RequestDealModal } from '@/components/page/deals/RequestDealModal/RequestDealModal';
+import { RequestDealSuccessModal } from '@/components/page/deals/RequestDealSuccessModal/RequestDealSuccessModal';
 import { useRequestDealModalStore } from '@/services/deals/store';
 import s from './page.module.scss';
 
@@ -154,6 +155,7 @@ export default function DealsContent() {
       <SubmitDealModal />
       <SubmitDealSuccessModal />
       <RequestDealModal />
+      <RequestDealSuccessModal />
 
       {/* Mobile filters + sort (visible on mobile only) */}
       {filterValues && (

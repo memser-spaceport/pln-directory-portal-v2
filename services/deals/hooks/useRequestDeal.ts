@@ -10,7 +10,6 @@ export function useRequestDeal() {
     mutationFn: (payload: RequestDealPayload) => requestDeal(payload),
     onSuccess: () => {
       trackRequestDealSubmitted();
-      toast.success("Your request has been submitted. We'll use it to prioritize new deals.");
     },
     onError: (error: Error) => {
       trackRequestDealSubmitFailed(error.message);

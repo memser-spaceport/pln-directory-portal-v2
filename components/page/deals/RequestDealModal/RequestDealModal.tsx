@@ -54,7 +54,7 @@ export function RequestDealModal() {
       {
         onSuccess: () => {
           reset();
-          actions.closeModal();
+          actions.showSuccess();
         },
       },
     );
@@ -87,12 +87,7 @@ export function RequestDealModal() {
 
               <FormEditor
                 name="reason"
-                label={
-                  <span className={s.labelWithBadge}>
-                    Why would this be useful?
-                    <span className={s.aiBadge}>✦ Generate with AI</span>
-                  </span>
-                }
+                label="Why would this be useful?"
                 placeholder="Describe how your team (or others) would benefit"
                 description="Max. 600 characters."
                 maxLength={600}

@@ -117,9 +117,9 @@ export interface RequestDealPayload {
   howToReachOutToYou: string;
 }
 
-export async function requestDeal(dealUid: string, payload: RequestDealPayload) {
+export async function requestDeal(payload: RequestDealPayload) {
   const response = await customFetch(
-    `${DEALS_API_URL}/${dealUid}/requests`,
+    `${DEALS_API_URL}/requests`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

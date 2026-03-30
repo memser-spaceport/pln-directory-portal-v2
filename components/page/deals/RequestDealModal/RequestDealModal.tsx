@@ -52,7 +52,6 @@ export function RequestDealModal() {
   const onSubmit = (data: RequestDealFormData) => {
     mutate(
       {
-        dealUid: '',
         whatDealAreYouLookingFor: data.whatDealAreYouLookingFor,
         description: data.description,
         howToReachOutToYou: data.howToReachOutToYou,

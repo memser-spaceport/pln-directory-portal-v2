@@ -2,26 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import { useAllMembers } from '@/services/members/hooks/useAllMembers';
-import { rbacService, Role, Permission, Member } from '@/services/rbac/rbac-mock-service';
+import { rbacService } from '@/services/rbac/rbac-mock-service';
 import { Input } from '@/components/common/form/Input/Input';
 import { Button } from '@/components/common/Button/Button';
-import { ManageMemberModal } from '../modals/ManageMemberModal';
+import { ManageMemberModal, MemberWithRoles } from '@/components/page/access-control/modals/ManageMemberModal';
 import s from './MembersTab.module.scss';
-
-interface RealMember {
-  uid: string;
-  name: string;
-  profile?: string;
-  email?: string | null;
-  teamMemberRoles?: any[];
-  isVerified?: boolean;
-}
-
-interface MemberWithRoles extends RealMember {
-  id: string; // Maps from uid for compatibility
-  rbacRoles: string[];
-  directPermissionIds: string[];
-}
 
 export function MembersTab() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,41 +26,42 @@ export function MembersTab() {
   const members = useMemo(() => {
     if (!realMembers || !Array.isArray(realMembers)) return [];
 
-    return realMembers.map((member): MemberWithRoles => {
-      const roleIds = rbacService.getRolesForRealMember(member.uid);
-      // Check if this member has stored direct permissions
-      const storedMember = rbacService.getMemberById(member.uid);
+    return realMembers
+      .map((member): MemberWithRoles => {
+        const roleIds = rbacService.getRolesForRealMember(member.uid);
+        // Check if this member has stored direct permissions
+        const storedMember = rbacService.getMemberById(member.uid);
 
-      return {
-        ...member,
-        id: member.uid,
-        rbacRoles: roleIds,
-        directPermissionIds: storedMember?.directPermissionIds || [],
-      };
-    }).filter((member) => {
-      // Only show members that have at least one RBAC role assigned for the mockup
-      // or search query matches
-      if (!searchQuery.trim()) {
-        return member.rbacRoles.length > 0;
-      }
-      const lowerQuery = searchQuery.toLowerCase();
-      return (
-        member.name.toLowerCase().includes(lowerQuery) ||
-        (member.email && member.email.toLowerCase().includes(lowerQuery))
-      );
-    });
+        return {
+          id: member.uid,
+          uid: member.uid,
+          name: member.name,
+          email: member.email,
+          profile: member.profile,
+          rbacRoles: roleIds,
+          directPermissionIds: storedMember?.directPermissionIds || [],
+        };
+      })
+      .filter((member) => {
+        // Only show members that have at least one RBAC role assigned for the mockup
+        // or search query matches
+        if (!searchQuery.trim()) {
+          return member.rbacRoles.length > 0;
+        }
+        const lowerQuery = searchQuery.toLowerCase();
+        return (
+          member.name.toLowerCase().includes(lowerQuery) ||
+          (member.email && member.email.toLowerCase().includes(lowerQuery))
+        );
+      });
   }, [realMembers, searchQuery, refreshKey]);
 
   const getRoleNames = (roleIds: string[]): string[] => {
-    return roleIds
-      .map((id) => roles.find((r) => r.id === id)?.name)
-      .filter(Boolean) as string[];
+    return roleIds.map((id) => roles.find((r) => r.id === id)?.name).filter(Boolean) as string[];
   };
 
   const getDirectPermissionCodes = (permissionIds: string[]): string[] => {
-    return permissionIds
-      .map((id) => permissions.find((p) => p.id === id)?.code)
-      .filter(Boolean) as string[];
+    return permissionIds.map((id) => permissions.find((p) => p.id === id)?.code).filter(Boolean) as string[];
   };
 
   const handleManageClick = (member: MemberWithRoles) => {
@@ -137,9 +123,7 @@ export function MembersTab() {
                         {roleName}
                       </span>
                     ))}
-                    {member.rbacRoles.length === 0 && (
-                      <span className={s.noTags}>No roles</span>
-                    )}
+                    {member.rbacRoles.length === 0 && <span className={s.noTags}>No roles</span>}
                   </div>
                 </td>
                 <td>
@@ -149,18 +133,11 @@ export function MembersTab() {
                         {code}
                       </span>
                     ))}
-                    {member.directPermissionIds.length === 0 && (
-                      <span className={s.noTags}>None</span>
-                    )}
+                    {member.directPermissionIds.length === 0 && <span className={s.noTags}>None</span>}
                   </div>
                 </td>
                 <td>
-                  <Button
-                    size="s"
-                    style="border"
-                    variant="neutral"
-                    onClick={() => handleManageClick(member)}
-                  >
+                  <Button size="s" style="border" variant="neutral" onClick={() => handleManageClick(member)}>
                     Manage
                   </Button>
                 </td>
@@ -177,11 +154,7 @@ export function MembersTab() {
         </table>
       </div>
 
-      <ManageMemberModal
-        isOpen={isManageModalOpen}
-        onClose={handleModalClose}
-        member={selectedMember}
-      />
+      <ManageMemberModal isOpen={isManageModalOpen} onClose={handleModalClose} member={selectedMember} />
     </div>
   );
 }

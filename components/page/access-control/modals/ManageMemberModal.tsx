@@ -7,11 +7,11 @@ import { Input } from '@/components/common/form/Input/Input';
 import { rbacService, Role, Permission } from '@/services/rbac/rbac-mock-service';
 import s from './ManageMemberModal.module.scss';
 
-interface MemberWithRoles {
+export interface MemberWithRoles {
   id: string;
   uid: string;
   name: string;
-  email?: string;
+  email?: string | null;
   profile?: string;
   rbacRoles: string[];
   directPermissionIds: string[];

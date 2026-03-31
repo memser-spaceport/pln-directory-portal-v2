@@ -114,8 +114,7 @@ export default function DealsContent() {
     if (isAccessLoading || isAccessError || !hasAccess) return;
     if (isError || isLoading || !dealsData) return;
     const deals = dealsData.deals || [];
-    const hasFilters =
-      filters.categories.length > 0 || filters.audiences.length > 0 || !!filters.q;
+    const hasFilters = filters.categories.length > 0 || filters.audiences.length > 0 || !!filters.q;
     if (deals.length === 0 && hasFilters) {
       analytics.trackEmptyResultsShown();
     }
@@ -177,10 +176,6 @@ export default function DealsContent() {
               onClearAll={() => {
                 handleClearAll();
                 onClose();
-              }}
-              onRequestDeal={() => {
-                onClose();
-                requestDealActions.openModal();
               }}
             />
           )}

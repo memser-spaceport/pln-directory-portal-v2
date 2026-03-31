@@ -1,9 +1,9 @@
 import Error from '@/components/core/error';
 import { TeamContactInfo } from '@/components/page/team-details/TeamContactInfo';
-import { Projects } from '@/components/page/team-details/Projects';
+import { TeamProjects } from '@/components/page/team-details/TeamProjects';
 import { AiGeneratedTeamProfileBanner } from '@/components/page/team-details/AiGeneratedTeamProfileBanner';
 import { TeamDetails } from '@/components/page/team-details/TeamDetails';
-import TeamMembers from '@/components/page/team-details/team-members';
+import { TeamMembers } from '@/components/page/team-details/TeamMembers';
 import { getMembers } from '@/services/members.service';
 import { getAllTeams, getTeam, getTeamUIDByAirtableId } from '@/services/teams.service';
 import { IMember } from '@/types/members.types';
@@ -17,7 +17,7 @@ import styles from './page.module.css';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
-import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
+import { TeamOfficeHours } from '@/components/page/team-details/TeamOfficeHours';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
@@ -117,7 +117,7 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
             teamFocusAreas={team?.teamFocusAreas || []}
           />
 
-          <Projects
+          <TeamProjects
             isLoggedIn={isLoggedIn}
             projects={teamProjectList}
             team={team}

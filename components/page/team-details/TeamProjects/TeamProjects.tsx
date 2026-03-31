@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import { useRef } from 'react';
 import isEmpty from 'lodash/isEmpty';
+import { useToggle } from 'react-use';
 import { useRouter } from 'next/navigation';
 
 import { IUserInfo } from '@/types/shared.types';
@@ -14,11 +15,14 @@ import { getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } f
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 
 import Modal from '@/components/core/modal';
+import { DetailsSection } from '@/components/common/profile/DetailsSection';
 
 import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
 
-import AllProjects from '../all-projects';
-import TeamProjectCard from '../team-project-card';
+import { AllProjects } from './components/TeamProjectsView/components/AllProjects';
+import { TeamProjectCard } from './components/TeamProjectsView/components/TeamProjectCard';
+import { TeamProjectsEdit } from './components/TeamProjectsEdit';
+import { TeamProjectsView } from './components/TeamProjectsView';
 
 import s from './TeamProjects.module.scss';
 
@@ -33,10 +37,12 @@ interface Props {
 export function TeamProjects(props: Props) {
   const { team, projects = [], userInfo, isLoggedIn, hasProjectsEditAccess } = props;
 
+  const [isEditMode, toggleIsEditMode] = useToggle(false);
+
   const allProjectsRef = useRef<HTMLDialogElement>(null);
 
-  const analytics = useTeamAnalytics();
   const router = useRouter();
+  const analytics = useTeamAnalytics();
 
   const onSeeAllClickHandler = () => {
     analytics.onTeamDetailSeeAllProjectsClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
@@ -79,6 +85,22 @@ export function TeamProjects(props: Props) {
   }
 
   return (
+    <DetailsSection editView={isEditMode}>
+      {isEditMode ? (
+        <TeamProjectsEdit />
+      ) : (
+        <TeamProjectsView
+          team={team}
+          projects={projects}
+          userInfo={userInfo}
+          isLoggedIn={isLoggedIn}
+          toggleIsEditMode={toggleIsEditMode}
+        />
+      )}
+    </DetailsSection>
+  );
+
+  return (
     <div className={s.root}>
       <div className={s.header}>
         <h2 className={s.title}>Projects ({projects?.length ? projects?.length : 0})</h2>
@@ -96,47 +118,6 @@ export function TeamProjects(props: Props) {
           )}
         </div>
       </div>
-
-      {!isEmpty(projects) && (
-        <div className={s.projectsWeb}>
-          {projects?.slice(0, 3).map((project: IFormatedTeamProject, index: number) => (
-            <div key={`${project} + ${index}`} className={index < projects?.length - 1 ? s.projectBorder : undefined}>
-              <TeamProjectCard
-                onEditClicked={onEditProjectClicked}
-                onCardClicked={onProjectCardClicked}
-                url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`}
-                hasProjectsEditAccess={hasProjectsEditAccess}
-                project={project}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {isEmpty(projects) && (
-        <div className={s.emptyProjects}>
-          {isLoggedIn ? (
-            <p className={s.emptyMessage}>
-              No projects added.&nbsp;
-              <a href={PAGE_ROUTES.PROJECTS} className={s.emptyLink}>
-                Click here
-              </a>
-              &nbsp;to add a new project.
-            </p>
-          ) : (
-            <p className={s.emptyMessage}>No projects added.</p>
-          )}
-        </div>
-      )}
-
-      <Modal modalRef={allProjectsRef} onClose={onClosePopupClicked}>
-        <AllProjects
-          onEditClicked={onEditProjectClicked}
-          onCardClicked={onProjectCardClicked}
-          hasProjectsEditAccess={hasProjectsEditAccess}
-          projects={projects}
-        />
-      </Modal>
     </div>
   );
 }

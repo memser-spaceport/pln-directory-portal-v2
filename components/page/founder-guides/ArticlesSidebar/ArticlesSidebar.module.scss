@@ -1,13 +1,13 @@
 .root {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow: hidden;
   position: sticky;
   top: 0;
   height: calc(100vh - 80px);
+  overflow: hidden;
 }
 
+// ── Header ────────────────────────────────────────────────
 .header {
   display: flex;
   align-items: center;
@@ -23,35 +23,38 @@
   font-weight: 500;
   color: #0a0c11;
   letter-spacing: -0.4px;
+  line-height: 24px;
 }
 
+// ── Search ────────────────────────────────────────────────
 .searchWrapper {
   position: relative;
-  margin: 12px 16px;
+  margin: 12px 16px 0;
   flex-shrink: 0;
 }
 
-.searchIcon {
+.searchIconWrap {
   position: absolute;
-  left: 12px;
+  left: 10px;
   top: 50%;
   transform: translateY(-50%);
-  color: #afbaca;
-  width: 16px;
-  height: 16px;
+  display: flex;
+  align-items: center;
   pointer-events: none;
 }
 
 .searchInput {
   width: 100%;
   height: 40px;
-  padding: 0 12px 0 36px;
-  border: 1px solid #e2e8f0;
+  padding: 10px 12px 10px 38px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
   border-radius: 10px;
   font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.2px;
   color: #0a0c11;
   background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0px 1px 2px rgba(14, 15, 17, 0.08), inset 0px -2px 8px rgba(14, 15, 17, 0.02);
   outline: none;
   box-sizing: border-box;
 
@@ -64,12 +67,15 @@
   }
 }
 
+// ── Nav list ──────────────────────────────────────────────
 .nav {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 24px;
+  margin-top: 20px;
+  padding-bottom: 40px;
 }
 
+// ── Category group ────────────────────────────────────────
 .categoryGroup {
   border-bottom: 1px solid rgba(27, 56, 96, 0.12);
 }
@@ -90,71 +96,80 @@
   }
 }
 
+.categoryIcon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .categoryLabel {
   flex: 1;
   font-size: 16px;
   font-weight: 500;
   color: #455468;
-  line-height: 1.4;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .categoryBadge {
   font-size: 12px;
   font-weight: 500;
   color: #455468;
+  letter-spacing: -0.2px;
+  line-height: 16px;
   background: rgba(14, 15, 17, 0.06);
   border-radius: 9999px;
-  padding: 2px 8px;
+  padding: 2px 6px;
   flex-shrink: 0;
 }
 
-.caretClosed {
-  color: #455468;
-  flex-shrink: 0;
-  transition: transform 0.15s ease;
-}
-
-.caretOpen {
-  color: #455468;
-  flex-shrink: 0;
-  transform: rotate(180deg);
-  transition: transform 0.15s ease;
-}
-
+// ── Article list ──────────────────────────────────────────
 .articleList {
   display: flex;
   flex-direction: column;
 }
 
 .articleRow {
-  display: block;
-  padding: 10px 28px;
-  font-size: 14px;
-  font-weight: 400;
-  color: #455468;
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 16px 12px 28px;
   text-decoration: none;
-  line-height: 1.4;
+  background: #fff;
 
   &:hover {
     background: rgba(14, 15, 17, 0.03);
-    color: #0a0c11;
   }
 }
 
-.articleRowActive {
-  color: #1b4dff;
+.articleTitle {
+  display: block;
+  padding: 0 4px;
+  font-size: 14px;
   font-weight: 500;
-  background: rgba(27, 77, 255, 0.06);
+  color: #455468;
+  line-height: 20px;
+  letter-spacing: -0.2px;
 }
 
+.articleRowActive {
+  .articleTitle {
+    color: #1b4dff;
+  }
+
+  background: rgba(27, 77, 255, 0.05);
+}
+
+// ── Skeletons ─────────────────────────────────────────────
 .skeletonCategory {
   height: 48px;
-  margin: 0 16px;
+  margin: 0 16px 8px;
   border-radius: 8px;
   background: linear-gradient(90deg, #f0f3f9 25%, #e2e8f0 50%, #f0f3f9 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  margin-bottom: 8px;
 }
 
 @keyframes shimmer {

@@ -17,6 +17,8 @@ export interface IArticle {
   authorTeam: { uid: string; name: string; logo: { url: string } | null };
   totalViews: number;
   totalLikes: number;
+  /** Pending API support — placeholder field for article author's office hours link */
+  officeHoursUrl?: string | null;
 }
 
 export interface IArticlesResponse {

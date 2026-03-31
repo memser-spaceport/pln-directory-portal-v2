@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 import s from './ArticlesSidebar.module.scss';
 
 interface ArticlesSidebarProps {
@@ -113,6 +114,15 @@ function LightbulbIcon() {
   );
 }
 
+function PlusIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M8 3V13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function DefaultCategoryIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
@@ -139,6 +149,10 @@ export default function ArticlesSidebar({ onNavigate }: ArticlesSidebarProps) {
   const { byCategory, isLoading } = useGetArticles();
   const [search, setSearch] = useState('');
   const [openCategories, setOpenCategories] = useState<Set<string>>(new Set());
+
+  const { authToken } = getCookiesFromClient();
+  const isLoggedIn = Boolean(authToken);
+  const isCreateActive = pathname === '/founder-guides/new';
 
   const filtered = useMemo(() => {
     if (!search.trim()) return byCategory;
@@ -190,6 +204,17 @@ export default function ArticlesSidebar({ onNavigate }: ArticlesSidebarProps) {
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
+
+      {isLoggedIn && (
+        <Link
+          href="/founder-guides/new"
+          className={`${s.createLink} ${isCreateActive ? s.createLinkActive : ''}`}
+          onClick={onNavigate}
+        >
+          <PlusIcon />
+          Create New Article
+        </Link>
+      )}
 
       <nav className={s.nav}>
         {isLoading && (

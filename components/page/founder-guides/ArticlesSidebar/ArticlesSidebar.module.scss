@@ -68,6 +68,35 @@
   }
 }
 
+// ── Create New Article link ───────────────────────────────
+.createLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1b4dff;
+  letter-spacing: -0.2px;
+  line-height: 20px;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+  flex-shrink: 0;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.04);
+  }
+}
+
+.createLinkActive {
+  background: rgba(27, 77, 255, 0.05);
+  border-bottom-color: #1b4dff;
+}
+
 // ── Nav list ──────────────────────────────────────────────
 .nav {
   flex: 1;

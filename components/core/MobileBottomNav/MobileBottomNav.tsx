@@ -6,8 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { DIRECTORY_LINKS, EVENT_LINKS } from '@/components/core/navbar/constants/navLinks';
-import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
-import { DealsIcon } from '@/components/core/navbar/components/icons';
+import { FounderGuidesIcon } from '@/components/core/navbar/components/icons';
 
 import { NavigationMenu } from '@base-ui-components/react';
 
@@ -21,12 +20,12 @@ import s from './MobileBottomNav.module.scss';
 const navItems = [
   { href: '/forum?cid=0', label: 'Forum', icon: ForumIcon },
   { href: '/demoday', label: 'Demo Day', icon: DemoDayIcon },
+  { href: '/founder-guides', label: 'Founder Guides', icon: FounderGuidesIcon },
 ];
 
 export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
-  const { hasAccess: hasDealsPageAccess } = useDealsAccess();
 
   return (
     <div
@@ -57,19 +56,6 @@ export function MobileBottomNav() {
             );
           })}
 
-          {hasDealsPageAccess && (
-            <NavigationMenu.Item>
-              <Link
-                href="/deals"
-                className={clsx(s.item, {
-                  [s.itemActive]: pathname.startsWith('/deals'),
-                })}
-              >
-                <DealsIcon />
-                <span>Deals</span>
-              </Link>
-            </NavigationMenu.Item>
-          )}
         </NavigationMenu.List>
       </NavigationMenu.Root>
     </div>

@@ -10,8 +10,11 @@ import { ITeam } from '@/types/teams.types';
 import { TeamsList } from '@/components/page/member-details/TeamsDetails/components/TeamsList';
 import { EditTeamForm } from '@/components/page/member-details/TeamsDetails/components/EditTeamForm';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
-import { DetailsSection } from '@/components/common/profile/DetailsSection';
-import { isAdminUser } from '@/utils/user/isAdminUser';
+import { DetailsSection, DetailsSectionHeader } from '@/components/common/profile/DetailsSection';
+import { AddButton } from '@/components/page/member-details/components/AddButton';
+import { ViewType } from '@/types/ui';
+import { canEditMemberProfile } from '@/components/page/member-details/utils/canEditMemberProfile';
+import { isMemberProfileOwner } from '@/components/page/member-details/utils/isMemberProfileOwner';
 
 interface Props {
   member: IMember;
@@ -20,11 +23,12 @@ interface Props {
 }
 
 export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
-  const [view, setView] = useState<'view' | 'add' | 'edit'>('view');
+  const [view, setView] = useState<ViewType>('view');
   const [selectedItem, setSelectedItem] = useState<null | ITeam>(null);
-  const isAdmin = isAdminUser(userInfo);
-  const isOwner = userInfo?.uid === member.id;
-  const isEditable = isOwner || isAdmin;
+
+  const isOwner = isMemberProfileOwner(userInfo, member);
+  const isEditable = canEditMemberProfile(userInfo, member);
+
   useMobileNavVisibility(view !== 'view');
 
   if (!isLoggedIn || (getAccessLevel(userInfo, isLoggedIn) !== 'advanced' && !isOwner)) {
@@ -34,18 +38,26 @@ export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   return (
     <DetailsSection editView={view !== 'view'}>
       {view === 'view' && (
-        <TeamsList
-          member={member}
-          userInfo={userInfo}
-          isEditable={isEditable}
-          onAdd={() => {
-            setView('add');
-          }}
-          onEdit={(item) => {
-            setSelectedItem(item);
-            setView('edit');
-          }}
-        />
+        <>
+          <DetailsSectionHeader title={`Teams ${member.teams?.length ? `(${member.teams.length})` : ''}`}>
+            {isEditable && (
+              <AddButton
+                onClick={() => {
+                  setView('add');
+                }}
+              />
+            )}
+          </DetailsSectionHeader>
+          <TeamsList
+            member={member}
+            userInfo={userInfo}
+            isEditable={isEditable}
+            onEdit={(item) => {
+              setSelectedItem(item);
+              setView('edit');
+            }}
+          />
+        </>
       )}
       {view === 'edit' && <EditTeamForm onClose={() => setView('view')} member={member} initialData={selectedItem} />}
       {view === 'add' && <EditTeamForm onClose={() => setView('view')} member={member} />}

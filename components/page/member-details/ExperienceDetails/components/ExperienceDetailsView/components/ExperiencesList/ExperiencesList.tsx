@@ -1,8 +1,5 @@
 import React from 'react';
 
-import { AddButton } from '@/components/page/member-details/components/AddButton';
-import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
-
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { FormattedMemberExperience, useMemberExperience } from '@/services/members/hooks/useMemberExperience';
@@ -12,21 +9,19 @@ import { format } from 'date-fns-tz';
 import s from './ExperiencesList.module.scss';
 
 interface Props {
+  data?: FormattedMemberExperience[];
   isEditable: boolean;
-  onAdd: () => void;
+  isLoading: boolean;
   onEdit: (item: FormattedMemberExperience) => void;
   member: IMember;
   userInfo: IUserInfo;
 }
 
-export const ExperiencesList = ({ isEditable, onAdd, onEdit, member }: Props) => {
-  const { data, isLoading } = useMemberExperience(member.id);
+export const ExperiencesList = (props: Props) => {
+  const { data, isEditable, onEdit, isLoading } = props;
 
   return (
     <div className={s.root}>
-      <DetailsSectionHeader title={`Experience ${data?.length ? `(${data.length})` : ''}`}>
-        {isEditable && <AddButton onClick={onAdd} />}
-      </DetailsSectionHeader>
       {!!data?.length && (
         <ul className={s.list}>
           {data?.map((item) => (

@@ -56,6 +56,7 @@ export default function CreateArticle() {
 
   const {
     handleSubmit,
+    reset,
     formState: { isSubmitting, isDirty },
   } = methods;
 
@@ -77,7 +78,10 @@ export default function CreateArticle() {
     });
 
     if (result) {
-      router.push('/founder-guides');
+      reset(data);
+      setTimeout(() => {
+        router.push('/founder-guides');
+      }, 500);
     }
   };
 

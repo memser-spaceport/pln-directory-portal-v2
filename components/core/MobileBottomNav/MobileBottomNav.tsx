@@ -6,26 +6,31 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { DIRECTORY_LINKS, EVENT_LINKS } from '@/components/core/navbar/constants/navLinks';
-import { FounderGuidesIcon } from '@/components/core/navbar/components/icons';
+import { DealsIcon, FounderGuidesIcon, MoreIcon } from '@/components/core/navbar/components/icons';
+import { ISubItem } from '@/components/core/navbar/type';
+import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 
 import { NavigationMenu } from '@base-ui-components/react';
 
 import { useScrollDirection } from './useScrollDirection';
 
 import { MobileNavItemWithMenu } from './components/MobileMenuItem';
-import { EventsIcon, ForumIcon, DemoDayIcon, DirectoryIcon } from './components/icons';
+import { DemoDayIcon, DirectoryIcon, EventsIcon, ForumIcon } from './components/icons';
 
 import s from './MobileBottomNav.module.scss';
 
-const navItems = [
-  { href: '/forum?cid=0', label: 'Forum', icon: ForumIcon },
-  { href: '/demoday', label: 'Demo Day', icon: DemoDayIcon },
-  { href: '/founder-guides', label: 'Founder Guides', icon: FounderGuidesIcon },
-];
+const navItems = [{ href: '/demoday', label: 'Demo Day', icon: DemoDayIcon }];
 
 export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
+  const { hasAccess: hasDealsPageAccess } = useDealsAccess();
+
+  const moreItems: ISubItem[] = [
+    { href: '/forum', title: 'Forum', icon: <ForumIcon /> },
+    ...(hasDealsPageAccess ? [{ href: '/deals', title: 'Deals', icon: <DealsIcon /> }] : []),
+    { href: '/founder-guides', title: 'Founder Guides', icon: <FounderGuidesIcon /> },
+  ];
 
   return (
     <div
@@ -56,6 +61,7 @@ export function MobileBottomNav() {
             );
           })}
 
+          <MobileNavItemWithMenu icon={<MoreIcon />} label="More" items={moreItems} />
         </NavigationMenu.List>
       </NavigationMenu.Root>
     </div>

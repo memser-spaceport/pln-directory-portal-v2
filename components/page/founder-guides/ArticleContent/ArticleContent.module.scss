@@ -1,0 +1,251 @@
+.root {
+  width: 100%;
+  padding: 24px 16px 40px;
+
+  @media (min-width: 1024px) {
+    padding: 0;
+    max-width: 900px;
+    width: 100%;
+  }
+}
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 32px 24px 48px;
+
+  @media (min-width: 1024px) {
+    padding: 40px 40px 80px;
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.categoryBadge {
+  font-size: 12px;
+  font-weight: 500;
+  color: #1b4dff;
+  background: rgba(27, 77, 255, 0.08);
+  border-radius: 9999px;
+  padding: 3px 10px;
+}
+
+.dot {
+  color: #afbaca;
+  font-size: 14px;
+}
+
+.readingTime,
+.date {
+  font-size: 13px;
+  color: #455468;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #0a0c11;
+  letter-spacing: -0.5px;
+  line-height: 1.3;
+  margin: 0;
+
+  @media (min-width: 1024px) {
+    font-size: 30px;
+    line-height: 1.25;
+  }
+}
+
+.summary {
+  font-size: 16px;
+  color: #455468;
+  line-height: 1.6;
+  margin: 0;
+  font-style: italic;
+}
+
+.author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.authorLogo {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.authorInitial {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #e2e8f0;
+  color: #455468;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.authorName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0a0c11;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid rgba(14, 15, 17, 0.06);
+  margin: 28px 0;
+}
+
+.content {
+  font-size: 16px;
+  color: #455468;
+  line-height: 1.7;
+  letter-spacing: -0.3px;
+
+  p {
+    margin: 0 0 16px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: #0a0c11;
+    font-weight: 600;
+    margin: 24px 0 12px;
+    line-height: 1.3;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  h3 {
+    font-size: 17px;
+  }
+
+  ul,
+  ol {
+    padding-left: 24px;
+    margin: 0 0 16px;
+
+    li {
+      margin-bottom: 6px;
+    }
+  }
+
+  strong {
+    font-weight: 600;
+    color: #0a0c11;
+  }
+
+  a {
+    color: #1b4dff;
+    text-decoration: underline;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  code {
+    font-family: monospace;
+    font-size: 13px;
+    background: rgba(14, 15, 17, 0.06);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
+  pre {
+    background: #f0f3f9;
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 0 0 16px;
+
+    code {
+      background: none;
+      padding: 0;
+    }
+  }
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.tag {
+  font-size: 12px;
+  font-weight: 500;
+  color: #455468;
+  background: rgba(14, 15, 17, 0.06);
+  border-radius: 9999px;
+  padding: 4px 12px;
+}
+
+// Skeleton loading states
+.skeletonTitle {
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f0f3f9 25%, #e2e8f0 50%, #f0f3f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 20px;
+  width: 70%;
+}
+
+.skeletonMeta {
+  height: 20px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f3f9 25%, #e2e8f0 50%, #f0f3f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 28px;
+  width: 40%;
+}
+
+.skeletonBody {
+  height: 16px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f3f9 25%, #e2e8f0 50%, #f0f3f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

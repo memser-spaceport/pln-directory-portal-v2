@@ -21,6 +21,18 @@
   }
 }
 
+.titleInline {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+
+  @include mobile-only {
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+}
+
 .titleRow {
   display: flex;
   align-items: flex-start;
@@ -47,6 +59,15 @@
   }
 }
 
+.actionsMobile {
+  display: none;
+
+  @include mobile-only {
+    display: block;
+    margin-bottom: 8px;
+  }
+}
+
 .actions {
   display: flex;
   align-items: center;
@@ -56,6 +77,7 @@
   @include mobile-only {
     margin-left: 0;
     flex-shrink: 0;
+    display: none;
   }
 }
 
@@ -137,7 +159,7 @@
   letter-spacing: -0.3px;
   color: #1b4dff;
   cursor: pointer;
-  white-space: nowrap;
+  text-align: left;
 
   &:hover {
     opacity: 0.8;

@@ -1,32 +1,50 @@
+// Outer wrapper — accounts for DashboardPagesLayout's 30px top padding
+// Figma specifies pt-40px pb-80px from the viewport, so we add the delta here
 .root {
   width: 100%;
   padding: 24px 16px 40px;
 
   @media (min-width: 1024px) {
-    padding: 0;
+    padding: 10px 0 40px;
     max-width: 900px;
     width: 100%;
   }
 }
 
-.card {
+// ── Page card ─────────────────────────────────────────────
+// Figma: 900px, border-radius 8px, shadow Shadow/xs, flex col gap 40px
+.page {
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  padding: 32px 24px 48px;
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+  padding: 32px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
 
   @media (min-width: 1024px) {
-    padding: 40px 40px 80px;
+    padding: 40px;
   }
 }
 
+// ── Section heading ───────────────────────────────────────
+// Figma: flex col, gap 24px between title / stats / para1 / para2
+.sectionHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+// ── Title ─────────────────────────────────────────────────
+// Figma: Inter SemiBold 32px / 42px / -0.75px / #0a0c11
 .title {
   font-size: 26px;
   font-weight: 600;
-  color: #0a0c11;
+  line-height: 36px;
   letter-spacing: -0.75px;
-  line-height: 1.3;
-  margin: 0 0 28px;
+  color: #0a0c11;
+  margin: 0;
 
   @media (min-width: 1024px) {
     font-size: 32px;
@@ -34,17 +52,21 @@
   }
 }
 
+// ── Stats row ─────────────────────────────────────────────
+// Figma: flex row, gap 20px, each card flex:1
 .statsRow {
   display: flex;
   gap: 12px;
-  margin-bottom: 28px;
+  width: 100%;
   flex-wrap: wrap;
 
   @media (min-width: 640px) {
+    gap: 20px;
     flex-wrap: nowrap;
   }
 }
 
+// Figma: border rgba(27,56,96,0.06), border-radius 12px, shadow Shadow/xs, p-16px
 .statCard {
   flex: 1;
   min-width: 120px;
@@ -52,49 +74,62 @@
   flex-direction: column;
   gap: 4px;
   padding: 16px;
-  border: 1px solid rgba(27, 56, 96, 0.12);
+  border: 1px solid rgba(27, 56, 96, 0.06);
   border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
 }
 
+// Figma: Inter SemiBold 24px / 34px / -0.4px / #0a0c11
 .statValue {
   font-size: 24px;
   font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.4px;
   color: #0a0c11;
-  line-height: 1.2;
 }
 
+// Figma: Inter Regular 12px / 16px / -0.2px / #455468
 .statLabel {
   font-size: 12px;
   font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.2px;
   color: #455468;
-  line-height: 1.4;
 }
 
-.body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-
-  p {
-    font-size: 16px;
-    font-weight: 400;
-    color: #455468;
-    line-height: 1.6;
-    letter-spacing: -0.3px;
-    margin: 0;
-  }
-}
-
-.divider {
-  border: none;
-  border-top: 1px solid rgba(14, 15, 17, 0.06);
-  margin: 28px 0;
-}
-
-.cta {
-  font-size: 14px;
-  font-weight: 500;
+// ── Body text ─────────────────────────────────────────────
+// Figma: Inter Regular 16px / 24px / -0.3px / #455468
+.bodyText {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -0.3px;
   color: #455468;
   margin: 0;
+  width: 100%;
+}
+
+// ── Link button ───────────────────────────────────────────
+// Figma: flex row, gap 2px, items-center — icon 14×14 + Inter Medium 14px / 20px / -0.2px / #455468
+.linkButton {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.linkText {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  white-space: nowrap;
+}
+
+// ── Divider ───────────────────────────────────────────────
+// Figma: 1px, rgba(14,15,17,0.06), full width
+.divider {
+  height: 1px;
+  width: 100%;
+  background: rgba(14, 15, 17, 0.06);
 }

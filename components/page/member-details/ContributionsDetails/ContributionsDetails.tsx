@@ -12,6 +12,7 @@ import { getAccessLevel } from '@/utils/auth.utils';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { isAdminUser } from '@/utils/user/isAdminUser';
+import { ViewType } from '@/types/ui';
 
 interface Props {
   member: IMember;
@@ -20,7 +21,7 @@ interface Props {
 }
 
 export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
-  const [view, setView] = useState<'view' | 'add' | 'edit'>('view');
+  const [view, setView] = useState<ViewType>('view');
   const [selectedItem, setSelectedItem] = useState<null | IProjectContribution>(null);
   const isAdmin = isAdminUser(userInfo)
   const isOwner = userInfo?.uid === member.id;

@@ -9,23 +9,23 @@
   }
 }
 
+.backButton {
+  padding: 0;
+  box-shadow: none;
+}
+
 .card {}
 
+// ── Header ────────────────────────────────────────────────
 .header {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-bottom: 0;
 }
 
-.meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
+// Figma: blue pill badge
 .categoryBadge {
+  align-self: flex-start;
   font-size: 12px;
   font-weight: 500;
   color: #1b4dff;
@@ -34,17 +34,7 @@
   padding: 3px 10px;
 }
 
-.dot {
-  color: #afbaca;
-  font-size: 14px;
-}
-
-.readingTime,
-.date {
-  font-size: 13px;
-  color: #455468;
-}
-
+// Figma: Inter SemiBold ~28-32px
 .title {
   font-size: 24px;
   font-weight: 600;
@@ -59,54 +49,105 @@
   }
 }
 
+// Italic summary below title
 .summary {
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 16px;
-  color: #455468;
-  line-height: 1.6;
-  margin: 0;
-  font-style: italic;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px; /* 150% */
+  letter-spacing: -0.3px;
 }
 
-.author {
+// ── Details bar ───────────────────────────────────────────
+// Figma node 171:11409 — author + vertical divider + stats
+.details {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
 }
 
-.authorLogo {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+// Author: avatar + name
+.authorDetails {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+// 24×24 circle logo image
+.authorAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
   object-fit: cover;
   flex-shrink: 0;
 }
 
+// 24×24 circle with blue bg + white initials
 .authorInitial {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: #e2e8f0;
-  color: #455468;
-  font-size: 14px;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: #1b4dff;
+  color: #fff;
+  font-size: 10px;
   font-weight: 600;
+  letter-spacing: -0.2px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
+// Figma: Inter SemiBold 12px / 18px / #0a0c11
 .authorName {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
   color: #0a0c11;
+  white-space: nowrap;
 }
 
+// Vertical hairline divider between author and stats
+.detailsDivider {
+  width: 1px;
+  height: 24px;
+  background: rgba(27, 56, 96, 0.12);
+  flex-shrink: 0;
+}
+
+// Stats row: likes · views · time · date
+.stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+// Each stat: icon + text in a flex row gap-4px
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #8897ae;
+  white-space: nowrap;
+}
+
+// ── Content divider ───────────────────────────────────────
 .divider {
   border: none;
   border-top: 1px solid rgba(14, 15, 17, 0.06);
-  margin: 28px 0;
+  margin: 24px 0;
 }
 
+// ── Article body ──────────────────────────────────────────
 .content {
   font-size: 16px;
   color: #455468;
@@ -185,6 +226,7 @@
   }
 }
 
+// ── Tags ──────────────────────────────────────────────────
 .tags {
   display: flex;
   flex-wrap: wrap;
@@ -201,7 +243,7 @@
   padding: 4px 12px;
 }
 
-// Skeleton loading states
+// ── Skeleton loading ──────────────────────────────────────
 .skeletonTitle {
   height: 36px;
   border-radius: 8px;

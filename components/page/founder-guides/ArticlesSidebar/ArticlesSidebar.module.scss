@@ -11,7 +11,7 @@
 .header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   height: 64px;
   padding: 0 16px;
   border-bottom: 1px solid rgba(27, 56, 96, 0.12);
@@ -21,9 +21,10 @@
 .title {
   font-size: 18px;
   font-weight: 500;
-  color: #0a0c11;
+  color: #0A0C11;
   letter-spacing: -0.4px;
   line-height: 24px;
+  text-align: left;
 }
 
 // ── Search ────────────────────────────────────────────────
@@ -135,7 +136,7 @@
 .articleRow {
   display: flex;
   align-items: flex-start;
-  padding: 12px 16px 12px 28px;
+  padding: 12px 16px 12px 40px;
   text-decoration: none;
   background: #fff;
 

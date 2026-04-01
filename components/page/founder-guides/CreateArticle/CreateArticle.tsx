@@ -11,34 +11,19 @@ import { FormEditor } from '@/components/form/FormEditor';
 import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import useBlockNavigation from '@/hooks/useUnsavedChangesWarning';
-import { useAllMembers } from '@/services/members/hooks/useAllMembers';
-import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
 import { useCreateArticleMutation } from '@/services/articles/hooks/useCreateArticleMutation';
+import { ARTICLE_CATEGORIES } from '@/services/articles/constants';
+import { AuthorAutocomplete } from './AuthorAutocomplete';
 import { createArticleSchema, CreateArticleForm } from './helpers';
 import s from './CreateArticle.module.scss';
 
 export default function CreateArticle() {
   const router = useRouter();
   const { mutateAsync, isPending } = useCreateArticleMutation();
-  const { byCategory } = useGetArticles();
-  const { data: allMembers } = useAllMembers();
 
   useMobileNavVisibility(true);
 
-  const categoryOptions = useMemo(
-    () => byCategory.map((c) => ({ label: c.category, value: c.category })),
-    [byCategory],
-  );
-
-  // TODO: extend to include teams once a useAllTeams hook is available
-  const authorOptions = useMemo(() => {
-    return (
-      allMembers?.data?.map((item: { name: string; uid: string }) => ({
-        label: item.name,
-        value: item.uid.toString(),
-      })) ?? []
-    );
-  }, [allMembers]);
+  const categoryOptions = useMemo(() => ARTICLE_CATEGORIES.map((c) => ({ label: c, value: c })), []);
 
   const methods = useForm<CreateArticleForm>({
     // @ts-ignore
@@ -46,6 +31,7 @@ export default function CreateArticle() {
       category: null,
       title: '',
       summary: '',
+      readingTime: null,
       content: '',
       author: null,
       officeHoursUrl: '',
@@ -67,12 +53,15 @@ export default function CreateArticle() {
   };
 
   const onSubmit = async (data: any) => {
+    const author = data.author as CreateArticleForm['author'];
     const result = await mutateAsync({
       title: data.title,
       summary: data.summary || undefined,
-      category: data.category!.value,
+      category: data.category?.value,
+      readingTime: data.readingTime || undefined,
       content: data.content,
-      authorMemberUid: data.author?.value,
+      authorMemberUid: author?.type === 'member' ? author.value : undefined,
+      authorTeamUid: author?.type === 'team' ? author.value : undefined,
       officeHoursUrl: data.officeHoursUrl || undefined,
       status: 'PUBLISHED',
     });
@@ -93,62 +82,43 @@ export default function CreateArticle() {
             <div className={s.heading}>
               <div className={s.headingText}>
                 <h1 className={s.title}>Create New Guide</h1>
-                <p className={s.subtitle}>
-                  Structured, expert-driven guides for startup founders.
-                  <br />
-                  No noise — just the knowledge you need to build.
-                </p>
+                <p className={s.subtitle}>Structured, expert-driven guides for startup founders.</p>
               </div>
             </div>
 
             <div className={s.section}>
               <div className={s.sectionDivider}>CONTENT</div>
 
-              <FormSelect
-                name="category"
-                placeholder="Select category"
-                label="Category"
-                options={categoryOptions}
-                isRequired
-              />
+              <FormSelect name="category" placeholder="Select category" label="Category" options={categoryOptions} />
 
               <FormField
                 name="title"
                 placeholder="Enter the title (e.g. Token vesting schedules, SAFE vs equity, hiring first engineer)"
                 label="Guide Title"
-                max={255}
-                isRequired
               />
 
-              <FormTextArea
+              <FormField
                 name="summary"
                 placeholder="A short overview of what this guide helps with"
                 label="Summary"
-                rows={3}
-                maxLength={100}
-                showCharCount
+                max={100}
               />
 
-              <FormEditor
+              <FormField name="readingTime" placeholder="e.g. 5" label="Reading Time (minutes)" />
+
+              <FormTextArea
                 name="content"
                 placeholder="Write the guide content. Focus on clear, practical advice founders can apply."
                 label="Content"
-                isRequired
-                maxLength={600}
                 showCharCount
+                rows={16}
               />
             </div>
 
             <div className={s.section}>
               <div className={s.sectionDivider}>AUTHOR</div>
 
-              <FormSelect
-                name="author"
-                placeholder="Search by name"
-                label="Select Member or Team"
-                options={authorOptions}
-                isRequired
-              />
+              <AuthorAutocomplete />
 
               <FormField
                 name="officeHoursUrl"

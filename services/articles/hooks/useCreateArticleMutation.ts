@@ -12,6 +12,7 @@ type CreateArticlePayload = {
   content: string;
   authorMemberUid?: string;
   authorTeamUid?: string;
+  readingTime?: number;
   officeHoursUrl?: string;
   status: 'PUBLISHED';
 };

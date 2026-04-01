@@ -8,55 +8,30 @@ const stripHtml = (html: string) => {
 };
 
 export const createArticleSchema = yup.object().shape({
-  category: yup
-    .object()
+  category: yup.object().nullable().optional(),
+  title: yup.string().max(255, 'Title exceeds 255 characters. Please shorten.').nullable().optional(),
+  summary: yup.string().max(100, 'Max 100 characters.').nullable().optional(),
+  readingTime: yup
+    .number()
+    .transform((value, original) => (original === '' ? null : value))
+    .min(1, 'Must be at least 1 minute.')
+    .max(999, 'Max 999 minutes.')
     .nullable()
-    .test({
-      test: function (value) {
-        if (!value) {
-          return this.createError({ message: 'Category is required', type: 'required' });
-        }
-        return true;
-      },
-    })
-    .required('Category is required'),
-  title: yup
-    .string()
-    .min(3, 'Title must be at least 3 characters.')
-    .max(255, 'Title exceeds 255 characters. Please shorten.')
-    .required('Required'),
-  summary: yup.string().max(100, 'Max 100 characters.').nullable(),
+    .optional(),
   content: yup
     .string()
-    .test({
-      name: 'minTextLength',
-      message: 'Please enter longer content (at least 10 characters).',
-      test: function (value) {
-        const plainText = stripHtml(value || '');
-        return plainText.trim().length >= 10;
-      },
-    })
     .test({
       name: 'maxTextLength',
       message: 'Max 600 characters.',
       test: function (value) {
-        const plainText = stripHtml(value || '');
+        if (!value) return true;
+        const plainText = stripHtml(value);
         return plainText.trim().length <= 600;
       },
     })
-    .required('Required'),
-  author: yup
-    .object()
     .nullable()
-    .test({
-      test: function (value) {
-        if (!value) {
-          return this.createError({ message: 'Please select an author', type: 'required' });
-        }
-        return true;
-      },
-    })
-    .required('Please select an author'),
+    .optional(),
+  author: yup.object().nullable().optional(),
   officeHoursUrl: yup.string().url('Must be a valid URL').nullable().optional(),
 });
 
@@ -64,8 +39,8 @@ export type CreateArticleForm = {
   category: { label: string; value: string } | null;
   title: string;
   summary: string;
+  readingTime: number | null;
   content: string;
-  // TODO: extend to support teams once a useAllTeams hook is available
-  author: { label: string; value: string } | null;
+  author: { label: string; value: string; type: 'member' | 'team' } | null;
   officeHoursUrl: string;
 };

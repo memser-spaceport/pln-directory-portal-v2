@@ -20,6 +20,7 @@ interface Props {
   isRequired?: boolean;
   showNone?: boolean;
   noneLabel?: string;
+  notFoundContent?: ReactNode;
 }
 
 const filterAndSort = (option: { value: string; label: string }, input: string) => {
@@ -61,6 +62,7 @@ export const FormMultiSelect = ({
   isRequired,
   showNone,
   noneLabel = 'None',
+  notFoundContent,
 }: Props) => {
   const {
     formState: { errors },
@@ -80,7 +82,22 @@ export const FormMultiSelect = ({
   const sortedOptions = filteredOptions.sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase()));
 
   // Add None option at the top if showNone is true
-  const finalOptions = showNone ? [noneOption, ...sortedOptions] : sortedOptions;
+  const baseOptions = showNone ? [noneOption, ...sortedOptions] : sortedOptions;
+
+  // Append notFoundContent as a special non-selectable option
+  const finalOptions = React.useMemo(() => {
+    if (notFoundContent) {
+      return [
+        ...baseOptions,
+        {
+          label: '',
+          value: '__not_found_content__',
+          isNotFoundContent: true,
+        } as any,
+      ];
+    }
+    return baseOptions;
+  }, [baseOptions, notFoundContent]);
 
   useScrollIntoViewOnFocus<HTMLInputElement>({ id: name });
 
@@ -102,7 +119,12 @@ export const FormMultiSelect = ({
         inputValue={inputValue}
         // autoFocus
         options={finalOptions}
-        filterOption={() => true}
+        filterOption={(option) => {
+          if ((option.data as any).isNotFoundContent) {
+            return true;
+          }
+          return filterAndSort(option.data as { value: string; label: string }, inputValue);
+        }}
         isClearable={false}
         placeholder={placeholder}
         inputId={name}
@@ -111,15 +133,35 @@ export const FormMultiSelect = ({
         value={val}
         components={{
           MultiValue: CustomMultiValue,
+          NoOptionsMessage: () => (
+            <div className={s.notFound}>
+              <span>No options found</span>
+              {notFoundContent}
+            </div>
+          ),
+          Option: (optionProps) => {
+            if ((optionProps.data as any).isNotFoundContent) {
+              return (
+                <div className={s.notFoundContent}>
+                  {notFoundContent}
+                </div>
+              );
+            }
+            return <components.Option {...optionProps} />;
+          },
         }}
         onChange={(newVal) => {
+          // Filter out the special notFoundContent option
+          const filtered = (newVal || []).filter(
+            (option: any) => option.value !== '__not_found_content__',
+          );
           if (!showNone) {
             // If showNone is false, use normal behavior
-            setValue(name, newVal, { shouldValidate: true, shouldDirty: true });
+            setValue(name, filtered, { shouldValidate: true, shouldDirty: true });
             return;
           }
 
-          const currentValues = newVal || [];
+          const currentValues = filtered;
           const previousValues = val || [];
 
           // Check what was just selected by comparing current and previous values

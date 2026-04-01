@@ -7,7 +7,6 @@ import {
   DEAL_CATEGORY_LABELS,
   DEAL_AUDIENCE_LABELS,
   DEAL_HIGH_VALUE_FILTER_VALUE,
-  DEAL_HIGH_VALUE_FILTER_LABEL,
 } from '../constants';
 
 export function useGetDealFilterValues() {

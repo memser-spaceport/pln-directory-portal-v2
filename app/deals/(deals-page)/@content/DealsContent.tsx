@@ -3,7 +3,7 @@
 import { useQueryStates } from 'nuqs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { dealsFilterParsers } from '../searchParams';
+import { dealsFilterParsers, DEAL_SORT_VALUES } from '../searchParams';
 import { useGetDeals } from '@/services/deals/hooks/useGetDeals';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 import { DealsToolbar } from '@/components/page/deals/DealsToolbar/DealsToolbar';
@@ -59,7 +59,7 @@ export default function DealsContent() {
   const handleSortChange = useCallback(
     (sort: string) => {
       analytics.trackSortChanged(sort);
-      setFilters({ sort: sort as 'asc' | 'desc', page: 1 });
+      setFilters({ sort: sort as (typeof DEAL_SORT_VALUES)[number], page: 1 });
     },
     [setFilters, analytics],
   );
@@ -162,6 +162,7 @@ export default function DealsContent() {
           filterCount={filters.categories.length + filters.audiences.length + (filters.q ? 1 : 0)}
           currentSort={filters.sort}
           sortOptions={sortOptions}
+          sortByLabel="Sort by:"
           onSortChange={handleSortChange}
           onClearFilters={handleClearAll}
           renderFilter={(onClose) => (

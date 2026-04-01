@@ -11,7 +11,7 @@ import s from './MobileFilterWrapper.module.scss';
 
 export interface SortOption {
   value: string;
-  label: string;
+  label: React.ReactNode;
 }
 
 export interface MobileFilterWrapperProps {
@@ -44,6 +44,11 @@ export interface MobileFilterWrapperProps {
    * Handler to clear all filters
    */
   onClearFilters?: () => void;
+
+  /**
+   * Optional label shown before the sort control (e.g. "Sort by:")
+   */
+  sortByLabel?: string;
 
   /**
    * Optional callback when filter panel is closed via X button or swipe
@@ -83,6 +88,7 @@ export function MobileFilterWrapper({
   onSortChange,
   renderFilter,
   onClearFilters,
+  sortByLabel,
   onFilterClose,
 }: MobileFilterWrapperProps) {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
@@ -120,6 +126,7 @@ export function MobileFilterWrapper({
             {filterCount > 0 && <span>&nbsp;({filterCount})</span>}
           </button>
           <div className={s.rightSection}>
+            {sortByLabel && <span className={s.sortByLabel}>{sortByLabel}</span>}
             {/* Sort Menu using base-ui */}
             <Menu.Root modal={false}>
               <Menu.Trigger className={s.filtersButton}>

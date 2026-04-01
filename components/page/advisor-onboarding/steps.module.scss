@@ -1,0 +1,79 @@
+.container { display: flex; flex-direction: column; gap: 16px; }
+.title { font-size: 20px; font-weight: 600; margin: 0; }
+.subtitle { font-size: 14px; color: #6b7280; margin: 0; }
+
+.textarea {
+  padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;
+  font-size: 14px; font-family: inherit; resize: vertical; outline: none;
+  &:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+}
+
+.input {
+  padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px;
+  font-size: 14px; outline: none;
+  &:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+}
+
+.actionsEnd { display: flex; justify-content: flex-end; padding-top: 8px; }
+.actionsBetween { display: flex; justify-content: space-between; padding-top: 8px; }
+.rightActions { display: flex; gap: 12px; }
+
+.backButton {
+  padding: 10px 24px; border: 1px solid #d1d5db; border-radius: 6px;
+  background: #fff; font-size: 14px; cursor: pointer;
+  &:hover { background: #f9fafb; }
+}
+
+.skipButton {
+  padding: 10px 24px; border: none; border-radius: 6px;
+  background: transparent; color: #6b7280; font-size: 14px; cursor: pointer;
+  &:hover { color: #374151; }
+}
+
+.nextButton {
+  padding: 10px 24px; border: none; border-radius: 6px;
+  background: #6366f1; color: #fff; font-size: 14px; font-weight: 500; cursor: pointer;
+  &:hover { background: #4f46e5; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// Calendar connect
+.providers { display: flex; gap: 12px; }
+
+.providerCard {
+  flex: 1; padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px;
+  background: #fff; cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; gap: 8px; transition: all 0.15s ease;
+  &:hover { border-color: #6366f1; }
+}
+
+.providerConnected { border-color: #22c55e; background: #f0fdf4; }
+.providerName { font-size: 15px; font-weight: 500; }
+.connectedLabel { font-size: 12px; color: #16a34a; font-weight: 500; }
+
+// Availability grid
+.grid { display: flex; flex-direction: column; gap: 4px; overflow-x: auto; }
+.gridHeader { display: flex; gap: 4px; }
+.cornerCell { width: 90px; flex-shrink: 0; }
+.timeHeader { flex: 1; min-width: 60px; font-size: 11px; color: #6b7280; text-align: center; padding: 4px; }
+.gridRow { display: flex; gap: 4px; align-items: center; }
+.dayLabel { width: 90px; font-size: 13px; font-weight: 500; color: #374151; flex-shrink: 0; }
+
+.cell {
+  flex: 1; min-width: 60px; height: 36px; border: 1px solid #e5e7eb; border-radius: 4px;
+  background: #fff; cursor: pointer; transition: all 0.15s ease;
+  &:hover { border-color: #6366f1; background: #eef2ff; }
+}
+
+.cellSelected {
+  background: #6366f1; border-color: #6366f1;
+  &:hover { background: #4f46e5; border-color: #4f46e5; }
+}
+
+.preview { font-size: 13px; color: #6366f1; margin: 0; font-weight: 500; }
+
+// Investor placeholder
+.placeholder {
+  padding: 24px; border: 2px dashed #e5e7eb; border-radius: 8px;
+  text-align: center; color: #9ca3af; font-size: 14px;
+}

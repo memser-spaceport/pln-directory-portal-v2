@@ -1,0 +1,19 @@
+.container { max-width: 640px; margin: 40px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 32px; }
+
+.progress { display: flex; justify-content: center; gap: 24px; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+
+.stepDot {
+  width: 32px; height: 32px; border-radius: 50%; border: 2px solid #d1d5db;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; color: #9ca3af; background: #fff;
+}
+
+.stepActive .stepDot { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+.stepDone .stepDot { border-color: #22c55e; color: #fff; background: #22c55e; }
+
+.stepLabel { font-size: 12px; color: #9ca3af; }
+.stepActive .stepLabel { color: #6366f1; font-weight: 500; }
+.stepDone .stepLabel { color: #22c55e; }
+
+.content { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 32px; }

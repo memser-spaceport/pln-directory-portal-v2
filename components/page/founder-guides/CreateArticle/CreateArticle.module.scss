@@ -1,0 +1,204 @@
+@import '@/styles/mixins.scss';
+@import '@/styles/media.scss';
+
+// ── Root wrapper ──────────────────────────────────────────────
+.root {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  padding: 40px 24px 80px;
+  background: var(--surface-neutral-subtle, #f0f3f9);
+  min-height: calc(100vh - 80px);
+}
+
+// ── Form card ─────────────────────────────────────────────────
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+  max-width: 600px;
+}
+
+// ── Heading ───────────────────────────────────────────────────
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.headingText {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #0a0c11;
+  line-height: 42px;
+  letter-spacing: -0.75px;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #455468;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+// ── Form section ──────────────────────────────────────────────
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sectionDivider {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8897ae;
+  letter-spacing: -0.2px;
+  line-height: 16px;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+}
+
+// ── Buttons row ───────────────────────────────────────────────
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cancelBtn {
+  height: 40px;
+  padding: 0 16px;
+  background: #fff;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #455468;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  box-shadow: 0px 1px 2px rgba(14, 15, 17, 0.08), inset 0px -2px 8px rgba(14, 15, 17, 0.02);
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
+.submitBtn {
+  height: 40px;
+  padding: 0 16px;
+  background: #1b4dff;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  box-shadow: 0px 1px 5px rgba(27, 77, 255, 0.16), inset 0px 1px 3px rgba(255, 255, 255, 0.32),
+    inset 0px 4px 6px rgba(255, 255, 255, 0.06);
+  transition: opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// ── Office Hours (member read-only / prefilled) ─────────────
+.officeHours {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.officeHoursLabelRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.officeHoursLabel {
+  color: #455468;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.officeHoursPrefilled {
+  color: #8897ae;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+.officeHoursInput {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  background: #f9fafb;
+  border: 1px solid rgba(14, 15, 17, 0.24);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.06);
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+
+  &:hover {
+    border-color: rgba(14, 15, 17, 0.32);
+  }
+}
+
+.officeHoursValue {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.officeHoursHint {
+  font-size: 13px;
+  color: #8897ae;
+  line-height: 18px;
+}
+
+.profileLink {
+  color: #1b4dff;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ── Mobile adjustments ────────────────────────────────────────
+@include mobile-only {
+  .root {
+    padding: 24px 16px 80px;
+  }
+}

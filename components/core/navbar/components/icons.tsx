@@ -169,3 +169,27 @@ export const DemoDayIcon = () => (
     </defs>
   </svg>
 );
+
+export function FounderGuidesIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" stroke="#455468" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" stroke="#455468" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M6 8h2" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M6 12h2" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M16 8h2" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M16 12h2" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function MoreIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="3" width="6" height="6" rx="1.5" stroke="#455468" strokeWidth="1.5" />
+      <rect x="11" y="3" width="6" height="6" rx="1.5" stroke="#455468" strokeWidth="1.5" />
+      <rect x="3" y="11" width="6" height="6" rx="1.5" stroke="#455468" strokeWidth="1.5" />
+      <rect x="11" y="11" width="6" height="6" rx="1.5" stroke="#455468" strokeWidth="1.5" />
+    </svg>
+  );
+}

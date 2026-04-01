@@ -48,5 +48,8 @@ storybook-static
 
 #Other
 CLAUDE.md
+.claude/
+.claude.json
 approve-pr.sh
 /docs
+.superpowers/

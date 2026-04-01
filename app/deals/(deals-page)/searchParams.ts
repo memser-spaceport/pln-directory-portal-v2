@@ -6,7 +6,7 @@ import {
   parseAsInteger,
 } from 'nuqs/server';
 
-export const DEAL_SORT_VALUES = ['asc', 'desc'] as const;
+export const DEAL_SORT_VALUES = ['highValueFirst', 'asc', 'desc'] as const;
 
 export const dealsFilterParsers = {
   q: parseAsString.withDefault(''),

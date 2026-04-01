@@ -133,7 +133,12 @@ const ProjectsToolbar = (props: any) => {
         </div>
 
         <div className="toolbar__right">
-          <SortDropdown options={PROJECT_SORT_OPTIONS} currentSort={sortBy} onSortChange={onSortChange} />
+          <SortDropdown
+            sortByLabel="Sort by:"
+            options={PROJECT_SORT_OPTIONS}
+            currentSort={sortBy}
+            onSortChange={onSortChange}
+          />
           <ViewType callback={onViewtypeClickHandler} view={view} />
         </div>
       </div>

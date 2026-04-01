@@ -5,7 +5,7 @@ import s from './SortDropdown.module.scss';
 
 export interface SortOption {
   value: string;
-  label: string;
+  label: React.ReactNode;
 }
 
 interface SortDropdownProps {
@@ -13,12 +13,14 @@ interface SortDropdownProps {
   currentSort: string;
   onSortChange: (sort: string) => void;
   className?: string;
+  /** When set, shows this text before the dropdown (e.g. "Sort by:"). */
+  sortByLabel?: string;
 }
 
-export function SortDropdown({ options, currentSort, onSortChange, className }: SortDropdownProps) {
+export function SortDropdown({ options, currentSort, onSortChange, className, sortByLabel }: SortDropdownProps) {
   const currentLabel = options.find((o) => o.value === currentSort)?.label || options[0]?.label;
 
-  return (
+  const dropdown = (
     <Menu.Root modal={false}>
       <Menu.Trigger className={clsx(s.trigger, className)}>
         {currentLabel}
@@ -48,5 +50,16 @@ export function SortDropdown({ options, currentSort, onSortChange, className }: 
         </Menu.Positioner>
       </Menu.Portal>
     </Menu.Root>
+  );
+
+  if (!sortByLabel) {
+    return dropdown;
+  }
+
+  return (
+    <div className={s.sortGroup}>
+      <span className={s.sortByLabel}>{sortByLabel}</span>
+      {dropdown}
+    </div>
   );
 }

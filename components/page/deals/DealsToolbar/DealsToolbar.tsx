@@ -72,6 +72,7 @@ export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
         </div>
         <div className={s.actions}>
           <SortDropdown
+            sortByLabel="Sort by:"
             options={DEAL_SORT_OPTIONS}
             currentSort={currentSort}
             onSortChange={onSortChange}

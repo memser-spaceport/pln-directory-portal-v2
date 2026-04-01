@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormField } from '@/components/form/FormField';
@@ -11,6 +12,7 @@ import { FormEditor } from '@/components/form/FormEditor';
 import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import useBlockNavigation from '@/hooks/useUnsavedChangesWarning';
+import { useMember } from '@/services/members/hooks/useMember';
 import { useCreateArticleMutation } from '@/services/articles/hooks/useCreateArticleMutation';
 import { ARTICLE_CATEGORIES } from '@/services/articles/constants';
 import { AuthorAutocomplete } from './AuthorAutocomplete';
@@ -43,8 +45,14 @@ export default function CreateArticle() {
   const {
     handleSubmit,
     reset,
+    watch,
     formState: { isSubmitting, isDirty },
   } = methods;
+
+  const author: CreateArticleForm['author'] = watch('author');
+  const selectedMemberUid = author?.type === 'member' ? author.value : undefined;
+  const { data: selectedMemberData } = useMember(selectedMemberUid);
+  const memberOfficeHours = selectedMemberData?.memberInfo?.officeHours || null;
 
   const { isAttemptingNavigation, proceedNavigation, cancelNavigation } = useBlockNavigation(isDirty);
 
@@ -62,7 +70,7 @@ export default function CreateArticle() {
       content: data.content,
       authorMemberUid: author?.type === 'member' ? author.value : undefined,
       authorTeamUid: author?.type === 'team' ? author.value : undefined,
-      officeHoursUrl: data.officeHoursUrl || undefined,
+      officeHoursUrl: author?.type === 'member' ? memberOfficeHours || undefined : data.officeHoursUrl || undefined,
       status: 'PUBLISHED',
     });
 
@@ -104,7 +112,7 @@ export default function CreateArticle() {
                 max={100}
               />
 
-              <FormField name="readingTime" placeholder="e.g. 5" label="Reading Time (minutes)" />
+              <FormField name="readingTime" placeholder="e.g. 5" label="Number of Minutes to Read the Guide" />
 
               <FormTextArea
                 name="content"
@@ -120,12 +128,39 @@ export default function CreateArticle() {
 
               <AuthorAutocomplete />
 
-              <FormField
-                name="officeHoursUrl"
-                placeholder="Enter Office Hours link"
-                label="Office Hours"
-                description="Drop your calendar link here so others can get in touch with you at a time that is convenient."
-              />
+              {author?.type === 'member' && memberOfficeHours && (
+                <div className={s.officeHours}>
+                  <div className={s.officeHoursLabelRow}>
+                    <span className={s.officeHoursLabel}>Office Hours</span>
+                    <span className={s.officeHoursPrefilled}>(Prefilled)</span>
+                  </div>
+                  <a href={memberOfficeHours} target="_blank" rel="noopener noreferrer" className={s.officeHoursInput}>
+                    <span className={s.officeHoursValue}>{memberOfficeHours}</span>
+                  </a>
+                </div>
+              )}
+
+              {author?.type === 'member' && !memberOfficeHours && (
+                <div className={s.officeHours}>
+                  <span className={s.officeHoursLabel}>Office Hours</span>
+                  <span className={s.officeHoursHint}>
+                    No Office Hours set.{' '}
+                    <Link href={`/members/${author.value}`} className={s.profileLink}>
+                      Update your profile
+                    </Link>{' '}
+                    to add one.
+                  </span>
+                </div>
+              )}
+
+              {author?.type === 'team' && (
+                <FormField
+                  name="officeHoursUrl"
+                  placeholder="Enter Office Hours link"
+                  label="Office Hours"
+                  description="Drop your calendar link here so others can get in touch with you at a time that is convenient."
+                />
+              )}
             </div>
 
             <div className={s.buttons}>

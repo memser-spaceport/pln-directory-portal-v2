@@ -122,6 +122,80 @@
   }
 }
 
+// ── Office Hours (member read-only / prefilled) ─────────────
+.officeHours {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.officeHoursLabelRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.officeHoursLabel {
+  color: #455468;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.officeHoursPrefilled {
+  color: #8897ae;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+.officeHoursInput {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  background: #f9fafb;
+  border: 1px solid rgba(14, 15, 17, 0.24);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.06);
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+
+  &:hover {
+    border-color: rgba(14, 15, 17, 0.32);
+  }
+}
+
+.officeHoursValue {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.officeHoursHint {
+  font-size: 13px;
+  color: #8897ae;
+  line-height: 18px;
+}
+
+.profileLink {
+  color: #1b4dff;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 // ── Mobile adjustments ────────────────────────────────────────
 @include mobile-only {
   .root {

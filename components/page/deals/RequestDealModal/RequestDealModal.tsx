@@ -52,7 +52,8 @@ export function RequestDealModal() {
     mutate(
       {
         whatDealAreYouLookingFor: data.whatDealAreYouLookingFor,
-        description: data.description,
+        description: data.description ?? '',
+        howToReachOutToYou: '-',
       },
       {
         onSuccess: () => {

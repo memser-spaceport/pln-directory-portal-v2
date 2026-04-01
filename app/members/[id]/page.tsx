@@ -36,6 +36,8 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
 import { isAdminUser } from '@/utils/user/isAdminUser';
+import { useIsAdvisor } from '@/services/advisors/hooks/useIsAdvisor';
+import { AdvisorBadge } from '@/components/page/advisors/AdvisorBadge';
 
 const shouldShowInvestorProfileForThirdParty = (
   member: IMember,
@@ -89,6 +91,7 @@ const MemberDetails = ({ params }: { params: any }) => {
 
   // Fetch investor settings to check visibility preference
   const { data: memberInvestorSettings } = useGetMemberInvestorSettings(memberId);
+  const { data: isAdvisorMember } = useIsAdvisor(memberId);
   const { data: availableToConnectCount } = useQuery({
     queryKey: ['memberList'],
     queryFn: () => getMemberListForQuery(qs.stringify({ hasOfficeHours: true }), 1, 1, userInfo?.token),
@@ -150,6 +153,7 @@ const MemberDetails = ({ params }: { params: any }) => {
         return (
           <>
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {isAdvisorMember && <AdvisorBadge />}
             {showInvestorProfile && (
               <InvestorProfileDetails
                 userInfo={userInfo}
@@ -183,6 +187,7 @@ const MemberDetails = ({ params }: { params: any }) => {
               isNewInvestor={isNewInvestor}
             />
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {isAdvisorMember && <AdvisorBadge />}
             {showInvestorProfile && (
               <InvestorProfileDetails
                 userInfo={userInfo}
@@ -192,7 +197,7 @@ const MemberDetails = ({ params }: { params: any }) => {
                 useInlineAddTeam
               />
             )}
-            <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {!isAdvisorMember && <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
             <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />

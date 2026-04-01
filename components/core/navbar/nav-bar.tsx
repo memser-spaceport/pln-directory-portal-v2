@@ -17,6 +17,8 @@ import { useContactSupportStore } from '@/services/contact-support/store';
 
 import { DIRECTORY_LINKS, EVENT_LINKS, PROTOTYPE_LINKS } from './constants/navLinks';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
+import { useAdvisorsAccess } from '@/services/advisors/hooks/useAdvisorsAccess';
+import { ISubItem } from '@/components/core/navbar/type';
 
 import {
   AppLogo,
@@ -94,6 +96,18 @@ function Navbar(props: Readonly<INavbar>) {
   const { data: profileStatus } = useMemberProfileStatus(userInfo?.uid);
 
   const { hasAccess: hasDealsPageAccess } = useDealsAccess();
+  const { hasAccess: hasAdvisorsAccess } = useAdvisorsAccess();
+
+  const directoryLinks: ISubItem[] = hasAdvisorsAccess
+    ? [
+        ...DIRECTORY_LINKS,
+        {
+          href: '/advisors',
+          title: 'Advisors',
+          description: 'Connect with experienced operators for specific challenges',
+        },
+      ]
+    : [...DIRECTORY_LINKS];
 
   return (
     <NavigationMenu.Root className={s.Root}>
@@ -105,7 +119,7 @@ function Navbar(props: Readonly<INavbar>) {
         <NavItemWithMenu
           icon={<DirectoryIcon />}
           label="Directory"
-          items={DIRECTORY_LINKS}
+          items={directoryLinks}
           onNavItemClickHandler={onNavItemClickHandler}
         />
 

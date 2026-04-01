@@ -8,7 +8,7 @@ import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
 import { FormField } from '@/components/form/FormField';
-import { FormEditor } from '@/components/form/FormEditor/FormEditor';
+import { FormTextArea } from '@/components/form/FormTextArea';
 import { useRequestDealModalStore } from '@/services/deals/store';
 import { useRequestDeal } from '@/services/deals/hooks/useRequestDeal';
 import { useDealsAnalytics } from '@/analytics/deals.analytics';
@@ -32,7 +32,6 @@ export function RequestDealModal() {
     defaultValues: {
       whatDealAreYouLookingFor: '',
       description: '',
-      howToReachOutToYou: '',
     },
     mode: 'onChange',
   });
@@ -54,7 +53,6 @@ export function RequestDealModal() {
       {
         whatDealAreYouLookingFor: data.whatDealAreYouLookingFor,
         description: data.description,
-        howToReachOutToYou: data.howToReachOutToYou,
       },
       {
         onSuccess: () => {
@@ -92,25 +90,13 @@ export function RequestDealModal() {
                 description="Max. 100 characters."
               />
 
-              <FormEditor
+              <FormTextArea
                 name="description"
                 label="Why would this be useful?"
                 placeholder="Describe how your team (or others) would benefit"
                 description="Max. 600 characters."
                 maxLength={600}
                 showCharCount
-                isRequired
-                simplified
-              />
-
-              <FormField
-                name="howToReachOutToYou"
-                label="How to reach out to you"
-                placeholder="Enter email, Telegram handle, etc."
-                isRequired
-                max={200}
-                description="In case we have follow-up questions."
-                descriptionPosition="top"
               />
             </div>
           </FormProvider>

@@ -77,6 +77,24 @@ function DotSep() {
   );
 }
 
+function CalendarBlankIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+      <rect x="2.5" y="3.5" width="13" height="12" rx="1.5" stroke="white" strokeWidth="1.5" />
+      <path d="M2.5 7.5H15.5" stroke="white" strokeWidth="1.5" />
+      <path d="M6 1.5V4.5M12 1.5V4.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function DotSepLarge() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <circle cx="10" cy="10" r="2.5" fill="#455468" />
+    </svg>
+  );
+}
+
 export default function ArticleContent({ slug }: ArticleContentProps) {
   const router = useRouter();
   const { articles, isLoading, isError } = useGetArticles();
@@ -187,6 +205,42 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
                 {tag}
               </span>
             ))}
+          </div>
+        )}
+
+        {article.officeHoursUrl && (
+          <div className={s.ohBanner}>
+            <div className={s.ohLeft}>
+              <div className={s.ohAvatarWrap}>
+                {authorLogo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={authorLogo} alt={authorName} className={s.ohAvatar} />
+                ) : article.authorMember?.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={article.authorMember.image} alt={authorName} className={s.ohAvatar} />
+                ) : (
+                  <div className={s.ohInitial}>{initials}</div>
+                )}
+              </div>
+              <div className={s.ohInfo}>
+                <div className={s.ohNameRow}>
+                  <span className={s.ohName}>{authorName}</span>
+                  {article.authorTeam?.name && article.authorMember?.name && (
+                    <>
+                      <DotSepLarge />
+                      <span className={s.ohRole}>@{article.authorTeam.name}</span>
+                    </>
+                  )}
+                </div>
+                {article.authorMember?.name && (
+                  <span className={s.ohSubtitle}>Available for 1:1 call — no introduction needed.</span>
+                )}
+              </div>
+            </div>
+            <a href={article.officeHoursUrl} target="_blank" rel="noopener noreferrer" className={s.ohButton}>
+              <CalendarBlankIcon />
+              Schedule Meeting
+            </a>
           </div>
         )}
       </div>

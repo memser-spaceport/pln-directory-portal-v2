@@ -4,8 +4,8 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
+import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
 import { extractHeadings } from '@/utils/markdown';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
 import s from './ArticlesSidebar.module.scss';
 
 interface ArticlesSidebarProps {
@@ -151,8 +151,7 @@ export default function ArticlesSidebar({ onNavigate }: ArticlesSidebarProps) {
   const [search, setSearch] = useState('');
   const [openCategories, setOpenCategories] = useState<Set<string>>(new Set());
 
-  const { authToken } = getCookiesFromClient();
-  const isLoggedIn = Boolean(authToken);
+  const { canCreate } = useFounderGuidesCreateAccess();
   const isCreateActive = pathname === '/founder-guides/new';
 
   const filtered = useMemo(() => {
@@ -206,7 +205,7 @@ export default function ArticlesSidebar({ onNavigate }: ArticlesSidebarProps) {
         />
       </div>
 
-      {isLoggedIn && (
+      {canCreate && (
         <Link
           href="/founder-guides/new"
           className={`${s.createLink} ${isCreateActive ? s.createLinkActive : ''}`}

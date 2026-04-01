@@ -1,0 +1,49 @@
+.container {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fafafa;
+}
+
+.title { font-size: 16px; font-weight: 600; margin: 0; }
+.subtitle { font-size: 14px; color: #6b7280; margin: 0; }
+
+.textarea {
+  padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px;
+  font-size: 14px; font-family: inherit; resize: vertical; outline: none;
+  &:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+}
+
+.actions { display: flex; gap: 12px; justify-content: flex-end; }
+
+.cancelButton {
+  padding: 8px 16px; border: 1px solid #d1d5db; border-radius: 6px;
+  background: #fff; font-size: 14px; cursor: pointer;
+  &:hover { background: #f9fafb; }
+}
+
+.submitButton {
+  padding: 8px 16px; border: none; border-radius: 6px;
+  background: #6366f1; color: #fff; font-size: 14px; font-weight: 500; cursor: pointer;
+  &:hover { background: #4f46e5; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.confirmation {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; padding: 32px 20px; text-align: center;
+}
+
+.checkIcon {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: #dcfce7; color: #16a34a;
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+
+.confirmTitle { font-size: 18px; font-weight: 600; margin: 0; }
+.confirmText { font-size: 14px; color: #6b7280; margin: 0; max-width: 400px; }
+
+.doneButton {
+  padding: 8px 24px; border: none; border-radius: 6px;
+  background: #6366f1; color: #fff; font-size: 14px; font-weight: 500;
+  cursor: pointer; margin-top: 8px;
+  &:hover { background: #4f46e5; }
+}

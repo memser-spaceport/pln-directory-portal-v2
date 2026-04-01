@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { slugifyHeading, getTextFromChildren } from '@/utils/markdown';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import s from './ArticleContent.module.scss';
@@ -162,7 +163,21 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
         <hr className={s.divider} />
 
         <div className={s.content}>
-          <ReactMarkdown>{article.content}</ReactMarkdown>
+          <ReactMarkdown
+            components={{
+              h2: ({ children, ...props }) => {
+                const text = getTextFromChildren(children);
+                const id = slugifyHeading(text);
+                return (
+                  <h2 id={id} {...props}>
+                    {children}
+                  </h2>
+                );
+              },
+            }}
+          >
+            {article.content}
+          </ReactMarkdown>
         </div>
 
         {article.tags.length > 0 && (

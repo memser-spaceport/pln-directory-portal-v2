@@ -26,7 +26,7 @@ export const createArticleSchema = yup.object().shape({
       test: function (value) {
         if (!value) return true;
         const plainText = stripHtml(value);
-        return plainText.trim().length <= 600;
+        return plainText.trim().length <= 60000;
       },
     })
     .nullable()

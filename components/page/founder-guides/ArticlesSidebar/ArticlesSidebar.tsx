@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
+import { extractHeadings } from '@/utils/markdown';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import s from './ArticlesSidebar.module.scss';
 
@@ -246,15 +247,33 @@ export default function ArticlesSidebar({ onNavigate }: ArticlesSidebarProps) {
                     {articles.map((article) => {
                       const href = `/founder-guides/${article.slugURL}`;
                       const isActive = pathname === href;
+                      const headings = isActive ? extractHeadings(article.content) : [];
                       return (
-                        <Link
-                          key={article.uid}
-                          href={href}
-                          className={`${s.articleRow} ${isActive ? s.articleRowActive : ''}`}
-                          onClick={onNavigate}
-                        >
-                          <span className={s.articleTitle}>{article.title}</span>
-                        </Link>
+                        <div key={article.uid}>
+                          <Link
+                            href={href}
+                            className={`${s.articleRow} ${isActive ? s.articleRowActive : ''}`}
+                            onClick={onNavigate}
+                          >
+                            <span className={s.articleTitle}>{article.title}</span>
+                          </Link>
+                          {headings.length > 0 && (
+                            <div className={s.headingList}>
+                              {headings.map((h) => (
+                                <button
+                                  key={h.id}
+                                  type="button"
+                                  className={s.headingItem}
+                                  onClick={() => {
+                                    document.getElementById(h.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                  }}
+                                >
+                                  {h.text}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
                   </div>

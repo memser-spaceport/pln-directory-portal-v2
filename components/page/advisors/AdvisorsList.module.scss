@@ -1,0 +1,13 @@
+.container { display: flex; flex-direction: column; gap: 24px; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+.header { display: flex; flex-direction: column; gap: 8px; }
+.title { font-size: 24px; font-weight: 700; margin: 0; }
+.subtitle { font-size: 15px; color: #6b7280; margin: 0; }
+
+.search {
+  padding: 10px 16px; border: 1px solid #d1d5db; border-radius: 8px;
+  font-size: 14px; width: 100%; max-width: 400px; outline: none;
+  &:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+}
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.loading, .error, .empty { text-align: center; padding: 40px; color: #6b7280; font-size: 15px; }

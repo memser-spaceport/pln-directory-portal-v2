@@ -88,6 +88,8 @@ export function RequestDealModal() {
                 label="What deal are you looking for?"
                 placeholder="e.g. Vercel credits, Stripe discount, AI tools, analytics tools"
                 isRequired
+                max={100}
+                description="Max. 100 characters."
               />
 
               <FormEditor

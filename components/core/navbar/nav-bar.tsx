@@ -15,10 +15,12 @@ import { Signup } from './components/Signup';
 import { NavigationMenu } from '@base-ui-components/react';
 import { useContactSupportStore } from '@/services/contact-support/store';
 
-import { DIRECTORY_LINKS, EVENT_LINKS } from './constants/navLinks';
+import { DIRECTORY_LINKS, EVENT_LINKS, DEALS_LINK, FOUNDER_GUIDES_LINK } from './constants/navLinks';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
+import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
+import { ISubItem } from './type';
 
-import { AppLogo, HelpIcon, ForumIcon, EventsIcon, DemoDayIcon, DirectoryIcon, DealsIcon } from './components/icons';
+import { AppLogo, HelpIcon, ForumIcon, EventsIcon, DemoDayIcon, DirectoryIcon, MoreIcon } from './components/icons';
 import { NavLink } from './components/NavLink';
 import { NavItemWithMenu } from './components/NavItemWithMenu';
 
@@ -84,6 +86,12 @@ function Navbar(props: Readonly<INavbar>) {
   const { data: profileStatus } = useMemberProfileStatus(userInfo?.uid);
 
   const { hasAccess: hasDealsPageAccess } = useDealsAccess();
+  const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
+
+  const moreLinks: ISubItem[] = [
+    ...(hasDealsPageAccess ? [DEALS_LINK] : []),
+    ...(hasFounderGuidesAccess ? [FOUNDER_GUIDES_LINK] : []),
+  ];
 
   return (
     <NavigationMenu.Root className={s.Root}>
@@ -116,12 +124,13 @@ function Navbar(props: Readonly<INavbar>) {
             <DemoDayIcon /> Demo Day
           </NavLink>
         </NavigationMenu.Item>
-        {hasDealsPageAccess && (
-          <NavigationMenu.Item className={s.menuItem}>
-            <NavLink className={s.Trigger} href="/deals" onClick={() => onNavItemClickHandler('/deals', 'Deals')}>
-              <DealsIcon /> Deals
-            </NavLink>
-          </NavigationMenu.Item>
+        {moreLinks.length > 0 && (
+          <NavItemWithMenu
+            icon={<MoreIcon />}
+            label="More"
+            items={moreLinks}
+            onNavItemClickHandler={onNavItemClickHandler}
+          />
         )}
 
         <div className={s.right}>

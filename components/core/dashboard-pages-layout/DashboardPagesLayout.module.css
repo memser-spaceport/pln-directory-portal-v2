@@ -3,7 +3,7 @@
   display: flex;
   position: relative;
   background: #f1f5f9;
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - var(--app-header-height));
 }
 
 .filters {
@@ -27,6 +27,10 @@
     width: 300px;
     border-right: 1px solid #e2e8f0;
     background: #fff;
-    height: calc(100vh - 80px);
+    height: calc(100vh - var(--app-header-height));
+    position: sticky;
+    top: var(--app-header-height);
+    align-self: flex-start;
+    flex-shrink: 0;
   }
 }

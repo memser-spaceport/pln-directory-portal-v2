@@ -62,11 +62,12 @@
 .popup {
   background: var(--background-base-white, #fff);
   border-radius: 12px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
   box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.1),
-    0 1px 3px rgba(0, 0, 0, 0.08);
+    0px 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.06);
   padding: 8px;
-  min-width: 160px;
+  min-width: 208px;
   outline: none;
 }
 

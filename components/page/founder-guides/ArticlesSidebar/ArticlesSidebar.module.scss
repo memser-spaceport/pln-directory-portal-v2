@@ -1,0 +1,248 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+// ── Header ────────────────────────────────────────────────
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 64px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #0A0C11;
+  letter-spacing: -0.4px;
+  line-height: 24px;
+  text-align: left;
+}
+
+// ── Search ────────────────────────────────────────────────
+.searchWrapper {
+  position: relative;
+  margin: 12px 16px;
+  flex-shrink: 0;
+}
+
+.searchIconWrap {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  height: 40px;
+  padding: 10px 12px 10px 38px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.2px;
+  color: #0a0c11;
+  background: #fff;
+  box-shadow: 0px 1px 2px rgba(14, 15, 17, 0.08), inset 0px -2px 8px rgba(14, 15, 17, 0.02);
+  outline: none;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: #afbaca;
+  }
+
+  &:focus {
+    border-color: #1b4dff;
+  }
+}
+
+// ── Create New Article link ───────────────────────────────
+.createLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #455468;
+  letter-spacing: -0.2px;
+  line-height: 20px;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+  flex-shrink: 0;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    color: #1b4dff;
+  }
+}
+
+.createLinkActive {
+  color: #1b4dff;
+  border-bottom-color: #1b4dff;
+}
+
+// ── Nav list ──────────────────────────────────────────────
+.nav {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 20px;
+  padding-bottom: 40px;
+}
+
+// ── Category group ────────────────────────────────────────
+.categoryGroup {
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+}
+
+.categoryRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.03);
+  }
+}
+
+.categoryIcon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.categoryLabel {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 500;
+  color: #455468;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.categoryBadge {
+  font-size: 12px;
+  font-weight: 500;
+  color: #455468;
+  letter-spacing: -0.2px;
+  line-height: 16px;
+  background: rgba(14, 15, 17, 0.06);
+  border-radius: 9999px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
+// ── Article list ──────────────────────────────────────────
+.articleList {
+  display: flex;
+  flex-direction: column;
+}
+
+.articleRow {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 16px 12px 40px;
+  text-decoration: none;
+  background: #fff;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.03);
+  }
+}
+
+.articleTitle {
+  display: block;
+  padding: 0 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #455468;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.articleRowActive {
+  .articleTitle {
+    color: #1b4dff;
+  }
+
+  background: rgba(27, 77, 255, 0.05);
+}
+
+// ── Heading nav items (table-of-contents) ────────────────
+.headingList {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding-left: 39px; // vertical line position
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 39px;
+    top: 4px;
+    bottom: 4px;
+    width: 1px;
+    background: rgba(14, 15, 17, 0.06);
+  }
+}
+
+.headingItem {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 16px 12px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 400;
+  color: #8897ae;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  &:hover {
+    color: #455468;
+    background: rgba(14, 15, 17, 0.03);
+  }
+}
+
+// ── Skeletons ─────────────────────────────────────────────
+.skeletonCategory {
+  height: 48px;
+  margin: 0 16px 8px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f0f3f9 25%, #e2e8f0 50%, #f0f3f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import ArticlesSidebar from '@/components/page/founder-guides/ArticlesSidebar/ArticlesSidebar';
+import { FounderGuidesAccessGuard } from '@/components/page/founder-guides/FounderGuidesAccessGuard/FounderGuidesAccessGuard';
 
 export const metadata: Metadata = {
   title: 'Founder Guides | Protocol Labs Directory',
@@ -27,5 +28,9 @@ export const metadata: Metadata = {
 };
 
 export default function FounderGuidesLayout({ children }: { children: ReactNode }) {
-  return <DashboardPagesLayout filters={<ArticlesSidebar />} content={children} />;
+  return (
+    <FounderGuidesAccessGuard>
+      <DashboardPagesLayout filters={<ArticlesSidebar />} content={children} />
+    </FounderGuidesAccessGuard>
+  );
 }

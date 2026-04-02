@@ -5,10 +5,9 @@ import { BioStep } from './BioStep';
 import { CalendarConnectStep } from './CalendarConnectStep';
 import { AvailabilityStep } from './AvailabilityStep';
 import { LinkedInStep } from './LinkedInStep';
-import { InvestorStep } from './InvestorStep';
 import styles from './AdvisorOnboardingContainer.module.scss';
 
-const STEPS = ['Bio', 'Calendar', 'Availability', 'LinkedIn', 'Investor'];
+const STEPS = ['Bio', 'Calendar', 'Availability', 'LinkedIn'];
 
 interface OnboardingData {
   bio: string;
@@ -32,11 +31,15 @@ export function AdvisorOnboardingContainer() {
     setData((prev) => ({ ...prev, ...updates }));
   };
 
+  const goToProfile = () => {
+    window.location.href = '/members/member-advisor-new';
+  };
+
   const next = () => {
     if (currentStep < STEPS.length - 1) {
       setCurrentStep((s) => s + 1);
     } else {
-      window.location.href = '/members/member-advisor-new';
+      goToProfile();
     }
   };
 
@@ -79,12 +82,12 @@ export function AdvisorOnboardingContainer() {
           <LinkedInStep
             value={data.linkedinUrl}
             onChange={(url) => updateData({ linkedinUrl: url })}
-            onNext={next}
-            onSkip={skip}
+            onNext={goToProfile}
+            onSkip={goToProfile}
             onBack={back}
+            isLastStep
           />
         )}
-        {currentStep === 4 && <InvestorStep onNext={next} onSkip={skip} onBack={back} />}
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 'use client';
 import styles from './steps.module.scss';
 
-interface LinkedInStepProps { value: string; onChange: (value: string) => void; onNext: () => void; onSkip: () => void; onBack: () => void; }
+interface LinkedInStepProps { value: string; onChange: (value: string) => void; onNext: () => void; onSkip: () => void; onBack: () => void; isLastStep?: boolean; }
 
-export function LinkedInStep({ value, onChange, onNext, onSkip, onBack }: LinkedInStepProps) {
+export function LinkedInStep({ value, onChange, onNext, onSkip, onBack, isLastStep }: LinkedInStepProps) {
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>LinkedIn Profile</h2>
@@ -12,8 +12,8 @@ export function LinkedInStep({ value, onChange, onNext, onSkip, onBack }: Linked
       <div className={styles.actionsBetween}>
         <button className={styles.backButton} onClick={onBack}>Back</button>
         <div className={styles.rightActions}>
-          <button className={styles.skipButton} onClick={onSkip}>Skip</button>
-          <button className={styles.nextButton} onClick={onNext} disabled={!value.trim()}>Continue</button>
+          <button className={styles.skipButton} onClick={onSkip}>{isLastStep ? 'Skip & See Profile' : 'Skip'}</button>
+          <button className={styles.nextButton} onClick={onNext} disabled={!value.trim()}>{isLastStep ? 'See Profile' : 'Continue'}</button>
         </div>
       </div>
     </div>

@@ -2,13 +2,6 @@ import * as yup from 'yup';
 import { IArticle } from '@/types/articles.types';
 import { ARTICLE_CATEGORIES } from '@/services/articles/constants';
 
-const stripHtml = (html: string) => {
-  if (!html) return '';
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  return div.textContent || div.innerText || '';
-};
-
 export const createArticleSchema = yup.object().shape({
   category: yup.object().nullable().optional(),
   title: yup.string().max(255, 'Title exceeds 255 characters. Please shorten.').nullable().optional(),
@@ -24,11 +17,10 @@ export const createArticleSchema = yup.object().shape({
     .string()
     .test({
       name: 'maxTextLength',
-      message: 'Max 600 characters.',
+      message: 'Content exceeds 60,000 characters.',
       test: function (value) {
         if (!value) return true;
-        const plainText = stripHtml(value);
-        return plainText.trim().length <= 60000;
+        return value.length <= 60000;
       },
     })
     .nullable()

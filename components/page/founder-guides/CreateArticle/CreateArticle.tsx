@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import 'md-editor-rt/lib/style.css';
+import dynamic from 'next/dynamic';
 import { FormField } from '@/components/form/FormField';
-import { FormTextArea } from '@/components/form/FormTextArea';
 import { FormSelect } from '@/components/form/FormSelect';
-import { FormEditor } from '@/components/form/FormEditor';
+
+const MdEditor = dynamic(() => import('md-editor-rt').then((mod) => mod.MdEditor), { ssr: false });
 import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import useBlockNavigation from '@/hooks/useUnsavedChangesWarning';
@@ -73,9 +75,11 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
     handleSubmit,
     reset,
     watch,
-    formState: { isSubmitting, isDirty },
+    setValue,
+    formState: { isSubmitting, isDirty, errors },
   } = methods;
 
+  const contentValue = watch('content');
   const author: CreateArticleForm['author'] = watch('author');
   const selectedMemberUid = author?.type === 'member' ? author.value : undefined;
   const { data: selectedMemberData } = useMember(selectedMemberUid);
@@ -150,13 +154,16 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
 
               <FormField name="readingTime" placeholder="e.g. 5" label="Number of Minutes to Read the Guide" />
 
-              <FormTextArea
-                name="content"
-                placeholder="Write the guide content. Focus on clear, practical advice founders can apply."
-                label="Content"
-                showCharCount
-                rows={16}
-              />
+              <div>
+                <label className={s.editorLabel}>Content</label>
+                <MdEditor
+                  modelValue={contentValue || ''}
+                  onChange={(val: string) => setValue('content', val, { shouldValidate: true, shouldDirty: true })}
+                  language={'en-US'}
+                  toolbarsExclude={['catalog', 'github', 'save', 'htmlPreview']}
+                />
+                {errors.content && <span className={s.editorError}>{errors.content.message as string}</span>}
+              </div>
             </div>
 
             <div className={s.section}>

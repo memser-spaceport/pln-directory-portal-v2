@@ -80,7 +80,7 @@ export function TeamProjectsEditProject(props: Props) {
             <InfoIcon />
             <span className={s.infoText}>Edit project details on</span>
             <Link href={`/projects/update/${project.uid}`} target="_blank" className={s.infoLink}>
-              [Project&apos;s Page] <ArrowUpRightIcon />
+              {project.name} page <ArrowUpRightIcon />
             </Link>
           </DetailsSectionGreyContentContainer>
 

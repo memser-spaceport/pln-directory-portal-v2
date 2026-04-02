@@ -1,3 +1,5 @@
+@import "@/styles/media";
+
 // Outer wrapper — accounts for DashboardPagesLayout's 30px top padding
 // On desktop the layout already provides padding; root only max-widths the content
 .root {
@@ -32,15 +34,20 @@
 // ── Title ─────────────────────────────────────────────────
 // Figma: Inter SemiBold 32px / 42px / -0.75px / #0a0c11
 .title {
-  font-size: 26px;
+  color: var(--foreground-neutral-primary, #0A0C11);
+  font-size: 24px;
+  font-style: normal;
   font-weight: 600;
-  line-height: 42px;
-  letter-spacing: -0.75px;
-  color: #0a0c11;
+  line-height: 34px; /* 141.667% */
+  letter-spacing: -0.4px;
   margin: 0;
 
-  @media (min-width: 1024px) {
+  @include tablet-landscape {
     font-size: 32px;
+    font-weight: 600;
+    line-height: 42px;
+    letter-spacing: -0.75px;
+    color: #0a0c11;
   }
 }
 

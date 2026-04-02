@@ -10,6 +10,7 @@ import s from './ArticlesSidebar.module.scss';
 
 interface ArticlesSidebarProps {
   onNavigate?: () => void;
+  hideHeader?: boolean;
 }
 
 // Inline 20x20 icons matching Phosphor style per Figma
@@ -145,11 +146,13 @@ function getCategoryIcon(category: string) {
   return <DefaultCategoryIcon />;
 }
 
-export default function ArticlesSidebar({ onNavigate }: ArticlesSidebarProps) {
+export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSidebarProps) {
   const pathname = usePathname();
   const { byCategory, isLoading } = useGetArticles();
   const [search, setSearch] = useState('');
-  const [openCategories, setOpenCategories] = useState<Set<string>>(new Set());
+  const [openCategories, setOpenCategories] = useState<Set<string> | null>(null);
+
+  const effectiveOpenCategories = openCategories ?? new Set(byCategory.map((c) => c.category));
 
   const { canCreate } = useFounderGuidesCreateAccess();
   const isCreateActive = pathname === '/founder-guides/new';
@@ -170,13 +173,13 @@ export default function ArticlesSidebar({ onNavigate }: ArticlesSidebarProps) {
     if (search.trim()) {
       return new Set(filtered.map((c) => c.category));
     }
-    return openCategories;
-  }, [search, filtered, openCategories]);
+    return effectiveOpenCategories;
+  }, [search, filtered, effectiveOpenCategories]);
 
   function toggleCategory(category: string) {
     if (search.trim()) return;
     setOpenCategories((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev ?? byCategory.map((c) => c.category));
       if (next.has(category)) {
         next.delete(category);
       } else {
@@ -188,9 +191,11 @@ export default function ArticlesSidebar({ onNavigate }: ArticlesSidebarProps) {
 
   return (
     <div className={s.root}>
-      <div className={s.header}>
-        <span className={s.title}>Founder Guides</span>
-      </div>
+      {!hideHeader && (
+        <div className={s.header}>
+          <span className={s.title}>Founder Guides</span>
+        </div>
+      )}
 
       <div className={s.searchWrapper}>
         <span className={s.searchIconWrap}>

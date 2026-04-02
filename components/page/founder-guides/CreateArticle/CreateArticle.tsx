@@ -5,39 +5,60 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import 'md-editor-rt/lib/style.css';
+import dynamic from 'next/dynamic';
 import { FormField } from '@/components/form/FormField';
-import { FormTextArea } from '@/components/form/FormTextArea';
 import { FormSelect } from '@/components/form/FormSelect';
-import { FormEditor } from '@/components/form/FormEditor';
+
+const MdEditor = dynamic(() => import('md-editor-rt').then((mod) => mod.MdEditor), { ssr: false });
 import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import useBlockNavigation from '@/hooks/useUnsavedChangesWarning';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useCreateArticleMutation } from '@/services/articles/hooks/useCreateArticleMutation';
+import { useUpdateArticleMutation } from '@/services/articles/hooks/useUpdateArticleMutation';
 import { ARTICLE_CATEGORIES } from '@/services/articles/constants';
+import { IArticle } from '@/types/articles.types';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { AuthorAutocomplete } from './AuthorAutocomplete';
-import { createArticleSchema, CreateArticleForm } from './helpers';
+import { createArticleSchema, CreateArticleForm, articleToFormValues } from './helpers';
 import s from './CreateArticle.module.scss';
 
-export default function CreateArticle() {
+interface CreateArticleProps {
+  article?: IArticle;
+  isEditMode?: boolean;
+}
+
+export default function CreateArticle({ article, isEditMode }: CreateArticleProps) {
   const router = useRouter();
-  const { mutateAsync, isPending } = useCreateArticleMutation();
+  const { userInfo } = getCookiesFromClient();
+  const createMutation = useCreateArticleMutation();
+  const updateMutation = useUpdateArticleMutation();
+  const { mutateAsync, isPending } = isEditMode ? updateMutation : createMutation;
 
   useMobileNavVisibility(true);
 
   const categoryOptions = useMemo(() => ARTICLE_CATEGORIES.map((c) => ({ label: c, value: c })), []);
 
+  const defaultValues = useMemo(
+    () =>
+      isEditMode && article
+        ? articleToFormValues(article)
+        : {
+            category: null,
+            title: '',
+            summary: '',
+            readingTime: null,
+            content: '',
+            author: null,
+            officeHoursUrl: '',
+          },
+    [isEditMode, article],
+  );
+
   const methods = useForm<CreateArticleForm>({
     // @ts-ignore
-    defaultValues: {
-      category: null,
-      title: '',
-      summary: '',
-      readingTime: null,
-      content: '',
-      author: null,
-      officeHoursUrl: '',
-    },
+    defaultValues,
     // @ts-ignore
     resolver: yupResolver(createArticleSchema),
   });
@@ -46,9 +67,11 @@ export default function CreateArticle() {
     handleSubmit,
     reset,
     watch,
-    formState: { isSubmitting, isDirty },
+    setValue,
+    formState: { isSubmitting, isDirty, errors },
   } = methods;
 
+  const contentValue = watch('content');
   const author: CreateArticleForm['author'] = watch('author');
   const selectedMemberUid = author?.type === 'member' ? author.value : undefined;
   const { data: selectedMemberData } = useMember(selectedMemberUid);
@@ -57,12 +80,16 @@ export default function CreateArticle() {
   const { isAttemptingNavigation, proceedNavigation, cancelNavigation } = useBlockNavigation(isDirty);
 
   const handleCancel = () => {
-    router.push('/founder-guides');
+    if (isEditMode && article) {
+      router.push(`/founder-guides/${article.slugURL}`);
+    } else {
+      router.push('/founder-guides');
+    }
   };
 
   const onSubmit = async (data: any) => {
     const author = data.author as CreateArticleForm['author'];
-    const result = await mutateAsync({
+    const payload = {
       title: data.title,
       summary: data.summary || undefined,
       category: data.category?.value,
@@ -71,25 +98,51 @@ export default function CreateArticle() {
       authorMemberUid: author?.type === 'member' ? author.value : undefined,
       authorTeamUid: author?.type === 'team' ? author.value : undefined,
       officeHoursUrl: author?.type === 'member' ? memberOfficeHours || undefined : data.officeHoursUrl || undefined,
-      status: 'PUBLISHED',
-    });
+      status: 'PUBLISHED' as const,
+    };
+
+    const result =
+      isEditMode && article
+        ? await mutateAsync({ uid: article.uid, ...payload } as any)
+        : await mutateAsync(payload as any);
 
     if (result) {
       reset(data);
+      const redirectUrl =
+        isEditMode && article ? `/founder-guides/${result.slugURL || article.slugURL}` : '/founder-guides';
       setTimeout(() => {
-        router.push('/founder-guides');
+        router.push(redirectUrl);
       }, 500);
     }
   };
 
   return (
     <>
+      <div className={s.mobileSubheader}>
+        <button type="button" className={s.mobileCancel} onClick={handleCancel}>
+          Cancel
+        </button>
+        <button
+          type="submit"
+          form="create-article-form"
+          className={s.mobileSubmit}
+          disabled={isSubmitting || isPending}
+        >
+          {isSubmitting || isPending
+            ? isEditMode
+              ? 'Saving...'
+              : 'Publishing...'
+            : isEditMode
+              ? 'Save Changes'
+              : 'Publish Guide'}
+        </button>
+      </div>
       <div className={s.root}>
         <FormProvider {...methods}>
-          <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
+          <form id="create-article-form" className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
             <div className={s.heading}>
               <div className={s.headingText}>
-                <h1 className={s.title}>Create New Guide</h1>
+                <h1 className={s.title}>{isEditMode ? 'Edit Guide' : 'Create New Guide'}</h1>
                 <p className={s.subtitle}>Structured, expert-driven guides for startup founders.</p>
               </div>
             </div>
@@ -110,17 +163,21 @@ export default function CreateArticle() {
                 placeholder="A short overview of what this guide helps with"
                 label="Summary"
                 max={100}
+                description="Max. 100 characters."
               />
 
               <FormField name="readingTime" placeholder="e.g. 5" label="Number of Minutes to Read the Guide" />
 
-              <FormTextArea
-                name="content"
-                placeholder="Write the guide content. Focus on clear, practical advice founders can apply."
-                label="Content"
-                showCharCount
-                rows={16}
-              />
+              <div>
+                <label className={s.editorLabel}>Content</label>
+                <MdEditor
+                  modelValue={contentValue || ''}
+                  onChange={(val: string) => setValue('content', val, { shouldValidate: true, shouldDirty: true })}
+                  language={'en-US'}
+                  toolbarsExclude={['catalog', 'github', 'save', 'htmlPreview']}
+                />
+                {errors.content && <span className={s.editorError}>{errors.content.message as string}</span>}
+              </div>
             </div>
 
             <div className={s.section}>
@@ -168,7 +225,13 @@ export default function CreateArticle() {
                 Cancel
               </button>
               <button type="submit" className={s.submitBtn} disabled={isSubmitting || isPending}>
-                {isSubmitting || isPending ? 'Publishing...' : 'Publish Guide'}
+                {isSubmitting || isPending
+                  ? isEditMode
+                    ? 'Saving...'
+                    : 'Publishing...'
+                  : isEditMode
+                    ? 'Save Changes'
+                    : 'Publish Guide'}
               </button>
             </div>
           </form>

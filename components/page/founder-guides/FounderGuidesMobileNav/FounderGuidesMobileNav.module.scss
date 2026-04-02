@@ -1,0 +1,127 @@
+// ── Mobile subheader ─────────────────────────────────────
+.subheader {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 56px;
+  padding: 8px 16px;
+  background: #fff;
+  box-shadow: 0px 1px 2px rgba(14, 15, 17, 0.06);
+  position: sticky;
+  top: var(--app-header-height);
+  z-index: 4;
+
+  @media (min-width: 1024px) {
+    display: none;
+  }
+}
+
+.hamburgerButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.03);
+  }
+}
+
+.subheaderTitle {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 500;
+  color: #0a0c11;
+  line-height: 24px;
+  letter-spacing: -0.4px;
+}
+
+// ── Side drawer overlay ──────────────────────────────────
+.overlay {
+  position: fixed;
+  top: var(--app-header-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(14, 15, 17, 0.06);
+  z-index: 100;
+  animation: fadeIn 0.3s ease;
+}
+
+// ── Drawer panel ─────────────────────────────────────────
+.drawer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: min(296px, calc(100vw - 56px));
+  height: 100%;
+  background: #fff;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideIn 0.3s ease;
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 56px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+  flex-shrink: 0;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.03);
+  }
+}
+
+.drawerTitle {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 500;
+  color: #0a0c11;
+  line-height: 24px;
+  letter-spacing: -0.4px;
+}
+
+.drawerContent {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+// ── Animations ───────────────────────────────────────────
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

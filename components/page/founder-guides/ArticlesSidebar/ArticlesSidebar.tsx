@@ -10,6 +10,7 @@ import s from './ArticlesSidebar.module.scss';
 
 interface ArticlesSidebarProps {
   onNavigate?: () => void;
+  hideHeader?: boolean;
 }
 
 // Inline 20x20 icons matching Phosphor style per Figma
@@ -145,7 +146,7 @@ function getCategoryIcon(category: string) {
   return <DefaultCategoryIcon />;
 }
 
-export default function ArticlesSidebar({ onNavigate }: ArticlesSidebarProps) {
+export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSidebarProps) {
   const pathname = usePathname();
   const { byCategory, isLoading } = useGetArticles();
   const [search, setSearch] = useState('');
@@ -190,9 +191,11 @@ export default function ArticlesSidebar({ onNavigate }: ArticlesSidebarProps) {
 
   return (
     <div className={s.root}>
-      <div className={s.header}>
-        <span className={s.title}>Founder Guides</span>
-      </div>
+      {!hideHeader && (
+        <div className={s.header}>
+          <span className={s.title}>Founder Guides</span>
+        </div>
+      )}
 
       <div className={s.searchWrapper}>
         <span className={s.searchIconWrap}>

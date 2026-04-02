@@ -109,13 +109,15 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
       status: 'PUBLISHED' as const,
     };
 
-    const result = isEditMode && article
-      ? await mutateAsync({ uid: article.uid, isAdmin: useAdminEndpoint, ...payload } as any)
-      : await mutateAsync(payload as any);
+    const result =
+      isEditMode && article
+        ? await mutateAsync({ uid: article.uid, isAdmin: useAdminEndpoint, ...payload } as any)
+        : await mutateAsync(payload as any);
 
     if (result) {
       reset(data);
-      const redirectUrl = isEditMode && article ? `/founder-guides/${result.slugURL || article.slugURL}` : '/founder-guides';
+      const redirectUrl =
+        isEditMode && article ? `/founder-guides/${result.slugURL || article.slugURL}` : '/founder-guides';
       setTimeout(() => {
         router.push(redirectUrl);
       }, 500);
@@ -124,22 +126,26 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
 
   return (
     <>
+      <div className={s.mobileSubheader}>
+        <button type="button" className={s.mobileCancel} onClick={handleCancel}>
+          Cancel
+        </button>
+        <button
+          type="submit"
+          form="create-article-form"
+          className={s.mobileSubmit}
+          disabled={isSubmitting || isPending}
+        >
+          {isSubmitting || isPending
+            ? isEditMode
+              ? 'Saving...'
+              : 'Publishing...'
+            : isEditMode
+              ? 'Save Changes'
+              : 'Publish Guide'}
+        </button>
+      </div>
       <div className={s.root}>
-        <div className={s.mobileSubheader}>
-          <button type="button" className={s.mobileCancel} onClick={handleCancel}>
-            Cancel
-          </button>
-          <button
-            type="submit"
-            form="create-article-form"
-            className={s.mobileSubmit}
-            disabled={isSubmitting || isPending}
-          >
-            {isSubmitting || isPending
-              ? (isEditMode ? 'Saving...' : 'Publishing...')
-              : (isEditMode ? 'Save Changes' : 'Publish Guide')}
-          </button>
-        </div>
         <FormProvider {...methods}>
           <form id="create-article-form" className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
             <div className={s.heading}>
@@ -165,6 +171,7 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
                 placeholder="A short overview of what this guide helps with"
                 label="Summary"
                 max={100}
+                description="Max. 100 characters."
               />
 
               <FormField name="readingTime" placeholder="e.g. 5" label="Number of Minutes to Read the Guide" />
@@ -227,8 +234,12 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
               </button>
               <button type="submit" className={s.submitBtn} disabled={isSubmitting || isPending}>
                 {isSubmitting || isPending
-                  ? (isEditMode ? 'Saving...' : 'Publishing...')
-                  : (isEditMode ? 'Save Changes' : 'Publish Guide')}
+                  ? isEditMode
+                    ? 'Saving...'
+                    : 'Publishing...'
+                  : isEditMode
+                    ? 'Save Changes'
+                    : 'Publish Guide'}
               </button>
             </div>
           </form>

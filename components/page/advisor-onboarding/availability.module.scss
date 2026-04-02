@@ -1,0 +1,78 @@
+.container { display: flex; flex-direction: column; gap: 16px; }
+.title { font-size: 20px; font-weight: 600; margin: 0; }
+.subtitle { font-size: 14px; color: #6b7280; margin: 0; }
+
+.timezoneRow { display: flex; align-items: center; }
+.timezoneLabel { font-size: 12px; color: #9ca3af; background: #f3f4f6; padding: 4px 8px; border-radius: 4px; }
+
+.weekNav { display: flex; align-items: center; justify-content: center; gap: 16px; }
+.weekNavBtn {
+  padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px;
+  background: #fff; cursor: pointer; font-size: 14px;
+  &:hover { background: #f9fafb; }
+}
+.weekLabel { font-size: 14px; font-weight: 600; color: #374151; }
+
+.calendar { border: 1px solid #e5e7eb; border-radius: 8px; overflow: auto; max-height: 500px; }
+
+.calHeader {
+  display: flex; position: sticky; top: 0; background: #fff; z-index: 1;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.timeGutter { width: 60px; flex-shrink: 0; padding: 4px 8px; text-align: right; }
+.timeLabel { font-size: 11px; color: #9ca3af; }
+
+.dayCol {
+  flex: 1; min-width: 80px; text-align: center; padding: 8px 4px;
+  border-left: 1px solid #f3f4f6;
+}
+.dayPast { opacity: 0.4; }
+.dayName { font-size: 11px; color: #9ca3af; text-transform: uppercase; }
+.dayDate { font-size: 16px; font-weight: 600; color: #111827; }
+
+.calBody { display: flex; flex-direction: column; }
+
+.calRow {
+  display: flex; min-height: 48px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.calCell {
+  flex: 1; min-width: 80px; border-left: 1px solid #f3f4f6;
+  cursor: pointer; position: relative; padding: 2px;
+  transition: background 0.1s ease;
+  &:hover { background: #eef2ff; }
+}
+
+.calCellSelected { background: #e0e7ff !important; }
+.calCellPast { cursor: default; background: #fafafa; &:hover { background: #fafafa; } }
+
+.event {
+  background: #fee2e2; color: #991b1b; border-radius: 3px;
+  padding: 1px 4px; font-size: 10px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px;
+  border-left: 2px solid #ef4444;
+}
+
+.blockMarker {
+  background: #6366f1; color: #fff; border-radius: 3px;
+  padding: 1px 4px; font-size: 10px; font-weight: 500;
+}
+
+.preview { font-size: 13px; color: #6366f1; margin: 0; font-weight: 500; }
+
+.actionsBetween { display: flex; justify-content: space-between; padding-top: 8px; }
+
+.backButton {
+  padding: 10px 24px; border: 1px solid #d1d5db; border-radius: 6px;
+  background: #fff; font-size: 14px; cursor: pointer;
+  &:hover { background: #f9fafb; }
+}
+
+.nextButton {
+  padding: 10px 24px; border: none; border-radius: 6px;
+  background: #6366f1; color: #fff; font-size: 14px; font-weight: 500; cursor: pointer;
+  &:hover { background: #4f46e5; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}

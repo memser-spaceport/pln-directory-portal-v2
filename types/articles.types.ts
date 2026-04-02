@@ -13,12 +13,10 @@ export interface IArticle {
   status: 'PUBLISHED' | 'DRAFT';
   publishedAt: string;
   coverImage: { url: string } | null;
-  authorMember: { uid: string; name: string; email: string; image: string | null };
-  authorTeam: { uid: string; name: string; logo: { url: string } | null };
+  authorMember: { uid: string; name: string; email: string; image: string | null; officeHours: string | null } | null;
+  authorTeam: { uid: string; name: string; logo: { url: string } | null; officeHours: string | null } | null;
   totalViews: number;
   totalLikes: number;
-  /** Pending API support — placeholder field for article author's office hours link */
-  officeHoursUrl?: string | null;
 }
 
 export interface IArticlesResponse {

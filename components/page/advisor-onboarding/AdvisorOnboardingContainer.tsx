@@ -5,6 +5,7 @@ import { BioStep } from './BioStep';
 import { CalendarConnectStep } from './CalendarConnectStep';
 import { AvailabilityStep } from './AvailabilityStep';
 import { LinkedInStep } from './LinkedInStep';
+import { getUserInfoFromLocal } from '@/utils/common.utils';
 import styles from './AdvisorOnboardingContainer.module.scss';
 
 const STEPS = ['Bio', 'Calendar', 'Availability', 'LinkedIn'];
@@ -31,8 +32,11 @@ export function AdvisorOnboardingContainer() {
     setData((prev) => ({ ...prev, ...updates }));
   };
 
+  const userInfo = getUserInfoFromLocal();
+
   const goToProfile = () => {
-    window.location.href = '/members/member-advisor-new';
+    const uid = userInfo?.uid;
+    window.location.href = uid ? `/members/${uid}` : '/members';
   };
 
   const next = () => {

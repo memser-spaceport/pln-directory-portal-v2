@@ -17,6 +17,8 @@ import { useCreateArticleMutation } from '@/services/articles/hooks/useCreateArt
 import { useUpdateArticleMutation } from '@/services/articles/hooks/useUpdateArticleMutation';
 import { ARTICLE_CATEGORIES } from '@/services/articles/constants';
 import { IArticle } from '@/types/articles.types';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 import { AuthorAutocomplete } from './AuthorAutocomplete';
 import { createArticleSchema, CreateArticleForm, articleToFormValues } from './helpers';
 import s from './CreateArticle.module.scss';
@@ -28,6 +30,8 @@ interface CreateArticleProps {
 
 export default function CreateArticle({ article, isEditMode }: CreateArticleProps) {
   const router = useRouter();
+  const { userInfo } = getCookiesFromClient();
+  const isAdmin = isAdminUser(userInfo);
   const createMutation = useCreateArticleMutation();
   const updateMutation = useUpdateArticleMutation();
   const { mutateAsync, isPending } = isEditMode ? updateMutation : createMutation;
@@ -96,7 +100,7 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
     };
 
     const result = isEditMode && article
-      ? await mutateAsync({ uid: article.uid, ...payload } as any)
+      ? await mutateAsync({ uid: article.uid, isAdmin, ...payload } as any)
       : await mutateAsync(payload as any);
 
     if (result) {

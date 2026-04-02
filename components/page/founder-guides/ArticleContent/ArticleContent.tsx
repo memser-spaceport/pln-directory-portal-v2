@@ -1,10 +1,13 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { slugifyHeading, getTextFromChildren } from '@/utils/markdown';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
+import { useArticleView } from '@/services/articles/hooks/useArticleView';
+import { useArticleLike } from '@/services/articles/hooks/useArticleLike';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import s from './ArticleContent.module.scss';
 
@@ -21,12 +24,13 @@ function formatCount(n: number): string {
   return String(n);
 }
 
-function ThumbsUpIcon() {
+function ThumbsUpIcon({ filled = false }: { filled?: boolean }) {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
       <path
         d="M5 14V7.5L7.5 2.5C8.052 2.5 8.5 2.948 8.5 3.5V5.5H12C12.552 5.5 13 5.948 13 6.5L11.5 11V13C11.5 13.552 11.052 14 10.5 14H5M5 14H3C2.448 14 2 13.552 2 13V8C2 7.448 2.448 7 3 7H5"
-        stroke="#8897ae"
+        stroke={filled ? '#1b4dff' : '#8897ae'}
+        fill={filled ? 'rgba(27, 77, 255, 0.12)' : 'none'}
         strokeWidth="1.3"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -98,14 +102,27 @@ function DotSepLarge() {
 export default function ArticleContent({ slug }: ArticleContentProps) {
   const router = useRouter();
   const { articles, isLoading, isError } = useGetArticles();
+  const viewMutation = useArticleView();
+  const likeMutation = useArticleLike();
+  const viewTracked = useRef(false);
 
   const article = articles.find((a) => a.slugURL === slug);
+
+  const { userInfo } = getCookiesFromClient();
+  const isAuthenticated = !!userInfo;
 
   useEffect(() => {
     if (!isLoading && !isError && articles.length > 0 && !article) {
       router.replace('/founder-guides');
     }
   }, [isLoading, isError, articles.length, article, router]);
+
+  useEffect(() => {
+    if (article && isAuthenticated && !viewTracked.current) {
+      viewTracked.current = true;
+      viewMutation.mutate(article.uid);
+    }
+  }, [article, isAuthenticated]);
 
   if (isLoading) {
     return (
@@ -158,10 +175,23 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
             <div className={s.detailsDivider} />
 
             <div className={s.stats}>
-              <span className={s.statItem}>
-                <ThumbsUpIcon />
-                {formatCount(article.totalLikes)} Likes
-              </span>
+              {isAuthenticated ? (
+                <button
+                  className={`${s.statItem} ${s.likeButton} ${article.isLiked ? s.liked : ''}`}
+                  onClick={() => likeMutation.mutate({ uid: article.uid, isLiked: article.isLiked })}
+                  disabled={likeMutation.isPending}
+                  aria-pressed={article.isLiked}
+                  aria-label={article.isLiked ? 'Unlike this article' : 'Like this article'}
+                >
+                  <ThumbsUpIcon filled={article.isLiked} />
+                  {formatCount(article.totalLikes)} Likes
+                </button>
+              ) : (
+                <span className={s.statItem}>
+                  <ThumbsUpIcon />
+                  {formatCount(article.totalLikes)} Likes
+                </span>
+              )}
               <DotSep />
               <span className={s.statItem}>
                 <EyeIcon />

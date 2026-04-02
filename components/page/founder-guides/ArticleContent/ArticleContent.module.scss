@@ -14,7 +14,8 @@
   box-shadow: none;
 }
 
-.card {}
+.card {
+}
 
 // ── Header ────────────────────────────────────────────────
 .header {
@@ -138,6 +139,43 @@
   letter-spacing: -0.2px;
   color: #8897ae;
   white-space: nowrap;
+}
+
+// Interactive like button — inherits .statItem look
+.likeButton {
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #8897ae;
+  white-space: nowrap;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.06);
+    color: #1b4dff;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+}
+
+// Active liked state
+.liked {
+  color: #1b4dff;
+  font-weight: 500;
 }
 
 // ── Content divider ───────────────────────────────────────
@@ -352,7 +390,8 @@
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
-  box-shadow: 0 1px 5px rgba(27, 77, 255, 0.16),
+  box-shadow:
+    0 1px 5px rgba(27, 77, 255, 0.16),
     inset 0 1px 3px rgba(255, 255, 255, 0.32),
     inset 0 4px 6px rgba(255, 255, 255, 0.06);
   flex-shrink: 0;

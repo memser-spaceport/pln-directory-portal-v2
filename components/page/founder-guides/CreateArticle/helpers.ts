@@ -26,7 +26,14 @@ export const createArticleSchema = yup.object().shape({
     .nullable()
     .optional(),
   author: yup.object().nullable().optional(),
-  officeHours: yup.string().url('Must be a valid URL').nullable().optional(),
+  officeHours: yup
+    .string()
+    .nullable()
+    .optional()
+    .test('url', 'Must be a valid URL', (value) => {
+      if (value == null || String(value).trim() === '') return true;
+      return yup.string().url().isValidSync(value);
+    }),
 });
 
 export type CreateArticleForm = {

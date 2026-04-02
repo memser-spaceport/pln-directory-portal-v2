@@ -72,6 +72,11 @@ export function AuthorAutocomplete() {
     (item: IArticleAuthorSearchItem, type: 'member' | 'team') => {
       const val: AuthorValue = { label: item.name, value: item.uid, type };
       setValue('author', val, { shouldValidate: true, shouldDirty: true });
+      if (type === 'team') {
+        setValue('officeHours', item.officeHoursUrl?.trim() ?? '', { shouldValidate: true, shouldDirty: true });
+      } else {
+        setValue('officeHours', '', { shouldValidate: true, shouldDirty: true });
+      }
       setSearchTerm('');
       setDebouncedTerm('');
       setIsOpen(false);
@@ -82,6 +87,7 @@ export function AuthorAutocomplete() {
 
   const handleClear = useCallback(() => {
     setValue('author', null, { shouldValidate: true, shouldDirty: true });
+    setValue('officeHours', '', { shouldValidate: true, shouldDirty: true });
     setSearchTerm('');
     setDebouncedTerm('');
     setHighlightIndex(-1);

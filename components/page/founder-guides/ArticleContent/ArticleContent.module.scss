@@ -44,7 +44,7 @@
   gap: 16px;
 }
 
-// Edit Guide ghost button
+// Edit Guide ghost button (desktop only)
 .editButton {
   display: flex;
   align-items: center;
@@ -64,6 +64,25 @@
   &:hover {
     color: #1b4dff;
   }
+
+  @media (max-width: 1023px) {
+    display: none;
+  }
+}
+
+// Edit Guide button in mobile subheader (portal target)
+.mobileEditButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 // Figma: Inter SemiBold ~28-32px

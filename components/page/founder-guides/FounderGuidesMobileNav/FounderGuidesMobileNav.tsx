@@ -87,16 +87,19 @@ export default function FounderGuidesMobileNav({ children }: FounderGuidesMobile
       {/* Mobile subheader — visible below 1024px, hidden on form pages */}
       {!isFormPage && (
         <div className={s.subheader}>
-          <button
-            ref={hamburgerRef}
-            className={s.hamburgerButton}
-            onClick={() => setIsOpen(true)}
-            aria-expanded={isOpen}
-            aria-label="Open navigation menu"
-          >
-            <HamburgerIcon />
-          </button>
-          <span className={s.subheaderTitle}>Founder Guides</span>
+          <div className={s.subheaderLeft}>
+            <button
+              ref={hamburgerRef}
+              className={s.hamburgerButton}
+              onClick={() => setIsOpen(true)}
+              aria-expanded={isOpen}
+              aria-label="Open navigation menu"
+            >
+              <HamburgerIcon />
+            </button>
+            <span className={s.subheaderTitle}>Founder Guides</span>
+          </div>
+          <div id="mobile-subheader-actions" />
         </div>
       )}
 

@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { slugifyHeading, getTextFromChildren } from '@/utils/markdown';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
@@ -121,12 +122,17 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const viewMutation = useArticleView();
   const likeMutation = useArticleLike();
   const viewTracked = useRef(false);
+  const [subheaderSlot, setSubheaderSlot] = useState<HTMLElement | null>(null);
 
   const article = articles.find((a) => a.slugURL === slug);
 
   const { userInfo } = getCookiesFromClient();
   const isAuthenticated = !!userInfo;
   const { canCreate } = useFounderGuidesCreateAccess();
+
+  useEffect(() => {
+    setSubheaderSlot(document.getElementById('mobile-subheader-actions'));
+  }, []);
 
   useEffect(() => {
     if (!isLoading && !isError && articles.length > 0 && !article) {
@@ -167,21 +173,34 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const initials = authorName.slice(0, 2).toUpperCase();
   const officeHoursUrl = article.authorMember?.officeHours || article.authorTeam?.officeHours || null;
 
-  return (
-    <div className={s.root}>
-      <BackButton to="/founder-guides" className={s.backButton} />
-      <div className={s.card}>
-        <header className={s.header}>
-          {/*<span className={s.categoryBadge}>{article.category}</span>*/}
+  const editLink = canEdit ? `/founder-guides/${article.slugURL}/edit` : null;
 
-          <div className={s.titleRow}>
-            <h1 className={s.title}>{article.title}</h1>
-            {canEdit && (
-              <Link href={`/founder-guides/${article.slugURL}/edit`} className={s.editButton}>
-                <NotePencilIcon />
-                <span>Edit Guide</span>
-              </Link>
-            )}
+  return (
+    <>
+      {/* Portal: render edit button in mobile subheader */}
+      {editLink &&
+        subheaderSlot &&
+        createPortal(
+          <Link href={editLink} className={s.mobileEditButton}>
+            <NotePencilIcon />
+            <span>Edit Guide</span>
+          </Link>,
+          subheaderSlot
+        )}
+      <div className={s.root}>
+        <BackButton to="/founder-guides" className={s.backButton} />
+        <div className={s.card}>
+          <header className={s.header}>
+            {/*<span className={s.categoryBadge}>{article.category}</span>*/}
+
+            <div className={s.titleRow}>
+              <h1 className={s.title}>{article.title}</h1>
+              {canEdit && (
+                <Link href={`/founder-guides/${article.slugURL}/edit`} className={s.editButton}>
+                  <NotePencilIcon />
+                  <span>Edit Guide</span>
+                </Link>
+              )}
           </div>
 
           {article.summary && <p className={s.summary}>{article.summary}</p>}
@@ -306,5 +325,6 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
         )}
       </div>
     </div>
+    </>
   );
 }

@@ -2,7 +2,7 @@
 .subheader {
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
   height: 56px;
   padding: 8px 16px;
   background: #fff;
@@ -14,6 +14,12 @@
   @media (min-width: 1024px) {
     display: none;
   }
+}
+
+.subheaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .hamburgerButton {

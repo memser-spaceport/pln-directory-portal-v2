@@ -45,7 +45,7 @@ export function TeamProjects(props: Props) {
       )}
 
       {isEditMode && !projectToEdit && (
-        <TeamProjectsAddProject team={team!} projects={projects} toggleIsEditMode={toggleIsEditMode} />
+        <TeamProjectsAddProject team={team!} projects={projects} userInfo={userInfo} toggleIsEditMode={toggleIsEditMode} />
       )}
 
       {projectToEdit && (

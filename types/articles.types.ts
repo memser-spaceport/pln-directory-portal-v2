@@ -17,6 +17,7 @@ export interface IArticle {
   authorTeam: { uid: string; name: string; logo: { url: string } | null; officeHours: string | null } | null;
   totalViews: number;
   totalLikes: number;
+  isLiked: boolean;
 }
 
 export interface IArticlesResponse {

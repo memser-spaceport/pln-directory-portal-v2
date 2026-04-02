@@ -17,13 +17,13 @@ interface Props {
 export const EditFormControls = (props: Props) => {
   const { title, onClose, isProcessing: pIsProcessing = false } = props;
 
-  const {
-    reset,
-    formState: { isSubmitting, isDirty, isValid },
-  } = useFormContext();
+  const { reset, formState } = useFormContext() || {};
+  const { isSubmitting, isDirty } = formState || {};
 
   const cancel = () => {
-    reset();
+    if (reset) {
+      reset();
+    }
     onClose();
   };
 

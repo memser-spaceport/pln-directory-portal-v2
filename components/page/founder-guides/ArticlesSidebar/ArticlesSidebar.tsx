@@ -149,7 +149,9 @@ export default function ArticlesSidebar({ onNavigate }: ArticlesSidebarProps) {
   const pathname = usePathname();
   const { byCategory, isLoading } = useGetArticles();
   const [search, setSearch] = useState('');
-  const [openCategories, setOpenCategories] = useState<Set<string>>(new Set());
+  const [openCategories, setOpenCategories] = useState<Set<string> | null>(null);
+
+  const effectiveOpenCategories = openCategories ?? new Set(byCategory.map((c) => c.category));
 
   const { canCreate } = useFounderGuidesCreateAccess();
   const isCreateActive = pathname === '/founder-guides/new';
@@ -170,13 +172,13 @@ export default function ArticlesSidebar({ onNavigate }: ArticlesSidebarProps) {
     if (search.trim()) {
       return new Set(filtered.map((c) => c.category));
     }
-    return openCategories;
-  }, [search, filtered, openCategories]);
+    return effectiveOpenCategories;
+  }, [search, filtered, effectiveOpenCategories]);
 
   function toggleCategory(category: string) {
     if (search.trim()) return;
     setOpenCategories((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev ?? byCategory.map((c) => c.category));
       if (next.has(category)) {
         next.delete(category);
       } else {

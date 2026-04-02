@@ -9,13 +9,17 @@ import { useAuthorSearch } from '@/services/search/hooks/useAuthorSearch';
 import { useMember } from '@/services/members/hooks/useMember';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { isAdminUser } from '@/utils/user/isAdminUser';
-import { FoundItem } from '@/services/search/types';
+import type { IArticleAuthorSearchItem } from '@/types/articles.types';
 import s from './AuthorAutocomplete.module.scss';
 
 type AuthorValue = { label: string; value: string; type: 'member' | 'team' } | null;
 
 export function AuthorAutocomplete() {
-  const { setValue, watch, formState: { errors } } = useFormContext();
+  const {
+    setValue,
+    watch,
+    formState: { errors },
+  } = useFormContext();
   const selected: AuthorValue = watch('author');
 
   const { userInfo } = getCookiesFromClient();
@@ -58,14 +62,14 @@ export function AuthorAutocomplete() {
   }, [data?.teams, isAdmin, userTeamUids]);
 
   const allOptions = useMemo(() => {
-    const items: (FoundItem & { authorType: 'member' | 'team' })[] = [];
+    const items: (IArticleAuthorSearchItem & { authorType: 'member' | 'team' })[] = [];
     filteredMembers.forEach((m) => items.push({ ...m, authorType: 'member' }));
     filteredTeams.forEach((t) => items.push({ ...t, authorType: 'team' }));
     return items;
   }, [filteredMembers, filteredTeams]);
 
   const handleSelect = useCallback(
-    (item: FoundItem, type: 'member' | 'team') => {
+    (item: IArticleAuthorSearchItem, type: 'member' | 'team') => {
       const val: AuthorValue = { label: item.name, value: item.uid, type };
       setValue('author', val, { shouldValidate: true, shouldDirty: true });
       setSearchTerm('');

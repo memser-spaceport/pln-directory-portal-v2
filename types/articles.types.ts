@@ -13,7 +13,13 @@ export interface IArticle {
   status: 'PUBLISHED' | 'DRAFT';
   publishedAt: string;
   coverImage: { url: string } | null;
-  authorMember: { uid: string; name: string; email: string; image: string | null; officeHours: string | null } | null;
+  authorMember: {
+    uid: string;
+    name: string;
+    email: string;
+    image: string | { url: string } | null;
+    officeHours: string | null;
+  } | null;
   authorTeam: { uid: string; name: string; logo: { url: string } | null; officeHours: string | null } | null;
   totalViews: number;
   totalLikes: number;
@@ -30,4 +36,17 @@ export interface IArticlesResponse {
 export interface IArticlesByCategory {
   category: string;
   articles: IArticle[];
+}
+
+/** `GET /v1/articles/author-search` — RBAC: founder_guides.create */
+export interface IArticleAuthorSearchItem {
+  uid: string;
+  name: string;
+  officeHoursUrl?: string | null;
+  image: string;
+}
+
+export interface IArticleAuthorSearchResponse {
+  members: IArticleAuthorSearchItem[];
+  teams: IArticleAuthorSearchItem[];
 }

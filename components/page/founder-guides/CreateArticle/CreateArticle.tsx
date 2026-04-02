@@ -51,7 +51,7 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
             readingTime: null,
             content: '',
             author: null,
-            officeHoursUrl: '',
+            officeHours: '',
           },
     [isEditMode, article],
   );
@@ -97,7 +97,7 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
       content: data.content,
       authorMemberUid: author?.type === 'member' ? author.value : undefined,
       authorTeamUid: author?.type === 'team' ? author.value : undefined,
-      officeHoursUrl: author?.type === 'member' ? memberOfficeHours || undefined : data.officeHoursUrl || undefined,
+      officeHours: author?.type === 'member' ? memberOfficeHours || undefined : data.officeHours || undefined,
       status: 'PUBLISHED' as const,
     };
 
@@ -212,7 +212,7 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
 
               {author?.type === 'team' && (
                 <FormField
-                  name="officeHoursUrl"
+                  name="officeHours"
                   placeholder="Enter Office Hours link"
                   label="Office Hours"
                   description="Drop your calendar link here so others can get in touch with you at a time that is convenient."

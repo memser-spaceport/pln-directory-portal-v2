@@ -28,6 +28,12 @@ function formatCount(n: number): string {
   return String(n);
 }
 
+function resolveMemberImageUrl(image: string | { url: string } | null | undefined): string | null {
+  if (image == null) return null;
+  if (typeof image === 'string') return image;
+  return image.url ?? null;
+}
+
 function ThumbsUpIcon({ filled = false }: { filled?: boolean }) {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -168,8 +174,9 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const canEdit = canEditArticle(article, userInfo, canCreate);
   const isTeamAuthor = !!article.authorTeam && !article.authorMember;
   const authorName = article.authorMember?.name || article.authorTeam?.name || 'Unknown';
-  const authorImage = isTeamAuthor ? article.authorTeam?.logo?.url : article.authorMember?.image;
-  const authorLogo = article.authorTeam?.logo?.url || null;
+  const authorImage = isTeamAuthor
+    ? article.authorTeam?.logo?.url ?? null
+    : resolveMemberImageUrl(article.authorMember?.image);
   const initials = authorName.slice(0, 2).toUpperCase();
   const officeHoursUrl = article.authorMember?.officeHours || article.authorTeam?.officeHours || null;
 
@@ -208,9 +215,9 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
           {/* Details bar: author + stats */}
           <div className={s.details}>
             <div className={s.authorDetails}>
-              {authorLogo ? (
+              {authorImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={authorLogo} alt={authorName} className={s.authorAvatar} />
+                <img src={authorImage} alt={authorName} className={s.authorAvatar} />
               ) : (
                 <div className={s.authorInitial}>{initials}</div>
               )}

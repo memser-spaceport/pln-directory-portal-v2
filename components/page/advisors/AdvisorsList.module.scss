@@ -1,13 +1,56 @@
-.container { display: flex; flex-direction: column; gap: 24px; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-.header { display: flex; flex-direction: column; gap: 8px; }
-.title { font-size: 24px; font-weight: 700; margin: 0; }
-.subtitle { font-size: 15px; color: #6b7280; margin: 0; }
+@use 'styles/media';
 
-.search {
-  padding: 10px 16px; border: 1px solid #d1d5db; border-radius: 8px;
-  font-size: 14px; width: 100%; max-width: 400px; outline: none;
-  &:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
 }
 
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
-.loading, .error, .empty { text-align: center; padding: 40px; color: #6b7280; font-size: 15px; }
+.toolbar {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding: 10px 0;
+}
+
+.titleContainer {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  color: #0f172a;
+}
+
+.count {
+  font-size: 18px;
+  font-weight: 400;
+  color: #64748b;
+  margin: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 176px);
+  justify-content: center;
+  row-gap: 24px;
+  column-gap: 16px;
+  padding: 0 16px;
+
+  @include media.breakpoint-1024 {
+    grid-template-columns: repeat(auto-fit, 289px);
+    justify-content: flex-start;
+  }
+}
+
+.loading, .error, .empty {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+  font-size: 15px;
+}

@@ -3,11 +3,17 @@
 import { useState } from 'react';
 import { useGetAdvisor } from '@/services/advisors/hooks/useGetAdvisor';
 import { IBookableSlot } from '@/types/advisors.types';
-import { AdvisorBadge } from './AdvisorBadge';
 import { AdvisorAvailability } from './AdvisorAvailability';
 import { BookingFlow } from './BookingFlow';
 import { RequestTimeFlow } from './RequestTimeFlow';
 import { BackButton } from '@/components/ui/BackButton';
+import { MemberDetailHeader } from '@/components/page/member-details/MemberDetailHeader';
+import { ContactDetails } from '@/components/page/member-details/ContactDetails';
+import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
+import { AdvisorExperience } from './AdvisorExperience';
+import { ExpandableDescription } from '@/components/common/ExpandableDescription';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
 import styles from './AdvisorProfile.module.scss';
 
 interface AdvisorProfileProps {
@@ -19,58 +25,43 @@ export function AdvisorProfile({ advisorId }: AdvisorProfileProps) {
   const [selectedSlot, setSelectedSlot] = useState<IBookableSlot | null>(null);
   const [showRequestTime, setShowRequestTime] = useState(false);
 
+  const realUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const isLoggedIn = !!realUserInfo;
+
+  // Use a read-only view userInfo so edit buttons don't show (viewer is a founder, not the advisor)
+  const userInfo = realUserInfo ? { ...realUserInfo, uid: '__viewer__', roles: [] } : realUserInfo;
+
   if (isLoading) return <div className={styles.loading}>Loading advisor...</div>;
   if (isError || !data?.advisor) return <div className={styles.error}>Advisor not found</div>;
 
   const { advisor, bookableSlots } = data;
+  const member = advisor.member;
   const availableSlots = bookableSlots.filter((s) => s.available);
   const hasAvailability = availableSlots.length > 0;
-
-  const initials = advisor.member.name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase();
-
-  const handleBookingComplete = () => {
-    setSelectedSlot(null);
-  };
 
   return (
     <div className={styles.container}>
       <BackButton to="/advisors" />
       <div className={styles.profile}>
-        <div className={styles.header}>
-          <div className={styles.avatar}>{initials}</div>
-          <div className={styles.headerInfo}>
-            <div className={styles.nameRow}>
-              <h1 className={styles.name}>{advisor.member.name}</h1>
-              <AdvisorBadge />
-            </div>
-            {advisor.member.location && (
-              <span className={styles.location}>
-                {advisor.member.location.city}, {advisor.member.location.country}
-              </span>
-            )}
-          </div>
-        </div>
-
+        {/* Profile header — reuses member detail header component */}
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>About</h2>
-          <p className={styles.bio}>{advisor.bio}</p>
+          <MemberDetailHeader
+            member={member}
+            isLoggedIn={isLoggedIn}
+            userInfo={userInfo}
+            onEdit={() => {}}
+          />
+          {member.bio && (
+            <div className={styles.bioContainer}>
+              <div className={styles.bioTitle}>Bio</div>
+              <ExpandableDescription>
+                <div className={styles.bioContent} dangerouslySetInnerHTML={{ __html: member.bio }} />
+              </ExpandableDescription>
+            </div>
+          )}
         </div>
 
-        {advisor.member.skills && advisor.member.skills.length > 0 && (
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Expertise</h2>
-            <div className={styles.skills}>
-              {advisor.member.skills.map((skill) => (
-                <span key={skill.uid} className={styles.skillTag}>{skill.title}</span>
-              ))}
-            </div>
-          </div>
-        )}
-
+        {/* Office Hours — bookable slots */}
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Office Hours</h2>
           {selectedSlot ? (
@@ -78,7 +69,7 @@ export function AdvisorProfile({ advisorId }: AdvisorProfileProps) {
               advisor={advisor}
               selectedSlot={selectedSlot}
               onCancel={() => setSelectedSlot(null)}
-              onComplete={handleBookingComplete}
+              onComplete={() => setSelectedSlot(null)}
             />
           ) : showRequestTime ? (
             <RequestTimeFlow
@@ -104,6 +95,15 @@ export function AdvisorProfile({ advisorId }: AdvisorProfileProps) {
             </>
           )}
         </div>
+
+        {/* Contact */}
+        <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+
+        {/* Teams */}
+        <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+
+        {/* Experience */}
+        <AdvisorExperience advisor={advisor} />
       </div>
     </div>
   );

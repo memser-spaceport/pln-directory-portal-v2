@@ -3,6 +3,7 @@ import { getUserInfoFromLocal } from '@/utils/common.utils';
 
 export function useAdvisorsAccess() {
   const userInfo = getUserInfoFromLocal();
-  const hasAccess = !!userInfo && ADVISOR_WHITELISTED_FOUNDERS.includes(userInfo.uid);
+  // TODO: restrict to whitelist before production
+  const hasAccess = !!userInfo;
   return { hasAccess };
 }

@@ -13,9 +13,8 @@ export async function getBookableSlots(advisorId: string): Promise<IBookableSlot
   return getMockBookableSlots(advisorId);
 }
 
-export async function checkIsAdvisor(_memberId: string): Promise<boolean> {
-  // TODO: check against real advisor list. For prototype, all logged-in users are treated as advisors.
-  return true;
+export async function checkIsAdvisor(memberId: string): Promise<boolean> {
+  return isAdvisorMember(memberId);
 }
 
 export async function createBooking(data: {

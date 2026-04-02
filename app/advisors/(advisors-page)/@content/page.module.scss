@@ -1,0 +1,17 @@
+.content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .content {
+    display: flex;
+    gap: 14px;
+    flex-direction: column;
+  }
+}

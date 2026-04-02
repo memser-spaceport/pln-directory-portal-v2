@@ -1,0 +1,96 @@
+.wrapper {
+  display: flex; flex-direction: column; gap: 16px;
+  padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff;
+}
+
+.header { display: flex; justify-content: space-between; align-items: center; }
+.sectionTitle { font-size: 16px; font-weight: 600; margin: 0; }
+
+.editBtn {
+  padding: 6px 14px; border: 1px solid #6366f1; border-radius: 6px;
+  background: #fff; color: #6366f1; font-size: 13px; font-weight: 500; cursor: pointer;
+  &:hover { background: #eef2ff; }
+}
+
+.meta { display: flex; align-items: center; gap: 12px; }
+.timezoneLabel { font-size: 12px; color: #9ca3af; background: #f3f4f6; padding: 4px 8px; border-radius: 4px; }
+.slotCount { font-size: 13px; color: #6366f1; font-weight: 500; }
+
+// Month navigation
+.monthNav { display: flex; align-items: center; justify-content: center; gap: 16px; }
+.monthNavBtn {
+  padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px;
+  background: #fff; cursor: pointer; font-size: 14px;
+  &:hover { background: #f9fafb; }
+}
+.monthLabel { font-size: 16px; font-weight: 600; color: #111827; min-width: 160px; text-align: center; }
+
+// Month grid
+.monthGrid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+}
+
+.monthDayHeader {
+  text-align: center; font-size: 11px; font-weight: 600;
+  color: #9ca3af; text-transform: uppercase; padding: 8px 0;
+}
+
+.monthCellEmpty { min-height: 64px; }
+
+.monthCell {
+  min-height: 64px; padding: 6px; border: 1px solid #f3f4f6; border-radius: 6px;
+  cursor: pointer; transition: all 0.15s ease; display: flex; flex-direction: column; gap: 4px;
+  &:hover { background: #f9fafb; border-color: #d1d5db; }
+}
+
+.monthCellPast { opacity: 0.35; cursor: default; &:hover { background: transparent; border-color: #f3f4f6; } }
+.monthCellActive { border-color: #6366f1 !important; background: #eef2ff !important; }
+.monthDate { font-size: 13px; font-weight: 500; color: #374151; }
+
+.monthDots { display: flex; align-items: center; gap: 4px; }
+.monthDot { width: 6px; height: 6px; border-radius: 50%; background: #6366f1; flex-shrink: 0; }
+.monthSlotLabel { font-size: 10px; color: #6366f1; font-weight: 500; }
+
+// Day detail panel
+.dayPanel {
+  border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;
+}
+
+.dayPanelHeader {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;
+}
+
+.dayPanelTitle { font-size: 15px; font-weight: 600; margin: 0; }
+.dayPanelHint { font-size: 12px; color: #6366f1; font-style: italic; }
+
+.dayGrid { display: flex; flex-direction: column; }
+
+.dayRow {
+  display: flex; min-height: 44px; border-bottom: 1px solid #f3f4f6;
+  transition: background 0.1s ease;
+}
+
+.dayRowEditable { cursor: pointer; &:hover { background: #eef2ff; } }
+.dayRowSelected { background: #e0e7ff !important; }
+
+.dayTime {
+  width: 60px; flex-shrink: 0; padding: 8px 8px 8px 16px;
+  font-size: 12px; color: #9ca3af; text-align: right;
+}
+
+.dayContent {
+  flex: 1; padding: 4px 12px; display: flex; flex-direction: column; gap: 2px; justify-content: center;
+}
+
+.event {
+  background: #fee2e2; color: #991b1b; border-radius: 3px;
+  padding: 2px 6px; font-size: 11px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+  border-left: 2px solid #ef4444; width: fit-content;
+}
+
+.blockMarker {
+  background: #6366f1; color: #fff; border-radius: 3px;
+  padding: 2px 8px; font-size: 11px; font-weight: 500; width: fit-content;
+}

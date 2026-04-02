@@ -16,6 +16,7 @@ import EmptyResult from '@/components/core/empty-result';
 
 import MemberGridView from '../member-grid-view';
 import MemberListView from '../member-list-view';
+import { getMockAdvisors } from '@/services/advisors/mock-data';
 
 import s from './MemberInfiniteList.module.scss';
 
@@ -32,7 +33,7 @@ const MemberInfiniteList = (props: any) => {
     analytics.onMemberCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member), viewType);
   };
 
-  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteMembersList(
+  const { data: realData, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteMembersList(
     {
       searchParams,
     },
@@ -40,6 +41,11 @@ const MemberInfiniteList = (props: any) => {
       initialData: { items: members, total: totalItems },
     },
   );
+
+  // Inject mock advisor members into the member list for prototype demo
+  const advisorMembers = getMockAdvisors().map((a) => a.member);
+  const advisorIds = new Set(advisorMembers.map((m) => m.id));
+  const data = [...advisorMembers, ...realData.filter((m) => !advisorIds.has(m.id))] as IMember[];
 
   const Loader = VIEW_TYPE_OPTIONS.GRID === viewType ? CardsLoader : ListLoader;
 
@@ -65,10 +71,12 @@ const MemberInfiniteList = (props: any) => {
             [s.list]: VIEW_TYPE_OPTIONS.LIST === viewType,
           })}
         >
-          {data?.map((member) => (
+          {data?.map((member) => {
+            const href = `${PAGE_ROUTES.MEMBERS}/${member?.id}`;
+            return (
             <Link
               prefetch={false}
-              href={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
+              href={href}
               key={member.id}
               className={clsx(s.member, {
                 [s.listMember]: VIEW_TYPE_OPTIONS.LIST === viewType,
@@ -82,7 +90,8 @@ const MemberInfiniteList = (props: any) => {
                 <MemberListView isUserLoggedIn={isUserLoggedIn} member={member} />
               )}
             </Link>
-          ))}
+          );
+          })}
           {isFetchingNextPage && <Loader />}
         </div>
       </InfiniteScroll>

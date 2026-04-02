@@ -7,7 +7,8 @@ import { PAGE_ROUTES } from '@/utils/constants';
 export default async function AdvisorDetailPage({ params }: { params: { id: string } }) {
   const { userInfo, isLoggedIn } = getCookiesFromHeaders();
 
-  if (!isLoggedIn || !userInfo || !ADVISOR_WHITELISTED_FOUNDERS.includes(userInfo.uid)) {
+  // TODO: restrict to whitelist before production
+  if (!isLoggedIn || !userInfo) {
     redirect(PAGE_ROUTES.HOME);
   }
 

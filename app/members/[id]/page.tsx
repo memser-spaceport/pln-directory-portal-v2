@@ -16,7 +16,7 @@ import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
 import { OfficeHoursDetails } from '@/components/page/member-details/OfficeHoursDetails';
 import { InvestorProfileDetails } from '@/components/page/member-details/InvestorProfileDetails';
 import { BackButton } from '@/components/ui/BackButton';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { BookWithOther } from '@/components/page/member-details/BookWithOther';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
@@ -37,7 +37,9 @@ import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMem
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useIsAdvisor } from '@/services/advisors/hooks/useIsAdvisor';
-import { AdvisorBadge } from '@/components/page/advisors/AdvisorBadge';
+import { AdvisorOfficeHours } from '@/components/page/advisors/AdvisorOfficeHours';
+import { AdvisorExperience } from '@/components/page/advisors/AdvisorExperience';
+import { getMockAdvisors } from '@/services/advisors/mock-data';
 
 const shouldShowInvestorProfileForThirdParty = (
   member: IMember,
@@ -98,20 +100,47 @@ const MemberDetails = ({ params }: { params: any }) => {
     enabled: !!userInfo?.token,
     select: (data) => data?.total,
   });
-  const isAvailableToConnect = isMemberAvailableToConnect(member);
+  // Fallback to mock advisor member data if real member not found
+  const mockAdvisor = !member ? getMockAdvisors().find((a) => a.memberId === memberId) : null;
+  const resolvedMember = member || (mockAdvisor?.member as any);
+
+  // For advisor prototype: enrich member data with mock LinkedIn-sourced content
+  const enrichedMember = useMemo(() => {
+    const baseMember = resolvedMember;
+    if (!baseMember || !isAdvisorMember) return baseMember;
+    return {
+      ...baseMember,
+      bio: baseMember.bio || '<p>Experienced operator and advisor with deep expertise in scaling teams and building products in the web3 and decentralized technology space. Previously led engineering and product teams at multiple startups from early stage through Series B. Passionate about helping founders navigate the challenges of building category-defining companies.</p>',
+      linkedinHandle: baseMember.linkedinHandle || 'advisor-profile',
+      location: baseMember.location?.country ? baseMember.location : {
+        country: 'United States',
+        city: 'San Francisco',
+        continent: 'North America',
+        metroArea: 'SF Bay Area',
+        region: 'California',
+      },
+      experiences: (baseMember as any).experiences?.length ? (baseMember as any).experiences : [
+        { title: 'VP of Engineering', company: 'Decentralized Systems Inc.', startDate: '2022-01', endDate: '2025-12', description: 'Led engineering team scaling from 8 to 45 engineers. Shipped core protocol infrastructure.' },
+        { title: 'Head of Product', company: 'Web3 Ventures', startDate: '2019-06', endDate: '2021-12', description: 'Built and launched token economics platform. Drove product-led growth to 50K users.' },
+        { title: 'Senior Engineer', company: 'Cloud Infrastructure Co.', startDate: '2016-03', endDate: '2019-05', description: 'Core contributor to distributed storage system. 3 patents filed.' },
+      ],
+    };
+  }, [member, resolvedMember, isAdvisorMember]);
+
+  const isAvailableToConnect = isMemberAvailableToConnect(enrichedMember);
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
-  const isNewInvestor = accessLevel === 'base' && isOwner && isDemodaySignUpSource(member?.signUpSource);
+  const isNewInvestor = accessLevel === 'base' && isOwner && isDemodaySignUpSource(resolvedMember?.signUpSource);
 
   // Scroll to top when member data is loaded or member ID changes
   useEffect(() => {
-    if (member && !isLoading) {
+    if (resolvedMember && !isLoading) {
       document.body.scrollTo({
         top: 0,
         left: 0,
         behavior: 'instant',
       });
     }
-  }, [member, memberId, isLoading]);
+  }, [resolvedMember, memberId, isLoading]);
 
   // Handle login click from AccountCreatedView
   const handleLoginClick = () => {
@@ -132,19 +161,22 @@ const MemberDetails = ({ params }: { params: any }) => {
     return <MemberPageLoader />;
   }
 
-  if (!member) {
+  if (!resolvedMember) {
     return <Error title="This member doesn't exist or isn't approved yet" description="Member not found" />;
   }
 
   function renderPageContent() {
-    if (!member) {
+    if (!enrichedMember) {
       return null;
     }
 
-    switch (member.accessLevel) {
+    // Use enriched member (with mock LinkedIn data for advisors) for rendering
+    const m = enrichedMember;
+
+    switch (m.accessLevel) {
       case 'L5': {
         const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
-          member,
+          m,
           isOwner,
           isAdmin,
           memberInvestorSettings?.isInvestor,
@@ -152,27 +184,26 @@ const MemberDetails = ({ params }: { params: any }) => {
 
         return (
           <>
-            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            {isAdvisorMember && <AdvisorBadge />}
+            <ProfileDetails userInfo={userInfo} member={m} isLoggedIn={isLoggedIn} />
             {showInvestorProfile && (
               <InvestorProfileDetails
                 userInfo={userInfo}
-                member={member}
+                member={m}
                 isLoggedIn={isLoggedIn}
                 isInvestor={memberInvestorSettings?.isInvestor}
                 useInlineAddTeam
               />
             )}
-            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
-            <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContactDetails userInfo={userInfo} member={m} isLoggedIn={isLoggedIn} />
+            <ForumActivity member={m} userInfo={userInfo} isOwner={isOwner} />
+            <TeamsDetails member={m} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <ExperienceDetails userInfo={userInfo} member={m} isLoggedIn={isLoggedIn} />
           </>
         );
       }
       default: {
         const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
-          member,
+          m,
           isOwner,
           isAdmin,
           memberInvestorSettings?.isInvestor,
@@ -182,38 +213,58 @@ const MemberDetails = ({ params }: { params: any }) => {
           <>
             <OneClickVerification
               userInfo={userInfo}
-              member={member}
+              member={m}
               isLoggedIn={isLoggedIn}
               isNewInvestor={isNewInvestor}
             />
-            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            {isAdvisorMember && <AdvisorBadge />}
-            {showInvestorProfile && (
-              <InvestorProfileDetails
-                userInfo={userInfo}
-                member={member}
-                isLoggedIn={isLoggedIn}
-                isInvestor={memberInvestorSettings?.isInvestor}
-                useInlineAddTeam
-              />
-            )}
-            {!isAdvisorMember && <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
-            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
-            <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            {!isNewInvestor && (
+            <ProfileDetails userInfo={userInfo} member={m} isLoggedIn={isLoggedIn} />
+            {isAdvisorMember ? (
               <>
-                <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-                <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+                {isOwner && (
+                  <InvestorProfileDetails
+                    userInfo={userInfo}
+                    member={m}
+                    isLoggedIn={isLoggedIn}
+                    isInvestor={null}
+                    useInlineAddTeam
+                  />
+                )}
+                {isOwner && <AdvisorOfficeHours />}
+              </>
+            ) : (
+              <>
+                {showInvestorProfile && (
+                  <InvestorProfileDetails
+                    userInfo={userInfo}
+                    member={m}
+                    isLoggedIn={isLoggedIn}
+                    isInvestor={memberInvestorSettings?.isInvestor}
+                    useInlineAddTeam
+                  />
+                )}
+                <OfficeHoursDetails userInfo={userInfo} member={m} isLoggedIn={isLoggedIn} />
               </>
             )}
+            <ContactDetails userInfo={userInfo} member={m} isLoggedIn={isLoggedIn} />
+            {!isAdvisorMember && <ForumActivity member={m} userInfo={userInfo} isOwner={isOwner} />}
+            <TeamsDetails member={m} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            {!isNewInvestor && (
+              isAdvisorMember ? (
+                <AdvisorExperience advisor={{ id: 'self', memberId: m.id, member: m } as any} />
+              ) : (
+                <>
+                  <ExperienceDetails userInfo={userInfo} member={m} isLoggedIn={isLoggedIn} />
+                  <ContributionsDetails userInfo={userInfo} member={m} isLoggedIn={isLoggedIn} />
+                </>
+              )
+            )}
 
-            {member.eventGuests.length > 0 && (
+            {m.eventGuests.length > 0 && (
               <div className={styles?.memberDetail__irlContribution}>
-                <IrlMemberContribution member={member} userInfo={userInfo} />
+                <IrlMemberContribution member={m} userInfo={userInfo} />
               </div>
             )}
-            {!isNewInvestor && <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+            {!isNewInvestor && <RepositoriesDetails userInfo={userInfo} member={m} isLoggedIn={isLoggedIn} />}
           </>
         );
       }
@@ -223,7 +274,7 @@ const MemberDetails = ({ params }: { params: any }) => {
   return (
     <>
       <Head>
-        <title>{`${member?.name} | Protocol Labs Directory`}</title>
+        <title>{`${resolvedMember?.name} | Protocol Labs Directory`}</title>
       </Head>
       <div className={styles?.memberDetail}>
         <div
@@ -246,12 +297,12 @@ const MemberDetails = ({ params }: { params: any }) => {
               <div style={{ visibility: 'hidden' }}>
                 <BackButton to={`/members`} />
               </div>
-              <BookWithOther count={availableToConnectCount} member={member} />
+              <BookWithOther count={availableToConnectCount} member={resolvedMember} />
             </div>
           )}
         </div>
 
-        {userInfo.uid === member.id && (
+        {userInfo.uid === resolvedMember?.id && (
           <>
             <SubscribeToRecommendationsWidget userInfo={userInfo} />
             <UpcomingEventsWidget userInfo={userInfo} />

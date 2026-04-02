@@ -98,16 +98,21 @@ function Navbar(props: Readonly<INavbar>) {
   const { hasAccess: hasDealsPageAccess } = useDealsAccess();
   const { hasAccess: hasAdvisorsAccess } = useAdvisorsAccess();
 
-  const directoryLinks: ISubItem[] = hasAdvisorsAccess
+  const prototypeLinks: ISubItem[] = hasAdvisorsAccess
     ? [
-        ...DIRECTORY_LINKS,
+        ...PROTOTYPE_LINKS,
         {
           href: '/advisors',
           title: 'Advisors',
           description: 'Connect with experienced operators for specific challenges',
         },
+        {
+          href: '/sign-up/advisor',
+          title: 'Advisor Onboarding',
+          description: 'Advisor sign-up flow prototype',
+        },
       ]
-    : [...DIRECTORY_LINKS];
+    : [...PROTOTYPE_LINKS];
 
   return (
     <NavigationMenu.Root className={s.Root}>
@@ -119,7 +124,7 @@ function Navbar(props: Readonly<INavbar>) {
         <NavItemWithMenu
           icon={<DirectoryIcon />}
           label="Directory"
-          items={directoryLinks}
+          items={DIRECTORY_LINKS}
           onNavItemClickHandler={onNavItemClickHandler}
         />
 
@@ -133,7 +138,7 @@ function Navbar(props: Readonly<INavbar>) {
         <NavItemWithMenu
           icon={<PrototypesIcon />}
           label="Prototypes"
-          items={PROTOTYPE_LINKS}
+          items={prototypeLinks}
           onNavItemClickHandler={onNavItemClickHandler}
         />
 

@@ -20,6 +20,7 @@ import { TagsList } from '@/components/common/profile/TagsList';
 import { EditButton } from '@/components/common/profile/EditButton';
 
 import { shouldShowInvestorTag } from './utils/shouldShowInvestorTag';
+import { useIsAdvisor } from '@/services/advisors/hooks/useIsAdvisor';
 
 import s from './MemberDetailHeader.module.scss';
 
@@ -38,6 +39,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const role = member?.mainTeam?.role ?? member.role;
   const location = parseMemberLocation(member?.location);
   const isTeamLead = member?.teamLead;
+  const { data: isAdvisorMember } = useIsAdvisor(member?.id);
   const isOpenToWork = member?.openToWork;
   const skills = member?.skills;
   const userInfo = props?.userInfo;
@@ -190,11 +192,15 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
             </div>
           )}
 
-          {isTeamLead && (
+          {isAdvisorMember ? (
+            <div className={s.funds}>
+              <span className={s.fundsLabel}>Advisor</span>
+            </div>
+          ) : isTeamLead ? (
             <div className={s.funds}>
               <span className={s.fundsLabel}>Team lead</span>
             </div>
-          )}
+          ) : null}
 
           {hasSkills && variant !== 'investor-drawer' ? (
             <TagsList tags={skills} />

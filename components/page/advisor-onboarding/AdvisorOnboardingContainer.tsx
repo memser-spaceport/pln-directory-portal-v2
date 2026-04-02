@@ -1,17 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { BioStep } from './BioStep';
 import { CalendarConnectStep } from './CalendarConnectStep';
 import { AvailabilityStep } from './AvailabilityStep';
 import { LinkedInStep } from './LinkedInStep';
 import { getUserInfoFromLocal } from '@/utils/common.utils';
+import { useRouter } from 'next/navigation';
 import styles from './AdvisorOnboardingContainer.module.scss';
 
-const STEPS = ['Bio', 'Calendar', 'Availability', 'LinkedIn'];
+const STEPS = ['LinkedIn', 'Calendar', 'Availability'];
 
 interface OnboardingData {
-  bio: string;
   calendarProvider: 'google' | 'calendly' | null;
   calendarConnected: boolean;
   availabilitySlots: any[];
@@ -21,7 +20,6 @@ interface OnboardingData {
 export function AdvisorOnboardingContainer() {
   const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<OnboardingData>({
-    bio: '',
     calendarProvider: null,
     calendarConnected: false,
     availabilitySlots: [],
@@ -33,10 +31,11 @@ export function AdvisorOnboardingContainer() {
   };
 
   const userInfo = getUserInfoFromLocal();
+  const router = useRouter();
 
   const goToProfile = () => {
     const uid = userInfo?.uid;
-    window.location.href = uid ? `/members/${uid}` : '/members';
+    router.push(uid ? `/members/${uid}` : '/members');
   };
 
   const next = () => {
@@ -47,7 +46,6 @@ export function AdvisorOnboardingContainer() {
     }
   };
 
-  const skip = () => next();
   const back = () => { if (currentStep > 0) setCurrentStep((s) => s - 1); };
 
   return (
@@ -64,7 +62,15 @@ export function AdvisorOnboardingContainer() {
         ))}
       </div>
       <div className={styles.content}>
-        {currentStep === 0 && <BioStep value={data.bio} onChange={(bio) => updateData({ bio })} onNext={next} />}
+        {currentStep === 0 && (
+          <LinkedInStep
+            value={data.linkedinUrl}
+            onChange={(url) => updateData({ linkedinUrl: url })}
+            onNext={next}
+            onSkip={next}
+            onBack={() => {}}
+          />
+        )}
         {currentStep === 1 && (
           <CalendarConnectStep
             provider={data.calendarProvider}
@@ -78,16 +84,7 @@ export function AdvisorOnboardingContainer() {
           <AvailabilityStep
             slots={data.availabilitySlots}
             onSlotsChange={(slots) => updateData({ availabilitySlots: slots })}
-            onNext={next}
-            onBack={back}
-          />
-        )}
-        {currentStep === 3 && (
-          <LinkedInStep
-            value={data.linkedinUrl}
-            onChange={(url) => updateData({ linkedinUrl: url })}
             onNext={goToProfile}
-            onSkip={goToProfile}
             onBack={back}
             isLastStep
           />

@@ -33,6 +33,7 @@ interface AvailabilityStepProps {
   onSlotsChange: (slots: any[]) => void;
   onNext: () => void;
   onBack: () => void;
+  isLastStep?: boolean;
 }
 
 function formatDate(date: Date): string {
@@ -43,7 +44,7 @@ function dateToKey(date: Date): string {
   return date.toISOString().split('T')[0];
 }
 
-export function AvailabilityStep({ slots, onSlotsChange, onNext, onBack }: AvailabilityStepProps) {
+export function AvailabilityStep({ slots, onSlotsChange, onNext, onBack, isLastStep }: AvailabilityStepProps) {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const [weekOffset, setWeekOffset] = useState(0);
 
@@ -134,7 +135,7 @@ export function AvailabilityStep({ slots, onSlotsChange, onNext, onBack }: Avail
     <div className={styles.container}>
       <h2 className={styles.title}>Set your availability</h2>
       <p className={styles.subtitle}>
-        Click on a time slot to add a 2-hour availability block. Existing calendar events are shown in red.
+        Add 2-hour availability windows to your calendar. Each window will be divided into four 30-minute sessions that founders can individually book. Existing calendar events are shown in red to help you avoid conflicts.
       </p>
       <div className={styles.timezoneRow}>
         <span className={styles.timezoneLabel}>Timezone: {timezone}</span>
@@ -184,7 +185,7 @@ export function AvailabilityStep({ slots, onSlotsChange, onNext, onBack }: Avail
                     {cellEvents.map((ev, i) => (
                       <div key={i} className={styles.event}>{ev.title}</div>
                     ))}
-                    {blockStart && <div className={styles.blockMarker}>2h block</div>}
+                    {blockStart && <div className={styles.blockMarker}>2h window (4 sessions)</div>}
                   </div>
                 );
               })}
@@ -195,12 +196,12 @@ export function AvailabilityStep({ slots, onSlotsChange, onNext, onBack }: Avail
 
       {selected.length > 0 && (
         <p className={styles.preview}>
-          {selected.length} block{selected.length > 1 ? 's' : ''} selected = {totalSlots} bookable 30-min slots
+          {selected.length} window{selected.length > 1 ? 's' : ''} selected — {totalSlots} bookable 30-min sessions for founders
         </p>
       )}
       <div className={styles.actionsBetween}>
         <button className={styles.backButton} onClick={onBack}>Back</button>
-        <button className={styles.nextButton} onClick={onNext} disabled={selected.length === 0}>Continue</button>
+        <button className={styles.nextButton} onClick={onNext} disabled={selected.length === 0}>{isLastStep ? 'See Profile' : 'Continue'}</button>
       </div>
     </div>
   );

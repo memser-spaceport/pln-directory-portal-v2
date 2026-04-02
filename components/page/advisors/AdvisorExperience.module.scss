@@ -1,0 +1,67 @@
+@use 'styles/media';
+
+.container {
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  background: #fff;
+  padding: 20px;
+
+  @include media.tablet-landscape {
+    border-radius: 8px;
+  }
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: #0f172a;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.itemHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: #0f172a;
+}
+
+.itemCompany {
+  font-size: 14px;
+  color: #334155;
+}
+
+.itemDates {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.itemDescription {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #475569;
+  margin: 4px 0 0 0;
+}

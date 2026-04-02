@@ -1,32 +1,87 @@
-.container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
-.profile { display: flex; flex-direction: column; gap: 24px; margin-top: 16px; }
+@use 'styles/media';
 
-.header { display: flex; gap: 16px; align-items: center; }
-.avatar {
-  width: 72px; height: 72px; border-radius: 50%; background: #e0e7ff; color: #4338ca;
-  display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; flex-shrink: 0;
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 110px;
+  background-color: #f1f5f9;
+  width: 100%;
+  margin: 0 auto;
+  padding-inline: 12px;
+
+  @include media.tablet-landscape {
+    padding-bottom: 40px;
+  }
 }
-.headerInfo { display: flex; flex-direction: column; gap: 4px; }
-.nameRow { display: flex; align-items: center; gap: 10px; }
-.name { font-size: 24px; font-weight: 700; margin: 0; }
-.location { font-size: 14px; color: #6b7280; }
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    gap: 16px;
+    max-width: 900px;
+  }
+}
 
 .section {
-  display: flex; flex-direction: column; gap: 12px;
-  padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff;
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  background: #fff;
+  padding: 20px;
+
+  @include media.tablet-landscape {
+    border-radius: 8px;
+  }
 }
-.sectionTitle { font-size: 16px; font-weight: 600; margin: 0; }
-.bio { font-size: 15px; line-height: 1.6; color: #374151; margin: 0; }
 
-.skills { display: flex; flex-wrap: wrap; gap: 8px; }
-.skillTag { padding: 4px 10px; background: #f3f4f6; border-radius: 4px; font-size: 13px; color: #4b5563; }
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
 
-.noSlots { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px; }
-.noSlotsText { font-size: 14px; color: #6b7280; margin: 0; }
+.bioContainer {
+  margin-top: 16px;
+}
+
+.bioTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #0f172a;
+}
+
+.bioContent {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #334155;
+
+  p { margin: 0; }
+}
+
+.noSlots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+}
+
+.noSlotsText { font-size: 14px; color: #64748b; margin: 0; }
+
 .requestButton {
-  padding: 8px 20px; border: 1px solid #6366f1; border-radius: 6px;
-  background: #fff; color: #6366f1; font-size: 14px; font-weight: 500; cursor: pointer;
-  &:hover { background: #eef2ff; }
+  padding: 8px 20px;
+  border: 1px solid #156ff7;
+  border-radius: 6px;
+  background: #fff;
+  color: #156ff7;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  &:hover { background: #f2f5ff; }
 }
 
-.loading, .error { text-align: center; padding: 40px; color: #6b7280; font-size: 15px; }
+.loading, .error { text-align: center; padding: 40px; color: #64748b; font-size: 15px; }

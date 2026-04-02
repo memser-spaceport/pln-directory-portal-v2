@@ -3,24 +3,30 @@ import { IAdvisor, IAvailabilitySlot, IBookableSlot, IBooking, ITimeRequest } fr
 // Reference date: today is 2026-04-01
 // We'll compute "next 14 days" dynamically in getMockBookableSlots
 
+let avatarSeed = 10;
 const makeMember = (
   id: string,
   name: string,
   email: string,
   bio: string,
   skills: { uid: string; title: string }[],
-  location: { city: string; country: string; region: string; continent: string; metroArea: string }
-) =>
-  ({
+  location: { city: string; country: string; region: string; continent: string; metroArea: string },
+  teamName: string,
+  role: string,
+) => {
+  const seed = avatarSeed++;
+  return ({
     id,
     name,
     email,
     bio,
     image: null,
+    profile: `https://i.pravatar.cc/150?img=${seed}`,
     skills,
     location,
-    teams: [],
-    mainTeam: null,
+    teams: [{ id: `team-${id}`, name: teamName, role, mainTeam: true, teamLead: false }],
+    mainTeam: { id: `team-${id}`, name: teamName, role, mainTeam: true, teamLead: false },
+    role,
     officeHours: null,
     projectContributions: [],
     openToWork: false,
@@ -30,7 +36,9 @@ const makeMember = (
     scheduleMeetingCount: null,
     teamLead: false,
     linkedinProfile: null,
-  } as any);
+    eventGuests: [],
+  }) as any;
+};
 
 // ---------------------------------------------------------------------------
 // Availability slot helpers
@@ -72,7 +80,8 @@ export const MOCK_ADVISORS: IAdvisor[] = [
         { uid: 'sk-2', title: 'Protocol Design' },
         { uid: 'sk-3', title: 'Tokenomics' },
       ],
-      { city: 'San Francisco', country: 'United States', region: 'California', continent: 'North America', metroArea: 'San Francisco Bay Area' }
+      { city: 'San Francisco', country: 'United States', region: 'California', continent: 'North America', metroArea: 'San Francisco Bay Area' },
+      'Uniswap Labs', 'Head of Research',
     ),
     bio: 'I help early-stage Web3 teams design sustainable token economies and protocol mechanics. Office hours focus on DeFi primitives, mechanism design, and go-to-market strategy for protocol launches.',
     calendarProvider: 'google',
@@ -100,7 +109,8 @@ export const MOCK_ADVISORS: IAdvisor[] = [
         { uid: 'sk-5', title: 'Marketing' },
         { uid: 'sk-6', title: 'Community Building' },
       ],
-      { city: 'Mexico City', country: 'Mexico', region: 'CDMX', continent: 'North America', metroArea: 'Mexico City' }
+      { city: 'Mexico City', country: 'Mexico', region: 'CDMX', continent: 'North America', metroArea: 'Mexico City' },
+      'Anthropic', 'Growth Lead',
     ),
     bio: 'Specialising in zero-to-one growth for crypto products. I can help with community flywheels, referral mechanics, and content-led distribution.',
     calendarProvider: 'calendly',
@@ -128,7 +138,8 @@ export const MOCK_ADVISORS: IAdvisor[] = [
         { uid: 'sk-8', title: 'Security Audits' },
         { uid: 'sk-9', title: 'Solidity' },
       ],
-      { city: 'Bangalore', country: 'India', region: 'Karnataka', continent: 'Asia', metroArea: 'Bangalore' }
+      { city: 'Bangalore', country: 'India', region: 'Karnataka', continent: 'Asia', metroArea: 'Bangalore' },
+      'OpenZeppelin', 'Lead Auditor',
     ),
     bio: 'I review smart contract architectures, help teams prepare for audits, and advise on secure upgrade patterns. Calendar not yet connected — request a time to get in touch.',
     calendarProvider: null,
@@ -153,7 +164,8 @@ export const MOCK_ADVISORS: IAdvisor[] = [
         { uid: 'sk-11', title: 'VC Relations' },
         { uid: 'sk-12', title: 'Pitch Deck' },
       ],
-      { city: 'London', country: 'United Kingdom', region: 'England', continent: 'Europe', metroArea: 'London' }
+      { city: 'London', country: 'United Kingdom', region: 'England', continent: 'Europe', metroArea: 'London' },
+      'a16z crypto', 'Former Partner',
     ),
     bio: 'I help founders craft compelling narratives, model token fundraises, and navigate VC conversations. Happy to do pitch deck reviews and warm intros.',
     calendarProvider: 'google',
@@ -181,7 +193,8 @@ export const MOCK_ADVISORS: IAdvisor[] = [
         { uid: 'sk-14', title: 'Filecoin' },
         { uid: 'sk-15', title: 'Distributed Storage' },
       ],
-      { city: 'Tokyo', country: 'Japan', region: 'Kanto', continent: 'Asia', metroArea: 'Tokyo' }
+      { city: 'Tokyo', country: 'Japan', region: 'Kanto', continent: 'Asia', metroArea: 'Tokyo' },
+      'Protocol Labs', 'Senior Engineer',
     ),
     bio: 'Deep expertise in content-addressable storage, data persistence strategies, and Filecoin deal-making. Great resource for teams building on IPFS/FVM.',
     calendarProvider: 'google',
@@ -209,7 +222,8 @@ export const MOCK_ADVISORS: IAdvisor[] = [
         { uid: 'sk-17', title: 'Regulatory Compliance' },
         { uid: 'sk-18', title: 'Token Structuring' },
       ],
-      { city: 'Dubai', country: 'United Arab Emirates', region: 'Dubai', continent: 'Asia', metroArea: 'Dubai' }
+      { city: 'Dubai', country: 'United Arab Emirates', region: 'Dubai', continent: 'Asia', metroArea: 'Dubai' },
+      'Coinbase', 'Legal Counsel',
     ),
     bio: 'I advise on token legal structures, regulatory strategy, and DAO formation. Familiar with VARA (Dubai), MiCA (EU), and SEC guidance. Not legal advice — but I help teams ask the right questions.',
     calendarProvider: 'calendly',
@@ -237,7 +251,8 @@ export const MOCK_ADVISORS: IAdvisor[] = [
         { uid: 'sk-20', title: 'UX Research' },
         { uid: 'sk-21', title: 'Web3 UX' },
       ],
-      { city: 'Berlin', country: 'Germany', region: 'Berlin', continent: 'Europe', metroArea: 'Berlin' }
+      { city: 'Berlin', country: 'Germany', region: 'Berlin', continent: 'Europe', metroArea: 'Berlin' },
+      'MetaMask', 'Head of Design',
     ),
     bio: 'I focus on making crypto products accessible without sacrificing power. Happy to review onboarding flows, wallet UX, and NFT marketplace designs.',
     calendarProvider: 'google',
@@ -265,7 +280,8 @@ export const MOCK_ADVISORS: IAdvisor[] = [
         { uid: 'sk-23', title: 'SDK Design' },
         { uid: 'sk-24', title: 'Technical Writing' },
       ],
-      { city: 'Accra', country: 'Ghana', region: 'Greater Accra', continent: 'Africa', metroArea: 'Accra' }
+      { city: 'Accra', country: 'Ghana', region: 'Greater Accra', continent: 'Africa', metroArea: 'Accra' },
+      'Polygon', 'DevRel Lead',
     ),
     bio: 'I help protocols build thriving developer communities. Reach out about ecosystem strategy, grant programs, hackathon design, and documentation best practices.',
     calendarProvider: null,
@@ -290,7 +306,8 @@ export const MOCK_ADVISORS: IAdvisor[] = [
         { uid: 'sk-26', title: 'Scalability' },
         { uid: 'sk-27', title: 'Cross-chain Bridges' },
       ],
-      { city: 'São Paulo', country: 'Brazil', region: 'São Paulo', continent: 'South America', metroArea: 'São Paulo' }
+      { city: 'São Paulo', country: 'Brazil', region: 'São Paulo', continent: 'South America', metroArea: 'São Paulo' },
+      'Chainlink Labs', 'Staff Engineer',
     ),
     bio: 'I help teams architect high-throughput decentralised systems and safely deploy cross-chain infrastructure. Strong opinions on validator set design and bridge security.',
     calendarProvider: 'google',
@@ -318,7 +335,8 @@ export const MOCK_ADVISORS: IAdvisor[] = [
         { uid: 'sk-29', title: 'Decentralised Compute' },
         { uid: 'sk-30', title: 'Agent Networks' },
       ],
-      { city: 'Seoul', country: 'South Korea', region: 'Seoul', continent: 'Asia', metroArea: 'Seoul' }
+      { city: 'Seoul', country: 'South Korea', region: 'Seoul', continent: 'Asia', metroArea: 'Seoul' },
+      'OpenAI', 'Research Scientist',
     ),
     bio: 'Interested in AI × crypto primitives: verifiable inference, agent-owned wallets, on-chain ML models. Advising teams at the cutting edge of this space.',
     calendarProvider: 'calendly',

@@ -1,0 +1,96 @@
+@use 'styles/media';
+
+.root {
+  width: inherit;
+  display: none;
+  position: fixed;
+
+  @include media.breakpoint-1024 {
+    display: block;
+  }
+}
+
+.searchSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.searchLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.searchInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 36px 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0f172a;
+  outline: none;
+  background: #fff;
+
+  &::placeholder {
+    color: #94a3b8;
+  }
+
+  &:focus {
+    border-color: #156ff7;
+    box-shadow: 0 0 0 3px rgba(21, 111, 247, 0.1);
+  }
+}
+
+.topicsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.topicsList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.topicItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  cursor: pointer;
+  font-size: 14px;
+  color: #334155;
+
+  &:hover {
+    color: #0f172a;
+  }
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  accent-color: #156ff7;
+  flex-shrink: 0;
+}
+
+.topicLabel {
+  flex: 1;
+}
+
+.topicCount {
+  font-size: 13px;
+  color: #94a3b8;
+  min-width: 28px;
+  text-align: right;
+}

@@ -125,8 +125,23 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
   return (
     <>
       <div className={s.root}>
+        <div className={s.mobileSubheader}>
+          <button type="button" className={s.mobileCancel} onClick={handleCancel}>
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="create-article-form"
+            className={s.mobileSubmit}
+            disabled={isSubmitting || isPending}
+          >
+            {isSubmitting || isPending
+              ? (isEditMode ? 'Saving...' : 'Publishing...')
+              : (isEditMode ? 'Save Changes' : 'Publish Guide')}
+          </button>
+        </div>
         <FormProvider {...methods}>
-          <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
+          <form id="create-article-form" className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
             <div className={s.heading}>
               <div className={s.headingText}>
                 <h1 className={s.title}>{isEditMode ? 'Edit Guide' : 'Create New Guide'}</h1>

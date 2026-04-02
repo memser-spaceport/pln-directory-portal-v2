@@ -125,9 +125,12 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
     return null;
   }
 
-  const authorName = article.authorTeam?.name || article.authorMember?.name || 'Unknown';
+  const isTeamAuthor = !!article.authorTeam && !article.authorMember;
+  const authorName = article.authorMember?.name || article.authorTeam?.name || 'Unknown';
+  const authorImage = isTeamAuthor ? article.authorTeam?.logo?.url : article.authorMember?.image;
   const authorLogo = article.authorTeam?.logo?.url || null;
   const initials = authorName.slice(0, 2).toUpperCase();
+  const officeHoursUrl = article.authorMember?.officeHours || article.authorTeam?.officeHours || null;
 
   return (
     <div className={s.root}>
@@ -208,40 +211,42 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
           </div>
         )}
 
-        {article.officeHoursUrl && (
-          <div className={s.ohBanner}>
-            <div className={s.ohLeft}>
-              <div className={s.ohAvatarWrap}>
-                {authorLogo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={authorLogo} alt={authorName} className={s.ohAvatar} />
-                ) : article.authorMember?.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={article.authorMember.image} alt={authorName} className={s.ohAvatar} />
-                ) : (
-                  <div className={s.ohInitial}>{initials}</div>
-                )}
-              </div>
-              <div className={s.ohInfo}>
-                <div className={s.ohNameRow}>
-                  <span className={s.ohName}>{authorName}</span>
-                  {article.authorTeam?.name && article.authorMember?.name && (
-                    <>
-                      <DotSepLarge />
-                      <span className={s.ohRole}>@{article.authorTeam.name}</span>
-                    </>
+        {officeHoursUrl && (
+          <>
+            <hr className={s.divider} />
+            <div className={s.ohBanner}>
+              <div className={s.ohLeft}>
+                <div className={s.ohAvatarWrap}>
+                  {authorImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={authorImage} alt={authorName} className={s.ohAvatar} />
+                  ) : (
+                    <div className={s.ohInitial}>{initials}</div>
                   )}
                 </div>
-                {article.authorMember?.name && (
-                  <span className={s.ohSubtitle}>Available for 1:1 call — no introduction needed.</span>
-                )}
+                <div className={s.ohInfo}>
+                  <div className={s.ohNameRow}>
+                    <span className={s.ohName}>{authorName}</span>
+                    {article.authorTeam?.name && article.authorMember?.name && (
+                      <>
+                        <DotSepLarge />
+                        <span className={s.ohRole}>@{article.authorTeam.name}</span>
+                      </>
+                    )}
+                  </div>
+                  <span className={s.ohSubtitle}>
+                    {isTeamAuthor
+                      ? 'Schedule a meeting with this team.'
+                      : 'Available for 1:1 call — no introduction needed.'}
+                  </span>
+                </div>
               </div>
+              <a href={officeHoursUrl} target="_blank" rel="noopener noreferrer" className={s.ohButton}>
+                <CalendarBlankIcon />
+                Schedule Meeting
+              </a>
             </div>
-            <a href={article.officeHoursUrl} target="_blank" rel="noopener noreferrer" className={s.ohButton}>
-              <CalendarBlankIcon />
-              Schedule Meeting
-            </a>
-          </div>
+          </>
         )}
       </div>
     </div>

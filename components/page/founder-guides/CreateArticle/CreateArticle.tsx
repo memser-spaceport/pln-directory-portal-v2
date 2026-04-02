@@ -31,7 +31,13 @@ interface CreateArticleProps {
 export default function CreateArticle({ article, isEditMode }: CreateArticleProps) {
   const router = useRouter();
   const { userInfo } = getCookiesFromClient();
-  const isAdmin = isAdminUser(userInfo);
+  const isAuthor = !!(
+    article &&
+    userInfo &&
+    ((article.authorMemberUid && article.authorMemberUid === userInfo.uid) ||
+      (article.authorTeamUid && userInfo.leadingTeams?.includes(article.authorTeamUid)))
+  );
+  const useAdminEndpoint = isEditMode && isAdminUser(userInfo) && !isAuthor;
   const createMutation = useCreateArticleMutation();
   const updateMutation = useUpdateArticleMutation();
   const { mutateAsync, isPending } = isEditMode ? updateMutation : createMutation;
@@ -100,7 +106,7 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
     };
 
     const result = isEditMode && article
-      ? await mutateAsync({ uid: article.uid, isAdmin, ...payload } as any)
+      ? await mutateAsync({ uid: article.uid, isAdmin: useAdminEndpoint, ...payload } as any)
       : await mutateAsync(payload as any);
 
     if (result) {

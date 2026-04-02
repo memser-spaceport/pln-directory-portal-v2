@@ -14,30 +14,47 @@ import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import useBlockNavigation from '@/hooks/useUnsavedChangesWarning';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useCreateArticleMutation } from '@/services/articles/hooks/useCreateArticleMutation';
+import { useUpdateArticleMutation } from '@/services/articles/hooks/useUpdateArticleMutation';
 import { ARTICLE_CATEGORIES } from '@/services/articles/constants';
+import { IArticle } from '@/types/articles.types';
 import { AuthorAutocomplete } from './AuthorAutocomplete';
-import { createArticleSchema, CreateArticleForm } from './helpers';
+import { createArticleSchema, CreateArticleForm, articleToFormValues } from './helpers';
 import s from './CreateArticle.module.scss';
 
-export default function CreateArticle() {
+interface CreateArticleProps {
+  article?: IArticle;
+  isEditMode?: boolean;
+}
+
+export default function CreateArticle({ article, isEditMode }: CreateArticleProps) {
   const router = useRouter();
-  const { mutateAsync, isPending } = useCreateArticleMutation();
+  const createMutation = useCreateArticleMutation();
+  const updateMutation = useUpdateArticleMutation();
+  const { mutateAsync, isPending } = isEditMode ? updateMutation : createMutation;
 
   useMobileNavVisibility(true);
 
   const categoryOptions = useMemo(() => ARTICLE_CATEGORIES.map((c) => ({ label: c, value: c })), []);
 
+  const defaultValues = useMemo(
+    () =>
+      isEditMode && article
+        ? articleToFormValues(article)
+        : {
+            category: null,
+            title: '',
+            summary: '',
+            readingTime: null,
+            content: '',
+            author: null,
+            officeHoursUrl: '',
+          },
+    [isEditMode, article],
+  );
+
   const methods = useForm<CreateArticleForm>({
     // @ts-ignore
-    defaultValues: {
-      category: null,
-      title: '',
-      summary: '',
-      readingTime: null,
-      content: '',
-      author: null,
-      officeHoursUrl: '',
-    },
+    defaultValues,
     // @ts-ignore
     resolver: yupResolver(createArticleSchema),
   });
@@ -57,12 +74,16 @@ export default function CreateArticle() {
   const { isAttemptingNavigation, proceedNavigation, cancelNavigation } = useBlockNavigation(isDirty);
 
   const handleCancel = () => {
-    router.push('/founder-guides');
+    if (isEditMode && article) {
+      router.push(`/founder-guides/${article.slugURL}`);
+    } else {
+      router.push('/founder-guides');
+    }
   };
 
   const onSubmit = async (data: any) => {
     const author = data.author as CreateArticleForm['author'];
-    const result = await mutateAsync({
+    const payload = {
       title: data.title,
       summary: data.summary || undefined,
       category: data.category?.value,
@@ -71,13 +92,18 @@ export default function CreateArticle() {
       authorMemberUid: author?.type === 'member' ? author.value : undefined,
       authorTeamUid: author?.type === 'team' ? author.value : undefined,
       officeHoursUrl: author?.type === 'member' ? memberOfficeHours || undefined : data.officeHoursUrl || undefined,
-      status: 'PUBLISHED',
-    });
+      status: 'PUBLISHED' as const,
+    };
+
+    const result = isEditMode && article
+      ? await mutateAsync({ uid: article.uid, ...payload } as any)
+      : await mutateAsync(payload as any);
 
     if (result) {
       reset(data);
+      const redirectUrl = isEditMode && article ? `/founder-guides/${result.slugURL || article.slugURL}` : '/founder-guides';
       setTimeout(() => {
-        router.push('/founder-guides');
+        router.push(redirectUrl);
       }, 500);
     }
   };
@@ -89,7 +115,7 @@ export default function CreateArticle() {
           <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
             <div className={s.heading}>
               <div className={s.headingText}>
-                <h1 className={s.title}>Create New Guide</h1>
+                <h1 className={s.title}>{isEditMode ? 'Edit Guide' : 'Create New Guide'}</h1>
                 <p className={s.subtitle}>Structured, expert-driven guides for startup founders.</p>
               </div>
             </div>
@@ -168,7 +194,9 @@ export default function CreateArticle() {
                 Cancel
               </button>
               <button type="submit" className={s.submitBtn} disabled={isSubmitting || isPending}>
-                {isSubmitting || isPending ? 'Publishing...' : 'Publish Guide'}
+                {isSubmitting || isPending
+                  ? (isEditMode ? 'Saving...' : 'Publishing...')
+                  : (isEditMode ? 'Save Changes' : 'Publish Guide')}
               </button>
             </div>
           </form>

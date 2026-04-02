@@ -10,8 +10,8 @@
 }
 
 .backButton {
-  padding: 0;
-  box-shadow: none;
+  padding: 0 !important;
+  box-shadow: none !important;
 }
 
 .card {
@@ -33,6 +33,36 @@
   background: rgba(27, 77, 255, 0.08);
   border-radius: 9999px;
   padding: 3px 10px;
+}
+
+// Title + Edit button row
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+// Edit Guide ghost button
+.editButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  white-space: nowrap;
+  text-decoration: none;
+  flex-shrink: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: #1b4dff;
+  }
 }
 
 // Figma: Inter SemiBold ~28-32px

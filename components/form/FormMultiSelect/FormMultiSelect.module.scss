@@ -80,6 +80,21 @@
   }
 }
 
+.optionImage {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--corner-radius-xs, 4px);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.optionInner,
+.multiValueInner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .notFound {
   padding: 12px;
   display: flex;

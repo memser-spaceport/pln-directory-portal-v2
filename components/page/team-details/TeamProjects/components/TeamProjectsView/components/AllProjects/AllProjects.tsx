@@ -61,17 +61,14 @@ export function AllProjects(props: Props) {
 
       <div className={s.projects}>
         {allProjects?.map((project: IFormatedTeamProject, index: number) => (
-          <Fragment key={`${project} + ${index}`}>
-            <div className={index < allProjects?.length - 1 ? s.projectBorder : undefined}>
-              <TeamProjectCard
-                onEditClicked={onEditClicked}
-                onCardClicked={() => onCardClicked(project)}
-                url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`}
-                hasProjectsEditAccess={hasProjectsEditAccess}
-                project={project}
-              />
-            </div>
-          </Fragment>
+          <TeamProjectCard
+            key={`${project} + ${index}`}
+            onCardClicked={() => onCardClicked(project)}
+            url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`}
+            hasProjectsEditAccess={hasProjectsEditAccess}
+            project={project}
+            onEditClicked={onEditClicked}
+          />
         ))}
         {allProjects.length === 0 && (
           <div className={s.emptyResult}>

@@ -12,6 +12,9 @@
   justify-content: space-between;
   width: 100%;
 
+  border-radius: 12px;
+  background-color: #f9fafb;
+
   &:hover {
     background: linear-gradient(0deg, #f8fafc, #f8fafc), linear-gradient(0deg, #e2e8f0, #e2e8f0);
   }
@@ -81,40 +84,6 @@
   }
 }
 
-.goto {
-  display: flex;
-  align-items: center;
-
-  @include media.breakpoint-1024 {
-    width: fit-content;
-    gap: 8px;
-    justify-content: space-between;
-  }
-}
-
-.options {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.editButton {
-  background: #dbeafe;
-  height: 24px;
-  width: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 100%;
-}
-
-.arrowSection {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.arrowButton {
-  border: none;
-  background-color: inherit;
+.edit {
+  cursor: pointer;
 }

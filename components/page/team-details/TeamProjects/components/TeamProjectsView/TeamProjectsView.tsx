@@ -12,13 +12,12 @@ import { getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } f
 
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 
-import Modal from '@/components/core/modal';
-import { EditButton } from '@/components/common/profile/EditButton';
 import {
+  HeaderActionBtn,
   DetailsSectionHeader,
   DetailsSectionGreyContentContainer,
-  HeaderActionBtn,
 } from '@/components/common/profile/DetailsSection';
+import Modal from '@/components/core/modal';
 
 import { AllProjects } from './components/AllProjects';
 import { TeamProjectCard } from './components/TeamProjectCard';
@@ -29,13 +28,15 @@ import Image from 'next/image';
 interface Props {
   team?: ITeam;
   userInfo?: IUserInfo;
-  isLoggedIn: boolean;
   projects?: IFormatedTeamProject[];
   toggleIsEditMode: () => void;
+  setProjectToEdit: (project?: IFormatedTeamProject) => void;
 }
 
+const PROJECTS_TO_SHOW = 3;
+
 export function TeamProjectsView(props: Props) {
-  const { team, userInfo, projects, isLoggedIn, toggleIsEditMode } = props;
+  const { team, userInfo, projects, toggleIsEditMode, setProjectToEdit } = props;
 
   const router = useRouter();
   const analytics = useTeamAnalytics();
@@ -43,6 +44,7 @@ export function TeamProjectsView(props: Props) {
   const allProjectsRef = useRef<HTMLDialogElement>(null);
 
   const canEdit = isTeamLeaderOrAdmin(userInfo, team?.id);
+  const projectsNum = projects?.length ?? 0;
 
   const onEditProjectClicked = (project: IFormatedTeamProject) => {
     analytics.onTeamDetailProjectEditClicked(
@@ -50,7 +52,16 @@ export function TeamProjectsView(props: Props) {
       getAnalyticsTeamInfo(team),
       getAnalyticsProjectInfo(project),
     );
-    router.push(`/projects/update/${project.uid}`);
+
+    setProjectToEdit(project);
+    // router.push(`/projects/update/${project.uid}`);
+  };
+
+  const onSeeAllClickHandler = () => {
+    analytics.onTeamDetailSeeAllProjectsClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
+    if (allProjectsRef?.current) {
+      allProjectsRef?.current?.showModal();
+    }
   };
 
   const onClosePopupClicked = () => {
@@ -72,7 +83,7 @@ export function TeamProjectsView(props: Props) {
 
   return (
     <>
-      <DetailsSectionHeader title={noProjects ? 'Projects' : `Projects (${projects?.length})`}>
+      <DetailsSectionHeader title={noProjects ? 'Projects' : `Projects (${projectsNum})`}>
         {canEdit && (
           <HeaderActionBtn onClick={toggleIsEditMode}>
             <Image loading="lazy" alt="edit" src="/icons/add-blue.svg" height={16} width={16} />
@@ -88,24 +99,37 @@ export function TeamProjectsView(props: Props) {
       )}
 
       {!noProjects && (
-        <div className={s.projectsWeb}>
-          {projects?.slice(0, 3).map((project: IFormatedTeamProject, index: number) => (
-            <div key={`${project} + ${index}`} className={index < projects?.length - 1 ? s.projectBorder : undefined}>
+        <div className={s.projects}>
+          {projects
+            ?.slice(0, PROJECTS_TO_SHOW)
+            .map((project: IFormatedTeamProject, index: number) => (
               <TeamProjectCard
+                key={`${project} + ${index}`}
                 onEditClicked={onEditProjectClicked}
                 onCardClicked={onProjectCardClicked}
                 url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`}
                 hasProjectsEditAccess={canEdit}
                 project={project}
               />
-            </div>
-          ))}
+            ))}
+        </div>
+      )}
+
+      {projectsNum > PROJECTS_TO_SHOW && (
+        <div className={s.showAll} onClick={onSeeAllClickHandler}>
+          Show All Projects
         </div>
       )}
 
       <Modal modalRef={allProjectsRef} onClose={onClosePopupClicked}>
         <AllProjects
-          onEditClicked={onEditProjectClicked}
+          onEditClicked={(project: IFormatedTeamProject) => {
+            onEditProjectClicked(project);
+
+            if (allProjectsRef?.current) {
+              allProjectsRef?.current?.close();
+            }
+          }}
           onCardClicked={onProjectCardClicked}
           hasProjectsEditAccess={canEdit}
           projects={projects || []}

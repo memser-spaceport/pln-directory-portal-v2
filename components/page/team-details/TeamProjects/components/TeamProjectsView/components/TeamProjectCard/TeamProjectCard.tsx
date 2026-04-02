@@ -2,6 +2,7 @@
 
 import { clsx } from 'clsx';
 import Image from 'next/image';
+import { MouseEvent } from 'react';
 
 import { IFormatedTeamProject } from '@/types/teams.types';
 
@@ -9,33 +10,27 @@ import { RaisingFunds } from '@/components/ui/raising-funds';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 import s from './TeamProjectCard.module.scss';
+import { getProjectLogo } from '@/components/page/team-details/TeamProjects/utils/getProjectLogo';
 
 interface Props {
+  url: string;
   project: IFormatedTeamProject;
   hasProjectsEditAccess: boolean;
-  url: string;
-  onCardClicked: (project: IFormatedTeamProject) => void;
   onEditClicked: (project: IFormatedTeamProject) => void;
+  onCardClicked: (project: IFormatedTeamProject) => void;
 }
 
 export function TeamProjectCard(props: Props) {
   const { project, url, onCardClicked, onEditClicked } = props;
+  const { name, tagline, lookingForFunding } = project;
 
-  const name = project?.name ?? '';
-  const tagLine = project?.tagline ?? '';
-  const lookingForFunding = project?.lookingForFunding;
+  const logo = getProjectLogo(project);
 
-  function getLogo() {
-    if (project?.isDeleted) {
-      return '/icons/deleted-project-logo.svg';
-    }
-    if (project?.logo) {
-      return project?.logo?.url;
-    }
-    return '/icons/default-project.svg';
+  function onEdit(e: MouseEvent) {
+    e.preventDefault();
+
+    onEditClicked(project);
   }
-
-  const logo = getLogo();
 
   return (
     <a
@@ -89,33 +84,15 @@ export function TeamProjectCard(props: Props) {
               </div>
             )}
           </div>
-          <Tooltip asChild trigger={<p className={s.tagline}>{tagLine}</p>} content={tagLine} />
+          <Tooltip asChild trigger={<p className={s.tagline}>{tagline}</p>} content={tagline} />
         </div>
       </div>
-      <div className={s.goto}>
-        <div>
-          {project?.hasEditAccess && !project?.isDeleted && (
-            <div className={s.options}>
-              <button
-                className={s.editButton}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  onEditClicked(project);
-                }}
-              >
-                <img loading="lazy" src="/icons/edit-black.svg" />
-              </button>
-            </div>
-          )}
-        </div>
 
-        <div className={s.arrowSection}>
-          <button className={s.arrowButton}>
-            <img loading="lazy" alt="go-to" src="/icons/right-arrow-gray.svg" width={16} height={16} />
-          </button>
+      {project?.hasEditAccess && (
+        <div onClick={onEdit}>
+          <img className={s.edit} loading="lazy" src="/icons/edit-chat.svg" />
         </div>
-      </div>
+      )}
     </a>
   );
 }

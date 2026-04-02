@@ -10,12 +10,18 @@ import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
 
 import s from './FormMultiSelect.module.scss';
 
+export type MultiSelectOption = {
+  label: string;
+  value: string;
+  image?: string | null;
+};
+
 interface Props {
   name: string;
   placeholder: string;
   label?: ReactNode;
   description?: string;
-  options: { label: string; value: string }[];
+  options: MultiSelectOption[];
   disabled?: boolean;
   isRequired?: boolean;
   showNone?: boolean;
@@ -23,33 +29,23 @@ interface Props {
   notFoundContent?: ReactNode;
 }
 
-const filterAndSort = (option: { value: string; label: string }, input: string) => {
+const filterAndSort = (option: MultiSelectOption, input: string) => {
   if (!input) return true;
 
   return option.label.toLowerCase().includes(input.toLowerCase());
 };
 
-// Custom MultiValue component to handle None option display
 const CustomMultiValue = (props: any) => {
-  // If this is the None option, render as plain text
-  // if (props.data.value === 'None') {
-  //   return (
-  //     <div style={{
-  //       color: '#455468',
-  //       fontSize: '14px',
-  //       fontWeight: 300,
-  //       letterSpacing: '-0.2px',
-  //       marginRight: '8px',
-  //       display: 'flex',
-  //       alignItems: 'center',
-  //     }}>
-  //       {props.data.label}
-  //     </div>
-  //   );
-  // }
-
-  // For all other options, use the default MultiValue component
-  return <components.MultiValue {...props} />;
+  return (
+    <components.MultiValue {...props}>
+      <span className={s.multiValueInner}>
+        {props.data.image && (
+          <img src={props.data.image} alt="" className={s.optionImage} />
+        )}
+        {props.data.label}
+      </span>
+    </components.MultiValue>
+  );
 };
 
 export const FormMultiSelect = ({
@@ -123,7 +119,7 @@ export const FormMultiSelect = ({
           if ((option.data as any).isNotFoundContent) {
             return true;
           }
-          return filterAndSort(option.data as { value: string; label: string }, inputValue);
+          return filterAndSort(option.data as MultiSelectOption, inputValue);
         }}
         isClearable={false}
         placeholder={placeholder}
@@ -147,7 +143,20 @@ export const FormMultiSelect = ({
                 </div>
               );
             }
-            return <components.Option {...optionProps} />;
+            return (
+              <components.Option {...optionProps}>
+                <span className={s.optionInner}>
+                  {(optionProps.data as MultiSelectOption).image && (
+                    <img
+                      src={(optionProps.data as MultiSelectOption).image!}
+                      alt=""
+                      className={s.optionImage}
+                    />
+                  )}
+                  {optionProps.data.label}
+                </span>
+              </components.Option>
+            );
           },
         }}
         onChange={(newVal) => {

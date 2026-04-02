@@ -56,14 +56,12 @@
 }
 
 .projects {
-  display: flex;
-  overflow: auto;
-  flex-direction: column;
   flex: 1;
-}
+  gap: 8px;
+  display: flex;
+  flex-direction: column;
 
-.projectBorder {
-  border-bottom: 1px solid #e2e8f0;
+  overflow: auto;
 }
 
 .emptyResult {

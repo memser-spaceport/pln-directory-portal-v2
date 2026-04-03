@@ -5,8 +5,9 @@ import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics'
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import { slugifyHeading, getTextFromChildren } from '@/utils/markdown';
+import dynamic from 'next/dynamic';
+import 'md-editor-rt/lib/preview.css';
+import { slugifyHeading } from '@/utils/markdown';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
 import { useArticleView } from '@/services/articles/hooks/useArticleView';
 import { useArticleLike } from '@/services/articles/hooks/useArticleLike';
@@ -15,6 +16,8 @@ import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { canEditArticle } from './helpers';
 import s from './ArticleContent.module.scss';
+
+const MdPreview = dynamic(() => import('md-editor-rt').then((mod) => mod.MdPreview), { ssr: false });
 
 interface ArticleContentProps {
   slug: string;
@@ -314,21 +317,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
           <hr className={s.divider} />
 
           <div className={s.content}>
-            <ReactMarkdown
-              components={{
-                h2: ({ children, ...props }) => {
-                  const text = getTextFromChildren(children);
-                  const id = slugifyHeading(text);
-                  return (
-                    <h2 id={id} {...props}>
-                      {children}
-                    </h2>
-                  );
-                },
-              }}
-            >
-              {article.content}
-            </ReactMarkdown>
+            <MdPreview modelValue={article.content} language="en-US" mdHeadingId={slugifyHeading} />
           </div>
 
           {article.tags.length > 0 && (

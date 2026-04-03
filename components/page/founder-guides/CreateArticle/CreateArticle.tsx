@@ -176,7 +176,11 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
                 description="Max. 100 characters."
               />
 
-              <FormField name="readingTime" placeholder="e.g. 5" label="Number of Minutes to Read the Guide" />
+              <FormField
+                name="readingTime"
+                placeholder="Enter number of minutes"
+                label="Number of Minutes to Read the Guide"
+              />
 
               <FormTextArea
                 name="content"

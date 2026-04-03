@@ -73,10 +73,10 @@
   flex-direction: column;
   gap: 4px;
   padding: 16px;
-  background: #fff;
-  border: 1px solid rgba(27, 56, 96, 0.06);
+
   border-radius: 12px;
-  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 }
 
 // Figma: Inter SemiBold 24px / 34px / -0.4px / #0a0c11
@@ -110,20 +110,41 @@
 }
 
 // ── Link button ───────────────────────────────────────────
-// Figma: flex row, gap 2px, items-center — icon 14×14 + Inter Medium 14px / 20px / -0.2px / #455468
+// Mobile: prominent blue text button (no arrow)
+// Desktop: subtle icon + text link
 .linkButton {
   display: flex;
   align-items: center;
   gap: 2px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+
+  svg {
+    display: none;
+
+    @include tablet-landscape {
+      display: block;
+    }
+  }
 }
 
 .linkText {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  color: #455468;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.3px;
+  color: var(--color-brand-primary, #3538cd);
   white-space: nowrap;
+
+  @include tablet-landscape {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+    color: #455468;
+  }
 }
 
 // ── Divider ───────────────────────────────────────────────

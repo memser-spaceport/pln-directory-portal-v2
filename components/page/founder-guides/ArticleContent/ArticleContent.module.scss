@@ -161,13 +161,23 @@
   flex-shrink: 0;
 }
 
-// Figma: Inter SemiBold 12px / 18px / #0a0c11
+// Figma: Inter SemiBold 14px / 22px / #0a0c11
 .authorName {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 18px;
+  line-height: 22px;
   letter-spacing: -0.2px;
   color: #0a0c11;
+  white-space: nowrap;
+}
+
+// Figma: Inter Regular 14px / 22px / #455468
+.authorRole {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #455468;
   white-space: nowrap;
 }
 

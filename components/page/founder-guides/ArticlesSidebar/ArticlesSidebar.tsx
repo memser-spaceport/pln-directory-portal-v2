@@ -33,13 +33,7 @@ function CaretDownIcon({ open }: { open: boolean }) {
       aria-hidden
       style={{ transform: open ? 'rotate(180deg)' : undefined, transition: 'transform 0.15s ease', flexShrink: 0 }}
     >
-      <path
-        d="M5 7.5L10 12.5L15 7.5"
-        stroke="#455468"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <path d="M5 7.5L10 12.5L15 7.5" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -51,8 +45,18 @@ function ScalesIcon() {
       <path d="M10 3.5V16.5" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
       <path d="M7 16.5H13" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
       <path d="M4.5 7L10 5.5L15.5 7" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M4.5 7L3 11C3 12.1 3.9 13 5 13H4C5.1 13 6 12.1 6 11L4.5 7Z" stroke="#455468" strokeWidth="1.3" strokeLinejoin="round" />
-      <path d="M15.5 7L14 11C14 12.1 14.9 13 16 13H15C16.1 13 17 12.1 17 11L15.5 7Z" stroke="#455468" strokeWidth="1.3" strokeLinejoin="round" />
+      <path
+        d="M4.5 7L3 11C3 12.1 3.9 13 5 13H4C5.1 13 6 12.1 6 11L4.5 7Z"
+        stroke="#455468"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M15.5 7L14 11C14 12.1 14.9 13 16 13H15C16.1 13 17 12.1 17 11L15.5 7Z"
+        stroke="#455468"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
       <path d="M3 11H6" stroke="#455468" strokeWidth="1.3" strokeLinecap="round" />
       <path d="M14 11H17" stroke="#455468" strokeWidth="1.3" strokeLinecap="round" />
     </svg>
@@ -111,7 +115,11 @@ function LightbulbIcon() {
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
-      <path d="M8 14V16C8 16.276 8.224 16.5 8.5 16.5H11.5C11.776 16.5 12 16.276 12 16V14" stroke="#455468" strokeWidth="1.5" />
+      <path
+        d="M8 14V16C8 16.276 8.224 16.5 8.5 16.5H11.5C11.776 16.5 12 16.276 12 16V14"
+        stroke="#455468"
+        strokeWidth="1.5"
+      />
     </svg>
   );
 }
@@ -217,7 +225,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
           onClick={onNavigate}
         >
           <PlusIcon />
-          Create New Article
+          Create New Guide
         </Link>
       )}
 
@@ -235,11 +243,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
             const isOpen = visibleCategories.has(category);
             return (
               <div key={category} className={s.categoryGroup}>
-                <button
-                  className={s.categoryRow}
-                  onClick={() => toggleCategory(category)}
-                  aria-expanded={isOpen}
-                >
+                <button className={s.categoryRow} onClick={() => toggleCategory(category)} aria-expanded={isOpen}>
                   <span className={s.categoryIcon}>{getCategoryIcon(category)}</span>
                   <span className={s.categoryLabel}>{category}</span>
                   <span className={s.categoryBadge}>{articles.length}</span>
@@ -269,7 +273,9 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
                                   type="button"
                                   className={s.headingItem}
                                   onClick={() => {
-                                    document.getElementById(h.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    document
+                                      .getElementById(h.id)
+                                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                                   }}
                                 >
                                   {h.text}

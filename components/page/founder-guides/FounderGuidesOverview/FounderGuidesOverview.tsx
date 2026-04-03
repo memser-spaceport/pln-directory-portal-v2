@@ -1,9 +1,9 @@
 import s from './FounderGuidesOverview.module.scss';
 
 const STATS = [
-  { value: '200+', label: 'Founders Supported' },
-  { value: '85+', label: 'Office Hours Booked' },
-  { value: '1.2k', label: 'GuideViews' },
+  { value: '190+', label: 'Founders Supported' },
+  { value: '60+', label: 'Office Hours Booked' },
+  // { value: '1.2k', label: 'GuideViews' },
 ];
 
 function ArrowLeftIcon() {
@@ -24,7 +24,6 @@ export default function FounderGuidesOverview() {
   return (
     <div className={s.root}>
       <div className={s.page}>
-
         {/* Section heading: title + stats + body — all gap 24px */}
         <div className={s.sectionHeading}>
           <h1 className={s.title}>Guides for founders — written and human</h1>

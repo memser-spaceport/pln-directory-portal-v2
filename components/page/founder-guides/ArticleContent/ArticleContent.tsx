@@ -190,8 +190,9 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const isTeamAuthor = !!article.authorTeam && !article.authorMember;
   const authorName = article.authorMember?.name || article.authorTeam?.name || 'Unknown';
   const authorImage = isTeamAuthor
-    ? article.authorTeam?.logo?.url ?? null
+    ? (article.authorTeam?.logo?.url ?? null)
     : resolveMemberImageUrl(article.authorMember?.image);
+  const authorLogo = authorImage ?? (article.authorTeam?.logo?.url || null);
   const initials = authorName.slice(0, 2).toUpperCase();
   const officeHoursUrl = article.authorMember?.officeHours || article.authorTeam?.officeHours || null;
 

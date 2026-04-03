@@ -13,7 +13,24 @@ const FOUNDER_GUIDES_ANALYTICS_EVENTS = {
   ARTICLE_EDIT_SUBMITTED: 'founder-guides-article-edit-submitted',
   FORM_CANCELLED: 'founder-guides-article-form-cancelled',
   MOBILE_NAV_OPENED: 'founder-guides-mobile-nav-opened',
+  SCHEDULE_MEETING_CLICKED: 'founder-guides-schedule-meeting-clicked',
 } as const;
+
+export type FounderGuidesScheduleMeetingClickedParams =
+  | {
+      articleUid: string;
+      slug: string;
+      meetingLinkType: 'member';
+      memberUid: string;
+      memberName: string;
+    }
+  | {
+      articleUid: string;
+      slug: string;
+      meetingLinkType: 'team';
+      teamUid: string;
+      teamName: string;
+    };
 
 export function useFounderGuidesAnalytics() {
   const posthog = usePostHog();
@@ -83,6 +100,13 @@ export function useFounderGuidesAnalytics() {
     posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.MOBILE_NAV_OPENED);
   }, [posthog]);
 
+  const trackScheduleMeetingClicked = useCallback(
+    (params: FounderGuidesScheduleMeetingClickedParams) => {
+      posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.SCHEDULE_MEETING_CLICKED, params);
+    },
+    [posthog],
+  );
+
   return {
     trackOverviewViewed,
     trackSidebarSearch,
@@ -95,5 +119,6 @@ export function useFounderGuidesAnalytics() {
     trackArticleEditSubmitted,
     trackFormCancelled,
     trackMobileNavOpened,
+    trackScheduleMeetingClicked,
   };
 }

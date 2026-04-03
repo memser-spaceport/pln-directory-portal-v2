@@ -148,8 +148,13 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const likeMutation = useArticleLike();
   const viewTracked = useRef(false);
   const articleAnalyticsViewedRef = useRef<string | null>(null);
-  const { trackArticleViewed, trackArticleLiked, trackArticleEditButtonClicked, trackArticleBackClicked } =
-    useFounderGuidesAnalytics();
+  const {
+    trackArticleViewed,
+    trackArticleLiked,
+    trackArticleEditButtonClicked,
+    trackArticleBackClicked,
+    trackScheduleMeetingClicked,
+  } = useFounderGuidesAnalytics();
   const [subheaderSlot, setSubheaderSlot] = useState<HTMLElement | null>(null);
 
   const article = articles.find((a) => a.slugURL === slug);
@@ -209,6 +214,11 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const authorLogo = authorImage ?? (article.authorTeam?.logo?.url || null);
   const initials = authorName.slice(0, 2).toUpperCase();
   const officeHoursUrl = article.authorMember?.officeHours || article.authorTeam?.officeHours || null;
+  const scheduleMeetingLinkType: 'member' | 'team' | null = article.authorMember?.officeHours
+    ? 'member'
+    : article.authorTeam?.officeHours
+      ? 'team'
+      : null;
 
   const editLink = canEdit ? `/founder-guides/${article.slugURL}/edit` : null;
 
@@ -371,7 +381,31 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
                     </span>
                   </div>
                 </div>
-                <a href={officeHoursUrl} target="_blank" rel="noopener noreferrer" className={s.ohButton}>
+                <a
+                  href={officeHoursUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={s.ohButton}
+                  onClick={() => {
+                    if (scheduleMeetingLinkType === 'member' && article.authorMember) {
+                      trackScheduleMeetingClicked({
+                        articleUid: article.uid,
+                        slug: article.slugURL,
+                        meetingLinkType: 'member',
+                        memberUid: article.authorMember.uid,
+                        memberName: article.authorMember.name,
+                      });
+                    } else if (scheduleMeetingLinkType === 'team' && article.authorTeam) {
+                      trackScheduleMeetingClicked({
+                        articleUid: article.uid,
+                        slug: article.slugURL,
+                        meetingLinkType: 'team',
+                        teamUid: article.authorTeam.uid,
+                        teamName: article.authorTeam.name,
+                      });
+                    }
+                  }}
+                >
                   <CalendarBlankIcon />
                   Schedule Meeting
                 </a>

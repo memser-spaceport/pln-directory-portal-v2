@@ -8,9 +8,12 @@ import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import 'md-editor-rt/lib/preview.css';
 import { slugifyHeading } from '@/utils/markdown';
+import { useQuery } from '@tanstack/react-query';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
 import { useArticleView } from '@/services/articles/hooks/useArticleView';
 import { useArticleLike } from '@/services/articles/hooks/useArticleLike';
+import { getMemberInfo } from '@/services/members.service';
+import { MembersQueryKeys } from '@/services/members/constants';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
@@ -164,6 +167,13 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const isAuthenticated = !!userInfo;
   const { canCreate } = useFounderGuidesCreateAccess();
 
+  const authorMemberUid = article?.authorMember?.uid;
+  const { data: memberData } = useQuery({
+    queryKey: [MembersQueryKeys.GET_MEMBER, authorMemberUid],
+    queryFn: () => getMemberInfo(authorMemberUid!),
+    enabled: !!authorMemberUid,
+  });
+
   useEffect(() => {
     setSubheaderSlot(document.getElementById('mobile-subheader-actions'));
   }, []);
@@ -225,6 +235,12 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const canEdit = canEditArticle(article, userInfo, canCreate);
   const isTeamAuthor = !!article.authorTeam && !article.authorMember;
   const authorName = article.authorMember?.name || article.authorTeam?.name || 'Unknown';
+
+  // Derive role & team from fetched member details
+  const memberInfo = memberData && !('isError' in memberData) ? memberData.data : null;
+  const mainTeamRole = memberInfo?.teamMemberRoles?.find((tmr: any) => tmr.mainTeam);
+  const authorRoleAndTeam =
+    mainTeamRole ? `${mainTeamRole.role} @${mainTeamRole.teamTitle}`.trim() : null;
   const authorImage = isTeamAuthor
     ? (article.authorTeam?.logo?.url ?? null)
     : resolveMemberImageUrl(article.authorMember?.image);
@@ -292,6 +308,12 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
                   <div className={s.authorInitial}>{initials}</div>
                 )}
                 <span className={s.authorName}>{authorName}</span>
+                {authorRoleAndTeam && (
+                  <>
+                    <DotSep />
+                    <span className={s.authorRole}>{authorRoleAndTeam}</span>
+                  </>
+                )}
               </div>
 
               <div className={s.detailsDivider} />

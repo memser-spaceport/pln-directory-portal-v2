@@ -73,15 +73,23 @@ export const FormTextArea = ({
         </div>
         {children}
       </div>
-      {showCharCount && maxLength && (
-        <div className={s.charCounter}>
-          <span className={clsx(s.charCount, { [s.charCountError]: charCount > maxLength })}>
-            {charCount}/{maxLength} characters left
-          </span>
-        </div>
-      )}
-      {description && !showCharCount && <div className={s.description}>{description}</div>}
       {errors[name] && <div className={s.errorMessage}>{errors[name]?.message as string}</div>}
+      <div className={s.sub}>
+        <div>
+          {!errors[name] && description ? (
+            <Field.Description className={s.fieldDescription}>{description}</Field.Description>
+          ) : (
+            <Field.Error className={s.errorMsg} match={!!errors[name]}>
+              {(errors?.[name]?.message as string) ?? ''}
+            </Field.Error>
+          )}
+        </div>
+        {maxLength && val?.length > 0 && (
+          <div className={s.counter}>
+            {val?.length} / {maxLength}
+          </div>
+        )}
+      </div>
     </Field.Root>
   );
 };

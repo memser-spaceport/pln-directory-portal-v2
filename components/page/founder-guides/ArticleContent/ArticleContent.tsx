@@ -49,6 +49,21 @@ function ThumbsUpIcon({ filled = false }: { filled?: boolean }) {
   );
 }
 
+function ThumbsUpBoldIcon({ filled = false }: { filled?: boolean }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+      <path
+        d="M5.625 15.75V8.438L8.438 2.813C9.057 2.813 9.563 3.318 9.563 3.938V6.188H13.5C14.121 6.188 14.625 6.692 14.625 7.313L12.938 12.375V14.625C12.938 15.246 12.434 15.75 11.813 15.75H5.625M5.625 15.75H3.375C2.754 15.75 2.25 15.246 2.25 14.625V9C2.25 8.379 2.754 7.875 3.375 7.875H5.625"
+        stroke={filled ? '#1b4dff' : '#455468'}
+        fill={filled ? 'rgba(27, 77, 255, 0.12)' : 'none'}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function EyeIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -175,8 +190,9 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const isTeamAuthor = !!article.authorTeam && !article.authorMember;
   const authorName = article.authorMember?.name || article.authorTeam?.name || 'Unknown';
   const authorImage = isTeamAuthor
-    ? article.authorTeam?.logo?.url ?? null
+    ? (article.authorTeam?.logo?.url ?? null)
     : resolveMemberImageUrl(article.authorMember?.image);
+  const authorLogo = authorImage ?? (article.authorTeam?.logo?.url || null);
   const initials = authorName.slice(0, 2).toUpperCase();
   const officeHoursUrl = article.authorMember?.officeHours || article.authorTeam?.officeHours || null;
 
@@ -192,7 +208,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
             <NotePencilIcon />
             <span>Edit Guide</span>
           </Link>,
-          subheaderSlot
+          subheaderSlot,
         )}
       <div className={s.root}>
         <BackButton to="/founder-guides" className={s.backButton} />
@@ -208,130 +224,149 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
                   <span>Edit Guide</span>
                 </Link>
               )}
-          </div>
-
-          {article.summary && <p className={s.summary}>{article.summary}</p>}
-
-          {/* Details bar: author + stats */}
-          <div className={s.details}>
-            <div className={s.authorDetails}>
-              {authorImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={authorImage} alt={authorName} className={s.authorAvatar} />
-              ) : (
-                <div className={s.authorInitial}>{initials}</div>
-              )}
-              <span className={s.authorName}>{authorName}</span>
             </div>
 
-            <div className={s.detailsDivider} />
+            {article.summary && <p className={s.summary}>{article.summary}</p>}
 
-            <div className={s.stats}>
-              {isAuthenticated ? (
-                <button
-                  className={`${s.statItem} ${s.likeButton} ${article.isLiked ? s.liked : ''}`}
-                  onClick={() => likeMutation.mutate({ uid: article.uid, isLiked: article.isLiked })}
-                  disabled={likeMutation.isPending}
-                  aria-pressed={article.isLiked}
-                  aria-label={article.isLiked ? 'Unlike this article' : 'Like this article'}
-                >
-                  <ThumbsUpIcon filled={article.isLiked} />
-                  {formatCount(article.totalLikes)} Likes
-                </button>
-              ) : (
+            {/* Details bar: author + stats */}
+            <div className={s.details}>
+              <div className={s.authorDetails}>
+                {authorLogo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={authorLogo} alt={authorName} className={s.authorAvatar} />
+                ) : (
+                  <div className={s.authorInitial}>{initials}</div>
+                )}
+                <span className={s.authorName}>{authorName}</span>
+              </div>
+
+              <div className={s.detailsDivider} />
+
+              <div className={s.stats}>
                 <span className={s.statItem}>
                   <ThumbsUpIcon />
                   {formatCount(article.totalLikes)} Likes
                 </span>
+                <DotSep />
+                <span className={s.statItem}>
+                  <EyeIcon />
+                  {formatCount(article.totalViews)} Views
+                </span>
+                <DotSep />
+                <span className={s.statItem}>
+                  <TimerIcon />
+                  {article.readingTime} min read
+                </span>
+                <DotSep />
+                <span className={s.statItem}>
+                  <CalendarIcon />
+                  Updated {formatDate(article.publishedAt)}
+                </span>
+              </div>
+
+              {isAuthenticated && (
+                <button
+                  className={`${s.likeGuideButton} ${article.isLiked ? s.likeGuideButtonLiked : ''}`}
+                  onClick={() => likeMutation.mutate({ uid: article.uid, isLiked: article.isLiked })}
+                  disabled={likeMutation.isPending}
+                  aria-pressed={article.isLiked}
+                  aria-label={article.isLiked ? 'Unlike this guide' : 'Like this guide'}
+                >
+                  <ThumbsUpBoldIcon filled={article.isLiked} />
+                  {article.isLiked ? 'Liked' : 'Like this Guide'}
+                </button>
               )}
-              <DotSep />
-              <span className={s.statItem}>
-                <EyeIcon />
-                {formatCount(article.totalViews)} Views
-              </span>
-              <DotSep />
-              <span className={s.statItem}>
-                <TimerIcon />
-                {article.readingTime} min read
-              </span>
-              <DotSep />
-              <span className={s.statItem}>
-                <CalendarIcon />
-                Updated {formatDate(article.publishedAt)}
-              </span>
             </div>
+          </header>
+
+          <hr className={s.divider} />
+
+          <div className={s.content}>
+            <ReactMarkdown
+              components={{
+                h2: ({ children, ...props }) => {
+                  const text = getTextFromChildren(children);
+                  const id = slugifyHeading(text);
+                  return (
+                    <h2 id={id} {...props}>
+                      {children}
+                    </h2>
+                  );
+                },
+              }}
+            >
+              {article.content}
+            </ReactMarkdown>
           </div>
-        </header>
 
-        <hr className={s.divider} />
+          {article.tags.length > 0 && (
+            <div className={s.tags}>
+              {article.tags.map((tag) => (
+                <span key={tag} className={s.tag}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
 
-        <div className={s.content}>
-          <ReactMarkdown
-            components={{
-              h2: ({ children, ...props }) => {
-                const text = getTextFromChildren(children);
-                const id = slugifyHeading(text);
-                return (
-                  <h2 id={id} {...props}>
-                    {children}
-                  </h2>
-                );
-              },
-            }}
-          >
-            {article.content}
-          </ReactMarkdown>
-        </div>
+          {isAuthenticated && (
+            <>
+              <hr className={s.divider} />
+              <div className={s.helpfulSection}>
+                <h2 className={s.helpfulTitle}>Find this guide helpful?</h2>
+                <button
+                  className={`${s.likeGuideButton} ${article.isLiked ? s.likeGuideButtonLiked : ''}`}
+                  onClick={() => likeMutation.mutate({ uid: article.uid, isLiked: article.isLiked })}
+                  disabled={likeMutation.isPending}
+                  aria-pressed={article.isLiked}
+                  aria-label={article.isLiked ? 'Unlike this guide' : 'Like this guide'}
+                >
+                  <ThumbsUpBoldIcon filled={article.isLiked} />
+                  {article.isLiked ? 'Liked' : 'Like this Guide'}
+                </button>
+              </div>
+            </>
+          )}
 
-        {article.tags.length > 0 && (
-          <div className={s.tags}>
-            {article.tags.map((tag) => (
-              <span key={tag} className={s.tag}>
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {officeHoursUrl && (
-          <>
-            <hr className={s.divider} />
-            <div className={s.ohBanner}>
-              <div className={s.ohLeft}>
-                <div className={s.ohAvatarWrap}>
-                  {authorImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={authorImage} alt={authorName} className={s.ohAvatar} />
-                  ) : (
-                    <div className={s.ohInitial}>{initials}</div>
-                  )}
-                </div>
-                <div className={s.ohInfo}>
-                  <div className={s.ohNameRow}>
-                    <span className={s.ohName}>{authorName}</span>
-                    {article.authorTeam?.name && article.authorMember?.name && (
-                      <>
-                        <DotSepLarge />
-                        <span className={s.ohRole}>@{article.authorTeam.name}</span>
-                      </>
+          {officeHoursUrl && (
+            <>
+              <hr className={s.divider} />
+              <div className={s.ohBanner}>
+                <div className={s.ohLeft}>
+                  <div className={s.ohAvatarWrap}>
+                    {authorImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={authorImage} alt={authorName} className={s.ohAvatar} />
+                    ) : (
+                      <div className={s.ohInitial}>{initials}</div>
                     )}
                   </div>
-                  <span className={s.ohSubtitle}>
-                    {isTeamAuthor
-                      ? 'Schedule a meeting with this team.'
-                      : 'Available for 1:1 call — no introduction needed.'}
-                  </span>
+                  <div className={s.ohInfo}>
+                    <div className={s.ohNameRow}>
+                      <span className={s.ohName}>{authorName}</span>
+                      {article.authorTeam?.name && article.authorMember?.name && (
+                        <>
+                          <DotSepLarge />
+                          <span className={s.ohRole}>@{article.authorTeam.name}</span>
+                        </>
+                      )}
+                    </div>
+                    <span className={s.ohSubtitle}>
+                      {isTeamAuthor
+                        ? 'Schedule a meeting with this team.'
+                        : 'Available for 1:1 call — no introduction needed.'}
+                    </span>
+                  </div>
                 </div>
+                <a href={officeHoursUrl} target="_blank" rel="noopener noreferrer" className={s.ohButton}>
+                  <CalendarBlankIcon />
+                  Schedule Meeting
+                </a>
               </div>
-              <a href={officeHoursUrl} target="_blank" rel="noopener noreferrer" className={s.ohButton}>
-                <CalendarBlankIcon />
-                Schedule Meeting
-              </a>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
     </>
   );
 }

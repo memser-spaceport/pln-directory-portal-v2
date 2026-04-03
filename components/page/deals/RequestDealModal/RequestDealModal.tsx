@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
@@ -19,13 +18,7 @@ import s from './RequestDealModal.module.scss';
 export function RequestDealModal() {
   const { open, actions } = useRequestDealModalStore();
   const { mutate, isPending } = useRequestDeal();
-  const { trackRequestModalOpened, trackRequestModalClosed } = useDealsAnalytics();
-
-  useEffect(() => {
-    if (open) {
-      trackRequestModalOpened();
-    }
-  }, [open, trackRequestModalOpened]);
+  const { trackRequestModalClosed, trackRequestSubmitClicked } = useDealsAnalytics();
 
   const methods = useForm<RequestDealFormData>({
     resolver: yupResolver(requestDealSchema) as any,
@@ -49,6 +42,7 @@ export function RequestDealModal() {
   };
 
   const onSubmit = (data: RequestDealFormData) => {
+    trackRequestSubmitClicked();
     mutate(
       {
         whatDealAreYouLookingFor: data.whatDealAreYouLookingFor,

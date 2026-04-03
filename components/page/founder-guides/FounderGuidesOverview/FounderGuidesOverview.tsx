@@ -1,3 +1,7 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import s from './FounderGuidesOverview.module.scss';
 
 const STATS = [
@@ -21,6 +25,15 @@ function ArrowLeftIcon() {
 }
 
 export default function FounderGuidesOverview() {
+  const { trackOverviewViewed } = useFounderGuidesAnalytics();
+  const viewedRef = useRef(false);
+
+  useEffect(() => {
+    if (viewedRef.current) return;
+    viewedRef.current = true;
+    trackOverviewViewed();
+  }, [trackOverviewViewed]);
+
   return (
     <div className={s.root}>
       <div className={s.page}>

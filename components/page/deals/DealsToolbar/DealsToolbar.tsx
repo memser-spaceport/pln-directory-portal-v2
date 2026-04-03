@@ -14,7 +14,7 @@ interface DealsToolbarProps {
 export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
   const { openModal: openSubmitModal } = useSubmitDealModalStore((state) => state.actions);
   const { actions: requestDealActions } = useRequestDealModalStore();
-  const { trackSubmitModalOpened, trackRequestModalOpened } = useDealsAnalytics();
+  const { trackSubmitModalOpened, trackRequestButtonClicked } = useDealsAnalytics();
 
   const handleSubmitClick = () => {
     trackSubmitModalOpened();
@@ -22,7 +22,7 @@ export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
   };
 
   const handleRequestDealClick = () => {
-    trackRequestModalOpened();
+    trackRequestButtonClicked();
     requestDealActions.openModal();
   };
 

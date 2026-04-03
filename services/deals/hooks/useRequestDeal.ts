@@ -4,12 +4,12 @@ import { toast } from '@/components/core/ToastContainer';
 import { useDealsAnalytics } from '@/analytics/deals.analytics';
 
 export function useRequestDeal() {
-  const { trackRequestDealSubmitted, trackRequestDealSubmitFailed } = useDealsAnalytics();
+  const { trackRequestSucceeded, trackRequestDealSubmitFailed } = useDealsAnalytics();
 
   return useMutation({
     mutationFn: (payload: RequestDealPayload) => requestDeal(payload),
     onSuccess: () => {
-      trackRequestDealSubmitted();
+      trackRequestSucceeded();
     },
     onError: (error: Error) => {
       trackRequestDealSubmitFailed(error.message);

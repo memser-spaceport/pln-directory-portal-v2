@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
+import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import ArticlesSidebar from '@/components/page/founder-guides/ArticlesSidebar/ArticlesSidebar';
 import s from './FounderGuidesMobileNav.module.scss';
 
@@ -32,6 +33,7 @@ function CloseIcon() {
 
 export default function FounderGuidesMobileNav({ children }: FounderGuidesMobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { trackMobileNavOpened } = useFounderGuidesAnalytics();
   const pathname = usePathname();
   const hamburgerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -91,7 +93,10 @@ export default function FounderGuidesMobileNav({ children }: FounderGuidesMobile
             <button
               ref={hamburgerRef}
               className={s.hamburgerButton}
-              onClick={() => setIsOpen(true)}
+              onClick={() => {
+                trackMobileNavOpened();
+                setIsOpen(true);
+              }}
               aria-expanded={isOpen}
               aria-label="Open navigation menu"
             >

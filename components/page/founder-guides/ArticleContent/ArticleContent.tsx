@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
@@ -143,6 +144,13 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const viewMutation = useArticleView();
   const likeMutation = useArticleLike();
   const viewTracked = useRef(false);
+  const articleAnalyticsViewedRef = useRef<string | null>(null);
+  const {
+    trackArticleViewed,
+    trackArticleLiked,
+    trackArticleEditButtonClicked,
+    trackArticleBackClicked,
+  } = useFounderGuidesAnalytics();
   const [subheaderSlot, setSubheaderSlot] = useState<HTMLElement | null>(null);
 
   const article = articles.find((a) => a.slugURL === slug);
@@ -167,6 +175,13 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
       viewMutation.mutate(article.uid);
     }
   }, [article, isAuthenticated]);
+
+  useEffect(() => {
+    if (article && articleAnalyticsViewedRef.current !== article.uid) {
+      articleAnalyticsViewedRef.current = article.uid;
+      trackArticleViewed({ articleUid: article.uid, slug: article.slugURL });
+    }
+  }, [article, trackArticleViewed]);
 
   if (isLoading) {
     return (
@@ -198,20 +213,31 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
 
   const editLink = canEdit ? `/founder-guides/${article.slugURL}/edit` : null;
 
+  const handleLikeClick = () => {
+    trackArticleLiked({ articleUid: article.uid, liked: !article.isLiked });
+    likeMutation.mutate({ uid: article.uid, isLiked: article.isLiked });
+  };
+
   return (
     <>
       {/* Portal: render edit button in mobile subheader */}
       {editLink &&
         subheaderSlot &&
         createPortal(
-          <Link href={editLink} className={s.mobileEditButton}>
+          <Link
+            href={editLink}
+            className={s.mobileEditButton}
+            onClick={() =>
+              trackArticleEditButtonClicked({ articleUid: article.uid, slug: article.slugURL })
+            }
+          >
             <NotePencilIcon />
             <span>Edit Guide</span>
           </Link>,
           subheaderSlot,
         )}
       <div className={s.root}>
-        <BackButton to="/founder-guides" className={s.backButton} />
+        <BackButton to="/founder-guides" className={s.backButton} onNavigate={trackArticleBackClicked} />
         <div className={s.card}>
           <header className={s.header}>
             {/*<span className={s.categoryBadge}>{article.category}</span>*/}
@@ -219,7 +245,13 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
             <div className={s.titleRow}>
               <h1 className={s.title}>{article.title}</h1>
               {canEdit && (
-                <Link href={`/founder-guides/${article.slugURL}/edit`} className={s.editButton}>
+                <Link
+                  href={`/founder-guides/${article.slugURL}/edit`}
+                  className={s.editButton}
+                  onClick={() =>
+                    trackArticleEditButtonClicked({ articleUid: article.uid, slug: article.slugURL })
+                  }
+                >
                   <NotePencilIcon />
                   <span>Edit Guide</span>
                 </Link>
@@ -267,7 +299,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
               {isAuthenticated && (
                 <button
                   className={`${s.likeGuideButton} ${article.isLiked ? s.likeGuideButtonLiked : ''}`}
-                  onClick={() => likeMutation.mutate({ uid: article.uid, isLiked: article.isLiked })}
+                  onClick={handleLikeClick}
                   disabled={likeMutation.isPending}
                   aria-pressed={article.isLiked}
                   aria-label={article.isLiked ? 'Unlike this guide' : 'Like this guide'}
@@ -316,7 +348,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
                 <h2 className={s.helpfulTitle}>Find this guide helpful?</h2>
                 <button
                   className={`${s.likeGuideButton} ${article.isLiked ? s.likeGuideButtonLiked : ''}`}
-                  onClick={() => likeMutation.mutate({ uid: article.uid, isLiked: article.isLiked })}
+                  onClick={handleLikeClick}
                   disabled={likeMutation.isPending}
                   aria-pressed={article.isLiked}
                   aria-label={article.isLiked ? 'Unlike this guide' : 'Like this guide'}

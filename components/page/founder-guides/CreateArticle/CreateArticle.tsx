@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
+import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -33,8 +34,21 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
   const createMutation = useCreateArticleMutation();
   const updateMutation = useUpdateArticleMutation();
   const { mutateAsync, isPending } = isEditMode ? updateMutation : createMutation;
+  const {
+    trackCreatePageOpened,
+    trackArticleCreateSubmitted,
+    trackArticleEditSubmitted,
+    trackFormCancelled,
+  } = useFounderGuidesAnalytics();
+  const createOpenedRef = useRef(false);
 
   useMobileNavVisibility(true);
+
+  useEffect(() => {
+    if (isEditMode || createOpenedRef.current) return;
+    createOpenedRef.current = true;
+    trackCreatePageOpened();
+  }, [isEditMode, trackCreatePageOpened]);
 
   const categoryOptions = useMemo(() => ARTICLE_CATEGORIES.map((c) => ({ label: c, value: c })), []);
 
@@ -78,6 +92,7 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
   const { isAttemptingNavigation, proceedNavigation, cancelNavigation } = useBlockNavigation(isDirty);
 
   const handleCancel = () => {
+    trackFormCancelled({ isEditMode: !!isEditMode });
     if (isEditMode && article) {
       router.push(`/founder-guides/${article.slugURL}`);
     } else {
@@ -106,6 +121,12 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
 
     if (result) {
       reset(data);
+      if (isEditMode && article) {
+        trackArticleEditSubmitted({ articleUid: article.uid });
+      } else {
+        const r = result as { uid?: string; data?: { uid?: string }; slugURL?: string };
+        trackArticleCreateSubmitted({ articleUid: r.uid ?? r.data?.uid });
+      }
       const redirectUrl =
         isEditMode && article ? `/founder-guides/${result.slugURL || article.slugURL}` : '/founder-guides';
       setTimeout(() => {

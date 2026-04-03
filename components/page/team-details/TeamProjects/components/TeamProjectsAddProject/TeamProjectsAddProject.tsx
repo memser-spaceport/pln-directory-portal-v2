@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { IFormatedTeamProject, ITeam } from '@/types/teams.types';
 import { IUserInfo } from '@/types/shared.types';
 
@@ -35,6 +36,7 @@ export function TeamProjectsAddProject(props: Props) {
   const { team, projects, userInfo, toggleIsEditMode } = props;
 
   const router = useRouter();
+  const analytics = useTeamAnalytics();
 
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -44,7 +46,25 @@ export function TeamProjectsAddProject(props: Props) {
     },
   });
 
-  const { handleSubmit } = methods;
+  const { handleSubmit, watch } = methods;
+  const formValues = watch();
+  const prevValuesRef = useRef<TeamProjectsFormData | null>(null);
+  const isFirstRenderRef = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      prevValuesRef.current = JSON.parse(JSON.stringify(formValues));
+      isFirstRenderRef.current = false;
+      return;
+    }
+    const prev = prevValuesRef.current;
+    const curr = formValues;
+    if (JSON.stringify(prev?.projects) !== JSON.stringify(curr.projects)) {
+      const value = curr.projects.map((o) => o.value);
+      analytics.onTeamDetailEditInputChanged({ field: 'projects', value, from: 'projects' });
+    }
+    prevValuesRef.current = JSON.parse(JSON.stringify(formValues));
+  }, [formValues, analytics]);
 
   const options = useGetProjectOptions({
     userInfo,
@@ -71,6 +91,12 @@ export function TeamProjectsAddProject(props: Props) {
         toast.error('Some projects failed to update. Please try again.');
       } else {
         toast.success('Projects updated successfully.');
+        analytics.onTeamDetailEditFormSaved({
+          from: 'projects',
+          values: {
+            projects: formData.projects.map((item) => item.value),
+          },
+        });
       }
 
       toggleIsEditMode();

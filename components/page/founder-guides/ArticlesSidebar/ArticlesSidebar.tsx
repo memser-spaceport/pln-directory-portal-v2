@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
@@ -159,6 +160,19 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
   const { byCategory, isLoading } = useGetArticles();
   const [search, setSearch] = useState('');
   const [openCategories, setOpenCategories] = useState<Set<string> | null>(null);
+  const { trackSidebarSearch } = useFounderGuidesAnalytics();
+  const searchDebounceSkipRef = useRef(true);
+
+  useEffect(() => {
+    if (searchDebounceSkipRef.current) {
+      searchDebounceSkipRef.current = false;
+      return;
+    }
+    const t = setTimeout(() => {
+      trackSidebarSearch(search);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [search, trackSidebarSearch]);
 
   const effectiveOpenCategories = openCategories ?? new Set(byCategory.map((c) => c.category));
 

@@ -33,6 +33,11 @@ export function DealCard({ deal }: DealCardProps) {
             <p className={s.subtitle}>{deal.shortDescription}</p>
           </div>
           <div className={s.tags}>
+            {deal.isHighValue && (
+              <span className={`${s.tag} ${s.tagHighValue}`} aria-label="High value deal">
+                ⭐
+              </span>
+            )}
             {deal.category && (
               <span className={`${s.tag} ${s.tagDefault}`}>
                 {DEAL_CATEGORY_LABELS[deal.category] || deal.category}

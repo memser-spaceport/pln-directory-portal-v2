@@ -101,7 +101,7 @@
   margin-top: 0.25rem;
 }
 
-.errorMessage {
+.errorMsg {
   font-size: 10px;
   color: var(--action-border-error-focus);
   font-feature-settings:
@@ -132,4 +132,54 @@
 
 .charCountError {
   color: #dc2626;
+}
+
+.fieldDescription {
+  font-feature-settings:
+          'liga' off,
+          'clig' off;
+
+  margin-top: 8px;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+
+  &.fieldDescriptionTop {
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
+}
+
+.descriptionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+
+  .fieldDescription {
+    margin-top: 0;
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.descriptionRowAfterInput {
+  margin-top: 8px;
+}
+
+.counter {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
 }

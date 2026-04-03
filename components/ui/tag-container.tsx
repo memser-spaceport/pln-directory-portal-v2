@@ -50,7 +50,7 @@ const TagContainer = (props: ITagContainer) => {
 
   useEffect(() => {
     setTotalItems(isShowMore ? items?.slice(0, items?.length) : items?.slice(0, initialCount));
-  }, [items]);
+  }, [items, initialCount, isShowMore]);
 
   const onMouseLeave = (id: string) => {
     const accessElement = document?.getElementById(id);

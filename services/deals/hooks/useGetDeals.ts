@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { IDeal } from '@/types/deals.types';
 import { getAllDeals } from '../deals.service';
-import { DealsQueryKeys, DEALS_PER_PAGE } from '../constants';
+import { DealsQueryKeys, DEALS_PER_PAGE, DEAL_HIGH_VALUE_FILTER_VALUE } from '../constants';
 
 interface UseGetDealsParams {
   q?: string;
@@ -25,7 +25,11 @@ function filterAndSort(deals: IDeal[], params: UseGetDealsParams) {
 
   if (params.categories) {
     const selected = params.categories.split(',');
-    filtered = filtered.filter((deal) => selected.includes(deal.category));
+    filtered = filtered.filter((deal) =>
+      selected.some((key) =>
+        key === DEAL_HIGH_VALUE_FILTER_VALUE ? Boolean(deal.isHighValue) : deal.category === key
+      )
+    );
   }
 
   if (params.audiences) {
@@ -34,11 +38,18 @@ function filterAndSort(deals: IDeal[], params: UseGetDealsParams) {
   }
 
   const sorted = [...filtered];
-  sorted.sort((a, b) =>
-    params.sort === 'desc'
-      ? b.vendorName.localeCompare(a.vendorName)
-      : a.vendorName.localeCompare(b.vendorName)
-  );
+  sorted.sort((a, b) => {
+    if (params.sort === 'highValueFirst') {
+      const aHigh = a.isHighValue ? 1 : 0;
+      const bHigh = b.isHighValue ? 1 : 0;
+      if (bHigh !== aHigh) return bHigh - aHigh;
+      return a.vendorName.localeCompare(b.vendorName);
+    }
+    if (params.sort === 'desc') {
+      return b.vendorName.localeCompare(a.vendorName);
+    }
+    return a.vendorName.localeCompare(b.vendorName);
+  });
 
   const page = params.page || 1;
   const end = page * DEALS_PER_PAGE;

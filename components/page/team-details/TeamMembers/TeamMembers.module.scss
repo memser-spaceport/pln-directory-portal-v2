@@ -1,0 +1,78 @@
+@use 'styles/media';
+
+.root {
+  padding: 16px;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow:
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+
+  @include media.breakpoint-1024 {
+    padding: 20px;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.seeAllButton {
+  color: #156ff7;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  padding: 0 12px 0 0;
+  border: none;
+  background-color: #fff;
+  outline: none;
+}
+
+.membersWeb {
+  border-radius: 8px;
+  background: #fff;
+  box-shadow:
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+
+  @include media.breakpoint-1024 {
+    display: unset;
+    overflow: auto;
+    max-height: 300px;
+  }
+}
+
+.empty {
+  color: #000;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: 0.12px;
+  border-radius: 12px;
+  background: #fff;
+  padding: 16px;
+  box-shadow:
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+}
+
+.memberBorder {
+  border-bottom: 1px solid #e2e8f0;
+}

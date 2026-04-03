@@ -45,6 +45,7 @@ export const TeamsMobileFilters = ({ filterValues, userInfo, searchParams }: Tea
       filterCount={filterCount}
       currentSort={currentSort}
       sortOptions={sortOptions}
+      sortByLabel="Sort by:"
       onSortChange={handleSortChange}
       onFilterClose={handleFilterClose}
       renderFilter={(onClose) => (

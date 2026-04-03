@@ -76,7 +76,7 @@ export function SubmitDealModal() {
   };
 
   return (
-    <Modal isOpen={open} onClose={onClose}>
+    <Modal isOpen={open} onClose={onClose} closeOnBackdropClick={false}>
       <div className={s.root}>
         <div className={s.header}>
           <div className={s.headerText}>
@@ -160,8 +160,8 @@ export function SubmitDealModal() {
                 placeholder="Enter email, Telegram handle, etc."
                 isRequired
                 max={200}
-                description="In case our team has questions about this deal before publishing it."
-                descriptionPosition="top"
+                topDescription="In case our team has questions about this deal before publishing it."
+                description="Max. 200 characters."
               />
             </div>
           </FormProvider>

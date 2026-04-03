@@ -1,0 +1,89 @@
+@use 'styles/media';
+
+.deleted {
+  pointer-events: none;
+}
+
+.root {
+  padding: 16px;
+  gap: 16px;
+  display: flex;
+  cursor: pointer;
+  justify-content: space-between;
+  width: 100%;
+
+  border-radius: 12px;
+  background-color: #f9fafb;
+
+  &:hover {
+    background: linear-gradient(0deg, #f8fafc, #f8fafc), linear-gradient(0deg, #e2e8f0, #e2e8f0);
+  }
+
+  @include media.breakpoint-1024 {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.profile {
+  display: flex;
+  gap: 16px;
+}
+
+.profileLogo {
+  border-radius: 8px;
+  background-color: #e2e8f0;
+}
+
+.nameAndTagline {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.name {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  word-break: break-word;
+  max-width: 100px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+
+  @include media.breakpoint-1024 {
+    max-width: 250px;
+  }
+}
+
+.tagline {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 400;
+  word-break: break-word;
+  white-space: wrap;
+  line-height: 14px;
+}
+
+.nameAndFunds {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  gap: 10px;
+}
+
+.maintainerBadge {
+  height: 20px;
+}
+
+.raisingFundsWeb {
+  @include media.breakpoint-1024 {
+    display: flex;
+    height: 20px;
+  }
+}
+
+.edit {
+  cursor: pointer;
+}

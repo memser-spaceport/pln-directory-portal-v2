@@ -603,3 +603,10 @@ dialog {
     }
   }
 }
+
+// Prevent body scroll when a side drawer is open.
+// Uses scrollbar-gutter to prevent layout shift when scrollbar disappears.
+html.drawer-scroll-lock {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}

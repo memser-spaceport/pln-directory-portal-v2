@@ -7,13 +7,17 @@
   padding: 20px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0px 0px 1px 0px rgba(15, 23, 42, 0.12), 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04);
   cursor: pointer;
   transition: box-shadow 0.2s ease;
   width: 100%;
 
   &:hover {
-    box-shadow: 0px 10px 20px -5px rgba(14, 15, 17, 0.06), 0px 20px 65px -5px rgba(14, 15, 17, 0.06);
+    box-shadow:
+      0px 10px 20px -5px rgba(14, 15, 17, 0.06),
+      0px 20px 65px -5px rgba(14, 15, 17, 0.06);
   }
 
   @include mobile-only {
@@ -146,6 +150,13 @@
 .tagBrand {
   background: rgba(27, 77, 255, 0.04);
   color: #4174ff;
+}
+
+.tagHighValue {
+  background: rgba(14, 15, 17, 0.06);
+  color: #455468;
+  padding: 2px 8px;
+  font-size: 12px;
 }
 
 .meta {

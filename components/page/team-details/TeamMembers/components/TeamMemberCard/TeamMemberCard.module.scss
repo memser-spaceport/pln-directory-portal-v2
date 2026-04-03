@@ -1,0 +1,111 @@
+@use 'styles/media';
+
+.root {
+  padding: 12px;
+  align-items: center;
+  width: 100%;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 8fr 0.5fr;
+
+  &:hover {
+    background: linear-gradient(0deg, #f8fafc, #f8fafc), linear-gradient(0deg, #e2e8f0, #e2e8f0);
+  }
+
+  @include media.breakpoint-1024 {
+    grid-template-columns: 8fr 4fr 0.5fr;
+  }
+}
+
+.arrowButton {
+  border: none;
+  background-color: inherit;
+}
+
+.arrow {
+  @include media.breakpoint-1024 {
+    grid-column: 3;
+  }
+}
+
+.profileDetails {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.profile {
+  display: flex;
+  gap: 16px;
+}
+
+.profileContainer {
+  position: relative;
+}
+
+.leadBadge {
+  position: absolute;
+  right: -3px;
+  top: -4px;
+}
+
+.skills {
+  display: flex;
+  grid-row: 2;
+  grid-column: span 2;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+
+  @include media.breakpoint-1024 {
+    grid-row: 1;
+    grid-column: 2;
+    margin-top: 0;
+  }
+}
+
+.skill {
+  height: 26px;
+}
+
+.profileImage {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.nameRole {
+  display: flex;
+  max-width: 150px;
+  flex-direction: column;
+  gap: 4px;
+
+  @include media.breakpoint-1024 {
+    max-width: 400px;
+  }
+}
+
+.name {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  color: #455468;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.3px;
+  max-width: 250px;
+}
+
+.role {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  color: #455468;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 14px;
+  letter-spacing: -0.2px;
+}

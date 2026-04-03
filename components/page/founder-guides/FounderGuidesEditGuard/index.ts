@@ -1,0 +1,1 @@
+export { FounderGuidesEditGuard } from './FounderGuidesEditGuard';

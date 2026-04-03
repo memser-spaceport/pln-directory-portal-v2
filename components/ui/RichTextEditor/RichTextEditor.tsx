@@ -184,6 +184,36 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
           },
         },
       }),
+      clipboard: {
+        matchers: [
+          [
+            Node.TEXT_NODE,
+            (node: Text, delta: any) => {
+              const urlRegex = /https?:\/\/[^\s<]+/g;
+              const text = node.data;
+              if (urlRegex.test(text)) {
+                const Delta = Quill.import('delta');
+                const newDelta = new Delta();
+                let lastIndex = 0;
+                urlRegex.lastIndex = 0;
+                let match;
+                while ((match = urlRegex.exec(text)) !== null) {
+                  if (match.index > lastIndex) {
+                    newDelta.insert(text.slice(lastIndex, match.index));
+                  }
+                  newDelta.insert(match[0], { link: match[0] });
+                  lastIndex = match.index + match[0].length;
+                }
+                if (lastIndex < text.length) {
+                  newDelta.insert(text.slice(lastIndex));
+                }
+                return newDelta;
+              }
+              return delta;
+            },
+          ],
+        ],
+      },
     };
   }, [toolbarConfig]);
 
@@ -314,10 +344,10 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
         modules={modules}
         placeholder={isMultilinePlaceholder ? '' : placeholder}
       />
-      {isMultilinePlaceholder && isEmpty && qlContainer && createPortal(
-        <div className={s.multilinePlaceholder}>{placeholder}</div>,
-        qlContainer
-      )}
+      {isMultilinePlaceholder &&
+        isEmpty &&
+        qlContainer &&
+        createPortal(<div className={s.multilinePlaceholder}>{placeholder}</div>, qlContainer)}
       {errorMessage && <div className={s.error}>{errorMessage}</div>}
       {enableMentions && mentionState.isOpen && (
         <MentionDropdown

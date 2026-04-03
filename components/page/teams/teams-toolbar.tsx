@@ -168,7 +168,12 @@ const TeamsToolbar = (props: IToolbar) => {
         </div>
 
         <div className="toolbar__right">
-          <SortDropdown options={TEAMS_SORT_OPTIONS} currentSort={sortBy} onSortChange={onSortChange} />
+          <SortDropdown
+            sortByLabel="Sort by:"
+            options={TEAMS_SORT_OPTIONS}
+            currentSort={sortBy}
+            onSortChange={onSortChange}
+          />
         </div>
       </div>
 

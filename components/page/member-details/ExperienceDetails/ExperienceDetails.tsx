@@ -5,15 +5,16 @@ import React, { useState } from 'react';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 
-import { ExperiencesList } from '@/components/page/member-details/ExperienceDetails/components/ExperiencesList';
-
 import { FormattedMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { EditExperienceForm } from '@/components/page/member-details/ExperienceDetails/components/EditExperienceForm';
-import { useMemberAnalytics } from '@/analytics/members.analytics';
+
 import { getAccessLevel } from '@/utils/auth.utils';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
-import { isAdminUser } from '@/utils/user/isAdminUser';
+
+import { ExperienceDetailsView } from './components/ExperienceDetailsView';
+
+import { ViewType } from '@/types/ui';
 
 interface Props {
   member: IMember;
@@ -22,12 +23,11 @@ interface Props {
 }
 
 export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
-  const [view, setView] = useState<'view' | 'add' | 'edit'>('view');
+  const [view, setView] = useState<ViewType>('view');
   const [selectedItem, setSelectedItem] = useState<null | FormattedMemberExperience>(null);
-  const isAdmin = isAdminUser(userInfo);
+
   const isOwner = userInfo?.uid === member.id;
-  const isEditable = isOwner || isAdmin;
-  const { onAddExperienceDetailsClicked, onEditExperienceDetailsClicked } = useMemberAnalytics();
+
   useMobileNavVisibility(view !== 'view');
 
   if (!isLoggedIn || (getAccessLevel(userInfo, isLoggedIn) !== 'advanced' && !isOwner)) {
@@ -37,19 +37,11 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   return (
     <DetailsSection editView={view !== 'view'}>
       {view === 'view' && (
-        <ExperiencesList
+        <ExperienceDetailsView
           member={member}
+          setView={setView}
           userInfo={userInfo}
-          isEditable={isEditable}
-          onAdd={() => {
-            onAddExperienceDetailsClicked();
-            setView('add');
-          }}
-          onEdit={(item) => {
-            onEditExperienceDetailsClicked();
-            setSelectedItem(item);
-            setView('edit');
-          }}
+          setSelectedItem={setSelectedItem}
         />
       )}
       {view === 'edit' && (

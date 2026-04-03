@@ -28,51 +28,53 @@ export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) 
   const data = [...presentContributions, ...pastContributions];
 
   return (
-    <div className={s.root}>
+    <>
       <DetailsSectionHeader title={`Project Contributions ${data?.length ? `(${data.length})` : ''}`}>
         {isEditable && <AddButton onClick={onAdd} />}
       </DetailsSectionHeader>
-      {!!data?.length && (
-        <ul className={s.list}>
-          {data?.map((item) => (
-            <li key={item.uid} className={s.expItem}>
-              <Image
-                src={item.project.logo?.url ?? '/icons/default-project.svg'}
-                alt={item.project.name}
-                width={40}
-                height={40}
-                className={s.logo}
-              />
-              <div className={s.details}>
-                <div className={s.row}>
-                  <div className={s.primaryLabel}>{item.project.name}</div>
-                  {item.currentProject && <div className={s.currentProjectBadge}>Current project</div>}
+      <div className={s.root}>
+        {!!data?.length && (
+          <ul className={s.list}>
+            {data?.map((item) => (
+              <li key={item.uid} className={s.expItem}>
+                <Image
+                  src={item.project.logo?.url ?? '/icons/default-project.svg'}
+                  alt={item.project.name}
+                  width={40}
+                  height={40}
+                  className={s.logo}
+                />
+                <div className={s.details}>
+                  <div className={s.row}>
+                    <div className={s.primaryLabel}>{item.project.name}</div>
+                    {item.currentProject && <div className={s.currentProjectBadge}>Current project</div>}
+                  </div>
+                  <div className={s.row}>
+                    <div className={s.secondaryLabel}>{item.role}</div>
+                  </div>
                 </div>
-                <div className={s.row}>
-                  <div className={s.secondaryLabel}>{item.role}</div>
-                </div>
-              </div>
-              {isEditable && (
-                <button className={s.editBtn} onClick={() => onEdit(item)}>
-                  <EditIcon />
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-      {!data?.length && (
-        <div className={s.emptyData}>
-          <span className={s.label}>
-            {isEditable ? 'Add project experience & contribution details.' : 'Not provided'}
-          </span>
-          {/*<button className={s.connectButton}>*/}
-          {/*  <AddIcon />*/}
-          {/*  Add Project*/}
-          {/*</button>*/}
-        </div>
-      )}
-    </div>
+                {isEditable && (
+                  <button className={s.editBtn} onClick={() => onEdit(item)}>
+                    <EditIcon />
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {!data?.length && (
+          <div className={s.emptyData}>
+            <span className={s.label}>
+              {isEditable ? 'Add project experience & contribution details.' : 'Not provided'}
+            </span>
+            {/*<button className={s.connectButton}>*/}
+            {/*  <AddIcon />*/}
+            {/*  Add Project*/}
+            {/*</button>*/}
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

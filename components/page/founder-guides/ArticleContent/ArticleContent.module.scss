@@ -111,13 +111,17 @@
 }
 
 // ── Details bar ───────────────────────────────────────────
-// Figma node 171:11409 — author + vertical divider + stats
+// Figma node 171:11409 — author + vertical divider + stats + like button
 .details {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 12px;
+
+  > .likeGuideButton {
+    margin-left: auto;
+  }
 }
 
 // Author: avatar + name
@@ -191,28 +195,38 @@
   white-space: nowrap;
 }
 
-// Interactive like button — inherits .statItem look
-.likeButton {
+
+// ── "Like this Guide" outlined button (top + bottom) ─────
+.likeGuideButton {
   all: unset;
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
+  justify-content: center;
+  gap: 0;
+  padding: 6px 10px;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.08);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
   letter-spacing: -0.2px;
-  color: #8897ae;
+  color: #455468;
   white-space: nowrap;
   cursor: pointer;
-  border-radius: 4px;
-  padding: 2px 4px;
-  margin: -2px -4px;
+  flex-shrink: 0;
   transition:
     color 0.15s ease,
+    border-color 0.15s ease,
     background 0.15s ease;
 
+  svg {
+    margin-right: 4px;
+  }
+
   &:hover {
-    background: rgba(27, 77, 255, 0.06);
+    border-color: rgba(27, 77, 255, 0.3);
     color: #1b4dff;
   }
 
@@ -222,10 +236,27 @@
   }
 }
 
-// Active liked state
-.liked {
+.likeGuideButtonLiked {
   color: #1b4dff;
-  font-weight: 500;
+  border-color: rgba(27, 77, 255, 0.3);
+  background: rgba(27, 77, 255, 0.04);
+}
+
+// ── "Find this guide helpful?" section ────────────────────
+.helpfulSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.helpfulTitle {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.4px;
+  color: #0a0c11;
+  margin: 0;
 }
 
 // ── Content divider ───────────────────────────────────────

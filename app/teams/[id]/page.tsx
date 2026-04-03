@@ -17,7 +17,6 @@ import styles from './page.module.css';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
-import { TeamOfficeHours } from '@/components/page/team-details/TeamOfficeHours';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
@@ -40,9 +39,7 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
     redirectTeamUid,
     isError,
     isNotFound,
-    officeHoursFlag,
     hasEditAsksAccess,
-    isLoggedInMemberPartOfTeam,
   } = await getPageData(teamId);
 
   if (redirectTeamUid) {
@@ -85,15 +82,6 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>
             <TeamContactInfo team={team} userInfo={userInfo} />
-            {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && (
-              <TeamOfficeHours
-                isLoggedIn={isLoggedIn}
-                team={team}
-                userInfo={userInfo}
-                officeHoursFlag={officeHoursFlag}
-                isLoggedInMemberPartOfTeam={isLoggedInMemberPartOfTeam}
-              />
-            )}
           </div>
 
           <TeamMembershipSource team={team} userInfo={userInfo} />
@@ -163,7 +151,6 @@ async function getPageData(teamId: string) {
   let teamProjectList: IFormatedTeamProject[] = [];
   let isError = false;
   let isNotFound = false;
-  let officeHoursFlag = false;
   let memberTeams: never[] = [];
   let hasEditAsksAccess: boolean = false;
 
@@ -202,7 +189,6 @@ async function getPageData(teamId: string) {
       getFocusAreas('Team', {}),
     ]);
 
-    let isLoggedInMemberPartOfTeam = false;
     if (isLoggedIn) {
       const allTeams = await getAllTeams(
         authToken,
@@ -217,7 +203,6 @@ async function getPageData(teamId: string) {
       if (!allTeams?.error) {
         memberTeams = allTeams?.data?.formattedData ?? [];
       }
-      isLoggedInMemberPartOfTeam = memberTeams.filter((team: any) => team.id === teamId).length > 0;
     }
 
     if (teamResponse?.error || teamMembersResponse?.error || focusAreaResponse?.error) {
@@ -226,7 +211,6 @@ async function getPageData(teamId: string) {
     }
 
     team = teamResponse?.data?.formatedData;
-    officeHoursFlag = team['officeHours'] ? true : false;
     if (!isLoggedIn && team['officeHours']) {
       delete team['officeHours'];
     }
@@ -275,9 +259,7 @@ async function getPageData(teamId: string) {
       userInfo,
       teamProjectList,
       hasProjectsEditAccess,
-      officeHoursFlag,
       hasEditAsksAccess,
-      isLoggedInMemberPartOfTeam,
     };
   } catch (error: any) {
     console.error(error);

@@ -3,11 +3,16 @@
   display: flex;
   position: relative;
   background: #f1f5f9;
-  min-height: calc(100vh - var(--app-header-height));
+}
+
+@media (min-width: 1024px) {
+  .root {
+    min-height: calc(100vh - var(--app-header-height));
+  }
 }
 
 .filters {
-  width: 0;
+  display: none;
 }
 
 .content {
@@ -25,6 +30,7 @@
   }
 
   .filters {
+    display: block;
     width: 300px;
     border-right: 1px solid #e2e8f0;
     background: #fff;

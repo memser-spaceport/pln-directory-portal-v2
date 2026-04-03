@@ -148,12 +148,8 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const likeMutation = useArticleLike();
   const viewTracked = useRef(false);
   const articleAnalyticsViewedRef = useRef<string | null>(null);
-  const {
-    trackArticleViewed,
-    trackArticleLiked,
-    trackArticleEditButtonClicked,
-    trackArticleBackClicked,
-  } = useFounderGuidesAnalytics();
+  const { trackArticleViewed, trackArticleLiked, trackArticleEditButtonClicked, trackArticleBackClicked } =
+    useFounderGuidesAnalytics();
   const [subheaderSlot, setSubheaderSlot] = useState<HTMLElement | null>(null);
 
   const article = articles.find((a) => a.slugURL === slug);
@@ -230,9 +226,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
           <Link
             href={editLink}
             className={s.mobileEditButton}
-            onClick={() =>
-              trackArticleEditButtonClicked({ articleUid: article.uid, slug: article.slugURL })
-            }
+            onClick={() => trackArticleEditButtonClicked({ articleUid: article.uid, slug: article.slugURL })}
           >
             <NotePencilIcon />
             <span>Edit Guide</span>
@@ -251,9 +245,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
                 <Link
                   href={`/founder-guides/${article.slugURL}/edit`}
                   className={s.editButton}
-                  onClick={() =>
-                    trackArticleEditButtonClicked({ articleUid: article.uid, slug: article.slugURL })
-                  }
+                  onClick={() => trackArticleEditButtonClicked({ articleUid: article.uid, slug: article.slugURL })}
                 >
                   <NotePencilIcon />
                   <span>Edit Guide</span>
@@ -299,18 +291,18 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
                 </span>
               </div>
 
-              {isAuthenticated && (
-                <button
-                  className={`${s.likeGuideButton} ${article.isLiked ? s.likeGuideButtonLiked : ''}`}
-                  onClick={handleLikeClick}
-                  disabled={likeMutation.isPending}
-                  aria-pressed={article.isLiked}
-                  aria-label={article.isLiked ? 'Unlike this guide' : 'Like this guide'}
-                >
-                  <ThumbsUpBoldIcon filled={article.isLiked} />
-                  {article.isLiked ? 'Liked' : 'Like this Guide'}
-                </button>
-              )}
+              {/*{isAuthenticated && (*/}
+              {/*  <button*/}
+              {/*    className={`${s.likeGuideButton} ${article.isLiked ? s.likeGuideButtonLiked : ''}`}*/}
+              {/*    onClick={handleLikeClick}*/}
+              {/*    disabled={likeMutation.isPending}*/}
+              {/*    aria-pressed={article.isLiked}*/}
+              {/*    aria-label={article.isLiked ? 'Unlike this guide' : 'Like this guide'}*/}
+              {/*  >*/}
+              {/*    <ThumbsUpBoldIcon filled={article.isLiked} />*/}
+              {/*    {article.isLiked ? 'Liked' : 'Like this Guide'}*/}
+              {/*  </button>*/}
+              {/*)}*/}
             </div>
           </header>
 

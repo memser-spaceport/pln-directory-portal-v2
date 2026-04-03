@@ -13,8 +13,10 @@
 }
 
 .backButton {
-  padding: 0 !important;
+  display: flex !important;
+  padding: 0 0 24px !important;
   box-shadow: none !important;
+  height: auto;
 }
 
 .card {

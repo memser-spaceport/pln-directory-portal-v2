@@ -6,12 +6,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import 'md-editor-rt/lib/style.css';
-import dynamic from 'next/dynamic';
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
-
-const MdEditor = dynamic(() => import('md-editor-rt').then((mod) => mod.MdEditor), { ssr: false });
+import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import useBlockNavigation from '@/hooks/useUnsavedChangesWarning';
@@ -34,12 +31,8 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
   const createMutation = useCreateArticleMutation();
   const updateMutation = useUpdateArticleMutation();
   const { mutateAsync, isPending } = isEditMode ? updateMutation : createMutation;
-  const {
-    trackCreatePageOpened,
-    trackArticleCreateSubmitted,
-    trackArticleEditSubmitted,
-    trackFormCancelled,
-  } = useFounderGuidesAnalytics();
+  const { trackCreatePageOpened, trackArticleCreateSubmitted, trackArticleEditSubmitted, trackFormCancelled } =
+    useFounderGuidesAnalytics();
   const createOpenedRef = useRef(false);
 
   useMobileNavVisibility(true);
@@ -79,11 +72,9 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
     handleSubmit,
     reset,
     watch,
-    setValue,
-    formState: { isSubmitting, isDirty, errors },
+    formState: { isSubmitting, isDirty },
   } = methods;
 
-  const contentValue = watch('content');
   const author: CreateArticleForm['author'] = watch('author');
   const selectedMemberUid = author?.type === 'member' ? author.value : undefined;
   const { data: selectedMemberData } = useMember(selectedMemberUid);
@@ -187,16 +178,13 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
 
               <FormField name="readingTime" placeholder="e.g. 5" label="Number of Minutes to Read the Guide" />
 
-              <div>
-                <label className={s.editorLabel}>Content</label>
-                <MdEditor
-                  modelValue={contentValue || ''}
-                  onChange={(val: string) => setValue('content', val, { shouldValidate: true, shouldDirty: true })}
-                  language={'en-US'}
-                  toolbarsExclude={['catalog', 'github', 'save', 'htmlPreview']}
-                />
-                {errors.content && <span className={s.editorError}>{errors.content.message as string}</span>}
-              </div>
+              <FormTextArea
+                name="content"
+                label="Content"
+                placeholder="Write your guide in Markdown (headings, lists, links, etc.)"
+                // description="Published guides render Markdown on the article page."
+                rows={18}
+              />
             </div>
 
             <div className={s.section}>

@@ -297,6 +297,17 @@
       padding: 0;
     }
 
+    .md-editor-preview,
+    .md-editor-preview h1,
+    .md-editor-preview h2,
+    .md-editor-preview h3,
+    .md-editor-preview h4,
+    .md-editor-preview h5,
+    .md-editor-preview h6 {
+      word-break: normal;
+      overflow-wrap: break-word;
+    }
+
     h1[id],
     h2[id],
     h3[id],

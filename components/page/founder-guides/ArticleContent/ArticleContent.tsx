@@ -319,7 +319,12 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
           <hr className={s.divider} />
 
           <div className={s.content}>
-            <MdPreview modelValue={article.content} language="en-US" mdHeadingId={slugifyHeading} />
+            <MdPreview
+              modelValue={article.content}
+              language="en-US"
+              mdHeadingId={slugifyHeading}
+              noKatex
+            />
           </div>
 
           {article.tags.length > 0 && (

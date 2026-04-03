@@ -354,7 +354,10 @@ export const parseMemberFilters = (filtersValues: any, query: any, isUserLoggedI
 export const getMemberInfoFormValues = async () => {
   const [teamsInfo, projectsInfo, skillsInfo] = await Promise.all([
     fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?pagination=false`, { method: 'GET' }),
-    fetch(`${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false&with=contributingTeams`, { method: 'GET' }),
+    fetch(
+      `${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false&with=contributingTeams,logo`,
+      { method: 'GET' },
+    ),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/skills?pagination=false`, { method: 'GET' }),
   ]);
   if (!teamsInfo.ok || !projectsInfo.ok || !skillsInfo.ok) {

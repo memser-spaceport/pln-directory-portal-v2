@@ -65,7 +65,7 @@ export function RequestDealModal() {
   };
 
   return (
-    <Modal isOpen={open} onClose={onClose}>
+    <Modal isOpen={open} onClose={onClose} closeOnBackdropClick={false}>
       <div className={s.root}>
         <div className={s.header}>
           <div className={s.headerText}>

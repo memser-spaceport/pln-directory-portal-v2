@@ -21,7 +21,7 @@ interface Props extends PropsWithChildren {
   rules?: Record<string, unknown>;
   icon?: ReactNode;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  descriptionPosition?: 'top' | 'bottom';
+  topDescription?: string;
 }
 
 export const FormField = ({
@@ -38,7 +38,7 @@ export const FormField = ({
   rules,
   icon,
   onBlur,
-  descriptionPosition = 'bottom',
+  topDescription,
   ...rest
 }: Props) => {
   const {
@@ -71,8 +71,10 @@ export const FormField = ({
           </Field.Label>
         </div>
       )}
-      {description && descriptionPosition === 'top' && (
-        <Field.Description className={clsx(s.fieldDescription, s.fieldDescriptionTop)}>{description}</Field.Description>
+      {topDescription && (
+        <Field.Description className={clsx(s.fieldDescription, s.fieldDescriptionTop)}>
+          {topDescription}
+        </Field.Description>
       )}
       <div
         className={clsx(s.input, {
@@ -110,7 +112,7 @@ export const FormField = ({
       </div>
       <div className={s.sub}>
         <div>
-          {!errors[name] && description && descriptionPosition === 'bottom' ? (
+          {!errors[name] && description ? (
             <Field.Description className={s.fieldDescription}>{description}</Field.Description>
           ) : (
             <Field.Error className={s.errorMsg} match={!!errors[name]}>
@@ -118,9 +120,9 @@ export const FormField = ({
             </Field.Error>
           )}
         </div>
-        {max && val?.length > 0 && (
+        {max && !errors[name] && (
           <div className={s.counter}>
-            {val?.length} / {max}
+            {val?.length ?? 0} / {max}
           </div>
         )}
       </div>

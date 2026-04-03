@@ -13,7 +13,6 @@ export const ARTICLE_CATEGORIES = [
   'Marketing & Growth',
   'Operations & Strategy',
   'Web3 & Decentralization',
-  'Request a Guide',
 ] as const;
 
 export type ArticleCategory = (typeof ARTICLE_CATEGORIES)[number];

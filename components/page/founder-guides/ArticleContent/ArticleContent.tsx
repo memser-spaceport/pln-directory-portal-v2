@@ -148,6 +148,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const likeMutation = useArticleLike();
   const viewTracked = useRef(false);
   const articleAnalyticsViewedRef = useRef<string | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const {
     trackArticleViewed,
     trackArticleLiked,
@@ -186,6 +187,22 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
       trackArticleViewed({ articleUid: article.uid, slug: article.slugURL });
     }
   }, [article, trackArticleViewed]);
+
+  // Open all links inside the rendered markdown content in a new tab
+  useEffect(() => {
+    const container = contentRef.current;
+    if (!container) return;
+
+    const handleClick = (e: MouseEvent) => {
+      const link = (e.target as HTMLElement).closest('a[href]');
+      if (!link) return;
+      e.preventDefault();
+      window.open(link.getAttribute('href')!, '_blank', 'noopener,noreferrer');
+    };
+
+    container.addEventListener('click', handleClick);
+    return () => container.removeEventListener('click', handleClick);
+  }, []);
 
   if (isLoading) {
     return (
@@ -318,7 +335,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
 
           <hr className={s.divider} />
 
-          <div className={s.content}>
+          <div className={s.content} ref={contentRef}>
             <MdPreview
               modelValue={article.content}
               language="en-US"

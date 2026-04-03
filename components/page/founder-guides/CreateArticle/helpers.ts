@@ -26,7 +26,14 @@ export const createArticleSchema = yup.object().shape({
     .nullable()
     .optional(),
   author: yup.object().nullable().optional(),
-  officeHoursUrl: yup.string().url('Must be a valid URL').nullable().optional(),
+  officeHours: yup
+    .string()
+    .nullable()
+    .optional()
+    .test('url', 'Must be a valid URL', (value) => {
+      if (value == null || String(value).trim() === '') return true;
+      return yup.string().url().isValidSync(value);
+    }),
 });
 
 export type CreateArticleForm = {
@@ -36,7 +43,7 @@ export type CreateArticleForm = {
   readingTime: number | null;
   content: string;
   author: { label: string; value: string; type: 'member' | 'team' } | null;
-  officeHoursUrl: string;
+  officeHours: string;
 };
 
 export function articleToFormValues(article: IArticle): CreateArticleForm {
@@ -63,6 +70,6 @@ export function articleToFormValues(article: IArticle): CreateArticleForm {
     readingTime: article.readingTime || null,
     content: article.content || '',
     author,
-    officeHoursUrl: article.authorTeam?.officeHours || '',
+    officeHours: article.authorTeam?.officeHours || '',
   };
 }

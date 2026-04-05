@@ -107,7 +107,7 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
           )}
           {/* Member */}
           <div className={styles?.teamDetail__container__member}>
-            <TeamMembers team={team} userInfo={userInfo} members={members} teamId={teamId} />
+            <TeamMembers team={team} userInfo={userInfo} members={members} />
           </div>
 
           <TeamFocusAreas

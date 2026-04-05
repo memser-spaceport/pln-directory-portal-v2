@@ -1,23 +1,24 @@
-import { ChangeEvent, Fragment, useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 
 import { IMember } from '@/types/members.types';
-import { ITeam } from '@/types/teams.types';
 
-import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
+import { EVENTS } from '@/utils/constants';
 
 import { SearchIcon } from './icons';
-import { TeamMemberCard } from '../TeamMemberCard';
+import { TeamMembersViewCard } from '../TeamMembersViewCard';
 
 import s from './AllMembers.module.scss';
 
 interface Props {
   members: IMember[];
   teamId: string;
+  hasEditAccess: boolean;
   onCardClick: (member: IMember) => void;
+  onEditMember: (member: IMember) => void;
 }
 
 export function AllMembers(props: Props) {
-  const { teamId, members = [], onCardClick } = props;
+  const { teamId, members = [], hasEditAccess, onCardClick, onEditMember } = props;
 
   const [allMembers, setAllMembers] = useState(members);
   const [searchValue, setSearchValue] = useState('');
@@ -59,26 +60,17 @@ export function AllMembers(props: Props) {
       <div className={s.divider} />
 
       <div className={s.members}>
-        {allMembers?.map((member: IMember, index: number) => {
-          const team = member?.teams?.find((team: ITeam) => team.id === teamId);
-          return (
-            <Fragment key={`${member} + ${index}`}>
-              <div className={index < allMembers?.length ? s.memberBorder : undefined}>
-                <TeamMemberCard
-                  onCardClick={onCardClick}
-                  url={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
-                  member={member}
-                  team={team}
-                />
-              </div>
-            </Fragment>
-          );
-        })}
-        {allMembers.length === 0 && (
-          <div className={s.emptyResult}>
-            <p>No Members found.</p>
-          </div>
-        )}
+        {allMembers?.map((member: IMember, index: number) => (
+          <TeamMembersViewCard
+            key={member.id ?? index}
+            member={member}
+            teamId={teamId}
+            showBorder={index < allMembers.length - 1}
+            hasEditAccess={hasEditAccess}
+            onClick={onCardClick}
+            onEdit={onEditMember}
+          />
+        ))}
       </div>
     </div>
   );

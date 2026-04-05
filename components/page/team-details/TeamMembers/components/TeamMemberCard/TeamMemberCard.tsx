@@ -1,15 +1,14 @@
-import { Fragment } from 'react';
-
 import { IMember } from '@/types/members.types';
-import { ITag, ITeam } from '@/types/teams.types';
+import { ITeam } from '@/types/teams.types';
 
 import { isMemberAvailableToConnect } from '@/utils/member.utils';
 
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
-import { Tag } from '@/components/ui/Tag';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+
+import { SkillsList } from '../SkillsList/SkillsList';
 
 import s from './TeamMemberCard.module.scss';
 
@@ -86,41 +85,7 @@ export function TeamMemberCard(props: Props) {
         </div>
 
         <div className={s.skills}>
-          {skills?.slice(0, 3).map((skill: ITag, index: number) => (
-            <Fragment key={`${skill} + ${index}`}>
-              <div className={s.skill}>
-                <Tooltip
-                  asChild
-                  trigger={
-                    <div>
-                      <Tag value={skill?.title} />{' '}
-                    </div>
-                  }
-                  content={skill?.title}
-                />
-              </div>
-            </Fragment>
-          ))}
-          {skills?.length > 3 && (
-            <Tooltip
-              asChild
-              trigger={
-                <div>
-                  <Tag value={'+' + (skills?.length - 3).toString()} />
-                </div>
-              }
-              content={
-                <div>
-                  {skills?.slice(3, skills?.length)?.map((skill, index) => (
-                    <div key={`${skill} + ${skill} + ${index}`}>
-                      {skill?.title}
-                      {index !== skills?.slice(3, skills?.length - 1)?.length ? ',' : ''}
-                    </div>
-                  ))}
-                </div>
-              }
-            />
-          )}
+          <SkillsList skills={skills} />
         </div>
 
         <div className={s.arrow}>

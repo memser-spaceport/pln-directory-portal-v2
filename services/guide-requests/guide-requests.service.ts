@@ -3,12 +3,11 @@ import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { toast } from '@/components/core/ToastContainer';
 
 export interface GuideRequestPayload {
-  topic: string;
+  title: string;
   description?: string;
 }
 
-// TODO: Replace with actual endpoint once confirmed
-const GUIDE_REQUESTS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/guide-requests`;
+const GUIDE_REQUESTS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/articles/requests`;
 
 export async function createGuideRequest(payload: GuideRequestPayload): Promise<boolean> {
   const { authToken } = getCookiesFromClient();

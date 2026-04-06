@@ -29,7 +29,7 @@ export default function RequestGuide() {
     mutate(data, {
       onSuccess: (ok) => {
         if (ok) {
-          setSuccessTopic(data.topic);
+          setSuccessTopic(data.title);
         }
       },
     });
@@ -53,7 +53,7 @@ export default function RequestGuide() {
         <FormProvider {...methods}>
           <form className={s.form} onSubmit={handleSubmit(onSubmit)} noValidate>
             <FormField
-              name="topic"
+              name="title"
               label="Topic"
               placeholder="Enter the topic (e.g. Token vesting schedules, SAFE vs equity, hiring first engineer)"
               isRequired

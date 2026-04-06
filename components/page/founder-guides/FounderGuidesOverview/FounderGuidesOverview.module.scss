@@ -121,6 +121,10 @@
   padding: 0;
   cursor: pointer;
 
+  @include tablet-landscape {
+    pointer-events: none;
+  }
+
   svg {
     display: none;
 

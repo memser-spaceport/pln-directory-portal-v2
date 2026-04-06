@@ -160,12 +160,13 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
             <div className={s.section}>
               <div className={s.sectionDivider}>CONTENT</div>
 
-              <FormSelect name="category" placeholder="Select category" label="Category" options={categoryOptions} />
+              <FormSelect name="category" placeholder="Select category" label="Category" options={categoryOptions} isRequired />
 
               <FormField
                 name="title"
                 placeholder="Enter the title (e.g. Token vesting schedules, SAFE vs equity, hiring first engineer)"
                 label="Guide Title"
+                isRequired
               />
 
               <FormField
@@ -174,12 +175,14 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
                 label="Summary"
                 max={100}
                 description="Max. 100 characters."
+                isRequired
               />
 
               <FormField
                 name="readingTime"
                 placeholder="Enter number of minutes"
                 label="Number of Minutes to Read the Guide"
+                isRequired
               />
 
               <FormTextArea
@@ -188,6 +191,7 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
                 placeholder="Write your guide in Markdown (headings, lists, links, etc.)"
                 // description="Published guides render Markdown on the article page."
                 rows={18}
+                isRequired
               />
             </div>
 
@@ -227,6 +231,7 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
                   placeholder="Enter Office Hours link"
                   label="Office Hours"
                   description="Drop your calendar link here so others can get in touch with you at a time that is convenient."
+                  isRequired
                 />
               )}
             </div>

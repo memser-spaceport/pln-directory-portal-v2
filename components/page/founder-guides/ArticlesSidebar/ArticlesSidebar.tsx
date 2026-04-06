@@ -112,13 +112,13 @@ function LightbulbIcon() {
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
       <path
         d="M10 3C7.239 3 5 5.239 5 8C5 9.72 5.9 11.22 7.25 12.1V13.5C7.25 13.776 7.474 14 7.75 14H12.25C12.526 14 12.75 13.776 12.75 13.5V12.1C14.1 11.22 15 9.72 15 8C15 5.239 12.761 3 10 3Z"
-        stroke="#455468"
+        stroke="currentColor"
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
       <path
         d="M8 14V16C8 16.276 8.224 16.5 8.5 16.5H11.5C11.776 16.5 12 16.276 12 16V14"
-        stroke="#455468"
+        stroke="currentColor"
         strokeWidth="1.5"
       />
     </svg>

@@ -89,7 +89,7 @@ export function TeamMembersView(props: Props) {
             <TeamMembersViewCard
               key={member.id ?? index}
               member={member}
-              teamId={teamId}
+              teamId={teamId || ''}
               showBorder={index < MEMBERS_TO_SHOW - 1}
               hasEditAccess={hasEditAccess}
               onClick={onMemberClickHandler}

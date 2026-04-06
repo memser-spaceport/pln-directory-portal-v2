@@ -105,9 +105,16 @@ export function TeamMembersAdd(props: Props) {
                 const allMemberData = allMembersMap.get(member.value);
                 const role = allMemberData?.teamMemberRoles?.[0]?.role || '';
 
+                const memberObj = {
+                  id: member.value,
+                  name: member.label,
+                  profile: member.image,
+                  teams: [{ id: teamId, role }],
+                } as IMember;
+
                 return (
                   <div key={member.value} className={s.selectedCard}>
-                    <MemberCardBase name={member.label} role={role} image={member.image}>
+                    <MemberCardBase member={memberObj} teamId={teamId}>
                       <div className={s.teamLeadToggle}>
                         <span className={s.teamLeadLabel}>Team Lead</span>
                         <CustomToggle

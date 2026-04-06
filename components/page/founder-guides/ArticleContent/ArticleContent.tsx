@@ -176,6 +176,17 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   });
 
   useEffect(() => {
+    if (!article) return;
+    const raf = requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line
+  }, [article?.uid]);
+
+  useEffect(() => {
     setSubheaderSlot(document.getElementById('mobile-subheader-actions'));
   }, []);
 

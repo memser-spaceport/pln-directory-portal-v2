@@ -187,6 +187,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
 
   const { canCreate } = useFounderGuidesCreateAccess();
   const isCreateActive = pathname === '/founder-guides/new';
+  const isRequestActive = pathname === '/founder-guides/request';
 
   const filtered = useMemo(() => {
     if (!search.trim()) return byCategory;
@@ -319,6 +320,14 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
               </div>
             );
           })}
+        <Link
+          href="/founder-guides/request"
+          className={`${s.requestLink} ${isRequestActive ? s.requestLinkActive : ''}`}
+          onClick={onNavigate}
+        >
+          <span className={s.categoryIcon}><LightbulbIcon /></span>
+          <span className={s.categoryLabel}>Request a Guide</span>
+        </Link>
       </nav>
     </div>
   );

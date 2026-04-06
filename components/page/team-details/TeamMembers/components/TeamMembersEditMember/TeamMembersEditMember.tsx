@@ -7,7 +7,6 @@ import { IMember } from '@/types/members.types';
 import { ITeam } from '@/types/teams.types';
 
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { isMemberAvailableToConnect } from '@/utils/member.utils';
 
 import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
 
@@ -39,13 +38,12 @@ export function TeamMembersEditMember(props: Props) {
 
   const teamId = team.id;
   const memberTeam = member.teams?.find((t: ITeam) => t.id === teamId);
-  const isAvailable = isMemberAvailableToConnect(member);
   const skills = member?.skills ?? [];
 
   const methods = useForm<FormData>({
     defaultValues: {
-      teamLead: !!memberTeam?.teamLead,
-    },
+      teamLead: !!memberTeam?.teamLead
+    }
   });
 
   const { onSubmit: commonOnSubmit, isPending } = useOnSubmit(team, onClose);
@@ -56,12 +54,14 @@ export function TeamMembersEditMember(props: Props) {
   const onSubmit = async (formData: FormData) => {
     const teamMemberRoles = members.map((m) => {
       const mTeam = m.teams?.find((t: ITeam) => t.id === teamId);
+      const isEditedMember = m.id === member.id;
       return {
         teamUid: teamId,
         memberUid: m.id,
         role: mTeam?.role || 'Contributor',
-        teamLead: m.id === member.id ? formData.teamLead : !!mTeam?.teamLead,
+        teamLead: isEditedMember ? formData.teamLead : !!mTeam?.teamLead,
         mainTeam: !!mTeam?.mainTeam,
+        ...(isEditedMember && { status: 'Update' as const })
       };
     });
 
@@ -79,7 +79,7 @@ export function TeamMembersEditMember(props: Props) {
           role: mTeam?.role || 'Contributor',
           teamLead: !!mTeam?.teamLead,
           mainTeam: !!mTeam?.mainTeam,
-          ...(m.id === member.id && { status: 'Delete' as const }),
+          ...(m.id === member.id && { status: 'Delete' as const })
         };
       });
 
@@ -98,15 +98,12 @@ export function TeamMembersEditMember(props: Props) {
       <form noValidate onSubmit={methods.handleSubmit(onSubmit)}>
         <EditFormControls title="Edit Team Member" onClose={onClose} isProcessing={isPending} />
 
-        <DetailsSection classes={{
-          root: s.section
-        }}>
-          <MemberCardBase
-            name={member.name}
-            role={memberTeam?.role}
-            image={member.profile}
-            isAvailableToConnect={isAvailable}
-          >
+        <DetailsSection
+          classes={{
+            root: s.section
+          }}
+        >
+          <MemberCardBase member={member} teamId={teamId}>
             <div className={s.skills}>
               <SkillsList skills={skills} />
             </div>

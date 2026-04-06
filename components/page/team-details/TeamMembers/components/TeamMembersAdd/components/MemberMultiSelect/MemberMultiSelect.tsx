@@ -209,7 +209,12 @@ export function MemberMultiSelect(props: Props) {
               <Button size="s" style="border" onClick={handleCancel} className={s.footerBtn}>
                 Cancel
               </Button>
-              <Button size="s" onClick={handleSelect} className={s.footerBtn}>
+              <Button
+                size="s"
+                onClick={handleSelect}
+                className={s.footerBtn}
+                disabled={isEmpty(filteredOptions) && isEmpty(pendingSelection)}
+              >
                 Select
               </Button>
             </div>

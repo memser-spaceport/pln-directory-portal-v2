@@ -19,6 +19,7 @@ import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { canEditArticle } from './helpers';
 import s from './ArticleContent.module.scss';
+import { getDefaultAvatar, useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 const MdPreview = dynamic(() => import('md-editor-rt').then((mod) => mod.MdPreview), { ssr: false });
 
@@ -175,6 +176,17 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   });
 
   useEffect(() => {
+    if (!article) return;
+    const raf = requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line
+  }, [article?.uid]);
+
+  useEffect(() => {
     setSubheaderSlot(document.getElementById('mobile-subheader-actions'));
   }, []);
 
@@ -235,12 +247,12 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const canEdit = canEditArticle(article, userInfo, canCreate);
   const isTeamAuthor = !!article.authorTeam && !article.authorMember;
   const authorName = article.authorMember?.name || article.authorTeam?.name || 'Unknown';
+  const defaultAvatar = getDefaultAvatar(authorName);
 
   // Derive role & team from fetched member details
   const memberInfo = memberData && !('isError' in memberData) ? memberData.data : null;
   const mainTeamRole = memberInfo?.teamMemberRoles?.find((tmr: any) => tmr.mainTeam);
-  const authorRoleAndTeam =
-    mainTeamRole ? `${mainTeamRole.role} @${mainTeamRole.teamTitle}`.trim() : null;
+  const authorRoleAndTeam = mainTeamRole ? `${mainTeamRole.role} @${mainTeamRole.teamTitle}`.trim() : null;
   const authorImage = isTeamAuthor
     ? (article.authorTeam?.logo?.url ?? null)
     : resolveMemberImageUrl(article.authorMember?.image);
@@ -305,7 +317,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={authorLogo} alt={authorName} className={s.authorAvatar} />
                 ) : (
-                  <div className={s.authorInitial}>{initials}</div>
+                  <img src={defaultAvatar} alt={authorName} className={s.authorAvatar} />
                 )}
                 <span className={s.authorName}>{authorName}</span>
                 {authorRoleAndTeam && (
@@ -358,12 +370,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
           <hr className={s.divider} />
 
           <div className={s.content} ref={contentRef}>
-            <MdPreview
-              modelValue={article.content}
-              language="en-US"
-              mdHeadingId={slugifyHeading}
-              noKatex
-            />
+            <MdPreview modelValue={article.content} language="en-US" mdHeadingId={slugifyHeading} noKatex />
           </div>
 
           {article.tags.length > 0 && (

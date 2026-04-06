@@ -17,7 +17,7 @@ import {
   DetailsSectionHeader,
   DetailsSectionGreyContentContainer,
 } from '@/components/common/profile/DetailsSection';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 
 import { AllProjects } from './components/AllProjects';
 import { TeamProjectCard } from './components/TeamProjectCard';

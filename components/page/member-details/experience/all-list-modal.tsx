@@ -1,5 +1,5 @@
 'use client';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import MemberDetailsExperienceDetail from './experience-detail';
 import { useRef, useEffect } from 'react';
 import { useState } from 'react';

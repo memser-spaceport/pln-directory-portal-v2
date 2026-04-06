@@ -1,5 +1,5 @@
 import { useHomeAnalytics } from '@/analytics/home.analytics';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';

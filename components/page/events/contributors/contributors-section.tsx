@@ -8,7 +8,7 @@ import { ChartTooltip } from '@/components/core/events/treemap';
 import { TreemapCustomContent } from '@/components/core/events/treemap';
 import ShadowButton from '@/components/ui/ShadowButton';
 import { useEventsAnalytics } from '@/analytics/events.analytics';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { useRef, useMemo, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PAGE_ROUTES, CONTRIBUTE_MODAL_VIDEO_URL } from '@/utils/constants';

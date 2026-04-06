@@ -1,6 +1,6 @@
 'use client';
 
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { IMember } from '@/types/members.types';
 import { EVENTS } from '@/utils/constants';

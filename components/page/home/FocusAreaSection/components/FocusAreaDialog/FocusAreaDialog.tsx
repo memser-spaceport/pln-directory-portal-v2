@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { IFocusArea, IUserInfo } from '@/types/shared.types';
 import { HOME } from '@/utils/constants';
 import { useHomeAnalytics } from '@/analytics/home.analytics';

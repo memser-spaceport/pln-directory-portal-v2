@@ -3,7 +3,7 @@
 import { Fragment, useRef } from 'react';
 import MemberDetailsRepoCard from './member-details-repo-card';
 import MemberEmptyProject from './member-empty-repository';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import AllRepositories from './all-repositories';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';

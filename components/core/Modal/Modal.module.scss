@@ -1,0 +1,35 @@
+.modal {
+  border: none;
+  margin: auto;
+  border-radius: 24px;
+}
+
+.content {
+  position: relative;
+  overflow: hidden;
+}
+
+.hiddenBtn {
+  display: hidden;
+  position: absolute;
+  height: 0px;
+  width: 0px;
+}
+
+.closeBtn {
+  position: absolute;
+  border: none;
+  top: 12px;
+  right: 12px;
+  user-select: none;
+  outline: none;
+  z-index: 1;
+  display: flex;
+  padding: 6px;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  border-radius: 50%;
+  background: rgba(14, 15, 17, 0.04);
+  box-shadow: 0 -2px 4px 0 rgba(14, 15, 17, 0.02) inset;
+}

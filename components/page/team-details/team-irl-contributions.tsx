@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment, useRef, useState } from 'react';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { IMember } from '@/types/members.types';
 import { IAnalyticsUserInfo, IUserInfo } from '@/types/shared.types';
 import React from 'react';

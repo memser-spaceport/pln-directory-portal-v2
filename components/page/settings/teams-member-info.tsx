@@ -5,7 +5,7 @@ import TeamMemberCard from '../team-form-info/team-member-card';
 import Image from 'next/image';
 import RegsiterFormLoader from '@/components/core/register/register-form-loader';
 import { EVENTS } from '@/utils/constants';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import AddTeamMemberPopUp from './add-team-member-pop-up';
 
 const TeamsMemberInfo = (props: any) => {

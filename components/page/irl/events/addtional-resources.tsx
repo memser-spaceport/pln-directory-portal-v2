@@ -1,7 +1,7 @@
 'use client';
 import React, { useRef, useState } from 'react';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { ILocationDetails } from '@/types/irl.types';
 import LinkTab from '@/components/page/irl/events/link-tab';
 

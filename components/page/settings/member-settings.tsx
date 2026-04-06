@@ -22,7 +22,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { updateMember } from '@/services/members.service';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
 import { validateLocation } from '@/services/location.service';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import AlertMessage from './alert-message';

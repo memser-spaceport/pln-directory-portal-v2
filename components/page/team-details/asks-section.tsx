@@ -1,7 +1,7 @@
 'use client';
 
 import AddEditAsk from '@/components/core/addAsks/add-edit-asks';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { triggerLoader } from '@/utils/common.utils';
 import { EVENTS } from '@/utils/constants';
 import { customFetch } from '@/utils/fetch-wrapper';

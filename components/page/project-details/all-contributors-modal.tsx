@@ -1,7 +1,7 @@
 'use client';
 
 import { useProjectAnalytics } from '@/analytics/project.analytics';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { IMember } from '@/types/members.types';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS } from '@/utils/constants';

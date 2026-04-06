@@ -2,7 +2,7 @@
 import { PAGE_ROUTES } from '@/utils/constants';
 import React, { Fragment, useRef, useState } from 'react';
 import MemberDetailsTeamCard from './member-details-team-card';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import AllTeams from './all-teams';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';

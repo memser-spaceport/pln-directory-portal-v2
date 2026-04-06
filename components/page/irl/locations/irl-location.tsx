@@ -3,7 +3,7 @@
 import IrlLocationCard from './irl-location-card';
 import { useEffect, useRef, useState } from 'react';
 import React from 'react';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { triggerLoader } from '@/utils/common.utils';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useRouter } from 'next/navigation';

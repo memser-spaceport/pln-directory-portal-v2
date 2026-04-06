@@ -14,7 +14,7 @@ import { updateTeam } from '@/services/teams.service';
 import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
 import { projectDetailsSchema, socialSchema, basicInfoSchema } from '@/schema/team-forms';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import SettingsAction from './actions';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { ENROLLMENT_TYPE } from '@/utils/constants';

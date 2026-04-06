@@ -5,7 +5,7 @@ import SingleSelect from '@/components/form/single-select';
 import { useEffect, useRef, useState } from 'react';
 import FocusAreasList from './focus-area/focus-area-list';
 import FocusAreasPopup from './focus-area/focus-areas-popup';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { IUserInfo } from '@/types/shared.types';
 import { isTierUser } from '@/utils/user/isTierUser';
 import { isAdminUser } from '@/utils/user/isAdminUser';

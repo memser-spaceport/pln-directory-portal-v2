@@ -13,7 +13,7 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 
 import Image from 'next/image';
 
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import {
   NoDataBlock,
   HeaderActionBtn,

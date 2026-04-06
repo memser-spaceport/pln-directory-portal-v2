@@ -1,5 +1,5 @@
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';

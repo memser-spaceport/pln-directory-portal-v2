@@ -8,7 +8,7 @@ import { getUserCredentials } from '@/utils/auth.utils';
 import { triggerLoader } from '@/utils/common.utils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { useParams, useRouter } from 'next/navigation';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 
 interface IThread {
   title: string;

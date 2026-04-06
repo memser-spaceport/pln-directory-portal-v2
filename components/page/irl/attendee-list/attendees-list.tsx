@@ -8,7 +8,7 @@ import { ADMIN_ROLE, EVENTS, IRL_DEFAULT_TOPICS, TOAST_MESSAGES } from '@/utils/
 import Toolbar from './toolbar';
 import GuestList from './guest-list';
 import FloatingBar from './floating-bar';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import DeleteAttendeesPopup from './delete-attendees-popup';
 import { getParsedValue, triggerLoader } from '@/utils/common.utils';
 import { getGuestEvents, getGuestsByLocation, getTopicsByLocation } from '@/services/irl.service';

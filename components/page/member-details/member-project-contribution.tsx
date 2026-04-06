@@ -5,7 +5,7 @@ import MemberEmptyProjectExperience from './member-empty-project-experienct';
 import MemberProjectExperienceCard from './member-project-experience-card';
 import { PAGE_ROUTES } from '@/utils/constants';
 import MemberProjectContributions from './member-project-contributions';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useRouter } from 'next/navigation';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';

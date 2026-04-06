@@ -20,7 +20,7 @@ import { updateMember } from '@/services/members.service';
 import Cookies from 'js-cookie';
 import { validateLocation } from '@/services/location.service';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { saveRegistrationImage } from '@/services/registration.service';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import useObserver from '@/hooks/useObserver';

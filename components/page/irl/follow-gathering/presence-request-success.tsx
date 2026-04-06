@@ -1,4 +1,4 @@
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { EVENTS } from '@/utils/constants';
 import { useEffect, useRef } from 'react';
 

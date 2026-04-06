@@ -6,7 +6,7 @@ import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { toast } from '@/components/core/ToastContainer';
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { EVENTS, FOLLOW_ENTITY_TYPES } from '@/utils/constants';
 
 interface FollowButtonProps {

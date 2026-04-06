@@ -1,4 +1,4 @@
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import RegsiterFormLoader from '@/components/core/register/register-form-loader';
 import { getMembersForProjectForm } from '@/services/members.service';
 import { getTeamsForProject } from '@/services/teams.service';

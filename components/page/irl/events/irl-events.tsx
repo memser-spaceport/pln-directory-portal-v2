@@ -1,6 +1,6 @@
 'use client';
 
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { useRef, useState } from 'react';
 import { getFormattedDateString, abbreviateString } from '@/utils/irl.utils';
 import IrlUpcomingEvents from './irl-upcoming-events';

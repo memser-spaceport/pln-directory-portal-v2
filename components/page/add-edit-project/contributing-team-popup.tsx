@@ -1,4 +1,4 @@
-import Modal from '@/components/core/modal';
+import { Modal } from '@/components/core/Modal';
 import { getTeamsForProject } from '@/services/teams.service';
 import { triggerLoader } from '@/utils/common.utils';
 import { useEffect, useRef, useState } from 'react';

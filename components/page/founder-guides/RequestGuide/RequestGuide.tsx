@@ -17,9 +17,9 @@ export default function RequestGuide() {
   const [successTopic, setSuccessTopic] = useState<string | null>(null);
   const { mutate, isPending } = useRequestGuideMutation();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const methods = useForm<RequestGuideForm>({
     defaultValues,
+    // eslint-disable-next-line
     resolver: yupResolver(requestGuideSchema) as any,
   });
 
@@ -45,8 +45,7 @@ export default function RequestGuide() {
         <div className={s.heading}>
           <h1 className={s.title}>Request a Guide</h1>
           <p className={s.subtitle}>
-            Tell us what topic you would like us to cover. We will review requests and prioritize
-            based on demand.
+            Tell us what topic you would like us to cover. We will review requests and prioritize based on demand.
           </p>
         </div>
 
@@ -88,9 +87,7 @@ export default function RequestGuide() {
         </FormProvider>
       </div>
 
-      {successTopic !== null && (
-        <RequestGuideSuccessModal isOpen topic={successTopic} onClose={handleCloseSuccess} />
-      )}
+      {successTopic !== null && <RequestGuideSuccessModal isOpen topic={successTopic} onClose={handleCloseSuccess} />}
     </div>
   );
 }

@@ -272,6 +272,68 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
     likeMutation.mutate({ uid: article.uid, isLiked: article.isLiked });
   };
 
+  const handleScheduleMeetingClick = () => {
+    if (scheduleMeetingLinkType === 'member' && article.authorMember) {
+      trackScheduleMeetingClicked({
+        articleUid: article.uid,
+        slug: article.slugURL,
+        meetingLinkType: 'member',
+        memberUid: article.authorMember.uid,
+        memberName: article.authorMember.name,
+      });
+    } else if (scheduleMeetingLinkType === 'team' && article.authorTeam) {
+      trackScheduleMeetingClicked({
+        articleUid: article.uid,
+        slug: article.slugURL,
+        meetingLinkType: 'team',
+        teamUid: article.authorTeam.uid,
+        teamName: article.authorTeam.name,
+      });
+    }
+  };
+
+  const ohCard = officeHoursUrl ? (
+    <div className={s.ohSection}>
+      <p className={s.ohTitle}>Book Office Hours with the author</p>
+      <div className={s.ohBanner}>
+        <div className={s.ohLeft}>
+          <div className={s.ohAvatarWrap}>
+            {authorImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={authorImage} alt={authorName} className={s.ohAvatar} />
+            ) : (
+              <div className={s.ohInitial}>{initials}</div>
+            )}
+          </div>
+          <div className={s.ohInfo}>
+            <div className={s.ohNameRow}>
+              <span className={s.ohName}>{authorName}</span>
+              {article.authorTeam?.name && article.authorMember?.name && (
+                <>
+                  <DotSepLarge />
+                  <span className={s.ohRole}>@{article.authorTeam.name}</span>
+                </>
+              )}
+            </div>
+            <span className={s.ohSubtitle}>
+              {isTeamAuthor ? 'Schedule a meeting with this team.' : 'Available for 1:1 call — no introduction needed.'}
+            </span>
+          </div>
+        </div>
+        <a
+          href={officeHoursUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={s.ohButton}
+          onClick={handleScheduleMeetingClick}
+        >
+          <CalendarBlankIcon />
+          Schedule Meeting
+        </a>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <>
       {/* Portal: render edit button in mobile subheader */}
@@ -312,23 +374,26 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
 
             {/* Details bar: author + stats */}
             <div className={s.details}>
-              <div className={s.authorDetails}>
-                {authorLogo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={authorLogo} alt={authorName} className={s.authorAvatar} />
-                ) : (
-                  <img src={defaultAvatar} alt={authorName} className={s.authorAvatar} />
-                )}
-                <span className={s.authorName}>{authorName}</span>
-                {authorRoleAndTeam && (
-                  <>
-                    <DotSep />
-                    <span className={s.authorRole}>{authorRoleAndTeam}</span>
-                  </>
-                )}
-              </div>
-
-              <div className={s.detailsDivider} />
+              {ohCard ? null : (
+                <>
+                  <div className={s.authorDetails}>
+                    {authorLogo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={authorLogo} alt={authorName} className={s.authorAvatar} />
+                    ) : (
+                      <img src={defaultAvatar} alt={authorName} className={s.authorAvatar} />
+                    )}
+                    <span className={s.authorName}>{authorName}</span>
+                    {authorRoleAndTeam && (
+                      <>
+                        <DotSep />
+                        <span className={s.authorRole}>{authorRoleAndTeam}</span>
+                      </>
+                    )}
+                  </div>
+                  <div className={s.detailsDivider} />
+                </>
+              )}
 
               <div className={s.stats}>
                 <span className={s.statItem}>
@@ -365,6 +430,8 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
               {/*  </button>*/}
               {/*)}*/}
             </div>
+
+            {ohCard}
           </header>
 
           <hr className={s.divider} />
@@ -387,7 +454,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
             <>
               <hr className={s.divider} />
               <div className={s.helpfulSection}>
-                <h2 className={s.helpfulTitle}>Find this guide helpful?</h2>
+                <p className={s.helpfulTitle}>Find this guide helpful?</p>
                 <button
                   className={`${s.likeGuideButton} ${article.isLiked ? s.likeGuideButtonLiked : ''}`}
                   onClick={handleLikeClick}
@@ -402,65 +469,10 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
             </>
           )}
 
-          {officeHoursUrl && (
+          {ohCard && (
             <>
               <hr className={s.divider} />
-              <div className={s.ohBanner}>
-                <div className={s.ohLeft}>
-                  <div className={s.ohAvatarWrap}>
-                    {authorImage ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={authorImage} alt={authorName} className={s.ohAvatar} />
-                    ) : (
-                      <div className={s.ohInitial}>{initials}</div>
-                    )}
-                  </div>
-                  <div className={s.ohInfo}>
-                    <div className={s.ohNameRow}>
-                      <span className={s.ohName}>{authorName}</span>
-                      {article.authorTeam?.name && article.authorMember?.name && (
-                        <>
-                          <DotSepLarge />
-                          <span className={s.ohRole}>@{article.authorTeam.name}</span>
-                        </>
-                      )}
-                    </div>
-                    <span className={s.ohSubtitle}>
-                      {isTeamAuthor
-                        ? 'Schedule a meeting with this team.'
-                        : 'Available for 1:1 call — no introduction needed.'}
-                    </span>
-                  </div>
-                </div>
-                <a
-                  href={officeHoursUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={s.ohButton}
-                  onClick={() => {
-                    if (scheduleMeetingLinkType === 'member' && article.authorMember) {
-                      trackScheduleMeetingClicked({
-                        articleUid: article.uid,
-                        slug: article.slugURL,
-                        meetingLinkType: 'member',
-                        memberUid: article.authorMember.uid,
-                        memberName: article.authorMember.name,
-                      });
-                    } else if (scheduleMeetingLinkType === 'team' && article.authorTeam) {
-                      trackScheduleMeetingClicked({
-                        articleUid: article.uid,
-                        slug: article.slugURL,
-                        meetingLinkType: 'team',
-                        teamUid: article.authorTeam.uid,
-                        teamName: article.authorTeam.name,
-                      });
-                    }
-                  }}
-                >
-                  <CalendarBlankIcon />
-                  Schedule Meeting
-                </a>
-              </div>
+              {ohCard}
             </>
           )}
         </div>

@@ -14,7 +14,12 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import Image from 'next/image';
 
 import Modal from '@/components/core/modal';
-import { HeaderActionBtn, DetailsSectionHeader, NoDataBlock } from '@/components/common/profile/DetailsSection';
+import {
+  NoDataBlock,
+  HeaderActionBtn,
+  DetailsSectionHeader,
+  DetailsSectionGreyContentContainer,
+} from '@/components/common/profile/DetailsSection';
 
 import { isTeamLeaderOrAdmin } from '@/components/page/team-details/utils/isTeamLeaderOrAdmin';
 
@@ -75,7 +80,9 @@ export function TeamMembersView(props: Props) {
       </DetailsSectionHeader>
 
       {noMembers ? (
-        <NoDataBlock>Add members associated with this team.</NoDataBlock>
+        <DetailsSectionGreyContentContainer>
+          <NoDataBlock>Add members associated with this team.</NoDataBlock>
+        </DetailsSectionGreyContentContainer>
       ) : (
         <div className={s.membersList}>
           {members.slice(0, MEMBERS_TO_SHOW).map((member, index) => (

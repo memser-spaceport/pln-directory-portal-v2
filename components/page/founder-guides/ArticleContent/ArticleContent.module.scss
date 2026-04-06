@@ -328,6 +328,12 @@
     .md-editor-preview h4 {
       scroll-margin-top: 100px !important;
     }
+
+    .md-editor-preview table {
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
   }
 }
 

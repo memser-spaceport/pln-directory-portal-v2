@@ -94,7 +94,7 @@ export function TeamProjectsView(props: Props) {
 
       {noProjects && (
         <DetailsSectionGreyContentContainer className={s.empty}>
-          Add project experience & contribution details.
+          Add projects associated with this team.
         </DetailsSectionGreyContentContainer>
       )}
 

@@ -125,6 +125,15 @@ function LightbulbIcon() {
   );
 }
 
+function XIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M12 4L4 12" stroke="#8897ae" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M4 4L12 12" stroke="#8897ae" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function PlusIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -185,7 +194,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
     return byCategory
       .map((cat) => ({
         ...cat,
-        articles: cat.articles.filter((a) => a.title.toLowerCase().includes(q)),
+        articles: cat.articles.filter((a) => a.title.toLowerCase().includes(q) || a.content.toLowerCase().includes(q)),
       }))
       .filter((cat) => cat.articles.length > 0);
   }, [byCategory, search]);
@@ -230,6 +239,11 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        {search && (
+          <button className={s.searchClearBtn} type="button" aria-label="Clear search" onClick={() => setSearch('')}>
+            <XIcon />
+          </button>
+        )}
       </div>
 
       {canCreate && (

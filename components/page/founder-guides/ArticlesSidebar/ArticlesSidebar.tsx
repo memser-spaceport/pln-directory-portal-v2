@@ -225,7 +225,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
     <div className={s.root}>
       {!hideHeader && (
         <div className={s.header}>
-          <span className={s.title}>Founder Guides</span>
+          <span className={s.title}>Browse Guides</span>
         </div>
       )}
 
@@ -325,7 +325,9 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
           className={`${s.requestLink} ${isRequestActive ? s.requestLinkActive : ''}`}
           onClick={onNavigate}
         >
-          <span className={s.categoryIcon}><LightbulbIcon /></span>
+          <span className={s.categoryIcon}>
+            <LightbulbIcon />
+          </span>
           <span className={s.categoryLabel}>Request a Guide</span>
         </Link>
       </nav>

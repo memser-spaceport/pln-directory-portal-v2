@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 .root {
   display: flex;
   align-items: center;
@@ -46,6 +48,10 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  @include media.mobile-only {
+    max-width: 150px;
+  }
 }
 
 .role {

@@ -61,11 +61,15 @@ export default function FounderGuidesOverview() {
           </p>
         </div>
 
-        {/* Link button */}
-        <div className={s.linkButton}>
+        {/* Link button — on mobile opens the sidebar drawer */}
+        <button
+          type="button"
+          className={s.linkButton}
+          onClick={() => window.dispatchEvent(new CustomEvent('open-founder-guides-nav'))}
+        >
           <ArrowLeftIcon />
           <span className={s.linkText}>Select a guide to begin</span>
-        </div>
+        </button>
 
         {/* Divider */}
         <div className={s.divider} />

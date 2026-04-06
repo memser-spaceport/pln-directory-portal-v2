@@ -67,6 +67,16 @@ export default function FounderGuidesMobileNav({ children }: FounderGuidesMobile
     };
   }, [isOpen, close]);
 
+  // Listen for "Select a guide to begin" button in FounderGuidesOverview
+  useEffect(() => {
+    const handleOpen = () => {
+      trackMobileNavOpened();
+      setIsOpen(true);
+    };
+    window.addEventListener('open-founder-guides-nav', handleOpen);
+    return () => window.removeEventListener('open-founder-guides-nav', handleOpen);
+  }, [trackMobileNavOpened]);
+
   // Auto-close when viewport crosses 1024px
   useEffect(() => {
     const mql = window.matchMedia('(min-width: 1024px)');

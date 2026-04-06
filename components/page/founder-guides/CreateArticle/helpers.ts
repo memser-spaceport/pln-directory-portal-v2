@@ -8,8 +8,9 @@ export const createArticleSchema = yup.object().shape({
   summary: yup.string().max(100, 'Max 100 characters.').nullable().optional(),
   readingTime: yup
     .number()
+    .typeError('Must be a positive number.')
     .transform((value, original) => (original === '' ? null : value))
-    .min(1, 'Must be at least 1 minute.')
+    .min(1, 'Must be a positive number.')
     .max(999, 'Max 999 minutes.')
     .nullable()
     .optional(),

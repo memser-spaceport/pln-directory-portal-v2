@@ -691,6 +691,28 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.10 - Founder Guides, Deals & Team Projects',
+    tag: 'New Feature',
+    date: '3, Apr 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Request a deal</span> - Tell the network what you are looking for through a dedicated request flow from the Deals page.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">High-value deals</span> - Filter and sort the deals directory to surface high-value offers.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Update the Projects section directly on the team page.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Guides</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Browse & create</span> - Founder Guides overview, sidebar navigation, and a flow to create and publish guides.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Reading experience</span> - Article view counts, likes, and a way to schedule a meeting with the author through office hours (team or member).</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.9 - Deals Flows, Focus Areas & Office Hours',
     tag: 'Improvements',
     date: '27, Mar 2026',

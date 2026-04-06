@@ -54,7 +54,7 @@ export const RepositoriesList = ({ isEditable, member }: Props) => {
   };
 
   return (
-    <div className={s.root}>
+    <>
       <DetailsSectionHeader title="Repositories">
         {!isError && githubHandle && (
           <Link href={`https://github.com/${githubHandle}`} className={s.profileLink}>
@@ -64,52 +64,54 @@ export const RepositoriesList = ({ isEditable, member }: Props) => {
           </Link>
         )}
       </DetailsSectionHeader>
-      {!!data?.length && (
-        <ul className={s.list}>
-          {data?.slice(0, 5).map((item) => (
-            <li key={item.url} className={s.expItem}>
-              <ExpIcon />
-              <div className={s.details}>
-                <div className={s.row}>
-                  <div className={s.primaryLabel}>{item.name}</div>
+      <div className={s.root}>
+        {!!data?.length && (
+          <ul className={s.list}>
+            {data?.slice(0, 5).map((item) => (
+              <li key={item.url} className={s.expItem}>
+                <ExpIcon />
+                <div className={s.details}>
+                  <div className={s.row}>
+                    <div className={s.primaryLabel}>{item.name}</div>
+                  </div>
+                  <div className={s.row}>
+                    <div className={s.secondaryLabel}>{item.description}</div>
+                  </div>
                 </div>
-                <div className={s.row}>
-                  <div className={s.secondaryLabel}>{item.description}</div>
-                </div>
-              </div>
-              <Link href={item.url} target="_blank" className={s.link}>
-                <LinkIcon />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-      {!data?.length && (
-        <div className={s.emptyData}>
-          <span className={s.label}>
-            {isError && isEditable && 'Unable to fetch repositories at the time.'}
-            {isError && !isEditable && 'Not provided'}
-            {!isError && githubHandle && 'No repositories to display, add new ones to your GitHub profile.'}
-            {!isError &&
-              !githubHandle &&
-              isEditable &&
-              'Add your Github handle in the Contact Details section to see your repositories.'}
-            {!isError && !githubHandle && !isEditable && 'Not provided'}
-          </span>
-          {/*{!githubHandle && (*/}
-          {/*  <button*/}
-          {/*    className={s.connectButton}*/}
-          {/*    onClick={() => {*/}
-          {/*      scrollToId('contact-details');*/}
-          {/*    }}*/}
-          {/*  >*/}
-          {/*    <Image src="/icons/contact/github-contact-logo.svg" alt="GitHub" height={24} width={24} />*/}
-          {/*    Connect GitHub*/}
-          {/*  </button>*/}
-          {/*)}*/}
-        </div>
-      )}
-    </div>
+                <Link href={item.url} target="_blank" className={s.link}>
+                  <LinkIcon />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        {!data?.length && (
+          <div className={s.emptyData}>
+            <span className={s.label}>
+              {isError && isEditable && 'Unable to fetch repositories at the time.'}
+              {isError && !isEditable && 'Not provided'}
+              {!isError && githubHandle && 'No repositories to display, add new ones to your GitHub profile.'}
+              {!isError &&
+                !githubHandle &&
+                isEditable &&
+                'Add your Github handle in the Contact Details section to see your repositories.'}
+              {!isError && !githubHandle && !isEditable && 'Not provided'}
+            </span>
+            {/*{!githubHandle && (*/}
+            {/*  <button*/}
+            {/*    className={s.connectButton}*/}
+            {/*    onClick={() => {*/}
+            {/*      scrollToId('contact-details');*/}
+            {/*    }}*/}
+            {/*  >*/}
+            {/*    <Image src="/icons/contact/github-contact-logo.svg" alt="GitHub" height={24} width={24} />*/}
+            {/*    Connect GitHub*/}
+            {/*  </button>*/}
+            {/*)}*/}
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

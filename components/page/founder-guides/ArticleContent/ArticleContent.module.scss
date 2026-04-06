@@ -1,0 +1,528 @@
+@import "styles/media";
+
+.root {
+  width: 100%;
+  padding: 24px 16px 40px;
+  overflow-x: hidden;
+
+  @media (min-width: 1024px) {
+    padding: 0;
+    max-width: 900px;
+    width: 100%;
+  }
+}
+
+.backButton {
+  display: flex !important;
+  padding: 0 0 24px !important;
+  box-shadow: none !important;
+  height: auto;
+}
+
+.card {
+}
+
+// ── Header ────────────────────────────────────────────────
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// Figma: blue pill badge
+.categoryBadge {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1b4dff;
+  background: rgba(27, 77, 255, 0.08);
+  border-radius: 9999px;
+  padding: 3px 10px;
+}
+
+// Title + Edit button row
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+// Edit Guide ghost button (desktop only)
+.editButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  white-space: nowrap;
+  text-decoration: none;
+  flex-shrink: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: #1b4dff;
+  }
+
+  @media (max-width: 1023px) {
+    display: none;
+  }
+}
+
+// Edit Guide button in mobile subheader (portal target)
+.mobileEditButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+// Figma: Inter SemiBold ~28-32px
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #0a0c11;
+  letter-spacing: -0.5px;
+  line-height: 1.3;
+  margin: 0;
+
+  @media (min-width: 1024px) {
+    font-size: 30px;
+    line-height: 1.25;
+  }
+}
+
+// Italic summary below title
+.summary {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px; /* 150% */
+  letter-spacing: -0.3px;
+}
+
+// ── Details bar ───────────────────────────────────────────
+// Figma node 171:11409 — author + vertical divider + stats + like button
+.details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+
+  > .likeGuideButton {
+    margin-left: auto;
+  }
+}
+
+// Author: avatar + name
+.authorDetails {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+// 24×24 circle logo image
+.authorAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+// 24×24 circle with blue bg + white initials
+.authorInitial {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: #1b4dff;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+// Figma: Inter SemiBold 14px / 22px / #0a0c11
+.authorName {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #0a0c11;
+  white-space: nowrap;
+}
+
+// Figma: Inter Regular 14px / 22px / #455468
+.authorRole {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  white-space: nowrap;
+}
+
+// Vertical hairline divider between author and stats
+.detailsDivider {
+  width: 1px;
+  height: 24px;
+  background: rgba(27, 56, 96, 0.12);
+  flex-shrink: 0;
+}
+
+// Stats row: likes · views · time · date
+.stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+// Each stat: icon + text in a flex row gap-4px
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #8897ae;
+  white-space: nowrap;
+}
+
+
+// ── "Like this Guide" outlined button (top + bottom) ─────
+.likeGuideButton {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 6px 10px;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.08);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+
+  width: -webkit-fill-available;
+
+  svg {
+    margin-right: 4px;
+  }
+
+  &:hover {
+    border-color: rgba(27, 77, 255, 0.3);
+    color: #1b4dff;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  @include tablet-landscape {
+    width: fit-content;
+  }
+}
+
+.likeGuideButtonLiked {
+  color: #1b4dff;
+  border-color: rgba(27, 77, 255, 0.3);
+  background: rgba(27, 77, 255, 0.04);
+}
+
+// ── "Find this guide helpful?" section ────────────────────
+.helpfulSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+
+  @include mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+.helpfulTitle {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.4px;
+  color: #0a0c11;
+  margin: 0;
+}
+
+// ── Content divider ───────────────────────────────────────
+.divider {
+  border: none;
+  border-top: 1px solid rgba(14, 15, 17, 0.06);
+  margin: 24px 0;
+}
+
+// ── Article body ──────────────────────────────────────────
+.content {
+  overflow-wrap: break-word;
+  word-break: break-word;
+
+  :global {
+    .md-editor-previewOnly {
+      background: transparent;
+    }
+
+    .md-editor-preview-wrapper {
+      background: transparent;
+      padding: 0;
+    }
+
+    .md-editor-preview,
+    .md-editor-preview h1,
+    .md-editor-preview h2,
+    .md-editor-preview h3,
+    .md-editor-preview h4,
+    .md-editor-preview h5,
+    .md-editor-preview h6 {
+      word-break: normal;
+      overflow-wrap: break-word;
+    }
+
+    h1[id],
+    h2[id],
+    h3[id],
+    h4[id],
+    .md-editor-preview h1,
+    .md-editor-preview h2,
+    .md-editor-preview h3,
+    .md-editor-preview h4 {
+      scroll-margin-top: 100px !important;
+    }
+
+    .md-editor-preview table {
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+}
+
+// ── Tags ──────────────────────────────────────────────────
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.tag {
+  font-size: 12px;
+  font-weight: 500;
+  color: #455468;
+  background: rgba(14, 15, 17, 0.06);
+  border-radius: 9999px;
+  padding: 4px 12px;
+}
+
+// ── Office Hours banner ──────────────────────────────────
+.ohBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  margin-top: 32px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.06);
+
+  @media (max-width: 639px) {
+    flex-direction: column;
+    align-items: flex-start;
+    border: 1px solid rgba(14, 15, 17, 0.08);
+  }
+}
+
+.ohLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ohAvatarWrap {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: #afbaca;
+}
+
+.ohAvatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 9999px;
+}
+
+.ohInitial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  background: #afbaca;
+  border-radius: 9999px;
+}
+
+.ohInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ohNameRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.ohName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0a0c11;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+
+.ohRole {
+  font-size: 16px;
+  font-weight: 400;
+  color: #455468;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+
+.ohSubtitle {
+  font-size: 14px;
+  font-weight: 400;
+  color: #8897ae;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+.ohButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 10px;
+  background: #1b4dff;
+  color: #fff;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow:
+    0 1px 5px rgba(27, 77, 255, 0.16),
+    inset 0 1px 3px rgba(255, 255, 255, 0.32),
+    inset 0 4px 6px rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  width: 100%;
+
+  @include tablet-landscape {
+    width: fit-content;
+  }
+}
+
+// ── Skeleton loading ──────────────────────────────────────
+.skeletonTitle {
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f0f3f9 25%, #e2e8f0 50%, #f0f3f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 20px;
+  width: 70%;
+}
+
+.skeletonMeta {
+  height: 20px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f3f9 25%, #e2e8f0 50%, #f0f3f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 28px;
+  width: 40%;
+}
+
+.skeletonBody {
+  height: 16px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f3f9 25%, #e2e8f0 50%, #f0f3f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

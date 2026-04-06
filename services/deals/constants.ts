@@ -8,6 +8,9 @@ export enum DealsQueryKeys {
 
 export const DEALS_PER_PAGE = 10;
 
+/** URL/query param value for the "High Value" category filter (not a real API category). */
+export const DEAL_HIGH_VALUE_FILTER_VALUE = '__HIGH_VALUE__';
+
 export const DEAL_CATEGORY_LABELS: Record<string, string> = {};
 
 export const DEAL_AUDIENCE_LABELS: Record<string, string> = {
@@ -20,7 +23,5 @@ export const DEAL_AUDIENCE_LABELS: Record<string, string> = {
 
 export const REQUIRED_AUDIENCES = ['All Founders', 'PL Funded Founders', 'Founders Forge'] as const;
 
-export const DEAL_SORT_OPTIONS = [
-  { value: 'asc', label: 'A-Z (Ascending)' },
-  { value: 'desc', label: 'Z-A (Descending)' },
-] as const;
+export { DEAL_SORT_OPTIONS } from './dealSortOptions';
+export type { DealSortOption } from './dealSortOptions';

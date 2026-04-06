@@ -409,7 +409,7 @@ export const useTeamAnalytics = () => {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_PRIORITIES_FILTER_SELECTED, params);
   }
 
-  function onTeamDetailEditInputChanged(params: { field: string; value: unknown }) {
+  function onTeamDetailEditInputChanged(params: { field: string; value: unknown; from?: string }) {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_EDIT_INPUT_CHANGED, params);
   }
 

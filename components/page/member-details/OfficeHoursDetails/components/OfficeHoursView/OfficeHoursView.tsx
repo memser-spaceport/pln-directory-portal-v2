@@ -252,7 +252,6 @@ export const OfficeHoursView = ({
               {isOwner && hasOfficeHours && <span className={s.titleHintLabel}>&#8226; Available to connect</span>}
             </>
           }
-          className={s.header}
         >
           {isLoggedIn && isEditable && !showAlertUpdateButton && !showAddButton && (
             <EditButton

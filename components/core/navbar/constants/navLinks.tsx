@@ -2,7 +2,15 @@ import React from 'react';
 
 import { ISubItem } from '@/components/core/navbar/type';
 import { CalendarBlankIcon, ContributorIcon, UsersThreeIcon } from '@/components/icons';
-import { MembersIcon, TeamsIcon, ProjectsIcon, KnowledgeBaseIcon, AccessControlIcon } from '../components/icons';
+import {
+  MembersIcon,
+  TeamsIcon,
+  ProjectsIcon,
+  KnowledgeBaseIcon,
+  AccessControlIcon,
+  DealsIcon,
+  FounderGuidesIcon,
+} from '../components/icons';
 
 export const DIRECTORY_LINKS: ISubItem[] = [
   {
@@ -60,3 +68,17 @@ export const PROTOTYPE_LINKS: ISubItem[] = [
     description: 'RBAC management interface mockup',
   },
 ] as const;
+
+export const DEALS_LINK: ISubItem = {
+  icon: <DealsIcon />,
+  href: '/deals',
+  title: 'Deals',
+  description: 'Exclusive tools and perks for founders.',
+};
+
+export const FOUNDER_GUIDES_LINK: ISubItem = {
+  icon: <FounderGuidesIcon />,
+  href: '/founder-guides',
+  title: 'Founder Guides',
+  description: 'Structured, expert-driven guides for startup founders.',
+};

@@ -6,28 +6,33 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { DIRECTORY_LINKS, EVENT_LINKS } from '@/components/core/navbar/constants/navLinks';
+import { DealsIcon, FounderGuidesIcon, MoreIcon } from '@/components/core/navbar/components/icons';
+import { ISubItem } from '@/components/core/navbar/type';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
-import { DealsIcon } from '@/components/core/navbar/components/icons';
+import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
 
 import { NavigationMenu } from '@base-ui-components/react';
 
 import { useScrollDirection } from './useScrollDirection';
 
 import { MobileNavItemWithMenu } from './components/MobileMenuItem';
-import { EventsIcon, ForumIcon, DemoDayIcon, DirectoryIcon, KnowledgeBaseIcon } from './components/icons';
+import { DemoDayIcon, DirectoryIcon, EventsIcon, ForumIcon } from './components/icons';
 
 import s from './MobileBottomNav.module.scss';
 
-const navItems = [
-  { href: '/knowledge-base', label: 'Knowledge Base', icon: KnowledgeBaseIcon },
-  { href: '/forum?cid=0', label: 'Forum', icon: ForumIcon },
-  { href: '/demoday', label: 'Demo Day', icon: DemoDayIcon },
-];
+const navItems = [{ href: '/demoday', label: 'Demo Day', icon: DemoDayIcon }];
 
 export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
   const { hasAccess: hasDealsPageAccess } = useDealsAccess();
+  const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
+
+  const moreItems: ISubItem[] = [
+    { href: '/forum', title: 'Forum', icon: <ForumIcon /> },
+    ...(hasDealsPageAccess ? [{ href: '/deals', title: 'Deals', icon: <DealsIcon /> }] : []),
+    ...(hasFounderGuidesAccess ? [{ href: '/founder-guides', title: 'Founder Guides', icon: <FounderGuidesIcon /> }] : []),
+  ];
 
   return (
     <div
@@ -58,19 +63,7 @@ export function MobileBottomNav() {
             );
           })}
 
-          {hasDealsPageAccess && (
-            <NavigationMenu.Item>
-              <Link
-                href="/deals"
-                className={clsx(s.item, {
-                  [s.itemActive]: pathname.startsWith('/deals'),
-                })}
-              >
-                <DealsIcon />
-                <span>Deals</span>
-              </Link>
-            </NavigationMenu.Item>
-          )}
+          <MobileNavItemWithMenu icon={<MoreIcon />} label="More" items={moreItems} />
         </NavigationMenu.List>
       </NavigationMenu.Root>
     </div>

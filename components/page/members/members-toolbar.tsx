@@ -132,7 +132,12 @@ const MembersToolbar = (props: IMembersToolbar) => {
         </div>
 
         <div className="toolbar__right">
-          <SortDropdown options={MEMBERS_SORT_OPTIONS} currentSort={sortBy} onSortChange={onSortChange} />
+          <SortDropdown
+            sortByLabel="Sort by:"
+            options={MEMBERS_SORT_OPTIONS}
+            currentSort={sortBy}
+            onSortChange={onSortChange}
+          />
         </div>
       </div>
 

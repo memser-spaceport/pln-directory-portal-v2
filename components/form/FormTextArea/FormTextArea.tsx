@@ -38,12 +38,13 @@ export const FormTextArea = ({
   } = useFormContext();
   const val = watch(name);
   const currentText = (val as string) || '';
-  const charCount = currentText.length;
+  const hasError = !!errors[name];
+  const showCounter = showCharCount && maxLength != null && !hasError;
 
   useScrollIntoViewOnFocus<HTMLTextAreaElement>({ id: name });
 
   return (
-    <Field.Root className={s.field}>
+    <Field.Root className={s.field} invalid={hasError}>
       {label && (
         <div className={s.labelWrapper}>
           <Field.Label
@@ -57,7 +58,7 @@ export const FormTextArea = ({
       )}
       <div
         className={clsx(s.input, {
-          [s.error]: !!errors[name],
+          [s.error]: hasError,
         })}
       >
         <div className={s.inputContent}>
@@ -68,20 +69,28 @@ export const FormTextArea = ({
             className={s.inputElement}
             id={name}
             rows={rows}
+            maxLength={maxLength}
             {...rest}
           />
         </div>
         {children}
       </div>
-      {showCharCount && maxLength && (
-        <div className={s.charCounter}>
-          <span className={clsx(s.charCount, { [s.charCountError]: charCount > maxLength })}>
-            {charCount}/{maxLength} characters left
+      {hasError && (
+        <Field.Error className={s.errorMsg} match={hasError}>
+          {(errors?.[name]?.message as string) ?? ''}
+        </Field.Error>
+      )}
+      {showCounter && (
+        <div className={clsx(s.descriptionRow, s.descriptionRowAfterInput)}>
+          {description && <Field.Description className={s.fieldDescription}>{description}</Field.Description>}
+          <span className={s.counter}>
+            {currentText.length} / {maxLength}
           </span>
         </div>
       )}
-      {description && !showCharCount && <div className={s.description}>{description}</div>}
-      {errors[name] && <div className={s.errorMessage}>{errors[name]?.message as string}</div>}
+      {!hasError && !showCounter && description && (
+        <Field.Description className={s.fieldDescription}>{description}</Field.Description>
+      )}
     </Field.Root>
   );
 };

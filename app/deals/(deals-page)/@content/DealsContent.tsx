@@ -3,7 +3,7 @@
 import { useQueryStates } from 'nuqs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { dealsFilterParsers } from '../searchParams';
+import { dealsFilterParsers, DEAL_SORT_VALUES } from '../searchParams';
 import { useGetDeals } from '@/services/deals/hooks/useGetDeals';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 import { DealsToolbar } from '@/components/page/deals/DealsToolbar/DealsToolbar';
@@ -18,11 +18,15 @@ import { DEAL_SORT_OPTIONS } from '@/services/deals/constants';
 import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import { SubmitDealModal } from '@/components/page/deals/SubmitDealModal/SubmitDealModal';
 import { SubmitDealSuccessModal } from '@/components/page/deals/SubmitDealSuccessModal/SubmitDealSuccessModal';
+import { RequestDealModal } from '@/components/page/deals/RequestDealModal/RequestDealModal';
+import { RequestDealSuccessModal } from '@/components/page/deals/RequestDealSuccessModal/RequestDealSuccessModal';
+import { useRequestDealModalStore } from '@/services/deals/store';
 import s from './page.module.scss';
 
 export default function DealsContent() {
   const router = useRouter();
   const analytics = useDealsAnalytics();
+  const { actions: requestDealActions } = useRequestDealModalStore();
   const { hasAccess, isLoading: isAccessLoading, isError: isAccessError } = useDealsAccess();
 
   useEffect(() => {
@@ -55,7 +59,7 @@ export default function DealsContent() {
   const handleSortChange = useCallback(
     (sort: string) => {
       analytics.trackSortChanged(sort);
-      setFilters({ sort: sort as 'asc' | 'desc', page: 1 });
+      setFilters({ sort: sort as (typeof DEAL_SORT_VALUES)[number], page: 1 });
     },
     [setFilters, analytics],
   );
@@ -110,8 +114,7 @@ export default function DealsContent() {
     if (isAccessLoading || isAccessError || !hasAccess) return;
     if (isError || isLoading || !dealsData) return;
     const deals = dealsData.deals || [];
-    const hasFilters =
-      filters.categories.length > 0 || filters.audiences.length > 0 || !!filters.q;
+    const hasFilters = filters.categories.length > 0 || filters.audiences.length > 0 || !!filters.q;
     if (deals.length === 0 && hasFilters) {
       analytics.trackEmptyResultsShown();
     }
@@ -150,6 +153,8 @@ export default function DealsContent() {
       <DealsToolbar currentSort={filters.sort} onSortChange={handleSortChange} />
       <SubmitDealModal />
       <SubmitDealSuccessModal />
+      <RequestDealModal />
+      <RequestDealSuccessModal />
 
       {/* Mobile filters + sort (visible on mobile only) */}
       {filterValues && (
@@ -157,6 +162,7 @@ export default function DealsContent() {
           filterCount={filters.categories.length + filters.audiences.length + (filters.q ? 1 : 0)}
           currentSort={filters.sort}
           sortOptions={sortOptions}
+          sortByLabel="Sort by:"
           onSortChange={handleSortChange}
           onClearFilters={handleClearAll}
           renderFilter={(onClose) => (

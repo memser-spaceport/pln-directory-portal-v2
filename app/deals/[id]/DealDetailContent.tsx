@@ -145,6 +145,11 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
                     <p className={s.description}>{deal.shortDescription}</p>
                   </div>
                   <div className={s.tags}>
+                    {deal.isHighValue && (
+                      <span className={`${s.tag} ${s.tagHighValue}`} aria-label="High value deal">
+                        ⭐
+                      </span>
+                    )}
                     {deal.category && (
                       <span className={`${s.tag} ${s.tagDefault}`}>
                         {DEAL_CATEGORY_LABELS[deal.category] || deal.category}

@@ -18,7 +18,6 @@ export default function DealsFiltersContent() {
 
   const { data: filterValues, isLoading, isError } = useGetDealFilterValues();
   const analytics = useDealsAnalytics();
-
   const handleClearAll = useCallback(() => {
     analytics.trackFilterCleared();
     setFilters({ q: null, categories: null, audiences: null, sort: null, page: null });

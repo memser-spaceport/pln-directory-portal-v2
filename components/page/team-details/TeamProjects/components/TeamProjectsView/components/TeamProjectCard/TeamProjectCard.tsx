@@ -21,7 +21,7 @@ interface Props {
 }
 
 export function TeamProjectCard(props: Props) {
-  const { project, url, onCardClicked, onEditClicked } = props;
+  const { project, url, onCardClicked, onEditClicked, hasProjectsEditAccess } = props;
   const { name, tagline, lookingForFunding } = project;
 
   const logo = getProjectLogo(project);
@@ -88,7 +88,7 @@ export function TeamProjectCard(props: Props) {
         </div>
       </div>
 
-      {project?.hasEditAccess && (
+      {hasProjectsEditAccess && (
         <div onClick={onEdit}>
           <img className={s.edit} loading="lazy" src="/icons/edit-chat.svg" />
         </div>

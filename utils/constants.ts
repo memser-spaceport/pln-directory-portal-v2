@@ -691,6 +691,23 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.11 - Team Members Inline Edit & Founder Guides',
+    tag: 'Improvements',
+    date: '7, Apr 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Update the Members section directly on the team page.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Guides</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Request a Guide</span> - Suggest topics from Browse Guides and submit a request through a dedicated flow.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Create & read</span> - Markdown editor when creating or editing guides; bug fixes and layout improvements for guide articles (including office hours and author details).</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.10 - Founder Guides, Deals & Team Projects',
     tag: 'New Feature',
     date: '3, Apr 2026',

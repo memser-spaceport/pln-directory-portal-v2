@@ -114,6 +114,35 @@
   border-bottom-color: #1b4dff;
 }
 
+// ── Request a Guide link ──────────────────────────────────
+.requestLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #455468;
+  letter-spacing: -0.3px;
+  line-height: 24px;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+  flex-shrink: 0;
+
+  &:hover > span {
+    color: #1b4dff;
+  }
+}
+
+.requestLinkActive {
+  color: #1b4dff;
+  border-bottom-color: #1b4dff;
+
+  > span, svg {
+    color: #1b4dff;
+  }
+}
+
 // ── Nav list ──────────────────────────────────────────────
 .nav {
   flex: 1;

@@ -1,4 +1,4 @@
-@import "styles/media";
+@import 'styles/media';
 
 .root {
   width: 100%;
@@ -209,8 +209,7 @@
   white-space: nowrap;
 }
 
-
-// ── "Like this Guide" outlined button (top + bottom) ─────
+// ── "Like this Guide" outlined button ─────────────────────
 .likeGuideButton {
   all: unset;
   display: flex;
@@ -230,12 +229,11 @@
   white-space: nowrap;
   cursor: pointer;
   flex-shrink: 0;
+  width: fit-content;
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
     background 0.15s ease;
-
-  width: -webkit-fill-available;
 
   svg {
     margin-right: 4px;
@@ -250,10 +248,6 @@
     cursor: default;
     opacity: 0.6;
   }
-
-  @include tablet-landscape {
-    width: fit-content;
-  }
 }
 
 .likeGuideButtonLiked {
@@ -265,22 +259,17 @@
 // ── "Find this guide helpful?" section ────────────────────
 .helpfulSection {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
   width: 100%;
-
-  @include mobile-only {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
 }
 
 .helpfulTitle {
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 34px;
-  letter-spacing: -0.4px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
   color: #0a0c11;
   margin: 0;
 }
@@ -354,6 +343,23 @@
   padding: 4px 12px;
 }
 
+// ── Office Hours section (title + card) ──────────────────
+.ohSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ohTitle {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #0a0c11;
+  margin: 0;
+  white-space: nowrap;
+}
+
 // ── Office Hours banner ──────────────────────────────────
 .ohBanner {
   display: flex;
@@ -361,23 +367,27 @@
   justify-content: space-between;
   gap: 16px;
   padding: 20px;
-  margin-top: 32px;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(14, 15, 17, 0.06);
 
-  @media (max-width: 639px) {
+  @media (max-width: #{$breakpoint-md - 1}px) {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     border: 1px solid rgba(14, 15, 17, 0.08);
   }
 }
 
 .ohLeft {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   min-width: 0;
+  flex: 1 1 auto;
+
+  @media (max-width: #{$breakpoint-md - 1}px) {
+    width: 100%;
+  }
 }
 
 .ohAvatarWrap {
@@ -428,21 +438,29 @@
 }
 
 .ohName {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: #0a0c11;
   line-height: 24px;
   letter-spacing: -0.3px;
   white-space: nowrap;
+
+  @include tablet-landscape {
+    font-size: 16px;
+  }
 }
 
 .ohRole {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   color: #455468;
   line-height: 24px;
   letter-spacing: -0.3px;
   white-space: nowrap;
+
+  @include tablet-landscape {
+    font-size: 16px;
+  }
 }
 
 .ohSubtitle {

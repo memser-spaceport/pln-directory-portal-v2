@@ -1,14 +1,19 @@
+@use 'styles/media';
+
 .root {
   padding: 24px;
-  width: clamp(300px, 90vw, 600px);
+  width: clamp(300px, 90vw, 960px);
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-height: 95dvh;
-  min-height: 80dvh;
   overflow: auto;
   border-radius: 24px;
   background: #fff;
+  height: 60vh;
+
+  @include media.mobile-only {
+    height: 95dvh;
+  }
 }
 
 .title {
@@ -69,14 +74,4 @@
 
 .memberBorder {
   border-bottom: 1px solid #e2e8f0;
-}
-
-.emptyResult {
-  color: #000;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 20px;
-  display: flex;
-  justify-content: center;
-  letter-spacing: 0.12px;
 }

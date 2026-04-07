@@ -19,6 +19,11 @@ export interface IArticle {
     email: string;
     image: string | { url: string } | null;
     officeHours: string | null;
+    teamMemberRoles?: {
+      team: { uid: string; name: string };
+      role: string | null;
+      mainTeam: boolean;
+    }[];
   } | null;
   authorTeam: { uid: string; name: string; logo: { url: string } | null; officeHours: string | null } | null;
   totalViews: number;

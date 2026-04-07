@@ -11,6 +11,7 @@ interface FAQProps {
   items: FAQItem[];
   subtitle?: ReactNode;
   demoDaySlug?: string | null;
+  initialExpandedIndices?: number[];
 }
 
 const ChevronDownIcon = () => (
@@ -25,7 +26,7 @@ const ChevronDownIcon = () => (
   </svg>
 );
 
-export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', items, subtitle, demoDaySlug }) => {
+export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', items, subtitle, demoDaySlug, initialExpandedIndices }) => {
   // Use demo day specific FAQ if available (from hardcoded map), otherwise use default items
   const faqItems = useMemo(() => {
     if (demoDaySlug && demoDayFaqMap[demoDaySlug]) {
@@ -34,9 +35,11 @@ export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', 
     return items;
   }, [demoDaySlug, items]);
 
-  // Initialize with all items expanded by default
+  // Initialize with all items expanded by default, or with a custom set if provided
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(
-    () => new Set(Array.from({ length: faqItems.length }, (_, i) => i)),
+    () => initialExpandedIndices
+      ? new Set(initialExpandedIndices)
+      : new Set(Array.from({ length: faqItems.length }, (_, i) => i)),
   );
 
   const toggleItem = (index: number) => {

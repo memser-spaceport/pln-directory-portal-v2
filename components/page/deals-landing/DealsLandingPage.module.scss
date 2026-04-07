@@ -1,0 +1,499 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+// ── Page shell ──────────────────────────────────────────────────────────────
+
+// Mirrors LandingBase .root
+.root {
+  margin: 0 auto;
+  max-width: 1320px;
+  padding-top: 40px;
+  padding-bottom: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  @include media.mobile-only {
+    padding: 0;
+  }
+}
+
+// Mirrors LandingBase .eventHeader
+.pageCard {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+}
+
+// Mirrors LandingBase .content
+.container {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 34px 24px 80px;
+  width: 100%;
+
+  @include media.mobile-only {
+    padding: 20px 16px 60px;
+  }
+}
+
+// ── Shared section wrapper ───────────────────────────────────────────────────
+
+.section {
+  width: 100%;
+  padding: 64px 0;
+  border-bottom: 1px solid var(--border-neutral-muted);
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+
+  @include media.mobile-only {
+    padding: 48px 0;
+  }
+}
+
+.sectionInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  max-width: 874px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.sectionInnerWide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+}
+
+.sectionTitle {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 36px;
+  letter-spacing: -0.6px;
+  color: var(--foreground-neutral-primary);
+  text-align: center;
+  text-transform: capitalize;
+  margin: 0;
+
+  @include media.tablet-portrait {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.8px;
+  }
+}
+
+.sectionCaptionWide {
+  max-width: none;
+  white-space: nowrap;
+
+  @include media.mobile-only {
+    white-space: normal;
+  }
+}
+
+.sectionCaption {
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  margin: -24px 0 0;
+  max-width: 520px;
+}
+
+// ── 1. Hero ──────────────────────────────────────────────────────────────────
+
+.hero {
+  padding: 48px 0 64px;
+  border-bottom: 1px solid var(--border-neutral-muted);
+  width: 100%;
+
+  @include media.mobile-only {
+    padding: 32px 0 48px;
+  }
+}
+
+.heroInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.heroBadge {
+  align-self: center;
+}
+
+
+.heroHeadline {
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #0a1929;
+  margin: 0;
+  text-align: center;
+
+  @include media.mobile-only {
+    font-size: 32px;
+  }
+}
+
+.heroHeadlineLine {
+  display: block;
+}
+
+.heroSubheadline {
+  font-size: 18px;
+  line-height: 1.5;
+  color: #455468;
+  margin: 0;
+  max-width: 520px;
+  text-align: center;
+}
+
+.heroActions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+
+  @include media.tablet-portrait {
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px;
+  }
+}
+
+.heroPrimaryBtn {
+  min-width: 180px;
+}
+
+.heroSecondaryBtn {
+  min-width: 180px;
+}
+
+.heroLoginLink {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--action-foreground-brand-normal, #1b4dff);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.75;
+  }
+}
+
+
+// ── 2. Trust logos ───────────────────────────────────────────────────────────
+
+.logosGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+
+  @include media.mobile-only {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+.logoCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 16px;
+  border: 1px solid var(--border-neutral-muted);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.logoImg {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.logoName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary);
+  letter-spacing: -0.1px;
+}
+
+
+// ── 4. Value props (deal-card shell) ─────────────────────────────────────────
+
+.exampleDealsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  width: 100%;
+
+  @include media.tablet-portrait {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+.exampleDealCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease;
+  width: 100%;
+
+  &:hover {
+    box-shadow:
+      0px 10px 20px -5px rgba(14, 15, 17, 0.06),
+      0px 20px 65px -5px rgba(14, 15, 17, 0.06);
+  }
+}
+
+.valuePropIcon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.valuePropTitle {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  margin: 0;
+}
+
+.valuePropDesc {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  margin: 0;
+}
+
+// ── 5. How it works ──────────────────────────────────────────────────────────
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 12px;
+  justify-content: center;
+  width: 100%;
+
+  @include media.tablet-portrait {
+    gap: 16px;
+  }
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  width: 280px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow:
+      0px 10px 20px -5px rgba(14, 15, 17, 0.06),
+      0px 20px 65px -5px rgba(14, 15, 17, 0.06);
+  }
+
+  @include media.mobile-only {
+    width: calc(50vw - 28px);
+  }
+}
+
+.stepNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--transparent-brand-2-percent, rgba(27, 77, 255, 0.02));
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  color: var(--foreground-brand-secondary_inverted, #4174ff);
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stepTitle {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary);
+}
+
+.stepDescription {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary);
+  margin: 0;
+}
+
+// ── 6. What makes a strong deal ──────────────────────────────────────────────
+
+.criteriaList {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: fit-content;
+}
+
+.criteriaItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.criteriaCheck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--transparent-brand-2-percent, rgba(27, 77, 255, 0.02));
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  color: var(--foreground-brand-secondary_inverted, #4174ff);
+  flex-shrink: 0;
+}
+
+// ── 7. FAQ ───────────────────────────────────────────────────────────────────
+
+.faqWrapper {
+  width: 100%;
+
+  // Force the shared FAQ component's h2 title to title case
+  h2 {
+    text-transform: capitalize;
+  }
+
+  // Match subtitle style to other section captions
+  [class*='subtitle'] {
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 24px;
+    letter-spacing: -0.3px;
+    color: var(--foreground-neutral-secondary, #455468);
+
+    a {
+      color: var(--action-foreground-brand-normal, #1b4dff);
+    }
+  }
+}
+
+// ── 8. Final CTA ─────────────────────────────────────────────────────────────
+
+.finalCta {
+  width: 100%;
+  padding: 72px 0 80px;
+  border-top: 1px solid var(--border-neutral-muted);
+}
+
+.finalCtaInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.finalCtaTitle {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 36px;
+  letter-spacing: -0.6px;
+  color: var(--foreground-neutral-primary);
+  margin: 0;
+
+  @include media.tablet-portrait {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.8px;
+  }
+}
+
+.finalCtaSubtext {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-secondary, #455468);
+  margin: 0;
+}
+
+.finalCtaNote {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #677389);
+  margin: 0;
+}
+
+// Global link color for all <a> tags on this page
+.container a {
+  color: var(--action-foreground-brand-normal, #1b4dff);
+}
+

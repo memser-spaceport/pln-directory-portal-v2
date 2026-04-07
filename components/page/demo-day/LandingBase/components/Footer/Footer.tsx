@@ -6,10 +6,6 @@ const TERMS_AND_CONDITIONS_URL = 'https://drive.google.com/file/d/1MjOF66asddB_h
 export function Footer() {
   return (
     <div className={s.root}>
-      <div className={s.note}>
-        All content is provided by the founders. Protocol Labs Demo Day organizers do not endorse or recommend any
-        investment.
-      </div>
       <div className={s.bottom}>
         <div className={s.legal}>© 2026 Protocol Labs</div>
         <div className={s.links}>

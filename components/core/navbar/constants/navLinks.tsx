@@ -67,6 +67,12 @@ export const PROTOTYPE_LINKS: ISubItem[] = [
     title: 'Access Control',
     description: 'RBAC management interface mockup',
   },
+  {
+    href: '/deals-landing',
+    icon: <DealsIcon />,
+    title: 'Deals Landing Page',
+    description: 'Unauthenticated vendor conversion page mockup',
+  },
 ] as const;
 
 export const DEALS_LINK: ISubItem = {

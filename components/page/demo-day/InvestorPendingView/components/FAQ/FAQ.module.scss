@@ -96,7 +96,7 @@
   transition: color 0.2s ease;
 
   .questionButton:hover & {
-    color: var(--foreground-brand-primary, #156ff7);
+    color: var(--foreground-brand-primary, #1b4dff);
   }
 
   @include media.mobile-only {

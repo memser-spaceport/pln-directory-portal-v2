@@ -7,6 +7,7 @@ import { calculateExpiry, decodeToken } from './utils/auth.utils';
  * Users accessing these routes without authentication will be redirected to login
  */
 const PROTECTED_ROUTES = ['/alignment-asset', '/deals', '/founder-guides'];
+const PUBLIC_ROUTES = ['/deals-landing'];
 
 export const config = {
   matcher: [
@@ -38,6 +39,7 @@ export const config = {
  * @returns true if the route is protected, false otherwise
  */
 function isProtectedRoute(pathname: string): boolean {
+  if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) return false;
   return PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
 }
 

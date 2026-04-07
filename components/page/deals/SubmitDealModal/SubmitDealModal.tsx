@@ -30,7 +30,7 @@ export function SubmitDealModal() {
   const methods = useForm<SubmitDealFormData>({
     resolver: yupResolver(submitDealSchema) as any,
     defaultValues: {
-      // vendorName: '',
+      vendorName: '',
       // category: '',
       // audience: null,
       shortDescription: '',
@@ -93,13 +93,13 @@ export function SubmitDealModal() {
         <div className={s.content}>
           <FormProvider {...methods}>
             <div className={s.form}>
-              {/*<FormField*/}
-              {/*  name="vendorName"*/}
-              {/*  label="Vendor Name"*/}
-              {/*  placeholder="e.g. Stripe, Vercel, AWS"*/}
-              {/*  isRequired*/}
-              {/*  max={100}*/}
-              {/*/>*/}
+              <FormField
+                name="vendorName"
+                label="Vendor Name"
+                placeholder="e.g. Stripe, Vercel, AWS"
+                isRequired
+                max={100}
+              />
 
               {/*<FormField*/}
               {/*  name="category"*/}

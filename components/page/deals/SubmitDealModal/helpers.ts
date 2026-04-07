@@ -8,10 +8,10 @@ function stripHtml(html: string): string {
 }
 
 export const submitDealSchema = yup.object().shape({
-  // vendorName: yup
-  //   .string()
-  //   .required('Vendor name is required')
-  //   .max(100, 'Max 100 characters'),
+  vendorName: yup
+    .string()
+    .required('Vendor name is required')
+    .max(100, 'Max 100 characters'),
   // category: yup
   //   .string()
   //   .required('Category is required'),
@@ -47,7 +47,7 @@ export const submitDealSchema = yup.object().shape({
 });
 
 export interface SubmitDealFormData {
-  // vendorName: string;
+  vendorName: string;
   // category: string;
   // audience: { value: string; label: string } | null;
   shortDescription: string;

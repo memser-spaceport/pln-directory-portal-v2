@@ -177,6 +177,8 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
                 placeholder="Enter the title (e.g. Token vesting schedules, SAFE vs equity, hiring first engineer)"
                 label="Guide Title"
                 isRequired
+                max={255}
+                description="Max. 255 characters."
               />
 
               <FormField

@@ -64,6 +64,7 @@ export const FormTextArea = ({
         <div className={s.inputContent}>
           <textarea
             {...register(name)}
+            aria-label={typeof label === 'string' ? label : undefined}
             disabled={disabled}
             placeholder={placeholder}
             className={s.inputElement}

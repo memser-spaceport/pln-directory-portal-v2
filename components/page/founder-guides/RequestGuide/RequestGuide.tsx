@@ -95,6 +95,7 @@ export default function RequestGuide() {
               placeholder="Enter the topic (e.g. Token vesting schedules, SAFE vs equity, hiring first engineer)"
               isRequired
               max={100}
+              maxLength={100}
               description="Max. 100 characters."
             />
 
@@ -106,6 +107,7 @@ export default function RequestGuide() {
               maxLength={600}
               showCharCount
               description="Max 600 characters."
+              isOptional
             />
 
             <div className={s.buttons}>

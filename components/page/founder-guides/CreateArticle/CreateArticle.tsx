@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -8,7 +9,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
-import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import useBlockNavigation from '@/hooks/useUnsavedChangesWarning';
@@ -20,6 +20,8 @@ import { IArticle } from '@/types/articles.types';
 import { AuthorAutocomplete } from './AuthorAutocomplete';
 import { createArticleSchema, CreateArticleForm, articleToFormValues } from './helpers';
 import s from './CreateArticle.module.scss';
+
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false });
 
 interface CreateArticleProps {
   article?: IArticle;
@@ -72,10 +74,12 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
     handleSubmit,
     reset,
     watch,
-    formState: { isSubmitting, isDirty },
+    setValue,
+    formState: { isSubmitting, isDirty, errors },
   } = methods;
 
   const author: CreateArticleForm['author'] = watch('author');
+  const contentValue = watch('content');
   const selectedMemberUid = author?.type === 'member' ? author.value : undefined;
   const { data: selectedMemberData } = useMember(selectedMemberUid);
   const memberOfficeHours = selectedMemberData?.memberInfo?.officeHours || null;
@@ -185,14 +189,18 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
                 isRequired
               />
 
-              <FormTextArea
-                name="content"
-                label="Content"
-                placeholder="Write your guide in Markdown (headings, lists, links, etc.)"
-                // description="Published guides render Markdown on the article page."
-                rows={18}
-                isRequired
-              />
+              <div>
+                <label className={s.editorLabel}>
+                  Content <span style={{ color: 'red' }}>*</span>
+                </label>
+                <MDEditor
+                  value={contentValue || ''}
+                  onChange={(val) => setValue('content', val ?? '', { shouldValidate: true, shouldDirty: true })}
+                  height={400}
+                  data-color-mode="light"
+                />
+                {errors.content && <span className={s.editorError}>{errors.content.message as string}</span>}
+              </div>
             </div>
 
             <div className={s.section}>

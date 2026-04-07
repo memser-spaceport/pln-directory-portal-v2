@@ -107,6 +107,7 @@ export default function RequestGuide() {
               maxLength={600}
               showCharCount
               description="Max 600 characters."
+              isOptional
             />
 
             <div className={s.buttons}>

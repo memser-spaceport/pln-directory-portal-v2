@@ -14,6 +14,11 @@ const FOUNDER_GUIDES_ANALYTICS_EVENTS = {
   FORM_CANCELLED: 'founder-guides-article-form-cancelled',
   MOBILE_NAV_OPENED: 'founder-guides-mobile-nav-opened',
   SCHEDULE_MEETING_CLICKED: 'founder-guides-schedule-meeting-clicked',
+  REQUEST_LINK_CLICKED: 'founder-guides-request-link-clicked',
+  REQUEST_PAGE_VIEWED: 'founder-guides-request-page-viewed',
+  REQUEST_FORM_FIELD_EDITED: 'founder-guides-request-form-field-edited',
+  REQUEST_SUBMITTED: 'founder-guides-request-submitted',
+  REQUEST_CANCELLED: 'founder-guides-request-cancelled',
 } as const;
 
 export type FounderGuidesScheduleMeetingClickedParams =
@@ -107,6 +112,32 @@ export function useFounderGuidesAnalytics() {
     [posthog],
   );
 
+  const trackRequestGuideLinkClicked = useCallback(() => {
+    posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.REQUEST_LINK_CLICKED);
+  }, [posthog]);
+
+  const trackRequestGuidePageViewed = useCallback(() => {
+    posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.REQUEST_PAGE_VIEWED);
+  }, [posthog]);
+
+  const trackRequestGuideFormFieldEdited = useCallback(
+    (params: { field: 'title' | 'description' }) => {
+      posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.REQUEST_FORM_FIELD_EDITED, params);
+    },
+    [posthog],
+  );
+
+  const trackRequestGuideSubmitted = useCallback(
+    (params: { titleLength: number; descriptionLength: number }) => {
+      posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.REQUEST_SUBMITTED, params);
+    },
+    [posthog],
+  );
+
+  const trackRequestGuideCancelled = useCallback(() => {
+    posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.REQUEST_CANCELLED);
+  }, [posthog]);
+
   return {
     trackOverviewViewed,
     trackSidebarSearch,
@@ -120,5 +151,10 @@ export function useFounderGuidesAnalytics() {
     trackFormCancelled,
     trackMobileNavOpened,
     trackScheduleMeetingClicked,
+    trackRequestGuideLinkClicked,
+    trackRequestGuidePageViewed,
+    trackRequestGuideFormFieldEdited,
+    trackRequestGuideSubmitted,
+    trackRequestGuideCancelled,
   };
 }

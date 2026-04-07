@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 
+import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import { FormField } from '@/components/form/FormField/FormField';
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { useRequestGuideMutation } from '@/services/guide-requests/hooks/useRequestGuideMutation';
@@ -16,6 +17,14 @@ export default function RequestGuide() {
   const router = useRouter();
   const [successTopic, setSuccessTopic] = useState<string | null>(null);
   const { mutate, isPending } = useRequestGuideMutation();
+  const {
+    trackRequestGuidePageViewed,
+    trackRequestGuideFormFieldEdited,
+    trackRequestGuideSubmitted,
+    trackRequestGuideCancelled,
+  } = useFounderGuidesAnalytics();
+  const pageViewedRef = useRef(false);
+  const fieldEditedTrackedRef = useRef({ title: false, description: false });
 
   const methods = useForm<RequestGuideForm>({
     defaultValues,
@@ -23,16 +32,45 @@ export default function RequestGuide() {
     resolver: yupResolver(requestGuideSchema) as any,
   });
 
-  const { handleSubmit } = methods;
+  const {
+    handleSubmit,
+    formState: { dirtyFields },
+  } = methods;
+
+  useEffect(() => {
+    if (pageViewedRef.current) return;
+    pageViewedRef.current = true;
+    trackRequestGuidePageViewed();
+  }, [trackRequestGuidePageViewed]);
+
+  useEffect(() => {
+    if (dirtyFields.title && !fieldEditedTrackedRef.current.title) {
+      fieldEditedTrackedRef.current.title = true;
+      trackRequestGuideFormFieldEdited({ field: 'title' });
+    }
+    if (dirtyFields.description && !fieldEditedTrackedRef.current.description) {
+      fieldEditedTrackedRef.current.description = true;
+      trackRequestGuideFormFieldEdited({ field: 'description' });
+    }
+  }, [dirtyFields, trackRequestGuideFormFieldEdited]);
 
   const onSubmit = (data: RequestGuideForm) => {
     mutate(data, {
       onSuccess: (ok) => {
         if (ok) {
+          trackRequestGuideSubmitted({
+            titleLength: data.title.trim().length,
+            descriptionLength: (data.description ?? '').trim().length,
+          });
           setSuccessTopic(data.title);
         }
       },
     });
+  };
+
+  const handleCancel = () => {
+    trackRequestGuideCancelled();
+    router.push('/founder-guides');
   };
 
   const handleCloseSuccess = () => {
@@ -71,12 +109,7 @@ export default function RequestGuide() {
             />
 
             <div className={s.buttons}>
-              <button
-                type="button"
-                className={s.cancelBtn}
-                onClick={() => router.push('/founder-guides')}
-                disabled={isPending}
-              >
+              <button type="button" className={s.cancelBtn} onClick={handleCancel} disabled={isPending}>
                 Cancel
               </button>
               <button type="submit" className={s.submitBtn} disabled={isPending}>

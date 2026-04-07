@@ -169,7 +169,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
   const { byCategory, isLoading } = useGetArticles();
   const [search, setSearch] = useState('');
   const [openCategories, setOpenCategories] = useState<Set<string> | null>(null);
-  const { trackSidebarSearch } = useFounderGuidesAnalytics();
+  const { trackSidebarSearch, trackRequestGuideLinkClicked } = useFounderGuidesAnalytics();
   const searchDebounceSkipRef = useRef(true);
 
   useEffect(() => {
@@ -323,7 +323,10 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
         <Link
           href="/founder-guides/request"
           className={`${s.requestLink} ${isRequestActive ? s.requestLinkActive : ''}`}
-          onClick={onNavigate}
+          onClick={() => {
+            trackRequestGuideLinkClicked();
+            onNavigate?.();
+          }}
         >
           <span className={s.categoryIcon}>
             <LightbulbIcon />

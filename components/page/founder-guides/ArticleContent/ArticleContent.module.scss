@@ -1,4 +1,4 @@
-@import "styles/media";
+@import 'styles/media';
 
 .root {
   width: 100%;
@@ -209,7 +209,6 @@
   white-space: nowrap;
 }
 
-
 // ── "Like this Guide" outlined button ─────────────────────
 .likeGuideButton {
   all: unset;
@@ -372,18 +371,23 @@
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(14, 15, 17, 0.06);
 
-  @media (max-width: 639px) {
+  @media (max-width: #{$breakpoint-md - 1}px) {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     border: 1px solid rgba(14, 15, 17, 0.08);
   }
 }
 
 .ohLeft {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   min-width: 0;
+  flex: 1 1 auto;
+
+  @media (max-width: #{$breakpoint-md - 1}px) {
+    width: 100%;
+  }
 }
 
 .ohAvatarWrap {
@@ -434,21 +438,29 @@
 }
 
 .ohName {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: #0a0c11;
   line-height: 24px;
   letter-spacing: -0.3px;
   white-space: nowrap;
+
+  @include tablet-landscape {
+    font-size: 16px;
+  }
 }
 
 .ohRole {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   color: #455468;
   line-height: 24px;
   letter-spacing: -0.3px;
   white-space: nowrap;
+
+  @include tablet-landscape {
+    font-size: 16px;
+  }
 }
 
 .ohSubtitle {

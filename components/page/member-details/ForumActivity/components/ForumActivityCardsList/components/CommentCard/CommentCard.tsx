@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { type ForumComment } from '../../hooks/useUserForumComments';
+import { type ForumComment } from '../../../../hooks/useUserForumComments';
 import { ForumStats } from '@/components/page/member-details/ForumActivity/components/building-blocks/ForumStats';
 import { ForumAvatar } from '@/components/page/member-details/ForumActivity/components/building-blocks/ForumAvatar';
 import { ForumExcerpt } from '@/components/page/member-details/ForumActivity/components/building-blocks/ForumExcerpt';

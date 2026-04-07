@@ -34,7 +34,13 @@ function CaretDownIcon({ open }: { open: boolean }) {
       aria-hidden
       style={{ transform: open ? 'rotate(180deg)' : undefined, transition: 'transform 0.15s ease', flexShrink: 0 }}
     >
-      <path d="M5 7.5L10 12.5L15 7.5" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M5 7.5L10 12.5L15 7.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -43,23 +49,23 @@ function CaretDownIcon({ open }: { open: boolean }) {
 function ScalesIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path d="M10 3.5V16.5" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M7 16.5H13" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M4.5 7L10 5.5L15.5 7" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M10 3.5V16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M7 16.5H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M4.5 7L10 5.5L15.5 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       <path
         d="M4.5 7L3 11C3 12.1 3.9 13 5 13H4C5.1 13 6 12.1 6 11L4.5 7Z"
-        stroke="#455468"
+        stroke="currentColor"
         strokeWidth="1.3"
         strokeLinejoin="round"
       />
       <path
         d="M15.5 7L14 11C14 12.1 14.9 13 16 13H15C16.1 13 17 12.1 17 11L15.5 7Z"
-        stroke="#455468"
+        stroke="currentColor"
         strokeWidth="1.3"
         strokeLinejoin="round"
       />
-      <path d="M3 11H6" stroke="#455468" strokeWidth="1.3" strokeLinecap="round" />
-      <path d="M14 11H17" stroke="#455468" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M3 11H6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M14 11H17" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
     </svg>
   );
 }
@@ -69,12 +75,12 @@ function ChartLineUpIcon() {
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
       <path
         d="M3.5 14.5L8 9.5L11.5 12.5L16.5 6"
-        stroke="#455468"
+        stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path d="M13 6H16.5V9.5" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13 6H16.5V9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -82,14 +88,20 @@ function ChartLineUpIcon() {
 function UserCheckIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <circle cx="8.5" cy="7" r="3.5" stroke="#455468" strokeWidth="1.5" />
+      <circle cx="8.5" cy="7" r="3.5" stroke="currentColor" strokeWidth="1.5" />
       <path
         d="M2 16.5C2 13.739 4.239 11.5 7 11.5H10C12.761 11.5 15 13.739 15 16.5"
-        stroke="#455468"
+        stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
       />
-      <path d="M13.5 10.5L15 12L18 9" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M13.5 10.5L15 12L18 9"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -99,7 +111,7 @@ function SparkleIcon() {
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
       <path
         d="M10 3L11.5 8.5H17L12.5 11.8L14 17L10 13.5L6 17L7.5 11.8L3 8.5H8.5L10 3Z"
-        stroke="#455468"
+        stroke="currentColor"
         strokeWidth="1.4"
         strokeLinejoin="round"
       />
@@ -146,10 +158,10 @@ function PlusIcon() {
 function DefaultCategoryIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <rect x="3" y="5" width="14" height="12" rx="2" stroke="#455468" strokeWidth="1.5" />
-      <path d="M7 3H13C13.552 3 14 3.448 14 4V5H6V4C6 3.448 6.448 3 7 3Z" stroke="#455468" strokeWidth="1.5" />
-      <path d="M7 10H13" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M7 13H10" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
+      <rect x="3" y="5" width="14" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M7 3H13C13.552 3 14 3.448 14 4V5H6V4C6 3.448 6.448 3 7 3Z" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M7 10H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M7 13H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
@@ -183,7 +195,10 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
     return () => clearTimeout(t);
   }, [search, trackSidebarSearch]);
 
-  const effectiveOpenCategories = openCategories ?? new Set(byCategory.map((c) => c.category));
+  const effectiveOpenCategories = useMemo(
+    () => openCategories ?? new Set(byCategory.map((c) => c.category)),
+    [byCategory, openCategories],
+  );
 
   const { canCreate } = useFounderGuidesCreateAccess();
   const isCreateActive = pathname === '/founder-guides/new';
@@ -270,13 +285,22 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
         {!isLoading &&
           filtered.map(({ category, articles }) => {
             const isOpen = visibleCategories.has(category);
+            const isCategoryActive = articles.some((article) => pathname === `/founder-guides/${article.slugURL}`);
+
             return (
               <div key={category} className={s.categoryGroup}>
-                <button className={s.categoryRow} onClick={() => toggleCategory(category)} aria-expanded={isOpen}>
+                <button
+                  type="button"
+                  className={`${s.categoryRow} ${isCategoryActive ? s.categoryRowActive : ''}`}
+                  onClick={() => toggleCategory(category)}
+                  aria-expanded={isOpen}
+                >
                   <span className={s.categoryIcon}>{getCategoryIcon(category)}</span>
                   <span className={s.categoryLabel}>{category}</span>
                   <span className={s.categoryBadge}>{articles.length}</span>
-                  <CaretDownIcon open={isOpen} />
+                  <span className={s.categoryCaret}>
+                    <CaretDownIcon open={isOpen} />
+                  </span>
                 </button>
 
                 {isOpen && (

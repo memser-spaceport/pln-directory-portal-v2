@@ -112,7 +112,7 @@ export default function FounderGuidesMobileNav({ children }: FounderGuidesMobile
             >
               <HamburgerIcon />
             </button>
-            <span className={s.subheaderTitle}>Founder Guides</span>
+            <span className={s.subheaderTitle}>Browse Guides</span>
           </div>
           <div id="mobile-subheader-actions" />
         </div>
@@ -130,25 +130,20 @@ export default function FounderGuidesMobileNav({ children }: FounderGuidesMobile
               onClick={(e) => e.stopPropagation()}
               role="dialog"
               aria-modal="true"
-              aria-label="Founder Guides navigation"
+              aria-label="Browse Guides navigation"
             >
               <div className={s.drawerHeader}>
-                <button
-                  ref={closeRef}
-                  className={s.closeButton}
-                  onClick={close}
-                  aria-label="Close navigation menu"
-                >
+                <button ref={closeRef} className={s.closeButton} onClick={close} aria-label="Close navigation menu">
                   <CloseIcon />
                 </button>
-                <span className={s.drawerTitle}>Founder Guides</span>
+                <span className={s.drawerTitle}>Browse Guides</span>
               </div>
               <div className={s.drawerContent}>
                 <ArticlesSidebar onNavigate={close} hideHeader />
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </>
   );

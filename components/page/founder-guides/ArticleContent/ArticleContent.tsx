@@ -8,9 +8,12 @@ import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import 'md-editor-rt/lib/preview.css';
 import { slugifyHeading } from '@/utils/markdown';
+import { useQuery } from '@tanstack/react-query';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
 import { useArticleView } from '@/services/articles/hooks/useArticleView';
 import { useArticleLike } from '@/services/articles/hooks/useArticleLike';
+import { getMemberInfo } from '@/services/members.service';
+import { MembersQueryKeys } from '@/services/members/constants';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
@@ -164,6 +167,24 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const { userInfo } = getCookiesFromClient();
   const isAuthenticated = !!userInfo;
   const { canCreate } = useFounderGuidesCreateAccess();
+
+  const authorMemberUid = article?.authorMember?.uid;
+  const { data: memberData } = useQuery({
+    queryKey: [MembersQueryKeys.GET_MEMBER, authorMemberUid],
+    queryFn: () => getMemberInfo(authorMemberUid!),
+    enabled: !!authorMemberUid,
+  });
+
+  useEffect(() => {
+    if (!article) return;
+    const raf = requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line
+  }, [article?.uid]);
 
   useEffect(() => {
     if (!article) return;
@@ -380,7 +401,6 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
                   <div className={s.detailsDivider} />
                 </>
               )}
-
               <div className={s.stats}>
                 <span className={s.statItem}>
                   <ThumbsUpIcon />

@@ -164,7 +164,13 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
             <div className={s.section}>
               <div className={s.sectionDivider}>CONTENT</div>
 
-              <FormSelect name="category" placeholder="Select category" label="Category" options={categoryOptions} isRequired />
+              <FormSelect
+                name="category"
+                placeholder="Select category"
+                label="Category"
+                options={categoryOptions}
+                isRequired
+              />
 
               <FormField
                 name="title"

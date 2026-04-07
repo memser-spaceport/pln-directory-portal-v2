@@ -48,11 +48,11 @@ export type CreateArticleForm = {
 export function articleToFormValues(article: IArticle): CreateArticleForm {
   const categoryOption = article.category
     ? {
-        label: (ARTICLE_CATEGORIES as readonly string[]).includes(article.category)
-          ? article.category
-          : article.category,
-        value: article.category,
-      }
+      label: (ARTICLE_CATEGORIES as readonly string[]).includes(article.category)
+        ? article.category
+        : article.category,
+      value: article.category,
+    }
     : null;
 
   let author: CreateArticleForm['author'] = null;

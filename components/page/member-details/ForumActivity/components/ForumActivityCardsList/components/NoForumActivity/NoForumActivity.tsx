@@ -9,7 +9,7 @@ import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 import { getLabels } from './utils/getLabels';
 
-import { AuthSection } from './components/AuthSection';
+import { AuthSection } from '../AuthSection';
 import { EmptyIllustration } from './components/EmptyIllustration';
 
 import s from './NoForumActivity.module.scss';

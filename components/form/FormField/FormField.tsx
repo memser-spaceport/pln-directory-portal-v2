@@ -16,6 +16,7 @@ interface Props extends PropsWithChildren {
   isRequired?: boolean;
   onClick?: () => void;
   max?: number;
+  maxLength?: number;
   clearable?: boolean;
   onClear?: () => void;
   rules?: Record<string, unknown>;
@@ -33,6 +34,7 @@ export const FormField = ({
   children,
   isRequired,
   max,
+  maxLength,
   clearable,
   onClear,
   rules,
@@ -100,6 +102,7 @@ export const FormField = ({
             placeholder={placeholder}
             className={clsx(s.inputElement, { [s.withIcon]: !!icon })}
             id={name}
+            maxLength={maxLength}
             {...rest}
           />
         </div>

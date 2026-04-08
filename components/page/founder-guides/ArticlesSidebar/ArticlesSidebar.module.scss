@@ -19,7 +19,7 @@
 .title {
   font-size: 18px;
   font-weight: 500;
-  color: #0A0C11;
+  color: #0a0c11;
   letter-spacing: -0.4px;
   line-height: 24px;
   text-align: left;
@@ -53,7 +53,9 @@
   letter-spacing: -0.2px;
   color: #0a0c11;
   background: #fff;
-  box-shadow: 0px 1px 2px rgba(14, 15, 17, 0.08), inset 0px -2px 8px rgba(14, 15, 17, 0.02);
+  box-shadow:
+    0px 1px 2px rgba(14, 15, 17, 0.08),
+    inset 0px -2px 8px rgba(14, 15, 17, 0.02);
   outline: none;
   box-sizing: border-box;
 
@@ -138,7 +140,8 @@
   color: #1b4dff;
   border-bottom-color: #1b4dff;
 
-  > span, svg {
+  > span,
+  svg {
     color: #1b4dff;
   }
 }
@@ -166,6 +169,12 @@
   border: none;
   cursor: pointer;
   text-align: left;
+  color: #455468;
+  box-shadow: inset 0 -1px 0 transparent;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:hover {
     background: rgba(14, 15, 17, 0.03);
@@ -176,13 +185,21 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  color: inherit;
+}
+
+.categoryCaret {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: #455468;
 }
 
 .categoryLabel {
   flex: 1;
   font-size: 16px;
   font-weight: 500;
-  color: #455468;
+  color: inherit;
   line-height: 24px;
   letter-spacing: -0.3px;
   white-space: nowrap;
@@ -200,6 +217,24 @@
   border-radius: 9999px;
   padding: 2px 6px;
   flex-shrink: 0;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.categoryRowActive {
+  color: #1b4dff;
+  //background: rgba(27, 77, 255, 0.05);
+  box-shadow: inset 0 -1px 0 #1b4dff;
+
+  .categoryBadge {
+    //color: #1b4dff;
+    //background: rgba(27, 77, 255, 0.08);
+  }
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.08);
+  }
 }
 
 // ── Article list ──────────────────────────────────────────

@@ -170,6 +170,14 @@ export const DemoDayIcon = () => (
   </svg>
 );
 
+export const AnalyticsIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2.5 15.833h15" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
+    <path d="M5 15.833V10a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5.833" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M11 15.833V6.667a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v9.166" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 export function FounderGuidesIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -14,7 +14,7 @@ export function useFounderGuidesAccess() {
     queryKey: [RbacQueryKeys.RBAC_ME, 'founder-guides'],
     queryFn: async () => {
       const rbac = await fetchRbacMe();
-      return rbac.permissions.includes('founder_guides.view');
+      return rbac.permissions.some((p) => p.name === 'founder_guides.view');
     },
     staleTime: 5 * 60 * 1000,
     enabled: !!userInfo,

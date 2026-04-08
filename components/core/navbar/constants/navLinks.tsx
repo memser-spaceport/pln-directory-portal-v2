@@ -63,13 +63,13 @@ export const FOUNDER_GUIDES_LINK: ISubItem = {
 export const DEMO_DAY_LINK: ISubItem = {
   icon: <DemoDayIcon />,
   href: '/demoday',
-  title: 'Demo Day',
-  description: 'Explore the latest Demo Day cohort',
+  title: 'Demo Days',
+  description: 'Exclusive events where founders pitch to selected investors.',
 };
 
 export const DEMO_DAY_ANALYTICS_LINK: ISubItem = {
   icon: <AnalyticsIcon />,
   href: '/demo-day-analytics',
-  title: 'Analytics',
-  description: 'View Demo Day analytics report',
+  title: 'Demo Day Analytics',
+  description: 'Track Demo Day activity across teams, events, and interactions.',
 };

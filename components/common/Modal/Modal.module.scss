@@ -7,7 +7,6 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(14, 15, 17, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -16,6 +15,11 @@
   background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
   backdrop-filter: blur(15px);
   overflow-y: auto;
+
+  @include media.mobile-only {
+    background: rgba(14, 15, 17, 0.5);
+    backdrop-filter: none;
+  }
 
   @include media.tablet-landscape {
     padding: 24px;

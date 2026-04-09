@@ -196,6 +196,24 @@
   min-width: 180px;
 }
 
+.heroSignInLink {
+  font-size: 14px;
+  color: var(--foreground-neutral-secondary, #455468);
+  margin-top: 16px;
+  text-align: center;
+
+  a {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    font-weight: 500;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
 .heroLoginLink {
   font-size: 14px;
   font-weight: 400;
@@ -240,6 +258,10 @@
   width: 160px;
   height: 60px;
   object-fit: contain;
+}
+
+.logoImgScaled {
+  transform: scale(1.8);
 }
 
 .logoName {

@@ -33,30 +33,37 @@ export function DealsLandingPage() {
           <div className={s.heroInner}>
             <h1 className={s.heroHeadline}>
               <span className={s.heroHeadlineLine}>Get Your Product in Front</span>
-              <span className={s.heroHeadlineLine}>of 700+ Teams</span>
+              <span className={s.heroHeadlineLine}>of 120+ PL Funded Teams</span>
             </h1>
             <p className={s.heroSubheadline}>
-              Get your product in front of 700+ teams building across Web3, AI, and deep tech — and turn them into long-term customers.
+              Reach 120+ PL funded teams building across Web3, AI, and deep tech — and turn them into long-term customers.
             </p>
             <div className={s.heroActions}>
               <Button style="fill" variant="primary" size="l" className={s.heroPrimaryBtn} onClick={openSubmitDealModal}>
                 List Your Product
               </Button>
-              <Button style="border" variant="neutral" size="l" className={s.heroSecondaryBtn} onClick={handleLoginClick}>
-                PL Network Member? Sign In
-              </Button>
             </div>
+            <p className={s.heroSignInLink}>
+              PL funded team?{' '}
+              <a href="#login" onClick={(e) => { e.preventDefault(); handleLoginClick(); }}>
+                Sign in to view Deals
+              </a>
+            </p>
           </div>
         </section>
 
         {/* ── 2. TRUST / SOCIAL PROOF ── */}
         <section className={s.section}>
           <div className={s.sectionInner}>
-            <h2 className={s.sectionTitle}>Join These Companies Offering Deals</h2>
+            <h2 className={s.sectionTitle}>Offer Deals Alongside</h2>
             <div className={s.logosGrid}>
               {vendorLogoItems.map((item) => (
                 <div key={item.alt} className={s.logoCell}>
-                  <img src={item.src} alt={item.alt} className={s.logoImg} />
+                  <img
+                    src={item.src}
+                    alt={item.alt}
+                    className={`${s.logoImg} ${item.alt === 'Linear' ? s.logoImgScaled : ''}`}
+                  />
                 </div>
               ))}
             </div>
@@ -67,7 +74,7 @@ export function DealsLandingPage() {
         {/* ── 4. VALUE PROPOSITION ── */}
         <section className={s.section}>
           <div className={s.sectionInner}>
-            <h2 className={s.sectionTitle}>Why Vendors Partner with Protocol Labs</h2>
+            <h2 className={s.sectionTitle}>Why Partner with Protocol Labs</h2>
             <div className={s.exampleDealsGrid}>
               {mockValueProps.map((prop, i) => (
                 <div key={i} className={s.exampleDealCard}>
@@ -88,7 +95,7 @@ export function DealsLandingPage() {
               {[
                 'An exclusive discount not publicly available',
                 'Minimum value of $1,000+ or 3+ months free on a paid plan',
-                'Available to all PL network teams or a defined subset (e.g. PL-funded founders)',
+                'Available to all PL funded teams (and to the broader PL network soon)',
                 'Simple redemption — a code, a link, or a warm intro',
               ].map((item) => (
                 <li key={item} className={s.criteriaItem}>

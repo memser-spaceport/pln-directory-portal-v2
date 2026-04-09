@@ -77,7 +77,7 @@ export const vendorLogoItems = [
   { src: '/icons/deals/aws.png', alt: 'AWS' },
   { src: '/icons/deals/openai.png', alt: 'OpenAI' },
   { src: '/icons/deals/azure.png', alt: 'Microsoft Azure' },
-  { src: 'https://cdn.simpleicons.org/linear/000000', alt: 'Linear' },
+  { src: '/icons/deals/linear.png', alt: 'Linear' },
 ];
 
 export interface MockExampleDeal {
@@ -136,17 +136,17 @@ export const mockFaqItems: FAQItem[] = [
   {
     question: 'What is the PL Deals program?',
     answer:
-      'Deals are exclusive discounts or offers that companies can provide to the 700+ teams in the Protocol Labs network. Teams use these deals when adopting new tools, scaling infrastructure, or launching new products.',
+      'Deals are exclusive discounts or offers that companies provide to 120+ PL funded teams. Teams use these deals when adopting new tools, scaling infrastructure, or launching new products.',
   },
   {
     question: 'What are the minimum requirements for a deal?',
     answer:
-      'We look for offers that provide real, exclusive value — not deals already available publicly. Minimum: $1,000+ in value or 3+ months free on a paid plan. More generous offers get more engagement from our network.',
+      'We look for offers that provide real, exclusive value — not deals already available publicly. Minimum: $1,000+ in value or 3+ months free on a paid plan. More generous offers get more engagement from our teams.',
   },
   {
     question: 'Who can see and redeem deals?',
     answer:
-      'Deals are available to verified members of the PL network — primarily founders, CXOs, and select team leads across 700+ teams. Access is managed by PL admins to ensure deals remain exclusive.',
+      'Deals are available exclusively to 120+ PL funded teams. Access is managed by PL admins to ensure deals remain exclusive to portfolio companies.',
   },
   {
     question: 'How long does approval take?',
@@ -164,7 +164,7 @@ export const mockValueProps: ValueProp[] = [
   {
     icon: 'users',
     title: 'Direct access to verified builders',
-    description: 'Your deal is visible to 700+ teams actively building and spending on tools.',
+    description: 'Your deal is visible to 120+ PL funded teams actively building and spending on tools.',
   },
   {
     icon: 'zap',

@@ -1,5 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { customFetch } from '@/utils/fetch-wrapper';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
+
 import { GuideCommentsQueryKeys } from '../constants';
 
 interface AddCommentParams {
@@ -7,19 +10,24 @@ interface AddCommentParams {
   content: string;
 }
 
-async function addGuideComment(_params: AddCommentParams): Promise<void> {
-  // TODO: Replace with real API call when endpoint is available
-  // const { authToken } = getCookiesFromClient();
-  // const response = await customFetch(
-  //   `${process.env.DIRECTORY_API_URL}/v1/articles/${_params.articleUid}/comments`,
-  //   {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
-  //     body: JSON.stringify({ content: _params.content }),
-  //   },
-  //   true,
-  // );
-  // if (!response?.ok) throw new Error('Failed to add comment');
+async function addGuideComment(params: AddCommentParams): Promise<void> {
+  const { authToken } = getCookiesFromClient();
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/articles/${params.articleUid}/comments`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ content: params.content }),
+    },
+    true,
+  );
+
+  if (!response?.ok) {
+    throw new Error('Failed to add comment');
+  }
 }
 
 export function useAddGuideComment() {

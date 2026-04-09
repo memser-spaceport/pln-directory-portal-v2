@@ -1,13 +1,18 @@
-import type { IGuideComment, NestedGuideComment } from '@/services/guide-comments/guide-comments.types';
+import type { IGuideComment } from '@/services/guide-comments/guide-comments.types';
 
-export function nestGuideComments(items: IGuideComment[]): NestedGuideComment[] {
-  const map = new Map<string, NestedGuideComment>();
+/**
+ * Builds a nested comment tree from a flat list.
+ * Not needed when the API already returns nested data (replies embedded),
+ * but kept as a utility for any flat-list scenarios.
+ */
+export function nestGuideComments(items: IGuideComment[]): IGuideComment[] {
+  const map = new Map<string, IGuideComment>();
 
   for (const item of items) {
     map.set(item.uid, { ...item, replies: [] });
   }
 
-  const roots: NestedGuideComment[] = [];
+  const roots: IGuideComment[] = [];
 
   for (const item of items) {
     const current = map.get(item.uid)!;

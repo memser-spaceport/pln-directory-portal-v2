@@ -1,17 +1,24 @@
-export interface IGuideComment {
+export interface IGuideCommentAuthor {
   uid: string;
-  parentUid?: string;
-  content: string;
-  authorMember: {
-    uid: string;
-    name: string;
-    imageUrl?: string;
-    mainTeamTitle?: string;
-  };
-  createdAt: string;
-  totalLikes: number;
-  isLiked: boolean;
-  totalReplies: number;
+  name: string;
+  officeHours: string | null;
+  profileImage: string | null;
 }
 
-export type NestedGuideComment = IGuideComment & { replies: NestedGuideComment[] };
+export interface IGuideComment {
+  uid: string;
+  articleUid: string;
+  parentUid: string | null;
+  content: string;
+  likesCount: number;
+  createdAt: string;
+  updatedAt: string;
+  likedByMe: boolean;
+  author: IGuideCommentAuthor;
+  replies: IGuideComment[];
+}
+
+export interface IGuideCommentsResponse {
+  data: IGuideComment[];
+  total: number;
+}

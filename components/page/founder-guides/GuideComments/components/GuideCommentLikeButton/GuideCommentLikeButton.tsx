@@ -9,27 +9,27 @@ import s from './GuideCommentLikeButton.module.scss';
 interface Props {
   commentUid: string;
   articleUid: string;
-  totalLikes: number;
-  isLiked: boolean;
+  likesCount: number;
+  likedByMe: boolean;
   isAuthenticated: boolean;
 }
 
-export const GuideCommentLikeButton = ({ commentUid, articleUid, totalLikes, isLiked, isAuthenticated }: Props) => {
+export const GuideCommentLikeButton = ({ commentUid, articleUid, likesCount, likedByMe, isAuthenticated }: Props) => {
   const { mutate, isPending } = useLikeGuideComment();
 
   return (
     <button
-      className={clsx(s.button, { [s.liked]: isLiked })}
+      className={clsx(s.button, { [s.liked]: likedByMe })}
       disabled={isPending || !isAuthenticated}
       onClick={() => {
         if (!isAuthenticated) return;
-        mutate({ commentUid, articleUid, isLiked });
+        mutate({ commentUid, articleUid, isLiked: likedByMe });
       }}
-      aria-pressed={isLiked}
-      aria-label={isLiked ? 'Unlike this comment' : 'Like this comment'}
+      aria-pressed={likedByMe}
+      aria-label={likedByMe ? 'Unlike this comment' : 'Like this comment'}
     >
-      <ThumbsUpIcon filled={isLiked} />
-      {totalLikes} {totalLikes === 1 ? 'Like' : 'Likes'}
+      <ThumbsUpIcon filled={likedByMe} />
+      {likesCount} {likesCount === 1 ? 'Like' : 'Likes'}
     </button>
   );
 };

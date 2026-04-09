@@ -1,19 +1,29 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { GuideCommentsQueryKeys } from '../constants';
-import type { IGuideComment } from '../guide-comments.types';
+import { customFetch } from '@/utils/fetch-wrapper';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 
-async function fetchGuideComments(_articleUid: string): Promise<IGuideComment[]> {
-  // TODO: Replace with real API call when endpoint is available
-  // const { authToken } = getCookiesFromClient();
-  // const response = await customFetch(
-  //   `${process.env.DIRECTORY_API_URL}/v1/articles/${_articleUid}/comments`,
-  //   { method: 'GET', headers: { Authorization: `Bearer ${authToken}` } },
-  //   true,
-  // );
-  // if (!response?.ok) throw new Error('Failed to fetch comments');
-  // return response.json();
-  return [];
+import { GuideCommentsQueryKeys } from '../constants';
+import type { IGuideCommentsResponse } from '../guide-comments.types';
+
+async function fetchGuideComments(articleUid: string): Promise<IGuideCommentsResponse> {
+  const { authToken } = getCookiesFromClient();
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/articles/${articleUid}/comments`,
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+    },
+    true,
+  );
+
+  if (!response?.ok) {
+    throw new Error('Failed to fetch comments');
+  }
+
+  return response.json();
 }
 
 export function useGetGuideComments(articleUid: string) {

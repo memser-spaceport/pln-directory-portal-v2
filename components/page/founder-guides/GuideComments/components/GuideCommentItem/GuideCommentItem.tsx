@@ -12,7 +12,7 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useDeleteGuideComment } from '@/services/guide-comments/hooks/useDeleteGuideComment';
 import type { IUserInfo } from '@/types/shared.types';
-import type { NestedGuideComment } from '@/services/guide-comments/guide-comments.types';
+import type { IGuideComment } from '@/services/guide-comments/guide-comments.types';
 
 import { GuideCommentInput } from '../GuideCommentInput/GuideCommentInput';
 import { GuideCommentLikeButton } from '../GuideCommentLikeButton/GuideCommentLikeButton';
@@ -24,7 +24,7 @@ const MAX_DEPTH = 2;
 const VISIBLE_REPLY_COUNT = 2;
 
 interface Props {
-  comment: NestedGuideComment;
+  comment: IGuideComment;
   articleUid: string;
   userInfo?: IUserInfo;
   depth?: number;
@@ -34,7 +34,7 @@ export const GuideCommentItem = ({ comment, articleUid, userInfo, depth = 0 }: P
   const isReply = depth > 0;
   const canReply = depth < MAX_DEPTH;
   const isAuthenticated = !!userInfo;
-  const isOwn = userInfo ? userInfo.uid === comment.authorMember.uid || isAdminUser(userInfo) : false;
+  const isOwn = userInfo ? userInfo.uid === comment.author.uid || isAdminUser(userInfo) : false;
 
   const [replyToUid, setReplyToUid] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -46,28 +46,25 @@ export const GuideCommentItem = ({ comment, articleUid, userInfo, depth = 0 }: P
   const hiddenCount = comment.replies.length - VISIBLE_REPLY_COUNT;
   const hasMoreReplies = !showMoreReplies && hiddenCount > 0;
 
-  const avatarSrc = comment.authorMember.imageUrl ?? getDefaultAvatar(comment.authorMember.name);
+  const avatarSrc = comment.author.profileImage ?? getDefaultAvatar(comment.author.name);
 
   return (
     <>
       <div className={clsx(s.itemRoot, { [s.reply]: isReply })} data-uid={comment.uid}>
         {/* Header row */}
         <div className={s.header}>
-          <Link href={`/members/${comment.authorMember.uid}`} onClick={(e) => e.stopPropagation()}>
+          <Link href={`/members/${comment.author.uid}`} onClick={(e) => e.stopPropagation()}>
             <Avatar.Root className={s.avatar}>
               <Avatar.Image src={avatarSrc} width="32" height="32" className={s.avatarImage} />
               <Avatar.Fallback className={s.avatarFallback}>
-                {comment.authorMember.name.slice(0, 2).toUpperCase()}
+                {comment.author.name.slice(0, 2).toUpperCase()}
               </Avatar.Fallback>
             </Avatar.Root>
           </Link>
           <div className={s.meta}>
-            <Link href={`/members/${comment.authorMember.uid}`} className={s.name} onClick={(e) => e.stopPropagation()}>
-              {comment.authorMember.name}
+            <Link href={`/members/${comment.author.uid}`} className={s.name} onClick={(e) => e.stopPropagation()}>
+              {comment.author.name}
             </Link>
-            {comment.authorMember.mainTeamTitle && (
-              <span className={s.role}>· {comment.authorMember.mainTeamTitle}</span>
-            )}
             <span className={s.time}>{formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}</span>
           </div>
           {isOwn && (
@@ -101,8 +98,8 @@ export const GuideCommentItem = ({ comment, articleUid, userInfo, depth = 0 }: P
             <GuideCommentLikeButton
               commentUid={comment.uid}
               articleUid={articleUid}
-              totalLikes={comment.totalLikes}
-              isLiked={comment.isLiked}
+              likesCount={comment.likesCount}
+              likedByMe={comment.likedByMe}
               isAuthenticated={isAuthenticated}
             />
             {canReply && (
@@ -129,7 +126,7 @@ export const GuideCommentItem = ({ comment, articleUid, userInfo, depth = 0 }: P
             articleUid={articleUid}
             userInfo={userInfo}
             parentUid={comment.uid}
-            replyToName={comment.authorMember.name}
+            replyToName={comment.author.name}
             initialFocused
             onCancel={() => setReplyToUid(null)}
           />

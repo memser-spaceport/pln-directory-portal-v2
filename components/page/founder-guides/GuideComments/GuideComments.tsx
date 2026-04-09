@@ -5,7 +5,6 @@ import React from 'react';
 import { useGetGuideComments } from '@/services/guide-comments/hooks/useGetGuideComments';
 import type { IUserInfo } from '@/types/shared.types';
 
-import { nestGuideComments } from './utils/nestGuideComments';
 import { GuideCommentInput } from './components/GuideCommentInput/GuideCommentInput';
 import { GuideCommentItem } from './components/GuideCommentItem/GuideCommentItem';
 import s from './GuideComments.module.scss';
@@ -17,12 +16,14 @@ interface Props {
 
 export const GuideComments = ({ articleUid, userInfo }: Props) => {
   const isAuthenticated = !!userInfo;
-  const { data: comments = [], isLoading } = useGetGuideComments(articleUid);
-  const nested = nestGuideComments(comments);
+  const { data: response, isLoading } = useGetGuideComments(articleUid);
+
+  const comments = response?.data ?? [];
+  const total = response?.total ?? 0;
 
   return (
     <section className={s.root}>
-      <h2 className={s.heading}>Comments ({comments.length})</h2>
+      <h2 className={s.heading}>Comments ({total})</h2>
 
       {isAuthenticated ? (
         <GuideCommentInput articleUid={articleUid} userInfo={userInfo} />
@@ -40,13 +41,13 @@ export const GuideComments = ({ articleUid, userInfo }: Props) => {
         </div>
       )}
 
-      {!isLoading && nested.length === 0 && (
+      {!isLoading && comments.length === 0 && (
         <p className={s.emptyState}>Be the first to comment on this guide.</p>
       )}
 
-      {!isLoading && nested.length > 0 && (
+      {!isLoading && comments.length > 0 && (
         <div className={s.commentList}>
-          {nested.map((comment) => (
+          {comments.map((comment) => (
             <GuideCommentItem
               key={comment.uid}
               comment={comment}

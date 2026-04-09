@@ -1,5 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { customFetch } from '@/utils/fetch-wrapper';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
+
 import { GuideCommentsQueryKeys } from '../constants';
 
 interface ReplyParams {
@@ -8,19 +11,24 @@ interface ReplyParams {
   content: string;
 }
 
-async function replyToGuideComment(_params: ReplyParams): Promise<void> {
-  // TODO: Replace with real API call when endpoint is available
-  // const { authToken } = getCookiesFromClient();
-  // const response = await customFetch(
-  //   `${process.env.DIRECTORY_API_URL}/v1/articles/${_params.articleUid}/comments`,
-  //   {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
-  //     body: JSON.stringify({ content: _params.content, parentUid: _params.parentUid }),
-  //   },
-  //   true,
-  // );
-  // if (!response?.ok) throw new Error('Failed to add reply');
+async function replyToGuideComment(params: ReplyParams): Promise<void> {
+  const { authToken } = getCookiesFromClient();
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/articles/${params.articleUid}/comments`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ content: params.content, parentUid: params.parentUid }),
+    },
+    true,
+  );
+
+  if (!response?.ok) {
+    throw new Error('Failed to add reply');
+  }
 }
 
 export function useReplyToGuideComment() {

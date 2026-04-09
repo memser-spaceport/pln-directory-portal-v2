@@ -36,6 +36,7 @@ async function toggleGuideCommentLike(params: LikeParams): Promise<void> {
     {
       method: params.isLiked ? 'DELETE' : 'POST',
       headers: {
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${authToken}`,
       },
     },

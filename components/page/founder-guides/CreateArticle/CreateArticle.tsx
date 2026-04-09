@@ -179,13 +179,7 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
               />
 
               {userScopes.length > 0 && (
-                <FormSelect
-                  name="scope"
-                  placeholder="Select scope"
-                  label="Scope"
-                  options={scopeOptions}
-                  isClearable
-                />
+                <FormSelect name="scope" placeholder="Select scope" label="Scope" options={scopeOptions} isClearable />
               )}
 
               <FormField

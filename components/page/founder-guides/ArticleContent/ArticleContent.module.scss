@@ -181,6 +181,44 @@
   white-space: nowrap;
 }
 
+.authorAvatarLink {
+  display: flex;
+  flex-shrink: 0;
+  border-radius: 9999px;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.authorNameLink {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #0a0c11;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    color: #1b4dff;
+  }
+}
+
+.authorRoleLink {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    color: #1b4dff;
+  }
+}
+
 // Vertical hairline divider between author and stats
 .detailsDivider {
   width: 1px;
@@ -460,6 +498,52 @@
 
   @include tablet-landscape {
     font-size: 16px;
+  }
+}
+
+.ohAvatarLink {
+  display: flex;
+  flex-shrink: 0;
+  border-radius: 9999px;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.ohNameLink {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0a0c11;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+  white-space: nowrap;
+
+  @include tablet-landscape {
+    font-size: 16px;
+  }
+
+  &:hover {
+    color: #1b4dff;
+  }
+}
+
+.ohRoleLink {
+  font-size: 14px;
+  font-weight: 400;
+  color: #455468;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+  white-space: nowrap;
+
+  @include tablet-landscape {
+    font-size: 16px;
+  }
+
+  &:hover {
+    color: #1b4dff;
   }
 }
 

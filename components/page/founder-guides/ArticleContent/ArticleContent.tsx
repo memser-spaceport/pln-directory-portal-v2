@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
@@ -147,6 +147,7 @@ function DotSepLarge() {
 
 export default function ArticleContent({ slug }: ArticleContentProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { articles, isLoading, isError } = useGetArticles();
   const viewMutation = useArticleView();
   const likeMutation = useArticleLike();
@@ -265,6 +266,14 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
     : resolveMemberImageUrl(article.authorMember?.image);
   const authorLogo = authorImage ?? (article.authorTeam?.logo?.url || null);
   const initials = authorName.slice(0, 2).toUpperCase();
+  const authorMainTeamRoles = article.authorMember?.teamMemberRoles;
+  const authorMainTeamRole = authorMainTeamRoles?.find((t) => t.mainTeam) ?? authorMainTeamRoles?.[0];
+  const authorMemberMainTeamUid = authorMainTeamRole?.team?.uid ?? null;
+  const backTo = encodeURIComponent(pathname);
+  const authorProfileHref = !isTeamAuthor
+    ? `/members/${article.authorMember?.uid}?backTo=${backTo}`
+    : `/teams/${article.authorTeam?.uid}?backTo=${backTo}`;
+  const authorTeamHref = authorMemberMainTeamUid ? `/teams/${authorMemberMainTeamUid}?backTo=${backTo}` : null;
   const officeHoursUrl = article.authorMember?.officeHours || article.authorTeam?.officeHours || null;
   const scheduleMeetingLinkType: 'member' | 'team' | null = article.authorMember?.officeHours
     ? 'member'
@@ -304,18 +313,30 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
       <p className={s.ohTitle}>Book Office Hours with the author</p>
       <div className={s.ohBanner}>
         <div className={s.ohLeft}>
-          <div className={s.ohAvatarWrap}>
-            {authorImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={authorImage} alt={authorName} className={s.ohAvatar} />
-            ) : (
-              <div className={s.ohInitial}>{initials}</div>
-            )}
-          </div>
+          <Link href={authorProfileHref} className={s.ohAvatarLink}>
+            <div className={s.ohAvatarWrap}>
+              {authorImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={authorImage} alt={authorName} className={s.ohAvatar} />
+              ) : (
+                <div className={s.ohInitial}>{initials}</div>
+              )}
+            </div>
+          </Link>
           <div className={s.ohInfo}>
             <div className={s.ohNameRow}>
-              <span className={s.ohName}>{authorName}</span>
-              {authorRoleAndTeam && (
+              <Link href={authorProfileHref} className={s.ohNameLink}>
+                {authorName}
+              </Link>
+              {authorRoleAndTeam && authorTeamHref && (
+                <>
+                  <DotSepLarge />
+                  <Link href={authorTeamHref} className={s.ohRoleLink}>
+                    {authorRoleAndTeam}
+                  </Link>
+                </>
+              )}
+              {authorRoleAndTeam && !authorTeamHref && (
                 <>
                   <DotSepLarge />
                   <span className={s.ohRole}>{authorRoleAndTeam}</span>
@@ -384,14 +405,26 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
               {ohCard ? null : (
                 <>
                   <div className={s.authorDetails}>
-                    {authorLogo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={authorLogo} alt={authorName} className={s.authorAvatar} />
-                    ) : (
-                      <img src={defaultAvatar} alt={authorName} className={s.authorAvatar} />
+                    <Link href={authorProfileHref} className={s.authorAvatarLink}>
+                      {authorLogo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={authorLogo} alt={authorName} className={s.authorAvatar} />
+                      ) : (
+                        <img src={defaultAvatar} alt={authorName} className={s.authorAvatar} />
+                      )}
+                    </Link>
+                    <Link href={authorProfileHref} className={s.authorNameLink}>
+                      {authorName}
+                    </Link>
+                    {authorRoleAndTeam && authorTeamHref && (
+                      <>
+                        <DotSep />
+                        <Link href={authorTeamHref} className={s.authorRoleLink}>
+                          {authorRoleAndTeam}
+                        </Link>
+                      </>
                     )}
-                    <span className={s.authorName}>{authorName}</span>
-                    {authorRoleAndTeam && (
+                    {authorRoleAndTeam && !authorTeamHref && (
                       <>
                         <DotSep />
                         <span className={s.authorRole}>{authorRoleAndTeam}</span>

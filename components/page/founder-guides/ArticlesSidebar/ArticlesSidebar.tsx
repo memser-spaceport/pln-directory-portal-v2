@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
+import Select from 'react-select';
 import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -182,6 +183,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
   const pathname = usePathname();
   const { byCategory, isLoading } = useGetArticles();
   const { scopes: userScopes } = useFounderGuidesScopes();
+  const scopeOptions = useMemo(() => userScopes.map((s) => ({ label: SCOPE_LABELS[s] ?? s, value: s })), [userScopes]);
   const [search, setSearch] = useState('');
   const [selectedScope, setSelectedScope] = useState<string | null>(null);
   const [openCategories, setOpenCategories] = useState<Set<string> | null>(null);
@@ -267,17 +269,38 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
       {userScopes.length >= 2 && (
         <div className={s.viewingAs}>
           <span className={s.viewingAsLabel}>Viewing as:</span>
-          <select
-            value={selectedScope ?? ''}
-            onChange={(e) => setSelectedScope(e.target.value)}
-            className={s.scopeSelect}
-          >
-            {userScopes.map((scope) => (
-              <option key={scope} value={scope}>
-                {SCOPE_LABELS[scope] ?? scope}
-              </option>
-            ))}
-          </select>
+          <Select
+            options={scopeOptions}
+            value={scopeOptions.find((o) => o.value === selectedScope) ?? null}
+            onChange={(opt) => opt && setSelectedScope(opt.value)}
+            isSearchable={false}
+            styles={{
+              container: (base) => ({ ...base, width: '100%' }),
+              control: (base) => ({
+                ...base,
+                borderRadius: '8px',
+                border: '1px solid rgba(203, 213, 225, 0.50)',
+                boxShadow: 'none',
+                fontSize: '14px',
+                color: '#455468',
+                minHeight: '40px',
+                '&:hover': {
+                  border: '1px solid #5E718D',
+                  boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12)',
+                },
+              }),
+              indicatorSeparator: () => ({ display: 'none' }),
+              option: (base, state) => ({
+                ...base,
+                fontSize: '14px',
+                fontWeight: 300,
+                color: '#455468',
+                background: state.isSelected ? 'rgba(27, 56, 96, 0.12)' : 'transparent',
+                '&:hover': { background: 'rgba(27, 56, 96, 0.12)' },
+              }),
+              menu: (base) => ({ ...base, zIndex: 3 }),
+            }}
+          />
         </div>
       )}
 

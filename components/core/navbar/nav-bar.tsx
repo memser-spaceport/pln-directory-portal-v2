@@ -121,12 +121,20 @@ function Navbar(props: Readonly<INavbar>) {
             <ForumIcon /> Forum
           </NavLink>
         </NavigationMenu.Item>
-        <NavItemWithMenu
-          icon={<DemoDayIcon />}
-          label="Demo Day"
-          items={[DEMO_DAY_LINK, ...(hasDemoDayAnalyticsAccess ? [DEMO_DAY_ANALYTICS_LINK] : [])]}
-          onNavItemClickHandler={onNavItemClickHandler}
-        />
+        {hasDemoDayAnalyticsAccess ? (
+          <NavItemWithMenu
+            icon={<DemoDayIcon />}
+            label="Demo Day"
+            items={[DEMO_DAY_LINK, DEMO_DAY_ANALYTICS_LINK]}
+            onNavItemClickHandler={onNavItemClickHandler}
+          />
+        ) : (
+          <NavigationMenu.Item className={s.menuItem}>
+            <NavLink className={s.Trigger} href="/demoday" onClick={() => onNavItemClickHandler('/demoday', 'Demo Day')}>
+              <DemoDayIcon /> Demo Day
+            </NavLink>
+          </NavigationMenu.Item>
+        )}
         {moreLinks.length > 0 && (
           <NavItemWithMenu
             icon={<MoreIcon />}

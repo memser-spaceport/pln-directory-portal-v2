@@ -308,6 +308,14 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ANALYTICS_REPORT_TIME_ON_PAGE, eventParams);
   }
 
+  function onDemoDayAnalyticsPageOpened(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_DEMO_DAY_ANALYTICS_PAGE_OPENED, eventParams);
+  }
+
+  function onDemoDayAnalyticsPageLeft(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_DEMO_DAY_ANALYTICS_PAGE_LEFT, eventParams);
+  }
+
   return {
     onLandingPageOpened,
     onLandingLoginButtonClicked,
@@ -381,5 +389,7 @@ export const useDemoDayAnalytics = () => {
     onActiveViewVideoWatchTime,
     onAnalyticsReportPageOpened,
     onAnalyticsReportTimeOnPage,
+    onDemoDayAnalyticsPageOpened,
+    onDemoDayAnalyticsPageLeft,
   };
 };

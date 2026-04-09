@@ -2069,4 +2069,7 @@ export const DEMO_DAY_ANALYTICS = {
   ON_INVESTOR_DRAWER_FORM_SAVED: 'demo-day-investor-drawer-form-saved',
   ON_ANALYTICS_REPORT_PAGE_OPENED: 'demo-day-analytics-report-page-opened',
   ON_ANALYTICS_REPORT_TIME_ON_PAGE: 'demo-day-analytics-report-time-on-page',
+  ON_DEMO_DAY_ANALYTICS_PAGE_OPENED: 'demo-day-analytics-page-opened',
+  ON_DEMO_DAY_ANALYTICS_PAGE_LEFT: 'demo-day-analytics-page-left',
+  ON_DEMO_DAY_ANALYTICS_TIME_ON_PAGE: 'demo-day-analytics-time-on-page',
 };

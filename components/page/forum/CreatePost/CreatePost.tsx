@@ -223,7 +223,7 @@ export const CreatePost = (props: Props) => {
               <FormField name="title" placeholder="Enter the title" label="Title" max={255} />
               <FormEditor
                 name="content"
-                placeholder="Write your post"
+                placeholder="Write your post here. Use @ to mention someone."
                 label={<PostFormEditorLabel />}
                 className={s.editor}
                 classes={{

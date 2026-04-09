@@ -139,9 +139,11 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
           {focused ? (
             <FormEditor
               name="comment"
-              placeholder="Comment"
+              placeholder="Write your comment here. Use @ to mention someone."
               autoFocus
-              onMentionInitiated={() => analytics.onMentionInitiated({ context: isEdit ? 'edit_comment' : 'create_comment' })}
+              onMentionInitiated={() =>
+                analytics.onMentionInitiated({ context: isEdit ? 'edit_comment' : 'create_comment' })
+              }
               onMentionSearch={(query, resultsCount) =>
                 analytics.onMentionSearch({ query, resultsCount, context: isEdit ? 'edit_comment' : 'create_comment' })
               }
@@ -157,7 +159,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
           ) : (
             <FormField
               name="dummy"
-              placeholder="Comment"
+              placeholder="Write your comment here. Use @ to mention someone."
               onClick={() => {
                 analytics.onCommentInputClicked({ tid, timeSincePostCreation: Date.now() - timestamp });
                 setFocused(true);

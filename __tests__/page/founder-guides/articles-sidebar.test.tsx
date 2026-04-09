@@ -19,6 +19,10 @@ jest.mock('@/services/rbac/hooks/useFounderGuidesCreateAccess', () => ({
   useFounderGuidesCreateAccess: () => ({ canCreate: false }),
 }));
 
+jest.mock('@/services/rbac/hooks/useFounderGuidesScopes', () => ({
+  useFounderGuidesScopes: () => ({ scopes: [], isLoading: false }),
+}));
+
 jest.mock('@/analytics/founder-guides.analytics', () => ({
   useFounderGuidesAnalytics: () => ({
     trackSidebarSearch: jest.fn(),

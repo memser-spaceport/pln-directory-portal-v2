@@ -4,6 +4,7 @@ export interface IArticle {
   title: string;
   summary: string;
   category: string;
+  scope: string | null;
   tags: string[];
   content: string;
   readingTime: number;

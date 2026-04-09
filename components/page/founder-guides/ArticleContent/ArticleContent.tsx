@@ -483,7 +483,6 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
             </>
           )}
 
-          <hr className={s.divider} />
           <GuideComments articleUid={article.uid} userInfo={userInfo} />
         </div>
       </div>

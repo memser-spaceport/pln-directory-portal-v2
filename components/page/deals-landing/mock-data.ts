@@ -136,7 +136,7 @@ export const mockFaqItems: FAQItem[] = [
   {
     question: 'What is the PL Deals program?',
     answer:
-      'Deals are exclusive discounts or offers that companies provide to 120+ PL funded teams. Teams use these deals when adopting new tools, scaling infrastructure, or launching new products.',
+      'Deals are exclusive discounts or offers that companies provide to PL funded teams. Teams use these deals when adopting new tools, scaling infrastructure, or launching new products.',
   },
   {
     question: 'What are the minimum requirements for a deal?',
@@ -146,7 +146,7 @@ export const mockFaqItems: FAQItem[] = [
   {
     question: 'Who can see and redeem deals?',
     answer:
-      'Deals are available exclusively to 120+ PL funded teams. Access is managed by PL admins to ensure deals remain exclusive to portfolio companies.',
+      'Deals are available exclusively to PL funded teams. Access is managed by PL admins to ensure deals remain exclusive to portfolio companies.',
   },
   {
     question: 'How long does approval take?',
@@ -164,7 +164,7 @@ export const mockValueProps: ValueProp[] = [
   {
     icon: 'users',
     title: 'Direct access to verified builders',
-    description: 'Your deal is visible to 120+ PL funded teams actively building and spending on tools.',
+    description: 'Your deal is visible to PL funded teams actively building and spending on tools.',
   },
   {
     icon: 'zap',

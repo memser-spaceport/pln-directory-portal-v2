@@ -33,7 +33,7 @@ export function DealsLandingPage() {
           <div className={s.heroInner}>
             <h1 className={s.heroHeadline}>
               <span className={s.heroHeadlineLine}>Get Your Product in Front</span>
-              <span className={s.heroHeadlineLine}>of 120+ PL Funded Teams</span>
+              <span className={s.heroHeadlineLine}>of PL Funded Teams</span>
             </h1>
             <p className={s.heroSubheadline}>
               Reach 120+ PL funded teams building across Web3, AI, and deep tech — and turn them into long-term customers.
@@ -44,7 +44,7 @@ export function DealsLandingPage() {
               </Button>
             </div>
             <p className={s.heroSignInLink}>
-              PL funded team?{' '}
+              PL funded founder?{' '}
               <a href="#login" onClick={(e) => { e.preventDefault(); handleLoginClick(); }}>
                 Sign in to view Deals
               </a>

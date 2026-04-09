@@ -25,6 +25,42 @@
   text-align: left;
 }
 
+// ── Viewing As ────────────────────────────────────────────
+.viewingAs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 0;
+  flex-shrink: 0;
+}
+
+.viewingAsLabel {
+  font-size: 13px;
+  font-weight: 400;
+  color: #6d7b8d;
+  white-space: nowrap;
+  letter-spacing: -0.1px;
+}
+
+.scopeSelect {
+  flex: 1;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0a0c11;
+  background: #fff;
+  outline: none;
+  cursor: pointer;
+  appearance: auto;
+
+  &:focus {
+    border-color: #1b4dff;
+  }
+}
+
 // ── Search ────────────────────────────────────────────────
 .searchWrapper {
   position: relative;

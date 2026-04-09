@@ -1,9 +1,10 @@
 import * as yup from 'yup';
 import { IArticle } from '@/types/articles.types';
-import { ARTICLE_CATEGORIES } from '@/services/articles/constants';
+import { ARTICLE_CATEGORIES, SCOPE_LABELS } from '@/services/articles/constants';
 
 export const createArticleSchema = yup.object().shape({
   category: yup.object().required('Category is required'),
+  scope: yup.object().nullable().optional(),
   title: yup.string().max(255, 'Title exceeds 255 characters. Please shorten.').required('Title is required'),
   summary: yup.string().max(100, 'Max 100 characters.').required('Summary is required'),
   readingTime: yup
@@ -37,6 +38,7 @@ export const createArticleSchema = yup.object().shape({
 
 export type CreateArticleForm = {
   category: { label: string; value: string } | null;
+  scope: { label: string; value: string } | null;
   title: string;
   summary: string;
   readingTime: number | null;
@@ -62,8 +64,13 @@ export function articleToFormValues(article: IArticle): CreateArticleForm {
     author = { label: article.authorTeam.name, value: article.authorTeam.uid, type: 'team' };
   }
 
+  const scopeOption = article.scope
+    ? { label: SCOPE_LABELS[article.scope] ?? article.scope, value: article.scope }
+    : null;
+
   return {
     category: categoryOption,
+    scope: scopeOption,
     title: article.title || '',
     summary: article.summary || '',
     readingTime: article.readingTime || null,

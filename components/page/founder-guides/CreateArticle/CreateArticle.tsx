@@ -15,7 +15,8 @@ import useBlockNavigation from '@/hooks/useUnsavedChangesWarning';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useCreateArticleMutation } from '@/services/articles/hooks/useCreateArticleMutation';
 import { useUpdateArticleMutation } from '@/services/articles/hooks/useUpdateArticleMutation';
-import { ARTICLE_CATEGORIES } from '@/services/articles/constants';
+import { ARTICLE_CATEGORIES, SCOPE_LABELS } from '@/services/articles/constants';
+import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
 import { IArticle } from '@/types/articles.types';
 import { AuthorAutocomplete } from './AuthorAutocomplete';
 import { createArticleSchema, CreateArticleForm, articleToFormValues } from './helpers';
@@ -47,12 +48,16 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
 
   const categoryOptions = useMemo(() => ARTICLE_CATEGORIES.map((c) => ({ label: c, value: c })), []);
 
+  const { scopes: userScopes } = useFounderGuidesScopes();
+  const scopeOptions = useMemo(() => userScopes.map((s) => ({ label: SCOPE_LABELS[s] ?? s, value: s })), [userScopes]);
+
   const defaultValues = useMemo(
     () =>
       isEditMode && article
         ? articleToFormValues(article)
         : {
             category: null,
+            scope: null,
             title: '',
             summary: '',
             readingTime: null,
@@ -101,6 +106,7 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
       title: data.title,
       summary: data.summary || undefined,
       category: data.category?.value,
+      scope: data.scope?.value ?? null,
       readingTime: data.readingTime || undefined,
       content: data.content,
       authorMemberUid: author?.type === 'member' ? author.value : undefined,
@@ -171,6 +177,16 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
                 options={categoryOptions}
                 isRequired
               />
+
+              {userScopes.length > 0 && (
+                <FormSelect
+                  name="scope"
+                  placeholder="Select scope"
+                  label="Scope"
+                  options={scopeOptions}
+                  isClearable
+                />
+              )}
 
               <FormField
                 name="title"

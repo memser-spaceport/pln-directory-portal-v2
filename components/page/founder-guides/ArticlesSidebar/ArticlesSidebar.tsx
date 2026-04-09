@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
+import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
+import { SCOPE_LABELS } from '@/services/articles/constants';
 import { extractHeadings } from '@/utils/markdown';
 import s from './ArticlesSidebar.module.scss';
 
@@ -179,7 +181,9 @@ function getCategoryIcon(category: string) {
 export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSidebarProps) {
   const pathname = usePathname();
   const { byCategory, isLoading } = useGetArticles();
+  const { scopes: userScopes } = useFounderGuidesScopes();
   const [search, setSearch] = useState('');
+  const [selectedScope, setSelectedScope] = useState<string | null>(null);
   const [openCategories, setOpenCategories] = useState<Set<string> | null>(null);
   const { trackSidebarSearch, trackRequestGuideLinkClicked } = useFounderGuidesAnalytics();
   const searchDebounceSkipRef = useRef(true);
@@ -195,6 +199,22 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
     return () => clearTimeout(t);
   }, [search, trackSidebarSearch]);
 
+  useEffect(() => {
+    if (userScopes.length >= 2 && selectedScope === null) {
+      setSelectedScope(userScopes[0]);
+    }
+  }, [userScopes, selectedScope]);
+
+  const scopeFiltered = useMemo(() => {
+    if (!selectedScope) return byCategory;
+    return byCategory
+      .map(({ category, articles }) => ({
+        category,
+        articles: articles.filter((a) => a.scope === selectedScope || a.scope === null),
+      }))
+      .filter(({ articles }) => articles.length > 0);
+  }, [byCategory, selectedScope]);
+
   const effectiveOpenCategories = useMemo(
     () => openCategories ?? new Set(byCategory.map((c) => c.category)),
     [byCategory, openCategories],
@@ -205,15 +225,15 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
   const isRequestActive = pathname === '/founder-guides/request';
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return byCategory;
+    if (!search.trim()) return scopeFiltered;
     const q = search.toLowerCase();
-    return byCategory
+    return scopeFiltered
       .map((cat) => ({
         ...cat,
         articles: cat.articles.filter((a) => a.title.toLowerCase().includes(q) || a.content.toLowerCase().includes(q)),
       }))
       .filter((cat) => cat.articles.length > 0);
-  }, [byCategory, search]);
+  }, [scopeFiltered, search]);
 
   // Auto-expand categories when searching
   const visibleCategories = useMemo(() => {
@@ -241,6 +261,23 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
       {!hideHeader && (
         <div className={s.header}>
           <span className={s.title}>Browse Guides</span>
+        </div>
+      )}
+
+      {userScopes.length >= 2 && (
+        <div className={s.viewingAs}>
+          <span className={s.viewingAsLabel}>Viewing as:</span>
+          <select
+            value={selectedScope ?? ''}
+            onChange={(e) => setSelectedScope(e.target.value)}
+            className={s.scopeSelect}
+          >
+            {userScopes.map((scope) => (
+              <option key={scope} value={scope}>
+                {SCOPE_LABELS[scope] ?? scope}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 

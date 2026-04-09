@@ -305,7 +305,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
       )}
 
       <div className={s.searchWrapper}>
-        <span className={s.searchIconWrap}>
+        <span className={s.searchIcon}>
           <SearchIcon />
         </span>
         <input

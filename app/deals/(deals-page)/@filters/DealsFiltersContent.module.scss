@@ -4,10 +4,9 @@
 }
 
 .web {
-  display: none;
-  position: fixed;
-  background: #fff;
   z-index: 1;
+  display: none;
+  background: #fff;
 
   @media (min-width: 1024px) {
     display: unset;

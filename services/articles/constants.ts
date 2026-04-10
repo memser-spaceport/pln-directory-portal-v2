@@ -11,3 +11,10 @@ export const ARTICLE_CATEGORIES = [
 ] as const;
 
 export type ArticleCategory = (typeof ARTICLE_CATEGORIES)[number];
+
+export const AVAILABLE_SCOPES = ['PLVS', 'PLCC'] as const;
+export type ArticleScope = (typeof AVAILABLE_SCOPES)[number];
+export const SCOPE_LABELS: Record<string, string> = {
+  PLVS: 'PLVS Founder',
+  PLCC: 'PLCC Founder',
+};

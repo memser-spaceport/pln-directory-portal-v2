@@ -9,6 +9,7 @@ type UpdateArticlePayload = {
   title: string;
   summary?: string;
   category: string;
+  scope?: string | null;
   content: string;
   authorMemberUid?: string;
   authorTeamUid?: string;

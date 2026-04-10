@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
@@ -15,6 +15,7 @@ import { useArticleLike } from '@/services/articles/hooks/useArticleLike';
 import { getMemberInfo } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
+import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { canEditArticle, formatAuthorMemberMainTeamLabel } from './helpers';
@@ -147,6 +148,7 @@ function DotSepLarge() {
 
 export default function ArticleContent({ slug }: ArticleContentProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { articles, isLoading, isError } = useGetArticles();
   const viewMutation = useArticleView();
   const likeMutation = useArticleLike();
@@ -167,6 +169,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const { userInfo } = getCookiesFromClient();
   const isAuthenticated = !!userInfo;
   const { canCreate } = useFounderGuidesCreateAccess();
+  const { scopes } = useFounderGuidesScopes();
 
   const authorMemberUid = article?.authorMember?.uid;
   const { data: memberData } = useQuery({
@@ -265,6 +268,14 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
     : resolveMemberImageUrl(article.authorMember?.image);
   const authorLogo = authorImage ?? (article.authorTeam?.logo?.url || null);
   const initials = authorName.slice(0, 2).toUpperCase();
+  const authorMainTeamRoles = article.authorMember?.teamMemberRoles;
+  const authorMainTeamRole = authorMainTeamRoles?.find((t) => t.mainTeam) ?? authorMainTeamRoles?.[0];
+  const authorMemberMainTeamUid = authorMainTeamRole?.team?.uid ?? null;
+  const backTo = encodeURIComponent(pathname);
+  const authorProfileHref = !isTeamAuthor
+    ? `/members/${article.authorMember?.uid}?backTo=${backTo}`
+    : `/teams/${article.authorTeam?.uid}?backTo=${backTo}`;
+  const authorTeamHref = authorMemberMainTeamUid ? `/teams/${authorMemberMainTeamUid}?backTo=${backTo}` : null;
   const officeHoursUrl = article.authorMember?.officeHours || article.authorTeam?.officeHours || null;
   const scheduleMeetingLinkType: 'member' | 'team' | null = article.authorMember?.officeHours
     ? 'member'
@@ -304,18 +315,30 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
       <p className={s.ohTitle}>Book Office Hours with the author</p>
       <div className={s.ohBanner}>
         <div className={s.ohLeft}>
-          <div className={s.ohAvatarWrap}>
-            {authorImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={authorImage} alt={authorName} className={s.ohAvatar} />
-            ) : (
-              <div className={s.ohInitial}>{initials}</div>
-            )}
-          </div>
+          <Link href={authorProfileHref} className={s.ohAvatarLink}>
+            <div className={s.ohAvatarWrap}>
+              {authorImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={authorImage} alt={authorName} className={s.ohAvatar} />
+              ) : (
+                <div className={s.ohInitial}>{initials}</div>
+              )}
+            </div>
+          </Link>
           <div className={s.ohInfo}>
             <div className={s.ohNameRow}>
-              <span className={s.ohName}>{authorName}</span>
-              {authorRoleAndTeam && (
+              <Link href={authorProfileHref} className={s.ohNameLink}>
+                {authorName}
+              </Link>
+              {authorRoleAndTeam && authorTeamHref && (
+                <>
+                  <DotSepLarge />
+                  <Link href={authorTeamHref} className={s.ohRoleLink}>
+                    {authorRoleAndTeam}
+                  </Link>
+                </>
+              )}
+              {authorRoleAndTeam && !authorTeamHref && (
                 <>
                   <DotSepLarge />
                   <span className={s.ohRole}>{authorRoleAndTeam}</span>
@@ -358,14 +381,14 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
           subheaderSlot,
         )}
       <div className={s.root}>
-        <BackButton to="/founder-guides" className={s.backButton} onNavigate={trackArticleBackClicked} />
+        <div className={s.topRow}>
+          <BackButton to="/founder-guides" className={s.backButton} onNavigate={trackArticleBackClicked} />
+        </div>
         <div className={s.card}>
           <header className={s.header}>
-            {/*<span className={s.categoryBadge}>{article.category}</span>*/}
-
-            <div className={s.titleRow}>
-              <h1 className={s.title}>{article.title}</h1>
-              {canEdit && (
+            <div className={s.topRowActions}>
+              {scopes.length > 1 && article.scope ? <span className={s.categoryBadge}>{article.scope}</span> : null}
+              {canEdit ? (
                 <Link
                   href={`/founder-guides/${article.slugURL}/edit`}
                   className={s.editButton}
@@ -374,7 +397,10 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
                   <NotePencilIcon />
                   <span>Edit Guide</span>
                 </Link>
-              )}
+              ) : null}
+            </div>
+            <div className={s.titleRow}>
+              <h1 className={s.title}>{article.title}</h1>
             </div>
 
             {article.summary && <p className={s.summary}>{article.summary}</p>}
@@ -384,14 +410,26 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
               {ohCard ? null : (
                 <>
                   <div className={s.authorDetails}>
-                    {authorLogo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={authorLogo} alt={authorName} className={s.authorAvatar} />
-                    ) : (
-                      <img src={defaultAvatar} alt={authorName} className={s.authorAvatar} />
+                    <Link href={authorProfileHref} className={s.authorAvatarLink}>
+                      {authorLogo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={authorLogo} alt={authorName} className={s.authorAvatar} />
+                      ) : (
+                        <img src={defaultAvatar} alt={authorName} className={s.authorAvatar} />
+                      )}
+                    </Link>
+                    <Link href={authorProfileHref} className={s.authorNameLink}>
+                      {authorName}
+                    </Link>
+                    {authorRoleAndTeam && authorTeamHref && (
+                      <>
+                        <DotSep />
+                        <Link href={authorTeamHref} className={s.authorRoleLink}>
+                          {authorRoleAndTeam}
+                        </Link>
+                      </>
                     )}
-                    <span className={s.authorName}>{authorName}</span>
-                    {authorRoleAndTeam && (
+                    {authorRoleAndTeam && !authorTeamHref && (
                       <>
                         <DotSep />
                         <span className={s.authorRole}>{authorRoleAndTeam}</span>

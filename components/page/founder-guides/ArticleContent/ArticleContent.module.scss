@@ -12,9 +12,27 @@
   }
 }
 
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 24px;
+}
+
+.topRowActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  @media (max-width: 1023px) {
+    display: none;
+  }
+}
+
 .backButton {
   display: flex !important;
-  padding: 0 0 24px !important;
+  padding: 0 !important;
   box-shadow: none !important;
   height: auto;
 }
@@ -48,7 +66,7 @@
   gap: 16px;
 }
 
-// Edit Guide ghost button (desktop only)
+// Edit Guide ghost button (inside topRowActions, hidden on mobile via parent)
 .editButton {
   display: flex;
   align-items: center;
@@ -67,10 +85,6 @@
 
   &:hover {
     color: #1b4dff;
-  }
-
-  @media (max-width: 1023px) {
-    display: none;
   }
 }
 
@@ -179,6 +193,44 @@
   letter-spacing: -0.2px;
   color: #455468;
   white-space: nowrap;
+}
+
+.authorAvatarLink {
+  display: flex;
+  flex-shrink: 0;
+  border-radius: 9999px;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.authorNameLink {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #0a0c11;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    color: #1b4dff;
+  }
+}
+
+.authorRoleLink {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    color: #1b4dff;
+  }
 }
 
 // Vertical hairline divider between author and stats
@@ -460,6 +512,52 @@
 
   @include tablet-landscape {
     font-size: 16px;
+  }
+}
+
+.ohAvatarLink {
+  display: flex;
+  flex-shrink: 0;
+  border-radius: 9999px;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.ohNameLink {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0a0c11;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+  white-space: nowrap;
+
+  @include tablet-landscape {
+    font-size: 16px;
+  }
+
+  &:hover {
+    color: #1b4dff;
+  }
+}
+
+.ohRoleLink {
+  font-size: 14px;
+  font-weight: 400;
+  color: #455468;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+  white-space: nowrap;
+
+  @include tablet-landscape {
+    font-size: 16px;
+  }
+
+  &:hover {
+    color: #1b4dff;
   }
 }
 

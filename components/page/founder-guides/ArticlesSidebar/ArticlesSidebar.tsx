@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
+import Select from 'react-select';
 import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
+import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
+import { SCOPE_LABELS } from '@/services/articles/constants';
 import { extractHeadings } from '@/utils/markdown';
 import s from './ArticlesSidebar.module.scss';
 
@@ -179,7 +182,10 @@ function getCategoryIcon(category: string) {
 export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSidebarProps) {
   const pathname = usePathname();
   const { byCategory, isLoading } = useGetArticles();
+  const { scopes: userScopes } = useFounderGuidesScopes();
+  const scopeOptions = useMemo(() => userScopes.map((s) => ({ label: SCOPE_LABELS[s] ?? s, value: s })), [userScopes]);
   const [search, setSearch] = useState('');
+  const [selectedScope, setSelectedScope] = useState<string | null>(null);
   const [openCategories, setOpenCategories] = useState<Set<string> | null>(null);
   const { trackSidebarSearch, trackRequestGuideLinkClicked } = useFounderGuidesAnalytics();
   const searchDebounceSkipRef = useRef(true);
@@ -195,6 +201,22 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
     return () => clearTimeout(t);
   }, [search, trackSidebarSearch]);
 
+  useEffect(() => {
+    if (userScopes.length >= 2 && selectedScope === null) {
+      setSelectedScope(userScopes[0]);
+    }
+  }, [userScopes, selectedScope]);
+
+  const scopeFiltered = useMemo(() => {
+    if (!selectedScope) return byCategory;
+    return byCategory
+      .map(({ category, articles }) => ({
+        category,
+        articles: articles.filter((a) => a.scope === selectedScope || a.scope === null),
+      }))
+      .filter(({ articles }) => articles.length > 0);
+  }, [byCategory, selectedScope]);
+
   const effectiveOpenCategories = useMemo(
     () => openCategories ?? new Set(byCategory.map((c) => c.category)),
     [byCategory, openCategories],
@@ -205,15 +227,15 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
   const isRequestActive = pathname === '/founder-guides/request';
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return byCategory;
+    if (!search.trim()) return scopeFiltered;
     const q = search.toLowerCase();
-    return byCategory
+    return scopeFiltered
       .map((cat) => ({
         ...cat,
         articles: cat.articles.filter((a) => a.title.toLowerCase().includes(q) || a.content.toLowerCase().includes(q)),
       }))
       .filter((cat) => cat.articles.length > 0);
-  }, [byCategory, search]);
+  }, [scopeFiltered, search]);
 
   // Auto-expand categories when searching
   const visibleCategories = useMemo(() => {
@@ -244,8 +266,46 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
         </div>
       )}
 
+      {userScopes.length >= 2 && (
+        <div className={s.viewingAs}>
+          <span className={s.viewingAsLabel}>Viewing as:</span>
+          <Select
+            options={scopeOptions}
+            value={scopeOptions.find((o) => o.value === selectedScope) ?? null}
+            onChange={(opt) => opt && setSelectedScope(opt.value)}
+            isSearchable={false}
+            styles={{
+              container: (base) => ({ ...base, width: '100%' }),
+              control: (base) => ({
+                ...base,
+                borderRadius: '8px',
+                border: '1px solid rgba(203, 213, 225, 0.50)',
+                boxShadow: 'none',
+                fontSize: '14px',
+                color: '#455468',
+                minHeight: '40px',
+                '&:hover': {
+                  border: '1px solid #5E718D',
+                  boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12)',
+                },
+              }),
+              indicatorSeparator: () => ({ display: 'none' }),
+              option: (base, state) => ({
+                ...base,
+                fontSize: '14px',
+                fontWeight: 300,
+                color: '#455468',
+                background: state.isSelected ? 'rgba(27, 56, 96, 0.12)' : 'transparent',
+                '&:hover': { background: 'rgba(27, 56, 96, 0.12)' },
+              }),
+              menu: (base) => ({ ...base, zIndex: 3 }),
+            }}
+          />
+        </div>
+      )}
+
       <div className={s.searchWrapper}>
-        <span className={s.searchIconWrap}>
+        <span className={s.searchIcon}>
           <SearchIcon />
         </span>
         <input

@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
 import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
-import { SCOPE_LABELS } from '@/services/articles/constants';
+import { DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE, SCOPE_LABELS } from '@/services/articles/constants';
 import { extractHeadings } from '@/utils/markdown';
 import s from './ArticlesSidebar.module.scss';
 
@@ -203,7 +203,9 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
 
   useEffect(() => {
     if (userScopes.length >= 2 && selectedScope === null) {
-      setSelectedScope(userScopes[0]);
+      const next =
+        userScopes.includes(DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE) ? DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE : userScopes[0];
+      setSelectedScope(next);
     }
   }, [userScopes, selectedScope]);
 

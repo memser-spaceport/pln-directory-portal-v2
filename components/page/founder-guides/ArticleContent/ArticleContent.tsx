@@ -387,7 +387,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
         <div className={s.card}>
           <header className={s.header}>
             <div className={s.topRowActions}>
-              {scopes.length > 1 && article.scope ? <span className={s.categoryBadge}>{article.scope}</span> : null}
+              {scopes.length > 1 && article.scope ? <span className={s.categoryBadge}>{article.scope}</span> : <div />}
               {canEdit ? (
                 <Link
                   href={`/founder-guides/${article.slugURL}/edit`}

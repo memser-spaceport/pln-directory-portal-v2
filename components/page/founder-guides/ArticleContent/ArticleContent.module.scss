@@ -24,10 +24,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-
-  @media (max-width: 1023px) {
-    display: none;
-  }
 }
 
 .backButton {
@@ -68,7 +64,7 @@
 
 // Edit Guide ghost button (inside topRowActions, hidden on mobile via parent)
 .editButton {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 4px;
   font-size: 14px;
@@ -82,6 +78,10 @@
   padding: 0;
   cursor: pointer;
   transition: color 0.15s ease;
+
+  @include tablet-landscape {
+    display: flex;
+  }
 
   &:hover {
     color: #1b4dff;

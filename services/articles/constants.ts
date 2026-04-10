@@ -14,6 +14,9 @@ export type ArticleCategory = (typeof ARTICLE_CATEGORIES)[number];
 
 export const AVAILABLE_SCOPES = ['PLVS', 'PLCC'] as const;
 export type ArticleScope = (typeof AVAILABLE_SCOPES)[number];
+
+/** Default "Viewing as" scope when the user has multiple founder_guides.view scopes. */
+export const DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE: ArticleScope = 'PLVS';
 export const SCOPE_LABELS: Record<string, string> = {
   PLVS: 'PLVS Founder',
   PLCC: 'PLCC Founder',

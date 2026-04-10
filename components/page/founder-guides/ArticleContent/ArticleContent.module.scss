@@ -12,9 +12,27 @@
   }
 }
 
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 24px;
+}
+
+.topRowActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  @media (max-width: 1023px) {
+    display: none;
+  }
+}
+
 .backButton {
   display: flex !important;
-  padding: 0 0 24px !important;
+  padding: 0 !important;
   box-shadow: none !important;
   height: auto;
 }
@@ -48,7 +66,7 @@
   gap: 16px;
 }
 
-// Edit Guide ghost button (desktop only)
+// Edit Guide ghost button (inside topRowActions, hidden on mobile via parent)
 .editButton {
   display: flex;
   align-items: center;
@@ -67,10 +85,6 @@
 
   &:hover {
     color: #1b4dff;
-  }
-
-  @media (max-width: 1023px) {
-    display: none;
   }
 }
 

@@ -15,6 +15,7 @@ import { useArticleLike } from '@/services/articles/hooks/useArticleLike';
 import { getMemberInfo } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
+import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { canEditArticle, formatAuthorMemberMainTeamLabel } from './helpers';
@@ -168,6 +169,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   const { userInfo } = getCookiesFromClient();
   const isAuthenticated = !!userInfo;
   const { canCreate } = useFounderGuidesCreateAccess();
+  const { scopes } = useFounderGuidesScopes();
 
   const authorMemberUid = article?.authorMember?.uid;
   const { data: memberData } = useQuery({
@@ -379,14 +381,14 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
           subheaderSlot,
         )}
       <div className={s.root}>
-        <BackButton to="/founder-guides" className={s.backButton} onNavigate={trackArticleBackClicked} />
+        <div className={s.topRow}>
+          <BackButton to="/founder-guides" className={s.backButton} onNavigate={trackArticleBackClicked} />
+        </div>
         <div className={s.card}>
           <header className={s.header}>
-            {/*<span className={s.categoryBadge}>{article.category}</span>*/}
-
-            <div className={s.titleRow}>
-              <h1 className={s.title}>{article.title}</h1>
-              {canEdit && (
+            <div className={s.topRowActions}>
+              {scopes.length > 1 && article.scope ? <span className={s.categoryBadge}>{article.scope}</span> : null}
+              {canEdit ? (
                 <Link
                   href={`/founder-guides/${article.slugURL}/edit`}
                   className={s.editButton}
@@ -395,7 +397,10 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
                   <NotePencilIcon />
                   <span>Edit Guide</span>
                 </Link>
-              )}
+              ) : null}
+            </div>
+            <div className={s.titleRow}>
+              <h1 className={s.title}>{article.title}</h1>
             </div>
 
             {article.summary && <p className={s.summary}>{article.summary}</p>}

@@ -19,6 +19,7 @@ import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesSc
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { canEditArticle, formatAuthorMemberMainTeamLabel } from './helpers';
+import { GuideComments } from '@/components/page/founder-guides/GuideComments/GuideComments';
 import s from './ArticleContent.module.scss';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
@@ -519,6 +520,8 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
               {ohCard}
             </>
           )}
+
+          <GuideComments articleUid={article.uid} userInfo={userInfo} />
         </div>
       </div>
     </>

@@ -235,10 +235,15 @@
 
 // Vertical hairline divider between author and stats
 .detailsDivider {
+  display: none;
   width: 1px;
   height: 24px;
   background: rgba(27, 56, 96, 0.12);
   flex-shrink: 0;
+
+  @include tablet-landscape {
+    display: flex;
+  }
 }
 
 // Stats row: likes · views · time · date

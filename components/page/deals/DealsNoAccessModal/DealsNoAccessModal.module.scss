@@ -1,41 +1,13 @@
-@use 'styles/media';
-@use 'styles/mixins';
-
-.overlay {
-  @include mixins.hide-scrollbar;
-  position: fixed;
-  top: var(--app-header-height);
-  right: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 4;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: auto;
-  background: var(--transparent-dark-56, rgba(14, 15, 17, 0.56));
-  backdrop-filter: blur(15px);
-
-  @include media.tablet-landscape {
-    padding: 32px;
-  }
-}
-
 .card {
   border-radius: 12px;
-  position: relative;
   max-width: 350px;
-  width: 270px;
-  padding: var(--spacing-lg, 20px);
-  gap: var(--spacing-xl, 24px);
+  width: 100%;
+  padding: 24px;
   display: flex;
-  height: fit-content;
   flex-direction: column;
   align-items: center;
+  gap: 16px;
   background: var(--background-base-white, #fff);
-  box-shadow:
-    0 10px 20px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06)),
-    0px 20px 65px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 }
 
 .iconWrap {

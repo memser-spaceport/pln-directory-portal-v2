@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { Modal } from '@/components/common/Modal/Modal';
 import { useContactSupportStore } from '@/services/contact-support/store';
 import s from './DealsNoAccessModal.module.scss';
 
@@ -16,26 +17,22 @@ export function DealsNoAccessModal() {
   });
   const { actions } = useContactSupportStore();
 
-  if (!visible) return null;
-
   return (
-    <div className={s.overlay}>
-      <div className={s.card}>
-        <div className={s.iconWrap}>
-          <LockIcon />
-        </div>
-        <h2 className={s.title}>Deals Access Unavailable</h2>
-        <p className={s.body}>You don&apos;t have access to Deals yet.</p>
-        <div className={s.actions}>
-          <button className={s.primaryBtn} onClick={() => actions.openModal()}>
-            Contact us
-          </button>
-          <button className={s.secondaryBtn} onClick={() => setVisible(false)}>
-            Got it
-          </button>
-        </div>
+    <Modal isOpen={visible} onClose={() => setVisible(false)} closeOnBackdropClick className={s.card}>
+      <div className={s.iconWrap}>
+        <LockIcon />
       </div>
-    </div>
+      <h2 className={s.title}>Deals Access Unavailable</h2>
+      <p className={s.body}>You don&apos;t have access to Deals yet.</p>
+      <div className={s.actions}>
+        <button className={s.primaryBtn} onClick={() => actions.openModal()}>
+          Contact us
+        </button>
+        <button className={s.secondaryBtn} onClick={() => setVisible(false)}>
+          Got it
+        </button>
+      </div>
+    </Modal>
   );
 }
 

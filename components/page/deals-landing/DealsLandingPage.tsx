@@ -8,12 +8,14 @@ import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/F
 import { SubmitDealModal } from '@/components/page/deals/SubmitDealModal/SubmitDealModal';
 import { SubmitDealSuccessModal } from '@/components/page/deals/SubmitDealSuccessModal/SubmitDealSuccessModal';
 import { useSubmitDealModalStore } from '@/services/deals/store';
+import { getUserInfoFromLocal } from '@/utils/common.utils';
 import { vendorLogoItems, mockFaqItems, mockHowItWorksSteps, mockValueProps } from './mock-data';
 import s from './DealsLandingPage.module.scss';
 
 export function DealsLandingPage() {
   const router = useRouter();
   const { openModal: openSubmitDealModal } = useSubmitDealModalStore((state) => state.actions);
+  const isLoggedIn = !!getUserInfoFromLocal();
 
   const handleLoginClick = () => {
     sessionStorage.setItem('dealsLoginIntent', '1');
@@ -40,18 +42,20 @@ export function DealsLandingPage() {
                   List Your Product
                 </Button>
               </div>
-              <p className={s.heroSignInLink}>
-                PL funded founder?{' '}
-                <a
-                  href="#login"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleLoginClick();
-                  }}
-                >
-                  Sign in to view Deals
-                </a>
-              </p>
+              {!isLoggedIn && (
+                <p className={s.heroSignInLink}>
+                  PL funded founder?{' '}
+                  <a
+                    href="#login"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleLoginClick();
+                    }}
+                  >
+                    Sign in to view Deals
+                  </a>
+                </p>
+              )}
             </div>
           </section>
 

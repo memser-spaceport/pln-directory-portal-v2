@@ -47,7 +47,7 @@ export const GuideCommentInput = (props: Props) => {
   const methods = useForm({
     defaultValues: {
       comment: initialContent ?? '',
-      emailMe: true,
+      emailMe: false,
     },
     resolver: yupResolver(schema),
   });
@@ -108,16 +108,16 @@ export const GuideCommentInput = (props: Props) => {
             <FormEditor
               autoFocus
               name="comment"
-              placeholder="Write your comment here. Use @ to mention someone."
+              placeholder="Have questions or comments  — add here."
               label={replyToName ? `Replying to ${replyToName}` : ''}
             />
-            <label className={s.label}>
-              <span className={s.labelText}>Email me when someone comments on this guide.</span>
-              <Checkbox
-                checked={!!emailMe}
-                onChange={(v) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}
-              />
-            </label>
+            {/*<label className={s.label}>*/}
+            {/*  <span className={s.labelText}>Email me when someone comments on this guide.</span>*/}
+            {/*  <Checkbox*/}
+            {/*    checked={!!emailMe}*/}
+            {/*    onChange={(v) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}*/}
+            {/*  />*/}
+            {/*</label>*/}
             <div className={s.controls}>
               <button
                 type="button"

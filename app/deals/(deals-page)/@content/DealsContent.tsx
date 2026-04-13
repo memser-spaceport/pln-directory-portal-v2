@@ -49,8 +49,8 @@ export default function DealsContent() {
     [filters],
   );
 
-  const { data: dealsData, isLoading, isError } = useGetDeals(searchParams);
-  const { data: filterValues } = useGetDealFilterValues();
+  const { data: dealsData, isLoading, isError } = useGetDeals(searchParams, hasAccess);
+  const { data: filterValues } = useGetDealFilterValues(hasAccess);
 
   const handleSortChange = useCallback(
     (sort: string) => {

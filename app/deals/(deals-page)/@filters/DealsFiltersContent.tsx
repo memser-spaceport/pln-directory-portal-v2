@@ -18,7 +18,7 @@ export default function DealsFiltersContent() {
   });
 
   const { hasAccess, isLoading: isAccessLoading } = useDealsAccess();
-  const { data: filterValues, isLoading, isError } = useGetDealFilterValues();
+  const { data: filterValues, isLoading, isError } = useGetDealFilterValues(hasAccess);
   const analytics = useDealsAnalytics();
   const handleClearAll = useCallback(() => {
     analytics.trackFilterCleared();

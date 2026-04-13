@@ -426,7 +426,8 @@
 .ohSection {
   flex-direction: column;
   display: flex;
-  width: 900px;
+  width: 100%;
+
   padding: 20px;
   align-items: flex-start;
   gap: var(--spacing-2xs, 8px);

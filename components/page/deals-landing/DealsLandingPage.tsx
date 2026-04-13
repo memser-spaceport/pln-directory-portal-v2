@@ -16,6 +16,7 @@ export function DealsLandingPage() {
   const { openModal: openSubmitDealModal } = useSubmitDealModalStore((state) => state.actions);
 
   const handleLoginClick = () => {
+    sessionStorage.setItem('dealsLoginIntent', '1');
     router.push(`${window.location.pathname}${window.location.search}#login`);
   };
 

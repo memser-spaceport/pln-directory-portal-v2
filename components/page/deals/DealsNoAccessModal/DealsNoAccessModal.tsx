@@ -5,8 +5,15 @@ import { useState } from 'react';
 import { useContactSupportStore } from '@/services/contact-support/store';
 import s from './DealsNoAccessModal.module.scss';
 
+const DEALS_LOGIN_INTENT_KEY = 'dealsLoginIntent';
+
 export function DealsNoAccessModal() {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const hasIntent = sessionStorage.getItem(DEALS_LOGIN_INTENT_KEY) === '1';
+    if (hasIntent) sessionStorage.removeItem(DEALS_LOGIN_INTENT_KEY);
+    return hasIntent;
+  });
   const { actions } = useContactSupportStore();
 
   if (!visible) return null;

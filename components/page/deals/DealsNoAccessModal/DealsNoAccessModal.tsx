@@ -27,8 +27,8 @@ export function DealsNoAccessModal() {
       </div>
       <h2 className={s.title}>Access Denied</h2>
       <p className={s.body}>
-        ou have an account with us, but you don&apos;t have access to Deals yet. Contact our support team if you believe
-        this is an error.
+        You have an account with us, but you don&apos;t have access to Deals yet. Contact our support team if you
+        believe this is an error.
       </p>
       <div className={s.buttons}>
         <Button className={s.cancelBtn} style="border" onClick={() => setVisible(false)}>

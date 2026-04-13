@@ -7,7 +7,6 @@ import { useContactSupportStore } from '@/services/contact-support/store';
 import s from './DealsNoAccessModal.module.scss';
 import { WarningCircleIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button';
-import clsx from 'clsx';
 
 const DEALS_LOGIN_INTENT_KEY = 'dealsLoginIntent';
 
@@ -21,7 +20,7 @@ export function DealsNoAccessModal() {
   const { actions } = useContactSupportStore();
 
   return (
-    <Modal isOpen={visible} onClose={() => setVisible(false)} closeOnBackdropClick className={s.card}>
+    <Modal isOpen={visible} onClose={() => setVisible(false)} className={s.card} closeOnBackdropClick={false}>
       <div className={s.iconWrap}>
         <WarningCircleIcon />
       </div>
@@ -30,20 +29,20 @@ export function DealsNoAccessModal() {
         You have an account with us, but you don&apos;t have access to Deals yet. Contact our support team if you
         believe this is an error.
       </p>
-      <div className={s.buttons}>
-        <Button className={s.cancelBtn} style="border" onClick={() => setVisible(false)}>
-          Got it
-        </Button>
-        <Button
-          className={s.primaryBtn}
-          onClick={() => {
-            actions.openModal();
-            setVisible(false);
-          }}
-        >
-          Contact us
-        </Button>
-      </div>
+      <Button style="fill" variant="primary" className={s.gotItBtn} onClick={() => setVisible(false)}>
+        Got it
+      </Button>
+      <Button
+        style="link"
+        variant="primary"
+        className={s.contactLink}
+        onClick={() => {
+          actions.openModal();
+          setVisible(false);
+        }}
+      >
+        Contact Support
+      </Button>
     </Modal>
   );
 }

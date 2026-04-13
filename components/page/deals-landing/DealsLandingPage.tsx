@@ -14,8 +14,10 @@ import s from './DealsLandingPage.module.scss';
 
 export function DealsLandingPage() {
   const router = useRouter();
-  const { openModal: openSubmitDealModal } = useSubmitDealModalStore((state) => state.actions);
+  const { openModal } = useSubmitDealModalStore((state) => state.actions);
   const isLoggedIn = !!getUserInfoFromLocal();
+
+  const openSubmitDealModal = () => openModal(true);
 
   const handleLoginClick = () => {
     sessionStorage.setItem('dealsLoginIntent', '1');
@@ -26,7 +28,6 @@ export function DealsLandingPage() {
     <div className={s.root}>
       <div className={s.pageCard}>
         <div className={s.container}>
-
           {/* ── 1. HERO ── */}
           <section className={s.hero}>
             <div className={s.heroInner}>
@@ -35,10 +36,17 @@ export function DealsLandingPage() {
                 <span className={s.heroHeadlineLine}>of PL Funded Teams</span>
               </h1>
               <p className={s.heroSubheadline}>
-                Reach 120+ PL funded teams building across Web3, AI, and deep tech — and turn them into long-term customers.
+                Reach 120+ PL funded teams building across Web3, AI, and deep tech — and turn them into long-term
+                customers.
               </p>
               <div className={s.heroActions}>
-                <Button style="fill" variant="primary" size="l" className={s.heroPrimaryBtn} onClick={openSubmitDealModal}>
+                <Button
+                  style="fill"
+                  variant="primary"
+                  size="l"
+                  className={s.heroPrimaryBtn}
+                  onClick={openSubmitDealModal}
+                >
                   List Your Product
                 </Button>
               </div>
@@ -162,7 +170,6 @@ export function DealsLandingPage() {
               <p className={s.finalCtaNote}>No integration required • Reviewed in 3–5 days</p>
             </div>
           </section>
-
         </div>
       </div>
       <SubmitDealModal />

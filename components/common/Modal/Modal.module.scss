@@ -16,11 +16,6 @@
   backdrop-filter: blur(15px);
   overflow-y: auto;
 
-  @include media.mobile-only {
-    background: rgba(14, 15, 17, 0.5);
-    backdrop-filter: none;
-  }
-
   @include media.tablet-landscape {
     padding: 24px;
   }

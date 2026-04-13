@@ -142,9 +142,9 @@ export const GuideCommentInput = (props: Props) => {
               placeholder="Write your comment here. Use @ to mention someone."
               onClick={() => setFocused(true)}
             />
-            <button className={s.primaryBtn} type="button" onClick={() => setFocused(true)}>
-              Comment
-            </button>
+            {/*<button className={s.primaryBtn} type="button" onClick={() => setFocused(true)}>*/}
+            {/*  Comment*/}
+            {/*</button>*/}
           </div>
         )}
       </form>

@@ -3,7 +3,7 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 8px;
   margin-top: 24px;
 
   padding: 20px;
@@ -13,13 +13,13 @@
 }
 
 .heading {
-  color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 18px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 26px;
-  letter-spacing: -0.3px;
   margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
 }
 
 .signInPrompt {

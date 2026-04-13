@@ -41,10 +41,6 @@ export const GuideComments = ({ articleUid, userInfo }: Props) => {
         </div>
       )}
 
-      {!isLoading && comments.length === 0 && (
-        <p className={s.emptyState}>Be the first to comment on this guide.</p>
-      )}
-
       {!isLoading && comments.length > 0 && (
         <div className={s.commentList}>
           {comments.map((comment) => (

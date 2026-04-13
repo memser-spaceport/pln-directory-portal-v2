@@ -1,5 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { customFetch } from '@/utils/fetch-wrapper';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
+
 import { GuideCommentsQueryKeys } from '../constants';
 
 interface DeleteCommentParams {
@@ -7,15 +10,14 @@ interface DeleteCommentParams {
   commentUid: string;
 }
 
-async function deleteGuideComment(_params: DeleteCommentParams): Promise<void> {
-  // TODO: Replace with real API call when endpoint is available
-  // const { authToken } = getCookiesFromClient();
-  // const response = await customFetch(
-  //   `${process.env.DIRECTORY_API_URL}/v1/articles/${_params.articleUid}/comments/${_params.commentUid}`,
-  //   { method: 'DELETE', headers: { Authorization: `Bearer ${authToken}` } },
-  //   true,
-  // );
-  // if (!response?.ok) throw new Error('Failed to delete comment');
+async function deleteGuideComment(params: DeleteCommentParams): Promise<void> {
+  const { authToken } = getCookiesFromClient();
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/articles/comments/${params.commentUid}`,
+    { method: 'DELETE', headers: { Authorization: `Bearer ${authToken}` } },
+    true,
+  );
+  if (!response?.ok) throw new Error('Failed to delete comment');
 }
 
 export function useDeleteGuideComment() {

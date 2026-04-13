@@ -1,0 +1,1 @@
+export { DealsLandingPage } from './DealsLandingPage';

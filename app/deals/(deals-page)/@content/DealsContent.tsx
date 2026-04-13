@@ -2,7 +2,6 @@
 
 import { useQueryStates } from 'nuqs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { dealsFilterParsers, DEAL_SORT_VALUES } from '../searchParams';
 import { useGetDeals } from '@/services/deals/hooks/useGetDeals';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
@@ -21,20 +20,17 @@ import { SubmitDealSuccessModal } from '@/components/page/deals/SubmitDealSucces
 import { RequestDealModal } from '@/components/page/deals/RequestDealModal/RequestDealModal';
 import { RequestDealSuccessModal } from '@/components/page/deals/RequestDealSuccessModal/RequestDealSuccessModal';
 import { useRequestDealModalStore } from '@/services/deals/store';
+import { DealsLandingPage } from '@/components/page/deals-landing';
+import { DealsNoAccessModal } from '@/components/page/deals/DealsNoAccessModal/DealsNoAccessModal';
+import { getUserInfoFromLocal } from '@/utils/common.utils';
 import s from './page.module.scss';
 
 export default function DealsContent() {
-  const router = useRouter();
   const analytics = useDealsAnalytics();
   const { actions: requestDealActions } = useRequestDealModalStore();
   const { hasAccess, isLoading: isAccessLoading, isError: isAccessError } = useDealsAccess();
+  const isLoggedIn = !!getUserInfoFromLocal();
 
-  useEffect(() => {
-    if (!isAccessLoading && !isAccessError && !hasAccess) {
-      analytics.trackAccessDeniedRedirect();
-      router.replace('/members');
-    }
-  }, [hasAccess, isAccessLoading, isAccessError, router, analytics]);
   const [filters, setFilters] = useQueryStates(dealsFilterParsers, {
     history: 'replace',
     shallow: true,
@@ -53,8 +49,8 @@ export default function DealsContent() {
     [filters],
   );
 
-  const { data: dealsData, isLoading, isError } = useGetDeals(searchParams);
-  const { data: filterValues } = useGetDealFilterValues();
+  const { data: dealsData, isLoading, isError } = useGetDeals(searchParams, hasAccess);
+  const { data: filterValues } = useGetDealFilterValues(hasAccess);
 
   const handleSortChange = useCallback(
     (sort: string) => {
@@ -131,8 +127,17 @@ export default function DealsContent() {
     analytics,
   ]);
 
-  if (isAccessLoading || (!hasAccess && !isAccessError)) {
+  if (isAccessLoading) {
     return <DealsSkeletonLoader />;
+  }
+
+  if (!hasAccess && !isAccessError) {
+    return (
+      <>
+        <DealsLandingPage />
+        {isLoggedIn && <DealsNoAccessModal />}
+      </>
+    );
   }
 
   if (isAccessError || isError) {

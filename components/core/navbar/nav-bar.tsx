@@ -15,7 +15,14 @@ import { Signup } from './components/Signup';
 import { NavigationMenu } from '@base-ui-components/react';
 import { useContactSupportStore } from '@/services/contact-support/store';
 
-import { DIRECTORY_LINKS, EVENT_LINKS, DEALS_LINK, FOUNDER_GUIDES_LINK, DEMO_DAY_LINK, DEMO_DAY_ANALYTICS_LINK } from './constants/navLinks';
+import {
+  DIRECTORY_LINKS,
+  EVENT_LINKS,
+  DEALS_LINK,
+  FOUNDER_GUIDES_LINK,
+  DEMO_DAY_LINK,
+  DEMO_DAY_ANALYTICS_LINK,
+} from './constants/navLinks';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
@@ -90,10 +97,7 @@ function Navbar(props: Readonly<INavbar>) {
   const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
 
-  const moreLinks: ISubItem[] = [
-    ...(hasDealsPageAccess ? [DEALS_LINK] : []),
-    ...(hasFounderGuidesAccess ? [FOUNDER_GUIDES_LINK] : []),
-  ];
+  const moreLinks: ISubItem[] = [DEALS_LINK, ...(hasFounderGuidesAccess ? [FOUNDER_GUIDES_LINK] : [])];
 
   return (
     <NavigationMenu.Root className={s.Root}>
@@ -130,7 +134,11 @@ function Navbar(props: Readonly<INavbar>) {
           />
         ) : (
           <NavigationMenu.Item className={s.menuItem}>
-            <NavLink className={s.Trigger} href="/demoday" onClick={() => onNavItemClickHandler('/demoday', 'Demo Day')}>
+            <NavLink
+              className={s.Trigger}
+              href="/demoday"
+              onClick={() => onNavItemClickHandler('/demoday', 'Demo Day')}
+            >
               <DemoDayIcon /> Demo Day
             </NavLink>
           </NavigationMenu.Item>

@@ -5,6 +5,9 @@ import { useState } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { useContactSupportStore } from '@/services/contact-support/store';
 import s from './DealsNoAccessModal.module.scss';
+import { WarningCircleIcon } from '@/components/icons';
+import { Button } from '@/components/common/Button';
+import clsx from 'clsx';
 
 const DEALS_LOGIN_INTENT_KEY = 'dealsLoginIntent';
 
@@ -20,20 +23,26 @@ export function DealsNoAccessModal() {
   return (
     <Modal isOpen={visible} onClose={() => setVisible(false)} closeOnBackdropClick className={s.card}>
       <div className={s.iconWrap}>
-        <ExclamationIcon />
+        <WarningCircleIcon />
       </div>
       <h2 className={s.title}>Access Denied</h2>
       <p className={s.body}>
-        You have an account but don&apos;t have access to Deals yet. Contact our support team if you believe this is an
-        error.
+        ou have an account with us, but you don&apos;t have access to Deals yet. Contact our support team if you believe
+        this is an error.
       </p>
       <div className={s.buttons}>
-        <button className={s.cancelBtn} onClick={() => setVisible(false)}>
+        <Button className={s.cancelBtn} style="border" onClick={() => setVisible(false)}>
           Got it
-        </button>
-        <button className={s.primaryBtn} onClick={() => { actions.openModal(); setVisible(false); }}>
+        </Button>
+        <Button
+          className={s.primaryBtn}
+          onClick={() => {
+            actions.openModal();
+            setVisible(false);
+          }}
+        >
           Contact us
-        </button>
+        </Button>
       </div>
     </Modal>
   );

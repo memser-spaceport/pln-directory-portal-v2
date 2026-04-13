@@ -12,23 +12,28 @@
 }
 
 .iconWrap {
+  flex-shrink: 0;
+
+  width: 52px;
+  height: 52px;
+  margin: 0 auto;
+
+  border-radius: 52px;
+  background-color: #f2f5ff;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--foreground-brand-primary, #156ff7);
-  margin-bottom: 4px;
-  flex-shrink: 0;
+
+  color: #1b4dff;
 }
 
 .title {
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 28px;
   color: var(--foreground-neutral-primary, #0a0c11);
-  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 27px;
+  letter-spacing: -0.4px;
 }
 
 .body {

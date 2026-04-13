@@ -52,6 +52,12 @@
   background: rgba(27, 77, 255, 0.08);
   border-radius: 9999px;
   padding: 3px 10px;
+
+  visibility: visible;
+
+  @include tablet-landscape {
+    visibility: hidden;
+  }
 }
 
 // Title + Edit button row
@@ -406,19 +412,29 @@
 
 // ── Office Hours section (title + card) ──────────────────
 .ohSection {
-  display: flex;
   flex-direction: column;
-  gap: 16px;
+  display: flex;
+  width: 900px;
+  padding: 20px;
+  align-items: flex-start;
+  gap: var(--spacing-2xs, 8px);
+  margin-top: 20px;
+
+  border-radius: 8px;
+  background: var(--background-base-white, #FFF);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 }
 
 .ohTitle {
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 24px;
-  letter-spacing: -0.3px;
-  color: #0a0c11;
   margin: 0;
   white-space: nowrap;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
 }
 
 // ── Office Hours banner ──────────────────────────────────
@@ -428,9 +444,10 @@
   justify-content: space-between;
   gap: 16px;
   padding: 20px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.06);
+  width: 100%;
+
+  border-radius: 12px;
+  background: var(--background-neutral-soft-surface, #F9FAFB);
 
   @media (max-width: #{$breakpoint-md - 1}px) {
     flex-direction: column;

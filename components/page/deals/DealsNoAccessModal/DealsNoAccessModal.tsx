@@ -5,6 +5,9 @@ import { useState } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { useContactSupportStore } from '@/services/contact-support/store';
 import s from './DealsNoAccessModal.module.scss';
+import { WarningCircleIcon } from '@/components/icons';
+import { Button } from '@/components/common/Button';
+import clsx from 'clsx';
 
 const DEALS_LOGIN_INTENT_KEY = 'dealsLoginIntent';
 
@@ -20,26 +23,33 @@ export function DealsNoAccessModal() {
   return (
     <Modal isOpen={visible} onClose={() => setVisible(false)} closeOnBackdropClick className={s.card}>
       <div className={s.iconWrap}>
-        <LockIcon />
+        <WarningCircleIcon />
       </div>
-      <h2 className={s.title}>Deals Access Unavailable</h2>
-      <p className={s.body}>You don&apos;t have access to Deals yet.</p>
-      <div className={s.actions}>
-        <button className={s.primaryBtn} onClick={() => actions.openModal()}>
-          Contact us
-        </button>
-        <button className={s.secondaryBtn} onClick={() => setVisible(false)}>
+      <h2 className={s.title}>Access Denied</h2>
+      <p className={s.body}>
+        ou have an account with us, but you don&apos;t have access to Deals yet. Contact our support team if you believe
+        this is an error.
+      </p>
+      <div className={s.buttons}>
+        <Button className={s.cancelBtn} style="border" onClick={() => setVisible(false)}>
           Got it
-        </button>
+        </Button>
+        <Button
+          className={s.primaryBtn}
+          onClick={() => {
+            actions.openModal();
+            setVisible(false);
+          }}
+        >
+          Contact us
+        </Button>
       </div>
     </Modal>
   );
 }
 
-const LockIcon = () => (
+const ExclamationIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="3" y="11" width="18" height="11" rx="2" stroke="#156FF7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M7 11V7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7V11" stroke="#156FF7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    <circle cx="12" cy="16" r="1.5" fill="#156FF7" />
+    <path d="M12 9V13M12 16H12.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );

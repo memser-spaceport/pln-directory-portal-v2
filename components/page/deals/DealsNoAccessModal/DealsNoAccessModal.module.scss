@@ -1,86 +1,85 @@
 .card {
-  border-radius: 12px;
-  max-width: 350px;
+  border-radius: 16px;
+  max-width: 400px;
   width: 100%;
-  padding: 24px;
+  padding: 32px 24px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   background: var(--background-base-white, #fff);
+  text-align: center;
 }
 
 .iconWrap {
+  flex-shrink: 0;
+
+  width: 52px;
+  height: 52px;
+  margin: 0 auto;
+
+  border-radius: 52px;
+  background-color: #f2f5ff;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--transparent-brand-2-percent, rgba(27, 77, 255, 0.05));
-  border: 1px solid var(--border-brand-subtle, #aebfff);
-  flex-shrink: 0;
+
+  color: #1b4dff;
 }
 
 .title {
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 24px;
-  letter-spacing: -0.3px;
   color: var(--foreground-neutral-primary, #0a0c11);
-  text-align: center;
-  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 27px;
+  letter-spacing: -0.4px;
 }
 
 .body {
   font-size: 14px;
   font-weight: 400;
-  line-height: 20px;
-  letter-spacing: -0.2px;
+  line-height: 22px;
   color: var(--foreground-neutral-secondary, #455468);
-  text-align: center;
-  margin: 0;
+  margin: 4px 0 8px;
+  max-width: 320px;
 }
 
-.actions {
+.buttons {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
+  margin-top: 4px;
 }
 
+.cancelBtn,
 .primaryBtn {
-  width: 100%;
+  flex: 1;
   padding: 10px 16px;
   border-radius: 8px;
-  border: none;
-  background: var(--background-brand-bold, #156ff7);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
   cursor: pointer;
   transition: opacity 0.15s;
-
-  &:hover {
-    opacity: 0.88;
-  }
 }
 
-.secondaryBtn {
-  width: 100%;
-  padding: 10px 16px;
-  border-radius: 8px;
+.cancelBtn {
   border: 1px solid var(--border-neutral-subtle, #dde1e7);
   background: transparent;
   color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  cursor: pointer;
-  transition: background 0.15s;
 
   &:hover {
     background: var(--background-neutral-subtle, #f5f7fa);
+  }
+}
+
+.primaryBtn {
+  border: none;
+  background: var(--foreground-brand-primary, #156ff7);
+  color: #fff;
+
+  &:hover {
+    opacity: 0.88;
   }
 }

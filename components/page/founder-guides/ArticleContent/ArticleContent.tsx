@@ -514,12 +514,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
             </>
           )}
 
-          {ohCard && (
-            <>
-              <hr className={s.divider} />
-              {ohCard}
-            </>
-          )}
+          {ohCard && <>{ohCard}</>}
 
           <GuideComments articleUid={article.uid} userInfo={userInfo} />
         </div>

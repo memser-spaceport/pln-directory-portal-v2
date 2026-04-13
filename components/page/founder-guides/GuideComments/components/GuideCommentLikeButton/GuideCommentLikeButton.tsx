@@ -12,17 +12,18 @@ interface Props {
   likesCount: number;
   likedByMe: boolean;
   isAuthenticated: boolean;
+  isOwnComment: boolean;
 }
 
-export const GuideCommentLikeButton = ({ commentUid, articleUid, likesCount, likedByMe, isAuthenticated }: Props) => {
+export const GuideCommentLikeButton = ({ commentUid, articleUid, likesCount, likedByMe, isAuthenticated, isOwnComment }: Props) => {
   const { mutate, isPending } = useLikeGuideComment();
 
   return (
     <button
       className={clsx(s.button, { [s.liked]: likedByMe })}
-      disabled={isPending || !isAuthenticated}
+      disabled={isPending || !isAuthenticated || isOwnComment}
       onClick={() => {
-        if (!isAuthenticated) return;
+        if (!isAuthenticated || isOwnComment) return;
         mutate({ commentUid, articleUid, isLiked: likedByMe });
       }}
       aria-pressed={likedByMe}

@@ -34,7 +34,8 @@ export const GuideCommentItem = ({ comment, articleUid, userInfo, depth = 0 }: P
   const isReply = depth > 0;
   const canReply = depth < MAX_DEPTH;
   const isAuthenticated = !!userInfo;
-  const isOwn = userInfo ? userInfo.uid === comment.author.uid || isAdminUser(userInfo) : false;
+  const isCommentAuthor = userInfo?.uid === comment.author.uid;
+  const isOwn = isCommentAuthor || (userInfo ? isAdminUser(userInfo) : false);
 
   const [replyToUid, setReplyToUid] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -101,6 +102,7 @@ export const GuideCommentItem = ({ comment, articleUid, userInfo, depth = 0 }: P
               likesCount={comment.likesCount}
               likedByMe={comment.likedByMe}
               isAuthenticated={isAuthenticated}
+              isOwnComment={isCommentAuthor}
             />
             {canReply && (
               <>

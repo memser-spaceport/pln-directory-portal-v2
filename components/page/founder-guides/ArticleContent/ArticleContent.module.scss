@@ -297,7 +297,6 @@
   white-space: nowrap;
   cursor: pointer;
   flex-shrink: 0;
-  width: fit-content;
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
@@ -316,6 +315,12 @@
     cursor: default;
     opacity: 0.6;
   }
+
+  width: calc(100% - 16px);
+
+  @include tablet-landscape {
+    width: fit-content;
+  }
 }
 
 .likeGuideButtonLiked {
@@ -327,9 +332,16 @@
 // ── "Find this guide helpful?" section ────────────────────
 .helpfulSection {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
   width: 100%;
+  flex-direction: column;
+  justify-content: flex-start;
+
+  @include tablet-landscape {
+    flex-direction: row;
+    align-items: center;
+  }
 }
 
 .helpfulTitle {
@@ -414,7 +426,8 @@
 .ohSection {
   flex-direction: column;
   display: flex;
-  width: 900px;
+  width: 100%;
+
   padding: 20px;
   align-items: flex-start;
   gap: var(--spacing-2xs, 8px);

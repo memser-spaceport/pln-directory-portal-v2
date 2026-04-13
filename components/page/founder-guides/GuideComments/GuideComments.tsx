@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 
 import { useGetGuideComments } from '@/services/guide-comments/hooks/useGetGuideComments';
 import type { IUserInfo } from '@/types/shared.types';
@@ -18,15 +18,37 @@ export const GuideComments = ({ articleUid, userInfo }: Props) => {
   const isAuthenticated = !!userInfo;
   const { data: response, isLoading } = useGetGuideComments(articleUid);
 
-  const comments = response?.data ?? [];
+  const comments = useMemo(() => response?.data ?? [], [response?.data]);
   const total = response?.total ?? 0;
+
+  const commentListRef = useRef<HTMLDivElement>(null);
+  const scrollAfterUpdate = useRef(false);
+
+  useEffect(() => {
+    if (!scrollAfterUpdate.current) return;
+    scrollAfterUpdate.current = false;
+
+    const lastComment = commentListRef.current?.lastElementChild;
+    if (!lastComment) return;
+
+    const headerHeight =
+      parseInt(getComputedStyle(document.documentElement).getPropertyValue('--app-header-height')) || 56;
+    const top = lastComment.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
+    document.body.scrollTo({ top, behavior: 'smooth' });
+  }, [comments]);
 
   return (
     <section className={s.root}>
       <h2 className={s.heading}>Comments ({total})</h2>
 
       {isAuthenticated ? (
-        <GuideCommentInput articleUid={articleUid} userInfo={userInfo} />
+        <GuideCommentInput
+          articleUid={articleUid}
+          userInfo={userInfo}
+          onCommentAdded={() => {
+            scrollAfterUpdate.current = true;
+          }}
+        />
       ) : (
         <div className={s.signInPrompt}>
           <span>Sign in to leave a comment</span>
@@ -42,7 +64,7 @@ export const GuideComments = ({ articleUid, userInfo }: Props) => {
       )}
 
       {!isLoading && comments.length > 0 && (
-        <div className={s.commentList}>
+        <div className={s.commentList} ref={commentListRef}>
           {comments.map((comment) => (
             <GuideCommentItem
               key={comment.uid}

@@ -27,6 +27,7 @@ interface Props {
   initialContent?: string;
   initialFocused?: boolean;
   onCancel?: () => void;
+  onCommentAdded?: () => void;
 }
 
 const schema = yup.object().shape({
@@ -35,7 +36,7 @@ const schema = yup.object().shape({
 });
 
 export const GuideCommentInput = (props: Props) => {
-  const { articleUid, parentUid, replyToName, commentUid, isEdit, initialContent, initialFocused, onCancel } = props;
+  const { articleUid, parentUid, replyToName, commentUid, isEdit, initialContent, initialFocused, onCancel, onCommentAdded } = props;
 
   const ref = useRef<HTMLFormElement | null>(null);
   const [focused, setFocused] = useState(initialFocused ?? false);
@@ -84,6 +85,7 @@ export const GuideCommentInput = (props: Props) => {
         await replyToComment.mutateAsync({ articleUid, parentUid, content: values.comment });
       } else {
         await addComment.mutateAsync({ articleUid, content: values.comment });
+        onCommentAdded?.();
       }
       reset({ comment: '', emailMe: values.emailMe });
       setFocused(false);

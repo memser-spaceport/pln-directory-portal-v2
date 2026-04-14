@@ -51,7 +51,7 @@ export const GuideCommentItem = ({ comment, articleUid, userInfo, depth = 0 }: P
 
   return (
     <>
-      <div className={clsx(s.itemRoot, { [s.reply]: isReply })} data-uid={comment.uid}>
+      <div id={comment.uid} className={clsx(s.itemRoot, { [s.reply]: isReply })} data-uid={comment.uid}>
         {/* Header row */}
         <div className={s.header}>
           <Link href={`/members/${comment.author.uid}`} onClick={(e) => e.stopPropagation()}>

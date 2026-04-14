@@ -99,10 +99,18 @@ export default function DealsContent() {
   );
 
   const pageViewedRef = useRef(false);
+  const landingViewedRef = useRef(false);
   useEffect(() => {
     if (!isAccessLoading && hasAccess && !isAccessError && !pageViewedRef.current) {
       pageViewedRef.current = true;
       analytics.trackDealsPageViewed();
+    }
+  }, [isAccessLoading, hasAccess, isAccessError, analytics]);
+
+  useEffect(() => {
+    if (!isAccessLoading && !hasAccess && !isAccessError && !landingViewedRef.current) {
+      landingViewedRef.current = true;
+      analytics.trackDealsLandingViewed();
     }
   }, [isAccessLoading, hasAccess, isAccessError, analytics]);
 

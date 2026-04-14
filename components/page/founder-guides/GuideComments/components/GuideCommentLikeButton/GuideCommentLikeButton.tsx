@@ -2,6 +2,7 @@
 
 import { clsx } from 'clsx';
 
+import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import { useLikeGuideComment } from '@/services/guide-comments/hooks/useLikeGuideComment';
 
 import s from './GuideCommentLikeButton.module.scss';
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export const GuideCommentLikeButton = ({ commentUid, articleUid, likesCount, likedByMe, isAuthenticated, isOwnComment }: Props) => {
+  const analytics = useFounderGuidesAnalytics();
   const { mutate, isPending } = useLikeGuideComment();
 
   return (
@@ -24,7 +26,14 @@ export const GuideCommentLikeButton = ({ commentUid, articleUid, likesCount, lik
       disabled={isPending || !isAuthenticated || isOwnComment}
       onClick={() => {
         if (!isAuthenticated || isOwnComment) return;
-        mutate({ commentUid, articleUid, isLiked: likedByMe });
+        mutate(
+          { commentUid, articleUid, isLiked: likedByMe },
+          {
+            onSuccess: () => {
+              analytics.trackCommentLiked({ articleUid, commentUid, liked: !likedByMe });
+            },
+          },
+        );
       }}
       aria-pressed={likedByMe}
       aria-label={likedByMe ? 'Unlike this comment' : 'Like this comment'}

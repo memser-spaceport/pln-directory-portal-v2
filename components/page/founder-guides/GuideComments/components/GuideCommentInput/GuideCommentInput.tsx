@@ -10,6 +10,7 @@ import { FormEditor } from '@/components/form/FormEditor';
 import { FormField } from '@/components/form/FormField';
 import { Checkbox } from '@/components/common/Checkbox';
 import { isEditorEmpty } from '@/utils/isEditorEmpty';
+import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import { useAddGuideComment } from '@/services/guide-comments/hooks/useAddGuideComment';
 import { useReplyToGuideComment } from '@/services/guide-comments/hooks/useReplyToGuideComment';
 import { useEditGuideComment } from '@/services/guide-comments/hooks/useEditGuideComment';
@@ -41,6 +42,7 @@ export const GuideCommentInput = (props: Props) => {
   const ref = useRef<HTMLFormElement | null>(null);
   const [focused, setFocused] = useState(initialFocused ?? false);
 
+  const analytics = useFounderGuidesAnalytics();
   const addComment = useAddGuideComment();
   const replyToComment = useReplyToGuideComment();
   const editComment = useEditGuideComment();
@@ -81,10 +83,13 @@ export const GuideCommentInput = (props: Props) => {
     try {
       if (isEdit && commentUid) {
         await editComment.mutateAsync({ articleUid, commentUid, content: values.comment });
+        analytics.trackCommentEditSubmitted({ articleUid, commentUid });
       } else if (parentUid) {
         await replyToComment.mutateAsync({ articleUid, parentUid, content: values.comment });
+        analytics.trackCommentReplySubmitted({ articleUid, parentUid });
       } else {
         await addComment.mutateAsync({ articleUid, content: values.comment });
+        analytics.trackCommentSubmitted({ articleUid });
         onCommentAdded?.();
       }
       reset({ comment: '', emailMe: values.emailMe });

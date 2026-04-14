@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import { Modal } from '@/components/common/Modal/Modal';
 import { useContactSupportStore } from '@/services/contact-support/store';
 import s from './DealsNoAccessModal.module.scss';
@@ -11,6 +12,7 @@ import { Button } from '@/components/common/Button';
 const DEALS_LOGIN_INTENT_KEY = 'dealsLoginIntent';
 
 export function DealsNoAccessModal() {
+  const { trackDealsNoAccessModalViewed } = useDealsAnalytics();
   const [visible, setVisible] = useState(() => {
     if (typeof window === 'undefined') return false;
     const hasIntent = sessionStorage.getItem(DEALS_LOGIN_INTENT_KEY) === '1';
@@ -18,6 +20,12 @@ export function DealsNoAccessModal() {
     return hasIntent;
   });
   const { actions } = useContactSupportStore();
+
+  useEffect(() => {
+    if (visible) {
+      trackDealsNoAccessModalViewed();
+    }
+  }, [visible, trackDealsNoAccessModalViewed]);
 
   return (
     <Modal isOpen={visible} onClose={() => setVisible(false)} className={s.card} closeOnBackdropClick={false}>

@@ -7,6 +7,7 @@ import { Button } from '@/components/common/Button';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import { SubmitDealModal } from '@/components/page/deals/SubmitDealModal/SubmitDealModal';
 import { SubmitDealSuccessModal } from '@/components/page/deals/SubmitDealSuccessModal/SubmitDealSuccessModal';
+import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import { useSubmitDealModalStore } from '@/services/deals/store';
 import { getUserInfoFromLocal } from '@/utils/common.utils';
 import { vendorLogoItems, mockFaqItems, mockHowItWorksSteps, mockValueProps } from './mock-data';
@@ -14,12 +15,17 @@ import s from './DealsLandingPage.module.scss';
 
 export function DealsLandingPage() {
   const router = useRouter();
+  const analytics = useDealsAnalytics();
   const { openModal } = useSubmitDealModalStore((state) => state.actions);
   const isLoggedIn = !!getUserInfoFromLocal();
 
-  const openSubmitDealModal = () => openModal(true);
+  const openSubmitDealModal = (placement: 'hero' | 'footer') => {
+    analytics.trackDealsLandingListProductClicked(placement);
+    openModal(true);
+  };
 
   const handleLoginClick = () => {
+    analytics.trackDealsLandingSignInClicked();
     sessionStorage.setItem('dealsLoginIntent', '1');
     router.push(`${window.location.pathname}${window.location.search}#login`);
   };
@@ -45,7 +51,7 @@ export function DealsLandingPage() {
                   variant="primary"
                   size="l"
                   className={s.heroPrimaryBtn}
-                  onClick={openSubmitDealModal}
+                  onClick={() => openSubmitDealModal('hero')}
                 >
                   List Your Product
                 </Button>
@@ -164,7 +170,7 @@ export function DealsLandingPage() {
           <section className={s.finalCta}>
             <div className={s.finalCtaInner}>
               <h2 className={s.finalCtaTitle}>Start Reaching High-Quality Founders</h2>
-              <Button style="fill" variant="primary" size="l" onClick={openSubmitDealModal}>
+              <Button style="fill" variant="primary" size="l" onClick={() => openSubmitDealModal('footer')}>
                 List Your Product
               </Button>
               <p className={s.finalCtaNote}>No integration required • Reviewed in 3–5 days</p>

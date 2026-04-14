@@ -7,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Avatar } from '@base-ui-components/react/avatar';
 import React, { useState } from 'react';
 
+import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import { CommentIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { isAdminUser } from '@/utils/user/isAdminUser';
@@ -41,6 +42,7 @@ export const GuideCommentItem = ({ comment, articleUid, userInfo, depth = 0 }: P
   const [isEditing, setIsEditing] = useState(false);
   const [showMoreReplies, setShowMoreReplies] = useState(false);
 
+  const analytics = useFounderGuidesAnalytics();
   const deleteComment = useDeleteGuideComment();
 
   const visibleReplies = showMoreReplies ? comment.replies : comment.replies.slice(0, VISIBLE_REPLY_COUNT);
@@ -72,7 +74,16 @@ export const GuideCommentItem = ({ comment, articleUid, userInfo, depth = 0 }: P
             <div className={s.menuWrapper}>
               <GuideCommentItemMenu
                 onEdit={() => setIsEditing(true)}
-                onDelete={() => deleteComment.mutate({ articleUid, commentUid: comment.uid })}
+                onDelete={() =>
+                  deleteComment.mutate(
+                    { articleUid, commentUid: comment.uid },
+                    {
+                      onSuccess: () => {
+                        analytics.trackCommentDeleted({ articleUid, commentUid: comment.uid });
+                      },
+                    },
+                  )
+                }
               />
             </div>
           )}
@@ -111,7 +122,13 @@ export const GuideCommentItem = ({ comment, articleUid, userInfo, depth = 0 }: P
                   {comment.replies.length} {comment.replies.length === 1 ? 'Reply' : 'Replies'}
                 </div>
                 {isAuthenticated && (
-                  <button className={s.replyBtn} onClick={() => setReplyToUid(comment.uid)}>
+                  <button
+                    className={s.replyBtn}
+                    onClick={() => {
+                      analytics.trackCommentReplyClicked({ articleUid, parentUid: comment.uid });
+                      setReplyToUid(comment.uid);
+                    }}
+                  >
                     Reply
                   </button>
                 )}

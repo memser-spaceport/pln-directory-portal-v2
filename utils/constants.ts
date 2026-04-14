@@ -691,6 +691,22 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.12 - Founder Guide Comments & Deals Landing',
+    tag: 'New Feature',
+    date: '14, Apr 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Public landing</span> - Without Deals access, you now see a dedicated landing page with how it works, list-your-product, and sign-in to browse the directory.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Guides</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Comments</span> - Discuss guides on the article page with threaded replies and likes.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.11 - Team Members Inline Edit & Founder Guides',
     tag: 'Improvements',
     date: '7, Apr 2026',

@@ -17,7 +17,7 @@ export function getCategoryLabel(category: PushNotification['category']): string
       return 'Forum';
     case 'GUIDE_POST':
     case 'GUIDE_REPLY':
-      return 'Guides';
+      return 'Founder Guides';
     case 'SYSTEM':
     default:
       return 'System';

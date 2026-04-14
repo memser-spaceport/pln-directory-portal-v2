@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import { useGetGuideComments } from '@/services/guide-comments/hooks/useGetGuideComments';
 import type { IUserInfo } from '@/types/shared.types';
@@ -21,8 +22,27 @@ export const GuideComments = ({ articleUid, userInfo }: Props) => {
   const comments = useMemo(() => response?.data ?? [], [response?.data]);
   const total = response?.total ?? 0;
 
+  const searchParams = useSearchParams();
+  const commentId = searchParams.get('commentId');
+  const scrolledToComment = useRef(false);
+
   const commentListRef = useRef<HTMLDivElement>(null);
   const scrollAfterUpdate = useRef(false);
+
+  useEffect(() => {
+    if (!commentId || isLoading || scrolledToComment.current) return;
+    if (!document.getElementById(commentId)) return;
+
+    const el = document.getElementById(commentId);
+
+    if (!el) {
+      return;
+    }
+
+    scrolledToComment.current = true;
+
+    el.scrollIntoView();
+  }, [commentId, isLoading, comments]);
 
   useEffect(() => {
     if (!scrollAfterUpdate.current) return;

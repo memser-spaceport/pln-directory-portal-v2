@@ -13,7 +13,6 @@ import {
 } from '@/components/core/navbar/constants/navLinks';
 import { DealsIcon, FounderGuidesIcon, MoreIcon } from '@/components/core/navbar/components/icons';
 import { ISubItem } from '@/components/core/navbar/type';
-import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
 
@@ -29,13 +28,12 @@ import s from './MobileBottomNav.module.scss';
 export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
-  const { hasAccess: hasDealsPageAccess } = useDealsAccess();
   const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
 
   const moreItems: ISubItem[] = [
     { href: '/forum', title: 'Forum', icon: <ForumIcon /> },
-    ...(hasDealsPageAccess ? [{ href: '/deals', title: 'Deals', icon: <DealsIcon /> }] : []),
+    { href: '/deals', title: 'Deals', icon: <DealsIcon /> },
     ...(hasFounderGuidesAccess
       ? [{ href: '/founder-guides', title: 'Founder Guides', icon: <FounderGuidesIcon /> }]
       : []),

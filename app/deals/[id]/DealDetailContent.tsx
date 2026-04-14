@@ -11,6 +11,7 @@ import { useReportProblemModalStore } from '@/services/deals/store';
 import { DEAL_CATEGORY_LABELS, DEAL_AUDIENCE_LABELS } from '@/services/deals/constants';
 import { DEAL_ICONS } from '@/components/page/deals/dealsIcons';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
+import { QuillContent } from '@/components/ui/QuillContent';
 import { toast } from '@/components/core/ToastContainer';
 import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import { ReportProblemModal } from '@/components/page/deals/ReportProblemModal/ReportProblemModal';
@@ -324,17 +325,14 @@ export default function DealDetailContent({ id }: DealDetailContentProps) {
               {deal.fullDescription && (
                 <div className={s.aboutSection}>
                   <h2 className={s.aboutTitle}>About the deal</h2>
-                  <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: deal.fullDescription }} />
+                  <QuillContent html={deal.fullDescription} className={s.aboutContent} />
                 </div>
               )}
 
               {deal.isRedeemed && deal.redemptionInstructions ? (
                 <div className={s.redemptionInstructions}>
                   <h2 className={s.redemptionInstructionsTitle}>Redemption Instructions</h2>
-                  <div
-                    className={s.redemptionInstructionsBody}
-                    dangerouslySetInnerHTML={{ __html: deal.redemptionInstructions }}
-                  />
+                  <QuillContent html={deal.redemptionInstructions} className={s.redemptionInstructionsBody} />
                 </div>
               ) : (
                 <div className={s.redemptionCard}>

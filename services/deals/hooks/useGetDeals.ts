@@ -62,12 +62,13 @@ function filterAndSort(deals: IDeal[], params: UseGetDealsParams) {
   };
 }
 
-export function useGetDeals(params: UseGetDealsParams) {
+export function useGetDeals(params: UseGetDealsParams, enabled = true) {
   const { data: allDeals, isLoading, isError } = useQuery({
     queryKey: [DealsQueryKeys.DEALS_LIST],
     queryFn: getAllDeals,
     staleTime: 60000,
     gcTime: 120000,
+    enabled,
   });
 
   const result = useMemo(() => {

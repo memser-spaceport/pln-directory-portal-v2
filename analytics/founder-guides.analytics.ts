@@ -19,6 +19,12 @@ const FOUNDER_GUIDES_ANALYTICS_EVENTS = {
   REQUEST_FORM_FIELD_EDITED: 'founder-guides-request-form-field-edited',
   REQUEST_SUBMITTED: 'founder-guides-request-submitted',
   REQUEST_CANCELLED: 'founder-guides-request-cancelled',
+  COMMENT_SUBMITTED: 'founder-guides-comment-submitted',
+  COMMENT_REPLY_SUBMITTED: 'founder-guides-comment-reply-submitted',
+  COMMENT_EDIT_SUBMITTED: 'founder-guides-comment-edit-submitted',
+  COMMENT_DELETED: 'founder-guides-comment-deleted',
+  COMMENT_LIKED: 'founder-guides-comment-liked',
+  COMMENT_REPLY_CLICKED: 'founder-guides-comment-reply-clicked',
 } as const;
 
 export type FounderGuidesScheduleMeetingClickedParams =
@@ -138,6 +144,48 @@ export function useFounderGuidesAnalytics() {
     posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.REQUEST_CANCELLED);
   }, [posthog]);
 
+  const trackCommentSubmitted = useCallback(
+    (params: { articleUid: string }) => {
+      posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.COMMENT_SUBMITTED, params);
+    },
+    [posthog],
+  );
+
+  const trackCommentReplySubmitted = useCallback(
+    (params: { articleUid: string; parentUid: string }) => {
+      posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.COMMENT_REPLY_SUBMITTED, params);
+    },
+    [posthog],
+  );
+
+  const trackCommentEditSubmitted = useCallback(
+    (params: { articleUid: string; commentUid: string }) => {
+      posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.COMMENT_EDIT_SUBMITTED, params);
+    },
+    [posthog],
+  );
+
+  const trackCommentDeleted = useCallback(
+    (params: { articleUid: string; commentUid: string }) => {
+      posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.COMMENT_DELETED, params);
+    },
+    [posthog],
+  );
+
+  const trackCommentLiked = useCallback(
+    (params: { articleUid: string; commentUid: string; liked: boolean }) => {
+      posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.COMMENT_LIKED, params);
+    },
+    [posthog],
+  );
+
+  const trackCommentReplyClicked = useCallback(
+    (params: { articleUid: string; parentUid: string }) => {
+      posthog?.capture(FOUNDER_GUIDES_ANALYTICS_EVENTS.COMMENT_REPLY_CLICKED, params);
+    },
+    [posthog],
+  );
+
   return {
     trackOverviewViewed,
     trackSidebarSearch,
@@ -156,5 +204,11 @@ export function useFounderGuidesAnalytics() {
     trackRequestGuideFormFieldEdited,
     trackRequestGuideSubmitted,
     trackRequestGuideCancelled,
+    trackCommentSubmitted,
+    trackCommentReplySubmitted,
+    trackCommentEditSubmitted,
+    trackCommentDeleted,
+    trackCommentLiked,
+    trackCommentReplyClicked,
   };
 }

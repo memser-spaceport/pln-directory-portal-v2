@@ -10,8 +10,6 @@ import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { DEMO_DAY_UPFRONT_INDUSTRY_TAGS } from '@/constants/demoDay';
 
-import s from './Filters.module.scss';
-
 export const Filters = () => {
   const appliedFiltersCount = useGetMembersFilterCount();
   const { clearParams, params, setParam } = useFilterStore();
@@ -169,7 +167,7 @@ export const Filters = () => {
   }, [activityOptions, params, setParam, teamsLoading]);
 
   return (
-    <FiltersSidePanel clearParams={clearParams} appliedFiltersCount={appliedFiltersCount} className={s.root} hideFooter>
+    <FiltersSidePanel clearParams={clearParams} appliedFiltersCount={appliedFiltersCount} hideFooter>
       {activityOptions.length > 0 && (
         <FilterSection title="My Activity">
           <FilterList

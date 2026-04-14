@@ -3,8 +3,9 @@ import { create } from 'zustand';
 interface SubmitDealModalState {
   readonly open: boolean;
   readonly successOpen: boolean;
+  readonly isPublicContext: boolean;
   readonly actions: {
-    openModal: () => void;
+    openModal: (isPublicContext?: boolean) => void;
     closeModal: () => void;
     showSuccess: () => void;
     closeSuccess: () => void;
@@ -14,9 +15,10 @@ interface SubmitDealModalState {
 export const useSubmitDealModalStore = create<SubmitDealModalState>((set) => ({
   open: false,
   successOpen: false,
+  isPublicContext: false,
   actions: {
-    openModal: () => set({ open: true }),
-    closeModal: () => set({ open: false }),
+    openModal: (isPublicContext = false) => set({ open: true, isPublicContext }),
+    closeModal: () => set({ open: false, isPublicContext: false }),
     showSuccess: () => set({ open: false, successOpen: true }),
     closeSuccess: () => set({ successOpen: false }),
   },

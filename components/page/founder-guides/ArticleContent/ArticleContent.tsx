@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
@@ -19,6 +19,7 @@ import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesSc
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { canEditArticle, formatAuthorMemberMainTeamLabel } from './helpers';
+import { GuideComments } from '@/components/page/founder-guides/GuideComments/GuideComments';
 import s from './ArticleContent.module.scss';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
@@ -149,6 +150,8 @@ function DotSepLarge() {
 export default function ArticleContent({ slug }: ArticleContentProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const hasCommentId = !!searchParams.get('commentId');
   const { articles, isLoading, isError } = useGetArticles();
   const viewMutation = useArticleView();
   const likeMutation = useArticleLike();
@@ -179,18 +182,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
   });
 
   useEffect(() => {
-    if (!article) return;
-    const raf = requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    });
-    return () => cancelAnimationFrame(raf);
-    // eslint-disable-next-line
-  }, [article?.uid]);
-
-  useEffect(() => {
-    if (!article) return;
+    if (!article || hasCommentId) return;
     const raf = requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: 'instant' });
       document.documentElement.scrollTop = 0;
@@ -387,7 +379,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
         <div className={s.card}>
           <header className={s.header}>
             <div className={s.topRowActions}>
-              {scopes.length > 1 && article.scope ? <span className={s.categoryBadge}>{article.scope}</span> : null}
+              {scopes.length > 1 && article.scope ? <span className={s.categoryBadge}>{article.scope}</span> : <div />}
               {canEdit ? (
                 <Link
                   href={`/founder-guides/${article.slugURL}/edit`}
@@ -513,12 +505,9 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
             </>
           )}
 
-          {ohCard && (
-            <>
-              <hr className={s.divider} />
-              {ohCard}
-            </>
-          )}
+          {ohCard && <>{ohCard}</>}
+
+          <GuideComments articleUid={article.uid} userInfo={userInfo} />
         </div>
       </div>
     </>

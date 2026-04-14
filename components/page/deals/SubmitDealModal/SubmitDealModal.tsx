@@ -7,36 +7,26 @@ import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
 import { FormField } from '@/components/form/FormField';
-import { FormSelect } from '@/components/form/FormSelect';
 import { FormEditor } from '@/components/form/FormEditor/FormEditor';
 import { useSubmitDealModalStore } from '@/services/deals/store';
 import { useSubmitDeal } from '@/services/deals/hooks/useSubmitDeal';
 import { useDealsAnalytics } from '@/analytics/deals.analytics';
-import { DEAL_AUDIENCE_LABELS } from '@/services/deals/constants';
 import { submitDealSchema, SubmitDealFormData } from './helpers';
 
 import s from './SubmitDealModal.module.scss';
 
-const AUDIENCE_OPTIONS = Object.entries(DEAL_AUDIENCE_LABELS).map(([value, label]) => ({
-  value,
-  label,
-}));
-
 export function SubmitDealModal() {
-  const { open, actions } = useSubmitDealModalStore();
-  const { mutate, isPending } = useSubmitDeal();
+  const { open, isPublicContext, actions } = useSubmitDealModalStore();
+  const { mutate, isPending } = useSubmitDeal(isPublicContext);
   const { trackSubmitModalClosed } = useDealsAnalytics();
 
   const methods = useForm<SubmitDealFormData>({
-    resolver: yupResolver(submitDealSchema) as any,
+    resolver: yupResolver(submitDealSchema(isPublicContext)) as any,
     defaultValues: {
-      // vendorName: '',
-      // category: '',
-      // audience: null,
+      vendorName: '',
       shortDescription: '',
       fullDescription: '',
       redemptionInstructions: '',
-      // websiteUrl: '',
       howToReachOutToYou: '',
     },
     mode: 'onChange',
@@ -55,24 +45,23 @@ export function SubmitDealModal() {
   };
 
   const onSubmit = (data: SubmitDealFormData) => {
-    mutate(
-      {
-        // vendorName: data.vendorName,
-        // category: data.category,
-        // audience: data.audience?.label || '',
-        shortDescription: data.shortDescription,
-        fullDescription: data.fullDescription,
-        redemptionInstructions: data.redemptionInstructions,
-        // websiteUrl: data.websiteUrl,
-        howToReachOutToYou: data.howToReachOutToYou,
+    const payload: any = {
+      shortDescription: data.shortDescription,
+      fullDescription: data.fullDescription,
+      redemptionInstructions: data.redemptionInstructions,
+      howToReachOutToYou: data.howToReachOutToYou,
+    };
+
+    if (isPublicContext && data.vendorName) {
+      payload.vendorName = data.vendorName;
+    }
+
+    mutate(payload, {
+      onSuccess: () => {
+        reset();
+        actions.showSuccess();
       },
-      {
-        onSuccess: () => {
-          reset();
-          actions.showSuccess();
-        },
-      },
-    );
+    });
   };
 
   return (
@@ -93,28 +82,15 @@ export function SubmitDealModal() {
         <div className={s.content}>
           <FormProvider {...methods}>
             <div className={s.form}>
-              {/*<FormField*/}
-              {/*  name="vendorName"*/}
-              {/*  label="Vendor Name"*/}
-              {/*  placeholder="e.g. Stripe, Vercel, AWS"*/}
-              {/*  isRequired*/}
-              {/*  max={100}*/}
-              {/*/>*/}
-
-              {/*<FormField*/}
-              {/*  name="category"*/}
-              {/*  label="Category"*/}
-              {/*  placeholder="e.g. Payments, Hosting & Infrastructure, Cloud"*/}
-              {/*  isRequired*/}
-              {/*/>*/}
-
-              {/*<FormSelect*/}
-              {/*  name="audience"*/}
-              {/*  label="Audience"*/}
-              {/*  placeholder="Select target audience"*/}
-              {/*  options={AUDIENCE_OPTIONS}*/}
-              {/*  isRequired*/}
-              {/*/>*/}
+              {isPublicContext && (
+                <FormField
+                  name="vendorName"
+                  label="Vendor Name"
+                  placeholder="e.g. Stripe, Vercel, AWS"
+                  isRequired
+                  max={100}
+                />
+              )}
 
               <FormField
                 name="shortDescription"
@@ -151,8 +127,6 @@ export function SubmitDealModal() {
                 minHeight={150}
                 simplified
               />
-
-              {/*<FormField name="websiteUrl" label="Website URL" placeholder="https://example.com" isRequired />*/}
 
               <FormField
                 name="howToReachOutToYou"

@@ -24,10 +24,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-
-  @media (max-width: 1023px) {
-    display: none;
-  }
 }
 
 .backButton {
@@ -56,6 +52,12 @@
   background: rgba(27, 77, 255, 0.08);
   border-radius: 9999px;
   padding: 3px 10px;
+
+  visibility: visible;
+
+  @include tablet-landscape {
+    visibility: hidden;
+  }
 }
 
 // Title + Edit button row
@@ -68,7 +70,7 @@
 
 // Edit Guide ghost button (inside topRowActions, hidden on mobile via parent)
 .editButton {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 4px;
   font-size: 14px;
@@ -82,6 +84,10 @@
   padding: 0;
   cursor: pointer;
   transition: color 0.15s ease;
+
+  @include tablet-landscape {
+    display: flex;
+  }
 
   &:hover {
     color: #1b4dff;
@@ -148,6 +154,11 @@
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  max-width: calc(100vw - 32px);
+  flex-wrap: wrap;
+  white-space: normal;
+  word-break: normal;
+  overflow: hidden;
 }
 
 // 24×24 circle logo image
@@ -235,10 +246,15 @@
 
 // Vertical hairline divider between author and stats
 .detailsDivider {
+  display: none;
   width: 1px;
   height: 24px;
   background: rgba(27, 56, 96, 0.12);
   flex-shrink: 0;
+
+  @include tablet-landscape {
+    display: flex;
+  }
 }
 
 // Stats row: likes · views · time · date
@@ -281,7 +297,6 @@
   white-space: nowrap;
   cursor: pointer;
   flex-shrink: 0;
-  width: fit-content;
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
@@ -300,6 +315,12 @@
     cursor: default;
     opacity: 0.6;
   }
+
+  width: calc(100% - 16px);
+
+  @include tablet-landscape {
+    width: fit-content;
+  }
 }
 
 .likeGuideButtonLiked {
@@ -311,10 +332,16 @@
 // ── "Find this guide helpful?" section ────────────────────
 .helpfulSection {
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
   gap: 16px;
   width: 100%;
+  flex-direction: column;
+  justify-content: flex-start;
+
+  @include tablet-landscape {
+    flex-direction: row;
+    align-items: center;
+  }
 }
 
 .helpfulTitle {
@@ -397,19 +424,30 @@
 
 // ── Office Hours section (title + card) ──────────────────
 .ohSection {
-  display: flex;
   flex-direction: column;
-  gap: 16px;
+  display: flex;
+  width: 100%;
+
+  padding: 20px;
+  align-items: flex-start;
+  gap: var(--spacing-2xs, 8px);
+  margin-top: 20px;
+
+  border-radius: 8px;
+  background: var(--background-base-white, #FFF);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 }
 
 .ohTitle {
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 24px;
-  letter-spacing: -0.3px;
-  color: #0a0c11;
   margin: 0;
   white-space: nowrap;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
 }
 
 // ── Office Hours banner ──────────────────────────────────
@@ -419,9 +457,10 @@
   justify-content: space-between;
   gap: 16px;
   padding: 20px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.06);
+  width: 100%;
+
+  border-radius: 12px;
+  background: var(--background-neutral-soft-surface, #F9FAFB);
 
   @media (max-width: #{$breakpoint-md - 1}px) {
     flex-direction: column;

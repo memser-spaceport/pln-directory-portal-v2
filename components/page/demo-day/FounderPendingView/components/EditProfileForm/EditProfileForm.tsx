@@ -157,7 +157,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
         fundingStage: formData.fundingStage?.value || profileData?.team?.fundingStage?.uid || undefined,
         logo: image || profileData?.team.logo?.uid,
         website: formData.website,
-        programField: formData.program?.value || undefined,
+        program: formData.program?.value || undefined,
         teamUid: profileDataProp?.teamUid,
       };
 

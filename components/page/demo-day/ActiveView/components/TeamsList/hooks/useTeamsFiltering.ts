@@ -64,7 +64,7 @@ export const useTeamsFiltering = ({ teams, searchTerm, params, isUserFounder }: 
 
       // Program filter
       if (selectedPrograms.length > 0) {
-        if (!team.programField || !selectedPrograms.includes(team.programField)) {
+        if (!team.program || !selectedPrograms.includes(team.program)) {
           return false;
         }
       }

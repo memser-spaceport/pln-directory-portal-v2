@@ -454,7 +454,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         name={team.team?.name || 'Team Name'}
         description={team?.team?.shortDescription || '-'}
         fundingStage={team?.team?.fundingStage?.title || '-'}
-        program={team.programField ?? undefined}
+        program={team.program ?? undefined}
         tags={team?.team.industryTags.map((tag) => tag.title) || []}
         founders={team.founders}
         uid={team?.team?.uid}

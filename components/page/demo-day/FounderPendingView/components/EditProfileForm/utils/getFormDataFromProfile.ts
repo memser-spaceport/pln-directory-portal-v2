@@ -13,7 +13,7 @@ export function getFormDataFromProfile(
   programOptions: { value: string; label: string }[] = [],
 ) {
   const { team } = profileData || {};
-  const currentProgram = profileData?.programField;
+  const currentProgram = profileData?.program;
 
   return {
     image: null,

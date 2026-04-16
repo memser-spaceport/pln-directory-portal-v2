@@ -216,16 +216,18 @@ export const Filters = () => {
         />
       </FilterSection>
 
-      <FilterSection title="Stage/Type">
-        <FilterList
-          hideSearch
-          options={stageOptions}
-          paramName="stage"
-          showAllLabel="Show All Stages"
-          placeholder="E.g. Seed, Pre-Seed, etc."
-          emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
-        />
-      </FilterSection>
+      {demoDayData?.stageTagEnabled !== false && (
+        <FilterSection title="Stage/Type">
+          <FilterList
+            hideSearch
+            options={stageOptions}
+            paramName="stage"
+            showAllLabel="Show All Stages"
+            placeholder="E.g. Seed, Pre-Seed, etc."
+            emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
+          />
+        </FilterSection>
+      )}
 
       {programOptions.length > 0 && (
         <FilterSection title="Program">

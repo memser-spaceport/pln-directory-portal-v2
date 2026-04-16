@@ -510,6 +510,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                         description={displayTeam?.team?.shortDescription || '-'}
                         fundingStage={displayTeam?.team?.fundingStage?.title || '-'}
                         program={displayTeam.program ?? undefined}
+                        showStage={demoDayData?.stageTagEnabled !== false}
                         tags={displayTeam?.team.industryTags.map((tag) => tag.title) || []}
                         website={displayTeam?.team?.website}
                       />

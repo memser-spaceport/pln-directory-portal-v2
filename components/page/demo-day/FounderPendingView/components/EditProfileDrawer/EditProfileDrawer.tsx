@@ -13,6 +13,7 @@ import Cookies from 'js-cookie';
 import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import Link from 'next/link';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
@@ -88,6 +89,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const isPrepDemoDay = useIsPrepDemoDay();
   const demoDayMode = useDemoDayMode();
+  const { data: demoDayData } = useGetDemoDayState();
   const [editView, setEditView] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
@@ -563,8 +565,12 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
                       <div className={s.drawerTagDivider} />
                     </>
                   )}
-                  <div className={s.drawerStageTag}>Stage: {data?.team?.fundingStage?.title}</div>
-                  <div className={s.drawerTagDivider} />
+                  {demoDayData?.stageTagEnabled !== false && (
+                    <>
+                      <div className={s.drawerStageTag}>Stage: {data?.team?.fundingStage?.title}</div>
+                      <div className={s.drawerTagDivider} />
+                    </>
+                  )}
                   {data?.team.industryTags.map((tag) => (
                     <div className={s.drawerTag} key={tag.uid}>
                       {tag.title}

@@ -25,13 +25,14 @@ interface ProfileHeaderProps extends PropsWithChildren {
   tags: string[];
   founders?: Founder[];
   website?: string;
+  showStage?: boolean;
   classes?: {
     name?: string;
   };
 }
 
 export const ProfileHeader = (props: ProfileHeaderProps) => {
-  const { uid, image, name, description, fundingStage, program, tags, founders, website, classes, children } = props;
+  const { uid, image, name, description, fundingStage, program, showStage = true, tags, founders, website, classes, children } = props;
 
   const foundersContainerRef = useRef<HTMLDivElement>(null);
   const founderItemsRef = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -186,7 +187,9 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
               <div className={s.tagDivider} />
             </>
           )}
-          <div className={s.stageTag}>Stage: {fundingStage ? formatFundingStage(fundingStage) : 'Not specified'}</div>
+          {showStage && (
+            <div className={s.stageTag}>Stage: {fundingStage ? formatFundingStage(fundingStage) : 'Not specified'}</div>
+          )}
           {program && (
             <>
               <div className={s.tagDivider} />

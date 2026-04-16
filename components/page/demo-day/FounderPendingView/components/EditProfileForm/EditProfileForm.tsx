@@ -273,14 +273,16 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
             />
           </div>
 
-          <div className={s.row}>
-            <FormSelect
-              name="fundingStage"
-              label="Company Stage"
-              placeholder="Select your current company stage"
-              options={options.fundingStageOptions}
-            />
-          </div>
+          {demoDayData?.stageTagEnabled !== false && (
+            <div className={s.row}>
+              <FormSelect
+                name="fundingStage"
+                label="Company Stage"
+                placeholder="Select your current company stage"
+                options={options.fundingStageOptions}
+              />
+            </div>
+          )}
 
           {demoDayData?.programFieldEnabled && programOptions.length > 0 && (
             <div className={s.row}>

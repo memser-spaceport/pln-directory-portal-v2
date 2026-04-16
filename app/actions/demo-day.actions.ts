@@ -18,6 +18,8 @@ export type DemoDayState = {
   teamsCount: number;
   approximateStartDate?: string;
   supportEmail?: string;
+  programFieldEnabled?: boolean;
+  programFieldOptions?: string[];
 };
 
 export const getDemoDayState = async (slug: string, memberUid?: string, authToken?: string) => {

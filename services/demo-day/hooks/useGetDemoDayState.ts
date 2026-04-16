@@ -23,6 +23,8 @@ type DemoDayState = {
 
   investorsCount: number;
   teamsCount: number;
+  programFieldEnabled?: boolean;
+  programFieldOptions?: string[];
 };
 
 export async function getDemoDayState(demoDaySlug: string, memberUid?: string) {

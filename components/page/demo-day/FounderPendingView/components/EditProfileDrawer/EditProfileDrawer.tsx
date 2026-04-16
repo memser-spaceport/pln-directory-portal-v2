@@ -713,6 +713,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             isLoading={expressInterest.isPending}
             disabled={!data?.uid}
             variant="drawer"
+            userInfo={userInfo}
           />
         </div>
       )}

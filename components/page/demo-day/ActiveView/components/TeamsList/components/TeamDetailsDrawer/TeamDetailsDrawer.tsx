@@ -616,6 +616,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     onInvest={handleInvestCompanyClick}
                     isLoading={expressInterest.isPending}
                     variant="drawer"
+                    userInfo={userInfo}
                   />
                 </div>
               </div>

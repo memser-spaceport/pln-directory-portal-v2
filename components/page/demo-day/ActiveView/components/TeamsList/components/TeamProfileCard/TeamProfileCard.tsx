@@ -578,6 +578,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         onInvest={(e) => handleInterestCompanyClick(e, 'invest')}
         isLoading={expressInterest.isPending}
         variant="card"
+        userInfo={userInfo}
       />
 
       {/* Refer Company Modal */}

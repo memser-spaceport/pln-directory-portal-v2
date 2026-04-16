@@ -9,6 +9,7 @@ interface UpdateFundraisingProfileData {
   shortDescription: string;
   industryTags: string[];
   fundingStage?: string;
+  program?: string;
   teamUid?: string; // Optional team UID for admin edits
 }
 

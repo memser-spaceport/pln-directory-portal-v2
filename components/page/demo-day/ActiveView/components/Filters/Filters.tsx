@@ -4,6 +4,7 @@ import { FilterSection } from '@/components/page/members/MembersFilter/FilterSec
 import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
 import { FilterList, FilterOption } from './components/FilterList';
 import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useFilterStore } from '@/services/members/store';
 import { SupportSection } from '@/components/page/demo-day/components/SupportSection';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
@@ -16,6 +17,9 @@ export const Filters = () => {
 
   // Fetch teams data
   const { data: teams, isLoading: teamsLoading } = useGetTeamsList();
+
+  // Fetch demo day state for conditional fields
+  const { data: demoDayData } = useGetDemoDayState();
 
   // Build industry options dynamically from teams data
   const industryOptions = useMemo((): FilterOption[] => {
@@ -152,6 +156,20 @@ export const Filters = () => {
     return options;
   }, [teams]);
 
+  // Build program options from demo day state
+  const programOptions = useMemo((): FilterOption[] => {
+    if (!demoDayData?.programFieldEnabled || !demoDayData.programFieldOptions?.length) return [];
+    return demoDayData.programFieldOptions.map((name: string) => ({ id: name, name, count: 0 }));
+  }, [demoDayData?.programFieldEnabled, demoDayData?.programFieldOptions]);
+
+  // Remove program param when the program filter is disabled
+  useEffect(() => {
+    if (demoDayData === undefined) return;
+    if (!demoDayData?.programFieldEnabled && params.get('program')) {
+      setParam('program', undefined);
+    }
+  }, [demoDayData, params, setParam]);
+
   // Remove invalid activity param values that don't have a corresponding option
   useEffect(() => {
     const activityParam = params.get('activity');
@@ -198,16 +216,31 @@ export const Filters = () => {
         />
       </FilterSection>
 
-      <FilterSection title="Stage/Type">
-        <FilterList
-          hideSearch
-          options={stageOptions}
-          paramName="stage"
-          showAllLabel="Show All Stages"
-          placeholder="E.g. Seed, Pre-Seed, etc."
-          emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
-        />
-      </FilterSection>
+      {demoDayData?.stageTagEnabled !== false && (
+        <FilterSection title="Stage/Type">
+          <FilterList
+            hideSearch
+            options={stageOptions}
+            paramName="stage"
+            showAllLabel="Show All Stages"
+            placeholder="E.g. Seed, Pre-Seed, etc."
+            emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
+          />
+        </FilterSection>
+      )}
+
+      {programOptions.length > 0 && (
+        <FilterSection title="Program">
+          <FilterList
+            hideSearch
+            options={programOptions}
+            paramName="program"
+            showAllLabel=""
+            placeholder=""
+            emptyMessage="No programs found"
+          />
+        </FilterSection>
+      )}
 
       {/* Support Section */}
       <SupportSection />

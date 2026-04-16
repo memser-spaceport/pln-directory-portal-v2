@@ -25,6 +25,11 @@ export const useTeamsFiltering = ({ teams, searchTerm, params, isUserFounder }: 
     return activityParam ? activityParam.split(URL_QUERY_VALUE_SEPARATOR) : [];
   }, [params]);
 
+  const selectedPrograms = useMemo(() => {
+    const programParam = params.get('program');
+    return programParam ? programParam.split(URL_QUERY_VALUE_SEPARATOR) : [];
+  }, [params]);
+
   const filteredTeams = useMemo(() => {
     if (!teams) return { userTeams: [], otherTeams: [] };
 
@@ -57,6 +62,13 @@ export const useTeamsFiltering = ({ teams, searchTerm, params, isUserFounder }: 
         }
       }
 
+      // Program filter
+      if (selectedPrograms.length > 0) {
+        if (!team.programField || !selectedPrograms.includes(team.programField)) {
+          return false;
+        }
+      }
+
       // Activity filter (liked, saved, connected, invested, referred, feedback)
       if (selectedActivities.length > 0) {
         const matchesActivity = selectedActivities.some((activity) => {
@@ -81,12 +93,13 @@ export const useTeamsFiltering = ({ teams, searchTerm, params, isUserFounder }: 
     const otherTeams = filtered.filter((team) => !isUserFounder(team));
 
     return { userTeams, otherTeams };
-  }, [teams, searchTerm, selectedIndustries, selectedStages, selectedActivities, isUserFounder]);
+  }, [teams, searchTerm, selectedIndustries, selectedStages, selectedActivities, selectedPrograms, isUserFounder]);
 
   return {
     filteredTeams,
     selectedIndustries,
     selectedStages,
     selectedActivities,
+    selectedPrograms,
   };
 };

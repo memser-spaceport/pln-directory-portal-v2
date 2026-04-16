@@ -43,6 +43,7 @@ export type TeamProfile = {
   referral: boolean;
   feedback: boolean;
   analyticsReportUrl?: string;
+  programField?: string | null;
 };
 
 export type TeamsListResponse = TeamProfile[];

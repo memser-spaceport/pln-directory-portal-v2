@@ -1,9 +1,8 @@
 @use 'styles/media';
 
 .root {
-  width: inherit;
   display: none;
-  position: fixed;
+  width: inherit;
 
   @include media.breakpoint-1024 {
     display: block;

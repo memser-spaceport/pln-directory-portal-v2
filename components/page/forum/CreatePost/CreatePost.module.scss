@@ -147,6 +147,20 @@
   }
 }
 
+.audienceNote {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  padding: 0 var(--spacing-md, 16px);
+  margin: 0;
+
+  @include media.tablet-landscape {
+    padding: 0;
+  }
+}
+
 .content {
   display: flex;
   padding: var(--spacing-xl, 24px) var(--spacing-md, 16px);

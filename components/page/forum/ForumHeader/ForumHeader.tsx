@@ -57,7 +57,10 @@ export const ForumHeader = () => {
 
   return (
     <div className={s.root}>
-      <h1>Forum</h1>
+      <div className={s.titleBlock}>
+        <h1>Forum</h1>
+        <p className={s.subtitle}>A private space for vetted founders and operators in the PL Network. No investors, no outsiders.</p>
+      </div>
       <div className={s.inline}>
         <span>Sort by:</span>
         <Select

@@ -18,6 +18,44 @@
   background: #f1f5f9;
 }
 
+.trustBanner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--background-base-white, #fff);
+  border-left: 3px solid #455468;
+
+  @include media.tablet-landscape {
+    padding: 10px 16px;
+    margin: 4px 0;
+  }
+}
+
+.trustBannerText {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.trustBannerClose {
+  flex-shrink: 0;
+  padding: 2px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  opacity: 0.6;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
 .triggerButton {
   display: inline-flex;
   padding: 8px var(--global-size-size-125, 10px);

@@ -1,7 +1,7 @@
 'use client';
 
 import { clsx } from 'clsx';
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useForumAnalytics } from '@/analytics/forum.analytics';
@@ -22,6 +22,16 @@ export const Feed = () => {
   const scrollDirection = useScrollDirection();
   const analytics = useForumAnalytics();
 
+  const [bannerDismissed, setBannerDismissed] = useState(true);
+  useEffect(() => {
+    setBannerDismissed(localStorage.getItem('forum-banner-dismissed') === 'true');
+  }, []);
+
+  const dismissBanner = () => {
+    setBannerDismissed(true);
+    localStorage.setItem('forum-banner-dismissed', 'true');
+  };
+
   const onValueChange = useCallback(
     (value: string) => {
       analytics.onForumTopicClicked({ topicId: value });
@@ -35,6 +45,16 @@ export const Feed = () => {
 
   return (
     <div className={s.root}>
+      {!bannerDismissed && (
+        <div className={s.trustBanner}>
+          <p className={s.trustBannerText}>
+            Every member has been individually vetted. Only founders and operators in the PL Network can see posts here. Speak freely.
+          </p>
+          <button className={s.trustBannerClose} onClick={dismissBanner} aria-label="Dismiss">
+            <CloseIcon />
+          </button>
+        </div>
+      )}
       <div className={s.stickyHeader}>
         <ForumHeader />
         <CategoriesTabs onValueChange={onValueChange} value={cid} />
@@ -55,6 +75,15 @@ export const Feed = () => {
     </div>
   );
 };
+
+const CloseIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
+      fill="#455468"
+    />
+  </svg>
+);
 
 const PlusIcon = () => (
   <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -198,6 +198,12 @@ export const CreatePost = (props: Props) => {
               </button>
             </div>
 
+            {!isEdit && (
+              <p className={s.audienceNote}>
+                Only verified founders and operators in the PL Network can see Forum posts.
+              </p>
+            )}
+
             <div
               className={clsx(s.content)}
               style={{

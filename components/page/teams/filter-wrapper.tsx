@@ -44,7 +44,6 @@ export default function FilterWrapper(props: IFilterwrapper) {
 
           .fw__web {
             display: none;
-            position: fixed;
           }
 
           @media (min-width: 1024px) {

@@ -48,7 +48,7 @@ export const Feed = () => {
       {!bannerDismissed && (
         <div className={s.trustBanner}>
           <p className={s.trustBannerText}>
-            Every member has been individually vetted. Only founders and operators in the PL Network can see posts here. Speak freely.
+            Every member has been individually vetted. Only founders and operators in the PL network can see posts here. Speak freely.
           </p>
           <button className={s.trustBannerClose} onClick={dismissBanner} aria-label="Dismiss">
             <CloseIcon />

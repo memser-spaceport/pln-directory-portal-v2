@@ -200,7 +200,7 @@ export const CreatePost = (props: Props) => {
 
             {!isEdit && (
               <p className={s.audienceNote}>
-                Only verified founders and operators in the PL Network can see Forum posts.
+                Only verified founders and operators in the PL network can see Forum posts.
               </p>
             )}
 

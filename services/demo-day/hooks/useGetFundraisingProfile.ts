@@ -65,6 +65,7 @@ export type FundraisingProfile = {
   invested: boolean;
   feedback: boolean;
   analyticsReportUrl?: string;
+  programField?: string | null;
 };
 
 async function fetcher(demoDayId: string) {

@@ -7,8 +7,13 @@ const formatFundingStageForForm = (stage: string, options: IndustryFundingOpts) 
   return option || null;
 };
 
-export function getFormDataFromProfile(profileData: FundraisingProfile | undefined, options: IndustryFundingOpts) {
+export function getFormDataFromProfile(
+  profileData: FundraisingProfile | undefined,
+  options: IndustryFundingOpts,
+  programOptions: { value: string; label: string }[] = [],
+) {
   const { team } = profileData || {};
+  const currentProgram = profileData?.programField;
 
   return {
     image: null,
@@ -17,5 +22,6 @@ export function getFormDataFromProfile(profileData: FundraisingProfile | undefin
     tags: team?.industryTags?.map((tag) => ({ value: tag.uid, label: tag.title })) || [],
     fundingStage: team?.fundingStage ? formatFundingStageForForm(team.fundingStage.uid, options) : null,
     website: team?.website || '',
+    program: currentProgram ? programOptions.find((o) => o.value === currentProgram) ?? null : null,
   };
 }

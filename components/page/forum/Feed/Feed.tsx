@@ -11,6 +11,7 @@ import { Posts } from '@/components/page/forum/Posts';
 import { ForumHeader } from '@/components/page/forum/ForumHeader';
 import { CategoriesTabs } from '@/components/page/forum/CategoriesTabs';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
+import { ForumIntroBanner } from '@/components/page/forum/ForumIntroBanner';
 
 
 import s from './Feed.module.scss';
@@ -35,6 +36,7 @@ export const Feed = () => {
 
   return (
     <div className={s.root}>
+      <ForumIntroBanner />
       <div className={s.stickyHeader}>
         <ForumHeader />
         <CategoriesTabs onValueChange={onValueChange} value={cid} />

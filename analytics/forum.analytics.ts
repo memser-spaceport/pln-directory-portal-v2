@@ -242,6 +242,10 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.MEMBER_PROFILE_FORUM_ACTIVITY_SIGN_UP_CLICKED, params);
   }
 
+  function onForumBannerDismissed() {
+    captureEvent(FORUM_ANALYTICS_EVENTS.BANNER_DISMISSED, {});
+  }
+
   return {
     onForumTopicClicked,
     onForumSortSelected,
@@ -274,5 +278,6 @@ export const useForumAnalytics = () => {
     onMemberProfileForumActivityBrowseDiscussionsClicked,
     onMemberProfileForumActivitySignInClicked,
     onMemberProfileForumActivitySignUpClicked,
+    onForumBannerDismissed,
   };
 };

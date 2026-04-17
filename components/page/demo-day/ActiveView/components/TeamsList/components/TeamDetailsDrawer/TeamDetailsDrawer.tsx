@@ -509,6 +509,8 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                         name={displayTeam.team?.name || 'Team Name'}
                         description={displayTeam?.team?.shortDescription || '-'}
                         fundingStage={displayTeam?.team?.fundingStage?.title || '-'}
+                        program={displayTeam.program ?? undefined}
+                        showStage={demoDayData?.stageTagEnabled !== false}
                         tags={displayTeam?.team.industryTags.map((tag) => tag.title) || []}
                         website={displayTeam?.team?.website}
                       />
@@ -614,6 +616,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     onInvest={handleInvestCompanyClick}
                     isLoading={expressInterest.isPending}
                     variant="drawer"
+                    userInfo={userInfo}
                   />
                 </div>
               </div>

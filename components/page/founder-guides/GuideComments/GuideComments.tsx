@@ -41,7 +41,14 @@ export const GuideComments = ({ articleUid, userInfo }: Props) => {
 
     scrolledToComment.current = true;
 
-    el.scrollIntoView();
+    // Defer scroll so that dynamically-loaded content above (MdPreview, images)
+    // has time to render and stabilise the layout before we measure position.
+    // CSS scroll-margin-top: 140px (globals.scss) handles the sticky-header offset.
+    const timer = setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [commentId, isLoading, comments]);
 
   useEffect(() => {

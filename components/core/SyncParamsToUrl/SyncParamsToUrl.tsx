@@ -21,6 +21,7 @@ const TRACKED_PARAMS = [
   'stage',
   'industry',
   'activity',
+  'program',
   'investorType',
 ] as const;
 

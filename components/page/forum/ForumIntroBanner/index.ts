@@ -1,0 +1,1 @@
+export { ForumIntroBanner } from './ForumIntroBanner';

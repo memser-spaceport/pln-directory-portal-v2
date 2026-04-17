@@ -10,6 +10,7 @@ export interface PushNotification {
   description?: string;
   image?: string;
   link?: string;
+  linkText?: string;
   metadata?: Record<string, unknown>;
   isPublic: boolean;
   recipientUid?: string | null;
@@ -103,7 +104,8 @@ export type PushNotificationCategory =
   | 'IRL_GATHERING'
   | 'SYSTEM'
   | 'GUIDE_POST'
-  | 'GUIDE_REPLY';
+  | 'GUIDE_REPLY'
+  | 'NEW_FEATURE';
 
 export interface NotificationUpdatePayload {
   id: string;
@@ -143,4 +145,5 @@ export const CATEGORY_CONFIG: Record<PushNotificationCategory, { label: string; 
   SYSTEM: { label: 'System', icon: 'system', color: '#6B7280' },
   GUIDE_POST: { label: 'Forum', icon: 'forum', color: '#10B981' },
   GUIDE_REPLY: { label: 'Forum', icon: 'forum', color: '#10B981' },
+  NEW_FEATURE: { label: 'New Feature', icon: 'system', color: '#6B7280' },
 };

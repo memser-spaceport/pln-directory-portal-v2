@@ -16,6 +16,7 @@ import { getMemberInfo } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
 import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
+import { SCOPE_LABELS } from '@/services/articles/constants';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { canEditArticle, formatAuthorMemberMainTeamLabel } from './helpers';
@@ -379,7 +380,11 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
         <div className={s.card}>
           <header className={s.header}>
             <div className={s.topRowActions}>
-              {scopes.length > 1 && article.scope ? <span className={s.categoryBadge}>{article.scope}</span> : <div />}
+              {scopes.length > 1 && article.scope ? (
+                <span className={s.categoryBadge}>{SCOPE_LABELS[article.scope] ?? article.scope}</span>
+              ) : (
+                <div />
+              )}
               {canEdit ? (
                 <Link
                   href={`/founder-guides/${article.slugURL}/edit`}

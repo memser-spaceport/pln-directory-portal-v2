@@ -31,7 +31,7 @@ export const pastRound14Data: IPastRoundData = {
   },
 
   stats: {
-    onboardedParticipants: 55,
+    onboardedParticipants: 58,
     regionsUnlocked: ['USA', 'Germany', 'Switzerland', 'Portugal'],
     incentivizedActivities: [
       'Curate X Spaces',

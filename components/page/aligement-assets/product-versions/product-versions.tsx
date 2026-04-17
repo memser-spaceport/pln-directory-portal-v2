@@ -28,7 +28,7 @@ const productVersions: VersionData[] = [
       'Launched monthly Alignment Asset newsletter',
     ],
     changed: [
-      'Expanded onboarded participants from 48 to 55',
+      'Expanded onboarded participants from 48 to 59',
     ],
   },
   {

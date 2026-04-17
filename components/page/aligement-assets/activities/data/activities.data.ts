@@ -180,7 +180,7 @@ Only approved case studies that are opted into the internal content library are 
       category: 'Network Tooling',
       activity: 'Complete or Update Your PL Directory Profile*',
       networkValue: 'Make yourself discoverable and strengthen the network map.',
-      points: '500+',
+      points: '100+',
       isAutoTracked: true,
       popupContent: {
         title: 'Complete or Update Your PL Directory Profile',
@@ -342,7 +342,7 @@ Only approved case studies that are opted into the internal content library are 
       points: '50+',
       popupContent: {
         title: 'Help Organize an Event',
-        description: `Host or speak at a curated activity or event catered to Protocol Labs participants to aid with an array of topics, ranging from company formation, dedicated development, cross-network collaboration, etc. Events should be intentionally designed, independently run without direct PL sponsorship in the form of direct compensation for time or labor, and focused on delivering real value to the Protocol Labs community.
+        description: `Host or speak at a curated activity or event catered to Protocol Labs participants to aid with an array of topics, ranging from company formation, dedicated development, cross-network collaboration, etc. Events should be intentionally designed, independently run without direct PL, Inc. or Polaris, Inc. sponsorship in the form of direct compensation for time or labor, and focused on delivering real value to the Protocol Labs community.
 
 For Hosts, the event must be created and published in Luma and included on a live, discoverable calendar or listing. You must add events@plrs.xyz as an Event Manager in Luma so registration and attendance data can be accessed, and the Luma "check-in" feature must be enabled to verify attendee participation. The event must also be submitted to the PL events directory by adding it to https://directory.plnetwork.io/events/irl via https://irl.plnetwork.io/events/, with your profile clearly listed under the Host section of the event.
 

@@ -316,12 +316,12 @@
 
   .plaa__sidebar {
     display: block;
-    top: calc(var(--app-header-height) + 80px); /* Navbar + Desktop Banner */
-    height: calc(100vh - var(--app-header-height) - 80px);
+    top: calc(var(--app-header-height)); /* Navbar + Desktop Banner */
+    height: calc(100vh - var(--app-header-height));
   }
 
   .plaa__content {
-    padding: 102px 48px 225px 48px;
+    padding: 20px 48px 225px 48px;
     flex: 1;
   }
   

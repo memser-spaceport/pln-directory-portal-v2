@@ -571,6 +571,12 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
                       <div className={s.drawerTagDivider} />
                     </>
                   )}
+                  {data?.program && (
+                    <>
+                      <div className={s.drawerStageTag}>{data?.program}</div>
+                      <div className={s.drawerTagDivider} />
+                    </>
+                  )}
                   {data?.team.industryTags.map((tag) => (
                     <div className={s.drawerTag} key={tag.uid}>
                       {tag.title}

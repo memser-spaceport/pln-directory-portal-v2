@@ -156,11 +156,26 @@ export const Filters = () => {
     return options;
   }, [teams]);
 
-  // Build program options from demo day state
+  // Build program options from demo day state with team counts
   const programOptions = useMemo((): FilterOption[] => {
     if (!demoDayData?.programFieldEnabled || !demoDayData.programFieldOptions?.length) return [];
-    return demoDayData.programFieldOptions.map((name: string) => ({ id: name, name, count: 0 }));
-  }, [demoDayData?.programFieldEnabled, demoDayData?.programFieldOptions]);
+
+    const countMap = new Map<string, number>();
+    if (teams) {
+      teams.forEach((team) => {
+        const prog = team.program;
+        if (prog) {
+          countMap.set(prog, (countMap.get(prog) ?? 0) + 1);
+        }
+      });
+    }
+
+    return demoDayData.programFieldOptions.map((name: string) => ({
+      id: name,
+      name,
+      count: countMap.get(name) ?? 0,
+    }));
+  }, [demoDayData?.programFieldEnabled, demoDayData?.programFieldOptions, teams]);
 
   // Remove program param when the program filter is disabled
   useEffect(() => {

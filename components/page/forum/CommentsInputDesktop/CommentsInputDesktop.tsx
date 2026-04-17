@@ -115,7 +115,7 @@ export const CommentsInputDesktop = (props: Props) => {
             <FormEditor
               autoFocus
               name="comment"
-              placeholder="Comment"
+              placeholder="Write your comment here. Use @ to mention someone."
               label={replyToName ? `Replying to ${replyToName}` : ''}
               onMentionInitiated={() =>
                 analytics.onMentionInitiated({
@@ -171,7 +171,7 @@ export const CommentsInputDesktop = (props: Props) => {
           <div className={s.inline}>
             <FormField
               name="dummy"
-              placeholder="Comment"
+              placeholder="Write your comment here. Use @ to mention someone."
               onClick={() => {
                 analytics.onCommentInputClicked({ tid, timeSincePostCreation: Date.now() - timestamp });
                 setFocused(true);

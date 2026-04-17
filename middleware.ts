@@ -6,7 +6,7 @@ import { calculateExpiry, decodeToken } from './utils/auth.utils';
  * Protected routes that require authentication
  * Users accessing these routes without authentication will be redirected to login
  */
-const PROTECTED_ROUTES = ['/alignment-asset', '/deals', '/founder-guides'];
+const PROTECTED_ROUTES = ['/alignment-asset', '/deals/', '/founder-guides'];
 const PUBLIC_ROUTES = ['/deals-landing'];
 
 export const config = {

@@ -113,13 +113,14 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
       return;
     }
 
-    // Handle missing leading teams for team leads
+    // Handle leading teams changes
     const serverLeadingTeams = getLeadingTeamIds(memberInfo.teamMemberRoles);
-    const missingLeadingTeams = serverLeadingTeams.filter(
-      (teamUid) => !(userInfo.leadingTeams ?? []).includes(teamUid),
-    );
+    const cookieLeadingTeams = userInfo.leadingTeams ?? [];
+    const leadingTeamsChanged =
+      serverLeadingTeams.length !== cookieLeadingTeams.length ||
+      serverLeadingTeams.some((teamUid) => !cookieLeadingTeams.includes(teamUid));
 
-    if (missingLeadingTeams.length > 0) {
+    if (leadingTeamsChanged) {
       try {
         const parsedCookie = JSON.parse(userInfoCookie);
 
@@ -127,7 +128,7 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
           setUserInfoCookie(
             JSON.stringify({
               ...parsedCookie,
-              leadingTeams: Array.from(new Set([...(parsedCookie.leadingTeams ?? []), ...missingLeadingTeams])),
+              leadingTeams: serverLeadingTeams,
             }),
             { domain: process.env.COOKIE_DOMAIN || '' },
           );

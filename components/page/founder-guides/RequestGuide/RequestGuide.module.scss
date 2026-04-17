@@ -1,0 +1,98 @@
+@import '@/styles/media.scss';
+
+.root {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100%;
+  padding: 40px 16px 80px;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 600px;
+  max-width: 100%;
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #0a0c11;
+  letter-spacing: -0.75px;
+  line-height: 42px;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #455468;
+  letter-spacing: -0.3px;
+  line-height: 24px;
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cancelBtn {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #455468;
+  background: #fff;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0px 1px 2px rgba(14, 15, 17, 0.08), inset 0px -2px 8px rgba(14, 15, 17, 0.02);
+
+  &:hover:not(:disabled) {
+    background: rgba(14, 15, 17, 0.04);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.submitBtn {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  background: #1b4dff;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow:
+    0px 1px 5px rgba(27, 77, 255, 0.16),
+    inset 0px 1px 3px rgba(255, 255, 255, 0.32),
+    inset 0px 4px 6px rgba(255, 255, 255, 0.06);
+
+  &:hover:not(:disabled) {
+    background: #0f3cd9;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}

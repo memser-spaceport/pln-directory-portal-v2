@@ -2,15 +2,7 @@ import React from 'react';
 
 import { ISubItem } from '@/components/core/navbar/type';
 import { CalendarBlankIcon, ContributorIcon, UsersThreeIcon } from '@/components/icons';
-import {
-  MembersIcon,
-  TeamsIcon,
-  ProjectsIcon,
-  KnowledgeBaseIcon,
-  AccessControlIcon,
-  DealsIcon,
-  FounderGuidesIcon,
-} from '../components/icons';
+import { MembersIcon, TeamsIcon, ProjectsIcon, KnowledgeBaseIcon, AccessControlIcon, DealsIcon, FounderGuidesIcon, DemoDayIcon, AnalyticsIcon, PrototypesIcon } from '../components/icons';
 
 export const DIRECTORY_LINKS: ISubItem[] = [
   {
@@ -87,4 +79,18 @@ export const FOUNDER_GUIDES_LINK: ISubItem = {
   href: '/founder-guides',
   title: 'Founder Guides',
   description: 'Structured, expert-driven guides for startup founders.',
+};
+
+export const DEMO_DAY_LINK: ISubItem = {
+  icon: <DemoDayIcon />,
+  href: '/demoday',
+  title: 'Demo Days',
+  description: 'Exclusive events where founders pitch to selected investors.',
+};
+
+export const DEMO_DAY_ANALYTICS_LINK: ISubItem = {
+  icon: <AnalyticsIcon />,
+  href: '/demo-day-analytics',
+  title: 'Demo Day Analytics',
+  description: 'Track Demo Day activity across teams, events, and interactions.',
 };

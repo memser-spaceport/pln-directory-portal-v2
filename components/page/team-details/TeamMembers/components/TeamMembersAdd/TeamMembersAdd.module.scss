@@ -1,0 +1,27 @@
+.selectedList {
+  gap: 16px;
+  display: flex;
+  flex-direction: column;
+
+  margin-top: 24px;
+}
+
+.selectedCard {
+  padding: 0;
+}
+
+.teamLeadToggle {
+  gap: 12px;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.teamLeadLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  white-space: nowrap;
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -8,18 +9,20 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
-import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import useBlockNavigation from '@/hooks/useUnsavedChangesWarning';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useCreateArticleMutation } from '@/services/articles/hooks/useCreateArticleMutation';
 import { useUpdateArticleMutation } from '@/services/articles/hooks/useUpdateArticleMutation';
-import { ARTICLE_CATEGORIES } from '@/services/articles/constants';
+import { ARTICLE_CATEGORIES, SCOPE_LABELS } from '@/services/articles/constants';
+import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
 import { IArticle } from '@/types/articles.types';
 import { AuthorAutocomplete } from './AuthorAutocomplete';
 import { createArticleSchema, CreateArticleForm, articleToFormValues } from './helpers';
 import s from './CreateArticle.module.scss';
+
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false });
 
 interface CreateArticleProps {
   article?: IArticle;
@@ -45,12 +48,16 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
 
   const categoryOptions = useMemo(() => ARTICLE_CATEGORIES.map((c) => ({ label: c, value: c })), []);
 
+  const { scopes: userScopes } = useFounderGuidesScopes();
+  const scopeOptions = useMemo(() => userScopes.map((s) => ({ label: SCOPE_LABELS[s] ?? s, value: s })), [userScopes]);
+
   const defaultValues = useMemo(
     () =>
       isEditMode && article
         ? articleToFormValues(article)
         : {
             category: null,
+            scope: null,
             title: '',
             summary: '',
             readingTime: null,
@@ -72,10 +79,12 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
     handleSubmit,
     reset,
     watch,
-    formState: { isSubmitting, isDirty },
+    setValue,
+    formState: { isSubmitting, isDirty, errors },
   } = methods;
 
   const author: CreateArticleForm['author'] = watch('author');
+  const contentValue = watch('content');
   const selectedMemberUid = author?.type === 'member' ? author.value : undefined;
   const { data: selectedMemberData } = useMember(selectedMemberUid);
   const memberOfficeHours = selectedMemberData?.memberInfo?.officeHours || null;
@@ -97,6 +106,7 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
       title: data.title,
       summary: data.summary || undefined,
       category: data.category?.value,
+      scope: data.scope?.value ?? null,
       readingTime: data.readingTime || undefined,
       content: data.content,
       authorMemberUid: author?.type === 'member' ? author.value : undefined,
@@ -160,12 +170,31 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
             <div className={s.section}>
               <div className={s.sectionDivider}>CONTENT</div>
 
-              <FormSelect name="category" placeholder="Select category" label="Category" options={categoryOptions} />
+              <FormSelect
+                name="category"
+                placeholder="Select category"
+                label="Category"
+                options={categoryOptions}
+                isRequired
+              />
+
+              {userScopes.length > 0 && (
+                <FormSelect
+                  name="scope"
+                  placeholder="Limit this guide's visibility to a specific group"
+                  label="Scope"
+                  options={scopeOptions}
+                  isClearable
+                />
+              )}
 
               <FormField
                 name="title"
                 placeholder="Enter the title (e.g. Token vesting schedules, SAFE vs equity, hiring first engineer)"
                 label="Guide Title"
+                isRequired
+                max={255}
+                description="Max. 255 characters."
               />
 
               <FormField
@@ -174,21 +203,28 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
                 label="Summary"
                 max={100}
                 description="Max. 100 characters."
+                isRequired
               />
 
               <FormField
                 name="readingTime"
                 placeholder="Enter number of minutes"
                 label="Number of Minutes to Read the Guide"
+                isRequired
               />
 
-              <FormTextArea
-                name="content"
-                label="Content"
-                placeholder="Write your guide in Markdown (headings, lists, links, etc.)"
-                // description="Published guides render Markdown on the article page."
-                rows={18}
-              />
+              <div>
+                <label className={s.editorLabel}>
+                  Content <span style={{ color: 'red' }}>*</span>
+                </label>
+                <MDEditor
+                  value={contentValue || ''}
+                  onChange={(val) => setValue('content', val ?? '', { shouldValidate: true, shouldDirty: true })}
+                  height={400}
+                  data-color-mode="light"
+                />
+                {errors.content && <span className={s.editorError}>{errors.content.message as string}</span>}
+              </div>
             </div>
 
             <div className={s.section}>
@@ -227,6 +263,7 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
                   placeholder="Enter Office Hours link"
                   label="Office Hours"
                   description="Drop your calendar link here so others can get in touch with you at a time that is convenient."
+                  isRequired
                 />
               )}
             </div>

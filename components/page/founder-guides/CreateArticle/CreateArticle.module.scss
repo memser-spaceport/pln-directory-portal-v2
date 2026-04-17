@@ -135,6 +135,25 @@
   }
 }
 
+// ── Markdown editor label / error ─────────────────────────────
+.editorLabel {
+  color: #455468;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.editorError {
+  color: #ef4444;
+  font-size: 13px;
+  line-height: 18px;
+  margin-top: 4px;
+  display: block;
+}
+
 // ── Office Hours (member read-only / prefilled) ─────────────
 .officeHours {
   display: flex;

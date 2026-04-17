@@ -35,7 +35,7 @@ export function NotificationFooter(props: Props) {
 
       {(notification.link || isIrlGathering) && (
         <span className={s.actionLink}>
-          {getActionText(notification.category)}
+          {notification.linkText ?? getActionText(notification.category)}
           {variant === 'page' && <ArrowRightIcon />}
         </span>
       )}

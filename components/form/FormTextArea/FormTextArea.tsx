@@ -16,6 +16,7 @@ interface Props extends PropsWithChildren {
   rows?: number;
   maxLength?: number;
   showCharCount?: boolean;
+  isOptional?: boolean;
 }
 
 export const FormTextArea = ({
@@ -29,6 +30,7 @@ export const FormTextArea = ({
   rows = 3,
   maxLength,
   showCharCount = false,
+  isOptional,
   ...rest
 }: Props) => {
   const {
@@ -54,6 +56,7 @@ export const FormTextArea = ({
           >
             {label}
           </Field.Label>
+          {isOptional && <span className={s.optional}>(Optional)</span>}
         </div>
       )}
       <div
@@ -64,6 +67,7 @@ export const FormTextArea = ({
         <div className={s.inputContent}>
           <textarea
             {...register(name)}
+            aria-label={typeof label === 'string' ? label : undefined}
             disabled={disabled}
             placeholder={placeholder}
             className={s.inputElement}

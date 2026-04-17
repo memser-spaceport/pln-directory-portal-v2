@@ -4,13 +4,12 @@ import { FilterSection } from '@/components/page/members/MembersFilter/FilterSec
 import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
 import { FilterList, FilterOption } from './components/FilterList';
 import { useGetTeamsList } from '@/services/demo-day/hooks/useGetTeamsList';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useFilterStore } from '@/services/members/store';
 import { SupportSection } from '@/components/page/demo-day/components/SupportSection';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { DEMO_DAY_UPFRONT_INDUSTRY_TAGS } from '@/constants/demoDay';
-
-import s from './Filters.module.scss';
 
 export const Filters = () => {
   const appliedFiltersCount = useGetMembersFilterCount();
@@ -18,6 +17,9 @@ export const Filters = () => {
 
   // Fetch teams data
   const { data: teams, isLoading: teamsLoading } = useGetTeamsList();
+
+  // Fetch demo day state for conditional fields
+  const { data: demoDayData } = useGetDemoDayState();
 
   // Build industry options dynamically from teams data
   const industryOptions = useMemo((): FilterOption[] => {
@@ -154,6 +156,35 @@ export const Filters = () => {
     return options;
   }, [teams]);
 
+  // Build program options from demo day state with team counts
+  const programOptions = useMemo((): FilterOption[] => {
+    if (!demoDayData?.programFieldEnabled || !demoDayData.programFieldOptions?.length) return [];
+
+    const countMap = new Map<string, number>();
+    if (teams) {
+      teams.forEach((team) => {
+        const prog = team.program;
+        if (prog) {
+          countMap.set(prog, (countMap.get(prog) ?? 0) + 1);
+        }
+      });
+    }
+
+    return demoDayData.programFieldOptions.map((name: string) => ({
+      id: name,
+      name,
+      count: countMap.get(name) ?? 0,
+    }));
+  }, [demoDayData?.programFieldEnabled, demoDayData?.programFieldOptions, teams]);
+
+  // Remove program param when the program filter is disabled
+  useEffect(() => {
+    if (demoDayData === undefined) return;
+    if (!demoDayData?.programFieldEnabled && params.get('program')) {
+      setParam('program', undefined);
+    }
+  }, [demoDayData, params, setParam]);
+
   // Remove invalid activity param values that don't have a corresponding option
   useEffect(() => {
     const activityParam = params.get('activity');
@@ -169,7 +200,7 @@ export const Filters = () => {
   }, [activityOptions, params, setParam, teamsLoading]);
 
   return (
-    <FiltersSidePanel clearParams={clearParams} appliedFiltersCount={appliedFiltersCount} className={s.root} hideFooter>
+    <FiltersSidePanel clearParams={clearParams} appliedFiltersCount={appliedFiltersCount} hideFooter>
       {activityOptions.length > 0 && (
         <FilterSection title="My Activity">
           <FilterList
@@ -200,16 +231,31 @@ export const Filters = () => {
         />
       </FilterSection>
 
-      <FilterSection title="Stage/Type">
-        <FilterList
-          hideSearch
-          options={stageOptions}
-          paramName="stage"
-          showAllLabel="Show All Stages"
-          placeholder="E.g. Seed, Pre-Seed, etc."
-          emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
-        />
-      </FilterSection>
+      {demoDayData?.stageTagEnabled !== false && (
+        <FilterSection title="Stage/Type">
+          <FilterList
+            hideSearch
+            options={stageOptions}
+            paramName="stage"
+            showAllLabel="Show All Stages"
+            placeholder="E.g. Seed, Pre-Seed, etc."
+            emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
+          />
+        </FilterSection>
+      )}
+
+      {programOptions.length > 0 && (
+        <FilterSection title="Program">
+          <FilterList
+            hideSearch
+            options={programOptions}
+            paramName="program"
+            showAllLabel=""
+            placeholder=""
+            emptyMessage="No programs found"
+          />
+        </FilterSection>
+      )}
 
       {/* Support Section */}
       <SupportSection />

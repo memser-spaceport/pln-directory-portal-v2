@@ -21,10 +21,13 @@ import {
   PROTOTYPE_LINKS,
   DEALS_LINK,
   FOUNDER_GUIDES_LINK,
+  DEMO_DAY_LINK,
+  DEMO_DAY_ANALYTICS_LINK,
 } from './constants/navLinks';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 import { useAdvisorsAccess } from '@/services/advisors/hooks/useAdvisorsAccess';
 import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
+import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
 import { ISubItem } from './type';
 
 import {
@@ -104,6 +107,7 @@ function Navbar(props: Readonly<INavbar>) {
   const { hasAccess: hasDealsPageAccess } = useDealsAccess();
   const { hasAccess: hasAdvisorsAccess } = useAdvisorsAccess();
   const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
+  const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
 
   const prototypeLinks: ISubItem[] = hasAdvisorsAccess
     ? [
@@ -121,10 +125,7 @@ function Navbar(props: Readonly<INavbar>) {
       ]
     : [...PROTOTYPE_LINKS];
 
-  const moreLinks: ISubItem[] = [
-    ...(hasDealsPageAccess ? [DEALS_LINK] : []),
-    ...(hasFounderGuidesAccess ? [FOUNDER_GUIDES_LINK] : []),
-  ];
+  const moreLinks: ISubItem[] = [DEALS_LINK, ...(hasFounderGuidesAccess ? [FOUNDER_GUIDES_LINK] : [])];
 
   return (
     <NavigationMenu.Root className={s.Root}>
@@ -159,11 +160,24 @@ function Navbar(props: Readonly<INavbar>) {
             <ForumIcon /> Forum
           </NavLink>
         </NavigationMenu.Item>
-        <NavigationMenu.Item className={s.menuItem}>
-          <NavLink className={s.Trigger} href="/demoday" onClick={() => onNavItemClickHandler('/demoday', 'Demo Day')}>
-            <DemoDayIcon /> Demo Day
-          </NavLink>
-        </NavigationMenu.Item>
+        {hasDemoDayAnalyticsAccess ? (
+          <NavItemWithMenu
+            icon={<DemoDayIcon />}
+            label="Demo Day"
+            items={[DEMO_DAY_LINK, DEMO_DAY_ANALYTICS_LINK]}
+            onNavItemClickHandler={onNavItemClickHandler}
+          />
+        ) : (
+          <NavigationMenu.Item className={s.menuItem}>
+            <NavLink
+              className={s.Trigger}
+              href="/demoday"
+              onClick={() => onNavItemClickHandler('/demoday', 'Demo Day')}
+            >
+              <DemoDayIcon /> Demo Day
+            </NavLink>
+          </NavigationMenu.Item>
+        )}
         {moreLinks.length > 0 && (
           <NavItemWithMenu
             icon={<MoreIcon />}

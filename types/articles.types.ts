@@ -4,6 +4,7 @@ export interface IArticle {
   title: string;
   summary: string;
   category: string;
+  scope: string | null;
   tags: string[];
   content: string;
   readingTime: number;
@@ -19,6 +20,11 @@ export interface IArticle {
     email: string;
     image: string | { url: string } | null;
     officeHours: string | null;
+    teamMemberRoles?: {
+      team: { uid: string; name: string };
+      role: string | null;
+      mainTeam: boolean;
+    }[];
   } | null;
   authorTeam: { uid: string; name: string; logo: { url: string } | null; officeHours: string | null } | null;
   totalViews: number;

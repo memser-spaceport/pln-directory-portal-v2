@@ -166,7 +166,7 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
             showInvestorsLink={true}
           />
         }
-        hideLogos={demoDaySlug === 'pl-genesis-accelerator'}
+        hideLogos={data?.landingLogosEnabled === false}
       >
         <div>
           <div className={s.root}>

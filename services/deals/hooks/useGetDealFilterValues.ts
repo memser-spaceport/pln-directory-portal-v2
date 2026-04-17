@@ -9,12 +9,13 @@ import {
   DEAL_HIGH_VALUE_FILTER_VALUE,
 } from '../constants';
 
-export function useGetDealFilterValues() {
+export function useGetDealFilterValues(enabled = true) {
   const { data: allDeals, isLoading, isError } = useQuery({
     queryKey: [DealsQueryKeys.DEALS_LIST],
     queryFn: getAllDeals,
     staleTime: 60000,
     gcTime: 120000,
+    enabled,
   });
 
   const data: IDealFilterValues | undefined = useMemo(() => {

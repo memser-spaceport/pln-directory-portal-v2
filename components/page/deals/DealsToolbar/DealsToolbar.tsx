@@ -18,7 +18,7 @@ export function DealsToolbar({ currentSort, onSortChange }: DealsToolbarProps) {
 
   const handleSubmitClick = () => {
     trackSubmitModalOpened();
-    openSubmitModal();
+    openSubmitModal(false);
   };
 
   const handleRequestDealClick = () => {

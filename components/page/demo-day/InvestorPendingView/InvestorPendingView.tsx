@@ -151,6 +151,7 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
     <>
       <LandingBase
         initialDemoDayState={initialDemoDayState}
+        hideLogos={initialDemoDayState?.landingLogosEnabled === false}
         countdown={
           <CountdownComponent
             targetDate={initialDemoDayState?.date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)}

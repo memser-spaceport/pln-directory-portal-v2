@@ -692,6 +692,23 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.13 - Demo Day Program View & New Feature Notifications',
+    tag: 'Improvements',
+    date: '17, Apr 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Partners Demo Day</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Program field</span> - When programs are enabled for a Demo Day, filter by program in the sidebar, see program tags on team cards and in the detail drawer, and choose your program on the founder edit form. Stage filter, sorting, generic tags, extra form fields, and landing logos are hidden for a simpler view.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Connect & Invest</span> - Connect and Invest now ask for confirmation before the action is sent.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals & Founder Guides</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">New feature announcements</span> - In-app notifications when there are new capabilities in Deals and Founder Guides (for members who have access).</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.12 - Founder Guide Comments & Deals Landing',
     tag: 'New Feature',
     date: '14, Apr 2026',
@@ -1613,23 +1630,18 @@ export const tagColors = [
 export const SOCIAL_IMAGE_URL =
   'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
 
-export const DEMO_DAY_METADATA: Record<
-  string,
-  { title: string; description: string; imageUrl: string }
-> = {
+export const DEMO_DAY_METADATA: Record<string, { title: string; description: string; imageUrl: string }> = {
   all: {
     title: 'Protocol Labs Demo Day',
     description:
       'Protocol Labs Demo Days are virtual events featuring top, pre-selected teams from the PL network. Accredited investors review pitches asynchronously, with 1-click options to connect and invest.',
-    imageUrl:
-      'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_General_v2.png',
+    imageUrl: 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_General_v2.png',
   },
   plw26: {
     title: 'Protocol Labs Demo Day W26',
     description:
       'Explore 12 teams across AI, Web3, and deep tech. Virtual and fully async — optimized for ease of review. For accredited investors and qualifying angels only.',
-    imageUrl:
-      'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_W26_v2.png',
+    imageUrl: 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_W26_v2.png',
   },
 };
 

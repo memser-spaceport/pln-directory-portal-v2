@@ -7,10 +7,11 @@ import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
 import { FormField } from '@/components/form/FormField';
-import { FormTextArea } from '@/components/form/FormTextArea';
 import { useRequestDealModalStore } from '@/services/deals/store';
 import { useRequestDeal } from '@/services/deals/hooks/useRequestDeal';
 import { useDealsAnalytics } from '@/analytics/deals.analytics';
+import { FormEditor } from '@/components/form/FormEditor';
+
 import { requestDealSchema, RequestDealFormData } from './helpers';
 
 import s from './RequestDealModal.module.scss';
@@ -85,13 +86,14 @@ export function RequestDealModal() {
                 description="Max. 200 characters."
               />
 
-              <FormTextArea
+              <FormEditor
                 name="description"
                 label="Why would this be useful?"
                 placeholder="Describe how your team (or others) would benefit"
                 description="Max. 600 characters."
                 maxLength={600}
                 showCharCount
+                simplified
               />
             </div>
           </FormProvider>

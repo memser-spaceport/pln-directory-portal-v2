@@ -188,6 +188,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
               disabled={!data?.uid}
               variant="card"
               className={s.actions}
+              userInfo={userInfo}
             />
           )}
         </div>

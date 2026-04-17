@@ -19,6 +19,8 @@ export function getNotificationIcon(notification: PushNotification) {
     case 'GUIDE_POST':
     case 'GUIDE_REPLY':
       return <ForumIcon />;
+    case 'NEW_FEATURE':
+      return <SystemIcon />;
     case 'SYSTEM':
     default:
       return <SystemIcon />;

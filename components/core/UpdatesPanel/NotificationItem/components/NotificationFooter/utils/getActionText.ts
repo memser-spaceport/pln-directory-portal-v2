@@ -11,6 +11,7 @@ export function getActionText(category: PushNotification['category']): string {
       return 'View more';
     case 'EVENT':
       return 'View event';
+    case 'NEW_FEATURE':
     case 'IRL_GATHERING':
       return 'Learn more';
     case 'FORUM_POST':

@@ -15,6 +15,7 @@ import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hook
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { VideoWatchTimeData } from '@/components/common/VideoPlayer/hooks/useTrackVideoWatchTime';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { ReferCompanyModal } from '../ReferCompanyModal';
 import { GiveFeedbackModal } from '@/components/page/demo-day/GiveFeedbackModal';
 import { clsx } from 'clsx';
@@ -76,6 +77,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
   const canEdit = isAdmin ? (canEditTeams ?? true) : team.founders.some((founder) => founder.uid === userInfo?.uid);
   const isPrepDemoDay = useIsPrepDemoDay();
   const demoDayMode = useDemoDayMode();
+  const { data: demoDayData } = useGetDemoDayState();
 
   // Analytics helper function for team details
   const getTeamAnalyticsData = () => ({
@@ -454,6 +456,8 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         name={team.team?.name || 'Team Name'}
         description={team?.team?.shortDescription || '-'}
         fundingStage={team?.team?.fundingStage?.title || '-'}
+        program={team.program ?? undefined}
+        showStage={demoDayData?.stageTagEnabled !== false}
         tags={team?.team.industryTags.map((tag) => tag.title) || []}
         founders={team.founders}
         uid={team?.team?.uid}
@@ -574,6 +578,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         onInvest={(e) => handleInterestCompanyClick(e, 'invest')}
         isLoading={expressInterest.isPending}
         variant="card"
+        userInfo={userInfo}
       />
 
       {/* Refer Company Modal */}

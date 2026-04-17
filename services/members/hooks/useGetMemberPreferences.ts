@@ -24,6 +24,8 @@ export interface MemberPreferencesResponse {
     newsLetter: boolean;
     showOfficeHoursDialog?: boolean;
     showForumBanner?: boolean;
+    showDemoDayConnectDialog?: boolean;
+    showDemoDayInvestDialog?: boolean;
   };
   isPreferenceAvailable: boolean;
 }
@@ -71,6 +73,8 @@ async function fetcher(uid: string | undefined): Promise<MemberPreferencesRespon
     newsLetter: rawPreferences?.isSubscribedToNewsletter ?? false,
     showOfficeHoursDialog: rawPreferences?.showOfficeHoursDialog ?? true, // Default to true
     showForumBanner: rawPreferences?.showForumBanner ?? true, // Default to true
+    showDemoDayConnectDialog: rawPreferences?.showDemoDayConnectDialog ?? true, // Default to true
+    showDemoDayInvestDialog: rawPreferences?.showDemoDayInvestDialog ?? true, // Default to true
   };
 
   return {

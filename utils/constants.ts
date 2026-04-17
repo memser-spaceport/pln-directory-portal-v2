@@ -527,6 +527,7 @@ export const FORUM_ANALYTICS_EVENTS = {
   MEMBER_PROFILE_FORUM_ACTIVITY_BROWSE_DISCUSSIONS_CLICKED: 'member-profile-forum-activity-browse-discussions-clicked',
   MEMBER_PROFILE_FORUM_ACTIVITY_SIGN_IN_CLICKED: 'member-profile-forum-activity-sign-in-clicked',
   MEMBER_PROFILE_FORUM_ACTIVITY_SIGN_UP_CLICKED: 'member-profile-forum-activity-sign-up-clicked',
+  BANNER_DISMISSED: 'forum-banner-dismissed',
 };
 
 export const IRL_ANALYTICS_EVENTS = {};

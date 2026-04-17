@@ -23,6 +23,7 @@ export interface MemberPreferencesResponse {
     twitter: boolean;
     newsLetter: boolean;
     showOfficeHoursDialog?: boolean;
+    showForumBanner?: boolean;
   };
   isPreferenceAvailable: boolean;
 }
@@ -69,6 +70,7 @@ async function fetcher(uid: string | undefined): Promise<MemberPreferencesRespon
     twitter: rawPreferences?.showTwitter,
     newsLetter: rawPreferences?.isSubscribedToNewsletter ?? false,
     showOfficeHoursDialog: rawPreferences?.showOfficeHoursDialog ?? true, // Default to true
+    showForumBanner: rawPreferences?.showForumBanner ?? true, // Default to true
   };
 
   return {

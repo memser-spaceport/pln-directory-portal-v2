@@ -98,15 +98,15 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
       </button>
 
       {/* Mobile Banner - positioned inside layout, hidden on desktop */}
-      <div className={styles['plaa__mobile-banner']}>
-        <PlaaBanner variant="mobile" />
-      </div>
+      {/* <div className={styles['plaa__mobile-banner']}>
+        { <PlaaBanner variant="mobile" /> }
+      </div> */}
 
       {/* Main Layout */}
       <div className={styles.plaa__main}>
         {/* Fixed Sidebar */}
         <aside className={styles.plaa__sidebar}>
-          <PlaaMenu activeItem={activeItem} totalRounds={14} currentRound={14} viewingRound={viewingRound} />
+          <PlaaMenu activeItem={activeItem} totalRounds={15} currentRound={15} viewingRound={viewingRound} />
         </aside>
 
         {/* Scrollable Content */}
@@ -146,8 +146,8 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
             {/* Menu Content */}
             <PlaaMenu 
               activeItem={activeItem} 
-              totalRounds={14} 
-              currentRound={14} 
+              totalRounds={15} 
+              currentRound={15} 
               viewingRound={viewingRound}
               onMenuItemClick={handleCloseMenu}
             />

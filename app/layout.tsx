@@ -98,7 +98,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <ContactSupportUrlSync />
                 <header className="layout__header">
                   {/* <DemoDayBanner /> */}
-                  <PlaaBanner />
+                  {/* <PlaaBanner /> */}
                   {false && <SubscribeToRecoomendations userInfo={userInfo} />}
                   <CompleteYourProfile userInfo={userInfo} />
                   <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />

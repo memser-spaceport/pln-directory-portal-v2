@@ -5,6 +5,7 @@ import Select from 'react-select';
 import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useQueryState, parseAsString } from 'nuqs';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
 import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
@@ -181,14 +182,20 @@ function getCategoryIcon(category: string) {
 
 export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSidebarProps) {
   const pathname = usePathname();
+  const [scopeParam, setScopeParam] = useQueryState('scope', parseAsString.withOptions({ history: 'replace', shallow: true }));
   const { byCategory, isLoading } = useGetArticles();
   const { scopes: userScopes } = useFounderGuidesScopes();
   const scopeOptions = useMemo(() => userScopes.map((s) => ({ label: SCOPE_LABELS[s] ?? s, value: s })), [userScopes]);
   const [search, setSearch] = useState('');
-  const [selectedScope, setSelectedScope] = useState<string | null>(null);
   const [openCategories, setOpenCategories] = useState<Set<string> | null>(null);
   const { trackSidebarSearch, trackRequestGuideLinkClicked } = useFounderGuidesAnalytics();
   const searchDebounceSkipRef = useRef(true);
+
+  const selectedScope = useMemo(() => {
+    if (userScopes.length < 2) return null;
+    if (scopeParam && userScopes.includes(scopeParam)) return scopeParam;
+    return userScopes.includes(DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE) ? DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE : userScopes[0];
+  }, [scopeParam, userScopes]);
 
   useEffect(() => {
     if (searchDebounceSkipRef.current) {
@@ -200,14 +207,6 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
     }, 400);
     return () => clearTimeout(t);
   }, [search, trackSidebarSearch]);
-
-  useEffect(() => {
-    if (userScopes.length >= 2 && selectedScope === null) {
-      const next =
-        userScopes.includes(DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE) ? DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE : userScopes[0];
-      setSelectedScope(next);
-    }
-  }, [userScopes, selectedScope]);
 
   const scopeFiltered = useMemo(() => {
     if (!selectedScope) return byCategory;
@@ -274,7 +273,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
           <Select
             options={scopeOptions}
             value={scopeOptions.find((o) => o.value === selectedScope) ?? null}
-            onChange={(opt) => opt && setSelectedScope(opt.value)}
+            onChange={(opt) => opt && setScopeParam(opt.value)}
             isSearchable={false}
             styles={{
               container: (base) => ({ ...base, width: '100%' }),
@@ -326,7 +325,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
 
       {canCreate && (
         <Link
-          href="/founder-guides/new"
+          href={selectedScope ? `/founder-guides/new?scope=${selectedScope}` : '/founder-guides/new'}
           className={`${s.createLink} ${isCreateActive ? s.createLinkActive : ''}`}
           onClick={onNavigate}
         >
@@ -368,8 +367,9 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
                 {isOpen && (
                   <div className={s.articleList}>
                     {articles.map((article) => {
-                      const href = `/founder-guides/${article.slugURL}`;
-                      const isActive = pathname === href;
+                      const articlePath = `/founder-guides/${article.slugURL}`;
+                      const href = selectedScope ? `${articlePath}?scope=${selectedScope}` : articlePath;
+                      const isActive = pathname === articlePath;
                       const headings = isActive ? extractHeadings(article.content) : [];
                       return (
                         <div key={article.uid}>
@@ -407,7 +407,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
             );
           })}
         <Link
-          href="/founder-guides/request"
+          href={selectedScope ? `/founder-guides/request?scope=${selectedScope}` : '/founder-guides/request'}
           className={`${s.requestLink} ${isRequestActive ? s.requestLinkActive : ''}`}
           onClick={() => {
             trackRequestGuideLinkClicked();

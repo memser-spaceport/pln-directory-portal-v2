@@ -75,9 +75,9 @@ export function useExpressInterest(teamName?: string) {
         const msg = messages[interestType];
         content = msg ? (
           <div>
-            <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{msg.split('\n')[0]}</span>
+            <span>{msg.split('\n')[0]}</span>
             <br />
-            <span style={{ fontSize: '14px' }}>{msg.split('\n')[1]}</span>
+            <span>{msg.split('\n')[1]}</span>
           </div>
         ) : null;
       }
@@ -105,26 +105,23 @@ export function useExpressInterest(teamName?: string) {
         }
         content = (
           <div>
-            <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{title}</span>
+            <span>{title}</span>
             {interestType !== 'like' && (
               <>
                 <br />
-                <span style={{ fontSize: '14px' }}>We sent an email to let them know.</span>
+                <span>We sent an email to let them know.</span>
               </>
             )}
           </div>
         );
       }
 
-      toast.success(
-        content,
-        {
-          style: {
-            width: '320px',
-          },
-          autoClose: 3000,
+      toast.success(content, {
+        style: {
+          width: '320px',
         },
-      );
+        autoClose: 3000,
+      });
 
       // Invalidate caches to refetch the updated data with new flags
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId] });

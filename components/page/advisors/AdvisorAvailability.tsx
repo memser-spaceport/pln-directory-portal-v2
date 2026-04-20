@@ -17,10 +17,18 @@ function formatDate(dateStr: string): string {
   return `${DAY_NAMES[date.getDay()]}, ${MONTH_NAMES[date.getMonth()]} ${date.getDate()}`;
 }
 
+function formatTime(t: string): string {
+  const [h, m] = t.split(':').map(Number);
+  const suffix = h >= 12 ? 'pm' : 'am';
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${suffix}`;
+}
+
 export function AdvisorAvailability({ slots, selectedSlot, onSelectSlot }: AdvisorAvailabilityProps) {
   const availableSlots = slots.filter((s) => s.available);
+  const bookedSlots = slots.filter((s) => !s.available);
 
-  if (availableSlots.length === 0) {
+  if (availableSlots.length === 0 && bookedSlots.length === 0) {
     return null;
   }
 
@@ -32,9 +40,10 @@ export function AdvisorAvailability({ slots, selectedSlot, onSelectSlot }: Advis
 
   const sortedDates = Object.keys(groupedByDate).sort();
 
+  if (sortedDates.length === 0) return null;
+
   return (
     <div className={styles.container}>
-      <h3 className={styles.title}>Available Slots</h3>
       <div className={styles.days}>
         {sortedDates.map((date) => (
           <div key={date} className={styles.day}>
@@ -49,7 +58,7 @@ export function AdvisorAvailability({ slots, selectedSlot, onSelectSlot }: Advis
                     className={`${styles.slot} ${isSelected ? styles.slotSelected : ''}`}
                     onClick={() => onSelectSlot(slot)}
                   >
-                    {slot.startTime} - {slot.endTime}
+                    {formatTime(slot.startTime)}
                   </button>
                 );
               })}
@@ -57,6 +66,10 @@ export function AdvisorAvailability({ slots, selectedSlot, onSelectSlot }: Advis
           </div>
         ))}
       </div>
+
+      <p className={styles.bookingNote}>
+        You may request more than one slot. Please be thoughtful about the time you book.
+      </p>
     </div>
   );
 }

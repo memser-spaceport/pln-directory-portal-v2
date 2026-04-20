@@ -12,6 +12,7 @@ import { useSearchParams } from 'next/navigation';
 interface IMemberGridView {
   member: IMember;
   isUserLoggedIn: boolean | undefined;
+  isAdvisor?: boolean;
 }
 
 const Tooltip = dynamic(() => import('@/components/core/tooltip/tooltip').then((mod) => mod.Tooltip));
@@ -19,6 +20,7 @@ const Tooltip = dynamic(() => import('@/components/core/tooltip/tooltip').then((
 const MemberGridView = (props: IMemberGridView) => {
   const member = props?.member;
   const isUserLoggedIn = props?.isUserLoggedIn;
+  const isAdvisor = props?.isAdvisor ?? false;
   const mainTeam = member?.mainTeam;
   const otherTeams = member.teams
     .filter((team) => !team.mainTeam)
@@ -70,7 +72,12 @@ const MemberGridView = (props: IMemberGridView) => {
           </div>
         </div>
         <div className={s.detailsSection}>
-          {isAvailableToConnect && !hasOfficeHoursFiltered && (
+          {isAdvisor && (
+            <div className={s.advisorBadge}>
+              Advisor
+            </div>
+          )}
+          {!isAdvisor && isAvailableToConnect && !hasOfficeHoursFiltered && (
             <div className={s.availableToConnectBadge}>
               <CalendarIcon /> Available to connect
             </div>

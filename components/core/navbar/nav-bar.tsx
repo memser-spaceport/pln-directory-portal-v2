@@ -113,14 +113,14 @@ function Navbar(props: Readonly<INavbar>) {
     ? [
         ...PROTOTYPE_LINKS,
         {
-          href: '/advisors',
-          title: 'Advisors',
-          description: 'Connect with experienced operators for specific challenges',
+          href: '/advisors-prototype',
+          title: 'Advisors MVP · v0',
+          description: '9-screen connected flow: onboarding, directory, profile, members',
         },
         {
-          href: '/sign-up/advisor',
-          title: 'Advisor Onboarding',
-          description: 'Advisor sign-up flow prototype',
+          href: '/advisors',
+          title: 'Advisors Directory',
+          description: 'Browse and connect with advisors in the network',
         },
       ]
     : [...PROTOTYPE_LINKS];

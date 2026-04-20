@@ -1,0 +1,412 @@
+@use 'styles/media';
+
+.container {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// ── Page header ───────────────────────────────────────────────────────────────
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pageTitle {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.pageSubtitle {
+  font-size: 14px;
+  color: var(--foreground-neutral-secondary, #455468);
+  margin: 0;
+}
+
+.backBtn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-neutral-muted, #d1d5db);
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+// ── Provider card ─────────────────────────────────────────────────────────────
+
+.providerCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--background-base-white, #fff);
+  border: 1px solid var(--border-neutral-muted, #e2e8f0);
+  border-radius: 10px;
+  gap: 12px;
+}
+
+.providerCardLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.providerLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--foreground-neutral-secondary, #64748b);
+}
+
+.providerName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.providerCardRight {
+  flex-shrink: 0;
+}
+
+.refreshBtn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-neutral-muted, #d1d5db);
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) {
+    background: #f8fafc;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// ── Sync note ─────────────────────────────────────────────────────────────────
+
+.syncNote {
+  font-size: 13px;
+  color: var(--foreground-neutral-secondary, #64748b);
+  margin: 0;
+  padding: 10px 14px;
+  background: #fefce8;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+// ── Editor card ───────────────────────────────────────────────────────────────
+
+.editorCard {
+  background: var(--background-base-white, #fff);
+  border: 1px solid var(--border-neutral-muted, #e2e8f0);
+  border-radius: 10px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.editorHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.sectionSubtitle {
+  font-size: 13px;
+  color: var(--foreground-neutral-secondary, #64748b);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.infoChips {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.infoChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.infoChipLabel {
+  color: var(--foreground-neutral-secondary, #64748b);
+  font-weight: 500;
+}
+
+.infoChipValue {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 600;
+}
+
+// ── Legend ────────────────────────────────────────────────────────────────────
+
+.legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--foreground-neutral-secondary, #64748b);
+}
+
+.legendDotSelected {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: #c7d2fe;
+  border: 1.5px solid var(--foreground-brand-primary, #1b4dff);
+}
+
+.legendDotEvent {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: #fee2e2;
+  border-left: 3px solid #ef4444;
+}
+
+// ── Week navigation ───────────────────────────────────────────────────────────
+
+.weekNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.weekNavBtn {
+  padding: 6px 14px;
+  border: 1px solid var(--border-neutral-muted, #d1d5db);
+  border-radius: 6px;
+  background: var(--background-base-white, #fff);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--foreground-neutral-secondary, #455468);
+  transition: background 0.1s;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+.weekLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// ── Calendar ─────────────────────────────────────────────────────────────────
+
+.calendar {
+  border: 1px solid var(--border-neutral-muted, #e5e7eb);
+  border-radius: 8px;
+  overflow: auto;
+  max-height: 480px;
+}
+
+.calHeader {
+  display: flex;
+  position: sticky;
+  top: 0;
+  background: var(--background-base-white, #fff);
+  z-index: 1;
+  border-bottom: 1px solid var(--border-neutral-muted, #e5e7eb);
+}
+
+.timeGutter {
+  width: 52px;
+  flex-shrink: 0;
+  padding: 4px 6px;
+  text-align: right;
+}
+
+.timeLabel {
+  font-size: 10px;
+  color: var(--foreground-neutral-secondary, #9ca3af);
+}
+
+.dayCol {
+  flex: 1;
+  min-width: 72px;
+  text-align: center;
+  padding: 8px 4px;
+  border-left: 1px solid #f1f5f9;
+}
+
+.dayPast { opacity: 0.4; }
+
+.dayName {
+  font-size: 10px;
+  color: var(--foreground-neutral-secondary, #9ca3af);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dayDate {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.calBody { display: flex; flex-direction: column; }
+
+.calRow {
+  display: flex;
+  min-height: 40px;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.calCell {
+  flex: 1;
+  min-width: 72px;
+  border-left: 1px solid #f1f5f9;
+  position: relative;
+  padding: 2px;
+  transition: background 0.1s;
+}
+
+.calCellClickable {
+  cursor: pointer;
+  &:hover { background: #eef2ff; }
+}
+
+.calCellSelected {
+  background: #e0e7ff !important;
+  border-left-color: #c7d2fe;
+}
+
+.calCellPast {
+  cursor: default;
+  background: #fafafa;
+}
+
+.event {
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 1px;
+  border-left: 2.5px solid #ef4444;
+}
+
+.blockMarker {
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+// ── Editor footer ─────────────────────────────────────────────────────────────
+
+.editorFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+  flex-wrap: wrap;
+}
+
+.preview {
+  font-size: 13px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  margin: 0;
+  font-weight: 600;
+}
+
+.emptyHint {
+  font-size: 13px;
+  color: var(--foreground-neutral-secondary, #94a3b8);
+  margin: 0;
+}
+
+.footerActions {
+  display: flex;
+  gap: 10px;
+}
+
+.cancelBtn {
+  padding: 9px 20px;
+  border: 1px solid var(--border-neutral-muted, #d1d5db);
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #f8fafc; }
+}
+
+.saveBtn {
+  padding: 9px 24px;
+  border: none;
+  border-radius: 8px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #1540d4; }
+}
+
+.saveBtnSaved {
+  background: #16a34a;
+  &:hover { background: #15803d; }
+}

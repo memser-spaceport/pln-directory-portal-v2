@@ -36,15 +36,13 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, 176px);
-  justify-content: center;
-  row-gap: 24px;
+  grid-template-columns: repeat(auto-fill, 176px);
+  justify-content: start;
+  row-gap: 20px;
   column-gap: 16px;
-  padding: 0 16px;
 
   @include media.breakpoint-1024 {
-    grid-template-columns: repeat(auto-fit, 289px);
-    justify-content: flex-start;
+    grid-template-columns: repeat(auto-fill, 260px);
   }
 }
 

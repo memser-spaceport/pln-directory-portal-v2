@@ -17,7 +17,6 @@
   font-style: normal;
   font-weight: 500;
   line-height: 18px; /* 166.667% */
-  margin-bottom: 0.25rem;
 
   &.required:after {
     content: '*';
@@ -29,8 +28,19 @@
 .labelWrapper {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   width: 100%;
+  gap: 4px;
+  margin-bottom: 0.25rem;
+}
+
+.optional {
+  display: inline-block;
+  color: var(--foreground-neutral-tertiary, #8897AE);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 157.143% */
+  letter-spacing: -0.2px;
 }
 
 .input {

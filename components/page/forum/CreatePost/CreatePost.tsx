@@ -21,6 +21,8 @@ import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
 import { IUserInfo } from '@/types/shared.types';
 import { useAllMembers } from '@/services/members/hooks/useAllMembers';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
+import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
+import { useUpdateMemberPreferences } from '@/services/members/hooks/useUpdateMemberPreferences';
 import { clsx } from 'clsx';
 import { PostFormEditorLabel } from './components/PostFormEditorLabel';
 import { isAdminUser } from '@/utils/user/isAdminUser';
@@ -94,6 +96,8 @@ export const CreatePost = (props: Props) => {
 
   const { mutateAsync: createPost } = useCreatePost();
   const { mutateAsync: editPost } = useEditPost();
+  const { data: memberPreferences } = useGetMemberPreferences(userInfo?.uid);
+  const { mutate: updateMemberPreferences } = useUpdateMemberPreferences();
 
   const handleCancel = () => {
     if (isEdit) {
@@ -141,6 +145,12 @@ export const CreatePost = (props: Props) => {
         if (res.status.code === 'ok') {
           toast.success('Post created successfully');
           reset(data);
+          if (userInfo?.uid && memberPreferences?.memberPreferences?.showForumBanner) {
+            updateMemberPreferences({
+              uid: userInfo.uid,
+              payload: { showForumBanner: false },
+            });
+          }
           setTimeout(() => {
             router.push('/forum?cid=0');
           }, 500);
@@ -198,6 +208,12 @@ export const CreatePost = (props: Props) => {
               </button>
             </div>
 
+            {!isEdit && (
+              <p className={s.subtitle}>
+                Only verified founders and operators in the PL network can see Forum posts.
+              </p>
+            )}
+
             <div
               className={clsx(s.content)}
               style={{
@@ -223,7 +239,7 @@ export const CreatePost = (props: Props) => {
               <FormField name="title" placeholder="Enter the title" label="Title" max={255} />
               <FormEditor
                 name="content"
-                placeholder="Write your post"
+                placeholder="Write your post here. Use @ to mention someone."
                 label={<PostFormEditorLabel />}
                 className={s.editor}
                 classes={{

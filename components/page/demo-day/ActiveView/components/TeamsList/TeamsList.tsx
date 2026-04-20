@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useGetTeamsList, TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useFilterStore } from '@/services/members/store';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
@@ -17,6 +18,8 @@ import s from './TeamsList.module.scss';
 
 export const TeamsList: React.FC = () => {
   const { data: teams, isLoading, error } = useGetTeamsList();
+  const { data: demoDayData } = useGetDemoDayState();
+  const stageTagEnabled = demoDayData?.stageTagEnabled !== false;
   const [sortBy, setSortBy] = useState<string>('stage-asc');
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -96,31 +99,36 @@ export const TeamsList: React.FC = () => {
       <TeamsListAlert />
 
       <TeamsListHeader
-        allGroupsWithCounts={allGroupsWithCounts}
+        allGroupsWithCounts={stageTagEnabled ? allGroupsWithCounts : []}
         activeGroup={activeGroup}
         sortBy={sortBy}
         onGroupClick={scrollToGroup}
         onSortChange={handleSortChange}
         onFiltersClick={() => setIsFiltersDrawerOpen(true)}
+        showSort={stageTagEnabled}
       />
 
       <div className={s.teamsList}>
-        {groupedTeams.map((group, groupIndex) => (
-          <div
-            key={group.stageGroup}
-            className={s.stageGroup}
-            ref={(el) => {
-              if (el) {
-                groupRefs.current.set(group.stageGroup, el);
-              }
-            }}
-          >
-            <h3 className={s.stageGroupHeader}>{group.label}</h3>
-            {group.teams.map((team) => (
+        {stageTagEnabled
+          ? groupedTeams.map((group) => (
+              <div
+                key={group.stageGroup}
+                className={s.stageGroup}
+                ref={(el) => {
+                  if (el) {
+                    groupRefs.current.set(group.stageGroup, el);
+                  }
+                }}
+              >
+                <h3 className={s.stageGroupHeader}>{group.label}</h3>
+                {group.teams.map((team) => (
+                  <TeamProfileCard key={team.uid} team={team} onClick={handleTeamClick} />
+                ))}
+              </div>
+            ))
+          : filteredAndSortedTeams.map((team) => (
               <TeamProfileCard key={team.uid} team={team} onClick={handleTeamClick} />
             ))}
-          </div>
-        ))}
 
         {filteredAndSortedTeams.length === 0 && totalTeamsCount > 0 && (
           <div className={s.emptyState}>

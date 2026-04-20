@@ -7,6 +7,7 @@ import {
   FilterOption,
 } from '@/components/page/demo-day/ActiveView/components/Filters/components/FilterList';
 import { useGetAllFundraisingProfiles } from '@/services/demo-day/hooks/useGetAllFundraisingProfiles';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useFilterStore } from '@/services/members/store';
 import { SupportSection } from '@/components/page/demo-day/components/SupportSection';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
@@ -21,6 +22,9 @@ export const AdminFilters = () => {
 
   // Fetch ALL teams data (without filters) to build filter options
   const { data: teams, isLoading: teamsLoading } = useGetAllFundraisingProfiles();
+
+  // Fetch demo day state for conditional fields
+  const { data: demoDayData } = useGetDemoDayState();
 
   // Build industry options dynamically from teams data
   const industryOptions = useMemo((): FilterOption[] => {
@@ -157,6 +161,33 @@ export const AdminFilters = () => {
     return options;
   }, [teams]);
 
+  // Build program options from demo day state with team counts
+  const programOptions = useMemo((): FilterOption[] => {
+    if (!demoDayData?.programFieldEnabled || !demoDayData.programFieldOptions?.length) return [];
+
+    const countMap = new Map<string, number>();
+    if (teams) {
+      teams.forEach((team) => {
+        const prog = team.program;
+        if (prog) countMap.set(prog, (countMap.get(prog) ?? 0) + 1);
+      });
+    }
+
+    return demoDayData.programFieldOptions.map((name: string) => ({
+      id: name,
+      name,
+      count: countMap.get(name) ?? 0,
+    }));
+  }, [demoDayData?.programFieldEnabled, demoDayData?.programFieldOptions, teams]);
+
+  // Remove program param when the program filter is disabled
+  useEffect(() => {
+    if (demoDayData === undefined) return;
+    if (!demoDayData?.programFieldEnabled && params.get('program')) {
+      setParam('program', undefined);
+    }
+  }, [demoDayData, params, setParam]);
+
   // Remove invalid activity param values that don't have a corresponding option
   useEffect(() => {
     const activityParam = params.get('activity');
@@ -203,16 +234,31 @@ export const AdminFilters = () => {
         />
       </FilterSection>
 
-      <FilterSection title="Stage/Type">
-        <FilterList
-          hideSearch
-          options={stageOptions}
-          paramName="stage"
-          showAllLabel="Show All Stages"
-          placeholder="E.g. Seed, Pre-Seed, etc."
-          emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
-        />
-      </FilterSection>
+      {demoDayData?.stageTagEnabled !== false && (
+        <FilterSection title="Stage/Type">
+          <FilterList
+            hideSearch
+            options={stageOptions}
+            paramName="stage"
+            showAllLabel="Show All Stages"
+            placeholder="E.g. Seed, Pre-Seed, etc."
+            emptyMessage={teamsLoading ? 'Loading stages...' : 'No stages found'}
+          />
+        </FilterSection>
+      )}
+
+      {programOptions.length > 0 && (
+        <FilterSection title="Program">
+          <FilterList
+            hideSearch
+            options={programOptions}
+            paramName="program"
+            showAllLabel=""
+            placeholder=""
+            emptyMessage="No programs found"
+          />
+        </FilterSection>
+      )}
 
       {/* Support Section */}
       <SupportSection />

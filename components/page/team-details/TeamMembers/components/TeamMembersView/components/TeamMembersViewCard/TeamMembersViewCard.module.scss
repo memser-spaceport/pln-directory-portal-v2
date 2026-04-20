@@ -1,0 +1,62 @@
+@use 'styles/media';
+
+.root {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+
+  &:first-of-type {
+    .member {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+  &:last-of-type {
+    .member {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+  }
+
+  &:not(:last-of-type):not(:first-of-type) {
+    .member {
+      border-radius: 0;
+    }
+  }
+}
+
+.member {
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .actionIcon {
+      top: 8px;
+      right: 8px;
+      position: absolute;
+    }
+  }
+}
+
+.memberBorder {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.skills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.editButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 4px;
+}

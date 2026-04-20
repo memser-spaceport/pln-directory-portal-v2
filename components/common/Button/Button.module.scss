@@ -6,6 +6,8 @@
   font-family: 'Inter', sans-serif;
 
   border-radius: 8px;
+  overflow: hidden;
+  -webkit-appearance: none;
 
   &:disabled {
     opacity: 0.5;

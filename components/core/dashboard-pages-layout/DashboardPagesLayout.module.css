@@ -40,4 +40,8 @@
     align-self: flex-start;
     flex-shrink: 0;
   }
+
+  .filters:empty {
+    display: none;
+  }
 }

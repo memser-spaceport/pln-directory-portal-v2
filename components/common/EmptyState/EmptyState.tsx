@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { EmptyIllustration } from '@/components/page/member-details/ForumActivity/components/NoForumActivity/components/EmptyIllustration';
+import { EmptyIllustration } from '@/components/page/member-details/ForumActivity/components/ForumActivityCardsList/components/NoForumActivity/components/EmptyIllustration';
 import s from './EmptyState.module.scss';
 
 interface EmptyStateProps {

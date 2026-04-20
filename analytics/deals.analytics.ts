@@ -31,6 +31,10 @@ const DEALS_ANALYTICS_EVENTS = {
   DEALS_REQUEST_BUTTON_CLICKED: 'deals-request-button-clicked',
   DEALS_REQUEST_SUCCEEDED: 'deals-request-succeeded',
   DEALS_REQUEST_SUBMIT_FAILED: 'deals-request-submit-failed',
+  DEALS_LANDING_VIEWED: 'deals-landing-viewed',
+  DEALS_LANDING_LIST_PRODUCT_CLICKED: 'deals-landing-list-product-clicked',
+  DEALS_LANDING_SIGN_IN_CLICKED: 'deals-landing-sign-in-clicked',
+  DEALS_NO_ACCESS_MODAL_VIEWED: 'deals-no-access-modal-viewed',
 };
 
 export function useDealsAnalytics() {
@@ -200,6 +204,25 @@ export function useDealsAnalytics() {
     [posthog],
   );
 
+  const trackDealsLandingViewed = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_LANDING_VIEWED);
+  }, [posthog]);
+
+  const trackDealsLandingListProductClicked = useCallback(
+    (placement: 'hero' | 'footer') => {
+      posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_LANDING_LIST_PRODUCT_CLICKED, { placement });
+    },
+    [posthog],
+  );
+
+  const trackDealsLandingSignInClicked = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_LANDING_SIGN_IN_CLICKED);
+  }, [posthog]);
+
+  const trackDealsNoAccessModalViewed = useCallback(() => {
+    posthog?.capture(DEALS_ANALYTICS_EVENTS.DEALS_NO_ACCESS_MODAL_VIEWED);
+  }, [posthog]);
+
   return {
     trackDealsPageViewed,
     trackReportProblemOpened,
@@ -230,5 +253,9 @@ export function useDealsAnalytics() {
     trackRequestSubmitClicked,
     trackRequestSucceeded,
     trackRequestDealSubmitFailed,
+    trackDealsLandingViewed,
+    trackDealsLandingListProductClicked,
+    trackDealsLandingSignInClicked,
+    trackDealsNoAccessModalViewed,
   };
 }

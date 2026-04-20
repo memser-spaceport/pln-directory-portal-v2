@@ -120,7 +120,7 @@ export const MembersFilter = (props: IMembersFilter) => {
         <FilterCheckboxListWithSearch
           label="Search topics"
           paramKey={TOPICS_FILTER_PARAM_KEY}
-          placeholder="E.g. AI, Staking, Governance"
+          placeholder="E.g. AI, Staking, Product"
           useGetDataHook={useGetTopics}
           defaultItemsToShow={0}
           shouldClearSearch={shouldClearTopicsSearch}

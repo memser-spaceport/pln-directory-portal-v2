@@ -6,11 +6,13 @@ import { Topic } from '@/services/forum/hooks/useForumPosts';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import type { ForumComment } from '@/components/page/member-details/ForumActivity/hooks/useUserForumComments';
-import { PostCard } from '@/components/page/member-details/ForumActivity/components/PostCard';
-import { CommentCard } from '@/components/page/member-details/ForumActivity/components/CommentCard';
 import { ActiveTab } from '@/components/page/member-details/ForumActivity/types';
-import { NoForumActivity } from '@/components/page/member-details/ForumActivity/components/NoForumActivity';
 import { hasForumAccess } from '@/components/page/member-details/ForumActivity/utils/hasForumAccess';
+
+import { PostCard } from './components/PostCard';
+import { CommentCard } from './components/CommentCard';
+import { NoForumActivity } from './components/NoForumActivity';
+import { UserNotLoggedForumView } from './components/UserNotLoggedForumView';
 
 import s from './ForumActivityCardsList.module.scss';
 
@@ -50,6 +52,10 @@ export function ForumActivityCardsList(props: Props) {
 
   if (isLoading) {
     return <div className={s.loading}>Loading...</div>;
+  }
+
+  if (!userInfo) {
+    return <UserNotLoggedForumView member={member} activeTab={activeTab} />;
   }
 
   if (hasContent && hasAccess) {

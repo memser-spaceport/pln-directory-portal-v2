@@ -217,6 +217,65 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     };
   }, [toolbarConfig]);
 
+  // Prevent quill-image-uploader from treating emoji pastes as image uploads.
+  // When clipboard contains both text and image data (common for emojis copied from
+  // other apps), we intercept the paste in the capture phase before the plugin sees it,
+  // strip the image items, and re-dispatch so Quill handles it as plain text.
+  useEffect(() => {
+    const editor = quillRef.current?.getEditor();
+
+    if (!editor) {
+      return;
+    }
+
+    const root = editor.root as HTMLElement;
+
+    const handlePaste = (e: ClipboardEvent) => {
+      const clipboard = e.clipboardData;
+
+      if (!clipboard) {
+        return;
+      }
+
+      const plainText = clipboard.getData('text/plain');
+      const hasImage = Array.from(clipboard.items ?? []).some((item) => item.type.startsWith('image/'));
+
+      if (!hasImage || !plainText) {
+        return;
+      }
+
+      // Check if the plain text content contains emoji characters.
+      // If it does, the image data is just the OS's visual representation of the emoji,
+      // not an actual image the user intended to paste.
+      // Check for common emoji ranges: emoticons, dingbats, symbols, supplemental symbols, etc.
+      const hasEmoji =
+        /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F900}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{FE00}-\u{FE0F}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]/u.test(
+          plainText,
+        );
+
+      if (hasEmoji) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+
+        const html = clipboard.getData('text/html');
+        const dt = new DataTransfer();
+        dt.setData('text/html', html || plainText);
+        dt.setData('text/plain', plainText);
+
+        const syntheticEvent = new ClipboardEvent('paste', {
+          clipboardData: dt,
+          bubbles: true,
+          cancelable: true,
+        });
+        root.dispatchEvent(syntheticEvent);
+      }
+    };
+
+    // Use capture phase to run before the image uploader's bubble-phase listener
+    root.addEventListener('paste', handlePaste, true);
+    return () => root.removeEventListener('paste', handlePaste, true);
+  }, []);
+
   useEffect(() => {
     if (quillRef.current && autoFocus) {
       quillRef.current.focus();

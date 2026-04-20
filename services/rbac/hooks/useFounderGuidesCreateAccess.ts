@@ -14,7 +14,7 @@ export function useFounderGuidesCreateAccess() {
     queryKey: [RbacQueryKeys.RBAC_ME, 'founder-guides-create'],
     queryFn: async () => {
       const rbac = await fetchRbacMe();
-      return rbac.permissions.includes('founder_guides.create');
+      return rbac.permissions.some((p) => p.name === 'founder_guides.create');
     },
     staleTime: 5 * 60 * 1000,
     enabled: !!userInfo,

@@ -54,12 +54,14 @@
 }
 
 .name {
+  @include mixins.ellipse-text;
   color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 14px;
   font-style: normal;
   font-weight: 600;
   line-height: 18px; /* 150% */
   letter-spacing: -0.2px;
+  max-width: 70vw;
 
   &:hover {
     color: var(--action-foreground-brand-hover, #0060ff);

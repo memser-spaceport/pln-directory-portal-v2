@@ -65,17 +65,14 @@ export async function markDealAsUsing(dealUid: string): Promise<void> {
 }
 
 export interface SubmitDealPayload {
-  // vendorName: string;
-  // category: string;
-  // audience: string;
+  vendorName?: string;
   shortDescription: string;
   fullDescription: string;
   redemptionInstructions: string;
-  // websiteUrl: string;
   howToReachOutToYou: string;
 }
 
-export async function submitDeal(payload: SubmitDealPayload) {
+export async function submitDeal(payload: SubmitDealPayload, isIncludeToken: boolean = true) {
   const response = await customFetch(
     `${DEALS_API_URL}/submissions`,
     {
@@ -83,7 +80,7 @@ export async function submitDeal(payload: SubmitDealPayload) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     },
-    true,
+    isIncludeToken,
   );
 
   if (!response || !response.ok) {

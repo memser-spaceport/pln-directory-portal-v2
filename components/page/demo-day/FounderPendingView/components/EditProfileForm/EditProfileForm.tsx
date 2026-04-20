@@ -20,6 +20,7 @@ import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions'
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { getParsedValue } from '@/utils/common.utils';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
@@ -36,6 +37,7 @@ interface EditProfileFormData {
   tags: { value: string; label: string }[];
   fundingStage: { value: string; label: string } | null;
   website: string;
+  program: { value: string; label: string } | null;
 }
 
 interface Props {
@@ -74,6 +76,13 @@ const schema = yup.object().shape({
     })
     .nullable(),
   website: yup.string().defined(),
+  program: yup
+    .object()
+    .shape({
+      value: yup.string().required(),
+      label: yup.string().required(),
+    })
+    .nullable(),
 });
 
 export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props) => {
@@ -81,12 +90,18 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
   const profileData = profileDataProp || profileDataFromHook; // Use prop if provided, otherwise use hook
   const updateProfileMutation = useUpdateFundraisingProfile();
   const { data } = useTeamsFormOptions();
+  const { data: demoDayData } = useGetDemoDayState();
 
   // Analytics hooks
   const { onFounderSaveTeamDetailsClicked, onFounderCancelTeamDetailsClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const currentUserInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const isDirectoryAdmin = isAdminUser(currentUserInfo);
+
+  const programOptions = useMemo(() => {
+    if (!demoDayData?.programFieldEnabled || !demoDayData.programFieldOptions?.length) return [];
+    return demoDayData.programFieldOptions.map((name: string) => ({ value: name, label: name }));
+  }, [demoDayData?.programFieldEnabled, demoDayData?.programFieldOptions]);
 
   const options: IndustryFundingOpts = useMemo(() => {
     if (!data) {
@@ -111,18 +126,18 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
   }, [data]);
 
   const methods = useForm<EditProfileFormData>({
-    defaultValues: getFormDataFromProfile(profileData, options),
+    defaultValues: getFormDataFromProfile(profileData, options, programOptions),
     resolver: yupResolver(schema),
   });
 
   // Reset form when profile data changes
   useEffect(() => {
     if (profileData) {
-      const formData = getFormDataFromProfile(profileData, options);
+      const formData = getFormDataFromProfile(profileData, options, programOptions);
 
       methods.reset(formData);
     }
-  }, [profileData, methods, options]);
+  }, [profileData, methods, options, programOptions]);
 
   const { handleSubmit, reset } = methods;
 
@@ -142,6 +157,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
         fundingStage: formData.fundingStage?.value || profileData?.team?.fundingStage?.uid || undefined,
         logo: image || profileData?.team.logo?.uid,
         website: formData.website,
+        program: formData.program?.value || undefined,
         teamUid: profileDataProp?.teamUid,
       };
 
@@ -257,14 +273,27 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
             />
           </div>
 
-          <div className={s.row}>
-            <FormSelect
-              name="fundingStage"
-              label="Company Stage"
-              placeholder="Select your current company stage"
-              options={options.fundingStageOptions}
-            />
-          </div>
+          {demoDayData?.stageTagEnabled !== false && (
+            <div className={s.row}>
+              <FormSelect
+                name="fundingStage"
+                label="Company Stage"
+                placeholder="Select your current company stage"
+                options={options.fundingStageOptions}
+              />
+            </div>
+          )}
+
+          {demoDayData?.programFieldEnabled && programOptions.length > 0 && (
+            <div className={s.row}>
+              <FormSelect
+                name="program"
+                label="Program"
+                placeholder="Select your program"
+                options={programOptions}
+              />
+            </div>
+          )}
 
           <div className={s.row}>
             <FormField name="website" label="Website" placeholder="Enter your website URL" />

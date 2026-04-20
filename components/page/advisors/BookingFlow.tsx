@@ -58,7 +58,7 @@ export function BookingFlow({ advisor, selectedSlot, onCancel, onComplete }: Boo
         </div>
         <h3 className={styles.confirmTitle}>Booking request sent</h3>
         <p className={styles.confirmText}>
-          Your session with {advisor.member.name} on {formatSlotDate(selectedSlot.date)} at {formatTime(selectedSlot.startTime)} has been requested. You'll receive a confirmation shortly.
+          Your session with {advisor.member.name} on {formatSlotDate(selectedSlot.date)} at {formatTime(selectedSlot.startTime)} has been requested. You&apos;ll receive a confirmation shortly.
         </p>
         <button className={styles.doneButton} onClick={onComplete}>Done</button>
       </div>
@@ -90,7 +90,7 @@ export function BookingFlow({ advisor, selectedSlot, onCancel, onComplete }: Boo
         </label>
         <textarea
           className={styles.textarea}
-          placeholder="Briefly describe the topic or question you'd like to cover in this session…"
+          placeholder="Briefly describe the topic or question you&apos;d like to cover in this session…"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}

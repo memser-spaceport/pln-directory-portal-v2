@@ -56,7 +56,7 @@ export function RequestTimeFlow({ advisor, onCancel, onComplete }: RequestTimeFl
         </label>
         <textarea
           className={styles.textarea}
-          placeholder="Briefly describe the topic or challenge you'd like guidance on…"
+          placeholder="Briefly describe the topic or challenge you&apos;d like guidance on…"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={4}
@@ -64,7 +64,7 @@ export function RequestTimeFlow({ advisor, onCancel, onComplete }: RequestTimeFl
       </div>
 
       <p className={styles.emailNote}>
-        Your request will be sent to the advisor by email from LabOS. They'll respond with available times.
+        Your request will be sent to the advisor by email from LabOS. They&apos;ll respond with available times.
       </p>
 
       <div className={styles.actions}>

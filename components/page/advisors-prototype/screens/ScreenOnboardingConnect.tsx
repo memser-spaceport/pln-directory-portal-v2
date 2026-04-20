@@ -96,7 +96,7 @@ export function ScreenOnboardingConnect({ onNext, onBack }: Props) {
           </div>
 
           <p className={s.helperNote}>
-            Your scheduling tool provides the availability data. You'll select specific windows in the next step.
+            Your scheduling tool provides the availability data. You&apos;ll select specific windows in the next step.
           </p>
 
           <div className={s.actionsRow}>

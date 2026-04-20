@@ -73,7 +73,7 @@ export function CalendarConnectStep({ provider, connected, onConnect, onNext, on
       </div>
 
       <p className={styles.helperNote}>
-        Your scheduling tool provides the availability data. You'll set specific windows in the next step.
+        Your scheduling tool provides the availability data. You&apos;ll set specific windows in the next step.
       </p>
 
       <div className={styles.actionsBetween}>

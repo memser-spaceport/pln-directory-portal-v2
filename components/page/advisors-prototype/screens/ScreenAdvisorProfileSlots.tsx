@@ -37,7 +37,7 @@ export function ScreenAdvisorProfileSlots({ onBack }: Props) {
               </div>
               <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0a0c11', margin: 0 }}>Booking confirmed</h3>
               <p style={{ fontSize: 14, color: '#64748b', margin: 0, maxWidth: 380, lineHeight: 1.6 }}>
-                Your session with {advisor.name} on {selectedSlot.dateLabel} at {selectedSlot.time} has been requested. You'll receive a confirmation by email.
+                Your session with {advisor.name} on {selectedSlot.dateLabel} at {selectedSlot.time} has been requested. You&apos;ll receive a confirmation by email.
               </p>
               <button className={s.btnPrimary} onClick={() => { setIsConfirmed(false); setShowBooking(false); setSelectedSlot(null); }}>Done</button>
             </div>

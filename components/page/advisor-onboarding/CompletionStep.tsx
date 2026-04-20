@@ -17,7 +17,7 @@ export function CompletionStep({ onViewProfile, onEditAvailability }: Completion
       </div>
 
       <div className={styles.welcomeContent}>
-        <h2 className={styles.title}>You're all set</h2>
+        <h2 className={styles.title}>You&apos;re all set</h2>
         <p className={styles.subtitle}>
           Your advisor profile is live and your availability has been saved.
         </p>

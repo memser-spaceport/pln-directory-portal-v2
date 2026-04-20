@@ -20,7 +20,7 @@ export function ScreenOnboardingWelcome({ onNext }: Props) {
 
           {/* Heading */}
           <div className={s.cardHeading}>
-            <h2 className={s.cardTitle}>You've been invited to join<br />Protocol Labs advisors</h2>
+            <h2 className={s.cardTitle}>You&apos;ve been invited to join<br />Protocol Labs advisors</h2>
             <p className={s.cardSubtitle}>
               Protocol Labs has prepared your advisor profile. You just need to finish setting up your scheduling so founders can book Office Hours with you.
             </p>

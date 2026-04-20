@@ -73,6 +73,7 @@ const MemberInfiniteList = (props: any) => {
         >
           {data?.map((member) => {
             const href = `${PAGE_ROUTES.MEMBERS}/${member?.id}`;
+            const isMemberAdvisor = advisorIds.has(member.id);
             return (
             <Link
               prefetch={false}
@@ -84,7 +85,7 @@ const MemberInfiniteList = (props: any) => {
               onClick={(e) => onMemberOnClickHandler(e, member)}
             >
               {VIEW_TYPE_OPTIONS.GRID === viewType && (
-                <MemberGridView isUserLoggedIn={isUserLoggedIn} member={member} />
+                <MemberGridView isUserLoggedIn={isUserLoggedIn} member={member} isAdvisor={isMemberAdvisor} />
               )}
               {VIEW_TYPE_OPTIONS.LIST === viewType && (
                 <MemberListView isUserLoggedIn={isUserLoggedIn} member={member} />

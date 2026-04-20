@@ -84,7 +84,7 @@ export const MOCK_ADVISORS: IAdvisor[] = [
       'Uniswap Labs', 'Head of Research',
     ),
     bio: 'I help early-stage Web3 teams design sustainable token economies and protocol mechanics. Office hours focus on DeFi primitives, mechanism design, and go-to-market strategy for protocol launches.',
-    calendarProvider: 'google',
+    calendarProvider: 'calcom',
     calendarConnected: true,
     availabilitySlots: [
       makeSlot('advisor-001', 1, '09:00', '11:00', 'America/Los_Angeles'), // Monday
@@ -168,7 +168,7 @@ export const MOCK_ADVISORS: IAdvisor[] = [
       'a16z crypto', 'Former Partner',
     ),
     bio: 'I help founders craft compelling narratives, model token fundraises, and navigate VC conversations. Happy to do pitch deck reviews and warm intros.',
-    calendarProvider: 'google',
+    calendarProvider: 'calcom',
     calendarConnected: true,
     availabilitySlots: [
       makeSlot('advisor-004', 1, '08:00', '10:00', 'Europe/London'), // Monday
@@ -197,7 +197,7 @@ export const MOCK_ADVISORS: IAdvisor[] = [
       'Protocol Labs', 'Senior Engineer',
     ),
     bio: 'Deep expertise in content-addressable storage, data persistence strategies, and Filecoin deal-making. Great resource for teams building on IPFS/FVM.',
-    calendarProvider: 'google',
+    calendarProvider: 'calendly',
     calendarConnected: true,
     availabilitySlots: [
       makeSlot('advisor-005', 2, '19:00', '21:00', 'Asia/Tokyo'), // Tuesday (late evening Tokyo = early morning US)
@@ -255,7 +255,7 @@ export const MOCK_ADVISORS: IAdvisor[] = [
       'MetaMask', 'Head of Design',
     ),
     bio: 'I focus on making crypto products accessible without sacrificing power. Happy to review onboarding flows, wallet UX, and NFT marketplace designs.',
-    calendarProvider: 'google',
+    calendarProvider: 'calcom',
     calendarConnected: true,
     availabilitySlots: [
       makeSlot('advisor-007', 1, '15:00', '17:00', 'Europe/Berlin'), // Monday
@@ -310,7 +310,7 @@ export const MOCK_ADVISORS: IAdvisor[] = [
       'Chainlink Labs', 'Staff Engineer',
     ),
     bio: 'I help teams architect high-throughput decentralised systems and safely deploy cross-chain infrastructure. Strong opinions on validator set design and bridge security.',
-    calendarProvider: 'google',
+    calendarProvider: 'calcom',
     calendarConnected: true,
     availabilitySlots: [
       makeSlot('advisor-009', 2, '08:00', '10:00', 'America/Sao_Paulo'), // Tuesday

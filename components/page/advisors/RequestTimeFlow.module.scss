@@ -1,49 +1,177 @@
 .container {
-  display: flex; flex-direction: column; gap: 12px;
-  padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--border-neutral-muted, #e2e8f0);
+  border-radius: 10px;
+  background: #f8fafc;
 }
 
-.title { font-size: 16px; font-weight: 600; margin: 0; }
-.subtitle { font-size: 14px; color: #6b7280; margin: 0; }
+// ── Advisor row ───────────────────────────────────────────────────────────────
+
+.advisorRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--background-base-white, #fff);
+  border: 1px solid var(--border-neutral-muted, #e2e8f0);
+  border-radius: 8px;
+}
+
+.advisorLabel {
+  font-size: 12px;
+  color: var(--foreground-neutral-secondary, #64748b);
+}
+
+.advisorName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// ── Message ───────────────────────────────────────────────────────────────────
+
+.messageSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.messageLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.optional {
+  color: var(--foreground-neutral-secondary, #94a3b8);
+  font-weight: 400;
+}
 
 .textarea {
-  padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px;
-  font-size: 14px; font-family: inherit; resize: vertical; outline: none;
-  &:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+  padding: 10px 12px;
+  border: 1px solid var(--border-neutral-muted, #d1d5db);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  line-height: 1.5;
+
+  &:focus {
+    border-color: var(--foreground-brand-primary, #1b4dff);
+    box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.08);
+  }
 }
 
-.actions { display: flex; gap: 12px; justify-content: flex-end; }
+// ── Email note ────────────────────────────────────────────────────────────────
+
+.emailNote {
+  font-size: 12px;
+  color: var(--foreground-neutral-secondary, #94a3b8);
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--background-base-white, #fff);
+  border-radius: 6px;
+  border-left: 3px solid var(--border-neutral-muted, #e2e8f0);
+  line-height: 1.5;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
 
 .cancelButton {
-  padding: 8px 16px; border: 1px solid #d1d5db; border-radius: 6px;
-  background: #fff; font-size: 14px; cursor: pointer;
-  &:hover { background: #f9fafb; }
+  padding: 9px 20px;
+  border: 1px solid var(--border-neutral-muted, #d1d5db);
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f8fafc;
+  }
 }
 
 .submitButton {
-  padding: 8px 16px; border: none; border-radius: 6px;
-  background: #6366f1; color: #fff; font-size: 14px; font-weight: 500; cursor: pointer;
-  &:hover { background: #4f46e5; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  padding: 9px 20px;
+  border: none;
+  border-radius: 8px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #1540d4;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 }
 
+// ── Confirmation ──────────────────────────────────────────────────────────────
+
 .confirmation {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 12px; padding: 32px 20px; text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 20px;
+  text-align: center;
 }
 
 .checkIcon {
-  width: 48px; height: 48px; border-radius: 50%;
-  background: #dcfce7; color: #16a34a;
-  display: flex; align-items: center; justify-content: center; font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.confirmTitle { font-size: 18px; font-weight: 600; margin: 0; }
-.confirmText { font-size: 14px; color: #6b7280; margin: 0; max-width: 400px; }
+.confirmTitle {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.confirmText {
+  font-size: 14px;
+  color: var(--foreground-neutral-secondary, #64748b);
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.6;
+}
 
 .doneButton {
-  padding: 8px 24px; border: none; border-radius: 6px;
-  background: #6366f1; color: #fff; font-size: 14px; font-weight: 500;
-  cursor: pointer; margin-top: 8px;
-  &:hover { background: #4f46e5; }
+  padding: 9px 24px;
+  border: none;
+  border-radius: 8px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #1540d4;
+  }
 }

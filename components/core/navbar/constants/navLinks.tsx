@@ -68,6 +68,12 @@ export const PROTOTYPE_LINKS: ISubItem[] = [
     description: 'RBAC management interface mockup',
   },
   {
+    href: '/rbac-v1-prototype',
+    icon: <AccessControlIcon />,
+    title: 'RBAC V1',
+    description: 'Admin Office access management redesign · v1.1 spec',
+  },
+  {
     href: '/deals-landing',
     icon: <DealsIcon />,
     title: 'Deals Landing Page',

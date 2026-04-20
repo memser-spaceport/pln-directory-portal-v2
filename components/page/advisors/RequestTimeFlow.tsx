@@ -19,11 +19,11 @@ export function RequestTimeFlow({ advisor, onCancel, onComplete }: RequestTimeFl
   const userInfo = getUserInfoFromLocal();
 
   const handleSubmit = async () => {
-    if (!message.trim() || !userInfo) return;
+    if (!userInfo) return;
     await createRequest.mutateAsync({
       advisorId: advisor.id,
       founderId: userInfo.uid,
-      message: message.trim(),
+      message: message.trim() || '(No message provided)',
     });
     setIsConfirmed(true);
   };
@@ -31,10 +31,12 @@ export function RequestTimeFlow({ advisor, onCancel, onComplete }: RequestTimeFl
   if (isConfirmed) {
     return (
       <div className={styles.confirmation}>
-        <div className={styles.checkIcon}>&#10003;</div>
-        <h3 className={styles.confirmTitle}>Request Sent</h3>
+        <div className={styles.checkIcon}>
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="16" fill="#F0FDF4"/><path d="M10 16l4.5 4.5 8-8" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </div>
+        <h3 className={styles.confirmTitle}>Request sent</h3>
         <p className={styles.confirmText}>
-          Your request has been sent to {advisor.member.name}. They will get back to you with available times.
+          {advisor.member.name} will receive your request by email and get back to you with available times.
         </p>
         <button className={styles.doneButton} onClick={onComplete}>Done</button>
       </div>
@@ -43,25 +45,36 @@ export function RequestTimeFlow({ advisor, onCancel, onComplete }: RequestTimeFl
 
   return (
     <div className={styles.container}>
-      <h3 className={styles.title}>Request a Time</h3>
-      <p className={styles.subtitle}>
-        No slots available right now. Send a message to {advisor.member.name} to request a time.
+      <div className={styles.advisorRow}>
+        <span className={styles.advisorLabel}>Requesting time with</span>
+        <span className={styles.advisorName}>{advisor.member.name}</span>
+      </div>
+
+      <div className={styles.messageSection}>
+        <label className={styles.messageLabel}>
+          What would you like to discuss? <span className={styles.optional}>(optional)</span>
+        </label>
+        <textarea
+          className={styles.textarea}
+          placeholder="Briefly describe the topic or challenge you'd like guidance on…"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={4}
+        />
+      </div>
+
+      <p className={styles.emailNote}>
+        Your request will be sent to the advisor by email from LabOS. They'll respond with available times.
       </p>
-      <textarea
-        className={styles.textarea}
-        placeholder="Briefly describe what you'd like to discuss..."
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        rows={4}
-      />
+
       <div className={styles.actions}>
         <button className={styles.cancelButton} onClick={onCancel}>Cancel</button>
         <button
           className={styles.submitButton}
           onClick={handleSubmit}
-          disabled={!message.trim() || createRequest.isPending}
+          disabled={createRequest.isPending}
         >
-          {createRequest.isPending ? 'Sending...' : 'Send Request'}
+          {createRequest.isPending ? 'Sending…' : 'Send request'}
         </button>
       </div>
     </div>

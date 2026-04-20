@@ -3,18 +3,20 @@
 import { useState } from 'react';
 import { CalendarConnectStep } from './CalendarConnectStep';
 import { AvailabilityStep } from './AvailabilityStep';
-import { LinkedInStep } from './LinkedInStep';
+import { WelcomeStep } from './WelcomeStep';
+import { CompletionStep } from './CompletionStep';
+import { CalendarProvider } from '@/types/advisors.types';
 import { getUserInfoFromLocal } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 import styles from './AdvisorOnboardingContainer.module.scss';
 
-const STEPS = ['LinkedIn', 'Calendar', 'Availability'];
+const STEPS = ['Welcome', 'Scheduling', 'Availability', 'Done'] as const;
+type Step = typeof STEPS[number];
 
 interface OnboardingData {
-  calendarProvider: 'google' | 'calendly' | null;
+  calendarProvider: CalendarProvider | null;
   calendarConnected: boolean;
   availabilitySlots: any[];
-  linkedinUrl: string;
 }
 
 export function AdvisorOnboardingContainer() {
@@ -23,52 +25,66 @@ export function AdvisorOnboardingContainer() {
     calendarProvider: null,
     calendarConnected: false,
     availabilitySlots: [],
-    linkedinUrl: '',
   });
+
+  const userInfo = getUserInfoFromLocal();
+  const router = useRouter();
 
   const updateData = (updates: Partial<OnboardingData>) => {
     setData((prev) => ({ ...prev, ...updates }));
   };
-
-  const userInfo = getUserInfoFromLocal();
-  const router = useRouter();
 
   const goToProfile = () => {
     const uid = userInfo?.uid;
     router.push(uid ? `/members/${uid}` : '/members');
   };
 
+  const goToEditAvailability = () => {
+    router.push('/sign-up/advisor/availability');
+  };
+
   const next = () => {
     if (currentStep < STEPS.length - 1) {
       setCurrentStep((s) => s + 1);
-    } else {
-      goToProfile();
     }
   };
 
-  const back = () => { if (currentStep > 0) setCurrentStep((s) => s - 1); };
+  const back = () => {
+    if (currentStep > 0) setCurrentStep((s) => s - 1);
+  };
+
+  const isLastContentStep = currentStep === STEPS.length - 1;
 
   return (
     <div className={styles.container}>
-      <div className={styles.progress}>
-        {STEPS.map((step, i) => (
-          <div
-            key={step}
-            className={`${styles.step} ${i === currentStep ? styles.stepActive : ''} ${i < currentStep ? styles.stepDone : ''}`}
-          >
-            <div className={styles.stepDot}>{i < currentStep ? '\u2713' : i + 1}</div>
-            <span className={styles.stepLabel}>{step}</span>
-          </div>
-        ))}
-      </div>
+      {/* Stepper — hide on completion screen */}
+      {!isLastContentStep && (
+        <div className={styles.progress}>
+          {STEPS.slice(0, -1).map((step, i) => {
+            const isDone = i < currentStep;
+            const isActive = i === currentStep;
+            return (
+              <div key={step} className={`${styles.stepItem} ${isActive ? styles.stepActive : ''} ${isDone ? styles.stepDone : ''}`}>
+                <div className={styles.stepDot}>
+                  {isDone ? (
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l3 3 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  ) : (
+                    i + 1
+                  )}
+                </div>
+                <span className={styles.stepLabel}>{step}</span>
+                {i < STEPS.length - 2 && <div className={styles.stepConnector} />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <div className={styles.content}>
         {currentStep === 0 && (
-          <LinkedInStep
-            value={data.linkedinUrl}
-            onChange={(url) => updateData({ linkedinUrl: url })}
+          <WelcomeStep
+            advisorName={userInfo?.name}
             onNext={next}
-            onSkip={next}
-            onBack={() => {}}
           />
         )}
         {currentStep === 1 && (
@@ -84,9 +100,15 @@ export function AdvisorOnboardingContainer() {
           <AvailabilityStep
             slots={data.availabilitySlots}
             onSlotsChange={(slots) => updateData({ availabilitySlots: slots })}
-            onNext={goToProfile}
+            onNext={next}
             onBack={back}
             isLastStep
+          />
+        )}
+        {currentStep === 3 && (
+          <CompletionStep
+            onViewProfile={goToProfile}
+            onEditAvailability={goToEditAvailability}
           />
         )}
       </div>

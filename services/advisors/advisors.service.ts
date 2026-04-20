@@ -47,7 +47,7 @@ export async function createTimeRequest(data: {
   };
 }
 
-export async function connectCalendar(provider: 'google' | 'calendly'): Promise<{ connected: boolean }> {
+export async function connectCalendar(provider: 'calcom' | 'calendly'): Promise<{ connected: boolean }> {
   return { connected: true };
 }
 

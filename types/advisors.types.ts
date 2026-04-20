@@ -1,7 +1,7 @@
 import { IMember } from './members.types';
 
 export type AdvisorStatus = 'INVITED' | 'ONBOARDING' | 'ACTIVE' | 'INACTIVE';
-export type CalendarProvider = 'google' | 'calendly';
+export type CalendarProvider = 'calcom' | 'calendly';
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';
 export type TimeRequestStatus = 'PENDING' | 'RESPONDED';
 

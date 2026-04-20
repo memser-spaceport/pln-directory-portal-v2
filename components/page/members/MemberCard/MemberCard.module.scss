@@ -95,6 +95,33 @@
   }
 }
 
+.advisorBadge {
+  @include mixins.ellipse-text;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -8px;
+
+  display: flex;
+  height: 16px;
+  padding: 0 6px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+
+  @include media.breakpoint-1024 {
+    display: flex;
+  }
+}
+
 .availableToConnectBadge {
   @include mixins.ellipse-text;
   position: absolute;

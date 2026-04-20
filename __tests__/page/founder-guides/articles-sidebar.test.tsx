@@ -11,6 +11,11 @@ jest.mock('next/navigation', () => ({
   usePathname: () => mockUsePathname(),
 }));
 
+jest.mock('nuqs', () => ({
+  useQueryState: () => [null, jest.fn()],
+  parseAsString: { withOptions: () => ({ withOptions: jest.fn() }) },
+}));
+
 jest.mock('@/services/articles/hooks/useGetArticles', () => ({
   useGetArticles: () => mockUseGetArticles(),
 }));

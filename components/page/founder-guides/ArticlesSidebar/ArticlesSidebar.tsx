@@ -4,7 +4,8 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import Select from 'react-select';
 import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { useQueryState, parseAsString } from 'nuqs';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
 import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
@@ -181,8 +182,7 @@ function getCategoryIcon(category: string) {
 
 export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const [scopeParam, setScopeParam] = useQueryState('scope', parseAsString.withOptions({ history: 'replace', shallow: true }));
   const { byCategory, isLoading } = useGetArticles();
   const { scopes: userScopes } = useFounderGuidesScopes();
   const scopeOptions = useMemo(() => userScopes.map((s) => ({ label: SCOPE_LABELS[s] ?? s, value: s })), [userScopes]);
@@ -193,10 +193,9 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
 
   const selectedScope = useMemo(() => {
     if (userScopes.length < 2) return null;
-    const raw = searchParams.get('scope');
-    if (raw && userScopes.includes(raw)) return raw;
+    if (scopeParam && userScopes.includes(scopeParam)) return scopeParam;
     return userScopes.includes(DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE) ? DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE : userScopes[0];
-  }, [searchParams, userScopes]);
+  }, [scopeParam, userScopes]);
 
   useEffect(() => {
     if (searchDebounceSkipRef.current) {
@@ -274,12 +273,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
           <Select
             options={scopeOptions}
             value={scopeOptions.find((o) => o.value === selectedScope) ?? null}
-            onChange={(opt) => {
-              if (!opt) return;
-              const params = new URLSearchParams(searchParams.toString());
-              params.set('scope', opt.value);
-              router.replace(`${pathname}?${params.toString()}`);
-            }}
+            onChange={(opt) => opt && setScopeParam(opt.value)}
             isSearchable={false}
             styles={{
               container: (base) => ({ ...base, width: '100%' }),

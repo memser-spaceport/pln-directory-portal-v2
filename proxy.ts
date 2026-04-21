@@ -53,7 +53,7 @@ function createLoginRedirect(req: NextRequest, pathname: string): NextResponse {
   return NextResponse.redirect(redirectUrl);
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const response = NextResponse.next();
   const refreshTokenFromCookie = req?.cookies?.get('refreshToken');
   const authTokenFromCookie = req?.cookies?.get('authToken');

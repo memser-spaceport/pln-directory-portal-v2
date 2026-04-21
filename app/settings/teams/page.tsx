@@ -14,7 +14,7 @@ import { sortMemberByRole } from '@/utils/common.utils';
 
 const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLead: boolean, isAdmin: boolean) => {
   const dpResult = await getTeamsInfoForDp();
-  const { authToken } = getCookiesFromHeaders();
+  const { authToken } = await getCookiesFromHeaders();
   let selectedTeam;
   let membersDetail;
   let allMembers;
@@ -59,8 +59,8 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
 };
 
 export default async function ManageTeams(props: any) {
-  const selectedTeamId = props?.searchParams?.id;
-  const { userInfo, isLoggedIn } = getCookiesFromHeaders();
+  const selectedTeamId = (await props?.searchParams)?.id;
+  const { userInfo, isLoggedIn } = await getCookiesFromHeaders();
 
   if (!isLoggedIn) {
     redirect(PAGE_ROUTES.HOME);

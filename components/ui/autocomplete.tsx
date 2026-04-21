@@ -12,8 +12,8 @@ interface AutocompleteProps {
   selectedOption: OptionsProps;
   callback: (option: OptionsProps) => void;
   isPaneActive: boolean;
-  paneRef: RefObject<HTMLDivElement>;
-  inputRef: RefObject<HTMLInputElement>;
+  paneRef: RefObject<HTMLDivElement | null>;
+  inputRef: RefObject<HTMLInputElement | null>;
   searchResult: OptionsProps[];
   onTextChange: (text: string) => void;
   searchText: string;

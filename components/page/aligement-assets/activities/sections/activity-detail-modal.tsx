@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 
 import Link from 'next/link';
 import { Modal } from '@/components/common/Modal';
@@ -73,7 +74,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
     matches.sort((a, b) => a.start - b.start);
 
     // 3. Build content
-    const parts: (string | JSX.Element)[] = [];
+    const parts: (string | React.JSX.Element)[] = [];
     let cursor = 0;
     
     // Use a simple counter for keys

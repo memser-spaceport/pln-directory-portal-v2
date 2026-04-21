@@ -3,8 +3,9 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDemoDayState } from '@/app/actions/demo-day.actions';
 import { FoundersDashboardView } from '@/components/page/demo-day/FoundersDashboardView';
 
-export default async function FoundersDashboardPage({ params }: { params: { demoDayId: string } }) {
-  const { userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
+export default async function FoundersDashboardPage(props: { params: Promise<{ demoDayId: string }> }) {
+  const params = await props.params;
+  const { userInfo, authToken, isLoggedIn } = await getCookiesFromHeaders();
 
   // Fetch demo day state on server side
   const demoDayResult = await getDemoDayState(params.demoDayId, userInfo.uid, authToken);

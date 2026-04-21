@@ -2,7 +2,7 @@ import { ReactElement, useEffect, useState, useMemo } from 'react';
 
 interface IUsePagination {
   items: ReactElement[];
-  observerTarget: React.RefObject<HTMLElement>;
+  observerTarget: React.RefObject<HTMLElement | null>;
 }
 
 const ITEMS_PER_PAGE = 30;

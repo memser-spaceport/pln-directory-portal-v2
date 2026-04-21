@@ -3,7 +3,7 @@ import React from 'react';
 type AnyEvent = MouseEvent | TouchEvent;
 
 export function useOnClickOutside<T extends HTMLElement = HTMLElement>(
-  refs: React.RefObject<T>[],
+  refs: React.RefObject<T | null>[],
   handler: (event: AnyEvent, isClickOutside: boolean) => void,
   allowedClasses?: string[],
 ): void {

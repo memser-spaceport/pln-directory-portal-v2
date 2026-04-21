@@ -3,8 +3,9 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDemoDayState } from '@/app/actions/demo-day.actions';
 import { DemodayCompletedView } from '@/components/page/demo-day/DemodayCompletedView';
 
-export default async function CompletedPage({ params }: { params: { demoDayId: string } }) {
-  const { userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
+export default async function CompletedPage(props: { params: Promise<{ demoDayId: string }> }) {
+  const params = await props.params;
+  const { userInfo, authToken, isLoggedIn } = await getCookiesFromHeaders();
   const parsedUserInfo = userInfo;
 
   // Fetch demo day state on server side

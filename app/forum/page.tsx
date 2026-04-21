@@ -6,8 +6,9 @@ import { Feed } from '@/components/page/forum/Feed';
 import s from './page.module.scss';
 import { redirect, RedirectType } from 'next/navigation';
 
-const ForumPage = async ({ searchParams }: { searchParams: Record<string, string> }) => {
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+const ForumPage = async (props: { searchParams: Promise<Record<string, string>> }) => {
+  const searchParams = await props.searchParams;
+  const { isLoggedIn, userInfo } = await getCookiesFromHeaders();
 
   if (!searchParams.cid) {
     redirect('/forum?cid=0', RedirectType.replace);

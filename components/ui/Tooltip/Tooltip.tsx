@@ -56,7 +56,7 @@ export default function CustomTooltip({
   const clonedTrigger = React.cloneElement(trigger, {
     ref: triggerRef,
     tabIndex: 0,
-  });
+  } as any);
 
   // ✅ Only show tooltip if forced or truncated
   if (!forceTooltip && !isTruncated) return clonedTrigger;

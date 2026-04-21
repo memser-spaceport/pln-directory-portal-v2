@@ -9,7 +9,7 @@ import { useGetPathToCompareNotificationLink } from './useGetPathToCompareNotifi
 interface UseAutoMarkOnNavigationOptions {
   authToken?: string;
   unreadLinksMapRef: MutableRefObject<UnreadLinksMap>;
-  wsMarkAsReadRef: MutableRefObject<(id: string) => void>;
+  wsMarkAsReadRef: MutableRefObject<((id: string) => void) | null>;
   onMarkedAsRead: (uids: string[]) => void;
 }
 
@@ -43,7 +43,7 @@ export function useAutoMarkOnNavigation(input: UseAutoMarkOnNavigationOptions) {
         await Promise.allSettled(
           uidsToMark.map(async (uid) => {
             await markNotificationAsRead(authToken, uid);
-            wsMarkAsReadRef.current(uid);
+            wsMarkAsReadRef.current?.(uid);
           }),
         );
         onMarkedAsRead(uidsToMark);

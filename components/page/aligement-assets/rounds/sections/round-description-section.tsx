@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -29,7 +30,7 @@ function renderParagraphWithLinks(paragraph: RoundDescriptionSectionData['paragr
     return paragraph.text;
   }
 
-  let result: (string | JSX.Element)[] = [paragraph.text];
+  let result: (string | React.JSX.Element)[] = [paragraph.text];
   
   paragraph.links.forEach((link, linkIndex) => {
     result = result.flatMap((part) => {

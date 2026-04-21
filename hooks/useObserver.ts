@@ -2,7 +2,7 @@ import { RefObject, useEffect } from 'react';
 
 interface useObserverProps {
   callback: () => Promise<any>;
-  observeItem: RefObject<HTMLDivElement | HTMLFormElement>;
+  observeItem: RefObject<HTMLDivElement | HTMLFormElement | null>;
 }
 
 function useObserver({ callback, observeItem }: useObserverProps) {

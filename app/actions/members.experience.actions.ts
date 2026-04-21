@@ -4,7 +4,7 @@ import { getHeader } from '@/utils/common.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 export const MemberExperienceFormAction = async (state: any, formData: FormData) => {
-  const { authToken } = getCookiesFromHeaders();
+  const { authToken } = await getCookiesFromHeaders();
 
   const experienceId = formData.get('experience-uid');
   if (formData.get('actionType') === 'delete') {

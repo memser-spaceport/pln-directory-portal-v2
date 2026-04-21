@@ -60,8 +60,8 @@ export const removeContributingTeamFromProject = async (
       return { isError: true, errorMessage: 'Failed to update project' };
     }
 
-    revalidateTag('team-detail');
-    revalidateTag('project-detail');
+    revalidateTag('team-detail', 'max');
+    revalidateTag('project-detail', 'max');
 
     return { success: true };
   } catch (error) {
@@ -129,8 +129,8 @@ export const addContributingTeamToProject = async (
       return { isError: true, errorMessage: 'Failed to update project' };
     }
 
-    revalidateTag('team-detail');
-    revalidateTag('project-detail');
+    revalidateTag('team-detail', 'max');
+    revalidateTag('project-detail', 'max');
 
     return { success: true };
   } catch (error) {

@@ -10,8 +10,8 @@ import LoginInfo from '@/components/page/team-form-info/team-login-info';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
 
-export default function SubmitATeam(props: any) {
-  const { isError, isLoggedIn, userInfo } = getPageData();
+export default async function SubmitATeam(props: any) {
+  const { isError, isLoggedIn, userInfo } = await getPageData();
 
   // if(!isLoggedIn) {
   //     redirect(`${PAGE_ROUTES.HOME}`, RedirectType.replace);
@@ -38,9 +38,9 @@ export default function SubmitATeam(props: any) {
   );
 }
 
-function getPageData() {
+async function getPageData() {
   const isError = false;
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = await getCookiesFromHeaders();
   try {
     return {
       isLoggedIn,

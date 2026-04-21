@@ -11,6 +11,7 @@ export const PAGE_ROUTES = {
   HUSKY: '/husky/chat',
   EVENTS: '/events',
   FORUM: '/forum',
+  JOBS: '/jobs',
 };
 
 export const NAV_OPTIONS = [
@@ -57,6 +58,13 @@ export const NAV_OPTIONS = [
     unSelectedLogo: '/icons/message.svg',
   },
 ];
+
+export const JOBS_ANALYTICS = {
+  JOBS_VIEWED: 'jobs_viewed',
+  JOBS_FILTERED: 'jobs_filtered',
+  JOBS_SORTED: 'jobs_sorted',
+  JOB_CLICKED: 'job_clicked',
+};
 
 export const EVENTS = {
   TRIGGER_LOADER: 'TRIGGER_LOADER',

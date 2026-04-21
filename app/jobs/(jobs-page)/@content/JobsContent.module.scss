@@ -1,0 +1,78 @@
+@use 'styles/media';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 0 48px;
+  width: 100%;
+  max-width: 900px;
+}
+
+.mobileHeader {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+  padding: 12px 16px 0;
+  z-index: 3;
+  background: #f1f5f9;
+}
+
+.mobileFilters {
+  padding: 0 8px;
+}
+
+.toolbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 8px;
+}
+
+@include media.breakpoint-1024 {
+  .mobileHeader {
+    display: none;
+  }
+
+  .mobileFilters {
+    display: none;
+  }
+
+  .toolbar {
+    display: flex;
+  }
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.titleCount {
+  font-size: 14px;
+  font-weight: 400;
+  color: #64748b;
+  letter-spacing: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 8px;
+}
+
+@include media.breakpoint-1024 {
+  .list {
+    padding: 0;
+  }
+}

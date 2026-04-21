@@ -2,7 +2,7 @@ import React from 'react';
 
 import { ISubItem } from '@/components/core/navbar/type';
 import { CalendarBlankIcon, ContributorIcon, UsersThreeIcon } from '@/components/icons';
-import { MembersIcon, TeamsIcon, ProjectsIcon, DealsIcon, FounderGuidesIcon, DemoDayIcon, AnalyticsIcon } from '../components/icons';
+import { MembersIcon, TeamsIcon, ProjectsIcon, DealsIcon, FounderGuidesIcon, DemoDayIcon, AnalyticsIcon, JobsIcon } from '../components/icons';
 
 export const DIRECTORY_LINKS: ISubItem[] = [
   {
@@ -24,6 +24,13 @@ export const DIRECTORY_LINKS: ISubItem[] = [
     description: 'See what the network is building',
   },
 ] as const;
+
+export const JOBS_LINK: ISubItem = {
+  icon: <JobsIcon />,
+  href: '/jobs',
+  title: 'Job Board',
+  description: 'Open roles across the Protocol Labs network',
+};
 
 export const EVENT_LINKS: ISubItem[] = [
   {

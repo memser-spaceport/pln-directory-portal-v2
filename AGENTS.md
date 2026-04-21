@@ -2,8 +2,7 @@
 
 ## Repository Scope
 
-Treat this repository as a **Next.js frontend monolith** using the App Router.  
-Do **not** assume NestJS module architecture here; no `@nestjs/*` modules are present.
+Treat this repository as a **Next.js frontend monolith** using the App Router.
 
 ## Tech Stack
 

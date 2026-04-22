@@ -36,9 +36,12 @@ export function useInfiniteJobsList() {
 
   const query = useInfiniteQuery<IJobsListResponse>({
     queryKey: [JobsQueryKey.List, key],
-    initialPageParam: undefined,
-    queryFn: ({ pageParam }) => fetchJobsList(params, pageParam as string | undefined),
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => fetchJobsList(params, pageParam as number),
+    getNextPageParam: (lastPage) => {
+      const totalPages = Math.ceil(lastPage.totalGroups / lastPage.limit);
+      return lastPage.page < totalPages ? lastPage.page + 1 : undefined;
+    },
     staleTime: 30_000,
     refetchOnWindowFocus: false,
     placeholderData: keepPreviousData,

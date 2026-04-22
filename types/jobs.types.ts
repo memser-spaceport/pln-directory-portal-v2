@@ -25,7 +25,9 @@ export interface IJobTeamGroup {
 
 export interface IJobsListResponse {
   groups: IJobTeamGroup[];
-  nextCursor: string | null;
+  page: number;
+  limit: number;
+  total: number;
   totalGroups: number;
   totalRoles: number;
 }

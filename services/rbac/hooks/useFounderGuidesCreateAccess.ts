@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { RbacQueryKeys } from '../constants';
-import { fetchRbacMe } from '../rbac.service';
+import { AccessControlQueryKeys } from '@/services/access-control/constants';
+import { fetchMyAccess } from '@/services/access-control/access-control.service';
 import { getUserInfoFromLocal } from '@/utils/common.utils';
 
 export function useFounderGuidesCreateAccess() {
@@ -11,11 +11,9 @@ export function useFounderGuidesCreateAccess() {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: [RbacQueryKeys.RBAC_ME, 'founder-guides-create'],
-    queryFn: async () => {
-      const rbac = await fetchRbacMe();
-      return rbac.permissions.some((p) => p.name === 'founder_guides.create');
-    },
+    queryKey: [AccessControlQueryKeys.MY_ACCESS],
+    queryFn: fetchMyAccess,
+    select: (data) => data.effectivePermissions.includes('founder_guides.view.all'),
     staleTime: 5 * 60 * 1000,
     enabled: !!userInfo,
     retry: 2,

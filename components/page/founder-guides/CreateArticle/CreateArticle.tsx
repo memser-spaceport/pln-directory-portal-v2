@@ -15,7 +15,7 @@ import useBlockNavigation from '@/hooks/useUnsavedChangesWarning';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useCreateArticleMutation } from '@/services/articles/hooks/useCreateArticleMutation';
 import { useUpdateArticleMutation } from '@/services/articles/hooks/useUpdateArticleMutation';
-import { ARTICLE_CATEGORIES, SCOPE_LABELS } from '@/services/articles/constants';
+import { ARTICLE_CATEGORIES, SCOPE_LABELS, SCOPE_TO_PERMISSION_CODE } from '@/services/articles/constants';
 import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
 import { IArticle } from '@/types/articles.types';
 import { AuthorAutocomplete } from './AuthorAutocomplete';
@@ -102,11 +102,13 @@ export default function CreateArticle({ article, isEditMode }: CreateArticleProp
 
   const onSubmit = async (data: any) => {
     const author = data.author as CreateArticleForm['author'];
+    const scopeValue = data.scope?.value ?? null;
     const payload = {
       title: data.title,
       summary: data.summary || undefined,
       category: data.category?.value,
-      scope: data.scope?.value ?? null,
+      scope: scopeValue,
+      requiredPermissionCode: scopeValue ? SCOPE_TO_PERMISSION_CODE[scopeValue] : undefined,
       readingTime: data.readingTime || undefined,
       content: data.content,
       authorMemberUid: author?.type === 'member' ? author.value : undefined,

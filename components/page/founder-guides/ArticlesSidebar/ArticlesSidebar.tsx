@@ -9,7 +9,7 @@ import { useQueryState, parseAsString } from 'nuqs';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
 import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
-import { DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE, SCOPE_LABELS } from '@/services/articles/constants';
+import { DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE, SCOPE_LABELS, SCOPE_TO_PERMISSION_CODE } from '@/services/articles/constants';
 import { extractHeadings } from '@/utils/markdown';
 import s from './ArticlesSidebar.module.scss';
 
@@ -182,7 +182,10 @@ function getCategoryIcon(category: string) {
 
 export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSidebarProps) {
   const pathname = usePathname();
-  const [scopeParam, setScopeParam] = useQueryState('scope', parseAsString.withOptions({ history: 'replace', shallow: true }));
+  const [scopeParam, setScopeParam] = useQueryState(
+    'scope',
+    parseAsString.withOptions({ history: 'replace', shallow: true }),
+  );
   const { byCategory, isLoading } = useGetArticles();
   const { scopes: userScopes } = useFounderGuidesScopes();
   const scopeOptions = useMemo(() => userScopes.map((s) => ({ label: SCOPE_LABELS[s] ?? s, value: s })), [userScopes]);
@@ -210,10 +213,11 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
 
   const scopeFiltered = useMemo(() => {
     if (!selectedScope) return byCategory;
+    const permCode = SCOPE_TO_PERMISSION_CODE[selectedScope];
     return byCategory
       .map(({ category, articles }) => ({
         category,
-        articles: articles.filter((a) => a.scope === selectedScope || a.scope === null),
+        articles: articles.filter((a) => a.requiredPermissionCode === permCode || a.requiredPermissionCode === null),
       }))
       .filter(({ articles }) => articles.length > 0);
   }, [byCategory, selectedScope]);

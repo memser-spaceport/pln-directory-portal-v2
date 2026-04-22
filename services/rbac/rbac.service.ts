@@ -8,14 +8,16 @@ export interface RbacPermission {
 }
 
 export interface RbacMeResponse {
+  memberUid: string;
   roles: string[];
   permissions: RbacPermission[];
 }
 
 export async function fetchRbacMe(): Promise<RbacMeResponse> {
   const response = await customFetch(`${RBAC_API_URL}/me`, { method: 'GET' }, true);
+
   if (!response || !response.ok) {
-    return { roles: [], permissions: [] };
+    return { roles: [], permissions: [], memberUid: '' };
   }
   return response.json();
 }

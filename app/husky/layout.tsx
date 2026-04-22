@@ -5,7 +5,7 @@ import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn } = getCookiesFromHeaders();
+  const { isLoggedIn } = await getCookiesFromHeaders();
 
   return (
     <>

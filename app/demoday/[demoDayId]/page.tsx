@@ -5,8 +5,9 @@ import { redirect } from 'next/navigation';
 import { checkInvestorProfileComplete, isDemoDayParticipantInvestor } from '@/utils/member.utils';
 import { Landing } from '@/components/page/demo-day/Landing';
 
-export default async function DemoDayLandingPage({ params }: { params: { demoDayId: string } }) {
-  const { userInfo, authToken } = getCookiesFromHeaders();
+export default async function DemoDayLandingPage(props: { params: Promise<{ demoDayId: string }> }) {
+  const params = await props.params;
+  const { userInfo, authToken } = await getCookiesFromHeaders();
   const parsedUserInfo: IUserInfo = userInfo;
 
   // Fetch initial data on the server side

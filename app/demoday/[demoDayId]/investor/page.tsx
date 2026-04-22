@@ -4,8 +4,9 @@ import { getDemoDayState, getMemberInfo } from '@/app/actions/demo-day.actions';
 import { checkInvestorProfileComplete, isDemoDayParticipantInvestor } from '@/utils/member.utils';
 import { InvestorPendingView } from '@/components/page/demo-day/InvestorPendingView';
 
-export default async function InvestorPage({ params }: { params: { demoDayId: string } }) {
-  const { userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
+export default async function InvestorPage(props: { params: Promise<{ demoDayId: string }> }) {
+  const params = await props.params;
+  const { userInfo, authToken, isLoggedIn } = await getCookiesFromHeaders();
   const parsedUserInfo = userInfo;
 
   if (!isLoggedIn || !parsedUserInfo?.uid) {

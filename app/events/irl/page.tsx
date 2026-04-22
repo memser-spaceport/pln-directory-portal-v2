@@ -23,7 +23,8 @@ import IrlFollowGathering from '@/components/page/irl/follow-gathering/irl-follo
 import IrlHuskyIntegration from '@/components/page/irl/irl-husky/irl-husky-integration';
 import AddtionalResources from '@/components/page/irl/events/addtional-resources';
 
-export default async function Page({ searchParams }: any) {
+export default async function Page(props: any) {
+  const searchParams = await props.searchParams;
   const {
     isError,
     userInfo,
@@ -122,7 +123,7 @@ export default async function Page({ searchParams }: any) {
 }
 
 const getPageData = async (searchParams: any) => {
-  const { authToken, userInfo, isLoggedIn } = getCookiesFromHeaders();
+  const { authToken, userInfo, isLoggedIn } = await getCookiesFromHeaders();
   let showTelegram = true;
   let isError = false;
   let isLocationError = false;

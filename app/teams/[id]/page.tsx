@@ -25,7 +25,11 @@ import { TeamMembershipSource, TeamCommunitiesSection } from '@/components/page/
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { TeamFocusAreas } from '@/components/page/team-details/TeamFocusAreas';
 
-async function Page({ params, searchParams }: { params: ITeamDetailParams; searchParams: { backTo?: string } }) {
+async function Page(
+  props: { params: Promise<ITeamDetailParams>; searchParams: Promise<{ backTo?: string }> }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const teamId: string = params?.id;
   const backTo = searchParams?.backTo || '/teams';
   const {
@@ -121,7 +125,7 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
 export default Page;
 
 async function getPageData(teamId: string) {
-  const { userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
+  const { userInfo, authToken, isLoggedIn } = await getCookiesFromHeaders();
 
   let team: ITeam = {
     id: '',
@@ -269,14 +273,12 @@ async function getPageData(teamId: string) {
 }
 
 type IGenerateMetadata = {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export async function generateMetadata(
-  { params, searchParams }: IGenerateMetadata,
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
+export async function generateMetadata(props: IGenerateMetadata, parent: ResolvingMetadata): Promise<Metadata> {
+  const params = await props.params;
   const teamId = params.id;
   const teamResonse = await getTeam(teamId, {
     with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member',

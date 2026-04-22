@@ -4,8 +4,9 @@ import { IUserInfo } from '@/types/shared.types';
 import { redirect } from 'next/navigation';
 import { ActiveView } from '@/components/page/demo-day/ActiveView';
 
-export default async function ActivePage({ params }: { params: { demoDayId: string } }) {
-  const { userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
+export default async function ActivePage(props: { params: Promise<{ demoDayId: string }> }) {
+  const params = await props.params;
+  const { userInfo, authToken, isLoggedIn } = await getCookiesFromHeaders();
   const parsedUserInfo: IUserInfo = userInfo;
 
   // Fetch demo day state on the server side

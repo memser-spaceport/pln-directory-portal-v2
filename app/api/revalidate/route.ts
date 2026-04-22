@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     return Response.json(null, { status: 400 });
   }
   body?.tags?.map((tag: string) => {
-    revalidateTag(tag);
+    revalidateTag(tag, 'max');
   });
   return Response.json({ message: 'Success' }, { status: 200 });
 }

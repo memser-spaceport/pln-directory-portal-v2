@@ -5,7 +5,7 @@ import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 const PostPage = async () => {
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = await getCookiesFromHeaders();
 
   if (userInfo.accessLevel === 'L0' || userInfo.accessLevel === 'L1' || userInfo.accessLevel === 'L5') {
     return (

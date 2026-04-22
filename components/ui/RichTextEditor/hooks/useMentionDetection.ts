@@ -11,7 +11,7 @@ interface MentionState {
 interface UseMentionDetectionParams {
   enableMentions: boolean;
   quillRef: RefObject<ReactQuill>;
-  editorContainerRef: RefObject<HTMLDivElement>;
+  editorContainerRef: RefObject<HTMLDivElement | null>;
   mentionState: MentionState;
   setMentionState: (state: MentionState) => void;
   closeMentionDropdown: () => void;

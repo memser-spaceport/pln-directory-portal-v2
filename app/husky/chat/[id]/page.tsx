@@ -9,7 +9,7 @@ import { cookies } from 'next/headers';
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const { id } = params;
-  const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo, authToken } = await getCookiesFromHeaders();
   const { thread, isError } = await getPageData(id, authToken);
 
   if (isError) {

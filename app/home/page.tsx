@@ -54,7 +54,7 @@ export default async function Home() {
 }
 
 const getPageData = async () => {
-  const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo, authToken } = await getCookiesFromHeaders();
   let isError = false;
   let featuredData = [] as any;
   let discoverData = [] as any;

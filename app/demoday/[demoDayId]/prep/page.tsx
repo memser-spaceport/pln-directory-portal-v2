@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, use } from 'react';
 import { redirect } from 'next/navigation';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
@@ -13,7 +13,8 @@ import { AdminContent } from '@/components/page/demo-day/AdminView/components/Ad
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 
-function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
+function DemoDayPrepPage(props: { params: Promise<{ demoDayId: string }> }) {
+  const params = use(props.params);
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const isDirectoryAdmin = isAdminUser(userInfo);
   const { data } = useGetDemoDayState();

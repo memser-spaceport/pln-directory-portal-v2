@@ -4,7 +4,7 @@ import { MentionDropdownRef } from '../MentionDropdown';
 interface UseMentionKeyboardParams {
   isOpen: boolean;
   enableMentions: boolean;
-  mentionDropdownRef: RefObject<MentionDropdownRef>;
+  mentionDropdownRef: RefObject<MentionDropdownRef | null>;
   closeMentionDropdown: () => void;
 }
 

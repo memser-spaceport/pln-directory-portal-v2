@@ -8,8 +8,8 @@ import { PAGE_ROUTES } from '@/utils/constants';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
 
-export default function AddProject(props: any) {
-  const { isError, isLoggedIn, userInfo } = getPageData();
+export default async function AddProject(props: any) {
+  const { isError, isLoggedIn, userInfo } = await getPageData();
 
   if (!isLoggedIn) {
     redirect(`${PAGE_ROUTES.HOME}`, RedirectType.replace);
@@ -29,9 +29,9 @@ export default function AddProject(props: any) {
   );
 }
 
-function getPageData() {
+async function getPageData() {
   const isError = false;
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = await getCookiesFromHeaders();
   try {
     return {
       isLoggedIn,

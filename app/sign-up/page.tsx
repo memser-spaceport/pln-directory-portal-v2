@@ -8,7 +8,7 @@ import { SignupWizard } from '@/components/page/sign-up/components/SignupWizard'
 
 const getPageData = async () => {
   const memberInfo = await getSkillsData();
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = await getCookiesFromHeaders();
   let canAccess = false;
   let isLoggedInAndHaveAccess = false;
   if (userInfo) {

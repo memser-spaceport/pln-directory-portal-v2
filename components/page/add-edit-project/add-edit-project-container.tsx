@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 
 import { IProjectResponse } from '@/types/project.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -18,7 +19,7 @@ interface IAddEditProjectContainerProps {
  * @param {IAddEditProjectContainerProps} props - The properties for the component.
  * @returns {JSX.Element} The rendered component.
  */
-export default function AddEditProjectContainer(props: any): JSX.Element {
+export default function AddEditProjectContainer(props: any): React.JSX.Element {
   const { project, type, userInfo } = props;
 
   return (

@@ -33,7 +33,7 @@ async function Notifications({ searchParams }: { searchParams: any }) {
 }
 
 async function getPageData() {
-  const { isLoggedIn, authToken, userInfo } = getCookiesFromHeaders();
+  const { isLoggedIn, authToken, userInfo } = await getCookiesFromHeaders();
   let notifications = [];
   let isError = false;
 

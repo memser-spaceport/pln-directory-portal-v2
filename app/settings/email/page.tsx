@@ -8,8 +8,9 @@ import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { EmailPreferencesForm } from '@/components/page/email-preferences/components/EmailPreferencesForm';
 import { getMemberInfo } from '@/services/members.service';
 
-async function RecommendationsPage({ searchParams }: { searchParams: any }) {
-  const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
+async function RecommendationsPage(props: { searchParams: Promise<any> }) {
+  const searchParams = await props.searchParams;
+  const { isLoggedIn, userInfo, authToken } = await getCookiesFromHeaders();
   const params = new URLSearchParams(searchParams as Record<string, string>).toString();
 
   if (!isLoggedIn) {

@@ -46,10 +46,10 @@ const getPageData = async (selectedMemberId: string, authToken: string, isVerifi
 };
 
 export default async function ManageMembers(props: any) {
-  const isVerified = props?.searchParams?.isVerified ?? 'true';
-  const selectedMemberId = props?.searchParams?.id;
-  const viewType = props?.searchParams?.viewType ?? 'profile';
-  const { userInfo, isLoggedIn, authToken } = getCookiesFromHeaders();
+  const isVerified = (await props?.searchParams)?.isVerified ?? 'true';
+  const selectedMemberId = (await props?.searchParams)?.id;
+  const viewType = (await props?.searchParams)?.viewType ?? 'profile';
+  const { userInfo, isLoggedIn, authToken } = await getCookiesFromHeaders();
 
   if (!isLoggedIn) {
     redirect(PAGE_ROUTES.HOME);

@@ -794,7 +794,7 @@ const DeleteModal = ({
   isOpen: boolean;
   onClose: () => void;
   onDelete: () => void;
-  modalRef: React.RefObject<HTMLDialogElement>;
+  modalRef: React.RefObject<HTMLDialogElement | null>;
 }) => {
   if (!isOpen) return null;
 

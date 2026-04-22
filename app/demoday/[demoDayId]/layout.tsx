@@ -2,11 +2,12 @@ import { PropsWithChildren } from 'react';
 import { Metadata } from 'next';
 import { getDemoDayMetadata } from '@/utils/constants';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { demoDayId: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ demoDayId: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const { title, description, imageUrl } = getDemoDayMetadata(params.demoDayId);
 
   return {

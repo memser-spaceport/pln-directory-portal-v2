@@ -9,8 +9,9 @@ import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { ConnectedAccounts } from '@/components/page/connected-accounts/ConnectedAccounts';
 
-async function AccountsPage({ searchParams }: { searchParams: any }) {
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+async function AccountsPage(props: { searchParams: Promise<any> }) {
+  const searchParams = await props.searchParams;
+  const { isLoggedIn, userInfo } = await getCookiesFromHeaders();
   const params = new URLSearchParams(searchParams as Record<string, string>).toString();
 
   if (!isLoggedIn) {

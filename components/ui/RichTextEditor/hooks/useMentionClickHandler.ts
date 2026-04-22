@@ -4,7 +4,7 @@ import MentionBlot from '@/components/ui/RichTextEditor/MentionBlot';
 
 interface UseMentionClickHandlerParams {
   enableMentions: boolean;
-  editorContainerRef: RefObject<HTMLDivElement>;
+  editorContainerRef: RefObject<HTMLDivElement | null>;
   qlEditorClass: string;
 }
 

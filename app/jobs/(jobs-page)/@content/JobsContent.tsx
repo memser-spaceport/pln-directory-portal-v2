@@ -6,8 +6,8 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import type { IUserInfo } from '@/types/shared.types';
 import type { JobsSortKey } from '@/types/jobs.types';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
-import { useInfiniteJobsList } from '@/services/jobs/useJobsQueries';
-import { useJobsParamsUpdater } from '@/services/jobs/useJobsParamsUpdater';
+import { useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
+import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
 import { filterStateFromURL } from '@/utils/jobs.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
@@ -45,17 +45,17 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
 
   const sort = (searchParams.get('sort') as JobsSortKey) ?? 'newest';
 
-  const viewedFired = useRef(false);
+  const lastFiredParams = useRef<string | null>(null);
+  const paramsKey = searchParams.toString();
   useEffect(() => {
     if (isLoading || isError) return;
-    if (viewedFired.current) return;
-    viewedFired.current = true;
+    if (lastFiredParams.current === paramsKey) return;
+    lastFiredParams.current = paramsKey;
     analytics.onJobsViewed({
       result_count: totalRoles,
       filter_state: filterStateFromURL(searchParams),
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, isError]);
+  }, [isLoading, isError, paramsKey, totalRoles, searchParams, analytics]);
 
   if (isError) return <Error />;
   if (isLoading) return <ContentPanelSkeletonLoader />;

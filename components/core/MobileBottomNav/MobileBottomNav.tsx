@@ -10,6 +10,7 @@ import {
   EVENT_LINKS,
   DEMO_DAY_LINK,
   DEMO_DAY_ANALYTICS_LINK,
+  JOBS_LINK,
 } from '@/components/core/navbar/constants/navLinks';
 import { DealsIcon, FounderGuidesIcon, MoreIcon } from '@/components/core/navbar/components/icons';
 import { ISubItem } from '@/components/core/navbar/type';
@@ -37,6 +38,7 @@ export function MobileBottomNav() {
     ...(hasFounderGuidesAccess
       ? [{ href: '/founder-guides', title: 'Founder Guides', icon: <FounderGuidesIcon /> }]
       : []),
+    JOBS_LINK,
   ];
 
   return (

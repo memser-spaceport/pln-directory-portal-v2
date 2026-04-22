@@ -7,11 +7,11 @@ import { useSearchParams } from 'next/navigation';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { CaretRightIcon } from '@/components/icons';
 import { FilterSection } from '@/components/common/filters/FilterSection';
-import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/useJobsQueries';
-import { useJobsParamsUpdater } from '@/services/jobs/useJobsParamsUpdater';
+import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
+import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
 import type { IJobsFacetItem, IJobsFacetTreeItem, JobsFilterKey } from '@/types/jobs.types';
 import { filterStateFromURL, seniorityDisplayLabel, sortSeniorityValues } from '@/utils/jobs.utils';
-import s from '@/app/jobs/(jobs-page)/@filters/FiltersContent.module.scss';
+import s from './JobsFilterBody.module.scss';
 
 const parseList = (values: string[]): Set<string> => {
   return new Set(values.map((v) => v.trim()).filter(Boolean));

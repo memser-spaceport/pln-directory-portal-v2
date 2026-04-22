@@ -108,32 +108,28 @@ function RoleRow({ role, onClick }: { role: IJobRole; onClick: () => void }) {
     role.location,
   ].filter(Boolean);
 
-  const handleClick = (event: React.MouseEvent) => {
-    if (!role.applyUrl) {
-      event.preventDefault();
-      return;
-    }
-    onClick();
-  };
+  const inner = (
+    <>
+      <div className={s.roleBody}>
+        <div className={s.roleTitle}>{role.roleTitle}</div>
+        {metaParts.length > 0 && <div className={s.roleMeta}>{metaParts.join(' · ')}</div>}
+      </div>
+      <div className={s.roleRight}>
+        {showNew && <span className={s.newBadge}>● New</span>}
+        {relative && <span className={s.relative}>{relative}</span>}
+      </div>
+    </>
+  );
 
   return (
     <li className={s.roleItem}>
-      <a
-        className={s.roleLink}
-        href={role.applyUrl ?? undefined}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={handleClick}
-      >
-        <div className={s.roleBody}>
-          <div className={s.roleTitle}>{role.roleTitle}</div>
-          {metaParts.length > 0 && <div className={s.roleMeta}>{metaParts.join(' · ')}</div>}
-        </div>
-        <div className={s.roleRight}>
-          {showNew && <span className={s.newBadge}>● New</span>}
-          {relative && <span className={s.relative}>{relative}</span>}
-        </div>
-      </a>
+      {role.applyUrl ? (
+        <a className={s.roleLink} href={role.applyUrl} target="_blank" rel="noopener noreferrer" onClick={onClick}>
+          {inner}
+        </a>
+      ) : (
+        <span className={s.roleLink}>{inner}</span>
+      )}
     </li>
   );
 }

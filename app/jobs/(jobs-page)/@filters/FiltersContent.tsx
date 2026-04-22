@@ -6,8 +6,8 @@ import Error from '@/components/core/error';
 import { FiltersPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import JobsFilterBody from '@/components/page/jobs/JobsFilterBody';
-import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/useJobsQueries';
-import { useJobsParamsUpdater } from '@/services/jobs/useJobsParamsUpdater';
+import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
+import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
 
 export default function FiltersContent() {
   const searchParams = useSearchParams();

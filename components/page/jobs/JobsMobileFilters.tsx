@@ -4,8 +4,8 @@ import { useSearchParams } from 'next/navigation';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWrapper';
 import JobsFilterBody from '@/components/page/jobs/JobsFilterBody';
-import { useInfiniteJobsList } from '@/services/jobs/useJobsQueries';
-import { useJobsParamsUpdater } from '@/services/jobs/useJobsParamsUpdater';
+import { useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
+import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
 import { filterStateFromURL } from '@/utils/jobs.utils';
 
 const SORT_OPTIONS = [

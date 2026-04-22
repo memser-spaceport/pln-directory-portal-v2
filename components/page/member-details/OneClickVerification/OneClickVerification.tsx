@@ -15,6 +15,8 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { toast } from '@/components/core/ToastContainer';
 import { useCookie } from 'react-use';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 
 interface Props {
   member: IMember;
@@ -32,7 +34,8 @@ const fade = {
 export const OneClickVerification = ({ userInfo, member, isNewInvestor }: Props) => {
   const router = useRouter();
   const isOwner = userInfo?.uid === member.id;
-  const hasMissingRequiredData = !member?.linkedinProfile && getAccessLevel(userInfo, true) === 'base' && !isNewInvestor;
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
+  const hasMissingRequiredData = !member?.linkedinProfile && (USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : getAccessLevel(userInfo, true) === 'base') && !isNewInvestor;
   const showIncomplete = hasMissingRequiredData && isOwner;
   const searchParams = useSearchParams();
   const { onConnectLinkedInClicked, onSuccessLinkedInVerification, onErrorLinkedInVerification } = useMemberAnalytics();

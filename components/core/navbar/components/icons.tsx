@@ -170,6 +170,17 @@ export const DemoDayIcon = () => (
   </svg>
 );
 
+export const JobsIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M10 4C9.44772 4 9 4.44772 9 5V7H15V5C15 4.44772 14.5523 4 14 4H10ZM17 7V5C17 3.34315 15.6569 2 14 2H10C8.34315 2 7 3.34315 7 5V7H5C3.34315 7 2 8.34315 2 10V18C2 19.6569 3.34315 21 5 21H19C20.6569 21 22 19.6569 22 18V10C22 8.34315 20.6569 7 19 7H17ZM4 12V18C4 18.5523 4.44772 19 5 19H19C19.5523 19 20 18.5523 20 18V12H14V13C14 13.5523 13.5523 14 13 14H11C10.4477 14 10 13.5523 10 13V12H4ZM4 10V10.5H10V10C10 9.44772 10.4477 9 11 9H13C13.5523 9 14 9.44772 14 10V10.5H20V10C20 9.44772 19.5523 9 19 9H5C4.44772 9 4 9.44772 4 10Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
 export const AnalyticsIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path

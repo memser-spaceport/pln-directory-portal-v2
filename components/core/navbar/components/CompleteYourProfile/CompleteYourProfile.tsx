@@ -6,6 +6,8 @@ import { IUserInfo } from '@/types/shared.types';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
 import { getAccessLevel } from '@/utils/auth.utils';
 import { isDemodaySignUpSource } from '@/utils/member.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 
 import s from './CompleteYourProfile.module.scss';
 
@@ -23,8 +25,11 @@ const MESSAGES: Record<string, string> = {
 
 export const CompleteYourProfile = ({ userInfo }: Props) => {
   const accessLevel = getAccessLevel(userInfo, true);
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
-  if (!userInfo || accessLevel !== 'base' || !userInfo.accessLevel) {
+  const isAdvancedAccess = USE_ACCESS_CONTROL_V2 ? v2HasMemberContacts : accessLevel !== 'base';
+
+  if (!userInfo || isAdvancedAccess || !userInfo.accessLevel) {
     return null;
   }
 

@@ -14,6 +14,8 @@ import { FloatingWidgets } from '@/components/page/member-info/components/Floati
 // import { useMember } from '@/services/members/hooks/useMember';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 
 interface Props {
   userInfo: IUserInfo;
@@ -28,6 +30,7 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
   const queryClient = useQueryClient();
   const { onSubscribeToRecommendationsClicked, onCloseSubscribeToRecommendationsClicked } = useMemberAnalytics();
   const accessLevel = getAccessLevel(userInfo, true);
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
   const handleSubscribe = useCallback(async () => {
     if (!userInfo) {
@@ -80,7 +83,7 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
     data.exampleSent ||
     !data.recommendationsEnabled ||
     !data.showInvitationDialog ||
-    accessLevel !== 'advanced'
+    (USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : accessLevel !== 'advanced')
   ) {
     return null;
   }

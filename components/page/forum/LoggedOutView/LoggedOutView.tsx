@@ -25,7 +25,9 @@ const items = new Array(5).fill(0).map((_, i) => (
   </li>
 ));
 
-export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
+export type ForumLoggedOutReason = 'base' | 'investor';
+
+export const LoggedOutView = ({ reason }: { reason?: ForumLoggedOutReason }) => {
   const router = useRouter();
 
   const onLoginClickHandler = () => {
@@ -43,12 +45,11 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
   };
 
   function getTitle() {
-    switch (accessLevel) {
-      case 'L0':
-      case 'L1': {
+    switch (reason) {
+      case 'base': {
         return 'Forum access unavailable';
       }
-      case 'L5': {
+      case 'investor': {
         return 'Forum Access Restricted';
       }
       default: {
@@ -58,14 +59,11 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
   }
 
   function getDesc() {
-    switch (accessLevel) {
-      case 'L0': {
-        return "Verify your identity to start the approval process. You'll be notified once approved to participate.";
-      }
-      case 'L1': {
+    switch (reason) {
+      case 'base': {
         return "Your profile is under review. You'll be notified once approved to participate.";
       }
-      case 'L5': {
+      case 'investor': {
         return "Your current access level doesn't include Forum privileges.";
       }
       default: {
@@ -96,7 +94,7 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
           </div>
           <div className={s.primary}>{getTitle()}</div>
           <div className={s.secondary}>{getDesc()}</div>
-          {!accessLevel && (
+          {!reason && (
             <>
               <button className={s.mainBtn} onClick={onLoginClickHandler}>
                 Sign in

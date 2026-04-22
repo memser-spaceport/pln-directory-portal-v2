@@ -5,10 +5,12 @@ import { TopicResponse } from '@/services/forum/hooks/useForumPost';
 
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 
 import { BackButton } from '@/components/ui/BackButton';
 import { CreatePost } from '@/components/page/forum/CreatePost';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
+import { ForumAccessGate } from '@/components/page/forum/ForumAccessGate/ForumAccessGate';
 
 import s from './page.module.scss';
 
@@ -34,10 +36,10 @@ const EditPostPage = async ({ params, searchParams }: PageProps) => {
     );
   }
 
-  if (userInfo.accessLevel === 'L0' || userInfo.accessLevel === 'L1') {
+  if (!USE_ACCESS_CONTROL_V2 && (userInfo.accessLevel === 'L0' || userInfo.accessLevel === 'L1')) {
     return (
       <div className={s.root}>
-        <LoggedOutView accessLevel={userInfo.accessLevel} />
+        <LoggedOutView reason="base" />
       </div>
     );
   }
@@ -63,13 +65,9 @@ const EditPostPage = async ({ params, searchParams }: PageProps) => {
     redirect(redirectUrl);
   }
 
-  return (
+  const content = (
     <div className={s.root}>
       <BackButton forceTo to="/forum?cid=0" />
-      {/*<BackButton*/}
-      {/*  forceTo*/}
-      {/*  to={`/forum/topics/${params.categoryId}/${params.topicId}${searchParams.from ? `?from=${searchParams.from}` : ''}`}*/}
-      {/*/>*/}
       <CreatePost
         pid={data.mainPid}
         isEdit
@@ -86,6 +84,12 @@ const EditPostPage = async ({ params, searchParams }: PageProps) => {
       />
     </div>
   );
+
+  if (USE_ACCESS_CONTROL_V2) {
+    return <ForumAccessGate>{content}</ForumAccessGate>;
+  }
+
+  return content;
 };
 
 export default EditPostPage;

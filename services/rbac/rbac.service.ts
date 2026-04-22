@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use `services/access-control/access-control.service.ts` instead.
+ * This service calls the legacy /v1/rbac/me endpoint and will be removed once all callers are migrated.
+ */
 import { customFetch } from '@/utils/fetch-wrapper';
 
 const RBAC_API_URL = `${process.env.DIRECTORY_API_URL}/v1/rbac`;

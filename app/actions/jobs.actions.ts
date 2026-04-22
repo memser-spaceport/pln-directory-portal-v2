@@ -3,7 +3,7 @@
 import { getHeader } from '@/utils/common.utils';
 import type { IJobsFiltersResponse, IJobsListResponse } from '@/types/jobs.types';
 
-const jobsAPI = `${process.env.DIRECTORY_API_URL}/v1/jobs`;
+const jobsAPI = `${process.env.DIRECTORY_API_URL}/v1/job-openings`;
 
 type Result<T> = { data: T } | { isError: true; status?: number; statusText?: string };
 

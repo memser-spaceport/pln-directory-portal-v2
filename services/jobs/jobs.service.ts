@@ -10,8 +10,9 @@ const buildQuery = (params: URLSearchParams, extras: Record<string, string | und
   return out.toString();
 };
 
-export async function fetchJobsList(params: URLSearchParams, cursor?: string): Promise<IJobsListResponse> {
-  const qs = buildQuery(params, cursor ? { cursor } : {});
+export async function fetchJobsList(params: URLSearchParams, page?: number): Promise<IJobsListResponse> {
+  const pageNum = page && page > 0 ? page : 1;
+  const qs = buildQuery(params, { page: String(pageNum) });
   const response = await customFetch(`/api/jobs/list${qs ? `?${qs}` : ''}`, {}, false);
   if (!response || !response.ok) {
     throw new Error('Failed to fetch jobs list');

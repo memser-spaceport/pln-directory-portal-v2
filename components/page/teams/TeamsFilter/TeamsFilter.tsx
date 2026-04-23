@@ -6,7 +6,6 @@ import filter from 'lodash/filter';
 import isEmpty from 'lodash/isEmpty';
 import { IAnalyticsUserInfo, IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems } from '@/types/teams.types';
-import { FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
 import { triggerLoader } from '@/utils/common.utils';
 
 import { BaseFilterItem, createFilterGetter } from '@/services/teams/utils/createFilterGetter';
@@ -16,12 +15,12 @@ import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { GenericCheckboxList } from '@/components/common/filters/GenericCheckboxList';
 import { FiltersSearch } from '@/components/page/teams/FiltersSearch';
-import { FocusAreaFilter } from '@/components/core/FocusAreaFilter';
 import { FundFilterToggle } from '@/components/core/FundFilterToggle';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { FilterCheckSizeInput } from '@/components/page/members/MembersFilter/FilterCheckSizeInput';
 import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
 import { InvestmentFocusFilter } from '@/components/page/teams/TeamsFilter/components/InvestmentFocusFilter';
+import { TeamsFocusAreaFilter } from './components/TeamsFocusAreaFilter';
 import { getPriorityLabel } from '@/utils/team.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { isTierUser } from '@/utils/user/isTierUser';
@@ -183,15 +182,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
 
       {/* Focus Area */}
       {filterValues?.focusAreas && (
-        <FilterSection title="Focus Area">
-          <FocusAreaFilter
-            title="Focus Area"
-            uniqueKey={FOCUS_AREAS_FILTER_KEYS.teams as 'teamAncestorFocusAreas' | 'projectAncestorFocusAreas'}
-            focusAreaRawData={filterValues.focusAreas.rawData}
-            selectedItems={filterValues.focusAreas.selectedFocusAreas}
-            searchParams={searchParams}
-          />
-        </FilterSection>
+        <TeamsFocusAreaFilter focusAreas={filterValues.focusAreas} searchParams={searchParams} />
       )}
 
       {/* Tags (Industry Tags) */}

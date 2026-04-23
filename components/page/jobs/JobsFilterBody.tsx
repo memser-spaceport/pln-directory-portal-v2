@@ -1,12 +1,12 @@
 'use client';
 
 import { clsx } from 'clsx';
-import { useEffect, useMemo, useState } from 'react';
-import { useDebounce } from 'react-use';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { CaretRightIcon } from '@/components/icons';
 import { FilterSection } from '@/components/common/filters/FilterSection';
+import { SearchInput } from '@/components/common/filters/SearchInput';
 import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
 import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
 import type { IJobsFacetItem, IJobsFacetTreeItem, JobsFilterKey } from '@/types/jobs.types';
@@ -25,23 +25,10 @@ export default function JobsFilterBody() {
   const analytics = useJobsAnalytics();
 
   const qFromUrl = searchParams.get('q') ?? '';
-  const [qLocal, setQLocal] = useState(qFromUrl);
-  const [qInitialized, setQInitialized] = useState(false);
 
-  useEffect(() => {
-    if (!qInitialized) {
-      setQInitialized(true);
-      return;
-    }
-    if (qFromUrl !== qLocal) setQLocal(qFromUrl);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qFromUrl]);
-
-  useDebounce(
-    () => {
-      if (!qInitialized) return;
-      const next = qLocal.trim();
-      if (next === qFromUrl) return;
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      const next = value.trim();
       setParam('q', next || null);
       analytics.onJobsFiltered({
         filter_type: 'q',
@@ -50,8 +37,7 @@ export default function JobsFilterBody() {
         filter_state: filterStateFromURL(searchParams),
       });
     },
-    700,
-    [qLocal],
+    [setParam, analytics, totalRoles, searchParams],
   );
 
   const selected = useMemo(
@@ -81,16 +67,12 @@ export default function JobsFilterBody() {
 
   return (
     <>
-      <FilterSection title="Search">
-        <div className={s.searchContainer}>
-          <input
-            className={s.searchInput}
-            type="search"
-            placeholder="Search a company or role"
-            value={qLocal}
-            onChange={(e) => setQLocal(e.target.value)}
-          />
-        </div>
+      <FilterSection title="Search for a Job">
+        <SearchInput
+          value={qFromUrl}
+          onChange={handleSearchChange}
+          placeholder="Search a company or role"
+        />
       </FilterSection>
 
       <FacetSection

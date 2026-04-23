@@ -1,25 +1,92 @@
 'use client';
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   RBAC_POLICIES,
+  RBACPolicy,
   RBACMember,
   ApprovalState,
+  DirectPermission,
 } from '../rbac-mock-data';
 import s from './rbac-screens.module.scss';
+import { getExceptionDisplayTitle } from '../permission-exception-mappings';
+import {
+  MemberForm,
+  EMPTY_FORM,
+  MemberModal,
+  SkillsInput,
+  UNIQUE_GROUPS,
+  UNIQUE_ROLES,
+  GROUP_DISPLAY_NAMES,
+} from './MemberModal';
 
 interface Props {
   members: RBACMember[];
   approvalOverrides: Record<string, ApprovalState>;
-  onEdit: (memberId: string) => void;
+  onEdit?: (memberId: string) => void;
   onReject: (memberId: string) => void;
+  hideStatusColumn?: boolean;
+  hidePolicyColumn?: boolean;
+  hideGroupColumn?: boolean;
+  hideRoleColumn?: boolean;
 }
 
 const ITEMS_PER_PAGE = 10;
 
-const UNIQUE_GROUPS = Array.from(new Set(RBAC_POLICIES.map((p) => p.group))).sort();
-const UNIQUE_ROLES = Array.from(new Set(RBAC_POLICIES.map((p) => p.role))).sort();
 
-// ── Group icons ───────────────────────────────────────────────────────────────
+
+function getPolicyDisplayLabel(policy: RBACPolicy): string {
+  const groupContext: Record<string, string> = {
+    'PL Internal': 'Internal',
+    'PL Partner':  'Partner',
+    'PLC PLVS':    'PLC-PLVS',
+    'PLC Crypto':  'PLC-Crypto',
+    'PLC Founder Forge': 'PLC-Founder Forge',
+    'PLC Neuro':   'PLC-Neuro',
+    'PLN Close Contributor': 'PLN-CC',
+    'PLC Other':   'PLC-Other',
+    'PLN Other':   'PLN-Other',
+    'PL':          '',
+  };
+  const suffix = groupContext[policy.group] ?? '';
+  const hasAmbiguity = suffix && RBAC_POLICIES.some((p) => p.role === policy.role && p.id !== policy.id);
+  return hasAmbiguity ? `${policy.role} (${suffix})` : policy.role;
+}
+
+function PolicyEntryIcon({ role }: { role: string }) {
+  if (role === 'Directory Admin') {
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+        <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (role.startsWith('Demo Day')) {
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M12 14l.6 1.2 1.4.2-1 1 .25 1.4-1.25-.66-1.25.66.25-1.4-1-1 1.4-.2L12 14z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (role === 'Founder') {
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// ── Group icons (used in policy multi-select dropdown) ────────────────────────
 
 const GROUP_META: Record<string, { color: string; icon: React.ReactNode }> = {
   'PL Internal': {
@@ -259,335 +326,25 @@ function PolicyMultiSelect({
   );
 }
 
-// ── Member modal ──────────────────────────────────────────────────────────────
 
-interface MemberForm {
-  name: string;
-  email: string;
-  team: string;
-  status: Exclude<ApprovalState, 'rejected'>;
-  policyIds: string[];
-  joinDate: string;
-  bio: string;
-  country: string;
-  state: string;
-  city: string;
-  skills: string[];
-  teamUrl: string;
-  memberRole: string;
-  linkedin: string;
-  discord: string;
-  twitter: string;
-  github: string;
-  telegram: string;
-  officeHoursLink: string;
-}
+// ── Pagination helper ─────────────────────────────────────────────────────────
 
-const EMPTY_FORM: MemberForm = {
-  name: '',
-  email: '',
-  team: '',
-  status: 'pending',
-  policyIds: [],
-  joinDate: '',
-  bio: '',
-  country: '',
-  state: '',
-  city: '',
-  skills: [],
-  teamUrl: '',
-  memberRole: '',
-  linkedin: '',
-  discord: '',
-  twitter: '',
-  github: '',
-  telegram: '',
-  officeHoursLink: '',
-};
-
-interface MemberModalProps {
-  mode: 'add' | 'edit';
-  form: MemberForm;
-  avatar?: string;
-  onFormChange: (f: MemberForm) => void;
-  onSave: () => void;
-  onClose: () => void;
-}
-
-function SkillsInput({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
-  const [input, setInput] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const add = (raw: string) => {
-    const skill = raw.trim();
-    if (skill && !value.includes(skill)) onChange([...value, skill]);
-    setInput('');
-  };
-
-  const remove = (skill: string) => onChange(value.filter((s) => s !== skill));
-
-  return (
-    <div className={s.skillsWrap} onClick={() => inputRef.current?.focus()}>
-      {value.map((skill) => (
-        <span key={skill} className={s.skillTag}>
-          {skill}
-          <button className={s.skillTagRemove} onClick={(e) => { e.stopPropagation(); remove(skill); }}>
-            <svg width="9" height="9" viewBox="0 0 10 10" fill="none">
-              <path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-            </svg>
-          </button>
-        </span>
-      ))}
-      <input
-        ref={inputRef}
-        className={s.skillsInput}
-        placeholder={value.length === 0 ? 'Type a skill and press Enter…' : ''}
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); add(input); }
-          if (e.key === 'Backspace' && !input && value.length) remove(value[value.length - 1]);
-        }}
-        onBlur={() => { if (input.trim()) add(input); }}
-      />
-    </div>
-  );
-}
-
-function MemberModal({ mode, form, avatar, onFormChange, onSave, onClose }: MemberModalProps) {
-  const set = <K extends keyof MemberForm>(key: K, val: MemberForm[K]) =>
-    onFormChange({ ...form, [key]: val });
-
-  const initials = form.name
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .join('');
-
-  return (
-    <div className={s.modalOverlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={s.modalCard} style={{ maxWidth: 600 }}>
-        {/* Header */}
-        <div className={s.modalHeader} style={{ paddingBottom: 12 }}>
-          <div>
-            <h2 className={s.modalTitle}>{mode === 'add' ? 'Add new member' : 'Edit member'}</h2>
-            <p style={{ margin: '3px 0 0', fontSize: 12, color: '#94a3b8' }}>
-              {mode === 'add' ? 'Invite new members into the PL ecosystem.' : 'Update member details and access.'}
-            </p>
-          </div>
-          <button className={s.modalCloseBtn} onClick={onClose} aria-label="Close" style={{ flexShrink: 0 }}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M1.5 1.5l9 9M10.5 1.5l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className={s.modalBody}>
-
-          {/* ── Status + Policy (top priority) ── */}
-          <div className={s.formField}>
-            <label className={s.formLabel}>Select Status <span style={{ color: '#ef4444' }}>*</span></label>
-            <select
-              className={s.formInput}
-              value={form.status}
-              onChange={(e) => set('status', e.target.value as MemberForm['status'])}
-              style={{ cursor: 'pointer' }}
-            >
-              <option value="pending">Pending</option>
-              <option value="verified">Verified</option>
-              <option value="approved">Approved</option>
-            </select>
-          </div>
-
-          <div className={s.formField}>
-            <label className={s.formLabel}>Assigned Policies</label>
-            <PolicyMultiSelect value={form.policyIds} onChange={(ids) => set('policyIds', ids)} />
-          </div>
-
-          <div className={s.modalDivider} />
-
-          {/* ── Identity ── */}
-          <div className={s.modalAvatarRow}>
-            {mode === 'edit' && avatar ? (
-              <img src={avatar} alt={form.name} className={s.modalAvatarImg} />
-            ) : (
-              <div className={s.modalAvatarInitials}>{initials || '?'}</div>
-            )}
-            <div className={s.formField} style={{ flex: 1, margin: 0 }}>
-              <label className={s.formLabel}>Name <span style={{ color: '#ef4444' }}>*</span></label>
-              <input
-                className={s.formInput}
-                placeholder="e.g. Jordan Kasparov"
-                value={form.name}
-                onChange={(e) => set('name', e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className={s.modalRow}>
-            <div className={s.formField}>
-              <label className={s.formLabel}>Email <span style={{ color: '#ef4444' }}>*</span></label>
-              <input
-                className={s.formInput}
-                type="email"
-                placeholder="e.g. jordan@startup.xyz"
-                value={form.email}
-                onChange={(e) => set('email', e.target.value)}
-              />
-            </div>
-            <div className={s.formField}>
-              <label className={s.formLabel}>Join Date</label>
-              <input
-                className={s.formInput}
-                type="date"
-                value={form.joinDate}
-                onChange={(e) => set('joinDate', e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Bio */}
-          <div className={s.formField}>
-            <label className={s.formLabel}>Bio</label>
-            <textarea
-              className={s.formTextarea}
-              placeholder="Short description…"
-              value={form.bio}
-              onChange={(e) => set('bio', e.target.value)}
-              rows={3}
-            />
-          </div>
-
-          <div className={s.modalDivider} />
-
-          {/* ── Location ── */}
-          <div className={s.modalRow3}>
-            <div className={s.formField}>
-              <label className={s.formLabel}>Country <span style={{ color: '#94a3b8', fontWeight: 400 }}>(Optional)</span></label>
-              <input
-                className={s.formInput}
-                placeholder="e.g. United States"
-                value={form.country}
-                onChange={(e) => set('country', e.target.value)}
-              />
-            </div>
-            <div className={s.formField}>
-              <label className={s.formLabel}>State or Province</label>
-              <input
-                className={s.formInput}
-                placeholder="State or province"
-                value={form.state}
-                onChange={(e) => set('state', e.target.value)}
-              />
-            </div>
-            <div className={s.formField}>
-              <label className={s.formLabel}>Metro Area / City</label>
-              <input
-                className={s.formInput}
-                placeholder="Metro area or city"
-                value={form.city}
-                onChange={(e) => set('city', e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className={s.modalDivider} />
-
-          {/* ── Professional ── */}
-          <div className={s.formField}>
-            <label className={s.formLabel}>Professional Skills</label>
-            <SkillsInput value={form.skills} onChange={(v) => set('skills', v)} />
-          </div>
-
-          <div className={s.formField}>
-            <label className={s.formLabel}>Paste team or project URL</label>
-            <input
-              className={s.formInput}
-              placeholder="Team or Project URL"
-              value={form.teamUrl}
-              onChange={(e) => set('teamUrl', e.target.value)}
-            />
-          </div>
-
-          <div className={s.modalRow}>
-            <div className={s.formField}>
-              <label className={s.formLabel}>Select team</label>
-              <input
-                className={s.formInput}
-                placeholder="e.g. PLVS Labs"
-                value={form.team}
-                onChange={(e) => set('team', e.target.value)}
-              />
-            </div>
-            <div className={s.formField}>
-              <label className={s.formLabel}>Select role</label>
-              <input
-                className={s.formInput}
-                placeholder="e.g. Co-Founder"
-                value={form.memberRole}
-                onChange={(e) => set('memberRole', e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className={s.modalDivider} />
-
-          {/* ── Social links ── */}
-          <div className={s.modalRow}>
-            <div className={s.formField}>
-              <label className={s.formLabel}>LinkedIn</label>
-              <input className={s.formInput} placeholder="linkedin.com/in/…" value={form.linkedin} onChange={(e) => set('linkedin', e.target.value)} />
-            </div>
-            <div className={s.formField}>
-              <label className={s.formLabel}>Discord</label>
-              <input className={s.formInput} placeholder="Username#0000" value={form.discord} onChange={(e) => set('discord', e.target.value)} />
-            </div>
-          </div>
-
-          <div className={s.modalRow}>
-            <div className={s.formField}>
-              <label className={s.formLabel}>Twitter</label>
-              <input className={s.formInput} placeholder="@handle" value={form.twitter} onChange={(e) => set('twitter', e.target.value)} />
-            </div>
-            <div className={s.formField}>
-              <label className={s.formLabel}>Github</label>
-              <input className={s.formInput} placeholder="github.com/…" value={form.github} onChange={(e) => set('github', e.target.value)} />
-            </div>
-          </div>
-
-          <div className={s.modalRow}>
-            <div className={s.formField}>
-              <label className={s.formLabel}>Telegram</label>
-              <input className={s.formInput} placeholder="@username" value={form.telegram} onChange={(e) => set('telegram', e.target.value)} />
-            </div>
-            <div className={s.formField}>
-              <label className={s.formLabel}>Office Hours Link</label>
-              <input className={s.formInput} placeholder="cal.com/…" value={form.officeHoursLink} onChange={(e) => set('officeHoursLink', e.target.value)} />
-            </div>
-          </div>
-
-        </div>
-
-        {/* Footer */}
-        <div className={s.modalFooter}>
-          <button className={s.btnSecondary} onClick={onClose}>Cancel</button>
-          <button
-            className={s.btnPrimary}
-            onClick={onSave}
-            disabled={!form.name.trim() || !form.email.trim()}
-          >
-            {mode === 'add' ? 'Confirm' : 'Save Changes'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+function buildPageItems(current: number, total: number): (number | '...')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const items: (number | '...')[] = [];
+  items.push(1);
+  if (current > 3) items.push('...');
+  for (let p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) {
+    items.push(p);
+  }
+  if (current < total - 2) items.push('...');
+  items.push(total);
+  return items;
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function ScreenMembersPage({ members, approvalOverrides, onReject }: Omit<Props, 'onEdit'>) {
+export function ScreenMembersPage({ members, approvalOverrides, onReject, hideStatusColumn = false, hidePolicyColumn = false, hideGroupColumn = false, hideRoleColumn = false }: Props) {
   // Filter state
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -595,6 +352,7 @@ export function ScreenMembersPage({ members, approvalOverrides, onReject }: Omit
   const [groupFilter, setGroupFilter] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [goToInput, setGoToInput] = useState('');
 
   // Modal state
   const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
@@ -648,12 +406,19 @@ export function ScreenMembersPage({ members, approvalOverrides, onReject }: Omit
     const m = allMembers.find((x) => x.id === memberId);
     if (!m) return;
     const saved = localEdits[m.id];
+    const existingPolicyIds = saved?.policyIds ?? m.assignedPolicyIds;
+    const existingPolicies = RBAC_POLICIES.filter((p) => existingPolicyIds.includes(p.id));
+    const derivedRoles = saved?.selectedRoles ?? [...new Set(existingPolicies.map((p) => p.role))];
+    const derivedGroups = saved?.selectedGroups ?? [...new Set(existingPolicies.map((p) => p.group))];
     setForm({
       name: saved?.name ?? m.name,
       email: saved?.email ?? m.email,
       team: saved?.team ?? m.team,
-      status: ((saved?.status as ApprovalState) ?? approvalOverrides[m.id] ?? m.approvalState) as Exclude<ApprovalState, 'rejected'>,
-      policyIds: saved?.policyIds ?? m.assignedPolicyIds,
+      status: (saved?.status as ApprovalState) ?? approvalOverrides[m.id] ?? m.approvalState,
+      policyIds: existingPolicyIds,
+      selectedRoles: derivedRoles,
+      selectedGroups: derivedGroups,
+      directPermissions: (saved?.directPermissions as DirectPermission[]) ?? m.directPermissions,
       joinDate: saved?.joinDate ?? '',
       bio: saved?.bio ?? '',
       country: saved?.country ?? '',
@@ -679,6 +444,10 @@ export function ScreenMembersPage({ members, approvalOverrides, onReject }: Omit
   }
 
   function saveModal() {
+    const resolvedPolicyIds = RBAC_POLICIES
+      .filter((p) => form.selectedRoles.includes(p.role) && form.selectedGroups.includes(p.group))
+      .map((p) => p.id);
+
     if (modalMode === 'add') {
       const newMember: RBACMember = {
         id: `m-new-${Date.now()}`,
@@ -686,18 +455,28 @@ export function ScreenMembersPage({ members, approvalOverrides, onReject }: Omit
         email: form.email.trim(),
         avatar: `https://i.pravatar.cc/150?img=${40 + (localMembers.length % 30)}`,
         team: form.team.trim() || '—',
-        role: '—',
+        role: form.selectedRoles[0] || '—',
         level: 'L0',
         approvalState: form.status,
-        assignedPolicyIds: form.policyIds,
-        directPermissions: [],
+        assignedPolicyIds: resolvedPolicyIds,
+        directPermissions: form.directPermissions,
       };
       setLocalMembers((prev) => [...prev, newMember]);
     } else if (modalMode === 'edit' && editingId) {
       setLocalEdits((prev) => ({
         ...prev,
-        [editingId]: { ...form, name: form.name.trim(), email: form.email.trim(), team: form.team.trim() || '—' },
+        [editingId]: {
+          ...form,
+          name: form.name.trim(),
+          email: form.email.trim(),
+          team: form.team.trim() || '—',
+          policyIds: resolvedPolicyIds,
+        },
       }));
+      // Propagate rejection to parent so member moves to the Rejected tab
+      if (form.status === 'rejected') {
+        onReject(editingId);
+      }
     }
     closeModal();
   }
@@ -705,9 +484,9 @@ export function ScreenMembersPage({ members, approvalOverrides, onReject }: Omit
   const editingAvatar = editingId ? allMembers.find((m) => m.id === editingId)?.avatar : undefined;
 
   return (
-    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ padding: '24px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      {/* Modal */}
+      {/* Add/Edit modal */}
       {modalMode && (
         <MemberModal
           mode={modalMode}
@@ -719,86 +498,103 @@ export function ScreenMembersPage({ members, approvalOverrides, onReject }: Omit
         />
       )}
 
-      {/* Toolbar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <div className={s.searchWrap}>
-          <svg className={s.searchIcon} width="14" height="14" viewBox="0 0 16 16" fill="none">
-            <circle cx="6.5" cy="6.5" r="5" stroke="#94a3b8" strokeWidth="1.4" />
-            <path d="M10.5 10.5l3.5 3.5" stroke="#94a3b8" strokeWidth="1.4" strokeLinecap="round" />
+
+      {/* Toolbar — Figma 462:44705 */}
+      <div className={s.toolbar}>
+        {/* Search — Tag component, 280px */}
+        <div className={s.toolbarSearch}>
+          <svg className={s.toolbarSearchIcon} width="16" height="16" viewBox="0 0 13.516 13.516" fill="none">
+            <path d="M13.293 12.232L10.325 9.263A5.762 5.762 0 1 0 9.262 10.325l2.971 2.972a.756.756 0 1 0 1.06-1.065zM1.513 5.763a4.25 4.25 0 1 1 8.5 0 4.25 4.25 0 0 1-8.5 0z" fill="currentColor" />
           </svg>
           <input
             type="text"
-            className={s.searchInput}
-            style={{ width: 220 }}
-            placeholder="Search name, email, team…"
+            className={s.toolbarSearchInput}
+            placeholder="Search members"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        <select
-          className={s.filterSelect}
-          style={{ padding: '8px 12px', fontSize: 13, borderRadius: 8, minWidth: 130 }}
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="">All statuses</option>
-          <option value="pending">Pending</option>
-          <option value="verified">Verified</option>
-          <option value="approved">Approved</option>
-        </select>
-
-        <select
-          className={s.filterSelect}
-          style={{ padding: '8px 12px', fontSize: 13, borderRadius: 8, minWidth: 160 }}
-          value={policyFilter}
-          onChange={(e) => setPolicyFilter(e.target.value)}
-        >
-          <option value="">All policies</option>
-          {RBAC_POLICIES.map((p) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
-
-        <select
-          className={s.filterSelect}
-          style={{ padding: '8px 12px', fontSize: 13, borderRadius: 8, minWidth: 140 }}
-          value={groupFilter}
-          onChange={(e) => setGroupFilter(e.target.value)}
-        >
-          <option value="">All groups</option>
-          {UNIQUE_GROUPS.map((g) => (
-            <option key={g} value={g}>{g}</option>
-          ))}
-        </select>
-
-        <select
-          className={s.filterSelect}
-          style={{ padding: '8px 12px', fontSize: 13, borderRadius: 8, minWidth: 130 }}
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-        >
-          <option value="">All roles</option>
-          {UNIQUE_ROLES.map((r) => (
-            <option key={r} value={r}>{r}</option>
-          ))}
-        </select>
-
-        {(search || statusFilter || policyFilter || groupFilter || roleFilter) && (
-          <button
-            className={s.btnSecondary}
-            style={{ fontSize: 12, padding: '7px 12px' }}
-            onClick={() => { setSearch(''); setStatusFilter(''); setPolicyFilter(''); setGroupFilter(''); setRoleFilter(''); }}
-          >
-            Clear ✕
-          </button>
+        {/* Dropdown: All statuses — only when status column is visible */}
+        {!hideStatusColumn && (
+          <div className={s.toolbarDropdown} style={{ width: 200 }}>
+            <select
+              className={`${s.toolbarDropdownSelect} ${!statusFilter ? s.toolbarDropdownPlaceholder : ''}`}
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="verified">Verified</option>
+              <option value="approved">Approved</option>
+            </select>
+            <svg className={s.toolbarDropdownCaret} width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
         )}
 
-        <div style={{ flex: 1 }} />
+        {/* Dropdown: All policies — only when policy column is visible */}
+        {!hidePolicyColumn && (
+          <div className={s.toolbarDropdown} style={{ flex: 1, minWidth: 0 }}>
+            <select
+              className={`${s.toolbarDropdownSelect} ${!policyFilter ? s.toolbarDropdownPlaceholder : ''}`}
+              value={policyFilter}
+              onChange={(e) => setPolicyFilter(e.target.value)}
+            >
+              <option value="">All policies</option>
+              {RBAC_POLICIES.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            <svg className={s.toolbarDropdownCaret} width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        )}
 
-        <button className={s.btnPrimary} style={{ gap: 6 }} onClick={openAdd}>
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-            <path d="M8 2v12M2 8h12" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+        {/* Dropdown: All roles — only when role column is visible */}
+        {!hideRoleColumn && (
+          <div className={s.toolbarDropdown} style={{ width: 200 }}>
+            <select
+              className={`${s.toolbarDropdownSelect} ${!roleFilter ? s.toolbarDropdownPlaceholder : ''}`}
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+            >
+              <option value="">All roles</option>
+              {UNIQUE_ROLES.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+            <svg className={s.toolbarDropdownCaret} width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        )}
+
+        {/* Dropdown: All groups — only when group column is visible */}
+        {!hideGroupColumn && (
+          <div className={s.toolbarDropdown} style={{ width: 200 }}>
+            <select
+              className={`${s.toolbarDropdownSelect} ${!groupFilter ? s.toolbarDropdownPlaceholder : ''}`}
+              value={groupFilter}
+              onChange={(e) => setGroupFilter(e.target.value)}
+            >
+              <option value="">All groups</option>
+              {UNIQUE_GROUPS.map((g) => (
+                <option key={g} value={g}>{GROUP_DISPLAY_NAMES[g] ?? g}</option>
+              ))}
+            </select>
+            <svg className={s.toolbarDropdownCaret} width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        )}
+
+        {/* Add Member button */}
+        <button className={s.toolbarAddBtn} onClick={openAdd}>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M9 3v12M3 9h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
           </svg>
           Add Member
         </button>
@@ -811,18 +607,19 @@ export function ScreenMembersPage({ members, approvalOverrides, onReject }: Omit
             <tr>
               <th className={s.thCell} style={{ width: 220 }}>Member</th>
               <th className={s.thCell} style={{ width: 140 }}>Team / Project</th>
-              <th className={s.thCell} style={{ width: 100 }}>Status</th>
-              <th className={s.thCell}>Policy</th>
-              <th className={s.thCell} style={{ width: 140 }}>Group</th>
-              <th className={s.thCell} style={{ width: 130 }}>Role</th>
-              <th className={s.thCell} style={{ width: 120 }}>Actions</th>
+              {!hideStatusColumn && <th className={s.thCell} style={{ width: 100 }}>Status</th>}
+              {!hidePolicyColumn && <th className={s.thCell}>Policy</th>}
+              {!hideRoleColumn && <th className={s.thCell} style={{ width: 130 }}>Role</th>}
+              {!hideGroupColumn && <th className={s.thCell} style={{ width: 140 }}>Group</th>}
+              {!hideGroupColumn && <th className={s.thCell} style={{ width: 150 }}>Exceptions</th>}
+              <th className={s.thCell} style={{ width: 100 }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {pageSlice.length === 0 ? (
               <tr>
                 <td
-                  colSpan={7}
+                      colSpan={3 + (hideStatusColumn ? 0 : 1) + (hidePolicyColumn ? 0 : 1) + (hideGroupColumn ? 0 : 2) + (hideRoleColumn ? 0 : 1)}
                   className={s.tdCell}
                   style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontStyle: 'italic' }}
                 >
@@ -836,78 +633,123 @@ export function ScreenMembersPage({ members, approvalOverrides, onReject }: Omit
                 const displayName = localEdits[member.id]?.name ?? member.name;
                 const displayEmail = localEdits[member.id]?.email ?? member.email;
                 const displayTeam = localEdits[member.id]?.team ?? member.team;
+                const effectiveDirectPerms = (localEdits[member.id]?.directPermissions as DirectPermission[] | undefined) ?? member.directPermissions;
+                const hasExceptions = effectiveDirectPerms.length > 0;
                 return (
                   <tr key={member.id} className={s.tableRow}>
                     <td className={s.tdCell}>
                       <div className={s.memberCell}>
-                        <img src={member.avatar} alt={displayName} className={s.memberAvatar} />
-                        <div>
-                          <p className={s.memberName}>{displayName}</p>
-                          <p className={s.memberEmail}>{displayEmail}</p>
+                        <div className={s.memberInfo}>
+                          <img src={member.avatar} alt={displayName} className={s.memberAvatar} />
+                          <div className={s.memberText}>
+                            <p className={s.memberName}>{displayName}</p>
+                            <p className={s.memberEmail}>{displayEmail}</p>
+                          </div>
                         </div>
+                        <svg className={s.memberArrow} viewBox="0 0 16 16" fill="none">
+                          <path d="M3 13L13 3M13 3H6M13 3V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </div>
                     </td>
 
                     <td className={s.tdCell}>
-                      <span style={{ fontSize: 13, color: '#334155' }}>{displayTeam}</span>
-                    </td>
-
-                    <td className={s.tdCell}>
-                      <StatusBadge state={effectiveState as Exclude<ApprovalState, 'rejected'>} />
-                    </td>
-
-                    {/* Policy */}
-                    <td className={s.tdCell}>
-                      {policies.length === 0 ? (
-                        <span style={{ fontSize: 12, color: '#cbd5e1' }}>—</span>
+                      {displayTeam === '—' || !displayTeam ? (
+                        <span className={s.emDash}>—</span>
                       ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          {policies.map((p) => (
-                            <span key={p.id} style={{ fontSize: 13, fontWeight: 600, color: '#0a0c11', whiteSpace: 'nowrap' }}>
-                              {p.name}
-                            </span>
-                          ))}
-                        </div>
+                        <span className={s.teamChip}>
+                          <svg className={s.teamChipIcon} viewBox="0 0 16 16" fill="none">
+                            <path d="M10.667 14v-1.333A2.667 2.667 0 0 0 8 10H3.333a2.667 2.667 0 0 0-2.666 2.667V14M12.667 5.333a2.667 2.667 0 0 1 0 5.334M14.667 14v-1.334a2.667 2.667 0 0 0-2-2.58M5.667 7.333a2.667 2.667 0 1 0 0-5.333 2.667 2.667 0 0 0 0 5.333Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          {displayTeam}
+                        </span>
                       )}
                     </td>
 
-                    {/* Group */}
-                    <td className={s.tdCell}>
-                      {policies.length === 0 ? (
-                        <span style={{ fontSize: 12, color: '#cbd5e1' }}>—</span>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          {policies.map((p) => (
-                            <span key={p.id} className={s.groupBadge}>{p.group}</span>
-                          ))}
-                        </div>
-                      )}
-                    </td>
+                    {!hideStatusColumn && (
+                      <td className={s.tdCell}>
+                        <StatusBadge state={effectiveState as Exclude<ApprovalState, 'rejected'>} />
+                      </td>
+                    )}
 
-                    {/* Role */}
-                    <td className={s.tdCell}>
-                      {policies.length === 0 ? (
-                        <span style={{ fontSize: 12, color: '#cbd5e1' }}>—</span>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          {policies.map((p) => (
-                            <span key={p.id} className={s.roleBadge}>{p.role}</span>
-                          ))}
-                        </div>
-                      )}
-                    </td>
+                    {/* Policy — icon + display label per policy, stacked */}
+                    {!hidePolicyColumn && (
+                      <td className={s.tdCell}>
+                        {policies.length === 0 ? (
+                          <span className={s.emDash}>—</span>
+                        ) : (
+                          <div className={s.policyCell}>
+                            {policies.map((p) => (
+                              <div key={p.id} className={s.policyEntry}>
+                                <span className={s.policyEntryIcon}>
+                                  <PolicyEntryIcon role={p.role} />
+                                </span>
+                                <span className={s.policyEntryLabel}>{getPolicyDisplayLabel(p)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                    )}
+
+                    {/* Role — plain text, deduplicated */}
+                    {!hideRoleColumn && (
+                      <td className={s.tdCell}>
+                        {policies.length === 0 ? (
+                          <span className={s.emDash}>—</span>
+                        ) : (
+                          <div className={s.roleCell}>
+                            {[...new Set(policies.map((p) => p.role))].map((role) => (
+                              <span key={role} className={s.roleText}>{role}</span>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                    )}
+
+                    {/* Group — unique group chips, deduplicated */}
+                    {!hideGroupColumn && (
+                      <td className={s.tdCell}>
+                        {policies.length === 0 ? (
+                          <span className={s.emDash}>—</span>
+                        ) : (
+                          <div className={s.groupCell}>
+                            {[...new Set(policies.map((p) => p.group))].map((group) => (
+                              <span key={group} className={s.groupBadge}>
+                                {GROUP_DISPLAY_NAMES[group] ?? group}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                    )}
+
+                    {/* Exceptions — direct permission exceptions */}
+                    {!hideGroupColumn && (
+                      <td className={s.tdCell}>
+                        {!hasExceptions ? (
+                          <span className={s.emDash}>—</span>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            {effectiveDirectPerms.map((dp) => (
+                              <span key={dp.id} className={s.exceptionBadge} title={dp.permission}>
+                                <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
+                                  <path d="M6.5 1L2 7h4l-.5 4 4.5-6H6L6.5 1Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+                                </svg>
+                                {getExceptionDisplayTitle(dp)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                    )}
 
                     <td className={s.tdCell}>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        <button className={s.manageBtn} onClick={() => openEdit(member.id)}>
-                          Edit
-                        </button>
-                        <button
-                          className={s.btnDanger}
-                          style={{ fontSize: 11, padding: '5px 10px' }}
-                          onClick={() => onReject(member.id)}
-                        >
-                          Reject
+                      <div className={s.actionsCell}>
+                        <button className={s.actionBtn} onClick={() => openEdit(member.id)}>
+                          <svg className={s.actionBtnIcon} viewBox="0 0 14 14" fill="none">
+                            <path d="M9.917 1.458a1.458 1.458 0 1 1 2.062 2.061L4.375 11.125l-2.708.583.583-2.708 7.667-7.542Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          <span className={s.actionBtnLabel}>Edit</span>
                         </button>
                       </div>
                     </td>
@@ -919,52 +761,74 @@ export function ScreenMembersPage({ members, approvalOverrides, onReject }: Omit
         </table>
       </div>
 
-      {/* Pagination */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <span style={{ fontSize: 13, color: '#64748b' }}>
-          Showing {filtered.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1}–
-          {Math.min(safePage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} members
-        </span>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      {/* Pagination — Figma 462:45169 */}
+      <div className={s.pagination}>
+        {/* Left: Prev · pages · Next */}
+        <div className={s.paginationLeft}>
+          {/* Preview button */}
           <button
-            className={s.btnSecondary}
-            style={{ padding: '6px 14px', fontSize: 12 }}
+            className={s.paginationNavBtn}
             disabled={safePage <= 1}
             onClick={() => setCurrentPage((p) => p - 1)}
           >
-            ← Prev
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M12.5 15l-5-5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Preview
           </button>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button
-              key={p}
-              onClick={() => setCurrentPage(p)}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 6,
-                border: '1px solid',
-                borderColor: p === safePage ? '#1b4dff' : '#e2e8f0',
-                background: p === safePage ? '#1b4dff' : '#fff',
-                color: p === safePage ? '#fff' : '#475569',
-                fontSize: 12,
-                fontWeight: p === safePage ? 600 : 400,
-                cursor: 'pointer',
-              }}
-            >
-              {p}
-            </button>
-          ))}
+          {/* Page number items */}
+          <div className={s.paginationPages}>
+            {buildPageItems(safePage, totalPages).map((item, idx) =>
+              item === '...' ? (
+                <span key={`ellipsis-${idx}`} className={s.paginationEllipsis}>…</span>
+              ) : (
+                <button
+                  key={item}
+                  className={`${s.paginationPage} ${item === safePage ? s.paginationPageActive : ''}`}
+                  onClick={() => setCurrentPage(item as number)}
+                >
+                  {item}
+                </button>
+              )
+            )}
+          </div>
 
+          {/* Next button */}
           <button
-            className={s.btnSecondary}
-            style={{ padding: '6px 14px', fontSize: 12 }}
+            className={s.paginationNavBtn}
             disabled={safePage >= totalPages}
             onClick={() => setCurrentPage((p) => p + 1)}
           >
-            Next →
+            Next
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M7.5 5l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
+        </div>
+
+        {/* Right: Go to input */}
+        <div className={s.paginationGoTo}>
+          <span className={s.paginationGoToLabel}>Go to</span>
+          <input
+            className={s.paginationGoToInput}
+            type="number"
+            min={1}
+            max={totalPages}
+            value={goToInput}
+            onChange={(e) => setGoToInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                const n = parseInt(goToInput, 10);
+                if (n >= 1 && n <= totalPages) {
+                  setCurrentPage(n);
+                  setGoToInput('');
+                }
+              }
+            }}
+            placeholder={String(safePage)}
+          />
+          <span className={s.paginationGoToLabel}>of {totalPages}</span>
         </div>
       </div>
     </div>

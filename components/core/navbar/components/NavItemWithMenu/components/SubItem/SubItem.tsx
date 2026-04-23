@@ -13,13 +13,15 @@ export function SubItem(props: Props) {
   const { href, title, icon, description, onNavItemClickHandler } = props;
 
   return (
-    <li key={href}>
+    <li>
       <NavLink className={s.linkCard} href={href} onClick={() => onNavItemClickHandler(href, title)}>
-        {icon}
-        <div className={s.linkDetails}>
+        {/* Title row: icon + label */}
+        <div className={s.linkTitleRow}>
+          {icon && <span className={s.linkIcon}>{icon}</span>}
           <h3 className={s.linkTitle}>{title}</h3>
-          <p className={s.linkDescription}>{description}</p>
         </div>
+        {/* Description indented to align with title (32px = icon 20 + gap 12) */}
+        {description && <p className={s.linkDescription}>{description}</p>}
       </NavLink>
     </li>
   );

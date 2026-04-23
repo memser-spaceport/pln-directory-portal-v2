@@ -116,11 +116,13 @@ function Navbar(props: Readonly<INavbar>) {
           href: '/advisors-prototype',
           title: 'Advisors MVP · v0',
           description: '9-screen connected flow: onboarding, directory, profile, members',
+          section: 'Product Prototypes',
         },
         {
           href: '/advisors',
           title: 'Advisors Directory',
           description: 'Browse and connect with advisors in the network',
+          section: 'Product Prototypes',
         },
       ]
     : [...PROTOTYPE_LINKS];

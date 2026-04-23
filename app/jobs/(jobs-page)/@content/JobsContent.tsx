@@ -51,7 +51,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     if (isLoading || isError) return;
     if (lastFiredParams.current === paramsKey) return;
     lastFiredParams.current = paramsKey;
-    analytics.onJobsViewed({
+    analytics.onJobsPageViewed({
       result_count: totalRoles,
       filter_state: filterStateFromURL(searchParams),
     });
@@ -62,7 +62,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
 
   const onSort = (value: string) => {
     setParam('sort', value === 'newest' ? null : value);
-    analytics.onJobsSorted({ sort_key: value, result_count: totalRoles });
+    analytics.onJobsSortChanged({ sort_key: value, result_count: totalRoles });
   };
 
   const filterState = filterStateFromURL(searchParams);

@@ -31,14 +31,12 @@ export default function JobsMobileFilters() {
 
   const onSortChange = (value: string) => {
     setParam('sort', value === 'newest' ? null : value);
-    analytics.onJobsSorted({ sort_key: value, result_count: totalRoles });
+    analytics.onJobsSortChanged({ sort_key: value, result_count: totalRoles });
   };
 
   const onClearFilters = () => {
     clearAll();
-    analytics.onJobsFiltered({
-      filter_type: 'clear_all',
-      filter_value: null,
+    analytics.onJobsFiltersCleared({
       result_count: totalRoles,
       filter_state: {},
     });

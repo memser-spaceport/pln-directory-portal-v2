@@ -6,11 +6,17 @@ $padding-inline: 16px;
   position: relative;
   z-index: 1;
   display: none;
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   max-width: 600px;
 
   @include media.tablet-landscape {
     display: flex;
+    max-width: 200px;
+  }
+
+  @include media.desktop {
+    max-width: 280px;
   }
 }
 

@@ -5,10 +5,11 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { DIRECTORY_LINKS, EVENT_LINKS } from '@/components/core/navbar/constants/navLinks';
-import { DealsIcon, FounderGuidesIcon, MoreIcon } from '@/components/core/navbar/components/icons';
+import { DIRECTORY_LINKS, EVENT_LINKS, PROTOTYPE_LINKS } from '@/components/core/navbar/constants/navLinks';
+import { DealsIcon, FounderGuidesIcon, MoreIcon, PrototypesIcon } from '@/components/core/navbar/components/icons';
 import { ISubItem } from '@/components/core/navbar/type';
 import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
+import { useAdvisorsAccess } from '@/services/advisors/hooks/useAdvisorsAccess';
 import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
 
 import { NavigationMenu } from '@base-ui-components/react';
@@ -26,7 +27,26 @@ export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
   const { hasAccess: hasDealsPageAccess } = useDealsAccess();
+  const { hasAccess: hasAdvisorsAccess } = useAdvisorsAccess();
   const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
+
+  const prototypeItems: ISubItem[] = hasAdvisorsAccess
+    ? [
+        ...PROTOTYPE_LINKS,
+        {
+          href: '/advisors-prototype',
+          title: 'Advisors MVP · v0',
+          description: '9-screen connected flow: onboarding, directory, profile, members',
+          section: 'Product Prototypes',
+        },
+        {
+          href: '/advisors',
+          title: 'Advisors Directory',
+          description: 'Browse and connect with advisors in the network',
+          section: 'Product Prototypes',
+        },
+      ]
+    : [...PROTOTYPE_LINKS];
 
   const moreItems: ISubItem[] = [
     { href: '/forum', title: 'Forum', icon: <ForumIcon /> },
@@ -45,6 +65,7 @@ export function MobileBottomNav() {
         <NavigationMenu.List className={s.list}>
           <MobileNavItemWithMenu icon={<DirectoryIcon />} label="Directory" items={DIRECTORY_LINKS} />
           <MobileNavItemWithMenu icon={<EventsIcon />} label="Events" items={EVENT_LINKS} />
+          <MobileNavItemWithMenu icon={<PrototypesIcon />} label="Prototypes" items={prototypeItems} />
 
           {/* Other Nav Items */}
           {navItems.map(({ href, label, icon: Icon }) => {

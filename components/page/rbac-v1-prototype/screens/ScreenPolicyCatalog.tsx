@@ -3,14 +3,77 @@ import { useState } from 'react';
 import { RBAC_POLICIES, RBAC_MEMBERS, RBACPolicy } from '../rbac-mock-data';
 import s from './rbac-screens.module.scss';
 
-const ROLES = ['Founder', 'Investor', 'Directory Admin', 'Demo Day Admin', 'Demo Day Stakeholder', 'Engineer', 'Unassigned'];
+// ── Policy icon (matches members tab icons) ───────────────────────────────────
+function PolicyIcon({ role }: { role: string }) {
+  if (role === 'Directory Admin' || role === 'Engineer') {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
+        <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    );
+  }
+  if (role.startsWith('Demo Day')) {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M12 14l.6 1.2 1.4.2-1 1 .25 1.4-1.25-.66-1.25.66.25-1.4-1-1 1.4-.2L12 14z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+      </svg>
+    );
+  }
+  if (role === 'Founder') {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    );
+  }
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+
+const GROUP_DISPLAY_NAMES: Record<string, string> = {
+  'PLC PLVS':              'PLC-PLVS',
+  'PLC Crypto':            'PLC-Crypto',
+  'PLC Founder Forge':     'PLC-Founder Forge',
+  'PLC Neuro':             'PLC-Neuro',
+  'PLN Close Contributor': 'PLN Close Contributor',
+  'PLC Other':             'PLC Other',
+  'PLN Other':             'PLN Other',
+};
+
+const ROLES = ['Founder', 'Investor', 'Directory Admin', 'Demo Day Admin', 'Demo Day Stakeholder', 'Infra Team', 'Unassigned', 'Advisor'];
 const GROUPS = ['PL Internal', 'PL Partner', 'PL', 'PLC PLVS', 'PLC Crypto', 'PLC Founder Forge', 'PLC Neuro', 'PLN Close Contributor', 'PLC Other', 'PLN Other'];
+
+const ITEMS_PER_PAGE = 10;
+
+function buildPageItems(current: number, total: number): (number | '...')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const items: (number | '...')[] = [];
+  items.push(1);
+  if (current > 3) items.push('...');
+  for (let p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) {
+    items.push(p);
+  }
+  if (current < total - 2) items.push('...');
+  items.push(total);
+  return items;
+}
 
 export function ScreenPolicyCatalog() {
   const [roleFilter, setRoleFilter] = useState('');
   const [groupFilter, setGroupFilter] = useState('');
   const [search, setSearch] = useState('');
   const [activePolicyId, setActivePolicyId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [goToInput, setGoToInput] = useState('');
 
   const filtered = RBAC_POLICIES.filter((p) => {
     if (roleFilter && p.role !== roleFilter) return false;
@@ -20,74 +83,68 @@ export function ScreenPolicyCatalog() {
     return true;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageSlice = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
+
   const activePolicy = RBAC_POLICIES.find((p) => p.id === activePolicyId);
 
   const clearFilters = () => {
     setRoleFilter('');
     setGroupFilter('');
     setSearch('');
+    setCurrentPage(1);
   };
 
   const hasFilters = roleFilter || groupFilter || search;
 
   return (
     <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Header */}
-        <div className={s.pageHeader}>
-          <div className={s.pageHeaderLeft}>
-            <h1 className={s.pageTitle}>Policy Catalog</h1>
-            <p className={s.pageSubtitle}>
-              Predefined access packages — read-only in v1.1. Assign these to members from their access panel.
-            </p>
-          </div>
-        </div>
-
-        {/* Toolbar: search + dropdowns */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <div className={s.searchWrap}>
-            <svg className={s.searchIcon} width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <circle cx="6.5" cy="6.5" r="5" stroke="#94a3b8" strokeWidth="1.4" />
-              <path d="M10.5 10.5l3.5 3.5" stroke="#94a3b8" strokeWidth="1.4" strokeLinecap="round" />
+        {/* Toolbar */}
+        <div className={s.toolbar}>
+          {/* Search — wider, takes flex: 2 */}
+          <div className={s.policiesSearch}>
+            <svg className={s.toolbarSearchIcon} width="16" height="16" viewBox="0 0 13.516 13.516" fill="none">
+              <path d="M13.293 12.232L10.325 9.263A5.762 5.762 0 1 0 9.262 10.325l2.971 2.972a.756.756 0 1 0 1.06-1.065zM1.513 5.763a4.25 4.25 0 1 1 8.5 0 4.25 4.25 0 0 1-8.5 0z" fill="currentColor" />
             </svg>
             <input
               type="text"
-              className={s.searchInput}
-              style={{ width: 260 }}
-              placeholder="Search by name, description, role…"
+              className={s.policiesSearchInput}
+              placeholder="Search policies"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
             />
           </div>
 
-          <select
-            className={s.filterSelect}
-            style={{ padding: '8px 12px', fontSize: 13, borderRadius: 8, minWidth: 140 }}
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-          >
-            <option value="">All roles</option>
-            {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
+          {/* All roles */}
+          <div className={s.toolbarDropdown} style={{ flex: 1 }}>
+            <select
+              className={`${s.toolbarDropdownSelect} ${!roleFilter ? s.toolbarDropdownPlaceholder : ''}`}
+              value={roleFilter}
+              onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
+            >
+              <option value="">All roles</option>
+              {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+            <svg className={s.toolbarDropdownCaret} width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
 
-          <select
-            className={s.filterSelect}
-            style={{ padding: '8px 12px', fontSize: 13, borderRadius: 8, minWidth: 160 }}
-            value={groupFilter}
-            onChange={(e) => setGroupFilter(e.target.value)}
-          >
-            <option value="">All groups</option>
-            {GROUPS.map((g) => <option key={g} value={g}>{g}</option>)}
-          </select>
-
-          {hasFilters && (
-            <button className={s.btnSecondary} style={{ fontSize: 12, padding: '7px 12px' }} onClick={clearFilters}>
-              Clear ✕
-            </button>
-          )}
-
-          <span style={{ marginLeft: 'auto', fontSize: 13, color: '#64748b' }}>
-            <strong style={{ color: '#0a0c11' }}>{filtered.length}</strong> of {RBAC_POLICIES.length} policies
-          </span>
+          {/* All groups */}
+          <div className={s.toolbarDropdown} style={{ flex: 1 }}>
+            <select
+              className={`${s.toolbarDropdownSelect} ${!groupFilter ? s.toolbarDropdownPlaceholder : ''}`}
+              value={groupFilter}
+              onChange={(e) => { setGroupFilter(e.target.value); setCurrentPage(1); }}
+            >
+              <option value="">All groups</option>
+              {GROUPS.map((g) => <option key={g} value={g}>{g}</option>)}
+            </select>
+            <svg className={s.toolbarDropdownCaret} width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
         </div>
 
         {/* Table */}
@@ -101,17 +158,17 @@ export function ScreenPolicyCatalog() {
             <table className={s.table}>
               <thead className={s.tableHead}>
                 <tr>
-                  <th className={s.thCell} style={{ width: 200 }}>Policy name</th>
-                  <th className={s.thCell} style={{ width: 110 }}>Role</th>
-                  <th className={s.thCell} style={{ width: 130 }}>Group</th>
+                  <th className={s.thCell} style={{ width: 280 }}>Policy</th>
+                  <th className={s.thCell} style={{ width: 160 }}>Role</th>
+                  <th className={s.thCell} style={{ width: 180 }}>Group</th>
                   <th className={s.thCell}>Description</th>
-                  <th className={s.thCell} style={{ width: 180 }}>Modules</th>
+                  <th className={s.thCell} style={{ width: 220 }}>Modules</th>
                   <th className={s.thCell} style={{ width: 90 }}>Members</th>
-                  <th className={s.thCell} style={{ width: 80 }}>Details</th>
+                  <th className={s.thCell} style={{ width: 90 }}>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((policy) => (
+                {pageSlice.map((policy) => (
                   <PolicyRow
                     key={policy.id}
                     policy={policy}
@@ -123,6 +180,74 @@ export function ScreenPolicyCatalog() {
           </div>
         )}
 
+        {/* Pagination */}
+        {filtered.length > 0 && (
+          <div className={s.pagination}>
+            <div className={s.paginationLeft}>
+              <button
+                className={s.paginationNavBtn}
+                disabled={safePage <= 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M12.5 15l-5-5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Preview
+              </button>
+
+              <div className={s.paginationPages}>
+                {buildPageItems(safePage, totalPages).map((item, idx) =>
+                  item === '...' ? (
+                    <span key={`ellipsis-${idx}`} className={s.paginationEllipsis}>…</span>
+                  ) : (
+                    <button
+                      key={item}
+                      className={`${s.paginationPage} ${item === safePage ? s.paginationPageActive : ''}`}
+                      onClick={() => setCurrentPage(item as number)}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+              </div>
+
+              <button
+                className={s.paginationNavBtn}
+                disabled={safePage >= totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+              >
+                Next
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M7.5 5l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+
+            <div className={s.paginationGoTo}>
+              <span className={s.paginationGoToLabel}>Go to</span>
+              <input
+                className={s.paginationGoToInput}
+                type="number"
+                min={1}
+                max={totalPages}
+                value={goToInput}
+                onChange={(e) => setGoToInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const n = parseInt(goToInput, 10);
+                    if (n >= 1 && n <= totalPages) {
+                      setCurrentPage(n);
+                      setGoToInput('');
+                    }
+                  }
+                }}
+                placeholder={String(safePage)}
+              />
+              <span className={s.paginationGoToLabel}>of {totalPages}</span>
+            </div>
+          </div>
+        )}
+
       {/* Policy modal */}
       {activePolicy && (
         <PolicyModal policy={activePolicy} onClose={() => setActivePolicyId(null)} />
@@ -131,40 +256,168 @@ export function ScreenPolicyCatalog() {
   );
 }
 
+const MODULE_DISPLAY_LIMIT = 3;
+
 function PolicyRow({ policy, onView }: { policy: RBACPolicy; onView: () => void }) {
+  const gl = GROUP_DISPLAY_NAMES[policy.group] ?? policy.group;
+  const visibleModules = policy.modules.slice(0, MODULE_DISPLAY_LIMIT);
+  const extraCount = policy.modules.length - MODULE_DISPLAY_LIMIT;
+
   return (
     <tr className={s.tableRow}>
+
+      {/* Policy: icon + name */}
       <td className={s.tdCell}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#0a0c11' }}>{policy.name}</span>
-      </td>
-      <td className={s.tdCell}>
-        <span className={s.roleBadge}>{policy.role}</span>
-      </td>
-      <td className={s.tdCell}>
-        <span className={s.groupBadge}>{policy.group}</span>
-      </td>
-      <td className={s.tdCell}>
-        <span style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>{policy.description}</span>
-      </td>
-      <td className={s.tdCell}>
-        <div className={s.policyChipList}>
-          {policy.modules.map((m) => (
-            <span key={m.module} className={s.catalogModuleTag}>{m.module}</span>
-          ))}
+        <div className={s.catalogPolicyCell}>
+          <span className={s.catalogPolicyIcon}>
+            <PolicyIcon role={policy.role} />
+          </span>
+          <span className={s.catalogPolicyName}>{policy.name}</span>
         </div>
       </td>
+
+      {/* Role — plain text */}
       <td className={s.tdCell}>
-        <span style={{ fontSize: 13, color: '#334155', fontWeight: 500 }}>{policy.memberCount}</span>
+        <span className={s.catalogRoleText}>{policy.role}</span>
       </td>
+
+      {/* Group */}
       <td className={s.tdCell}>
-        <button className={s.manageBtn} onClick={onView}>View →</button>
+        <span className={s.groupBadge}>{gl}</span>
+      </td>
+
+      {/* Description */}
+      <td className={s.tdCell}>
+        <span className={s.catalogDesc}>{policy.description}</span>
+      </td>
+
+      {/* Modules with overflow */}
+      <td className={s.tdCell}>
+        <div className={s.catalogModuleTags}>
+          {visibleModules.map((m) => (
+            <span key={m.module} className={s.catalogModuleTag}>{m.module}</span>
+          ))}
+          {extraCount > 0 && (
+            <span className={s.catalogModuleTag}>+{extraCount}</span>
+          )}
+        </div>
+      </td>
+
+      {/* Members */}
+      <td className={s.tdCell}>
+        <span className={s.catalogMemberCount}>{policy.memberCount}</span>
+      </td>
+
+      {/* Action */}
+      <td className={s.tdCell}>
+        <button className={s.catalogViewBtn} onClick={onView}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.3"/>
+          </svg>
+          View
+        </button>
       </td>
     </tr>
   );
 }
 
+// ── Module icon map (Figma 522:17587) ────────────────────────────────────────
+function ModuleIcon({ name }: { name: string }) {
+  const n = name.toLowerCase();
+  if (n.includes('directory') || n.includes('members')) {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" fill="currentColor" opacity=".15"/>
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    );
+  }
+  if (n.includes('office hours') || n.includes('oh')) {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    );
+  }
+  if (n.includes('forum') || n.includes('chat')) {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    );
+  }
+  if (n.includes('irl') || n.includes('gathering')) {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    );
+  }
+  if (n.includes('guide') || n.includes('book')) {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M9 7h2M9 11h2M13 7h2M13 11h2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+      </svg>
+    );
+  }
+  if (n.includes('demo day') || n.includes('demoday')) {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M12 14l.6 1.2 1.4.2-1 1 .25 1.4-1.25-.66-1.25.66.25-1.4-1-1 1.4-.2L12 14z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+      </svg>
+    );
+  }
+  if (n.includes('deal')) {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
+      </svg>
+    );
+  }
+  if (n.includes('advisor')) {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M16 11l1.5 1.5L21 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    );
+  }
+  // default
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+    </svg>
+  );
+}
+
+// Deterministic mock assignment date per member index
+const MOCK_DATES = [
+  { date: 'Oct 23, 2025', time: '06:45 pm' },
+  { date: 'Oct 23, 2025', time: '06:30 pm' },
+  { date: 'Oct 23, 2025', time: '06:15 pm' },
+  { date: 'Oct 22, 2025', time: '11:00 am' },
+  { date: 'Oct 21, 2025', time: '03:20 pm' },
+  { date: 'Oct 20, 2025', time: '09:45 am' },
+  { date: 'Oct 19, 2025', time: '02:10 pm' },
+  { date: 'Oct 18, 2025', time: '04:55 pm' },
+];
+
 function PolicyModal({ policy, onClose }: { policy: RBACPolicy; onClose: () => void }) {
   const [memberSearch, setMemberSearch] = useState('');
+  const [showAllModules, setShowAllModules] = useState(false);
 
   const assignedMembers = RBAC_MEMBERS.filter((m) =>
     m.assignedPolicyIds.includes(policy.id)
@@ -175,153 +428,132 @@ function PolicyModal({ policy, onClose }: { policy: RBACPolicy; onClose: () => v
     return !q || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q) || m.team.toLowerCase().includes(q);
   });
 
+  const MODULES_VISIBLE = 5;
+  const visibleModules = showAllModules ? policy.modules : policy.modules.slice(0, MODULES_VISIBLE);
+  const hasMoreModules = policy.modules.length > MODULES_VISIBLE;
+
   return (
     <div className={s.modalOverlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={s.modalCard} style={{ maxWidth: 740, maxHeight: '88vh' }}>
+      <div className={s.policyViewCard}>
+
+        {/* Close button — absolute top-right */}
+        <button className={s.policyViewClose} onClick={onClose} aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M4.17 4.17l11.66 11.66M15.83 4.17L4.17 15.83" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </button>
 
         {/* Header */}
-        <div className={s.modalHeader}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-            <h2 className={s.modalTitle} style={{ fontSize: 17 }}>{policy.name}</h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <span className={s.roleBadge}>{policy.role}</span>
-              <span className={s.groupBadge}>{policy.group}</span>
-              <span className={s.tagGray}>{assignedMembers.length} member{assignedMembers.length !== 1 ? 's' : ''}</span>
-            </div>
-          </div>
-          <button className={s.modalCloseBtn} onClick={onClose} aria-label="Close" style={{ flexShrink: 0 }}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M1.5 1.5l9 9M10.5 1.5l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        <div className={s.policyViewHeader}>
+          <div className={s.policyViewHeaderIcon}>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <path d="M16 3L27 8v8c0 7-5.5 13-11 15C10.5 29 5 23 5 16V8L16 3z" fill="#4174ff" opacity=".2"/>
+              <path d="M16 3L27 8v8c0 7-5.5 13-11 15C10.5 29 5 23 5 16V8L16 3z" stroke="#4174ff" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
+              <path d="M21 13l-6.5 6.5L11 16" stroke="#4174ff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-          </button>
+          </div>
+          <p className={s.policyViewTitle}>{policy.name}</p>
         </div>
 
-        {/* Body */}
-        <div className={s.modalBody} style={{ gap: 20 }}>
+        {/* Scrollable content */}
+        <div className={s.policyViewBody}>
 
-          {/* Policy summary */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <p style={{ margin: 0, fontSize: 13, color: '#475569', lineHeight: 1.6 }}>{policy.description}</p>
+          {/* Description */}
+          <div className={s.policyViewSection}>
+            <p className={s.policyViewSectionTitle}>Description</p>
+            <p className={s.policyViewDescription}>{policy.description}</p>
+          </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <p className={s.catalogDetailSectionTitle} style={{ margin: 0 }}>Typical use</p>
-              <p className={s.catalogTypicalFor} style={{ margin: 0 }}>{policy.typicalFor}</p>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <p className={s.catalogDetailSectionTitle} style={{ margin: 0 }}>Module access</p>
-              <div className={s.catalogModuleDetail}>
-                {policy.modules.map((m) => (
-                  <div key={m.module} className={s.catalogModuleRow}>
-                    <span className={s.catalogModuleName}>{m.module}</span>
-                    <div className={s.catalogModuleAccessList}>
-                      {m.access.map((a) => (
-                        <span key={a} className={s.accessBadge}>{a}</span>
-                      ))}
+          {/* Module Permissions */}
+          <div className={s.policyViewSection}>
+            <p className={s.policyViewSectionTitle}>Module Permissions</p>
+            <div className={s.policyViewModuleCards}>
+              {visibleModules.map((mod) => (
+                <div key={mod.module} className={s.policyViewModuleCard}>
+                  <div className={s.policyViewModuleLeft}>
+                    <div className={s.policyViewModuleIconWrap}>
+                      <ModuleIcon name={mod.module} />
                     </div>
-                    {m.note && <span className={s.catalogModuleNote}>{m.note}</span>}
+                    <span className={s.policyViewModuleName}>{mod.module}</span>
                   </div>
-                ))}
-              </div>
-            </div>
+                  <div className={s.policyViewModuleBadges}>
+                    {mod.access.map((a) => (
+                      <span key={a} className={s.policyViewAccessBadge}>{a}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <p className={s.catalogDetailSectionTitle} style={{ margin: 0 }}>Permissions</p>
-              <div className={s.permsList}>
-                {policy.permissions.map((perm) => (
-                  <span key={perm} className={s.permTag}>{perm}</span>
-                ))}
-              </div>
+              {hasMoreModules && (
+                <button className={s.policyViewShowAll} onClick={() => setShowAllModules((v) => !v)}>
+                  {showAllModules ? 'Show Less' : 'Show All'}
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Divider */}
-          <div style={{ height: 1, background: '#f1f5f9', margin: '0 -24px' }} />
+          {/* Members */}
+          <div className={s.policyViewSection}>
+            <p className={s.policyViewSectionTitle}>Members ({assignedMembers.length})</p>
 
-          {/* Members section */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#0a0c11' }}>
-                Members
-                <span style={{ marginLeft: 6, fontSize: 12, fontWeight: 500, color: '#94a3b8' }}>
-                  {filteredMembers.length}{memberSearch ? ` of ${assignedMembers.length}` : ''}
-                </span>
-              </p>
-              <div className={s.searchWrap}>
-                <svg className={s.searchIcon} width="13" height="13" viewBox="0 0 16 16" fill="none">
-                  <circle cx="6.5" cy="6.5" r="5" stroke="#94a3b8" strokeWidth="1.4" />
-                  <path d="M10.5 10.5l3.5 3.5" stroke="#94a3b8" strokeWidth="1.4" strokeLinecap="round" />
+            <div className={s.policyViewSearchAndTable}>
+              {/* Search */}
+              <div className={s.policyViewSearch}>
+                <svg width="20" height="20" viewBox="0 0 13.516 13.516" fill="none" className={s.policyViewSearchIcon}>
+                  <path d="M13.293 12.232L10.325 9.263A5.762 5.762 0 1 0 9.262 10.325l2.971 2.972a.756.756 0 1 0 1.06-1.065zM1.513 5.763a4.25 4.25 0 1 1 8.5 0 4.25 4.25 0 0 1-8.5 0z" fill="currentColor" />
                 </svg>
                 <input
                   type="text"
-                  className={s.searchInput}
-                  style={{ width: 220 }}
-                  placeholder="Search members…"
+                  className={s.policyViewSearchInput}
+                  placeholder="Search members"
                   value={memberSearch}
                   onChange={(e) => setMemberSearch(e.target.value)}
                 />
               </div>
-            </div>
 
-            {filteredMembers.length === 0 ? (
-              <div style={{ padding: '24px 0', textAlign: 'center', color: '#94a3b8', fontSize: 13, fontStyle: 'italic' }}>
-                {assignedMembers.length === 0 ? 'No members assigned to this policy yet.' : 'No members match your search.'}
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {filteredMembers.map((m) => (
-                  <div
-                    key={m.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: '10px 14px',
-                      borderRadius: 8,
-                      background: '#f8fafc',
-                      border: '1px solid #f1f5f9',
-                    }}
-                  >
-                    <img
-                      src={m.avatar}
-                      alt={m.name}
-                      style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #e2e8f0', flexShrink: 0 }}
-                    />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#0a0c11', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.name}</p>
-                      <p style={{ margin: 0, fontSize: 11, color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email}</p>
-                    </div>
-                    <span style={{ fontSize: 12, color: '#64748b', whiteSpace: 'nowrap', flexShrink: 0 }}>{m.team}</span>
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        height: 20,
-                        padding: '0 8px',
-                        borderRadius: 9999,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        whiteSpace: 'nowrap',
-                        flexShrink: 0,
-                        ...(m.approvalState === 'approved'
-                          ? { background: '#f0fdf4', color: '#166534', border: '1px solid #86efac' }
-                          : m.approvalState === 'verified'
-                          ? { background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a' }
-                          : { background: '#f1f5f9', color: '#64748b', border: '1px solid #e2e8f0' }),
-                      }}
-                    >
-                      {m.approvalState.charAt(0).toUpperCase() + m.approvalState.slice(1)}
-                    </span>
+              {/* Table */}
+              {filteredMembers.length === 0 ? (
+                <div className={s.policyViewEmpty}>
+                  {assignedMembers.length === 0 ? 'No members assigned to this policy yet.' : 'No members match your search.'}
+                </div>
+              ) : (
+                <div className={s.policyViewTable}>
+                  {/* Table header */}
+                  <div className={s.policyViewTableHeader}>
+                    <div className={s.policyViewColMember}>Members</div>
+                    <div className={s.policyViewColTeam}>Team/Project</div>
+                    <div className={s.policyViewColDate}>Date</div>
                   </div>
-                ))}
-              </div>
-            )}
+                  {/* Table rows */}
+                  {filteredMembers.map((m, i) => {
+                    const mock = MOCK_DATES[i % MOCK_DATES.length];
+                    const teams = m.team && m.team !== '—' ? m.team.split(',').map((t) => t.trim()).filter(Boolean) : [];
+                    return (
+                      <div key={m.id} className={s.policyViewTableRow}>
+                        <div className={s.policyViewColMember}>
+                          <img src={m.avatar} alt={m.name} className={s.policyViewAvatar} />
+                          <div className={s.policyViewMemberText}>
+                            <p className={s.policyViewMemberName}>{m.name}</p>
+                            <p className={s.policyViewMemberEmail}>{m.email}</p>
+                          </div>
+                        </div>
+                        <div className={s.policyViewColTeam}>
+                          {teams.length > 0 ? teams.map((t) => (
+                            <span key={t} className={s.policyViewTeamChip}>{t}</span>
+                          )) : <span className={s.emDash}>—</span>}
+                        </div>
+                        <div className={s.policyViewColDate}>
+                          <p className={s.policyViewDateMain}>{mock.date}</p>
+                          <p className={s.policyViewDateTime}>{mock.time}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className={s.modalFooter}>
-          <button className={s.btnSecondary} onClick={onClose}>Close</button>
         </div>
       </div>
     </div>

@@ -60,24 +60,28 @@ export const PROTOTYPE_LINKS: ISubItem[] = [
     icon: <KnowledgeBaseIcon />,
     title: 'Knowledge Base',
     description: 'Articles and resources from the network',
-  },
-  {
-    href: '/access-control',
-    icon: <AccessControlIcon />,
-    title: 'Access Control',
-    description: 'RBAC management interface mockup',
-  },
-  {
-    href: '/rbac-v1-prototype',
-    icon: <AccessControlIcon />,
-    title: 'RBAC V1',
-    description: 'Admin Office access management redesign · v1.1 spec',
+    section: 'Product Prototypes',
   },
   {
     href: '/deals-landing',
     icon: <DealsIcon />,
     title: 'Deals Landing Page',
     description: 'Unauthenticated vendor conversion page mockup',
+    section: 'Product Prototypes',
+  },
+  {
+    href: '/access-control',
+    icon: <AccessControlIcon />,
+    title: 'Access Control',
+    description: 'RBAC management interface mockup',
+    section: 'Admin Prototypes',
+  },
+  {
+    href: '/rbac-v1-prototype',
+    icon: <AccessControlIcon />,
+    title: 'RBAC V1',
+    description: 'Admin Office access management redesign · v1.1 spec',
+    section: 'Admin Prototypes',
   },
 ] as const;
 

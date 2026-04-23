@@ -68,7 +68,19 @@
     0px 20px 65px -5px rgba(14, 15, 17, 0.06);
   padding: 8px;
   min-width: 208px;
+  max-height: min(70vh, 480px);
+  overflow-y: auto;
   outline: none;
+}
+
+.menuSectionLabel {
+  padding: 8px 16px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  line-height: 16px;
 }
 
 .menuItem {

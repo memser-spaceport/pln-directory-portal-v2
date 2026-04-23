@@ -1,34 +1,345 @@
-// RBAC V1.1 — Clean app-like page layout
+// RBAC V1 Prototype — page layout matching Figma 522:30756
 
-.pageRoot {
-  min-height: calc(100vh - 60px);
-  background: #f1f5f9;
+// ── Admin Office sub-header ───────────────────────────────────────────────────
+
+.adminHeader {
+  position: sticky;
+  top: var(--app-header-height, 80px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 48px;
+  height: 80px;
+  background: #fff;
+  box-shadow: 0 1px 4px 0 #e2e8f0;
+  box-sizing: border-box;
+}
+
+.adminLogo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+
+  svg:first-child {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+  }
+}
+
+.adminLogoText {
   display: flex;
   flex-direction: column;
+  line-height: 1.2;
+}
+
+.adminLogoBrand {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+}
+
+.adminLogoSub {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+}
+
+.adminNav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  margin-left: 64px;
+}
+
+.adminNavItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  height: 40px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #455468;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s, border-radius 0.12s;
+  white-space: nowrap;
+  letter-spacing: -0.3px;
+  line-height: 24px;
+
+  svg { flex-shrink: 0; }
+
+  &:hover {
+    background: #f8fafc;
+    color: #3d4a5c;
+  }
+}
+
+// Open state: bordered + 8px radius (Figma variant 3)
+.adminNavItemOpen {
+  border-color: rgba(14, 15, 17, 0.16);
+  border-radius: 8px;
+  color: #3d4a5c;
+}
+
+.adminNavItemActive {
+  color: #3d4a5c;
+
+  &:hover {
+    color: #3d4a5c;
+  }
+}
+
+.adminNavCaret {
+  display: inline-flex;
+  transition: transform 0.15s;
+  color: currentColor;
+}
+
+.adminNavCaretOpen {
+  transform: rotate(180deg);
+}
+
+// ── Nav dropdown (shared) ─────────────────────────────────────────────────────
+
+.navDropdownWrap {
+  position: relative;
+}
+
+.navDropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  z-index: 200;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow:
+    0 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0 20px 65px -5px rgba(14, 15, 17, 0.06);
+  padding: 8px 16px;
+  min-width: 272px;
+}
+
+.navDropdownMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.navDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 20px;
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+    color: #3d4a5c;
+  }
+}
+
+// Highlighted (active/first) item
+.navDropdownItemHighlight {
+  background: rgba(14, 15, 17, 0.04);
+  color: #3d4a5c;
+}
+
+.navDropdownItemIcon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+.navDropdownItemLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.navDropdownItemCaret {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: currentColor;
+  margin-left: auto;
+}
+
+// Count badge — neutral gray
+.navDropdownBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  background: rgba(14, 15, 17, 0.06);
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+// Count badge — red (for pending)
+.navDropdownBadgeRed {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  background: rgba(255, 56, 56, 0.08);
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #ff3838;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+// "Add New …" action row inside dropdown
+.navDropdownActionRow {
+  padding: 4px 0;
+}
+
+.navDropdownAddBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid rgba(27, 77, 255, 0.02);
+  border-radius: 8px;
+  background: rgba(27, 77, 255, 0.04);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #1b4dff;
+  cursor: pointer;
+  transition: background 0.1s;
+  box-shadow: inset 0 -1px 4px rgba(27, 77, 255, 0.08);
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.08);
+  }
+}
+
+.adminSignOut {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: #64748b;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+}
+
+// ── Placeholder screens ───────────────────────────────────────────────────────
+
+.placeholderScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  gap: 12px;
+  text-align: center;
+  padding: 48px;
+}
+
+.placeholderIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: rgba(14, 15, 17, 0.04);
+  color: #94a3b8;
+
+  svg { width: 28px; height: 28px; }
+}
+
+.placeholderTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.placeholderBody {
+  font-size: 14px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+// ── Page root ─────────────────────────────────────────────────────────────────
+
+.pageRoot {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding-bottom: 48px;
+}
+
+.container {
+  max-width: 1344px;
+  margin: 0 auto;
+  padding: 24px 48px 0;
 }
 
 // ── Page header ───────────────────────────────────────────────────────────────
 
 .pageHeader {
-  background: #fff;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 20px 32px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-shrink: 0;
+  margin-bottom: 24px;
 }
 
 .pageTitle {
-  font-size: 22px;
-  font-weight: 700;
-  color: #0a0c11;
-  margin: 0 0 4px;
+  font-size: 28px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 8px 0;
 }
 
 .pageSubtitle {
-  font-size: 13px;
+  font-size: 14px;
   color: #64748b;
   margin: 0;
 }
@@ -36,35 +347,45 @@
 // ── Tab bar ───────────────────────────────────────────────────────────────────
 
 .tabBar {
-  background: #fff;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 0 32px;
   display: flex;
-  align-items: flex-end;
   gap: 0;
-  flex-shrink: 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 1px;
 }
 
 .tab {
   padding: 12px 20px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: #64748b;
-  border: none;
   background: none;
-  border-bottom: 2px solid transparent;
+  border: none;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition: all 0.2s ease;
+  position: relative;
   white-space: nowrap;
-  margin-bottom: -1px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 
-  &:hover { color: #0a0c11; }
+  &:hover {
+    color: #0f172a;
+  }
 }
 
 .tabActive {
-  color: #1b4dff;
-  border-bottom-color: #1b4dff;
-  font-weight: 600;
+  color: #3b82f6;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #3b82f6;
+  }
 }
 
 .tabCount {
@@ -79,16 +400,15 @@
   font-size: 11px;
   font-weight: 600;
   color: #64748b;
-  margin-left: 6px;
 }
 
 .tabCountActive {
-  background: #eef2ff;
-  color: #1b4dff;
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 
-// ── Content ───────────────────────────────────────────────────────────────────
+// ── Content card ──────────────────────────────────────────────────────────────
 
 .tabContent {
-  flex: 1;
+  min-height: 400px;
 }

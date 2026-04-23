@@ -37,14 +37,24 @@ export function MobileNavItemWithMenu(props: Props) {
         <Menu.Portal>
           <Menu.Positioner className={s.positioner} side="top" sideOffset={16} align="center">
             <Menu.Popup className={s.popup}>
-              {items.map(({ href, title, icon }) => (
-                <Link key={href} href={href}>
-                  <Menu.Item className={clsx(s.menuItem, pathname.startsWith(href) && s.menuItemActive)}>
-                    {icon}
-                    <span>{title}</span>
-                  </Menu.Item>
-                </Link>
-              ))}
+              {items.map((item, index) => {
+                const { href, title, icon } = item;
+                const showSection =
+                  item.section != null &&
+                  item.section !== '' &&
+                  (index === 0 || items[index - 1]?.section !== item.section);
+                return (
+                  <React.Fragment key={href}>
+                    {showSection && <div className={s.menuSectionLabel}>{item.section}</div>}
+                    <Link href={href}>
+                      <Menu.Item className={clsx(s.menuItem, pathname.startsWith(href) && s.menuItemActive)}>
+                        {icon}
+                        <span>{title}</span>
+                      </Menu.Item>
+                    </Link>
+                  </React.Fragment>
+                );
+              })}
             </Menu.Popup>
           </Menu.Positioner>
         </Menu.Portal>

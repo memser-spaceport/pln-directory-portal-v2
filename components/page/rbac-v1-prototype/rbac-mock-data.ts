@@ -24,11 +24,19 @@ export interface RBACPolicy {
 
 export interface DirectPermission {
   id: string;
+  /** Internal permission string (e.g. founder_guides.admin) */
   permission: string;
+  /** @deprecated Use module + level for display; kept for older mock rows */
   label: string;
   addedBy: string;
   addedAt: string;
   reason: string;
+  /** Product module (e.g. "Founder Guides") */
+  module?: string;
+  /** Human access level (e.g. "Admin", "View") */
+  level?: string;
+  /** Optional ISO or display timestamp; falls back to addedAt */
+  createdAt?: string;
 }
 
 export interface RBACMember {
@@ -66,8 +74,8 @@ export const RBAC_POLICIES: RBACPolicy[] = [
   },
   {
     id: 'policy-infra-team',
-    name: 'PL Infra Team — PL Internal',
-    role: 'Engineer',
+    name: 'Infra Team — PL Internal',
+    role: 'Infra Team',
     group: 'PL Internal',
     description: 'Full read+write across all modules except the admin tool. Includes team priority data and membership source data. Key permissions: OH, Forum, Deals, FG.ALL.',
     typicalFor: 'PL infrastructure engineers managing the platform',
@@ -419,6 +427,74 @@ export const RBAC_POLICIES: RBACPolicy[] = [
     permissions: ['members.contacts_view', 'oh.supply_read', 'oh.supply_write', 'irl.going'],
     memberCount: 8,
   },
+
+  // ── Advisor ───────────────────────────────────────────────────────────────────
+  {
+    id: 'policy-advisor-pl-internal',
+    name: 'Advisor — PL Internal',
+    role: 'Advisor',
+    group: 'PL Internal',
+    description: 'Advisory access for PL Internal advisors. Read access to Members, Office Hours, Forum, and IRL. Scoped to advisory and mentorship activities.',
+    typicalFor: 'PL Internal advisors and mentors',
+    modules: [
+      { module: 'Members', access: ['View contacts'], note: 'Auth view' },
+      { module: 'Office Hours', access: ['Supply', 'Demand'], note: 'v1 — advisory sessions' },
+      { module: 'Forum', access: ['Read', 'Write'] },
+      { module: 'IRL', access: ['Going'] },
+    ],
+    permissions: ['members.contacts_view', 'oh.supply_read', 'oh.supply_write', 'oh.demand_read', 'forum.read', 'forum.write', 'irl.going'],
+    memberCount: 4,
+  },
+  {
+    id: 'policy-advisor-pl-partner',
+    name: 'Advisor — PL Partner',
+    role: 'Advisor',
+    group: 'PL Partner',
+    description: 'Advisory access for PL Partner advisors. Read access to Members, Office Hours, Demo Day (investor view), and IRL.',
+    typicalFor: 'PL Partner advisors and strategic consultants',
+    modules: [
+      { module: 'Members', access: ['View contacts'], note: 'Auth view' },
+      { module: 'Office Hours', access: ['Demand'], note: 'v1 — book sessions' },
+      { module: 'Demo Day', access: ['Active R'], note: 'Advisor view, approval-based' },
+      { module: 'IRL', access: ['Going'] },
+    ],
+    permissions: ['members.contacts_view', 'oh.demand_read', 'demoday.active.read', 'irl.going_read'],
+    memberCount: 6,
+  },
+  {
+    id: 'policy-advisor-plvs',
+    name: 'Advisor — PLC PLVS',
+    role: 'Advisor',
+    group: 'PLC PLVS',
+    description: 'Advisory access for PLVS cohort advisors. Includes Office Hours supply+demand, Forum, IRL, and Founder Guides (PLVS scope).',
+    typicalFor: 'Mentors and advisors working with the PLC PLVS cohort',
+    modules: [
+      { module: 'Members', access: ['View contacts'], note: 'Auth view' },
+      { module: 'Office Hours', access: ['Supply', 'Demand'], note: 'v1' },
+      { module: 'Forum', access: ['Read', 'Write'] },
+      { module: 'IRL', access: ['Going'] },
+      { module: 'Founder Guides', access: ['Read'], note: 'PLVS content (FG_Read.PLVS)' },
+    ],
+    permissions: ['members.contacts_view', 'oh.supply_read', 'oh.supply_write', 'oh.demand_read', 'forum.read', 'forum.write', 'irl.going', 'founder_guides.view.plvs'],
+    memberCount: 5,
+  },
+  {
+    id: 'policy-advisor-plcc',
+    name: 'Advisor — PLC Crypto',
+    role: 'Advisor',
+    group: 'PLC Crypto',
+    description: 'Advisory access for PLC Crypto cohort advisors. Includes Office Hours, Forum, IRL, and Founder Guides (PLCC scope).',
+    typicalFor: 'Mentors and advisors working with the PLC Crypto cohort',
+    modules: [
+      { module: 'Members', access: ['View contacts'], note: 'Auth view' },
+      { module: 'Office Hours', access: ['Supply', 'Demand'], note: 'v1' },
+      { module: 'Forum', access: ['Read', 'Write'] },
+      { module: 'IRL', access: ['Going'] },
+      { module: 'Founder Guides', access: ['Read'], note: 'PLCC content (FG_Read.PLCC)' },
+    ],
+    permissions: ['members.contacts_view', 'oh.supply_read', 'oh.supply_write', 'oh.demand_read', 'forum.read', 'forum.write', 'irl.going', 'founder_guides.view.plcc'],
+    memberCount: 3,
+  },
 ];
 
 // ── Members ───────────────────────────────────────────────────────────────────
@@ -486,9 +562,12 @@ export const RBAC_MEMBERS: RBACMember[] = [
       {
         id: 'dp-001',
         permission: 'founder_guides.admin',
-        label: 'Founder Guides Admin',
+        label: 'Founder Guides — Admin',
+        module: 'Founder Guides',
+        level: 'Admin',
         addedBy: 'Amara Diallo',
         addedAt: 'Apr 12, 2026',
+        createdAt: '2026-04-12T14:00:00.000Z',
         reason: 'Granted temporary admin access to co-author PLVS content during onboarding sprint.',
       },
     ],

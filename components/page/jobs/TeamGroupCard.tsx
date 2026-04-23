@@ -5,6 +5,7 @@ import { useState } from 'react';
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
 import { formatRelativeDays, isNew, seniorityDisplayLabel, teamInitials } from '@/utils/jobs.utils';
 import s from './TeamGroupCard.module.scss';
+import clsx from 'clsx';
 
 const INITIAL_ROLES_SHOWN = 3;
 const MAX_FOCUS_CHIPS = 4;
@@ -44,7 +45,18 @@ export default function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps
                   {chip.title}
                 </span>
               ))}
-              {chips.moreCount > 0 && <span className={s.focusMore}>+{chips.moreCount}</span>}
+              {chips.moreCount > 0 && (
+                <span className={s.moreChipWrapper}>
+                  <span className={clsx(s.focusChip, s.focusChip_sub)}>+{chips.moreCount}</span>
+                  <div className={s.moreTooltip}>
+                    {chips.hidden.map((chip) => (
+                      <span key={`${chip.kind}::${chip.title}`} className={clsx(s.focusChip, s[`focusChip_${chip.kind}`])}>
+                        {chip.title}
+                      </span>
+                    ))}
+                  </div>
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -88,15 +100,16 @@ function buildFocusChips(
   focusAreas: string[],
   subFocusAreas: string[],
   max: number,
-): { shown: FocusChip[]; moreCount: number } {
+): { shown: FocusChip[]; hidden: FocusChip[]; moreCount: number } {
   const dedupedSub = subFocusAreas.filter((t) => !focusAreas.includes(t));
   const all: FocusChip[] = [
     ...focusAreas.map((title): FocusChip => ({ kind: 'focus', title })),
     ...dedupedSub.map((title): FocusChip => ({ kind: 'sub', title })),
   ];
   const shown = all.slice(0, max);
-  const moreCount = Math.max(0, all.length - shown.length);
-  return { shown, moreCount };
+  const hidden = all.slice(max);
+  const moreCount = hidden.length;
+  return { shown, hidden, moreCount };
 }
 
 function RoleRow({ role, onClick }: { role: IJobRole; onClick: () => void }) {

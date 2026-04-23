@@ -86,7 +86,7 @@ export default function JobsFilterBody() {
           <input
             className={s.searchInput}
             type="search"
-            placeholder="Search a team or role"
+            placeholder="Search a company or role"
             value={qLocal}
             onChange={(e) => setQLocal(e.target.value)}
           />
@@ -108,11 +108,7 @@ export default function JobsFilterBody() {
         renderLabel={(v) => seniorityDisplayLabel(v)}
       />
 
-      <FocusTreeSection
-        items={data.focus}
-        selected={selected.focus}
-        onToggle={(v) => onToggle('focus', v)}
-      />
+      <FocusTreeSection items={data.focus} selected={selected.focus} onToggle={(v) => onToggle('focus', v)} />
 
       <FacetSection
         title="Location"
@@ -207,12 +203,7 @@ function FocusNode({
     <li>
       <div className={s.treeRow}>
         <label className={s.option}>
-          <input
-            type="checkbox"
-            checked={isChecked}
-            onChange={() => onToggle(parent.value)}
-            className={s.checkbox}
-          />
+          <input type="checkbox" checked={isChecked} onChange={() => onToggle(parent.value)} className={s.checkbox} />
           {hasChildren ? (
             <button
               type="button"

@@ -3,8 +3,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { FilterState } from '@/services/filters/types';
 import { FilterOption } from '@/services/filters/commonTypes';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import { CloseIcon, SearchIcon } from '@/components/icons';
-import { DebouncedInput } from '@/components/core/application-search/components/DebouncedInput';
+import { SearchInput } from '@/components/common/filters/SearchInput';
 
 import { SelectAll } from './components/SelectAll';
 import { CheckboxListItem } from './components/CheckboxListItem';
@@ -223,23 +222,10 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
         {label && <div className={s.label}>{label}</div>}
         {hint && <div className={s.hint}>{hint}</div>}
         {!hideSearch && (
-          <DebouncedInput
+          <SearchInput
             value={searchValue}
-            ids={{
-              root: '',
-              input: '',
-            }}
-            classes={{
-              root: s.inputRoot,
-              input: s.input,
-              flushBtn: s.flushBtn,
-              clearBtn: s.clearBtn,
-            }}
             onChange={handleSearchChange}
             placeholder={placeholder}
-            hideFlushIconOnValueInput
-            clearIcon={<CloseIcon color="#64748b" />}
-            flushIcon={<SearchIcon color="#64748b" className={s.searchIcon} />}
           />
         )}
         <div className={s.list}>

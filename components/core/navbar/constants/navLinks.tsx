@@ -2,7 +2,16 @@ import React from 'react';
 
 import { ISubItem } from '@/components/core/navbar/type';
 import { CalendarBlankIcon, ContributorIcon, UsersThreeIcon } from '@/components/icons';
-import { MembersIcon, TeamsIcon, ProjectsIcon, DealsIcon, FounderGuidesIcon, DemoDayIcon, AnalyticsIcon, JobsIcon } from '../components/icons';
+import {
+  MembersIcon,
+  TeamsIcon,
+  ProjectsIcon,
+  DealsIcon,
+  FounderGuidesIcon,
+  DemoDayIcon,
+  AnalyticsIcon,
+  JobsIcon,
+} from '../components/icons';
 
 export const DIRECTORY_LINKS: ISubItem[] = [
   {

@@ -1,0 +1,131 @@
+.searchContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.searchInput {
+  width: 100%;
+  border: 1px solid #c5ced9;
+  border-radius: 8px;
+  background: #fff;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #0a0c11;
+  line-height: 20px;
+  outline: none;
+  transition: all 0.2s ease;
+
+  &::placeholder {
+    color: #afbaca;
+    font-weight: 400;
+  }
+
+  &:hover {
+    border-color: #5e718d;
+  }
+
+  &:focus {
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+}
+
+.optionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 2px;
+  cursor: pointer;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #1b4dff;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.optionLabel {
+  flex: 1;
+  font-weight: 400;
+}
+
+.optionCount {
+  color: #64748b;
+  background: #f1f5f9;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 16px;
+  min-width: 24px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.treeRow {
+  display: flex;
+  align-items: center;
+}
+
+.treeChevron {
+  outline: none;
+  background: inherit;
+  border: none;
+  cursor: pointer;
+  min-height: 20px;
+  min-width: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+.treeChevronIcon {
+  flex-shrink: 0;
+  color: #455468;
+  transition: transform 0.3s ease;
+}
+
+.treeChevronIcon_open {
+  transform: rotate(90deg);
+}
+
+.treeChevronSpacer {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.treeChildren {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 26px;
+}

@@ -22,6 +22,7 @@ import {
   FOUNDER_GUIDES_LINK,
   DEMO_DAY_LINK,
   DEMO_DAY_ANALYTICS_LINK,
+  JOBS_LINK,
 } from './constants/navLinks';
 import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
@@ -95,7 +96,7 @@ function Navbar(props: Readonly<INavbar>) {
   const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
 
-  const moreLinks: ISubItem[] = [DEALS_LINK, ...(hasFounderGuidesAccess ? [FOUNDER_GUIDES_LINK] : [])];
+  const moreLinks: ISubItem[] = [DEALS_LINK, ...(hasFounderGuidesAccess ? [FOUNDER_GUIDES_LINK] : []), JOBS_LINK];
 
   return (
     <NavigationMenu.Root className={s.Root}>

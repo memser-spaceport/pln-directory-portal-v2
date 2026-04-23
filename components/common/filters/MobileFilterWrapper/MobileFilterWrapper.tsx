@@ -5,6 +5,7 @@ import { useSwipeable } from 'react-swipeable';
 import { Menu } from '@base-ui-components/react/menu';
 import { Dialog } from '@base-ui-components/react/dialog';
 
+import { Button } from '@/components/common/Button';
 import { CloseIcon, PlusIcon, ChevronDownIcon } from '@/components/icons';
 
 import s from './MobileFilterWrapper.module.scss';
@@ -167,17 +168,16 @@ export function MobileFilterWrapper({
             </div>
             <div className={s.dialogContent}>{renderFilter(handleCloseFilterDrawer)}</div>
             <div className={s.dialogFooter}>
-              <button
-                className={s.clearButton}
+              <Button
+                style="border"
                 onClick={() => {
                   onClearFilters?.();
                 }}
               >
-                Clear Filters
-              </button>
-              <button className={s.applyButton} onClick={handleCloseFilterDrawer}>
-                Apply Filters
-              </button>
+                Clear filters
+              </Button>
+
+              <Button onClick={handleCloseFilterDrawer}>Apply filters</Button>
             </div>
           </Dialog.Popup>
         </Dialog.Portal>

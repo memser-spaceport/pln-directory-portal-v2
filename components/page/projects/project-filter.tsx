@@ -8,8 +8,8 @@ import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@
 import Toggle from '@/components/ui/toogle';
 import { Autocomplete } from '@/components/ui/autocomplete';
 import { searchTeamsByName } from '@/services/teams.service';
-import { DEFAULT_PROJECT_TAGS, EVENTS, FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES } from '@/utils/constants';
-import { FocusAreaFilter } from '@/components/core/FocusAreaFilter';
+import { DEFAULT_PROJECT_TAGS, EVENTS, PAGE_ROUTES } from '@/utils/constants';
+import { ProjectFocusAreaFilter } from '@/components/page/projects/ProjectFocusAreaFilter';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import TagContainer from '@/components/ui/tag-container';
@@ -200,13 +200,9 @@ const ProjectFilter = (props: any) => {
           <Toggle height="16px" width="28px" callback={onRecentToggleClicked} isChecked={!!isRecent} />
         </div>
       </div>
-      <FocusAreaFilter
-        title="Focus Area"
-        uniqueKey={FOCUS_AREAS_FILTER_KEYS.projects as 'teamAncestorFocusAreas' | 'projectAncestorFocusAreas'}
-        focusAreaRawData={focusAreas?.rawData}
-        selectedItems={focusAreas?.selectedFocusAreas}
-        searchParams={searchParams}
-      />
+      {focusAreas && (
+        <ProjectFocusAreaFilter focusAreas={focusAreas} searchParams={searchParams} />
+      )}
       <div className={s.divider}></div>
       <div className={s.raisingFund}>
         <div className={s.raisingFundWrapper}>

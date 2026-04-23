@@ -1,17 +1,16 @@
 'use client';
 
-import { clsx } from 'clsx';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
-import { CaretRightIcon } from '@/components/icons';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
 import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
-import type { IJobsFacetItem, IJobsFacetTreeItem, JobsFilterKey } from '@/types/jobs.types';
+import type { IJobsFacetItem, JobsFilterKey } from '@/types/jobs.types';
 import { filterStateFromURL, seniorityDisplayLabel, sortSeniorityValues } from '@/utils/jobs.utils';
 import s from './JobsFilterBody.module.scss';
+import { FocusAreaFilter, getJobsFocusAreaCount, toJobsTreeFilterItems } from '@/components/core/FocusAreaFilter';
 
 const parseList = (values: string[]): Set<string> => {
   return new Set(values.map((v) => v.trim()).filter(Boolean));
@@ -50,6 +49,24 @@ export default function JobsFilterBody() {
     [searchParams],
   );
 
+  const focusTreeItems = useMemo(
+    () => (filtersQuery.data?.focus ? toJobsTreeFilterItems(filtersQuery.data.focus) : []),
+    [filtersQuery.data?.focus],
+  );
+
+  const handleFocusToggle = useCallback(
+    (item: { id: string }) => {
+      toggleMulti('focus', item.id);
+      analytics.onJobsFiltered({
+        filter_type: 'focus',
+        filter_value: item.id,
+        result_count: totalRoles,
+        filter_state: filterStateFromURL(searchParams),
+      });
+    },
+    [toggleMulti, analytics, totalRoles, searchParams],
+  );
+
   if (filtersQuery.isError) return null;
   if (filtersQuery.isLoading || !filtersQuery.data) return null;
 
@@ -68,11 +85,7 @@ export default function JobsFilterBody() {
   return (
     <>
       <FilterSection title="Search for a Job">
-        <SearchInput
-          value={qFromUrl}
-          onChange={handleSearchChange}
-          placeholder="Search a company or role"
-        />
+        <SearchInput value={qFromUrl} onChange={handleSearchChange} placeholder="Search a company or role" />
       </FilterSection>
 
       <FacetSection
@@ -90,7 +103,16 @@ export default function JobsFilterBody() {
         renderLabel={(v) => seniorityDisplayLabel(v)}
       />
 
-      <FocusTreeSection items={data.focus} selected={selected.focus} onToggle={(v) => onToggle('focus', v)} />
+      {focusTreeItems.length > 0 && (
+        <FilterSection title="Focus Area">
+          <FocusAreaFilter
+            items={focusTreeItems}
+            selectedIds={selected.focus}
+            onToggle={handleFocusToggle}
+            getCount={getJobsFocusAreaCount}
+          />
+        </FilterSection>
+      )}
 
       <FacetSection
         title="Location"
@@ -138,94 +160,5 @@ function FacetSection({
         })}
       </ul>
     </FilterSection>
-  );
-}
-
-function FocusTreeSection({
-  items,
-  selected,
-  onToggle,
-}: {
-  items: IJobsFacetTreeItem[];
-  selected: Set<string>;
-  onToggle: (value: string) => void;
-}) {
-  if (items.length === 0) return null;
-  return (
-    <FilterSection title="Focus Area">
-      <ul className={s.optionList}>
-        {items.map((parent) => (
-          <FocusNode key={parent.value} parent={parent} selected={selected} onToggle={onToggle} />
-        ))}
-      </ul>
-    </FilterSection>
-  );
-}
-
-function FocusNode({
-  parent,
-  selected,
-  onToggle,
-}: {
-  parent: IJobsFacetTreeItem;
-  selected: Set<string>;
-  onToggle: (value: string) => void;
-}) {
-  const hasChildren = parent.children.length > 0;
-  const childSelected = parent.children.some((c) => selected.has(c.value));
-  const [expanded, setExpanded] = useState<boolean>(childSelected);
-
-  useEffect(() => {
-    if (childSelected) setExpanded(true);
-  }, [childSelected]);
-
-  const isChecked = selected.has(parent.value);
-
-  return (
-    <li>
-      <div className={s.treeRow}>
-        <label className={s.option}>
-          <input type="checkbox" checked={isChecked} onChange={() => onToggle(parent.value)} className={s.checkbox} />
-          {hasChildren ? (
-            <button
-              type="button"
-              className={s.treeChevron}
-              onClick={(e) => {
-                e.preventDefault();
-                setExpanded((v) => !v);
-              }}
-              title={expanded ? 'Collapse' : 'Expand'}
-            >
-              <CaretRightIcon className={clsx(s.treeChevronIcon, { [s.treeChevronIcon_open]: expanded })} />
-            </button>
-          ) : (
-            <span className={s.treeChevronSpacer} />
-          )}
-          <span className={s.optionLabel}>{parent.value}</span>
-          <span className={s.optionCount}>{parent.count}</span>
-        </label>
-      </div>
-      {hasChildren && expanded && (
-        <ul className={s.treeChildren}>
-          {parent.children.map((child) => {
-            const childChecked = selected.has(child.value);
-            return (
-              <li key={child.value}>
-                <label className={s.option}>
-                  <input
-                    type="checkbox"
-                    checked={childChecked}
-                    onChange={() => onToggle(child.value)}
-                    className={s.checkbox}
-                  />
-                  <span className={s.optionLabel}>{child.value}</span>
-                  <span className={s.optionCount}>{child.count}</span>
-                </label>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </li>
   );
 }

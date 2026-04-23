@@ -28,21 +28,29 @@ export const useJobsAnalytics = () => {
     }
   };
 
-  const onJobsViewed = (args: { result_count: number; filter_state: FilterStateParam }) => {
-    captureEvent(JOBS_ANALYTICS.JOBS_VIEWED, { ...args });
+  const onJobsPageViewed = (args: { result_count: number; filter_state: FilterStateParam }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOBS_PAGE_VIEWED, { ...args });
   };
 
-  const onJobsFiltered = (args: {
+  const onJobsFiltersApplied = (args: {
     filter_type: string;
     filter_value: unknown;
     result_count: number;
     filter_state: FilterStateParam;
   }) => {
-    captureEvent(JOBS_ANALYTICS.JOBS_FILTERED, { ...args });
+    captureEvent(JOBS_ANALYTICS.ON_JOBS_FILTERS_APPLIED, { ...args });
   };
 
-  const onJobsSorted = (args: { sort_key: string; result_count: number }) => {
-    captureEvent(JOBS_ANALYTICS.JOBS_SORTED, { ...args });
+  const onJobsFiltersCleared = (args: { result_count: number; filter_state: FilterStateParam }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOBS_FILTERS_CLEARED, { ...args });
+  };
+
+  const onJobsSearched = (args: { search_query: string; result_count: number; filter_state: FilterStateParam }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOBS_SEARCHED, { ...args });
+  };
+
+  const onJobsSortChanged = (args: { sort_key: string; result_count: number }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOBS_SORT_CHANGED, { ...args });
   };
 
   const onJobClicked = (args: {
@@ -56,8 +64,8 @@ export const useJobsAnalytics = () => {
     position_in_list: number;
     filter_state: FilterStateParam;
   }) => {
-    captureEvent(JOBS_ANALYTICS.JOB_CLICKED, { ...args });
+    captureEvent(JOBS_ANALYTICS.ON_JOB_CLICKED, { ...args });
   };
 
-  return { onJobsViewed, onJobsFiltered, onJobsSorted, onJobClicked };
+  return { onJobsPageViewed, onJobsFiltersApplied, onJobsFiltersCleared, onJobsSearched, onJobsSortChanged, onJobClicked };
 };

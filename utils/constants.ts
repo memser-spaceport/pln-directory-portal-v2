@@ -60,10 +60,12 @@ export const NAV_OPTIONS = [
 ];
 
 export const JOBS_ANALYTICS = {
-  JOBS_VIEWED: 'jobs_viewed',
-  JOBS_FILTERED: 'jobs_filtered',
-  JOBS_SORTED: 'jobs_sorted',
-  JOB_CLICKED: 'job_clicked',
+  ON_JOBS_PAGE_VIEWED: 'jobs-page-viewed',
+  ON_JOBS_FILTERS_APPLIED: 'jobs-filters-applied',
+  ON_JOBS_FILTERS_CLEARED: 'jobs-filters-cleared',
+  ON_JOBS_SEARCHED: 'jobs-searched',
+  ON_JOBS_SORT_CHANGED: 'jobs-sort-changed',
+  ON_JOB_CLICKED: 'job-clicked',
 };
 
 export const EVENTS = {

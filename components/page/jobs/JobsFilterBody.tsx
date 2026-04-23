@@ -29,9 +29,8 @@ export default function JobsFilterBody() {
     (value: string) => {
       const next = value.trim();
       setParam('q', next || null);
-      analytics.onJobsFiltered({
-        filter_type: 'q',
-        filter_value: next,
+      analytics.onJobsSearched({
+        search_query: next,
         result_count: totalRoles,
         filter_state: filterStateFromURL(searchParams),
       });
@@ -57,7 +56,7 @@ export default function JobsFilterBody() {
   const handleFocusToggle = useCallback(
     (item: { id: string }) => {
       toggleMulti('focus', item.id);
-      analytics.onJobsFiltered({
+      analytics.onJobsFiltersApplied({
         filter_type: 'focus',
         filter_value: item.id,
         result_count: totalRoles,
@@ -74,7 +73,7 @@ export default function JobsFilterBody() {
 
   const onToggle = (key: JobsFilterKey, value: string) => {
     toggleMulti(key, value);
-    analytics.onJobsFiltered({
+    analytics.onJobsFiltersApplied({
       filter_type: key,
       filter_value: value,
       result_count: totalRoles,

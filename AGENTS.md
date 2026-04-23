@@ -82,3 +82,15 @@ Treat this repository as a **Next.js frontend monolith** using the App Router.
 17. Always use `customFetch()` from `@/utils/fetch-wrapper` for authenticated API requests. Never use raw `fetch()` with `credentials: 'include'` directly — this bypasses automatic token refresh handling.
 18. Before creating a new component, check for existing components that can be extended or adapted. Extract generic behavior into reusable components in `components/core/` or `components/ui/`. Never duplicate components with minor variations.
 19. When adding navigation items, update both desktop (`navbar/`) and mobile (`MobileBottomNav/`) navigation. Include proper icons and selected states for mobile nav items.
+
+## Analytics/Event Tracking Conventions
+
+- **Event names:** kebab-case in format `{domain}-{action}` or `{domain}-{context}-{action}` (e.g., `job-clicked`, `jobs-page-viewed`, `jobs-filters-applied`)
+- **Constants:** `ON_{DOMAIN}_{ACTION}` in `utils/constants.ts` (e.g., `ON_JOBS_PAGE_VIEWED: 'jobs-page-viewed'`)
+- **Analytics hooks:** Create in `analytics/{domain}.analytics.ts`, prefix handlers with `on` (e.g., `onJobClicked`), include user properties (`is_authenticated`, `loggedInUserUid`, etc.)
+
+## Analytics/Event Tracking Conventions
+
+- **Event names:** kebab-case (`jobs-page-viewed`, `job-clicked`, `jobs-filters-applied`)
+- **Constants:** `ON_{DOMAIN}_{ACTION}` in `utils/constants.ts` (e.g., `ON_JOBS_PAGE_VIEWED: 'jobs-page-viewed'`)
+- **Analytics hooks:** Create in `analytics/{domain}.analytics.ts`, prefix handlers with `on` (e.g., `onJobClicked`), include user properties (`is_authenticated`, `loggedInUserUid`, etc.)

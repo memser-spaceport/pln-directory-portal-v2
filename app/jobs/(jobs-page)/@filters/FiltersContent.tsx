@@ -30,9 +30,7 @@ export default function FiltersContent() {
 
   const onClearAll = () => {
     clearAll();
-    analytics.onJobsFiltered({
-      filter_type: 'clear_all',
-      filter_value: null,
+    analytics.onJobsFiltersCleared({
       result_count: totalRoles,
       filter_state: {},
     });

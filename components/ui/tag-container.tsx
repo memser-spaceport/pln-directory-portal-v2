@@ -6,6 +6,8 @@ import { triggerLoader } from '@/utils/common.utils';
 import { PRIVATE_FILTERS } from '@/utils/constants';
 import { Tag } from '@/components/ui/Tag';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 
 interface ITagContainer {
   onTagClickHandler: (key: string, value: string, isSelected: boolean) => void;
@@ -27,6 +29,7 @@ const TagContainer = (props: ITagContainer) => {
   const userInfo = props?.userInfo;
   const isUserLoggedIn = props?.isUserLoggedIn ?? false;
   const accessLevel = getAccessLevel(userInfo ?? null, isUserLoggedIn);
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
   // const analytics = useCommonAnalytics();
 
@@ -61,7 +64,7 @@ const TagContainer = (props: ITagContainer) => {
 
   const onMouseEnter = (id: string) => {
     const accessElement = document?.getElementById(id);
-    if (accessElement && (!isUserLoggedIn || accessLevel === 'base') && PRIVATE_FILTERS.includes(keyValue)) {
+    if (accessElement && (!isUserLoggedIn || (USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : accessLevel === 'base')) && PRIVATE_FILTERS.includes(keyValue)) {
       accessElement.style.display = 'flex';
     }
   };
@@ -82,7 +85,7 @@ const TagContainer = (props: ITagContainer) => {
         <div className="tags-container__access-container" id={`tags-container__access-container${label}`}>
           <div className="tags-container__access-container__content">
             <img loading="lazy" alt="lock" src="/icons/lock.svg" />
-            {accessLevel === 'base' ? (
+            {(USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : accessLevel === 'base') ? (
               <>Limited access</>
             ) : (
               <>

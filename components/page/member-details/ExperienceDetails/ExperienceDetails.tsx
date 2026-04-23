@@ -9,6 +9,8 @@ import { FormattedMemberExperience } from '@/services/members/hooks/useMemberExp
 import { EditExperienceForm } from '@/components/page/member-details/ExperienceDetails/components/EditExperienceForm';
 
 import { getAccessLevel } from '@/utils/auth.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 
@@ -27,10 +29,11 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [selectedItem, setSelectedItem] = useState<null | FormattedMemberExperience>(null);
 
   const isOwner = userInfo?.uid === member.id;
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
   useMobileNavVisibility(view !== 'view');
 
-  if (!isLoggedIn || (getAccessLevel(userInfo, isLoggedIn) !== 'advanced' && !isOwner)) {
+  if (!isLoggedIn || ((USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : getAccessLevel(userInfo, isLoggedIn) !== 'advanced') && !isOwner)) {
     return null;
   }
 

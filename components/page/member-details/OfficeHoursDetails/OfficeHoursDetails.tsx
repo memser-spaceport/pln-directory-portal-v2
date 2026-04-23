@@ -17,6 +17,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 
 interface Props {
   member: IMember;
@@ -32,6 +34,7 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
   const isEditable = isOwner || isAdmin;
   const showWarningUseCaseA = !member?.officeHours;
   const showWarningUseCaseB = !member?.ohInterest?.length || !member?.ohHelpWith?.length;
@@ -65,7 +68,7 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
     return null;
   }
 
-  if (accessLevel === 'base') {
+  if (USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : accessLevel === 'base') {
     return null;
   }
 

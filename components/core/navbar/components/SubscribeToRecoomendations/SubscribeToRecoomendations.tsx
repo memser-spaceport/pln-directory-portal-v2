@@ -14,6 +14,8 @@ import { clsx } from 'clsx';
 // import { useMember } from '@/services/members/hooks/useMember';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 
 interface Props {
   userInfo: IUserInfo;
@@ -32,6 +34,7 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
   const searchParams = useSearchParams();
   const isOnboardingLoginFlow = searchParams.get('loginFlow') === 'onboarding';
   const accessLevel = getAccessLevel(userInfo, true);
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
   const handleSubscribe = useCallback(async () => {
     if (!userInfo) {
@@ -84,7 +87,7 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
     !data.recommendationsEnabled ||
     !data.showInvitationDialog ||
     isOnboardingLoginFlow ||
-    accessLevel !== 'advanced'
+    (USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : accessLevel !== 'advanced')
   ) {
     return null;
   }

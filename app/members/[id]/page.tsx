@@ -23,6 +23,8 @@ import qs from 'qs';
 import { getAccessLevel } from '@/utils/auth.utils';
 import clsx from 'clsx';
 import { isDemodaySignUpSource, isMemberAvailableToConnect } from '@/utils/member.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useQuery } from '@tanstack/react-query';
@@ -97,7 +99,10 @@ const MemberDetails = ({ params }: { params: any }) => {
   });
   const isAvailableToConnect = isMemberAvailableToConnect(member);
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
-  const isNewInvestor = accessLevel === 'base' && isOwner && isDemodaySignUpSource(member?.signUpSource);
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
+  const isNewInvestor = (USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : accessLevel === 'base') &&
+    isOwner &&
+    isDemodaySignUpSource(member?.signUpSource);
 
   // Scroll to top when member data is loaded or member ID changes
   useEffect(() => {
@@ -236,7 +241,7 @@ const MemberDetails = ({ params }: { params: any }) => {
               {renderPageContent()}
             </div>
           </div>
-          {!isAvailableToConnect && isLoggedIn && accessLevel === 'advanced' && !isOwner && (
+          {!isAvailableToConnect && isLoggedIn && (USE_ACCESS_CONTROL_V2 ? v2HasMemberContacts : accessLevel === 'advanced') && !isOwner && (
             <div className={styles.desktopOnly}>
               <div style={{ visibility: 'hidden' }}>
                 <BackButton to={`/members`} />

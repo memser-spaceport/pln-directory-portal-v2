@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { DealsQueryKeys } from '../constants';
-import { checkDealsAccess } from '../deals.service';
+import { AccessControlQueryKeys } from '@/services/access-control/constants';
 import { fetchMyAccess } from '@/services/access-control/access-control.service';
 import { getUserInfoFromLocal } from '@/utils/common.utils';
 
-export function useDealsAccess() {
+export function useDemoDayAnalyticsAccess() {
   const userInfo = getUserInfoFromLocal();
 
   const {
@@ -12,12 +11,9 @@ export function useDealsAccess() {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: [DealsQueryKeys.DEALS_ACCESS],
-    queryFn: async () => {
-      const [legacyAccess, access] = await Promise.all([checkDealsAccess(), fetchMyAccess()]);
-      const rbacAccess = access.effectivePermissions.includes('deals.read');
-      return legacyAccess || rbacAccess;
-    },
+    queryKey: [AccessControlQueryKeys.MY_ACCESS],
+    queryFn: fetchMyAccess,
+    select: (data) => data.effectivePermissions.includes('demoday.stats.read'),
     staleTime: 5 * 60 * 1000,
     enabled: !!userInfo,
     retry: 2,

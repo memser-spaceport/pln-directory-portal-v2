@@ -13,6 +13,8 @@ import { ListLoader } from '@/components/core/loaders/ListLoader';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useInfiniteTeamsList } from '@/services/teams/hooks/useInfiniteTeamsList';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 import { TeamsMobileFilters } from './TeamsMobileFilters';
 
 interface ITeamList {
@@ -29,6 +31,7 @@ const TeamList = (props: any) => {
   const filterValues = props.filterValues;
 
   const accessLevel = getAccessLevel(userInfo, true);
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
   const analytics = useTeamAnalytics();
 
@@ -69,6 +72,9 @@ const TeamList = (props: any) => {
           {/*{userInfo && accessLevel === 'advanced' && data?.length > 0 && (*/}
           {/*  <TeamAddCard userInfo={userInfo} viewType={VIEW_TYPE_OPTIONS.GRID} />*/}
           {/*)}*/}
+          {USE_ACCESS_CONTROL_V2 && userInfo && v2HasMemberContacts && data?.length > 0 && (
+            <TeamAddCard userInfo={userInfo} viewType={VIEW_TYPE_OPTIONS.GRID} />
+          )}
           {data?.map((team: ITeam, index: number) => (
             <div
               key={`teamitem-${team.id}-${index}`}

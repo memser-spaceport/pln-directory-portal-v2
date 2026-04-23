@@ -12,6 +12,8 @@ import { ListLoader } from '@/components/core/loaders/ListLoader';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useInfiniteProjectsList } from '@/services/projects/hooks/useInfiniteProjectsList';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 
 const ProjectlistWrapper = (props: any) => {
   const searchParams = props?.searchParams;
@@ -21,6 +23,7 @@ const ProjectlistWrapper = (props: any) => {
   const totalProjects = props?.totalProjects;
   const isLoggedIn = props?.isLoggedIn;
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
   const analytics = useProjectAnalytics();
 
@@ -62,7 +65,7 @@ const ProjectlistWrapper = (props: any) => {
           style={{ overflow: 'unset' }}
         >
           <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid' : 'project-list__list'}`}>
-            {isLoggedIn && accessLevel === 'advanced' && totalProjects > 0 && (
+            {isLoggedIn && (USE_ACCESS_CONTROL_V2 ? v2HasMemberContacts : accessLevel === 'advanced') && totalProjects > 0 && (
               <ProjectAddCard userInfo={userInfo} viewType={viewType} />
             )}
             {data?.map((project: any, index: number) => (

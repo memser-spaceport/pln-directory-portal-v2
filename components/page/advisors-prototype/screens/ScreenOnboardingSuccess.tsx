@@ -19,7 +19,7 @@ export function ScreenOnboardingSuccess({ onViewProfile, onEditAvailability }: P
           </div>
 
           <div className={s.cardHeading}>
-            <h2 className={s.cardTitle} style={{ textAlign: 'center' }}>You're all set</h2>
+            <h2 className={s.cardTitle} style={{ textAlign: 'center' }}>You&apos;re all set</h2>
             <p className={s.cardSubtitle} style={{ textAlign: 'center' }}>
               Your advisor profile is live. Founders in the network can now find and request time with you.
             </p>

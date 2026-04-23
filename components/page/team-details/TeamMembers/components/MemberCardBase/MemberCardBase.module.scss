@@ -1,0 +1,88 @@
+@use 'styles/media';
+
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  overflow: hidden;
+  background: #f8fafc;
+  border-radius: 12px;
+  position: relative;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.avatarContainer {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.tlIcon {
+  top: -4px;
+  right: -3px;
+  position: absolute;
+
+  width: 16px;
+  height: 16px;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nameRole {
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #455468;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @include media.mobile-only {
+    max-width: 150px;
+  }
+}
+
+.role {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}

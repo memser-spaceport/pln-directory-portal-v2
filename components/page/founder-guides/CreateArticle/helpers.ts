@@ -1,19 +1,19 @@
 import * as yup from 'yup';
 import { IArticle } from '@/types/articles.types';
-import { ARTICLE_CATEGORIES } from '@/services/articles/constants';
+import { ARTICLE_CATEGORIES, SCOPE_LABELS } from '@/services/articles/constants';
 
 export const createArticleSchema = yup.object().shape({
-  category: yup.object().nullable().optional(),
-  title: yup.string().max(255, 'Title exceeds 255 characters. Please shorten.').nullable().optional(),
-  summary: yup.string().max(100, 'Max 100 characters.').nullable().optional(),
+  category: yup.object().required('Category is required'),
+  scope: yup.object().nullable().optional(),
+  title: yup.string().max(255, 'Title exceeds 255 characters. Please shorten.').required('Title is required'),
+  summary: yup.string().max(100, 'Max 100 characters.').required('Summary is required'),
   readingTime: yup
     .number()
     .typeError('Must be a positive number.')
-    .transform((value, original) => (original === '' ? null : value))
+    .transform((value, original) => (original === '' || original == null ? undefined : value))
     .min(1, 'Must be a positive number.')
     .max(999, 'Max 999 minutes.')
-    .nullable()
-    .optional(),
+    .required('Reading time is required'),
   content: yup
     .string()
     .test({
@@ -24,21 +24,21 @@ export const createArticleSchema = yup.object().shape({
         return value.length <= 60000;
       },
     })
-    .nullable()
-    .optional(),
-  author: yup.object().nullable().optional(),
+    .required('Content is required'),
+  author: yup.object().required('Author is required'),
   officeHours: yup
     .string()
     .nullable()
-    .optional()
-    .test('url', 'Must be a valid URL', (value) => {
-      if (value == null || String(value).trim() === '') return true;
-      return yup.string().url().isValidSync(value);
+    .when('author', {
+      is: (author: any) => author?.type === 'team',
+      then: (schema) => schema.required('Office Hours link is required').url('Must be a valid URL'),
+      otherwise: (schema) => schema.optional(),
     }),
 });
 
 export type CreateArticleForm = {
   category: { label: string; value: string } | null;
+  scope: { label: string; value: string } | null;
   title: string;
   summary: string;
   readingTime: number | null;
@@ -50,11 +50,11 @@ export type CreateArticleForm = {
 export function articleToFormValues(article: IArticle): CreateArticleForm {
   const categoryOption = article.category
     ? {
-        label: (ARTICLE_CATEGORIES as readonly string[]).includes(article.category)
-          ? article.category
-          : article.category,
-        value: article.category,
-      }
+      label: (ARTICLE_CATEGORIES as readonly string[]).includes(article.category)
+        ? article.category
+        : article.category,
+      value: article.category,
+    }
     : null;
 
   let author: CreateArticleForm['author'] = null;
@@ -64,8 +64,13 @@ export function articleToFormValues(article: IArticle): CreateArticleForm {
     author = { label: article.authorTeam.name, value: article.authorTeam.uid, type: 'team' };
   }
 
+  const scopeOption = article.scope
+    ? { label: SCOPE_LABELS[article.scope] ?? article.scope, value: article.scope }
+    : null;
+
   return {
     category: categoryOption,
+    scope: scopeOption,
     title: article.title || '',
     summary: article.summary || '',
     readingTime: article.readingTime || null,

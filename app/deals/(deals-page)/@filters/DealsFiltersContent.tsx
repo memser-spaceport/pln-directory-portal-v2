@@ -5,6 +5,7 @@ import { useCallback } from 'react';
 import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import { dealsFilterParsers } from '../searchParams';
 import { useGetDealFilterValues } from '@/services/deals/hooks/useGetDealFilterValues';
+import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 import { DealsFilter } from '@/components/page/deals/DealsFilter/DealsFilter';
 import { FiltersPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout';
 import Error from '@/components/core/error';
@@ -16,7 +17,8 @@ export default function DealsFiltersContent() {
     shallow: true,
   });
 
-  const { data: filterValues, isLoading, isError } = useGetDealFilterValues();
+  const { hasAccess, isLoading: isAccessLoading } = useDealsAccess();
+  const { data: filterValues, isLoading, isError } = useGetDealFilterValues(hasAccess);
   const analytics = useDealsAnalytics();
   const handleClearAll = useCallback(() => {
     analytics.trackFilterCleared();
@@ -48,6 +50,10 @@ export default function DealsFiltersContent() {
     },
     [setFilters, analytics],
   );
+
+  if (isAccessLoading || !hasAccess) {
+    return null;
+  }
 
   if (isError) {
     return <Error />;

@@ -1,0 +1,77 @@
+@use 'styles/media';
+
+.root {
+  padding: 24px;
+  width: clamp(300px, 90vw, 960px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: auto;
+  border-radius: 24px;
+  background: #fff;
+  height: 60vh;
+
+  @include media.mobile-only {
+    height: 95dvh;
+  }
+}
+
+.title {
+  color: #0f172a;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 32px;
+}
+
+.searchBar {
+  width: 100%;
+  display: flex;
+  height: 40px;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  background: #fff;
+  box-shadow:
+    0 -2px 8px 0 rgba(14, 15, 17, 0.02) inset,
+    0 1px 2px 0 rgba(14, 15, 17, 0.08);
+}
+
+.searchInput {
+  border: none;
+  width: inherit;
+  color: black;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 24px;
+  background: #fff;
+
+  &:focus {
+    outline: none;
+  }
+
+  &::placeholder {
+    color: #475569;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 24px;
+  }
+}
+
+.divider {
+  height: 1px;
+  width: calc(100% + 48px);
+  background-color: rgba(27, 56, 96, 0.12);
+  margin-inline: -24px;
+}
+
+.members {
+  display: flex;
+  overflow: auto;
+  flex-direction: column;
+  flex: 1;
+}
+
+.memberBorder {
+  border-bottom: 1px solid #e2e8f0;
+}

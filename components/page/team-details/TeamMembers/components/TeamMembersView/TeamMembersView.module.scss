@@ -1,0 +1,21 @@
+@use 'styles/media';
+
+.membersList {
+  overflow: hidden;
+
+  @include media.breakpoint-1024 {
+    overflow: auto;
+    max-height: 300px;
+  }
+}
+
+.showAll {
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-align: center;
+  margin-top: 8px;
+  cursor: pointer;
+}

@@ -51,6 +51,7 @@ interface TeamsListHeaderProps {
   onGroupClick: (stageGroup: string) => void;
   onSortChange: (value: string) => void;
   onFiltersClick: () => void;
+  showSort?: boolean;
 }
 
 export const TeamsListHeader: React.FC<TeamsListHeaderProps> = ({
@@ -60,57 +61,62 @@ export const TeamsListHeader: React.FC<TeamsListHeaderProps> = ({
   onGroupClick,
   onSortChange,
   onFiltersClick,
+  showSort = true,
 }) => {
   const selectedSortOption = SORT_OPTIONS.find((option) => option.value === sortBy);
 
   return (
     <div className={s.header}>
-      <div className={s.headerLeft}>
-        {allGroupsWithCounts.map((group) => (
-          <button
-            key={group.stageGroup}
-            className={clsx(s.groupBadge, {
-              [s.active]: activeGroup === group.stageGroup,
-            })}
-            onClick={() => onGroupClick(group.stageGroup)}
-          >
-            <span className={s.groupLabel}>{group.label}</span>
-            <span className={s.groupCount}>{group.count}</span>
-          </button>
-        ))}
-      </div>
+      {allGroupsWithCounts.length > 0 && (
+        <div className={s.headerLeft}>
+          {allGroupsWithCounts.map((group) => (
+            <button
+              key={group.stageGroup}
+              className={clsx(s.groupBadge, {
+                [s.active]: activeGroup === group.stageGroup,
+              })}
+              onClick={() => onGroupClick(group.stageGroup)}
+            >
+              <span className={s.groupLabel}>{group.label}</span>
+              <span className={s.groupCount}>{group.count}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className={s.filtersWrapper}>
         <button className={s.filterButton} onClick={onFiltersClick}>
           <FilterIcon />
           <span>Filters</span>
         </button>
-        <div className={s.headerRight}>
-          <Menu.Root modal={false}>
-            <Menu.Trigger className={s.sortButton}>
-              <SortIcon />
-              <span className={s.sortLabel}>Sort by: {selectedSortOption?.label}</span>
-              <ChevronDownIcon />
-            </Menu.Trigger>
-            <Menu.Portal>
-              <Menu.Positioner className={s.menuPositioner} align="end" sideOffset={8}>
-                <Menu.Popup className={s.menuPopup}>
-                  {SORT_OPTIONS.map((option) => (
-                    <Menu.Item
-                      key={option.value}
-                      className={clsx(s.menuItem, {
-                        [s.active]: sortBy === option.value,
-                      })}
-                      onClick={() => onSortChange(option.value)}
-                    >
-                      {option.label}
-                    </Menu.Item>
-                  ))}
-                </Menu.Popup>
-              </Menu.Positioner>
-            </Menu.Portal>
-          </Menu.Root>
-        </div>
+        {showSort && (
+          <div className={s.headerRight}>
+            <Menu.Root modal={false}>
+              <Menu.Trigger className={s.sortButton}>
+                <SortIcon />
+                <span className={s.sortLabel}>Sort by: {selectedSortOption?.label}</span>
+                <ChevronDownIcon />
+              </Menu.Trigger>
+              <Menu.Portal>
+                <Menu.Positioner className={s.menuPositioner} align="end" sideOffset={8}>
+                  <Menu.Popup className={s.menuPopup}>
+                    {SORT_OPTIONS.map((option) => (
+                      <Menu.Item
+                        key={option.value}
+                        className={clsx(s.menuItem, {
+                          [s.active]: sortBy === option.value,
+                        })}
+                        onClick={() => onSortChange(option.value)}
+                      >
+                        {option.label}
+                      </Menu.Item>
+                    ))}
+                  </Menu.Popup>
+                </Menu.Positioner>
+              </Menu.Portal>
+            </Menu.Root>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,1 @@
+export { TeamMembersViewCard } from './TeamMembersViewCard';

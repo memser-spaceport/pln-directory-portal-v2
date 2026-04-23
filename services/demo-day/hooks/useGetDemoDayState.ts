@@ -8,21 +8,31 @@ import { useParams } from 'next/navigation';
 
 type DemoDayState = {
   uid: string;
+  slugURL?: string;
   access: 'none' | 'INVESTOR' | 'SUPPORT' | 'FOUNDER';
   date: string;
   title: string;
   description: string;
   shortDescription: string;
-  status: 'NONE' | 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED' | 'EARLY_ACCESS';
+  status: 'NONE' | 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED' | 'EARLY_ACCESS' | 'REGISTRATION_OPEN';
   isDemoDayAdmin: boolean;
   isDemoDayReadOnlyAdmin?: boolean;
   isEarlyAccess?: boolean;
   isPending?: boolean;
-  approximateStartDate?: string;
+  approximateStartDate?: string | null;
   confidentialityAccepted: boolean;
+  host?: string | null;
+  logoUrl?: string | null;
+  primaryColor?: string;
+  landingLogosEnabled?: boolean;
+  headerImageUrl?: string | null;
+  supportEmail?: string | null;
+  stageTagEnabled?: boolean;
 
   investorsCount: number;
   teamsCount: number;
+  programFieldEnabled?: boolean;
+  programFieldOptions?: string[];
 };
 
 export async function getDemoDayState(demoDaySlug: string, memberUid?: string) {

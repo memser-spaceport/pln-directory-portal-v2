@@ -1,4 +1,3 @@
-
 import { PushNotification } from '@/types/push-notifications.types';
 
 export function getCategoryLabel(category: PushNotification['category']): string {
@@ -16,6 +15,11 @@ export function getCategoryLabel(category: PushNotification['category']): string
     case 'FORUM_POST':
     case 'FORUM_REPLY':
       return 'Forum';
+    case 'GUIDE_POST':
+    case 'GUIDE_REPLY':
+      return 'Founder Guides';
+    case 'NEW_FEATURE':
+      return 'New Feature';
     case 'SYSTEM':
     default:
       return 'System';

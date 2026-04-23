@@ -1,0 +1,26 @@
+.button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+
+  transition: color 0.15s ease;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:not(:disabled):hover {
+    color: var(--action-foreground-brand-hover, #0060ff);
+  }
+
+  &.liked {
+    color: var(--action-foreground-brand-inverted_normal, #1b4dff);
+  }
+}

@@ -127,7 +127,7 @@ export function AdvisorProfile({ advisorId }: AdvisorProfileProps) {
               ) : (
                 <div className={styles.stateBlock}>
                   <p className={styles.stateText}>
-                    {advisor.member.name} hasn't connected a scheduling tool yet.
+                    {advisor.member.name} hasn&apos;t connected a scheduling tool yet.
                   </p>
                   <button className={styles.requestButton} onClick={() => setShowRequestTime(true)}>
                     Request a time

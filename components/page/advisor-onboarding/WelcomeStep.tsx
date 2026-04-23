@@ -23,7 +23,7 @@ export function WelcomeStep({ advisorName, onNext }: WelcomeStepProps) {
           {advisorName ? `Welcome, ${advisorName}` : 'Welcome to PL Network'}
         </h2>
         <p className={styles.subtitle}>
-          You've been invited to join the Protocol Labs advisor network.
+          You&apos;ve been invited to join the Protocol Labs advisor network.
         </p>
       </div>
 
@@ -37,7 +37,7 @@ export function WelcomeStep({ advisorName, onNext }: WelcomeStepProps) {
         <div className={styles.welcomeItem}>
           <div className={styles.welcomeItemDot} />
           <p className={styles.welcomeItemText}>
-            You'll connect your scheduling tool and set your availability windows.
+            You&apos;ll connect your scheduling tool and set your availability windows.
           </p>
         </div>
         <div className={styles.welcomeItem}>

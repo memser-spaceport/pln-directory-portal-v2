@@ -1,0 +1,232 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+// Input box / tag area
+
+.inputBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 4px 10px 4px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  background: #fff;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+}
+
+.placeholder {
+  flex: 1;
+  font-size: 14px;
+  color: #afbaca;
+  padding-left: 4px;
+}
+
+.tags {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+}
+
+.tagAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.tagLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  padding: 0 2px;
+  white-space: nowrap;
+}
+
+.tagRemove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.caret {
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+// Dropdown
+
+.dropdown {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0 20px 65px -5px rgba(14, 15, 17, 0.06);
+  overflow: hidden;
+  z-index: 12;
+}
+
+// Search
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+  height: 46px;
+}
+
+.searchIcon {
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  background: transparent;
+
+  &::placeholder {
+    color: #afbaca;
+  }
+}
+
+// Option list
+
+.listContainer {
+  overflow-y: auto;
+  max-height: calc(48px * 6);
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  cursor: pointer;
+
+  top: 0;
+  left: 0;
+  position: absolute;
+
+  width: 100%;
+
+  &:hover {
+    background: rgba(27, 56, 96, 0.04);
+  }
+}
+
+.checkbox {
+  height: 16px;
+
+  width: 16px;
+  min-width: 16px;
+}
+
+.optionAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.optionLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emptyList {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 14px;
+  color: #8897ae;
+}
+
+// Footer (always visible)
+
+.footer {
+  border-top: 1px solid rgba(27, 56, 96, 0.12);
+}
+
+.footerButtons {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px;
+}
+
+.footerBtn {
+  flex: 1;
+}
+
+.footerHint {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(27, 56, 96, 0.12);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.footerLink {
+  color: #1b4dff;
+  text-decoration: none;
+}

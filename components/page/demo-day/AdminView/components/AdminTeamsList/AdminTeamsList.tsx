@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useFilterStore } from '@/services/members/store';
 import { TeamProfileCard } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamProfileCard';
 import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamDetailsDrawer';
@@ -28,6 +29,9 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({
   isDirectoryAdmin = false,
   canEdit = true,
 }) => {
+  const { data: demoDayData } = useGetDemoDayState();
+  const stageTagEnabled = demoDayData?.stageTagEnabled !== false;
+
   const [sortBy, setSortBy] = useState<string>('stage-asc');
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -92,31 +96,36 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({
       <TeamsListAlert />
 
       <TeamsListHeader
-        allGroupsWithCounts={allGroupsWithCounts}
+        allGroupsWithCounts={stageTagEnabled ? allGroupsWithCounts : []}
         activeGroup={activeGroup}
         sortBy={sortBy}
         onGroupClick={scrollToGroup}
         onSortChange={handleSortChange}
         onFiltersClick={() => setIsFiltersDrawerOpen(true)}
+        showSort={stageTagEnabled}
       />
 
       <div className={s.teamsList}>
-        {groupedTeams.map((group, groupIndex) => (
-          <div
-            key={group.stageGroup}
-            className={s.stageGroup}
-            ref={(el) => {
-              if (el) {
-                groupRefs.current.set(group.stageGroup, el);
-              }
-            }}
-          >
-            <h3 className={s.stageGroupHeader}>{group.label}</h3>
-            {group.teams.map((profile) => (
+        {stageTagEnabled
+          ? groupedTeams.map((group) => (
+              <div
+                key={group.stageGroup}
+                className={s.stageGroup}
+                ref={(el) => {
+                  if (el) {
+                    groupRefs.current.set(group.stageGroup, el);
+                  }
+                }}
+              >
+                <h3 className={s.stageGroupHeader}>{group.label}</h3>
+                {group.teams.map((profile) => (
+                  <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={isDirectoryAdmin} canEdit={canEdit} />
+                ))}
+              </div>
+            ))
+          : filteredAndSortedTeams.map((profile) => (
               <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={isDirectoryAdmin} canEdit={canEdit} />
             ))}
-          </div>
-        ))}
 
         {filteredAndSortedTeams.length === 0 && totalTeamsCount > 0 && (
           <div className={s.emptyState}>

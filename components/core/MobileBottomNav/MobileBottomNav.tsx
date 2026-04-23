@@ -5,12 +5,19 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { DIRECTORY_LINKS, EVENT_LINKS, PROTOTYPE_LINKS } from '@/components/core/navbar/constants/navLinks';
+import { useAdvisorsAccess } from '@/services/advisors/hooks/useAdvisorsAccess';
+
+import {
+  DIRECTORY_LINKS,
+  EVENT_LINKS,
+  DEMO_DAY_LINK,
+  DEMO_DAY_ANALYTICS_LINK,
+  PROTOTYPE_LINKS,
+} from '@/components/core/navbar/constants/navLinks';
 import { DealsIcon, FounderGuidesIcon, MoreIcon, PrototypesIcon } from '@/components/core/navbar/components/icons';
 import { ISubItem } from '@/components/core/navbar/type';
-import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
-import { useAdvisorsAccess } from '@/services/advisors/hooks/useAdvisorsAccess';
 import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
+import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
 
 import { NavigationMenu } from '@base-ui-components/react';
 
@@ -21,14 +28,13 @@ import { DemoDayIcon, DirectoryIcon, EventsIcon, ForumIcon } from './components/
 
 import s from './MobileBottomNav.module.scss';
 
-const navItems = [{ href: '/demoday', label: 'Demo Day', icon: DemoDayIcon }];
-
 export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
-  const { hasAccess: hasDealsPageAccess } = useDealsAccess();
   const { hasAccess: hasAdvisorsAccess } = useAdvisorsAccess();
+
   const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
+  const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
 
   const prototypeItems: ISubItem[] = hasAdvisorsAccess
     ? [
@@ -50,8 +56,10 @@ export function MobileBottomNav() {
 
   const moreItems: ISubItem[] = [
     { href: '/forum', title: 'Forum', icon: <ForumIcon /> },
-    ...(hasDealsPageAccess ? [{ href: '/deals', title: 'Deals', icon: <DealsIcon /> }] : []),
-    ...(hasFounderGuidesAccess ? [{ href: '/founder-guides', title: 'Founder Guides', icon: <FounderGuidesIcon /> }] : []),
+    { href: '/deals', title: 'Deals', icon: <DealsIcon /> },
+    ...(hasFounderGuidesAccess
+      ? [{ href: '/founder-guides', title: 'Founder Guides', icon: <FounderGuidesIcon /> }]
+      : []),
   ];
 
   return (
@@ -67,22 +75,25 @@ export function MobileBottomNav() {
           <MobileNavItemWithMenu icon={<EventsIcon />} label="Events" items={EVENT_LINKS} />
           <MobileNavItemWithMenu icon={<PrototypesIcon />} label="Prototypes" items={prototypeItems} />
 
-          {/* Other Nav Items */}
-          {navItems.map(({ href, label, icon: Icon }) => {
-            return (
-              <NavigationMenu.Item key={href}>
-                <Link
-                  href={href}
-                  className={clsx(s.item, {
-                    [s.itemActive]: href.includes(pathname),
-                  })}
-                >
-                  <Icon />
-                  <span>{label}</span>
-                </Link>
-              </NavigationMenu.Item>
-            );
-          })}
+          {hasDemoDayAnalyticsAccess ? (
+            <MobileNavItemWithMenu
+              icon={<DemoDayIcon />}
+              label="Demo Day"
+              items={[DEMO_DAY_LINK, DEMO_DAY_ANALYTICS_LINK]}
+            />
+          ) : (
+            <NavigationMenu.Item>
+              <Link
+                href="/demoday"
+                className={clsx(s.item, {
+                  [s.itemActive]: pathname.startsWith('/demoday'),
+                })}
+              >
+                <DemoDayIcon />
+                <span>Demo Day</span>
+              </Link>
+            </NavigationMenu.Item>
+          )}
 
           <MobileNavItemWithMenu icon={<MoreIcon />} label="More" items={moreItems} />
         </NavigationMenu.List>

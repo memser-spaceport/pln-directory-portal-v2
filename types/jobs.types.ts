@@ -7,6 +7,7 @@ export interface IJobRole {
   applyUrl: string | null;
   lastUpdated: string;
   postedDate: string | null;
+  detectionDate: string | null;
 }
 
 export interface IJobTeam {

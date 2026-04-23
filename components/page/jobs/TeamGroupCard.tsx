@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
-import { formatRelativeDays, isNew, seniorityDisplayLabel, teamInitials } from '@/utils/jobs.utils';
+import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel, teamInitials } from '@/utils/jobs.utils';
 import s from './TeamGroupCard.module.scss';
 import clsx from 'clsx';
 
@@ -21,7 +21,7 @@ export default function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps
 
   const visibleRoles = expanded ? roles : roles.slice(0, INITIAL_ROLES_SHOWN);
   const hiddenCount = roles.length - visibleRoles.length;
-  const newCount = roles.filter((r) => isNew(r.lastUpdated)).length;
+  const newCount = roles.filter((r) => isNew(getJobDate(r))).length;
 
   const chips = buildFocusChips(team.focusAreas, team.subFocusAreas, MAX_FOCUS_CHIPS);
 
@@ -113,8 +113,9 @@ function buildFocusChips(
 }
 
 function RoleRow({ role, onClick }: { role: IJobRole; onClick: () => void }) {
-  const relative = formatRelativeDays(role.lastUpdated);
-  const showNew = isNew(role.lastUpdated);
+  const date = getJobDate(role);
+  const relative = formatRelativeDays(date);
+  const showNew = isNew(date);
   const metaParts = [
     role.seniority ? seniorityDisplayLabel(role.seniority) : null,
     role.roleCategory,

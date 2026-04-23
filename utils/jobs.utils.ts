@@ -1,5 +1,8 @@
 import type { ReadonlyURLSearchParams } from 'next/navigation';
-import type { IJobsFacetItem } from '@/types/jobs.types';
+import type { IJobRole, IJobsFacetItem } from '@/types/jobs.types';
+
+export const getJobDate = (role: IJobRole): string =>
+  role.postedDate ?? role.detectionDate ?? role.lastUpdated;
 
 const SENIORITY_DISPLAY: Record<string, string> = {
   'Junior (L1-L2)': 'Junior',

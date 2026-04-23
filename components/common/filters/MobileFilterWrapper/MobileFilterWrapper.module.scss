@@ -284,43 +284,13 @@
 }
 
 .dialogFooter {
-  display: flex;
   gap: 12px;
+  flex-shrink: 0;
   padding: 16px 20px;
   border-top: 1px solid #e2e8f0;
-  flex-shrink: 0;
-}
 
-.clearButton {
-  flex: 1;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  background: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  color: #475569;
-  cursor: pointer;
-
-  &:hover {
-    background: #f8fafc;
-  }
-}
-
-.applyButton {
-  flex: 1;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: none;
-  background: #1b4dff;
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-
-  &:hover {
-    background: #1540d9;
-  }
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
 
 // Animations

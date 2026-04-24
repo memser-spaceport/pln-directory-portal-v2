@@ -12,11 +12,9 @@ import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/hooks/useJo
 import { filterStateFromURL, seniorityDisplayLabel, sortSeniorityValues } from '@/utils/jobs.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
-function facetToFilterItems(items?: { value: string; count: number }[]) {
-  return items?.map((item) => ({ value: item.value, count: item.count, disabled: false }));
-}
+import { facetToFilterItems } from './utils/facetToFilterItems';
 
-export default function JobsFilterBody() {
+export function JobsFilterBody() {
   const filtersQuery = useJobsFilters();
   const { totalRoles } = useInfiniteJobsList();
   const { setParam, params } = useJobsFilterStore();

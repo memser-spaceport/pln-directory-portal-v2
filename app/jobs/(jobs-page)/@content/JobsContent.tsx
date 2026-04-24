@@ -14,7 +14,7 @@ import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
 import Error from '@/components/core/error';
 import EmptyResult from '@/components/core/empty-result';
-import TeamGroupCard from '@/components/page/jobs/TeamGroupCard';
+import { TeamGroupCard } from '@/components/page/jobs/TeamGroupCard';
 import JobsMobileFilters from '@/components/page/jobs/JobsMobileFilters';
 import s from './JobsContent.module.scss';
 

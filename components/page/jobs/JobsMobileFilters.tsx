@@ -9,8 +9,8 @@ import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater
 import { filterStateFromURL } from '@/utils/jobs.utils';
 
 const SORT_OPTIONS = [
+  { value: 'company_az', label: 'A-Z (Ascending)' },
   { value: 'newest', label: 'Newest' },
-  { value: 'company_az', label: 'Company A–Z' },
 ];
 
 export default function JobsMobileFilters() {

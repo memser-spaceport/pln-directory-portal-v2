@@ -84,7 +84,7 @@ export default function JobsFilterBody() {
   return (
     <>
       <FilterSection title="Search for a Job">
-        <SearchInput value={qFromUrl} onChange={handleSearchChange} placeholder="Search a company or role" />
+        <SearchInput value={qFromUrl} onChange={handleSearchChange} placeholder="Search a team or role" />
       </FilterSection>
 
       <FacetSection

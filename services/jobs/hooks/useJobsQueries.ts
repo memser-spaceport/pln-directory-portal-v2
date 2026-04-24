@@ -7,6 +7,8 @@ import { fetchJobsFilters, fetchJobsList } from '../jobs.service';
 import { JobsQueryKey } from '../constants';
 import type { IJobTeamGroup, IJobsListResponse } from '@/types/jobs.types';
 
+import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+
 const SINGLE_VALUE_KEYS = ['q', 'sort'] as const;
 const MULTI_VALUE_KEYS = ['roleCategory', 'seniority', 'focus', 'location'] as const;
 
@@ -17,9 +19,11 @@ export const pickJobsParams = (searchParams: URLSearchParams): URLSearchParams =
     if (value) picked.set(key, value);
   }
   for (const key of MULTI_VALUE_KEYS) {
-    const values = searchParams.getAll(key);
-    for (const v of values) {
-      if (v) picked.append(key, v);
+    const raw = searchParams.get(key);
+    if (raw) {
+      for (const v of raw.split(URL_QUERY_VALUE_SEPARATOR)) {
+        if (v) picked.append(key, v);
+      }
     }
   }
   return picked;

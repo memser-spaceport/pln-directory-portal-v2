@@ -1,35 +1,25 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import Error from '@/components/core/error';
 import { FiltersPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import JobsFilterBody from '@/components/page/jobs/JobsFilterBody';
 import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
-import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
+import { useJobsFilterStore, useJobsFilterCount } from '@/services/jobs/store';
 
 export default function FiltersContent() {
-  const searchParams = useSearchParams();
   const filtersQuery = useJobsFilters();
   const { totalRoles } = useInfiniteJobsList();
-  const { clearAll } = useJobsParamsUpdater();
+  const { clearParams } = useJobsFilterStore();
   const analytics = useJobsAnalytics();
-
-  const qFromUrl = searchParams.get('q') ?? '';
-
-  const appliedCount =
-    (qFromUrl ? 1 : 0) +
-    searchParams.getAll('roleCategory').length +
-    searchParams.getAll('seniority').length +
-    searchParams.getAll('focus').length +
-    searchParams.getAll('location').length;
+  const appliedCount = useJobsFilterCount();
 
   if (filtersQuery.isError) return <Error />;
   if (filtersQuery.isLoading || !filtersQuery.data) return <FiltersPanelSkeletonLoader />;
 
   const onClearAll = () => {
-    clearAll();
+    clearParams();
     analytics.onJobsFiltersCleared({
       result_count: totalRoles,
       filter_state: {},

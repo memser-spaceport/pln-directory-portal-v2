@@ -1,52 +1,53 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { SearchInput } from '@/components/common/filters/SearchInput';
-import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
-import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
-import type { IJobsFacetItem, JobsFilterKey } from '@/types/jobs.types';
-import { filterStateFromURL, seniorityDisplayLabel, sortSeniorityValues } from '@/utils/jobs.utils';
-import s from './JobsFilterBody.module.scss';
+import { GenericCheckboxList } from '@/components/common/filters/GenericCheckboxList';
 import { FocusAreaFilter, getJobsFocusAreaCount, toJobsTreeFilterItems } from '@/components/core/FocusAreaFilter';
+import { createFilterGetter } from '@/services/teams/utils/createFilterGetter';
+import { useJobsFilterStore } from '@/services/jobs/store';
+import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
+import { filterStateFromURL, seniorityDisplayLabel, sortSeniorityValues } from '@/utils/jobs.utils';
+import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
-const parseList = (values: string[]): Set<string> => {
-  return new Set(values.map((v) => v.trim()).filter(Boolean));
-};
+function facetToFilterItems(items?: { value: string; count: number }[]) {
+  return items?.map((item) => ({ value: item.value, count: item.count, disabled: false }));
+}
 
 export default function JobsFilterBody() {
-  const searchParams = useSearchParams();
   const filtersQuery = useJobsFilters();
   const { totalRoles } = useInfiniteJobsList();
-  const { setParam, toggleMulti } = useJobsParamsUpdater();
+  const { setParam, params } = useJobsFilterStore();
   const analytics = useJobsAnalytics();
 
-  const qFromUrl = searchParams.get('q') ?? '';
+  const qFromUrl = params.get('q') ?? '';
 
   const handleSearchChange = useCallback(
     (value: string) => {
       const next = value.trim();
-      setParam('q', next || null);
+      setParam('q', next || undefined);
       analytics.onJobsSearched({
         search_query: next,
         result_count: totalRoles,
-        filter_state: filterStateFromURL(searchParams),
+        filter_state: filterStateFromURL(params),
       });
     },
-    [setParam, analytics, totalRoles, searchParams],
+    [setParam, analytics, totalRoles, params],
   );
 
-  const selected = useMemo(
-    () => ({
-      roleCategory: parseList(searchParams.getAll('roleCategory')),
-      seniority: parseList(searchParams.getAll('seniority')),
-      focus: parseList(searchParams.getAll('focus')),
-      location: parseList(searchParams.getAll('location')),
-    }),
-    [searchParams],
+  const getRoleCategories = createFilterGetter(facetToFilterItems(filtersQuery.data?.roleCategory));
+  const getSeniorities = createFilterGetter(
+    facetToFilterItems(filtersQuery.data?.seniority ? sortSeniorityValues(filtersQuery.data.seniority) : undefined),
+    { formatLabel: (item) => seniorityDisplayLabel(item.value) },
   );
+  const getLocations = createFilterGetter(facetToFilterItems(filtersQuery.data?.location));
+
+  const focusSelectedIds = useMemo(() => {
+    const raw = params.get('focus');
+    return new Set<string>(raw ? raw.split(URL_QUERY_VALUE_SEPARATOR).filter(Boolean) : []);
+  }, [params]);
 
   const focusTreeItems = useMemo(
     () => (filtersQuery.data?.focus ? toJobsTreeFilterItems(filtersQuery.data.focus) : []),
@@ -55,31 +56,27 @@ export default function JobsFilterBody() {
 
   const handleFocusToggle = useCallback(
     (item: { id: string }) => {
-      toggleMulti('focus', item.id);
+      const current = params.get('focus');
+      const values = current ? current.split(URL_QUERY_VALUE_SEPARATOR).filter(Boolean) : [];
+      const idx = values.indexOf(item.id);
+      if (idx >= 0) {
+        values.splice(idx, 1);
+      } else {
+        values.push(item.id);
+      }
+      setParam('focus', values.length > 0 ? values.join(URL_QUERY_VALUE_SEPARATOR) : undefined);
       analytics.onJobsFiltersApplied({
         filter_type: 'focus',
         filter_value: item.id,
         result_count: totalRoles,
-        filter_state: filterStateFromURL(searchParams),
+        filter_state: filterStateFromURL(params),
       });
     },
-    [toggleMulti, analytics, totalRoles, searchParams],
+    [params, setParam, analytics, totalRoles],
   );
 
   if (filtersQuery.isError) return null;
   if (filtersQuery.isLoading || !filtersQuery.data) return null;
-
-  const data = filtersQuery.data;
-
-  const onToggle = (key: JobsFilterKey, value: string) => {
-    toggleMulti(key, value);
-    analytics.onJobsFiltersApplied({
-      filter_type: key,
-      filter_value: value,
-      result_count: totalRoles,
-      filter_state: filterStateFromURL(searchParams),
-    });
-  };
 
   return (
     <>
@@ -87,77 +84,47 @@ export default function JobsFilterBody() {
         <SearchInput value={qFromUrl} onChange={handleSearchChange} placeholder="Search a team or role" />
       </FilterSection>
 
-      <FacetSection
-        title="Role Category"
-        items={data.roleCategory}
-        selected={selected.roleCategory}
-        onToggle={(v) => onToggle('roleCategory', v)}
-      />
+      <FilterSection title="Role Category">
+        <GenericCheckboxList
+          paramKey="roleCategory"
+          placeholder="Search role categories..."
+          filterStore={useJobsFilterStore}
+          useGetDataHook={getRoleCategories}
+          hideSearch
+        />
+      </FilterSection>
 
-      <FacetSection
-        title="Seniority"
-        items={sortSeniorityValues(data.seniority)}
-        selected={selected.seniority}
-        onToggle={(v) => onToggle('seniority', v)}
-        renderLabel={(v) => seniorityDisplayLabel(v)}
-      />
+      <FilterSection title="Seniority">
+        <GenericCheckboxList
+          paramKey="seniority"
+          placeholder="Search seniority..."
+          filterStore={useJobsFilterStore}
+          useGetDataHook={getSeniorities}
+          hideSearch
+          disableSorting
+        />
+      </FilterSection>
 
       {focusTreeItems.length > 0 && (
         <FilterSection title="Focus Area">
           <FocusAreaFilter
             items={focusTreeItems}
-            selectedIds={selected.focus}
+            selectedIds={focusSelectedIds}
             onToggle={handleFocusToggle}
             getCount={getJobsFocusAreaCount}
           />
         </FilterSection>
       )}
 
-      <FacetSection
-        title="Location"
-        items={data.location}
-        selected={selected.location}
-        onToggle={(v) => onToggle('location', v)}
-      />
+      <FilterSection title="Location">
+        <GenericCheckboxList
+          hideSearch
+          paramKey="location"
+          placeholder="Search locations..."
+          filterStore={useJobsFilterStore}
+          useGetDataHook={getLocations}
+        />
+      </FilterSection>
     </>
-  );
-}
-
-function FacetSection({
-  title,
-  items,
-  selected,
-  onToggle,
-  renderLabel,
-}: {
-  title: string;
-  items: IJobsFacetItem[];
-  selected: Set<string>;
-  onToggle: (value: string) => void;
-  renderLabel?: (value: string) => string;
-}) {
-  if (items.length === 0) return null;
-  return (
-    <FilterSection title={title}>
-      <ul className={s.optionList}>
-        {items.map((item) => {
-          const isChecked = selected.has(item.value);
-          return (
-            <li key={item.value}>
-              <label className={s.option}>
-                <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={() => onToggle(item.value)}
-                  className={s.checkbox}
-                />
-                <span className={s.optionLabel}>{renderLabel ? renderLabel(item.value) : item.value}</span>
-                <span className={s.optionCount}>{item.count}</span>
-              </label>
-            </li>
-          );
-        })}
-      </ul>
-    </FilterSection>
   );
 }

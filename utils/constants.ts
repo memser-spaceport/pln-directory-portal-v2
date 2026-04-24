@@ -11,6 +11,7 @@ export const PAGE_ROUTES = {
   HUSKY: '/husky/chat',
   EVENTS: '/events',
   FORUM: '/forum',
+  JOBS: '/jobs',
 };
 
 export const NAV_OPTIONS = [
@@ -57,6 +58,15 @@ export const NAV_OPTIONS = [
     unSelectedLogo: '/icons/message.svg',
   },
 ];
+
+export const JOBS_ANALYTICS = {
+  ON_JOBS_PAGE_VIEWED: 'jobs-page-viewed',
+  ON_JOBS_FILTERS_APPLIED: 'jobs-filters-applied',
+  ON_JOBS_FILTERS_CLEARED: 'jobs-filters-cleared',
+  ON_JOBS_SEARCHED: 'jobs-searched',
+  ON_JOBS_SORT_CHANGED: 'jobs-sort-changed',
+  ON_JOB_CLICKED: 'job-clicked',
+};
 
 export const EVENTS = {
   TRIGGER_LOADER: 'TRIGGER_LOADER',
@@ -691,6 +701,18 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.5.14 - Job Board',
+    tag: 'New Feature',
+    date: '24, Apr 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Directory</span> - Browse open roles grouped by team, with search, filters, sorting, and apply links that open each posting in a new tab.</li>
+      </ul>
+      </div>`,
+  },
   {
     title: 'Version 4.5.13 - Demo Day Program View & New Feature Notifications',
     tag: 'Improvements',

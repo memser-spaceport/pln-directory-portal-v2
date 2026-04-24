@@ -17,7 +17,7 @@ export function ScreenRejectedMembers({ members, onRestore }: Props) {
     const m = members.find((x) => x.id === memberId);
     if (!m) return;
 
-    const existingPolicies = RBAC_POLICIES.filter((p) => (m.policyIds ?? []).includes(p.id));
+    const existingPolicies = RBAC_POLICIES.filter((p) => (m.assignedPolicyIds ?? []).includes(p.id));
     setForm({
       ...EMPTY_FORM,
       name: m.name,
@@ -26,7 +26,7 @@ export function ScreenRejectedMembers({ members, onRestore }: Props) {
       status: 'pending',
       selectedRoles: [...new Set(existingPolicies.map((p) => p.role))],
       selectedGroups: [...new Set(existingPolicies.map((p) => p.group))],
-      policyIds: m.policyIds ?? [],
+      policyIds: m.assignedPolicyIds ?? [],
     });
     setEditingId(memberId);
   }

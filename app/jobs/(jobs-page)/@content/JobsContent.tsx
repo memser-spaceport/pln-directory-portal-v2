@@ -19,8 +19,8 @@ import JobsMobileFilters from '@/components/page/jobs/JobsMobileFilters';
 import s from './JobsContent.module.scss';
 
 const SORT_OPTIONS = [
+  { value: 'company_az', label: 'A-Z (Ascending)' },
   { value: 'newest', label: 'Newest' },
-  { value: 'company_az', label: 'Company A–Z' },
 ] as const;
 
 interface JobsContentProps {
@@ -32,16 +32,8 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   const searchParams = useSearchParams();
   const { setParam } = useJobsParamsUpdater();
   const analytics = useJobsAnalytics();
-  const {
-    groups,
-    totalGroups,
-    totalRoles,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isError,
-  } = useInfiniteJobsList();
+  const { groups, totalGroups, totalRoles, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, isError } =
+    useInfiniteJobsList();
 
   const sort = (searchParams.get('sort') as JobsSortKey) ?? 'newest';
 
@@ -74,7 +66,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
           Job Board{' '}
           <span className={s.titleCount}>
             ({totalRoles} {totalRoles === 1 ? 'role' : 'roles'} across {totalGroups}{' '}
-            {totalGroups === 1 ? 'company' : 'companies'})
+            {totalGroups === 1 ? 'team' : 'teams'})
           </span>
         </h1>
       </div>
@@ -87,7 +79,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
             Job Board{' '}
             <span className={s.titleCount}>
               ({totalRoles} {totalRoles === 1 ? 'role' : 'roles'} across {totalGroups}{' '}
-              {totalGroups === 1 ? 'company' : 'companies'})
+              {totalGroups === 1 ? 'team' : 'teams'})
             </span>
           </h1>
         </div>

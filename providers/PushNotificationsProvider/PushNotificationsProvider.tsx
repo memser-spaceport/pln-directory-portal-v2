@@ -175,6 +175,7 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
 
   const {
     isConnected,
+    connectionEstablished,
     error,
     markAsRead: wsMarkAsRead,
     markAllAsRead: wsMarkAllAsRead,
@@ -186,18 +187,21 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     onCountUpdate: handleCountUpdate,
   });
 
-  // Track previous connection state to detect reconnections
-  const wasConnectedRef = useRef(isConnected);
+  // Track previous server-acknowledged auth state to detect reconnections.
+  // Keyed on `connectionEstablished` (set by `connection:success`) rather than
+  // `isConnected` (transport-level), so a doomed-loop cycle of connect→reject
+  // never triggers a refetch.
+  const wasEstablishedRef = useRef(connectionEstablished);
 
   // Refetch notifications on WebSocket reconnect to catch any missed events
   useEffect(() => {
-    const wasDisconnected = !wasConnectedRef.current;
-    const isNowConnected = isConnected;
+    const wasDisestablished = !wasEstablishedRef.current;
+    const isNowEstablished = connectionEstablished;
 
     // Update ref for next comparison
-    wasConnectedRef.current = isConnected;
+    wasEstablishedRef.current = connectionEstablished;
 
-    if (!isNowConnected || !authToken) {
+    if (!isNowEstablished || !authToken) {
       return;
     }
 
@@ -208,10 +212,10 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     }
 
     // Only refetch on actual reconnections (was disconnected, now connected again)
-    if (wasDisconnected) {
+    if (wasDisestablished) {
       void fetchNotifications();
     }
-  }, [isConnected, authToken, fetchNotifications]);
+  }, [connectionEstablished, authToken, fetchNotifications]);
 
   // Keep wsMarkAsReadRef in sync
   wsMarkAsReadRef.current = wsMarkAsRead;

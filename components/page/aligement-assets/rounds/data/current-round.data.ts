@@ -8,7 +8,7 @@ import { CurrentRoundData } from '../types/current-round.types';
 import { DISCLOSURE_URL, SUPPORT_URL, SUPPORT_EMAIL } from '@/constants/plaa';
 
 /**
- * Current Round 14 (April 2026) Master Data
+ * Current Round 15 (April 2026) Master Data
  */
 export const currentRoundData: CurrentRoundData = {
   // ============================================================================
@@ -132,11 +132,11 @@ export const currentRoundData: CurrentRoundData = {
     maxValue: 1000,
     chartData: [
       { name: 'Brand', value: 0 },
-      { name: 'Knowledge', value: 1500 },
+      { name: 'Knowledge', value: 2100 },
       { name: 'Network Tooling', value: 0 },
       { name: 'People/Talent', value: 0 },
       { name: 'Programs', value: 300 },
-      { name: 'Projects', value: 0 }
+      { name: 'Projects', value: 500 }
     ]
   },
 
@@ -163,7 +163,7 @@ export const currentRoundData: CurrentRoundData = {
       'Help Organize an Event',
       'Construct an Alignment Asset Case Study',
       'Respond to an IRL Gathering',
-      'Contribute a High-Quality Forum Response'
+      'Contribute a High-Quality Response to the Forum'
     ],
     totalPointsCollected: '2,900',
     totalTokensAvailable: '10,000',

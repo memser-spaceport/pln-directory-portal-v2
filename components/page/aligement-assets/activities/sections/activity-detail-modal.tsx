@@ -207,7 +207,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                           <ul className="activity-modal__points-sublist">
                             {item.subItems.map((subItem, subIndex) => (
                               <li key={subIndex} className="activity-modal__points-subitem">
-                                {subItem.label}: {subItem.value}
+                                {subItem.value ? `${subItem.label}: ${subItem.value}` : subItem.label}
                               </li>
                             ))}
                           </ul>

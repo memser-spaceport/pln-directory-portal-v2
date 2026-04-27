@@ -4,7 +4,7 @@ import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import Error from '@/components/core/error';
 import { FiltersPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
-import JobsFilterBody from '@/components/page/jobs/JobsFilterBody';
+import { JobsFilterBody } from '@/components/page/jobs/JobsFilterBody';
 import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
 import { useJobsFilterStore, useJobsFilterCount } from '@/services/jobs/store';
 

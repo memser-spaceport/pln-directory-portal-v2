@@ -3,9 +3,13 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
-import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel, teamInitials } from '@/utils/jobs.utils';
-import s from './TeamGroupCard.module.scss';
+import { getJobDate, isNew, teamInitials } from '@/utils/jobs.utils';
+import { RoleRow } from './component/RoleRow';
 import clsx from 'clsx';
+
+import { buildFocusChips } from './utils/buildFocusChips';
+
+import s from './TeamGroupCard.module.scss';
 
 const INITIAL_ROLES_SHOWN = 3;
 const MAX_FOCUS_CHIPS = 4;
@@ -15,7 +19,7 @@ interface TeamGroupCardProps {
   onRoleClick: (role: IJobRole, indexInGroup: number) => void;
 }
 
-export default function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps) {
+export function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps) {
   const [expanded, setExpanded] = useState(false);
   const { team, roles, totalRoles } = group;
 
@@ -50,7 +54,10 @@ export default function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps
                   <span className={clsx(s.focusChip, s.focusChip_sub)}>+{chips.moreCount}</span>
                   <div className={s.moreTooltip}>
                     {chips.hidden.map((chip) => (
-                      <span key={`${chip.kind}::${chip.title}`} className={clsx(s.focusChip, s[`focusChip_${chip.kind}`])}>
+                      <span
+                        key={`${chip.kind}::${chip.title}`}
+                        className={clsx(s.focusChip, s[`focusChip_${chip.kind}`])}
+                      >
                         {chip.title}
                       </span>
                     ))}
@@ -91,59 +98,5 @@ export default function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps
         </button>
       )}
     </article>
-  );
-}
-
-type FocusChip = { kind: 'focus' | 'sub'; title: string };
-
-function buildFocusChips(
-  focusAreas: string[],
-  subFocusAreas: string[],
-  max: number,
-): { shown: FocusChip[]; hidden: FocusChip[]; moreCount: number } {
-  const dedupedSub = subFocusAreas.filter((t) => !focusAreas.includes(t));
-  const all: FocusChip[] = [
-    ...focusAreas.map((title): FocusChip => ({ kind: 'focus', title })),
-    ...dedupedSub.map((title): FocusChip => ({ kind: 'sub', title })),
-  ];
-  const shown = all.slice(0, max);
-  const hidden = all.slice(max);
-  const moreCount = hidden.length;
-  return { shown, hidden, moreCount };
-}
-
-function RoleRow({ role, onClick }: { role: IJobRole; onClick: () => void }) {
-  const date = getJobDate(role);
-  const relative = formatRelativeDays(date);
-  const showNew = isNew(date);
-  const metaParts = [
-    role.seniority ? seniorityDisplayLabel(role.seniority) : null,
-    role.roleCategory,
-    role.location,
-  ].filter(Boolean);
-
-  const inner = (
-    <>
-      <div className={s.roleBody}>
-        <div className={s.roleTitle}>{role.roleTitle}</div>
-        {metaParts.length > 0 && <div className={s.roleMeta}>{metaParts.join(' · ')}</div>}
-      </div>
-      <div className={s.roleRight}>
-        {showNew && <span className={s.newBadge}>● New</span>}
-        {relative && <span className={s.relative}>{relative}</span>}
-      </div>
-    </>
-  );
-
-  return (
-    <li className={s.roleItem}>
-      {role.applyUrl ? (
-        <a className={s.roleLink} href={role.applyUrl} target="_blank" rel="noopener noreferrer" onClick={onClick}>
-          {inner}
-        </a>
-      ) : (
-        <span className={s.roleLink}>{inner}</span>
-      )}
-    </li>
   );
 }

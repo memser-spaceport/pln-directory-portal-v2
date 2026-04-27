@@ -174,66 +174,6 @@
   flex-direction: column;
 }
 
-.roleItem {
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.roleItem:last-child {
-  border-bottom: none;
-}
-
-.roleLink {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 0;
-  text-decoration: none;
-  color: inherit;
-  min-height: 56px;
-}
-
-
-.roleBody {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.roleTitle {
-  font-size: 15px;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.roleMeta {
-  font-size: 13px;
-  color: #64748b;
-}
-
-.roleRight {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-.relative {
-  font-size: 13px;
-  color: #94a3b8;
-  font-variant-numeric: tabular-nums;
-}
-
-.newBadge {
-  font-size: 12px;
-  font-weight: 600;
-  color: #059669;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
 .expander {
   align-self: flex-start;
   background: none;

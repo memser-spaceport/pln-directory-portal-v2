@@ -702,6 +702,18 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.14 - Job Board',
+    tag: 'New Feature',
+    date: '24, Apr 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Directory</span> - Browse open roles grouped by team, with search, filters, sorting, and apply links that open each posting in a new tab.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.13 - Demo Day Program View & New Feature Notifications',
     tag: 'Improvements',
     date: '17, Apr 2026',

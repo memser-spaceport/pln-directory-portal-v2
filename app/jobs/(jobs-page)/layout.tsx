@@ -16,8 +16,7 @@ export default function Layout({ filters, content }: { filters: ReactNode; conte
 
 export const metadata: Metadata = {
   title: 'Jobs | Protocol Labs Directory',
-  description:
-    'Open roles across the Protocol Labs network. Filter by function, seniority, and focus area.',
+  description: 'Open roles across the Protocol Labs network. Filter by function, seniority, and focus area.',
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

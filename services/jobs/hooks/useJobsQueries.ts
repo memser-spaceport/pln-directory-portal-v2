@@ -51,10 +51,7 @@ export function useInfiniteJobsList() {
     placeholderData: keepPreviousData,
   });
 
-  const groups: IJobTeamGroup[] = useMemo(
-    () => query.data?.pages.flatMap((p) => p.groups) ?? [],
-    [query.data],
-  );
+  const groups: IJobTeamGroup[] = useMemo(() => query.data?.pages.flatMap((p) => p.groups) ?? [], [query.data]);
   const totalGroups = query.data?.pages[0]?.totalGroups ?? 0;
   const totalRoles = query.data?.pages[0]?.totalRoles ?? 0;
 

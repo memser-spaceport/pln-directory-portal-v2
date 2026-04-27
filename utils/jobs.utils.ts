@@ -1,8 +1,7 @@
 import type { ReadonlyURLSearchParams } from 'next/navigation';
 import type { IJobRole, IJobsFacetItem } from '@/types/jobs.types';
 
-export const getJobDate = (role: IJobRole): string =>
-  role.postedDate ?? role.detectionDate ?? role.lastUpdated;
+export const getJobDate = (role: IJobRole): string => role.postedDate ?? role.detectionDate ?? role.lastUpdated;
 
 const SENIORITY_DISPLAY: Record<string, string> = {
   'Junior (L1-L2)': 'Junior',
@@ -12,13 +11,7 @@ const SENIORITY_DISPLAY: Record<string, string> = {
   'Principal+ (L6-L7)': 'Principal+',
 };
 
-const SENIORITY_ORDER: string[] = [
-  'Junior (L1-L2)',
-  'Mid (L3)',
-  'Senior (L4)',
-  'Lead (L5)',
-  'Principal+ (L6-L7)',
-];
+const SENIORITY_ORDER: string[] = ['Junior (L1-L2)', 'Mid (L3)', 'Senior (L4)', 'Lead (L5)', 'Principal+ (L6-L7)'];
 
 export const seniorityDisplayLabel = (raw: string): string => SENIORITY_DISPLAY[raw] ?? raw;
 
@@ -30,9 +23,7 @@ export const sortSeniorityValues = (items: IJobsFacetItem[]): IJobsFacetItem[] =
   return [...items].sort((a, b) => indexOf(a.value) - indexOf(b.value));
 };
 
-export const filterStateFromURL = (
-  searchParams: ReadonlyURLSearchParams | URLSearchParams,
-): Record<string, string> => {
+export const filterStateFromURL = (searchParams: ReadonlyURLSearchParams | URLSearchParams): Record<string, string> => {
   const out: Record<string, string> = {};
   const sp = searchParams as URLSearchParams;
   for (const key of ['q', 'sort']) {

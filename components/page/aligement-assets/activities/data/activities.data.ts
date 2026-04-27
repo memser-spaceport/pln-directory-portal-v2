@@ -88,6 +88,44 @@ export const activitiesData: ActivitiesData = {
         additionalNote: 'If a post does not meet standards after two rounds of edits and is not published, no points are awarded.'
       }
     },
+    {
+      id: 'contribute-forum-response',
+      category: 'Knowledge Sharing',
+      activity: 'Contribute a High-Quality Response to the Forum',
+      networkValue: 'Write a thoughtful, substantive response to an existing forum discussion that moves the conversation forward.',
+      points: '100+',
+      popupContent: {
+        title: 'Contribute a High-Quality Response to the Forum',
+        description: 'Write a thoughtful, substantive response to an existing LabOS Forum discussion that moves the conversation forward. Strong responses should add meaningful insight, ask a sharp follow-up question, synthesize relevant experience, or introduce useful evidence, context, or interpretation. To qualify, the response must go beyond a short reaction and provide enough substance, clarity, and relevance to genuinely advance the thread for others reading it.',
+        links: [
+          { text: 'LabOS Forum', url: 'https://directory.plnetwork.io/forum' }
+        ],
+        pointsAwarded: {
+          title: 'Points Awarded:',
+          items: [
+            { 
+              label: 'Base Reward', 
+              value: '100 points for publishing a high-quality forum response that meaningfully contributes to the discussion.',
+              subItems: [
+                { label: 'Rewards are limited to one qualifying response per original forum post.' }
+              ]
+            },
+            {
+              label: 'Engagement & Timeliness Bonus',
+              value: '',
+              valueOnNewLine: true,
+              subItems: [
+                { label: 'Reply within 2 hours of the original post', value: '+50 points' },
+                { label: 'Each Like or Reply received on your response', value: '+15 points' },
+                { label: 'Replies to replies are not eligible.' },
+                { label: 'Engagement bonuses are calculated only from the Likes or Replies associated with your qualifying parent response to the main post.' }
+              ]
+            }
+          ]
+        },
+        additionalNote: 'Rewards are wholly based on the discretion of the PLAA Working Group. Low-effort replies, brief reactions, generic praise, or responses that do not meaningfully advance the conversation are not eligible and may be deleted.'
+      }
+    },
     // {
     //   id: 'create-playbook',
     //   category: 'Knowledge Sharing',
@@ -344,9 +382,9 @@ Only approved case studies that are opted into the internal content library are 
         title: 'Help Organize an Event',
         description: `Host or speak at a curated activity or event catered to Protocol Labs participants to aid with an array of topics, ranging from company formation, dedicated development, cross-network collaboration, etc. Events should be intentionally designed, independently run without direct PL, Inc. or Polaris, Inc. sponsorship in the form of direct compensation for time or labor, and focused on delivering real value to the Protocol Labs community.
 
-For Hosts, the event must be created and published in Luma and included on a live, discoverable calendar or listing. You must add events@plrs.xyz as an Event Manager in Luma so registration and attendance data can be accessed, and the Luma "check-in" feature must be enabled to verify attendee participation. The event must also be submitted to the PL events directory by adding it to https://directory.plnetwork.io/events/irl via https://irl.plnetwork.io/events/, with your profile clearly listed under the Host section of the event.
-
-For Speakers, eligibility is contingent on the event being submitted and validated by a Host through the process above. To receive points, your profile must be listed as a Speaker on the event page in https://directory.plnetwork.io/events/irl (I'm Going → Select Event → Role: Speaker).`,
+For Hosts, the event must be created and published in Luma and included on a live, discoverable calendar or listing. You must add events@plrs.xyz as an Event Manager in Luma so registration and attendance data can be accessed, and the Luma “check-in” feature must be enabled to verify attendee participation.
+Before submitting an event to the PL events directory, Hosts must first search the existing IRL events listing to confirm whether the event has already been added. If the event is not already listed, the Host must submit it to the PL events directory by adding it to https://directory.plnetwork.io/events/irl via https://irl.plnetwork.io/events/. If the event is already listed, do not create a duplicate event. Instead, add yourself to the existing IRL gathering with the correct role, such as Host, Speaker, or Attendee. To qualify as a Host, your profile must be clearly listed under the Host section of the event.
+For Speakers, eligibility is contingent on the event being submitted and validated by a Host through the process above. To receive points, your profile must be listed as a Speaker on the event page in https://directory.plnetwork.io/events/irl by selecting: I’m Going → Select Event → Role: Speaker. Speakers should also search for the event first and add themselves to the existing listing when one already exists, rather than creating a duplicate event.`,
         submissionNote: 'Points are awarded only once all prerequisites are met and attendance data can be verified.',
         links: [
           { text: 'https://directory.plnetwork.io/events/irl', url: 'https://directory.plnetwork.io/events/irl' },

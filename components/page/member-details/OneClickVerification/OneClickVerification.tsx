@@ -34,8 +34,12 @@ const fade = {
 export const OneClickVerification = ({ userInfo, member, isNewInvestor }: Props) => {
   const router = useRouter();
   const isOwner = userInfo?.uid === member.id;
-  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
-  const hasMissingRequiredData = !member?.linkedinProfile && (USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : getAccessLevel(userInfo, true) === 'base') && !isNewInvestor;
+  const status = member.rbac.status;
+
+  const hasMissingRequiredData =
+    !member?.linkedinProfile &&
+    (USE_ACCESS_CONTROL_V2 ? status === 'PENDING' : getAccessLevel(userInfo, true) === 'base') &&
+    !isNewInvestor;
   const showIncomplete = hasMissingRequiredData && isOwner;
   const searchParams = useSearchParams();
   const { onConnectLinkedInClicked, onSuccessLinkedInVerification, onErrorLinkedInVerification } = useMemberAnalytics();

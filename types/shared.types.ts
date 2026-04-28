@@ -12,6 +12,28 @@ export interface IUserInfo {
   mainTeamName?: string;
   isTierViewer?: boolean;
   signUpSource?: string;
+  rbac: {
+    status: 'PENDING' | 'VERIFIED' | 'APPROVED' | 'REJECTED';
+    policies: {
+      uid: string;
+      code: string;
+      name: string;
+      description: null;
+      role: string;
+      group: string;
+    }[];
+    effectivePermissions: {
+      uid: string;
+      code: string;
+      description: string;
+    }[];
+    roles: {
+      uid: string;
+      code: string;
+      name: string;
+      description: string;
+    }[];
+  };
 }
 
 export interface Option {

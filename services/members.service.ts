@@ -211,6 +211,13 @@ export const getMember = async (
     ohStatus: result.ohStatus,
     investorProfile: result.investorProfile,
     signUpSource: result.signUpSource,
+
+    rbac: {
+      status: result.memberState,
+      policies: result.polilies,
+      effectivePermissions: result.effectivePermissions,
+      roles: result.roles,
+    },
   };
 
   const hasEditAccess = isAdminUser(userInfo) || userInfo?.uid === member?.id;
@@ -432,6 +439,12 @@ export const getMemberInfo = async (memberUid: string) => {
     projectContributions: projectContributions,
     teamMemberRoles: teamMemberRoles,
     skills: skills,
+    rbac: {
+      status: result.memberState,
+      policies: result.polilies,
+      effectivePermissions: result.effectivePermissions,
+      roles: result.roles,
+    },
   };
 
   return { data: formatted };

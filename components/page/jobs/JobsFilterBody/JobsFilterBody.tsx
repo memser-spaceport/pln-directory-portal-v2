@@ -137,7 +137,6 @@ export function JobsFilterBody() {
 
       <FilterSection title="Location">
         <GenericCheckboxList
-          hideSearch
           paramKey="location"
           placeholder="Search locations..."
           filterStore={useJobsFilterStore}

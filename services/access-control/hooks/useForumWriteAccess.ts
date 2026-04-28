@@ -3,22 +3,21 @@ import { AccessControlQueryKeys } from '@/services/access-control/constants';
 import { fetchMyAccess } from '@/services/access-control/access-control.service';
 import { getUserInfoFromLocal } from '@/utils/common.utils';
 
-export function useInvestorAccess() {
+export function useForumWriteAccess() {
   const userInfo = getUserInfoFromLocal();
 
   const {
-    data: isInvestor = false,
+    data: canWrite = false,
     isLoading,
     isError,
   } = useQuery({
     queryKey: [AccessControlQueryKeys.MY_ACCESS],
     queryFn: fetchMyAccess,
-    select: (data) =>
-      data.policies.some((policy) => policy.role.toLowerCase() === 'investor'),
+    select: (data) => data.effectivePermissions.includes('forum.write'),
     staleTime: 5 * 60 * 1000,
     enabled: !!userInfo,
     retry: 2,
   });
 
-  return { isInvestor, isLoading, isError };
+  return { canWrite, isLoading, isError };
 }

@@ -1,8 +1,8 @@
 import React from 'react';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
-import { ForumAccessGate } from '@/components/page/forum/ForumAccessGate/ForumAccessGate';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { ForumWriteGate } from '@/components/page/forum/ForumWriteGate/ForumWriteGate';
 
 import s from './page.module.scss';
 import { CreatePost } from '@/components/page/forum/CreatePost';
@@ -21,12 +21,12 @@ const NewPostPage = async () => {
 
   if (USE_ACCESS_CONTROL_V2) {
     return (
-      <ForumAccessGate>
+      <ForumWriteGate>
         <div className={s.root}>
           <BackButton forceTo to="/forum?cid=0" />
           <CreatePost userInfo={userInfo} />
         </div>
-      </ForumAccessGate>
+      </ForumWriteGate>
     );
   }
 

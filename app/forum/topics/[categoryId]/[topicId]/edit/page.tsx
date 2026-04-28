@@ -10,7 +10,7 @@ import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { BackButton } from '@/components/ui/BackButton';
 import { CreatePost } from '@/components/page/forum/CreatePost';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
-import { ForumAccessGate } from '@/components/page/forum/ForumAccessGate/ForumAccessGate';
+import { ForumWriteGate } from '@/components/page/forum/ForumWriteGate/ForumWriteGate';
 
 import s from './page.module.scss';
 
@@ -86,7 +86,7 @@ const EditPostPage = async ({ params, searchParams }: PageProps) => {
   );
 
   if (USE_ACCESS_CONTROL_V2) {
-    return <ForumAccessGate>{content}</ForumAccessGate>;
+    return <ForumWriteGate>{content}</ForumWriteGate>;
   }
 
   return content;

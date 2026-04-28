@@ -13,7 +13,7 @@ export function useFounderGuidesCreateAccess() {
   } = useQuery({
     queryKey: [AccessControlQueryKeys.MY_ACCESS],
     queryFn: fetchMyAccess,
-    select: (data) => data.effectivePermissions.includes('founder_guides.view.all'),
+    select: (data) => data.effectivePermissions.includes('founder_guides.create'),
     staleTime: 5 * 60 * 1000,
     enabled: !!userInfo,
     retry: 2,

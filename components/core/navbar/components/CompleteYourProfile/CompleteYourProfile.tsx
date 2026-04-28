@@ -29,7 +29,7 @@ export const CompleteYourProfile = ({ userInfo }: Props) => {
     return null;
   }
 
-  const message = isDemodaySignUpSource(userInfo.signUpSource) ? MESSAGES.L1 : MESSAGES[status];
+  const message = status ? (isDemodaySignUpSource(userInfo.signUpSource) ? MESSAGES.VERIFIED : MESSAGES[status]) : null;
 
   if (!message) {
     return null;

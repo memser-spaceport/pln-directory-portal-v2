@@ -12,7 +12,7 @@ export interface IUserInfo {
   mainTeamName?: string;
   isTierViewer?: boolean;
   signUpSource?: string;
-  rbac: {
+  rbac?: {
     status: 'PENDING' | 'VERIFIED' | 'APPROVED' | 'REJECTED';
     policies: {
       uid: string;
@@ -33,7 +33,7 @@ export interface IUserInfo {
       name: string;
       description: string;
     }[];
-  };
+  } | null;
 }
 
 export interface Option {

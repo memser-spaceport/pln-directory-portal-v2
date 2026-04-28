@@ -2,7 +2,7 @@
 
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWrapper';
-import { JobsFilterBody } from '@/components/page/jobs/JobsFilterBody/JobsFilterBody';
+import { JobsFilterBody } from '@/components/page/jobs/JobsFilterBody';
 import { useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
 import { useJobsFilterStore, useJobsFilterCount } from '@/services/jobs/store';
 

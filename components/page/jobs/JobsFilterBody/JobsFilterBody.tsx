@@ -9,7 +9,7 @@ import { GenericCheckboxList } from '@/components/common/filters/GenericCheckbox
 import { FocusAreaFilter, getJobsFocusAreaCount, toJobsTreeFilterItems } from '@/components/core/FocusAreaFilter';
 import { createFilterGetter } from '@/services/teams/utils/createFilterGetter';
 import { useJobsFilterStore } from '@/services/jobs/store';
-import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
+import { useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
 import {
   buildWorkplaceTypeFacetItems,
   filterStateFromURL,
@@ -21,8 +21,11 @@ import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
 import { facetToFilterItems } from './utils/facetToFilterItems';
 
+import { useGetFilterValuesWithDisabledState } from './hooks/useGetFilterValuesWithDisabledState';
+
 export function JobsFilterBody() {
-  const filtersQuery = useJobsFilters();
+  const { focus, workMode, location, seniority, roleCategory } = useGetFilterValuesWithDisabledState();
+
   const { totalRoles } = useInfiniteJobsList();
   const { setParam, params } = useJobsFilterStore();
   const analytics = useJobsAnalytics();
@@ -42,26 +45,22 @@ export function JobsFilterBody() {
     [setParam, analytics, totalRoles, params],
   );
 
-  const getRoleCategories = createFilterGetter(facetToFilterItems(filtersQuery.data?.roleCategory));
+  const getRoleCategories = createFilterGetter(facetToFilterItems(roleCategory));
   const getSeniorities = createFilterGetter(
-    facetToFilterItems(filtersQuery.data?.seniority ? sortSeniorityValues(filtersQuery.data.seniority) : undefined),
+    facetToFilterItems(seniority ? sortSeniorityValues(seniority) : undefined),
     { formatLabel: (item) => seniorityDisplayLabel(item.value) },
   );
-  const getLocations = createFilterGetter(facetToFilterItems(filtersQuery.data?.location));
-  const getWorkplaceTypes = createFilterGetter(
-    facetToFilterItems(buildWorkplaceTypeFacetItems(filtersQuery.data?.workMode)),
-    { formatLabel: (item) => workplaceTypeDisplayLabel(item.value) },
-  );
+  const getLocations = createFilterGetter(facetToFilterItems(location));
+  const getWorkplaceTypes = createFilterGetter(facetToFilterItems(buildWorkplaceTypeFacetItems(workMode)), {
+    formatLabel: (item) => workplaceTypeDisplayLabel(item.value),
+  });
 
   const focusSelectedIds = useMemo(() => {
     const raw = params.get('focus');
     return new Set<string>(raw ? raw.split(URL_QUERY_VALUE_SEPARATOR).filter(Boolean) : []);
   }, [params]);
 
-  const focusTreeItems = useMemo(
-    () => (filtersQuery.data?.focus ? toJobsTreeFilterItems(filtersQuery.data.focus) : []),
-    [filtersQuery.data?.focus],
-  );
+  const focusTreeItems = useMemo(() => (focus ? toJobsTreeFilterItems(focus) : []), [focus]);
 
   const handleFocusToggle = useCallback(
     (item: { id: string }) => {
@@ -83,10 +82,6 @@ export function JobsFilterBody() {
     },
     [params, setParam, analytics, totalRoles],
   );
-
-  if (filtersQuery.isError || filtersQuery.isLoading || !filtersQuery.data) {
-    return null;
-  }
 
   return (
     <>

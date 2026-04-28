@@ -1,5 +1,6 @@
 'use client';
 
+import isEmpty from 'lodash/isEmpty';
 import { useCallback, useMemo } from 'react';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { FilterSection } from '@/components/common/filters/FilterSection';
@@ -83,8 +84,9 @@ export function JobsFilterBody() {
     [params, setParam, analytics, totalRoles],
   );
 
-  if (filtersQuery.isError) return null;
-  if (filtersQuery.isLoading || !filtersQuery.data) return null;
+  if (filtersQuery.isError || filtersQuery.isLoading || !filtersQuery.data) {
+    return null;
+  }
 
   return (
     <>
@@ -113,7 +115,7 @@ export function JobsFilterBody() {
         />
       </FilterSection>
 
-      {focusTreeItems.length > 0 && (
+      {!isEmpty(focusTreeItems) && (
         <FilterSection title="Focus Area">
           <FocusAreaFilter
             items={focusTreeItems}

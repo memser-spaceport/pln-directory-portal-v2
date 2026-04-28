@@ -8,7 +8,13 @@ import { SearchInput } from '@/components/common/filters/SearchInput';
 import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
 import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
 import type { IJobsFacetItem, JobsFilterKey } from '@/types/jobs.types';
-import { filterStateFromURL, seniorityDisplayLabel, sortSeniorityValues } from '@/utils/jobs.utils';
+import {
+  buildWorkplaceTypeFacetItems,
+  filterStateFromURL,
+  seniorityDisplayLabel,
+  sortSeniorityValues,
+  workplaceTypeDisplayLabel,
+} from '@/utils/jobs.utils';
 import s from './JobsFilterBody.module.scss';
 import { FocusAreaFilter, getJobsFocusAreaCount, toJobsTreeFilterItems } from '@/components/core/FocusAreaFilter';
 
@@ -44,6 +50,7 @@ export default function JobsFilterBody() {
       seniority: parseList(searchParams.getAll('seniority')),
       focus: parseList(searchParams.getAll('focus')),
       location: parseList(searchParams.getAll('location')),
+      workplaceType: parseList(searchParams.getAll('workplaceType')),
     }),
     [searchParams],
   );
@@ -112,6 +119,14 @@ export default function JobsFilterBody() {
           />
         </FilterSection>
       )}
+
+      <FacetSection
+        title="Workplace type"
+        items={buildWorkplaceTypeFacetItems(data.workMode)}
+        selected={selected.workplaceType}
+        onToggle={(v) => onToggle('workplaceType', v)}
+        renderLabel={(v) => workplaceTypeDisplayLabel(v)}
+      />
 
       <FacetSection
         title="Location"

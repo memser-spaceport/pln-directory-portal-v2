@@ -9,7 +9,13 @@ import { FocusAreaFilter, getJobsFocusAreaCount, toJobsTreeFilterItems } from '@
 import { createFilterGetter } from '@/services/teams/utils/createFilterGetter';
 import { useJobsFilterStore } from '@/services/jobs/store';
 import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
-import { filterStateFromURL, seniorityDisplayLabel, sortSeniorityValues } from '@/utils/jobs.utils';
+import {
+  buildWorkplaceTypeFacetItems,
+  filterStateFromURL,
+  seniorityDisplayLabel,
+  sortSeniorityValues,
+  workplaceTypeDisplayLabel,
+} from '@/utils/jobs.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
 import { facetToFilterItems } from './utils/facetToFilterItems';
@@ -41,6 +47,10 @@ export function JobsFilterBody() {
     { formatLabel: (item) => seniorityDisplayLabel(item.value) },
   );
   const getLocations = createFilterGetter(facetToFilterItems(filtersQuery.data?.location));
+  const getWorkplaceTypes = createFilterGetter(
+    facetToFilterItems(buildWorkplaceTypeFacetItems(filtersQuery.data?.workMode)),
+    { formatLabel: (item) => workplaceTypeDisplayLabel(item.value) },
+  );
 
   const focusSelectedIds = useMemo(() => {
     const raw = params.get('focus');
@@ -113,6 +123,17 @@ export function JobsFilterBody() {
           />
         </FilterSection>
       )}
+
+      <FilterSection title="Workplace type">
+        <GenericCheckboxList
+          hideSearch
+          paramKey="workplaceType"
+          placeholder="Search workplace types..."
+          filterStore={useJobsFilterStore}
+          useGetDataHook={getWorkplaceTypes}
+          disableSorting
+        />
+      </FilterSection>
 
       <FilterSection title="Location">
         <GenericCheckboxList

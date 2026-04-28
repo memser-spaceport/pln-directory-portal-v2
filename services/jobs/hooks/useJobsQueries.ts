@@ -10,7 +10,7 @@ import type { IJobTeamGroup, IJobsListResponse } from '@/types/jobs.types';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
 const SINGLE_VALUE_KEYS = ['q', 'sort'] as const;
-const MULTI_VALUE_KEYS = ['roleCategory', 'seniority', 'focus', 'location'] as const;
+const MULTI_VALUE_KEYS = ['roleCategory', 'seniority', 'focus', 'location', 'workplaceType'] as const;
 
 export const pickJobsParams = (searchParams: URLSearchParams): URLSearchParams => {
   const picked = new URLSearchParams();
@@ -19,11 +19,12 @@ export const pickJobsParams = (searchParams: URLSearchParams): URLSearchParams =
     if (value) picked.set(key, value);
   }
   for (const key of MULTI_VALUE_KEYS) {
-    const raw = searchParams.get(key);
-    if (raw) {
-      for (const v of raw.split(URL_QUERY_VALUE_SEPARATOR)) {
-        if (v) picked.append(key, v);
-      }
+    const parts: string[] = [];
+    for (const raw of searchParams.getAll(key)) {
+      if (raw) parts.push(...raw.split(URL_QUERY_VALUE_SEPARATOR).filter(Boolean));
+    }
+    for (const v of [...new Set(parts)]) {
+      picked.append(key, v);
     }
   }
   return picked;

@@ -4,6 +4,7 @@ export interface IJobRole {
   roleCategory: string | null;
   seniority: string | null;
   location: string | null;
+  workMode: string | null;
   applyUrl: string | null;
   lastUpdated: string;
   postedDate: string | null;
@@ -47,8 +48,9 @@ export interface IJobsFiltersResponse {
   seniority: IJobsFacetItem[];
   focus: IJobsFacetTreeItem[];
   location: IJobsFacetItem[];
+  workMode: IJobsFacetItem[];
 }
 
 export type JobsSortKey = 'newest' | 'company_az';
 
-export type JobsFilterKey = 'roleCategory' | 'seniority' | 'focus' | 'location';
+export type JobsFilterKey = 'roleCategory' | 'seniority' | 'focus' | 'location' | 'workplaceType';

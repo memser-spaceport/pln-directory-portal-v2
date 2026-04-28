@@ -13,10 +13,12 @@ export function RoleRow({ role, onClick }: RoleRowProps) {
   const date = getJobDate(role);
   const relative = formatRelativeDays(date);
   const showNew = isNew(date);
+  const locationDisplay = role.location?.length > 0 ? role.location.join(', ') : null;
+
   const metaParts = [
     role.seniority ? seniorityDisplayLabel(role.seniority) : null,
     role.roleCategory,
-    role.location,
+    locationDisplay,
   ].filter(Boolean);
 
   const inner = (

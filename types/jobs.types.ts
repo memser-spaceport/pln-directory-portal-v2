@@ -3,7 +3,7 @@ export interface IJobRole {
   roleTitle: string;
   roleCategory: string | null;
   seniority: string | null;
-  location: string | null;
+  location: string[];
   workMode: string | null;
   applyUrl: string | null;
   lastUpdated: string;

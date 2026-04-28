@@ -18,6 +18,7 @@ export const customFetch = async (url: string, options: any, isIncludeToken: boo
   if (isIncludeToken) {
     const { authToken, refreshToken } = getAuthInfoFromCookie();
     if (!refreshToken) {
+      logoutUser();
       toast.success(TOAST_MESSAGES.LOGOUT_MSG);
       window.location.reload();
       return;
@@ -28,8 +29,6 @@ export const customFetch = async (url: string, options: any, isIncludeToken: boo
       try {
         const tokens = await renewTokens(refreshToken);
         if (!tokens || !tokens.accessToken || !tokens.refreshToken || !tokens.userInfo) {
-          // Refresh failed - clear cookies and logout
-          clearAllAuthCookies();
           logoutUser();
           toast.success(TOAST_MESSAGES.LOGOUT_MSG);
           window.location.reload();
@@ -46,7 +45,6 @@ export const customFetch = async (url: string, options: any, isIncludeToken: boo
         });
         return response;
       } catch (error) {
-        clearAllAuthCookies();
         logoutUser();
         toast.success(TOAST_MESSAGES.LOGOUT_MSG);
         window.location.reload();
@@ -66,6 +64,7 @@ export const customFetch = async (url: string, options: any, isIncludeToken: boo
       if (!response.ok && response.status === 401) {
         const newResponse = await retryApi(url, options);
         if (!newResponse.ok && newResponse.status === 401) {
+          logoutUser();
           toast.success(TOAST_MESSAGES.LOGOUT_MSG);
           window.location.reload();
         } else if (!newResponse.ok) {
@@ -123,7 +122,6 @@ const retryApi = async (url: string, options: any) => {
   const { refreshToken } = getAuthInfoFromCookie();
 
   if (!refreshToken) {
-    clearAllAuthCookies();
     logoutUser();
     toast.success(TOAST_MESSAGES.LOGOUT_MSG);
     window.location.reload();
@@ -133,8 +131,6 @@ const retryApi = async (url: string, options: any) => {
   try {
     const tokens = await renewTokens(refreshToken);
     if (!tokens || !tokens.accessToken || !tokens.refreshToken || !tokens.userInfo) {
-      // Refresh failed - clear cookies and logout
-      clearAllAuthCookies();
       logoutUser();
       toast.success(TOAST_MESSAGES.LOGOUT_MSG);
       window.location.reload();
@@ -151,7 +147,6 @@ const retryApi = async (url: string, options: any) => {
       },
     });
   } catch (error) {
-    clearAllAuthCookies();
     logoutUser();
     toast.success(TOAST_MESSAGES.LOGOUT_MSG);
     window.location.reload();

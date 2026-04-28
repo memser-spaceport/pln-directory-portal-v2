@@ -71,3 +71,22 @@ export function useJobsFilters() {
     placeholderData: keepPreviousData,
   });
 }
+
+export function useJobsBaseFilters() {
+  const params = useJobsSearchParams();
+  const baseParams = new URLSearchParams();
+  const q = params.get('q');
+
+  if (q) {
+    baseParams.set('q', q);
+  }
+  const key = baseParams.toString();
+
+  return useQuery({
+    queryKey: [JobsQueryKey.BaseFilters, key],
+    queryFn: () => fetchJobsFilters(baseParams),
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
+  });
+}

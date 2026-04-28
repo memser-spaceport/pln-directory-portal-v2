@@ -22,6 +22,7 @@ interface UsePushNotificationsOptions {
 
 interface UsePushNotificationsReturn {
   isConnected: boolean;
+  connectionEstablished: boolean;
   error: string | null;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
@@ -30,6 +31,9 @@ interface UsePushNotificationsReturn {
 
 const WS_URL = process.env.DIRECTORY_API_URL;
 const DEFAULT_HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
+const RECONNECTION_ATTEMPTS = 5;
+const RECONNECTION_DELAY_MS = 2000;
+const RECONNECTION_DELAY_MAX_MS = 10000;
 
 export function usePushNotifications(options: UsePushNotificationsOptions): UsePushNotificationsReturn {
   const {
@@ -45,6 +49,7 @@ export function usePushNotifications(options: UsePushNotificationsOptions): UseP
   const socketRef = useRef<Socket | null>(null);
   const healthCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [connectionEstablished, setConnectionEstablished] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Store callbacks in refs to avoid reconnection on callback changes
@@ -73,9 +78,9 @@ export function usePushNotifications(options: UsePushNotificationsOptions): UseP
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 10000,
+      reconnectionAttempts: RECONNECTION_ATTEMPTS,
+      reconnectionDelay: RECONNECTION_DELAY_MS,
+      reconnectionDelayMax: RECONNECTION_DELAY_MAX_MS,
       timeout: 20000,
     });
 
@@ -85,18 +90,28 @@ export function usePushNotifications(options: UsePushNotificationsOptions): UseP
       callbacksRef.current.onConnectionChange?.(true);
     });
 
-    socket.on('disconnect', (reason) => {
+    socket.on('disconnect', () => {
       setIsConnected(false);
+      setConnectionEstablished(false);
       callbacksRef.current.onConnectionChange?.(false);
+    });
 
-      // If the disconnection was initiated by the server, try to reconnect
-      if (reason === 'io server disconnect') {
-        socket.connect();
-      }
+    socket.on(WebSocketEvent.CONNECTION_SUCCESS, () => {
+      setConnectionEstablished(true);
     });
 
     socket.on(WebSocketEvent.CONNECTION_ERROR, (data) => {
       setError(data.message);
+    });
+
+    // Stop the health check once Socket.IO has exhausted its retries —
+    // otherwise the 30s timer would re-trigger socket.connect() and start
+    // a fresh round of attempts against a permanently-broken connection.
+    socket.io.on('reconnect_failed', () => {
+      if (healthCheckIntervalRef.current) {
+        clearInterval(healthCheckIntervalRef.current);
+        healthCheckIntervalRef.current = null;
+      }
     });
 
     socket.on(WebSocketEvent.NOTIFICATION_NEW, (notification: PushNotification) => {
@@ -164,6 +179,7 @@ export function usePushNotifications(options: UsePushNotificationsOptions): UseP
       socket.disconnect();
       socketRef.current = null;
       setIsConnected(false);
+      setConnectionEstablished(false);
     };
   }, [token, enabled, createSocket, checkConnectionHealth, healthCheckInterval]);
 
@@ -177,6 +193,7 @@ export function usePushNotifications(options: UsePushNotificationsOptions): UseP
 
   return {
     isConnected,
+    connectionEstablished,
     error,
     markAsRead,
     markAllAsRead,

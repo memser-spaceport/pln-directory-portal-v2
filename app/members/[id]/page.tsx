@@ -100,7 +100,9 @@ const MemberDetails = ({ params }: { params: any }) => {
   const isAvailableToConnect = isMemberAvailableToConnect(member);
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
   const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
-  const isNewInvestor = (USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : accessLevel === 'base') &&
+  const status = member?.rbac.status;
+  const isNewInvestor =
+    (USE_ACCESS_CONTROL_V2 ? status === 'PENDING' : accessLevel === 'base') &&
     isOwner &&
     isDemodaySignUpSource(member?.signUpSource);
 
@@ -241,14 +243,17 @@ const MemberDetails = ({ params }: { params: any }) => {
               {renderPageContent()}
             </div>
           </div>
-          {!isAvailableToConnect && isLoggedIn && (USE_ACCESS_CONTROL_V2 ? v2HasMemberContacts : accessLevel === 'advanced') && !isOwner && (
-            <div className={styles.desktopOnly}>
-              <div style={{ visibility: 'hidden' }}>
-                <BackButton to={`/members`} />
+          {!isAvailableToConnect &&
+            isLoggedIn &&
+            (USE_ACCESS_CONTROL_V2 ? v2HasMemberContacts : accessLevel === 'advanced') &&
+            !isOwner && (
+              <div className={styles.desktopOnly}>
+                <div style={{ visibility: 'hidden' }}>
+                  <BackButton to={`/members`} />
+                </div>
+                <BookWithOther count={availableToConnectCount} member={member} />
               </div>
-              <BookWithOther count={availableToConnectCount} member={member} />
-            </div>
-          )}
+            )}
         </div>
 
         {userInfo.uid === member.id && (

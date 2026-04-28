@@ -72,12 +72,12 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
     const memberInfo = member.memberInfo;
 
     // Handle access level changes
-    if (memberInfo.accessLevel !== userInfo.accessLevel) {
+    if (memberInfo.rbac?.status !== userInfo.rbac?.status) {
       try {
         const parsedCookie = JSON.parse(userInfoCookie);
 
         if (parsedCookie.uid === memberInfo.uid) {
-          setUserInfoCookie(JSON.stringify({ ...parsedCookie, accessLevel: memberInfo.accessLevel }), {
+          setUserInfoCookie(JSON.stringify({ ...parsedCookie, rbac: memberInfo.rbac }), {
             domain: process.env.COOKIE_DOMAIN || '',
           });
           router.refresh();
@@ -89,7 +89,7 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
     }
 
     // Handle rejected access level
-    if (memberInfo.accessLevel === 'Rejected' && !rejectedRef.current) {
+    if (memberInfo.rbac.status === 'REJECTED' && !rejectedRef.current) {
       rejectedRef.current = true;
       handleLogout();
       return;

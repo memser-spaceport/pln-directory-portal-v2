@@ -25,14 +25,17 @@ interface Props {
 export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [view, setView] = useState<ViewType>('view');
   const [selectedItem, setSelectedItem] = useState<null | IProjectContribution>(null);
-  const isAdmin = isAdminUser(userInfo)
+  const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
   const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
   const isEditable = isOwner || isAdmin;
   const { onEditContributionDetailsClicked, onAddContributionDetailsClicked } = useMemberAnalytics();
   useMobileNavVisibility(view !== 'view');
 
-  if (!isLoggedIn || ((USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : getAccessLevel(userInfo, isLoggedIn) !== 'advanced') && !isOwner)) {
+  if (
+    !isLoggedIn ||
+    ((USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : getAccessLevel(userInfo, isLoggedIn) !== 'advanced') && !isOwner)
+  ) {
     return null;
   }
 

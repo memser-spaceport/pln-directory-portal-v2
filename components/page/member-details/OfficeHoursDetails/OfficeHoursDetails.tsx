@@ -34,8 +34,9 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
-  const { canViewSupply: v2CanViewOfficeHours, canSupply } = useOfficeHoursAccess();
-  const isEditable = isOwner || isAdmin || canSupply;
+  const { canViewSupply, canSupply, canViewDemand } = useOfficeHoursAccess();
+  const v2CanView = isOwner ? canViewSupply : canViewDemand;
+  const isEditable = (isOwner && canSupply) || isAdmin;
   const showWarningUseCaseA = !member?.officeHours;
   const showWarningUseCaseB = !member?.ohInterest?.length || !member?.ohHelpWith?.length;
   const showIncomplete = !editView && isOwner && (showWarningUseCaseA || showWarningUseCaseB);
@@ -68,11 +69,11 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
     return null;
   }
 
-  if (USE_ACCESS_CONTROL_V2 ? !v2CanViewOfficeHours : accessLevel === 'base') {
+  if (USE_ACCESS_CONTROL_V2 ? !v2CanView : accessLevel === 'base') {
     return null;
   }
 
-  if (!isAdmin && (member.accessLevel === 'L0' || member.accessLevel === 'L1')) {
+  if (!isAdmin && !USE_ACCESS_CONTROL_V2 && (member.accessLevel === 'L0' || member.accessLevel === 'L1')) {
     return null;
   }
 

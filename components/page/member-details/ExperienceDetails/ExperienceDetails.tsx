@@ -33,7 +33,10 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
 
   useMobileNavVisibility(view !== 'view');
 
-  if (!isLoggedIn || ((USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : getAccessLevel(userInfo, isLoggedIn) !== 'advanced') && !isOwner)) {
+  if (
+    !isLoggedIn ||
+    ((USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : getAccessLevel(userInfo, isLoggedIn) !== 'advanced') && !isOwner)
+  ) {
     return null;
   }
 

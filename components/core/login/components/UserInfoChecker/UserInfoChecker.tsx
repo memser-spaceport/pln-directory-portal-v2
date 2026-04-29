@@ -98,7 +98,8 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
     // Handle rejected access level
     if (memberInfo.rbac.status === 'REJECTED' && !rejectedRef.current) {
       rejectedRef.current = true;
-      handleLogout();
+      // handleLogout();
+      authEvents.emit('auth:invalid-email', 'rejected_access_level');
       return;
     }
 

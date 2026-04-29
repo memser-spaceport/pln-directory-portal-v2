@@ -1,0 +1,117 @@
+@use 'styles/media.scss';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  min-height: calc(100dvh - 129px);
+  position: relative;
+  gap: 16px;
+
+  border-left: 1px solid var(--Border-border-dark, #cbd5e1);
+  background: var(--Surface-surface-light, #fff);
+
+  @include media.tablet-landscape {
+    padding: 40px 40px 24px;
+  }
+}
+
+.title {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 27px;
+  letter-spacing: -0.4px;
+  margin: 0;
+  display: none;
+
+  @include media.tablet-landscape {
+    display: block;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: stretch;
+
+  border-radius: var(--corner-radius-xl, 12px);
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  background: var(--background-base-white, #fff);
+
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.content {
+  display: flex;
+  padding: var(--spacing-md, 16px);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-sm, 12px);
+  align-self: stretch;
+}
+
+.desc {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+.placeholder {
+  width: 100%;
+  padding: 16px 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  text-align: center;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  letter-spacing: -0.3px;
+}
+
+.emptySub {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  letter-spacing: -0.2px;
+}
+
+.browseLink {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  background: #156ff7;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.browseLink:hover {
+  background: #1158c4;
+}

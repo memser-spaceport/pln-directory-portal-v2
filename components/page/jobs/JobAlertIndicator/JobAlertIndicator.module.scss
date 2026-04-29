@@ -1,0 +1,67 @@
+@import '../../../../styles/media.scss';
+
+.indicator {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--foreground-neutral-secondary, #64748b);
+  margin-bottom: 8px;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.name {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-weight: 500;
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.action {
+  background: transparent;
+  border: none;
+  color: #156ff7;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+}
+
+.action:hover {
+  color: #1158c4;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.divider {
+  color: var(--Neutral-Slate-300);
+}
+
+@include mobile-only {
+  .indicator {
+    font-size: 12px;
+    gap: 4px 12px;
+    margin: 0 8px 8px;
+  }
+
+  .action {
+    font-size: 12px;
+  }
+}

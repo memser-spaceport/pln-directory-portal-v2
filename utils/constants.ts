@@ -66,6 +66,14 @@ export const JOBS_ANALYTICS = {
   ON_JOBS_SEARCHED: 'jobs-searched',
   ON_JOBS_SORT_CHANGED: 'jobs-sort-changed',
   ON_JOB_CLICKED: 'job-clicked',
+  ON_JOB_ALERT_CTA_VIEWED: 'job-alert-cta-viewed',
+  ON_JOB_ALERT_CTA_CLICKED: 'job-alert-cta-clicked',
+  ON_JOB_ALERT_SET: 'job-alert-set',
+  ON_JOB_ALERT_UPDATED: 'job-alert-updated',
+  ON_JOB_ALERT_CONFLICT: 'job-alert-conflict',
+  ON_JOB_ALERT_RENAMED: 'job-alert-renamed',
+  ON_JOB_ALERT_DELETED: 'job-alert-deleted',
+  ON_JOB_ALERT_EMAIL_LINK_CLICKED: 'job-alert-email-link-clicked',
 };
 
 export const EVENTS = {

@@ -17,10 +17,13 @@ export function useGetFilterValuesWithDisabledState() {
     [baseFiltersQuery.data?.seniority, filtersQuery.data?.seniority],
   );
 
-  const location = useMemo(
-    () => mergeFacetsWithDisabled(baseFiltersQuery.data?.location, filtersQuery.data?.location),
-    [baseFiltersQuery.data?.location, filtersQuery.data?.location],
-  );
+  const location = useMemo(() => {
+    const locations = mergeFacetsWithDisabled(baseFiltersQuery.data?.location, filtersQuery.data?.location) || [];
+
+    locations.sort((a, b) => b.count - a.count);
+
+    return locations;
+  }, [baseFiltersQuery.data?.location, filtersQuery.data?.location]);
 
   const workMode = useMemo(
     () => mergeFacetsWithDisabled(baseFiltersQuery.data?.workMode, filtersQuery.data?.workMode),

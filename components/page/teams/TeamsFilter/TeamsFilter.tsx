@@ -47,7 +47,8 @@ export function TeamsFilter(props: TeamsFilterProps) {
   const canSearch = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'team.search.read');
   const canSeeSource = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'membership.source.read');
   const isDirectoryAdmin = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'directory.admin.full'); // isAdminUser(userInfo);
-  const isTierViewer = isDirectoryAdmin || canSearch || isTierUser(userInfo);
+  const canSeePriority = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'team.priority.read');
+  const isTierViewer = isDirectoryAdmin || canSearch || isTierUser(userInfo) || canSeePriority;
 
   // Create data hooks at the top level (not conditionally)
   // These factory functions return data hooks that can be passed to GenericCheckboxList

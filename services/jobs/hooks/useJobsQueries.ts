@@ -1,13 +1,17 @@
 'use client';
 
-import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { fetchJobsFilters, fetchJobsList } from '../jobs.service';
-import { JobsQueryKey } from '../constants';
+import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
+
 import type { IJobTeamGroup, IJobsListResponse } from '@/types/jobs.types';
 
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+
+import { JobsQueryKey } from '../constants';
+import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
+
+import { fetchJobsFilters, fetchJobsList } from '../jobs.service';
 
 const SINGLE_VALUE_KEYS = ['q', 'sort'] as const;
 const MULTI_VALUE_KEYS = ['roleCategory', 'seniority', 'focus', 'location', 'workplaceType'] as const;
@@ -24,7 +28,7 @@ export const pickJobsParams = (searchParams: URLSearchParams): URLSearchParams =
       if (raw) parts.push(...raw.split(URL_QUERY_VALUE_SEPARATOR).filter(Boolean));
     }
     for (const v of [...new Set(parts)]) {
-      picked.append(key, v);
+      picked.append(key, v.replaceAll(FILTER_VALUE_SEPARATOR_ENCODED, FILTER_VALUE_SEPARATOR));
     }
   }
   return picked;

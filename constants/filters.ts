@@ -1,0 +1,2 @@
+export const FILTER_VALUE_SEPARATOR = '|';
+export const FILTER_VALUE_SEPARATOR_ENCODED = '%7C';

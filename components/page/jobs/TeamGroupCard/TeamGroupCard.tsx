@@ -2,12 +2,15 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import isEmpty from 'lodash/isEmpty';
+
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
 import { getJobDate, isNew, teamInitials } from '@/utils/jobs.utils';
-import { RoleRow } from './component/RoleRow';
-import clsx from 'clsx';
+import { TagsList } from '@/components/common/profile/TagsList';
 
-import { buildFocusChips } from './utils/buildFocusChips';
+import { useGetFocusTags } from './hooks/useGetFocusTags';
+
+import { RoleRow } from './component/RoleRow';
 
 import s from './TeamGroupCard.module.scss';
 
@@ -27,7 +30,7 @@ export function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps) {
   const hiddenCount = roles.length - visibleRoles.length;
   const newCount = roles.filter((r) => isNew(getJobDate(r))).length;
 
-  const chips = buildFocusChips(team.focusAreas, team.subFocusAreas, MAX_FOCUS_CHIPS);
+  const focusTags = useGetFocusTags(team);
 
   return (
     <article className={s.card}>
@@ -42,29 +45,8 @@ export function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps) {
 
         <div className={s.headerMain}>
           <h3 className={s.teamName}>{team.name}</h3>
-          {chips.shown.length > 0 && (
-            <div className={s.focusRow}>
-              {chips.shown.map((chip) => (
-                <span key={`${chip.kind}::${chip.title}`} className={`${s.focusChip} ${s[`focusChip_${chip.kind}`]}`}>
-                  {chip.title}
-                </span>
-              ))}
-              {chips.moreCount > 0 && (
-                <span className={s.moreChipWrapper}>
-                  <span className={clsx(s.focusChip, s.focusChip_sub)}>+{chips.moreCount}</span>
-                  <div className={s.moreTooltip}>
-                    {chips.hidden.map((chip) => (
-                      <span
-                        key={`${chip.kind}::${chip.title}`}
-                        className={clsx(s.focusChip, s[`focusChip_${chip.kind}`])}
-                      >
-                        {chip.title}
-                      </span>
-                    ))}
-                  </div>
-                </span>
-              )}
-            </div>
+          {!isEmpty(focusTags) && (
+            <TagsList tags={focusTags} tagsToShow={MAX_FOCUS_CHIPS} classes={{ root: s.focusRow, tag: s.focusTag }} />
           )}
         </div>
 

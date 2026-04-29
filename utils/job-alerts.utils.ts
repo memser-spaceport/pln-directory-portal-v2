@@ -59,10 +59,10 @@ export const filterStateToHashKey = (state: IJobAlertFilterState): string => {
 
 export const summarizeFilterState = (state: IJobAlertFilterState): string => {
   const parts: string[] = [];
-  if (state.roleCategory[0]) parts.push(state.roleCategory[0]);
-  if (state.seniority[0]) parts.push(seniorityDisplayLabel(state.seniority[0]));
-  if (state.focus[0]) parts.push(state.focus[0]);
-  if (state.workMode[0]) parts.push(state.workMode[0]);
+  if (state.roleCategory.length) parts.push(state.roleCategory.join(', '));
+  if (state.seniority.length) parts.push(state.seniority.map(seniorityDisplayLabel).join(', '));
+  if (state.focus.length) parts.push(state.focus.join(', '));
+  if (state.workMode.length) parts.push(state.workMode.join(', '));
   if (state.q) parts.push(`"${state.q}"`);
   return parts.join(' · ') || 'Job alert';
 };
@@ -71,8 +71,9 @@ export const filterStateToURLSearchParams = (state: IJobAlertFilterState): URLSe
   const params = new URLSearchParams();
   if (state.q) params.set('q', state.q);
   for (const key of ['roleCategory', 'seniority', 'focus', 'location'] as const) {
-    for (const v of state[key]) params.append(key, v);
+    if (state[key].length > 0) params.set(key, state[key].join('|'));
   }
-  for (const wt of workModesToWorkplaceTypes(state.workMode)) params.append('workplaceType', wt);
+  const workplaceTypes = workModesToWorkplaceTypes(state.workMode);
+  if (workplaceTypes.length > 0) params.set('workplaceType', workplaceTypes.join('|'));
   return params;
 };

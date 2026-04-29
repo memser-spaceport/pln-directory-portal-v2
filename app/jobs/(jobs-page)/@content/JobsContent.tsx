@@ -126,7 +126,10 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   }, [isLoading, isError, paramsKey, totalRoles, searchParams, analytics]);
 
   if (isError) return <Error />;
-  if (isLoading) return <ContentPanelSkeletonLoader />;
+  // Only show the full-page skeleton on the very first load. During URL transitions,
+  // keepPreviousData makes `groups` populated; we should keep rendering the page so
+  // the user doesn't see a blank screen between filter changes (e.g. Clear).
+  if (isLoading && groups.length === 0) return <ContentPanelSkeletonLoader />;
 
   const onSort = (value: string) => {
     setParam('sort', value === 'newest' ? null : value);

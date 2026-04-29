@@ -94,27 +94,27 @@ describe('filterStateToHashKey', () => {
 describe('filterStateToURLSearchParams', () => {
   const empty = { roleCategory: [], seniority: [], focus: [], location: [], workMode: [] };
 
-  it('emits q, roleCategory, seniority, focus, location as repeated keys', () => {
+  it('emits q, roleCategory, seniority, focus, location as pipe-joined values on a single key', () => {
     const params = filterStateToURLSearchParams({
       ...empty,
       q: 'rust',
-      roleCategory: ['Design'],
+      roleCategory: ['Design', 'Product'],
       seniority: ['Senior (L4)'],
     });
     expect(params.get('q')).toBe('rust');
-    expect(params.getAll('roleCategory')).toEqual(['Design']);
-    expect(params.getAll('seniority')).toEqual(['Senior (L4)']);
+    expect(params.get('roleCategory')).toBe('Design|Product');
+    expect(params.getAll('roleCategory')).toEqual(['Design|Product']);
+    expect(params.get('seniority')).toBe('Senior (L4)');
   });
 
   it('emits workMode as collapsed workplaceType (remote+distributed → remote)', () => {
     const params = filterStateToURLSearchParams({ ...empty, workMode: ['remote', 'distributed'] });
-    expect(params.getAll('workplaceType')).toEqual(['remote']);
-    expect(params.getAll('workMode')).toEqual([]);
+    expect(params.get('workplaceType')).toBe('remote');
   });
 
-  it('passes hybrid and in-office through as workplaceType', () => {
+  it('passes hybrid and in-office through as pipe-joined workplaceType', () => {
     const params = filterStateToURLSearchParams({ ...empty, workMode: ['hybrid', 'in-office'] });
-    expect(params.getAll('workplaceType').sort()).toEqual(['hybrid', 'in-office']);
+    expect(params.get('workplaceType')?.split('|').sort()).toEqual(['hybrid', 'in-office']);
   });
 });
 
@@ -123,6 +123,12 @@ describe('summarizeFilterState', () => {
 
   it('joins major filters with " · "', () => {
     expect(summarizeFilterState({ ...empty, roleCategory: ['Design'], seniority: ['Mid (L3)'] })).toBe('Design · Mid');
+  });
+
+  it('joins all values within a multi-value filter category', () => {
+    expect(
+      summarizeFilterState({ ...empty, roleCategory: ['Design', 'Product'], seniority: ['Mid (L3)', 'Senior (L4)'] }),
+    ).toBe('Design, Product · Mid, Senior');
   });
 
   it('falls back to "Job alert" when nothing is selected', () => {

@@ -9,7 +9,10 @@ export function useUpdateJobAlert() {
   return useMutation({
     mutationFn: ({ uid, payload }: { uid: string; payload: IUpdateJobAlertPayload }) =>
       updateJobAlert(uid, payload),
-    onSuccess: async (updated: IJobAlert) => {
+    onSuccess: (updated: IJobAlert) => {
+      // Trust the mutation response: write it directly into the cache.
+      // Don't invalidate — that would trigger a refetch that could race with the
+      // optimistic update if the server is slow to reflect the change.
       queryClient.setQueryData<IJobAlertsListResponse>([JobAlertsQueryKey.List], (prev) => {
         if (!prev) return prev;
         return {
@@ -17,7 +20,6 @@ export function useUpdateJobAlert() {
           items: prev.items.map((a) => (a.uid === updated.uid ? updated : a)),
         };
       });
-      await queryClient.invalidateQueries({ queryKey: [JobAlertsQueryKey.List] });
     },
   });
 }

@@ -58,7 +58,7 @@ export function JobRedirectClient() {
   if (error) {
     return (
       <div className={s.wrapper}>
-        <p className={`${s.title} ${s.error}`}>Couldn't open this link.</p>
+        <p className={`${s.title} ${s.error}`}>Couldn&apos;t open this link.</p>
         <p className={s.subtitle}>{error}</p>
         <Link href="/jobs" className={s.fallbackLink}>
           Back to job board →
@@ -70,7 +70,7 @@ export function JobRedirectClient() {
   return (
     <div className={s.wrapper}>
       <p className={s.title}>Opening the role…</p>
-      <p className={s.subtitle}>You'll be redirected in a moment.</p>
+      <p className={s.subtitle}>You&apos;ll be redirected in a moment.</p>
     </div>
   );
 }

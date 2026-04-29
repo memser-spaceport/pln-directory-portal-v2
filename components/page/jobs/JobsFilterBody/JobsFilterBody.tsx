@@ -139,6 +139,7 @@ export function JobsFilterBody() {
           filterStore={useJobsFilterStore}
           useGetDataHook={getLocations}
           defaultItemsToShow={5}
+          searchResultsToShow={10}
         />
       </FilterSection>
     </>

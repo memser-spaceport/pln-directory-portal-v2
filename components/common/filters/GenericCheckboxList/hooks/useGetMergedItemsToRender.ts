@@ -9,11 +9,19 @@ interface Input {
   selectedData: FilterOption[];
   searchValue: string;
   defaultItemsToShow?: number;
+  searchResultsToShow?: number;
   disableSorting?: boolean;
 }
 
 export function useGetMergedItemsToRender(input: Input) {
-  const { beData = [], selectedData = [], searchValue, defaultItemsToShow, disableSorting } = input;
+  const {
+    beData = [],
+    selectedData = [],
+    searchValue,
+    defaultItemsToShow,
+    disableSorting,
+    searchResultsToShow,
+  } = input;
 
   const result = useMemo(() => {
     const map = new Map<string, FilterOption>();
@@ -35,12 +43,18 @@ export function useGetMergedItemsToRender(input: Input) {
 
     const result = disableSorting ? beData : [...selected, ...rest];
 
-    if (isEmpty(searchValue) && defaultItemsToShow && result.length > defaultItemsToShow) {
-      if (selectedNum > defaultItemsToShow) {
-        return result.slice(0, selectedNum);
-      }
+    if (isEmpty(searchValue)) {
+      if (defaultItemsToShow && result.length > defaultItemsToShow) {
+        if (selectedNum > defaultItemsToShow) {
+          return result.slice(0, selectedNum);
+        }
 
-      return result.slice(0, defaultItemsToShow);
+        return result.slice(0, defaultItemsToShow);
+      }
+    } else {
+      if (searchResultsToShow) {
+        return result.slice(0, selectedNum + searchResultsToShow);
+      }
     }
 
     return result;

@@ -225,7 +225,7 @@ export function AuthInvalidUser() {
               label: 'Contact Support',
               onClick: () => {
                 handleModalClose();
-                openModal({ reason: content.reason });
+                openModal({ reason: content.reason, onCancel: content.onCancel });
               },
             }
       }

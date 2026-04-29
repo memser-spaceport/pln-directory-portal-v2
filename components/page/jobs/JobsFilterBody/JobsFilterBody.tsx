@@ -138,6 +138,7 @@ export function JobsFilterBody() {
           placeholder="Search locations..."
           filterStore={useJobsFilterStore}
           useGetDataHook={getLocations}
+          defaultItemsToShow={5}
         />
       </FilterSection>
     </>

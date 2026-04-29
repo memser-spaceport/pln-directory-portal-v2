@@ -230,7 +230,7 @@ const MemberDetails = ({ params }: { params: any }) => {
       <div className={styles?.memberDetail}>
         <div
           className={clsx(styles.container, {
-            [styles.singleColumn]: isAvailableToConnect || !isLoggedIn || isOwner,
+            [styles.singleColumn]: isAvailableToConnect || !isLoggedIn || isOwner || !v2HasMemberContacts,
           })}
         >
           <div className={styles.content}>

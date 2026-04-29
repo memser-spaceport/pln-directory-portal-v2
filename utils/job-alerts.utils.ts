@@ -62,6 +62,7 @@ export const summarizeFilterState = (state: IJobAlertFilterState): string => {
   if (state.roleCategory.length) parts.push(state.roleCategory.join(', '));
   if (state.seniority.length) parts.push(state.seniority.map(seniorityDisplayLabel).join(', '));
   if (state.focus.length) parts.push(state.focus.join(', '));
+  if (state.location.length) parts.push(state.location.join(', '));
   if (state.workMode.length) parts.push(state.workMode.join(', '));
   if (state.q) parts.push(`"${state.q}"`);
   return parts.join(' · ') || 'Job alert';

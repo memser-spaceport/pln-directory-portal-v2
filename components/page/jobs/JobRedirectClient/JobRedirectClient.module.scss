@@ -12,13 +12,13 @@
 .title {
   font-size: 16px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--Neutral-Slate-900);
   margin: 0;
 }
 
 .subtitle {
   font-size: 13px;
-  color: #64748b;
+  color: var(--foreground-neutral-secondary, #64748b);
   margin: 0;
 }
 

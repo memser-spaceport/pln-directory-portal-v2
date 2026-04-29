@@ -1,10 +1,11 @@
 'use client';
 
-import { KeyboardEvent, useState } from 'react';
+import { KeyboardEvent, useRef, useState } from 'react';
 import { toast } from '@/components/core/ToastContainer';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { useDeleteJobAlert } from '@/services/job-alerts/hooks/useDeleteJobAlert';
 import { useUpdateJobAlert } from '@/services/job-alerts/hooks/useUpdateJobAlert';
+import { ConfirmDialog } from '@/components/page/demo-day/FounderPendingView/components/ConfirmDialog/ConfirmDialog';
 import type { IJobAlert } from '@/types/job-alerts.types';
 import { summarizeFilterState } from '@/utils/job-alerts.utils';
 import s from './JobAlertRow.module.scss';
@@ -20,14 +21,18 @@ export function JobAlertRow({ alert }: JobAlertRowProps) {
 
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(alert.name);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const isSubmitting = useRef(false);
 
   const handleRename = async () => {
+    if (isSubmitting.current) return;
     const next = draftName.trim();
     if (!next || next === alert.name) {
       setEditing(false);
       setDraftName(alert.name);
       return;
     }
+    isSubmitting.current = true;
     try {
       await updateMutation.mutateAsync({ uid: alert.uid, payload: { name: next } });
       analytics.onJobAlertRenamed({ alert_id: alert.uid });
@@ -36,6 +41,7 @@ export function JobAlertRow({ alert }: JobAlertRowProps) {
       toast.error((err as Error).message);
       setDraftName(alert.name);
     } finally {
+      isSubmitting.current = false;
       setEditing(false);
     }
   };
@@ -51,7 +57,7 @@ export function JobAlertRow({ alert }: JobAlertRowProps) {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`Delete job alert "${alert.name}"? This cannot be undone.`)) return;
+    setConfirmDeleteOpen(false);
     try {
       await deleteMutation.mutateAsync(alert.uid);
       analytics.onJobAlertDeleted({ alert_id: alert.uid });
@@ -104,12 +110,23 @@ export function JobAlertRow({ alert }: JobAlertRowProps) {
         <button
           type="button"
           className={s.deleteBtn}
-          onClick={() => void handleDelete()}
+          onClick={() => setConfirmDeleteOpen(true)}
           disabled={deleteMutation.isPending}
         >
           Delete
         </button>
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDeleteOpen}
+        title="Delete job alert?"
+        message={`Delete job alert "${alert.name}"? This cannot be undone.`}
+        confirmText="Delete"
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setConfirmDeleteOpen(false)}
+        isLoading={deleteMutation.isPending}
+        type="danger"
+      />
     </div>
   );
 }

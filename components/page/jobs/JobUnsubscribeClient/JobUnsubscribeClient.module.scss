@@ -12,13 +12,13 @@
 .title {
   font-size: 18px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--Neutral-Slate-900);
   margin: 0;
 }
 
 .subtitle {
   font-size: 14px;
-  color: #64748b;
+  color: var(--foreground-neutral-secondary, #64748b);
   margin: 0;
   max-width: 480px;
 }
@@ -33,7 +33,7 @@
 
 .primary {
   background: #156ff7;
-  color: #ffffff;
+  color: var(--Neutral-White);
   border: none;
   border-radius: 8px;
   padding: 8px 16px;

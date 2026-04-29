@@ -8,7 +8,7 @@
   gap: 6px 12px;
   padding: 8px 0;
   font-size: 13px;
-  color: #64748b;
+  color: var(--foreground-neutral-secondary, #64748b);
   margin-bottom: 8px;
 }
 
@@ -22,7 +22,7 @@
 }
 
 .name {
-  color: #455468;
+  color: var(--foreground-neutral-secondary, #455468);
   font-weight: 500;
 }
 
@@ -51,7 +51,7 @@
 }
 
 .divider {
-  color: #cbd5e1;
+  color: var(--Neutral-Slate-300);
 }
 
 @include mobile-only {

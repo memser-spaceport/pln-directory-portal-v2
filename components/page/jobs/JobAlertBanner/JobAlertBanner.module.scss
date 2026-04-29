@@ -6,7 +6,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 12px 16px;
-  background: linear-gradient(90deg, #eff5ff 0%, #f8fafc 100%);
+  background: linear-gradient(90deg, #eff5ff 0%, var(--Neutral-Slate-50) 100%);
   border: 1px solid #c7d6fe;
   border-radius: 12px;
   margin-bottom: 16px;
@@ -22,13 +22,13 @@
 .title {
   font-size: 14px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--Neutral-Slate-900);
   margin: 0;
 }
 
 .subtitle {
   font-size: 12px;
-  color: #64748b;
+  color: var(--foreground-neutral-secondary, #64748b);
   margin: 0;
 }
 
@@ -41,7 +41,7 @@
 
 .primaryButton {
   background: #156ff7;
-  color: #ffffff;
+  color: var(--Neutral-White);
   border: none;
   border-radius: 8px;
   padding: 8px 16px;

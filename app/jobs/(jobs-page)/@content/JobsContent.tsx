@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import type { IUserInfo } from '@/types/shared.types';
@@ -52,7 +52,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   const pendingSaveHandled = useRef(false);
   const autoApplyHandled = useRef(false);
 
-  const alertFilterState = jobAlertFilterStateFromURL(searchParams);
+  const alertFilterState = useMemo(() => jobAlertFilterStateFromURL(searchParams), [searchParams]);
   const hasFilters = hasActiveFilters(alertFilterState);
   const { userAlert, filtersMatchAlert } = useJobAlertMatch(alertFilterState, isLoggedIn);
 

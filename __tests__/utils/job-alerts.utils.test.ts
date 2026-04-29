@@ -135,6 +135,10 @@ describe('summarizeFilterState', () => {
     expect(summarizeFilterState({ ...empty })).toBe('Job alert');
   });
 
+  it('includes location in summary', () => {
+    expect(summarizeFilterState({ ...empty, location: ['Remote'] })).toBe('Remote');
+  });
+
   it('quotes the search query', () => {
     expect(summarizeFilterState({ ...empty, q: 'rust' })).toBe('"rust"');
   });

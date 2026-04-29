@@ -34,8 +34,8 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
-  const { canViewSupply: v2CanViewOfficeHours } = useOfficeHoursAccess();
-  const isEditable = isOwner || isAdmin;
+  const { canViewSupply: v2CanViewOfficeHours, canSupply } = useOfficeHoursAccess();
+  const isEditable = isOwner || isAdmin || canSupply;
   const showWarningUseCaseA = !member?.officeHours;
   const showWarningUseCaseB = !member?.ohInterest?.length || !member?.ohHelpWith?.length;
   const showIncomplete = !editView && isOwner && (showWarningUseCaseA || showWarningUseCaseB);

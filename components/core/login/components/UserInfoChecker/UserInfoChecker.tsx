@@ -71,8 +71,15 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
 
     const memberInfo = member.memberInfo;
 
+    const userInfoPermission = userInfo.rbac?.effectivePermissions;
+    const memberPermissions = memberInfo.rbac.effectivePermissions;
+
+    const userPermissionCodes = userInfoPermission?.map((p) => p.code);
+    const memberPermissionCodes = memberPermissions?.map((p: { code: string }) => p.code);
+    const permissionsChanged = !areRolesEqual(userPermissionCodes, memberPermissionCodes);
+
     // Handle access level changes
-    if (memberInfo.rbac?.status !== userInfo.rbac?.status) {
+    if (memberInfo.rbac?.status !== userInfo.rbac?.status || permissionsChanged) {
       try {
         const parsedCookie = JSON.parse(userInfoCookie);
 

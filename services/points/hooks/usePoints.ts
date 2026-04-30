@@ -58,8 +58,7 @@ async function stubDelay<T>(value: T): Promise<T> {
 async function fetchLifetimePoints(): Promise<LifetimePointsResponse | null> {
   if (USE_STUB) return stubDelay(STUB_LIFETIME);
 
-  // const { authToken } = getCookiesFromClient();
-  const authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InBsYWF1c2VyQHlvcG1haWwuY29tIiwiYXVkIjpbImNsb3JpZzBtdzA1bGlvZGd2ZWx0dnI4cHIiXSwiaWF0IjoxNzc3NDQ3MzIxLCJleHAiOjE3ODc4MTUzMjEsImlzcyI6Imh0dHBzOi8vZGV2LWF1dGgucGxuZXR3b3JrLmlvIiwic3ViIjoiY21vanE4cXE3MGM1eTdqM2F6dDA5MW1oYSIsImp0aSI6IjYzMzEzZmZhOTJhODhkNDQxZDdjZWQwZGRlODkzZTI3In0.Tj7-AdC-TNVwwyexyuEEjILYS-F1dszm2xhRfZrt-lY'
+  const { authToken } = getCookiesFromClient();
   if (!authToken) return null;
 
   try {
@@ -88,8 +87,7 @@ async function fetchSnapshotPoints(
     return stubDelay({ snapshotPeriod: `${snapshotPeriod}-01`, records: STUB_SNAPSHOT_RECORDS });
   }
 
-  // const { authToken } = getCookiesFromClient();
-  const authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InBsYWF1c2VyQHlvcG1haWwuY29tIiwiYXVkIjpbImNsb3JpZzBtdzA1bGlvZGd2ZWx0dnI4cHIiXSwiaWF0IjoxNzc3NDQ3MzIxLCJleHAiOjE3ODc4MTUzMjEsImlzcyI6Imh0dHBzOi8vZGV2LWF1dGgucGxuZXR3b3JrLmlvIiwic3ViIjoiY21vanE4cXE3MGM1eTdqM2F6dDA5MW1oYSIsImp0aSI6IjYzMzEzZmZhOTJhODhkNDQxZDdjZWQwZGRlODkzZTI3In0.Tj7-AdC-TNVwwyexyuEEjILYS-F1dszm2xhRfZrt-lY'
+  const { authToken } = getCookiesFromClient();
   if (!authToken) return null;
 
   try {
@@ -103,7 +101,6 @@ async function fetchSnapshotPoints(
         },
       }
     );
-    console.log('fetchSnapshotPointsResponse', res);
 
     if (res.status === 403 || res.status === 404) return null;
     if (!res.ok) throw new Error(`Snapshot points request failed: ${res.status}`);

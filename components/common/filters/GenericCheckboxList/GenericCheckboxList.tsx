@@ -36,9 +36,14 @@ export interface GenericCheckboxListProps {
   placeholder?: string;
 
   /**
-   * Number of items to show by default (before "Show more" is clicked)
+   * Number of items to show by default
    */
   defaultItemsToShow?: number;
+
+  /**
+   * Number of items to show when search input is not empty
+   */
+  searchResultsToShow?: number;
 
   /**
    * Hook to fetch data based on search input
@@ -123,6 +128,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     placeholder,
     useGetDataHook,
     defaultItemsToShow,
+    searchResultsToShow,
     onChange,
     onSearch,
     onSelectAll,
@@ -171,6 +177,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     searchValue,
     defaultItemsToShow,
     disableSorting,
+    searchResultsToShow,
   });
 
   // React Hook Form setup
@@ -188,7 +195,9 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
 
     if (filterValues && filterValues.length > 0) {
       const valuesArr = filterValues.map((item) => item.value);
-      const values = valuesArr.map((v) => v.replaceAll(FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED)).join(URL_QUERY_VALUE_SEPARATOR);
+      const values = valuesArr
+        .map((v) => v.replaceAll(FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED))
+        .join(URL_QUERY_VALUE_SEPARATOR);
 
       // Only update if the value actually changed
       const currentValue = params.get(paramKey);
@@ -228,13 +237,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
       <div className={className}>
         {label && <div className={s.label}>{label}</div>}
         {hint && <div className={s.hint}>{hint}</div>}
-        {!hideSearch && (
-          <SearchInput
-            value={searchValue}
-            onChange={handleSearchChange}
-            placeholder={placeholder}
-          />
-        )}
+        {!hideSearch && <SearchInput value={searchValue} onChange={handleSearchChange} placeholder={placeholder} />}
         <div className={s.list}>
           {!!searchValue && (
             <SelectAll

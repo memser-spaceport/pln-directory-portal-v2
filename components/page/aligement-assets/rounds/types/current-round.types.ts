@@ -93,7 +93,8 @@ export interface ChartSectionData {
   title: string;
   subtitle: string;
   chartData: ChartEntry[];
-  maxValue: number;
+  /** @deprecated maxValue is now computed dynamically from chartData. Kept for backwards compatibility. */
+  maxValue?: number;
 }
 
 // ============================================================================

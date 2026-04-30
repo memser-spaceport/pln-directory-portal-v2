@@ -22,7 +22,7 @@ export interface VersionData {
 const productVersions: VersionData[] = [
   {
     version: 'v0.5',
-    dateRange: 'January 2025 - present',
+    dateRange: 'January 2026 - present',
     added: [
       'Launched the Alignment Asset website',
       'Launched monthly Alignment Asset newsletter',

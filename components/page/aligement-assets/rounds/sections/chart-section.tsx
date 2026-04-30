@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { ChartSectionData } from '../types';
 
@@ -7,11 +8,37 @@ interface ChartSectionProps {
   data: ChartSectionData;
 }
 
+
+function computeNiceMaxAndTicks(rawMax: number, tickCount = 5): { niceMax: number; ticks: number[] } {
+  if (rawMax <= 0) {
+    return { niceMax: 1000, ticks: [0, 200, 400, 600, 800, 1000] };
+  }
+
+  const roughStep = rawMax / tickCount;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(roughStep)));
+  const residual = roughStep / magnitude;
+
+  let niceStep: number;
+  if (residual <= 1.5) niceStep = 1 * magnitude;
+  else if (residual <= 3) niceStep = 2 * magnitude;
+  else if (residual <= 7) niceStep = 5 * magnitude;
+  else niceStep = 10 * magnitude;
+
+  const niceMax = Math.ceil(rawMax / niceStep) * niceStep;
+  const ticks = Array.from({ length: tickCount + 1 }, (_, i) => Math.round((niceMax / tickCount) * i));
+
+  return { niceMax, ticks };
+}
+
 /**
  * ChartSection - Displays bar chart of points collected per KPI pillar
  * @param data - Chart section data from master JSON
  */
 export default function ChartSection({ data }: ChartSectionProps) {
+  const { niceMax, ticks } = useMemo(() => {
+    const highestValue = Math.max(...data.chartData.map((entry) => entry.value));
+    return computeNiceMaxAndTicks(highestValue);
+  }, [data.chartData]);
   return (
     <>
       <section className="chart-section">
@@ -48,8 +75,8 @@ export default function ChartSection({ data }: ChartSectionProps) {
                     dy={10}
                   />
                   <YAxis 
-                    domain={[0, data.maxValue]}
-                    ticks={[0, 200, 400, 600, 800, 1000]}
+                    domain={[0, niceMax]}
+                    ticks={ticks}
                     axisLine={false}
                     tickLine={false}
                     tick={{ 

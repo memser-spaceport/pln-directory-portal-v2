@@ -13,7 +13,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import QueryProvider from '@/providers/QueryProvider';
 import StoreInitializer from '@/providers/StoreInitializer';
 import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
-import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
+// import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
 import PostHogIdentifier from '@/components/page/posthog-identifier';
 import PostLoginRedirectHandler from '@/components/page/recommendations/components/RecommendationsPreloader/PostLoginRedirectHandler';
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
@@ -110,7 +110,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <BroadCastChannel />
                 <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
                 <MemberRegisterDialog />
-                <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
+                {/* <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} /> */}
                 <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
                 <PostLoginRedirectHandler isLoggedIn={isLoggedIn} />
                 {/* <TeamRegisterDialog /> */}

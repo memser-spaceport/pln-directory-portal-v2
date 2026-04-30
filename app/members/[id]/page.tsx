@@ -9,8 +9,8 @@ import { ContactDetails } from '@/components/page/member-details/ContactDetails'
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
-import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
-import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
+// import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
+// import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
 import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
 import { OfficeHoursDetails } from '@/components/page/member-details/OfficeHoursDetails';
@@ -305,12 +305,12 @@ const MemberDetails = ({ params }: { params: any }) => {
             )}
         </div>
 
-        {userInfo.uid === member.id && (
+        {/* {userInfo.uid === member.id && (
           <>
             <SubscribeToRecommendationsWidget userInfo={userInfo} />
             <UpcomingEventsWidget userInfo={userInfo} />
           </>
-        )}
+        )} */}
       </div>
     </>
   );

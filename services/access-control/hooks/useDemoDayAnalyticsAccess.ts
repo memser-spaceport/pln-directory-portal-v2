@@ -13,7 +13,9 @@ export function useDemoDayAnalyticsAccess() {
   } = useQuery({
     queryKey: [AccessControlQueryKeys.MY_ACCESS],
     queryFn: fetchMyAccess,
-    select: (data) => data.effectivePermissions.includes('demoday.stats.read'),
+    select: (data) =>
+      data.effectivePermissions.includes('demoday.stats.read') ||
+      data.effectivePermissions.includes('demoday.report_link.read'),
     staleTime: 5 * 60 * 1000,
     enabled: !!userInfo,
     retry: 2,

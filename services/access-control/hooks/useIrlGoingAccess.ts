@@ -21,8 +21,12 @@ export function useIrlGoingAccess() {
     queryKey: [AccessControlQueryKeys.MY_ACCESS],
     queryFn: fetchMyAccess,
     select: (data): IrlGoingAccessResult => ({
-      canRead: data.effectivePermissions.includes('irlg.going.read'),
-      canWrite: data.effectivePermissions.includes('irlg.going.write'),
+      canRead:
+        data.effectivePermissions.includes('irlg.going.read') ||
+        data.effectivePermissions.includes('directory.admin.full'),
+      canWrite:
+        data.effectivePermissions.includes('irlg.going.write') ||
+        data.effectivePermissions.includes('directory.admin.full'),
     }),
     staleTime: 5 * 60 * 1000,
     enabled: !!userInfo,

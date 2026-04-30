@@ -20,6 +20,7 @@ import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAc
 import Link from 'next/link';
 import { IrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatheringModal';
 import { PushNotification, IrlGatheringMetadata } from '@/types/push-notifications.types';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 interface IFollowSectionProps {
   userInfo: any;
   eventLocationSummary: any;
@@ -67,11 +68,10 @@ const FollowSection = (props: IFollowSectionProps) => {
   const onLogin = props.onLogin;
   const isUserLoggedIn = props?.isLoggedIn;
   const isAdminInAllEvents = props?.isAdminInAllEvents;
-  const roles = userInfo?.roles ?? [];
-  const canUserAddAttendees =
-    isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const isAdmin = isAdminUser(userInfo);
+  const canUserAddAttendees = isAdminInAllEvents && isAdmin;
   const topicsAndReason = props?.topicsAndReason;
-  const accessLevel = getAccessLevel(userInfo, isUserLoggedIn);
+  // const accessLevel = getAccessLevel(userInfo, isUserLoggedIn);
   const { canWrite: v2CanWrite } = useIrlGoingAccess();
   const nearestEventDate = props?.nearestEventDate;
   const scheduleURL =
@@ -94,7 +94,7 @@ const FollowSection = (props: IFollowSectionProps) => {
     ((isUserLoggedIn && !isUserGoing && !userHasUpcomingEvents) || !isUserLoggedIn);
 
   // Modal can be opened for new attendance OR for editing existing attendance
-  const canOpenModal = canShowImGoingButton || (isEditMode && isUserLoggedIn && (USE_ACCESS_CONTROL_V2 ? v2CanWrite : accessLevel === 'advanced'));
+  const canOpenModal = canShowImGoingButton || (isEditMode && isUserLoggedIn && v2CanWrite);
 
   // Modal is open if local state is true AND (user can open modal OR URL param is set)
   const isIrlGatheringModalOpen = isModalOpenLocal && canOpenModal;
@@ -267,7 +267,6 @@ const FollowSection = (props: IFollowSectionProps) => {
   const openModalParamString = useMemo(() => urlSearchParams.get('open-modal'), [urlSearchParams]);
   const isUserGoingValue = useMemo(() => Boolean(isUserGoing), [isUserGoing]);
   const isUserLoggedInValue = useMemo(() => Boolean(isUserLoggedIn), [isUserLoggedIn]);
-  const accessLevelValue = useMemo(() => accessLevel || null, [accessLevel]);
 
   useEffect(() => {
     const openModalParam = openModalParamString === 'true';
@@ -275,11 +274,11 @@ const FollowSection = (props: IFollowSectionProps) => {
     if (openModalParam) {
       setIsModalOpenLocal(true);
       // If user is already going, automatically set edit mode
-      if (isUserGoingValue && isUserLoggedInValue && (USE_ACCESS_CONTROL_V2 ? v2CanWrite : accessLevelValue === 'advanced')) {
+      if (isUserGoingValue && isUserLoggedInValue && v2CanWrite) {
         setIsEditMode(true);
       }
     }
-  }, [openModalParamString, isUserGoingValue, isUserLoggedInValue, accessLevelValue, v2CanWrite]);
+  }, [openModalParamString, isUserGoingValue, isUserLoggedInValue, v2CanWrite]);
 
   useEffect(() => {
     function updateFollowers(e: any) {
@@ -533,7 +532,7 @@ const FollowSection = (props: IFollowSectionProps) => {
               followProperties={followProperties}
               expand={true}
             />
-            {canUserAddAttendees && (USE_ACCESS_CONTROL_V2 ? v2CanWrite : accessLevel === 'advanced') && (
+            {canUserAddAttendees && v2CanWrite && (
               <div className="toolbar__actionCn__add">
                 <div className="toolbar__actionCn__add__wrpr">
                   <button ref={addMemberRef} className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
@@ -563,23 +562,19 @@ const FollowSection = (props: IFollowSectionProps) => {
             {/* IRL Gathering Modal Button */}
             {canShowImGoingButton && (
               <button onClick={handleIrlGatheringModalOpen} className="toolbar__actionCn__imGoingBtn">
-                {(USE_ACCESS_CONTROL_V2 ? !v2CanWrite : userInfo.accessLevel === 'L0' || userInfo.accessLevel === 'L1') ? 'More info' : "I'm Going"}
+                {!v2CanWrite ? 'More info' : "I'm Going"}
               </button>
             )}
 
-            {isUserLoggedIn &&
-              !canUserAddAttendees &&
-              type === 'past' &&
-              !isUserGoing &&
-              (USE_ACCESS_CONTROL_V2 ? v2CanWrite : accessLevel === 'advanced') && (
-                <button onClick={() => onIAmGoingClick('mark-presence')} className="toolbar__actionCn__imGoingBtn">
-                  Claim Attendance
-                </button>
-              )}
+            {isUserLoggedIn && !canUserAddAttendees && type === 'past' && !isUserGoing && v2CanWrite && (
+              <button onClick={() => onIAmGoingClick('mark-presence')} className="toolbar__actionCn__imGoingBtn">
+                Claim Attendance
+              </button>
+            )}
             {isUserGoing &&
               isUserLoggedIn &&
               (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) &&
-              (USE_ACCESS_CONTROL_V2 ? v2CanWrite : accessLevel === 'advanced') && (
+              v2CanWrite && (
                 <div className="toolbar__actionCn__edit__wrpr">
                   <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
                     <img src="/icons/edit-white.svg" alt="arrow" width={18} height={18} />
@@ -610,10 +605,8 @@ const FollowSection = (props: IFollowSectionProps) => {
           onClose={handleIrlGatheringModalClose}
           notification={irlGatheringNotification}
           onGoingClick={handleIrlGatheringSuccess}
-          isEditMode={isEditMode || (isUserGoing && isUserLoggedIn && (USE_ACCESS_CONTROL_V2 ? v2CanWrite : accessLevel === 'advanced'))}
-          editModeData={
-            isEditMode || (isUserGoing && isUserLoggedIn && (USE_ACCESS_CONTROL_V2 ? v2CanWrite : accessLevel === 'advanced')) ? editModeData : undefined
-          }
+          isEditMode={isEditMode || (isUserGoing && isUserLoggedIn && v2CanWrite)}
+          editModeData={isEditMode || (isUserGoing && isUserLoggedIn && v2CanWrite) ? editModeData : undefined}
         />
       )}
 

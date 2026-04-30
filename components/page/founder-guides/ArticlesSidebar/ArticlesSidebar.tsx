@@ -9,7 +9,11 @@ import { useQueryState, parseAsString } from 'nuqs';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
 import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
-import { DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE, SCOPE_LABELS, SCOPE_TO_PERMISSION_CODE } from '@/services/articles/constants';
+import {
+  DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE,
+  SCOPE_LABELS,
+  SCOPE_TO_PERMISSION_CODE,
+} from '@/services/articles/constants';
 import { extractHeadings } from '@/utils/markdown';
 import s from './ArticlesSidebar.module.scss';
 
@@ -187,8 +191,21 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
     parseAsString.withOptions({ history: 'replace', shallow: true }),
   );
   const { byCategory, isLoading } = useGetArticles();
-  const { scopes: userScopes } = useFounderGuidesScopes();
+  const { scopes: userScopes, isLoading: scopesLoading } = useFounderGuidesScopes();
   const scopeOptions = useMemo(() => userScopes.map((s) => ({ label: SCOPE_LABELS[s] ?? s, value: s })), [userScopes]);
+  const permittedByCategory = useMemo(() => {
+    if (scopesLoading) return [];
+    return byCategory
+      .map((cat) => ({
+        ...cat,
+        articles: cat.articles.filter(
+          (a) =>
+            a.requiredPermissionCode === null ||
+            userScopes.some((s) => SCOPE_TO_PERMISSION_CODE[s] === a.requiredPermissionCode),
+        ),
+      }))
+      .filter((cat) => cat.articles.length > 0);
+  }, [byCategory, userScopes, scopesLoading]);
   const [search, setSearch] = useState('');
   const [openCategories, setOpenCategories] = useState<Set<string> | null>(null);
   const { trackSidebarSearch, trackRequestGuideLinkClicked } = useFounderGuidesAnalytics();
@@ -212,19 +229,19 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
   }, [search, trackSidebarSearch]);
 
   const scopeFiltered = useMemo(() => {
-    if (!selectedScope) return byCategory;
+    if (!selectedScope) return permittedByCategory;
     const permCode = SCOPE_TO_PERMISSION_CODE[selectedScope];
-    return byCategory
+    return permittedByCategory
       .map(({ category, articles }) => ({
         category,
         articles: articles.filter((a) => a.requiredPermissionCode === permCode || a.requiredPermissionCode === null),
       }))
       .filter(({ articles }) => articles.length > 0);
-  }, [byCategory, selectedScope]);
+  }, [permittedByCategory, selectedScope]);
 
   const effectiveOpenCategories = useMemo(
-    () => openCategories ?? new Set(byCategory.map((c) => c.category)),
-    [byCategory, openCategories],
+    () => openCategories ?? new Set(permittedByCategory.map((c) => c.category)),
+    [permittedByCategory, openCategories],
   );
 
   const { canCreate } = useFounderGuidesCreateAccess();
@@ -253,7 +270,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
   function toggleCategory(category: string) {
     if (search.trim()) return;
     setOpenCategories((prev) => {
-      const next = new Set(prev ?? byCategory.map((c) => c.category));
+      const next = new Set(prev ?? permittedByCategory.map((c) => c.category));
       if (next.has(category)) {
         next.delete(category);
       } else {
@@ -339,7 +356,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
       )}
 
       <nav className={s.nav}>
-        {isLoading && (
+        {(isLoading || scopesLoading) && (
           <>
             {[1, 2, 3].map((i) => (
               <div key={i} className={s.skeletonCategory} />
@@ -347,7 +364,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
           </>
         )}
 
-        {!isLoading &&
+        {!isLoading && !scopesLoading &&
           filtered.map(({ category, articles }) => {
             const isOpen = visibleCategories.has(category);
             const isCategoryActive = articles.some((article) => pathname === `/founder-guides/${article.slugURL}`);

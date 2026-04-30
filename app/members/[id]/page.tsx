@@ -145,6 +145,53 @@ const MemberDetails = ({ params }: { params: any }) => {
       return null;
     }
 
+    if (USE_ACCESS_CONTROL_V2) {
+      const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
+        member,
+        isOwner,
+        isAdmin,
+        memberInvestorSettings?.isInvestor,
+      );
+
+      return (
+        <>
+          <OneClickVerification
+            userInfo={userInfo}
+            member={member}
+            isLoggedIn={isLoggedIn}
+            isNewInvestor={isNewInvestor}
+          />
+          <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+          {showInvestorProfile && (
+            <InvestorProfileDetails
+              userInfo={userInfo}
+              member={member}
+              isLoggedIn={isLoggedIn}
+              isInvestor={memberInvestorSettings?.isInvestor}
+              useInlineAddTeam
+            />
+          )}
+          <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+          <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+          <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
+          <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+          {!isNewInvestor && (
+            <>
+              <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+              <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            </>
+          )}
+
+          {member.eventGuests.length > 0 && (
+            <div className={styles?.memberDetail__irlContribution}>
+              <IrlMemberContribution member={member} userInfo={userInfo} />
+            </div>
+          )}
+          {!isNewInvestor && <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+        </>
+      );
+    }
+
     switch (member.accessLevel) {
       case 'L5': {
         const showInvestorProfile = shouldShowInvestorProfileForThirdParty(

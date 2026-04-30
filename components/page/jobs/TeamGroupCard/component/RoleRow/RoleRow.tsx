@@ -1,7 +1,14 @@
 'use client';
 
+import { HTMLProps } from 'react';
+import isEmpty from 'lodash/isEmpty';
+
 import type { IJobRole } from '@/types/jobs.types';
+
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
+
+import { ArrowIcon, ClockIcon } from './components/Icons';
+
 import s from './RoleRow.module.scss';
 
 interface RoleRowProps {
@@ -9,40 +16,47 @@ interface RoleRowProps {
   onClick: () => void;
 }
 
-export function RoleRow({ role, onClick }: RoleRowProps) {
+export function RoleRow(props: RoleRowProps) {
+  const { role, onClick } = props;
+
+  const { location, seniority, roleTitle, applyUrl, roleCategory } = role;
+
   const date = getJobDate(role);
   const relative = formatRelativeDays(date);
   const showNew = isNew(date);
-  const locationDisplay = role.location?.length > 0 ? role.location.join(', ') : null;
+  const locationDisplay = isEmpty(location) ? null : location.join(', ');
 
-  const metaParts = [
-    role.seniority ? seniorityDisplayLabel(role.seniority) : null,
-    role.roleCategory,
-    locationDisplay,
-  ].filter(Boolean);
-
-  const inner = (
-    <>
-      <div className={s.roleBody}>
-        <div className={s.roleTitle}>{role.roleTitle}</div>
-        {metaParts.length > 0 && <div className={s.roleMeta}>{metaParts.join(' · ')}</div>}
-      </div>
-      <div className={s.roleRight}>
-        {showNew && <span className={s.newBadge}>● New</span>}
-        {relative && <span className={s.relative}>{relative}</span>}
-      </div>
-    </>
+  const metaParts = [seniority ? seniorityDisplayLabel(seniority) : null, roleCategory, locationDisplay].filter(
+    Boolean,
   );
 
+  const linkProps: HTMLProps<HTMLAnchorElement> = applyUrl
+    ? {
+        href: applyUrl,
+        target: '_blank',
+        rel: 'noopener noreferrer',
+        onClick: onClick,
+      }
+    : {};
+
   return (
-    <li className={s.roleItem}>
-      {role.applyUrl ? (
-        <a className={s.roleLink} href={role.applyUrl} target="_blank" rel="noopener noreferrer" onClick={onClick}>
-          {inner}
-        </a>
-      ) : (
-        <span className={s.roleLink}>{inner}</span>
-      )}
-    </li>
+    <a className={s.root} {...linkProps}>
+      <div className={s.body}>
+        <div className={s.title}>{roleTitle}</div>
+
+        {!isEmpty(metaParts) && <div className={s.meta}>{metaParts.join(' · ')}</div>}
+      </div>
+
+      <div className={s.right}>
+        {showNew && <span className={s.newBadge}>● New</span>}
+        {relative && (
+          <span className={s.relative}>
+            <ClockIcon />
+            {relative} ago
+          </span>
+        )}
+        <ArrowIcon />
+      </div>
+    </a>
   );
 }

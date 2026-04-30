@@ -1,8 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
 import isEmpty from 'lodash/isEmpty';
+import { useToggle } from 'react-use';
 
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
 import { getJobDate, isNew, teamInitials } from '@/utils/jobs.utils';
@@ -15,7 +15,7 @@ import { RoleRow } from './component/RoleRow';
 import s from './TeamGroupCard.module.scss';
 
 const INITIAL_ROLES_SHOWN = 3;
-const MAX_FOCUS_CHIPS = 4;
+const MAX_FOCUS_CHIPS = 100;
 
 interface TeamGroupCardProps {
   group: IJobTeamGroup;
@@ -23,11 +23,10 @@ interface TeamGroupCardProps {
 }
 
 export function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, toggleExpanded] = useToggle(false);
   const { team, roles, totalRoles } = group;
 
   const visibleRoles = expanded ? roles : roles.slice(0, INITIAL_ROLES_SHOWN);
-  const hiddenCount = roles.length - visibleRoles.length;
   const newCount = roles.filter((r) => isNew(getJobDate(r))).length;
 
   const focusTags = useGetFocusTags(team);
@@ -69,14 +68,9 @@ export function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps) {
         ))}
       </ul>
 
-      {hiddenCount > 0 && !expanded && (
-        <button type="button" className={s.expander} onClick={() => setExpanded(true)}>
-          View all {roles.length} roles at {team.name} →
-        </button>
-      )}
-      {expanded && roles.length > INITIAL_ROLES_SHOWN && (
-        <button type="button" className={s.expander} onClick={() => setExpanded(false)}>
-          Show less
+      {roles.length > INITIAL_ROLES_SHOWN && (
+        <button type="button" className={s.expander} onClick={toggleExpanded}>
+          {expanded ? 'Show less' : `View all ${roles.length} roles at ${team.name}`}
         </button>
       )}
     </article>

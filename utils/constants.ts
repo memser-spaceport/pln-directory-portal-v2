@@ -710,6 +710,18 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.15 - LabOS Job Board v1',
+    tag: 'New Feature',
+    date: '1, May 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Job Alerts</span> - Save one filter combo for a weekly digest, returning to Job Board auto-applies your alert filters.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.14 - Job Board',
     tag: 'New Feature',
     date: '24, Apr 2026',

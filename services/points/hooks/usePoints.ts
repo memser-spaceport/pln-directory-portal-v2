@@ -9,7 +9,7 @@ export interface PointsRecord {
   category: string;
   activityName: string;
   description: string;
-  points: number;
+  pointsCollectedPerSnapshot: number;
 }
 
 export interface LifetimePointsResponse {
@@ -31,33 +31,10 @@ export const PointsQueryKeys = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// STUB FLAG – set to true to bypass the real API and return dummy data.
-// Revert to false once testing is complete.
-// ---------------------------------------------------------------------------
-const USE_STUB = false;
-
-const STUB_LIFETIME: LifetimePointsResponse = { totalPoints: 20000 };
-
-const STUB_SNAPSHOT_RECORDS: PointsRecord[] = [
-  { category: 'Network Tooling',   activityName: 'Custom Incentive Experiment', description: 'TG Bot',                          points: 175 },
-  { category: 'People/Talent',     activityName: 'PL Directory Profile',        description: 'Updated Directory Profile',       points: 323 },
-  { category: 'Projects',          activityName: 'Survey Completion',           description: 'Base Reward',                     points: 355 },
-  { category: 'Projects',          activityName: 'Cross-Company Project',        description: 'Protocol Research Hub',           points: 464 },
-  { category: 'Knowledge Sharing', activityName: 'Host Office Hours',           description: 'Weekly office hours (4 sessions)', points: 214 },
-];
-
-async function stubDelay<T>(value: T): Promise<T> {
-  // Simulate a fast network response (~200 ms) so loading states are visible
-  return new Promise((resolve) => setTimeout(() => resolve(value), 200));
-}
-
-// ---------------------------------------------------------------------------
 // Fetchers (bare async functions – easy to parallelise with Promise.all)
 // ---------------------------------------------------------------------------
 
 async function fetchLifetimePoints(): Promise<LifetimePointsResponse | null> {
-  if (USE_STUB) return stubDelay(STUB_LIFETIME);
-
   const { authToken } = getCookiesFromClient();
   if (!authToken) return null;
 
@@ -83,10 +60,6 @@ async function fetchLifetimePoints(): Promise<LifetimePointsResponse | null> {
 async function fetchSnapshotPoints(
   snapshotPeriod: string
 ): Promise<SnapshotPointsResponse | null> {
-  if (USE_STUB) {
-    return stubDelay({ snapshotPeriod: `${snapshotPeriod}-01`, records: STUB_SNAPSHOT_RECORDS });
-  }
-
   const { authToken } = getCookiesFromClient();
   if (!authToken) return null;
 
@@ -121,7 +94,7 @@ export function useLifetimePoints() {
   return useQuery<LifetimePointsResponse | null>({
     queryKey: [PointsQueryKeys.LIFETIME],
     queryFn: fetchLifetimePoints,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000,
     retry: 1,
   });
 }

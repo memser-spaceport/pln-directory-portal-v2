@@ -11,6 +11,7 @@ import BuybackAuctionSection from './sections/buyback-auction-section';
 import LearnMoreSection from './sections/learn-more-section';
 import DisclaimerSection from './sections/disclaimer-section';
 import SupportSection from './sections/support-section';
+import PointsDashboard from '@/components/page/aligement-assets/points-dashboard/points-dashboard';
 import { currentRoundData } from './data';
 import { CurrentRoundData } from './types';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
@@ -47,6 +48,9 @@ export default function CurrentRoundComponent({
       <div className="current-round">
         {/* Hero Section with Title and Action Buttons */}
         <HeroSection data={data.hero} />
+
+        {/* Points & Activities Dashboard */}
+        <PointsDashboard currentRound={data.meta.roundNumber} />
 
         {/* Round Description Section */}
         <RoundDescriptionSection 

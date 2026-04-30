@@ -152,6 +152,8 @@ const MemberDetails = ({ params }: { params: any }) => {
         isAdmin,
         memberInvestorSettings?.isInvestor,
       );
+      const isInvestorOnly =
+        isNewInvestor || member.rbac.policies?.every((p: { role: string }) => p.role.toLowerCase() === 'investor');
 
       return (
         <>
@@ -175,7 +177,7 @@ const MemberDetails = ({ params }: { params: any }) => {
           <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
           <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
           <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-          {!isNewInvestor && (
+          {!isInvestorOnly && (
             <>
               <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
               <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
@@ -187,7 +189,7 @@ const MemberDetails = ({ params }: { params: any }) => {
               <IrlMemberContribution member={member} userInfo={userInfo} />
             </div>
           )}
-          {!isNewInvestor && <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+          {!isInvestorOnly && <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
         </>
       );
     }

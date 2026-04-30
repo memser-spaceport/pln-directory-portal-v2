@@ -13,15 +13,7 @@ interface ForumAccessGateProps {
 
 export const ForumAccessGate = ({ children }: ForumAccessGateProps) => {
   const { userInfo } = getCookiesFromClient();
-  const { hasAccess, deniedReason, isLoading } = useForumAccess();
-
-  if (!userInfo) {
-    return (
-      <div className={s.root}>
-        <LoggedOutView />
-      </div>
-    );
-  }
+  const { hasAccess, isLoading } = useForumAccess();
 
   if (isLoading) {
     return (
@@ -31,10 +23,18 @@ export const ForumAccessGate = ({ children }: ForumAccessGateProps) => {
     );
   }
 
+  if (!userInfo) {
+    return (
+      <div className={s.root}>
+        <LoggedOutView />
+      </div>
+    );
+  }
+
   if (!hasAccess) {
     return (
       <div className={s.root}>
-        <LoggedOutView reason={deniedReason ?? undefined} />
+        <LoggedOutView reason="no-access" />
       </div>
     );
   }

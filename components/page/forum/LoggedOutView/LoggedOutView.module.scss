@@ -36,13 +36,13 @@
 .modalContent {
   border-radius: 12px;
   position: relative;
-  max-width: 350px;
+  max-width: 384px;
   display: flex;
   height: fit-content;
   flex-direction: column;
   align-items: center;
 
-  width: 270px;
+  width: 100%;
   padding: var(--spacing-lg, 20px);
   gap: var(--spacing-xl, 24px);
   background: var(--background-base-white, #fff);

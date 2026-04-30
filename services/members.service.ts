@@ -215,7 +215,7 @@ export const getMember = async (
 
     rbac: {
       status: result.memberState,
-      policies: result.polilies,
+      policies: result.policies,
       effectivePermissions: result.effectivePermissions,
       roles: result.roles,
     },
@@ -448,7 +448,7 @@ export const getMemberInfo = async (memberUid: string) => {
     skills: skills,
     rbac: {
       status: result.memberState,
-      policies: result.polilies,
+      policies: result.policies,
       effectivePermissions: result.effectivePermissions,
       roles: result.roles,
     },

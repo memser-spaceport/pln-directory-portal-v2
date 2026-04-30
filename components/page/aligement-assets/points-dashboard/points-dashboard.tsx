@@ -74,7 +74,7 @@ function ActivityTableRow({ record }: { record: PointsRecord }) {
       <td className={styles['points-dashboard__table-cell']}>{record.activityName}</td>
       <td className={`${styles['points-dashboard__table-cell']} ${styles['points-dashboard__table-cell--description']}`} title={record.description}>{record.description}</td>
       <td className={styles['points-dashboard__table-cell']}>
-        <span className={styles['points-dashboard__points-value']}>{(Number(record.points) || 0).toLocaleString()}</span>
+        <span className={styles['points-dashboard__points-value']}>{(Number(record.pointsCollectedPerSnapshot) || 0).toLocaleString()}</span>
         <span className={styles['points-dashboard__points-label']}>&nbsp;points</span>
       </td>
     </tr>
@@ -90,7 +90,7 @@ function ActivityCard({ record }: { record: PointsRecord }) {
       <span className={styles['points-dashboard__card-category']}>{record.category}</span>
       <p className={styles['points-dashboard__card-activity']}>{record.activityName}</p>
       <p className={styles['points-dashboard__card-points']}>
-        <span className={styles['points-dashboard__points-value']}>{(Number(record.points) || 0).toLocaleString()}</span>
+        <span className={styles['points-dashboard__points-value']}>{(Number(record.pointsCollectedPerSnapshot) || 0).toLocaleString()}</span>
         <span className={styles['points-dashboard__points-label']}>&nbsp;points</span>
       </p>
     </div>
@@ -218,7 +218,7 @@ export default function PointsDashboard({ currentRound, pageRound }: PointsDashb
                     Points for <strong>{snapshotLabel}</strong>
                   </p>
                   <p className={styles['points-dashboard__points-card-value']}>
-                    {records.reduce((sum, r) => sum + (Number(r.points) || 0), 0).toLocaleString()}
+                    {records.reduce((sum, r) => sum + (Number(r.pointsCollectedPerSnapshot) || 0), 0).toLocaleString()}
                     <span className={styles['points-dashboard__points-card-unit']}>&nbsp;points</span>
                   </p>
                 </div>

@@ -7,6 +7,8 @@ import { IPastRoundData } from "./types/current-round.types";
 import PastRoundDescription from "../past-rounds/past-round-description";
 import SupportSection from "./sections/support-section";
 import BuybackSimulationSection from "./sections/buyback-simulation-section";
+import PointsDashboard from '@/components/page/aligement-assets/points-dashboard/points-dashboard';
+import { currentRoundData } from './data';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
 interface PastRoundComponentProps {
@@ -20,6 +22,10 @@ export default function PastRoundComponent({ pastRoundData }: PastRoundComponent
     <>
       <div className="past-round">
         <HeroSection data={data.hero} />
+        <PointsDashboard
+          currentRound={currentRoundData.meta.roundNumber}
+          pageRound={data.meta.roundNumber}
+        />
         <PastRoundDescription 
           roundNumber={data.meta.roundNumber} 
           month={data.meta.month} 

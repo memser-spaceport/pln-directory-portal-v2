@@ -1,0 +1,448 @@
+/* ==========================================================================
+   Points & Activities Dashboard – Module CSS
+   BEM: points-dashboard / points-dashboard__element
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Root section
+   -------------------------------------------------------------------------- */
+.points-dashboard {
+  width: 100%;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   Header row (always visible)
+   -------------------------------------------------------------------------- */
+.points-dashboard__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  cursor: default;
+}
+
+.points-dashboard__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.points-dashboard__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.points-dashboard__toggle:hover {
+  background-color: #e2e8f0;
+}
+
+.points-dashboard__toggle svg {
+  transition: transform 0.2s ease;
+}
+
+.points-dashboard__toggle-icon--open {
+  transform: rotate(180deg);
+}
+
+/* --------------------------------------------------------------------------
+   Collapsible body
+   -------------------------------------------------------------------------- */
+.points-dashboard__body {
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+/* --------------------------------------------------------------------------
+   Round selector wrapper (narrow pill, left-aligned)
+   -------------------------------------------------------------------------- */
+.points-dashboard__selector-wrap {
+  width: fit-content;
+  min-width: 200px;
+}
+
+/* --------------------------------------------------------------------------
+   Points summary cards
+   -------------------------------------------------------------------------- */
+.points-dashboard__points-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.points-dashboard__points-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.points-dashboard__points-card-label {
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 400;
+  color: #455468;
+  margin: 0;
+}
+
+.points-dashboard__points-card-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.2;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.points-dashboard__points-card-unit {
+  font-size: 14px;
+  font-weight: 400;
+  color: #475569;
+}
+
+/* --------------------------------------------------------------------------
+   Points inline value / label (used in table & cards)
+   -------------------------------------------------------------------------- */
+.points-dashboard__points-value {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+  color: #1b4dff;
+}
+
+.points-dashboard__points-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #455468;
+}
+
+/* --------------------------------------------------------------------------
+   Desktop table (hidden on mobile)
+   -------------------------------------------------------------------------- */
+.points-dashboard__table-wrap {
+  display: block;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.points-dashboard__table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 560px;
+  table-layout: fixed;
+}
+
+.points-dashboard__col--category {
+  width: 20%;
+}
+
+.points-dashboard__col--activity {
+  width: 26%;
+}
+
+.points-dashboard__col--description {
+  width: 32%;
+}
+
+.points-dashboard__col--points {
+  width: 22%;
+}
+
+.points-dashboard__table-head {
+  padding: 16px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #455468;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.points-dashboard__table-head:first-child {
+  border-radius: 12px 0 0 0;
+}
+
+.points-dashboard__table-head:last-child {
+  border-radius: 0 12px 0 0;
+}
+
+.points-dashboard__table-head-text {
+  margin-right: 4px;
+}
+
+.points-dashboard__sort-icon {
+  vertical-align: middle;
+}
+
+.points-dashboard__table-row {
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.12s ease;
+}
+
+.points-dashboard__table-row:last-child {
+  border-bottom: none;
+}
+
+.points-dashboard__table-row:hover {
+  background-color: #f8fafc;
+}
+
+.points-dashboard__table-cell {
+  padding: 21px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #455468;
+  vertical-align: middle;
+}
+
+.points-dashboard__table-cell--description {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.points-dashboard__category-badge {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+  color: #0f172a;
+}
+
+/* --------------------------------------------------------------------------
+   Mobile card list (hidden on desktop)
+   -------------------------------------------------------------------------- */
+.points-dashboard__cards-wrap {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.points-dashboard__card {
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.points-dashboard__card:last-child {
+  border-bottom: none;
+}
+
+.points-dashboard__card-category {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4c35e8;
+  background: #ede9ff;
+  padding: 2px 8px;
+  border-radius: 20px;
+  width: fit-content;
+}
+
+.points-dashboard__card-activity {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 4px 0 0;
+}
+
+.points-dashboard__card-points {
+  font-size: 13px;
+  margin: 2px 0 0;
+}
+
+/* --------------------------------------------------------------------------
+   Skeleton / loading state
+   -------------------------------------------------------------------------- */
+.points-dashboard__loading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.points-dashboard__skeleton-card {
+  height: 90px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+}
+
+.points-dashboard__skeleton-row {
+  display: flex;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.points-dashboard__skeleton-cell {
+  height: 16px;
+  border-radius: 4px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+}
+
+@keyframes skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* --------------------------------------------------------------------------
+   Empty state
+   -------------------------------------------------------------------------- */
+.points-dashboard__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.points-dashboard__empty-content {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 48px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.points-dashboard__empty-icon {
+  margin-bottom: 4px;
+}
+
+.points-dashboard__empty-icon--mobile {
+  display: none;
+}
+
+.points-dashboard__empty-icon--desktop {
+  display: block;
+}
+
+.points-dashboard__empty-title {
+  font-size: 24px;
+  font-weight: 500;
+  color: #0f172a;
+  margin: 0;
+  max-width: 480px;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+}
+
+.points-dashboard__empty-desc {
+  font-size: 18px;
+  font-weight: 400;
+  color: #475569;
+  margin: 0;
+  max-width: 520px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+}
+
+.points-dashboard__empty-link {
+  color: #156ff7;
+  text-decoration: underline;
+}
+
+.points-dashboard__empty-link:hover {
+  color: #1155cc;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive – tablet/mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .points-dashboard__empty-icon--desktop {
+    display: none;
+  }
+
+  .points-dashboard__empty-icon--mobile {
+    display: block;
+  }
+
+  .points-dashboard__header {
+    padding: 16px;
+  }
+
+  .points-dashboard__body {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .points-dashboard__points-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .points-dashboard__points-card {
+    padding: 16px;
+  }
+
+  .points-dashboard__points-card-value {
+    font-size: 22px;
+  }
+
+  /* Hide table, show cards on mobile */
+  .points-dashboard__table-wrap {
+    display: none;
+  }
+
+  .points-dashboard__cards-wrap {
+    display: flex;
+  }
+
+  .points-dashboard__empty-title {
+    font-size: 18px;
+    line-height: 24px;
+  }
+
+
+.points-dashboard__empty-desc {
+  font-size: 14px;
+  line-height: 22px;
+}
+
+  .points-dashboard__empty-content {
+    padding: 32px 16px;
+  }
+
+  .points-dashboard__selector-wrap {
+    width: 100%;
+    min-width: unset;
+  }
+}

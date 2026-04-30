@@ -33,7 +33,6 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [editView, setEditView] = useState(false);
   const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
-  const accessLevel = getAccessLevel(userInfo, isLoggedIn);
   const { canViewSupply: v2CanViewOfficeHours, canSupply } = useOfficeHoursAccess();
   const isEditable = isOwner || isAdmin || canSupply;
   const showWarningUseCaseA = !member?.officeHours;
@@ -68,11 +67,11 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
     return null;
   }
 
-  if (USE_ACCESS_CONTROL_V2 ? !v2CanViewOfficeHours : accessLevel === 'base') {
+  if (!v2CanViewOfficeHours) {
     return null;
   }
 
-  if (!isAdmin && (member.accessLevel === 'L0' || member.accessLevel === 'L1')) {
+  if (!isAdmin && (member.rbac.status === 'PENDING' || member.rbac.status === 'VERIFIED')) {
     return null;
   }
 

@@ -78,13 +78,11 @@ const TeamGridView = (props: ITeamGridView) => {
             <p className="team-grid__details-container__team-detail__team-desc">{description}</p>
           </div>
 
-          <div>
-            <div className="team-grid__tags__desc">
-              <TeamsTagsList tags={tags} noOfTagsToShow={3} />
-            </div>
-            <div className="team-grid__tags__mob">
-              <TeamsTagsList tags={tags} noOfTagsToShow={1} />
-            </div>
+          <div className="team-grid__tags__desc">
+            <TeamsTagsList tags={tags} noOfTagsToShow={2} />
+          </div>
+          <div className="team-grid__tags__mob">
+            <TeamsTagsList tags={tags} noOfTagsToShow={1} />
           </div>
         </div>
         {carousel.length > 0 && (
@@ -378,10 +376,12 @@ const TeamGridView = (props: ITeamGridView) => {
 
           .team-grid__tags__mob {
             display: block;
+            overflow: hidden;
           }
 
           .team-grid__tags__desc {
             display: none;
+            overflow: hidden;
           }
 
           .embla__button--prev,

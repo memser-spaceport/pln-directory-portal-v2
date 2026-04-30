@@ -71,27 +71,32 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
 
     const memberInfo = member.memberInfo;
 
-    const userInfoPermission = userInfo.rbac?.effectivePermissions;
+    let parsedCookie: Record<string, unknown>;
+    try {
+      parsedCookie = JSON.parse(userInfoCookie);
+    } catch {
+      return;
+    }
+
+    if (parsedCookie.uid !== memberInfo.uid) return;
+
     const memberPermissions = memberInfo.rbac.effectivePermissions;
-
-    const userPermissionCodes = userInfoPermission?.map((p) => p.code);
     const memberPermissionCodes = memberPermissions?.map((p: { code: string }) => p.code);
-    const permissionsChanged = !areRolesEqual(userPermissionCodes, memberPermissionCodes);
 
-    // Handle access level changes
-    if (memberInfo.rbac?.status !== userInfo.rbac?.status || permissionsChanged) {
-      try {
-        const parsedCookie = JSON.parse(userInfoCookie);
+    // Compare the CURRENT COOKIE against API data (not the server-rendered prop).
+    // The server prop is stale until router.refresh() runs, so using it here would
+    // cause a permanent loop. The cookie is the ground truth: once it matches the API,
+    // there is nothing left to do in this block.
+    const cookieRbac = parsedCookie.rbac as typeof memberInfo.rbac | undefined | null;
+    const cookiePermCodes = cookieRbac?.effectivePermissions?.map((p: { code: string }) => p.code);
+    const cookieRbacChanged =
+      cookieRbac?.status !== memberInfo.rbac?.status || !areRolesEqual(cookiePermCodes, memberPermissionCodes);
 
-        if (parsedCookie.uid === memberInfo.uid) {
-          setUserInfoCookie(JSON.stringify({ ...parsedCookie, rbac: memberInfo.rbac }), {
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
-          router.refresh();
-        }
-      } catch (e) {
-        console.error('Failed to parse userInfo cookie:', e);
-      }
+    if (cookieRbacChanged) {
+      setUserInfoCookie(JSON.stringify({ ...parsedCookie, rbac: memberInfo.rbac }), {
+        domain: process.env.COOKIE_DOMAIN || '',
+      });
+      router.refresh();
       return;
     }
 
@@ -106,18 +111,10 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
     // Handle roles changes
     const serverRoles = memberInfo.memberRoles?.map((r: { name: string }) => r.name) || [];
     if (!areRolesEqual(serverRoles, userInfo.roles)) {
-      try {
-        const parsedCookie = JSON.parse(userInfoCookie);
-
-        if (parsedCookie.uid === memberInfo.uid) {
-          setUserInfoCookie(JSON.stringify({ ...parsedCookie, roles: serverRoles }), {
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
-          router.refresh();
-        }
-      } catch (e) {
-        console.error('Failed to parse userInfo cookie:', e);
-      }
+      setUserInfoCookie(JSON.stringify({ ...parsedCookie, roles: serverRoles }), {
+        domain: process.env.COOKIE_DOMAIN || '',
+      });
+      router.refresh();
       return;
     }
 
@@ -129,44 +126,20 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
       serverLeadingTeams.some((teamUid) => !cookieLeadingTeams.includes(teamUid));
 
     if (leadingTeamsChanged) {
-      try {
-        const parsedCookie = JSON.parse(userInfoCookie);
-
-        if (parsedCookie.uid === memberInfo.uid) {
-          setUserInfoCookie(
-            JSON.stringify({
-              ...parsedCookie,
-              leadingTeams: serverLeadingTeams,
-            }),
-            { domain: process.env.COOKIE_DOMAIN || '' },
-          );
-          router.refresh();
-        }
-      } catch (e) {
-        console.error('Failed to parse userInfo cookie:', e);
-      }
+      setUserInfoCookie(JSON.stringify({ ...parsedCookie, leadingTeams: serverLeadingTeams }), {
+        domain: process.env.COOKIE_DOMAIN || '',
+      });
+      router.refresh();
       return;
     }
 
     // Handle name or profile image changes
     if (memberInfo.name !== userInfo.name || memberInfo.imageUrl !== userInfo.profileImageUrl) {
-      try {
-        const parsedCookie = JSON.parse(userInfoCookie);
-
-        if (parsedCookie.uid === memberInfo.uid) {
-          setUserInfoCookie(
-            JSON.stringify({
-              ...parsedCookie,
-              name: memberInfo.name,
-              profileImageUrl: memberInfo.imageUrl,
-            }),
-            { domain: process.env.COOKIE_DOMAIN || '' },
-          );
-          router.refresh();
-        }
-      } catch (e) {
-        console.error('Failed to parse userInfo cookie:', e);
-      }
+      setUserInfoCookie(
+        JSON.stringify({ ...parsedCookie, name: memberInfo.name, profileImageUrl: memberInfo.imageUrl }),
+        { domain: process.env.COOKIE_DOMAIN || '' },
+      );
+      router.refresh();
     }
   }, [handleLogout, member, router, setUserInfoCookie, userInfo, userInfoCookie]);
 

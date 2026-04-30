@@ -20,13 +20,10 @@ import { CompleteYourProfile } from '@/components/core/navbar/components/Complet
 import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginFlowTrigger';
 import { UserInfoChecker, UserInfoValidator } from '@/components/core/login';
 import { MobileBottomNav } from '@/components/core/MobileBottomNav';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { DemoDayBanner } from '@/components/core/navbar/components/DemoDayBanner';
 import { DemoDayStats } from '@/components/core/DemoDayStats';
 import { ContactSupport } from '@/components/ContactSupport/ContactSupport';
 import { ContactSupportUrlSync } from '@/components/ContactSupport/ContactSupportUrlSync';
 import { PushNotificationsProvider } from '@/providers/PushNotificationsProvider';
-import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });

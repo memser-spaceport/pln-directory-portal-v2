@@ -50,9 +50,9 @@ function getLeadingTeamIds(teamMemberRoles: TeamMemberRoleLike[] | undefined): s
  * This component monitors for changes in user data (access level, name, profile image, roles)
  * and updates cookies accordingly. Also handles rejected access levels by logging out.
  */
-export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
+export function UserInfoChecker({ uid }: { uid: string }) {
   const [userInfoCookie, setUserInfoCookie] = useCookie('userInfo');
-  const { data: member } = useMember(userInfo.uid);
+  const { data: member } = useMember(uid);
   const router = useRouter();
   const rejectedRef = useRef(false);
   const postHog = usePostHog();
@@ -65,7 +65,7 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
   }, [postHog]);
 
   useEffect(() => {
-    if (!userInfoCookie || !userInfo || !member?.memberInfo) {
+    if (!userInfoCookie || !member?.memberInfo) {
       return;
     }
 
@@ -110,7 +110,7 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
 
     // Handle roles changes
     const serverRoles = memberInfo.memberRoles?.map((r: { name: string }) => r.name) || [];
-    if (!areRolesEqual(serverRoles, userInfo.roles)) {
+    if (!areRolesEqual(serverRoles, parsedCookie.roles as [])) {
       setUserInfoCookie(JSON.stringify({ ...parsedCookie, roles: serverRoles }), {
         domain: process.env.COOKIE_DOMAIN || '',
       });
@@ -120,7 +120,7 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
 
     // Handle leading teams changes
     const serverLeadingTeams = getLeadingTeamIds(memberInfo.teamMemberRoles);
-    const cookieLeadingTeams = userInfo.leadingTeams ?? [];
+    const cookieLeadingTeams = (parsedCookie.leadingTeams as string[]) ?? [];
     const leadingTeamsChanged =
       serverLeadingTeams.length !== cookieLeadingTeams.length ||
       serverLeadingTeams.some((teamUid) => !cookieLeadingTeams.includes(teamUid));
@@ -134,14 +134,14 @@ export function UserInfoChecker({ userInfo }: UserInfoCheckerProps) {
     }
 
     // Handle name or profile image changes
-    if (memberInfo.name !== userInfo.name || memberInfo.imageUrl !== userInfo.profileImageUrl) {
+    if (memberInfo.name !== parsedCookie.name || memberInfo.imageUrl !== parsedCookie.profileImageUrl) {
       setUserInfoCookie(
         JSON.stringify({ ...parsedCookie, name: memberInfo.name, profileImageUrl: memberInfo.imageUrl }),
         { domain: process.env.COOKIE_DOMAIN || '' },
       );
       router.refresh();
     }
-  }, [handleLogout, member, router, setUserInfoCookie, userInfo, userInfoCookie]);
+  }, [handleLogout, member, router, setUserInfoCookie, userInfoCookie]);
 
   return null;
 }

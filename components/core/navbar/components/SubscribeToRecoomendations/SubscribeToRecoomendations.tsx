@@ -87,7 +87,7 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
     !data.recommendationsEnabled ||
     !data.showInvitationDialog ||
     isOnboardingLoginFlow ||
-    (USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : accessLevel !== 'advanced')
+    userInfo.rbac?.status !== 'APPROVED'
   ) {
     return null;
   }

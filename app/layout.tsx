@@ -114,7 +114,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
                 <PostLoginRedirectHandler isLoggedIn={isLoggedIn} />
                 {/* <TeamRegisterDialog /> */}
-                <UserInfoChecker userInfo={userInfo} />
+                <UserInfoChecker uid={userInfo?.uid} />
                 <UserInfoValidator userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
                 <CookieChecker isLoggedIn={isLoggedIn} />
                 {/*<ReactQueryDevtools initialIsOpen={false} />*/}

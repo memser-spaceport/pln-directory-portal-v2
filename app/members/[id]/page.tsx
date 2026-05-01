@@ -145,130 +145,52 @@ const MemberDetails = ({ params }: { params: any }) => {
       return null;
     }
 
-    if (USE_ACCESS_CONTROL_V2) {
-      const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
-        member,
-        isOwner,
-        isAdmin,
-        memberInvestorSettings?.isInvestor,
-      );
-      const isInvestorOnly =
-        isNewInvestor || member.rbac.policies?.every((p: { role: string }) => p.role.toLowerCase() === 'investor');
+    const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
+      member,
+      isOwner,
+      isAdmin,
+      memberInvestorSettings?.isInvestor,
+    );
+    const isInvestorOnly =
+      isNewInvestor || member.rbac.policies?.every((p: { role: string }) => p.role.toLowerCase() === 'investor');
 
-      return (
-        <>
-          <OneClickVerification
+    return (
+      <>
+        <OneClickVerification
+          userInfo={userInfo}
+          member={member}
+          isLoggedIn={isLoggedIn}
+          isNewInvestor={isNewInvestor}
+        />
+        <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+        {showInvestorProfile && (
+          <InvestorProfileDetails
             userInfo={userInfo}
             member={member}
             isLoggedIn={isLoggedIn}
-            isNewInvestor={isNewInvestor}
+            isInvestor={memberInvestorSettings?.isInvestor}
+            useInlineAddTeam
           />
-          <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-          {showInvestorProfile && (
-            <InvestorProfileDetails
-              userInfo={userInfo}
-              member={member}
-              isLoggedIn={isLoggedIn}
-              isInvestor={memberInvestorSettings?.isInvestor}
-              useInlineAddTeam
-            />
-          )}
-          <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-          <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-          <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
-          <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-          {!isInvestorOnly && (
-            <>
-              <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-              <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            </>
-          )}
-
-          {member.eventGuests.length > 0 && (
-            <div className={styles?.memberDetail__irlContribution}>
-              <IrlMemberContribution member={member} userInfo={userInfo} />
-            </div>
-          )}
-          {!isInvestorOnly && <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
-        </>
-      );
-    }
-
-    switch (member.accessLevel) {
-      case 'L5': {
-        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
-          member,
-          isOwner,
-          isAdmin,
-          memberInvestorSettings?.isInvestor,
-        );
-
-        return (
+        )}
+        <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+        <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+        <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
+        <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+        {!isInvestorOnly && (
           <>
-            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            {showInvestorProfile && (
-              <InvestorProfileDetails
-                userInfo={userInfo}
-                member={member}
-                isLoggedIn={isLoggedIn}
-                isInvestor={memberInvestorSettings?.isInvestor}
-                useInlineAddTeam
-              />
-            )}
-            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
-            <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
           </>
-        );
-      }
-      default: {
-        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
-          member,
-          isOwner,
-          isAdmin,
-          memberInvestorSettings?.isInvestor,
-        );
+        )}
 
-        return (
-          <>
-            <OneClickVerification
-              userInfo={userInfo}
-              member={member}
-              isLoggedIn={isLoggedIn}
-              isNewInvestor={isNewInvestor}
-            />
-            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            {showInvestorProfile && (
-              <InvestorProfileDetails
-                userInfo={userInfo}
-                member={member}
-                isLoggedIn={isLoggedIn}
-                isInvestor={memberInvestorSettings?.isInvestor}
-                useInlineAddTeam
-              />
-            )}
-            <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
-            <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            {!isNewInvestor && (
-              <>
-                <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-                <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-              </>
-            )}
-
-            {member.eventGuests.length > 0 && (
-              <div className={styles?.memberDetail__irlContribution}>
-                <IrlMemberContribution member={member} userInfo={userInfo} />
-              </div>
-            )}
-            {!isNewInvestor && <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
-          </>
-        );
-      }
-    }
+        {member.eventGuests.length > 0 && (
+          <div className={styles?.memberDetail__irlContribution}>
+            <IrlMemberContribution member={member} userInfo={userInfo} />
+          </div>
+        )}
+        {!isInvestorOnly && <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+      </>
+    );
   }
 
   return (

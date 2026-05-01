@@ -49,3 +49,5 @@ storybook-static
 #Other
 approve-pr.sh
 /docs
+.graphifyignore
+graphify-out

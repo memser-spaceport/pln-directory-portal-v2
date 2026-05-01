@@ -74,7 +74,13 @@ export const Posts = () => {
         {posts.map((post) => {
           const { cleanedText } = extractImagesAndClean(post.desc ?? '');
           const decoded = decodeHtml(cleanedText);
-          const content = decoded.length > 200 ? `${decoded.slice(0, 200)}...` : decoded;
+
+          const strippedDecoded = decoded
+            .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+          const content = strippedDecoded.length > 200 ? `${strippedDecoded.slice(0, 200)}...` : strippedDecoded;
 
           return (
             <Link

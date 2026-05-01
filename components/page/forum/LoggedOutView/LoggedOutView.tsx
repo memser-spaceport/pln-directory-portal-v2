@@ -81,7 +81,13 @@ export const LoggedOutView = ({ reason }: { reason?: ForumLoggedOutReason }) => 
         );
       }
       default: {
-        return 'Get help or share insights with the PL network. Sign in to read and contribute.';
+        return (
+          <>
+            Get help or share insights with the PL network
+            <br />
+            Sign in to read and contribute.
+          </>
+        );
       }
     }
   }

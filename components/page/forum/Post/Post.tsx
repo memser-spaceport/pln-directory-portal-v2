@@ -27,6 +27,9 @@ import { decode } from 'he';
 import { BackButton } from '@/components/ui/BackButton';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
+import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { Spinner } from '@/components/ui/Spinner';
 import forumStyles from '@/app/forum/page.module.scss';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 import { isAdminUser } from '@/utils/user/isAdminUser';
@@ -64,6 +67,8 @@ export const Post = () => {
   // Get user info from client-side cookies
   const { userInfo } = getCookiesFromClient();
   const isLoggedIn = !!userInfo;
+
+  const { hasAccess: v2ForumAccess, deniedReason, isLoading: v2Loading } = useForumAccess();
 
   const { data } = useForumPost(topicId as string, isLoggedIn);
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
@@ -168,10 +173,25 @@ export const Post = () => {
     );
   }
 
-  if (userInfo?.accessLevel === 'L0' || userInfo?.accessLevel === 'L1') {
+  if (USE_ACCESS_CONTROL_V2) {
+    if (v2Loading) {
+      return (
+        <div className={forumStyles.root}>
+          <Spinner />
+        </div>
+      );
+    }
+    if (!v2ForumAccess) {
+      return (
+        <div className={forumStyles.root}>
+          <LoggedOutView reason={deniedReason ?? undefined} />
+        </div>
+      );
+    }
+  } else if (userInfo?.accessLevel === 'L0' || userInfo?.accessLevel === 'L1') {
     return (
       <div className={forumStyles.root}>
-        <LoggedOutView accessLevel={userInfo.accessLevel} />
+        <LoggedOutView reason="base" />
       </div>
     );
   }

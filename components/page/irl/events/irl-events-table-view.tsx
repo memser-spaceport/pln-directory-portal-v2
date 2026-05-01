@@ -5,6 +5,8 @@ import { IRL_EVENTS_DEFAULT_IMAGE, ADMIN_ROLE } from '@/utils/constants';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { IUserInfo } from '@/types/shared.types';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
 
 interface IrlEventsTableViewProps {
   index?: number;
@@ -42,6 +44,7 @@ const IrlEventsTableView = ({
   const website = gathering?.resources?.find((resource: any) => resource?.name?.toLowerCase() === 'website');
 
   const accessLevel = getAccessLevel(userInfo as IUserInfo, isLoggedIn);
+  const { canWrite: v2CanWrite } = useIrlGoingAccess();
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -87,7 +90,7 @@ const IrlEventsTableView = ({
                   )}
                   {!website && <div className="root__irl__table-col__contentName__top__title">{gathering.name}</div>}
                 </div>
-                {accessLevel === 'advanced' && (
+                {(USE_ACCESS_CONTROL_V2 ? v2CanWrite : accessLevel === 'advanced') && (
                   <button
                     className="root__irl__table-col__contentName__top__delete"
                     onClick={handleDeleteClick}

@@ -28,6 +28,9 @@ import { toast } from '@/components/core/ToastContainer';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { MAX_NAME_LENGTH } from '@/constants/profile';
 import { isInvestor } from '@/utils/isInvestor';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useInvestorAccess } from '@/services/access-control/hooks/useInvestorAccess';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 import { FormSelect } from '@/components/form/FormSelect';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
@@ -49,6 +52,8 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
   const router = useRouter();
   const { actions } = useUserStore();
   const [isAddingTeamInline, setIsAddingTeamInline] = useState(false);
+  const { isInvestor: v2IsInvestor } = useInvestorAccess();
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
   // Refs for AI bio content tracking
   const originalAiContentRef = useRef<string | null>(null);
@@ -360,9 +365,11 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
             </div>
           )}
           {variant !== 'investor-drawer' &&
-            !isInvestor(userInfo?.accessLevel) &&
-            userInfo?.accessLevel !== 'L0' &&
-            userInfo?.accessLevel !== 'L1' && (
+            (USE_ACCESS_CONTROL_V2
+              ? !v2IsInvestor && v2HasMemberContacts
+              : !isInvestor(userInfo?.accessLevel) &&
+                userInfo?.accessLevel !== 'L0' &&
+                userInfo?.accessLevel !== 'L1') && (
               <div className={s.row}>
                 <ProfileCollaborateInput />
               </div>

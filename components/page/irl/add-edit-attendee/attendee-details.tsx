@@ -48,14 +48,14 @@ const AttendeeDetails = (props: IAttendeeForm) => {
   const authToken = getParsedValue(Cookies.get('authToken'));
 
   const [selectedTeam, setSelectedTeam] = useState(initialValues?.team ?? { name: '', logo: '', uid: '' });
-  const [selectedMember, setSelectedMember] = useState<IUserInfo>(member || { name: '', uid: '' });
+  const [selectedMember, setSelectedMember] = useState<IUserInfo>(member || { name: '', uid: '', rbac: null });
 
   const handleTeamChange = (option: any) => {
     setSelectedTeam({ ...option, uid: option.id });
   };
 
   const onResetMember = () => {
-    setSelectedMember({ name: '', uid: '' });
+    setSelectedMember({ name: '', uid: '', rbac: null });
     setInitialTeams([]);
     setSelectedTeam({ name: '', logo: '', uid: '' });
     setFormInitialValues(null);
@@ -94,21 +94,21 @@ const AttendeeDetails = (props: IAttendeeForm) => {
       const fetchGuestDetails = async () => {
         try {
           triggerLoader(true);
-          
+
           // For past events, fetch BOTH past and upcoming events to check all gatherings
           const shouldFetchBothTypes = eventType === 'past' || from === 'past';
-          
+
           let result = await getGuestDetail(selectedMember.uid ?? '', location.uid, authToken, from || eventType);
           let additionalResult: any[] = [];
-          
+
           if (shouldFetchBothTypes) {
             const otherType = (from || eventType) === 'past' ? 'upcoming' : 'past';
             additionalResult = await getGuestDetail(selectedMember.uid ?? '', location.uid, authToken, otherType);
           }
-          
+
           // Combine both results for complete attendance data
           const combinedResult = shouldFetchBothTypes ? [...result, ...additionalResult] : result;
-          
+
           const userGoingEvents = combinedResult?.map((e: any) => ({
             uid: e?.event?.uid,
             isHost: e?.isHost,

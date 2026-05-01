@@ -88,6 +88,7 @@ export const ReferCompanyModal: React.FC<ReferCompanyModalProps> = ({
   };
 
   const handleOverlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (e.target === e.currentTarget) {
       handleClose();
     }

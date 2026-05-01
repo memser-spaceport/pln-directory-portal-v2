@@ -15,7 +15,8 @@ interface SettingsMenuProps {
     | 'manage teams'
     | 'recommendations'
     | 'connected accounts'
-    | 'email preferences';
+    | 'email preferences'
+    | 'job alert';
   isAdmin?: boolean;
   isTeamLead?: boolean;
   userInfo: IUserInfo;
@@ -50,6 +51,13 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
         activeIcon: '/icons/recommendations-blue.svg',
       });
     }
+
+    options.push({
+      name: 'job alert',
+      url: '/settings/job-alerts',
+      icon: '/icons/briefcase.svg',
+      activeIcon: '/icons/briefcase-blue.svg',
+    });
 
     return options;
   }, [notificationSettings?.recommendationsEnabled]);

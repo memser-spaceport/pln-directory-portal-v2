@@ -15,6 +15,8 @@ import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemb
 import { useEventsAnalytics } from '@/analytics/events.analytics';
 import { useParams } from 'next/navigation';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 
 interface Props {
   userInfo: IUserInfo;
@@ -30,6 +32,7 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
   const { onUpcomingEventsWidgetShowAllClicked, onUpcomingEventsWidgetDismissClicked, onUpcomingEventsItemClicked } =
     useEventsAnalytics();
   const accessLevel = getAccessLevel(userInfo, true);
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
   if (!userInfo || isLoading || !data?.length || userInfo.uid !== id || !settings?.recommendationsEnabled) {
     return null;
@@ -39,7 +42,7 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
     !settings?.showInvitationDialog ||
     (!settings?.subscribed && userInfo.uid === id) ||
     !visible ||
-    accessLevel !== 'advanced'
+    (USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : accessLevel !== 'advanced')
   ) {
     return null;
   }

@@ -30,12 +30,12 @@ export const OnboardingFlowTrigger = ({ isLoggedIn, userInfo }: Props) => {
     }
   }, [isLoggedIn, router, isOnboardingLoginFlow]);
 
-  if (
-    !isLoggedIn ||
-    !isOnboardingLoginFlow ||
-    !memberData?.memberInfo ||
-    memberData?.memberInfo?.accessLevel !== 'L4'
-  ) {
+  // Check if member has onboarding permission (replaces L4-based check)
+  const hasOnboardingPermission = memberData?.memberInfo?.rbac?.effectivePermissions?.some(
+    (p: { code: string }) => p.code === 'member.onboarding',
+  );
+
+  if (!isLoggedIn || !isOnboardingLoginFlow || !memberData?.memberInfo || !hasOnboardingPermission) {
     return null;
   }
 

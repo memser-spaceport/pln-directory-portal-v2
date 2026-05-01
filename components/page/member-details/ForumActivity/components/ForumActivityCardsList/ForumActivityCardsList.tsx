@@ -8,6 +8,8 @@ import { IUserInfo } from '@/types/shared.types';
 import type { ForumComment } from '@/components/page/member-details/ForumActivity/hooks/useUserForumComments';
 import { ActiveTab } from '@/components/page/member-details/ForumActivity/types';
 import { hasForumAccess } from '@/components/page/member-details/ForumActivity/utils/hasForumAccess';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 
 import { PostCard } from './components/PostCard';
 import { CommentCard } from './components/CommentCard';
@@ -47,7 +49,8 @@ export function ForumActivityCardsList(props: Props) {
     scrollableTarget,
   } = props;
 
-  const hasAccess = hasForumAccess(userInfo.accessLevel);
+  const { hasAccess: v2ForumAccess } = useForumAccess();
+  const hasAccess = USE_ACCESS_CONTROL_V2 ? v2ForumAccess : hasForumAccess(userInfo.accessLevel);
   const hasContent = activeTab === 'posts' ? !isEmpty(posts) : !isEmpty(comments);
 
   if (isLoading) {

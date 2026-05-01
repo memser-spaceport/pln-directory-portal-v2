@@ -67,5 +67,67 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_CLICKED, { ...args });
   };
 
-  return { onJobsPageViewed, onJobsFiltersApplied, onJobsFiltersCleared, onJobsSearched, onJobsSortChanged, onJobClicked };
+  const onJobAlertCtaViewed = (args: {
+    cta_variant: 'banner' | 'empty';
+    filter_state: FilterStateParam;
+    result_count: number;
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_ALERT_CTA_VIEWED, { ...args });
+  };
+
+  const onJobAlertCtaClicked = (args: { cta_variant: 'banner' | 'empty'; filter_state: FilterStateParam }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_ALERT_CTA_CLICKED, { ...args });
+  };
+
+  const onJobAlertSet = (args: {
+    alert_id: string;
+    filter_state: FilterStateParam;
+    auth_required: boolean;
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_ALERT_SET, { ...args });
+  };
+
+  const onJobAlertUpdated = (args: { alert_id: string; filter_state: FilterStateParam }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_ALERT_UPDATED, { ...args });
+  };
+
+  const onJobAlertConflict = (args: { existing_alert_id: string | null }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_ALERT_CONFLICT, { ...args });
+  };
+
+  const onJobAlertRenamed = (args: { alert_id: string }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_ALERT_RENAMED, { ...args });
+  };
+
+  const onJobAlertDeleted = (args: { alert_id: string }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_ALERT_DELETED, { ...args });
+  };
+
+  const onJobAlertEmailLinkClicked = (args: {
+    alert_id: string;
+    job_id: string;
+    team_id?: string;
+    position_in_email?: number;
+    utm_source: string;
+    utm_code?: string;
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_ALERT_EMAIL_LINK_CLICKED, { ...args });
+  };
+
+  return {
+    onJobsPageViewed,
+    onJobsFiltersApplied,
+    onJobsFiltersCleared,
+    onJobsSearched,
+    onJobsSortChanged,
+    onJobClicked,
+    onJobAlertCtaViewed,
+    onJobAlertCtaClicked,
+    onJobAlertSet,
+    onJobAlertUpdated,
+    onJobAlertConflict,
+    onJobAlertRenamed,
+    onJobAlertDeleted,
+    onJobAlertEmailLinkClicked,
+  };
 };

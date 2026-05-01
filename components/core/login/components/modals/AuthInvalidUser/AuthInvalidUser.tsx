@@ -18,6 +18,8 @@ import { WarningCircleIcon } from '@/components/icons';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 import s from './AuthInvalidUser.module.scss';
+import { clearAllAuthCookies } from '@/utils/third-party.helper';
+import { broadcastLogout } from '@/components/core/login/components/BroadcastChannel';
 
 interface ModalContent {
   title: string;
@@ -29,6 +31,13 @@ interface ModalContent {
     disabled?: boolean;
   };
   footer?: ReactNode;
+  onCancel?: () => void;
+}
+
+function handleLogout() {
+  clearAllAuthCookies();
+  authEvents.emit('auth:logout');
+  broadcastLogout();
 }
 
 const ERROR_CONTENT: Record<string, ModalContent> = {
@@ -49,6 +58,7 @@ const ERROR_CONTENT: Record<string, ModalContent> = {
     description:
       'Your application to join the Protocol Labs was not approved. You may reapply in the future. If you believe this was a mistake, please contact our support team.',
     reason: 'rejected_access_level',
+    onCancel: handleLogout,
   },
   email_not_found: {
     title: 'Email Not Found',
@@ -199,9 +209,15 @@ export function AuthInvalidUser() {
       title={content.title}
       titleIcon={<WarningCircleIcon />}
       description={content.description}
-      cancel={{
-        onClick: handleModalClose,
-      }}
+      cancel={
+        content.onCancel
+          ? {
+              onClick: content.onCancel,
+            }
+          : {
+              onClick: handleModalClose,
+            }
+      }
       submit={
         content.submit
           ? content.submit
@@ -209,7 +225,7 @@ export function AuthInvalidUser() {
               label: 'Contact Support',
               onClick: () => {
                 handleModalClose();
-                openModal({ reason: content.reason });
+                openModal({ reason: content.reason, onCancel: content.onCancel });
               },
             }
       }

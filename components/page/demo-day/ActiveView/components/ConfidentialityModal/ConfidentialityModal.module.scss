@@ -13,6 +13,7 @@
   position: relative;
   max-width: 480px;
   width: 100%;
+  margin: 0 auto;
 
   @include media.mobile-only {
     max-width: 100%;

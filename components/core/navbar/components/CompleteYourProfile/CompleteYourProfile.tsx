@@ -6,6 +6,8 @@ import { IUserInfo } from '@/types/shared.types';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
 import { getAccessLevel } from '@/utils/auth.utils';
 import { isDemodaySignUpSource } from '@/utils/member.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 
 import s from './CompleteYourProfile.module.scss';
 
@@ -14,21 +16,20 @@ interface Props {
 }
 
 const MESSAGES: Record<string, string> = {
-  // Previous messages
-  // L0: 'Access limited - please verify your identity to begin the review process.',
-  // L1: "Access limited - profile under review. You'll be notified once approved.",
-  L0: 'Limited access: verify your identity to proceed',
-  L1: "Profile under review — we'll notify you once approved",
+  PENDING: 'Limited access: verify your identity to proceed',
+  VERIFIED: "Profile under review — we'll notify you once approved",
 };
 
 export const CompleteYourProfile = ({ userInfo }: Props) => {
   const accessLevel = getAccessLevel(userInfo, true);
+  const status = userInfo.rbac?.status;
+  const isAdvancedAccess = USE_ACCESS_CONTROL_V2 ? status === 'APPROVED' : accessLevel !== 'base';
 
-  if (!userInfo || accessLevel !== 'base' || !userInfo.accessLevel) {
+  if (!userInfo || isAdvancedAccess || !userInfo.accessLevel) {
     return null;
   }
 
-  const message = isDemodaySignUpSource(userInfo.signUpSource) ? MESSAGES.L1 : MESSAGES[userInfo.accessLevel];
+  const message = status ? (isDemodaySignUpSource(userInfo.signUpSource) ? MESSAGES.VERIFIED : MESSAGES[status]) : null;
 
   if (!message) {
     return null;

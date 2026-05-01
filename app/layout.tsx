@@ -13,20 +13,17 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import QueryProvider from '@/providers/QueryProvider';
 import StoreInitializer from '@/providers/StoreInitializer';
 import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
-import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
+// import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
 import PostHogIdentifier from '@/components/page/posthog-identifier';
 import PostLoginRedirectHandler from '@/components/page/recommendations/components/RecommendationsPreloader/PostLoginRedirectHandler';
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginFlowTrigger';
 import { UserInfoChecker, UserInfoValidator } from '@/components/core/login';
 import { MobileBottomNav } from '@/components/core/MobileBottomNav';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { DemoDayBanner } from '@/components/core/navbar/components/DemoDayBanner';
 import { DemoDayStats } from '@/components/core/DemoDayStats';
 import { ContactSupport } from '@/components/ContactSupport/ContactSupport';
 import { ContactSupportUrlSync } from '@/components/ContactSupport/ContactSupportUrlSync';
 import { PushNotificationsProvider } from '@/providers/PushNotificationsProvider';
-import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -113,11 +110,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <BroadCastChannel />
                 <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
                 <MemberRegisterDialog />
-                <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
+                {/* <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} /> */}
                 <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
                 <PostLoginRedirectHandler isLoggedIn={isLoggedIn} />
                 {/* <TeamRegisterDialog /> */}
-                <UserInfoChecker userInfo={userInfo} />
+                <UserInfoChecker uid={userInfo?.uid} />
                 <UserInfoValidator userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
                 <CookieChecker isLoggedIn={isLoggedIn} />
                 {/*<ReactQueryDevtools initialIsOpen={false} />*/}

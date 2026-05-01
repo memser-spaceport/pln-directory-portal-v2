@@ -18,6 +18,7 @@ import { clsx } from 'clsx';
 import { EditButton } from '@/components/common/profile/EditButton';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Divider } from '@/components/common/profile/Divider';
@@ -56,6 +57,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant =
   const isDrawer = variant === 'drawer';
   const showIncomplete = hasMissingRequiredData && isOwner;
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
+  const canViewContacts = USE_ACCESS_CONTROL_V2 ? userInfo.rbac?.status === 'APPROVED' : accessLevel === 'advanced';
 
   const onLoginClickHandler = () => {
     const userInfo = Cookies.get('userInfo');
@@ -93,7 +95,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant =
           {isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEdit} />}
         </DetailsSectionHeader>
         <div className={s.container}>
-          {isDrawer || (isLoggedIn && (accessLevel === 'advanced' || isOwner)) ? (
+          {isDrawer || (isLoggedIn && (canViewContacts || isOwner)) ? (
             <div className={s.social}>
               <div className={s.top}>
                 <div className={s.content}>

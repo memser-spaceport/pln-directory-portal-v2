@@ -17,6 +17,8 @@ import Image from 'next/image';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { IUserInfo } from '@/types/shared.types';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
 
 interface EventDetailsProps {
   eventDetails: {
@@ -59,6 +61,7 @@ const IrlPastEvents = ({
   const eventsToShow = events;
 
   const accessLevel = getAccessLevel(userInfo as IUserInfo, isLoggedIn);
+  const { canWrite: v2CanWrite } = useIrlGoingAccess();
 
   // Determine the selected event based on searchParams
   let selectedEvent = eventsToShow[0];
@@ -396,7 +399,7 @@ const IrlPastEvents = ({
                                       </span>
                                     )}
                                   </div>
-                                  {accessLevel === 'advanced' && (
+                                  {(USE_ACCESS_CONTROL_V2 ? v2CanWrite : accessLevel === 'advanced') && (
                                     <button
                                       className="root__irl__mobileView__dropdown__delete__btn"
                                       onClick={(e) => {

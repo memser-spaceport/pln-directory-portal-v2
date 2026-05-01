@@ -5,10 +5,15 @@ import Select from 'react-select';
 import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useQueryState, parseAsString } from 'nuqs';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
 import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
-import { DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE, SCOPE_LABELS } from '@/services/articles/constants';
+import {
+  DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE,
+  SCOPE_LABELS,
+  SCOPE_TO_PERMISSION_CODE,
+} from '@/services/articles/constants';
 import { extractHeadings } from '@/utils/markdown';
 import s from './ArticlesSidebar.module.scss';
 
@@ -181,14 +186,36 @@ function getCategoryIcon(category: string) {
 
 export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSidebarProps) {
   const pathname = usePathname();
+  const [scopeParam, setScopeParam] = useQueryState(
+    'scope',
+    parseAsString.withOptions({ history: 'replace', shallow: true }),
+  );
   const { byCategory, isLoading } = useGetArticles();
-  const { scopes: userScopes } = useFounderGuidesScopes();
+  const { scopes: userScopes, isLoading: scopesLoading } = useFounderGuidesScopes();
   const scopeOptions = useMemo(() => userScopes.map((s) => ({ label: SCOPE_LABELS[s] ?? s, value: s })), [userScopes]);
+  const permittedByCategory = useMemo(() => {
+    if (scopesLoading) return [];
+    return byCategory
+      .map((cat) => ({
+        ...cat,
+        articles: cat.articles.filter(
+          (a) =>
+            a.requiredPermissionCode === null ||
+            userScopes.some((s) => SCOPE_TO_PERMISSION_CODE[s] === a.requiredPermissionCode),
+        ),
+      }))
+      .filter((cat) => cat.articles.length > 0);
+  }, [byCategory, userScopes, scopesLoading]);
   const [search, setSearch] = useState('');
-  const [selectedScope, setSelectedScope] = useState<string | null>(null);
   const [openCategories, setOpenCategories] = useState<Set<string> | null>(null);
   const { trackSidebarSearch, trackRequestGuideLinkClicked } = useFounderGuidesAnalytics();
   const searchDebounceSkipRef = useRef(true);
+
+  const selectedScope = useMemo(() => {
+    if (userScopes.length < 2) return null;
+    if (scopeParam && userScopes.includes(scopeParam)) return scopeParam;
+    return userScopes.includes(DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE) ? DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE : userScopes[0];
+  }, [scopeParam, userScopes]);
 
   useEffect(() => {
     if (searchDebounceSkipRef.current) {
@@ -201,27 +228,20 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
     return () => clearTimeout(t);
   }, [search, trackSidebarSearch]);
 
-  useEffect(() => {
-    if (userScopes.length >= 2 && selectedScope === null) {
-      const next =
-        userScopes.includes(DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE) ? DEFAULT_FOUNDER_GUIDES_VIEW_SCOPE : userScopes[0];
-      setSelectedScope(next);
-    }
-  }, [userScopes, selectedScope]);
-
   const scopeFiltered = useMemo(() => {
-    if (!selectedScope) return byCategory;
-    return byCategory
+    if (!selectedScope) return permittedByCategory;
+    const permCode = SCOPE_TO_PERMISSION_CODE[selectedScope];
+    return permittedByCategory
       .map(({ category, articles }) => ({
         category,
-        articles: articles.filter((a) => a.scope === selectedScope || a.scope === null),
+        articles: articles.filter((a) => a.requiredPermissionCode === permCode || a.requiredPermissionCode === null),
       }))
       .filter(({ articles }) => articles.length > 0);
-  }, [byCategory, selectedScope]);
+  }, [permittedByCategory, selectedScope]);
 
   const effectiveOpenCategories = useMemo(
-    () => openCategories ?? new Set(byCategory.map((c) => c.category)),
-    [byCategory, openCategories],
+    () => openCategories ?? new Set(permittedByCategory.map((c) => c.category)),
+    [permittedByCategory, openCategories],
   );
 
   const { canCreate } = useFounderGuidesCreateAccess();
@@ -250,7 +270,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
   function toggleCategory(category: string) {
     if (search.trim()) return;
     setOpenCategories((prev) => {
-      const next = new Set(prev ?? byCategory.map((c) => c.category));
+      const next = new Set(prev ?? permittedByCategory.map((c) => c.category));
       if (next.has(category)) {
         next.delete(category);
       } else {
@@ -274,7 +294,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
           <Select
             options={scopeOptions}
             value={scopeOptions.find((o) => o.value === selectedScope) ?? null}
-            onChange={(opt) => opt && setSelectedScope(opt.value)}
+            onChange={(opt) => opt && setScopeParam(opt.value)}
             isSearchable={false}
             styles={{
               container: (base) => ({ ...base, width: '100%' }),
@@ -326,7 +346,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
 
       {canCreate && (
         <Link
-          href="/founder-guides/new"
+          href={selectedScope ? `/founder-guides/new?scope=${selectedScope}` : '/founder-guides/new'}
           className={`${s.createLink} ${isCreateActive ? s.createLinkActive : ''}`}
           onClick={onNavigate}
         >
@@ -336,7 +356,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
       )}
 
       <nav className={s.nav}>
-        {isLoading && (
+        {(isLoading || scopesLoading) && (
           <>
             {[1, 2, 3].map((i) => (
               <div key={i} className={s.skeletonCategory} />
@@ -344,7 +364,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
           </>
         )}
 
-        {!isLoading &&
+        {!isLoading && !scopesLoading &&
           filtered.map(({ category, articles }) => {
             const isOpen = visibleCategories.has(category);
             const isCategoryActive = articles.some((article) => pathname === `/founder-guides/${article.slugURL}`);
@@ -368,8 +388,9 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
                 {isOpen && (
                   <div className={s.articleList}>
                     {articles.map((article) => {
-                      const href = `/founder-guides/${article.slugURL}`;
-                      const isActive = pathname === href;
+                      const articlePath = `/founder-guides/${article.slugURL}`;
+                      const href = selectedScope ? `${articlePath}?scope=${selectedScope}` : articlePath;
+                      const isActive = pathname === articlePath;
                       const headings = isActive ? extractHeadings(article.content) : [];
                       return (
                         <div key={article.uid}>
@@ -407,7 +428,7 @@ export default function ArticlesSidebar({ onNavigate, hideHeader }: ArticlesSide
             );
           })}
         <Link
-          href="/founder-guides/request"
+          href={selectedScope ? `/founder-guides/request?scope=${selectedScope}` : '/founder-guides/request'}
           className={`${s.requestLink} ${isRequestActive ? s.requestLinkActive : ''}`}
           onClick={() => {
             trackRequestGuideLinkClicked();

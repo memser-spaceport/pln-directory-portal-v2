@@ -13,6 +13,8 @@ import {
 } from '@/utils/constants/team-constants';
 
 import { isInvestor } from '@/utils/isInvestor';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useInvestorAccess } from '@/services/access-control/hooks/useInvestorAccess';
 
 import FormStepIndicatorMob from '@/components/core/form-step-indicator-mob';
 import { FormStepIndicatorWeb } from '@/components/core/form-step-indicator-web';
@@ -30,6 +32,7 @@ export function AddEditTeamContainer(props: Props) {
   const { userInfo } = props;
 
   const router = useRouter();
+  const { isInvestor: v2IsInvestor } = useInvestorAccess();
 
   const [key, setKey] = useState(0);
   const [showModal, setShowModal] = useState(false);
@@ -38,7 +41,7 @@ export function AddEditTeamContainer(props: Props) {
   const onSuccessCallback = () => {
     const { accessLevel } = userInfo;
 
-    if (isInvestor(accessLevel)) {
+    if (USE_ACCESS_CONTROL_V2 ? v2IsInvestor : isInvestor(accessLevel)) {
       setShowModal(true);
     } else {
       setSuccessState(true);

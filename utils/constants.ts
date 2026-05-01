@@ -66,6 +66,14 @@ export const JOBS_ANALYTICS = {
   ON_JOBS_SEARCHED: 'jobs-searched',
   ON_JOBS_SORT_CHANGED: 'jobs-sort-changed',
   ON_JOB_CLICKED: 'job-clicked',
+  ON_JOB_ALERT_CTA_VIEWED: 'job-alert-cta-viewed',
+  ON_JOB_ALERT_CTA_CLICKED: 'job-alert-cta-clicked',
+  ON_JOB_ALERT_SET: 'job-alert-set',
+  ON_JOB_ALERT_UPDATED: 'job-alert-updated',
+  ON_JOB_ALERT_CONFLICT: 'job-alert-conflict',
+  ON_JOB_ALERT_RENAMED: 'job-alert-renamed',
+  ON_JOB_ALERT_DELETED: 'job-alert-deleted',
+  ON_JOB_ALERT_EMAIL_LINK_CLICKED: 'job-alert-email-link-clicked',
 };
 
 export const EVENTS = {
@@ -701,6 +709,18 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.5.15 - LabOS Job Board v1',
+    tag: 'New Feature',
+    date: '1, May 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Job Alerts</span> - Save one filter combo for a weekly digest, returning to Job Board auto-applies your alert filters.</li>
+      </ul>
+      </div>`,
+  },
   {
     title: 'Version 4.5.14 - Job Board',
     tag: 'New Feature',

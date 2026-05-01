@@ -80,6 +80,7 @@ export const GiveFeedbackModal: React.FC<GiveFeedbackModalProps> = ({
   };
 
   const handleOverlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (e.target === e.currentTarget) {
       handleClose();
     }

@@ -182,7 +182,7 @@ export function PrivyModals() {
         triggerLoader(false);
         authEvents.emit('auth:invalid-email', 'rejected_access_level');
         setLinkAccountKey('');
-        await logout();
+        // await logout();
         return;
       }
 

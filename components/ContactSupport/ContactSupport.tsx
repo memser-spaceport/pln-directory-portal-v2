@@ -137,6 +137,10 @@ export function ContactSupport(props: Props) {
         onSuccess: () => {
           reset();
           closeModal();
+
+          if (metadata?.onCancel && typeof metadata.onCancel === 'function') {
+            metadata.onCancel();
+          }
         },
       },
     );
@@ -159,7 +163,13 @@ export function ContactSupport(props: Props) {
       description={description}
       open={open}
       cancel={{
-        onClick: closeModal,
+        onClick: () => {
+          closeModal();
+
+          if (metadata?.onCancel && typeof metadata.onCancel === 'function') {
+            metadata.onCancel();
+          }
+        },
       }}
       submit={{
         label: isLoading ? 'Sending...' : 'Submit',

@@ -12,6 +12,8 @@ import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { ActiveTab } from './types';
 
 import { hasForumAccess } from './utils/hasForumAccess';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 
 import { useUserForumPosts } from './hooks/useUserForumPosts';
 import { useUserForumActivity } from './hooks/useUserForumActivity';
@@ -63,7 +65,8 @@ export function ForumActivity(props: ForumActivityProps) {
   const displayedComments = comments?.slice(0, ITEMS_TO_DISPLAY) || [];
 
   const isLoading = activeTab === 'posts' ? postsLoading : commentsLoading;
-  const hasAccess = hasForumAccess(userInfo.accessLevel);
+  const { hasAccess: v2ForumAccess } = useForumAccess();
+  const hasAccess = USE_ACCESS_CONTROL_V2 ? v2ForumAccess : hasForumAccess(userInfo.accessLevel);
 
   useEffect(() => {
     if (postsCount === 0 && commentsCount > 0) {

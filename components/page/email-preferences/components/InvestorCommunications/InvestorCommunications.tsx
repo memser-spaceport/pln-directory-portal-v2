@@ -14,6 +14,8 @@ import {
 } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { useUpdateMemberInvestorSettings } from '@/services/members/hooks/useUpdateMemberInvestorSettings';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useInvestorAccess } from '@/services/access-control/hooks/useInvestorAccess';
 
 export const InvestorCommunications = ({
   userInfo,
@@ -26,6 +28,7 @@ export const InvestorCommunications = ({
 }) => {
   const { mutate } = useUpdateInvestorSettings();
   const { data } = useGetInvestorSettings(userInfo.uid, initialData);
+  const { isInvestor: v2IsInvestor } = useInvestorAccess();
 
   const { mutate: updateMemberInvestorSettings } = useUpdateMemberInvestorSettings();
   const { data: memberInvestorSettings } = useGetMemberInvestorSettings(userInfo.uid, initialMemberInvestorSettings);
@@ -103,7 +106,7 @@ export const InvestorCommunications = ({
           </div>
         </div>
 
-        {(userInfo.accessLevel === 'L5' || userInfo.accessLevel === 'L6') && (
+        {(USE_ACCESS_CONTROL_V2 ? v2IsInvestor : (userInfo.accessLevel === 'L5' || userInfo.accessLevel === 'L6')) && (
           <>
             <div className={s.toggleSection}>
               <label className={clsx(s.Label, s.toggle)}>

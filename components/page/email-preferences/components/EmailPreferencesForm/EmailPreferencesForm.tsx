@@ -14,6 +14,8 @@ import { InvestorSettings } from '@/services/members/hooks/useGetInvestorSetting
 import { MemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { DemoDaySubscriptionSettings } from '@/services/members/hooks/useGetDemoDaySubscription';
 import { getMemberInfo } from '@/services/members.service';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useInvestorAccess } from '@/services/access-control/hooks/useInvestorAccess';
 
 interface Props {
   uid: string;
@@ -29,6 +31,7 @@ interface Props {
 
 export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
   const router = useRouter();
+  const { isInvestor: v2IsInvestor } = useInvestorAccess();
 
   useEffect(() => {
     triggerLoader(false);
@@ -51,7 +54,7 @@ export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
   return (
     <div className={s.root}>
       <h5 className={s.title}>Email Preferences</h5>
-      {userInfo.accessLevel !== 'L5' && (
+      {(USE_ACCESS_CONTROL_V2 ? !v2IsInvestor : userInfo.accessLevel !== 'L5') && (
         <>
           <ForumDigest userInfo={userInfo} initialData={initialData.settings} />
           <Newsletter userInfo={userInfo} initialData={initialData.memberInfo} />

@@ -1,1 +1,1 @@
-export type Metadata = Record<string, string | boolean | number>;
+export type Metadata = Record<string, string | boolean | number | (() => void) | undefined>;

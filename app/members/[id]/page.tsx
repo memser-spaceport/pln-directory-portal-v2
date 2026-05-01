@@ -9,8 +9,8 @@ import { ContactDetails } from '@/components/page/member-details/ContactDetails'
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
-import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
-import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
+// import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
+// import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
 import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
 import { OfficeHoursDetails } from '@/components/page/member-details/OfficeHoursDetails';
@@ -23,6 +23,8 @@ import qs from 'qs';
 import { getAccessLevel } from '@/utils/auth.utils';
 import clsx from 'clsx';
 import { isDemodaySignUpSource, isMemberAvailableToConnect } from '@/utils/member.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useQuery } from '@tanstack/react-query';
@@ -97,7 +99,12 @@ const MemberDetails = ({ params }: { params: any }) => {
   });
   const isAvailableToConnect = isMemberAvailableToConnect(member);
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
-  const isNewInvestor = accessLevel === 'base' && isOwner && isDemodaySignUpSource(member?.signUpSource);
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
+  const status = member?.rbac.status;
+  const isNewInvestor =
+    (USE_ACCESS_CONTROL_V2 ? status === 'PENDING' : accessLevel === 'base') &&
+    isOwner &&
+    isDemodaySignUpSource(member?.signUpSource);
 
   // Scroll to top when member data is loaded or member ID changes
   useEffect(() => {
@@ -138,81 +145,52 @@ const MemberDetails = ({ params }: { params: any }) => {
       return null;
     }
 
-    switch (member.accessLevel) {
-      case 'L5': {
-        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
-          member,
-          isOwner,
-          isAdmin,
-          memberInvestorSettings?.isInvestor,
-        );
+    const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
+      member,
+      isOwner,
+      isAdmin,
+      memberInvestorSettings?.isInvestor,
+    );
+    const isInvestorOnly =
+      isNewInvestor || member.rbac.policies?.every((p: { role: string }) => p.role.toLowerCase() === 'investor');
 
-        return (
+    return (
+      <>
+        <OneClickVerification
+          userInfo={userInfo}
+          member={member}
+          isLoggedIn={isLoggedIn}
+          isNewInvestor={isNewInvestor}
+        />
+        <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+        {showInvestorProfile && (
+          <InvestorProfileDetails
+            userInfo={userInfo}
+            member={member}
+            isLoggedIn={isLoggedIn}
+            isInvestor={memberInvestorSettings?.isInvestor}
+            useInlineAddTeam
+          />
+        )}
+        <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+        <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+        <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
+        <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+        {!isInvestorOnly && (
           <>
-            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            {showInvestorProfile && (
-              <InvestorProfileDetails
-                userInfo={userInfo}
-                member={member}
-                isLoggedIn={isLoggedIn}
-                isInvestor={memberInvestorSettings?.isInvestor}
-                useInlineAddTeam
-              />
-            )}
-            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
-            <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
           </>
-        );
-      }
-      default: {
-        const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
-          member,
-          isOwner,
-          isAdmin,
-          memberInvestorSettings?.isInvestor,
-        );
+        )}
 
-        return (
-          <>
-            <OneClickVerification
-              userInfo={userInfo}
-              member={member}
-              isLoggedIn={isLoggedIn}
-              isNewInvestor={isNewInvestor}
-            />
-            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            {showInvestorProfile && (
-              <InvestorProfileDetails
-                userInfo={userInfo}
-                member={member}
-                isLoggedIn={isLoggedIn}
-                isInvestor={memberInvestorSettings?.isInvestor}
-                useInlineAddTeam
-              />
-            )}
-            <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
-            <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            {!isNewInvestor && (
-              <>
-                <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-                <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-              </>
-            )}
-
-            {member.eventGuests.length > 0 && (
-              <div className={styles?.memberDetail__irlContribution}>
-                <IrlMemberContribution member={member} userInfo={userInfo} />
-              </div>
-            )}
-            {!isNewInvestor && <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
-          </>
-        );
-      }
-    }
+        {member.eventGuests.length > 0 && (
+          <div className={styles?.memberDetail__irlContribution}>
+            <IrlMemberContribution member={member} userInfo={userInfo} />
+          </div>
+        )}
+        {!isInvestorOnly && <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+      </>
+    );
   }
 
   return (
@@ -223,7 +201,7 @@ const MemberDetails = ({ params }: { params: any }) => {
       <div className={styles?.memberDetail}>
         <div
           className={clsx(styles.container, {
-            [styles.singleColumn]: isAvailableToConnect || !isLoggedIn || isOwner,
+            [styles.singleColumn]: isAvailableToConnect || !isLoggedIn || isOwner || !v2HasMemberContacts,
           })}
         >
           <div className={styles.content}>
@@ -236,22 +214,25 @@ const MemberDetails = ({ params }: { params: any }) => {
               {renderPageContent()}
             </div>
           </div>
-          {!isAvailableToConnect && isLoggedIn && accessLevel === 'advanced' && !isOwner && (
-            <div className={styles.desktopOnly}>
-              <div style={{ visibility: 'hidden' }}>
-                <BackButton to={`/members`} />
+          {!isAvailableToConnect &&
+            isLoggedIn &&
+            (USE_ACCESS_CONTROL_V2 ? v2HasMemberContacts : accessLevel === 'advanced') &&
+            !isOwner && (
+              <div className={styles.desktopOnly}>
+                <div style={{ visibility: 'hidden' }}>
+                  <BackButton to={`/members`} />
+                </div>
+                <BookWithOther count={availableToConnectCount} member={member} />
               </div>
-              <BookWithOther count={availableToConnectCount} member={member} />
-            </div>
-          )}
+            )}
         </div>
 
-        {userInfo.uid === member.id && (
+        {/* {userInfo.uid === member.id && (
           <>
             <SubscribeToRecommendationsWidget userInfo={userInfo} />
             <UpcomingEventsWidget userInfo={userInfo} />
           </>
-        )}
+        )} */}
       </div>
     </>
   );

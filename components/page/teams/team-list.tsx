@@ -1,25 +1,16 @@
 'use client';
 
-import { ITeam, ITeamsSearchParams } from '@/types/teams.types';
+import { ITeam } from '@/types/teams.types';
 import { PAGE_ROUTES, VIEW_TYPE_OPTIONS } from '@/utils/constants';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import TeamGridView from './team-grid-view';
 import Link from 'next/link';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import TeamListView from './team-list-view';
 import TeamAddCard from './team-add-card';
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
-import { ListLoader } from '@/components/core/loaders/ListLoader';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useInfiniteTeamsList } from '@/services/teams/hooks/useInfiniteTeamsList';
-import { getAccessLevel } from '@/utils/auth.utils';
 import { TeamsMobileFilters } from './TeamsMobileFilters';
-
-interface ITeamList {
-  totalTeams: number;
-  searchParams: ITeamsSearchParams;
-  children: any;
-}
 
 const TeamList = (props: any) => {
   const allTeams = props?.teams ?? [];
@@ -27,8 +18,6 @@ const TeamList = (props: any) => {
   const searchParams = props?.searchParams;
   const totalTeams = props?.totalTeams;
   const filterValues = props.filterValues;
-
-  const accessLevel = getAccessLevel(userInfo, true);
 
   const analytics = useTeamAnalytics();
 
@@ -66,9 +55,9 @@ const TeamList = (props: any) => {
         style={{ overflow: 'unset' }}
       >
         <div className="team-list__grid">
-          {/*{userInfo && accessLevel === 'advanced' && data?.length > 0 && (*/}
-          {/*  <TeamAddCard userInfo={userInfo} viewType={VIEW_TYPE_OPTIONS.GRID} />*/}
-          {/*)}*/}
+          {userInfo && userInfo.rbac.status === 'APPROVED' && data?.length > 0 && (
+            <TeamAddCard userInfo={userInfo} viewType={VIEW_TYPE_OPTIONS.GRID} />
+          )}
           {data?.map((team: ITeam, index: number) => (
             <div
               key={`teamitem-${team.id}-${index}`}

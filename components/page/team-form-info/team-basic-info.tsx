@@ -14,6 +14,8 @@ import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions'
 import { INVEST_IN_VC_FUNDS_OPTIONS } from '@/constants/createTeam';
 import { useGetFundingStageOptions } from '@/hooks/createTeam/useGetFundingStageOptions';
 import { isInvestor } from '@/utils/isInvestor';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useInvestorAccess } from '@/services/access-control/hooks/useInvestorAccess';
 
 interface ITeamBasicInfo {
   errors: string[];
@@ -30,6 +32,7 @@ interface ITeamBasicInfo {
 function TeamBasicInfo(props: ITeamBasicInfo) {
   const { errors, userInfo, setLongDesc, initialValues, longDescMaxLength, isInvestmentFund, setIsInvestmentFund } =
     props;
+  const { isInvestor: v2IsInvestor } = useInvestorAccess();
 
   const isEdit = props.isEdit ?? false;
   const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '');
@@ -210,7 +213,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
               Please upload a squared image in PNG or JPEG format with file size less than 4MB.
             </span>
           </p>
-          {!isInvestor(userInfo?.accessLevel) && (
+          {(USE_ACCESS_CONTROL_V2 ? !v2IsInvestor : !isInvestor(userInfo?.accessLevel)) && (
             <div className="teaminfo__form__plnFriend__toggle">
               <input
                 type="checkbox"

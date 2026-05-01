@@ -5,12 +5,10 @@ import React from 'react';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 
-import { getAccessLevel } from '@/utils/auth.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { RepositoriesList } from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList';
-
 
 interface Props {
   member: IMember;
@@ -19,11 +17,12 @@ interface Props {
 }
 
 export const RepositoriesDetails = ({ isLoggedIn, userInfo, member }: Props) => {
-  const isAdmin = isAdminUser(userInfo)
+  const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
+  const canView = userInfo.rbac?.status === 'APPROVED';
   const isEditable = isOwner || isAdmin;
 
-  if (!isLoggedIn || (getAccessLevel(userInfo, isLoggedIn) !== 'advanced' && !isOwner)) {
+  if (!isLoggedIn || (!canView && !isOwner)) {
     return null;
   }
 

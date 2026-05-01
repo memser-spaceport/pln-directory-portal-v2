@@ -24,7 +24,6 @@ import {
   DEMO_DAY_ANALYTICS_LINK,
   JOBS_LINK,
 } from './constants/navLinks';
-import { useDealsAccess } from '@/services/deals/hooks/useDealsAccess';
 import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
 import { ISubItem } from './type';
@@ -94,7 +93,6 @@ function Navbar(props: Readonly<INavbar>) {
 
   const { data: profileStatus } = useMemberProfileStatus(userInfo?.uid);
 
-  const { hasAccess: hasDealsPageAccess } = useDealsAccess();
   const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
 

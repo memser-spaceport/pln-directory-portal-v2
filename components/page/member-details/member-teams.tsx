@@ -11,6 +11,8 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { getAccessLevel } from '@/utils/auth.utils';
 import { useRouter } from 'next/navigation';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 
 interface IMemberTeams {
   member: IMember;
@@ -30,6 +32,7 @@ const MemberTeams = (props: IMemberTeams) => {
   const router = useRouter();
 
   const analytics = useMemberAnalytics();
+  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
   const sortedTeams = member?.teams.sort((teamA: any, teamB: any) => {
     if (teamA.mainTeam === teamB.mainTeam) {
@@ -66,7 +69,7 @@ const MemberTeams = (props: IMemberTeams) => {
                 See all
               </button>
             )}
-            {isLoggedIn && getAccessLevel(userInfo, isLoggedIn) === 'advanced' && userInfo?.uid === member?.id && (
+            {isLoggedIn && (USE_ACCESS_CONTROL_V2 ? v2HasMemberContacts : getAccessLevel(userInfo, isLoggedIn) === 'advanced') && userInfo?.uid === member?.id && (
               <button
                 onClick={() => router.push('/settings/profile?tab=skills')}
                 className="member-teams__controls_add"

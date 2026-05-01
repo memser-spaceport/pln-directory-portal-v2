@@ -39,7 +39,7 @@ export interface IMembersFilter {
 export const MembersFilter = (props: IMembersFilter) => {
   const { userInfo, onClose } = props;
 
-  const isAdmin = isAdminUser(userInfo);
+  const canSearch = userInfo.rbac?.effectivePermissions.some((p) => p.code === 'member.search.read');
 
   const { setParam, clearParams, params } = useFilterStore();
   const appliedFiltersCount = useGetMembersFilterCount();
@@ -87,7 +87,7 @@ export const MembersFilter = (props: IMembersFilter) => {
 
   return (
     <FiltersSidePanel onClose={handleClose} clearParams={handleClearParams} appliedFiltersCount={appliedFiltersCount}>
-      {isAdmin && (
+      {canSearch && (
         <FilterSection>
           <FilterSearch label="Search for a member" placeholder="E.g. John Smith" />
           {/*<FiltersPanelToggle label="Include Friends of Protocol Labs" paramKey="includeFriends" />*/}

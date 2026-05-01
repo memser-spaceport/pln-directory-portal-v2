@@ -5,6 +5,7 @@ export interface IArticle {
   summary: string;
   category: string;
   scope: string | null;
+  requiredPermissionCode: string | null;
   tags: string[];
   content: string;
   readingTime: number;

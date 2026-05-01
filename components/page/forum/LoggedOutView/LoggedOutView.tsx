@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
+import { useContactSupportStore } from '@/services/contact-support/store';
 
 const items = new Array(5).fill(0).map((_, i) => (
   <li className={s.listItem} key={i}>
@@ -25,8 +26,11 @@ const items = new Array(5).fill(0).map((_, i) => (
   </li>
 ));
 
-export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
+export type ForumLoggedOutReason = 'base' | 'investor' | 'no-access';
+
+export const LoggedOutView = ({ reason }: { reason?: ForumLoggedOutReason }) => {
   const router = useRouter();
+  const { openModal } = useContactSupportStore((s) => s.actions);
 
   const onLoginClickHandler = () => {
     const userInfo = Cookies.get('userInfo');
@@ -43,13 +47,15 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
   };
 
   function getTitle() {
-    switch (accessLevel) {
-      case 'L0':
-      case 'L1': {
+    switch (reason) {
+      case 'base': {
         return 'Forum access unavailable';
       }
-      case 'L5': {
+      case 'investor': {
         return 'Forum Access Restricted';
+      }
+      case 'no-access': {
+        return 'Your account does not have Forum access.';
       }
       default: {
         return 'Forum requires login access';
@@ -58,18 +64,30 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
   }
 
   function getDesc() {
-    switch (accessLevel) {
-      case 'L0': {
-        return "Verify your identity to start the approval process. You'll be notified once approved to participate.";
-      }
-      case 'L1': {
+    switch (reason) {
+      case 'base': {
         return "Your profile is under review. You'll be notified once approved to participate.";
       }
-      case 'L5': {
+      case 'investor': {
         return "Your current access level doesn't include Forum privileges.";
       }
+      case 'no-access': {
+        return (
+          <>
+            Forum is now a private space — reserved for vetted founders and operators in the Protocol Labs network.
+            <br /> If you are a founder or operator in the PL network and believe you should have access, reach out and
+            our team will review your account.
+          </>
+        );
+      }
       default: {
-        return 'Get help or share insights with the PL network. Sign in to read and contribute.';
+        return (
+          <>
+            Get help or share insights with the PL network
+            <br />
+            Sign in to read and contribute.
+          </>
+        );
       }
     }
   }
@@ -96,7 +114,7 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
           </div>
           <div className={s.primary}>{getTitle()}</div>
           <div className={s.secondary}>{getDesc()}</div>
-          {!accessLevel && (
+          {!reason && (
             <>
               <button className={s.mainBtn} onClick={onLoginClickHandler}>
                 Sign in
@@ -110,6 +128,23 @@ export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
                   }}
                 >
                   Sign Up
+                </button>
+              </div>
+            </>
+          )}
+          {reason === 'no-access' && (
+            <>
+              <button
+                className={s.mainBtn}
+                onClick={() => {
+                  router.push('/');
+                }}
+              >
+                Got it
+              </button>
+              <div className={s.sub}>
+                <button className={s.secBtn} onClick={() => openModal()}>
+                  Contact support
                 </button>
               </div>
             </>

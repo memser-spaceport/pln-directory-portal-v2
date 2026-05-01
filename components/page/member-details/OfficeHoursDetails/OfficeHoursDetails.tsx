@@ -17,6 +17,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { useOfficeHoursAccess } from '@/services/access-control/hooks/useOfficeHoursAccess';
 
 interface Props {
   member: IMember;
@@ -32,7 +34,9 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
-  const isEditable = isOwner || isAdmin;
+  const { canViewSupply, canSupply, canViewDemand } = useOfficeHoursAccess();
+  const v2CanView = isOwner ? canViewSupply : canViewDemand;
+  const isEditable = (isOwner && canSupply) || isAdmin;
   const showWarningUseCaseA = !member?.officeHours;
   const showWarningUseCaseB = !member?.ohInterest?.length || !member?.ohHelpWith?.length;
   const showIncomplete = !editView && isOwner && (showWarningUseCaseA || showWarningUseCaseB);
@@ -65,11 +69,11 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
     return null;
   }
 
-  if (accessLevel === 'base') {
+  if (USE_ACCESS_CONTROL_V2 ? !v2CanView : accessLevel === 'base') {
     return null;
   }
 
-  if (!isAdmin && (member.accessLevel === 'L0' || member.accessLevel === 'L1')) {
+  if (!isAdmin && !USE_ACCESS_CONTROL_V2 && (member.accessLevel === 'L0' || member.accessLevel === 'L1')) {
     return null;
   }
 

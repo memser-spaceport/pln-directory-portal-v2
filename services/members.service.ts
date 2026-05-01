@@ -11,6 +11,7 @@ import {
 } from '@/utils/member.utils';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { isAdminUser } from '@/utils/user/isAdminUser';
+import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 
 export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
   handleHostAndSpeaker(options);
@@ -211,12 +212,25 @@ export const getMember = async (
     ohStatus: result.ohStatus,
     investorProfile: result.investorProfile,
     signUpSource: result.signUpSource,
+
+    rbac: {
+      status: result.memberState,
+      policies: result.policies,
+      effectivePermissions: result.effectivePermissions,
+      roles: result.roles,
+    },
   };
 
   const hasEditAccess = isAdminUser(userInfo) || userInfo?.uid === member?.id;
 
-  if (!hasEditAccess && ['Rejected', 'L0', 'L1'].includes(member?.accessLevel)) {
-    return { error: { status: 404, statusText: 'Member not found' } };
+  if (USE_ACCESS_CONTROL_V2) {
+    if (!hasEditAccess && member.rbac.status !== 'APPROVED') {
+      return { error: { status: 404, statusText: 'Member not found' } };
+    }
+  } else {
+    if (!hasEditAccess && ['Rejected', 'L0', 'L1'].includes(member?.accessLevel)) {
+      return { error: { status: 404, statusText: 'Member not found' } };
+    }
   }
 
   if (isLoggedIn) {
@@ -432,6 +446,12 @@ export const getMemberInfo = async (memberUid: string) => {
     projectContributions: projectContributions,
     teamMemberRoles: teamMemberRoles,
     skills: skills,
+    rbac: {
+      status: result.memberState,
+      policies: result.policies,
+      effectivePermissions: result.effectivePermissions,
+      roles: result.roles,
+    },
   };
 
   return { data: formatted };

@@ -3,6 +3,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { FilterState } from '@/services/filters/types';
 import { FilterOption } from '@/services/filters/commonTypes';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 
 import { SelectAll } from './components/SelectAll';
@@ -35,9 +36,14 @@ export interface GenericCheckboxListProps {
   placeholder?: string;
 
   /**
-   * Number of items to show by default (before "Show more" is clicked)
+   * Number of items to show by default
    */
   defaultItemsToShow?: number;
+
+  /**
+   * Number of items to show when search input is not empty
+   */
+  searchResultsToShow?: number;
 
   /**
    * Hook to fetch data based on search input
@@ -122,6 +128,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     placeholder,
     useGetDataHook,
     defaultItemsToShow,
+    searchResultsToShow,
     onChange,
     onSearch,
     onSelectAll,
@@ -149,12 +156,18 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
   // Get initial values from URL parameters
   const selectedValues = useMemo(() => {
     const paramValue = params.get(paramKey);
-    if (!paramValue) return [];
 
-    return paramValue.split(URL_QUERY_VALUE_SEPARATOR).map((value) => ({
-      value: value.trim(),
-      label: data?.find((item) => item.value === value.trim())?.label || value.trim(),
-    }));
+    if (!paramValue) {
+      return [];
+    }
+
+    return paramValue.split(URL_QUERY_VALUE_SEPARATOR).map((raw) => {
+      const value = raw.trim().replaceAll(FILTER_VALUE_SEPARATOR_ENCODED, FILTER_VALUE_SEPARATOR);
+      return {
+        value,
+        label: data?.find((item) => item.value === value)?.label || value,
+      };
+    });
   }, [params, paramKey, data]);
 
   // Merge backend data with selected values
@@ -164,6 +177,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     searchValue,
     defaultItemsToShow,
     disableSorting,
+    searchResultsToShow,
   });
 
   // React Hook Form setup
@@ -181,7 +195,9 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
 
     if (filterValues && filterValues.length > 0) {
       const valuesArr = filterValues.map((item) => item.value);
-      const values = valuesArr.join(URL_QUERY_VALUE_SEPARATOR);
+      const values = valuesArr
+        .map((v) => v.replaceAll(FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED))
+        .join(URL_QUERY_VALUE_SEPARATOR);
 
       // Only update if the value actually changed
       const currentValue = params.get(paramKey);
@@ -221,13 +237,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
       <div className={className}>
         {label && <div className={s.label}>{label}</div>}
         {hint && <div className={s.hint}>{hint}</div>}
-        {!hideSearch && (
-          <SearchInput
-            value={searchValue}
-            onChange={handleSearchChange}
-            placeholder={placeholder}
-          />
-        )}
+        {!hideSearch && <SearchInput value={searchValue} onChange={handleSearchChange} placeholder={placeholder} />}
         <div className={s.list}>
           {!!searchValue && (
             <SelectAll

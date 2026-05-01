@@ -2,13 +2,12 @@
 
 import React from 'react';
 import last from 'lodash/last';
-import filter from 'lodash/filter';
 import isEmpty from 'lodash/isEmpty';
 import { IAnalyticsUserInfo, IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems } from '@/types/teams.types';
 import { triggerLoader } from '@/utils/common.utils';
 
-import { BaseFilterItem, createFilterGetter } from '@/services/teams/utils/createFilterGetter';
+import { createFilterGetter } from '@/services/teams/utils/createFilterGetter';
 import Image from 'next/image';
 import { useTeamFilterStore, useTeamFilterCount } from '@/services/teams';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
@@ -22,7 +21,6 @@ import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDiv
 import { InvestmentFocusFilter } from '@/components/page/teams/TeamsFilter/components/InvestmentFocusFilter';
 import { TeamsFocusAreaFilter } from './components/TeamsFocusAreaFilter';
 import { getPriorityLabel } from '@/utils/team.utils';
-import { isAdminUser } from '@/utils/user/isAdminUser';
 import { isTierUser } from '@/utils/user/isTierUser';
 
 import { processCommunityAffiliationsFilterOptions } from './utils/processCommunityAffiliationsFilterOptions';
@@ -46,8 +44,11 @@ export function TeamsFilter(props: TeamsFilterProps) {
   const { clearParams, params } = useTeamFilterStore();
   const appliedFiltersCount = useTeamFilterCount();
   const analytics = useTeamAnalytics();
-  const isDirectoryAdmin = isAdminUser(userInfo);
-  const isTierViewer = isDirectoryAdmin || isTierUser(userInfo);
+  const canSearch = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'team.search.read');
+  const canSeeSource = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'membership.source.read');
+  const isDirectoryAdmin = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'directory.admin.full'); // isAdminUser(userInfo);
+  const canSeePriority = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'team.priority.read');
+  const isTierViewer = isDirectoryAdmin || canSearch || isTierUser(userInfo) || canSeePriority;
 
   // Create data hooks at the top level (not conditionally)
   // These factory functions return data hooks that can be passed to GenericCheckboxList
@@ -108,14 +109,14 @@ export function TeamsFilter(props: TeamsFilterProps) {
 
   return (
     <FiltersSidePanel onClose={handleClose} clearParams={handleClearParams} appliedFiltersCount={appliedFiltersCount}>
-      {isDirectoryAdmin && (
+      {canSearch && (
         <FilterSection title="Team Search">
           <FiltersSearch searchParams={searchParams} userInfo={userInfo} />
         </FilterSection>
       )}
 
       {/* Membership Source */}
-      {isDirectoryAdmin && !isEmpty(filterValues?.membershipSources) && (
+      {canSeeSource && !isEmpty(filterValues?.membershipSources) && (
         <FilterSection title="Membership Source">
           <GenericCheckboxList
             label="Search or select membership source"

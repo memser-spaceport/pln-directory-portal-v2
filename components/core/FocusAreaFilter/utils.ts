@@ -1,8 +1,5 @@
 import { TreeFilterItem } from './types';
 
-export function sortByLabel<T extends TreeFilterItem>(items: T[]): T[] {
-  return [...items].sort((a, b) => a.label.localeCompare(b.label));
-}
 
 export function findAllParents<T extends TreeFilterItem>(roots: T[], targetId: string): T[] {
   const parents: T[] = [];

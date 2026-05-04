@@ -16,7 +16,8 @@ async function infiniteFetcher(searchParams: ProjectsListQueryParams['searchPara
     {
       ...selectOpitons,
       isDeleted: false,
-      select: 'uid,name,tagline,logo.url,description,lookingForFunding,maintainingTeam.name,maintainingTeam.logo.url',
+      select:
+        'uid,name,tags, tagline,logo.url,description,lookingForFunding,maintainingTeam.name,maintainingTeam.logo.url',
     },
     page,
     ITEMS_PER_PAGE,

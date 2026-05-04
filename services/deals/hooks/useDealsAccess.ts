@@ -14,9 +14,8 @@ export function useDealsAccess() {
   } = useQuery({
     queryKey: [DealsQueryKeys.DEALS_ACCESS],
     queryFn: async () => {
-      const [legacyAccess, access] = await Promise.all([checkDealsAccess(), fetchMyAccess()]);
-      const rbacAccess = access.effectivePermissions.includes('deals.read');
-      return legacyAccess || rbacAccess;
+      const access = await fetchMyAccess();
+      return access?.effectivePermissions.includes('deals.read');
     },
     staleTime: 5 * 60 * 1000,
     enabled: !!userInfo,

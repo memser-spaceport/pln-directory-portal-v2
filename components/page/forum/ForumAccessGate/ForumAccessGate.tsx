@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 import { Spinner } from '@/components/ui/Spinner';
 import s from '@/app/forum/page.module.scss';
@@ -12,7 +12,7 @@ interface ForumAccessGateProps {
 }
 
 export const ForumAccessGate = ({ children }: ForumAccessGateProps) => {
-  const { userInfo } = getCookiesFromClient();
+  const { currentUser } = useCurrentUserStore();
   const { hasAccess, isLoading } = useForumAccess();
 
   if (isLoading) {
@@ -23,7 +23,7 @@ export const ForumAccessGate = ({ children }: ForumAccessGateProps) => {
     );
   }
 
-  if (!userInfo) {
+  if (!currentUser) {
     return (
       <div className={s.root}>
         <LoggedOutView />

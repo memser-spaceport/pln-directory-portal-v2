@@ -15,7 +15,7 @@ import { authEvents } from '@/components/core/login/utils';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { useUserStore } from '@/services/members/store';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface IProfile {
   userInfo: IUserInfo;
@@ -25,7 +25,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
   const [isDropdown, setIsDropdown] = useState(false);
   const profileMenuRef = useRef(null);
   const router = useRouter();
-  const { profileImage } = useUserStore();
+  const { currentUser } = useCurrentUserStore();
   const analytics = useCommonAnalytics();
   const postHogProps = usePostHog();
   const userInfo = props?.userInfo;
@@ -58,7 +58,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
         <div className="profile__profileimgsection__img-wrapper">
           <Image
             loading="lazy"
-            src={profileImage ?? defaultAvatarImage}
+            src={currentUser?.profileImageUrl ?? defaultAvatarImage}
             alt="profile"
             height={40}
             width={40}

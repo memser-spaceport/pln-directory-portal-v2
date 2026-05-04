@@ -25,7 +25,7 @@ import {
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { decode } from 'he';
 import { BackButton } from '@/components/ui/BackButton';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
@@ -64,8 +64,7 @@ export const Post = () => {
   const searchParams = useSearchParams();
   const analytics = useForumAnalytics();
 
-  // Get user info from client-side cookies
-  const { userInfo } = getCookiesFromClient();
+  const { currentUser: userInfo } = useCurrentUserStore();
   const isLoggedIn = !!userInfo;
 
   const { hasAccess: v2ForumAccess, deniedReason, isLoading: v2Loading } = useForumAccess();

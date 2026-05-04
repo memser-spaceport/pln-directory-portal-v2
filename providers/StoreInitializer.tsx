@@ -1,6 +1,6 @@
 'use client';
 
-import { useUserStore } from '@/services/members/store';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { IUserInfo } from '@/types/shared.types';
 import { useEffect } from 'react';
 
@@ -9,12 +9,10 @@ interface StoreInitializerProps {
 }
 
 export default function StoreInitializer({ userInfo }: StoreInitializerProps) {
-  const { actions } = useUserStore();
+  const { actions } = useCurrentUserStore();
 
   useEffect(() => {
-    if (userInfo?.profileImageUrl) {
-      actions.setProfileImage(userInfo.profileImageUrl);
-    }
+    actions.setCurrentUser(userInfo);
   }, [userInfo, actions]);
 
   return null;

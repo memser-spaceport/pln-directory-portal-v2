@@ -1,6 +1,6 @@
 import { toast } from '@/components/core/ToastContainer';
 import { replaceImagesWithMarkdown } from '@/utils/decode';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { EditPostMutationParams, useEditPost } from '@/services/forum/hooks/useEditPost';
@@ -22,7 +22,7 @@ interface Input {
 export function useSubmitComment(input: Input) {
   const { tid, toPid, isEdit, itemUid, timestamp, reset, onSubmit, setFocused } = input;
 
-  const { userInfo } = getCookiesFromClient();
+  const { currentUser: userInfo } = useCurrentUserStore();
 
   const { mutateAsync } = usePostComment();
   const { mutateAsync: editPost } = useEditPost();
@@ -32,6 +32,7 @@ export function useSubmitComment(input: Input) {
   const isAdmin = isAdminUser(userInfo);
 
   const onSubmitComment = async (data: any) => {
+    if (!userInfo?.uid) return;
     try {
       const content = replaceImagesWithMarkdown(data.comment);
 

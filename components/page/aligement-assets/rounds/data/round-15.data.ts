@@ -55,7 +55,18 @@ export const pastRound15Data: IPastRoundData = {
     numberOfBuybacks: 0
   },
 
-  leaderboard: [],
+  leaderboard: [
+    { rank: 1, name: 'David Casey', activities: '', points: 1400 },
+    { rank: 2, name: 'David Dao', activities: '', points: 450 },
+    { rank: 3, name: 'Molly Mackinlay', activities: '', points: 450 },
+    { rank: 4, name: 'Bradley Holden', activities: '', points: 300 },
+    { rank: 5, name: 'Jeremy Kloth', activities: '', points: 300 },
+    { rank: 6, name: 'Juan Benet', activities: '', points: 300 },
+    { rank: 7, name: 'Anuj Pandey', activities: '', points: 150 },
+    { rank: 8, name: 'Lynnette Nolan', activities: '', points: 150 },
+    { rank: 9, name: 'Theresa Therriault', activities: '', points: 150 },
+    { rank: 10, name: 'Justin Melillo', activities: '', points: 100 }
+  ],
 };
 
 export default pastRound15Data;

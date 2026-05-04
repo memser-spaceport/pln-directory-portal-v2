@@ -1,48 +1,51 @@
-.roleItem {
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.roleItem:last-child {
-  border-bottom: none;
-}
-
-.roleLink {
+.root {
+  gap: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 14px 0;
+
+  padding: 12px 16px;
+  border-radius: 16px;
+  background-color: #f9fafb;
+
   text-decoration: none;
   color: inherit;
-  min-height: 56px;
 }
 
-.roleBody {
+.body {
+  gap: 4px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+
   min-width: 0;
 }
 
-.roleTitle {
-  font-size: 15px;
-  font-weight: 600;
-  color: #0f172a;
+.title {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
 }
 
-.roleMeta {
-  font-size: 13px;
-  color: #64748b;
+.meta {
+  color: #455468;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
 }
 
-.roleRight {
+.right {
+  gap: 16px;
   display: flex;
-  align-items: center;
-  gap: 12px;
   flex-shrink: 0;
+  align-items: center;
 }
 
 .relative {
+  gap: 2px;
+  display: flex;
+  align-items: center;
+
   font-size: 13px;
   color: #94a3b8;
   font-variant-numeric: tabular-nums;

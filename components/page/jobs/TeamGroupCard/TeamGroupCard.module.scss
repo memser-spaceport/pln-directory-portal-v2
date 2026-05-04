@@ -1,12 +1,13 @@
 .card {
+  gap: 20px;
+  display: flex;
+  flex-direction: column;
+
   width: 100%;
   background: #fff;
   border-radius: 8px;
   border: 1px solid rgba(27, 56, 96, 0.06);
-  padding: 20px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  padding: 20px;
   box-shadow:
     0px 0px 1px 0px rgba(15, 23, 42, 0.12),
     0px 4px 4px 0px rgba(15, 23, 42, 0.04);
@@ -20,24 +21,28 @@
 }
 
 .header {
+  gap: 16px;
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  padding-bottom: 12px;
+
+  padding-bottom: 20px;
   border-bottom: 1px solid #f1f5f9;
 }
 
 .avatar {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: 12px;
+
   overflow: hidden;
+
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  background: #0f172a;
+
   color: #f8fafc;
-  flex-shrink: 0;
+  background: #0f172a;
   border: 1px solid rgba(27, 56, 96, 0.12);
 }
 
@@ -55,19 +60,21 @@
 
 .headerMain {
   flex: 1;
+  gap: 4px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+
   min-width: 0;
 }
 
 .teamName {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
   color: #0f172a;
-  line-height: 1.2;
-  letter-spacing: -0.3px;
+
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.4px;
 }
 
 .focusRow {
@@ -76,33 +83,29 @@
 
 .focusTag {
   max-width: 180px;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 2px 10px;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-
-  color: #156ff7;
-  background-color: rgba(21, 111, 247, 0.06);
 }
 
 .countBlock {
-  text-align: right;
   display: flex;
   flex-direction: column;
+
   line-height: 1.1;
 }
 
 .countNumber {
-  font-size: 28px;
-  font-weight: 700;
   color: #0f172a;
-  letter-spacing: -0.5px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 27px;
+  text-align: center;
+  letter-spacing: -0.3px;
 }
 
 .countLabel {
+  color: #455468;
   font-size: 12px;
-  color: #64748b;
+  line-height: 16px;
+  letter-spacing: -0.2px;
 }
 
 .newCount {
@@ -119,24 +122,29 @@
 }
 
 .roleList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+  gap: 8px;
   display: flex;
   flex-direction: column;
+
+  padding: 0;
+  margin: 0;
+  list-style: none;
 }
 
 .expander {
-  align-self: flex-start;
-  background: none;
   border: none;
-  color: #1b4dff;
-  font-size: 13px;
-  font-weight: 500;
-  padding: 8px 0 0;
-  cursor: pointer;
-}
+  background: none;
 
-.expander:hover {
-  text-decoration: underline;
+  cursor: pointer;
+  margin: 0 auto;
+
+  color: #1b4dff;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }

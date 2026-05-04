@@ -113,7 +113,10 @@ export default function PointsDashboard({ currentRound, pageRound }: PointsDashb
   const isLoading = lifetimeLoading || snapshotLoading;
   const hasError = lifetimeError || snapshotError;
 
-  // Hide section when not logged in or API refused
+  // 1. Hide section while loading for the first time to prevent flickering for non-PLAA users
+  if (lifetimeLoading && lifetimeData === undefined) return null;
+
+  // 2. Hide section when not logged in or API refused
   if (!lifetimeLoading && (lifetimeData === null || hasError)) return null;
 
   const totalLifetime = lifetimeData?.totalPoints ?? 0;

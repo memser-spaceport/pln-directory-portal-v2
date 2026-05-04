@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useForm, FormProvider } from 'react-hook-form';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Modal } from '@/components/common/Modal/Modal';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import {
   ModalHeader,
   AboutSection,
@@ -44,7 +44,7 @@ export function IrlGatheringModal({
   editModeData,
 }: IrlGatheringModalProps) {
   const gatheringData = useIrlGatheringData(notification);
-  const { userInfo } = getCookiesFromClient();
+  const { currentUser: userInfo } = useCurrentUserStore();
   const isLoggedIn = !!userInfo?.uid;
   const defaultTeamUid = userInfo?.leadingTeams?.[0];
   const { canWrite: v2CanWrite } = useIrlGoingAccess();
@@ -53,7 +53,7 @@ export function IrlGatheringModal({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   // const { data } = useMemberFormOptions();
-  const { data: memberData } = useMember(userInfo?.uid);
+  const { data: memberData } = useMember(userInfo?.uid ?? '');
   const analytics = useIrlAnalytics();
   const wasOpenRef = useRef(false);
   const [shouldAnimateLoginButton, setShouldAnimateLoginButton] = useState(false);
@@ -67,7 +67,7 @@ export function IrlGatheringModal({
     queryKey: [MembersQueryKeys.GET_MEMBER, userInfo?.uid, !!userInfo, userInfo?.uid],
     queryFn: () =>
       getMember(
-        userInfo?.uid,
+        userInfo?.uid ?? '',
         { with: 'image,skills,location,teamMemberRoles.team' },
         !!userInfo,
         userInfo,

@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { IFocusArea } from '@/types/shared.types';
 import { FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
-import { getUserInfo } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import { ConnectedFocusAreaFilter } from '@/components/core/FocusAreaFilter';
 
@@ -19,7 +19,7 @@ export function ProjectFocusAreaFilter({ focusAreas, searchParams }: ProjectFocu
 
   const handleAnalytics = useCallback(
     (item: any) => {
-      const user = getUserInfo();
+      const user = useCurrentUserStore.getState().currentUser;
       analytics.onProjectFilterApplied(getAnalyticsUserInfo(user), {
         focusArea: item.label,
       });

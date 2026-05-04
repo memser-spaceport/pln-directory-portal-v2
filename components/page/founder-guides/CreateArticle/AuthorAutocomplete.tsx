@@ -7,7 +7,7 @@ import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useAuthorSearch } from '@/services/search/hooks/useAuthorSearch';
 import { useMember } from '@/services/members/hooks/useMember';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import type { IArticleAuthorSearchItem } from '@/types/articles.types';
 import s from './AuthorAutocomplete.module.scss';
@@ -22,7 +22,7 @@ export function AuthorAutocomplete() {
   } = useFormContext();
   const selected: AuthorValue = watch('author');
 
-  const { userInfo } = getCookiesFromClient();
+  const { currentUser: userInfo } = useCurrentUserStore();
   const isAdmin = isAdminUser(userInfo);
 
   const { data: memberData } = useMember(isAdmin ? undefined : userInfo?.uid);

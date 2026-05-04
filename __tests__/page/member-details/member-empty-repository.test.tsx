@@ -1,8 +1,10 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import MemberEmptyProject from '@/components/page/member-details/member-empty-repository';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { PAGE_ROUTES, ADMIN_ROLE } from '@/utils/constants';
+import { PAGE_ROUTES } from '@/utils/constants';
 import { getAnalyticsUserInfo, getAnalyticsMemberInfo } from '@/utils/common.utils';
+import { IUserInfo } from '@/types/shared.types';
+import { IMember } from '@/types/members.types';
 import '@testing-library/jest-dom';
 
 jest.mock('@/analytics/members.analytics', () => ({
@@ -28,8 +30,8 @@ describe('MemberEmptyProject Component', () => {
   });
 
   const defaultProps = {
-    userInfo: { uid: '1', roles: [] },
-    member: { id: '1', githubHandle: null },
+    userInfo: { uid: '1', roles: [] } as IUserInfo,
+    member: { id: '1', githubHandle: null } as IMember,
     profileType: 'user',
   };
 
@@ -54,7 +56,7 @@ describe('MemberEmptyProject Component', () => {
   it('renders missing GitHub handle message for admin but not owner', () => {
     const newProps = {
       ...defaultProps,
-      userInfo: { uid: '2', roles: [ADMIN_ROLE] },
+      userInfo: { uid: '2', roles: [], rbac: { effectivePermissions: [{ code: 'directory.admin.full' }] } } as unknown as IUserInfo,
     };
 
     render(<MemberEmptyProject {...newProps} />);
@@ -71,7 +73,7 @@ describe('MemberEmptyProject Component', () => {
   it('renders "No repositories to display" for owner with GitHub handle', () => {
     const newProps = {
       ...defaultProps,
-      member: { id: '1', githubHandle: 'user1' },
+      member: { id: '1', githubHandle: 'user1' } as IMember,
     };
 
     render(<MemberEmptyProject {...newProps} />);

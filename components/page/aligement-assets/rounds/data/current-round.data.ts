@@ -8,17 +8,17 @@ import { CurrentRoundData } from '../types/current-round.types';
 import { DISCLOSURE_URL, SUPPORT_URL, SUPPORT_EMAIL } from '@/constants/plaa';
 
 /**
- * Current Round 15 (April 2026) Master Data
+ * Current Round 16 (May 2026) Master Data
  */
 export const currentRoundData: CurrentRoundData = {
   // ============================================================================
   // Meta Information
   // ============================================================================
   meta: {
-    roundId: 'round-15-apr-2026',
-    roundNumber: 15,
+    roundId: 'round-16-may-2026',
+    roundNumber: 16,
     isCurrentRound: true,
-    lastUpdated: '2026-04-16T00:00:00'
+    lastUpdated: '2026-05-04T00:00:00'
   },
 
   // ============================================================================
@@ -48,8 +48,8 @@ export const currentRoundData: CurrentRoundData = {
   // Round Description Section Data
   // ============================================================================
   roundDescription: {
-    roundNumber: 15,
-    monthYear: 'April 2026',
+    roundNumber: 16,
+    monthYear: 'May 2026',
     badgeText: 'Current Round',
     paragraphs: [
       {
@@ -92,8 +92,8 @@ export const currentRoundData: CurrentRoundData = {
   // Snapshot Progress Section Data
   // ============================================================================
   snapshotProgress: {
-    startDate: '2026-04-01T00:00:00',
-    endDate: '2026-04-30T23:59:59',
+    startDate: '2026-05-01T00:00:00',
+    endDate: '2026-05-31T23:59:59',
     tipContent: {
       tipText: 'Lower activity in a category generally means more tokens available to collect per contributor, while higher activity means tokens are distributed more widely.',
       exploreTitle: 'Explore where you can make the biggest impact this month:',
@@ -118,7 +118,7 @@ export const currentRoundData: CurrentRoundData = {
       ],
       bottomLink: {
         text: 'See what happened in the last round',
-        url: '/alignment-asset/rounds/14'
+        url: '/alignment-asset/rounds/15'
       }
     }
   },
@@ -132,11 +132,11 @@ export const currentRoundData: CurrentRoundData = {
     maxValue: 1000,
     chartData: [
       { name: 'Brand', value: 0 },
-      { name: 'Knowledge', value: 2100 },
+      { name: 'Knowledge', value: 0 },
       { name: 'Network Tooling', value: 0 },
       { name: 'People/Talent', value: 0 },
-      { name: 'Programs', value: 300 },
-      { name: 'Projects', value: 500 }
+      { name: 'Programs', value: 0 },
+      { name: 'Projects', value: 0 }
     ]
   },
 
@@ -165,7 +165,7 @@ export const currentRoundData: CurrentRoundData = {
       'Respond to an IRL Gathering',
       'Contribute a High-Quality Response to the Forum'
     ],
-    totalPointsCollected: '2,900',
+    totalPointsCollected: '0',
     totalTokensAvailable: '10,000',
     numberOfBuybacks: 0
   },
@@ -175,63 +175,63 @@ export const currentRoundData: CurrentRoundData = {
   // ============================================================================
   leaderboard: {
     currentSnapshotData: [
-      { rank: 1, name: 'David Dao', activities: '', points: 450 },
-      { rank: 2, name: 'Molly Mackinlay', activities: '', points: 450 },
-      { rank: 3, name: 'Bradley Holden', activities: '', points: 300 },
-      { rank: 4, name: 'Jeremy Kloth', activities: '', points: 300 },
-      { rank: 5, name: 'Juan Benet', activities: '', points: 300 },
-      { rank: 6, name: 'Anuj Pandey', activities: '', points: 150 },
-      { rank: 7, name: 'David Casey', activities: '', points: 150 },
-      { rank: 8, name: 'Lynnette Nolan', activities: '', points: 150 },
-      { rank: 9, name: 'Theresa Therriault', activities: '', points: 150 },
-      { rank: 10, name: 'Connor Dales', activities: '', points: 50 },
-      { rank: 11, name: 'Diego Leal Togni', activities: '', points: 50 },
-      { rank: 12, name: 'Dottie Wang', activities: '', points: 50 },
-      { rank: 13, name: 'Eshan Chordia', activities: '', points: 50 },
-      { rank: 14, name: 'Ian Brunner', activities: '', points: 50 },
-      { rank: 15, name: 'Jeff De Gregorio', activities: '', points: 50 },
-      { rank: 16, name: 'Jennifer Denini', activities: '', points: 50 },
-      { rank: 17, name: 'Laura Brewer', activities: '', points: 50 },
-      { rank: 18, name: 'Michael Stachiw', activities: '', points: 50 },
-      { rank: 19, name: 'William Scott', activities: '', points: 50 },
-      { rank: 20, name: 'Alex Feerst', activities: '', points: 0 },
-      { rank: 21, name: 'Arleen Teranishi', activities: '', points: 0 },
-      { rank: 22, name: 'Ashley Franck', activities: '', points: 0 },
-      { rank: 23, name: 'Cameron Wood', activities: '', points: 0 },
-      { rank: 24, name: 'Camille Bagnall', activities: '', points: 0 },
-      { rank: 25, name: 'Carl Cervone', activities: '', points: 0 },
-      { rank: 26, name: 'Chris Brocoum', activities: '', points: 0 },
-      { rank: 27, name: 'Corey James', activities: '', points: 0 },
-      { rank: 28, name: 'Cyril Delattre', activities: '', points: 0 },
-      { rank: 29, name: 'David Huseby', activities: '', points: 0 },
-      { rank: 30, name: 'Derrick Lam', activities: '', points: 0 },
-      { rank: 31, name: 'Diana Stern', activities: '', points: 0 },
-      { rank: 32, name: 'Erick Watson', activities: '', points: 0 },
-      { rank: 33, name: 'Evan Miyazono', activities: '', points: 0 },
-      { rank: 34, name: 'Francesca Cohen', activities: '', points: 0 },
-      { rank: 35, name: 'Holke Brammer', activities: '', points: 0 },
-      { rank: 36, name: 'Jonathan Victor', activities: '', points: 0 },
-      { rank: 37, name: 'Julian Gruber', activities: '', points: 0 },
-      { rank: 38, name: 'Julio Garcia', activities: '', points: 0 },
-      { rank: 39, name: 'Justin Melillo', activities: '', points: 0 },
-      { rank: 40, name: 'Karla Tang', activities: '', points: 0 },
-      { rank: 41, name: 'Kevin Houng', activities: '', points: 0 },
-      { rank: 42, name: 'Matthew Koch', activities: '', points: 0 },
-      { rank: 43, name: 'Michelle Lee', activities: '', points: 0 },
-      { rank: 44, name: 'Monica Ortel', activities: '', points: 0 },
-      { rank: 45, name: 'Patrick Kim', activities: '', points: 0 },
-      { rank: 46, name: 'Patrick McClurg', activities: '', points: 0 },
-      { rank: 47, name: 'Raymond Cheng', activities: '', points: 0 },
-      { rank: 48, name: 'René Pinnell', activities: '', points: 0 },
-      { rank: 49, name: 'Rich Chang', activities: '', points: 0 },
-      { rank: 50, name: 'Rohit Goel', activities: '', points: 0 },
-      { rank: 51, name: 'Russell Dempsey', activities: '', points: 0 },
-      { rank: 52, name: 'Sabeen Ali', activities: '', points: 0 },
-      { rank: 53, name: 'Sean Escola', activities: '', points: 0 },
-      { rank: 54, name: 'Shae Biron', activities: '', points: 0 },
-      { rank: 55, name: 'Stefaan Vervaet', activities: '', points: 0 },
-      { rank: 56, name: 'Stefanie Wykoff', activities: '', points: 0 },
-      { rank: 57, name: 'Victoria DeVesty', activities: '', points: 0 },
+      { rank: 1, name: 'Alex Feerst', activities: '', points: 0 },
+      { rank: 2, name: 'Anuj Pandey', activities: '', points: 0 },
+      { rank: 3, name: 'Arleen Teranishi', activities: '', points: 0 },
+      { rank: 4, name: 'Ashley Franck', activities: '', points: 0 },
+      { rank: 5, name: 'Bradley Holden', activities: '', points: 0 },
+      { rank: 6, name: 'Cameron Wood', activities: '', points: 0 },
+      { rank: 7, name: 'Camille Bagnall', activities: '', points: 0 },
+      { rank: 8, name: 'Carl Cervone', activities: '', points: 0 },
+      { rank: 9, name: 'Chris Brocoum', activities: '', points: 0 },
+      { rank: 10, name: 'Connor Dales', activities: '', points: 0 },
+      { rank: 11, name: 'Corey James', activities: '', points: 0 },
+      { rank: 12, name: 'Cyril Delattre', activities: '', points: 0 },
+      { rank: 13, name: 'David Casey', activities: '', points: 0 },
+      { rank: 14, name: 'David Dao', activities: '', points: 0 },
+      { rank: 15, name: 'David Huseby', activities: '', points: 0 },
+      { rank: 16, name: 'Derrick Lam', activities: '', points: 0 },
+      { rank: 17, name: 'Diana Stern', activities: '', points: 0 },
+      { rank: 18, name: 'Diego Leal Togni', activities: '', points: 0 },
+      { rank: 19, name: 'Dottie Wang', activities: '', points: 0 },
+      { rank: 20, name: 'Erick Watson', activities: '', points: 0 },
+      { rank: 21, name: 'Eshan Chordia', activities: '', points: 0 },
+      { rank: 22, name: 'Evan Miyazono', activities: '', points: 0 },
+      { rank: 23, name: 'Francesca Cohen', activities: '', points: 0 },
+      { rank: 24, name: 'Holke Brammer', activities: '', points: 0 },
+      { rank: 25, name: 'Ian Brunner', activities: '', points: 0 },
+      { rank: 26, name: 'Jeff De Gregorio', activities: '', points: 0 },
+      { rank: 27, name: 'Jennifer Denini', activities: '', points: 0 },
+      { rank: 28, name: 'Jeremy Kloth', activities: '', points: 0 },
+      { rank: 29, name: 'Jonathan Victor', activities: '', points: 0 },
+      { rank: 30, name: 'Juan Benet', activities: '', points: 0 },
+      { rank: 31, name: 'Julian Gruber', activities: '', points: 0 },
+      { rank: 32, name: 'Julio Garcia', activities: '', points: 0 },
+      { rank: 33, name: 'Justin Melillo', activities: '', points: 0 },
+      { rank: 34, name: 'Karla Tang', activities: '', points: 0 },
+      { rank: 35, name: 'Kevin Houng', activities: '', points: 0 },
+      { rank: 36, name: 'Laura Brewer', activities: '', points: 0 },
+      { rank: 37, name: 'Lynnette Nolan', activities: '', points: 0 },
+      { rank: 38, name: 'Matthew Koch', activities: '', points: 0 },
+      { rank: 39, name: 'Michael Stachiw', activities: '', points: 0 },
+      { rank: 40, name: 'Michelle Lee', activities: '', points: 0 },
+      { rank: 41, name: 'Molly Mackinlay', activities: '', points: 0 },
+      { rank: 42, name: 'Monica Ortel', activities: '', points: 0 },
+      { rank: 43, name: 'Patrick Kim', activities: '', points: 0 },
+      { rank: 44, name: 'Patrick McClurg', activities: '', points: 0 },
+      { rank: 45, name: 'Raymond Cheng', activities: '', points: 0 },
+      { rank: 46, name: 'René Pinnell', activities: '', points: 0 },
+      { rank: 47, name: 'Rich Chang', activities: '', points: 0 },
+      { rank: 48, name: 'Rohit Goel', activities: '', points: 0 },
+      { rank: 49, name: 'Russell Dempsey', activities: '', points: 0 },
+      { rank: 50, name: 'Sabeen Ali', activities: '', points: 0 },
+      { rank: 51, name: 'Sean Escola', activities: '', points: 0 },
+      { rank: 52, name: 'Shae Biron', activities: '', points: 0 },
+      { rank: 53, name: 'Stefaan Vervaet', activities: '', points: 0 },
+      { rank: 54, name: 'Stefanie Wykoff', activities: '', points: 0 },
+      { rank: 55, name: 'Theresa Therriault', activities: '', points: 0 },
+      { rank: 56, name: 'Victoria DeVesty', activities: '', points: 0 },
+      { rank: 57, name: 'William Scott', activities: '', points: 0 },
       { rank: 58, name: 'Yolan Romailler', activities: '', points: 0 },
       { rank: 59, name: 'Zachary von Naumann', activities: '', points: 0 }
     ],
@@ -290,7 +290,7 @@ export const currentRoundData: CurrentRoundData = {
   },
 
   // ============================================================================
-  // Buyback Auction Section Data (Round 15 - April 2026)
+  // Buyback Auction Section Data (Round 16 - May 2026)
   // ============================================================================
   buybackAuction: {
     headerStats: {
@@ -298,7 +298,7 @@ export const currentRoundData: CurrentRoundData = {
       fillRate: '0%'
     },
     summary: {
-      title: 'Buyback Auction - April 2026 - Key Results',
+      title: 'Buyback Auction - May 2026 - Key Results',
       items: [
         {
           icon: '/icons/rounds/buy_action_results/wallet-01.svg',

@@ -23,11 +23,12 @@ const allRounds = [
   { id: 12, month: 'January 2026' },
   { id: 13, month: 'February 2026' },
   { id: 14, month: 'March 2026' },
+  { id: 15, month: 'April 2026' },
 ];
 
 // Current round (for "Go to current round" functionality)
-const CURRENT_ROUND = 14;
-const TOTAL_ROUNDS = 14;
+const CURRENT_ROUND = 15;
+const TOTAL_ROUNDS = 15;
 
 // Mock data for each round (month)
 const chartDataByRound: Record<number, Array<{ category: string; points: number; tokens: number }>> = {
@@ -136,21 +137,30 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   13: [
-    { category: 'Projects', points: 2050, tokens: 0 },
+    { category: 'Projects', points: 2050, tokens: 1539 },
     { category: 'Brand', points: 0, tokens: 0 },
     { category: 'Programs', points: 0, tokens: 0 },
-    { category: 'Network Tooling', points: 4996, tokens: 0 },
-    { category: 'People/Talent', points: 585, tokens: 0 },
-    { category: 'Knowledge', points: 900, tokens: 0 },
+    { category: 'Network Tooling', points: 4996, tokens: 1706 },
+    { category: 'People/Talent', points: 585, tokens: 1604 },
+    { category: 'Knowledge', points: 900, tokens: 1768 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   14: [
-    { category: 'Projects', points: 1900, tokens: 0 },
-    { category: 'Brand', points: 200, tokens: 0 },
-    { category: 'Programs', points: 5225, tokens: 0 },
-    { category: 'Network Tooling', points: 700, tokens: 0 },
-    { category: 'People/Talent', points: 1500, tokens: 0 },
-    { category: 'Knowledge', points: 2850, tokens: 0 },
+    { category: 'Projects', points: 1900, tokens: 1540 },
+    { category: 'Brand', points: 200, tokens: 1644 },
+    { category: 'Programs', points: 5225, tokens: 1692 },
+    { category: 'Network Tooling', points: 700, tokens: 1725 },
+    { category: 'People/Talent', points: 1500, tokens: 1602 },
+    { category: 'Knowledge', points: 2850, tokens: 1767 },
+    { category: 'Capital', points: 0, tokens: 0 },
+  ],
+  15: [
+    { category: 'Projects', points: 500, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 300, tokens: 0 },
+    { category: 'Network Tooling', points: 100, tokens: 0 },
+    { category: 'People/Talent', points: 0, tokens: 0 },
+    { category: 'Knowledge', points: 2100, tokens: 0 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
 };

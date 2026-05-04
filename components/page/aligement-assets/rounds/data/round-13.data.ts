@@ -72,7 +72,7 @@ export const pastRound13Data: IPastRoundData = {
     ],
     totalPointsCollected: '8,531',
     // totalTokensAvailable: '10,000',
-    totalTokensDistributed: 'TBC',
+    totalTokensDistributed: '6,617',
     numberOfBuybacks: 0
   },
 

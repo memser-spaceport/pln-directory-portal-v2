@@ -12,10 +12,10 @@ interface ForumAccessGateProps {
 }
 
 export const ForumAccessGate = ({ children }: ForumAccessGateProps) => {
-  const { currentUser } = useCurrentUserStore();
+  const { currentUser, isHydrated } = useCurrentUserStore();
   const { hasAccess, isLoading } = useForumAccess();
 
-  if (isLoading) {
+  if (!isHydrated || isLoading) {
     return (
       <div className={s.root}>
         <Spinner />

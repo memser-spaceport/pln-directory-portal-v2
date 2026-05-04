@@ -12,21 +12,21 @@ interface ForumWriteGateProps {
 }
 
 export const ForumWriteGate = ({ children }: ForumWriteGateProps) => {
-  const { currentUser } = useCurrentUserStore();
+  const { currentUser, isHydrated } = useCurrentUserStore();
   const { canWrite, isLoading } = useForumWriteAccess();
+
+  if (!isHydrated || isLoading) {
+    return (
+      <div className={s.root}>
+        <Spinner />
+      </div>
+    );
+  }
 
   if (!currentUser) {
     return (
       <div className={s.root}>
         <LoggedOutView />
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className={s.root}>
-        <Spinner />
       </div>
     );
   }

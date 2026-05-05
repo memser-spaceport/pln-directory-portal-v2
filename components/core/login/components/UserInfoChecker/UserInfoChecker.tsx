@@ -98,7 +98,7 @@ export function UserInfoChecker({ uid }: { uid: string }) {
       setUserInfoCookie(JSON.stringify(updatedRbac), {
         domain: process.env.COOKIE_DOMAIN || '',
       });
-      useCurrentUserStore.getState().actions.setCurrentUser(updatedRbac);
+      useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedRbac);
       router.refresh();
       return;
     }
@@ -118,7 +118,7 @@ export function UserInfoChecker({ uid }: { uid: string }) {
       setUserInfoCookie(JSON.stringify(updatedRoles), {
         domain: process.env.COOKIE_DOMAIN || '',
       });
-      useCurrentUserStore.getState().actions.setCurrentUser(updatedRoles);
+      useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedRoles);
       router.refresh();
       return;
     }
@@ -135,7 +135,7 @@ export function UserInfoChecker({ uid }: { uid: string }) {
       setUserInfoCookie(JSON.stringify(updatedLeadingTeams), {
         domain: process.env.COOKIE_DOMAIN || '',
       });
-      useCurrentUserStore.getState().actions.setCurrentUser(updatedLeadingTeams);
+      useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedLeadingTeams);
       router.refresh();
       return;
     }
@@ -148,7 +148,7 @@ export function UserInfoChecker({ uid }: { uid: string }) {
         profileImageUrl: memberInfo.imageUrl,
       };
       setUserInfoCookie(JSON.stringify(updatedProfile), { domain: process.env.COOKIE_DOMAIN || '' });
-      useCurrentUserStore.getState().actions.setCurrentUser(updatedProfile);
+      useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedProfile);
       router.refresh();
     }
   }, [handleLogout, member, router, setUserInfoCookie, userInfoCookie]);

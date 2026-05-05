@@ -1,7 +1,7 @@
 'use client';
 
 import { clsx } from 'clsx';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { useRouter } from 'next/navigation';
 
 import { ITeam } from '@/types/teams.types';
@@ -34,7 +34,7 @@ export function TeamOfficeHours(props: Props) {
   const router = useRouter();
 
   const onLoginClickHandler = () => {
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = useCurrentUserStore.getState().currentUser;
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

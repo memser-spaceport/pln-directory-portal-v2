@@ -7,9 +7,7 @@ import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useE
 import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
 import { useSaveTeam } from '@/services/demo-day/hooks/useSaveTeam';
 import s from './TeamProfileCard.module.scss';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
-import { IUserInfo } from '@/types/shared.types';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
@@ -73,7 +71,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest(team.team?.name);
   const saveTeam = useSaveTeam();
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
   const canEdit = isAdmin ? (canEditTeams ?? true) : team.founders.some((founder) => founder.uid === userInfo?.uid);
   const isPrepDemoDay = useIsPrepDemoDay();
   const demoDayMode = useDemoDayMode();
@@ -578,7 +576,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         onInvest={(e) => handleInterestCompanyClick(e, 'invest')}
         isLoading={expressInterest.isPending}
         variant="card"
-        userInfo={userInfo}
+        userInfo={userInfo ?? undefined}
       />
 
       {/* Refer Company Modal */}

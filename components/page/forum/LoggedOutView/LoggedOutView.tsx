@@ -4,7 +4,7 @@ import React from 'react';
 import s from './LoggedOutView.module.scss';
 import { Avatar } from '@base-ui-components/react/avatar';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { useContactSupportStore } from '@/services/contact-support/store';
@@ -33,7 +33,7 @@ export const LoggedOutView = ({ reason }: { reason?: ForumLoggedOutReason }) => 
   const { openModal } = useContactSupportStore((s) => s.actions);
 
   const onLoginClickHandler = () => {
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = useCurrentUserStore.getState().currentUser;
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

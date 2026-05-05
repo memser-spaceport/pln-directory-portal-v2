@@ -23,7 +23,7 @@ import { useOfficeHoursAccess } from '@/services/access-control/hooks/useOfficeH
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
 }
 
 export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
@@ -93,13 +93,13 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
             }
           }}
           member={member}
-          userInfo={userInfo}
+          userInfo={userInfo!}
         />
       ) : (
         <OfficeHoursView
           member={member}
           isLoggedIn={isLoggedIn}
-          userInfo={userInfo}
+          userInfo={userInfo!}
           isEditable={isEditable}
           showIncomplete={showIncomplete}
           onEdit={() => setEditView(true)}

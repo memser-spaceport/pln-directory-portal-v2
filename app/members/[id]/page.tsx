@@ -25,8 +25,8 @@ import clsx from 'clsx';
 import { isDemodaySignUpSource, isMemberAvailableToConnect } from '@/utils/member.utils';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useQuery } from '@tanstack/react-query';
 import { IMember } from '@/types/members.types';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -61,9 +61,9 @@ const MemberDetails = ({ params }: { params: any }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const userInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
   const isAdmin = isAdminUser(userInfo);
-  const isOwner = userInfo && userInfo.uid === memberId;
+  const isOwner = !!userInfo && userInfo.uid === memberId;
   const isLoggedIn = !!userInfo;
 
   // Check for prefillEmail and returnTo parameters
@@ -75,7 +75,7 @@ const MemberDetails = ({ params }: { params: any }) => {
     isError,
     isLoading,
   } = useQuery({
-    queryKey: [MembersQueryKeys.GET_MEMBER, memberId, isLoggedIn, userInfo.uid],
+    queryKey: [MembersQueryKeys.GET_MEMBER, memberId, isLoggedIn, userInfo?.uid],
     queryFn: () =>
       getMember(
         memberId,
@@ -91,10 +91,11 @@ const MemberDetails = ({ params }: { params: any }) => {
 
   // Fetch investor settings to check visibility preference
   const { data: memberInvestorSettings } = useGetMemberInvestorSettings(memberId);
+  const { authToken } = getCookiesFromClient();
   const { data: availableToConnectCount } = useQuery({
     queryKey: ['memberList'],
-    queryFn: () => getMemberListForQuery(qs.stringify({ hasOfficeHours: true }), 1, 1, userInfo?.token),
-    enabled: !!userInfo?.token,
+    queryFn: () => getMemberListForQuery(qs.stringify({ hasOfficeHours: true }), 1, 1, authToken),
+    enabled: !!authToken,
     select: (data) => data?.total,
   });
   const isAvailableToConnect = isMemberAvailableToConnect(member);

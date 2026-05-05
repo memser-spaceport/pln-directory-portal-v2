@@ -19,7 +19,7 @@ import { ViewType } from '@/types/ui';
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
 }
 
 export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
@@ -44,7 +44,7 @@ export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) =>
       {view === 'view' && (
         <ContributionsList
           member={member}
-          userInfo={userInfo}
+          userInfo={userInfo!}
           isEditable={isEditable}
           onAdd={() => {
             onAddContributionDetailsClicked();

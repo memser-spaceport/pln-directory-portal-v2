@@ -10,9 +10,7 @@ import { MediaPreview } from '../../../FounderPendingView/components/MediaPrevie
 import { getDemoDayMaterials } from '@/constants/demoDay';
 import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
-import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useParams } from 'next/navigation';
 
@@ -31,7 +29,7 @@ export const AdminContent = ({
   const { data: demoDayData } = useGetDemoDayState();
   const { data: profiles, isLoading } = useGetAllFundraisingProfiles();
 
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
   const { onActiveViewWelcomeVideoViewed } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const hasVideo = !!materials?.pitchVideoUrl;

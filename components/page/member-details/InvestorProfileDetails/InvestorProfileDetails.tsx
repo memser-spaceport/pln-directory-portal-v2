@@ -17,7 +17,7 @@ import s from './InvestorProfileDetails.module.scss';
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
   isInvestor?: boolean | null;
   useInlineAddTeam?: boolean;
   source?: 'investor-drawer';
@@ -141,7 +141,7 @@ export const InvestorProfileDetails = ({
         <EditInvestorProfileForm
           onClose={() => setEditView(false)}
           member={member}
-          userInfo={userInfo}
+          userInfo={userInfo!}
           useInlineAddTeam={useInlineAddTeam}
           source={source}
         />
@@ -154,7 +154,7 @@ export const InvestorProfileDetails = ({
           secRulesAccepted={member?.investorProfile?.secRulesAccepted}
           isInvestViaFund={member?.investorProfile?.isInvestViaFund}
           isLoggedIn={isLoggedIn}
-          userInfo={userInfo}
+          userInfo={userInfo!}
           isEditable={isEditable}
           showIncomplete={showIncomplete}
           onEdit={handleEditStart}

@@ -21,7 +21,7 @@ import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemb
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
   isNewInvestor?: boolean;
 }
 

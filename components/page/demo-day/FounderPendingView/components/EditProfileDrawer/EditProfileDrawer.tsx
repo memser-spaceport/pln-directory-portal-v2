@@ -7,9 +7,8 @@ import { CompanyFundraiseParagraph } from '../CompanyFundraiseParagraph';
 import { SuccessAlert } from '../SuccessAlert';
 import s from './EditProfileDrawer.module.scss';
 import { clsx } from 'clsx';
-import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue, getSocialLinkUrl } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { getSocialLinkUrl } from '@/utils/common.utils';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import Link from 'next/link';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
@@ -86,7 +85,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   team,
 }) => {
   const pathname = usePathname();
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
   const isPrepDemoDay = useIsPrepDemoDay();
   const demoDayMode = useDemoDayMode();
   const { data: demoDayData } = useGetDemoDayState();
@@ -266,7 +265,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
 
     // Update previous data reference
     previousDataRef.current = currentData;
-  }, [data, isOpen, editView, reportAnalytics, userInfo.email, userInfo.name, userInfo.uid]);
+  }, [data, isOpen, editView, reportAnalytics, userInfo?.email, userInfo?.name, userInfo?.uid]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -489,7 +488,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
 
           {/* Conditional Top Section */}
           {editView ? (
-            <EditProfileForm onClose={handleFormClose} userInfo={userInfo} profileData={data} />
+            <EditProfileForm onClose={handleFormClose} userInfo={userInfo ?? undefined} profileData={data} />
           ) : (
             /* Profile Header */
             <div className={s.drawerProfileHeader}>
@@ -719,7 +718,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             isLoading={expressInterest.isPending}
             disabled={!data?.uid}
             variant="drawer"
-            userInfo={userInfo}
+            userInfo={userInfo ?? undefined}
           />
         </div>
       )}

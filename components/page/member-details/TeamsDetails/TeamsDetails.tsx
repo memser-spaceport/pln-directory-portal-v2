@@ -21,7 +21,7 @@ import { isMemberProfileOwner } from '@/components/page/member-details/utils/isM
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
 }
 
 export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
@@ -53,7 +53,7 @@ export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
           </DetailsSectionHeader>
           <TeamsList
             member={member}
-            userInfo={userInfo}
+            userInfo={userInfo!}
             isEditable={isEditable}
             onEdit={(item) => {
               setSelectedItem(item);

@@ -21,7 +21,7 @@ import { ViewType } from '@/types/ui';
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
 }
 
 export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
@@ -46,7 +46,7 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
         <ExperienceDetailsView
           member={member}
           setView={setView}
-          userInfo={userInfo}
+          userInfo={userInfo!}
           setSelectedItem={setSelectedItem}
         />
       )}

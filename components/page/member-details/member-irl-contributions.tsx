@@ -38,7 +38,7 @@ interface GroupedEvents {
 
 interface IMemberRepositories {
   member: IMember;
-  userInfo: IAnalyticsUserInfo;
+  userInfo: IUserInfo | null;
 }
 
 const IrlMemberContribution = (props: IMemberRepositories) => {
@@ -82,11 +82,11 @@ const IrlMemberContribution = (props: IMemberRepositories) => {
       setSelectedRole(role);
       modalRef.current.showModal();
     }
-    analytics.onClickSeeMoreIrlContribution(userInfo);
+    analytics.onClickSeeMoreIrlContribution(userInfo as IAnalyticsUserInfo | null);
   };
 
   const handleEventClick = (details: any, role: any) => {
-    analytics.onClickEventIrlContribution(userInfo);
+    analytics.onClickEventIrlContribution(userInfo as IAnalyticsUserInfo | null);
     const isActive = checkTimeZone(details);
 
     const type = isActive ? 'upcoming' : 'past';

@@ -7,7 +7,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 import s from './ContactDetails.module.scss';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
@@ -60,7 +60,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant =
   const canViewContacts = USE_ACCESS_CONTROL_V2 ? userInfo.rbac?.status === 'APPROVED' : accessLevel === 'advanced';
 
   const onLoginClickHandler = () => {
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = useCurrentUserStore.getState().currentUser;
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

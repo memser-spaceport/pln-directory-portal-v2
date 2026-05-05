@@ -9,6 +9,10 @@
   flex: 1;
   padding-bottom: 48px;
 
+  &.center {
+    @include mixins.centralize;
+  }
+
   @include media.tablet-landscape {
     background: transparent;
     max-width: 900px;

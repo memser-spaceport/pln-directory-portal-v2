@@ -6,6 +6,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 import { Spinner } from '@/components/ui/Spinner';
 import s from '@/app/forum/page.module.scss';
+import clsx from 'clsx';
 
 interface ForumAccessGateProps {
   children: React.ReactNode;
@@ -17,7 +18,7 @@ export const ForumAccessGate = ({ children }: ForumAccessGateProps) => {
 
   if (!isHydrated || isLoading) {
     return (
-      <div className={s.root}>
+      <div className={clsx(s.root, s.center)}>
         <Spinner />
       </div>
     );

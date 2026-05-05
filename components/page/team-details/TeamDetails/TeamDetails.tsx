@@ -11,7 +11,7 @@ import { ITag, ITeam } from '@/types/teams.types';
 import { isTierUser } from '@/utils/user/isTierUser';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { deleteTeam } from '@/app/actions/teams.actions';
-import { getTeamPriority, getPriorityLabel, getTechnologyImage } from '@/utils/team.utils';
+import { getTeamPriority, getPriorityLabel } from '@/utils/team.utils';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
@@ -34,6 +34,7 @@ import { EditTeamDetailsForm } from './components/EditTeamDetailsForm';
 import s from './TeamDetails.module.scss';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import clsx from 'clsx';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   team: ITeam;
@@ -46,12 +47,13 @@ export const TeamDetails = (props: Props) => {
 
   const teamName = team?.name ?? '';
   const userInfo = props?.userInfo;
+  const { currentUser } = useCurrentUserStore();
   const defaultAvatarImage = useDefaultAvatar(team?.name ?? '');
   const logo = team?.logo ?? defaultAvatarImage ?? '/icons/team-default-profile.svg';
 
-  const isAdmin = isAdminUser(userInfo);
+  const isAdmin = isAdminUser(currentUser);
+  const isTierViewer = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'team.priority.read') || isAdmin;
 
-  const isTierViewer = isTierUser(userInfo) || isAdmin;
   const tags = useMemo(() => {
     const priority = getTeamPriority(team);
     if (isTierViewer && priority !== undefined) {

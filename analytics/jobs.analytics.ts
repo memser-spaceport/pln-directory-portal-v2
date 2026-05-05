@@ -1,5 +1,5 @@
 import { JOBS_ANALYTICS } from '@/utils/constants';
-import { getUserInfo } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 
 type FilterStateParam = Record<string, unknown>;
@@ -10,7 +10,7 @@ export const useJobsAnalytics = () => {
   const captureEvent = (eventName: string, eventParams: Record<string, unknown> = {}) => {
     try {
       if (!postHog?.capture) return;
-      const userInfo = getUserInfo();
+      const userInfo = useCurrentUserStore.getState().currentUser;
       const loggedInUserUid = userInfo?.uid;
       const loggedInUserEmail = userInfo?.email;
       const loggedInUserName = userInfo?.name;

@@ -1,6 +1,6 @@
 import { IAnalyticsUserInfo } from '@/types/shared.types';
 import { EVENTS_ANALYTICS, HOME_ANALYTICS_EVENTS } from '@/utils/constants';
-import { getUserInfo } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 import { IUpcomingEvents } from '@/types/irl.types';
 import { UpcomingEvent } from '@/services/events/hooks/useUpcomingEvents';
@@ -12,7 +12,7 @@ export const useEventsAnalytics = () => {
     try {
       if (postHogProps?.capture) {
         const allParams = { ...eventParams };
-        const userInfo = getUserInfo();
+        const userInfo = useCurrentUserStore.getState().currentUser;
         const loggedInUserUid = userInfo?.uid;
         const loggedInUserEmail = userInfo?.email;
         const loggedInUserName = userInfo?.name;

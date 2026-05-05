@@ -1,5 +1,5 @@
 import { FORUM_ANALYTICS_EVENTS } from '@/utils/constants';
-import { getUserInfo } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 import { CreatePostMutationParams } from '@/services/forum/hooks/useCreatePost';
 import { PostCommentMutationParams } from '@/services/forum/hooks/usePostComment';
@@ -27,7 +27,7 @@ export const useForumAnalytics = () => {
     try {
       if (postHogProps?.capture) {
         const allParams = { ...eventParams };
-        const userInfo = getUserInfo();
+        const userInfo = useCurrentUserStore.getState().currentUser;
         const loggedInUserUid = userInfo?.uid;
         const loggedInUserEmail = userInfo?.email;
         const loggedInUserName = userInfo?.name;

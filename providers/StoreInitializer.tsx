@@ -16,7 +16,11 @@ export default function StoreInitializer({ userInfo }: StoreInitializerProps) {
   const { actions } = useCurrentUserStore();
 
   useSyncLayoutEffect(() => {
-    actions.setCurrentUser(userInfo);
+    // Skip if UserInfoChecker already enriched the store with fresher API data,
+    // unless this is a logout (null) — always honour that.
+    if (userInfo === null || !useCurrentUserStore.getState().isEnrichedByApi) {
+      actions.setCurrentUser(userInfo);
+    }
   }, [userInfo, actions]);
 
   return null;

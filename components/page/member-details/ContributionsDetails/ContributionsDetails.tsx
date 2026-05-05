@@ -8,13 +8,11 @@ import { IUserInfo } from '@/types/shared.types';
 import { ContributionsList } from '@/components/page/member-details/ContributionsDetails/components/ContributionsList';
 import { EditContributionsForm } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { getAccessLevel } from '@/utils/auth.utils';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
-import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { ViewType } from '@/types/ui';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   member: IMember;
@@ -22,20 +20,17 @@ interface Props {
   userInfo: IUserInfo | null;
 }
 
-export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
+export const ContributionsDetails = ({ isLoggedIn, member }: Props) => {
   const [view, setView] = useState<ViewType>('view');
   const [selectedItem, setSelectedItem] = useState<null | IProjectContribution>(null);
-  const isAdmin = isAdminUser(userInfo);
-  const isOwner = userInfo?.uid === member.id;
-  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
+  const { currentUser } = useCurrentUserStore();
+  const isAdmin = isAdminUser(currentUser);
+  const isOwner = currentUser?.uid === member.id;
   const isEditable = isOwner || isAdmin;
   const { onEditContributionDetailsClicked, onAddContributionDetailsClicked } = useMemberAnalytics();
   useMobileNavVisibility(view !== 'view');
 
-  if (
-    !isLoggedIn ||
-    ((USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : getAccessLevel(userInfo, isLoggedIn) !== 'advanced') && !isOwner)
-  ) {
+  if (!isLoggedIn || (currentUser?.rbac?.status !== 'APPROVED' && !isOwner)) {
     return null;
   }
 
@@ -44,7 +39,7 @@ export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) =>
       {view === 'view' && (
         <ContributionsList
           member={member}
-          userInfo={userInfo!}
+          userInfo={currentUser}
           isEditable={isEditable}
           onAdd={() => {
             onAddContributionDetailsClicked();

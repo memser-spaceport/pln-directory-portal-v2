@@ -16,8 +16,6 @@ import {
 import { usePathname, useRouter } from 'next/navigation';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { isAdminUser } from '@/utils/user/isAdminUser';
-import { getAccessLevel } from '@/utils/auth.utils';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useOfficeHoursAccess } from '@/services/access-control/hooks/useOfficeHoursAccess';
 
 interface Props {
@@ -33,7 +31,6 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [editView, setEditView] = useState(false);
   const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
-  const accessLevel = getAccessLevel(userInfo, isLoggedIn);
   const { canViewSupply, canSupply, canViewDemand } = useOfficeHoursAccess();
   const v2CanView = isOwner ? canViewSupply : canViewDemand;
   const isEditable = (isOwner && canSupply) || isAdmin;
@@ -69,11 +66,7 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
     return null;
   }
 
-  if (USE_ACCESS_CONTROL_V2 ? !v2CanView : accessLevel === 'base') {
-    return null;
-  }
-
-  if (!isAdmin && !USE_ACCESS_CONTROL_V2 && (member.accessLevel === 'L0' || member.accessLevel === 'L1')) {
+  if (!v2CanView) {
     return null;
   }
 

@@ -25,7 +25,6 @@ import { EVENTS } from '@/utils/constants';
 import s from './IrlGatheringModal.module.scss';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
-// import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useQuery } from '@tanstack/react-query';
@@ -48,7 +47,7 @@ export function IrlGatheringModal({
   const isLoggedIn = !!userInfo?.uid;
   const defaultTeamUid = userInfo?.leadingTeams?.[0];
   const { canWrite: v2CanWrite } = useIrlGoingAccess();
-  const isRestrictedAccess = USE_ACCESS_CONTROL_V2 ? !v2CanWrite : (userInfo?.accessLevel === 'L0' || userInfo?.accessLevel === 'L1');
+  const isRestrictedAccess = !v2CanWrite;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -408,7 +407,7 @@ export function IrlGatheringModal({
               gatheringLink={buildGatheringLink(gatheringData.locationName)}
             />
 
-            {step === 1 && (USE_ACCESS_CONTROL_V2 ? v2CanWrite : (userInfo?.accessLevel !== 'L0' && userInfo?.accessLevel !== 'L1')) && (
+            {step === 1 && v2CanWrite && (
               <div>
                 <div className={s.step1Title}>Are you going to {gatheringData.gatheringName}?</div>
                 <div className={s.step1Subtitle}>Let others know if you are attending.</div>

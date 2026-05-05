@@ -4,8 +4,6 @@ import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { Button } from '@/components/common/Button';
 import { ActiveTab } from '@/components/page/member-details/ForumActivity/types';
-import { hasForumAccess } from '@/components/page/member-details/ForumActivity/utils/hasForumAccess';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 
@@ -30,8 +28,7 @@ export function NoForumActivity(props: Props) {
 
   const isLoggedOut = !userInfo;
   const isPostsTab = activeTab === 'posts';
-  const { hasAccess: v2ForumAccess } = useForumAccess();
-  const hasAccess = USE_ACCESS_CONTROL_V2 ? v2ForumAccess : hasForumAccess(userInfo.accessLevel);
+  const { hasAccess } = useForumAccess();
 
   const { title, description } = getLabels({
     hasAccess,

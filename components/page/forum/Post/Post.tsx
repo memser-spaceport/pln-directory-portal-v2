@@ -187,7 +187,7 @@ export const Post = () => {
         </div>
       );
     }
-  } else if (userInfo?.accessLevel === 'L0' || userInfo?.accessLevel === 'L1') {
+  } else if (userInfo?.rbac?.status === 'PENDING' || userInfo?.rbac?.status === 'VERIFIED') {
     return (
       <div className={forumStyles.root}>
         <LoggedOutView reason="base" />

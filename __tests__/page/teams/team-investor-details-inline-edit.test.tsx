@@ -3,11 +3,21 @@ import { fireEvent, render, screen } from '@testing-library/react';
 
 import { TeamInvestorDetails } from '@/components/page/team-details/TeamInvestorDetails';
 
+const mockCurrentUser = jest.fn();
+
+jest.mock('@/services/auth/store', () => ({
+  useCurrentUserStore: () => ({ currentUser: mockCurrentUser() }),
+}));
+
 jest.mock('@/components/page/team-details/TeamInvestorDetails/components/EditTeamInvestorDetailsForm', () => ({
   EditTeamInvestorDetailsForm: () => <div>Edit Fund Details Form</div>,
 }));
 
 describe('TeamInvestorDetails inline edit', () => {
+  beforeEach(() => {
+    mockCurrentUser.mockReturnValue({ uid: 'user-1', leadingTeams: ['team-1'], roles: [] });
+  });
+
   beforeAll(() => {
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
@@ -63,6 +73,7 @@ describe('TeamInvestorDetails inline edit', () => {
   });
 
   it('does not show edit action for viewers without team access', () => {
+    mockCurrentUser.mockReturnValue({ uid: 'user-2', leadingTeams: [], roles: [] });
     render(
       <TeamInvestorDetails
         team={

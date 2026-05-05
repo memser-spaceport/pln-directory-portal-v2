@@ -8,7 +8,7 @@ import { CreatePost } from '@/components/page/forum/CreatePost';
 import { BackButton } from '@/components/ui/BackButton';
 
 const NewPostPage = async () => {
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+  const { isLoggedIn } = getCookiesFromHeaders();
 
   if (!isLoggedIn) {
     return (
@@ -22,7 +22,7 @@ const NewPostPage = async () => {
     <ForumWriteGate>
       <div className={s.root}>
         <BackButton forceTo to="/forum?cid=0" />
-        <CreatePost userInfo={userInfo} />
+        <CreatePost />
       </div>
     </ForumWriteGate>
   );

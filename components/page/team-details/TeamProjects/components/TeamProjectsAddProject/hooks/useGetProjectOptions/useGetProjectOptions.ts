@@ -13,7 +13,7 @@ import { ProjectOption } from './types';
 import { canUserEditProject } from './utils/canUserEditProject';
 
 interface Input {
-  userInfo?: IUserInfo;
+  userInfo?: IUserInfo | null;
   projects: IFormatedTeamProject[];
 }
 

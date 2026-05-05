@@ -38,15 +38,12 @@ import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   team: ITeam;
-  userInfo: IUserInfo | undefined;
 }
 
 export const TeamDetails = (props: Props) => {
-  const params = useParams();
   const team = props?.team;
 
   const teamName = team?.name ?? '';
-  const userInfo = props?.userInfo;
   const { currentUser } = useCurrentUserStore();
   const defaultAvatarImage = useDefaultAvatar(team?.name ?? '');
   const logo = team?.logo ?? defaultAvatarImage ?? '/icons/team-default-profile.svg';
@@ -67,13 +64,11 @@ export const TeamDetails = (props: Props) => {
     }
     return team?.industryTags;
   }, [team, isTierViewer]);
-  const teamId = params?.id;
   const about = team?.longDescription ?? '';
   const hasAbout = !!about && about.trim() !== '<p><br></p>';
-  const hasTeamEditAccess = isTeamLeaderOrAdmin(userInfo, team?.id);
+  const hasTeamEditAccess = isTeamLeaderOrAdmin(currentUser, team?.id);
 
   const [editView, setEditView] = useState(false);
-  const [isTechnologyPopup, setIsTechnologyPopup] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const analytics = useTeamAnalytics();
@@ -81,15 +76,11 @@ export const TeamDetails = (props: Props) => {
   const router = useRouter();
   useMobileNavVisibility(editView);
 
-  const onTagCountClickHandler = () => {
-    setIsTechnologyPopup(!isTechnologyPopup);
-  };
-
   const onEditTeamClickHandler = () => {
     if (isAdmin) {
-      analytics.onEditTeamByAdmin(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
+      analytics.onEditTeamByAdmin(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(currentUser));
     } else {
-      analytics.onEditTeamByLead(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
+      analytics.onEditTeamByLead(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(currentUser));
     }
     setEditView(true);
   };
@@ -141,7 +132,7 @@ export const TeamDetails = (props: Props) => {
   if (editView) {
     return (
       <DetailsSection editView>
-        <EditTeamDetailsForm team={team} userInfo={userInfo} onClose={() => setEditView(false)} />
+        <EditTeamDetailsForm team={team} userInfo={currentUser} onClose={() => setEditView(false)} />
       </DetailsSection>
     );
   }

@@ -13,22 +13,24 @@ import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
 import { TeamProjectsView } from './components/TeamProjectsView';
 import { TeamProjectsAddProject } from './components/TeamProjectsAddProject';
 import { TeamProjectsEditProject } from './components/TeamProjectsEditProject';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   projects: IFormatedTeamProject[] | undefined;
   hasProjectsEditAccess: boolean;
-  userInfo: IUserInfo | undefined;
   team: ITeam | undefined;
   isLoggedIn: boolean;
 }
 
 export function TeamProjects(props: Props) {
-  const { team, projects = [], userInfo } = props;
+  const { team, projects = [] } = props;
+
+  const { currentUser } = useCurrentUserStore();
 
   const [isEditMode, toggleIsEditMode] = useToggle(false);
   const [projectToEdit, setProjectToEdit] = useState<IFormatedTeamProject>();
 
-  if (isEmpty(projects) && team?.isFund && !isTeamLeaderOrAdmin(userInfo, team?.id)) {
+  if (isEmpty(projects) && team?.isFund && !isTeamLeaderOrAdmin(currentUser, team?.id)) {
     return null;
   }
 
@@ -38,14 +40,19 @@ export function TeamProjects(props: Props) {
         <TeamProjectsView
           team={team}
           projects={projects}
-          userInfo={userInfo}
+          userInfo={currentUser}
           toggleIsEditMode={toggleIsEditMode}
           setProjectToEdit={setProjectToEdit}
         />
       )}
 
       {isEditMode && !projectToEdit && (
-        <TeamProjectsAddProject team={team!} projects={projects} userInfo={userInfo} toggleIsEditMode={toggleIsEditMode} />
+        <TeamProjectsAddProject
+          team={team!}
+          projects={projects}
+          userInfo={currentUser}
+          toggleIsEditMode={toggleIsEditMode}
+        />
       )}
 
       {projectToEdit && (

@@ -42,7 +42,7 @@ type TEditTeamDetailsForm = {
 
 interface Props {
   team: ITeam;
-  userInfo?: IUserInfo;
+  userInfo?: IUserInfo | null;
   onClose: () => void;
 }
 

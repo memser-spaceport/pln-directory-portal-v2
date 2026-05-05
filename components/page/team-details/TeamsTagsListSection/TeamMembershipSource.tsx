@@ -13,15 +13,14 @@ import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   team: ITeam;
-  userInfo: IUserInfo;
 }
 
 export function TeamMembershipSource(props: Props) {
-  const { team, userInfo } = props;
+  const { team } = props;
   const { currentUser } = useCurrentUserStore();
   const canViewContent = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'membership.source.read');
 
-  const canView = canViewContent || isAdminUser(userInfo);
+  const canView = canViewContent || isAdminUser(currentUser);
 
   const membershipSources = useGetTeamTagsListOptions(team, 'membershipSources');
   const availableMembershipSources = useGetTeamTagsListEditOptions('membershipSources');

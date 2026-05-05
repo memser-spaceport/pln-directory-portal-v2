@@ -55,8 +55,6 @@ export function AuthorAutocomplete() {
     return data.members.filter((m) => m.uid === userInfo?.uid);
   }, [data?.members, isAdmin, userInfo?.uid]);
 
-  console.log(data?.members, userInfo);
-
   const filteredTeams = useMemo(() => {
     if (!data?.teams) return [];
     if (isAdmin) return data.teams;

@@ -4,6 +4,10 @@ import type { ReactNode } from 'react';
 
 import { TeamDetails } from '@/components/page/team-details/TeamDetails';
 
+jest.mock('@/services/auth/store', () => ({
+  useCurrentUserStore: () => ({ currentUser: { uid: 'user-1', leadingTeams: ['team-1'], roles: [] } }),
+}));
+
 const pushMock = jest.fn();
 
 jest.mock('next/navigation', () => ({

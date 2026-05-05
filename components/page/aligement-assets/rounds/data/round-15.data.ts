@@ -1,13 +1,13 @@
 import { IPastRoundData } from '../types/current-round.types';
 
-export const pastRound14Data: IPastRoundData = {
+export const pastRound15Data: IPastRoundData = {
   meta: {
-    roundId: 'round-14-mar-2026',
-    roundNumber: 14,
+    roundId: 'round-15-apr-2026',
+    roundNumber: 15,
     isCurrentRound: false,
-    month: 'March',
+    month: 'April',
     year: 2026,
-    lastUpdated: '2026-03-31T00:00:00'
+    lastUpdated: '2026-04-30T00:00:00'
   },
 
   hero: {
@@ -31,11 +31,10 @@ export const pastRound14Data: IPastRoundData = {
   },
 
   stats: {
-    onboardedParticipants: 58,
+    onboardedParticipants: 59,
     regionsUnlocked: ['USA', 'Germany', 'Switzerland', 'Portugal'],
     incentivizedActivities: [
       'Curate X Spaces',
-      'Create a Replicable Playbook or Template',
       'Host Office Hours',
       'Create a blog for the network',
       'Complete or update your PL Directory Profile',
@@ -51,23 +50,23 @@ export const pastRound14Data: IPastRoundData = {
       'Help Organize an Event',
       'Construct an Alignment Asset Case Study'
     ],
-    totalPointsCollected: '12,375',
-    totalTokensDistributed: '9,970',
+    totalPointsCollected: '3,000',
+    totalTokensDistributed: '0',
     numberOfBuybacks: 0
   },
 
   leaderboard: [
-    { rank: 1, name: 'David Casey', activities: '', points: 5350 },
-    { rank: 2, name: 'Ian Brunner', activities: '', points: 1650 },
-    { rank: 3, name: 'Lynnette Nolan', activities: '', points: 775 },
-    { rank: 4, name: 'Diana Stern', activities: '', points: 550 },
-    { rank: 5, name: 'Yolan Romailler', activities: '', points: 500 },
-    { rank: 6, name: 'Bradley Holden', activities: '', points: 450 },
-    { rank: 7, name: 'Jeff De Gregorio', activities: '', points: 450 },
-    { rank: 8, name: 'Molly Mackinlay', activities: '', points: 450 },
-    { rank: 9, name: 'Matthew Koch', activities: '', points: 400 },
-    { rank: 10, name: 'Eshan Chordia', activities: '', points: 300 }
+    { rank: 1, name: 'David Casey', activities: '', points: 1400 },
+    { rank: 2, name: 'David Dao', activities: '', points: 450 },
+    { rank: 3, name: 'Molly Mackinlay', activities: '', points: 450 },
+    { rank: 4, name: 'Bradley Holden', activities: '', points: 300 },
+    { rank: 5, name: 'Jeremy Kloth', activities: '', points: 300 },
+    { rank: 6, name: 'Juan Benet', activities: '', points: 300 },
+    { rank: 7, name: 'Anuj Pandey', activities: '', points: 150 },
+    { rank: 8, name: 'Lynnette Nolan', activities: '', points: 150 },
+    { rank: 9, name: 'Theresa Therriault', activities: '', points: 150 },
+    { rank: 10, name: 'Justin Melillo', activities: '', points: 100 }
   ],
 };
 
-export default pastRound14Data;
+export default pastRound15Data;

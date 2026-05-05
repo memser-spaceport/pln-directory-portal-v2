@@ -7,9 +7,7 @@ import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/compone
 import { AdminFiltersDrawer } from './components/AdminFiltersDrawer';
 import { TeamsListLoading } from '@/components/page/demo-day/shared/TeamsListStates';
 import s from '@/components/page/demo-day/ActiveView/components/TeamsList/TeamsList.module.scss';
-import { getParsedValue } from '@/utils/common.utils';
-import { IUserInfo } from '@/types/shared.types';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { TeamsListHeader } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamsListHeader';
 import { TeamsListAlert } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamsListAlert';
 import { useTeamsFiltering } from '@/components/page/demo-day/ActiveView/components/TeamsList/hooks/useTeamsFiltering';
@@ -40,7 +38,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({
   const [isFiltersDrawerOpen, setIsFiltersDrawerOpen] = useState(false);
 
   // Get current user info
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
 
   // Function to check if current user is a founder of a team
   const isUserFounder = (team: TeamProfile): boolean => {

@@ -11,11 +11,9 @@ import Image from 'next/image';
 import FollowButton from './follow-button';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import useClickedOutside from '@/hooks/useClickedOutside';
-import { canUserPerformEditAction, filterUpcomingGatherings } from '@/utils/irl.utils';
+import { filterUpcomingGatherings } from '@/utils/irl.utils';
 import PresenceRequestSuccess from './presence-request-success';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { getAccessLevel } from '@/utils/auth.utils';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
 import Link from 'next/link';
 import { IrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatheringModal';
@@ -71,7 +69,6 @@ const FollowSection = (props: IFollowSectionProps) => {
   const isAdmin = isAdminUser(userInfo);
   const canUserAddAttendees = isAdminInAllEvents && isAdmin;
   const topicsAndReason = props?.topicsAndReason;
-  // const accessLevel = getAccessLevel(userInfo, isUserLoggedIn);
   const { canWrite: v2CanWrite } = useIrlGoingAccess();
   const nearestEventDate = props?.nearestEventDate;
   const scheduleURL =

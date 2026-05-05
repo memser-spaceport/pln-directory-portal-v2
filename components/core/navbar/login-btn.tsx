@@ -3,12 +3,10 @@
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { TOAST_MESSAGES, DEMO_DAY_ANALYTICS } from '@/utils/constants';
-import Cookies from 'js-cookie';
 import { useRouter, usePathname } from 'next/navigation';
 import { toast } from '@/components/core/ToastContainer';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { getParsedValue } from '@/utils/common.utils';
-import { IUserInfo } from '@/types/shared.types';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 import s from './LoginButton.module.scss';
 import { PropsWithChildren } from 'react';
@@ -32,7 +30,7 @@ const LoginBtn = (props: PropsWithChildren<Props>) => {
 
     // Track demo day login button click if on demo day page
     if (isDemoDayScopePage(pathname, true)) {
-      const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+      const userInfo = useCurrentUserStore.getState().currentUser;
 
       // PostHog analytics
       demoDayAnalytics.onLandingLoginButtonClicked();
@@ -54,7 +52,7 @@ const LoginBtn = (props: PropsWithChildren<Props>) => {
       reportAnalytics.mutate(loginButtonEvent);
     }
 
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = useCurrentUserStore.getState().currentUser;
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

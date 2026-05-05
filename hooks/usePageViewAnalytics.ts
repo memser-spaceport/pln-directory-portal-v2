@@ -1,9 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
-import { IUserInfo } from '@/types/shared.types';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { useUtmParams } from './useUtmParams';
 
 export interface PageViewAnalyticsConfig {
@@ -84,7 +82,7 @@ export const usePageViewAnalytics = (config: PageViewAnalyticsConfig) => {
       return;
     }
 
-    const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+    const userInfo = useCurrentUserStore.getState().currentUser;
 
     // Determine distinct ID
     const distinctId = customDistinctId || userInfo?.email;

@@ -49,8 +49,7 @@ export function ForumActivityCardsList(props: Props) {
     scrollableTarget,
   } = props;
 
-  const { hasAccess: v2ForumAccess } = useForumAccess();
-  const hasAccess = USE_ACCESS_CONTROL_V2 ? v2ForumAccess : hasForumAccess(userInfo.accessLevel);
+  const { hasAccess } = useForumAccess();
   const hasContent = activeTab === 'posts' ? !isEmpty(posts) : !isEmpty(comments);
 
   if (isLoading) {

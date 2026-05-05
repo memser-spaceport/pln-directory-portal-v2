@@ -2,10 +2,9 @@
 
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
 import clsx from 'clsx';
 
-import { getParsedValue } from '@/utils/common.utils';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { checkInvestorProfileComplete } from '@/utils/member.utils';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
@@ -53,7 +52,7 @@ const CheckboxIcon = () => (
 
 export const AppliedInvestorSteps: React.FC<Props> = ({ isNew, isLoggedIn, uid, email, demoDaySlug }) => {
   const router = useRouter();
-  const userInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
   const { data: memberData } = useMember(isLoggedIn ? uid : undefined);
   const { onAccountCreatedSuccessModalContinueToLoginClicked } = useDemoDayAnalytics();
   const [drawerOpen, setDrawerOpen] = useState(false);

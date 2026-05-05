@@ -3,8 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { usePostHog } from 'posthog-js/react';
 import Cookies from 'js-cookie';
-import { getParsedValue } from '@/utils/common.utils';
 import { getHeader } from '@/utils/common.utils';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { authEvents } from '@/components/core/login/utils/authEvents';
 
 const TEAM_CACHE_KEY = 'ph_team_cache';
@@ -104,21 +104,21 @@ export default function PostHogIdentifier() {
   useEffect(() => {
     const identifyUser = async () => {
       try {
-        const userCookie = Cookies.get('userInfo');
         const authTokenCookie = Cookies.get('authToken');
 
-        if (!userCookie || !posthog) {
+        const userInfo = useCurrentUserStore.getState().currentUser;
+
+        if (!userInfo || !posthog) {
           return;
         }
 
-        const userInfo = getParsedValue(userCookie);
         const authToken = authTokenCookie ? JSON.parse(authTokenCookie) : '';
 
-        if (!userInfo?.uid && !userInfo?.id) {
+        if (!userInfo?.uid) {
           return;
         }
 
-        const userId = userInfo.uid || userInfo.id;
+        const userId = userInfo.uid;
         const storeKey = `directory-user-identified-${userId}`;
         const isAlreadyIdentifiedInSession = localStorage.getItem(storeKey);
 

@@ -106,7 +106,7 @@ export const InvestorCommunications = ({
           </div>
         </div>
 
-        {(USE_ACCESS_CONTROL_V2 ? v2IsInvestor : (userInfo.accessLevel === 'L5' || userInfo.accessLevel === 'L6')) && (
+        {v2IsInvestor && (
           <>
             <div className={s.toggleSection}>
               <label className={clsx(s.Label, s.toggle)}>

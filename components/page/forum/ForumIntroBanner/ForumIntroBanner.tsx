@@ -6,7 +6,7 @@ import { CloseIcon } from '@/components/icons/CloseIcon';
 import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
 import { useUpdateMemberPreferences } from '@/services/members/hooks/useUpdateMemberPreferences';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 import s from './ForumIntroBanner.module.scss';
 
@@ -22,8 +22,8 @@ const InfoIcon = () => (
 );
 
 export const ForumIntroBanner = () => {
-  const { userInfo } = getCookiesFromClient();
-  const uid = userInfo?.uid;
+  const { currentUser } = useCurrentUserStore();
+  const uid = currentUser?.uid;
 
   const { data, isLoading, isError } = useGetMemberPreferences(uid);
   const { mutate: updatePreferences } = useUpdateMemberPreferences();

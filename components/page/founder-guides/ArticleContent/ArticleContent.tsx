@@ -17,7 +17,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
 import { useFounderGuidesScopes } from '@/services/rbac/hooks/useFounderGuidesScopes';
 import { SCOPE_LABELS, PERMISSION_CODE_TO_SCOPE } from '@/services/articles/constants';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { canEditArticle, formatAuthorMemberMainTeamLabel } from './helpers';
 import { GuideComments } from '@/components/page/founder-guides/GuideComments/GuideComments';
@@ -170,7 +170,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
 
   const article = articles.find((a) => a.slugURL === slug);
 
-  const { userInfo } = getCookiesFromClient();
+  const { currentUser: userInfo } = useCurrentUserStore();
   const isAuthenticated = !!userInfo;
   const { canCreate } = useFounderGuidesCreateAccess();
   const { scopes } = useFounderGuidesScopes();
@@ -514,7 +514,7 @@ export default function ArticleContent({ slug }: ArticleContentProps) {
 
           {ohCard && <>{ohCard}</>}
 
-          <GuideComments articleUid={article.uid} userInfo={userInfo} />
+          <GuideComments articleUid={article.uid} userInfo={userInfo ?? undefined} />
         </div>
       </div>
     </>

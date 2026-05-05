@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { AccessControlQueryKeys } from '@/services/access-control/constants';
 import { fetchMyAccess } from '@/services/access-control/access-control.service';
-import { getUserInfoFromLocal } from '@/utils/common.utils';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface IrlGoingAccessResult {
   canRead: boolean;
@@ -11,7 +11,7 @@ interface IrlGoingAccessResult {
 const EMPTY: IrlGoingAccessResult = { canRead: false, canWrite: false };
 
 export function useIrlGoingAccess() {
-  const userInfo = getUserInfoFromLocal();
+  const { currentUser } = useCurrentUserStore();
 
   const {
     data = EMPTY,
@@ -29,7 +29,7 @@ export function useIrlGoingAccess() {
         data.effectivePermissions.includes('directory.admin.full'),
     }),
     staleTime: 5 * 60 * 1000,
-    enabled: !!userInfo,
+    enabled: !!currentUser,
     retry: 2,
   });
 

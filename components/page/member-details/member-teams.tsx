@@ -1,6 +1,6 @@
 'use client';
 import { PAGE_ROUTES } from '@/utils/constants';
-import React, { Fragment, useRef, useState } from 'react';
+import React, { Fragment, useRef } from 'react';
 import MemberDetailsTeamCard from './member-details-team-card';
 import Modal from '@/components/core/modal';
 import AllTeams from './all-teams';
@@ -9,10 +9,9 @@ import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
-import { getAccessLevel } from '@/utils/auth.utils';
 import { useRouter } from 'next/navigation';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface IMemberTeams {
   member: IMember;
@@ -27,10 +26,10 @@ const MemberTeams = (props: IMemberTeams) => {
   const totalTeams = teams?.length;
   const isLoggedIn = props?.isLoggedIn;
 
-  const userInfo = props?.userInfo;
+  const { currentUser } = useCurrentUserStore();
   const teamsRef = useRef<HTMLDialogElement>(null);
-  const router = useRouter();
 
+  const router = useRouter();
   const analytics = useMemberAnalytics();
   const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
@@ -69,7 +68,7 @@ const MemberTeams = (props: IMemberTeams) => {
                 See all
               </button>
             )}
-            {isLoggedIn && (USE_ACCESS_CONTROL_V2 ? v2HasMemberContacts : getAccessLevel(userInfo, isLoggedIn) === 'advanced') && userInfo?.uid === member?.id && (
+            {isLoggedIn && currentUser?.rbac?.status === 'APPROVED' && currentUser?.uid === member?.id && (
               <button
                 onClick={() => router.push('/settings/profile?tab=skills')}
                 className="member-teams__controls_add"
@@ -90,7 +89,7 @@ const MemberTeams = (props: IMemberTeams) => {
                   <div className={`memberteam ${itemsToShow.length - 1 !== index ? 'memberteam__border-set' : ''}`}>
                     <MemberDetailsTeamCard
                       member={member}
-                      userInfo={userInfo}
+                      userInfo={currentUser}
                       url={`${PAGE_ROUTES?.TEAMS}/${team?.id}`}
                       team={teamDetails}
                       tags={teamDetails?.industryTags}
@@ -111,7 +110,7 @@ const MemberTeams = (props: IMemberTeams) => {
       <div className="all-member-container">
         <Modal modalRef={teamsRef} onClose={onClose}>
           <AllTeams
-            userInfo={userInfo}
+            userInfo={currentUser}
             member={member}
             teams={teams}
             isLoggedIn={isLoggedIn}

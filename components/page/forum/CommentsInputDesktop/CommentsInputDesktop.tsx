@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { FormEditor } from '@/components/form/FormEditor';
 import { extractTextWithImages } from '@/utils/decode';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { useGetMemberNotificationSettings } from '@/services/notifications/hooks/useGetMemberNotificationSettings';
 import { FormField } from '@/components/form/FormField';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
@@ -41,8 +41,8 @@ export const CommentsInputDesktop = (props: Props) => {
 
   const analytics = useForumAnalytics();
   const ref = useRef<HTMLFormElement | null>(null);
-  const { userInfo } = getCookiesFromClient();
-  const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid, 'POST_COMMENT', tid);
+  const { currentUser: userInfo } = useCurrentUserStore();
+  const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid ?? '', 'POST_COMMENT', tid);
   const [focused, setFocused] = useState(initialFocused ?? false);
 
   const methods = useForm({

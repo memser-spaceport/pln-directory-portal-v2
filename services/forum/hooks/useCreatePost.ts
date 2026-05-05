@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { ForumQueryKeys } from '@/services/forum/constants';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 export interface CreatePostMutationParams {
   uid: string;
@@ -12,7 +12,7 @@ export interface CreatePostMutationParams {
 
 async function mutation({ uid, cid, title, content }: CreatePostMutationParams) {
   const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
-  const { userInfo } = getCookiesFromClient();
+  const currentUser = useCurrentUserStore.getState().currentUser;
 
   const response = await customFetch(
     `${process.env.FORUM_API_URL}/api/v3/topics`,
@@ -26,7 +26,7 @@ async function mutation({ uid, cid, title, content }: CreatePostMutationParams) 
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(uid && uid !== userInfo.uid ? { 'x-impersonate-member-uid': uid } : {}),
+        ...(uid && uid !== currentUser?.uid ? { 'x-impersonate-member-uid': uid } : {}),
       },
       credentials: 'include',
     },

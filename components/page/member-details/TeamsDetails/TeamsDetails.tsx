@@ -5,8 +5,6 @@ import React, { useState } from 'react';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 
-import { getAccessLevel } from '@/utils/auth.utils';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 import { ITeam } from '@/types/teams.types';
 import { TeamsList } from '@/components/page/member-details/TeamsDetails/components/TeamsList';
@@ -21,7 +19,7 @@ import { isMemberProfileOwner } from '@/components/page/member-details/utils/isM
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
 }
 
 export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
@@ -34,7 +32,7 @@ export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
 
   useMobileNavVisibility(view !== 'view');
 
-  if (!isLoggedIn || ((USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : getAccessLevel(userInfo, isLoggedIn) !== 'advanced') && !isOwner)) {
+  if (!isLoggedIn || (!v2HasMemberContacts && !isOwner)) {
     return null;
   }
 
@@ -53,7 +51,7 @@ export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
           </DetailsSectionHeader>
           <TeamsList
             member={member}
-            userInfo={userInfo}
+            userInfo={userInfo!}
             isEditable={isEditable}
             onEdit={(item) => {
               setSelectedItem(item);

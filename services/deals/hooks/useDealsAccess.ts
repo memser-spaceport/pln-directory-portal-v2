@@ -1,11 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { DealsQueryKeys } from '../constants';
-import { checkDealsAccess } from '../deals.service';
 import { fetchMyAccess } from '@/services/access-control/access-control.service';
-import { getUserInfoFromLocal } from '@/utils/common.utils';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 export function useDealsAccess() {
-  const userInfo = getUserInfoFromLocal();
+  const { currentUser } = useCurrentUserStore();
 
   const {
     data: hasAccess = false,
@@ -18,7 +17,7 @@ export function useDealsAccess() {
       return access?.effectivePermissions.includes('deals.read');
     },
     staleTime: 5 * 60 * 1000,
-    enabled: !!userInfo,
+    enabled: !!currentUser,
     retry: 2,
   });
 

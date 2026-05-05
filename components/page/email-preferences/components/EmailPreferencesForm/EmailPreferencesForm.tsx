@@ -54,7 +54,7 @@ export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
   return (
     <div className={s.root}>
       <h5 className={s.title}>Email Preferences</h5>
-      {(USE_ACCESS_CONTROL_V2 ? !v2IsInvestor : userInfo.accessLevel !== 'L5') && (
+      {!v2IsInvestor && (
         <>
           <ForumDigest userInfo={userInfo} initialData={initialData.settings} />
           <Newsletter userInfo={userInfo} initialData={initialData.memberInfo} />

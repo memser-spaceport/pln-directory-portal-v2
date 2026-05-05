@@ -17,7 +17,7 @@ export type ContactDetailsVariant = 'default' | 'drawer';
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
   variant?: ContactDetailsVariant;
 }
 
@@ -35,7 +35,7 @@ export const ContactDetails = ({ isLoggedIn, userInfo, member, variant = 'defaul
         <EditContactForm
           onClose={() => setEditView(false)}
           member={member}
-          userInfo={userInfo}
+          userInfo={userInfo!}
           linkedinRequired={false}
           variant={variant}
         />
@@ -43,7 +43,7 @@ export const ContactDetails = ({ isLoggedIn, userInfo, member, variant = 'defaul
         <ContactDetailsView
           member={member}
           isLoggedIn={isLoggedIn}
-          userInfo={userInfo}
+          userInfo={userInfo!}
           variant={variant}
           onEdit={() => {
             onEditContactDetailsClicked();

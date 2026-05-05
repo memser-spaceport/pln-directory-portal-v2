@@ -1,9 +1,9 @@
 import * as yup from 'yup';
-import Cookies from 'js-cookie';
 import React, { useEffect, useMemo } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { toast } from '@/components/core/ToastContainer';
 import { FormField } from '@/components/form/FormField';
@@ -21,7 +21,6 @@ import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
-import { getParsedValue } from '@/utils/common.utils';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
@@ -95,7 +94,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
   // Analytics hooks
   const { onFounderSaveTeamDetailsClicked, onFounderCancelTeamDetailsClicked } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
-  const currentUserInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: currentUserInfo } = useCurrentUserStore();
   const isDirectoryAdmin = isAdminUser(currentUserInfo);
 
   const programOptions = useMemo(() => {

@@ -14,6 +14,7 @@ import HuskyAsk from './husky-ask';
 import { z } from 'zod';
 import { experimental_useObject } from 'ai/react';
 import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 import HuskyLimitStrip from './husky-limit-strip';
 import { AnyNaptrRecord } from 'dns';
 import { DAILY_CHAT_LIMIT } from '@/utils/constants';
@@ -131,7 +132,7 @@ function HuskyAi({
         .optional(),
     }),
     onFinish: (data) => {
-      const userInfo = getParsedValue(Cookies.get('userInfo'));
+      const userInfo = useCurrentUserStore.getState().currentUser;
 
       setAnswerLoadingStatus(false);
     },

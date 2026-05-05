@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useForm, FormProvider } from 'react-hook-form';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Modal } from '@/components/common/Modal/Modal';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import {
   ModalHeader,
   AboutSection,
@@ -25,7 +25,6 @@ import { EVENTS } from '@/utils/constants';
 import s from './IrlGatheringModal.module.scss';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
-// import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useQuery } from '@tanstack/react-query';
@@ -44,16 +43,16 @@ export function IrlGatheringModal({
   editModeData,
 }: IrlGatheringModalProps) {
   const gatheringData = useIrlGatheringData(notification);
-  const { userInfo } = getCookiesFromClient();
+  const { currentUser: userInfo } = useCurrentUserStore();
   const isLoggedIn = !!userInfo?.uid;
   const defaultTeamUid = userInfo?.leadingTeams?.[0];
   const { canWrite: v2CanWrite } = useIrlGoingAccess();
-  const isRestrictedAccess = USE_ACCESS_CONTROL_V2 ? !v2CanWrite : (userInfo?.accessLevel === 'L0' || userInfo?.accessLevel === 'L1');
+  const isRestrictedAccess = !v2CanWrite;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   // const { data } = useMemberFormOptions();
-  const { data: memberData } = useMember(userInfo?.uid);
+  const { data: memberData } = useMember(userInfo?.uid ?? '');
   const analytics = useIrlAnalytics();
   const wasOpenRef = useRef(false);
   const [shouldAnimateLoginButton, setShouldAnimateLoginButton] = useState(false);
@@ -67,7 +66,7 @@ export function IrlGatheringModal({
     queryKey: [MembersQueryKeys.GET_MEMBER, userInfo?.uid, !!userInfo, userInfo?.uid],
     queryFn: () =>
       getMember(
-        userInfo?.uid,
+        userInfo?.uid ?? '',
         { with: 'image,skills,location,teamMemberRoles.team' },
         !!userInfo,
         userInfo,
@@ -408,7 +407,7 @@ export function IrlGatheringModal({
               gatheringLink={buildGatheringLink(gatheringData.locationName)}
             />
 
-            {step === 1 && (USE_ACCESS_CONTROL_V2 ? v2CanWrite : (userInfo?.accessLevel !== 'L0' && userInfo?.accessLevel !== 'L1')) && (
+            {step === 1 && v2CanWrite && (
               <div>
                 <div className={s.step1Title}>Are you going to {gatheringData.gatheringName}?</div>
                 <div className={s.step1Subtitle}>Let others know if you are attending.</div>

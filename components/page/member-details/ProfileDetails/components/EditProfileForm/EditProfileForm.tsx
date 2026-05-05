@@ -17,7 +17,7 @@ import { useMember } from '@/services/members/hooks/useMember';
 import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { useRouter } from 'next/navigation';
-import { useUserStore } from '@/services/members/store';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { updateMemberInfoCookie } from '@/utils/member.utils';
 
 import s from './EditProfileForm.module.scss';
@@ -27,8 +27,6 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { toast } from '@/components/core/ToastContainer';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { MAX_NAME_LENGTH } from '@/constants/profile';
-import { isInvestor } from '@/utils/isInvestor';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useInvestorAccess } from '@/services/access-control/hooks/useInvestorAccess';
 import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 import { FormSelect } from '@/components/form/FormSelect';
@@ -50,7 +48,10 @@ interface Props {
 
 export const EditProfileForm = ({ onClose, member, userInfo, generateBio, variant }: Props) => {
   const router = useRouter();
-  const { actions } = useUserStore();
+  const {
+    currentUser,
+    actions: { setCurrentUser },
+  } = useCurrentUserStore();
   const [isAddingTeamInline, setIsAddingTeamInline] = useState(false);
   const { isInvestor: v2IsInvestor } = useInvestorAccess();
   const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
@@ -268,7 +269,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
       }
 
       if (member.id === userInfo.uid) {
-        actions.setProfileImage(null);
+        if (currentUser) setCurrentUser({ ...currentUser, profileImageUrl: undefined });
         updateMemberInfoCookie('');
       }
     } else if (formData.image) {
@@ -277,7 +278,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
       imageUrl = imgResponse?.image.url;
 
       if (member.id === userInfo.uid) {
-        actions.setProfileImage(imageUrl);
+        if (currentUser) setCurrentUser({ ...currentUser, profileImageUrl: imageUrl });
         updateMemberInfoCookie(imageUrl);
       }
     }
@@ -364,16 +365,11 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
               <ProfileSkillsInput />
             </div>
           )}
-          {variant !== 'investor-drawer' &&
-            (USE_ACCESS_CONTROL_V2
-              ? !v2IsInvestor && v2HasMemberContacts
-              : !isInvestor(userInfo?.accessLevel) &&
-                userInfo?.accessLevel !== 'L0' &&
-                userInfo?.accessLevel !== 'L1') && (
-              <div className={s.row}>
-                <ProfileCollaborateInput />
-              </div>
-            )}
+          {variant !== 'investor-drawer' && !v2IsInvestor && v2HasMemberContacts && (
+            <div className={s.row}>
+              <ProfileCollaborateInput />
+            </div>
+          )}
 
           <div className={s.column}>
             {!isAddingTeamInline && (

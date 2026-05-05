@@ -5,8 +5,6 @@ import { IFilterSelectedItem, IUserInfo } from '@/types/shared.types';
 import { triggerLoader } from '@/utils/common.utils';
 import { PRIVATE_FILTERS } from '@/utils/constants';
 import { Tag } from '@/components/ui/Tag';
-import { getAccessLevel } from '@/utils/auth.utils';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 
 interface ITagContainer {
@@ -26,12 +24,8 @@ const TagContainer = (props: ITagContainer) => {
   const keyValue = props?.name;
   const label = props?.label;
   const initialCount = props?.initialCount;
-  const userInfo = props?.userInfo;
   const isUserLoggedIn = props?.isUserLoggedIn ?? false;
-  const accessLevel = getAccessLevel(userInfo ?? null, isUserLoggedIn);
   const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
-
-  // const analytics = useCommonAnalytics();
 
   const isShowMore = items?.some((item: IFilterSelectedItem, index: number) => {
     return item?.selected && index > 9;
@@ -64,7 +58,7 @@ const TagContainer = (props: ITagContainer) => {
 
   const onMouseEnter = (id: string) => {
     const accessElement = document?.getElementById(id);
-    if (accessElement && (!isUserLoggedIn || (USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : accessLevel === 'base')) && PRIVATE_FILTERS.includes(keyValue)) {
+    if (accessElement && (!isUserLoggedIn || !v2HasMemberContacts) && PRIVATE_FILTERS.includes(keyValue)) {
       accessElement.style.display = 'flex';
     }
   };
@@ -85,7 +79,7 @@ const TagContainer = (props: ITagContainer) => {
         <div className="tags-container__access-container" id={`tags-container__access-container${label}`}>
           <div className="tags-container__access-container__content">
             <img loading="lazy" alt="lock" src="/icons/lock.svg" />
-            {(USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : accessLevel === 'base') ? (
+            {!v2HasMemberContacts ? (
               <>Limited access</>
             ) : (
               <>

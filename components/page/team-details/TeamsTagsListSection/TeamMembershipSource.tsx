@@ -4,12 +4,12 @@ import { ITeam } from '@/types/teams.types';
 import { IUserInfo } from '@/types/shared.types';
 
 import { isAdminUser } from '@/utils/user/isAdminUser';
-import { isTierUser } from '@/utils/user/isTierUser';
 
 import { useGetTeamTagsListOptions } from './hooks/useGetTeamTagsListOptions';
 import { useGetTeamTagsListEditOptions } from './hooks/useGetTeamTagsListEditOptions';
 
 import { TeamsTagsListSection } from './TeamsTagsListSection';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   team: ITeam;
@@ -18,8 +18,10 @@ interface Props {
 
 export function TeamMembershipSource(props: Props) {
   const { team, userInfo } = props;
+  const { currentUser } = useCurrentUserStore();
+  const canViewContent = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'membership.source.read');
 
-  const canView = isTierUser(userInfo) || isAdminUser(userInfo);
+  const canView = canViewContent || isAdminUser(userInfo);
 
   const membershipSources = useGetTeamTagsListOptions(team, 'membershipSources');
   const availableMembershipSources = useGetTeamTagsListEditOptions('membershipSources');

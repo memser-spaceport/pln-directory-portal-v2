@@ -26,7 +26,7 @@ import Modal from '@/components/core/modal';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import AlertMessage from './alert-message';
-import { useUserStore } from '@/services/members/store';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 
@@ -64,9 +64,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   };
   const initialValues = useMemo(() => getInitialMemberFormValues(memberInfo), [memberInfo]);
   const analytics = useSettingsAnalytics();
-  const {
-    actions: { setProfileImage },
-  } = useUserStore();
+  const { currentUser, actions: { setCurrentUser } } = useCurrentUserStore();
 
   const handleTabClick = (v: string) => {
     analytics.recordUserProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
@@ -242,7 +240,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
           imgEle.value = image.url;
         }
         updateMemberInfoCookie(image.url);
-        setProfileImage(image.url);
+        if (currentUser) setCurrentUser({ ...currentUser, profileImageUrl: image.url });
       } else if (
         memberInfo?.image?.uid &&
         memberInfo?.image?.url &&
@@ -250,7 +248,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
       ) {
         formattedForms.imageUid = memberInfo?.image?.uid;
       } else {
-        setProfileImage(null);
+        if (currentUser) setCurrentUser({ ...currentUser, profileImageUrl: undefined });
         updateMemberInfoCookie('');
       }
 

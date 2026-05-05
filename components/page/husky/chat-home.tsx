@@ -3,6 +3,7 @@ import { getParsedValue, isMobileDevice } from '@/utils/common.utils';
 import { DAILY_CHAT_LIMIT, PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
 import { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 import TextArea from './chat-input';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/core/ToastContainer';
@@ -93,7 +94,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
 
   const onLoginClickHandler = () => {
     analytics.trackLoginFromHuskyChat('husky-home-search');
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = useCurrentUserStore.getState().currentUser;
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

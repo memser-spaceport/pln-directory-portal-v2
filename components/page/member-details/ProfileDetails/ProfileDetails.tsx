@@ -17,7 +17,7 @@ import s from './ProfileDetails.module.scss';
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
   variant?: 'investor-drawer';
 }
 
@@ -46,7 +46,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props)
             setEditView(false);
           }}
           member={member}
-          userInfo={userInfo}
+          userInfo={userInfo!}
           variant={variant}
         />
       ) : (
@@ -54,7 +54,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props)
           <MemberDetailHeader
             member={member}
             isLoggedIn={isLoggedIn}
-            userInfo={userInfo}
+            userInfo={userInfo!}
             onEdit={() => {
               onEditProfileDetailsClicked();
               setEditView(true);

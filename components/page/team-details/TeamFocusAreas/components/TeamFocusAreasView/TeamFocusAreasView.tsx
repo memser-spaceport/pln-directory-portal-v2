@@ -17,7 +17,7 @@ import { SingleTeamFocusArea } from './components/SingleTeamFocusArea';
 
 interface Props {
   team: ITeam;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
   focusAreas: FocusAreasMap;
   toggleIsEditMode: () => void;
 }

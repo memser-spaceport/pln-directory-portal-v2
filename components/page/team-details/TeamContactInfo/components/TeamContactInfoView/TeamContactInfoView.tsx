@@ -23,7 +23,7 @@ import s from './TeamContactInfoView.module.scss';
 
 interface Props {
   team: ITeam | undefined;
-  userInfo: IUserInfo | undefined;
+  userInfo: IUserInfo | null;
   toggleIsEditMode: () => void;
 }
 

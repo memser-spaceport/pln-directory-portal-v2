@@ -1,6 +1,6 @@
 import { IAnalyticsMemberInfo } from '@/types/members.types';
 import { IAnalyticsProjectInfo } from '@/types/project.types';
-import { IAnalyticsTeamInfo, IAnalyticsUserInfo } from '@/types/shared.types';
+import { IAnalyticsTeamInfo, IAnalyticsUserInfo, IUserInfo } from '@/types/shared.types';
 import { TEAMS_ANALYTICS_EVENTS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
@@ -323,14 +323,14 @@ export const useTeamAnalytics = () => {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ABOUT_SAVE, params);
   }
 
-  function onClickSeeMoreIrlContribution(user: IAnalyticsUserInfo | null) {
+  function onClickSeeMoreIrlContribution(user: IUserInfo | null) {
     const params = {
       user,
     };
     captureEvent(TEAMS_ANALYTICS_EVENTS.ON_CLICK_SEE_MORE_BUTTON_IRL_CONTRIBUTIONS, params);
   }
 
-  function onClickTeamIrlContribution(user: IAnalyticsUserInfo | null) {
+  function onClickTeamIrlContribution(user: IUserInfo | null) {
     const params = {
       user,
     };

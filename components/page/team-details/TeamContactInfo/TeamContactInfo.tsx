@@ -9,15 +9,15 @@ import { DetailsSection } from '@/components/common/profile/DetailsSection';
 
 import { TeamContactInfoView } from './components/TeamContactInfoView';
 import { TeamContactInfoEdit } from './components/TeamContactInfoEdit';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   team: ITeam;
-  userInfo: IUserInfo;
 }
 
 export const TeamContactInfo = (props: Props) => {
-  const { team, userInfo } = props;
-
+  const { team } = props;
+  const { currentUser } = useCurrentUserStore();
   const [isEditMode, toggleIsEditMode] = useToggle(false);
 
   return (
@@ -25,7 +25,7 @@ export const TeamContactInfo = (props: Props) => {
       {isEditMode ? (
         <TeamContactInfoEdit team={team} toggleIsEditMode={toggleIsEditMode} />
       ) : (
-        <TeamContactInfoView team={team} userInfo={userInfo} toggleIsEditMode={toggleIsEditMode} />
+        <TeamContactInfoView team={team} userInfo={currentUser} toggleIsEditMode={toggleIsEditMode} />
       )}
     </DetailsSection>
   );

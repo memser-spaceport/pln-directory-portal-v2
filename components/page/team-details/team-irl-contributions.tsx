@@ -11,6 +11,7 @@ import { ITeam } from '@/types/teams.types';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { format, toZonedTime } from 'date-fns-tz';
 import { sortEventsByDate } from '@/utils/irl.utils';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface IEvent {
   uid: string;
@@ -38,7 +39,6 @@ interface ITeamMembers {
   members: IMember[] | undefined;
   teamId: string;
   team: ITeam | undefined;
-  userInfo: IAnalyticsUserInfo;
 }
 
 function mergeContributions(eventGuests: IEventGuest[], associations: any[]): IEventGuest[] {
@@ -73,7 +73,7 @@ function mergeContributions(eventGuests: IEventGuest[], associations: any[]): IE
 }
 
 const TeamIrlContributions = (props: ITeamMembers) => {
-  const userInfo = props?.userInfo;
+  const { currentUser: userInfo } = useCurrentUserStore();
   const modalRef = useRef<HTMLDialogElement>(null);
   const [selectedRole, setSelectedRole] = useState('');
   const analytics = useTeamAnalytics();
@@ -101,7 +101,8 @@ const TeamIrlContributions = (props: ITeamMembers) => {
     );
   };
 
-  const groupedData: GroupedEvents = mergedContributions.length > 0 ? transformData(sortedEvents) : { Host: [], Sponsor: [] };
+  const groupedData: GroupedEvents =
+    mergedContributions.length > 0 ? transformData(sortedEvents) : { Host: [], Sponsor: [] };
 
   const onClose = () => {
     if (modalRef.current) {

@@ -17,16 +17,18 @@ import { useGetFocusAreasToDisplay } from './hooks/useGetFocusAreasToDisplay';
 
 import { TeamFocusAreasEdit } from './components/TeamFocusAreasEdit';
 import { TeamFocusAreasView } from './components/TeamFocusAreasView';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   team: ITeam;
-  userInfo: IUserInfo;
   focusAreas: IFocusArea[];
   teamFocusAreas: ITeamFocusAres[];
 }
 
 export function TeamFocusAreas(props: Props) {
-  const { team, userInfo, focusAreas, teamFocusAreas } = props;
+  const { team, focusAreas, teamFocusAreas } = props;
+
+  const { currentUser } = useCurrentUserStore();
 
   const [isEditMode, toggleIsEditMode] = useToggle(false);
 
@@ -34,7 +36,7 @@ export function TeamFocusAreas(props: Props) {
 
   const teamFocusAreasToDisplay = useGetFocusAreasToDisplay(sortedFocusAreas, teamFocusAreas);
 
-  const hasTeamEditAccess = isTeamLeaderOrAdmin(userInfo, team?.id);
+  const hasTeamEditAccess = isTeamLeaderOrAdmin(currentUser, team?.id);
 
   if (isEmpty(teamFocusAreas) && !hasTeamEditAccess) {
     return null;
@@ -47,7 +49,7 @@ export function TeamFocusAreas(props: Props) {
       ) : (
         <TeamFocusAreasView
           team={team}
-          userInfo={userInfo}
+          userInfo={currentUser}
           focusAreas={teamFocusAreasToDisplay}
           toggleIsEditMode={toggleIsEditMode}
         />

@@ -12,7 +12,7 @@ import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import QueryProvider from '@/providers/QueryProvider';
 import StoreInitializer from '@/providers/StoreInitializer';
-import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
+// import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
 // import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
 import PostHogIdentifier from '@/components/page/posthog-identifier';
 import PostLoginRedirectHandler from '@/components/page/recommendations/components/RecommendationsPreloader/PostLoginRedirectHandler';
@@ -96,8 +96,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <header className="layout__header">
                   {/* <DemoDayBanner /> */}
                   {/* <PlaaBanner /> */}
-                  {false && <SubscribeToRecoomendations userInfo={userInfo} />}
-                  <CompleteYourProfile userInfo={userInfo} />
+                  {/*<SubscribeToRecoomendations userInfo={userInfo} />*/}
+                  <CompleteYourProfile />
                   <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
                 </header>
                 <AuthBox isLoggedIn={isLoggedIn} />

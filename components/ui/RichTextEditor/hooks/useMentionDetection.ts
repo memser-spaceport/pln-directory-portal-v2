@@ -60,8 +60,7 @@ export function useMentionDetection({
 
         // Check if there's no space after @ (active mention)
         if (!query.includes(' ')) {
-          const textBeforeCursor = text.substring(0, selection.index);
-          const absoluteAtIndex = textBeforeCursor.lastIndexOf('@');
+          const absoluteAtIndex = selection.index - query.length - 1;
 
           // Get cursor position for dropdown
           const bounds = editor.getBounds(selection.index);

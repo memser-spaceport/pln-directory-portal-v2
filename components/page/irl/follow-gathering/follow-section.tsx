@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { IrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatheringModal';
 import { PushNotification, IrlGatheringMetadata } from '@/types/push-notifications.types';
 import { isAdminUser } from '@/utils/user/isAdminUser';
+import { useCurrentUserStore } from '@/services/auth/store';
 interface IFollowSectionProps {
   userInfo: any;
   eventLocationSummary: any;
@@ -35,7 +36,7 @@ interface IFollowSectionProps {
 }
 
 const FollowSection = (props: IFollowSectionProps) => {
-  const userInfo = props?.userInfo;
+  const { currentUser: userInfo } = useCurrentUserStore();
   const eventLocationSummary = props?.eventLocationSummary;
   const location = props?.eventLocationSummary;
   const searchParams = props?.searchParams;
@@ -51,14 +52,14 @@ const FollowSection = (props: IFollowSectionProps) => {
   const addMemberRef = useRef<HTMLButtonElement>(null);
   const locationEvents = props?.locationEvents;
   const pastEvents = locationEvents?.pastEvents;
-  const upcomingEvents = locationEvents?.upcomingEvents ?? [];
+  const upcomingEvents = locationEvents?.upcomingEvents;
   const totalEvents =
     type === 'past'
       ? pastEvents?.length || 0
       : upcomingEvents?.length > 0 && type !== 'past'
         ? upcomingEvents?.length || 0
         : (upcomingEvents?.length || 0) + (pastEvents?.length || 0);
-  const filteredGatherings = upcomingEvents.filter((gathering: any) => filterUpcomingGatherings(gathering));
+  const filteredGatherings = upcomingEvents?.filter((gathering: any) => filterUpcomingGatherings(gathering));
   // Check if user has any upcoming events (events they can edit)
   const userHasUpcomingEvents = updatedUser?.events?.some((event: any) => filterUpcomingGatherings(event)) ?? false;
   const inPastEvents = type === 'past' || (pastEvents?.length > 0 && upcomingEvents?.length === 0);
@@ -77,7 +78,6 @@ const FollowSection = (props: IFollowSectionProps) => {
 
   // IRL Gathering Modal state - derived from URL param
   const [isEditMode, setIsEditMode] = useState(false);
-  const [isInitOpenModal, setIsInitOpenModal] = useState(false);
   const [isModalOpenLocal, setIsModalOpenLocal] = useState(false);
   const urlSearchParams = useSearchParams();
   const router = useRouter();

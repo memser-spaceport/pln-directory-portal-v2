@@ -13,7 +13,9 @@ export function useFounderGuidesAccess() {
   } = useQuery({
     queryKey: [AccessControlQueryKeys.MY_ACCESS],
     queryFn: fetchMyAccess,
-    select: (data) => data.effectivePermissions.some((p) => p.startsWith('founder_guides.view.')),
+    select: (data) => {
+      return data.effectivePermissions.some((p) => p.startsWith('founder_guides.view'));
+    },
     staleTime: 5 * 60 * 1000,
     enabled: !!currentUser,
     retry: 2,

@@ -606,6 +606,7 @@ export const HOME = {
 };
 
 export const SORT_OPTIONS = {
+  DEFAULT: 'Name,default',
   ASCENDING: 'Name,asc',
   DESCENDING: 'Name,desc',
 };

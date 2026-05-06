@@ -187,7 +187,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
       )}
 
       {/* Tags (Industry Tags) */}
-      {filterValues?.tags && filterValues.tags.length > 0 && (
+      {!isEmpty(filterValues?.tags) && (
         <FilterSection title="Tags">
           <GenericCheckboxList
             label="Search or select industry tags"

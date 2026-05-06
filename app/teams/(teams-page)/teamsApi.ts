@@ -73,11 +73,23 @@ const toPriorityValues = (val: string | undefined) =>
     .filter(Boolean)
     .map((v) => (v === '-1' ? '99' : v));
 
+function processSortingParams(searchParams: ITeamsSearchParams): ITeamsSearchParams {
+  const { sort } = searchParams;
+
+  if (!sort) {
+    return searchParams;
+  }
+
+  const [field, order] = sort.split(',');
+
+  return { ...searchParams, sort: `${field.toLowerCase()}:${order}` };
+}
+
 export const fetchTeamsList = async (searchParams: ITeamsSearchParams): Promise<TeamListResponse> => {
   const authToken = getAuthToken();
 
   const query = qs.stringify({
-    ...searchParams,
+    ...processSortingParams(searchParams),
     investmentFocus: searchParams.investmentFocus?.split('|').filter(Boolean),
     priorities: toPriorityValues(searchParams.priorities ?? searchParams.tiers),
   });

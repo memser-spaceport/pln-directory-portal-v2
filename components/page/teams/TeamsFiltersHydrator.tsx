@@ -1,7 +1,6 @@
 'use client';
 
 import { useLayoutEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { useTeamFilterStore } from '@/services/teams';
 
 /**
@@ -11,7 +10,6 @@ import { useTeamFilterStore } from '@/services/teams';
  * and syncs with browser navigation (back/forward)
  */
 export function TeamsFiltersHydrator({ children }: { children: React.ReactNode }) {
-  const searchParams = useSearchParams();
   const setAllParams = useTeamFilterStore((s) => s.setAllParams);
   const [ready, setReady] = useState(false);
   const didInit = useRef(false);
@@ -26,9 +24,13 @@ export function TeamsFiltersHydrator({ children }: { children: React.ReactNode }
 
   // Listen to browser navigation (back/forward)
   useLayoutEffect(() => {
-    if (!ready) return;
-    setAllParams(new URLSearchParams(searchParams.toString()));
-  }, [ready, searchParams, setAllParams]);
+    const handlePopState = () => {
+      setAllParams(new URLSearchParams(window.location.search));
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [setAllParams]);
 
   if (!ready) return null;
 

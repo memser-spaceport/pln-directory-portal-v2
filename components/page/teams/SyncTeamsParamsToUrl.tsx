@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { useTeamFilterStore, setFilterAnalyticsCallback } from '@/services/teams';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
@@ -12,8 +11,6 @@ import { useDebounce } from 'react-use';
  * Syncs Teams filter store state to URL with debouncing
  */
 export function SyncTeamsParamsToUrl({ debounceTime = 0 }: { debounceTime?: number }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const { params, _clearImmediate } = useTeamFilterStore();
   const { onTeamsFiltersChange } = useTeamAnalytics();
   const isInitialLoad = useRef(true);
@@ -23,9 +20,9 @@ export function SyncTeamsParamsToUrl({ debounceTime = 0 }: { debounceTime?: numb
   useEffect(() => {
     setFilterAnalyticsCallback(onTeamsFiltersChange);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+  }, []);
 
-  // Skip initial load to avoid unnecessary navigation
+  // Skip initial load to avoid pushing the current URL back to history
   useEffect(() => {
     if (isInitialLoad.current) {
       isInitialLoad.current = false;
@@ -41,17 +38,17 @@ export function SyncTeamsParamsToUrl({ debounceTime = 0 }: { debounceTime?: numb
 
       const currentParamsString = params.toString();
 
-      // Only sync if params actually changed
       if (currentParamsString === lastSyncedParams.current) {
         return;
       }
 
       lastSyncedParams.current = currentParamsString;
 
-      // Build URL with updated params
-      const newUrl = currentParamsString ? `?${currentParamsString}` : window.location.pathname;
+      const newUrl = currentParamsString
+        ? `${window.location.pathname}?${currentParamsString}`
+        : window.location.pathname;
 
-      router.push(newUrl, { scroll: false });
+      window.history.pushState(null, '', newUrl);
     },
     _clearImmediate ? 0 : debounceTime,
     [params, _clearImmediate],

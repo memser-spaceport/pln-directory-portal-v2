@@ -1,18 +1,18 @@
 'use client';
 
-import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { IUserInfo } from '@/types/shared.types';
-import { ITeamsSearchParams } from '@/types/teams.types';
 import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
 import { EVENTS, SORT_OPTIONS, VIEW_TYPE_OPTIONS } from '@/utils/constants';
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import FilterCount from '../../ui/filter-count';
-import ViewType from '../../ui/view-type';
 import Image from 'next/image';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
+import { useGetTeamsFilterAsObjectFromStore } from '@/hooks/teams/useGetTeamsFilterAsObjectFromStore';
+import { useTeamFilterStore } from '@/services/teams';
 
 const TEAMS_SORT_OPTIONS = [
+  { value: SORT_OPTIONS.DEFAULT, label: 'Default' },
   { value: SORT_OPTIONS.ASCENDING, label: 'A-Z (Ascending)' },
   { value: SORT_OPTIONS.DESCENDING, label: 'Z-A (Descending)' },
 ];
@@ -21,7 +21,6 @@ const TEAMS_SORT_OPTIONS = [
  * Interface for the toolbar props
  */
 interface IToolbar {
-  searchParams: ITeamsSearchParams;
   totalTeams: number;
   userInfo: IUserInfo | undefined;
 }
@@ -31,13 +30,13 @@ interface IToolbar {
  * @param props - Contains search parameters, total number of teams, and user information.
  */
 const TeamsToolbar = (props: IToolbar) => {
-  const totalTeams = props?.totalTeams;
-  const searchParams = props?.searchParams;
-  const { updateQueryParams } = useUpdateQueryParams();
-  const userInfo = props?.userInfo;
+  const { userInfo, totalTeams } = props;
+
+  const { setParam } = useTeamFilterStore();
+  const searchParams = useGetTeamsFilterAsObjectFromStore();
 
   const searchBy = searchParams.searchBy || '';
-  const sortBy = searchParams.sort || SORT_OPTIONS.ASCENDING;
+  const sortBy = searchParams.sort || SORT_OPTIONS.DEFAULT;
   const view = searchParams.viewType || VIEW_TYPE_OPTIONS.GRID;
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -65,7 +64,7 @@ const TeamsToolbar = (props: IToolbar) => {
     }
     analytics.onTeamViewTypeChanged(type, getAnalyticsUserInfo(userInfo));
     triggerLoader(true);
-    updateQueryParams('viewType', type, searchParams);
+    setParam('viewType', type);
   };
 
   /**
@@ -90,19 +89,23 @@ const TeamsToolbar = (props: IToolbar) => {
     if (searchParams?.page) {
       searchParams.page = '1';
     }
-    updateQueryParams('searchBy', searchInput, searchParams);
+    setParam('searchBy', searchInput);
   };
 
   const onSortChange = (value: string) => {
-    if (value === sortBy) return;
+    if (value === sortBy) {
+      return;
+    }
+
     triggerLoader(true);
+
     analytics.onTeamSortByChanged('teams', value, getAnalyticsUserInfo(userInfo));
-    updateQueryParams('sort', value, searchParams);
+    setParam('sort', value);
   };
 
   const onClearSearchClicked = () => {
     setSearchInput('');
-    updateQueryParams('searchBy', '', searchParams);
+    setParam('searchBy', '');
   };
 
   useEffect(() => {
@@ -330,6 +333,7 @@ const TeamsToolbar = (props: IToolbar) => {
             .toolbar {
               background-color: #f1f5f9;
             }
+
             .toolbar__left {
               gap: 16px;
             }

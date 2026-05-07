@@ -8,6 +8,7 @@ import { useCheckGroupAccess } from '@/services/forum/hooks/useCheckGroupAccess'
 import Link from 'next/link';
 import { GROUPS_URL } from '@/utils/constants';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   value: string | undefined;
@@ -19,6 +20,8 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
   const { data } = useForumCategories();
   const { data: groupAccess } = useCheckGroupAccess();
   const analytics = useForumAnalytics();
+  const { currentUser } = useCurrentUserStore();
+  const canCreate = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'forum.write');
 
   const tabs = useMemo(() => {
     return (
@@ -62,15 +65,17 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
               Go to Groups <LinkIcon />
             </Link>
           )}
-          <button
-            className={s.triggerButton}
-            onClick={() => {
-              analytics.onCreatePostClicked();
-              router.push('/forum/posts/new');
-            }}
-          >
-            Create post <PlusIcon />
-          </button>
+          {canCreate && (
+            <button
+              className={s.triggerButton}
+              onClick={() => {
+                analytics.onCreatePostClicked();
+                router.push('/forum/posts/new');
+              }}
+            >
+              Create post <PlusIcon />
+            </button>
+          )}
         </div>
       </div>
       {hasGroupAccess && (

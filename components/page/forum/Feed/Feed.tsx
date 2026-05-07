@@ -13,8 +13,8 @@ import { CategoriesTabs } from '@/components/page/forum/CategoriesTabs';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 import { ForumIntroBanner } from '@/components/page/forum/ForumIntroBanner';
 
-
 import s from './Feed.module.scss';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 export const Feed = () => {
   const router = useRouter();
@@ -22,6 +22,8 @@ export const Feed = () => {
   const cid = searchParams.get('cid') as string;
   const scrollDirection = useScrollDirection();
   const analytics = useForumAnalytics();
+  const { currentUser } = useCurrentUserStore();
+  const canCreate = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'forum.write');
 
   const onValueChange = useCallback(
     (value: string) => {
@@ -42,17 +44,19 @@ export const Feed = () => {
         <CategoriesTabs onValueChange={onValueChange} value={cid} />
       </div>
       <Posts />
-      <button
-        className={clsx(s.triggerButton, {
-          [s.hidden]: scrollDirection === 'down',
-        })}
-        onClick={() => {
-          analytics.onCreatePostClicked();
-          router.push('/forum/posts/new');
-        }}
-      >
-        Create post <PlusIcon />
-      </button>
+      {canCreate && (
+        <button
+          className={clsx(s.triggerButton, {
+            [s.hidden]: scrollDirection === 'down',
+          })}
+          onClick={() => {
+            analytics.onCreatePostClicked();
+            router.push('/forum/posts/new');
+          }}
+        >
+          Create post <PlusIcon />
+        </button>
+      )}
       <ScrollToTopButton />
     </div>
   );

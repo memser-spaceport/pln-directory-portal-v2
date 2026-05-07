@@ -67,7 +67,7 @@ export const Post = () => {
   const { currentUser: userInfo } = useCurrentUserStore();
   const isLoggedIn = !!userInfo;
 
-  const { hasAccess: v2ForumAccess, deniedReason, isLoading: v2Loading } = useForumAccess();
+  const { hasAccess: v2ForumAccess, deniedReason, isLoading: v2Loading, canWrite } = useForumAccess();
 
   const { data } = useForumPost(topicId as string, isLoggedIn);
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
@@ -318,18 +318,20 @@ export const Post = () => {
         </div>
 
         <div className={s.divider} />
-        <CommentInput
-          tid={post.tid}
-          toPid={replyToPid ?? post.pid}
-          replyToName={replyToItem?.user.displayname}
-          timestamp={post.timestamp}
-          onReset={() => {
-            setReplyToPid(null);
-            const params = new URLSearchParams(searchParams.toString());
-            params.delete('replyTo');
-            router.replace(`?${params.toString()}`, { scroll: false });
-          }}
-        />
+        {canWrite && (
+          <CommentInput
+            tid={post.tid}
+            toPid={replyToPid ?? post.pid}
+            replyToName={replyToItem?.user.displayname}
+            timestamp={post.timestamp}
+            onReset={() => {
+              setReplyToPid(null);
+              const params = new URLSearchParams(searchParams.toString());
+              params.delete('replyTo');
+              router.replace(`?${params.toString()}`, { scroll: false });
+            }}
+          />
+        )}
       </div>
 
       <div className={s.root}>

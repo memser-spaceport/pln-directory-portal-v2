@@ -21,6 +21,7 @@ interface Props {
 
 export const PostComments = ({ comments, tid, mainPid, onReply, userInfo, timestamp }: Props) => {
   const isMobile = useMedia('(max-width: 960px)', false);
+  const canWrite = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'forum.write');
 
   if (!comments) return null;
 
@@ -30,9 +31,11 @@ export const PostComments = ({ comments, tid, mainPid, onReply, userInfo, timest
     <div className={s.root}>
       <div className={s.title}>Comments ({comments.length})</div>
 
-      <div className={s.input}>
-        <CommentsInputDesktop tid={tid} toPid={mainPid} timestamp={timestamp} />
-      </div>
+      {canWrite && (
+        <div className={s.input}>
+          <CommentsInputDesktop tid={tid} toPid={mainPid} timestamp={timestamp} />
+        </div>
+      )}
 
       <div className={s.list}>
         {nested.map((item) => (

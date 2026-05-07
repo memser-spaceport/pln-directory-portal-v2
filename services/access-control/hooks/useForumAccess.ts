@@ -8,9 +8,10 @@ export type ForumAccessDeniedReason = 'base' | 'investor';
 interface ForumAccessResult {
   hasAccess: boolean;
   deniedReason: ForumAccessDeniedReason | null;
+  canWrite: boolean;
 }
 
-const EMPTY: ForumAccessResult = { hasAccess: false, deniedReason: 'base' };
+const EMPTY: ForumAccessResult = { hasAccess: false, deniedReason: 'base', canWrite: false };
 
 export function useForumAccess() {
   const { currentUser } = useCurrentUserStore();
@@ -24,14 +25,15 @@ export function useForumAccess() {
     queryFn: fetchMyAccess,
     select: (data): ForumAccessResult => {
       const hasAccess = data.effectivePermissions.includes('forum.read');
-      if (hasAccess) return { hasAccess: true, deniedReason: null };
+      const canWrite = data.effectivePermissions.includes('forum.write');
+      if (hasAccess) return { hasAccess: true, deniedReason: null, canWrite };
       const hasMemberAccess = data.effectivePermissions.includes('member.contacts.read');
-      return { hasAccess: false, deniedReason: hasMemberAccess ? 'investor' : 'base' };
+      return { hasAccess: false, deniedReason: hasMemberAccess ? 'investor' : 'base', canWrite };
     },
     staleTime: 5 * 60 * 1000,
     enabled: !!currentUser,
     retry: 2,
   });
 
-  return { hasAccess: data.hasAccess, deniedReason: data.deniedReason, isLoading, isError };
+  return { hasAccess: data.hasAccess, deniedReason: data.deniedReason, isLoading, isError, canWrite: data.canWrite };
 }

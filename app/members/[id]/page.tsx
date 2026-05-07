@@ -97,7 +97,7 @@ const MemberDetails = ({ params }: { params: any }) => {
   const { currentUser } = useCurrentUserStore();
   const isAvailableToConnect = isMemberAvailableToConnect(member);
   const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
-  const status = member?.rbac.status;
+  const status = member?.rbac?.status;
   const isNewInvestor = status === 'PENDING' && isOwner && isDemodaySignUpSource(member?.signUpSource);
 
   // Scroll to top when member data is loaded or member ID changes

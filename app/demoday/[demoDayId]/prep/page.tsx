@@ -41,7 +41,13 @@ function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
       <SyncParamsToUrl debounceTime={0} />
       <DashboardPagesLayout
         filters={<AdminFilters />}
-        content={<AdminContent isDirectoryAdmin={!!hasAdminAccess} canEdit={canEdit} />}
+        content={
+          <AdminContent
+            elevatedStaff={hasAdminAccess}
+            showMembersDirectoryLink={isDirectoryAdmin}
+            canEdit={canEdit}
+          />
+        }
       />
     </FiltersHydrator>
   );

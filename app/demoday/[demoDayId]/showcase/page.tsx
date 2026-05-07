@@ -18,7 +18,6 @@ function DemoDayDemoShowcasePage({ params }: { params: { demoDayId: string } }) 
   const hasAccess = isDirectoryAdmin || data?.isDemoDayAdmin || data?.isDemoDayReadOnlyAdmin;
   const canEdit = isDirectoryAdmin || !!data?.isDemoDayAdmin;
 
-
   useEffect(() => {
     // Redirect non-admins to regular demo day page
     if (!hasAccess && data) {
@@ -36,7 +35,14 @@ function DemoDayDemoShowcasePage({ params }: { params: { demoDayId: string } }) 
       <SyncParamsToUrl debounceTime={0} />
       <DashboardPagesLayout
         filters={<AdminFilters />}
-        content={<AdminContent isDirectoryAdmin={!!hasAccess} canEdit={canEdit} label="Showcase" />}
+        content={
+          <AdminContent
+            elevatedStaff={hasAccess}
+            showMembersDirectoryLink={isDirectoryAdmin}
+            canEdit={canEdit}
+            label="Showcase"
+          />
+        }
       />
     </FiltersHydrator>
   );

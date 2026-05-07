@@ -15,11 +15,15 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useParams } from 'next/navigation';
 
 export const AdminContent = ({
-  isDirectoryAdmin,
+  elevatedStaff,
+  showMembersDirectoryLink,
   canEdit = true,
   label = 'Demo Day Prep',
 }: {
-  isDirectoryAdmin: boolean;
+  /** Directory or demo-day staff (including read-only) — drives team drawer “admin path” UX. */
+  elevatedStaff: boolean;
+  /** `directory.admin.full` only — investor count link to `/members`. */
+  showMembersDirectoryLink: boolean;
   canEdit?: boolean;
   label?: string;
 }) => {
@@ -82,7 +86,7 @@ export const AdminContent = ({
                   <span>
                     {demoDayData?.teamsCount} Team{(demoDayData?.teamsCount ?? 0) > 1 ? 's' : ''}
                   </span>
-                  {demoDayData?.investorsCount && demoDayData?.investorsCount > 100 ? (
+                  {demoDayData?.investorsCount && demoDayData?.investorsCount > 100 && showMembersDirectoryLink ? (
                     <>
                       &nbsp;&bull;&nbsp;
                       <Link href={`/members?isInvestor=true`}>
@@ -118,7 +122,7 @@ export const AdminContent = ({
         </div>
       </div>
 
-      <AdminTeamsList profiles={profiles} isLoading={isLoading} isDirectoryAdmin={isDirectoryAdmin} canEdit={canEdit} />
+      <AdminTeamsList profiles={profiles} isLoading={isLoading} elevatedStaff={elevatedStaff} canEdit={canEdit} />
     </div>
   );
 };

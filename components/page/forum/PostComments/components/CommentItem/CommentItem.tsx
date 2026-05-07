@@ -36,8 +36,9 @@ interface Props {
 
 export const CommentItem = (props: Props) => {
   const { item, depth = 0, onReply, userInfo } = props;
+  const canWrite = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'forum.write');
   const isReply = depth > 0;
-  const canReply = depth < MAX_DEPTH;
+  const canReply = depth < MAX_DEPTH && canWrite;
 
   const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);

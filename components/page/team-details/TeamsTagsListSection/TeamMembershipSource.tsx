@@ -19,11 +19,9 @@ export function TeamMembershipSource(props: Props) {
   const { team } = props;
   const { currentUser } = useCurrentUserStore();
   const canViewContent = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'membership.source.read');
-  const canEditContent = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'membership.source.write');
   const isAdmin = isAdminUser(currentUser);
-
   const canView = canViewContent || isAdmin;
-  const canEdit = canEditContent || isAdmin;
+  const canEdit = isAdmin;
 
   const membershipSources = useGetTeamTagsListOptions(team, 'membershipSources');
   const availableMembershipSources = useGetTeamTagsListEditOptions('membershipSources');

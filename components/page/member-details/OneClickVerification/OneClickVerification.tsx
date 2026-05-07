@@ -31,7 +31,7 @@ const fade = {
 export const OneClickVerification = ({ userInfo, member, isNewInvestor }: Props) => {
   const router = useRouter();
   const isOwner = userInfo?.uid === member.id;
-  const status = member.rbac.status;
+  const status = member?.rbac?.status;
 
   const hasMissingRequiredData = !member?.linkedinProfile && status === 'PENDING' && !isNewInvestor;
   const showIncomplete = hasMissingRequiredData && isOwner;

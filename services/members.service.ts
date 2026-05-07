@@ -224,7 +224,7 @@ export const getMember = async (
   const hasEditAccess = isAdminUser(userInfo) || userInfo?.uid === member?.id;
 
   if (USE_ACCESS_CONTROL_V2) {
-    if (!hasEditAccess && member.rbac.status !== 'APPROVED') {
+    if (!hasEditAccess && member?.rbac?.status !== 'APPROVED') {
       return { error: { status: 404, statusText: 'Member not found' } };
     }
   } else {

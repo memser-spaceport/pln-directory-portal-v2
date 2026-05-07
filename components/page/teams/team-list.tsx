@@ -55,7 +55,7 @@ const TeamList = (props: any) => {
         style={{ overflow: 'unset' }}
       >
         <div className="team-list__grid">
-          {userInfo && userInfo.rbac.status === 'APPROVED' && data?.length > 0 && (
+          {userInfo && userInfo?.rbac?.status === 'APPROVED' && data?.length > 0 && (
             <TeamAddCard userInfo={userInfo} viewType={VIEW_TYPE_OPTIONS.GRID} />
           )}
           {data?.map((team: ITeam, index: number) => (

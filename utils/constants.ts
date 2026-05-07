@@ -1,5 +1,5 @@
 export const PAGE_ROUTES = {
-  HOME: '/',
+  HOME: '/home',
   MEMBERS: '/members',
   TEAMS: '/teams',
   SETTINGS: '/settings',
@@ -568,6 +568,13 @@ export const HOME_ANALYTICS_EVENTS = {
   DISCOVER_CARD_CLICKED: 'discover-card-clicked',
   DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked',
   FEATURED_FILTER_CLICKED: 'home_featured_filter_click',
+};
+
+export const TEAM_NEWS_ANALYTICS_EVENTS = {
+  TEAM_NEWS_TAB_CLICKED: 'team-news-tab-clicked',
+  TEAM_NEWS_CATEGORY_CLICKED: 'team-news-category-clicked',
+  TEAM_NEWS_LOAD_MORE_CLICKED: 'team-news-load-more-clicked',
+  TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
 };
 
 export const EVENTS_ANALYTICS = {

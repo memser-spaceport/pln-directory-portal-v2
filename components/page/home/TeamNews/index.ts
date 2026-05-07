@@ -1,0 +1,1 @@
+export { TeamNews } from './TeamNews';

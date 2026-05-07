@@ -11,7 +11,6 @@ import { IUserInfo } from '@/types/shared.types';
 import { getTeamPriority, getPriorityLabel } from '@/utils/team.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { isTierUser } from '@/utils/user/isTierUser';
-import { useCurrentUserStore } from '@/services/auth/store';
 
 interface ITeamGridView {
   userInfo?: IUserInfo;
@@ -28,7 +27,9 @@ const TeamGridView = (props: ITeamGridView) => {
   const analytics = useTeamAnalytics();
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
   const carousel: any[] = [];
-  const isTierViewer = isTierUser(userInfo) || isAdminUser(userInfo);
+  const canSearch = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'team.search.read');
+  const canSeePriority = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'team.priority.read');
+  const isTierViewer = isAdminUser(userInfo) || canSearch || isTierUser(userInfo) || canSeePriority;
 
   const tags = useMemo(() => {
     const priority = getTeamPriority(team);

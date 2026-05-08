@@ -2,90 +2,92 @@
 
 .banner {
   display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 20px;
-  background: #f2f5ff;
-  border: 1px solid #aebfff;
-  border-radius: 16px;
-  margin-bottom: 16px;
-  overflow: hidden;
-}
-
-
-.inner {
-  flex: 1;
-  gap: 16px;
-  display: flex;
   align-items: center;
   justify-content: space-between;
-
-  min-width: 0;
-}
-
-.body {
-  gap: 12px;
-  display: flex;
-  align-items: flex-start;
+  gap: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(90deg, #eff5ff 0%, var(--Neutral-Slate-50) 100%);
+  border: 1px solid #c7d6fe;
+  border-radius: 12px;
+  margin-bottom: 16px;
 }
 
 .copy {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
   min-width: 0;
-  padding-right: 16px;
 }
 
 .title {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 24px;
-  letter-spacing: -0.4px;
-  color: #1b4dff;
+  color: var(--Neutral-Slate-900);
   margin: 0;
 }
 
 .subtitle {
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  letter-spacing: -0.3px;
-  color: #4174ff;
+  font-size: 12px;
+  color: var(--foreground-neutral-secondary, #64748b);
   margin: 0;
 }
 
 .actions {
-  gap: 12px;
   display: flex;
-  flex-shrink: 0;
   align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.primaryButton {
+  background: #156ff7;
+  color: var(--Neutral-White);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.primaryButton:hover {
+  background: #1158c4;
+}
+
+.primaryButton:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
 }
 
 @include mobile-only {
   .banner {
+    flex-direction: column;
+    align-items: stretch;
     padding: 12px;
+    gap: 12px;
     margin: 0 8px 16px;
   }
 
-  .inner {
-    flex-direction: column;
-    gap: 12px;
+  .actions {
+    width: 100%;
   }
 
-  .copy {
-    padding-right: 0;
+  .primaryButton {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 14px;
   }
 }
 
 @include tablet-portrait-only {
-  .inner {
+  .banner {
     flex-direction: column;
+    align-items: stretch;
     gap: 12px;
   }
 
-  .copy {
-    padding-right: 0;
+  .actions {
+    justify-content: flex-end;
   }
 }

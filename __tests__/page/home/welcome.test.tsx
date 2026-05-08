@@ -27,6 +27,13 @@ describe('Welcome', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'LabOS' })).toBeInTheDocument();
   });
 
+  it('always renders an <h1> regardless of auth state', () => {
+    const { rerender } = render(<Welcome firstName={null} isLoggedIn={false} />);
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+    rerender(<Welcome firstName="Alice" isLoggedIn={true} />);
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+  });
+
   describe('unauth state', () => {
     it('renders the unauth pitch and shows the Sign in button', () => {
       render(<Welcome firstName={null} isLoggedIn={false} />);

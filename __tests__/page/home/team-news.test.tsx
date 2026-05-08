@@ -138,6 +138,16 @@ describe('TeamNews', () => {
     expect(screen.getByText(/No network news in this filter/i)).toBeInTheDocument();
   });
 
+  it('shows g.total in tab badge, not items.length', () => {
+    const groupsWithLargerTotal: ITeamNewsGroup[] = [
+      { focusArea: FA_AI, total: 99, items: aiItems },
+      { focusArea: FA_DHR, total: dhrItems.length, items: dhrItems },
+    ];
+    render(<TeamNews groups={groupsWithLargerTotal} />);
+    const aiTab = screen.getByRole('tab', { name: /AI & Robotics/ });
+    expect(within(aiTab).getByText('99')).toBeInTheDocument();
+  });
+
   it('reports analytics when a card is clicked', () => {
     render(<TeamNews groups={groups} />);
     const card = screen.getByText(/Headline ai-1/).closest('a');

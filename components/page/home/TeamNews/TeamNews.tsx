@@ -51,7 +51,7 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
       { id: ALL_TAB, label: 'All', count: allItems.length },
     ];
     for (const g of groups) {
-      tabs.push({ id: g.focusArea.title, label: g.focusArea.title, count: g.items.length });
+      tabs.push({ id: g.focusArea.title, label: g.focusArea.title, count: g.total });
     }
     return tabs;
   }, [groups, allItems]);

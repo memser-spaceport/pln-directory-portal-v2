@@ -38,7 +38,7 @@
   color: #0a0c11;
   margin: 0;
 
-  @media (min-width: 1024px) {
+  @include breakpoint-1024 {
     font-size: 28px;
     line-height: 36px;
     letter-spacing: -0.6px;
@@ -60,7 +60,7 @@
   flex-wrap: wrap;
   justify-content: flex-end;
 
-  @media (max-width: 639px) {
+  @include mobile-only {
     width: 100%;
     justify-content: flex-start;
   }
@@ -74,7 +74,7 @@
   text-align: right;
   max-width: 220px;
 
-  @media (max-width: 639px) {
+  @include mobile-only {
     text-align: left;
     max-width: none;
   }
@@ -85,6 +85,7 @@
   align-items: center;
   gap: 6px;
   height: 38px;
+  line-height: 1;
   padding: 0 18px;
   border-radius: 9999px;
   background: #1b4dff;
@@ -105,7 +106,7 @@
     text-decoration: none;
   }
 
-  @media (max-width: 639px) {
+  @include mobile-only {
     width: 100%;
     justify-content: center;
   }

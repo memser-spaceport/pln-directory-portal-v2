@@ -34,11 +34,9 @@ export default async function Home() {
     <>
       <div className={styles.home}>
         <div className={styles.home__cn}>
-          {!isLoggedIn && (
-            <div className={styles.home__cn__welcome}>
-              <Welcome firstName={firstName} isLoggedIn={isLoggedIn} />
-            </div>
-          )}
+          <div className={styles.home__cn__welcome}>
+            <Welcome firstName={firstName} isLoggedIn={isLoggedIn} />
+          </div>
           <div className={styles.home__cn__teamnews}>
             <TeamNews groups={teamNewsGroups} />
           </div>
@@ -75,6 +73,7 @@ const getPageData = async () => {
         getDiscoverData(),
         getTeamNewsGroupedByFocusArea(),
       ]);
+    teamNewsGroups = teamNewsResponse?.groups ?? [];
     if (
       teamFocusAreaResponse?.error ||
       projectFocusAreaResponse?.error ||
@@ -102,7 +101,6 @@ const getPageData = async () => {
       : [];
     featuredData = formatFeaturedData(featuredResponse?.data);
     discoverData = discoverResponse?.data;
-    teamNewsGroups = teamNewsResponse?.groups ?? [];
     return {
       isError,
       userInfo,

@@ -96,7 +96,7 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 
-  @media (min-width: 1024px) {
+  @include breakpoint-1024 {
     font-size: 16px;
     line-height: 22px;
   }

@@ -22,7 +22,7 @@
   color: #0a0c11;
   margin: 0;
 
-  @media (min-width: 1024px) {
+  @include breakpoint-1024 {
     font-size: 32px;
     line-height: 42px;
     letter-spacing: -0.75px;
@@ -178,7 +178,7 @@
   grid-template-columns: 1fr;
   gap: 12px;
 
-  @media (min-width: 768px) {
+  @include tablet-portrait {
     grid-template-columns: 1fr 1fr;
     gap: 16px;
   }

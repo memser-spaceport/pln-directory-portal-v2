@@ -45,24 +45,18 @@
   background: var(--background-base-white, #fff);
 
   box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+  max-width: 620px;
 }
 
 .content {
+  gap: var(--spacing-sm, 12px);
   display: flex;
-  padding: var(--spacing-md, 16px);
+  align-self: stretch;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--spacing-sm, 12px);
-  align-self: stretch;
-}
 
-.desc {
-  margin: 0;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 22px;
-  letter-spacing: -0.2px;
+  padding: var(--spacing-md, 16px);
 }
 
 .placeholder {
@@ -74,11 +68,19 @@
 }
 
 .empty {
+  gap: 14px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  width: 100%;
+}
+
+.emptyText {
+  gap: 4px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  width: 100%;
 }
 
 .emptyTitle {
@@ -95,23 +97,13 @@
   font-weight: 400;
   color: var(--foreground-neutral-tertiary, #8897ae);
   letter-spacing: -0.2px;
+  max-width: 370px;
 }
 
-.browseLink {
-  margin-top: 8px;
-  display: inline-flex;
+.browseBtn {
+  gap: 4px;
+  display: flex;
   align-items: center;
-  background: #156ff7;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-}
 
-.browseLink:hover {
-  background: #1158c4;
+  white-space: nowrap;
 }

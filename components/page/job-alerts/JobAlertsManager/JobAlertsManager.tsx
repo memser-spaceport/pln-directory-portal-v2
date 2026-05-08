@@ -54,7 +54,7 @@ export function JobAlertsManager() {
                 </p>
               </div>
               <Link href="/jobs">
-                <Button className={s.browseBtn} size="xs" variant="secondary">
+                <Button className={s.browseBtn} size="xs" variant="secondary" style="border">
                   <span>Browse jobs</span>
                   <ArrowUpRight />
                 </Button>

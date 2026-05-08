@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import type { IUserInfo } from '@/types/shared.types';
@@ -13,20 +13,16 @@ import { useCreateJobAlert } from '@/services/job-alerts/hooks/useCreateJobAlert
 import { useJobAlertMatch } from '@/services/job-alerts/hooks/useJobAlertMatch';
 import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import { filterStateFromURL } from '@/utils/jobs.utils';
-import {
-  jobAlertFilterStateFromURL,
-  hasActiveFilters,
-  filterStateToURLSearchParams,
-} from '@/utils/job-alerts.utils';
+import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchParams } from '@/utils/job-alerts.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
 import { toast } from '@/components/core/ToastContainer';
 import Error from '@/components/core/error';
 import TeamGroupCard from '@/components/page/jobs/TeamGroupCard';
-import JobAlertBanner from '@/components/page/jobs/JobAlertBanner/JobAlertBanner';
+import { JobAlertBanner } from '@/components/page/jobs/JobAlertBanner';
 import JobAlertEmptyState from '@/components/page/jobs/JobAlertEmptyState/JobAlertEmptyState';
-import JobAlertIndicator from '@/components/page/jobs/JobAlertIndicator/JobAlertIndicator';
+import { JobAlertIndicator } from '@/components/page/jobs/JobAlertIndicator';
 
 import JobsMobileFilters from '@/components/page/jobs/JobsMobileFilters';
 import s from './JobsContent.module.scss';
@@ -55,6 +51,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   const alertFilterState = useMemo(() => jobAlertFilterStateFromURL(searchParams), [searchParams]);
   const hasFilters = hasActiveFilters(alertFilterState);
   const { userAlert, filtersMatchAlert } = useJobAlertMatch(alertFilterState, isLoggedIn);
+  const [indicatorDismissed, setIndicatorDismissed] = useState(false);
 
   // Auto-apply the user's saved job alert filters on /jobs landing.
   // Done client-side (not server-side via redirect()) because Next.js parallel routes
@@ -137,7 +134,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   };
 
   const filterState = filterStateFromURL(searchParams);
-  const showIndicator = Boolean(userAlert && hasFilters && filtersMatchAlert);
+  const showIndicator = Boolean(userAlert && hasFilters && filtersMatchAlert && !indicatorDismissed);
 
   return (
     <div className={s.root}>
@@ -171,7 +168,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
         />
       </div>
 
-      {showIndicator && userAlert && <JobAlertIndicator alertName={userAlert.name} />}
+      {showIndicator && userAlert && <JobAlertIndicator alert={userAlert} onDismiss={() => setIndicatorDismissed(true)} />}
 
       {hasFilters && groups.length > 0 && (
         <JobAlertBanner filterState={alertFilterState} resultCount={totalRoles} isLoggedIn={isLoggedIn} />

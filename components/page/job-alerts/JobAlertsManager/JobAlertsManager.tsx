@@ -3,9 +3,16 @@
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+
 import { useJobAlerts } from '@/services/job-alerts/hooks/useJobAlerts';
+
 import { triggerLoader } from '@/utils/common.utils';
-import { JobAlertRow } from '../JobAlertRow/JobAlertRow';
+
+import { Button } from '@/components/common/Button';
+
+import { ArrowUpRight } from './components/Icons';
+import { JobAlertRow } from './components/JobAlertRow';
+
 import s from './JobAlertsManager.module.scss';
 
 export function JobAlertsManager() {
@@ -40,17 +47,21 @@ export function JobAlertsManager() {
             <div className={s.placeholder}>Could not load your job alert. Please try again.</div>
           ) : !alert ? (
             <div className={s.empty}>
-              <p className={s.emptyTitle}>You don&apos;t have a job alert yet.</p>
-              <p className={s.emptySub}>Browse jobs, apply some filters, and set a job alert to get a weekly email.</p>
-              <Link href="/jobs" className={s.browseLink}>
-                Browse jobs
+              <div className={s.emptyText}>
+                <p className={s.emptyTitle}>You don&apos;t have a job alert yet.</p>
+                <p className={s.emptySub}>
+                  Browse jobs, apply some filters, and set a job alert to get a weekly email.
+                </p>
+              </div>
+              <Link href="/jobs">
+                <Button className={s.browseBtn} size="xs" variant="secondary">
+                  <span>Browse jobs</span>
+                  <ArrowUpRight />
+                </Button>
               </Link>
             </div>
           ) : (
-            <>
-              <JobAlertRow alert={alert} />
-              <p className={s.desc}>We&apos;ll email you a weekly digest when new roles match these filters.</p>
-            </>
+            <JobAlertRow alert={alert} />
           )}
         </div>
       </div>

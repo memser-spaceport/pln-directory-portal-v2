@@ -13,17 +13,17 @@ import { useAllMembers } from '@/services/members/hooks/useAllMembers';
 import { TeamMembersView } from './components/TeamMembersView';
 import { TeamMembersAdd } from './components/TeamMembersAdd';
 import { TeamMembersEditMember } from './components/TeamMembersEditMember';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   members: IMember[] | undefined;
   team: ITeam | undefined;
-  userInfo: IUserInfo | undefined;
 }
 
 export function TeamMembers(props: Props) {
-  const { team, userInfo } = props;
+  const { team } = props;
   const members = props.members ?? [];
-
+  const { currentUser: userInfo } = useCurrentUserStore();
   const [isAddMode, toggleIsAddMode] = useToggle(false);
   const [editingMember, setEditingMember] = useState<IMember | null>(null);
 
@@ -37,12 +37,7 @@ export function TeamMembers(props: Props) {
   if (editingMember) {
     return (
       <DetailsSection editView>
-        <TeamMembersEditMember
-          member={editingMember}
-          members={members}
-          team={team!}
-          onClose={handleCloseEditMember}
-        />
+        <TeamMembersEditMember member={editingMember} members={members} team={team!} onClose={handleCloseEditMember} />
       </DetailsSection>
     );
   }

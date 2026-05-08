@@ -31,7 +31,7 @@ import s from './TeamMembersView.module.scss';
 interface Props {
   members: IMember[];
   team: ITeam | undefined;
-  userInfo: IUserInfo | undefined;
+  userInfo: IUserInfo | null;
   toggleIsEditMode: () => void;
   onEditMember: (member: IMember) => void;
 }

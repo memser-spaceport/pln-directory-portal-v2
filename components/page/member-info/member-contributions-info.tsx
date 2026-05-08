@@ -11,7 +11,7 @@ import TextAreaEditor from '@/components/form/text-area-editor';
 import MonthYearPicker from '@/components/form/month-year-picker';
 import { getAnalyticsUserInfo, getUniqueId } from '@/utils/common.utils';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
-import { getUserInfo } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface MemberContributionInfoProps {
   initialValues: any;
@@ -24,7 +24,7 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
   const currentProjectsCount = contributionInfos?.filter((v: any) => v.currentProject === true).length;
   const [expandedId, setExpandedId] = useState(-1);
   const analytics = useSettingsAnalytics();
-  const userInfo = getUserInfo();
+  const { currentUser: userInfo } = useCurrentUserStore();
 
   const defaultValues = {
     projectUid: getUniqueId(),

@@ -1,7 +1,6 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { getFormattedDateString } from '@/utils/irl.utils';
 import { useEffect, useRef, useState } from 'react';
 import IrlEventsPopupOverlay from './irl-events-popup-overlay';
@@ -11,13 +10,10 @@ import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import IrlEventsTableView from './irl-events-table-view';
 import clip from 'text-clipper';
-import { DOMPurify } from 'isomorphic-dompurify';
 import SearchGatherings from './search-gatherings';
 import Image from 'next/image';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { IUserInfo } from '@/types/shared.types';
-import { getAccessLevel } from '@/utils/auth.utils';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
 
 interface EventDetailsProps {
@@ -44,7 +40,6 @@ const IrlPastEvents = ({
 }: EventDetailsProps) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { updateQueryParams } = useUpdateQueryParams();
   const analytics = useIrlAnalytics();
   const [resources, setResources] = useState([]);
 
@@ -60,7 +55,6 @@ const IrlPastEvents = ({
 
   const eventsToShow = events;
 
-  const accessLevel = getAccessLevel(userInfo as IUserInfo, isLoggedIn);
   const { canWrite: v2CanWrite } = useIrlGoingAccess();
 
   // Determine the selected event based on searchParams
@@ -399,7 +393,7 @@ const IrlPastEvents = ({
                                       </span>
                                     )}
                                   </div>
-                                  {(USE_ACCESS_CONTROL_V2 ? v2CanWrite : accessLevel === 'advanced') && (
+                                  {v2CanWrite && (
                                     <button
                                       className="root__irl__mobileView__dropdown__delete__btn"
                                       onClick={(e) => {

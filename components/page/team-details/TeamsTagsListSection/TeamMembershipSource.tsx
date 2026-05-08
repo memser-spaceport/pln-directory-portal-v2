@@ -4,22 +4,24 @@ import { ITeam } from '@/types/teams.types';
 import { IUserInfo } from '@/types/shared.types';
 
 import { isAdminUser } from '@/utils/user/isAdminUser';
-import { isTierUser } from '@/utils/user/isTierUser';
 
 import { useGetTeamTagsListOptions } from './hooks/useGetTeamTagsListOptions';
 import { useGetTeamTagsListEditOptions } from './hooks/useGetTeamTagsListEditOptions';
 
 import { TeamsTagsListSection } from './TeamsTagsListSection';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   team: ITeam;
-  userInfo: IUserInfo;
 }
 
 export function TeamMembershipSource(props: Props) {
-  const { team, userInfo } = props;
-
-  const canView = isTierUser(userInfo) || isAdminUser(userInfo);
+  const { team } = props;
+  const { currentUser } = useCurrentUserStore();
+  const canViewContent = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'membership.source.read');
+  const isAdmin = isAdminUser(currentUser);
+  const canView = canViewContent || isAdmin;
+  const canEdit = isAdmin;
 
   const membershipSources = useGetTeamTagsListOptions(team, 'membershipSources');
   const availableMembershipSources = useGetTeamTagsListEditOptions('membershipSources');
@@ -29,7 +31,7 @@ export function TeamMembershipSource(props: Props) {
       <TeamsTagsListSection
         team={team}
         view={{
-          canEdit: true,
+          canEdit,
           tags: team?.membershipSources,
           title: 'Membership Source',
           emptyMessage: 'No membership source added.',

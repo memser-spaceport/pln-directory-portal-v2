@@ -1,11 +1,10 @@
 'use client';
 import { clsx } from 'clsx';
-import Cookies from 'js-cookie';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
-import { getParsedValue } from '@/utils/common.utils';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { isDemodaySignUpSource } from '@/utils/member.utils';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import LoginBtn from '@/components/core/navbar/login-btn';
@@ -13,7 +12,6 @@ import { LandingBase } from '@/components/page/demo-day/LandingBase';
 import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { IUserInfo } from '@/types/shared.types';
 import { useTimeOnPage } from '@/hooks/useTimeOnPage';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
@@ -26,7 +24,7 @@ import s from './Landing.module.scss';
 
 export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDayState }) {
   const { data, isLoading } = useGetDemoDayState(initialDemoDayState);
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
   const params = useParams();
   const searchParams = useSearchParams();
   const demoDaySlug = params?.demoDayId as string;

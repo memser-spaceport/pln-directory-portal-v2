@@ -1,14 +1,24 @@
 import { useMemo } from 'react';
-import { IJobTeam } from '@/types/jobs.types';
 
-const TAG_BG_COLOR = 'rgba(21,111,247,.06)';
+import { IJobTeam } from '@/types/jobs.types';
+import { useJobsFilterStore } from '@/services/jobs/store';
+import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
 export function useGetFocusTags(team: IJobTeam) {
+  const { focusAreas, subFocusAreas } = team;
+
+  const { params } = useJobsFilterStore();
+  const rawFocusFilter = params.get('focus');
+
   return useMemo(() => {
-    const dedupedSub = team.subFocusAreas.filter((t) => !team.focusAreas.includes(t));
+    const teamFocusAreas = focusAreas.filter((f) => !subFocusAreas.includes(f));
+    const focusFilter = rawFocusFilter ? rawFocusFilter.split(URL_QUERY_VALUE_SEPARATOR).filter(Boolean) : [];
+
+    const teamSubFocusAreas = subFocusAreas.filter((t) => focusFilter.includes(t));
+
     return [
-      ...team.focusAreas.map((title) => ({ title, color: '' })),
-      ...dedupedSub.map((title) => ({ title, color: '' })),
+      ...teamFocusAreas.map((title) => ({ title, color: '' })),
+      ...teamSubFocusAreas.map((title) => ({ title, color: '' })),
     ];
-  }, [team.focusAreas, team.subFocusAreas]);
+  }, [focusAreas, subFocusAreas, rawFocusFilter]);
 }

@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { AccessControlQueryKeys } from '@/services/access-control/constants';
 import { fetchMyAccess } from '@/services/access-control/access-control.service';
-import { getUserInfoFromLocal } from '@/utils/common.utils';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 export function useMemberContactsAccess() {
-  const userInfo = getUserInfoFromLocal();
+  const { currentUser } = useCurrentUserStore();
 
   const {
     data: hasAccess = false,
@@ -15,7 +15,7 @@ export function useMemberContactsAccess() {
     queryFn: fetchMyAccess,
     select: (data) => data.effectivePermissions.includes('member.contacts.read'),
     staleTime: 5 * 60 * 1000,
-    enabled: !!userInfo,
+    enabled: !!currentUser,
     retry: 2,
   });
 

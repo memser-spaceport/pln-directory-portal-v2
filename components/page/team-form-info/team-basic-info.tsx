@@ -30,8 +30,7 @@ interface ITeamBasicInfo {
 }
 
 function TeamBasicInfo(props: ITeamBasicInfo) {
-  const { errors, userInfo, setLongDesc, initialValues, longDescMaxLength, isInvestmentFund, setIsInvestmentFund } =
-    props;
+  const { errors, setLongDesc, initialValues, longDescMaxLength, isInvestmentFund, setIsInvestmentFund } = props;
   const { isInvestor: v2IsInvestor } = useInvestorAccess();
 
   const isEdit = props.isEdit ?? false;
@@ -213,7 +212,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
               Please upload a squared image in PNG or JPEG format with file size less than 4MB.
             </span>
           </p>
-          {(USE_ACCESS_CONTROL_V2 ? !v2IsInvestor : !isInvestor(userInfo?.accessLevel)) && (
+          {!v2IsInvestor && (
             <div className="teaminfo__form__plnFriend__toggle">
               <input
                 type="checkbox"

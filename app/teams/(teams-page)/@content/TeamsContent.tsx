@@ -5,7 +5,7 @@ import { ITeamsSearchParams } from '@/types/teams.types';
 import { IUserInfo } from '@/types/shared.types';
 import EmptyResult from '../../../../components/core/empty-result';
 import Error from '../../../../components/core/error';
-import TeamsToolbar from '../../../../components/page/teams/teams-toolbar';
+import { TeamsToolbar } from '../../../../components/page/teams/TeamsToolbar';
 import TeamList from '@/components/page/teams/team-list';
 import styles from './page.module.css';
 import { fetchTeamsList } from '../teamsApi';
@@ -13,13 +13,17 @@ import { useEffect } from 'react';
 import { triggerLoader } from '@/utils/common.utils';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
 import { useTeamsFilters } from '../hooks/useGetTeamsFilterValues';
+import { useGetTeamsFilterAsObjectFromStore } from '@/hooks/teams/useGetTeamsFilterAsObjectFromStore';
 
 interface TeamsContentProps {
-  searchParams: ITeamsSearchParams;
   userInfo: IUserInfo | undefined;
 }
 
-export default function TeamsContent({ searchParams, userInfo }: TeamsContentProps) {
+export default function TeamsContent(props: TeamsContentProps) {
+  const { userInfo } = props;
+
+  const searchParams = useGetTeamsFilterAsObjectFromStore();
+
   // Use the shared hook for filters
   const { filterValues, isLoading: isLoadingFilters, isError: isFiltersError } = useTeamsFilters(searchParams);
 
@@ -61,7 +65,7 @@ export default function TeamsContent({ searchParams, userInfo }: TeamsContentPro
   return (
     <div className={styles.team__right__content}>
       <div className={styles.team__right__toolbar}>
-        <TeamsToolbar totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />
+        <TeamsToolbar totalTeams={totalTeams} userInfo={userInfo} />
       </div>
       <div className={styles.team__right__teamslist}>
         {teams.length > 0 ? (

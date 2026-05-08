@@ -28,7 +28,7 @@ type TeamProjectsFormData = {
 interface Props {
   team: ITeam;
   projects: IFormatedTeamProject[];
-  userInfo: IUserInfo | undefined;
+  userInfo: IUserInfo | null;
   toggleIsEditMode: () => void;
 }
 

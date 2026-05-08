@@ -10,6 +10,8 @@ import { useJobAlertMatch } from '@/services/job-alerts/hooks/useJobAlertMatch';
 import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import type { IJobAlertFilterState } from '@/types/job-alerts.types';
 import { hasActiveFilters } from '@/utils/job-alerts.utils';
+import { Button } from '@/components/common/Button';
+import { IconInfo } from './components/Icons';
 import s from './JobAlertBanner.module.scss';
 
 interface JobAlertBannerProps {
@@ -18,7 +20,7 @@ interface JobAlertBannerProps {
   isLoggedIn: boolean;
 }
 
-export default function JobAlertBanner({ filterState, resultCount, isLoggedIn }: JobAlertBannerProps) {
+export function JobAlertBanner({ filterState, resultCount, isLoggedIn }: JobAlertBannerProps) {
   const router = useRouter();
   const analytics = useJobsAnalytics();
   const createMutation = useCreateJobAlert();
@@ -59,19 +61,19 @@ export default function JobAlertBanner({ filterState, resultCount, isLoggedIn }:
 
     return (
       <div className={s.banner}>
-        <div className={s.copy}>
-          <p className={s.title}>These filters differ from your job alert.</p>
-          <p className={s.subtitle}>Update it to receive emails for the new filter combo.</p>
-        </div>
-        <div className={s.actions}>
-          <button
-            type="button"
-            className={s.primaryButton}
-            onClick={handleUpdate}
-            disabled={updateMutation.isPending}
-          >
-            {updateMutation.isPending ? 'Updating…' : 'Update job alert'}
-          </button>
+        <div className={s.inner}>
+          <div className={s.body}>
+            <IconInfo />
+            <div className={s.copy}>
+              <p className={s.title}>These filters differ from your job alert.</p>
+              <p className={s.subtitle}>Update it to receive emails for the new filter combo.</p>
+            </div>
+          </div>
+          <div className={s.actions}>
+            <Button size="m" type="button" onClick={handleUpdate} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? 'Updating…' : 'Update job alert'}
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -111,19 +113,20 @@ export default function JobAlertBanner({ filterState, resultCount, isLoggedIn }:
 
   return (
     <div className={s.banner}>
-      <div className={s.copy}>
-        <p className={s.title}>Get an email when new roles match these filters.</p>
-        <p className={s.subtitle}>We&apos;ll send a weekly digest, only when there are new matches.</p>
-      </div>
-      <div className={s.actions}>
-        <button
-          type="button"
-          className={s.primaryButton}
-          onClick={handleSet}
-          disabled={createMutation.isPending}
-        >
-          {createMutation.isPending ? 'Setting…' : 'Set job alert'}
-        </button>
+      <div className={s.inner}>
+        <div className={s.body}>
+          <IconInfo />
+          <div className={s.copy}>
+            <p className={s.title}>Get an email when new roles match these filters.</p>
+            <p className={s.subtitle}>We&apos;ll send a weekly digest, only when there are new matches.</p>
+          </div>
+        </div>
+
+        <div className={s.actions}>
+          <Button size="m" type="button" onClick={handleSet} disabled={createMutation.isPending}>
+            {createMutation.isPending ? 'Setting…' : 'Set job alert'}
+          </Button>
+        </div>
       </div>
     </div>
   );

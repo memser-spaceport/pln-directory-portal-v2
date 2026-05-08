@@ -17,7 +17,7 @@ import { usePostHog } from 'posthog-js/react';
 
 import s from './AccountMenu.module.scss';
 import { useRouter } from 'next/navigation';
-import { useUserStore } from '@/services/members/store';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { useMedia } from 'react-use';
 import { HelpIcon } from '../icons';
 
@@ -35,7 +35,7 @@ export const AccountMenu = ({ userInfo }: Props) => {
   const analytics = useCommonAnalytics();
   const postHogProps = usePostHog();
   const router = useRouter();
-  const { profileImage } = useUserStore();
+  const { currentUser } = useCurrentUserStore();
   const { openModal } = useContactSupportStore((s) => s.actions);
 
   const handleLogout = useCallback(() => {
@@ -56,7 +56,7 @@ export const AccountMenu = ({ userInfo }: Props) => {
       <Menu.Root modal={false}>
         <Menu.Trigger className={s.Button} ref={menuTriggerRef}>
           <Avatar.Root className={s.Avatar}>
-            <Avatar.Image src={profileImage ?? defaultAvatarImage} width="40" height="40" className={s.Image} />
+            <Avatar.Image src={currentUser?.profileImageUrl ?? defaultAvatarImage} width="40" height="40" className={s.Image} />
             <Avatar.Fallback className={s.Fallback}>{userInfo?.name}</Avatar.Fallback>
           </Avatar.Root>
           <ChevronDownIcon className={s.ButtonIcon} />

@@ -9,15 +9,14 @@ import { useDemoDayPageLeaveAnalytics } from '@/hooks/usePageLeaveAnalytics';
 import { useTimeOnPage } from '@/hooks/useTimeOnPage';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 const PATH = '/demo-day-analytics';
 
 export default function DemoDayAnalyticsPage() {
   const router = useRouter();
   const { data, isLoading, isError } = useGetDemoDayReportLink();
-  const userInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
   const reportAnalytics = useReportAnalyticsEvent();
 
   const analyticsReady = !isLoading && !!data?.url;

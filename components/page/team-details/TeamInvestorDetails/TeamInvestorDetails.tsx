@@ -23,10 +23,10 @@ import { EditTeamInvestorDetailsForm } from './components/EditTeamInvestorDetail
 import { getValueFromArray } from './utils/getValueFromArray';
 
 import s from './TeamInvestorDetails.module.scss';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   team: ITeam;
-  userInfo: IUserInfo;
   isLoggedIn: boolean;
 }
 
@@ -40,7 +40,8 @@ const PlusIcon = () => (
 );
 
 export function TeamInvestorDetails(props: Props) {
-  const { team, userInfo, isLoggedIn } = props;
+  const { team, isLoggedIn } = props;
+  const { currentUser: userInfo } = useCurrentUserStore();
   const [editView, setEditView] = useState(false);
 
   const hasEditAccess = isTeamLeaderOrAdmin(userInfo, team?.id);
@@ -90,7 +91,9 @@ export function TeamInvestorDetails(props: Props) {
         </InvestorProfileField>
 
         <InvestorProfileField label="Startup Stages">
-          {investInStartupStages?.length ? getValueFromArray(investInStartupStages) : emptyFieldContent('Add startup stages')}
+          {investInStartupStages?.length
+            ? getValueFromArray(investInStartupStages)
+            : emptyFieldContent('Add startup stages')}
         </InvestorProfileField>
 
         <InvestorProfileField label="Investment Focus">

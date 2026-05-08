@@ -72,44 +72,36 @@ async function Page({ params, searchParams }: { params: ITeamDetailParams; searc
           {/* Details */}
           <div className={styles?.teamDetail__Container__details}>
             {showAiGeneratedTeamProfileBanner && <AiGeneratedTeamProfileBanner team={team} />}
-            <TeamDetails team={team} userInfo={userInfo} />
+            <TeamDetails team={team} />
           </div>
 
-          {isLoggedIn && team?.isFund && (
-            <TeamInvestorDetails team={team} userInfo={userInfo} isLoggedIn={isLoggedIn} />
-          )}
+          {isLoggedIn && team?.isFund && <TeamInvestorDetails team={team} isLoggedIn={isLoggedIn} />}
 
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>
-            <TeamContactInfo team={team} userInfo={userInfo} />
+            <TeamContactInfo team={team} />
           </div>
 
-          <TeamMembershipSource team={team} userInfo={userInfo} />
-          <TeamCommunitiesSection team={team} userInfo={userInfo} />
+          <TeamMembershipSource team={team} />
+          <TeamCommunitiesSection team={team} />
 
           {/* Irl Contribuions */}
           {(team.eventGuests?.length > 0 || team.associations?.length > 0) && (
             <div className={styles?.teamDetail__irlContributions}>
-              <TeamIrlContributions team={team} userInfo={userInfo} members={members} teamId={teamId} />
+              <TeamIrlContributions team={team} members={members} teamId={teamId} />
             </div>
           )}
           {/* Member */}
           <div className={styles?.teamDetail__container__member}>
-            <TeamMembers team={team} userInfo={userInfo} members={members} />
+            <TeamMembers team={team} members={members} />
           </div>
 
-          <TeamFocusAreas
-            team={team}
-            userInfo={userInfo}
-            focusAreas={focusAreas || []}
-            teamFocusAreas={team?.teamFocusAreas || []}
-          />
+          <TeamFocusAreas team={team} focusAreas={focusAreas || []} teamFocusAreas={team?.teamFocusAreas || []} />
 
           <TeamProjects
             isLoggedIn={isLoggedIn}
             projects={teamProjectList}
             team={team}
-            userInfo={userInfo}
             hasProjectsEditAccess={hasProjectsEditAccess}
           />
         </div>

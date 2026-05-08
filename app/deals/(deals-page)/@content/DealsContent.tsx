@@ -19,17 +19,16 @@ import { SubmitDealModal } from '@/components/page/deals/SubmitDealModal/SubmitD
 import { SubmitDealSuccessModal } from '@/components/page/deals/SubmitDealSuccessModal/SubmitDealSuccessModal';
 import { RequestDealModal } from '@/components/page/deals/RequestDealModal/RequestDealModal';
 import { RequestDealSuccessModal } from '@/components/page/deals/RequestDealSuccessModal/RequestDealSuccessModal';
-import { useRequestDealModalStore } from '@/services/deals/store';
 import { DealsLandingPage } from '@/components/page/deals-landing';
 import { DealsNoAccessModal } from '@/components/page/deals/DealsNoAccessModal/DealsNoAccessModal';
-import { getUserInfoFromLocal } from '@/utils/common.utils';
+import { useCurrentUserStore } from '@/services/auth/store';
 import s from './page.module.scss';
 
 export default function DealsContent() {
   const analytics = useDealsAnalytics();
-  const { actions: requestDealActions } = useRequestDealModalStore();
   const { hasAccess, isLoading: isAccessLoading, isError: isAccessError } = useDealsAccess();
-  const isLoggedIn = !!getUserInfoFromLocal();
+  const { currentUser } = useCurrentUserStore();
+  const isLoggedIn = !!currentUser;
 
   const [filters, setFilters] = useQueryStates(dealsFilterParsers, {
     history: 'replace',

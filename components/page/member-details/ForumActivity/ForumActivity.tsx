@@ -11,8 +11,6 @@ import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 import { ActiveTab } from './types';
 
-import { hasForumAccess } from './utils/hasForumAccess';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 
 import { useUserForumPosts } from './hooks/useUserForumPosts';
@@ -24,7 +22,7 @@ import { ForumActivityModal } from './components/ForumActivityModal';
 import { ForumActivityCardsList } from './components/ForumActivityCardsList';
 
 interface ForumActivityProps {
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
   isOwner: boolean;
   member: IMember;
 }
@@ -65,8 +63,7 @@ export function ForumActivity(props: ForumActivityProps) {
   const displayedComments = comments?.slice(0, ITEMS_TO_DISPLAY) || [];
 
   const isLoading = activeTab === 'posts' ? postsLoading : commentsLoading;
-  const { hasAccess: v2ForumAccess } = useForumAccess();
-  const hasAccess = USE_ACCESS_CONTROL_V2 ? v2ForumAccess : hasForumAccess(userInfo.accessLevel);
+  const { hasAccess } = useForumAccess();
 
   useEffect(() => {
     if (postsCount === 0 && commentsCount > 0) {
@@ -113,7 +110,7 @@ export function ForumActivity(props: ForumActivityProps) {
       <ForumActivityCardsList
         isOwner={isOwner}
         member={member}
-        userInfo={userInfo}
+        userInfo={userInfo!}
         posts={displayedPosts}
         comments={displayedComments}
         activeTab={activeTab}
@@ -126,7 +123,7 @@ export function ForumActivity(props: ForumActivityProps) {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         isOwner={isOwner}
-        userInfo={userInfo}
+        userInfo={userInfo!}
         member={member}
         posts={posts}
         comments={comments}

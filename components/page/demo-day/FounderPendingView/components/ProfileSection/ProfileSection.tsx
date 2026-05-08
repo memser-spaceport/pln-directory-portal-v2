@@ -10,9 +10,7 @@ import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
 import { useExpressInterest } from '@/services/demo-day/hooks/useExpressInterest';
 import { ProfileActions } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileActions';
-import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
@@ -33,7 +31,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
   const demoDayMode = useDemoDayMode();
 
   const { data, isLoading, error } = useGetFundraisingProfile();
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
 
   // Analytics hooks
   const { onFounderTeamFundraisingCardClicked, onFounderEditTeamProfileButtonClicked } = useDemoDayAnalytics();
@@ -188,7 +186,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
               disabled={!data?.uid}
               variant="card"
               className={s.actions}
-              userInfo={userInfo}
+              userInfo={userInfo ?? undefined}
             />
           )}
         </div>

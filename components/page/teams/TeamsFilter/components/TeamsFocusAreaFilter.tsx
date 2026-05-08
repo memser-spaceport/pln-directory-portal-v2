@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { IFocusArea } from '@/types/shared.types';
 import { FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES } from '@/utils/constants';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
-import { getUserInfo } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { ConnectedFocusAreaFilter } from '@/components/core/FocusAreaFilter';
@@ -20,7 +20,7 @@ export function TeamsFocusAreaFilter({ focusAreas, searchParams }: TeamsFocusAre
 
   const handleAnalytics = useCallback(
     (item: any) => {
-      const user = getUserInfo();
+      const user = useCurrentUserStore.getState().currentUser;
       analytics.onFocusAreaFilterClicked({
         page: PAGE_ROUTES.TEAMS,
         name: 'Focus Area',

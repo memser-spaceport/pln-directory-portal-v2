@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
-import { getUserInfo } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
 type EmailUpdateProps = {
@@ -14,7 +14,7 @@ const AdminEmailUpdate: React.FC<EmailUpdateProps> = ({ email }) => {
   const [error, setError] = useState('');
   const analytics = useSettingsAnalytics();
 
-  const userInfo = getUserInfo();
+  const { currentUser: userInfo } = useCurrentUserStore();
 
   const checkEmailsMatch = () => {
     const newEmail = newEmailRef.current?.value || '';

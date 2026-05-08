@@ -44,6 +44,7 @@ export function Tag(props: Readonly<TagProps>) {
     [s.md]: tagsLength < 3,
     [s.default]: variant === 'default',
     [s.primary]: variant === 'primary',
+    [s.primaryWithIcon]: variant === 'primary' && Boolean(icon),
     [s.secondary]: variant === 'secondary' && !selected && !disabled,
     [s.active]: selected && variant === 'secondary',
     [s.inactive]: disabled && variant === 'secondary',

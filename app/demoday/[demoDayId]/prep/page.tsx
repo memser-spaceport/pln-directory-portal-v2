@@ -2,9 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { redirect } from 'next/navigation';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
-import { IUserInfo } from '@/types/shared.types';
+import { useCurrentUserStore } from '@/services/auth/store';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { SyncParamsToUrl } from '@/components/core/SyncParamsToUrl';
 import { FiltersHydrator } from '@/components/core/FiltersHydrator/FiltersHydrator';
@@ -14,7 +12,7 @@ import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState
 import { isAdminUser } from '@/utils/user/isAdminUser';
 
 function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
   const isDirectoryAdmin = isAdminUser(userInfo);
   const { data } = useGetDemoDayState();
 
@@ -24,7 +22,8 @@ function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
 
   // User can view the prep page if they have admin access, read-only admin access, OR are a founder
   const hasAccess =
-    data?.status === 'COMPLETED' ? isDirectoryAdmin : hasAdminAccess || data?.access === 'FOUNDER';
+    (data?.status === 'COMPLETED' ? isDirectoryAdmin : isDirectoryAdmin || data?.access === 'FOUNDER') ||
+    data?.isDemoDayAdmin;
 
   useEffect(() => {
     // Redirect non-admins to regular demo day page
@@ -43,7 +42,13 @@ function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
       <SyncParamsToUrl debounceTime={0} />
       <DashboardPagesLayout
         filters={<AdminFilters />}
-        content={<AdminContent isDirectoryAdmin={!!hasAdminAccess} canEdit={canEdit} />}
+        content={
+          <AdminContent
+            elevatedStaff={hasAdminAccess}
+            showMembersDirectoryLink={isDirectoryAdmin}
+            canEdit={canEdit}
+          />
+        }
       />
     </FiltersHydrator>
   );

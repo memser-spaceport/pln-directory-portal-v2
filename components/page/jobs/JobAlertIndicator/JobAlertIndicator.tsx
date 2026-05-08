@@ -1,33 +1,41 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+
+import type { IJobAlert } from '@/types/job-alerts.types';
+import { summarizeFilterState } from '@/utils/job-alerts.utils';
+import { Button } from '@/components/common/Button';
+
+import { IconInfo, IconClose } from './components/Icons';
+
 import s from './JobAlertIndicator.module.scss';
 
 interface JobAlertIndicatorProps {
-  alertName: string;
+  alert: IJobAlert;
+  onDismiss?: () => void;
 }
 
-export default function JobAlertIndicator({ alertName }: JobAlertIndicatorProps) {
-  const router = useRouter();
+export function JobAlertIndicator({ alert, onDismiss }: JobAlertIndicatorProps) {
+  const alertName = summarizeFilterState(alert.filterState);
 
   return (
     <div className={s.indicator}>
-      <span className={s.label}>
-        Showing jobs for your job alert
-        {alertName ? <> &middot; <span className={s.name}>{alertName}</span></> : null}
-      </span>
-      <span className={s.actions}>
-        <Link href="/settings/job-alerts" className={s.action}>
-          Manage alert
-        </Link>
-        <span className={s.divider} aria-hidden>
-          ·
-        </span>
-        <button type="button" className={s.action} onClick={() => router.replace('/jobs')}>
-          Clear
+      <IconInfo />
+      <div className={s.inner}>
+        <p className={s.label}>Showing jobs for your job alert{alertName ? `: ${alertName}` : ''}</p>
+        <div className={s.actions}>
+          <Link href="/settings/job-alerts">
+            <Button style="link" size="xl" underline>
+              Manage alert
+            </Button>
+          </Link>
+        </div>
+      </div>
+      {onDismiss && (
+        <button type="button" className={s.dismissBtn} onClick={onDismiss} aria-label="Dismiss">
+          <IconClose />
         </button>
-      </span>
+      )}
     </div>
   );
 }

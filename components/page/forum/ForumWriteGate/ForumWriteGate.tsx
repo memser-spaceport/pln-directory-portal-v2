@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useForumWriteAccess } from '@/services/access-control/hooks/useForumWriteAccess';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 import { Spinner } from '@/components/ui/Spinner';
 import s from '@/app/forum/page.module.scss';
@@ -12,21 +12,21 @@ interface ForumWriteGateProps {
 }
 
 export const ForumWriteGate = ({ children }: ForumWriteGateProps) => {
-  const { userInfo } = getCookiesFromClient();
+  const { currentUser, isHydrated } = useCurrentUserStore();
   const { canWrite, isLoading } = useForumWriteAccess();
 
-  if (!userInfo) {
+  if (!isHydrated || isLoading) {
     return (
       <div className={s.root}>
-        <LoggedOutView />
+        <Spinner />
       </div>
     );
   }
 
-  if (isLoading) {
+  if (!currentUser) {
     return (
       <div className={s.root}>
-        <Spinner />
+        <LoggedOutView />
       </div>
     );
   }

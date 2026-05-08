@@ -11,11 +11,8 @@ import { useUpdateMemberNotificationsSettings } from '@/services/members/hooks/u
 import { useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { FloatingWidgets } from '@/components/page/member-info/components/FloatingWidgets';
-// import { useMember } from '@/services/members/hooks/useMember';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { getAccessLevel } from '@/utils/auth.utils';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
-import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   userInfo: IUserInfo;
@@ -25,12 +22,10 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
   const [view, setView] = useState<'initial' | 'confirmation'>('initial');
   const { data } = useMemberNotificationsSettings(userInfo?.uid);
   const { id } = useParams();
-  // const { data: member } = useMember(userInfo.uid);
   const { mutateAsync, isPending } = useUpdateMemberNotificationsSettings();
   const queryClient = useQueryClient();
   const { onSubscribeToRecommendationsClicked, onCloseSubscribeToRecommendationsClicked } = useMemberAnalytics();
-  const accessLevel = getAccessLevel(userInfo, true);
-  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
+  const { currentUser } = useCurrentUserStore();
 
   const handleSubscribe = useCallback(async () => {
     if (!userInfo) {
@@ -83,7 +78,7 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
     data.exampleSent ||
     !data.recommendationsEnabled ||
     !data.showInvitationDialog ||
-    (USE_ACCESS_CONTROL_V2 ? !v2HasMemberContacts : accessLevel !== 'advanced')
+    currentUser?.rbac?.status !== 'APPROVED'
   ) {
     return null;
   }

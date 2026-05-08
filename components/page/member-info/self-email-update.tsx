@@ -8,14 +8,14 @@ import { decodeToken } from '@/utils/auth.utils';
 import { useRouter } from 'next/navigation';
 import { updateUserDirectoryEmail } from '@/services/members.service';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
-import { getUserInfo } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { authEvents } from '@/components/core/login/utils';
 function SelfEmailUpdate(props: any) {
   const email = props.email;
   const uid = props.uid;
   const [currentEmail, setCurrentEmail] = useState(email);
   const router = useRouter();
-  const userInfo = getUserInfo();
+  const { currentUser: userInfo } = useCurrentUserStore();
   const analytics = useAuthAnalytics();
 
   const onEmailEdit = (e: any) => {

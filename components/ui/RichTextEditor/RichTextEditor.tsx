@@ -321,8 +321,8 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
         name: member.name,
       });
 
-      // Insert space after the mention
-      editor.insertText(mentionState.startIndex + 1, ' ');
+      // Insert non-breaking space after the mention so consecutive mentions don't collapse
+      editor.insertText(mentionState.startIndex + 1, ' ');
 
       // Set cursor after the space (position + 1 for embed + 1 for space)
       editor.setSelection(mentionState.startIndex + 2, 0);

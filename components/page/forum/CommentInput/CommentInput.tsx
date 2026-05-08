@@ -10,7 +10,7 @@ import { FormEditor } from '@/components/form/FormEditor';
 import { FormField } from '@/components/form/FormField';
 import { extractTextWithImages } from '@/utils/decode';
 import { useGetMemberNotificationSettings } from '@/services/notifications/hooks/useGetMemberNotificationSettings';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { Checkbox } from '@/components/common/Checkbox';
 import { isEditorEmpty } from '@/utils/isEditorEmpty';
@@ -39,8 +39,8 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
   const analytics = useForumAnalytics();
   const formRef = useRef<HTMLFormElement | null>(null);
   const [focused, setFocused] = useState(false);
-  const { userInfo } = getCookiesFromClient();
-  const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid, 'POST_COMMENT', tid);
+  const { currentUser: userInfo } = useCurrentUserStore();
+  const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid ?? '', 'POST_COMMENT', tid);
   const isScrollingDown = useScrollDownAndStop();
 
   const methods = useForm({

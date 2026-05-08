@@ -10,9 +10,7 @@ import { EditProfileDrawer } from '@/components/page/demo-day/FounderPendingView
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { useExpressInterest } from '@/services/demo-day/hooks/useExpressInterest';
 import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
-import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 import Link from 'next/link';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
@@ -87,7 +85,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest(team?.team?.name);
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
 
   if (!team) return null;
 
@@ -616,7 +614,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     onInvest={handleInvestCompanyClick}
                     isLoading={expressInterest.isPending}
                     variant="drawer"
-                    userInfo={userInfo}
+                    userInfo={userInfo ?? undefined}
                   />
                 </div>
               </div>

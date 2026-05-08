@@ -11,11 +11,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
 import { clsx } from 'clsx';
-// import { useMember } from '@/services/members/hooks/useMember';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { getAccessLevel } from '@/utils/auth.utils';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
-import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 
 interface Props {
   userInfo: IUserInfo;
@@ -24,7 +20,6 @@ interface Props {
 export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
   const [view, setView] = useState<'initial' | 'confirmation'>('initial');
   const [open, setOpen] = useState(false);
-  // const { data: member, isLoading } = useMember(userInfo.uid);
   const { data } = useMemberNotificationsSettings(userInfo?.uid);
   const { mutateAsync } = useUpdateMemberNotificationsSettings();
   const queryClient = useQueryClient();
@@ -33,8 +28,6 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
   const { onSubscribeToRecommendationsClicked, onCloseSubscribeToRecommendationsClicked } = useMemberAnalytics();
   const searchParams = useSearchParams();
   const isOnboardingLoginFlow = searchParams.get('loginFlow') === 'onboarding';
-  const accessLevel = getAccessLevel(userInfo, true);
-  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
   const handleSubscribe = useCallback(async () => {
     if (!userInfo) {

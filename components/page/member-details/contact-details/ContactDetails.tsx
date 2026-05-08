@@ -7,7 +7,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 import s from './ContactDetails.module.scss';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
@@ -17,8 +17,6 @@ import React, { Fragment } from 'react';
 import { clsx } from 'clsx';
 import { EditButton } from '@/components/common/profile/EditButton';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
-import { getAccessLevel } from '@/utils/auth.utils';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Divider } from '@/components/common/profile/Divider';
@@ -46,22 +44,21 @@ const SOCIAL_TO_HANDLE_MAP: Record<string, string> = {
 const VISIBLE_HANDLES = ['email', 'linkedin', 'telegram', 'twitter', 'discord', 'github'];
 const DRAWER_HANDLES = ['email', 'linkedin', 'telegram', 'twitter'];
 
-export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant = 'default' }: Props) => {
+export const ContactDetails = ({ member, isLoggedIn, onEdit, variant = 'default' }: Props) => {
   const router = useRouter();
   const { visibleHandles } = member;
-  const isAdmin = isAdminUser(userInfo);
-  const isOwner = userInfo?.uid === member.id;
+  const { currentUser } = useCurrentUserStore();
+  const isAdmin = isAdminUser(currentUser);
+  const isOwner = currentUser?.uid === member.id;
   const hasMissingRequiredData = !member?.linkedinHandle;
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
   const isDrawer = variant === 'drawer';
   const showIncomplete = hasMissingRequiredData && isOwner;
-  const accessLevel = getAccessLevel(userInfo, isLoggedIn);
-  const canViewContacts = USE_ACCESS_CONTROL_V2 ? userInfo.rbac?.status === 'APPROVED' : accessLevel === 'advanced';
+  const canViewContacts = currentUser?.rbac?.status === 'APPROVED';
 
   const onLoginClickHandler = () => {
-    const userInfo = Cookies.get('userInfo');
-    if (userInfo) {
+    if (currentUser) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
@@ -72,7 +69,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit, variant =
 
   const callback = (type: string, url: string) => {
     memberAnalytics.onSocialProfileLinkClicked(
-      getAnalyticsUserInfo(userInfo),
+      getAnalyticsUserInfo(currentUser),
       getAnalyticsMemberInfo(member),
       type,
       url,

@@ -47,12 +47,12 @@ describe('ArticlesSidebar', () => {
       byCategory: [
         {
           category: 'Legal & Finance',
-          articles: [{ uid: 'a1', slugURL: 'safe-vs-equity', title: 'SAFE vs Equity', content: 'Guide content' }],
+          articles: [{ uid: 'a1', slugURL: 'safe-vs-equity', title: 'SAFE vs Equity', content: 'Guide content', requiredPermissionCode: null }],
         },
         {
           category: 'Hiring',
           articles: [
-            { uid: 'a2', slugURL: 'first-engineer', title: 'Hiring Your First Engineer', content: 'Guide content' },
+            { uid: 'a2', slugURL: 'first-engineer', title: 'Hiring Your First Engineer', content: 'Guide content', requiredPermissionCode: null },
           ],
         },
       ],

@@ -11,7 +11,7 @@ import { ITag, ITeam } from '@/types/teams.types';
 import { isTierUser } from '@/utils/user/isTierUser';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { deleteTeam } from '@/app/actions/teams.actions';
-import { getTeamPriority, getPriorityLabel, getTechnologyImage } from '@/utils/team.utils';
+import { getTeamPriority, getPriorityLabel } from '@/utils/team.utils';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
@@ -34,24 +34,23 @@ import { EditTeamDetailsForm } from './components/EditTeamDetailsForm';
 import s from './TeamDetails.module.scss';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import clsx from 'clsx';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   team: ITeam;
-  userInfo: IUserInfo | undefined;
 }
 
 export const TeamDetails = (props: Props) => {
-  const params = useParams();
   const team = props?.team;
 
   const teamName = team?.name ?? '';
-  const userInfo = props?.userInfo;
+  const { currentUser } = useCurrentUserStore();
   const defaultAvatarImage = useDefaultAvatar(team?.name ?? '');
   const logo = team?.logo ?? defaultAvatarImage ?? '/icons/team-default-profile.svg';
 
-  const isAdmin = isAdminUser(userInfo);
+  const isAdmin = isAdminUser(currentUser);
+  const isTierViewer = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'team.priority.read') || isAdmin;
 
-  const isTierViewer = isTierUser(userInfo) || isAdmin;
   const tags = useMemo(() => {
     const priority = getTeamPriority(team);
     if (isTierViewer && priority !== undefined) {
@@ -65,13 +64,11 @@ export const TeamDetails = (props: Props) => {
     }
     return team?.industryTags;
   }, [team, isTierViewer]);
-  const teamId = params?.id;
   const about = team?.longDescription ?? '';
   const hasAbout = !!about && about.trim() !== '<p><br></p>';
-  const hasTeamEditAccess = isTeamLeaderOrAdmin(userInfo, team?.id);
+  const hasTeamEditAccess = isTeamLeaderOrAdmin(currentUser, team?.id);
 
   const [editView, setEditView] = useState(false);
-  const [isTechnologyPopup, setIsTechnologyPopup] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const analytics = useTeamAnalytics();
@@ -79,15 +76,11 @@ export const TeamDetails = (props: Props) => {
   const router = useRouter();
   useMobileNavVisibility(editView);
 
-  const onTagCountClickHandler = () => {
-    setIsTechnologyPopup(!isTechnologyPopup);
-  };
-
   const onEditTeamClickHandler = () => {
     if (isAdmin) {
-      analytics.onEditTeamByAdmin(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
+      analytics.onEditTeamByAdmin(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(currentUser));
     } else {
-      analytics.onEditTeamByLead(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
+      analytics.onEditTeamByLead(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(currentUser));
     }
     setEditView(true);
   };
@@ -139,7 +132,7 @@ export const TeamDetails = (props: Props) => {
   if (editView) {
     return (
       <DetailsSection editView>
-        <EditTeamDetailsForm team={team} userInfo={userInfo} onClose={() => setEditView(false)} />
+        <EditTeamDetailsForm team={team} userInfo={currentUser} onClose={() => setEditView(false)} />
       </DetailsSection>
     );
   }

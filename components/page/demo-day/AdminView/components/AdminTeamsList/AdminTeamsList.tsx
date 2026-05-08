@@ -7,9 +7,7 @@ import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/compone
 import { AdminFiltersDrawer } from './components/AdminFiltersDrawer';
 import { TeamsListLoading } from '@/components/page/demo-day/shared/TeamsListStates';
 import s from '@/components/page/demo-day/ActiveView/components/TeamsList/TeamsList.module.scss';
-import { getParsedValue } from '@/utils/common.utils';
-import { IUserInfo } from '@/types/shared.types';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { TeamsListHeader } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamsListHeader';
 import { TeamsListAlert } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamsListAlert';
 import { useTeamsFiltering } from '@/components/page/demo-day/ActiveView/components/TeamsList/hooks/useTeamsFiltering';
@@ -19,14 +17,15 @@ import { useTeamsSorting } from '@/components/page/demo-day/ActiveView/component
 interface AdminTeamsListProps {
   profiles?: TeamProfile[];
   isLoading: boolean;
-  isDirectoryAdmin?: boolean;
+  /** Prep/showcase staff (directory or demo-day admin / read-only viewer), not founder-only. */
+  elevatedStaff?: boolean;
   canEdit?: boolean;
 }
 
 export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({
   profiles,
   isLoading,
-  isDirectoryAdmin = false,
+  elevatedStaff = false,
   canEdit = true,
 }) => {
   const { data: demoDayData } = useGetDemoDayState();
@@ -40,7 +39,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({
   const [isFiltersDrawerOpen, setIsFiltersDrawerOpen] = useState(false);
 
   // Get current user info
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
 
   // Function to check if current user is a founder of a team
   const isUserFounder = (team: TeamProfile): boolean => {
@@ -119,12 +118,12 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({
               >
                 <h3 className={s.stageGroupHeader}>{group.label}</h3>
                 {group.teams.map((profile) => (
-                  <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={isDirectoryAdmin} canEdit={canEdit} />
+                  <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={elevatedStaff} canEdit={canEdit} />
                 ))}
               </div>
             ))
           : filteredAndSortedTeams.map((profile) => (
-              <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={isDirectoryAdmin} canEdit={canEdit} />
+              <TeamProfileCard key={profile.uid} team={profile} onClick={handleTeamClick} isAdmin={elevatedStaff} canEdit={canEdit} />
             ))}
 
         {filteredAndSortedTeams.length === 0 && totalTeamsCount > 0 && (
@@ -147,7 +146,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({
         onClose={handleCloseDrawer}
         team={latestTeamData || selectedTeam}
         scrollPosition={scrollPositionRef.current}
-        isAdmin={isDirectoryAdmin}
+        isAdmin={elevatedStaff}
         canEdit={canEdit}
       />
 

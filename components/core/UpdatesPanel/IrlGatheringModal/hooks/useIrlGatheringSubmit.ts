@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useCreateIrlGatheringGuest } from '@/services/events/hooks/useCreateIrlGatheringGuest';
 import { useEditIrlGatheringGuest } from '@/services/events/hooks/useEditIrlGatheringGuest';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { toast } from '@/components/core/ToastContainer';
 import { IrlGatheringFormData, GatheringData } from '../types';
 import { formatDateForApi } from '../helpers';
@@ -33,7 +33,7 @@ export function useIrlGatheringSubmit({
 }: UseIrlGatheringSubmitParams): UseIrlGatheringSubmitReturn {
   const { mutate: createGuest, isPending: isCreatePending } = useCreateIrlGatheringGuest();
   const { mutate: editGuest, isPending: isEditPending } = useEditIrlGatheringGuest();
-  const { userInfo } = getCookiesFromClient();
+  const { currentUser: userInfo } = useCurrentUserStore();
   const isPending = isCreatePending || isEditPending;
 
   const handleSubmit = useCallback(
@@ -179,7 +179,7 @@ export function useIrlGatheringSubmit({
         },
         {
           onSuccess: () => {
-            onCreated(userInfo!.uid);
+            onCreated(userInfo?.uid ?? '');
           },
           onError: (error) => {
             console.error('Failed to create IRL gathering guest:', error);

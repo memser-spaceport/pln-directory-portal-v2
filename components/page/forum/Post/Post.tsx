@@ -25,7 +25,7 @@ import {
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { decode } from 'he';
 import { BackButton } from '@/components/ui/BackButton';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
@@ -64,11 +64,10 @@ export const Post = () => {
   const searchParams = useSearchParams();
   const analytics = useForumAnalytics();
 
-  // Get user info from client-side cookies
-  const { userInfo } = getCookiesFromClient();
+  const { currentUser: userInfo } = useCurrentUserStore();
   const isLoggedIn = !!userInfo;
 
-  const { hasAccess: v2ForumAccess, deniedReason, isLoading: v2Loading } = useForumAccess();
+  const { hasAccess: v2ForumAccess, deniedReason, isLoading: v2Loading, canWrite } = useForumAccess();
 
   const { data } = useForumPost(topicId as string, isLoggedIn);
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
@@ -188,7 +187,7 @@ export const Post = () => {
         </div>
       );
     }
-  } else if (userInfo?.accessLevel === 'L0' || userInfo?.accessLevel === 'L1') {
+  } else if (userInfo?.rbac?.status === 'PENDING' || userInfo?.rbac?.status === 'VERIFIED') {
     return (
       <div className={forumStyles.root}>
         <LoggedOutView reason="base" />
@@ -319,18 +318,20 @@ export const Post = () => {
         </div>
 
         <div className={s.divider} />
-        <CommentInput
-          tid={post.tid}
-          toPid={replyToPid ?? post.pid}
-          replyToName={replyToItem?.user.displayname}
-          timestamp={post.timestamp}
-          onReset={() => {
-            setReplyToPid(null);
-            const params = new URLSearchParams(searchParams.toString());
-            params.delete('replyTo');
-            router.replace(`?${params.toString()}`, { scroll: false });
-          }}
-        />
+        {canWrite && (
+          <CommentInput
+            tid={post.tid}
+            toPid={replyToPid ?? post.pid}
+            replyToName={replyToItem?.user.displayname}
+            timestamp={post.timestamp}
+            onReset={() => {
+              setReplyToPid(null);
+              const params = new URLSearchParams(searchParams.toString());
+              params.delete('replyTo');
+              router.replace(`?${params.toString()}`, { scroll: false });
+            }}
+          />
+        )}
       </div>
 
       <div className={s.root}>

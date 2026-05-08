@@ -1,5 +1,5 @@
 import { MEMBER_ANALYTICS_EVENTS } from '@/utils/constants';
-import { getUserInfo } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 
 export const useModalAnalytics = () => {
@@ -9,7 +9,7 @@ export const useModalAnalytics = () => {
     try {
       if (postHogProps?.capture) {
         const allParams = { ...eventParams };
-        const userInfo = getUserInfo();
+        const userInfo = useCurrentUserStore.getState().currentUser;
         const loggedInUserUid = userInfo?.uid;
         const loggedInUserEmail = userInfo?.email;
         const loggedInUserName = userInfo?.name;

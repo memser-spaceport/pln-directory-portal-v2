@@ -27,8 +27,9 @@ const TeamGridView = (props: ITeamGridView) => {
   const analytics = useTeamAnalytics();
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
   const carousel: any[] = [];
-
-  const isTierViewer = isTierUser(userInfo) || isAdminUser(userInfo);
+  const canSearch = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'team.search.read');
+  const canSeePriority = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'team.priority.read');
+  const isTierViewer = isAdminUser(userInfo) || canSearch || isTierUser(userInfo) || canSeePriority;
 
   const tags = useMemo(() => {
     const priority = getTeamPriority(team);

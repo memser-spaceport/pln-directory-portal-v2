@@ -48,7 +48,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
         <div className={styles?.fundraisingDetail__container}>
           {/* Header */}
           <div className={styles?.fundraisingDetail__container__header}>
-            <TeamDetails team={team} userInfo={userInfo} />
+            <TeamDetails team={team} />
           </div>
 
           {/* Pitch Deck */}
@@ -77,7 +77,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
 
           {/* Contact Information */}
           <div className={styles?.fundraisingDetail__container__contact}>
-            <TeamContactInfo team={team} userInfo={userInfo} />
+            <TeamContactInfo team={team} />
           </div>
         </div>
       </div>

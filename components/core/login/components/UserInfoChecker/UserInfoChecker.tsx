@@ -10,6 +10,7 @@ import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { authEvents } from '@/components/core/login/utils';
 import { broadcastLogout } from '../BroadcastChannel';
 import { IUserInfo } from '@/types/shared.types';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface UserInfoCheckerProps {
   userInfo: IUserInfo;
@@ -93,15 +94,17 @@ export function UserInfoChecker({ uid }: { uid: string }) {
       cookieRbac?.status !== memberInfo.rbac?.status || !areRolesEqual(cookiePermCodes, memberPermissionCodes);
 
     if (cookieRbacChanged) {
-      setUserInfoCookie(JSON.stringify({ ...parsedCookie, rbac: memberInfo.rbac }), {
+      const updatedRbac = { ...(parsedCookie as IUserInfo), rbac: memberInfo.rbac };
+      setUserInfoCookie(JSON.stringify(updatedRbac), {
         domain: process.env.COOKIE_DOMAIN || '',
       });
+      useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedRbac);
       router.refresh();
       return;
     }
 
     // Handle rejected access level
-    if (memberInfo.rbac.status === 'REJECTED' && !rejectedRef.current) {
+    if (memberInfo?.rbac?.status === 'REJECTED' && !rejectedRef.current) {
       rejectedRef.current = true;
       // handleLogout();
       authEvents.emit('auth:invalid-email', 'rejected_access_level');
@@ -111,9 +114,11 @@ export function UserInfoChecker({ uid }: { uid: string }) {
     // Handle roles changes
     const serverRoles = memberInfo.memberRoles?.map((r: { name: string }) => r.name) || [];
     if (!areRolesEqual(serverRoles, parsedCookie.roles as [])) {
-      setUserInfoCookie(JSON.stringify({ ...parsedCookie, roles: serverRoles }), {
+      const updatedRoles = { ...(parsedCookie as IUserInfo), roles: serverRoles };
+      setUserInfoCookie(JSON.stringify(updatedRoles), {
         domain: process.env.COOKIE_DOMAIN || '',
       });
+      useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedRoles);
       router.refresh();
       return;
     }
@@ -126,19 +131,24 @@ export function UserInfoChecker({ uid }: { uid: string }) {
       serverLeadingTeams.some((teamUid) => !cookieLeadingTeams.includes(teamUid));
 
     if (leadingTeamsChanged) {
-      setUserInfoCookie(JSON.stringify({ ...parsedCookie, leadingTeams: serverLeadingTeams }), {
+      const updatedLeadingTeams = { ...(parsedCookie as IUserInfo), leadingTeams: serverLeadingTeams };
+      setUserInfoCookie(JSON.stringify(updatedLeadingTeams), {
         domain: process.env.COOKIE_DOMAIN || '',
       });
+      useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedLeadingTeams);
       router.refresh();
       return;
     }
 
     // Handle name or profile image changes
     if (memberInfo.name !== parsedCookie.name || memberInfo.imageUrl !== parsedCookie.profileImageUrl) {
-      setUserInfoCookie(
-        JSON.stringify({ ...parsedCookie, name: memberInfo.name, profileImageUrl: memberInfo.imageUrl }),
-        { domain: process.env.COOKIE_DOMAIN || '' },
-      );
+      const updatedProfile = {
+        ...(parsedCookie as IUserInfo),
+        name: memberInfo.name,
+        profileImageUrl: memberInfo.imageUrl,
+      };
+      setUserInfoCookie(JSON.stringify(updatedProfile), { domain: process.env.COOKIE_DOMAIN || '' });
+      useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedProfile);
       router.refresh();
     }
   }, [handleLogout, member, router, setUserInfoCookie, userInfoCookie]);

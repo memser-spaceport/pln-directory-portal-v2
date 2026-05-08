@@ -14,14 +14,11 @@ import s from './OneClickVerification.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { toast } from '@/components/core/ToastContainer';
 import { useCookie } from 'react-use';
-import { getAccessLevel } from '@/utils/auth.utils';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
-import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
   isNewInvestor?: boolean;
 }
 
@@ -34,12 +31,9 @@ const fade = {
 export const OneClickVerification = ({ userInfo, member, isNewInvestor }: Props) => {
   const router = useRouter();
   const isOwner = userInfo?.uid === member.id;
-  const status = member.rbac.status;
+  const status = member?.rbac?.status;
 
-  const hasMissingRequiredData =
-    !member?.linkedinProfile &&
-    (USE_ACCESS_CONTROL_V2 ? status === 'PENDING' : getAccessLevel(userInfo, true) === 'base') &&
-    !isNewInvestor;
+  const hasMissingRequiredData = !member?.linkedinProfile && status === 'PENDING' && !isNewInvestor;
   const showIncomplete = hasMissingRequiredData && isOwner;
   const searchParams = useSearchParams();
   const { onConnectLinkedInClicked, onSuccessLinkedInVerification, onErrorLinkedInVerification } = useMemberAnalytics();

@@ -26,8 +26,6 @@ import IrlSpeakerTag from '@/components/ui/irl-speaker-tag';
 import IrlHostTag from '@/components/ui/irl-host-tag';
 import IrlSponsorTag from '@/components/ui/irl-sponsor-tag';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { getAccessLevel } from '@/utils/auth.utils';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
 
 interface IGuestTableRow {
@@ -84,7 +82,6 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const canUserAddAttendees =
     isAdminInAllEvents && canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const isLoggedIn = props.isLoggedIn;
-  const accessLevel = getAccessLevel(userInfo, isLoggedIn);
   const { canWrite: v2CanWrite } = useIrlGoingAccess();
   const onLogin = props.onLogin;
   const isEventAvailable = guest.events.filter((event: IIrlEvent) => event.slugURL === newSearchParams.event);
@@ -292,7 +289,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         </div>
 
         {/* Connect */}
-        {isLoggedIn && (USE_ACCESS_CONTROL_V2 ? v2CanWrite : accessLevel === 'advanced') && (
+        {isLoggedIn && v2CanWrite && (
           <div className="gtr__connect">
             {!showTelegram && userInfo.uid === guestUid ? (
               <Tooltip
@@ -385,7 +382,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
             ) : null}
           </div>
         )}
-        {isLoggedIn && (USE_ACCESS_CONTROL_V2 ? !v2CanWrite : accessLevel !== 'advanced') && (
+        {isLoggedIn && !v2CanWrite && (
           <div
             className="gtr__connect__loggedOut__cntr"
             onClick={(e: SyntheticEvent) => {

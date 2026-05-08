@@ -27,7 +27,7 @@ import Image from 'next/image';
 
 interface Props {
   team?: ITeam;
-  userInfo?: IUserInfo;
+  userInfo?: IUserInfo | null;
   projects?: IFormatedTeamProject[];
   toggleIsEditMode: () => void;
   setProjectToEdit: (project?: IFormatedTeamProject) => void;

@@ -26,6 +26,7 @@ import { useUpdateMemberPreferences } from '@/services/members/hooks/useUpdateMe
 import { clsx } from 'clsx';
 import { PostFormEditorLabel } from './components/PostFormEditorLabel';
 import { isAdminUser } from '@/utils/user/isAdminUser';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 export type CreatePostForm = {
   user: Record<string, string> | null;
@@ -38,12 +39,11 @@ interface Props {
   isEdit?: boolean;
   initialData?: CreatePostForm;
   pid?: number;
-  userInfo?: IUserInfo;
 }
 
 export const CreatePost = (props: Props) => {
-  const { isEdit, initialData, pid, userInfo } = props;
-
+  const { isEdit, initialData, pid } = props;
+  const { currentUser: userInfo } = useCurrentUserStore();
   const analytics = useForumAnalytics();
   const router = useRouter();
   const params = useParams();
@@ -209,9 +209,7 @@ export const CreatePost = (props: Props) => {
             </div>
 
             {!isEdit && (
-              <p className={s.subtitle}>
-                Only verified founders and operators in the PL network can see Forum posts.
-              </p>
+              <p className={s.subtitle}>Only verified founders and operators in the PL network can see Forum posts.</p>
             )}
 
             <div

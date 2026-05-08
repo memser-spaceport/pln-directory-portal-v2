@@ -501,9 +501,22 @@ export function getPriorityLabel(priority: number | string, full?: boolean): str
   return priorityLabels[String(priority)] || 'Priority ?';
 }
 
+/** Matches web-api TeamsService.tierToPriority — tier 4 → P1 … tier 0 → P5. */
+export function tierToPriorityDisplay(tier: number | string | null | undefined): number | undefined {
+  if (tier === null || tier === undefined || tier === '') return undefined;
+  const n = typeof tier === 'number' ? tier : Number(tier);
+  if (!Number.isFinite(n) || n < 0 || n > 4) return undefined;
+  return 5 - n;
+}
+
 export function getTeamPriority(team: { priority?: number | null; tier?: number | string | null }): number | undefined {
   if (typeof team?.priority === 'number') {
     return team.priority;
+  }
+
+  const fromTier = tierToPriorityDisplay(team?.tier);
+  if (fromTier !== undefined) {
+    return fromTier;
   }
 
   return 99;

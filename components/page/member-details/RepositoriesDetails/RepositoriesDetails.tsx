@@ -13,13 +13,13 @@ import { RepositoriesList } from '@/components/page/member-details/RepositoriesD
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
 }
 
 export const RepositoriesDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo?.uid === member.id;
-  const canView = userInfo.rbac?.status === 'APPROVED';
+  const canView = userInfo?.rbac?.status === 'APPROVED';
   const isEditable = isOwner || isAdmin;
 
   if (!isLoggedIn || (!canView && !isOwner)) {
@@ -28,7 +28,7 @@ export const RepositoriesDetails = ({ isLoggedIn, userInfo, member }: Props) => 
 
   return (
     <DetailsSection>
-      <RepositoriesList member={member} userInfo={userInfo} isEditable={isEditable} />
+      <RepositoriesList member={member} userInfo={userInfo!} isEditable={isEditable} />
     </DetailsSection>
   );
 };

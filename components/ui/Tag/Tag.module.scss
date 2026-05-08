@@ -44,6 +44,14 @@
   padding: 2px 5px;
 }
 
+.primaryWithIcon {
+  max-width: 132px;
+
+  @include media.breakpoint-1024 {
+    max-width: 154px;
+  }
+}
+
 .secondary {
   border: 1px solid #cbd5e1;
   white-space: wrap;

@@ -10,18 +10,20 @@ import { MediaPreview } from '../../../FounderPendingView/components/MediaPrevie
 import { getDemoDayMaterials } from '@/constants/demoDay';
 import { TrackEventDto, useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
-import { IUserInfo } from '@/types/shared.types';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useParams } from 'next/navigation';
 
 export const AdminContent = ({
-  isDirectoryAdmin,
+  elevatedStaff,
+  showMembersDirectoryLink,
   canEdit = true,
   label = 'Demo Day Prep',
 }: {
-  isDirectoryAdmin: boolean;
+  /** Directory or demo-day staff (including read-only) — drives team drawer “admin path” UX. */
+  elevatedStaff: boolean;
+  /** `directory.admin.full` only — investor count link to `/members`. */
+  showMembersDirectoryLink: boolean;
   canEdit?: boolean;
   label?: string;
 }) => {
@@ -31,7 +33,7 @@ export const AdminContent = ({
   const { data: demoDayData } = useGetDemoDayState();
   const { data: profiles, isLoading } = useGetAllFundraisingProfiles();
 
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
   const { onActiveViewWelcomeVideoViewed } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const hasVideo = !!materials?.pitchVideoUrl;
@@ -84,7 +86,7 @@ export const AdminContent = ({
                   <span>
                     {demoDayData?.teamsCount} Team{(demoDayData?.teamsCount ?? 0) > 1 ? 's' : ''}
                   </span>
-                  {demoDayData?.investorsCount && demoDayData?.investorsCount > 100 ? (
+                  {demoDayData?.investorsCount && demoDayData?.investorsCount > 100 && showMembersDirectoryLink ? (
                     <>
                       &nbsp;&bull;&nbsp;
                       <Link href={`/members?isInvestor=true`}>
@@ -120,7 +122,7 @@ export const AdminContent = ({
         </div>
       </div>
 
-      <AdminTeamsList profiles={profiles} isLoading={isLoading} isDirectoryAdmin={isDirectoryAdmin} canEdit={canEdit} />
+      <AdminTeamsList profiles={profiles} isLoading={isLoading} elevatedStaff={elevatedStaff} canEdit={canEdit} />
     </div>
   );
 };

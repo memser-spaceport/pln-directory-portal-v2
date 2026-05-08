@@ -9,7 +9,7 @@ import { SubmitDealModal } from '@/components/page/deals/SubmitDealModal/SubmitD
 import { SubmitDealSuccessModal } from '@/components/page/deals/SubmitDealSuccessModal/SubmitDealSuccessModal';
 import { useDealsAnalytics } from '@/analytics/deals.analytics';
 import { useSubmitDealModalStore } from '@/services/deals/store';
-import { getUserInfoFromLocal } from '@/utils/common.utils';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { vendorLogoItems, mockFaqItems, mockHowItWorksSteps, mockValueProps } from './mock-data';
 import s from './DealsLandingPage.module.scss';
 
@@ -17,7 +17,8 @@ export function DealsLandingPage() {
   const router = useRouter();
   const analytics = useDealsAnalytics();
   const { openModal } = useSubmitDealModalStore((state) => state.actions);
-  const isLoggedIn = !!getUserInfoFromLocal();
+  const { currentUser } = useCurrentUserStore();
+  const isLoggedIn = !!currentUser;
 
   const openSubmitDealModal = (placement: 'hero' | 'footer') => {
     analytics.trackDealsLandingListProductClicked(placement);

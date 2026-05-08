@@ -14,7 +14,7 @@ interface IMemberTeamCard {
   tags: ITag[] | undefined;
   isMainTeam: boolean | undefined;
   url: string;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | null;
   member: IMember;
   isPopupOpen?: boolean;
 }

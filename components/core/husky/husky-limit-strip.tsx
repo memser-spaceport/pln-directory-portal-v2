@@ -1,6 +1,6 @@
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/core/ToastContainer';
 
@@ -26,7 +26,7 @@ const HuskyLimitStrip = ({ type, count, onDialogClose, mode, from }: HuskyLimitS
       onDialogClose();
     }
     analytics.trackLoginFromHuskyChat(from);
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = useCurrentUserStore.getState().currentUser;
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

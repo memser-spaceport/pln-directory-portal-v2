@@ -6,7 +6,7 @@ import { ForumIntroBanner } from '@/components/page/forum/ForumIntroBanner/Forum
 const mockGetMemberPreferences = jest.fn();
 const mockUpdatePreferences = jest.fn();
 const mockOnForumBannerDismissed = jest.fn();
-const mockGetCookiesFromClient = jest.fn();
+const mockUseCurrentUserStore = jest.fn();
 
 jest.mock('@/services/members/hooks/useGetMemberPreferences', () => ({
   useGetMemberPreferences: (...args: unknown[]) => mockGetMemberPreferences(...args),
@@ -20,8 +20,8 @@ jest.mock('@/analytics/forum.analytics', () => ({
   useForumAnalytics: () => ({ onForumBannerDismissed: mockOnForumBannerDismissed }),
 }));
 
-jest.mock('@/utils/third-party.helper', () => ({
-  getCookiesFromClient: () => mockGetCookiesFromClient(),
+jest.mock('@/services/auth/store', () => ({
+  useCurrentUserStore: () => mockUseCurrentUserStore(),
 }));
 
 const BANNER_COPY = /Every member has been individually vetted/i;
@@ -29,7 +29,7 @@ const BANNER_COPY = /Every member has been individually vetted/i;
 describe('ForumIntroBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetCookiesFromClient.mockReturnValue({ userInfo: { uid: 'member-1' } });
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'member-1' } });
   });
 
   it('renders nothing while preferences are loading', () => {
@@ -55,7 +55,7 @@ describe('ForumIntroBanner', () => {
   });
 
   it('renders nothing when there is no signed-in user', () => {
-    mockGetCookiesFromClient.mockReturnValue({ userInfo: null });
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: null });
     mockGetMemberPreferences.mockReturnValue({
       data: { memberPreferences: { showForumBanner: true } },
       isLoading: false,

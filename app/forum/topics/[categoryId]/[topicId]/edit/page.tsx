@@ -36,14 +36,6 @@ const EditPostPage = async ({ params, searchParams }: PageProps) => {
     );
   }
 
-  if (!USE_ACCESS_CONTROL_V2 && (userInfo.accessLevel === 'L0' || userInfo.accessLevel === 'L1')) {
-    return (
-      <div className={s.root}>
-        <LoggedOutView reason="base" />
-      </div>
-    );
-  }
-
   const token = process.env.CUSTOM_FORUM_AUTH_TOKEN ?? authToken;
 
   const response = await fetch(`${process.env.FORUM_API_URL}/api/topic/${params.topicId}`, {
@@ -80,7 +72,6 @@ const EditPostPage = async ({ params, searchParams }: PageProps) => {
           title: data.title,
           content: data.posts?.[0]?.content,
         }}
-        userInfo={userInfo}
       />
     </div>
   );

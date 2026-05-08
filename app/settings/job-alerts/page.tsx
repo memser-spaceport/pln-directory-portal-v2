@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import SettingsMenu from '@/components/page/settings/menu';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
-import { JobAlertsManager } from '@/components/page/job-alerts/JobAlertsManager/JobAlertsManager';
+import { JobAlertsManager } from '@/components/page/job-alerts/JobAlertsManager';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import styles from './page.module.css';

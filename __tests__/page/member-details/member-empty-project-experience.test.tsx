@@ -48,7 +48,7 @@ describe('MemberEmptyProjectExperience Component', () => {
   it('calls analytics and navigates to member settings page for admin but not owner', () => {
     const newProps = {
       ...defaultProps,
-      userInfo: { uid: '2', roles: [ADMIN_ROLE] },
+      userInfo: { uid: '2', roles: [], rbac: { effectivePermissions: [{ code: 'directory.admin.full' }] } },
     };
     render(<MemberEmptyProjectExperience {...newProps} />);
 

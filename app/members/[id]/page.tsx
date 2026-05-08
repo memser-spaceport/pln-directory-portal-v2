@@ -9,8 +9,6 @@ import { ContactDetails } from '@/components/page/member-details/ContactDetails'
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
-// import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
-// import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
 import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
 import { OfficeHoursDetails } from '@/components/page/member-details/OfficeHoursDetails';
@@ -20,13 +18,11 @@ import React, { useEffect } from 'react';
 import { BookWithOther } from '@/components/page/member-details/BookWithOther';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
-import { getAccessLevel } from '@/utils/auth.utils';
 import clsx from 'clsx';
 import { isDemodaySignUpSource, isMemberAvailableToConnect } from '@/utils/member.utils';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
+import { useCurrentUserStore } from '@/services/auth/store';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useQuery } from '@tanstack/react-query';
 import { IMember } from '@/types/members.types';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -61,9 +57,9 @@ const MemberDetails = ({ params }: { params: any }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const userInfo = getParsedValue(Cookies.get('userInfo'));
+  const { currentUser: userInfo } = useCurrentUserStore();
   const isAdmin = isAdminUser(userInfo);
-  const isOwner = userInfo && userInfo.uid === memberId;
+  const isOwner = !!userInfo && userInfo.uid === memberId;
   const isLoggedIn = !!userInfo;
 
   // Check for prefillEmail and returnTo parameters
@@ -75,7 +71,7 @@ const MemberDetails = ({ params }: { params: any }) => {
     isError,
     isLoading,
   } = useQuery({
-    queryKey: [MembersQueryKeys.GET_MEMBER, memberId, isLoggedIn, userInfo.uid],
+    queryKey: [MembersQueryKeys.GET_MEMBER, memberId, isLoggedIn, userInfo?.uid],
     queryFn: () =>
       getMember(
         memberId,
@@ -91,20 +87,18 @@ const MemberDetails = ({ params }: { params: any }) => {
 
   // Fetch investor settings to check visibility preference
   const { data: memberInvestorSettings } = useGetMemberInvestorSettings(memberId);
+  const { authToken } = getCookiesFromClient();
   const { data: availableToConnectCount } = useQuery({
     queryKey: ['memberList'],
-    queryFn: () => getMemberListForQuery(qs.stringify({ hasOfficeHours: true }), 1, 1, userInfo?.token),
-    enabled: !!userInfo?.token,
+    queryFn: () => getMemberListForQuery(qs.stringify({ hasOfficeHours: true }), 1, 1, authToken),
+    enabled: !!authToken,
     select: (data) => data?.total,
   });
+  const { currentUser } = useCurrentUserStore();
   const isAvailableToConnect = isMemberAvailableToConnect(member);
-  const accessLevel = getAccessLevel(userInfo, isLoggedIn);
   const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
-  const status = member?.rbac.status;
-  const isNewInvestor =
-    (USE_ACCESS_CONTROL_V2 ? status === 'PENDING' : accessLevel === 'base') &&
-    isOwner &&
-    isDemodaySignUpSource(member?.signUpSource);
+  const status = member?.rbac?.status;
+  const isNewInvestor = status === 'PENDING' && isOwner && isDemodaySignUpSource(member?.signUpSource);
 
   // Scroll to top when member data is loaded or member ID changes
   useEffect(() => {
@@ -214,17 +208,14 @@ const MemberDetails = ({ params }: { params: any }) => {
               {renderPageContent()}
             </div>
           </div>
-          {!isAvailableToConnect &&
-            isLoggedIn &&
-            (USE_ACCESS_CONTROL_V2 ? v2HasMemberContacts : accessLevel === 'advanced') &&
-            !isOwner && (
-              <div className={styles.desktopOnly}>
-                <div style={{ visibility: 'hidden' }}>
-                  <BackButton to={`/members`} />
-                </div>
-                <BookWithOther count={availableToConnectCount} member={member} />
+          {!isAvailableToConnect && isLoggedIn && currentUser?.rbac?.status === 'APPROVED' && !isOwner && (
+            <div className={styles.desktopOnly}>
+              <div style={{ visibility: 'hidden' }}>
+                <BackButton to={`/members`} />
               </div>
-            )}
+              <BookWithOther count={availableToConnectCount} member={member} />
+            </div>
+          )}
         </div>
 
         {/* {userInfo.uid === member.id && (

@@ -12,8 +12,6 @@ import {
   SUBMIT_A_TEAM_PAGE_TITLE,
 } from '@/utils/constants/team-constants';
 
-import { isInvestor } from '@/utils/isInvestor';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useInvestorAccess } from '@/services/access-control/hooks/useInvestorAccess';
 
 import FormStepIndicatorMob from '@/components/core/form-step-indicator-mob';
@@ -39,9 +37,7 @@ export function AddEditTeamContainer(props: Props) {
   const [isSaveSuccess, setSuccessState] = useState(false);
 
   const onSuccessCallback = () => {
-    const { accessLevel } = userInfo;
-
-    if (USE_ACCESS_CONTROL_V2 ? v2IsInvestor : isInvestor(accessLevel)) {
+    if (v2IsInvestor) {
       setShowModal(true);
     } else {
       setSuccessState(true);

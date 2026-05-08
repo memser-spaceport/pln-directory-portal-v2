@@ -1,19 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
 import { AccessControlQueryKeys } from '@/services/access-control/constants';
 import { fetchMyAccess } from '@/services/access-control/access-control.service';
-import { getUserInfoFromLocal } from '@/utils/common.utils';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 export type ForumAccessDeniedReason = 'base' | 'investor';
 
 interface ForumAccessResult {
   hasAccess: boolean;
   deniedReason: ForumAccessDeniedReason | null;
+  canWrite: boolean;
 }
 
-const EMPTY: ForumAccessResult = { hasAccess: false, deniedReason: 'base' };
+const EMPTY: ForumAccessResult = { hasAccess: false, deniedReason: 'base', canWrite: false };
 
 export function useForumAccess() {
-  const userInfo = getUserInfoFromLocal();
+  const { currentUser } = useCurrentUserStore();
 
   const {
     data = EMPTY,
@@ -24,14 +25,15 @@ export function useForumAccess() {
     queryFn: fetchMyAccess,
     select: (data): ForumAccessResult => {
       const hasAccess = data.effectivePermissions.includes('forum.read');
-      if (hasAccess) return { hasAccess: true, deniedReason: null };
+      const canWrite = data.effectivePermissions.includes('forum.write');
+      if (hasAccess) return { hasAccess: true, deniedReason: null, canWrite };
       const hasMemberAccess = data.effectivePermissions.includes('member.contacts.read');
-      return { hasAccess: false, deniedReason: hasMemberAccess ? 'investor' : 'base' };
+      return { hasAccess: false, deniedReason: hasMemberAccess ? 'investor' : 'base', canWrite };
     },
     staleTime: 5 * 60 * 1000,
-    enabled: !!userInfo,
+    enabled: !!currentUser,
     retry: 2,
   });
 
-  return { hasAccess: data.hasAccess, deniedReason: data.deniedReason, isLoading, isError };
+  return { hasAccess: data.hasAccess, deniedReason: data.deniedReason, isLoading, isError, canWrite: data.canWrite };
 }

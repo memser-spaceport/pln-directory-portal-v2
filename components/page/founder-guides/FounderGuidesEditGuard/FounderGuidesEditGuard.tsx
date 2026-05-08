@@ -4,7 +4,7 @@ import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFounderGuidesCreateAccess } from '@/services/rbac/hooks/useFounderGuidesCreateAccess';
 import { useGetArticles } from '@/services/articles/hooks/useGetArticles';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { canEditArticle } from '@/components/page/founder-guides/ArticleContent/helpers';
 import { IArticle } from '@/types/articles.types';
 
@@ -17,7 +17,7 @@ export function FounderGuidesEditGuard({ slug, children }: Props) {
   const router = useRouter();
   const { canCreate, isLoading: rbacLoading, isError: rbacError } = useFounderGuidesCreateAccess();
   const { articles, isLoading: articlesLoading, isError: articlesError } = useGetArticles();
-  const { userInfo } = getCookiesFromClient();
+  const { currentUser: userInfo } = useCurrentUserStore();
 
   const isLoading = rbacLoading || articlesLoading;
   const isError = rbacError || articlesError;

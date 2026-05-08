@@ -11,18 +11,19 @@ import { useGetTeamTagsListOptions } from './hooks/useGetTeamTagsListOptions';
 import { useGetTeamTagsListEditOptions } from './hooks/useGetTeamTagsListEditOptions';
 
 import { TeamsTagsListSection } from './TeamsTagsListSection';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   team: ITeam;
-  userInfo: IUserInfo;
 }
 
 export function TeamCommunitiesSection(props: Props) {
-  const { team, userInfo } = props;
+  const { team } = props;
 
+  const { currentUser } = useCurrentUserStore();
   const { membershipSources: tags = [] } = team || {};
 
-  const isTLOrAdmin = isTeamLeaderOrAdmin(userInfo, team?.id);
+  const isTLOrAdmin = isTeamLeaderOrAdmin(currentUser, team?.id);
 
   const communityAffiliations = useGetTeamTagsListOptions(team, 'communityAffiliations');
   const availableCommunityAffiliations = useGetTeamTagsListEditOptions('communityAffiliations');

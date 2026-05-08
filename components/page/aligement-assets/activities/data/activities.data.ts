@@ -17,8 +17,10 @@ export const activitiesData: ActivitiesData = {
       activity: 'Curate X Spaces',
       networkValue: 'Increase network visibility and strengthen the collective brand.',
       points: '100+',
+      frequency: 'Recurring',
       popupContent: {
         title: 'Curate X Spaces',
+        submitButtonText: 'Propose X Space >',
         description: 'Host or co-host an approved X Space that highlights innovation, collaboration, or thought leadership across the network. Proposals must be submitted and approved before scheduling, and the X Space must be hosted on the official PL X account to ensure metrics can be verified.',
         submissionNoteTitle: 'Base Points Awarded:',
         submissionNote: '100 points for hosting or co-hosting an approved X Space, recognizing the effort required to plan and run the session.',
@@ -69,8 +71,10 @@ export const activitiesData: ActivitiesData = {
       activity: 'Create a Blog for the Network',
       networkValue: 'Share expertise and insights across the network.',
       points: '200+',
+      frequency: 'Recurring',
       popupContent: {
         title: 'Create a Blog for the Network',
+        submitButtonText: 'Propose Blog >',
         description: 'Write a blog post about a key project, insight, or trend relevant to the Protocol Labs network. Submit an idea for approval, draft your post, and incorporate editorial feedback until it meets PL editorial standards. Only published posts are eligible for rewards and appear on protocol.ai/blog.',
         submissionLink: {
           text: 'protocol.ai/blog',
@@ -94,8 +98,12 @@ export const activitiesData: ActivitiesData = {
       activity: 'Contribute a High-Quality Response to the Forum',
       networkValue: 'Write a thoughtful, substantive response to an existing forum discussion that moves the conversation forward.',
       points: '100+',
+      frequency: 'Repeatable',
+      isAutoTracked: true,
       popupContent: {
         title: 'Contribute a High-Quality Response to the Forum',
+        submitButtonText: 'Reply in Forum >',
+        ctaLink: 'https://directory.plnetwork.io/forum',
         description: 'Write a thoughtful, substantive response to an existing LabOS Forum discussion that moves the conversation forward. Strong responses should add meaningful insight, ask a sharp follow-up question, synthesize relevant experience, or introduce useful evidence, context, or interpretation. To qualify, the response must go beyond a short reaction and provide enough substance, clarity, and relevance to genuinely advance the thread for others reading it.',
         links: [
           { text: 'LabOS Forum', url: 'https://directory.plnetwork.io/forum' }
@@ -165,9 +173,12 @@ export const activitiesData: ActivitiesData = {
       activity: 'Host Office Hours*',
       networkValue: 'Share your expertise with others in the network.',
       points: '150',
+      frequency: 'Repeatable',
       isAutoTracked: true,
       popupContent: {
         title: 'Host Office Hours',
+        submitButtonText: 'Book a Session >',
+        ctaLink: 'https://directory.plnetwork.io/members?hasOfficeHours=true',
         description: 'Host live sessions to share expertise, provide feedback, or collaborate with others in the network. Sessions must be scheduled through directory.plnetwork.io and only completed sessions verified by requester count toward rewards.',
         links: [
           { text: 'directory.plnetwork.io', url: 'https://directory.plnetwork.io/members' }
@@ -187,8 +198,10 @@ export const activitiesData: ActivitiesData = {
       activity: 'Construct an Alignment Asset Case Study',
       networkValue: 'Write a case study highlighting how your participation in PLAA drove meaningful outcomes for you and the Protocol Labs network.',
       points: '250+',
+      frequency: 'Recurring',
       popupContent: {
         title: 'Construct an Alignment Asset Case Study',
+        submitButtonText: 'Propose Case Study >',
         description: `Write a case study highlighting how your participation in PLAA drove meaningful outcomes for you and the Protocol Labs network. Describe the incentivized activity, your actions, and why it mattered. Focus on the real, measurable impacts. Your case study should clearly show how PLAA participation translates into measurable value for the network, not just individual contributions.
 
 To submit an idea for a case study, start by completing this form and selecting the appropriate activity from the drop-down list. Once approved, a PLAA Working Group member will reach out via email. Draft your case study and work with the approver to incorporate feedback until final approval. After approval, you must opt in for the case study to be included in the internal content library. Any case study that is later published in future posts or formats beyond the internal library will collect additional points.
@@ -219,9 +232,12 @@ Only approved case studies that are opted into the internal content library are 
       activity: 'Complete or Update Your PL Directory Profile*',
       networkValue: 'Make yourself discoverable and strengthen the network map.',
       points: '100+',
+      frequency: 'One-Time',
       isAutoTracked: true,
       popupContent: {
         title: 'Complete or Update Your PL Directory Profile',
+        submitButtonText: 'Update Profile >',
+        ctaLink: 'https://directory.plnetwork.io',
         description: 'Complete your PL Directory profile with all required fields—name, email, role, at least one Project Contribution, LinkedIn, Telegram, and an office-hours link—to activate eligibility. Your profile must be fully complete before any points can be collected.',
         links: [
           { text: 'PL Directory', url: 'https://directory.plnetwork.io/members' }
@@ -240,9 +256,11 @@ Only approved case studies that are opted into the internal content library are 
       category: 'Network Tooling',
       activity: 'Design a Custom Incentive Experiment',
       networkValue: 'Share expertise and insights across the network.',
-      points: 'TBC',
+      points: '200+',
+      frequency: 'One-Time',
       popupContent: {
         title: 'Design a Custom Incentive Experiment',
+        submitButtonText: 'Propose Experiment >',
         description: 'Propose a short-term incentivized initiative—such as a research study, contributor challenge, pilot test, or community-based campaign—with clear goals, measurable outcomes, and a defined participant group. Must be reviewed and approved by AAWG before launch.',
         submissionNote: 'Include a project description, target audience, success criteria, timeline, point budget, distribution method, point validity period, and program manager.',
         pointsAwarded: {
@@ -260,9 +278,11 @@ Only approved case studies that are opted into the internal content library are 
       category: 'People/Talent',
       activity: 'Share Compensation Data',
       networkValue: 'Share expertise and insights across the network.',
-      points: '300+',
+      points: '50+',
+      frequency: 'One-Time',
       popupContent: {
         title: 'Contribute Your Compensation Data',
+        submitButtonText: 'Submit Comp Data >',
         description: 'Share your compensation data to support network-wide transparency, benchmarking, and pay-equity insights. Submit your information securely using the designated form.',
         submissionNote: 'You may update your data up to four (4) times per year when your position or employer changes.',
         pointsAwarded: {
@@ -280,8 +300,10 @@ Only approved case studies that are opted into the internal content library are 
       activity: 'Refer a New Team Member or Collaborator',
       networkValue: 'Grow the network with quality people.',
       points: '25+',
+      frequency: 'Recurring',
       popupContent: {
         title: 'Talent Referral Program',
+        submitButtonText: 'Submit Referral >',
         description: 'Refer exceptional talent to the Protocol Labs network by submitting candidates through the designated form. Points can now be collected at multiple stages of the referral process, starting with referral submission and increasing as candidates progress through interviews and hiring. Hired based points are collected after 90 days of employment.',
         pointsAwarded: {
           title: 'Points Awarded',
@@ -325,9 +347,11 @@ Only approved case studies that are opted into the internal content library are 
       activity: 'Propose a New Incentivized Activity',
       networkValue: 'Design creative solutions to meet network needs through collaboration.',
       points: '150+',
+      frequency: 'Recurring',
       popupContent: {
         title: 'Create an Incentivized Activity:',
         subtitle: 'Solutions to High-Value Network Needs',
+        submitButtonText: 'Propose Activity >',
         description: 'Propose a new Alignment Asset activity that solves a clear network challenge or unmet need. Submissions must show:',
         requirements: [
           { label: 'Demand', value: 'A specific problem affecting multiple teams.' },
@@ -352,11 +376,12 @@ Only approved case studies that are opted into the internal content library are 
       activity: 'Make a Network Introduction',
       networkValue: 'Connect collaborators or organizations to unlock new partnerships.',
       points: '300+',
-      // hasFormLink: true,
+      frequency: 'Repeatable',
       popupContent: {
         title: 'Make a Network Introduction',
         description: 'Facilitate meaningful introductions between individuals or teams that may lead to collaboration, partnerships, or shared opportunities. Quality, verified introductions are prioritized.',
         submissionNote: 'Submit Network Introductions through the PL Directory Forum under the Intros tab or via the Activity Reporting Form. Points are collected once the introduction is reviewed and validated.',
+        submitButtonText: 'Submit Intro >',
         links: [
           { text: 'PL Directory Forum', url: 'https://directory.plnetwork.io/forum?cid=5' },
           { text: 'Activity Reporting Form', url: 'https://forms.gle/zUQg2jUBYsWivk5t5' }
@@ -378,8 +403,12 @@ Only approved case studies that are opted into the internal content library are 
       activity: 'Help Organize an Event',
       networkValue: 'Host or speak at a curated activity or event that deliver real value to the Protocol Labs community.',
       points: '50+',
+      frequency: 'Recurring',
+      isAutoTracked: true,
       popupContent: {
         title: 'Help Organize an Event',
+        submitButtonText: 'Submit Event >',
+        ctaLink: 'https://directory.plnetwork.io/events/irl',
         description: `Host or speak at a curated activity or event catered to Protocol Labs participants to aid with an array of topics, ranging from company formation, dedicated development, cross-network collaboration, etc. Events should be intentionally designed, independently run without direct PL, Inc. or Polaris, Inc. sponsorship in the form of direct compensation for time or labor, and focused on delivering real value to the Protocol Labs community.
 
 For Hosts, the event must be created and published in Luma and included on a live, discoverable calendar or listing. You must add events@plrs.xyz as an Event Manager in Luma so registration and attendance data can be accessed, and the Luma “check-in” feature must be enabled to verify attendee participation.
@@ -417,8 +446,12 @@ For Speakers, eligibility is contingent on the event being submitted and validat
       activity: 'Respond to an IRL Gathering',
       networkValue: 'Indicate your planned attendance to help others coordinate and strengthen the network.',
       points: '25',
+      frequency: 'Repeatable',
+      isAutoTracked: true,
       popupContent: {
         title: 'Respond to an IRL Gathering',
+        submitButtonText: 'RSVP to Event >',
+        ctaLink: 'https://directory.plnetwork.io/events/irl',
         description: `Indicate your planned attendance to help others coordinate and strengthen the network.
 
 Respond "I'm Going" on the relevant event page via IRL Gatherings before attending to qualify for points. Click I'm Going -> Select Event -> Role: Attendee, and ensure you are listed as an Attendee on the event page through your directory profile.`,
@@ -441,8 +474,11 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
       activity: 'Complete the Monthly Feedback Survey or Promote Your Own Survey',
       networkValue: 'Provide insights that help refine the experiment or promote your own survey. Please look for an email for this month\'s survey link.',
       points: '100+',
+      frequency: 'Repeatable',
+      verificationType: 'Hybrid',
       popupContent: {
         title: 'Survey Completion',
+        submitButtonText: 'Promote Survey >',
         description: 'Complete PLAA surveys at the end of each snapshot period to share feedback and help shape program evolution. Survey links are emailed mid-snapshot and must be completed by the stated deadline.',
         pointsAwarded: {
           title: 'Points Awarded:',
@@ -466,8 +502,10 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
       activity: 'Highlight an Outstanding Network Contribution',
       networkValue: 'Submit or recognize significant work that advanced the network.',
       points: '250+',
+      frequency: 'Recurring',
       popupContent: {
         title: 'Distinguished Network Contributions',
+        submitButtonText: 'Nominate Contribution >',
         description: 'Nominate individuals or teams whose exceptional contributions have made a measurable, long-term impact across the Protocol Labs network — such as groundbreaking research, governance improvements, or projects that transform network operations.',
         submissionNote: 'Submissions must be reviewed and verified by the AAWG. After 3 unsuccessful or unverified submissions, accounts may be temporarily paused.',
         pointsAwarded: {
@@ -486,8 +524,10 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
       activity: 'Contribute to the Alignment Asset Program',
       networkValue: 'Support the ongoing design and development of the experiment itself.',
       points: '250+',
+      frequency: 'Recurring',
       popupContent: {
         title: 'Alignment Asset Program Contributions',
+        submitButtonText: 'Submit Contribution >',
         description: 'Contribute documentation, analysis, or tooling improvements that support the growth and optimization of the Alignment Asset program.',
         submissionNote: 'Activities that involve advising the Trust on asset management or investment decisions are ineligible.',
         pointsAwarded: {
@@ -506,8 +546,10 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
       activity: 'Bring New Members into the Alignment Asset',
       networkValue: 'Help grow the experiment by referring new members.',
       points: '100+',
+      frequency: 'Repeatable',
       popupContent: {
         title: 'Referral Program',
+        submitButtonText: 'Validate Referral >',
         description: 'Refer eligible participants to join the Alignment Asset program. Before sending an invitation, email plaa-wg@plrs.xyz with the individual’s name and email you wish to invite for validation. Once approved, you may send the referral invitation using the template we’ll provide in response. When sending the initial validation email, please do not include the referring user in the thread.',
         submissionNote: 'Referrals must come from the existing PL Directory member list and must successfully pass KYC + accreditation to be point-eligible.',
         links: [

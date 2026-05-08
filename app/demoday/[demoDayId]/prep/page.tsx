@@ -22,7 +22,8 @@ function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
 
   // User can view the prep page if they have admin access, read-only admin access, OR are a founder
   const hasAccess =
-    data?.status === 'COMPLETED' ? isDirectoryAdmin : hasAdminAccess || data?.access === 'FOUNDER';
+    (data?.status === 'COMPLETED' ? isDirectoryAdmin : isDirectoryAdmin || data?.access === 'FOUNDER') ||
+    data?.isDemoDayAdmin;
 
   useEffect(() => {
     // Redirect non-admins to regular demo day page

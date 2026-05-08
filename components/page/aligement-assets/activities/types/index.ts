@@ -31,6 +31,8 @@ export interface ActivityPopupContent {
   submissionNoteTitle?: string;
   submissionNote?: string;
   submissionLink?: PopupLink;
+  submitButtonText?: string;
+  ctaLink?: string;
   links?: PopupLink[];
   pointsAwarded: {
     title: string;
@@ -69,6 +71,8 @@ export interface Activity {
   activity: string;
   networkValue: string;
   points: string;
+  frequency?: 'Repeatable' | 'Recurring' | 'One-Time';
+  verificationType?: 'Auto' | 'Submission' | 'Hybrid';
   isAutoTracked?: boolean;
   hasFormLink?: boolean;
   popupContent: ActivityPopupContent;

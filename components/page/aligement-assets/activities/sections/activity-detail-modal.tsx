@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
 import { Activity, PopupLink } from '../types';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
+import { ACTIVITY_FORM_URL } from '@/constants/plaa';
 
 interface ActivityDetailModalProps {
   isOpen: boolean;
@@ -32,6 +34,22 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
       category: activity.category,
       points: activity.points,
     }, linkText, url);
+  };
+
+  const handleSubmitBtnClick = () => {
+    // Priority: ctaLink > submissionLink > ACTIVITY_FORM_URL
+    const url = popupContent.ctaLink
+      || (!activity.hasFormLink && popupContent.submissionLink ? popupContent.submissionLink.url : null)
+      || ACTIVITY_FORM_URL;
+    
+    onActivitiesModalLinkClicked({
+      activityId: activity.id,
+      activityName: activity.activity,
+      category: activity.category,
+      points: activity.points,
+    }, 'Submit Activity Button', url);
+    
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   /**
@@ -270,6 +288,35 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                 )}
               </div>
             )}
+          </div>
+
+          <div className="activity-modal__footer">
+            <div className="activity-modal__tracking">
+              {(() => {
+                const vType = activity.verificationType || (activity.isAutoTracked ? 'Auto' : 'Submission');
+                if (vType === 'Auto') return (
+                  <>
+                    <Image src="/icons/auto-tracked.svg" alt="Auto-tracked" width={16} height={16} />
+                    <span>Auto-tracked</span>
+                  </>
+                );
+                if (vType === 'Hybrid') return (
+                  <>
+                    <Image src="/icons/hybrid-icon.svg" alt="Hybrid" width={16} height={16} />
+                    <span>Hybrid</span>
+                  </>
+                );
+                return (
+                  <>
+                    <Image src="/icons/submission.svg" alt="Submission" width={16} height={16} />
+                    <span>Submission</span>
+                  </>
+                );
+              })()}
+            </div>
+            <button className="activity-modal__submit-btn" onClick={handleSubmitBtnClick}>
+              {popupContent.submitButtonText || (activity.hasFormLink ? 'Submit Activity >' : (popupContent.submissionLink ? 'Read & Submit >' : 'Submit Activity >'))}
+            </button>
           </div>
         </div>
       </Modal>
@@ -523,6 +570,41 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           color: #64748b;
           margin: 8px 0 0 0;
           font-style: italic;
+        }
+
+        .activity-modal__footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 24px;
+          padding-top: 16px;
+          border-top: 1px solid #f1f5f9;
+        }
+
+        .activity-modal__tracking {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
+          color: #64748b;
+          font-weight: 500;
+        }
+
+        .activity-modal__submit-btn {
+          background: #2563eb;
+          color: #ffffff;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+          white-space: nowrap;
+        }
+
+        .activity-modal__submit-btn:hover {
+          background: #1d4ed8;
         }
 
         @media (max-width: 768px) {

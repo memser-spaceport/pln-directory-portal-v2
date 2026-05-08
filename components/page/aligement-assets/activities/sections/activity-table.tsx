@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { Activity } from '../types';
 import { ACTIVITY_FORM_URL } from '@/constants/plaa';
@@ -34,7 +33,7 @@ const SECTION_METADATA = [
 ];
 
 export default function ActivityTable({ activities, onRowClick }: ActivityTableProps) {
-  const { onActivitiesFormLinkClicked } = useAlignmentAssetsAnalytics();
+  const { onActivitiesFormLinkClicked, onActivitiesRowClicked } = useAlignmentAssetsAnalytics();
 
   // Group activities by frequency
   const groupedActivities = activities.reduce((acc, activity) => {
@@ -53,6 +52,8 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
     'One-Time': true,
   });
 
+  const [mobileActiveTab, setMobileActiveTab] = useState<string>(SECTION_METADATA[0].id);
+
   const toggleSection = (id: string) => {
     setExpandedSections(prev => ({
       ...prev,
@@ -60,30 +61,61 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
     }));
   };
 
-  const handleFormLinkClick = (e: React.MouseEvent, activity: Activity) => {
+  const handleExternalClick = (e: React.MouseEvent, activity: Activity) => {
     e.stopPropagation();
+    
+    // Priority: ctaLink > submissionLink > ACTIVITY_FORM_URL
+    const url = activity.popupContent.ctaLink
+      || (!activity.hasFormLink && activity.popupContent.submissionLink ? activity.popupContent.submissionLink.url : null)
+      || ACTIVITY_FORM_URL;
+
     onActivitiesFormLinkClicked({
       activityId: activity.id,
       activityName: activity.activity,
       category: activity.category,
       points: activity.points,
-    }, ACTIVITY_FORM_URL);
+    }, url);
+    
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleCardClick = (activity: Activity) => {
+    onActivitiesRowClicked({
+      activityId: activity.id,
+      activityName: activity.activity,
+      category: activity.category,
+      points: activity.points,
+    });
     onRowClick(activity);
   };
 
+
   return (
     <section className="activities-grouped-cards">
+      <div className="mobile-tabs-container">
+        {SECTION_METADATA.map((section) => {
+          const isActive = mobileActiveTab === section.id;
+          return (
+            <button
+              key={`tab-${section.id}`}
+              className={`mobile-tab ${isActive ? 'active' : ''}`}
+              onClick={() => setMobileActiveTab(section.id)}
+            >
+              {section.title}
+            </button>
+          );
+        })}
+      </div>
+
       {SECTION_METADATA.map((section) => {
         const sectionActivities = groupedActivities[section.id] || [];
         if (sectionActivities.length === 0) return null;
 
         const isExpanded = expandedSections[section.id];
+        const isMobileActive = mobileActiveTab === section.id;
 
         return (
-          <div key={section.id} className="activity-section">
+          <div key={section.id} className={`activity-section ${isMobileActive ? 'mobile-active' : 'mobile-hidden'}`}>
             <div 
               className="activity-section__header" 
               onClick={() => toggleSection(section.id)}
@@ -128,22 +160,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                     <div className="activity-card__body">
                       <h3 className="activity-card__title">{activity.activity}</h3>
                       <p className="activity-card__desc">
-                        {activity.hasFormLink ? (
-                          <>
-                            {activity.networkValue.replace(' (form).', ' ')}
-                            <Link 
-                              href={ACTIVITY_FORM_URL}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="activity-card__form-link"
-                              onClick={(e) => handleFormLinkClick(e, activity)}
-                            >
-                              (form)
-                            </Link>.
-                          </>
-                        ) : (
-                          activity.networkValue
-                        )}
+                        {activity.networkValue}
                       </p>
                     </div>
 
@@ -171,8 +188,11 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                           );
                         })()}
                       </div>
-                      <button className="activity-card__submit-btn">
-                        {activity.popupContent.submitButtonText || (activity.hasFormLink ? 'Submit Activity >' : (activity.popupContent.submissionLink ? 'Read & Submit >' : 'Submit Activity >'))}
+                      <button 
+                        className="activity-card__submit-btn"
+                        onClick={(e) => handleExternalClick(e, activity)}
+                      >
+                        {activity.popupContent.submitButtonText || 'Submit Activity >'}
                       </button>
                     </div>
                   </div>
@@ -382,6 +402,10 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           background: #1d4ed8;
         }
 
+        .mobile-tabs-container {
+          display: none;
+        }
+
         @media (max-width: 1024px) {
           .activity-section__grid {
             grid-template-columns: repeat(2, 1fr);
@@ -389,19 +413,71 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
         }
 
         @media (max-width: 768px) {
-          .activity-section__grid {
-            grid-template-columns: 1fr;
-            padding: 0 16px 16px 16px;
+          .mobile-tabs-container {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 16px;
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+          }
+          
+          .mobile-tabs-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+          }
+
+          .mobile-tab {
+            padding: 12px 0;
+            background: none;
+            color: #64748b;
+            font-size: 15px;
+            font-weight: 500;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            margin-bottom: -1px;
+          }
+
+          .mobile-tab.active {
+            color: #2563eb;
+            border-bottom: 2px solid #2563eb;
+            font-weight: 600;
+          }
+
+          .activity-section.mobile-hidden {
+            display: none;
+          }
+
+          .activity-section {
+            border: none;
+            border-radius: 0;
+            background: transparent;
           }
 
           .activity-section__header {
-            padding: 16px;
+            padding: 0 0 16px 0;
+            cursor: default;
+            background-color: transparent !important;
+          }
+
+          .activity-section__title,
+          .activity-section__toggle {
+            display: none;
           }
           
           .activity-section__title-row {
             flex-direction: column;
             align-items: flex-start;
             gap: 8px;
+          }
+
+          .activity-section__grid {
+            grid-template-columns: 1fr;
+            padding: 0;
           }
         }
       `}</style>

@@ -20,7 +20,6 @@ import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
 import clsx from 'clsx';
 import { isDemodaySignUpSource, isMemberAvailableToConnect } from '@/utils/member.utils';
-import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useQuery } from '@tanstack/react-query';
@@ -96,7 +95,8 @@ const MemberDetails = ({ params }: { params: any }) => {
   });
   const { currentUser } = useCurrentUserStore();
   const isAvailableToConnect = isMemberAvailableToConnect(member);
-  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
+  const showOtherConnectOptions =
+    !isAvailableToConnect && isLoggedIn && currentUser?.rbac?.status === 'APPROVED' && !isOwner;
   const status = member?.rbac?.status;
   const isNewInvestor = status === 'PENDING' && isOwner && isDemodaySignUpSource(member?.signUpSource);
 
@@ -195,7 +195,7 @@ const MemberDetails = ({ params }: { params: any }) => {
       <div className={styles?.memberDetail}>
         <div
           className={clsx(styles.container, {
-            [styles.singleColumn]: isAvailableToConnect || !isLoggedIn || isOwner || !v2HasMemberContacts,
+            [styles.singleColumn]: isAvailableToConnect || !isLoggedIn || isOwner || !showOtherConnectOptions,
           })}
         >
           <div className={styles.content}>
@@ -208,7 +208,7 @@ const MemberDetails = ({ params }: { params: any }) => {
               {renderPageContent()}
             </div>
           </div>
-          {!isAvailableToConnect && isLoggedIn && currentUser?.rbac?.status === 'APPROVED' && !isOwner && (
+          {showOtherConnectOptions && (
             <div className={styles.desktopOnly}>
               <div style={{ visibility: 'hidden' }}>
                 <BackButton to={`/members`} />

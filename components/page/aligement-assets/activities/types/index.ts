@@ -74,6 +74,8 @@ export interface Activity {
   points: string;
   isAutoTracked?: boolean;
   hasFormLink?: boolean;
+  frequency?: string;
+  verificationType?: string;
   popupContent: ActivityPopupContent;
 }
 

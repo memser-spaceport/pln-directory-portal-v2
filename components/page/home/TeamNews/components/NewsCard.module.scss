@@ -1,0 +1,170 @@
+@import 'styles/media.scss';
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(27, 56, 96, 0.08);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+
+  &:hover {
+    border-color: rgba(27, 56, 96, 0.18);
+    box-shadow: 0px 1px 4px 0px rgba(14, 15, 17, 0.06);
+    text-decoration: none;
+    color: inherit;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.logo,
+.logoFallback {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.logoFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1b4dff;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.teamName {
+  font-size: 13px;
+  font-weight: 500;
+  color: #0a0c11;
+  letter-spacing: -0.1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metaLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #64748b;
+  letter-spacing: -0.1px;
+  min-width: 0;
+}
+
+.dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.headline {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: #0a0c11;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  @include breakpoint-1024 {
+    font-size: 16px;
+    line-height: 22px;
+  }
+}
+
+.summary {
+  font-size: 13px;
+  line-height: 19px;
+  color: #455468;
+  letter-spacing: -0.1px;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  border: 1px solid transparent;
+}
+
+.chipFunding {
+  background: #ecfdf3;
+  color: #027a48;
+  border-color: #abefc6;
+}
+
+.chipLaunch {
+  background: #eff4ff;
+  color: #1849a9;
+  border-color: #b2ccff;
+}
+
+.chipPartnership {
+  background: #f4f0ff;
+  color: #5925dc;
+  border-color: #d9c8ff;
+}
+
+.chipAnnouncement {
+  background: #f2f4f7;
+  color: #344054;
+  border-color: #d0d5dd;
+}
+
+.chipMilestone {
+  background: #fef6e7;
+  color: #b54708;
+  border-color: #fcd9a8;
+}
+
+.chipOther {
+  background: #f9fafb;
+  color: #475467;
+  border-color: #e4e7ec;
+}

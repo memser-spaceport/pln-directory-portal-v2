@@ -1,7 +1,6 @@
 'use client';
 
 import { ITeam } from '@/types/teams.types';
-import { IUserInfo } from '@/types/shared.types';
 
 import { isAdminUser } from '@/utils/user/isAdminUser';
 

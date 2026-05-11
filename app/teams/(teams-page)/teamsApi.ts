@@ -1,4 +1,4 @@
-import { ITeamsSearchParams } from '@/types/teams.types';
+import { ITeam, ITeamsSearchParams } from '@/types/teams.types';
 import qs from 'qs';
 
 /**
@@ -24,15 +24,7 @@ const getHeaders = (authToken?: string) => {
 };
 
 export interface TeamListResponse {
-  teams: Array<{
-    id: string;
-    name: string;
-    logo?: string;
-    tier?: number;
-    shortDescription?: string;
-    industryTags: Array<{ uid: string; title: string }>;
-    asks: Array<any>;
-  }>;
+  teams: ITeam[];
   totalItems: number;
 }
 

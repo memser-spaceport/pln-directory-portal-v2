@@ -1,11 +1,10 @@
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 const useUpdateQueryParams = () => {
   const router = useRouter();
 
   const updateQueryParams = (key: string, value: string, searchParams: any) => {
     const current = new URLSearchParams(Object.entries(searchParams));
-    console.log(`in updateQueryParams: ${key}, ${value}, ${searchParams}`);
     if (!value) {
       current.delete(key);
     } else {
@@ -14,8 +13,7 @@ const useUpdateQueryParams = () => {
 
     const search = current.toString();
     const query = search ? `?${search}` : '';
-    router.push(`${window.location.pathname}/${query}`);
-    // router.refresh();
+    router.push(`${window.location.pathname}${query}`);
   };
 
   return { updateQueryParams };

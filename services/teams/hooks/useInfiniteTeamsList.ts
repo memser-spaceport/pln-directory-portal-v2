@@ -32,8 +32,8 @@ async function infiniteFetcher(searchParams: TeamsListQueryParams['searchParams'
 }
 
 type QueryData = {
-  total?: undefined;
-  items?: undefined;
+  total?: number;
+  items?: ITeam[];
 };
 
 export function useInfiniteTeamsList(

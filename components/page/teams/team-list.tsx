@@ -1,6 +1,7 @@
 'use client';
 
-import { ITeam } from '@/types/teams.types';
+import { ITeam, ITeamFilterSelectedItems, ITeamsSearchParams } from '@/types/teams.types';
+import { IUserInfo } from '@/types/shared.types';
 import { PAGE_ROUTES, VIEW_TYPE_OPTIONS } from '@/utils/constants';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import TeamGridView from './team-grid-view';
@@ -12,12 +13,16 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { useInfiniteTeamsList } from '@/services/teams/hooks/useInfiniteTeamsList';
 import { TeamsMobileFilters } from './TeamsMobileFilters';
 
-const TeamList = (props: any) => {
-  const allTeams = props?.teams ?? [];
-  const userInfo = props?.userInfo;
-  const searchParams = props?.searchParams;
-  const totalTeams = props?.totalTeams;
-  const filterValues = props.filterValues;
+interface Props {
+  teams: ITeam[];
+  totalTeams: number;
+  searchParams: ITeamsSearchParams;
+  userInfo?: IUserInfo;
+  filterValues?: ITeamFilterSelectedItems;
+}
+
+const TeamList = (props: Props) => {
+  const { teams: allTeams, userInfo, searchParams, totalTeams, filterValues } = props;
 
   const analytics = useTeamAnalytics();
 
@@ -29,12 +34,8 @@ const TeamList = (props: any) => {
   };
 
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteTeamsList(
-    {
-      searchParams,
-    },
-    {
-      initialData: { items: allTeams, total: totalTeams },
-    },
+    { searchParams },
+    { initialData: { items: allTeams, total: totalTeams } },
   );
 
   const Loader = CardsLoader;

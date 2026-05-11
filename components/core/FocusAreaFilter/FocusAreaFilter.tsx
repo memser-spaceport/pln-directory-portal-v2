@@ -19,8 +19,6 @@ interface FocusAreaFilterProps<T extends TreeFilterItem> {
 export function FocusAreaFilter<T extends TreeFilterItem>(props: FocusAreaFilterProps<T>) {
   const { items, selectedIds, onToggle, getCount, showDescription } = props;
 
-
-
   const parentIds = useMemo(() => {
     const ids = new Set<string>();
     selectedIds.forEach((id) => {

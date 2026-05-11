@@ -539,8 +539,8 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
       verificationType: 'Submission',
       popupContent: {
         title: 'Share a Reusable AI Resource or Tool',
-        submitButtonText: 'Share a Resource',
-        ctaLink: 'https://directory.laboswork.io/forum',
+        submitButtonText: 'Share a Resource >',
+        ctaLink: 'https://directory.plnetwork.io/forum',
         description: 'Share a reusable AI resource that helps other network members learn from, adapt, or adopt a useful AI-enabled workflow. Eligible resources may include AI tools, automations, prompt libraries, .md guides, playbooks, templates, scripts, or examples of how AI is being used to improve team operations, product work, research, community building, or other network-relevant work.\n\nTo qualify for points, the resource must be posted on GitHub and shared in the LabOS Forum with clear context on what it does, who it is designed for, and how others can use or adapt it. The forum post should be designed to generate meaningful discussion rather than simply share a link. Strong posts should explain the problem the resource solves, highlight relevant use cases, and invite feedback, questions, improvements, adaptations, or examples from other members who may want to apply it in their own work.',
         pointsAwarded: {
           title: 'Points Awarded:',
@@ -578,8 +578,8 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
       isAutoTracked: true,
       popupContent: {
         title: 'Rank Among the Network\'s Most Supportive Members',
-        submitButtonText: 'Confirm Your Points',
-        ctaLink: 'https://directory.laboswork.io/alignment-assets/',
+        submitButtonText: 'Confirm Your Points >',
+        ctaLink: 'https://directory.plnetwork.io/alignment-assets/',
         description: 'The Alignment Asset now recognizes the highest contributors across the network during each snapshot period. This is an automatic activity. At the close of every snapshot, the Top 3 users with the highest verified point totals for that snapshot will be awarded additional points.\n\nUsers will collect these points for the snapshot once all activity has been reviewed, finalized, and closed.',
         pointsAwarded: {
           title: 'Points Awarded:',

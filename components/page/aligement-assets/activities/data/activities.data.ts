@@ -14,7 +14,7 @@ export const activitiesData: ActivitiesData = {
     {
       id: 'host-x-space',
       category: 'Brand',
-      activity: 'Host or Curate an X Space',
+      activity: 'Curate X Spaces',
       networkValue: 'Increase network visibility and strengthen the collective brand.',
       points: '100+',
       popupContent: {
@@ -66,7 +66,7 @@ export const activitiesData: ActivitiesData = {
     {
       id: 'write-blog-article',
       category: 'Knowledge Sharing',
-      activity: 'Write a Blog or Article',
+      activity: 'Create a Blog for the Network',
       networkValue: 'Share expertise and insights across the network.',
       points: '200+',
       popupContent: {
@@ -528,7 +528,73 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
           ]
         }
       }
+    },
+    {
+      id: 'share-ai-resource',
+      category: 'Network Tooling',
+      activity: 'Share a Reusable AI Resource or Tool',
+      networkValue: 'Share a reusable AI resource that others can learn from and apply.',
+      points: '150+',
+      frequency: 'Recurring',
+      verificationType: 'Submission',
+      popupContent: {
+        title: 'Share a Reusable AI Resource or Tool',
+        submitButtonText: 'Share a Resource',
+        ctaLink: 'https://directory.laboswork.io/forum',
+        description: 'Share a reusable AI resource that helps other network members learn from, adapt, or adopt a useful AI-enabled workflow. Eligible resources may include AI tools, automations, prompt libraries, .md guides, playbooks, templates, scripts, or examples of how AI is being used to improve team operations, product work, research, community building, or other network-relevant work.\n\nTo qualify for points, the resource must be posted on GitHub and shared in the LabOS Forum with clear context on what it does, who it is designed for, and how others can use or adapt it. The forum post should be designed to generate meaningful discussion rather than simply share a link. Strong posts should explain the problem the resource solves, highlight relevant use cases, and invite feedback, questions, improvements, adaptations, or examples from other members who may want to apply it in their own work.',
+        pointsAwarded: {
+          title: 'Points Awarded:',
+          items: [
+            {
+              label: 'Base Reward',
+              value: '150 points for publishing a qualifying AI resource on GitHub and sharing it with the network through a forum post.',
+              subItems: [
+                { label: 'The GitHub resource must include clear documentation or usage instructions.' },
+                { label: 'The forum post must include a link to the GitHub resource and a short explanation of its intended use.' }
+              ]
+            },
+            {
+              label: 'Engagement & Reuse Bonus:',
+              value: '',
+              valueOnNewLine: true,
+              subItems: [
+                { label: '5+ GitHub stars on the resource', value: '+50 points' },
+                { label: 'Each qualifying fork, reference, or confirmed reuse by another network member or team', value: '+100 points' },
+                { label: 'Engagement and reuse bonuses are calculated only from activity tied to the submitted GitHub resource or its linked forum post.' }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      id: 'rank-supportive-members',
+      category: 'Brand',
+      activity: 'Rank Among the Network\'s Most Supportive Members*',
+      networkValue: 'Bonus points for Top 5 performers each snapshot.',
+      points: '50+',
+      frequency: 'Repeatable',
+      verificationType: 'Auto',
+      isAutoTracked: true,
+      popupContent: {
+        title: 'Rank Among the Network\'s Most Supportive Members',
+        submitButtonText: 'Confirm Your Points',
+        ctaLink: 'https://directory.laboswork.io/alignment-assets/',
+        description: 'The Alignment Asset now recognizes the highest contributors across the network during each snapshot period. This is an automatic activity. At the close of every snapshot, the Top 3 users with the highest verified point totals for that snapshot will be awarded additional points.\n\nUsers will collect these points for the snapshot once all activity has been reviewed, finalized, and closed.',
+        pointsAwarded: {
+          title: 'Points Awarded:',
+          description: 'Awarded automatically to the Top 3 users with the highest verified point totals for the snapshot.',
+          items: [
+            { label: '1st Place', value: '300 points' },
+            { label: '2nd Place', value: '200 points' },
+            { label: '3rd Place', value: '100 points' },
+            { label: '4th Place', value: '75 points' },
+            { label: '5th Place', value: '50 points' }
+          ]
+        }
+      }
     }
+
   ]
 };
 

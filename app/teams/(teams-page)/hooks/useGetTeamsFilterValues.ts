@@ -84,7 +84,9 @@ export function useTeamsFilters(searchParams: ITeamsSearchParams) {
 
   // Process filter values
   const filterValues = useMemo(() => {
-    if (!filtersData || !focusAreasData) return null;
+    if (!filtersData || !focusAreasData) {
+      return undefined;
+    }
 
     const processed = processFilters({
       searchParams,

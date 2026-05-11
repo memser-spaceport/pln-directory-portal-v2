@@ -5,13 +5,13 @@ import { useTeamFilterStore, useTeamFilterCount } from '@/services/teams';
 import { TeamsFilter } from '@/components/page/teams/TeamsFilter';
 import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWrapper';
 import { IUserInfo } from '@/types/shared.types';
-import { ITeamFilterSelectedItems } from '@/types/teams.types';
+import { ITeamFilterSelectedItems, ITeamsSearchParams } from '@/types/teams.types';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 
 interface TeamsMobileFiltersProps {
   filterValues?: ITeamFilterSelectedItems;
   userInfo?: IUserInfo;
-  searchParams?: any;
+  searchParams: ITeamsSearchParams;
 }
 
 /**

@@ -27,10 +27,12 @@ export interface ActivityPopupContent {
   title: string;
   subtitle?: string;
   description: string;
+  submitButtonText?: string;
   requirements?: RequirementItem[];
   submissionNoteTitle?: string;
   submissionNote?: string;
   submissionLink?: PopupLink;
+  ctaLink?: string;
   links?: PopupLink[];
   pointsAwarded: {
     title: string;
@@ -69,6 +71,8 @@ export interface Activity {
   activity: string;
   networkValue: string;
   points: string;
+  frequency?: string;
+  verificationType?: string;
   isAutoTracked?: boolean;
   hasFormLink?: boolean;
   popupContent: ActivityPopupContent;

@@ -29,6 +29,7 @@ export interface ActivityPopupContent {
   description: string;
   submitButtonText?: string;
   ctaLink?: string;
+  frequency?: string;
   requirements?: RequirementItem[];
   submissionNoteTitle?: string;
   submissionNote?: string;

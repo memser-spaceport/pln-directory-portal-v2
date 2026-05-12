@@ -5,9 +5,7 @@ import Link from 'next/link';
 import type { IJobAlert } from '@/types/job-alerts.types';
 import { summarizeFilterState } from '@/utils/job-alerts.utils';
 import { Button } from '@/components/common/Button';
-
-import { IconInfo, IconClose } from './components/Icons';
-
+import { JobAlertShell } from '../JobAlertShell';
 import s from './JobAlertIndicator.module.scss';
 
 interface JobAlertIndicatorProps {
@@ -19,8 +17,7 @@ export function JobAlertIndicator({ alert, onDismiss }: JobAlertIndicatorProps) 
   const alertName = summarizeFilterState(alert.filterState);
 
   return (
-    <div className={s.indicator}>
-      <IconInfo />
+    <JobAlertShell onDismiss={onDismiss}>
       <div className={s.inner}>
         <p className={s.label}>Showing jobs for your job alert{alertName ? `: ${alertName}` : ''}</p>
         <div className={s.actions}>
@@ -31,11 +28,6 @@ export function JobAlertIndicator({ alert, onDismiss }: JobAlertIndicatorProps) 
           </Link>
         </div>
       </div>
-      {onDismiss && (
-        <button type="button" className={s.dismissBtn} onClick={onDismiss} aria-label="Dismiss">
-          <IconClose />
-        </button>
-      )}
-    </div>
+    </JobAlertShell>
   );
 }

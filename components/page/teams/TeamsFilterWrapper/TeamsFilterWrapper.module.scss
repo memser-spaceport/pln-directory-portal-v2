@@ -1,0 +1,18 @@
+@import '../../../../styles/media';
+
+.root {
+  width: inherit;
+  height: inherit;
+}
+
+.web {
+  display: none;
+}
+
+@include breakpoint-1024 {
+  .web {
+    display: unset;
+    width: inherit;
+    height: inherit;
+  }
+}

@@ -3,7 +3,7 @@
 import { ITeamsSearchParams } from '@/types/teams.types';
 import { IUserInfo } from '@/types/shared.types';
 import Error from '../../../../components/core/error';
-import FilterWrapper from '../../../../components/page/teams/filter-wrapper';
+import { TeamsFilterWrapper } from '../../../../components/page/teams/TeamsFilterWrapper/TeamsFilterWrapper';
 import { FiltersPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout';
 import { useTeamsFilters } from '../hooks/useGetTeamsFilterValues';
 
@@ -27,5 +27,5 @@ export default function FiltersContent({ searchParams, userInfo }: FiltersConten
     return null;
   }
 
-  return <FilterWrapper searchParams={searchParams} filterValues={filterValues} userInfo={userInfo!} />;
+  return <TeamsFilterWrapper searchParams={searchParams} filterValues={filterValues} userInfo={userInfo!} />;
 }

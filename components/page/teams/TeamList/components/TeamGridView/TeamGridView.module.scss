@@ -1,0 +1,340 @@
+@import '../../../../../../styles/media';
+
+.grid {
+  width: 167.5px;
+  height: 168px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow:
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+
+  &:hover {
+    box-shadow: 0px 0px 0px 2px #156ff740;
+  }
+
+  &:active {
+    border-radius: 12px;
+    outline-style: solid;
+    outline-width: 1px;
+    outline-offset: 0;
+    outline-color: #156ff7;
+    box-shadow: 0px 0px 0px 2px #156ff740;
+  }
+}
+
+.profileContainer {
+  position: relative;
+  height: 33px;
+  border-radius: 12px 12px 0px 0px;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, #fff 0%, #e2e8f0 205.47%);
+}
+
+.profileImage {
+  height: 36px;
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  position: absolute;
+  background-color: #e2e8f0;
+  right: 0;
+  left: 0;
+  margin: auto;
+  top: 13px;
+  object-fit: cover;
+}
+
+.detailsContainer {
+  padding: 0 12px 12px 12px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.teamDetail {
+  display: flex;
+  flex-direction: column;
+}
+
+.teamName {
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 22px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+}
+
+.teamDesc {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  height: 54px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tagsContainer {
+  display: flex;
+  gap: 8px;
+  height: 26px;
+}
+
+.tagsMob {
+  display: block;
+  overflow: hidden;
+}
+
+.tagsDesc {
+  display: none;
+  overflow: hidden;
+}
+
+.embla {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  height: 24px;
+  border-top: 0.4px solid #93c5fd;
+  background: linear-gradient(71.47deg, rgba(66, 125, 255, 0.15) 8.43%, rgba(68, 213, 187, 0.15) 87.45%);
+  border-radius: 0px 0px 12px 12px;
+}
+
+.tooltip {
+  height: 206px;
+  width: 304px;
+  background-color: #fff;
+  overflow: unset;
+  gap: 10px;
+  border-radius: 12px;
+  border: 1px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 8px;
+}
+
+.hoverableName {
+  display: flex;
+
+  &:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
+
+.emblaDashes {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  bottom: 6px;
+  gap: 2px;
+}
+
+.emblaDash {
+  background: #93c5fd;
+  border: none;
+  color: #93c5fd;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.3s;
+  width: 9px;
+  height: 3px;
+  border-radius: 30px;
+
+  &.highlighted {
+    color: #156ff7 !important;
+    background: #156ff7;
+    font-weight: bold;
+  }
+}
+
+.emblaViewport {
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.emblaContainer {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.emblaContainerCnt {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  width: 100px;
+  position: relative;
+  overflow: hidden;
+}
+
+.emblaSlideContainer {
+  min-width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 24px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.emblaImg {
+  display: flex;
+  align-items: center;
+}
+
+.emblaButtonCarousel {
+  position: relative;
+  bottom: 8px;
+}
+
+.emblaSlide {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: baseline;
+  justify-content: center;
+  padding: 0 20px;
+  position: relative;
+}
+
+.emblaButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.emblaButtonPrev,
+.emblaButtonNext {
+  display: none;
+}
+
+.emblaButtonPrev {
+  left: 10px;
+  background: transparent;
+}
+
+.emblaButtonNext {
+  right: 10px;
+  background: transparent;
+}
+
+.hideTooltip {
+  display: none;
+}
+
+.hideName {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+  position: relative;
+  bottom: 3px;
+}
+
+@include breakpoint-1024 {
+  .emblaButtonPrev,
+  .emblaButtonNext {
+    display: flex;
+  }
+
+  .hideTooltip {
+    display: flex;
+  }
+
+  .hideName {
+    display: none;
+  }
+
+  .emblaDashes {
+    top: 2px;
+  }
+
+  .embla {
+    height: 36px;
+  }
+
+  .emblaSlideContainer {
+    font-size: 13px;
+    align-items: center;
+  }
+
+  .emblaSlide {
+    align-items: center;
+  }
+
+  .tagsContainer {
+    margin-left: 0;
+  }
+
+  .grid {
+    width: 289px;
+    height: 267px;
+  }
+
+  .teamName {
+    font-size: 18px;
+    line-height: 28px;
+  }
+
+  .profileContainer {
+    height: 64px;
+  }
+
+  .profileImage {
+    height: 72px;
+    width: 72px;
+    min-width: 72px;
+    min-height: 72px;
+    top: 20px;
+  }
+
+  .detailsContainer {
+    padding: 0 20px 20px 20px;
+    margin-top: 38px;
+    gap: 10px;
+  }
+
+  .teamDetail {
+    gap: 10px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .teamDesc {
+    font-size: 14px;
+    height: 60px;
+    line-height: 20px;
+    margin-bottom: 10px;
+  }
+
+  .tagsMob {
+    display: none;
+  }
+
+  .tagsDesc {
+    display: block;
+  }
+}

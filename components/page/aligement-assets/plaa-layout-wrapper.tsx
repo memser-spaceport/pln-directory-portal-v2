@@ -6,7 +6,11 @@ import PlaaMenu, { PlaaActiveItem } from './plaa-menu';
 import PlaaBackButton from './plaa-back-btn';
 import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { GuestAccessModal } from './guest-access-modal/GuestAccessModal';
 import styles from '@/app/alignment-asset/plaa.module.css';
+
+const GUEST_MODAL_SESSION_KEY = 'plaa_guest_modal_shown';
 
 interface PlaaLayoutWrapperProps {
   readonly children: React.ReactNode;
@@ -49,8 +53,22 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
   const pathname = usePathname();
   const { activeItem, title, viewingRound } = getPageInfo(pathname ?? '');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+  const [isGuestModalOpen, setIsGuestModalOpen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const { authToken } = getCookiesFromClient();
+    const alreadyShown = sessionStorage.getItem(GUEST_MODAL_SESSION_KEY);
+    const shouldShow = !authToken && !alreadyShown;
+    if (shouldShow) {
+      sessionStorage.setItem(GUEST_MODAL_SESSION_KEY, 'true');
+    }
+    return shouldShow;
+  });
+
   const { onMobileNavMenuClicked, onMobileNavMenuClosed } = useAlignmentAssetsAnalytics();
+
+  const handleCloseGuestModal = () => {
+    setIsGuestModalOpen(false);
+  };
 
   // Scroll to top when pathname changes (tab switch)
   useEffect(() => {
@@ -86,6 +104,7 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
   };
 
   return (
+    <>
     <div className={styles.plaa}>
       {/* Mobile Menu Button */}
       <button
@@ -156,5 +175,8 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
       )}
 
     </div>
+
+    <GuestAccessModal isOpen={isGuestModalOpen} onClose={handleCloseGuestModal} />
+    </>
   );
 }

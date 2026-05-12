@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import HeroSection from "./sections/hero-section";
 import PastLeaderboardSection from "./sections/past-leaderboard-section";
 import StatsSection from "./sections/stats-section";
@@ -8,6 +9,7 @@ import PastRoundDescription from "../past-rounds/past-round-description";
 import SupportSection from "./sections/support-section";
 import BuybackSimulationSection from "./sections/buyback-simulation-section";
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 
 interface PastRoundComponentProps {
   pastRoundData: IPastRoundData;
@@ -15,6 +17,7 @@ interface PastRoundComponentProps {
 
 export default function PastRoundComponent({ pastRoundData }: PastRoundComponentProps) {
   const data = pastRoundData;
+  const [isLoggedIn] = useState(() => typeof window !== 'undefined' && !!getCookiesFromClient().authToken);
   useScrollDepthTracking(`past-round-${data.meta.roundNumber}`);
   return (
     <>
@@ -27,7 +30,7 @@ export default function PastRoundComponent({ pastRoundData }: PastRoundComponent
           tokensAllocated={data.stats.totalTokensAvailable}
         />
         <StatsSection data={data.stats} />
-        {data.leaderboard.length > 0 && <PastLeaderboardSection roundNumber={data.meta.roundNumber} leaderboardData={data.leaderboard} />}
+        {isLoggedIn && data.leaderboard.length > 0 && <PastLeaderboardSection roundNumber={data.meta.roundNumber} leaderboardData={data.leaderboard} />}
         {data.buybackSimulation && <BuybackSimulationSection data={data.buybackSimulation} />}
         <SupportSection />
       </div>

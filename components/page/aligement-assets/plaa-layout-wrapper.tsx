@@ -2,15 +2,17 @@
 
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import PlaaMenu, { PlaaActiveItem } from './plaa-menu';
 import PlaaBackButton from './plaa-back-btn';
 import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
-import { GuestAccessModal } from './guest-access-modal/GuestAccessModal';
 import styles from '@/app/alignment-asset/plaa.module.css';
 
-const GUEST_MODAL_SESSION_KEY = 'plaa_guest_modal_shown';
+const GuestAccessModalController = dynamic(
+  () => import('./guest-access-modal/GuestAccessModalController').then((m) => m.GuestAccessModalController),
+  { ssr: false }
+);
 
 interface PlaaLayoutWrapperProps {
   readonly children: React.ReactNode;
@@ -25,7 +27,6 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem | undefined
   if (segments.includes('rounds') && segments.length > 2) {
     const roundNumber = parseInt(pathSegment, 10);
     if (!isNaN(roundNumber)) {
-      // Viewing a specific round - don't highlight any menu item
       return { activeItem: undefined, title: `Round ${roundNumber}`, viewingRound: roundNumber };
     }
   }
@@ -53,30 +54,14 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
   const pathname = usePathname();
   const { activeItem, title, viewingRound } = getPageInfo(pathname ?? '');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isGuestModalOpen, setIsGuestModalOpen] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const { authToken } = getCookiesFromClient();
-    const alreadyShown = sessionStorage.getItem(GUEST_MODAL_SESSION_KEY);
-    const shouldShow = !authToken && !alreadyShown;
-    if (shouldShow) {
-      sessionStorage.setItem(GUEST_MODAL_SESSION_KEY, 'true');
-    }
-    return shouldShow;
-  });
 
   const { onMobileNavMenuClicked, onMobileNavMenuClosed } = useAlignmentAssetsAnalytics();
 
-  const handleCloseGuestModal = () => {
-    setIsGuestModalOpen(false);
-  };
-
   // Scroll to top when pathname changes (tab switch)
   useEffect(() => {
-    // Don't scroll to top if there's a hash in the URL
     if (window.location.hash) {
       return;
     }
-    // Scroll both window and document to ensure it works across browsers
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
@@ -87,17 +72,11 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  /**
-   * Handles opening the mobile menu
-   */
   const handleOpenMenu = () => {
     setIsMobileMenuOpen(true);
     onMobileNavMenuClicked();
   };
 
-  /**
-   * Handles closing the mobile menu
-   */
   const handleCloseMenu = () => {
     setIsMobileMenuOpen(false);
     onMobileNavMenuClosed();
@@ -105,78 +84,70 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
 
   return (
     <>
-    <div className={styles.plaa}>
-      {/* Mobile Menu Button */}
-      <button
-        className={styles.plaa__menuBtn}
-        onClick={handleOpenMenu}
-        aria-label="Open menu"
-        aria-expanded={isMobileMenuOpen}
-      >
-        <img src="/icons/menu-icon.svg" alt="Menu" width={16} height={16} />
-      </button>
+      <div className={styles.plaa}>
+        {/* Mobile Menu Button */}
+        <button
+          className={styles.plaa__menuBtn}
+          onClick={handleOpenMenu}
+          aria-label="Open menu"
+          aria-expanded={isMobileMenuOpen}
+        >
+          <img src="/icons/menu-icon.svg" alt="Menu" width={16} height={16} />
+        </button>
 
-      {/* Mobile Banner - positioned inside layout, hidden on desktop */}
-      {/* <div className={styles['plaa__mobile-banner']}>
-        { <PlaaBanner variant="mobile" /> }
-      </div> */}
+        {/* Main Layout */}
+        <div className={styles.plaa__main}>
+          {/* Fixed Sidebar */}
+          <aside className={styles.plaa__sidebar}>
+            <PlaaMenu activeItem={activeItem} totalRounds={16} currentRound={16} viewingRound={viewingRound} />
+          </aside>
 
-      {/* Main Layout */}
-      <div className={styles.plaa__main}>
-        {/* Fixed Sidebar */}
-        <aside className={styles.plaa__sidebar}>
-          <PlaaMenu activeItem={activeItem} totalRounds={16} currentRound={16} viewingRound={viewingRound} />
-        </aside>
-
-        {/* Scrollable Content */}
-        <div className={styles.plaa__content}>
-          <div className={styles['plaa__content-inner']}>
-            {children}
+          {/* Scrollable Content */}
+          <div className={styles.plaa__content}>
+            <div className={styles['plaa__content-inner']}>
+              {children}
+            </div>
           </div>
         </div>
+
+        {isMobileMenuOpen && (
+          <div 
+            className={styles.plaa__menuBackdrop}
+            onClick={handleCloseMenu}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div 
+              className={styles.plaa__menuOverlay}
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Navigation menu"
+            >
+              <div className={styles.plaa__menuHeader}>
+                <h2 className={styles.plaa__menuTitle}>Menu</h2>
+                <button 
+                  className={styles.plaa__menuClose}
+                  onClick={handleCloseMenu}
+                  aria-label="Close menu"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+
+              <PlaaMenu 
+                activeItem={activeItem} 
+                totalRounds={15} 
+                currentRound={15} 
+                viewingRound={viewingRound}
+                onMenuItemClick={handleCloseMenu}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      {isMobileMenuOpen && (
-        <div 
-          className={styles.plaa__menuBackdrop}
-          onClick={handleCloseMenu}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div 
-            className={styles.plaa__menuOverlay}
-            onClick={(e) => e.stopPropagation()}
-            aria-label="Navigation menu"
-          >
-            {/* Menu Header with Title and Close Button */}
-            <div className={styles.plaa__menuHeader}>
-              <h2 className={styles.plaa__menuTitle}>Menu</h2>
-              <button 
-                className={styles.plaa__menuClose}
-                onClick={handleCloseMenu}
-                aria-label="Close menu"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            </div>
-
-            {/* Menu Content */}
-            <PlaaMenu 
-              activeItem={activeItem} 
-              totalRounds={15} 
-              currentRound={15} 
-              viewingRound={viewingRound}
-              onMenuItemClick={handleCloseMenu}
-            />
-          </div>
-        </div>
-      )}
-
-    </div>
-
-    <GuestAccessModal isOpen={isGuestModalOpen} onClose={handleCloseGuestModal} />
+      <GuestAccessModalController />
     </>
   );
 }

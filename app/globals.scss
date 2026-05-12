@@ -266,23 +266,6 @@ dialog {
   border-radius: 50%;
 }
 
-.team-grid__profile-container__profile {
-  height: 36px;
-  width: 36px;
-  min-width: 36px;
-  min-height: 36px;
-  border-radius: 4px;
-  border: 1px solid #cbd5e1;
-  position: absolute;
-  background-color: #e2e8f0;
-  right: 0;
-  left: 0;
-  margin: auto;
-  top: 13px;
-  border-radius: 4px;
-  border: 1px solid #e2e8f0;
-  object-fit: cover;
-}
 
 .projectgrid__profile__img {
   height: 36px;
@@ -479,13 +462,6 @@ dialog {
 }
 
 @media (min-width: 1024px) {
-  .team-grid__profile-container__profile {
-    height: 72px !important;
-    width: 72px;
-    min-width: 72px;
-    min-height: 72px !important;
-    top: 20px;
-  }
 
   .projectgrid__profile__img {
     height: 72px !important;

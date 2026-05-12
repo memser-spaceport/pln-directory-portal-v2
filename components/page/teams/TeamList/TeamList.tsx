@@ -9,9 +9,10 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useInfiniteTeamsList } from '@/services/teams/hooks/useInfiniteTeamsList';
-import TeamGridView from '../team-grid-view';
+
 import { TeamAddCard } from './components/TeamAddCard';
-import { TeamsMobileFilters } from '../TeamsMobileFilters';
+import { TeamGridView } from './components/TeamGridView';
+import { TeamsMobileFilters } from './components/TeamsMobileFilters';
 
 import s from './TeamList.module.scss';
 

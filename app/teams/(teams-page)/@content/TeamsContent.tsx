@@ -6,7 +6,7 @@ import { IUserInfo } from '@/types/shared.types';
 import EmptyResult from '../../../../components/core/empty-result';
 import Error from '../../../../components/core/error';
 import { TeamsToolbar } from '../../../../components/page/teams/TeamsToolbar';
-import { TeamList } from '@/components/page/teams/TeamList/TeamList';
+import { TeamList } from '@/components/page/teams/TeamList';
 import styles from './page.module.css';
 import { fetchTeamsList } from '../teamsApi';
 import { useEffect } from 'react';

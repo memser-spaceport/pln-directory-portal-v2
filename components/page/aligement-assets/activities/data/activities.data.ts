@@ -170,7 +170,7 @@ export const activitiesData: ActivitiesData = {
     {
       id: 'host-office-hours',
       category: 'Knowledge Sharing',
-      activity: 'Host Office Hours*',
+      activity: 'Host Office Hours',
       networkValue: 'Share your expertise with others in the network.',
       points: '150',
       frequency: 'Repeatable',
@@ -612,7 +612,7 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
     {
       id: 'rank-supportive-members',
       category: 'Brand',
-      activity: 'Rank Among the Network\'s Most Supportive Members*',
+      activity: 'Rank Among the Network\'s Most Supportive Members',
       networkValue: 'Bonus points for Top 5 performers each snapshot.',
       points: '50+',
       frequency: 'Repeatable',

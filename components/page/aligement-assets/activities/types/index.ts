@@ -71,8 +71,8 @@ export interface Activity {
   activity: string;
   networkValue: string;
   points: string;
-  frequency?: string;
-  verificationType?: string;
+  frequency?: 'Repeatable' | 'Recurring' | 'One-Time';
+  verificationType?: 'Auto' | 'Submission' | 'Hybrid';
   isAutoTracked?: boolean;
   hasFormLink?: boolean;
   popupContent: ActivityPopupContent;

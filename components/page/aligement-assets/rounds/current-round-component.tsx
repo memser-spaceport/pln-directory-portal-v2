@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Script from 'next/script';
 import HeroSection from './sections/hero-section';
 import RoundDescriptionSection from './sections/round-description-section';
 import SnapshotProgressSection from './sections/snapshot-progress-section';
@@ -14,6 +15,10 @@ import SupportSection from './sections/support-section';
 import { currentRoundData } from './data';
 import { CurrentRoundData } from './types';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
+
+const BOTPRESS_INJECT_SRC = 'https://cdn.botpress.cloud/webchat/v3.6/inject.js';
+const BOTPRESS_WEBCHAT_SRC =
+  'https://files.bpcontent.cloud/2026/04/09/18/20260409185449-1KEMAN62.js';
 
 interface CurrentRoundComponentProps {
   currentRound?: number;
@@ -31,6 +36,7 @@ export default function CurrentRoundComponent({
   data = currentRoundData
 }: CurrentRoundComponentProps) {
   const [leaderboardView, setLeaderboardView] = useState<'current' | 'alltime'>('current');
+  const [isBotpressInjectLoaded, setIsBotpressInjectLoaded] = useState(false);
 
   // Parse dates from the master data
   const { startDate, endDate } = useMemo(() => {
@@ -44,6 +50,14 @@ export default function CurrentRoundComponent({
 
   return (
     <>
+      <Script
+        src={BOTPRESS_INJECT_SRC}
+        strategy="afterInteractive"
+        onLoad={() => setIsBotpressInjectLoaded(true)}
+      />
+      {isBotpressInjectLoaded ? (
+        <Script src={BOTPRESS_WEBCHAT_SRC} strategy="afterInteractive" defer />
+      ) : null}
       <div className="current-round">
         {/* Hero Section with Title and Action Buttons */}
         <HeroSection data={data.hero} />

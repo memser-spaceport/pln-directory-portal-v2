@@ -28,15 +28,15 @@ export default async function Home() {
     return <Error />;
   }
 
-  const firstName = typeof userInfo?.name === 'string' ? userInfo.name.split(' ')[0] : null;
-
   return (
     <>
       <div className={styles.home}>
         <div className={styles.home__cn}>
-          <div className={styles.home__cn__welcome}>
-            <Welcome firstName={firstName} isLoggedIn={isLoggedIn} />
-          </div>
+          {!isLoggedIn && (
+            <div className={styles.home__cn__welcome}>
+              <Welcome />
+            </div>
+          )}
           <div className={styles.home__cn__teamnews}>
             <TeamNews groups={teamNewsGroups} />
           </div>

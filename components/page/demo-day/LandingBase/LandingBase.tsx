@@ -1,6 +1,10 @@
 import React, { PropsWithChildren, ReactNode } from 'react';
 
-import { faqItems } from '@/app/constants/demoday';
+import {
+  faqItems,
+  isNetworkPartnerDemoDaySlug,
+  NETWORK_PARTNER_DEMO_DAY_FOOTER_DISCLAIMER,
+} from '@/app/constants/demoday';
 
 import { LogosGrid } from '@/components/common/LogosGrid';
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
@@ -21,6 +25,8 @@ interface LandingBaseProps {
 export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
   const { children, initialDemoDayState, countdown, information, hideLogos } = props;
   const supportEmail = initialDemoDayState?.supportEmail ?? 'pldemoday@protocol.ai';
+  const demoDaySlug = initialDemoDayState?.slugURL;
+  const isNetworkPartnerDemoDay = isNetworkPartnerDemoDaySlug(demoDaySlug);
 
   return (
     <div className={s.root}>
@@ -44,9 +50,23 @@ export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
 
           {!hideLogos && <LogosGrid />}
 
-          <FAQ items={faqItems} demoDaySlug={initialDemoDayState?.uid} />
+          <FAQ
+            items={faqItems}
+            demoDaySlug={demoDaySlug}
+            subtitle={
+              isNetworkPartnerDemoDay ? (
+                <p className={s.faqReachOut}>
+                  Reach out to us at{' '}
+                  <a href={`mailto:${supportEmail}`} className={s.email}>
+                    {supportEmail}
+                  </a>{' '}
+                  for any other questions.
+                </p>
+              ) : undefined
+            }
+          />
 
-          <Footer />
+          <Footer disclaimer={isNetworkPartnerDemoDay ? NETWORK_PARTNER_DEMO_DAY_FOOTER_DISCLAIMER : undefined} />
         </div>
       </div>
     </div>

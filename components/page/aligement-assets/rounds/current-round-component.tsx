@@ -14,6 +14,7 @@ import SupportSection from './sections/support-section';
 import { currentRoundData } from './data';
 import { CurrentRoundData } from './types';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 
 interface CurrentRoundComponentProps {
   currentRound?: number;
@@ -30,6 +31,7 @@ interface CurrentRoundComponentProps {
 export default function CurrentRoundComponent({
   data = currentRoundData
 }: CurrentRoundComponentProps) {
+  const [isLoggedIn] = useState(() => typeof window !== 'undefined' && !!getCookiesFromClient().authToken);
   const [leaderboardView, setLeaderboardView] = useState<'current' | 'alltime'>('current');
 
   // Parse dates from the master data
@@ -67,13 +69,15 @@ export default function CurrentRoundComponent({
         {/* Statistics Section */}
         <StatsSection data={data.stats} />
 
-        {/* Points Leaderboard Section */}
-        <LeaderboardSection 
-          view={leaderboardView}
-          onViewChange={setLeaderboardView}
-          currentSnapshotData={data.leaderboard.currentSnapshotData}
-          cumulativeData={data.leaderboard.cumulativeData}
-        />
+        {/* Points Leaderboard Section - visible to logged-in users only */}
+        {isLoggedIn && (
+          <LeaderboardSection 
+            view={leaderboardView}
+            onViewChange={setLeaderboardView}
+            currentSnapshotData={data.leaderboard.currentSnapshotData}
+            cumulativeData={data.leaderboard.cumulativeData}
+          />
+        )}
 
         {/* Buyback Auction Results Section - Only show when there's auction data */}
         {data.buybackAuction.bids.length > 0 && (

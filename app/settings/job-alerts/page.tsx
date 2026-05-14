@@ -8,7 +8,7 @@ import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import styles from './page.module.css';
 
 async function JobAlertsSettingsPage({ searchParams }: { searchParams: any }) {
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = await getCookiesFromHeaders();
   const params = new URLSearchParams(searchParams as Record<string, string>).toString();
 
   if (!isLoggedIn) {

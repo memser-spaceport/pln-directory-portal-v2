@@ -15,6 +15,7 @@ import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import { filterStateFromURL } from '@/utils/jobs.utils';
 import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchParams } from '@/utils/job-alerts.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
+import { JOBS_SORT_OPTIONS } from '@/services/jobs/constants';
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
 import { toast } from '@/components/core/ToastContainer';
@@ -27,10 +28,6 @@ import { JobAlertIndicator } from '@/components/page/jobs/JobAlertIndicator';
 import JobsMobileFilters from '@/components/page/jobs/JobsMobileFilters';
 import s from './JobsContent.module.scss';
 
-const SORT_OPTIONS = [
-  { value: 'company_az', label: 'A-Z (Ascending)' },
-  { value: 'newest', label: 'Newest' },
-] as const;
 
 interface JobsContentProps {
   userInfo: IUserInfo | undefined;
@@ -161,7 +158,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
           </h1>
         </div>
         <SortDropdown
-          options={SORT_OPTIONS as unknown as Array<{ value: string; label: React.ReactNode }>}
+          options={JOBS_SORT_OPTIONS}
           currentSort={sort}
           onSortChange={onSort}
           sortByLabel="Sort by:"

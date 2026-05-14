@@ -13,9 +13,7 @@ type FooterProps = {
 export function Footer({ disclaimer = DEFAULT_DISCLAIMER }: FooterProps) {
   return (
     <div className={s.root}>
-      <div className={s.note}>
-        {disclaimer}
-      </div>
+      <div className={s.note}>{disclaimer}</div>
       <div className={s.bottom}>
         <div className={s.legal}>© 2026 Protocol Labs</div>
         <div className={s.links}>

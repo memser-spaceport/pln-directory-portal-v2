@@ -28,9 +28,11 @@ const ChevronDownIcon = () => (
 export const FAQ: React.FC<FAQProps> = ({ title = 'Frequently Asked Questions', items, subtitle, demoDaySlug }) => {
   // Use demo day specific FAQ if available (from hardcoded map), otherwise use default items
   const faqItems = useMemo(() => {
-    if (demoDaySlug && demoDayFaqMap[demoDaySlug]) {
-      return demoDayFaqMap[demoDaySlug];
-    }
+    if (!demoDaySlug) return items;
+    const exact = demoDayFaqMap[demoDaySlug];
+    if (exact) return exact;
+    const matchKey = Object.keys(demoDayFaqMap).find((k) => k.toLowerCase() === demoDaySlug.toLowerCase());
+    if (matchKey) return demoDayFaqMap[matchKey];
     return items;
   }, [demoDaySlug, items]);
 

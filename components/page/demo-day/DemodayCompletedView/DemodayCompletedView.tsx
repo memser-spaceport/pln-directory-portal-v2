@@ -10,7 +10,13 @@ import { Button } from '@/components/common/Button';
 import { LogosGrid } from '@/components/common/LogosGrid';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import { TeamCard } from '@/components/common/LogosGrid/components/TeamCard';
-import { faqCompletedItems, PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from '@/app/constants/demoday';
+import {
+  faqCompletedItems,
+  PRIVACY_POLICY_URL,
+  TERMS_AND_CONDITIONS_URL,
+  isNetworkPartnerDemoDaySlug,
+  NETWORK_PARTNER_DEMO_DAY_FOOTER_DISCLAIMER,
+} from '@/app/constants/demoday';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { FeedbackDialog } from './components/FeedbackDialog';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
@@ -63,6 +69,8 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState<{ uid: string; isNew: boolean; email: string } | null>(null);
   const isFounder = initialDemoDayState?.access?.toUpperCase() === 'FOUNDER';
+  const supportEmail = initialDemoDayState?.supportEmail ?? 'pldemoday@protocol.ai';
+  const isNetworkPartnerDemoDay = isNetworkPartnerDemoDaySlug(initialDemoDayState?.slugURL);
   const { data: fundraisingProfile } = useGetFundraisingProfile(isFounder);
   const showAnalyticsReportOption = isFounder && fundraisingProfile?.analyticsReportUrl;
 
@@ -302,12 +310,12 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
           <FAQ
             title="Frequently Asked Questions"
             items={faqCompletedItems}
-            demoDaySlug={initialDemoDayState?.uid}
+            demoDaySlug={initialDemoDayState?.slugURL}
             subtitle={
               <p className={s.infoText}>
-                Reach out to us on{' '}
-                <a href="mailto:demoday@protocol.ai" className={s.infoLink}>
-                  pldemoday@protocol.ai
+                Reach out to us at{' '}
+                <a href={`mailto:${supportEmail}`} className={s.infoLink}>
+                  {supportEmail}
                 </a>{' '}
                 for any other questions.
               </p>
@@ -318,8 +326,10 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
         {/* Footer */}
         <footer className={s.footer}>
           <div className={s.note}>
-            © 2026 Protocol Labs. All content is provided by the founders. Protocol Labs Demo Day organizers do not
-            endorse or recommend any investment.
+            © 2026 Protocol Labs.{' '}
+            {isNetworkPartnerDemoDay
+              ? NETWORK_PARTNER_DEMO_DAY_FOOTER_DISCLAIMER
+              : 'All content is provided by the founders. Protocol Labs Demo Day organizers do not endorse or recommend any investment.'}
           </div>
           <div className={s.bottom}>
             <div className={s.links}>

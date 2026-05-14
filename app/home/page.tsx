@@ -16,9 +16,13 @@ import { getFeaturedData } from '@/services/featured.service';
 import { formatFeaturedData } from '@/utils/home.utils';
 import { RecentUpdatesSection } from '@/components/page/home/recent-updates';
 import { isAdminUser } from '@/utils/user/isAdminUser';
+import { Welcome } from '@/components/page/home/Welcome';
+import { TeamNewsAccessGate } from '@/components/page/home/TeamNews';
+import { getTeamNewsGroupedByFocusArea } from '@/services/team-news/team-news.service';
+import type { ITeamNewsGroup } from '@/types/team-news.types';
 
 export default async function Home() {
-  const { isLoggedIn, isError, userInfo, focusAreas } = await getPageData();
+  const { isLoggedIn, isError, userInfo, focusAreas, teamNewsGroups } = await getPageData();
 
   if (isError) {
     return <Error />;
@@ -28,22 +32,20 @@ export default async function Home() {
     <>
       <div className={styles.home}>
         <div className={styles.home__cn}>
-          {/* Focus Area section */}
+          {!isLoggedIn && (
+            <div className={styles.home__cn__welcome}>
+              <Welcome />
+            </div>
+          )}
+          <div className={styles.home__cn__teamnews}>
+            <TeamNewsAccessGate groups={teamNewsGroups} />
+          </div>
           <div className={styles.home__cn__focusarea}>
             <FocusAreaSection focusAreas={focusAreas} userInfo={userInfo} />
           </div>
-          {/* Recent Updates section */}
           <div className={styles.home__cn__recentupdates}>
             <RecentUpdatesSection />
           </div>
-          {/* Discover section */}
-          {/*<div className={styles.home__cn__discover}>*/}
-          {/*  <Discover discoverData={discoverData} userInfo={userInfo} />*/}
-          {/*</div>*/}
-          {/* Featured section */}
-          {/*<div className={styles.home__cn__featured}>*/}
-          {/*  <Featured featuredData={featuredData} isLoggedIn={isLoggedIn} userInfo={userInfo} />*/}
-          {/*</div>*/}
           <ScrollToTop pageName="Home" userInfo={userInfo} />
         </div>
       </div>
@@ -60,14 +62,18 @@ const getPageData = async () => {
   let discoverData = [] as any;
   let teamFocusAreas: IFocusArea[] = [];
   let projectFocusAreas: IFocusArea[] = [];
+  let teamNewsGroups: ITeamNewsGroup[] = [];
 
   try {
-    const [teamFocusAreaResponse, projectFocusAreaResponse, featuredResponse, discoverResponse] = await Promise.all([
-      getFocusAreas('Team', {}),
-      getFocusAreas('Project', {}),
-      getFeaturedData(authToken, isLoggedIn, isAdminUser(userInfo)),
-      getDiscoverData(),
-    ]);
+    const [teamFocusAreaResponse, projectFocusAreaResponse, featuredResponse, discoverResponse, teamNewsResponse] =
+      await Promise.all([
+        getFocusAreas('Team', {}),
+        getFocusAreas('Project', {}),
+        getFeaturedData(authToken, isLoggedIn, isAdminUser(userInfo)),
+        getDiscoverData(),
+        getTeamNewsGroupedByFocusArea(),
+      ]);
+    teamNewsGroups = teamNewsResponse?.groups ?? [];
     if (
       teamFocusAreaResponse?.error ||
       projectFocusAreaResponse?.error ||
@@ -84,6 +90,7 @@ const getPageData = async () => {
         },
         discoverData,
         featuredData,
+        teamNewsGroups,
       };
     }
     teamFocusAreas = Array.isArray(teamFocusAreaResponse?.data)
@@ -104,6 +111,7 @@ const getPageData = async () => {
       },
       featuredData,
       discoverData,
+      teamNewsGroups,
     };
   } catch (error) {
     console.error(error);
@@ -118,6 +126,7 @@ const getPageData = async () => {
       },
       featuredData,
       discoverData,
+      teamNewsGroups,
     };
   }
 };

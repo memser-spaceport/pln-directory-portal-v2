@@ -1,27 +1,4 @@
-@import '../../../../styles/media.scss';
-
-.banner {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 20px;
-  background: #f2f5ff;
-  border: 1px solid #aebfff;
-  border-radius: 16px;
-  margin-bottom: 16px;
-  overflow: hidden;
-}
-
-
-.inner {
-  flex: 1;
-  gap: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  min-width: 0;
-}
+@import 'styles/media.scss';
 
 .body {
   gap: 12px;
@@ -63,28 +40,13 @@
   align-items: center;
 }
 
-@include mobile-only {
-  .banner {
-    padding: 12px;
-    margin: 0 8px 16px;
-  }
-
-  .inner {
-    flex-direction: column;
-    gap: 12px;
-  }
-
+@include tablet-portrait-only {
   .copy {
     padding-right: 0;
   }
 }
 
-@include tablet-portrait-only {
-  .inner {
-    flex-direction: column;
-    gap: 12px;
-  }
-
+@include mobile-only {
   .copy {
     padding-right: 0;
   }

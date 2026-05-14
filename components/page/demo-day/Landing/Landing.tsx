@@ -168,14 +168,14 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
       >
         <div>
           <div className={s.root}>
-            {!userInfo && !showAppliedSteps && <LoginBtn className={clsx(s.btn, s.secondaryButton)}>Already applied? Log in</LoginBtn>}
-            {
-              !data?.isPending && !showAppliedSteps && (
-                <button className={clsx(s.btn, s.primaryButton)} onClick={handleApplyClick} disabled={data?.isPending}>
-                  Apply
-                </button>
-              )
-            }
+            {!userInfo && !showAppliedSteps && (
+              <LoginBtn className={clsx(s.btn, s.secondaryButton)}>Already applied? Log in</LoginBtn>
+            )}
+            {!data?.isPending && !showAppliedSteps && (
+              <button className={clsx(s.btn, s.primaryButton)} onClick={handleApplyClick} disabled={data?.isPending}>
+                Apply
+              </button>
+            )}
           </div>
           {showAppliedSteps && appliedStepsProps && (
             <AppliedInvestorSteps
@@ -200,7 +200,6 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
           onSuccessUnauthenticated={handleSuccess}
         />
       )}
-
     </>
   );
 }

@@ -1,0 +1,53 @@
+@import '../../../../styles/media.scss';
+
+.shell {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 20px;
+  background: #f2f5ff;
+  border: 1px solid #aebfff;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.inner {
+  flex: 1;
+  gap: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.dismissBtn {
+  position: absolute;
+  top: 11px;
+  right: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.06);
+  }
+}
+
+@include mobile-only {
+  .shell {
+    padding: 12px;
+    margin: 0 8px 16px;
+  }
+
+  .inner {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

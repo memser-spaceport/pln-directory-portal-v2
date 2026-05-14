@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 async function LandingPage() {
-  redirect(PAGE_ROUTES.MEMBERS);
+  redirect(PAGE_ROUTES.HOME);
 }
 
 export default LandingPage;

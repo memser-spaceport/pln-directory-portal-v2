@@ -6,6 +6,8 @@ import { TeamProfileCard } from '@/components/page/demo-day/ActiveView/component
 import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamDetailsDrawer';
 import { AdminFiltersDrawer } from './components/AdminFiltersDrawer';
 import { TeamsListLoading } from '@/components/page/demo-day/shared/TeamsListStates';
+import { isNetworkPartnerDemoDaySlug } from '@/app/constants/demoday';
+
 import s from '@/components/page/demo-day/ActiveView/components/TeamsList/TeamsList.module.scss';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { TeamsListHeader } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamsListHeader';
@@ -29,6 +31,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({
   canEdit = true,
 }) => {
   const { data: demoDayData } = useGetDemoDayState();
+  const showTeamsListAlert = !isNetworkPartnerDemoDaySlug(demoDayData?.slugURL);
   const stageTagEnabled = demoDayData?.stageTagEnabled !== false;
 
   const [sortBy, setSortBy] = useState<string>('stage-asc');
@@ -92,7 +95,7 @@ export const AdminTeamsList: React.FC<AdminTeamsListProps> = ({
 
   return (
     <div className={s.container}>
-      <TeamsListAlert />
+      {showTeamsListAlert && <TeamsListAlert />}
 
       <TeamsListHeader
         allGroupsWithCounts={stageTagEnabled ? allGroupsWithCounts : []}

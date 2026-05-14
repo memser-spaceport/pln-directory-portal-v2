@@ -100,6 +100,7 @@ export function RecentUpdatesSection() {
                   notification={notification}
                   onNotificationClick={handleNotificationClick}
                   variant="page"
+                  backTo="/home#recent-updates"
                 />
               ))}
             </div>

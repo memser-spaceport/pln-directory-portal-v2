@@ -8,6 +8,7 @@ import { IUserInfo } from '@/types/shared.types';
 import Image from 'next/image';
 
 import s from './ContributionsList.module.scss';
+import Link from 'next/link';
 
 interface Props {
   isEditable: boolean;
@@ -44,7 +45,7 @@ export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) 
                   height={40}
                   className={s.logo}
                 />
-                <div className={s.details}>
+                <Link className={s.details} href={`/projects/${item.projectUid}`}>
                   <div className={s.row}>
                     <div className={s.primaryLabel}>{item.project.name}</div>
                     {item.currentProject && <div className={s.currentProjectBadge}>Current project</div>}
@@ -52,7 +53,7 @@ export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) 
                   <div className={s.row}>
                     <div className={s.secondaryLabel}>{item.role}</div>
                   </div>
-                </div>
+                </Link>
                 {isEditable && (
                   <button className={s.editBtn} onClick={() => onEdit(item)}>
                     <EditIcon />

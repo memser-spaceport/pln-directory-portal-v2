@@ -12,11 +12,14 @@ import { TeamsListAlert } from './components/TeamsListAlert';
 import { useTeamsFiltering } from './hooks/useTeamsFiltering';
 import { useTeamsSorting } from './hooks/useTeamsSorting';
 import { useGroupNavigation } from './hooks/useGroupNavigation';
+import { isNetworkPartnerDemoDaySlug } from '@/app/constants/demoday';
+
 import s from './TeamsList.module.scss';
 
 export const TeamsList: React.FC = () => {
   const { data: teams, isLoading, error } = useGetTeamsList();
   const { data: demoDayData } = useGetDemoDayState();
+  const showTeamsListAlert = !isNetworkPartnerDemoDaySlug(demoDayData?.slugURL);
   const stageTagEnabled = demoDayData?.stageTagEnabled !== false;
   const [sortBy, setSortBy] = useState<string>('stage-asc');
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
@@ -94,7 +97,7 @@ export const TeamsList: React.FC = () => {
 
   return (
     <div className={s.container}>
-      <TeamsListAlert />
+      {showTeamsListAlert && <TeamsListAlert />}
 
       <TeamsListHeader
         allGroupsWithCounts={stageTagEnabled ? allGroupsWithCounts : []}

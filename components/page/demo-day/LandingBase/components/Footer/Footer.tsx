@@ -3,12 +3,18 @@ import s from './Footer.module.scss';
 const PRIVACY_POLICY_URL = 'https://drive.google.com/file/d/1RIAyMlyuLYnipa6W_YBzcJ6hDzfH7yW3/view';
 const TERMS_AND_CONDITIONS_URL = 'https://drive.google.com/file/d/1MjOF66asddB_hsg7Jc-7Oxk6L1EvYHxk/view';
 
-export function Footer() {
+const DEFAULT_DISCLAIMER =
+  'All content is provided by the founders. Protocol Labs Demo Day organizers do not endorse or recommend any investment.';
+
+type FooterProps = {
+  disclaimer?: string;
+};
+
+export function Footer({ disclaimer = DEFAULT_DISCLAIMER }: FooterProps) {
   return (
     <div className={s.root}>
       <div className={s.note}>
-        All content is provided by the founders. Protocol Labs Demo Day organizers do not endorse or recommend any
-        investment.
+        {disclaimer}
       </div>
       <div className={s.bottom}>
         <div className={s.legal}>© 2026 Protocol Labs</div>

@@ -17,14 +17,12 @@ import { formatFeaturedData } from '@/utils/home.utils';
 import { RecentUpdatesSection } from '@/components/page/home/recent-updates';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
-import { TeamNews } from '@/components/page/home/TeamNews';
+import { TeamNewsAccessGate } from '@/components/page/home/TeamNews';
 import { getTeamNewsGroupedByFocusArea } from '@/services/team-news/team-news.service';
 import type { ITeamNewsGroup } from '@/types/team-news.types';
 
-const TEAM_NEWS_READ_PERMISSION = 'team.news.read';
-
 export default async function Home() {
-  const { isLoggedIn, isError, userInfo, focusAreas, teamNewsGroups, hasTeamNewsAccess } = await getPageData();
+  const { isLoggedIn, isError, userInfo, focusAreas, teamNewsGroups } = await getPageData();
 
   if (isError) {
     return <Error />;
@@ -39,11 +37,9 @@ export default async function Home() {
               <Welcome />
             </div>
           )}
-          {hasTeamNewsAccess && (
-            <div className={styles.home__cn__teamnews}>
-              <TeamNews groups={teamNewsGroups} />
-            </div>
-          )}
+          <div className={styles.home__cn__teamnews}>
+            <TeamNewsAccessGate groups={teamNewsGroups} />
+          </div>
           <div className={styles.home__cn__focusarea}>
             <FocusAreaSection focusAreas={focusAreas} userInfo={userInfo} />
           </div>
@@ -67,11 +63,6 @@ const getPageData = async () => {
   let teamFocusAreas: IFocusArea[] = [];
   let projectFocusAreas: IFocusArea[] = [];
   let teamNewsGroups: ITeamNewsGroup[] = [];
-  const hasTeamNewsAccess = Boolean(
-    userInfo?.rbac?.effectivePermissions?.some(
-      (permission: { code: string }) => permission.code === TEAM_NEWS_READ_PERMISSION,
-    ),
-  );
 
   try {
     const [teamFocusAreaResponse, projectFocusAreaResponse, featuredResponse, discoverResponse, teamNewsResponse] =
@@ -80,9 +71,9 @@ const getPageData = async () => {
         getFocusAreas('Project', {}),
         getFeaturedData(authToken, isLoggedIn, isAdminUser(userInfo)),
         getDiscoverData(),
-        hasTeamNewsAccess ? getTeamNewsGroupedByFocusArea() : Promise.resolve(null),
+        getTeamNewsGroupedByFocusArea(),
       ]);
-    teamNewsGroups = hasTeamNewsAccess ? teamNewsResponse?.groups ?? [] : [];
+    teamNewsGroups = teamNewsResponse?.groups ?? [];
     if (
       teamFocusAreaResponse?.error ||
       projectFocusAreaResponse?.error ||
@@ -100,7 +91,6 @@ const getPageData = async () => {
         discoverData,
         featuredData,
         teamNewsGroups,
-        hasTeamNewsAccess,
       };
     }
     teamFocusAreas = Array.isArray(teamFocusAreaResponse?.data)
@@ -122,7 +112,6 @@ const getPageData = async () => {
       featuredData,
       discoverData,
       teamNewsGroups,
-      hasTeamNewsAccess,
     };
   } catch (error) {
     console.error(error);
@@ -138,7 +127,6 @@ const getPageData = async () => {
       featuredData,
       discoverData,
       teamNewsGroups,
-      hasTeamNewsAccess,
     };
   }
 };

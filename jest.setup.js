@@ -42,6 +42,18 @@ jest.mock('next/image', () => ({
   },
 }));
 
+jest.mock('react-quill-new', () => {
+  class MockBlot {}
+  return {
+    __esModule: true,
+    default: jest.fn(() => null),
+    Quill: {
+      register: jest.fn(),
+      import: jest.fn(() => MockBlot),
+    },
+  };
+});
+
 jest.mock('quill-image-uploader', () => ({
   __esModule: true,
   default: () => {

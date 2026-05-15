@@ -1,0 +1,136 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: 'Inter', sans-serif;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: #0a0c11;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.total {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.actionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: 'Inter', sans-serif;
+}
+
+.actionBar_left,
+.actionBar_right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.selectionCount {
+  font-size: 13px;
+  color: #1b4dff;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.saveViewForm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.input {
+  padding: 6px 10px;
+  font-size: 13px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  outline: none;
+
+  &:focus {
+    border-color: #1b4dff;
+    box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.12);
+  }
+}
+
+.btn {
+  padding: 6px 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  background: #fff;
+  color: #455468;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #f9fafb;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btnPrimary {
+  @extend .btn;
+  background: #1b4dff;
+  color: #fff;
+  border-color: #1b4dff;
+
+  &:hover:not(:disabled) {
+    background: #1a3fd9;
+  }
+}
+
+.btnGhost {
+  @extend .btn;
+  background: transparent;
+  border-color: transparent;
+  color: #6b7280;
+}
+
+.loading,
+.error {
+  padding: 32px;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+.loadMore {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}

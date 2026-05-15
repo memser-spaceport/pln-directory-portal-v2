@@ -1,0 +1,106 @@
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  flex-shrink: 0;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #ecfdf5;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover {
+    background: #d1fae5;
+  }
+}
+
+/* Small inline link rendered next to investor names — same pattern as
+   the "Akave ↗" link on the member profile page. */
+.arrowLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  padding: 0 2px;
+  color: #1b4dff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.12s;
+
+  &:hover {
+    color: #1a3fd9;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px 1px 5px;
+  border-radius: 4px;
+  background: #ecfdf5;
+  color: #065f46;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover {
+    background: #d1fae5;
+  }
+}
+
+.full {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+  text-decoration: none;
+  color: #065f46;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover {
+    background: #d1fae5;
+  }
+
+  &__name {
+    font-weight: 600;
+    color: #064e3b;
+  }
+
+  &__type {
+    color: #047857;
+    font-size: 12px;
+    margin-left: auto;
+  }
+
+  &__arrow {
+    color: #047857;
+    font-size: 13px;
+  }
+}

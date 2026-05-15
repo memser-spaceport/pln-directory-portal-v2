@@ -1,0 +1,36 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.compact {
+  padding: 1px 6px;
+  font-size: 11px;
+}
+
+.T1_registered {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.T2_clicked {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.T3_opened {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.T4_cold {
+  background: #e5e7eb;
+  color: #4b5563;
+}

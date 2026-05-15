@@ -1,0 +1,47 @@
+.body {
+  padding: 32px 24px;
+  font-family: 'Inter', sans-serif;
+  text-align: center;
+}
+
+.icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0a0c11;
+}
+
+.text {
+  margin: 0 0 20px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #455468;
+
+  code {
+    font-family: 'JetBrains Mono', 'Menlo', monospace;
+    font-size: 12px;
+    background: #f3f4f6;
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+}
+
+.btn {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  background: #1b4dff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover {
+    background: #1a3fd9;
+  }
+}

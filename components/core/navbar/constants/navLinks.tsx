@@ -13,6 +13,13 @@ import {
   JobsIcon,
 } from '../components/icons';
 
+export const INVESTOR_DB_LINK: ISubItem = {
+  icon: <AnalyticsIcon />,
+  href: '/investors',
+  title: 'Investor DB',
+  description: 'Internal investor database — network, co-investors, and outreach pipeline.',
+};
+
 export const DIRECTORY_LINKS: ISubItem[] = [
   {
     icon: <MembersIcon />,

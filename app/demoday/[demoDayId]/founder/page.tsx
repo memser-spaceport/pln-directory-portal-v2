@@ -1,11 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, use } from 'react';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { FounderPendingView } from '@/components/page/demo-day/FounderPendingView';
 
-export default function FounderPage({ params }: { params: { demoDayId: string } }) {
+export default function FounderPage(props: { params: Promise<{ demoDayId: string }> }) {
+  const params = use(props.params);
   const router = useRouter();
   const { data } = useGetDemoDayState();
 

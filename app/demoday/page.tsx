@@ -3,7 +3,7 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getMemberInfo } from '@/app/actions/demo-day.actions';
 
 export default async function Page() {
-  const { userInfo, authToken, isLoggedIn } = getCookiesFromHeaders();
+  const { userInfo, authToken, isLoggedIn } = await getCookiesFromHeaders();
 
   let memberData = null;
   if (isLoggedIn && userInfo?.uid) {

@@ -14,7 +14,7 @@ import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
 import { OfficeHoursDetails } from '@/components/page/member-details/OfficeHoursDetails';
 import { InvestorProfileDetails } from '@/components/page/member-details/InvestorProfileDetails';
 import { BackButton } from '@/components/ui/BackButton';
-import React, { useEffect } from 'react';
+import React, { useEffect, use } from 'react';
 import { BookWithOther } from '@/components/page/member-details/BookWithOther';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
@@ -51,7 +51,8 @@ const shouldShowInvestorProfileForThirdParty = (
   return false;
 };
 
-const MemberDetails = ({ params }: { params: any }) => {
+const MemberDetails = (props: { params: Promise<any> }) => {
+  const params = use(props.params);
   const memberId = params?.id;
   const searchParams = useSearchParams();
   const router = useRouter();

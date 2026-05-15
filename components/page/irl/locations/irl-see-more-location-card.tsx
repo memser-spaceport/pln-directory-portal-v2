@@ -1,7 +1,7 @@
 import { ILocationDetails } from '@/types/irl.types';
 
 interface IrlSeeMoreLocationCardProps {
-  locationRef: React.RefObject<HTMLDivElement>;
+  locationRef: React.RefObject<HTMLDivElement | null>;
   handleClick: (e: React.MouseEvent) => void;
   locations: ILocationDetails[];
   count: number;

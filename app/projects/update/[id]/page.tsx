@@ -9,7 +9,8 @@ import { RedirectType, redirect } from 'next/navigation';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
 
-export default async function EditProject({ params }: any) {
+export default async function EditProject(props: any) {
+  const params = await props.params;
   const projectId = params.id;
   const { isError, project, isLoggedIn, userInfo } = await getPageData(projectId);
 
@@ -31,7 +32,7 @@ export default async function EditProject({ params }: any) {
 
 async function getPageData(projectId: string) {
   const isError = false;
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = await getCookiesFromHeaders();
   let project = null;
   try {
     const [projectResponse] = await Promise.all([getProject(projectId, {})]);

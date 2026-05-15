@@ -1,12 +1,12 @@
 'use client';
 
 import { clsx } from 'clsx';
-import ReactQuill, { Quill } from 'react-quill';
+import ReactQuill, { Quill } from 'react-quill-new';
 import ImageUploader from 'quill-image-uploader';
 import React, { forwardRef, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 
-import 'react-quill/dist/quill.snow.css';
+import 'react-quill-new/dist/quill.snow.css';
 import 'quill-image-uploader/dist/quill.imageUploader.min.css';
 
 import { mergeRefs } from '@/utils/mergeRef';
@@ -58,8 +58,8 @@ Quill.register('modules/imageUploader', ImageUploader);
 registerMentionBlot();
 
 // Register icons
-Quill.import('ui/icons')['officeHours'] = officeHours;
-Quill.import('ui/icons')['mention'] = mentionIcon;
+(Quill.import('ui/icons') as Record<string, unknown>)['officeHours'] = officeHours;
+(Quill.import('ui/icons') as Record<string, unknown>)['mention'] = mentionIcon;
 
 const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
   const {

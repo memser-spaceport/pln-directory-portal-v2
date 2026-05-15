@@ -1,5 +1,5 @@
 import { useEffect, RefObject } from 'react';
-import ReactQuill from 'react-quill';
+import ReactQuill from 'react-quill-new';
 
 interface MentionState {
   isOpen: boolean;

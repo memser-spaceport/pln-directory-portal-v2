@@ -5,11 +5,10 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { stripHtml, usePushNotificationsContext } from '@/providers/PushNotificationsProvider';
 import { useInfiniteNotifications } from '@/services/push-notifications/hooks';
 import { useNotificationAnalytics } from '@/analytics/notification.analytics';
-import { authStatus } from '@/components/core/login/utils/authStatus';
 import { PushNotification } from '@/types/push-notifications.types';
-import { EmptyState } from './EmptyState';
+import { EmptyState } from './components/EmptyState/EmptyState';
 import { NotificationItem } from '@/components/core/UpdatesPanel/NotificationItem';
-import { LoadingIndicator } from './LoadingIndicator';
+import { LoadingIndicator } from './components/LoadingIndicator/LoadingIndicator';
 import { NotLoggedInState } from '@/components/core/UpdatesPanel/NotLoggedInState';
 import s from './RecentUpdatesSection.module.scss';
 
@@ -24,8 +23,13 @@ function sanitizeNotification(notification: PushNotification): PushNotification 
   };
 }
 
-export function RecentUpdatesSection() {
-  const isLoggedIn = authStatus.isLoggedIn();
+interface Props {
+  isLoggedIn: boolean;
+}
+
+export function RecentUpdatesSection(props: Props) {
+  const { isLoggedIn } = props;
+
   const { markAsRead } = usePushNotificationsContext();
   const analytics = useNotificationAnalytics();
   const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, unreadCount } =

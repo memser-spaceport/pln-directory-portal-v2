@@ -1,5 +1,5 @@
 import React from 'react';
-import s from './RecentUpdatesSection.module.scss';
+import s from './EmptyState.module.scss';
 
 export function EmptyState() {
   return (

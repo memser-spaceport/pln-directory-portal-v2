@@ -58,8 +58,8 @@ Quill.register('modules/imageUploader', ImageUploader);
 registerMentionBlot();
 
 // Register icons
-Quill.import('ui/icons')['officeHours'] = officeHours;
-Quill.import('ui/icons')['mention'] = mentionIcon;
+(Quill.import('ui/icons') as Record<string, unknown>)['officeHours'] = officeHours;
+(Quill.import('ui/icons') as Record<string, unknown>)['mention'] = mentionIcon;
 
 const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
   const {

@@ -44,7 +44,7 @@ export default async function Home() {
             <FocusAreaSection focusAreas={focusAreas} userInfo={userInfo} />
           </div>
           <div className={styles.home__cn__recentupdates}>
-            <RecentUpdatesSection />
+            <RecentUpdatesSection isLoggedIn={!!isLoggedIn} />
           </div>
           <ScrollToTop pageName="Home" userInfo={userInfo} />
         </div>

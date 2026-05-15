@@ -1,9 +1,5 @@
 @import '../../../../styles/media.scss';
 
-.inner {
-  padding-right: 32px;
-}
-
 .label {
   flex: 1;
   font-size: 18px;
@@ -18,15 +14,26 @@
 .actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
-@include mobile-only {
-  .inner {
-    padding-right: 24px;
-  }
+.dismissBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
 
+  &:hover {
+    background: rgba(27, 77, 255, 0.06);
+  }
+}
+
+@include mobile-only {
   .label {
     font-size: 15px;
   }

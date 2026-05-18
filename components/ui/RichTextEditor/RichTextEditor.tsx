@@ -4,7 +4,6 @@ import { clsx } from 'clsx';
 import ReactQuill, { Quill } from 'react-quill-new';
 import ImageUploader from 'quill-image-uploader';
 import React, { forwardRef, useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 
 import 'react-quill-new/dist/quill.snow.css';
 import 'quill-image-uploader/dist/quill.imageUploader.min.css';
@@ -373,17 +372,6 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     }
   };
 
-  const isMultilinePlaceholder = placeholder?.includes('\n');
-  const isEmpty = !value || value === '<p><br></p>';
-  const [qlContainer, setQlContainer] = useState<Element | null>(null);
-
-  useEffect(() => {
-    if (isMultilinePlaceholder && quillRef.current) {
-      const editor = quillRef.current.getEditor();
-      if (editor?.container) setQlContainer(editor.container);
-    }
-  }, [isMultilinePlaceholder]);
-
   return (
     <div
       ref={editorContainerRef}
@@ -401,12 +389,8 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
         style={minHeight != null ? ({ '--ql-min-height': `${minHeight}px` } as React.CSSProperties) : undefined}
         readOnly={disabled}
         modules={modules}
-        placeholder={isMultilinePlaceholder ? '' : placeholder}
+        placeholder={placeholder}
       />
-      {isMultilinePlaceholder &&
-        isEmpty &&
-        qlContainer &&
-        createPortal(<div className={s.multilinePlaceholder}>{placeholder}</div>, qlContainer)}
       {errorMessage && <div className={s.error}>{errorMessage}</div>}
       {enableMentions && mentionState.isOpen && (
         <MentionDropdown

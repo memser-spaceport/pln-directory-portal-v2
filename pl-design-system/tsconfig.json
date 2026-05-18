@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "target": "ES6",
     "lib": [
       "dom",
       "dom.iterable",
@@ -15,28 +14,38 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "incremental": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@tokens/*": [
+        "./tokens/*"
+      ],
+      "@components/*": [
+        "./components/*"
+      ],
+      "@mockups/*": [
+        "./mockups/*"
+      ],
+      "@styles/*": [
+        "./styles/*"
+      ]
+    },
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "paths": {
-      "@/*": [
-        "./*"
-      ]
-    }
+    ]
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "pl-design-system"
+    "node_modules"
   ]
 }

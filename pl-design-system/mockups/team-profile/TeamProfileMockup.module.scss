@@ -1,0 +1,249 @@
+@use '../../../styles/media';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--background-base-grey-1, #f8f9fb);
+}
+
+.pageBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 16px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+
+  @include media.tablet-portrait {
+    padding: 32px 24px;
+  }
+
+  @include media.breakpoint-1024 {
+    padding: 40px 24px;
+  }
+}
+
+.card {
+  background: var(--background-base-white);
+  border: 1px solid var(--border-neutral-muted);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profileHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+
+  @include media.tablet-portrait {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+  }
+}
+
+.logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border-neutral-muted);
+
+  @include media.tablet-portrait {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.profileTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--foreground-neutral-primary);
+  margin: 0;
+
+  @include media.tablet-portrait {
+    font-size: 22px;
+  }
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary);
+  margin: 0;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.aboutText {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--foreground-neutral-secondary);
+  margin: 0;
+}
+
+.showMore {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  align-self: flex-start;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.detailGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+}
+
+.detailRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  @include media.tablet-portrait {
+    flex-direction: row;
+    gap: 0;
+  }
+}
+
+.detailLabel {
+  font-size: 13px;
+  color: var(--foreground-neutral-secondary);
+  font-weight: 500;
+  min-width: 180px;
+  flex-shrink: 0;
+}
+
+.detailValue {
+  font-size: 14px;
+  color: var(--foreground-neutral-primary);
+  margin: 0;
+}
+
+.contactList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.contactIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--background-base-grey-1, #f8f9fb);
+  color: var(--foreground-neutral-secondary);
+  flex-shrink: 0;
+}
+
+.contactLink {
+  font-size: 14px;
+  color: var(--foreground-brand-primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.eventRoleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eventRoleHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eventRoleName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary);
+}
+
+.eventList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eventItem {
+  font-size: 13px;
+  color: var(--foreground-neutral-secondary);
+  padding: 6px 10px;
+  border: 1px solid var(--border-neutral-muted);
+  border-radius: 6px;
+  background: var(--background-base-white);
+}
+
+.eventItemExtra {
+  font-size: 13px;
+  color: var(--foreground-brand-primary);
+  font-weight: 500;
+  padding: 4px 0;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

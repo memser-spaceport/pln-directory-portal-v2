@@ -65,7 +65,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
   {
     id: 'buyback-auction',
     type: 'bonus',
-    title: 'New Activity: Activity Points Bot',
+    title: 'New Feature: Activity Points Bot',
     subtitle: 'Use the new Activity Points Bot for your next submission + provide feedback = collect 50 bonus points.',
     date: '',
     buttons: [

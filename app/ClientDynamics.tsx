@@ -28,3 +28,7 @@ export const RatingContainer = dynamic(
   () => import('@/components/core/office-hours-rating/rating-container'),
   { ssr: false },
 );
+export const BotpressWebchat = dynamic(
+  () => import('@/components/core/botpress/BotpressWebchat').then((m) => m.BotpressWebchat),
+  { ssr: false },
+);

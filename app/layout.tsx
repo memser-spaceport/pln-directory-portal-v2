@@ -24,27 +24,16 @@ import { ContactSupport } from '@/components/ContactSupport/ContactSupport';
 import { ContactSupportUrlSync } from '@/components/ContactSupport/ContactSupportUrlSync';
 import { PushNotificationsProvider } from '@/providers/PushNotificationsProvider';
 import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
-import dynamic from 'next/dynamic';
-
-// dynamic components:
-const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
-const AuthBox = dynamic(() => import('@/components/core/login/components/AuthBox').then((m) => m.AuthBox), {
-  ssr: false,
-});
-const ToastContainer = dynamic(() => import('@/components/core/ToastContainer'), { ssr: false });
-const BroadCastChannel = dynamic(
-  () => import('@/components/core/login/components/BroadcastChannel').then((m) => m.BroadcastChannel),
-  { ssr: false },
-);
-const MemberRegisterDialog = dynamic(() => import('@/components/core/register/member-register-dialog'), { ssr: false });
-const CookieChecker = dynamic(
-  () => import('@/components/core/login/components/CookieChecker').then((m) => m.CookieChecker),
-  { ssr: false },
-);
-const PostHogPageview = dynamic(() => import('@/providers/analytics-provider').then((d) => d.PostHogPageview), {
-  ssr: false,
-});
-const RatingContainer = dynamic(() => import('@/components/core/office-hours-rating/rating-container'), { ssr: false });
+import {
+  Loader,
+  AuthBox,
+  ToastContainer,
+  BroadCastChannel,
+  MemberRegisterDialog,
+  CookieChecker,
+  PostHogPageview,
+  RatingContainer,
+} from './ClientDynamics';
 
 const inter = Inter({ subsets: ['latin'] });
 

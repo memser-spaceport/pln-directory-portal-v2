@@ -1,12 +1,7 @@
 import { Metadata } from 'next';
-import dynamic from 'next/dynamic';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import PlaaLayoutWrapper from '@/components/page/aligement-assets/plaa-layout-wrapper';
-
-const BotpressWebchat = dynamic(
-  () => import('@/components/core/botpress/BotpressWebchat').then((module) => module.BotpressWebchat),
-  { ssr: false },
-);
+import { BotpressWebchat } from '@/app/ClientDynamics';
 
 export const metadata: Metadata = {
   title: 'PL Alignment Asset | Protocol Labs Directory',

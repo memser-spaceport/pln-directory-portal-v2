@@ -4,6 +4,7 @@ import s from './AddToCalendarModal.module.scss';
 import { useSetCalendarAdded } from '@/services/demo-day/hooks/useSetCalendarAdded';
 import { toast } from '@/components/core/ToastContainer';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
+import { DemoDayCalendarLinks, defaultCalendarLinks } from '@/app/constants/demoday';
 
 const CalendarPlusIcon = () => (
   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -93,6 +94,7 @@ interface AddToCalendarModalProps {
   onClose: () => void;
   eventDate?: string;
   eventTitle?: string;
+  calendarLinks?: DemoDayCalendarLinks;
 }
 
 export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
@@ -100,6 +102,7 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
   onClose,
   eventDate = '2024-10-25T12:00:00Z',
   eventTitle = 'Protocol Labs Demo Day',
+  calendarLinks,
 }) => {
   const setCalendarAddedMutation = useSetCalendarAdded();
   const { onAddToCalendarModalGoogleCalendarClicked, onAddToCalendarModalIcalClicked } = useDemoDayAnalytics();
@@ -138,7 +141,7 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
   };
 
   const generateICSFile = () => {
-    const icsUrl = 'https://pl-directory-uploads-prod.s3.us-west-1.amazonaws.com/pl_w26_demo_day_investor_event.ics';
+    const icsUrl = calendarLinks?.icsFileUrl ?? defaultCalendarLinks.icsFileUrl;
 
     // Create a hidden iframe to download the file
     const iframe = document.createElement('iframe');
@@ -154,10 +157,8 @@ export const AddToCalendarModal: React.FC<AddToCalendarModalProps> = ({
 
   const handleGoogleCalendar = async () => {
     onAddToCalendarModalGoogleCalendarClicked();
-    window.open(
-      'https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=NThocXJ2bDIwc2FxM2hlNTJzaGtoODRjOWMgY181MzAyZDMzYTg4ODA5MTA5M2Y1YzAyMzY2ZGM1ZWZjYWZlM2RkNTc2MDgxZjE2MWMxNzljZmFiYWNjZjFmOThlQGc&tmsrc=c_5302d33a888091093f5c02366dc5efcafe3dd576081f161c179cfabaccf1f98e%40group.calendar.google.com',
-      '_blank',
-    );
+    const googleCalendarUrl = calendarLinks?.googleCalendarUrl ?? defaultCalendarLinks.googleCalendarUrl;
+    window.open(googleCalendarUrl, '_blank');
     await markCalendarAsAdded();
     onClose();
   };

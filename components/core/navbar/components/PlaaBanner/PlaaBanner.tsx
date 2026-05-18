@@ -59,7 +59,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
     subtitle: 'Top contributors in each snapshot period can now collect bonus points.',
     date: '',
     buttons: [
-       { label: 'View bonus points', link: 'https://directory.plnetwork.io/alignment-asset', variant: 'secondary' },
+       { label: 'View bonus points', link: 'https://directory.plnetwork.io/alignment-asset/activities#rank-supportive-members', variant: 'secondary' },
     ],
   },
   {

@@ -1,0 +1,9 @@
+@use '@/styles/media' as *;
+
+// Botpress injects the launcher on document.body (outside CSS module scope).
+@include mobile-only {
+  #bp-web-widget-container,
+  #bp-web-widget {
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

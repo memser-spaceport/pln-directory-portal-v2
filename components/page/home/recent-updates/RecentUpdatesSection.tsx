@@ -104,7 +104,7 @@ export function RecentUpdatesSection(props: Props) {
                   notification={notification}
                   onNotificationClick={handleNotificationClick}
                   variant="page"
-                  backTo="/home#recent-updates"
+                  backTo="/recent-updates"
                 />
               ))}
             </div>

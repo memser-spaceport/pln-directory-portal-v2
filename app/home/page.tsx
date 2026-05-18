@@ -14,7 +14,6 @@ import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
 import { formatFeaturedData } from '@/utils/home.utils';
-import { RecentUpdatesSection } from '@/components/page/home/recent-updates';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
 import { TeamNews } from '@/components/page/home/TeamNews';
@@ -42,9 +41,6 @@ export default async function Home() {
           </div>
           <div className={styles.home__cn__focusarea}>
             <FocusAreaSection focusAreas={focusAreas} userInfo={userInfo} />
-          </div>
-          <div className={styles.home__cn__recentupdates}>
-            <RecentUpdatesSection isLoggedIn={!!isLoggedIn} />
           </div>
           <ScrollToTop pageName="Home" userInfo={userInfo} />
         </div>

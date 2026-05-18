@@ -379,20 +379,20 @@ Only approved case studies that are opted into the internal content library are 
       frequency: 'Repeatable',
       popupContent: {
         title: 'Make a Network Introduction',
-        description: 'Facilitate meaningful introductions between individuals or teams that may lead to collaboration, partnerships, or shared opportunities. Quality, verified introductions are prioritized.',
-        submissionNote: 'Submit Network Introductions through the PL Directory Forum under the Intros tab or via the Activity Reporting Form. Points are collected once the introduction is reviewed and validated.',
+        description: 'Facilitate meaningful introductions between individuals or teams that may lead to collaboration or partnership.',
+        submissionNote: 'Submit Network Introductions through the LabOS Forum under the Intros tab or via the Activity Reporting Form. Points are collected once the introduction is reviewed and validated.',
         submitButtonText: 'Submit Intro >',
         links: [
-          { text: 'PL Directory Forum', url: 'https://directory.plnetwork.io/forum?cid=5' },
+          { text: 'LabOS Forum', url: 'https://directory.plnetwork.io/forum?cid=5' },
           { text: 'Activity Reporting Form', url: 'https://forms.gle/zUQg2jUBYsWivk5t5' }
         ],
         pointsAwarded: {
           title: 'Points Awarded:',
           items: [
             { label: 'Basic Introduction', value: '300 points for a verified introduction between two parties with no prior contact.', boldLabel: false },
-            { label: 'High-Value Introduction', value: '500 points for introductions that lead to confirmed collaboration, partnership, or direct network contribution.', boldLabel: false },
+            { label: 'High-Value Introduction', value: '500 points for introductions that leads to direct network contribution.', boldLabel: false },
             { label: 'Tiered Bonus (Optional)', value: '+300 points for every 5 successful introductions.', boldLabel: false },
-            { label: 'Quality Rule', value: 'After 3 unsuccessful or unverified introductions, the account is paused until existing leads are confirmed or resolved.', boldLabel: false }
+            { label: 'Optional Bonus', value: '300 additionalpoints for every 5 successful introductions. ', boldLabel: false }
           ]
         }
       }
@@ -473,7 +473,7 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
       category: 'Projects',
       activity: 'Complete the Monthly Feedback Survey or Promote Your Own Survey',
       networkValue: 'Provide insights that help refine the experiment or promote your own survey. Please look for an email for this month\'s survey link.',
-      points: '100+',
+      points: '50+',
       frequency: 'Repeatable',
       verificationType: 'Hybrid',
       popupContent: {
@@ -483,7 +483,7 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
         pointsAwarded: {
           title: 'Points Awarded:',
           items: [
-            { label: 'Base Reward', value: '100 points for completing all required questions within a 14-day window.' },
+            { label: 'Base Reward', value: '50 points for completing all required questions within a 14-day window.' },
             {
               label: 'Feedback Impact Bonus',
               value: '',
@@ -621,7 +621,7 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
       popupContent: {
         title: 'Rank Among the Network\'s Most Supportive Members',
         submitButtonText: 'Confirm Your Points >',
-        ctaLink: 'https://directory.plnetwork.io/alignment-assets/',
+        ctaLink: 'https://directory.plnetwork.io/alignment-asset/',
         description: 'The Alignment Asset now recognizes the highest contributors across the network during each snapshot period. This is an automatic activity. At the close of every snapshot, the Top 3 users with the highest verified point totals for that snapshot will be awarded additional points.\n\nUsers will collect these points for the snapshot once all activity has been reviewed, finalized, and closed.',
         pointsAwarded: {
           title: 'Points Awarded:',

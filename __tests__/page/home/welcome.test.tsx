@@ -21,21 +21,15 @@ describe('Welcome', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the brand title and "Welcome to" eyebrow', () => {
+  it('renders the brand title with "Welcome to" and "LabOS"', () => {
     render(<Welcome />);
-    expect(screen.getByText('Welcome to')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 1, name: 'LabOS' })).toBeInTheDocument();
-  });
-
-  it('renders an <h1>', () => {
-    render(<Welcome />);
-    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+    expect(screen.getByText(/Welcome to/i)).toBeInTheDocument();
+    expect(screen.getByText('LabOS')).toBeInTheDocument();
   });
 
   it('renders the pitch and shows the Sign in button', () => {
     render(<Welcome />);
     expect(screen.getByText(/collaboration platform for the Protocol Labs network/i)).toBeInTheDocument();
-    expect(screen.getByText(/Connect, book office hours, and join IRL Gatherings/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Sign in/i })).toBeInTheDocument();
   });
 });

@@ -129,6 +129,7 @@
     "react-quill": {
       "react": "19.2.5",
       "react-dom": "19.2.5"
-    }
+    },
+    "vite-plugin-storybook-nextjs": "3.2.5"
   }
 }

@@ -51,8 +51,8 @@
   }
 
   :global(.ql-editor) {
-    //min-height: 100px;
     font-size: 16px;
+    min-height: inherit;
     overflow-wrap: break-word;
     word-break: break-word;
 

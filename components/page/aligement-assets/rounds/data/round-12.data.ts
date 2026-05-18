@@ -79,16 +79,6 @@ export const pastRound12Data: IPastRoundData = {
   // Leaderboard Section Data (Round 12: Top Contributors)
   // ============================================================================
   leaderboard: [
-    { rank: 1, name: 'Ian Brunner', activities: '', points: 2300 },
-    { rank: 2, name: 'Bradley Holden', activities: '', points: 1400 },
-    { rank: 3, name: 'Rich Chang', activities: '', points: 1250 },
-    { rank: 4, name: 'Juan Benet', activities: '', points: 1050 },
-    { rank: 5, name: 'Anuj Pandey', activities: '', points: 550 },
-    { rank: 6, name: 'Molly Mackinlay', activities: '', points: 550 },
-    { rank: 7, name: 'William Scott', activities: '', points: 350 },
-    { rank: 8, name: 'Michael Stachiw', activities: '', points: 275 },
-    { rank: 9, name: 'Shae Biron', activities: '', points: 275 },
-    { rank: 10, name: 'Theresa Therriault', activities: '', points: 275 }
   ],
 
   // ============================================================================

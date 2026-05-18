@@ -79,19 +79,6 @@ export const pastRound8Data: IPastRoundData = {
   // Leaderboard Section Data
   // ============================================================================
   leaderboard: [
-    { rank: 1, name: 'Molly Mackinlay', activities: '', points: 1350 },
-    { rank: 2, name: 'Rich Chang', activities: '', points: 1300 },
-    { rank: 3, name: 'Eshan Chordia', activities: '', points: 800 },
-    { rank: 4, name: 'Theresa Therriault', activities: '', points: 800 },
-    { rank: 5, name: 'Ian Brunner', activities: '', points: 750 },
-    { rank: 6, name: 'Raymond Cheng', activities: '', points: 700 },
-    { rank: 7, name: 'Jeff De Gregorio', activities: '', points: 550 },
-    { rank: 8, name: 'Juan Benet', activities: '', points: 450 },
-    { rank: 9, name: 'Zachary von Naumann', activities: '', points: 400 },
-    { rank: 10, name: 'Chris Brocoum', activities: '', points: 350 },
-    { rank: 11, name: 'Cyril Delattre', activities: '', points: 350 },
-    { rank: 12, name: 'David Casey', activities: '', points: 350 },
-    { rank: 13, name: 'Diana Stern', activities: '', points: 350 },
   ],
 };
 

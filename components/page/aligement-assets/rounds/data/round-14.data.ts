@@ -57,16 +57,6 @@ export const pastRound14Data: IPastRoundData = {
   },
 
   leaderboard: [
-    { rank: 1, name: 'David Casey', activities: '', points: 5350 },
-    { rank: 2, name: 'Ian Brunner', activities: '', points: 1650 },
-    { rank: 3, name: 'Lynnette Nolan', activities: '', points: 775 },
-    { rank: 4, name: 'Diana Stern', activities: '', points: 550 },
-    { rank: 5, name: 'Yolan Romailler', activities: '', points: 500 },
-    { rank: 6, name: 'Bradley Holden', activities: '', points: 450 },
-    { rank: 7, name: 'Jeff De Gregorio', activities: '', points: 450 },
-    { rank: 8, name: 'Molly Mackinlay', activities: '', points: 450 },
-    { rank: 9, name: 'Matthew Koch', activities: '', points: 400 },
-    { rank: 10, name: 'Eshan Chordia', activities: '', points: 300 }
   ],
 };
 

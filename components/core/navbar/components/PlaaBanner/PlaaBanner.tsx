@@ -46,7 +46,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
     id: 'buyback-auction',
     type: 'bonus',
     title: 'New Activity: Share a Reusable AI Resource or Tool',
-    subtitle: 'Share reusable AI tools or workflows with the network and collect 150 points.',
+    subtitle: 'Share reusable AI tools or resources with the network and collect 150 points.',
     date: '',
     buttons: [
        { label: 'View details', link: 'https://directory.plnetwork.io/alignment-asset/activities#share-ai-resource', variant: 'secondary' },
@@ -56,17 +56,17 @@ export const BANNER_CONTENTS: BannerContent[] = [
     id: 'buyback-auction',
     type: 'bonus',
     title: 'New Activity: Rank Among the Network\'s Most Supportive Members',
-    subtitle: 'Top contributors in each snapshot period can now collect bonus points automatically.',
+    subtitle: 'Top contributors in each snapshot period can now collect bonus points.',
     date: '',
     buttons: [
-       { label: 'View bonus points', link: 'https://directory.plnetwork.io/alignment-asset/activities#rank-supportive-members', variant: 'secondary' },
+       { label: 'View bonus points', link: 'https://directory.plnetwork.io/alignment-asset', variant: 'secondary' },
     ],
   },
   {
     id: 'buyback-auction',
     type: 'bonus',
-    title: 'New Feature: Activity Points Bot',
-    subtitle: 'Use the new Activity Points Bot for your next submission + provide feedback = collect 50 bonus points.',
+    title: 'New Feature: Activity Assistant Bot',
+    subtitle: 'Use the new Activity Assistant Bot for your next submission + provide feedback = collect 50 bonus points.',
     date: '',
     buttons: [
        { label: 'Submit and give feedback', link: ' https://directory.plnetwork.io/alignment-asset/', variant: 'secondary' },

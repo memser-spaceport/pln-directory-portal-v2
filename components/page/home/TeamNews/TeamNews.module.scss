@@ -1,34 +1,5 @@
 @import 'styles/media.scss';
 
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  scroll-margin-top: 180px;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.title {
-  font-size: 24px;
-  font-weight: 500;
-  line-height: 32px;
-  letter-spacing: -0.5px;
-  color: #0a0c11;
-  margin: 0;
-
-  @include breakpoint-1024 {
-    font-size: 32px;
-    line-height: 42px;
-    letter-spacing: -0.75px;
-  }
-}
-
 .unreadBadge {
   display: inline-flex;
   align-items: center;
@@ -41,14 +12,6 @@
   font-weight: 500;
   color: #1b4dff;
   letter-spacing: -0.1px;
-}
-
-.sub {
-  font-size: 14px;
-  line-height: 20px;
-  color: #455468;
-  margin: -8px 0 0;
-  max-width: 720px;
 }
 
 .tabsRow {
@@ -80,7 +43,9 @@
   color: #64748b;
   cursor: pointer;
   white-space: nowrap;
-  transition: color 0.12s ease, border-color 0.12s ease;
+  transition:
+    color 0.12s ease,
+    border-color 0.12s ease;
 
   &:hover {
     color: #0a0c11;
@@ -138,7 +103,10 @@
   color: #455468;
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease,
+    color 0.12s ease;
 
   &:hover:not(:disabled) {
     border-color: rgba(27, 56, 96, 0.32);
@@ -191,38 +159,10 @@
   color: #64748b;
 }
 
-.loadMoreRow {
+.showAll {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
   margin-top: 8px;
-}
-
-.loadMore {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 16px;
-  background: #ffffff;
-  border: 1px solid rgba(27, 56, 96, 0.16);
-  border-radius: 9999px;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: -0.1px;
-  color: #0a0c11;
-  cursor: pointer;
-  transition: border-color 0.12s ease, background 0.12s ease;
-
-  &:hover {
-    border-color: rgba(27, 56, 96, 0.32);
-    background: #fafbfc;
-  }
-}
-
-.loadCount {
-  font-size: 12px;
-  color: #94a3b8;
-  letter-spacing: -0.1px;
 }

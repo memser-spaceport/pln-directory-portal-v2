@@ -28,11 +28,11 @@ export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
 
   const isOwner = isMemberProfileOwner(userInfo, member);
   const isEditable = canEditMemberProfile(userInfo, member);
-  const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
+  const isApprovedUser = userInfo?.rbac?.status === 'APPROVED';
 
   useMobileNavVisibility(view !== 'view');
 
-  if (!isLoggedIn || (!v2HasMemberContacts && !isOwner)) {
+  if (!isLoggedIn || (!isApprovedUser && !isOwner)) {
     return null;
   }
 

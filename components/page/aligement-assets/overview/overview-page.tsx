@@ -95,7 +95,7 @@ const workingGroupRows = [
   },
   {
     team: 'PL Init',
-    contributors: ['Juan Benet', 'Diana Stern', 'Chris Broom', 'Patrick Kim', 'Derrick Lam', 'Theresa Therriault', 'Matt Davidson'],
+    contributors: ['Juan Benet', 'Diana Stern', 'Chris Broom', 'Patrick Kim', 'Derrick Lam', 'Theresa Therriault', 'Matt Davidson', 'Camille Bagnall', 'Javier Fierro'],
     responsibilities: 'Originator of the Trust.',
   },
   {

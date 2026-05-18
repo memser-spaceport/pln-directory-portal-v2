@@ -15,6 +15,7 @@ import { EditInvestorProfileDrawer } from '../AppliedInvestorSteps/EditInvestorP
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { CountdownComponent } from '@/components/common/Countdown';
 import { DemoDayInfoRow } from '@/components/common/DemoDayInfoRow';
+import { getCalendarLinksByDemoDaySlug, DemoDayCalendarLinks } from '@/app/constants/demoday';
 
 interface InvestorPendingViewProps {
   initialDemoDayState?: DemoDayState;
@@ -27,6 +28,11 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
   const memberData = loadedMemberData?.memberInfo || initialMemberData;
   const { data: engagementData } = useGetEngagement();
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Get calendar links based on demo day slug
+  const calendarLinks: DemoDayCalendarLinks = useMemo(() => {
+    return getCalendarLinksByDemoDaySlug(initialDemoDayState?.slugURL);
+  }, [initialDemoDayState?.slugURL]);
 
   // Analytics hooks
   const {
@@ -170,6 +176,7 @@ export const InvestorPendingView = ({ initialDemoDayState, initialMemberData }: 
           onFillProfile={handleFillProfile}
           onAddToCalendar={handleAddToCalendar}
           onGoToDemoDay={handleGoToDemoDay}
+          calendarLinks={calendarLinks}
         />
       </LandingBase>
       <EditInvestorProfileDrawer

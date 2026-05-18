@@ -70,14 +70,14 @@ export default function CurrentRoundComponent({
         <StatsSection data={data.stats} />
 
         {/* Points Leaderboard Section - visible to logged-in users only */}
-        {isLoggedIn && (
+        {/* {isLoggedIn && (
           <LeaderboardSection 
             view={leaderboardView}
             onViewChange={setLeaderboardView}
             currentSnapshotData={data.leaderboard.currentSnapshotData}
             cumulativeData={data.leaderboard.cumulativeData}
           />
-        )}
+        )} */}
 
         {/* Buyback Auction Results Section - Only show when there's auction data */}
         {data.buybackAuction.bids.length > 0 && (

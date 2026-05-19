@@ -1,10 +1,5 @@
 import { customFetch } from '@/utils/fetch-wrapper';
-import {
-  mockFindWarmIntros,
-  mockGetCoInvestorTeams,
-  mockGetInvestorById,
-  mockGetInvestors,
-} from './investors.mock';
+import { mockFindWarmIntros, mockGetCoInvestorTeams, mockGetInvestorById, mockGetInvestors } from './investors.mock';
 import type {
   InvestorListParams,
   InvestorListResponse,

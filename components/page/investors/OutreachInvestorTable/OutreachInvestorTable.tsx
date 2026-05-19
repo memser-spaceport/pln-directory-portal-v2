@@ -334,6 +334,12 @@ export function OutreachInvestorTable(props: Props) {
     onRowClick(row.original.investor_id);
   };
 
+  // Split headers: name is frozen (non-draggable), everything else is draggable
+  const allHeaders = table.getHeaderGroups()[0]?.headers ?? [];
+  const nameHeader = allHeaders.find((h) => h.id === 'name');
+  const scrollableHeaders = allHeaders.filter((h) => h.id !== 'name');
+  const draggableColumnIds = visibleColumns.filter((id) => id !== 'name');
+
   return (
     <div className={s.wrap}>
       <div className={s.toolbar}>
@@ -371,24 +377,43 @@ export function OutreachInvestorTable(props: Props) {
                   />
                 </th>
               )}
-              <SortableContext items={visibleColumns} strategy={horizontalListSortingStrategy}>
-                {table.getHeaderGroups().map((hg) =>
-                  hg.headers.map((h) => (
-                    <DraggableColumnHeader
-                      key={h.id}
-                      id={h.id}
-                      onClick={h.column.getCanSort() ? h.column.getToggleSortingHandler() : undefined}
-                      className={clsx(s.th, h.column.getCanSort() && s.thSortable, h.column.getIsSorted() && s.thSorted)}
-                    >
-                      {flexRender(h.column.columnDef.header, h.getContext())}
-                      {h.column.getCanSort() && (
-                        <span className={s.sortIcon}>
-                          {h.column.getIsSorted() === 'asc' ? '▲' : h.column.getIsSorted() === 'desc' ? '▼' : '↕'}
-                        </span>
-                      )}
-                    </DraggableColumnHeader>
-                  )),
-                )}
+              {/* Name column: frozen, non-draggable */}
+              {nameHeader && (
+                <th
+                  className={clsx(
+                    s.th,
+                    s.frozenName,
+                    canEdit ? s.frozenNameWithCheckbox : s.frozenNameNoCheckbox,
+                    nameHeader.column.getCanSort() && s.thSortable,
+                    nameHeader.column.getIsSorted() && s.thSorted,
+                  )}
+                  onClick={nameHeader.column.getCanSort() ? nameHeader.column.getToggleSortingHandler() : undefined}
+                >
+                  {flexRender(nameHeader.column.columnDef.header, nameHeader.getContext())}
+                  {nameHeader.column.getCanSort() && (
+                    <span className={s.sortIcon}>
+                      {nameHeader.column.getIsSorted() === 'asc' ? '▲' : nameHeader.column.getIsSorted() === 'desc' ? '▼' : '↕'}
+                    </span>
+                  )}
+                </th>
+              )}
+              {/* Draggable scrollable columns */}
+              <SortableContext items={draggableColumnIds} strategy={horizontalListSortingStrategy}>
+                {scrollableHeaders.map((h) => (
+                  <DraggableColumnHeader
+                    key={h.id}
+                    id={h.id}
+                    onClick={h.column.getCanSort() ? h.column.getToggleSortingHandler() : undefined}
+                    className={clsx(s.th, h.column.getCanSort() && s.thSortable, h.column.getIsSorted() && s.thSorted)}
+                  >
+                    {flexRender(h.column.columnDef.header, h.getContext())}
+                    {h.column.getCanSort() && (
+                      <span className={s.sortIcon}>
+                        {h.column.getIsSorted() === 'asc' ? '▲' : h.column.getIsSorted() === 'desc' ? '▼' : '↕'}
+                      </span>
+                    )}
+                  </DraggableColumnHeader>
+                ))}
               </SortableContext>
             </tr>
           </thead>
@@ -416,7 +441,14 @@ export function OutreachInvestorTable(props: Props) {
                     </td>
                   )}
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className={s.td}>
+                    <td
+                      key={cell.id}
+                      className={clsx(
+                        s.td,
+                        cell.column.id === 'name' && s.frozenName,
+                        cell.column.id === 'name' && (canEdit ? s.frozenNameWithCheckbox : s.frozenNameNoCheckbox),
+                      )}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}

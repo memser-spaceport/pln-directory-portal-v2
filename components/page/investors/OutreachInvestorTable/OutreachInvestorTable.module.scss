@@ -80,15 +80,50 @@
 
 .thSorted .sortIcon { color: #1b4dff; }
 
+// --- Frozen columns (checkbox + name) ---
+
 .checkboxCol {
   width: 32px;
   padding: 8px 6px 8px 12px;
   background: #f9fafb;
   position: sticky;
-  top: 0;
+  left: 0;
+  z-index: 2;
 }
 
-tbody .checkboxCol { background: transparent; }
+thead .checkboxCol {
+  top: 0;
+  z-index: 3;
+}
+
+tbody .checkboxCol {
+  background: #fff;
+}
+
+.row:hover .checkboxCol { background: #fafbfc; }
+.rowSelected .checkboxCol { background: #eef2ff; }
+.rowSelected:hover .checkboxCol { background: #e0e7ff; }
+
+.frozenName {
+  position: sticky;
+  z-index: 2;
+  background: #fff;
+  // shadow marks the frozen boundary
+  box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.07);
+}
+
+.frozenNameNoCheckbox { left: 0; }
+.frozenNameWithCheckbox { left: 32px; }
+
+thead .frozenName {
+  top: 0;
+  z-index: 3;
+  background: #f9fafb;
+}
+
+.row:hover .frozenName { background: #fafbfc; }
+.rowSelected .frozenName { background: #eef2ff; }
+.rowSelected:hover .frozenName { background: #e0e7ff; }
 
 .row {
   cursor: pointer;

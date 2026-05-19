@@ -1,0 +1,241 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fafbfc;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  position: relative;
+}
+
+.toolbar_left, .toolbar_right { display: flex; align-items: center; gap: 8px; }
+
+.toolbarBtn {
+  padding: 5px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  background: #fff;
+  color: #455468;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) { background: #f9fafb; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+.selection { display: inline-flex; align-items: center; gap: 8px; color: #1b4dff; font-weight: 500; }
+.muted { color: #6b7280; }
+.linkBtn {
+  background: none; border: none; padding: 0; cursor: pointer; color: #1b4dff; font-size: 12px; text-decoration: underline;
+}
+
+.tableWrap {
+  overflow: auto;
+  //max-height: calc(100vh - 280px);
+}
+
+.table {
+  width: 100%;
+  min-width: max-content;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+
+.th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f9fafb;
+  text-align: left;
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.thSortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.thSortable:hover {
+  color: #0a0c11;
+  background: #f3f4f6;
+}
+
+.thSorted {
+  color: #1b4dff;
+}
+
+.sortIcon {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 9px;
+  color: #d1d5db;
+}
+
+.thSorted .sortIcon { color: #1b4dff; }
+
+// --- Frozen columns (checkbox + name) ---
+
+.checkboxCol {
+  width: 32px;
+  padding: 8px 6px 8px 12px;
+  background: #f9fafb;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+thead .checkboxCol {
+  top: 0;
+  z-index: 3;
+}
+
+tbody .checkboxCol {
+  background: #fff;
+}
+
+.row:hover .checkboxCol { background: #fafbfc; }
+.rowSelected .checkboxCol { background: #eef2ff; }
+.rowSelected:hover .checkboxCol { background: #e0e7ff; }
+
+.frozenName {
+  position: sticky;
+  z-index: 2;
+  background: #fff;
+  // shadow marks the frozen boundary
+  box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.07);
+}
+
+.frozenNameNoCheckbox { left: 0; }
+.frozenNameWithCheckbox { left: 32px; }
+
+thead .frozenName {
+  top: 0;
+  z-index: 3;
+  background: #f9fafb;
+}
+
+.row:hover .frozenName { background: #fafbfc; }
+.rowSelected .frozenName { background: #eef2ff; }
+.rowSelected:hover .frozenName { background: #e0e7ff; }
+
+.row {
+  cursor: pointer;
+  transition: background 0.08s;
+}
+.row:hover { background: #fafbfc; }
+.rowSelected { background: #eef2ff; }
+.rowSelected:hover { background: #e0e7ff; }
+
+.td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.nameCell {
+  min-width: 220px;
+  max-width: 220px;
+  white-space: normal;
+}
+.nameRow { display: flex; align-items: center; gap: 6px; }
+.nameText { font-weight: 600; color: #0a0c11; }
+.nameSub { font-size: 12px; color: #6b7280; margin-top: 1px; }
+.nameSubMuted { font-size: 12px; color: #9ca3af; margin-top: 1px; font-style: italic; }
+
+.nameBadge { margin-top: 4px; }
+
+.coTeamsRow {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  max-width: 240px;
+}
+
+.coTeamChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #78350f;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: help;
+}
+
+.coTeamMore {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: help;
+}
+
+.firmCell {
+  min-width: 200px;
+  max-width: 200px;
+  white-space: normal;
+}
+.firmText { font-weight: 500; color: #0a0c11; }
+.firmSub { font-size: 12px; color: #6b7280; margin-top: 1px; }
+
+.thesisCell {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+  max-width: 280px;
+  font-size: 13px;
+  color: #455468;
+}
+
+.empty {
+  padding: 32px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.sentinelLoader {
+  padding: 12px;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: #9ca3af;
+}

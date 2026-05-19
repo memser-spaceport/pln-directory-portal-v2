@@ -10,8 +10,7 @@ interface Props {
 
 /**
  * Explains the Fit score (0–100) shown next to each warm-intros candidate.
- * Sourced from the actual scoring logic in `services/investors/investors.mock.ts::scoreCandidate`.
- * Keep in sync if scoring changes — this is user-facing methodology.
+ * Scoring is computed server-side by the warm-intros endpoint.
  */
 export function ScoringMethodologyModal({ open, onClose }: Props) {
   return (

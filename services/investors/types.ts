@@ -1,10 +1,10 @@
-// Mirrors C:\Users\anpan\code\pln-investor-outreach-enrichment\SCHEMA.md (v1.0).
-// 32 columns; field ORDER matters for CSV export and column visibility presets.
-// Three additive fields beyond the canonical schema (frontend-injected via mock,
-// to-be-added by backend at column 33+): lab_os_profile, tags, co_invested_team_ids.
+// Mirrors SCHEMA.md (v1.0). 32 columns; field ORDER matters for CSV export
+// and column visibility presets.
+// Three additive fields beyond the canonical schema (columns 33+):
+// lab_os_profile, tags, co_invested_team_ids.
 //
-// Style note (per code-style-from-team.md): data/request/response shapes use
-// `type`. `interface` is reserved for component Props and store state.
+// Style note: data/request/response shapes use `type`.
+// `interface` is reserved for component Props and store state.
 
 export type InvestorSource =
   | 'W26'
@@ -117,14 +117,14 @@ export type OutreachInvestor = {
    *  null = not in network. */
   lab_os_profile: LabOsProfileRef | null;
 
-  /** Free-form user-applied tags (multi-value). Backed by a new `tags` column
-   *  at SCHEMA position 33 (additive). For V1 prototype, hydrated from the
-   *  zustand mutation overlay so users can play with tagging without a backend. */
+  /** Free-form user-applied tags (multi-value). Write path (PATCH /investors/:id/tags)
+   *  is Phase 2; for now tags are read from the API and mutated optimistically via
+   *  the Zustand overlay. */
   tags: string[];
 
   /** PL portfolio team_ids this investor has co-invested with PL on.
-   *  Empty array = not a co-investor. Derived server-side from cap-table data;
-   *  for V1 mock, derived client-side from PL_PORTFOLIO_TEAMS_FIXTURES. */
+   *  Empty array = not a co-investor. Derived server-side from cap-table data
+   *  (InvestorPortfolioOverlap); populated by the ingest pipeline in Phase 2. */
   co_invested_team_ids: string[];
 };
 

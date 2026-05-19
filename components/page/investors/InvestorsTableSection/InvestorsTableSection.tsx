@@ -31,7 +31,6 @@ const SORT_OPTIONS = [
   { value: 'last_name:asc', label: 'Name (A-Z)' },
   { value: 'last_name:desc', label: 'Name (Z-A)' },
   { value: 'last_sent_date:desc', label: 'Recently engaged' },
-  { value: 'outreach_touches:desc', label: 'Most touches' },
 ] as const;
 
 /**

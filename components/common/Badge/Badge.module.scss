@@ -46,3 +46,7 @@
   border-color: var(--border-error-subtle, #fca5a5);
   color: var(--foreground-error-secondary, #dc2626);
 }
+
+.noBorder {
+  border-color: transparent;
+}

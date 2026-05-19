@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import {
   ColumnDef,
   flexRender,
@@ -10,14 +11,7 @@ import {
   useReactTable,
   Row,
 } from '@tanstack/react-table';
-import {
-  DndContext,
-  DragEndEvent,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
+import { DndContext, DragEndEvent, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import clsx from 'clsx';
 import { DraggableColumnHeader } from './DraggableColumnHeader';
@@ -45,6 +39,8 @@ interface Props {
   canEdit?: boolean;
   /** Called when the user clicks Export CSV. Parent owns the export logic. */
   onExport?: () => void;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
 }
 
 const COLUMN_LABELS: Record<string, string> = {
@@ -85,7 +81,18 @@ const COLUMN_LABELS: Record<string, string> = {
 };
 
 export function OutreachInvestorTable(props: Props) {
-  const { investors: rawInvestors, visibleColumns, onRowClick, selectedIds, onSelectionChange, teamLookup, canEdit, onExport } = props;
+  const {
+    investors: rawInvestors,
+    visibleColumns,
+    onRowClick,
+    selectedIds,
+    onSelectionChange,
+    teamLookup,
+    canEdit,
+    onExport,
+    onLoadMore,
+    hasMore,
+  } = props;
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'engagement_tier', desc: false },
@@ -150,24 +157,27 @@ export function OutreachInvestorTable(props: Props) {
           </div>
         ),
         enableSorting: true,
+        size: 200,
       },
       {
         id: 'firm',
         header: 'Team',
         accessorKey: 'firm',
         cell: ({ row }) => (
-          <div>
+          <div className={s.firmCell}>
             <div className={s.firmText}>{row.original.firm || <span className={s.muted}>Independent</span>}</div>
             {row.original.firm_domain && <div className={s.firmSub}>{row.original.firm_domain}</div>}
           </div>
         ),
         enableSorting: true,
+        size: 200,
       },
       {
         id: 'title',
         header: 'Role',
         accessorKey: 'title',
-        cell: ({ getValue }) => (getValue<string>() ? <span>{getValue<string>()}</span> : <span className={s.muted}>—</span>),
+        cell: ({ getValue }) =>
+          getValue<string>() ? <span>{getValue<string>()}</span> : <span className={s.muted}>—</span>,
       },
       {
         id: 'investor_type',
@@ -197,7 +207,10 @@ export function OutreachInvestorTable(props: Props) {
           if (ids.length === 0) return <span className={s.muted}>—</span>;
           const visible = ids.slice(0, 2);
           const overflow = ids.length - visible.length;
-          const overflowNames = ids.slice(2).map((id) => teamNameLookup?.[id] ?? id).join(', ');
+          const overflowNames = ids
+            .slice(2)
+            .map((id) => teamNameLookup?.[id] ?? id)
+            .join(', ');
           return (
             <span className={s.coTeamsRow}>
               {visible.map((id) => (
@@ -218,13 +231,17 @@ export function OutreachInvestorTable(props: Props) {
         id: 'engagement_tier',
         header: 'Tier',
         accessorKey: 'engagement_tier',
-        cell: ({ getValue }) => <EngagementTierBadge tier={getValue<'T1_registered' | 'T2_clicked' | 'T3_opened' | 'T4_cold'>()} compact />,
+        cell: ({ getValue }) => (
+          <EngagementTierBadge tier={getValue<'T1_registered' | 'T2_clicked' | 'T3_opened' | 'T4_cold'>()} compact />
+        ),
       },
       {
         id: 'email_status',
         header: 'Email',
         accessorKey: 'email_status',
-        cell: ({ getValue }) => <EmailStatusPill status={getValue<'verified' | 'catch_all' | 'unverified' | 'invalid' | 'unknown'>()} />,
+        cell: ({ getValue }) => (
+          <EmailStatusPill status={getValue<'verified' | 'catch_all' | 'unverified' | 'invalid' | 'unknown'>()} />
+        ),
       },
       {
         id: 'last_sent_date',
@@ -367,104 +384,121 @@ export function OutreachInvestorTable(props: Props) {
         </div>
       </div>
 
-      <div className={s.tableWrap}>
-        <DndContext sensors={sensors} onDragEnd={handleColumnDragEnd}>
-        <table className={s.table}>
-          <thead>
-            <tr>
-              {canEdit && (
-                <th className={s.checkboxCol}>
-                  <input
-                    type="checkbox"
-                    checked={allChecked}
-                    ref={(el) => {
-                      if (el) el.indeterminate = someChecked;
-                    }}
-                    onChange={toggleAll}
-                  />
-                </th>
-              )}
-              {/* Name column: frozen, non-draggable */}
-              {nameHeader && (
-                <th
-                  className={clsx(
-                    s.th,
-                    s.frozenName,
-                    canEdit ? s.frozenNameWithCheckbox : s.frozenNameNoCheckbox,
-                    nameHeader.column.getCanSort() && s.thSortable,
-                    nameHeader.column.getIsSorted() && s.thSorted,
-                  )}
-                  onClick={nameHeader.column.getCanSort() ? nameHeader.column.getToggleSortingHandler() : undefined}
-                >
-                  {flexRender(nameHeader.column.columnDef.header, nameHeader.getContext())}
-                  {nameHeader.column.getCanSort() && (
-                    <span className={s.sortIcon}>
-                      {nameHeader.column.getIsSorted() === 'asc' ? '▲' : nameHeader.column.getIsSorted() === 'desc' ? '▼' : '↕'}
-                    </span>
-                  )}
-                </th>
-              )}
-              {/* Draggable scrollable columns */}
-              <SortableContext items={draggableColumnIds} strategy={horizontalListSortingStrategy}>
-                {scrollableHeaders.map((h) => (
-                  <DraggableColumnHeader
-                    key={h.id}
-                    id={h.id}
-                    onClick={h.column.getCanSort() ? h.column.getToggleSortingHandler() : undefined}
-                    className={clsx(s.th, h.column.getCanSort() && s.thSortable, h.column.getIsSorted() && s.thSorted)}
-                  >
-                    {flexRender(h.column.columnDef.header, h.getContext())}
-                    {h.column.getCanSort() && (
-                      <span className={s.sortIcon}>
-                        {h.column.getIsSorted() === 'asc' ? '▲' : h.column.getIsSorted() === 'desc' ? '▼' : '↕'}
-                      </span>
-                    )}
-                  </DraggableColumnHeader>
-                ))}
-              </SortableContext>
-            </tr>
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length + (canEdit ? 1 : 0)} className={s.empty}>
-                  No investors match the current filters.
-                </td>
-              </tr>
-            ) : (
-              table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={clsx(s.row, selectedIds.has(row.original.investor_id) && s.rowSelected)}
-                  onClick={(e) => handleRowClick(row, e)}
-                >
+      <div className={s.tableWrap} id="investors-table-scroll">
+        <InfiniteScroll
+          scrollableTarget="body"
+          dataLength={investors.length}
+          hasMore={hasMore ?? false}
+          next={onLoadMore ?? (() => {})}
+          loader={<div className={s.sentinelLoader}>Loading more…</div>}
+          style={{ overflow: 'unset' }}
+        >
+          <DndContext sensors={sensors} onDragEnd={handleColumnDragEnd}>
+            <table className={s.table}>
+              <thead>
+                <tr>
                   {canEdit && (
-                    <td className={s.checkboxCol}>
+                    <th className={s.checkboxCol}>
                       <input
                         type="checkbox"
-                        checked={selectedIds.has(row.original.investor_id)}
-                        onChange={() => toggleOne(row.original.investor_id)}
+                        checked={allChecked}
+                        ref={(el) => {
+                          if (el) el.indeterminate = someChecked;
+                        }}
+                        onChange={toggleAll}
                       />
-                    </td>
+                    </th>
                   )}
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
+                  {/* Name column: frozen, non-draggable */}
+                  {nameHeader && (
+                    <th
                       className={clsx(
-                        s.td,
-                        cell.column.id === 'name' && s.frozenName,
-                        cell.column.id === 'name' && (canEdit ? s.frozenNameWithCheckbox : s.frozenNameNoCheckbox),
+                        s.th,
+                        s.frozenName,
+                        canEdit ? s.frozenNameWithCheckbox : s.frozenNameNoCheckbox,
+                        nameHeader.column.getCanSort() && s.thSortable,
+                        nameHeader.column.getIsSorted() && s.thSorted,
                       )}
+                      onClick={nameHeader.column.getCanSort() ? nameHeader.column.getToggleSortingHandler() : undefined}
                     >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
+                      {flexRender(nameHeader.column.columnDef.header, nameHeader.getContext())}
+                      {nameHeader.column.getCanSort() && (
+                        <span className={s.sortIcon}>
+                          {nameHeader.column.getIsSorted() === 'asc'
+                            ? '▲'
+                            : nameHeader.column.getIsSorted() === 'desc'
+                              ? '▼'
+                              : '↕'}
+                        </span>
+                      )}
+                    </th>
+                  )}
+                  {/* Draggable scrollable columns */}
+                  <SortableContext items={draggableColumnIds} strategy={horizontalListSortingStrategy}>
+                    {scrollableHeaders.map((h) => (
+                      <DraggableColumnHeader
+                        key={h.id}
+                        id={h.id}
+                        onClick={h.column.getCanSort() ? h.column.getToggleSortingHandler() : undefined}
+                        className={clsx(
+                          s.th,
+                          h.column.getCanSort() && s.thSortable,
+                          h.column.getIsSorted() && s.thSorted,
+                        )}
+                      >
+                        {flexRender(h.column.columnDef.header, h.getContext())}
+                        {h.column.getCanSort() && (
+                          <span className={s.sortIcon}>
+                            {h.column.getIsSorted() === 'asc' ? '▲' : h.column.getIsSorted() === 'desc' ? '▼' : '↕'}
+                          </span>
+                        )}
+                      </DraggableColumnHeader>
+                    ))}
+                  </SortableContext>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-        </DndContext>
+              </thead>
+              <tbody>
+                {table.getRowModel().rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={columns.length + (canEdit ? 1 : 0)} className={s.empty}>
+                      No investors match the current filters.
+                    </td>
+                  </tr>
+                ) : (
+                  table.getRowModel().rows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className={clsx(s.row, selectedIds.has(row.original.investor_id) && s.rowSelected)}
+                      onClick={(e) => handleRowClick(row, e)}
+                    >
+                      {canEdit && (
+                        <td className={s.checkboxCol}>
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(row.original.investor_id)}
+                            onChange={() => toggleOne(row.original.investor_id)}
+                          />
+                        </td>
+                      )}
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className={clsx(
+                            s.td,
+                            cell.column.id === 'name' && s.frozenName,
+                            cell.column.id === 'name' && (canEdit ? s.frozenNameWithCheckbox : s.frozenNameNoCheckbox),
+                          )}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </DndContext>
+        </InfiniteScroll>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import { useGetInvestors } from '@/services/investors/hooks/useGetInvestors';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
@@ -100,16 +100,15 @@ export function InvestorsTableSection({
       is_co_investor: filters.is_co_investor || tabDefaults.is_co_investor,
       co_invested_team_id: filters.co_invested_team_id || tabDefaults.co_invested_team_id,
       sort: filters.sort || undefined,
-      page: filters.page,
     }),
     [filters, tabDefaults],
   );
 
-  const { data, isLoading, isError } = useGetInvestors(params, access.canView);
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetInvestors(params, access.canView);
   const { data: teams } = useGetCoInvestorTeams(access.canView);
 
-  const investors = data?.items ?? [];
-  const total = data?.total ?? 0;
+  const investors = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const total = data?.pages.at(-1)?.total ?? 0;
   const teamLookup = useMemo(() => (teams ? new Map(teams.map((t) => [t.team_id, t])) : undefined), [teams]);
   const filtersActive = hasActiveFilters(filters);
   const appliedFiltersCount = useMemo(() => {
@@ -129,6 +128,10 @@ export function InvestorsTableSection({
     if (filters.co_invested_team_id) n++;
     return n;
   }, [filters]);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const handleExport = () => {
     if (selectedIds.size > 0) {
@@ -219,15 +222,9 @@ export function InvestorsTableSection({
           teamLookup={teamLookup}
           canEdit={access.canEdit}
           onExport={access.canEdit ? handleExport : undefined}
+          onLoadMore={handleLoadMore}
+          hasMore={hasNextPage}
         />
-      )}
-
-      {data && data.page * data.limit < data.total && (
-        <div className={s.loadMore}>
-          <button className={s.btn} onClick={() => setFilters({ page: filters.page + 1 })}>
-            Show more
-          </button>
-        </div>
       )}
     </div>
   );

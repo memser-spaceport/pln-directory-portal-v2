@@ -9,6 +9,7 @@ import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
 import type { InvestorListParams } from '@/services/investors/types';
 import { OutreachInvestorTable } from '../OutreachInvestorTable/OutreachInvestorTable';
+import { InvestorsTableSkeleton } from '../OutreachInvestorTable/InvestorsTableSkeleton';
 import { InvestorsToolbar } from '../InvestorsToolbar/InvestorsToolbar';
 import { exportInvestorsCsv } from '../utils/exportCsv';
 import s from './InvestorsTableSection.module.scss';
@@ -211,7 +212,7 @@ export function InvestorsTableSection({
       )}
 
       {isLoading && investors.length === 0 ? (
-        <div className={s.loading}>Loading investors…</div>
+        <InvestorsTableSkeleton />
       ) : (
         <OutreachInvestorTable
           investors={investors}

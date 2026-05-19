@@ -104,27 +104,43 @@ describe('TeamNews', () => {
     expect(screen.getByRole('button', { name: /All categories/ })).not.toBeDisabled();
   });
 
-  it('paginates with Load more and reports analytics', () => {
+  it('shows all items on Show All click and collapses back on Show Less, reports analytics', () => {
     render(<TeamNews groups={groups} pageSize={2} />);
-    // 5 items total, pageSize=2 → first page shows 2.
-    expect(screen.getByText(/Showing 2 of 5/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Load 2 more/ })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Load 2 more/ }));
+    // 5 items total, pageSize=2 → first 2 visible
+    expect(screen.getByText(/Headline ai-1/)).toBeInTheDocument();
+    expect(screen.getByText(/Headline ai-2/)).toBeInTheDocument();
+    expect(screen.queryByText(/Headline ai-3/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Show All/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Show All/i }));
     expect(mockOnLoadMoreClicked).toHaveBeenCalledWith(2, 5, 'All', 'all');
-    expect(screen.getByText(/Showing 4 of 5/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Load 1 more/ }));
-    expect(screen.queryByRole('button', { name: /Load/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/Headline ai-3/)).toBeInTheDocument();
+    expect(screen.getByText(/Headline dhr-2/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Show Less/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Show Less/i }));
+    expect(screen.queryByText(/Headline ai-3/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Show All/i })).toBeInTheDocument();
   });
 
-  it('resets pagination to first page when switching tabs or categories', () => {
+  it('collapses back to pageSize when switching tabs or categories', () => {
     render(<TeamNews groups={groups} pageSize={2} />);
-    fireEvent.click(screen.getByRole('button', { name: /Load 2 more/ }));
-    expect(screen.getByText(/Showing 4 of 5/)).toBeInTheDocument();
+    // Expand all 5 items
+    fireEvent.click(screen.getByRole('button', { name: /Show All/i }));
+    expect(screen.getByText(/Headline ai-3/)).toBeInTheDocument();
+
+    // Switch tab — should collapse
     fireEvent.click(screen.getByRole('tab', { name: /AI & Robotics/ }));
-    expect(screen.getByText(/Showing 2 of 3/)).toBeInTheDocument();
-    // AI & Robotics has 1 Launch item — chip label is "Launch 1"
+    expect(screen.queryByText(/Headline ai-3/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Show All/i })).toBeInTheDocument();
+
+    // Expand again, then filter by category — should collapse
+    fireEvent.click(screen.getByRole('button', { name: /Show All/i }));
+    expect(screen.getByText(/Headline ai-3/)).toBeInTheDocument();
+    // AI & Robotics has 1 Launch item (ai-2), which is ≤ pageSize — no button after collapse
     fireEvent.click(screen.getByRole('button', { name: /^Launch\b/ }));
-    expect(screen.queryByRole('button', { name: /Load/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Show All/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/Headline ai-2/)).toBeInTheDocument();
   });
 
   it('renders the per-filter empty state when the active focus area has no items', () => {

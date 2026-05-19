@@ -8,7 +8,7 @@ import { CreatePost } from '@/components/page/forum/CreatePost';
 import { BackButton } from '@/components/ui/BackButton';
 
 const NewPostPage = async () => {
-  const { isLoggedIn } = getCookiesFromHeaders();
+  const { isLoggedIn } = await getCookiesFromHeaders();
 
   if (!isLoggedIn) {
     return (

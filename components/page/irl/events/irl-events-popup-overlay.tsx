@@ -2,7 +2,7 @@ import Modal from '@/components/core/modal';
 import Link from 'next/link';
 
 interface IrlEventsPopupOverlayProps {
-  dialogRef: React.RefObject<HTMLDivElement>;
+  dialogRef: React.RefObject<HTMLDivElement | null>;
   onCloseModal: () => void;
   resources: any[];
   isLoggedIn: boolean;

@@ -49,8 +49,9 @@ const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean
   };
 };
 
-async function RecommendationsPage({ searchParams }: { searchParams: any }) {
-  const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
+async function RecommendationsPage(props: { searchParams: Promise<any> }) {
+  const searchParams = await props.searchParams;
+  const { isLoggedIn, userInfo, authToken } = await getCookiesFromHeaders();
   const params = new URLSearchParams(searchParams as Record<string, string>).toString();
 
   if (!isLoggedIn) {

@@ -285,7 +285,7 @@ export const FormSelect = (props: Props) => {
                 <CloseIcon />
               </div>
             ),
-            NoOptionsMessage: (props, rest) => {
+            NoOptionsMessage: (props) => {
               return (
                 <div className={s.notFound}>
                   <span>No options found</span>

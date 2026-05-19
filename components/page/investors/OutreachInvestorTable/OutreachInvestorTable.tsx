@@ -10,8 +10,18 @@ import {
   useReactTable,
   Row,
 } from '@tanstack/react-table';
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import clsx from 'clsx';
-import { useInvestorMutationOverlay, applyOverlayToInvestor } from '@/services/investors/store';
+import { DraggableColumnHeader } from './DraggableColumnHeader';
+import { useInvestorMutationOverlay, useInvestorColumnStore, applyOverlayToInvestor } from '@/services/investors/store';
 import type { OutreachInvestor, PlPortfolioTeam } from '@/services/investors/types';
 import { INVESTOR_TYPE_LABEL, STAGE_FOCUS_LABEL } from '@/services/investors/constants';
 import { EngagementTierBadge } from '../EngagementTierBadge/EngagementTierBadge';
@@ -80,6 +90,22 @@ export function OutreachInvestorTable(props: Props) {
     { id: 'last_sent_date', desc: true },
   ]);
 
+  const columnActions = useInvestorColumnStore((s) => s.actions);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+  );
+
+  const handleColumnDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const oldIdx = visibleColumns.indexOf(active.id as string);
+    const newIdx = visibleColumns.indexOf(over.id as string);
+    if (oldIdx !== -1 && newIdx !== -1) {
+      columnActions.setVisibleColumns(arrayMove(visibleColumns, oldIdx, newIdx));
+    }
+  };
+
   // Hydrate investors with mutation overlay (tags etc.) — V1 mock only
   const overrides = useInvestorMutationOverlay((s) => s.overrides);
   const investors = useMemo(
@@ -108,12 +134,16 @@ export function OutreachInvestorTable(props: Props) {
               <span className={s.nameText}>
                 {row.original.first_name} {row.original.last_name}
               </span>
-              <LabOsBadge profile={row.original.lab_os_profile} variant="icon" />
             </div>
             {row.original.title ? (
               <div className={s.nameSub}>{row.original.title}</div>
             ) : (
               <div className={s.nameSubMuted}>{row.original.email}</div>
+            )}
+            {row.original.lab_os_profile && (
+              <div className={s.nameBadge}>
+                <LabOsBadge profile={row.original.lab_os_profile} variant="pill" />
+              </div>
             )}
           </div>
         ),
@@ -325,6 +355,7 @@ export function OutreachInvestorTable(props: Props) {
       </div>
 
       <div className={s.tableWrap}>
+        <DndContext sensors={sensors} onDragEnd={handleColumnDragEnd}>
         <table className={s.table}>
           <thead>
             <tr>
@@ -340,22 +371,25 @@ export function OutreachInvestorTable(props: Props) {
                   />
                 </th>
               )}
-              {table.getHeaderGroups().map((hg) =>
-                hg.headers.map((h) => (
-                  <th
-                    key={h.id}
-                    onClick={h.column.getCanSort() ? h.column.getToggleSortingHandler() : undefined}
-                    className={clsx(s.th, h.column.getCanSort() && s.thSortable, h.column.getIsSorted() && s.thSorted)}
-                  >
-                    {flexRender(h.column.columnDef.header, h.getContext())}
-                    {h.column.getCanSort() && (
-                      <span className={s.sortIcon}>
-                        {h.column.getIsSorted() === 'asc' ? '▲' : h.column.getIsSorted() === 'desc' ? '▼' : '↕'}
-                      </span>
-                    )}
-                  </th>
-                )),
-              )}
+              <SortableContext items={visibleColumns} strategy={horizontalListSortingStrategy}>
+                {table.getHeaderGroups().map((hg) =>
+                  hg.headers.map((h) => (
+                    <DraggableColumnHeader
+                      key={h.id}
+                      id={h.id}
+                      onClick={h.column.getCanSort() ? h.column.getToggleSortingHandler() : undefined}
+                      className={clsx(s.th, h.column.getCanSort() && s.thSortable, h.column.getIsSorted() && s.thSorted)}
+                    >
+                      {flexRender(h.column.columnDef.header, h.getContext())}
+                      {h.column.getCanSort() && (
+                        <span className={s.sortIcon}>
+                          {h.column.getIsSorted() === 'asc' ? '▲' : h.column.getIsSorted() === 'desc' ? '▼' : '↕'}
+                        </span>
+                      )}
+                    </DraggableColumnHeader>
+                  )),
+                )}
+              </SortableContext>
             </tr>
           </thead>
           <tbody>
@@ -391,6 +425,7 @@ export function OutreachInvestorTable(props: Props) {
             )}
           </tbody>
         </table>
+        </DndContext>
       </div>
     </div>
   );

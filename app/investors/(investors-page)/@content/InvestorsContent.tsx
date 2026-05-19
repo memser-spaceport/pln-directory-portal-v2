@@ -1,24 +1,29 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQueryStates } from 'nuqs';
 import clsx from 'clsx';
 import { Tabs } from '@/components/common/Tabs/Tabs';
 import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout';
 import Error from '@/components/core/error';
-import { getUserInfoFromLocal } from '@/utils/common.utils';
 import { investorsFilterParsers } from '../searchParams';
 import { INVESTOR_TAB_LABEL, INVESTOR_TAB_VALUES } from '@/services/investors/constants';
 import { InvestorsTableSection } from '@/components/page/investors/InvestorsTableSection/InvestorsTableSection';
 import { WarmIntrosWorkspace } from '@/components/page/investors/WarmIntrosWorkspace/WarmIntrosWorkspace';
-import { InvestorsLandingPage } from '@/components/page/investors/InvestorsLandingPage/InvestorsLandingPage';
-import { InvestorsNoAccessModal } from '@/components/page/investors/InvestorsNoAccessModal/InvestorsNoAccessModal';
 import { InvestorDrawer } from '@/components/page/investors/InvestorDrawer/InvestorDrawer';
 import s from './page.module.scss';
 
 export default function InvestorsContent() {
   const access = useInvestorsAccess();
-  const isLoggedIn = !!getUserInfoFromLocal();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!access.isLoading && !access.canView) {
+      router.replace('/members');
+    }
+  }, [access.isLoading, access.canView, router]);
 
   const [filters, setFilters] = useQueryStates(investorsFilterParsers, {
     history: 'replace',
@@ -32,12 +37,7 @@ export default function InvestorsContent() {
     return <Error />;
   }
   if (!access.canView) {
-    return (
-      <>
-        <InvestorsLandingPage />
-        {isLoggedIn && <InvestorsNoAccessModal />}
-      </>
-    );
+    return null;
   }
 
   const tabs = INVESTOR_TAB_VALUES.map((value) => ({ value, label: INVESTOR_TAB_LABEL[value] }));

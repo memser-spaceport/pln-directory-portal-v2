@@ -34,10 +34,11 @@
 
 .table {
   width: 100%;
+  min-width: max-content;
   border-collapse: separate;
   border-spacing: 0;
   font-family: 'Inter', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .th {
@@ -110,8 +111,10 @@ tbody .checkboxCol { background: transparent; }
 }
 .nameRow { display: flex; align-items: center; gap: 6px; }
 .nameText { font-weight: 600; color: #0a0c11; }
-.nameSub { font-size: 11px; color: #6b7280; margin-top: 1px; }
-.nameSubMuted { font-size: 11px; color: #9ca3af; margin-top: 1px; font-style: italic; }
+.nameSub { font-size: 12px; color: #6b7280; margin-top: 1px; }
+.nameSubMuted { font-size: 12px; color: #9ca3af; margin-top: 1px; font-style: italic; }
+
+.nameBadge { margin-top: 4px; }
 
 .coTeamsRow {
   display: inline-flex;
@@ -129,7 +132,7 @@ tbody .checkboxCol { background: transparent; }
   background: #fef3c7;
   color: #78350f;
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
   max-width: 130px;
@@ -152,7 +155,7 @@ tbody .checkboxCol { background: transparent; }
 }
 
 .firmText { font-weight: 500; color: #0a0c11; }
-.firmSub { font-size: 11px; color: #6b7280; margin-top: 1px; }
+.firmSub { font-size: 12px; color: #6b7280; margin-top: 1px; }
 
 .thesisCell {
   display: -webkit-box;
@@ -161,7 +164,7 @@ tbody .checkboxCol { background: transparent; }
   overflow: hidden;
   white-space: normal;
   max-width: 280px;
-  font-size: 12px;
+  font-size: 13px;
   color: #455468;
 }
 

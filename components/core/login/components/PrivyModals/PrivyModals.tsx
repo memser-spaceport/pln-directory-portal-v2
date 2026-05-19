@@ -19,6 +19,8 @@ import { authStatus, authEvents, AuthErrorCode, LinkMethod, isDemoDayScopePage }
 
 import './PrivyModals.scss';
 
+let loggingIn = false;
+
 /**
  * PrivyModals - Handles authentication events and modals
  *
@@ -162,12 +164,19 @@ export function PrivyModals() {
 
   const initDirectoryLogin = useCallback(async () => {
     try {
+      if (loggingIn) {
+        return;
+      }
+
+      loggingIn = true;
       triggerLoader(true);
       const privyToken = await getAccessToken();
       const stateUid = localStorage.getItem('stateUid') || '';
 
       // Use centralized token exchange with retry support
       const response = await exchangeToken(privyToken as string, stateUid);
+
+      loggingIn = false;
 
       // Handle errors
       if (response.status === 500 || response.status === 401) {
@@ -223,6 +232,7 @@ export function PrivyModals() {
         await handleInvalidDirectoryEmail();
       }
     } catch (e) {
+      loggingIn = false;
       triggerLoader(false);
       authEvents.emit('auth:invalid-email', 'unexpected_error');
       setLinkAccountKey('');

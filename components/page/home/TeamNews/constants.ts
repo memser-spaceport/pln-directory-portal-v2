@@ -8,6 +8,6 @@ export const CATEGORIES: Array<{ id: TeamNewsEventType | typeof ALL_CAT; label: 
   { id: 'FUNDING', label: 'Funding' },
   { id: 'LAUNCH', label: 'Launch' },
   { id: 'PARTNERSHIP', label: 'Partnership' },
-  { id: 'MILESTONE', label: 'Milestone' },
   { id: 'ANNOUNCEMENT', label: 'Announcement' },
+  { id: 'MILESTONE', label: 'Milestone' },
 ];

@@ -6,8 +6,8 @@ import SettingsMobileHandler from '@/components/page/settings/settings-mobile-ha
 import { Metadata } from 'next';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 
-export default function Settings() {
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+export default async function Settings() {
+  const { isLoggedIn, userInfo } = await getCookiesFromHeaders();
 
   if (!isLoggedIn) {
     redirect(PAGE_ROUTES.HOME);

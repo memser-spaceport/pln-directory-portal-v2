@@ -1,0 +1,1 @@
+export { MemberDirectory } from './MemberDirectory';

@@ -4,7 +4,7 @@ import { Metadata } from 'next';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 async function PrivacyPage() {
-  const { isLoggedIn } = getCookiesFromHeaders();
+  const { isLoggedIn } = await getCookiesFromHeaders();
 
   if (!isLoggedIn) {
     redirect(PAGE_ROUTES.HOME);

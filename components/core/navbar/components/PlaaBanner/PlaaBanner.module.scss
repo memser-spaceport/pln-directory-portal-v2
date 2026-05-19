@@ -233,6 +233,14 @@
 // With swipe carousel and sticky compact mode
 // --------------------------------------------------------------------------
 
+.mobileBannerWrapper {
+  width: 100%;
+
+  @media (min-width: 960px) {
+    display: none;
+  }
+}
+
 .mobileBanner {
   position: sticky;
   top: var(--app-header-height, 64px);

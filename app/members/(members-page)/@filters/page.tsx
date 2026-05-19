@@ -5,8 +5,9 @@ import { getFilterValuesForQuery, getMemberRoles } from '@/services/members.serv
 import Error from '@/components/core/error';
 import FilterWrapper from '@/components/page/members/FilterWrapper';
 
-async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
-  const { userInfo } = getCookiesFromHeaders();
+async function Page(props: { searchParams: Promise<IMembersSearchParams> }) {
+  const searchParams = await props.searchParams;
+  const { userInfo } = await getCookiesFromHeaders();
 
   const { isError, filters, isLoggedIn } = await getPageData(searchParams as IMembersSearchParams);
 
@@ -24,7 +25,7 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
   let filters: any;
 
   try {
-    const { isLoggedIn, authToken } = getCookiesFromHeaders();
+    const { isLoggedIn, authToken } = await getCookiesFromHeaders();
     const filtersFromQueryParams = getMembersOptionsFromQuery(searchParams as IMembersSearchParams);
 
     const [rawFilterValues, availableFilters, memberRoles] = await Promise.all([

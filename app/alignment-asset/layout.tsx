@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import PlaaLayoutWrapper from '@/components/page/aligement-assets/plaa-layout-wrapper';
+import { BotpressWebchat } from '@/app/ClientDynamics';
 
 export const metadata: Metadata = {
   title: 'PL Alignment Asset | Protocol Labs Directory',
@@ -29,6 +30,7 @@ export default function PlaaLayout({ children }: { readonly children: React.Reac
   return (
     <PlaaLayoutWrapper>
       {children}
+      <BotpressWebchat />
     </PlaaLayoutWrapper>
   );
 }

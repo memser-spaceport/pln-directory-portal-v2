@@ -18,10 +18,12 @@ interface NotificationItemProps {
   onNotificationClick: (notification: PushNotification) => void;
   /** Variant controls styling differences between panel and page views */
   variant?: 'panel' | 'page';
+  /** When set, appended as ?backTo=<value> so the destination's BackButton returns here */
+  backTo?: string;
 }
 
 export function NotificationItem(props: NotificationItemProps) {
-  const { notification, onNotificationClick, variant = 'panel' } = props;
+  const { notification, onNotificationClick, variant = 'panel', backTo } = props;
 
   const isIrlGathering = notification.category === 'IRL_GATHERING';
 
@@ -70,9 +72,15 @@ export function NotificationItem(props: NotificationItemProps) {
     link = `/events/irl?location=${notification.metadata?.location?.name}&open-modal=true`;
   }
 
+  let href = (!link?.startsWith('/') ? `/${link}` : link) || '#';
+  if (backTo && href !== '#') {
+    const separator = href.includes('?') ? '&' : '?';
+    href = `${href}${separator}backTo=${encodeURIComponent(backTo)}`;
+  }
+
   return (
     <Link
-      href={(!link?.startsWith('/') ? `/${link}` : link) || '#'}
+      href={href}
       className={clsx(s.notificationItem, {
         [s.unread]: !notification.isRead,
       })}

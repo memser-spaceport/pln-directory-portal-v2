@@ -1,0 +1,11 @@
+const DEFAULT_BOTPRESS_INJECT_SCRIPT_URL = 'https://cdn.botpress.cloud/webchat/v3.6/inject.js';
+const DEFAULT_BOTPRESS_CONFIG_SCRIPT_URL =
+  'https://files.bpcontent.cloud/2026/04/09/18/20260409185449-1KEMAN62.js';
+
+export const BOTPRESS_INJECT_SCRIPT_URL =
+  process.env.NEXT_PUBLIC_BOTPRESS_INJECT_SCRIPT_URL ?? DEFAULT_BOTPRESS_INJECT_SCRIPT_URL;
+
+export const BOTPRESS_CONFIG_SCRIPT_URL =
+  process.env.NEXT_PUBLIC_BOTPRESS_CONFIG_SCRIPT_URL ?? DEFAULT_BOTPRESS_CONFIG_SCRIPT_URL;
+
+export const isBotpressWebchatEnabled = process.env.NEXT_PUBLIC_BOTPRESS_WEBCHAT_ENABLED === 'true';

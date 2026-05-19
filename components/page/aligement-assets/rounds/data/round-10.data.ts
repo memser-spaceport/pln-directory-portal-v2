@@ -81,17 +81,6 @@ export const pastRound10Data: IPastRoundData = {
   // Leaderboard Section Data
   // ============================================================================
   leaderboard: [
-    { rank: 1, name: 'Bradley Holden', activities: '', points: 2200 },
-    { rank: 2, name: 'William Scott', activities: '', points: 2150 },
-    { rank: 3, name: 'Theresa Therriault', activities: '', points: 1100 },
-    { rank: 4, name: 'Anuj Pandey', activities: '', points: 750 },
-    { rank: 5, name: 'Lynnette Nolan', activities: '', points: 700 },
-    { rank: 6, name: 'Molly Mackinlay', activities: '', points: 700 },
-    { rank: 7, name: 'Raymond Cheng', activities: '', points: 700 },
-    { rank: 8, name: 'Juan Benet', activities: '', points: 600 },
-    { rank: 9, name: 'Diana Stern', activities: '', points: 500 },
-    { rank: 10, name: 'Ian Brunner', activities: '', points: 500 },
-    { rank: 11, name: 'Stef Wykoff', activities: '', points: 500 },
   ],
 };
 

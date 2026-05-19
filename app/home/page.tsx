@@ -14,10 +14,9 @@ import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
 import { formatFeaturedData } from '@/utils/home.utils';
-import { RecentUpdatesSection } from '@/components/page/home/recent-updates';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
-import { TeamNewsAccessGate } from '@/components/page/home/TeamNews';
+import { TeamNews } from '@/components/page/home/TeamNews';
 import { getTeamNewsGroupedByFocusArea } from '@/services/team-news/team-news.service';
 import type { ITeamNewsGroup } from '@/types/team-news.types';
 
@@ -38,13 +37,10 @@ export default async function Home() {
             </div>
           )}
           <div className={styles.home__cn__teamnews}>
-            <TeamNewsAccessGate groups={teamNewsGroups} />
+            <TeamNews groups={teamNewsGroups} />
           </div>
           <div className={styles.home__cn__focusarea}>
             <FocusAreaSection focusAreas={focusAreas} userInfo={userInfo} />
-          </div>
-          <div className={styles.home__cn__recentupdates}>
-            <RecentUpdatesSection />
           </div>
           <ScrollToTop pageName="Home" userInfo={userInfo} />
         </div>
@@ -56,7 +52,7 @@ export default async function Home() {
 }
 
 const getPageData = async () => {
-  const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo, authToken } = await getCookiesFromHeaders();
   let isError = false;
   let featuredData = [] as any;
   let discoverData = [] as any;

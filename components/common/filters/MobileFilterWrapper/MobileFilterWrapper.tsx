@@ -29,7 +29,7 @@ export interface MobileFilterWrapperProps {
   /**
    * Available sort options
    */
-  sortOptions: SortOption[];
+  sortOptions: readonly SortOption[];
 
   /**
    * Handler for sort change

@@ -74,9 +74,6 @@ export const pastRound1Data: IPastRoundData = {
   // Leaderboard Section Data
   // ============================================================================
   leaderboard: [
-    { rank: 1, name: 'Diana Stern', activities: '', points: 1000 },
-    { rank: 2, name: 'Kevin Houng', activities: '', points: 1000 },
-    { rank: 3, name: 'Laura Brewer', activities: '', points: 500 },
   ],
 };
 

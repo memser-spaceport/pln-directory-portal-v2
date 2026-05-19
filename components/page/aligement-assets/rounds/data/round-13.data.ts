@@ -80,16 +80,6 @@ export const pastRound13Data: IPastRoundData = {
   // Leaderboard Section Data
   // ============================================================================
   leaderboard: [
-    { rank: 1, name: 'Michael Stachiw', activities: '', points: 675 },
-    { rank: 2, name: 'Jennifer Denini', activities: '', points: 512 },
-    { rank: 3, name: 'Ian Brunner', activities: '', points: 485 },
-    { rank: 4, name: 'Eshan Chordia', activities: '', points: 450 },
-    { rank: 5, name: 'Rich Chang', activities: '', points: 375 },
-    { rank: 6, name: 'William Scott', activities: '', points: 375 },
-    { rank: 7, name: 'Diego Leal Togni', activities: '', points: 375 },
-    { rank: 8, name: 'Derrick Lam', activities: '', points: 300 },
-    { rank: 9, name: 'Camille Bagnall', activities: '', points: 300 },
-    { rank: 10, name: 'Laura Brewer', activities: '', points: 275 }
   ],
 };
 

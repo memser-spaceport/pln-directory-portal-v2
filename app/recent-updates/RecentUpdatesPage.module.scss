@@ -1,0 +1,11 @@
+@use 'styles/media';
+
+.root {
+  padding: 14px;
+  margin: 0 auto;
+  max-width: 1200px;
+
+  @include media.breakpoint-1024 {
+    padding: 50px 14px;
+  }
+}

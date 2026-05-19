@@ -26,7 +26,7 @@ export default async function EventsPage() {
 }
 
 const getPageData = async () => {
-  const { userInfo } = getCookiesFromHeaders();
+  const { userInfo } = await getCookiesFromHeaders();
   let isError = false;
 
   let [contributorsData, membersDetail] = await Promise.all([getEventContributors(), getGuestDetail()]);

@@ -68,7 +68,7 @@ export const faqItems = [
       <FaqBulletList
         items={[
           <span key={1}>
-            Read about the vision, mission and focus areas of Protocol Labs{' '}
+            Read about the vision, mission and focus areas of the Protocol Labs Network{' '}
             <FaqLink href={DESCRIPTION_LINK}>here</FaqLink>.
           </span>,
           <span key={2}>
@@ -118,7 +118,7 @@ export const faqCompletedItems = [
       <FaqBulletList
         items={[
           <span key={1}>
-            Read about the vision, mission and focus areas of Protocol Labs{' '}
+            Read about the vision, mission and focus areas of the Protocol Labs Network{' '}
             <FaqLink href={DESCRIPTION_LINK}>here</FaqLink>.
           </span>,
           <span key={2}>
@@ -143,10 +143,10 @@ const crecimientoFoundersSchool1FaqItems: FAQItem[] = [
         items={[
           <span key={1}>
             Network Partner Demo Day is a concentrated virtual event featuring teams from two of our network&apos;s
-            founder programs, Crecimiento and Founders School. Pre-seed and seed startups will deliver pitches in a
-            fully asynchronous environment. Attendees will have access to single-slide company summaries and 3-minute
-            video pitches through our online platform. Attendees can directly connect with companies they&apos;re
-            interested in by clicking buttons that will automatically send intro emails on their behalf.
+            founder programs, Crecimiento and Founders School. Early-stage startups will deliver pitches in a fully
+            asynchronous environment. Attendees will have access to single-slide company summaries and 3-minute video
+            pitches through our online platform. Attendees can directly connect with companies they&apos;re interested
+            in by clicking buttons that will automatically send intro emails on their behalf.
           </span>,
         ]}
       />
@@ -157,7 +157,7 @@ const crecimientoFoundersSchool1FaqItems: FAQItem[] = [
     answer: (
       <FaqBulletList
         items={[
-          'Network Partner Demo Day is an invite-only event for investors. Invitations are being sent to a vetted list of angel investors and VCs.',
+          'Network Partner Demo Day is an invite-only event for accredited investors and qualifying angels. Invitations are being sent to a vetted list of angel investors and VCs.',
         ]}
       />
     ),
@@ -177,7 +177,7 @@ const crecimientoFoundersSchool1FaqItems: FAQItem[] = [
     answer: (
       <FaqBulletList
         items={[
-          'Founders School is an immersive program for pre-seed and seed founders building at the frontier of AI, blockchain, and DeFi. The curriculum combines hands-on technical mentorship with go-to-market, fundraising, and operator coaching, preparing each team to pitch live capital partners by program end.',
+          'Founders School is an immersive program for early-stage founders building at the frontier of AI, blockchain, and DeFi. The curriculum combines hands-on technical mentorship with go-to-market, fundraising, and operator coaching, preparing each team to pitch live capital partners by program end.',
         ]}
       />
     ),
@@ -198,7 +198,7 @@ const crecimientoFoundersSchool1FaqItems: FAQItem[] = [
       <FaqBulletList
         items={[
           <span key={1}>
-            Read about the vision, mission and focus areas of Protocol Labs{' '}
+            Read about the vision, mission and focus areas of the Protocol Labs Network{' '}
             <FaqLink href={DESCRIPTION_LINK}>here</FaqLink>.
           </span>,
           <span key={2}>
@@ -219,3 +219,46 @@ const crecimientoFoundersSchool1FaqItems: FAQItem[] = [
 export const demoDayFaqMap: Record<string, FAQItem[]> = {
   [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: crecimientoFoundersSchool1FaqItems,
 };
+
+export interface DemoDayCalendarLinks {
+  googleCalendarUrl: string;
+  icsFileUrl: string;
+}
+
+const DEFAULT_GOOGLE_CALENDAR_URL =
+  'https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=NThocXJ2bDIwc2FxM2hlNTJzaGtoODRjOWMgY181MzAyZDMzYTg4ODA5MTA5M2Y1YzAyMzY2ZGM1ZWZjYWZlM2RkNTc2MDgxZjE2MWMxNzljZmFiYWNjZjFmOThlQGc&tmsrc=c_5302d33a888091093f5c02366dc5efcafe3dd576081f161c179cfabaccf1f98e%40group.calendar.google.com';
+
+const DEFAULT_ICS_FILE_URL =
+  'https://pl-directory-uploads-prod.s3.us-west-1.amazonaws.com/pl_w26_demo_day_investor_event.ics';
+
+export const defaultCalendarLinks: DemoDayCalendarLinks = {
+  googleCalendarUrl: DEFAULT_GOOGLE_CALENDAR_URL,
+  icsFileUrl: DEFAULT_ICS_FILE_URL,
+};
+
+// Demo day specific calendar links mapped by slug (use `slugURL` from demo day state)
+// Falls back to default links if no specific config is found
+export const demoDayCalendarLinksMap: Record<string, DemoDayCalendarLinks> = {
+  [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: {
+    googleCalendarUrl:
+      'https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=NjViajcxaWRiZWVxY2Z1ZHZkN2RvZmNjNm8gY181MzAyZDMzYTg4ODA5MTA5M2Y1YzAyMzY2ZGM1ZWZjYWZlM2RkNTc2MDgxZjE2MWMxNzljZmFiYWNjZjFmOThlQGc&tmsrc=c_5302d33a888091093f5c02366dc5efcafe3dd576081f161c179cfabaccf1f98e%40group.calendar.google.com',
+    icsFileUrl:
+      'https://pl-directory-uploads-prod.s3.us-west-1.amazonaws.com/pl_partner26-1_demo_day_investor_event.ics',
+  },
+};
+
+/**
+ * Get calendar links for a demo day by slug.
+ * Returns default links if no specific config is found.
+ */
+export function getCalendarLinksByDemoDaySlug(slug: string | null | undefined): DemoDayCalendarLinks {
+  if (!slug) return defaultCalendarLinks;
+
+  const exact = demoDayCalendarLinksMap[slug];
+  if (exact) return exact;
+
+  const matchKey = Object.keys(demoDayCalendarLinksMap).find((k) => k.toLowerCase() === slug.toLowerCase());
+  if (matchKey) return demoDayCalendarLinksMap[matchKey];
+
+  return defaultCalendarLinks;
+}

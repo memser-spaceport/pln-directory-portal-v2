@@ -5,11 +5,7 @@ import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWra
 import { JobsFilterBody } from '@/components/page/jobs/JobsFilterBody';
 import { useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
 import { useJobsFilterStore, useJobsFilterCount } from '@/services/jobs/store';
-
-const SORT_OPTIONS = [
-  { value: 'company_az', label: 'A-Z (Ascending)' },
-  { value: 'newest', label: 'Newest' },
-];
+import { JOBS_SORT_OPTIONS } from '@/services/jobs/constants';
 
 export default function JobsMobileFilters() {
   const { params, setParam, clearParams } = useJobsFilterStore();
@@ -36,7 +32,7 @@ export default function JobsMobileFilters() {
     <MobileFilterWrapper
       filterCount={filterCount}
       currentSort={currentSort}
-      sortOptions={SORT_OPTIONS}
+      sortOptions={JOBS_SORT_OPTIONS}
       sortByLabel="Sort by:"
       onSortChange={onSortChange}
       onClearFilters={onClearFilters}

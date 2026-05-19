@@ -7,7 +7,8 @@ import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { getTeam, searchTeamsByName } from '@/services/teams.service';
 import { getProjectFilters } from '@/services/projects.service';
 
-export default async function Page({ searchParams }: any) {
+export default async function Page(props: any) {
+  const searchParams = await props.searchParams;
   const { initialTeams, selectedTeam, isError, userInfo, focusAreas, filters } = await getPageData(searchParams);
 
   if (isError) {
@@ -32,7 +33,7 @@ const getPageData = async (searchParams: any) => {
   let initialTeams = [];
 
   try {
-    const { userInfo, isLoggedIn } = getCookiesFromHeaders();
+    const { userInfo, isLoggedIn } = await getCookiesFromHeaders();
     const filterFromQuery = getProjectsFiltersFromQuery(searchParams);
     const selectOpitons = getProjectSelectOptions(filterFromQuery);
     const focusAreasResponse = await getFocusAreas('Project', searchParams);

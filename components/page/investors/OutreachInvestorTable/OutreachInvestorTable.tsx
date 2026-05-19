@@ -43,6 +43,8 @@ interface Props {
   teamLookup?: Map<string, PlPortfolioTeam>;
   /** Hide bulk-action checkboxes when user lacks edit permission. */
   canEdit?: boolean;
+  /** Called when the user clicks Export CSV. Parent owns the export logic. */
+  onExport?: () => void;
 }
 
 const COLUMN_LABELS: Record<string, string> = {
@@ -83,7 +85,7 @@ const COLUMN_LABELS: Record<string, string> = {
 };
 
 export function OutreachInvestorTable(props: Props) {
-  const { investors: rawInvestors, visibleColumns, onRowClick, selectedIds, onSelectionChange, teamLookup, canEdit } = props;
+  const { investors: rawInvestors, visibleColumns, onRowClick, selectedIds, onSelectionChange, teamLookup, canEdit, onExport } = props;
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'engagement_tier', desc: false },
@@ -356,6 +358,11 @@ export function OutreachInvestorTable(props: Props) {
           )}
         </div>
         <div className={s.toolbar_right}>
+          {canEdit && onExport && (
+            <button className={s.toolbarBtn} onClick={onExport} disabled={investors.length === 0}>
+              ⤓ Export CSV{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+            </button>
+          )}
           <ColumnChooser />
         </div>
       </div>

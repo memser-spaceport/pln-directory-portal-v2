@@ -56,7 +56,13 @@ function hasActiveFilters(filters: ReturnType<typeof useQueryStates<typeof inves
   );
 }
 
-export function InvestorsTableSection({ tabDefaults = {}, tab, title, toolbarRightSlot, enableSaveView = true }: Props) {
+export function InvestorsTableSection({
+  tabDefaults = {},
+  tab,
+  title,
+  toolbarRightSlot,
+  enableSaveView = true,
+}: Props) {
   const [filters, setFilters] = useQueryStates(investorsFilterParsers, {
     history: 'replace',
     shallow: true,
@@ -74,13 +80,21 @@ export function InvestorsTableSection({ tabDefaults = {}, tab, title, toolbarRig
     () => ({
       q: filters.q || undefined,
       source: filters.source.length ? (filters.source as InvestorListParams['source']) : undefined,
-      investor_type: filters.investor_type.length ? (filters.investor_type as InvestorListParams['investor_type']) : undefined,
+      investor_type: filters.investor_type.length
+        ? (filters.investor_type as InvestorListParams['investor_type'])
+        : undefined,
       stage_focus: filters.stage_focus.length ? (filters.stage_focus as InvestorListParams['stage_focus']) : undefined,
       sector_tags: filters.sector_tags.length ? (filters.sector_tags as InvestorListParams['sector_tags']) : undefined,
       geo_focus: filters.geo_focus || undefined,
-      email_status: filters.email_status.length ? (filters.email_status as InvestorListParams['email_status']) : undefined,
-      engagement_tier: filters.engagement_tier.length ? (filters.engagement_tier as InvestorListParams['engagement_tier']) : undefined,
-      enrichment_status: filters.enrichment_status.length ? (filters.enrichment_status as InvestorListParams['enrichment_status']) : undefined,
+      email_status: filters.email_status.length
+        ? (filters.email_status as InvestorListParams['email_status'])
+        : undefined,
+      engagement_tier: filters.engagement_tier.length
+        ? (filters.engagement_tier as InvestorListParams['engagement_tier'])
+        : undefined,
+      enrichment_status: filters.enrichment_status.length
+        ? (filters.enrichment_status as InvestorListParams['enrichment_status'])
+        : undefined,
       tags: filters.tags.length ? filters.tags : undefined,
       in_lab_os: filters.in_lab_os || tabDefaults.in_lab_os,
       is_co_investor: filters.is_co_investor || tabDefaults.is_co_investor,
@@ -160,50 +174,33 @@ export function InvestorsTableSection({ tabDefaults = {}, tab, title, toolbarRig
         rightSlot={toolbarRightSlot}
       />
 
-      {(selectedIds.size > 0 || (enableSaveView && filtersActive && access.canEdit) || access.canEdit) && (
+      {enableSaveView && filtersActive && access.canEdit && (
         <div className={s.actionBar}>
-          <div className={s.actionBar_left}>
-            {selectedIds.size > 0 && (
-              <span className={s.selectionCount}>
-                <strong>{selectedIds.size}</strong> selected
-                <button className={s.linkBtn} onClick={() => setSelectedIds(new Set())}>
-                  Clear
-                </button>
-              </span>
-            )}
-          </div>
           <div className={s.actionBar_right}>
-            {enableSaveView && filtersActive && access.canEdit && (
-              savingView ? (
-                <div className={s.saveViewForm}>
-                  <input
-                    type="text"
-                    autoFocus
-                    placeholder="Name this view…"
-                    value={newViewName}
-                    onChange={(e) => setNewViewName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSaveView();
-                      if (e.key === 'Escape') setSavingView(false);
-                    }}
-                    className={s.input}
-                  />
-                  <button className={s.btnPrimary} onClick={handleSaveView} disabled={!newViewName.trim()}>
-                    Save
-                  </button>
-                  <button className={s.btnGhost} onClick={() => setSavingView(false)}>
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <button className={s.btn} onClick={() => setSavingView(true)}>
-                  💾 Save view
+            {savingView ? (
+              <div className={s.saveViewForm}>
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder="Name this view…"
+                  value={newViewName}
+                  onChange={(e) => setNewViewName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveView();
+                    if (e.key === 'Escape') setSavingView(false);
+                  }}
+                  className={s.input}
+                />
+                <button className={s.btnPrimary} onClick={handleSaveView} disabled={!newViewName.trim()}>
+                  Save
                 </button>
-              )
-            )}
-            {access.canEdit && (
-              <button className={s.btn} onClick={handleExport} disabled={investors.length === 0}>
-                ⤓ Export CSV{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+                <button className={s.btnGhost} onClick={() => setSavingView(false)}>
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button className={s.btn} onClick={() => setSavingView(true)}>
+                💾 Save view
               </button>
             )}
           </div>
@@ -221,6 +218,7 @@ export function InvestorsTableSection({ tabDefaults = {}, tab, title, toolbarRig
           onSelectionChange={setSelectedIds}
           teamLookup={teamLookup}
           canEdit={access.canEdit}
+          onExport={access.canEdit ? handleExport : undefined}
         />
       )}
 

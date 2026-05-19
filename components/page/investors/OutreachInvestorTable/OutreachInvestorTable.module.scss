@@ -20,7 +20,23 @@
   position: relative;
 }
 
-.toolbar_left, .toolbar_right { display: flex; align-items: center; gap: 12px; }
+.toolbar_left, .toolbar_right { display: flex; align-items: center; gap: 8px; }
+
+.toolbarBtn {
+  padding: 5px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  background: #fff;
+  color: #455468;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) { background: #f9fafb; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
 .selection { display: inline-flex; align-items: center; gap: 8px; color: #1b4dff; font-weight: 500; }
 .muted { color: #6b7280; }
 .linkBtn {

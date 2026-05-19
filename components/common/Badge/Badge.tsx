@@ -6,16 +6,20 @@ import s from './Badge.module.scss';
 export interface BadgeProps {
   children: ReactNode;
   variant?: 'default' | 'brand' | 'success' | 'warning' | 'error';
+  noBorder?: boolean;
   className?: string;
 }
 
-export function Badge({ children, variant = 'default', className }: BadgeProps) {
+export function Badge(props: BadgeProps) {
+  const { children, variant = 'default', noBorder, className } = props;
+
   const variantClass = clsx({
     [s.default]: variant === 'default',
     [s.brand]: variant === 'brand',
     [s.success]: variant === 'success',
     [s.warning]: variant === 'warning',
     [s.error]: variant === 'error',
+    [s.noBorder]: noBorder,
   });
 
   return <span className={clsx(s.root, variantClass, className)}>{children}</span>;

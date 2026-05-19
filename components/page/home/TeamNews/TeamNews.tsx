@@ -1,5 +1,6 @@
 'use client';
 
+import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
 import { useMemo, useState } from 'react';
 
@@ -14,6 +15,7 @@ import { dedupeByUid } from './utils/dedupeByUid';
 
 import { NewsCard } from './components/NewsCard';
 import { NewsBase } from './components/NewsBase';
+import { TeamNewsTabs } from './components/TeamNewsTabs';
 
 import s from './TeamNews.module.scss';
 
@@ -29,16 +31,6 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
   const analytics = useTeamNewsAnalytics();
 
   const allItems = useMemo(() => dedupeByUid(groups.flatMap((g) => g.items)), [groups]);
-
-  const tabsWithCounts = useMemo(() => {
-    const tabs: Array<{ id: string; label: string; count: number }> = [
-      { id: ALL_TAB, label: 'All', count: allItems.length },
-    ];
-    for (const g of groups) {
-      tabs.push({ id: g.focusArea.title, label: g.focusArea.title, count: g.total });
-    }
-    return tabs;
-  }, [groups, allItems]);
 
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;
@@ -97,24 +89,7 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
 
   return (
     <NewsBase headerDetails={newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}>
-      <div className={s.tabsRow} role="tablist" aria-label="Filter team news by focus area">
-        {tabsWithCounts.map((t) => {
-          const isActive = activeTab === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              className={`${s.tab} ${isActive ? s.tabActive : ''}`}
-              onClick={() => handleTab(t.id)}
-            >
-              {t.label}
-              {t.count > 0 && <span className={s.tabCount}>{t.count}</span>}
-            </button>
-          );
-        })}
-      </div>
+      <TeamNewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
 
       <div className={s.catRow}>
         {categoriesWithCounts.map((c) => {
@@ -124,12 +99,12 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
             <button
               key={c.id}
               type="button"
-              className={`${s.cat} ${isActive ? s.catActive : ''}`}
+              className={clsx(s.cat, { [s.catActive]: isActive })}
               onClick={() => handleCategory(c.id)}
               disabled={isDisabled}
             >
               {c.label}
-              {c.count > 0 && <span className={s.catCount}>{c.count}</span>}
+              {c.count > 0 && c.id !== ALL_CAT && <span>{c.count}</span>}
             </button>
           );
         })}

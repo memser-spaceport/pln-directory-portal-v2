@@ -2,6 +2,7 @@ import coreWebVitals from 'eslint-config-next/core-web-vitals';
 import storybook from 'eslint-plugin-storybook';
 
 export default [
+  { ignores: ['pl-design-system/**'] },
   ...coreWebVitals,
   ...storybook.configs['flat/recommended'],
   {

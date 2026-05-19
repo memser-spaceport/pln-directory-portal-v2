@@ -318,10 +318,13 @@ export function OutreachInvestorTable(props: Props) {
     return visibleColumns.map((id) => byId.get(id)).filter(Boolean) as ColumnDef<OutreachInvestor>[];
   }, [visibleColumns, teamNameLookup]);
 
+  const columnIds = useMemo(() => new Set(columns.map((c) => c.id!)), [columns]);
+  const activeSorting = useMemo(() => sorting.filter((s) => columnIds.has(s.id)), [sorting, columnIds]);
+
   const table = useReactTable({
     data: investors,
     columns,
-    state: { sorting },
+    state: { sorting: activeSorting },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

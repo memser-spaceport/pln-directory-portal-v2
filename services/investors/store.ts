@@ -8,22 +8,6 @@ import { COLUMN_PRESETS, ColumnPresetKey, DEFAULT_VISIBLE_COLUMNS } from './cons
 // Consumers: `const { actions } = useStore()` then `actions.setX(...)` — or
 // select individual actions for fine-grained re-renders.
 
-interface DrawerState {
-  readonly selectedInvestorId: string | null;
-  readonly actions: {
-    open: (id: string) => void;
-    close: () => void;
-  };
-}
-
-export const useInvestorDrawerStore = create<DrawerState>((set) => ({
-  selectedInvestorId: null,
-  actions: {
-    open: (id) => set({ selectedInvestorId: id }),
-    close: () => set({ selectedInvestorId: null }),
-  },
-}));
-
 interface ColumnState {
   readonly preset: ColumnPresetKey;
   readonly visibleColumns: string[];

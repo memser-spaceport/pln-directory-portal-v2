@@ -1,4 +1,3 @@
-import { ITeamsSearchParams } from '@/types/teams.types';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import TeamsContent from './TeamsContent';
 

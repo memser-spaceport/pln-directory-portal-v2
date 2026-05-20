@@ -16,6 +16,10 @@ import { currentRoundData } from './data';
 import { CurrentRoundData, LeaderboardSectionData } from './types';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
+import {
+  LeaderboardApiResponse,
+  splitLeaderboardEntries,
+} from '@/services/plaa/leaderboard.utils';
 
 interface CurrentRoundComponentProps {
   currentRound?: number;
@@ -23,8 +27,8 @@ interface CurrentRoundComponentProps {
   onRoundChange?: (round: number) => void;
   /** Optional: Override the default data with custom data */
   data?: CurrentRoundData;
-  /** Leaderboard data fetched from the API; overrides data.leaderboard when provided */
-  leaderboardData?: LeaderboardSectionData;
+  /** Raw leaderboard API response; entries are split by type in the component */
+  leaderboardResponse?: LeaderboardApiResponse;
 }
 
 /**
@@ -33,10 +37,20 @@ interface CurrentRoundComponentProps {
  */
 export default function CurrentRoundComponent({
   data = currentRoundData,
-  leaderboardData,
+  leaderboardResponse,
 }: CurrentRoundComponentProps) {
   const [isLoggedIn] = useState(() => typeof window !== 'undefined' && !!getCookiesFromClient().authToken);
   const [leaderboardView, setLeaderboardView] = useState<'current' | 'alltime'>('current');
+
+  const leaderboardData: LeaderboardSectionData = useMemo(() => {
+    if (leaderboardResponse?.entries?.length) {
+      return splitLeaderboardEntries(leaderboardResponse.entries);
+    }
+    return data.leaderboard;
+  }, [leaderboardResponse, data.leaderboard]);
+
+  const hasLeaderboardData =
+    leaderboardData.currentSnapshotData.length > 0 || leaderboardData.cumulativeData.length > 0;
 
   // Parse dates from the master data
   const { startDate, endDate } = useMemo(() => {
@@ -55,7 +69,7 @@ export default function CurrentRoundComponent({
         <HeroSection data={data.hero} />
 
         {/* Points & Activities Dashboard */}
-        <PointsDashboard currentRound={data.meta.roundNumber} />
+        {isLoggedIn && <PointsDashboard currentRound={data.meta.roundNumber} />}
 
         {/* Round Description Section */}
         <RoundDescriptionSection 
@@ -76,13 +90,13 @@ export default function CurrentRoundComponent({
         {/* Statistics Section */}
         <StatsSection data={data.stats} />
 
-        {/* Points Leaderboard Section - visible to logged-in users only */}
-        {isLoggedIn && (
+        {/* Points Leaderboard: CURRENT_SNAPSHOT = current round, CUMULATIVE = all-time */}
+        {isLoggedIn && hasLeaderboardData && (
           <LeaderboardSection
             view={leaderboardView}
             onViewChange={setLeaderboardView}
-            currentSnapshotData={leaderboardData?.currentSnapshotData ?? data.leaderboard.currentSnapshotData}
-            cumulativeData={leaderboardData?.cumulativeData ?? data.leaderboard.cumulativeData}
+            currentSnapshotData={leaderboardData.currentSnapshotData}
+            cumulativeData={leaderboardData.cumulativeData}
           />
         )}
 

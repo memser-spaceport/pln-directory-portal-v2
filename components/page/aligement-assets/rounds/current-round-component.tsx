@@ -13,7 +13,7 @@ import DisclaimerSection from './sections/disclaimer-section';
 import SupportSection from './sections/support-section';
 import PointsDashboard from '@/components/page/aligement-assets/points-dashboard/points-dashboard';
 import { currentRoundData } from './data';
-import { CurrentRoundData } from './types';
+import { CurrentRoundData, LeaderboardSectionData } from './types';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 
@@ -23,6 +23,8 @@ interface CurrentRoundComponentProps {
   onRoundChange?: (round: number) => void;
   /** Optional: Override the default data with custom data */
   data?: CurrentRoundData;
+  /** Leaderboard data fetched from the API; overrides data.leaderboard when provided */
+  leaderboardData?: LeaderboardSectionData;
 }
 
 /**
@@ -30,7 +32,8 @@ interface CurrentRoundComponentProps {
  * Uses master JSON data from ./data/current-round.data.ts
  */
 export default function CurrentRoundComponent({
-  data = currentRoundData
+  data = currentRoundData,
+  leaderboardData,
 }: CurrentRoundComponentProps) {
   const [isLoggedIn] = useState(() => typeof window !== 'undefined' && !!getCookiesFromClient().authToken);
   const [leaderboardView, setLeaderboardView] = useState<'current' | 'alltime'>('current');
@@ -74,14 +77,14 @@ export default function CurrentRoundComponent({
         <StatsSection data={data.stats} />
 
         {/* Points Leaderboard Section - visible to logged-in users only */}
-        {/* {isLoggedIn && (
-          <LeaderboardSection 
+        {isLoggedIn && (
+          <LeaderboardSection
             view={leaderboardView}
             onViewChange={setLeaderboardView}
-            currentSnapshotData={data.leaderboard.currentSnapshotData}
-            cumulativeData={data.leaderboard.cumulativeData}
+            currentSnapshotData={leaderboardData?.currentSnapshotData ?? data.leaderboard.currentSnapshotData}
+            cumulativeData={leaderboardData?.cumulativeData ?? data.leaderboard.cumulativeData}
           />
-        )} */}
+        )}
 
         {/* Buyback Auction Results Section - Only show when there's auction data */}
         {data.buybackAuction.bids.length > 0 && (

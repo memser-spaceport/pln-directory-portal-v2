@@ -4,7 +4,7 @@ import { useState } from 'react';
 import HeroSection from "./sections/hero-section";
 import PastLeaderboardSection from "./sections/past-leaderboard-section";
 import StatsSection from "./sections/stats-section";
-import { IPastRoundData } from "./types/current-round.types";
+import { IPastRoundData, LeaderboardEntry } from "./types/current-round.types";
 import PastRoundDescription from "../past-rounds/past-round-description";
 import SupportSection from "./sections/support-section";
 import BuybackSimulationSection from "./sections/buyback-simulation-section";
@@ -15,11 +15,14 @@ import { getCookiesFromClient } from '@/utils/third-party.helper';
 
 interface PastRoundComponentProps {
   pastRoundData: IPastRoundData;
+  /** Leaderboard entries fetched from the API; overrides pastRoundData.leaderboard when provided */
+  leaderboardEntries?: LeaderboardEntry[];
 }
 
-export default function PastRoundComponent({ pastRoundData }: PastRoundComponentProps) {
+export default function PastRoundComponent({ pastRoundData, leaderboardEntries }: PastRoundComponentProps) {
   const data = pastRoundData;
   const [isLoggedIn] = useState(() => typeof window !== 'undefined' && !!getCookiesFromClient().authToken);
+  const resolvedLeaderboard = leaderboardEntries ?? data.leaderboard;
   useScrollDepthTracking(`past-round-${data.meta.roundNumber}`);
   return (
     <>
@@ -36,7 +39,12 @@ export default function PastRoundComponent({ pastRoundData }: PastRoundComponent
           tokensAllocated={data.stats.totalTokensAvailable}
         />
         <StatsSection data={data.stats} />
-        {isLoggedIn && data.leaderboard.length > 0 && <PastLeaderboardSection roundNumber={data.meta.roundNumber} leaderboardData={data.leaderboard} />}
+        {isLoggedIn && resolvedLeaderboard.length > 0 && (
+          <PastLeaderboardSection
+            roundNumber={data.meta.roundNumber}
+            leaderboardData={resolvedLeaderboard}
+          />
+        )}
         {data.buybackSimulation && <BuybackSimulationSection data={data.buybackSimulation} />}
         <SupportSection />
       </div>

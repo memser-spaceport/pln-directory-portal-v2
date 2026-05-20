@@ -19,8 +19,6 @@ import { TeamNewsTabs } from './components/TeamNewsTabs';
 
 import s from './TeamNews.module.scss';
 
-import { ALL_TAB, ALL_CAT, CATEGORIES } from './constants';
-import { dedupeByUid } from './utils/dedupeByUid';
 import { shuffleAllTabItems } from './utils/shuffleAllTabItems';
 
 interface TeamNewsProps {

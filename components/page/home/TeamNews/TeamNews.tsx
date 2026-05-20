@@ -19,6 +19,10 @@ import { TeamNewsTabs } from './components/TeamNewsTabs';
 
 import s from './TeamNews.module.scss';
 
+import { ALL_TAB, ALL_CAT, CATEGORIES } from './constants';
+import { dedupeByUid } from './utils/dedupeByUid';
+import { shuffleAllTabItems } from './utils/shuffleAllTabItems';
+
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
   pageSize?: number;
@@ -30,7 +34,7 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
   const [expanded, setExpanded] = useState(false);
   const analytics = useTeamNewsAnalytics();
 
-  const allItems = useMemo(() => dedupeByUid(groups.flatMap((g) => g.items)), [groups]);
+  const allItems = useMemo(() => shuffleAllTabItems(dedupeByUid(groups.flatMap((g) => g.items))), [groups]);
 
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;

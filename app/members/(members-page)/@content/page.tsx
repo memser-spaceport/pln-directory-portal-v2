@@ -10,8 +10,9 @@ import qs from 'qs';
 import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/constants/filters';
 import MembersToolbar from '@/components/page/members/members-toolbar';
 
-async function Page({ searchParams }: { searchParams: Record<string, string> }) {
-  const { userInfo } = getCookiesFromHeaders();
+async function Page(props: { searchParams: Promise<Record<string, string>> }) {
+  const searchParams = await props.searchParams;
+  const { userInfo } = await getCookiesFromHeaders();
   const parsedUserDetails: IUserInfo = userInfo;
 
   const { members, isError, totalMembers = 0, isLoggedIn } = await getPageData(searchParams);
@@ -48,7 +49,7 @@ const getPageData = async (searchParams: Record<string, string>) => {
   }
 
   try {
-    const { isLoggedIn, authToken } = getCookiesFromHeaders();
+    const { isLoggedIn, authToken } = await getCookiesFromHeaders();
 
     const invType = searchParams.investorType?.split('|') || [];
 

@@ -1,0 +1,217 @@
+// Member Directory mockup styles
+// Elevation-only card rule: no borders on page-level cards; box-shadow only.
+// MemberCard uses its own elevation/surface — not overridden here.
+
+@use '../../styles/media';
+@use '../../styles/mixins';
+
+// ─── Page shell ───────────────────────────────────────────────────────────────
+
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--background-base-grey-1, #f5f7fb);
+}
+
+.pageBody {
+  flex: 1;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 16px 80px;
+
+  @include media.tablet {
+    padding: 40px 24px 80px;
+  }
+
+  @include media.desktop {
+    padding: 48px 40px 96px;
+  }
+}
+
+// ─── Page header ──────────────────────────────────────────────────────────────
+
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+
+  @include media.tablet {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+  }
+}
+
+.headingGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.heading {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--foreground-neutral-primary);
+  letter-spacing: -0.3px;
+
+  @include media.tablet {
+    font-size: 30px;
+  }
+}
+
+.subheading {
+  font-size: 14px;
+  color: var(--foreground-neutral-secondary);
+  line-height: 1.5;
+}
+
+.searchWrapper {
+  width: 100%;
+  flex-shrink: 0;
+
+  @include media.tablet {
+    width: 300px;
+  }
+}
+
+// ─── Filter bar ───────────────────────────────────────────────────────────────
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.filterIcon {
+  display: flex;
+  align-items: center;
+  color: var(--foreground-neutral-tertiary);
+  flex-shrink: 0;
+}
+
+.filterLabel {
+  @include mixins.label-sm;
+  font-weight: var(--font-weight-semibold);
+  color: var(--foreground-neutral-secondary);
+  margin-right: 2px;
+}
+
+// Wraps Badge; provides button affordance without breaking Badge layout.
+.filterBadge {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 0; // collapse button to Badge's own height
+  transition: opacity 80ms;
+
+  &:hover   { opacity: 0.85; }
+  &:active  { opacity: 0.7;  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-full);
+  }
+}
+
+.filterDivider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-neutral-subtle);
+  flex-shrink: 0;
+  margin: 0 4px;
+}
+
+// Team filter dropdown trigger
+.dropdownTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 var(--spacing-md);
+  border: 1.5px solid var(--border-neutral-default, #d0d5dd);
+  border-radius: var(--radius-md);
+  background: var(--background-base-white);
+  @include mixins.label-sm;
+  font-weight: var(--font-weight-medium);
+  color: var(--foreground-neutral-primary);
+  cursor: pointer;
+  transition: border-color 120ms, background 120ms, color 120ms;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: var(--border-neutral-strong, #98a2b3);
+    background: var(--background-neutral-subtle);
+  }
+
+  // Active = a team is selected
+  &[data-active='true'] {
+    border-color: var(--foreground-brand-primary);
+    color: var(--foreground-brand-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary);
+    outline-offset: 2px;
+  }
+}
+
+.chevron {
+  display: flex;
+  align-items: center;
+  color: var(--foreground-neutral-tertiary);
+  flex-shrink: 0;
+
+  [data-active='true'] & {
+    color: var(--foreground-brand-primary);
+  }
+}
+
+// "Clear all" text button
+.clearBtn {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  @include mixins.label-sm;
+  color: var(--foreground-brand-primary);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 120ms;
+
+  &:hover { text-decoration-color: var(--foreground-brand-primary); }
+}
+
+// ─── Member grid ──────────────────────────────────────────────────────────────
+
+// MemberCard surfaces own elevation; no border overrides needed.
+.grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  @include media.desktop {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+.paginationBar {
+  display: flex;
+  justify-content: center;
+  margin-top: 48px;
+}

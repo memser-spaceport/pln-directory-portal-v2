@@ -5,8 +5,8 @@ import ScheduleSection from '@/components/page/events/schedule-section';
 
 import s from './page.module.css';
 
-export default function Page() {
-  const { userInfo } = getCookiesFromHeaders();
+export default async function Page() {
+  const { userInfo } = await getCookiesFromHeaders();
 
   return (
     <div id="schedule" className={s.scheduler}>

@@ -15,17 +15,19 @@ import { ForumWriteGate } from '@/components/page/forum/ForumWriteGate/ForumWrit
 import s from './page.module.scss';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     categoryId: string;
     topicId: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     from?: string;
-  };
+  }>;
 }
 
-const EditPostPage = async ({ params, searchParams }: PageProps) => {
-  const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
+const EditPostPage = async (props: PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+  const { isLoggedIn, userInfo, authToken } = await getCookiesFromHeaders();
   const isAdmin = isAdminUser(userInfo);
 
   if (!isLoggedIn) {

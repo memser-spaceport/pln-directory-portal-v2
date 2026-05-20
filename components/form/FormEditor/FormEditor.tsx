@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import { Field } from '@base-ui-components/react/field';
 import { useFormContext } from 'react-hook-form';
-import React, { ReactNode, PropsWithChildren } from 'react';
+import React, { ReactNode, PropsWithChildren, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import s from './FormEditor.module.scss';
 
@@ -64,6 +64,7 @@ export const FormEditor = (props: Props) => {
     formState: { errors },
   } = useFormContext();
   const value = watch(name);
+  const hasHadContent = useRef(false);
   const charCount = showCharCount ? (value as string)?.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').length ?? 0 : 0;
   const isOverLimit = showCharCount && maxLength != null && charCount > maxLength;
 
@@ -88,7 +89,14 @@ export const FormEditor = (props: Props) => {
         autoFocus={autoFocus}
         enableMentions={simplified ? false : enableMentions}
         {...(simplified && { toolbarConfig: SIMPLIFIED_TOOLBAR })}
-        onChange={(txt) => setValue(name, txt, { shouldValidate: true, shouldDirty: true })}
+        onChange={(txt) => {
+          const isEmptyContent = !txt || txt.replace(/<[^>]*>/g, '').trim() === '';
+          if (!isEmptyContent) hasHadContent.current = true;
+          setValue(name, txt, {
+            shouldValidate: hasHadContent.current,
+            shouldDirty: hasHadContent.current,
+          });
+        }}
         className={clsx(className, {
           [s.error]: !!errors[name],
         })}

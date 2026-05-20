@@ -11,6 +11,7 @@ import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import type { IJobAlertFilterState } from '@/types/job-alerts.types';
 import { hasActiveFilters } from '@/utils/job-alerts.utils';
 import { Button } from '@/components/common/Button';
+import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
 import { JobAlertShell } from '../JobAlertShell';
 import s from './JobAlertBanner.module.scss';
 
@@ -68,8 +69,23 @@ export function JobAlertBanner({ filterState, resultCount, isLoggedIn }: JobAler
           </div>
         </div>
         <div className={s.actions}>
-          <Button size="m" type="button" onClick={handleUpdate} disabled={updateMutation.isPending}>
-            {updateMutation.isPending ? 'Updating…' : 'Update job alert'}
+          <Button
+            size="m"
+            style="border"
+            variant="primary"
+            type="button"
+            onClick={handleUpdate}
+            disabled={updateMutation.isPending}
+            className={s.alertBtn}
+          >
+            {updateMutation.isPending ? (
+              'Updating…'
+            ) : (
+              <>
+                <span>Update job alert</span>
+                <ArrowUpRightIcon />
+              </>
+            )}
           </Button>
         </div>
       </JobAlertShell>

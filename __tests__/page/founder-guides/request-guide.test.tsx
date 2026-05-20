@@ -30,7 +30,7 @@ describe('RequestGuide', () => {
   });
 
   it('blocks typing past the topic and description character limits', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
 
     render(<RequestGuide />);
 

@@ -1,0 +1,268 @@
+@use '../../../styles/media';
+@use '../../../styles/mixins';
+
+.root {
+  min-height: 100vh;
+  background: var(--background-base-grey, #f5f6f8);
+}
+
+.main {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 40px 270px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+
+  @media (max-width: 1200px) {
+    padding: 32px 48px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 24px 16px;
+  }
+}
+
+.greeting {}
+
+.greetingTitle {
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--foreground-neutral-primary);
+  margin: 0 0 8px;
+}
+
+.greetingSubtitle {
+  font-size: 14px;
+  color: var(--foreground-neutral-secondary);
+  margin: 0 0 24px;
+}
+
+.ctaGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ctaCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--background-base-white);
+  border: 1px solid var(--border-neutral-muted);
+  border-radius: 12px;
+  text-decoration: none;
+  transition: box-shadow 0.15s;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.ctaIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-brand-light, #eff3ff);
+  border-radius: 8px;
+}
+
+.ctaContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ctaTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary);
+}
+
+.ctaDesc {
+  font-size: 12px;
+  color: var(--foreground-neutral-secondary);
+}
+
+.ctaArrow {
+  font-size: 16px;
+  color: var(--foreground-neutral-secondary);
+}
+
+.section {}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--foreground-neutral-primary);
+  margin: 0 0 8px;
+}
+
+.sectionDesc {
+  font-size: 14px;
+  color: var(--foreground-neutral-secondary);
+  margin: 0 0 20px;
+  max-width: 600px;
+}
+
+.carouselWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.carouselTrack {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  overflow: hidden;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.carouselItem {
+  flex-shrink: 0;
+}
+
+.carouselDots {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-neutral-muted);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s;
+}
+
+.dotActive {
+  background: var(--foreground-brand-primary);
+}
+
+.updatesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.updateCard {
+  background: var(--background-base-white);
+  border: 1px solid var(--border-neutral-muted);
+  border-radius: 12px;
+  padding: 16px 20px;
+  position: relative;
+}
+
+.unread {
+  border-color: var(--border-brand-subtle, #c7d4ff);
+}
+
+.updateInner {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.updateIcon {
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-base-grey, #f5f6f8);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.updateContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.updateType {
+  font-size: 12px;
+  color: var(--foreground-brand-primary);
+  font-weight: 500;
+}
+
+.updateTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary);
+  margin: 0;
+}
+
+.updateDate {
+  font-size: 12px;
+  color: var(--foreground-neutral-secondary);
+}
+
+.updateBody {
+  font-size: 13px;
+  color: var(--foreground-neutral-secondary);
+  margin: 4px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.updateMeta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--foreground-neutral-tertiary, #6b7280);
+  margin-top: 4px;
+}
+
+.updateTime {
+  font-size: 12px;
+  color: var(--foreground-neutral-secondary);
+}
+
+.unreadDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--foreground-brand-primary);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.updateFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}

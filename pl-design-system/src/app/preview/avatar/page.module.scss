@@ -1,0 +1,174 @@
+// /preview/avatar showcase styles
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 32px 96px;
+  font-family: var(--font-family-primary);
+  color: var(--foreground-neutral-primary);
+}
+
+// ─── Header ──────────────────────────────────────────────────────────────────
+
+.header {
+  margin-bottom: 48px;
+  border-bottom: 1px solid var(--border-neutral-subtle);
+  padding-bottom: 24px;
+
+  h1 {
+    font-size: 32px;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: -0.04em;
+    line-height: 1.2;
+    margin: 0 0 8px;
+  }
+
+  p {
+    font-size: 14px;
+    color: var(--foreground-neutral-secondary);
+    margin: 0;
+
+    code {
+      font-size: 12px;
+      background: var(--background-neutral-subtle);
+      padding: 1px 4px;
+      border-radius: var(--radius-xsm);
+    }
+  }
+}
+
+// ─── Section ─────────────────────────────────────────────────────────────────
+
+.section {
+  margin-bottom: 56px;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary);
+  margin: 0 0 20px;
+}
+
+.note {
+  font-size: 13px;
+  color: var(--foreground-neutral-secondary);
+  margin: 0 0 20px;
+  line-height: 1.6;
+
+  code {
+    font-size: 12px;
+    background: var(--background-neutral-subtle);
+    padding: 1px 5px;
+    border-radius: var(--radius-xsm);
+    color: var(--foreground-neutral-primary);
+  }
+}
+
+// ─── Row / Cell grid ─────────────────────────────────────────────────────────
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 32px;
+  align-items: flex-end;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 56px;
+}
+
+.cellTall {
+  // Extra height for status pills that overflow below the avatar
+  padding-bottom: 24px;
+}
+
+.cellContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+}
+
+.cellLabel {
+  font-size: 11px;
+  color: var(--foreground-neutral-tertiary);
+  letter-spacing: 0.02em;
+  text-align: center;
+  line-height: 1.3;
+}
+
+// ─── Hero ring section ───────────────────────────────────────────────────────
+
+.heroRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 48px;
+  align-items: flex-end;
+}
+
+// Give enough breathing room so rings aren't clipped by parent overflow
+.heroContainer {
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// ─── MemberCard context replica ───────────────────────────────────────────────
+
+.cardContext {
+  width: 289px;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xs);
+  overflow: visible; // rings must not be clipped
+  background: var(--background-base-white);
+}
+
+.cardGradient {
+  // Figma: linear-gradient(to bottom, white → #e2e8f0), h=96px
+  background: linear-gradient(to bottom, #ffffff, #e2e8f0);
+  height: 96px;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: visible;
+}
+
+.cardAvatarWrap {
+  // Avatar bottom edge sits at y=88 in card coords (8px top + 80px avatar)
+  // Badge hangs below avatar (top: 100%), bridging gradient ↔ white content
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.cardContent {
+  padding: 28px 16px 24px; // 28px top: leaves space for badge that overlaps from above
+  text-align: center;
+}
+
+.cardName {
+  font-size: 18px;
+  font-weight: var(--font-weight-medium);
+  color: var(--foreground-neutral-primary);
+  letter-spacing: -0.04em;
+  margin: 0 0 4px;
+}
+
+.cardRole {
+  font-size: 14px;
+  font-weight: var(--font-weight-regular);
+  color: var(--foreground-neutral-secondary);
+  margin: 0;
+}

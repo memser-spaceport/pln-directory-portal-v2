@@ -1,9 +1,8 @@
-import { ITeamsSearchParams } from '@/types/teams.types';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import TeamsContent from './TeamsContent';
 
 async function Page() {
-  const { userInfo } = getCookiesFromHeaders();
+  const { userInfo } = await getCookiesFromHeaders();
 
   return <TeamsContent userInfo={userInfo} />;
 }

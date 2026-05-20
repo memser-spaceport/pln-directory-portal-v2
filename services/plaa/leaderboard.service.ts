@@ -1,5 +1,3 @@
-'use server';
-
 export type LeaderboardType = 'CURRENT_SNAPSHOT' | 'CUMULATIVE' | 'PAST_ROUND';
 
 export interface ApiLeaderboardEntry {

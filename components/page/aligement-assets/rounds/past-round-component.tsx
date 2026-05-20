@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import HeroSection from "./sections/hero-section";
 import PastLeaderboardSection from "./sections/past-leaderboard-section";
 import StatsSection from "./sections/stats-section";
@@ -12,26 +12,38 @@ import PointsDashboard from '@/components/page/aligement-assets/points-dashboard
 import { currentRoundData } from './data';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
+import {
+  getPastRoundLeaderboardEntries,
+  LeaderboardApiResponse,
+} from '@/services/plaa/leaderboard.utils';
 
 interface PastRoundComponentProps {
   pastRoundData: IPastRoundData;
-  /** Leaderboard entries fetched from the API; overrides pastRoundData.leaderboard when provided */
-  leaderboardEntries?: LeaderboardEntry[];
+  /** Raw leaderboard API response; PAST_ROUND entries are used for this round's table */
+  leaderboardResponse?: LeaderboardApiResponse;
 }
 
-export default function PastRoundComponent({ pastRoundData, leaderboardEntries }: PastRoundComponentProps) {
+export default function PastRoundComponent({ pastRoundData, leaderboardResponse }: PastRoundComponentProps) {
   const data = pastRoundData;
   const [isLoggedIn] = useState(() => typeof window !== 'undefined' && !!getCookiesFromClient().authToken);
-  const resolvedLeaderboard = leaderboardEntries ?? data.leaderboard;
+
+  const resolvedLeaderboard: LeaderboardEntry[] = useMemo(() => {
+    if (leaderboardResponse?.entries?.length) {
+      return getPastRoundLeaderboardEntries(leaderboardResponse.entries);
+    }
+    return data.leaderboard;
+  }, [leaderboardResponse, data.leaderboard]);
+
   useScrollDepthTracking(`past-round-${data.meta.roundNumber}`);
+
   return (
     <>
       <div className="past-round">
         <HeroSection data={data.hero} />
-        <PointsDashboard
+        {isLoggedIn && <PointsDashboard
           currentRound={currentRoundData.meta.roundNumber}
           pageRound={data.meta.roundNumber}
-        />
+        />}
         <PastRoundDescription 
           roundNumber={data.meta.roundNumber} 
           month={data.meta.month} 

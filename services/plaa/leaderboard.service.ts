@@ -1,53 +1,31 @@
-'use server';
+import { cookies } from 'next/headers';
 
-export type LeaderboardType = 'CURRENT_SNAPSHOT' | 'CUMULATIVE' | 'PAST_ROUND';
+import { getParsedValue } from '@/utils/common.utils';
 
-export interface ApiLeaderboardEntry {
-  id: string;
-  roundId: string;
-  type: LeaderboardType;
-  rank: number;
-  name: string;
-  activities: string | null;
-  points: number;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { LeaderboardApiResponse, LeaderboardType } from './leaderboard.utils';
 
-export interface LeaderboardApiResponse {
-  roundId: string;
-  roundNumber: number;
-  isCurrentRound: boolean;
-  month: string | null;
-  year: number | null;
-  entries: ApiLeaderboardEntry[];
-}
-
-export interface MappedLeaderboardEntry {
-  rank: number;
-  name: string;
-  activities: string;
-  points: number;
-}
-
-export const mapEntries = (entries: ApiLeaderboardEntry[]): MappedLeaderboardEntry[] =>
-  entries.map((e) => ({
-    rank: e.rank,
-    name: e.name,
-    activities: e.activities ?? '',
-    points: e.points,
-  }));
+export type { LeaderboardApiResponse, LeaderboardType, ApiLeaderboardEntry, MappedLeaderboardEntry } from './leaderboard.utils';
+export { mapEntries, splitLeaderboardEntries, getPastRoundLeaderboardEntries } from './leaderboard.utils';
 
 export const getLeaderboard = async (
   roundNumber: number,
   leaderboardType?: LeaderboardType
 ): Promise<{ data?: LeaderboardApiResponse; error?: { message: string } }> => {
   try {
-    const url = new URL(`${process.env.PLAA_API_URL}/leaderboard`);
+    const cookieStore = await cookies();
+    const authToken = getParsedValue(cookieStore.get('authToken')?.value);
+    const authHeader = authToken ? `Bearer ${authToken}` : undefined;
+
+    const url = new URL(`${process.env.PLAA_API_URL}/api/v1/leaderboard`);
     url.searchParams.set('roundNumber', roundNumber.toString());
     if (leaderboardType) url.searchParams.set('leaderboardType', leaderboardType);
 
     const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authHeader ? { Authorization: authHeader } : {}),
+      },
       next: { revalidate: 300 },
     });
 

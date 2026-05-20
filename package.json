@@ -3,8 +3,8 @@
   "version": "plaa-v4.3.1",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 4200 --webpack",
-    "build": "next build --webpack",
+    "dev": "next dev -p 4200",
+    "build": "next build",
     "start": "next start -p 4200",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "jest",

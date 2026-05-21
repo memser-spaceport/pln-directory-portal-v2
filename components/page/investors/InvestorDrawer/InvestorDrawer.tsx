@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useQueryStates } from 'nuqs';
 import { useGetInvestorById } from '@/services/investors/hooks/useGetInvestorById';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
@@ -23,11 +24,16 @@ interface Props {
 }
 
 export function InvestorDrawer({ access }: Props) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [filters, setFilters] = useQueryStates(investorsFilterParsers, {
     history: 'replace',
     shallow: true,
   });
   const investorId = filters.investorId || null;
+
+  const backTo = `${pathname}?${searchParams.toString()}`;
 
   const { data: rawInvestor, isLoading } = useGetInvestorById(investorId);
   const { data: teams } = useGetCoInvestorTeams(!!investorId);
@@ -267,9 +273,7 @@ export function InvestorDrawer({ access }: Props) {
               <a
                 className={s.btn}
                 href={
-                  investor.lab_os_profile.type === 'member'
-                    ? `/members/${investor.lab_os_profile.uid}`
-                    : `/teams/${investor.lab_os_profile.uid}`
+                  `${investor.lab_os_profile.type === 'member' ? `/members/${investor.lab_os_profile.uid}` : `/teams/${investor.lab_os_profile.uid}`}?backTo=${encodeURIComponent(backTo)}`
                 }
               >
                 👤 View in LabOS

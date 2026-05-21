@@ -1694,7 +1694,7 @@ export const DEMO_DAY_METADATA: Record<string, { title: string; description: str
     imageUrl: 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_W26_v2.png',
   },
   ['partner26-1']: {
-    title: 'Network Partner Demo Day',
+    title: 'Founder School & Crecimiento Demo Day',
     description:
       'An invite-only virtual event for accredited investors and qualifying angels, featuring early-stage founders from Crecimiento and Founders School pitching AI, blockchain, and DeFi startups.',
     imageUrl: 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_Network_Partner_1.png',

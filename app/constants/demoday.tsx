@@ -28,7 +28,7 @@ export const NETWORK_PARTNER_DEMO_DAY_SLUGS = {
 };
 
 export const NETWORK_PARTNER_DEMO_DAY_FOOTER_DISCLAIMER =
-  'All content is provided by the founders. Network Partner Demo Day organizers do not endorse or recommend any investment.';
+  'All content is provided by the founders. Founder School & Crecimiento Demo Day organizers do not endorse or recommend any investment.';
 
 /** Case-insensitive match for demo day `slugURL` / route segment. */
 export function isNetworkPartnerDemoDaySlug(slug: string | null | undefined): boolean {

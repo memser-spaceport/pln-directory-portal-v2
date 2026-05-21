@@ -33,31 +33,6 @@
   color: #6b7280;
 }
 
-.actionBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  font-family: 'Inter', sans-serif;
-}
-
-.actionBar_left,
-.actionBar_right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.selectionCount {
-  font-size: 13px;
-  color: #1b4dff;
-
-  strong {
-    font-weight: 600;
-  }
-}
-
 .saveViewForm {
   display: flex;
   align-items: flex-start;
@@ -92,15 +67,20 @@
 }
 
 .btn {
-  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 500;
+  line-height: 1.4;
   background: #fff;
   color: #455468;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   cursor: pointer;
+  white-space: nowrap;
 
   &:hover:not(:disabled) {
     background: #f9fafb;
@@ -110,6 +90,13 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+}
+
+.btnIcon {
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
 }
 
 .btnPrimary {

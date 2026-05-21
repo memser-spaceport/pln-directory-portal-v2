@@ -164,6 +164,47 @@ export function InvestorsTableSection({
     document.querySelector('aside[class*="filters"]')?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const saveViewSlot =
+    enableSaveView && filtersActive && access.canEdit && !filters.view ? (
+      savingView ? (
+        <div className={s.saveViewForm}>
+          <div className={s.saveViewRow}>
+            <input
+              type="text"
+              autoFocus
+              placeholder="Name this view…"
+              value={newViewName}
+              onChange={(e) => setNewViewName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveView();
+                if (e.key === 'Escape') setSavingView(false);
+              }}
+              className={s.input}
+            />
+            <button
+              className={s.btnPrimary}
+              onClick={handleSaveView}
+              disabled={!newViewName.trim() || newViewName.length > 200}
+            >
+              Save
+            </button>
+            <button className={s.btnGhost} onClick={() => setSavingView(false)}>
+              Cancel
+            </button>
+          </div>
+          {newViewName.length > 200 ? (
+            <span className={s.saveViewError}>Name must be 200 characters or fewer ({newViewName.length}/200)</span>
+          ) : newViewName.length >= 180 ? (
+            <span className={s.saveViewError}>{newViewName.length}/200 characters</span>
+          ) : null}
+        </div>
+      ) : (
+        <button className={s.btn} onClick={() => setSavingView(true)}>
+          <SaveIcon /> Save view
+        </button>
+      )
+    ) : null;
+
   if (isError) {
     return <div className={s.error}>Couldn&apos;t load investors. Try again in a moment.</div>;
   }
@@ -181,52 +222,6 @@ export function InvestorsTableSection({
         rightSlot={toolbarRightSlot}
       />
 
-      {enableSaveView && filtersActive && access.canEdit && !filters.view && (
-        <div className={s.actionBar}>
-          <div className={s.actionBar_right}>
-            {savingView ? (
-              <div className={s.saveViewForm}>
-                <div className={s.saveViewRow}>
-                  <input
-                    type="text"
-                    autoFocus
-                    placeholder="Name this view…"
-                    value={newViewName}
-                    onChange={(e) => setNewViewName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSaveView();
-                      if (e.key === 'Escape') setSavingView(false);
-                    }}
-                    className={s.input}
-                  />
-                  <button
-                    className={s.btnPrimary}
-                    onClick={handleSaveView}
-                    disabled={!newViewName.trim() || newViewName.length > 200}
-                  >
-                    Save
-                  </button>
-                  <button className={s.btnGhost} onClick={() => setSavingView(false)}>
-                    Cancel
-                  </button>
-                </div>
-                {newViewName.length > 200 ? (
-                  <span className={s.saveViewError}>
-                    Name must be 200 characters or fewer ({newViewName.length}/200)
-                  </span>
-                ) : newViewName.length >= 180 ? (
-                  <span className={s.saveViewError}>{newViewName.length}/200 characters</span>
-                ) : null}
-              </div>
-            ) : (
-              <button className={s.btn} onClick={() => setSavingView(true)}>
-                💾 Save view
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
       {isLoading && investors.length === 0 ? (
         <InvestorsTableSkeleton />
       ) : (
@@ -241,8 +236,27 @@ export function InvestorsTableSection({
           onExport={access.canEdit ? handleExport : undefined}
           onLoadMore={handleLoadMore}
           hasMore={hasNextPage}
+          saveViewSlot={saveViewSlot}
         />
       )}
     </div>
   );
 }
+
+const SaveIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+    <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" />
+    <path d="M7 3v4a1 1 0 0 0 1 1h7" />
+  </svg>
+);

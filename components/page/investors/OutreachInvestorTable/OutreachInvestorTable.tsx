@@ -41,6 +41,8 @@ interface Props {
   onExport?: () => void;
   onLoadMore?: () => void;
   hasMore?: boolean;
+  /** Optional slot rendered in the toolbar next to Export CSV (e.g. Save view button). */
+  saveViewSlot?: React.ReactNode;
 }
 
 const COLUMN_LABELS: Record<string, string> = {
@@ -92,6 +94,7 @@ export function OutreachInvestorTable(props: Props) {
     onExport,
     onLoadMore,
     hasMore,
+    saveViewSlot,
   } = props;
 
   const [sorting, setSorting] = useState<SortingState>([
@@ -378,9 +381,13 @@ export function OutreachInvestorTable(props: Props) {
           )}
         </div>
         <div className={s.toolbar_right}>
+          {saveViewSlot}
           {canEdit && onExport && (
             <button className={s.toolbarBtn} onClick={onExport} disabled={investors.length === 0}>
-              ⤓ Export CSV{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+              <span className={s.toolbarBtnIcon}>
+                <ExportIcon />
+              </span>
+              Export CSV{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
             </button>
           )}
           <ColumnChooser />
@@ -506,5 +513,24 @@ export function OutreachInvestorTable(props: Props) {
     </div>
   );
 }
+
+const ExportIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    className="lucide lucide-download-icon lucide-download"
+  >
+    <path d="M12 15V3" />
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <path d="m7 10 5 5 5-5" />
+  </svg>
+);
 
 export { COLUMN_LABELS };

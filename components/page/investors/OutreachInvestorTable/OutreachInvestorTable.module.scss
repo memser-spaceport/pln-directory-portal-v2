@@ -25,10 +25,14 @@
 .toolbar_left, .toolbar_right { display: flex; align-items: center; gap: 8px; }
 
 .toolbarBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 5px 10px;
   font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
+  line-height: 1.4;
   background: #fff;
   color: #455468;
   border: 1px solid #e5e7eb;
@@ -38,6 +42,13 @@
 
   &:hover:not(:disabled) { background: #f9fafb; }
   &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+.toolbarBtnIcon {
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
 }
 .selection { display: inline-flex; align-items: center; gap: 8px; color: #1b4dff; font-weight: 500; }
 .muted { color: #6b7280; }

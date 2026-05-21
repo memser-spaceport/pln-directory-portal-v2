@@ -4,18 +4,31 @@
 }
 
 .trigger {
-  padding: 6px 12px;
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
   font-weight: 500;
+  line-height: 1.4;
   background: #fff;
   color: #455468;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   cursor: pointer;
+  white-space: nowrap;
 
   &:hover {
     background: #f9fafb;
   }
+}
+
+.triggerIcon {
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
 }
 
 .popover {

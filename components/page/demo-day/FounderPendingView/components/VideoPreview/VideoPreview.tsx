@@ -77,7 +77,6 @@ const PlayButton = () => (
 export const VideoPreview = () => {
   const handleVideoClick = () => {
     // TODO: Open video modal or navigate to video page
-    console.log('Video preview clicked');
   };
 
   return (

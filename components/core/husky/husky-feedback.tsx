@@ -79,7 +79,6 @@ const HuskyFeedback = (props: HuskyFeedbackProps) => {
         setStep('error');
       }
     } catch (error) {
-      console.log('errr while send', error);
       trackFeedbackStatus('error', ratingInfo.rating.toString(), question);
       setStep('error');
     }

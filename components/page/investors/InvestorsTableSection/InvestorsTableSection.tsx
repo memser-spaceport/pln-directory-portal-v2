@@ -181,7 +181,7 @@ export function InvestorsTableSection({
         rightSlot={toolbarRightSlot}
       />
 
-      {enableSaveView && filtersActive && access.canEdit && (
+      {enableSaveView && filtersActive && access.canEdit && !filters.view && (
         <div className={s.actionBar}>
           <div className={s.actionBar_right}>
             {savingView ? (

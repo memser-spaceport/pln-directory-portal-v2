@@ -4,4 +4,4 @@ export enum TeamNewsQueryKeys {
   FILTERS = 'team-news-filters',
 }
 
-export const TEAM_NEWS_DEFAULT_WINDOW_DAYS = 14;
+export const TEAM_NEWS_DEFAULT_WINDOW_DAYS = 30;

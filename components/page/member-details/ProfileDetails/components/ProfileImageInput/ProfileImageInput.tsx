@@ -42,7 +42,6 @@ export const ProfileImageInput = ({ member, classes, allowDelete }: Props) => {
       }
     },
     onDrop: (acceptedFiles) => {
-      console.log(acceptedFiles);
       if (acceptedFiles && acceptedFiles.length > 0) {
         const file = acceptedFiles[0];
 

@@ -19,9 +19,7 @@ interface Props {
 export const VideoPitchView = (props: Props) => {
   const { isLoggedIn, isEditable, showIncomplete, onEdit } = props;
 
-  const handleUpload = (files: File[]) => {
-    console.log('Uploaded files:', files);
-  };
+  const handleUpload = (files: File[]) => {};
 
   return (
     <>

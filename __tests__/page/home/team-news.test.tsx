@@ -22,6 +22,10 @@ jest.mock('@/utils/formatTimeAgo', () => ({
   formatTimeAgo: () => '2d ago',
 }));
 
+jest.mock('@/components/page/home/TeamNews/utils/shuffleAllTabItems', () => ({
+  shuffleAllTabItems: (items: unknown[]) => items,
+}));
+
 const FA_AI = { uid: 'fa-ai', title: 'AI & Robotics' };
 const FA_DHR = { uid: 'fa-dhr', title: 'Digital Human Rights' };
 

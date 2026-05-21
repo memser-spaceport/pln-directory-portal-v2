@@ -40,7 +40,6 @@ export const EditPitchDeckForm = ({ onClose, team, userInfo }: Props) => {
 
   const onSubmit = async (formData: TEditInvestorProfileFormTeam) => {
     // Mock mutation - replace with actual API call
-    console.log('Submitting investor profile data:', formData);
 
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));

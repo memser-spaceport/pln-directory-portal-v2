@@ -1,3 +1,5 @@
+@import "styles/mixins";
+
 .wrap {
   display: flex;
   flex-direction: column;
@@ -164,7 +166,7 @@ thead .frozenName {
 .nameRow { display: flex; align-items: center; gap: 6px; }
 .nameText { font-weight: 600; color: #0a0c11; }
 .nameSub { font-size: 12px; color: #6b7280; margin-top: 1px; }
-.nameSubMuted { font-size: 12px; color: #9ca3af; margin-top: 1px; font-style: italic; }
+.nameSubMuted { @include ellipse-text; font-size: 12px; color: #9ca3af; margin-top: 1px; font-style: italic; }
 
 .nameBadge { margin-top: 4px; }
 

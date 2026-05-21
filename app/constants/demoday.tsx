@@ -28,7 +28,7 @@ export const NETWORK_PARTNER_DEMO_DAY_SLUGS = {
 };
 
 export const NETWORK_PARTNER_DEMO_DAY_FOOTER_DISCLAIMER =
-  'All content is provided by the founders. Network Partner Demo Day organizers do not endorse or recommend any investment.';
+  'All content is provided by the founders. Founder School & Crecimiento Demo Day organizers do not endorse or recommend any investment.';
 
 /** Case-insensitive match for demo day `slugURL` / route segment. */
 export function isNetworkPartnerDemoDaySlug(slug: string | null | undefined): boolean {
@@ -137,16 +137,16 @@ export const faqCompletedItems = [
 
 const crecimientoFoundersSchool1FaqItems: FAQItem[] = [
   {
-    question: 'What is Network Partner Demo Day?',
+    question: 'What is Founder School & Crecimiento Demo Day?',
     answer: (
       <FaqBulletList
         items={[
           <span key={1}>
-            Network Partner Demo Day is a concentrated virtual event featuring teams from two of our network&apos;s
-            founder programs, Crecimiento and Founders School. Early-stage startups will deliver pitches in a fully
-            asynchronous environment. Attendees will have access to single-slide company summaries and 3-minute video
-            pitches through our online platform. Attendees can directly connect with companies they&apos;re interested
-            in by clicking buttons that will automatically send intro emails on their behalf.
+            Founder School & Crecimiento Demo Day is a concentrated virtual event featuring teams from two of our
+            network&apos;s founder programs, Crecimiento and Founders School. Early-stage startups will deliver pitches
+            in a fully asynchronous environment. Attendees will have access to single-slide company summaries and
+            3-minute video pitches through our online platform. Attendees can directly connect with companies
+            they&apos;re interested in by clicking buttons that will automatically send intro emails on their behalf.
           </span>,
         ]}
       />
@@ -157,7 +157,7 @@ const crecimientoFoundersSchool1FaqItems: FAQItem[] = [
     answer: (
       <FaqBulletList
         items={[
-          'Network Partner Demo Day is an invite-only event for accredited investors and qualifying angels. Invitations are being sent to a vetted list of angel investors and VCs.',
+          'Founder School & Crecimiento Demo Day is an invite-only event for accredited investors. Invitations are being sent to a vetted list of angel investors and VCs.',
         ]}
       />
     ),
@@ -187,7 +187,7 @@ const crecimientoFoundersSchool1FaqItems: FAQItem[] = [
     answer: (
       <FaqBulletList
         items={[
-          "Once registered, you'll get access to the team roster on the Network Partner Demo Day platform, including company summaries, pitch videos, founder bios, and direct contact options. The latest program updates from Crecimiento and Founders School can be found on their respective social channels.",
+          "Once registered, you'll get access to the team roster on the Founder School & Crecimiento Demo Day platform, including company summaries, pitch videos, founder bios, and direct contact options. The latest program updates from Crecimiento and Founders School can be found on their respective social channels.",
         ]}
       />
     ),

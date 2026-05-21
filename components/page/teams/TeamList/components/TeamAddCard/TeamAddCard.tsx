@@ -20,12 +20,10 @@ export const TeamAddCard = (props: any) => {
 
   return (
     <div className={isList ? s.div : undefined}>
-      <Link href={PAGE_ROUTES.ADD_TEAM} prefetch={false} legacyBehavior>
-        <a onClick={onAddClick} className={`${s.card} ${isList ? s.cardList : ''}`}>
-          <img src="/icons/add.svg" alt="add" />
-          <p className={s.add}>Add Team</p>
-          <p className={s.text}>List your team here</p>
-        </a>
+      <Link href={PAGE_ROUTES.ADD_TEAM} prefetch={false} onClick={onAddClick} className={`${s.card} ${isList ? s.cardList : ''}`}>
+        <img src="/icons/add.svg" alt="add" />
+        <p className={s.add}>Add Team</p>
+        <p className={s.text}>List your team here</p>
       </Link>
     </div>
   );

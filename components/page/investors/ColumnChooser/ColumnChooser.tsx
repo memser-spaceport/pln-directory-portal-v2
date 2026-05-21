@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import clsx from 'clsx';
 import { useInvestorColumnStore } from '@/services/investors/store';
 import { COLUMN_PRESETS, INVESTOR_COLUMN_GROUPS, ColumnPresetKey } from '@/services/investors/constants';
@@ -19,6 +20,7 @@ const PRESET_LABEL: Record<ColumnPresetKey, string> = {
  */
 export function ColumnChooser() {
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ top: 0, right: 0 });
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -26,6 +28,17 @@ export function ColumnChooser() {
   const preset = useInvestorColumnStore((s) => s.preset);
   const setPreset = useInvestorColumnStore((s) => s.actions.setPreset);
   const toggleColumn = useInvestorColumnStore((s) => s.actions.toggleColumn);
+
+  const handleOpen = () => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setPos({
+        top: rect.bottom + window.scrollY + 4,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setOpen((o) => !o);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -40,54 +53,68 @@ export function ColumnChooser() {
 
   const visibleSet = new Set(visibleColumns);
 
+  const popover = open && (
+    <div ref={popoverRef} className={s.popover} style={{ top: pos.top, right: pos.right }}>
+      <div className={s.presetRow}>
+        {(Object.keys(COLUMN_PRESETS) as ColumnPresetKey[]).map((key) => (
+          <button
+            key={key}
+            className={clsx(s.presetBtn, preset === key && s.presetBtnActive)}
+            onClick={() => setPreset(key)}
+          >
+            {PRESET_LABEL[key]}
+          </button>
+        ))}
+      </div>
+      <div className={s.body}>
+        {INVESTOR_COLUMN_GROUPS.map((group) => (
+          <div key={group.group} className={s.group}>
+            <div className={s.groupTitle}>{group.group}</div>
+            {group.group === 'Person' && (
+              <label className={s.option}>
+                <input type="checkbox" checked={visibleSet.has('name')} onChange={() => toggleColumn('name')} />
+                <span>{COLUMN_LABELS.name}</span>
+              </label>
+            )}
+            {group.columns.map((col) => (
+              <label key={col} className={s.option}>
+                <input type="checkbox" checked={visibleSet.has(col)} onChange={() => toggleColumn(col)} />
+                <span>{COLUMN_LABELS[col] ?? col}</span>
+              </label>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className={s.root}>
-      <button ref={triggerRef} className={s.trigger} onClick={() => setOpen((o) => !o)}>
-        ⚙ Columns ({visibleColumns.length})
+      <button ref={triggerRef} className={s.trigger} onClick={handleOpen}>
+        <span className={s.triggerIcon}>
+          <SettingsIcon />
+        </span>
+        Columns ({visibleColumns.length})
       </button>
-      {open && (
-        <div ref={popoverRef} className={s.popover}>
-          <div className={s.presetRow}>
-            {(Object.keys(COLUMN_PRESETS) as ColumnPresetKey[]).map((key) => (
-              <button
-                key={key}
-                className={clsx(s.presetBtn, preset === key && s.presetBtnActive)}
-                onClick={() => setPreset(key)}
-              >
-                {PRESET_LABEL[key]}
-              </button>
-            ))}
-          </div>
-          <div className={s.body}>
-            {INVESTOR_COLUMN_GROUPS.map((group) => (
-              <div key={group.group} className={s.group}>
-                <div className={s.groupTitle}>{group.group}</div>
-                {/* Synthetic "name" column for the Person group */}
-                {group.group === 'Person' && (
-                  <label className={s.option}>
-                    <input
-                      type="checkbox"
-                      checked={visibleSet.has('name')}
-                      onChange={() => toggleColumn('name')}
-                    />
-                    <span>{COLUMN_LABELS.name}</span>
-                  </label>
-                )}
-                {group.columns.map((col) => (
-                  <label key={col} className={s.option}>
-                    <input
-                      type="checkbox"
-                      checked={visibleSet.has(col)}
-                      onChange={() => toggleColumn(col)}
-                    />
-                    <span>{COLUMN_LABELS[col] ?? col}</span>
-                  </label>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {typeof document !== 'undefined' && popover && createPortal(popover, document.body)}
     </div>
   );
 }
+
+const SettingsIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    className="lucide lucide-settings-icon lucide-settings"
+  >
+    <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);

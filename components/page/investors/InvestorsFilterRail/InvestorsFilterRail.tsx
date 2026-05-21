@@ -25,6 +25,7 @@ import {
   STAGE_FOCUS_LABEL,
 } from '@/services/investors/constants';
 import s from './InvestorsFilterRail.module.scss';
+import { SearchIcon } from '@/components/icons';
 
 interface Props {
   /** Which tab the rail is rendering for. Hides irrelevant sections per tab. */
@@ -60,6 +61,17 @@ function CheckboxOptions<T extends string>({
   );
 }
 
+function SearchInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <div className={s.inputWrap}>
+      <span className={s.inputIcon}>
+        <SearchIcon />
+      </span>
+      <input {...props} className={s.input} />
+    </div>
+  );
+}
+
 /** Same as CheckboxOptions but with a search input on top — for longer lists. */
 function SearchableCheckboxOptions<T extends string>({
   options,
@@ -87,9 +99,8 @@ function SearchableCheckboxOptions<T extends string>({
   };
   return (
     <div className={s.searchable}>
-      <input
+      <SearchInput
         type="search"
-        className={s.input}
         placeholder={placeholder ?? 'Search…'}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -131,9 +142,8 @@ function PortfolioTeamSelect({
 
   return (
     <div className={s.searchable}>
-      <input
+      <SearchInput
         type="search"
-        className={s.input}
         placeholder="Search portfolio teams…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -184,10 +194,11 @@ export function InvestorsFilterRail({ tab }: Props) {
       engagement_tier: null,
       enrichment_status: null,
       tags: null,
+      in_lab_os: null,
+      is_co_investor: null,
+      co_invested_team_id: null,
       view: null,
       page: null,
-      // Don't clear in_lab_os / is_co_investor / co_invested_team_id by default —
-      // those are tab-scoped and individually toggleable.
     });
   }, [setFilters]);
 
@@ -212,9 +223,31 @@ export function InvestorsFilterRail({ tab }: Props) {
   const activeViewId = filters.view;
 
   const applyView = (id: string, params: Record<string, unknown>) => {
-    onClear();
-    setFilters({ ...params, view: id } as never);
+    setFilters({
+      q: null,
+      source: null,
+      investor_type: null,
+      stage_focus: null,
+      sector_tags: null,
+      geo_focus: null,
+      email_status: null,
+      engagement_tier: null,
+      enrichment_status: null,
+      tags: null,
+      in_lab_os: null,
+      is_co_investor: null,
+      co_invested_team_id: null,
+      page: null,
+      ...params,
+      view: id,
+    } as never);
   };
+
+  // Wraps setFilters for filter changes: always exits saved-view mode.
+  const setFilter = useCallback(
+    (updates: Parameters<typeof setFilters>[0]) => setFilters({ ...updates, view: null } as never),
+    [setFilters],
+  );
 
   return (
     <FiltersSidePanel clearParams={onClear} appliedFiltersCount={appliedFiltersCount} className={s.root} hideFooter>
@@ -243,12 +276,11 @@ export function InvestorsFilterRail({ tab }: Props) {
       )}
 
       <FilterSection title="Search">
-        <input
+        <SearchInput
           type="search"
-          className={s.input}
           placeholder="Name, email, firm…"
           value={filters.q}
-          onChange={(e) => setFilters({ q: e.target.value || null, page: 1 })}
+          onChange={(e) => setFilter({ q: e.target.value || null, page: 1 })}
         />
       </FilterSection>
 
@@ -258,7 +290,7 @@ export function InvestorsFilterRail({ tab }: Props) {
             <input
               type="checkbox"
               checked={filters.in_lab_os}
-              onChange={(e) => setFilters({ in_lab_os: e.target.checked || null, page: 1 })}
+              onChange={(e) => setFilter({ in_lab_os: e.target.checked || null, page: 1 })}
             />
             <span className={s.optionLabel}>In LabOS</span>
           </label>
@@ -266,7 +298,7 @@ export function InvestorsFilterRail({ tab }: Props) {
             <input
               type="checkbox"
               checked={filters.is_co_investor}
-              onChange={(e) => setFilters({ is_co_investor: e.target.checked || null, page: 1 })}
+              onChange={(e) => setFilter({ is_co_investor: e.target.checked || null, page: 1 })}
             />
             <span className={s.optionLabel}>Co-invested with PL</span>
           </label>
@@ -277,7 +309,7 @@ export function InvestorsFilterRail({ tab }: Props) {
         <FilterSection title="Co-invested with team">
           <PortfolioTeamSelect
             value={filters.co_invested_team_id}
-            onChange={(next) => setFilters({ co_invested_team_id: next || null, page: 1 })}
+            onChange={(next) => setFilter({ co_invested_team_id: next || null, page: 1 })}
             enabled={access.canView}
           />
         </FilterSection>
@@ -287,7 +319,7 @@ export function InvestorsFilterRail({ tab }: Props) {
         <CheckboxOptions
           options={ENGAGEMENT_TIERS}
           values={filters.engagement_tier}
-          onChange={(next) => setFilters({ engagement_tier: next.length ? next : null, page: 1 })}
+          onChange={(next) => setFilter({ engagement_tier: next.length ? next : null, page: 1 })}
           label={(v) => ENGAGEMENT_TIER_LABEL[v]}
         />
       </FilterSection>
@@ -296,7 +328,7 @@ export function InvestorsFilterRail({ tab }: Props) {
         <CheckboxOptions
           options={STAGE_FOCUSES}
           values={filters.stage_focus}
-          onChange={(next) => setFilters({ stage_focus: next.length ? next : null, page: 1 })}
+          onChange={(next) => setFilter({ stage_focus: next.length ? next : null, page: 1 })}
           label={(v) => STAGE_FOCUS_LABEL[v]}
         />
       </FilterSection>
@@ -305,7 +337,7 @@ export function InvestorsFilterRail({ tab }: Props) {
         <SearchableCheckboxOptions
           options={SECTOR_TAGS}
           values={filters.sector_tags}
-          onChange={(next) => setFilters({ sector_tags: next.length ? next : null, page: 1 })}
+          onChange={(next) => setFilter({ sector_tags: next.length ? next : null, page: 1 })}
           label={(v) => SECTOR_TAG_LABEL[v]}
           placeholder="Search industries…"
         />
@@ -315,7 +347,7 @@ export function InvestorsFilterRail({ tab }: Props) {
         <CheckboxOptions
           options={INVESTOR_TYPES}
           values={filters.investor_type}
-          onChange={(next) => setFilters({ investor_type: next.length ? next : null, page: 1 })}
+          onChange={(next) => setFilter({ investor_type: next.length ? next : null, page: 1 })}
           label={(v) => INVESTOR_TYPE_LABEL[v]}
         />
       </FilterSection>
@@ -324,18 +356,17 @@ export function InvestorsFilterRail({ tab }: Props) {
         <CheckboxOptions
           options={EMAIL_STATUSES}
           values={filters.email_status}
-          onChange={(next) => setFilters({ email_status: next.length ? next : null, page: 1 })}
+          onChange={(next) => setFilter({ email_status: next.length ? next : null, page: 1 })}
           label={(v) => EMAIL_STATUS_LABEL[v]}
         />
       </FilterSection>
 
       <FilterSection title="Geo">
-        <input
+        <SearchInput
           type="text"
-          className={s.input}
           placeholder="US, Europe…"
           value={filters.geo_focus}
-          onChange={(e) => setFilters({ geo_focus: e.target.value || null, page: 1 })}
+          onChange={(e) => setFilter({ geo_focus: e.target.value || null, page: 1 })}
         />
       </FilterSection>
 
@@ -343,7 +374,7 @@ export function InvestorsFilterRail({ tab }: Props) {
         <CheckboxOptions
           options={ENRICHMENT_STATUSES}
           values={filters.enrichment_status}
-          onChange={(next) => setFilters({ enrichment_status: next.length ? next : null, page: 1 })}
+          onChange={(next) => setFilter({ enrichment_status: next.length ? next : null, page: 1 })}
         />
       </FilterSection>
 
@@ -351,7 +382,7 @@ export function InvestorsFilterRail({ tab }: Props) {
         <SearchableCheckboxOptions
           options={SOURCES}
           values={filters.source}
-          onChange={(next) => setFilters({ source: next.length ? next : null, page: 1 })}
+          onChange={(next) => setFilter({ source: next.length ? next : null, page: 1 })}
           placeholder="Search sources…"
         />
       </FilterSection>

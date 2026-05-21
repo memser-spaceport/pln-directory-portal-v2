@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useQueryStates } from 'nuqs';
 import { useGetInvestorById } from '@/services/investors/hooks/useGetInvestorById';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
@@ -15,6 +16,7 @@ import { EmailStatusPill } from '../EmailStatusPill/EmailStatusPill';
 import { SectorTagsList } from '../SectorTagsList/SectorTagsList';
 import { TagsCell } from '../TagsCell/TagsCell';
 import { EnrichmentNotesViewer } from '../EnrichmentNotesViewer/EnrichmentNotesViewer';
+import { CopyButton } from '@/components/ui/CopyButton';
 import s from './InvestorDrawer.module.scss';
 
 interface Props {
@@ -22,11 +24,16 @@ interface Props {
 }
 
 export function InvestorDrawer({ access }: Props) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [filters, setFilters] = useQueryStates(investorsFilterParsers, {
     history: 'replace',
     shallow: true,
   });
   const investorId = filters.investorId || null;
+
+  const backTo = `${pathname}?${searchParams.toString()}`;
 
   const { data: rawInvestor, isLoading } = useGetInvestorById(investorId);
   const { data: teams } = useGetCoInvestorTeams(!!investorId);
@@ -39,13 +46,8 @@ export function InvestorDrawer({ access }: Props) {
   const isOpen = !!investorId;
 
   const teamLookup = teams ? new Map(teams.map((t) => [t.team_id, t])) : null;
-  const coInvestedTeams = investor && teamLookup
-    ? investor.co_invested_team_ids.map((id) => teamLookup.get(id)).filter((t) => !!t)
-    : [];
-
-  const handleCopyEmail = () => {
-    if (investor?.email) navigator.clipboard?.writeText(investor.email);
-  };
+  const coInvestedTeams =
+    investor && teamLookup ? investor.co_invested_team_ids.map((id) => teamLookup.get(id)).filter((t) => !!t) : [];
 
   return (
     <Drawer isOpen={isOpen} onClose={onClose} width={720}>
@@ -97,11 +99,7 @@ export function InvestorDrawer({ access }: Props) {
               <dt>Email</dt>
               <dd>
                 <span>{investor.email || '—'}</span>
-                {investor.email && (
-                  <button className={s.linkBtn} onClick={handleCopyEmail}>
-                    Copy
-                  </button>
-                )}
+                {investor.email && <CopyButton text={investor.email} />}
               </dd>
               <dt>LinkedIn</dt>
               <dd>
@@ -116,7 +114,12 @@ export function InvestorDrawer({ access }: Props) {
               <dt>Firm domain</dt>
               <dd>
                 {investor.firm_domain ? (
-                  <a href={`https://${investor.firm_domain}`} target="_blank" rel="noopener noreferrer" className={s.link}>
+                  <a
+                    href={`https://${investor.firm_domain}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={s.link}
+                  >
                     {investor.firm_domain} ↗
                   </a>
                 ) : (
@@ -138,9 +141,17 @@ export function InvestorDrawer({ access }: Props) {
                 <SectorTagsList tags={investor.sector_tags} max={20} />
               </dd>
               <dt>Check size</dt>
-              <dd>{investor.check_size_range !== 'unknown' ? investor.check_size_range : <span className={s.muted}>unknown</span>}</dd>
+              <dd>
+                {investor.check_size_range !== 'unknown' ? (
+                  investor.check_size_range
+                ) : (
+                  <span className={s.muted}>unknown</span>
+                )}
+              </dd>
               <dt>AUM</dt>
-              <dd>{investor.aum_range !== 'unknown' ? investor.aum_range : <span className={s.muted}>unknown</span>}</dd>
+              <dd>
+                {investor.aum_range !== 'unknown' ? investor.aum_range : <span className={s.muted}>unknown</span>}
+              </dd>
               <dt>Geo focus</dt>
               <dd>{investor.geo_focus || <span className={s.muted}>—</span>}</dd>
               <dt>Recent deals</dt>
@@ -247,9 +258,7 @@ export function InvestorDrawer({ access }: Props) {
           </div>
 
           <div className={s.footer}>
-            <button className={s.btn} onClick={handleCopyEmail} disabled={!investor.email}>
-              📋 Copy email
-            </button>
+            <CopyButton text={investor.email} label="Copy email" className={s.btn} />
             {investor.firm_domain && (
               <a
                 className={s.btn}
@@ -264,9 +273,7 @@ export function InvestorDrawer({ access }: Props) {
               <a
                 className={s.btn}
                 href={
-                  investor.lab_os_profile.type === 'member'
-                    ? `/members/${investor.lab_os_profile.uid}`
-                    : `/teams/${investor.lab_os_profile.uid}`
+                  `${investor.lab_os_profile.type === 'member' ? `/members/${investor.lab_os_profile.uid}` : `/teams/${investor.lab_os_profile.uid}`}?backTo=${encodeURIComponent(backTo)}`
                 }
               >
                 👤 View in LabOS
@@ -278,3 +285,4 @@ export function InvestorDrawer({ access }: Props) {
     </Drawer>
   );
 }
+

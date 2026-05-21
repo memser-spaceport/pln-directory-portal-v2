@@ -4,6 +4,7 @@ import { useState } from 'react';
 import clsx from 'clsx';
 import { useInvestorMutationOverlay } from '@/services/investors/store';
 import s from './TagsCell.module.scss';
+import { CloseIcon } from '@/components/icons';
 
 interface Props {
   investorId: string;
@@ -59,14 +60,14 @@ export function TagsCell({ investorId, tags, editable = false, maxChips = 3, com
       <div className={s.row}>
         {tags.map((t) => (
           <span key={t} className={s.chip}>
-            {t}
+            <div title={t}>{t}</div>
             <button
               type="button"
               className={s.remove}
               onClick={() => removeTag(investorId, t)}
               aria-label={`Remove tag ${t}`}
             >
-              ×
+              <CloseIcon />
             </button>
           </span>
         ))}

@@ -51,16 +51,16 @@ function EmptyStateIcon() {
 /* --------------------------------------------------------------------------
    Skeleton loader row
    -------------------------------------------------------------------------- */
-function SkeletonRow() {
-  return (
-    <div className={styles['points-dashboard__skeleton-row']}>
-      <div className={styles['points-dashboard__skeleton-cell']} style={{ width: '18%' }} />
-      <div className={styles['points-dashboard__skeleton-cell']} style={{ width: '22%' }} />
-      <div className={styles['points-dashboard__skeleton-cell']} style={{ width: '30%' }} />
-      <div className={styles['points-dashboard__skeleton-cell']} style={{ width: '12%' }} />
-    </div>
-  );
-}
+// function SkeletonRow() {
+//   return (
+//     <div className={styles['points-dashboard__skeleton-row']}>
+//       <div className={styles['points-dashboard__skeleton-cell']} style={{ width: '18%' }} />
+//       <div className={styles['points-dashboard__skeleton-cell']} style={{ width: '22%' }} />
+//       <div className={styles['points-dashboard__skeleton-cell']} style={{ width: '30%' }} />
+//       <div className={styles['points-dashboard__skeleton-cell']} style={{ width: '12%' }} />
+//     </div>
+//   );
+// }
 
 /* --------------------------------------------------------------------------
    Activity table row – desktop
@@ -113,17 +113,20 @@ export default function PointsDashboard({ currentRound, pageRound }: PointsDashb
   const isLoading = lifetimeLoading || snapshotLoading;
   const hasError = lifetimeError || snapshotError;
 
+  // Only render once data has finished loading
+  if (isLoading) return null;
+
   // Hide section when not logged in or API refused
-  if (!lifetimeLoading && (lifetimeData === null || hasError)) return null;
+  if (lifetimeData === null || hasError) return null;
 
   const totalLifetime = lifetimeData?.totalPoints ?? 0;
   const records = snapshotData?.records ?? [];
 
   // Hide section when both lifetime and snapshot are empty (user has no points at all)
-  if (!isLoading && totalLifetime === 0 && records.length === 0) return null;
+  if (totalLifetime === 0 && records.length === 0) return null;
 
   // Determine empty-state variant
-  const isSnapshotEmpty = !isLoading && records.length === 0;
+  const isSnapshotEmpty = records.length === 0;
   const now = new Date();
   const isCurrentMonthSnapshot =
     viewingRoundDate.year === now.getFullYear() &&
@@ -187,7 +190,7 @@ export default function PointsDashboard({ currentRound, pageRound }: PointsDashb
           {/* ----------------------------------------------------------------
               Loading skeleton
               ---------------------------------------------------------------- */}
-          {isLoading && (
+          {/* {isLoading && (
             <div className={styles['points-dashboard__loading']}>
               <div className={styles['points-dashboard__points-cards']}>
                 <div className={`${styles['points-dashboard__points-card']} ${styles['points-dashboard__skeleton-card']}`} />
@@ -197,12 +200,12 @@ export default function PointsDashboard({ currentRound, pageRound }: PointsDashb
               <SkeletonRow />
               <SkeletonRow />
             </div>
-          )}
+          )} */}
 
           {/* ----------------------------------------------------------------
               Points cards + activity table/list (non-empty state)
               ---------------------------------------------------------------- */}
-          {!isLoading && !isSnapshotEmpty && (
+          {!isSnapshotEmpty && (
             <>
               {/* Points summary cards */}
               <div className={styles['points-dashboard__points-cards']}>
@@ -263,7 +266,7 @@ export default function PointsDashboard({ currentRound, pageRound }: PointsDashb
           {/* ----------------------------------------------------------------
               Empty state – recently started snapshot (within first 5 days)
               ---------------------------------------------------------------- */}
-          {!isLoading && isSnapshotEmpty && isRecentlyStarted && (
+          {isSnapshotEmpty && isRecentlyStarted && (
             <div className={styles['points-dashboard__empty']}>
               <div className={styles['points-dashboard__points-cards']}>
                 <div className={styles['points-dashboard__points-card']}>
@@ -293,7 +296,7 @@ export default function PointsDashboard({ currentRound, pageRound }: PointsDashb
           {/* ----------------------------------------------------------------
               Empty state – past snapshot with no data for this account
               ---------------------------------------------------------------- */}
-          {!isLoading && isSnapshotEmpty && !isRecentlyStarted && (
+          {isSnapshotEmpty && !isRecentlyStarted && (
             <div className={styles['points-dashboard__empty']}>
               <div className={styles['points-dashboard__empty-content']}>
                 <EmptyStateIcon />

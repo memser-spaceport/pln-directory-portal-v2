@@ -1,16 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  SortingState,
-  useReactTable,
-  Row,
-} from '@tanstack/react-table';
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable, Row } from '@tanstack/react-table';
 import { DndContext, DragEndEvent, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import clsx from 'clsx';
@@ -43,6 +35,10 @@ interface Props {
   hasMore?: boolean;
   /** Optional slot rendered in the toolbar next to Export CSV (e.g. Save view button). */
   saveViewSlot?: React.ReactNode;
+  /** Current sort value in `field:asc|desc` format (from URL). */
+  sortValue?: string;
+  /** Called when user clicks a sortable column header. */
+  onSortChange?: (sort: string) => void;
 }
 
 const COLUMN_LABELS: Record<string, string> = {
@@ -82,6 +78,15 @@ const COLUMN_LABELS: Record<string, string> = {
   tags: 'Tags',
 };
 
+// Column ID → API sort field. Only columns listed here are sortable server-side.
+const SORTABLE_COLUMNS: Record<string, string> = {
+  name: 'last_name',
+  firm: 'firm',
+  last_sent_date: 'last_sent_date',
+  engagement_tier: 'engagement_tier',
+  outreach_touches: 'outreach_touches',
+};
+
 export function OutreachInvestorTable(props: Props) {
   const {
     investors: rawInvestors,
@@ -95,12 +100,9 @@ export function OutreachInvestorTable(props: Props) {
     onLoadMore,
     hasMore,
     saveViewSlot,
+    sortValue,
+    onSortChange,
   } = props;
-
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: 'engagement_tier', desc: false },
-    { id: 'last_sent_date', desc: true },
-  ]);
 
   const columnActions = useInvestorColumnStore((s) => s.actions);
 
@@ -321,16 +323,28 @@ export function OutreachInvestorTable(props: Props) {
     return visibleColumns.map((id) => byId.get(id)).filter(Boolean) as ColumnDef<OutreachInvestor>[];
   }, [visibleColumns, teamNameLookup]);
 
-  const columnIds = useMemo(() => new Set(columns.map((c) => c.id!)), [columns]);
-  const activeSorting = useMemo(() => sorting.filter((s) => columnIds.has(s.id)), [sorting, columnIds]);
+  const [sortField, sortDir] = (sortValue || '').split(':') as [string, string | undefined];
+
+  const handleColumnSort = (columnId: string) => {
+    const field = SORTABLE_COLUMNS[columnId];
+    if (!field || !onSortChange) return;
+    if (sortField === field) {
+      onSortChange(sortDir === 'asc' ? `${field}:desc` : `${field}:asc`);
+    } else {
+      onSortChange(`${field}:asc`);
+    }
+  };
+
+  const getColSortDir = (columnId: string): 'asc' | 'desc' | null => {
+    const field = SORTABLE_COLUMNS[columnId];
+    if (!field || sortField !== field) return null;
+    return (sortDir === 'asc' || sortDir === 'desc') ? sortDir : null;
+  };
 
   const table = useReactTable({
     data: investors,
     columns,
-    state: { sorting: activeSorting },
-    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
   });
 
   const allChecked = investors.length > 0 && investors.every((i) => selectedIds.has(i.investor_id));
@@ -426,44 +440,42 @@ export function OutreachInvestorTable(props: Props) {
                         s.th,
                         s.frozenName,
                         canEdit ? s.frozenNameWithCheckbox : s.frozenNameNoCheckbox,
-                        nameHeader.column.getCanSort() && s.thSortable,
-                        nameHeader.column.getIsSorted() && s.thSorted,
+                        SORTABLE_COLUMNS['name'] && s.thSortable,
+                        getColSortDir('name') && s.thSorted,
                       )}
-                      onClick={nameHeader.column.getCanSort() ? nameHeader.column.getToggleSortingHandler() : undefined}
+                      onClick={() => handleColumnSort('name')}
                     >
                       {flexRender(nameHeader.column.columnDef.header, nameHeader.getContext())}
-                      {nameHeader.column.getCanSort() && (
-                        <span className={s.sortIcon}>
-                          {nameHeader.column.getIsSorted() === 'asc'
-                            ? '▲'
-                            : nameHeader.column.getIsSorted() === 'desc'
-                              ? '▼'
-                              : '↕'}
-                        </span>
-                      )}
+                      <span className={s.sortIcon}>
+                        {getColSortDir('name') === 'asc' ? '▲' : getColSortDir('name') === 'desc' ? '▼' : '↕'}
+                      </span>
                     </th>
                   )}
                   {/* Draggable scrollable columns */}
                   <SortableContext items={draggableColumnIds} strategy={horizontalListSortingStrategy}>
-                    {scrollableHeaders.map((h) => (
+                    {scrollableHeaders.map((h) => {
+                      const canSort = !!SORTABLE_COLUMNS[h.id];
+                      const colSortDir = getColSortDir(h.id);
+                      return (
                       <DraggableColumnHeader
                         key={h.id}
                         id={h.id}
-                        onClick={h.column.getCanSort() ? h.column.getToggleSortingHandler() : undefined}
+                        onClick={canSort ? () => handleColumnSort(h.id) : undefined}
                         className={clsx(
                           s.th,
-                          h.column.getCanSort() && s.thSortable,
-                          h.column.getIsSorted() && s.thSorted,
+                          canSort && s.thSortable,
+                          colSortDir && s.thSorted,
                         )}
                       >
                         {flexRender(h.column.columnDef.header, h.getContext())}
-                        {h.column.getCanSort() && (
+                        {canSort && (
                           <span className={s.sortIcon}>
-                            {h.column.getIsSorted() === 'asc' ? '▲' : h.column.getIsSorted() === 'desc' ? '▼' : '↕'}
+                            {colSortDir === 'asc' ? '▲' : colSortDir === 'desc' ? '▼' : '↕'}
                           </span>
                         )}
                       </DraggableColumnHeader>
-                    ))}
+                      );
+                    })}
                   </SortableContext>
                 </tr>
               </thead>

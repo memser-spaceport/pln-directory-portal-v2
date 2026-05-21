@@ -45,7 +45,7 @@ export function WarmIntrosWorkspace() {
   const effectiveStage = (filters.wi_stage || team?.raising_now || team?.pl_invested_stage) as StageFocus | '';
   const effectiveSectors: SectorTag[] = filters.wi_sectors.length
     ? (filters.wi_sectors as SectorTag[])
-    : team?.sectors ?? [];
+    : (team?.sectors ?? []);
   const effectiveCheckSize = (filters.wi_check_size || '') as CheckSizeRange | '';
 
   const params: WarmIntrosParams = useMemo(
@@ -92,9 +92,7 @@ export function WarmIntrosWorkspace() {
   };
 
   const exportSelectedCsv = () => {
-    const rows = candidates
-      .filter((c) => selectedIds.has(c.investor.investor_id))
-      .map((c) => c.investor);
+    const rows = candidates.filter((c) => selectedIds.has(c.investor.investor_id)).map((c) => c.investor);
     if (rows.length === 0) return;
     const cols = [
       'name',
@@ -107,7 +105,7 @@ export function WarmIntrosWorkspace() {
       'engagement_tier',
       'email_status',
     ];
-    const filename = `warm-intros-${team ? team.team_name.toLowerCase().replace(/\s+/g, '-') : 'manual'}-${Date.now()}.csv`;
+    const filename = `warm-intros-${team ? team.team_name.toLowerCase().replace(/\s+/g, '-') : 'manual'}-${new Date().getTime()}.csv`;
     exportInvestorsCsv(rows, cols, filename);
   };
 
@@ -127,7 +125,8 @@ export function WarmIntrosWorkspace() {
             </button>
           </div>
           <p className={s.desc}>
-            Pick a portfolio team — we&apos;ll surface investors with the strongest network path: co-invested, engaged with PL outreach, or matched on sector + stage.
+            Pick a portfolio team — we&apos;ll surface investors with the strongest network path: co-invested, engaged
+            with PL outreach, or matched on sector + stage.
           </p>
         </header>
 
@@ -210,8 +209,8 @@ export function WarmIntrosWorkspace() {
             <strong>Auto-pulled from {team.team_name}:</strong>
             <span>
               <span className={s.auto}>stage</span> {STAGE_FOCUS_LABEL[team.raising_now ?? team.pl_invested_stage]} ·{' '}
-              <span className={s.auto}>sectors</span> {team.sectors.join(', ')} ·{' '}
-              <span className={s.auto}>geo</span> {team.geo}
+              <span className={s.auto}>sectors</span> {team.sectors.join(', ')} · <span className={s.auto}>geo</span>{' '}
+              {team.geo}
             </span>
           </div>
         )}
@@ -221,7 +220,9 @@ export function WarmIntrosWorkspace() {
         <div className={s.placeholder}>
           <div className={s.placeholderIcon}>⚡</div>
           <div className={s.placeholderTitle}>Pick a team or set criteria to start</div>
-          <div className={s.placeholderDesc}>Once you select a portfolio team or pick at least one sector, candidates appear here ranked by warmth.</div>
+          <div className={s.placeholderDesc}>
+            Once you select a portfolio team or pick at least one sector, candidates appear here ranked by warmth.
+          </div>
         </div>
       )}
 
@@ -229,15 +230,17 @@ export function WarmIntrosWorkspace() {
         <section className={s.results}>
           <div className={s.resultsHeader}>
             <div className={s.resultsCount}>
-              {isLoading ? 'Searching…' : <><strong>{candidates.length} candidates</strong> · ranked by warmth + sector fit</>}
+              {isLoading ? (
+                'Searching…'
+              ) : (
+                <>
+                  <strong>{candidates.length} candidates</strong> · ranked by warmth + sector fit
+                </>
+              )}
             </div>
             <div className={s.resultsActions}>
               {access.canEdit && (
-                <button
-                  className={s.btnPrimary}
-                  onClick={exportSelectedCsv}
-                  disabled={selectedIds.size === 0}
-                >
+                <button className={s.btnPrimary} onClick={exportSelectedCsv} disabled={selectedIds.size === 0}>
                   ⤓ Export CSV ({selectedIds.size})
                 </button>
               )}
@@ -355,11 +358,13 @@ function TierSection({ tier, candidates, selectedIds, onToggleSelected, onOpenIn
                   <div className={s.path}>{c.reason}</div>
                   {c.evidence.length > 0 && (
                     <div className={s.evRow}>
-                      {c.evidence.map((e) => (
-                        <span key={e} className={s.ev}>
-                          {e}
-                        </span>
-                      ))}
+                      {c.evidence.map((e) => {
+                        return (
+                          <span key={e} className={s.ev}>
+                            {e}
+                          </span>
+                        );
+                      })}
                       {inv.engagement_tier !== 'T4_cold' && tier !== 'cold_match' && (
                         <EngagementTierBadge tier={inv.engagement_tier} compact />
                       )}

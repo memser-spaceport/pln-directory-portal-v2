@@ -3,9 +3,25 @@
   height: 100%;
 }
 
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+  display: flex;
+}
+
 .input {
   width: 100%;
-  padding: 6px 10px;
+  padding: 6px 30px 6px 10px;
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   border: 1px solid #e5e7eb;

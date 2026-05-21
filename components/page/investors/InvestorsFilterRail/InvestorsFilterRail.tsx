@@ -25,6 +25,7 @@ import {
   STAGE_FOCUS_LABEL,
 } from '@/services/investors/constants';
 import s from './InvestorsFilterRail.module.scss';
+import { SearchIcon } from '@/components/icons';
 
 interface Props {
   /** Which tab the rail is rendering for. Hides irrelevant sections per tab. */
@@ -60,6 +61,17 @@ function CheckboxOptions<T extends string>({
   );
 }
 
+function SearchInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <div className={s.inputWrap}>
+      <span className={s.inputIcon}>
+        <SearchIcon />
+      </span>
+      <input {...props} className={s.input} />
+    </div>
+  );
+}
+
 /** Same as CheckboxOptions but with a search input on top — for longer lists. */
 function SearchableCheckboxOptions<T extends string>({
   options,
@@ -87,9 +99,8 @@ function SearchableCheckboxOptions<T extends string>({
   };
   return (
     <div className={s.searchable}>
-      <input
+      <SearchInput
         type="search"
-        className={s.input}
         placeholder={placeholder ?? 'Search…'}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -131,9 +142,8 @@ function PortfolioTeamSelect({
 
   return (
     <div className={s.searchable}>
-      <input
+      <SearchInput
         type="search"
-        className={s.input}
         placeholder="Search portfolio teams…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -243,9 +253,8 @@ export function InvestorsFilterRail({ tab }: Props) {
       )}
 
       <FilterSection title="Search">
-        <input
+        <SearchInput
           type="search"
-          className={s.input}
           placeholder="Name, email, firm…"
           value={filters.q}
           onChange={(e) => setFilters({ q: e.target.value || null, page: 1 })}
@@ -330,9 +339,8 @@ export function InvestorsFilterRail({ tab }: Props) {
       </FilterSection>
 
       <FilterSection title="Geo">
-        <input
+        <SearchInput
           type="text"
-          className={s.input}
           placeholder="US, Europe…"
           value={filters.geo_focus}
           onChange={(e) => setFilters({ geo_focus: e.target.value || null, page: 1 })}

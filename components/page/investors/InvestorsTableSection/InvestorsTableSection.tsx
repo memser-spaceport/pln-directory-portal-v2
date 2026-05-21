@@ -105,7 +105,10 @@ export function InvestorsTableSection({
     [filters, tabDefaults],
   );
 
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetInvestors(params, access.canView);
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetInvestors(
+    params,
+    access.canView,
+  );
   const { data: teams } = useGetCoInvestorTeams(access.canView);
 
   const investors = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
@@ -183,24 +186,37 @@ export function InvestorsTableSection({
           <div className={s.actionBar_right}>
             {savingView ? (
               <div className={s.saveViewForm}>
-                <input
-                  type="text"
-                  autoFocus
-                  placeholder="Name this view…"
-                  value={newViewName}
-                  onChange={(e) => setNewViewName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSaveView();
-                    if (e.key === 'Escape') setSavingView(false);
-                  }}
-                  className={s.input}
-                />
-                <button className={s.btnPrimary} onClick={handleSaveView} disabled={!newViewName.trim()}>
-                  Save
-                </button>
-                <button className={s.btnGhost} onClick={() => setSavingView(false)}>
-                  Cancel
-                </button>
+                <div className={s.saveViewRow}>
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="Name this view…"
+                    value={newViewName}
+                    onChange={(e) => setNewViewName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSaveView();
+                      if (e.key === 'Escape') setSavingView(false);
+                    }}
+                    className={s.input}
+                  />
+                  <button
+                    className={s.btnPrimary}
+                    onClick={handleSaveView}
+                    disabled={!newViewName.trim() || newViewName.length > 200}
+                  >
+                    Save
+                  </button>
+                  <button className={s.btnGhost} onClick={() => setSavingView(false)}>
+                    Cancel
+                  </button>
+                </div>
+                {newViewName.length > 200 ? (
+                  <span className={s.saveViewError}>
+                    Name must be 200 characters or fewer ({newViewName.length}/200)
+                  </span>
+                ) : newViewName.length >= 180 ? (
+                  <span className={s.saveViewError}>{newViewName.length}/200 characters</span>
+                ) : null}
               </div>
             ) : (
               <button className={s.btn} onClick={() => setSavingView(true)}>

@@ -60,8 +60,22 @@
 
 .saveViewForm {
   display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  flex-direction: column;
+}
+
+.saveViewRow {
+  display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.saveViewError {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: #b91c1c;
+  padding: 0 2px;
 }
 
 .input {

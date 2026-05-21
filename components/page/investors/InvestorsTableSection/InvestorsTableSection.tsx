@@ -237,6 +237,8 @@ export function InvestorsTableSection({
           onLoadMore={handleLoadMore}
           hasMore={hasNextPage}
           saveViewSlot={saveViewSlot}
+          sortValue={filters.sort}
+          onSortChange={handleSortChange}
         />
       )}
     </div>

@@ -1,6 +1,5 @@
 import React, { ReactNode } from 'react';
 
-import { LOGOS } from '@/components/common/LogosGrid/constants';
 import { APPLY_FOR_NEXT_DEMO_DAY_URL, INVITE_FORM_URL } from '@/constants/demoDay';
 
 import { FaqLink } from '@/components/page/demo-day/LandingBase/components/FaqLink';
@@ -221,20 +220,14 @@ export const demoDayFaqMap: Record<string, FAQItem[]> = {
   [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: crecimientoFoundersSchool1FaqItems,
 };
 
-const PARTNER_DEMO_DAY_LANDING_LOGOS = [
+const crecimientoFoundersSchool1PartnerLogos = [
   '/icons/demoday/landing/partner-logos/founder_school.jpg',
   '/icons/demoday/landing/partner-logos/crecisolnegro.png',
 ] as const;
 
-export const DEFAULT_LANDING_LOGOS_TITLE = 'Teams featured in past demo days raised from top VCs and Angel Investors';
-
-// Demo day specific landing logos mapped by slug (use `slugURL` from demo day state)
-export const demoDayLandingLogosMap: Record<string, readonly string[]> = {
-  [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: PARTNER_DEMO_DAY_LANDING_LOGOS,
-};
-
-export const demoDayLandingLogosTitleMap: Record<string, string> = {
-  [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: 'Featuring Teams from Network Partner Programs:',
+// Demo day specific partner landing logos mapped by slug (use `slugURL` from demo day state)
+export const demoDayPartnerLogosMap: Record<string, readonly string[]> = {
+  [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: crecimientoFoundersSchool1PartnerLogos,
 };
 
 export interface DemoDayCalendarLinks {
@@ -281,29 +274,17 @@ export function getCalendarLinksByDemoDaySlug(slug: string | null | undefined): 
 }
 
 /**
- * Get landing page investor logos for a demo day by slug.
- * Returns the default PL logo grid if no specific config is found.
+ * Get partner landing logos for a demo day by slug.
+ * Returns an empty array if no specific config is found.
  */
-export function getLandingLogosByDemoDaySlug(slug: string | null | undefined): readonly string[] {
-  if (!slug) return LOGOS;
+export function getPartnerLogosByDemoDaySlug(slug: string | null | undefined): readonly string[] {
+  if (!slug) return [];
 
-  const exact = demoDayLandingLogosMap[slug];
+  const exact = demoDayPartnerLogosMap[slug];
   if (exact) return exact;
 
-  const matchKey = Object.keys(demoDayLandingLogosMap).find((k) => k.toLowerCase() === slug.toLowerCase());
-  if (matchKey) return demoDayLandingLogosMap[matchKey];
+  const matchKey = Object.keys(demoDayPartnerLogosMap).find((k) => k.toLowerCase() === slug.toLowerCase());
+  if (matchKey) return demoDayPartnerLogosMap[matchKey];
 
-  return LOGOS;
-}
-
-export function getLandingLogosTitleByDemoDaySlug(slug: string | null | undefined): string {
-  if (!slug) return DEFAULT_LANDING_LOGOS_TITLE;
-
-  const exact = demoDayLandingLogosTitleMap[slug];
-  if (exact) return exact;
-
-  const matchKey = Object.keys(demoDayLandingLogosTitleMap).find((k) => k.toLowerCase() === slug.toLowerCase());
-  if (matchKey) return demoDayLandingLogosTitleMap[matchKey];
-
-  return DEFAULT_LANDING_LOGOS_TITLE;
+  return [];
 }

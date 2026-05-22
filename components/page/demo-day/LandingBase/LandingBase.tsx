@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import React, { PropsWithChildren, ReactNode } from 'react';
 
 import {
@@ -7,6 +8,7 @@ import {
 } from '@/app/constants/demoday';
 
 import { LogosGrid } from '@/components/common/LogosGrid';
+import { PartnerLogos } from '@/components/page/demo-day/PartnerLogos';
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
@@ -27,6 +29,7 @@ export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
   const supportEmail = initialDemoDayState?.supportEmail ?? 'pldemoday@protocol.ai';
   const demoDaySlug = initialDemoDayState?.slugURL;
   const isNetworkPartnerDemoDay = isNetworkPartnerDemoDaySlug(demoDaySlug);
+  const showBottomLogos = !hideLogos;
 
   return (
     <div className={s.root}>
@@ -37,34 +40,37 @@ export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
             {countdown}
             <PageTitle initialDemoDayState={initialDemoDayState} />
             {information}
+            {isNetworkPartnerDemoDay && <PartnerLogos demoDaySlug={demoDaySlug} />}
           </div>
 
           {children}
 
-          <div className={s.reachOut}>
-            Questions? Contact us at{' '}
-            <a href={`mailto:${supportEmail}`} className={s.email}>
-              {supportEmail}
-            </a>
+          <div className={clsx(s.lowerSection, { [s.lowerSectionCompact]: !showBottomLogos })}>
+            <div className={s.reachOut}>
+              Questions? Contact us at{' '}
+              <a href={`mailto:${supportEmail}`} className={s.email}>
+                {supportEmail}
+              </a>
+            </div>
+
+            {showBottomLogos && <LogosGrid />}
+
+            <FAQ
+              items={faqItems}
+              demoDaySlug={demoDaySlug}
+              subtitle={
+                isNetworkPartnerDemoDay ? (
+                  <p className={s.faqReachOut}>
+                    Reach out to us at{' '}
+                    <a href={`mailto:${supportEmail}`} className={s.email}>
+                      {supportEmail}
+                    </a>{' '}
+                    for any other questions.
+                  </p>
+                ) : undefined
+              }
+            />
           </div>
-
-          {!hideLogos && <LogosGrid demoDaySlug={demoDaySlug} />}
-
-          <FAQ
-            items={faqItems}
-            demoDaySlug={demoDaySlug}
-            subtitle={
-              isNetworkPartnerDemoDay ? (
-                <p className={s.faqReachOut}>
-                  Reach out to us at{' '}
-                  <a href={`mailto:${supportEmail}`} className={s.email}>
-                    {supportEmail}
-                  </a>{' '}
-                  for any other questions.
-                </p>
-              ) : undefined
-            }
-          />
 
           <Footer disclaimer={isNetworkPartnerDemoDay ? NETWORK_PARTNER_DEMO_DAY_FOOTER_DISCLAIMER : undefined} />
         </div>

@@ -1,32 +1,20 @@
 import clsx from 'clsx';
-import { useMemo } from 'react';
 import { useToggle } from 'react-use';
 
-import { getLandingLogosByDemoDaySlug, getLandingLogosTitleByDemoDaySlug } from '@/app/constants/demoday';
 import { Button } from '@/components/common/Button';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
+import { LOGOS } from './constants';
+
 import s from './LogosGrid.module.scss';
-
-const LANDING_LOGOS_EXPAND_THRESHOLD = 12;
-
-function landingLogoAlt(src: string): string {
-  const filename = src.split('/').pop() ?? 'logo';
-  return filename.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
-}
 
 interface Props {
   className?: string;
   source?: 'active' | 'completed';
-  demoDaySlug?: string | null;
 }
 
 export function LogosGrid(props: Props) {
-  const { className, source = 'active', demoDaySlug } = props;
-
-  const logos = useMemo(() => getLandingLogosByDemoDaySlug(demoDaySlug), [demoDaySlug]);
-  const title = useMemo(() => getLandingLogosTitleByDemoDaySlug(demoDaySlug), [demoDaySlug]);
-  const showExpandControls = logos.length > LANDING_LOGOS_EXPAND_THRESHOLD;
+  const { className, source = 'active' } = props;
 
   const [showAll, toggleShowAll] = useToggle(false);
   const { onActiveViewShowMoreLogosClicked, onCompletedViewShowMoreLogosClicked } = useDemoDayAnalytics();
@@ -42,29 +30,31 @@ export function LogosGrid(props: Props) {
 
   return (
     <div className={clsx(s.root, className)}>
-      <div className={s.header}>{title}</div>
+      <div className={s.header}>Teams featured in past demo days raised from top VCs and Angel Investors</div>
 
       <div
         className={clsx(s.gridContainer, {
-          [s.expanded]: showAll || !showExpandControls,
+          [s.expanded]: showAll,
         })}
       >
-        <div className={clsx(s.grid, { [s.gridCompact]: !showExpandControls })}>
-          {logos.map((icon) => (
+        <div className={s.grid}>
+          {LOGOS.map((icon) => (
             <div key={icon} className={s.cell}>
-              <img src={icon} className={s.logo} alt={landingLogoAlt(icon)} />
+              <img
+                src={icon}
+                className={s.logo}
+                alt={icon.replace('/icons/demoday/landing/logos/', '').replace('.svg', '')}
+              />
             </div>
           ))}
         </div>
 
-        {showExpandControls && <div className={s.bottomShadow} />}
+        <div className={s.bottomShadow} />
       </div>
 
-      {showExpandControls && (
-        <Button size="s" style="border" className={s.btn} onClick={handleShowMoreClick}>
-          Show {showAll ? 'Less' : 'All'}
-        </Button>
-      )}
+      <Button size="s" style="border" className={s.btn} onClick={handleShowMoreClick}>
+        Show {showAll ? 'Less' : 'All'}
+      </Button>
     </div>
   );
 }

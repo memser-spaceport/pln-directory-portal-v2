@@ -222,8 +222,8 @@ export const demoDayFaqMap: Record<string, FAQItem[]> = {
 };
 
 const PARTNER_DEMO_DAY_LANDING_LOGOS = [
-  '/icons/demoday/landing/partner-logos/crecisolnegro.png',
   '/icons/demoday/landing/partner-logos/founder_school.jpg',
+  '/icons/demoday/landing/partner-logos/crecisolnegro.png',
 ] as const;
 
 export const DEFAULT_LANDING_LOGOS_TITLE = 'Teams featured in past demo days raised from top VCs and Angel Investors';
@@ -234,7 +234,7 @@ export const demoDayLandingLogosMap: Record<string, readonly string[]> = {
 };
 
 export const demoDayLandingLogosTitleMap: Record<string, string> = {
-  [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: '',
+  [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: 'Featuring Teams from Network Partner Programs:',
 };
 
 export interface DemoDayCalendarLinks {

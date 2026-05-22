@@ -44,6 +44,7 @@ const makeItem = (uid: string, eventType: TeamNewsEventType, focusAreaTitles: st
   focusAreas: focusAreaTitles,
   subFocusAreas: [],
   createdAt: '2026-05-01T12:00:00.000Z',
+  discussion: { count: 0, latestTopicUrl: null },
 });
 
 const aiItems: ITeamNewsItem[] = [

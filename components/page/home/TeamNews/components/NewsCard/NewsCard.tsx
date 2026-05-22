@@ -1,12 +1,16 @@
+'use client';
+
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 
 import { getTeamLogoFallback } from './utils/getTeamLogoFallback';
+import { StartConversationButton } from './StartConversationButton';
 
 import s from './NewsCard.module.scss';
 
 interface NewsCardProps {
   item: ITeamNewsItem;
+  position?: number;
   onClick?: (item: ITeamNewsItem) => void;
 }
 
@@ -19,16 +23,16 @@ const EVENT_TYPE_LABEL: Record<TeamNewsEventType, string> = {
   OTHER: 'Other',
 };
 
-const EVENT_TYPE_CLASS: Record<TeamNewsEventType, string> = {
-  FUNDING: s.chipFunding,
-  LAUNCH: s.chipLaunch,
-  PARTNERSHIP: s.chipPartnership,
-  ANNOUNCEMENT: s.chipAnnouncement,
-  MILESTONE: s.chipMilestone,
-  OTHER: s.chipOther,
+const EVENT_TYPE_DOT_CLASS: Record<TeamNewsEventType, string> = {
+  FUNDING: s.dotFunding,
+  LAUNCH: s.dotLaunch,
+  PARTNERSHIP: s.dotPartnership,
+  ANNOUNCEMENT: s.dotAnnouncement,
+  MILESTONE: s.dotMilestone,
+  OTHER: s.dotOther,
 };
 
-export const NewsCard = ({ item, onClick }: NewsCardProps) => {
+export const NewsCard = ({ item, position = 0, onClick }: NewsCardProps) => {
   const handleClick = () => onClick?.(item);
 
   return (
@@ -39,33 +43,31 @@ export const NewsCard = ({ item, onClick }: NewsCardProps) => {
         ) : (
           <div className={s.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
         )}
-        <div className={s.companyInfo}>
-          <div className={s.titleRow}>
-            <a
-              href={`/teams/${item.teamUid}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={s.teamName}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {item.teamName}
-            </a>
-            <span className={`${s.chip} ${EVENT_TYPE_CLASS[item.eventType]}`}>{EVENT_TYPE_LABEL[item.eventType]}</span>
-          </div>
-          <div className={s.metaLine}>
-            {item.sourceDomain && (
-              <>
-                <span>{item.sourceDomain}</span>
-                <span className={s.dot} aria-hidden="true" />
-              </>
-            )}
-            <span>{formatTimeAgo(item.eventDate)}</span>
-          </div>
-        </div>
+        <a
+          href={`/teams/${item.teamUid}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={s.teamName}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {item.teamName}
+        </a>
       </div>
-      <div className={s.news}>
-        <h3 className={s.headline}>{item.title}</h3>
-        {item.summary && <p className={s.summary}>{item.summary}</p>}
+      <h3 className={s.headline}>{item.title}</h3>
+      <div className={s.metaLine}>
+        <span className={s.eventType}>
+          <span className={`${s.eventDot} ${EVENT_TYPE_DOT_CLASS[item.eventType]}`} aria-hidden="true" />
+          <span className={s.eventLabel}>{EVENT_TYPE_LABEL[item.eventType]}</span>
+        </span>
+        {item.sourceDomain && (
+          <>
+            <span className={s.sep} aria-hidden="true" />
+            <span className={s.source}>{item.sourceDomain}</span>
+          </>
+        )}
+        <span className={s.sep} aria-hidden="true" />
+        <span className={s.time}>{formatTimeAgo(item.eventDate)}</span>
+        <StartConversationButton item={item} position={position} />
       </div>
     </a>
   );

@@ -117,8 +117,8 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
       ) : (
         <>
           <div className={s.grid}>
-            {visibleItems.map((item) => (
-              <NewsCard key={item.uid} item={item} onClick={handleCardClick} />
+            {visibleItems.map((item, index) => (
+              <NewsCard key={item.uid} item={item} position={index} onClick={handleCardClick} />
             ))}
           </div>
           {filteredItems.length > pageSize && (

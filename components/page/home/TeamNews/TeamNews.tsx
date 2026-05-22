@@ -19,7 +19,7 @@ import { TeamNewsTabs } from './components/TeamNewsTabs';
 
 import s from './TeamNews.module.scss';
 
-import { shuffleAllTabItems } from './utils/shuffleAllTabItems';
+import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
 
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
@@ -32,7 +32,10 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
   const [expanded, setExpanded] = useState(false);
   const analytics = useTeamNewsAnalytics();
 
-  const allItems = useMemo(() => shuffleAllTabItems(dedupeByUid(groups.flatMap((g) => g.items))), [groups]);
+  const allItems = useMemo(
+    () => sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items))),
+    [groups],
+  );
 
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;

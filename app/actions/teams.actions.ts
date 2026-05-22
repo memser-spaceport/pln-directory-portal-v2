@@ -39,7 +39,6 @@ export const revalidateTeamDetail = async () => {
 
 export const deleteTeam = async (teamUid: string, authToken: string) => {
   try {
-    console.log('DELETING TEAM');
     const result = await fetch(`${teamsAPI}/${teamUid}`, {
       method: 'DELETE',
       headers: {
@@ -49,7 +48,6 @@ export const deleteTeam = async (teamUid: string, authToken: string) => {
     });
 
     if (!result.ok) {
-      console.log('DELETING TEAM failed');
       return {
         isError: true,
         status: result.status,

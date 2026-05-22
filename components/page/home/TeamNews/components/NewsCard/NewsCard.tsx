@@ -41,7 +41,15 @@ export const NewsCard = ({ item, onClick }: NewsCardProps) => {
         )}
         <div className={s.companyInfo}>
           <div className={s.titleRow}>
-            <span className={s.teamName}>{item.teamName}</span>
+            <a
+              href={`/teams/${item.teamUid}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={s.teamName}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {item.teamName}
+            </a>
             <span className={`${s.chip} ${EVENT_TYPE_CLASS[item.eventType]}`}>{EVENT_TYPE_LABEL[item.eventType]}</span>
           </div>
           <div className={s.metaLine}>

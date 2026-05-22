@@ -123,7 +123,6 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
 
   const handleFeedbackSuccess = () => {
     // You can add a success toast notification here if needed
-    console.log('Feedback submitted successfully!');
     toast.success('Feedback submitted successfully!');
   };
 

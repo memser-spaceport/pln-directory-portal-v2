@@ -12,7 +12,6 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 
 import s from './AuthInfo.module.scss';
 
-
 /**
  * AuthInfo - Handles login initialization
  *
@@ -30,7 +29,6 @@ export function AuthInfo() {
 
   useAsync(async () => {
     try {
-      console.log('login triggered');
       analytics.onProceedToLogin();
       localStorage.clear();
 

@@ -25,7 +25,6 @@ export const customFetch = async (url: string, options: any, isIncludeToken: boo
     }
 
     if (!authToken && refreshToken) {
-      console.log('Fetch wrapper - renewTokens called with refreshToken:', refreshToken, url);
       try {
         const tokens = await renewTokens(refreshToken);
         if (!tokens || !tokens.accessToken || !tokens.refreshToken || !tokens.userInfo) {
@@ -106,7 +105,6 @@ export const setNewTokenAndUserInfoAtClientSide = (details: any) => {
 };
 
 const renewTokens = async (refreshToken: string) => {
-  console.log('Fetch wrapper - renewTokens called with refreshToken:', refreshToken);
   const renewAccessTokenResponse = await renewAccessToken(refreshToken);
 
   // If refresh failed, return null to signal failure
@@ -118,7 +116,6 @@ const renewTokens = async (refreshToken: string) => {
 };
 
 const retryApi = async (url: string, options: any) => {
-  console.log('Fetch wrapper - retry api called:', url);
   const { refreshToken } = getAuthInfoFromCookie();
 
   if (!refreshToken) {

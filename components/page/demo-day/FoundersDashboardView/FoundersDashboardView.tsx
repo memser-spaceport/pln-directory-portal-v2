@@ -125,7 +125,6 @@ export const FoundersDashboardView: React.FC<FoundersDashboardViewProps> = ({ de
 
   const handleExportCSV = () => {
     // TODO: Implement CSV export functionality
-    console.log('Exporting CSV with filters:', { searchValue, interactionValue, sortByValue });
   };
 
   const filteredData = useMemo(() => {

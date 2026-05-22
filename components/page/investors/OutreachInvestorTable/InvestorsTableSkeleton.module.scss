@@ -1,0 +1,65 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fafbfc;
+  min-height: 44px;
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tableWrap {
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.headerRow th {
+  background: #f9fafb;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.row td {
+  padding: 12px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.thCheck, .tdCheck {
+  width: 32px;
+  padding-left: 12px !important;
+  padding-right: 6px !important;
+}
+
+.thName, .tdName  { min-width: 220px; max-width: 220px; }
+.thFirm, .tdFirm  { min-width: 200px; max-width: 200px; }
+.thWide, .tdWide  { min-width: 200px; }
+.thNarrow, .tdNarrow { min-width: 100px; }
+
+.pills {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}

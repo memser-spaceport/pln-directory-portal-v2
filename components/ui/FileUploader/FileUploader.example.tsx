@@ -5,7 +5,6 @@ import { FileUploader } from './FileUploader';
 
 export const FileUploaderExample: React.FC = () => {
   const handleUpload = (files: File[]) => {
-    console.log('Uploaded files:', files);
     // Handle the uploaded files here
     // You can send them to an API, process them, etc.
   };

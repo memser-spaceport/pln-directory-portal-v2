@@ -220,6 +220,16 @@ export const demoDayFaqMap: Record<string, FAQItem[]> = {
   [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: crecimientoFoundersSchool1FaqItems,
 };
 
+const crecimientoFoundersSchool1PartnerLogos = [
+  '/icons/demoday/landing/partner-logos/founder_school.jpg',
+  '/icons/demoday/landing/partner-logos/crecisolnegro.png',
+] as const;
+
+// Demo day specific partner landing logos mapped by slug (use `slugURL` from demo day state)
+export const demoDayPartnerLogosMap: Record<string, readonly string[]> = {
+  [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: crecimientoFoundersSchool1PartnerLogos,
+};
+
 export interface DemoDayCalendarLinks {
   googleCalendarUrl: string;
   icsFileUrl: string;
@@ -261,4 +271,20 @@ export function getCalendarLinksByDemoDaySlug(slug: string | null | undefined): 
   if (matchKey) return demoDayCalendarLinksMap[matchKey];
 
   return defaultCalendarLinks;
+}
+
+/**
+ * Get partner landing logos for a demo day by slug.
+ * Returns an empty array if no specific config is found.
+ */
+export function getPartnerLogosByDemoDaySlug(slug: string | null | undefined): readonly string[] {
+  if (!slug) return [];
+
+  const exact = demoDayPartnerLogosMap[slug];
+  if (exact) return exact;
+
+  const matchKey = Object.keys(demoDayPartnerLogosMap).find((k) => k.toLowerCase() === slug.toLowerCase());
+  if (matchKey) return demoDayPartnerLogosMap[matchKey];
+
+  return [];
 }

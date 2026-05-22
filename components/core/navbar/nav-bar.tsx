@@ -23,9 +23,11 @@ import {
   DEMO_DAY_LINK,
   DEMO_DAY_ANALYTICS_LINK,
   JOBS_LINK,
+  INVESTOR_DB_LINK,
 } from './constants/navLinks';
 import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
+import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { ISubItem } from './type';
 
 import { AppLogo, HelpIcon, ForumIcon, EventsIcon, DemoDayIcon, DirectoryIcon, MoreIcon } from './components/icons';
@@ -95,8 +97,14 @@ function Navbar(props: Readonly<INavbar>) {
 
   const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
+  const { canView: hasInvestorDbAccess } = useInvestorsAccess();
 
-  const moreLinks: ISubItem[] = [DEALS_LINK, ...(hasFounderGuidesAccess ? [FOUNDER_GUIDES_LINK] : []), JOBS_LINK];
+  const moreLinks: ISubItem[] = [
+    DEALS_LINK,
+    ...(hasFounderGuidesAccess ? [FOUNDER_GUIDES_LINK] : []),
+    JOBS_LINK,
+    ...(hasInvestorDbAccess ? [INVESTOR_DB_LINK] : []),
+  ];
 
   return (
     <NavigationMenu.Root className={s.Root}>

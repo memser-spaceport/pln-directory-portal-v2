@@ -63,8 +63,9 @@ export function WarmIntrosWorkspace() {
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [scoringOpen, setScoringOpen] = useState(false);
+  const [activeTier, setActiveTier] = useState<WarmIntroCandidate['tier']>('co_invested');
 
-  const candidates = data?.candidates ?? [];
+  const candidates = useMemo(() => data?.candidates ?? [], [data]);
   const grouped = useMemo(() => {
     const out: Record<WarmIntroCandidate['tier'], WarmIntroCandidate[]> = {
       co_invested: [],
@@ -74,6 +75,13 @@ export function WarmIntrosWorkspace() {
     for (const c of candidates) out[c.tier].push(c);
     return out;
   }, [candidates]);
+
+  // If the active tab becomes empty (results changed), fall back to the first non-empty tier.
+  const TIERS = ['co_invested', 'engaged', 'cold_match'] as const;
+  const displayTier: WarmIntroCandidate['tier'] =
+    grouped[activeTier].length > 0
+      ? activeTier
+      : TIERS.find((t) => grouped[t].length > 0) ?? activeTier;
 
   const toggleSector = (sec: SectorTag) => {
     const cur = filters.wi_sectors;
@@ -247,25 +255,38 @@ export function WarmIntrosWorkspace() {
             </div>
           </div>
 
-          {(['co_invested', 'engaged', 'cold_match'] as const).map((tier) => {
-            const tierCandidates = grouped[tier];
-            if (tierCandidates.length === 0) return null;
-            return (
-              <TierSection
-                key={tier}
-                tier={tier}
-                candidates={tierCandidates}
-                selectedIds={selectedIds}
-                onToggleSelected={(id) => {
-                  const next = new Set(selectedIds);
-                  next.has(id) ? next.delete(id) : next.add(id);
-                  setSelectedIds(next);
-                }}
-                onOpenInvestor={(id) => setFilters({ investorId: id })}
-                canSelect={access.canEdit}
-              />
-            );
-          })}
+          <div className={s.tabs}>
+            {TIERS.map((tier) => {
+              const count = grouped[tier].length;
+              const isActive = displayTier === tier;
+              return (
+                <button
+                  key={tier}
+                  className={clsx(s.tab, isActive && s.tabActive)}
+                  disabled={count === 0}
+                  onClick={() => setActiveTier(tier)}
+                >
+                  {TIER_META[tier].label}
+                  <span className={clsx(s.tabCount, isActive && s.tabCountActive)}>{count}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {grouped[displayTier].length > 0 && (
+            <TierSection
+              tier={displayTier}
+              candidates={grouped[displayTier]}
+              selectedIds={selectedIds}
+              onToggleSelected={(id) => {
+                const next = new Set(selectedIds);
+                next.has(id) ? next.delete(id) : next.add(id);
+                setSelectedIds(next);
+              }}
+              onOpenInvestor={(id) => setFilters({ investorId: id })}
+              canSelect={access.canEdit}
+            />
+          )}
 
           {candidates.length === 0 && !isLoading && (
             <div className={s.empty}>

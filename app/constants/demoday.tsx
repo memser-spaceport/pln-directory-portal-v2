@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 
+import { LOGOS } from '@/components/common/LogosGrid/constants';
 import { APPLY_FOR_NEXT_DEMO_DAY_URL, INVITE_FORM_URL } from '@/constants/demoDay';
 
 import { FaqLink } from '@/components/page/demo-day/LandingBase/components/FaqLink';
@@ -220,6 +221,17 @@ export const demoDayFaqMap: Record<string, FAQItem[]> = {
   [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: crecimientoFoundersSchool1FaqItems,
 };
 
+const PARTNER_DEMO_DAY_LANDING_LOGOS = [
+  '/icons/demoday/landing/partner-logos/crecinegrosol.png',
+  '/icons/demoday/landing/partner-logos/crecisolnegro.png',
+  '/icons/demoday/landing/partner-logos/founder_school.jpg',
+] as const;
+
+// Demo day specific landing logos mapped by slug (use `slugURL` from demo day state)
+export const demoDayLandingLogosMap: Record<string, readonly string[]> = {
+  [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: PARTNER_DEMO_DAY_LANDING_LOGOS,
+};
+
 export interface DemoDayCalendarLinks {
   googleCalendarUrl: string;
   icsFileUrl: string;
@@ -261,4 +273,20 @@ export function getCalendarLinksByDemoDaySlug(slug: string | null | undefined): 
   if (matchKey) return demoDayCalendarLinksMap[matchKey];
 
   return defaultCalendarLinks;
+}
+
+/**
+ * Get landing page investor logos for a demo day by slug.
+ * Returns the default PL logo grid if no specific config is found.
+ */
+export function getLandingLogosByDemoDaySlug(slug: string | null | undefined): readonly string[] {
+  if (!slug) return LOGOS;
+
+  const exact = demoDayLandingLogosMap[slug];
+  if (exact) return exact;
+
+  const matchKey = Object.keys(demoDayLandingLogosMap).find((k) => k.toLowerCase() === slug.toLowerCase());
+  if (matchKey) return demoDayLandingLogosMap[matchKey];
+
+  return LOGOS;
 }

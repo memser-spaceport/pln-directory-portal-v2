@@ -48,7 +48,7 @@ export function LandingBase(props: PropsWithChildren<LandingBaseProps>) {
             </a>
           </div>
 
-          {!hideLogos && <LogosGrid />}
+          {!hideLogos && <LogosGrid demoDaySlug={demoDaySlug} />}
 
           <FAQ
             items={faqItems}

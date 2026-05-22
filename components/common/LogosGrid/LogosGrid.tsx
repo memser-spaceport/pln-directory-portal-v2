@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { useMemo } from 'react';
 import { useToggle } from 'react-use';
 
-import { getLandingLogosByDemoDaySlug } from '@/app/constants/demoday';
+import { getLandingLogosByDemoDaySlug, getLandingLogosTitleByDemoDaySlug } from '@/app/constants/demoday';
 import { Button } from '@/components/common/Button';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
@@ -25,6 +25,7 @@ export function LogosGrid(props: Props) {
   const { className, source = 'active', demoDaySlug } = props;
 
   const logos = useMemo(() => getLandingLogosByDemoDaySlug(demoDaySlug), [demoDaySlug]);
+  const title = useMemo(() => getLandingLogosTitleByDemoDaySlug(demoDaySlug), [demoDaySlug]);
   const showExpandControls = logos.length > LANDING_LOGOS_EXPAND_THRESHOLD;
 
   const [showAll, toggleShowAll] = useToggle(false);
@@ -41,14 +42,14 @@ export function LogosGrid(props: Props) {
 
   return (
     <div className={clsx(s.root, className)}>
-      <div className={s.header}>Teams featured in past demo days raised from top VCs and Angel Investors</div>
+      <div className={s.header}>{title}</div>
 
       <div
         className={clsx(s.gridContainer, {
           [s.expanded]: showAll || !showExpandControls,
         })}
       >
-        <div className={s.grid}>
+        <div className={clsx(s.grid, { [s.gridCompact]: !showExpandControls })}>
           {logos.map((icon) => (
             <div key={icon} className={s.cell}>
               <img src={icon} className={s.logo} alt={landingLogoAlt(icon)} />

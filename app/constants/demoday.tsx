@@ -222,14 +222,19 @@ export const demoDayFaqMap: Record<string, FAQItem[]> = {
 };
 
 const PARTNER_DEMO_DAY_LANDING_LOGOS = [
-  '/icons/demoday/landing/partner-logos/crecinegrosol.png',
   '/icons/demoday/landing/partner-logos/crecisolnegro.png',
   '/icons/demoday/landing/partner-logos/founder_school.jpg',
 ] as const;
 
+export const DEFAULT_LANDING_LOGOS_TITLE = 'Teams featured in past demo days raised from top VCs and Angel Investors';
+
 // Demo day specific landing logos mapped by slug (use `slugURL` from demo day state)
 export const demoDayLandingLogosMap: Record<string, readonly string[]> = {
   [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: PARTNER_DEMO_DAY_LANDING_LOGOS,
+};
+
+export const demoDayLandingLogosTitleMap: Record<string, string> = {
+  [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: '',
 };
 
 export interface DemoDayCalendarLinks {
@@ -289,4 +294,16 @@ export function getLandingLogosByDemoDaySlug(slug: string | null | undefined): r
   if (matchKey) return demoDayLandingLogosMap[matchKey];
 
   return LOGOS;
+}
+
+export function getLandingLogosTitleByDemoDaySlug(slug: string | null | undefined): string {
+  if (!slug) return DEFAULT_LANDING_LOGOS_TITLE;
+
+  const exact = demoDayLandingLogosTitleMap[slug];
+  if (exact) return exact;
+
+  const matchKey = Object.keys(demoDayLandingLogosTitleMap).find((k) => k.toLowerCase() === slug.toLowerCase());
+  if (matchKey) return demoDayLandingLogosTitleMap[matchKey];
+
+  return DEFAULT_LANDING_LOGOS_TITLE;
 }

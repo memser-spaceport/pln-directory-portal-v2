@@ -62,11 +62,21 @@ function CheckboxOptions<T extends string>({
 }
 
 function SearchInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  const hasValue = !!props.value;
+  const clearInput = () => {
+    props.onChange?.({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>);
+  };
   return (
     <div className={s.inputWrap}>
-      <span className={s.inputIcon}>
-        <SearchIcon />
-      </span>
+      {hasValue ? (
+        <button type="button" className={s.inputIconBtn} onClick={clearInput} aria-label="Clear">
+          ×
+        </button>
+      ) : (
+        <span className={s.inputIcon}>
+          <SearchIcon />
+        </span>
+      )}
       <input {...props} className={s.input} />
     </div>
   );

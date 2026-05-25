@@ -23,7 +23,7 @@ import { useAllMembers } from '@/services/members/hooks/useAllMembers';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
 import { useUpdateMemberPreferences } from '@/services/members/hooks/useUpdateMemberPreferences';
-import { createTeamNewsDiscussionLink } from '@/services/team-news/team-news.service';
+import { useCreateTeamNewsDiscussionLink } from '@/services/team-news/hooks/useCreateTeamNewsDiscussionLink';
 import { clsx } from 'clsx';
 import { PostFormEditorLabel } from './components/PostFormEditorLabel';
 import { isAdminUser } from '@/utils/user/isAdminUser';
@@ -129,6 +129,7 @@ export const CreatePost = (props: Props) => {
 
   const { mutateAsync: createPost } = useCreatePost();
   const { mutateAsync: editPost } = useEditPost();
+  const { mutateAsync: linkNewsDiscussion } = useCreateTeamNewsDiscussionLink();
   const { data: memberPreferences } = useGetMemberPreferences(userInfo?.uid);
   const { mutate: updateMemberPreferences } = useUpdateMemberPreferences();
 
@@ -196,10 +197,9 @@ export const CreatePost = (props: Props) => {
               const forumTopicSlug = slug && slug.length > 0 ? slug : String(tid);
               const forumTopicUrl = `/forum/topics/${payload.cid}/${tid}`;
               try {
-                await createTeamNewsDiscussionLink(prefillNewsItemUid, {
-                  forumTopicId: tid,
-                  forumTopicSlug,
-                  forumTopicUrl,
+                await linkNewsDiscussion({
+                  newsItemUid: prefillNewsItemUid,
+                  payload: { forumTopicId: tid, forumTopicSlug, forumTopicUrl },
                 });
               } catch (linkErr) {
                 // Non-fatal: post was created; only the back-link failed.

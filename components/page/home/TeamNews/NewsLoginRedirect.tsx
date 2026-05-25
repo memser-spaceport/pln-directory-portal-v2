@@ -33,7 +33,7 @@ export const NewsLoginRedirect = () => {
     } catch {
       // sessionStorage unavailable — nothing to do.
     }
-    if (target) {
+    if (target && target.startsWith('/forum/')) {
       consumedRef.current = true;
       router.push(target);
     }

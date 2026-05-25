@@ -72,7 +72,9 @@ export const StartConversationButton = ({ item, position }: StartConversationBut
       e.preventDefault();
       e.stopPropagation();
       const wasAnonymous = !currentUser;
-      const target = item.discussion.latestTopicUrl as string;
+      const raw = item.discussion.latestTopicUrl as string;
+      const target = raw.startsWith('/forum/') ? raw : null;
+      if (!target) return;
       analytics.onTeamNewsJoinDiscussionClicked(item, position, wasAnonymous);
 
       if (wasAnonymous) {

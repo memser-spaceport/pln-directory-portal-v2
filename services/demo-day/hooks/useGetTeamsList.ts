@@ -3,6 +3,7 @@ import { useParams } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
+import { withOnePagerS3Urls } from '@/utils/upload-url.utils';
 import Cookies from 'js-cookie';
 
 export type TeamProfile = {
@@ -65,7 +66,7 @@ async function fetcher(demoDayId: string): Promise<TeamsListResponse> {
 
   const data: TeamsListResponse = await response.json();
 
-  return data;
+  return data.map(withOnePagerS3Urls);
 }
 
 export function useGetTeamsList() {

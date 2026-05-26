@@ -2,9 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
+import { withOnePagerS3Urls } from '@/utils/upload-url.utils';
 
 export type UploadInfo = {
-  bucket: null;
+  bucket: string | null;
   checksum: string;
   cid: null;
   createdAt: string;
@@ -85,7 +86,7 @@ async function fetcher(demoDayId: string) {
 
   const data: FundraisingProfile = await response.json();
 
-  return data;
+  return withOnePagerS3Urls(data);
 }
 
 export function useGetFundraisingProfile(enabled: boolean = true) {

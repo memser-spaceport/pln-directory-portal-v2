@@ -1,0 +1,38 @@
+.sep {
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #455468;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.discussLink {
+  display: inline-flex;
+  align-items: center;
+  margin: -4px -2px;
+  padding: 4px 2px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #1b4dff;
+  white-space: nowrap;
+  transition: color 0.12s ease;
+
+  &:hover {
+    color: #1158c4;
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #1b4dff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}

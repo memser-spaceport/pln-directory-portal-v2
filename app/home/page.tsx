@@ -16,7 +16,7 @@ import { getFeaturedData } from '@/services/featured.service';
 import { formatFeaturedData } from '@/utils/home.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
-import { TeamNews } from '@/components/page/home/TeamNews';
+import { NewsLoginRedirect, TeamNews } from '@/components/page/home/TeamNews';
 import { getTeamNewsGroupedByFocusArea } from '@/services/team-news/team-news.service';
 import type { ITeamNewsGroup } from '@/types/team-news.types';
 
@@ -47,6 +47,7 @@ export default async function Home() {
       </div>
       <HuskyDialog isLoggedIn={isLoggedIn} />
       <HuskyDiscover isLoggedIn={isLoggedIn} />
+      <NewsLoginRedirect />
     </>
   );
 }

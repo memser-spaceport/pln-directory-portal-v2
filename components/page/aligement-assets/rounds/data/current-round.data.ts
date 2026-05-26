@@ -132,11 +132,11 @@ export const currentRoundData: CurrentRoundData = {
     maxValue: 1000,
     chartData: [
       { name: 'Brand', value: 0 },
-      { name: 'Knowledge', value: 750 },
-      { name: 'Network Tooling', value: 200 },
+      { name: 'Knowledge', value: 2550 },
+      { name: 'Network Tooling', value: 550 },
       { name: 'People/Talent', value: 0 },
-      { name: 'Programs', value: 600 },
-      { name: 'Projects', value: 0 }
+      { name: 'Programs', value: 900 },
+      { name: 'Projects', value: 500 }
     ]
   },
 
@@ -167,7 +167,7 @@ export const currentRoundData: CurrentRoundData = {
       'Share a Reusable AI Resource or Tool',
       'Rank Among the Network\'s Most Supportive Members'
     ],
-    totalPointsCollected: '1,550',
+    totalPointsCollected: '4,500',
     totalTokensAvailable: '10,000',
     numberOfBuybacks: 0
   },

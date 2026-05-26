@@ -366,43 +366,41 @@
   overflow-wrap: break-word;
   word-break: break-word;
 
-  :global {
-    .md-editor-previewOnly {
-      background: transparent;
-    }
+  :global(.md-editor-previewOnly) {
+    background: transparent;
+  }
 
-    .md-editor-preview-wrapper {
-      background: transparent;
-      padding: 0;
-    }
+  :global(.md-editor-preview-wrapper) {
+    background: transparent;
+    padding: 0;
+  }
 
-    .md-editor-preview,
-    .md-editor-preview h1,
-    .md-editor-preview h2,
-    .md-editor-preview h3,
-    .md-editor-preview h4,
-    .md-editor-preview h5,
-    .md-editor-preview h6 {
-      word-break: normal;
-      overflow-wrap: break-word;
-    }
+  :global(.md-editor-preview),
+  :global(.md-editor-preview h1),
+  :global(.md-editor-preview h2),
+  :global(.md-editor-preview h3),
+  :global(.md-editor-preview h4),
+  :global(.md-editor-preview h5),
+  :global(.md-editor-preview h6) {
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
 
-    h1[id],
-    h2[id],
-    h3[id],
-    h4[id],
-    .md-editor-preview h1,
-    .md-editor-preview h2,
-    .md-editor-preview h3,
-    .md-editor-preview h4 {
-      scroll-margin-top: 100px !important;
-    }
+  :global(h1[id]),
+  :global(h2[id]),
+  :global(h3[id]),
+  :global(h4[id]),
+  :global(.md-editor-preview h1),
+  :global(.md-editor-preview h2),
+  :global(.md-editor-preview h3),
+  :global(.md-editor-preview h4) {
+    scroll-margin-top: 100px !important;
+  }
 
-    .md-editor-preview table {
-      display: block;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
+  :global(.md-editor-preview table) {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

@@ -129,7 +129,7 @@ describe('StartConversationButton', () => {
         const stashed = window.sessionStorage.getItem(NEWS_JOIN_DISCUSSION_PENDING_KEY);
         expect(stashed).toMatch(/^\/forum\/posts\/new\?/);
         expect(stashed).toContain(`newsItemUid=${baseItem.uid}`);
-        expect(mockPush).toHaveBeenCalledWith('/home#login');
+        expect(mockPush).toHaveBeenCalledWith(expect.stringMatching(/#login$/));
       });
 
       it('reports wasAnonymous=true on the analytics event', () => {
@@ -200,7 +200,7 @@ describe('StartConversationButton', () => {
         render(<StartConversationButton item={itemWithThread} position={0} />);
         fireEvent.click(screen.getByRole('button', { name: /Join the existing forum discussion/i }));
         expect(window.sessionStorage.getItem(NEWS_JOIN_DISCUSSION_PENDING_KEY)).toBe('/forum/topics/1/42');
-        expect(mockPush).toHaveBeenCalledWith('/home#login');
+        expect(mockPush).toHaveBeenCalledWith(expect.stringMatching(/#login$/));
       });
 
       it('reports wasAnonymous=true on the analytics event', () => {

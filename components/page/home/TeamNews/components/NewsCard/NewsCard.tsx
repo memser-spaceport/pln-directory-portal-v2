@@ -33,10 +33,20 @@ const EVENT_TYPE_DOT_CLASS: Record<TeamNewsEventType, string> = {
 };
 
 export const NewsCard = ({ item, position = 0, onClick }: NewsCardProps) => {
-  const handleClick = () => onClick?.(item);
+  const handleClick = () => {
+    onClick?.(item);
+    window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
+  };
 
   return (
-    <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className={s.card} onClick={handleClick}>
+    <div role="link" tabIndex={0} className={s.card} onClick={handleClick} onKeyDown={handleKeyDown}>
       <div className={s.head}>
         {item.teamLogoUrl ? (
           <img className={s.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
@@ -69,6 +79,6 @@ export const NewsCard = ({ item, position = 0, onClick }: NewsCardProps) => {
         <span className={s.time}>{formatTimeAgo(item.eventDate)}</span>
         <StartConversationButton item={item} position={position} />
       </div>
-    </a>
+    </div>
   );
 };

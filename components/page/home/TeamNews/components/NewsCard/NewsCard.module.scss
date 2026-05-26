@@ -12,6 +12,7 @@
   color: inherit;
   transition: box-shadow 0.12s ease;
   overflow: hidden;
+  cursor: pointer;
 
   &:hover {
     box-shadow: 0px 0px 1px 0px rgba(15, 23, 42, 0.16), 0px 6px 8px 0px rgba(15, 23, 42, 0.06);

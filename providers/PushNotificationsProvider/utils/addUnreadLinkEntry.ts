@@ -7,7 +7,23 @@ import { IRL_GATHERING_ROUTE } from '@/constants/routes';
 export function addUnreadLinkEntry(entry: UnreadLink, map: UnreadLinksMap) {
   const { uid, link } = entry;
 
-  const normalized = link.includes(IRL_GATHERING_ROUTE) ? link : normalizeLink(link);
+  let normalized: string;
+  if (link.includes(IRL_GATHERING_ROUTE)) {
+    // IRL routes need query params preserved; handle both absolute and relative links
+    if (/^https?:\/\//i.test(link)) {
+      try {
+        const url = new URL(link);
+        normalized = `${url.pathname}?${url.searchParams.toString()}`;
+      } catch {
+        normalized = link.split('#')[0];
+      }
+    } else {
+      normalized = link.split('#')[0];
+    }
+  } else {
+    normalized = normalizeLink(link);
+  }
+
   const existing = map.get(normalized);
 
   if (existing) {

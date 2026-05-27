@@ -1,29 +1,26 @@
 'use client';
 
-import { CalendarBlankIcon } from '@/components/icons';
+import type { IUserInfo } from '@/types/shared.types';
+
+import { useOfficeHoursAccess } from '@/services/access-control/hooks/useOfficeHoursAccess';
+
 import {
+  JobsIcon,
   TeamsIcon,
   DealsIcon,
-  FounderGuidesIcon,
-  JobsIcon,
   MembersIcon,
+  FounderGuidesIcon,
 } from '@/components/core/navbar/components/icons';
-import { useOfficeHoursAccess } from '@/services/access-control/hooks/useOfficeHoursAccess';
-import type { IUserInfo } from '@/types/shared.types';
-import { ActionCard } from './ActionCard';
-import styles from './QuickActions.module.scss';
+import { CalendarBlankIcon } from '@/components/icons';
+
+import { detectUserGroup } from './utils/detectUserGroup';
+
+import { ActionCard } from './components/ActionCard/ActionCard';
+
+import s from './QuickActions.module.scss';
 
 // TODO: Replace with the confirmed external Office Hours scheduling URL
 const OH_HREF = '/members?hasOfficeHours=true';
-
-type UserGroup = 'pl-infra' | 'founder' | 'others';
-
-function detectUserGroup(policies: NonNullable<IUserInfo['rbac']>['policies'] | undefined): UserGroup {
-  if (!policies?.length) return 'others';
-  if (policies.some((p) => p.code === 'pl_infra_team_pl_internal')) return 'pl-infra';
-  if (policies.some((p) => p.code.startsWith('founder_plc_'))) return 'founder';
-  return 'others';
-}
 
 interface QuickActionsProps {
   userInfo: IUserInfo | null;
@@ -48,10 +45,10 @@ export function QuickActions({ userInfo }: QuickActionsProps) {
   );
 
   return (
-    <section className={styles.section}>
-      <h2 className={styles.title}>Quick Actions</h2>
-      <p className={styles.subtitle}>Quick actions to get the most from your network.</p>
-      <div className={styles.grid}>
+    <section className={s.section}>
+      <h2 className={s.title}>Quick Actions</h2>
+      <p className={s.subtitle}>Quick actions to get the most from your network.</p>
+      <div className={s.grid}>
         {group === 'pl-infra' && (
           <>
             <ActionCard

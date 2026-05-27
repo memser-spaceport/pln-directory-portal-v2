@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { render } from '@testing-library/react';
 
 import { NewsLoginRedirect } from '@/components/page/home/TeamNews/NewsLoginRedirect';
-import { NEWS_JOIN_DISCUSSION_PENDING_KEY } from '@/components/page/home/TeamNews/components/NewsCard/StartConversationButton';
+import { NEWS_JOIN_DISCUSSION_PENDING_KEY } from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton';
 
 const mockPush = jest.fn();
 const mockUseCurrentUserStore = jest.fn();

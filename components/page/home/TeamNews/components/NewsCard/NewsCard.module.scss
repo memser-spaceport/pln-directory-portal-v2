@@ -7,7 +7,9 @@
   padding: 20px;
   background: #ffffff;
   border-radius: 16px;
-  box-shadow: 0px 0px 1px 0px rgba(15, 23, 42, 0.12), 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04);
   text-decoration: none;
   color: inherit;
   transition: box-shadow 0.12s ease;
@@ -15,7 +17,9 @@
   cursor: pointer;
 
   &:hover {
-    box-shadow: 0px 0px 1px 0px rgba(15, 23, 42, 0.16), 0px 6px 8px 0px rgba(15, 23, 42, 0.06);
+    box-shadow:
+      0px 0px 1px 0px rgba(15, 23, 42, 0.16),
+      0px 6px 8px 0px rgba(15, 23, 42, 0.06);
     text-decoration: none;
     color: inherit;
   }
@@ -76,22 +80,31 @@
   color: #0a0c11;
   margin: 0;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .metaLine {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
   gap: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.meta {
+  gap: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  min-width: 0;
   font-size: 12px;
   font-weight: 400;
   line-height: 16px;
   letter-spacing: -0.2px;
   color: #455468;
-  min-width: 0;
 }
 
 .sep {
@@ -105,6 +118,7 @@
 
 .source,
 .time {
+  line-height: 18px;
   white-space: nowrap;
 }
 
@@ -123,27 +137,33 @@
 
 .eventLabel {
   text-transform: uppercase;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  color: #0a0c11;
+
+  color: #455468;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
 }
 
 .dotFunding {
   background: #027a48;
 }
+
 .dotLaunch {
   background: #1849a9;
 }
+
 .dotPartnership {
   background: #5925dc;
 }
+
 .dotAnnouncement {
   background: #475467;
 }
+
 .dotMilestone {
   background: #b54708;
 }
+
 .dotOther {
   background: #94a3b8;
 }

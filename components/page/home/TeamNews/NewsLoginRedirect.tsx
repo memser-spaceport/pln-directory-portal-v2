@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCurrentUserStore } from '@/services/auth/store';
-import { NEWS_JOIN_DISCUSSION_PENDING_KEY } from './components/NewsCard/StartConversationButton';
+import { NEWS_JOIN_DISCUSSION_PENDING_KEY } from './components/NewsCard/components/StartConversationButton';
 
 /**
  * Post-login redirect handler for the news-feed "Join discussion" flow.

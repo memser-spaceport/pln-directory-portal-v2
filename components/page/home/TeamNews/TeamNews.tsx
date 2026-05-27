@@ -32,10 +32,7 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
   const [expanded, setExpanded] = useState(false);
   const analytics = useTeamNewsAnalytics();
 
-  const allItems = useMemo(
-    () => sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items))),
-    [groups],
-  );
+  const allItems = useMemo(() => sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items))), [groups]);
 
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;

@@ -1,11 +1,7 @@
 .link {
   text-decoration: none;
   display: block;
-  border-radius: 12px;
-
-  &:hover .card {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
+  border-radius: 16px;
 
   &:focus-visible {
     outline: 2px solid var(--Neutral-Slate-900);
@@ -17,12 +13,16 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 20px;
+  padding: 20px;
   background: var(--Neutral-White);
-  border-radius: 12px;
-  border: 1px solid var(--Neutral-Slate-200);
+  border-radius: 16px;
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
   transition: box-shadow 0.15s ease;
   height: 100%;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(14, 15, 17, 0.12);
+  }
 }
 
 .icon {
@@ -32,9 +32,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eef0ff;
+  background: rgba(27, 77, 255, 0.04);
   border-radius: 50%;
-  color: #3b5cf6;
+  color: #1b4dff;
+  box-shadow: inset 0px -1px 4px 0px rgba(27, 77, 255, 0.08);
 }
 
 .text {
@@ -47,25 +48,26 @@
 
 .title {
   display: block;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
-  color: var(--Neutral-Slate-900);
-  line-height: 1.4;
+  color: #0a0c11;
+  line-height: 24px;
+  letter-spacing: -0.4px;
+  white-space: nowrap;
 }
 
 .description {
   display: block;
-  font-size: 12px;
-  color: var(--Neutral-Slate-600);
+  font-size: 14px;
+  font-weight: 400;
+  color: #455468;
+  line-height: 22px;
+  letter-spacing: -0.2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.4;
 }
 
 .arrow {
   flex-shrink: 0;
-  color: var(--Neutral-Slate-600);
-  width: 16px;
-  height: 16px;
 }

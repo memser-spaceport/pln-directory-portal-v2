@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ReactNode } from 'react';
 
-import { CaretRightIcon } from '@/components/icons';
+import { ArrowRight } from './components/Icons';
 
 import s from './ActionCard.module.scss';
 
@@ -23,7 +23,7 @@ export function ActionCard(props: ActionCardProps) {
         <span className={s.title}>{title}</span>
         <span className={s.description}>{description}</span>
       </span>
-      <CaretRightIcon className={s.arrow} />
+      <ArrowRight className={s.arrow} />
     </span>
   );
 

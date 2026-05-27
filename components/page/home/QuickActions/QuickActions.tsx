@@ -14,7 +14,7 @@ import { ActionCard } from './ActionCard';
 import styles from './QuickActions.module.scss';
 
 // TODO: Replace with the confirmed external Office Hours scheduling URL
-const OH_HREF = 'https://office-hours.protocol.ai';
+const OH_HREF = '/members?hasOfficeHours=true';
 
 type UserGroup = 'pl-infra' | 'founder' | 'others';
 
@@ -44,7 +44,6 @@ export function QuickActions({ userInfo }: QuickActionsProps) {
       title="Book Office Hours"
       description="Connect with experts across the network"
       href={OH_HREF}
-      isExternal
     />
   );
 
@@ -74,12 +73,7 @@ export function QuickActions({ userInfo }: QuickActionsProps) {
               description="Resources curated for network founders"
               href="/founder-guides"
             />
-            <ActionCard
-              icon={<JobsIcon />}
-              title="Job Board"
-              description="Find your next role"
-              href="/jobs"
-            />
+            <ActionCard icon={<JobsIcon />} title="Job Board" description="Find your next role" href="/jobs" />
           </>
         )}
 
@@ -98,12 +92,7 @@ export function QuickActions({ userInfo }: QuickActionsProps) {
               description="Exclusive offers for network members"
               href="/deals"
             />
-            <ActionCard
-              icon={<JobsIcon />}
-              title="Job Board"
-              description="Find your next role"
-              href="/jobs"
-            />
+            <ActionCard icon={<JobsIcon />} title="Job Board" description="Find your next role" href="/jobs" />
           </>
         )}
 
@@ -119,12 +108,7 @@ export function QuickActions({ userInfo }: QuickActionsProps) {
                 href="/members"
               />
             )}
-            <ActionCard
-              icon={<JobsIcon />}
-              title="Job Board"
-              description="Find your next role"
-              href="/jobs"
-            />
+            <ActionCard icon={<JobsIcon />} title="Job Board" description="Find your next role" href="/jobs" />
           </>
         )}
       </div>

@@ -4,7 +4,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import {
   NEWS_JOIN_DISCUSSION_PENDING_KEY,
   StartConversationButton,
-} from '@/components/page/home/TeamNews/components/NewsCard/StartConversationButton';
+} from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
 const mockPush = jest.fn();

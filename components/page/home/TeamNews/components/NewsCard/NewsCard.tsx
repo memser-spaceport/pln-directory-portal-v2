@@ -4,7 +4,8 @@ import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 
 import { getTeamLogoFallback } from './utils/getTeamLogoFallback';
-import { StartConversationButton } from './StartConversationButton';
+
+import { StartConversationButton } from './components/StartConversationButton';
 
 import s from './NewsCard.module.scss';
 
@@ -64,19 +65,22 @@ export const NewsCard = ({ item, position = 0, onClick }: NewsCardProps) => {
         </a>
       </div>
       <h3 className={s.headline}>{item.title}</h3>
+
       <div className={s.metaLine}>
-        <span className={s.eventType}>
-          <span className={`${s.eventDot} ${EVENT_TYPE_DOT_CLASS[item.eventType]}`} aria-hidden="true" />
-          <span className={s.eventLabel}>{EVENT_TYPE_LABEL[item.eventType]}</span>
-        </span>
-        {item.sourceDomain && (
-          <>
-            <span className={s.sep} aria-hidden="true" />
-            <span className={s.source}>{item.sourceDomain}</span>
-          </>
-        )}
-        <span className={s.sep} aria-hidden="true" />
-        <span className={s.time}>{formatTimeAgo(item.eventDate)}</span>
+        <div className={s.meta}>
+          <span className={s.eventType}>
+            <span className={`${s.eventDot} ${EVENT_TYPE_DOT_CLASS[item.eventType]}`} aria-hidden="true" />
+            <span className={s.eventLabel}>{EVENT_TYPE_LABEL[item.eventType]}</span>
+          </span>
+          {item.sourceDomain && (
+            <>
+              <span className={s.sep} aria-hidden="true" />
+              <span className={s.source}>{item.sourceDomain}</span>
+            </>
+          )}
+          <span className={s.sep} aria-hidden="true" />
+          <span className={s.time}>{formatTimeAgo(item.eventDate)}</span>
+        </div>
         <StartConversationButton item={item} position={position} />
       </div>
     </div>

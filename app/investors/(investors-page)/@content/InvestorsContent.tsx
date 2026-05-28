@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryStates } from 'nuqs';
 import { Tabs } from '@/components/common/Tabs/Tabs';
@@ -22,6 +22,11 @@ const VISUAL_TABS = [
 export default function InvestorsContent() {
   const access = useInvestorsAccess();
   const router = useRouter();
+
+  const [tabCounts, setTabCounts] = useState<Record<string, number>>({});
+  const updateTabCount = useCallback((tab: string, count: number) => {
+    setTabCounts((prev) => (prev[tab] === count ? prev : { ...prev, [tab]: count }));
+  }, []);
 
   useEffect(() => {
     if (!access.isLoading && !access.canView) {
@@ -45,8 +50,11 @@ export default function InvestorsContent() {
   }
 
   const isWarmIntros = filters.tab === 'co-investors' && filters.mode === 'warm-intros';
-
   const activeVisualTab = isWarmIntros ? 'warm-intros' : filters.tab;
+
+  const visualTabs = VISUAL_TABS.map((t) =>
+    tabCounts[t.value] !== undefined ? { ...t, badge: tabCounts[t.value].toLocaleString() } : t,
+  );
 
   const handleVisualTabChange = (next: string) => {
     if (next === 'warm-intros') {
@@ -81,30 +89,32 @@ export default function InvestorsContent() {
           <div className={s.warmIntrosView}>
             <div className={s.warmIntrosTabBar}>
               <Tabs
-                tabs={VISUAL_TABS}
+                tabs={visualTabs}
                 value={activeVisualTab}
                 onValueChange={handleVisualTabChange}
                 variant="underline"
-                classes={{ tab: s.tab }}
+                classes={{ tab: s.tab, badge: s.tabBadge }}
               />
             </div>
-            <WarmIntrosWorkspace />
+            <WarmIntrosWorkspace onCountChange={(n) => updateTabCount('warm-intros', n)} />
           </div>
         ) : filters.tab === 'all' ? (
           <InvestorsTableSection
             tab="all"
-            tabs={VISUAL_TABS}
+            tabs={visualTabs}
             activeTab={activeVisualTab}
             onTabChange={handleVisualTabChange}
+            onCountChange={(n) => updateTabCount('all', n)}
           />
         ) : (
           <InvestorsTableSection
             tab="co-investors"
-            tabs={VISUAL_TABS}
+            tabs={visualTabs}
             activeTab={activeVisualTab}
             onTabChange={handleVisualTabChange}
             tabDefaults={{ is_co_investor: true }}
             enableSaveView={false}
+            onCountChange={(n) => updateTabCount('co-investors', n)}
           />
         )}
       </div>

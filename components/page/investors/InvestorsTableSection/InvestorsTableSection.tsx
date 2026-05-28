@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import { Tabs } from '@/components/common/Tabs/Tabs';
 import { SortDropdown, SortOption } from '@/components/common/filters/SortDropdown';
@@ -20,10 +20,11 @@ import s from './InvestorsTableSection.module.scss';
 interface Props {
   tabDefaults?: Partial<InvestorListParams>;
   tab: 'all' | 'co-investors';
-  tabs: Array<{ value: string; label: string }>;
+  tabs: Array<{ value: string; label: string; badge?: string }>;
   activeTab: string;
   onTabChange: (tab: string) => void;
   enableSaveView?: boolean;
+  onCountChange?: (count: number) => void;
 }
 
 const SORT_OPTIONS: readonly SortOption[] = [
@@ -58,6 +59,7 @@ export function InvestorsTableSection({
   activeTab,
   onTabChange,
   enableSaveView = true,
+  onCountChange,
 }: Props) {
   const [filters, setFilters] = useQueryStates(investorsFilterParsers, {
     history: 'replace',
@@ -107,11 +109,11 @@ export function InvestorsTableSection({
   const total = data?.pages.at(-1)?.total ?? 0;
   const teamLookup = useMemo(() => (teams ? new Map(teams.map((t) => [t.team_id, t])) : undefined), [teams]);
 
-  const tabsWithCount = useMemo(
-    () => tabs.map((t) => (t.value === tab && data ? { ...t, badge: total.toLocaleString() } : t)),
-    [tabs, tab, total, data],
-  );
   const filtersActive = hasActiveFilters(filters);
+
+  useEffect(() => {
+    if (data) onCountChange?.(total);
+  }, [total, data, onCountChange]);
 
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
@@ -148,7 +150,7 @@ export function InvestorsTableSection({
       <div className={s.actionBar}>
         <div className={s.actionBarLeft}>
           <Tabs
-            tabs={tabsWithCount}
+            tabs={tabs}
             value={activeTab}
             onValueChange={onTabChange}
             variant="underline"

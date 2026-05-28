@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import clsx from 'clsx';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
@@ -21,7 +21,11 @@ import { exportInvestorsCsv } from '../utils/exportCsv';
 import { ScoringMethodologyModal } from './ScoringMethodologyModal';
 import s from './WarmIntrosWorkspace.module.scss';
 
-export function WarmIntrosWorkspace() {
+interface Props {
+  onCountChange?: (count: number) => void;
+}
+
+export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const access = useInvestorsAccess();
   const [filters, setFilters] = useQueryStates(investorsFilterParsers, {
     history: 'replace',
@@ -59,6 +63,11 @@ export function WarmIntrosWorkspace() {
   const [activeTier, setActiveTier] = useState<WarmIntroCandidate['tier']>('co_invested');
 
   const candidates = useMemo(() => data?.candidates ?? [], [data]);
+
+  useEffect(() => {
+    if (data) onCountChange?.(candidates.length);
+  }, [candidates.length, data, onCountChange]);
+
   const grouped = useMemo(() => {
     const out: Record<WarmIntroCandidate['tier'], WarmIntroCandidate[]> = {
       co_invested: [],

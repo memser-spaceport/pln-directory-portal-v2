@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useQueryStates } from 'nuqs';
+import { Tabs } from '@/components/common/Tabs/Tabs';
+import { SortDropdown, SortOption } from '@/components/common/filters/SortDropdown';
 import { useGetInvestors } from '@/services/investors/hooks/useGetInvestors';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
 import { useInvestorColumnStore, useSavedViewsStore } from '@/services/investors/store';
@@ -10,35 +12,26 @@ import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchP
 import type { InvestorListParams } from '@/services/investors/types';
 import { OutreachInvestorTable } from '../OutreachInvestorTable/OutreachInvestorTable';
 import { InvestorsTableSkeleton } from '../OutreachInvestorTable/InvestorsTableSkeleton';
-import { InvestorsToolbar } from '../InvestorsToolbar/InvestorsToolbar';
+import { ColumnChooser } from '../ColumnChooser/ColumnChooser';
 import { exportInvestorsCsv } from '../utils/exportCsv';
 import s from './InvestorsTableSection.module.scss';
 
 interface Props {
-  /** Default flags injected for the tab. e.g. Co-investors sets `is_co_investor=true`. */
   tabDefaults?: Partial<InvestorListParams>;
-  /** Tab id — used in CSV filename + saved-view scoping. */
   tab: 'all' | 'co-investors';
-  /** Title shown in the toolbar (e.g. "All Investors", "Co-investors"). */
-  title: string;
-  /** Optional right-side slot for tab-specific actions (e.g. "Find warm intros" CTA). */
-  toolbarRightSlot?: React.ReactNode;
-  /** When true (default), show the Save-view button on the action bar when filters differ from default. */
+  tabs: Array<{ value: string; label: string }>;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
   enableSaveView?: boolean;
 }
 
-const SORT_OPTIONS = [
-  { value: '', label: 'Default (most engaged first)' },
+const SORT_OPTIONS: readonly SortOption[] = [
+  { value: '', label: 'Most engaged first' },
   { value: 'last_name:asc', label: 'Name (A-Z)' },
   { value: 'last_name:desc', label: 'Name (Z-A)' },
   { value: 'last_sent_date:desc', label: 'Recently engaged' },
-] as const;
+];
 
-/**
- * Detects whether any filter has been applied vs the default state.
- * Drives the visibility of the "Save view" button (only show when there's
- * something worth saving).
- */
 function hasActiveFilters(filters: ReturnType<typeof useQueryStates<typeof investorsFilterParsers>>[0]): boolean {
   return (
     !!filters.q ||
@@ -60,8 +53,9 @@ function hasActiveFilters(filters: ReturnType<typeof useQueryStates<typeof inves
 export function InvestorsTableSection({
   tabDefaults = {},
   tab,
-  title,
-  toolbarRightSlot,
+  tabs,
+  activeTab,
+  onTabChange,
   enableSaveView = true,
 }: Props) {
   const [filters, setFilters] = useQueryStates(investorsFilterParsers, {
@@ -76,7 +70,6 @@ export function InvestorsTableSection({
   const [savingView, setSavingView] = useState(false);
   const [newViewName, setNewViewName] = useState('');
 
-  // Combine URL filter state + tab defaults into the API params shape
   const params: InvestorListParams = useMemo(
     () => ({
       q: filters.q || undefined,
@@ -114,24 +107,12 @@ export function InvestorsTableSection({
   const investors = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
   const total = data?.pages.at(-1)?.total ?? 0;
   const teamLookup = useMemo(() => (teams ? new Map(teams.map((t) => [t.team_id, t])) : undefined), [teams]);
+
+  const tabsWithCount = useMemo(
+    () => tabs.map((t) => (t.value === tab && data ? { ...t, badge: total.toLocaleString() } : t)),
+    [tabs, tab, total, data],
+  );
   const filtersActive = hasActiveFilters(filters);
-  const appliedFiltersCount = useMemo(() => {
-    let n = 0;
-    if (filters.q) n++;
-    n += filters.source.length;
-    n += filters.investor_type.length;
-    n += filters.stage_focus.length;
-    n += filters.sector_tags.length;
-    if (filters.geo_focus) n++;
-    n += filters.email_status.length;
-    n += filters.engagement_tier.length;
-    n += filters.enrichment_status.length;
-    n += filters.tags.length;
-    if (filters.in_lab_os) n++;
-    if (filters.is_co_investor) n++;
-    if (filters.co_invested_team_id) n++;
-    return n;
-  }, [filters]);
 
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
@@ -155,13 +136,6 @@ export function InvestorsTableSection({
 
   const handleSortChange = (value: string) => {
     setFilters({ sort: value || null, page: 1 });
-  };
-
-  const handleMobileFilterClick = () => {
-    // Mobile: dispatch the same EVENTS.SHOW_FILTER pattern other modules use,
-    // OR scroll the filter rail into view. For V1 prototype we just scroll —
-    // mobile filter slide-out is a follow-up.
-    document.querySelector('aside[class*="filters"]')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const saveViewSlot =
@@ -211,16 +185,35 @@ export function InvestorsTableSection({
 
   return (
     <div className={s.root}>
-      <InvestorsToolbar
-        title={title}
-        total={total}
-        sortValue={filters.sort}
-        sortOptions={SORT_OPTIONS}
-        onSortChange={handleSortChange}
-        appliedFiltersCount={appliedFiltersCount}
-        onFilterClick={handleMobileFilterClick}
-        rightSlot={toolbarRightSlot}
-      />
+      <div className={s.actionBar}>
+        <div className={s.actionBarLeft}>
+          <Tabs
+            tabs={tabsWithCount}
+            value={activeTab}
+            onValueChange={onTabChange}
+            variant="underline"
+            classes={{ tab: s.tab, badge: s.tabBadge }}
+          />
+        </div>
+        <div className={s.actionBarRight}>
+          {saveViewSlot}
+          <SortDropdown options={SORT_OPTIONS} currentSort={filters.sort} onSortChange={handleSortChange} />
+          <ColumnChooser />
+          {access.canEdit && (
+            <button className={s.exportBtn} onClick={handleExport} disabled={investors.length === 0}>
+              <ExportIcon />
+              Export CSV{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/*{selectedIds.size > 0 && (*/}
+      {/*  <div className={s.selectionBar}>*/}
+      {/*    <strong>{selectedIds.size}</strong> selected*/}
+      {/*    <button className={s.linkBtn} onClick={() => setSelectedIds(new Set())}>Clear</button>*/}
+      {/*  </div>*/}
+      {/*)}*/}
 
       {isLoading && investors.length === 0 ? (
         <InvestorsTableSkeleton />
@@ -233,14 +226,18 @@ export function InvestorsTableSection({
           onSelectionChange={setSelectedIds}
           teamLookup={teamLookup}
           canEdit={access.canEdit}
-          onExport={access.canEdit ? handleExport : undefined}
           onLoadMore={handleLoadMore}
           hasMore={hasNextPage}
-          saveViewSlot={saveViewSlot}
           sortValue={filters.sort}
           onSortChange={handleSortChange}
         />
       )}
+
+      <div className={s.footer}>
+        <span className={s.footerCount}>
+          {total > 0 ? `${total.toLocaleString()} investors total` : `${investors.length.toLocaleString()} investors`}
+        </span>
+      </div>
     </div>
   );
 }
@@ -260,5 +257,23 @@ const SaveIcon = () => (
     <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
     <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" />
     <path d="M7 3v4a1 1 0 0 0 1 1h7" />
+  </svg>
+);
+
+const ExportIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 15V3" />
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <path d="m7 10 5 5 5-5" />
   </svg>
 );

@@ -81,9 +81,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   // If the active tab becomes empty (results changed), fall back to the first non-empty tier.
   const TIERS = ['co_invested', 'engaged', 'cold_match'] as const;
   const displayTier: WarmIntroCandidate['tier'] =
-    grouped[activeTier].length > 0
-      ? activeTier
-      : TIERS.find((t) => grouped[t].length > 0) ?? activeTier;
+    grouped[activeTier].length > 0 ? activeTier : (TIERS.find((t) => grouped[t].length > 0) ?? activeTier);
 
   const exportSelectedCsv = () => {
     const rows = candidates.filter((c) => selectedIds.has(c.investor.investor_id)).map((c) => c.investor);
@@ -128,11 +126,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
               )}
             </div>
             <div className={s.resultsActions}>
-              <button
-                type="button"
-                className={s.howScoredLink}
-                onClick={() => setScoringOpen(true)}
-              >
+              <button type="button" className={s.howScoredLink} onClick={() => setScoringOpen(true)}>
                 How is the Fit score calculated?
               </button>
               {access.canEdit && (

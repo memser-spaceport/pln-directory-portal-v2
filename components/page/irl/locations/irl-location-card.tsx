@@ -68,19 +68,17 @@ const IrlLocationCard = (props: IrlLocationCardProps) => {
       </div>
       <style jsx>{`
         .root {
+          gap: 2px;
           display: flex;
+          align-items: center;
           flex-direction: column;
-          gap: 20px;
+
           background-color: #ffffff;
-          box-shadow: 0px 4px 4px 0px #0f172a0a;
+          box-shadow: 0 4px 4px 0 #0f172a0a;
           cursor: pointer;
           width: 164px;
           height: 100px;
-          // padding: 8px 12px 16px 12px;
-          gap: 2px;
           border-radius: 8px;
-          align-items: center;
-          background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) 1;
         }
 
         .root__active {
@@ -99,9 +97,8 @@ const IrlLocationCard = (props: IrlLocationCardProps) => {
           border-radius: 8px;
           border: 2px solid transparent;
           background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
-          -webkit-mask:
-            linear-gradient(#fff 0 0) padding-box,
-            linear-gradient(#fff 0 0);
+          -webkit-mask: linear-gradient(#fff 0 0) padding-box,
+          linear-gradient(#fff 0 0);
           -webkit-mask-composite: destination-out;
           mask-composite: exclude;
         }

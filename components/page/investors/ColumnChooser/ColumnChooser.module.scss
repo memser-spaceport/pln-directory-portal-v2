@@ -1,6 +1,5 @@
-.root {
-  position: relative;
-  display: inline-block;
+.positioner {
+  z-index: 30;
 }
 
 .trigger {
@@ -33,18 +32,26 @@
 }
 
 .popover {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
   width: 320px;
   max-height: 480px;
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid rgba(14, 15, 17, 0.08);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  z-index: 30;
+  box-shadow: 0px 4px 12px rgba(14, 15, 17, 0.08);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+
+  transform-origin: top right;
+  transition:
+    transform 150ms,
+    opacity 150ms;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.9);
+  }
 }
 
 .presetRow {

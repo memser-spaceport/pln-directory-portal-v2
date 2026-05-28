@@ -66,8 +66,15 @@
 }
 
 .warmIntrosTabBar {
-  padding: 0 48px;
+  display: flex;
+  align-items: flex-end;
   border-bottom: 1px solid #e2e8f0;
+  min-height: 48px;
+}
+
+.tab {
+  font-size: 13px;
+  padding: 10px 8px;
 }
 
 .backLink {

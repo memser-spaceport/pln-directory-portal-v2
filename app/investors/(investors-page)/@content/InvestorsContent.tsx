@@ -80,7 +80,13 @@ export default function InvestorsContent() {
         {isWarmIntros ? (
           <div className={s.warmIntrosView}>
             <div className={s.warmIntrosTabBar}>
-              <Tabs tabs={VISUAL_TABS} value={activeVisualTab} onValueChange={handleVisualTabChange} variant="underline" />
+              <Tabs
+                tabs={VISUAL_TABS}
+                value={activeVisualTab}
+                onValueChange={handleVisualTabChange}
+                variant="underline"
+                classes={{ tab: s.tab }}
+              />
             </div>
             <WarmIntrosWorkspace />
           </div>

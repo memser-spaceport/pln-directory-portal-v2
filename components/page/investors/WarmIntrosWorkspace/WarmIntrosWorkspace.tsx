@@ -79,9 +79,7 @@ export function WarmIntrosWorkspace() {
   // If the active tab becomes empty (results changed), fall back to the first non-empty tier.
   const TIERS = ['co_invested', 'engaged', 'cold_match'] as const;
   const displayTier: WarmIntroCandidate['tier'] =
-    grouped[activeTier].length > 0
-      ? activeTier
-      : TIERS.find((t) => grouped[t].length > 0) ?? activeTier;
+    grouped[activeTier].length > 0 ? activeTier : (TIERS.find((t) => grouped[t].length > 0) ?? activeTier);
 
   const toggleSector = (sec: SectorTag) => {
     const cur = filters.wi_sectors;
@@ -133,8 +131,7 @@ export function WarmIntrosWorkspace() {
             </button>
           </div>
           <p className={s.desc}>
-            Pick a portfolio team — we&apos;ll surface investors with the strongest network path: co-invested, engaged
-            with PL outreach, or matched on sector + stage.
+            Use any combination of filters below to see investor intro paths sorted by Fit score.
           </p>
         </header>
 

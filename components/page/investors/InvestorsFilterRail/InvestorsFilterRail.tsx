@@ -7,6 +7,7 @@ import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
 import { useSavedViewsStore } from '@/services/investors/store';
+import { SaveViewPopover } from '../SaveViewPopover/SaveViewPopover';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
 import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import {
@@ -191,6 +192,7 @@ export function InvestorsFilterRail({ tab }: Props) {
   const access = useInvestorsAccess();
   const savedViews = useSavedViewsStore((s) => s.views);
   const deleteView = useSavedViewsStore((s) => s.actions.deleteView);
+  const saveView = useSavedViewsStore((s) => s.actions.saveView);
 
   const onClear = useCallback(() => {
     setFilters({
@@ -228,6 +230,29 @@ export function InvestorsFilterRail({ tab }: Props) {
     return n;
   }, [filters]);
 
+  const handleSaveFromFilter = useCallback(
+    (name: string) => {
+      const filterParams = {
+        q: filters.q || undefined,
+        source: filters.source.length ? filters.source : undefined,
+        investor_type: filters.investor_type.length ? filters.investor_type : undefined,
+        stage_focus: filters.stage_focus.length ? filters.stage_focus : undefined,
+        sector_tags: filters.sector_tags.length ? filters.sector_tags : undefined,
+        geo_focus: filters.geo_focus || undefined,
+        email_status: filters.email_status.length ? filters.email_status : undefined,
+        engagement_tier: filters.engagement_tier.length ? filters.engagement_tier : undefined,
+        enrichment_status: filters.enrichment_status.length ? filters.enrichment_status : undefined,
+        tags: filters.tags.length ? filters.tags : undefined,
+        in_lab_os: filters.in_lab_os || undefined,
+        is_co_investor: filters.is_co_investor || undefined,
+      };
+      saveView(name, tab, filterParams as Record<string, unknown>);
+    },
+    [filters, saveView, tab],
+  );
+
+  const showSaveViewInRail = tab === 'all' && appliedFiltersCount > 0 && access.canEdit && !filters.view;
+
   const userViewsForTab = savedViews.filter((v) => v.tab === tab);
   const showSavedViewsSection = userViewsForTab.length > 0;
   const activeViewId = filters.view;
@@ -260,7 +285,13 @@ export function InvestorsFilterRail({ tab }: Props) {
   );
 
   return (
-    <FiltersSidePanel clearParams={onClear} appliedFiltersCount={appliedFiltersCount} className={s.root} hideFooter>
+    <FiltersSidePanel
+      clearParams={onClear}
+      appliedFiltersCount={appliedFiltersCount}
+      className={s.root}
+      hideFooter
+      actionsSlot={showSaveViewInRail ? <SaveViewPopover variant="link" onSave={handleSaveFromFilter} /> : undefined}
+    >
       {showSavedViewsSection && (
         <FilterSection title="Saved views">
           <div className={s.options}>

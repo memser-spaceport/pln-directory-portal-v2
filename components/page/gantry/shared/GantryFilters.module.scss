@@ -1,0 +1,40 @@
+.filterRail {
+  height: 100%;
+}
+
+.stageFilterLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stageFilterDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stageFilterDot_IDEA {
+  background: #64748b;
+}
+
+.stageFilterDot_UNDER_REVIEW {
+  background: #b45309;
+}
+
+.stageFilterDot_PLANNED {
+  background: #1b4dff;
+}
+
+.stageFilterDot_IN_PROGRESS {
+  background: #6d28d9;
+}
+
+.stageFilterDot_SHIPPED {
+  background: #0a9952;
+}
+
+.stageFilterDot_DECLINED {
+  background: #dc2626;
+}

@@ -1,0 +1,42 @@
+@import 'styles/media.scss';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 20px;
+
+  @include mobile-only {
+    padding: 0;
+  }
+}
+
+.heading {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.4px;
+  color: #0a0c11;
+  margin: 0 0 24px;
+
+  @include mobile-only {
+    font-size: 20px;
+    line-height: 27px;
+    letter-spacing: -0.3px;
+    margin-bottom: 20px;
+  }
+}
+
+.fields {
+  width: 100%;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(27, 56, 96, 0.12);
+}

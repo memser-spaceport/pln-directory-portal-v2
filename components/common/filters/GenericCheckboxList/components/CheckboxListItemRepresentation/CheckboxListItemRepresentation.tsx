@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/common/Checkbox';
 import s from './CheckboxListItemRepresentation.module.scss';
 
 type Props = {
-  label: string;
+  label: ReactNode;
   count?: number;
   checked: boolean;
   disabled?: boolean;

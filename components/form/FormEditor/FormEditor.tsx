@@ -35,6 +35,7 @@ interface Props extends PropsWithChildren {
   onMentionSelected?: (member: { uid: string; name: string }, query?: string) => void;
   minHeight?: number;
   simplified?: boolean;
+  toolbarConfig?: (string | Record<string, unknown>)[][];
 }
 
 export const FormEditor = (props: Props) => {
@@ -56,6 +57,7 @@ export const FormEditor = (props: Props) => {
     onMentionSelected,
     minHeight,
     simplified,
+    toolbarConfig,
   } = props;
 
   const {
@@ -88,7 +90,7 @@ export const FormEditor = (props: Props) => {
         placeholder={placeholder}
         autoFocus={autoFocus}
         enableMentions={simplified ? false : enableMentions}
-        {...(simplified && { toolbarConfig: SIMPLIFIED_TOOLBAR })}
+        {...(simplified && { toolbarConfig: toolbarConfig ?? SIMPLIFIED_TOOLBAR })}
         onChange={(txt) => {
           const isEmptyContent = !txt || txt.replace(/<[^>]*>/g, '').trim() === '';
           if (!isEmptyContent) hasHadContent.current = true;

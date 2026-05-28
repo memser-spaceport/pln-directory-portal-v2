@@ -1,0 +1,27 @@
+.reasonInput {
+  width: 100%;
+  min-height: 96px;
+  padding: 10px 12px;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #0a0c11;
+  resize: vertical;
+  font-family: inherit;
+
+  &::placeholder {
+    color: #94a3b8;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}

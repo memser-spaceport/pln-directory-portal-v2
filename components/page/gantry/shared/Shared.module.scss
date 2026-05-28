@@ -1,0 +1,126 @@
+.stageBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 2px 10px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.stage_IDEA {
+  background: rgba(14, 15, 17, 0.06);
+  color: #455468;
+  border-color: rgba(14, 15, 17, 0.08);
+}
+
+.stage_UNDER_REVIEW {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.stage_PLANNED {
+  background: rgba(27, 77, 255, 0.08);
+  color: #1b4dff;
+  border-color: rgba(27, 77, 255, 0.16);
+}
+
+.stage_IN_PROGRESS {
+  background: rgba(124, 58, 237, 0.1);
+  color: #6d28d9;
+  border-color: rgba(124, 58, 237, 0.18);
+}
+
+.stage_SHIPPED {
+  background: rgba(10, 153, 82, 0.12);
+  color: #0a9952;
+  border-color: rgba(10, 153, 82, 0.2);
+}
+
+.stage_DECLINED {
+  background: rgba(255, 56, 56, 0.1);
+  color: #dc2626;
+  border-color: rgba(255, 56, 56, 0.18);
+}
+
+.upvote {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #8897ae;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    color: #6b7b93;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.upvoteIcon {
+  flex-shrink: 0;
+}
+
+.upvoteActive {
+  color: #1b4dff;
+
+  &:hover:not(:disabled) {
+    color: #1640d6;
+  }
+}
+
+.buildButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  background: #f9fafb;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #8897ae;
+  cursor: not-allowed;
+  margin-top: 8px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+}
+
+.buildButtonIcon {
+  flex-shrink: 0;
+}
+
+.comingSoon {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  background: #fff;
+  padding: 2px 8px;
+  color: #8897ae;
+}

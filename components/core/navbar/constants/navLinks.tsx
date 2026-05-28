@@ -1,11 +1,10 @@
-import React from 'react';
-
 import { ISubItem } from '@/components/core/navbar/type';
 import { CalendarBlankIcon, ContributorIcon, UsersThreeIcon } from '@/components/icons';
 import {
   MembersIcon,
   TeamsIcon,
   ProjectsIcon,
+  GantryIcon,
   DealsIcon,
   FounderGuidesIcon,
   DemoDayIcon,
@@ -81,6 +80,13 @@ export const FOUNDER_GUIDES_LINK: ISubItem = {
   href: '/founder-guides',
   title: 'Founder Guides',
   description: 'Structured, expert-driven guides for startup founders.',
+};
+
+export const GANTRY_LINK: ISubItem = {
+  icon: <GantryIcon />,
+  href: '/gantry/ideas',
+  title: 'Gantry',
+  description: 'Internal ideas and roadmap board.',
 };
 
 export const DEMO_DAY_LINK: ISubItem = {

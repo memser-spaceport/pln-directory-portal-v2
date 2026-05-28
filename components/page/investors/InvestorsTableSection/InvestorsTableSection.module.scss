@@ -1,37 +1,98 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.header {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  font-family: 'Inter', sans-serif;
-}
-
-.title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-  color: #0a0c11;
-}
-
-.subtitle {
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.spacer {
   flex: 1;
+  gap: 24px;
 }
 
-.total {
-  font-size: 13px;
-  color: #6b7280;
+// ── Action bar (tabs + controls) ────────────────────────────────────────────
+
+.actionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  //padding: 0 48px;
+  border-bottom: 1px solid #e2e8f0;
+  //background: #fff;
+  min-height: 48px;
+  gap: 12px;
 }
+
+.actionBarLeft {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.actionBarRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  flex-shrink: 0;
+}
+
+// ── Tab overrides ────────────────────────────────────────────────────────────
+
+.tab {
+  font-size: 13px;
+  padding: 10px 8px;
+}
+
+.tabBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+// ── Export button (teal) ─────────────────────────────────────────────────────
+
+.exportBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  background: #1b4dff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s;
+
+  &:hover:not(:disabled) {
+    background: #1a3fd9;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+// ── Selection bar ────────────────────────────────────────────────────────────
+
+.selectionBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 48px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  background: #eef2ff;
+  border-bottom: 1px solid #c7d2fe;
+  color: #3730a3;
+}
+
+// ── Save view form ───────────────────────────────────────────────────────────
 
 .saveViewForm {
   display: flex;
@@ -70,7 +131,8 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 10px;
+  height: 36px;
+  padding: 0 10px;
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 500;
@@ -92,13 +154,6 @@
   }
 }
 
-.btnIcon {
-  font-size: 16px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-}
-
 .btnPrimary {
   @extend .btn;
   background: #1b4dff;
@@ -117,31 +172,36 @@
   color: #6b7280;
 }
 
-.loading,
-.error {
-  padding: 32px;
-  text-align: center;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.error {
-  color: #b91c1c;
-}
-
-.loadMore {
-  display: flex;
-  justify-content: center;
-  padding: 16px;
-}
-
 .linkBtn {
   background: none;
   border: none;
   padding: 0;
-  color: #1b4dff;
+  color: #3730a3;
   font-size: 12px;
+  font-family: 'Inter', sans-serif;
   cursor: pointer;
   text-decoration: underline;
+}
+
+// ── Error / loading states ───────────────────────────────────────────────────
+
+.error {
+  padding: 32px 48px;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #b91c1c;
+}
+
+// ── Footer ───────────────────────────────────────────────────────────────────
+
+.footer {
+  padding: 10px 48px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.footerCount {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: #94a3b8;
 }

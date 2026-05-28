@@ -16,7 +16,6 @@ import { SectorTagsList } from '../SectorTagsList/SectorTagsList';
 import { LabOsBadge } from '../LabOsBadge/LabOsBadge';
 import { CoInvestorBadge } from '../CoInvestorBadge/CoInvestorBadge';
 import { TagsCell } from '../TagsCell/TagsCell';
-import { ColumnChooser } from '../ColumnChooser/ColumnChooser';
 import s from './OutreachInvestorTable.module.scss';
 
 interface Props {
@@ -25,19 +24,11 @@ interface Props {
   onRowClick: (id: string) => void;
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
-  /** Optional team-id → team-name lookup for the co-investor tooltip. */
   teamLookup?: Map<string, PlPortfolioTeam>;
-  /** Hide bulk-action checkboxes when user lacks edit permission. */
   canEdit?: boolean;
-  /** Called when the user clicks Export CSV. Parent owns the export logic. */
-  onExport?: () => void;
   onLoadMore?: () => void;
   hasMore?: boolean;
-  /** Optional slot rendered in the toolbar next to Export CSV (e.g. Save view button). */
-  saveViewSlot?: React.ReactNode;
-  /** Current sort value in `field:asc|desc` format (from URL). */
   sortValue?: string;
-  /** Called when user clicks a sortable column header. */
   onSortChange?: (sort: string) => void;
 }
 
@@ -78,7 +69,6 @@ const COLUMN_LABELS: Record<string, string> = {
   tags: 'Tags',
 };
 
-// Column ID → API sort field. Only columns listed here are sortable server-side.
 const SORTABLE_COLUMNS: Record<string, string> = {
   name: 'last_name',
   firm: 'firm',
@@ -96,10 +86,8 @@ export function OutreachInvestorTable(props: Props) {
     onSelectionChange,
     teamLookup,
     canEdit,
-    onExport,
     onLoadMore,
     hasMore,
-    saveViewSlot,
     sortValue,
     onSortChange,
   } = props;
@@ -120,7 +108,6 @@ export function OutreachInvestorTable(props: Props) {
     }
   };
 
-  // Hydrate investors with mutation overlay (tags etc.) — V1 mock only
   const overrides = useInvestorMutationOverlay((s) => s.overrides);
   const investors = useMemo(
     () => rawInvestors.map((inv) => applyOverlayToInvestor(inv, overrides)),
@@ -144,21 +131,26 @@ export function OutreachInvestorTable(props: Props) {
         accessorFn: (r) => `${r.first_name} ${r.last_name}`.trim(),
         cell: ({ row }) => (
           <div className={s.nameCell}>
-            <div className={s.nameRow}>
-              <span className={s.nameText}>
-                {row.original.first_name} {row.original.last_name}
-              </span>
-            </div>
-            {row.original.title ? (
-              <div className={s.nameSub}>{row.original.title}</div>
-            ) : (
-              <div className={s.nameSubMuted}>{row.original.email}</div>
-            )}
-            {row.original.lab_os_profile && (
-              <div className={s.nameBadge}>
-                <LabOsBadge profile={row.original.lab_os_profile} variant="pill" />
+            <div className={s.nameCellContent}>
+              <div className={s.nameRow}>
+                <span className={s.nameText}>
+                  {row.original.first_name} {row.original.last_name}
+                </span>
               </div>
-            )}
+              {row.original.title ? (
+                <div className={s.nameSub}>{row.original.title}</div>
+              ) : (
+                <div className={s.nameSubMuted}>{row.original.email}</div>
+              )}
+              {row.original.lab_os_profile && (
+                <div className={s.nameBadge}>
+                  <LabOsBadge profile={row.original.lab_os_profile} variant="pill" />
+                </div>
+              )}
+            </div>
+            <span className={s.arrowIcon} aria-hidden>
+              <ArrowUpRightIcon />
+            </span>
           </div>
         ),
         enableSorting: true,
@@ -170,8 +162,15 @@ export function OutreachInvestorTable(props: Props) {
         accessorKey: 'firm',
         cell: ({ row }) => (
           <div className={s.firmCell}>
-            <div className={s.firmText}>{row.original.firm || <span className={s.muted}>Independent</span>}</div>
-            {row.original.firm_domain && <div className={s.firmSub}>{row.original.firm_domain}</div>}
+            <div className={s.firmCellContent}>
+              <div className={s.firmText}>{row.original.firm || <span className={s.muted}>Independent</span>}</div>
+              {row.original.firm_domain && <div className={s.firmSub}>{row.original.firm_domain}</div>}
+            </div>
+            {row.original.firm && (
+              <span className={s.arrowIcon} aria-hidden>
+                <ArrowUpRightIcon />
+              </span>
+            )}
           </div>
         ),
         enableSorting: true,
@@ -266,7 +265,6 @@ export function OutreachInvestorTable(props: Props) {
         cell: ({ row }) => <TagsCell investorId={row.original.investor_id} tags={row.original.tags} compact />,
         enableSorting: false,
       },
-      // Hidden-by-default columns (appear only when user toggles them on)
       { id: 'source', header: 'Source', accessorKey: 'source' },
       { id: 'geo_focus', header: 'Geo', accessorKey: 'geo_focus' },
       {
@@ -318,7 +316,6 @@ export function OutreachInvestorTable(props: Props) {
       },
     ];
 
-    // Filter to user-visible columns, in their requested order
     const byId = new Map(allCols.map((c) => [c.id!, c]));
     return visibleColumns.map((id) => byId.get(id)).filter(Boolean) as ColumnDef<OutreachInvestor>[];
   }, [visibleColumns, teamNameLookup]);
@@ -338,7 +335,7 @@ export function OutreachInvestorTable(props: Props) {
   const getColSortDir = (columnId: string): 'asc' | 'desc' | null => {
     const field = SORTABLE_COLUMNS[columnId];
     if (!field || sortField !== field) return null;
-    return (sortDir === 'asc' || sortDir === 'desc') ? sortDir : null;
+    return sortDir === 'asc' || sortDir === 'desc' ? sortDir : null;
   };
 
   const table = useReactTable({
@@ -367,13 +364,11 @@ export function OutreachInvestorTable(props: Props) {
   };
 
   const handleRowClick = (row: Row<OutreachInvestor>, e: React.MouseEvent<HTMLTableRowElement>) => {
-    // Don't open drawer when clicking the checkbox column or a link / button inside the row
     const target = e.target as HTMLElement;
     if (target.closest('input[type="checkbox"]') || target.closest('a') || target.closest('button')) return;
     onRowClick(row.original.investor_id);
   };
 
-  // Split headers: name is frozen (non-draggable), everything else is draggable
   const allHeaders = table.getHeaderGroups()[0]?.headers ?? [];
   const nameHeader = allHeaders.find((h) => h.id === 'name');
   const scrollableHeaders = allHeaders.filter((h) => h.id !== 'name');
@@ -381,33 +376,6 @@ export function OutreachInvestorTable(props: Props) {
 
   return (
     <div className={s.wrap}>
-      <div className={s.toolbar}>
-        <div className={s.toolbar_left}>
-          {selectedIds.size > 0 ? (
-            <span className={s.selection}>
-              <strong>{selectedIds.size}</strong> selected
-              <button className={s.linkBtn} onClick={() => onSelectionChange(new Set())}>
-                Clear
-              </button>
-            </span>
-          ) : (
-            <span className={s.muted}>{investors.length.toLocaleString()} investors</span>
-          )}
-        </div>
-        <div className={s.toolbar_right}>
-          {saveViewSlot}
-          {canEdit && onExport && (
-            <button className={s.toolbarBtn} onClick={onExport} disabled={investors.length === 0}>
-              <span className={s.toolbarBtnIcon}>
-                <ExportIcon />
-              </span>
-              Export CSV{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
-            </button>
-          )}
-          <ColumnChooser />
-        </div>
-      </div>
-
       <div className={s.tableWrap} id="investors-table-scroll">
         <InfiniteScroll
           scrollableTarget="body"
@@ -433,7 +401,6 @@ export function OutreachInvestorTable(props: Props) {
                       />
                     </th>
                   )}
-                  {/* Name column: frozen, non-draggable */}
                   {nameHeader && (
                     <th
                       className={clsx(
@@ -451,29 +418,24 @@ export function OutreachInvestorTable(props: Props) {
                       </span>
                     </th>
                   )}
-                  {/* Draggable scrollable columns */}
                   <SortableContext items={draggableColumnIds} strategy={horizontalListSortingStrategy}>
                     {scrollableHeaders.map((h) => {
                       const canSort = !!SORTABLE_COLUMNS[h.id];
                       const colSortDir = getColSortDir(h.id);
                       return (
-                      <DraggableColumnHeader
-                        key={h.id}
-                        id={h.id}
-                        onClick={canSort ? () => handleColumnSort(h.id) : undefined}
-                        className={clsx(
-                          s.th,
-                          canSort && s.thSortable,
-                          colSortDir && s.thSorted,
-                        )}
-                      >
-                        {flexRender(h.column.columnDef.header, h.getContext())}
-                        {canSort && (
-                          <span className={s.sortIcon}>
-                            {colSortDir === 'asc' ? '▲' : colSortDir === 'desc' ? '▼' : '↕'}
-                          </span>
-                        )}
-                      </DraggableColumnHeader>
+                        <DraggableColumnHeader
+                          key={h.id}
+                          id={h.id}
+                          onClick={canSort ? () => handleColumnSort(h.id) : undefined}
+                          className={clsx(s.th, canSort && s.thSortable, colSortDir && s.thSorted)}
+                        >
+                          {flexRender(h.column.columnDef.header, h.getContext())}
+                          {canSort && (
+                            <span className={s.sortIcon}>
+                              {colSortDir === 'asc' ? '▲' : colSortDir === 'desc' ? '▼' : '↕'}
+                            </span>
+                          )}
+                        </DraggableColumnHeader>
                       );
                     })}
                   </SortableContext>
@@ -526,22 +488,10 @@ export function OutreachInvestorTable(props: Props) {
   );
 }
 
-const ExportIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    className="lucide lucide-download-icon lucide-download"
-  >
-    <path d="M12 15V3" />
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <path d="m7 10 5 5 5-5" />
+const ArrowUpRightIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7 7h10v10" />
+    <path d="M7 17 17 7" />
   </svg>
 );
 

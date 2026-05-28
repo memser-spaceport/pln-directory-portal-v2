@@ -4,6 +4,7 @@ import { useQueryStates } from 'nuqs';
 import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { FiltersPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout';
 import { InvestorsFilterRail } from '@/components/page/investors/InvestorsFilterRail/InvestorsFilterRail';
+import { WarmIntrosFilterRail } from '@/components/page/investors/WarmIntrosFilterRail/WarmIntrosFilterRail';
 import { investorsFilterParsers } from '../searchParams';
 
 export default function InvestorsFiltersContent() {
@@ -17,12 +18,13 @@ export default function InvestorsFiltersContent() {
     return <FiltersPanelSkeletonLoader />;
   }
 
-  // Hide the rail entirely when:
-  //  - the user can't view the page (landing covers the explanation), or
-  //  - we're in the warm-intros workspace mode (it has its own builder UI)
-  const isWarmIntros = filters.tab === 'co-investors' && filters.mode === 'warm-intros';
-  if (!access.canView || isWarmIntros) {
+  if (!access.canView) {
     return null;
+  }
+
+  const isWarmIntros = filters.tab === 'co-investors' && filters.mode === 'warm-intros';
+  if (isWarmIntros) {
+    return <WarmIntrosFilterRail />;
   }
 
   return <InvestorsFilterRail tab={filters.tab} />;

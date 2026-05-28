@@ -29,11 +29,11 @@ export const GANTRY_ROADMAP_COLUMN_STAGES = [
 
 export const DEFAULT_ROADMAP_VISIBLE_COLUMNS = [...GANTRY_KANBAN_STAGES];
 
-export function sortRoadmapColumnStages<T extends (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number]>(
-  columns: readonly T[],
-): T[] {
+export function sortRoadmapColumnStages(
+  columns: readonly (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number][],
+): (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number][] {
   const selected = new Set(columns);
-  return GANTRY_ROADMAP_COLUMN_STAGES.filter((stage) => selected.has(stage)) as T[];
+  return GANTRY_ROADMAP_COLUMN_STAGES.filter((stage) => selected.has(stage));
 }
 
 /** Mirrors backend `ALLOWED_TRANSITIONS` in roadmap-stage.util.ts */

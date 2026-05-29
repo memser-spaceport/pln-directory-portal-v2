@@ -213,7 +213,7 @@ export const INVESTOR_COLUMN_GROUPS = [
   },
   {
     group: 'LabOS',
-    columns: ['lab_os_profile', 'co_invested_team_ids', 'tags'],
+    columns: ['lab_os_profile', 'co_invested_team_ids'],
   },
 ] as const;
 

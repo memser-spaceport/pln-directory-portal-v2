@@ -15,7 +15,6 @@ import { EmailStatusPill } from '../EmailStatusPill/EmailStatusPill';
 import { SectorTagsList } from '../SectorTagsList/SectorTagsList';
 import { LabOsBadge } from '../LabOsBadge/LabOsBadge';
 import { CoInvestorBadge } from '../CoInvestorBadge/CoInvestorBadge';
-import { TagsCell } from '../TagsCell/TagsCell';
 import s from './OutreachInvestorTable.module.scss';
 
 interface Props {
@@ -66,7 +65,6 @@ const COLUMN_LABELS: Record<string, string> = {
   investor_id: 'Investor ID',
   lab_os_profile: 'In LabOS',
   co_invested_team_ids: 'Co-investor',
-  tags: 'Tags',
 };
 
 const SORTABLE_COLUMNS: Record<string, string> = {
@@ -257,13 +255,6 @@ export function OutreachInvestorTable(props: Props) {
         id: 'outreach_touches',
         header: 'Touches',
         accessorKey: 'outreach_touches',
-      },
-      {
-        id: 'tags',
-        header: 'Tags',
-        accessorFn: (r) => r.tags.join(','),
-        cell: ({ row }) => <TagsCell investorId={row.original.investor_id} tags={row.original.tags} compact />,
-        enableSorting: false,
       },
       { id: 'source', header: 'Source', accessorKey: 'source' },
       { id: 'geo_focus', header: 'Geo', accessorKey: 'geo_focus' },

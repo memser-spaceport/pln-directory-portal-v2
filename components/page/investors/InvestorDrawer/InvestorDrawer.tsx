@@ -14,7 +14,6 @@ import { LabOsBadge } from '../LabOsBadge/LabOsBadge';
 import { EngagementTierBadge } from '../EngagementTierBadge/EngagementTierBadge';
 import { EmailStatusPill } from '../EmailStatusPill/EmailStatusPill';
 import { SectorTagsList } from '../SectorTagsList/SectorTagsList';
-import { TagsCell } from '../TagsCell/TagsCell';
 import { EnrichmentNotesViewer } from '../EnrichmentNotesViewer/EnrichmentNotesViewer';
 import { CopyButton } from '@/components/ui/CopyButton';
 import s from './InvestorDrawer.module.scss';
@@ -225,16 +224,6 @@ export function InvestorDrawer({ access }: Props) {
               </ul>
             </div>
           )}
-
-          <div className={s.section}>
-            <h3 className={s.sectionTitle}>Tags</h3>
-            <TagsCell investorId={investor.investor_id} tags={investor.tags} editable={access.canEdit} />
-            {!access.canEdit && investor.tags.length === 0 && (
-              <p className={s.muted} style={{ fontSize: 12 }}>
-                You need edit access to add tags.
-              </p>
-            )}
-          </div>
 
           <div className={s.section}>
             <h3 className={s.sectionTitle}>Pipeline meta</h3>

@@ -58,21 +58,24 @@ export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
         />
       )}
 
-      <FormEditor
-        name="description"
-        label="Description (optional)"
-        placeholder={
-          canSetStageOnCreate
-            ? 'Add any extra context for this item.'
-            : 'What is the context? What have you tried? Any examples or links?'
-        }
-        enableMentions
-        simplified
-        toolbarConfig={IDEAS_EDITOR_TOOLBAR}
-        minHeight={280}
-        maxLength={DESCRIPTION_MAX_LENGTH}
-        showCharCount
-      />
+      <div className={s.descriptionField}>
+        <FormEditor
+          name="description"
+          label="Description (optional)"
+          classes={!canSetStageOnCreate ? { label: s.gantryFieldLabel } : undefined}
+          placeholder={
+            canSetStageOnCreate
+              ? 'Add any extra context for this item.'
+              : 'What is the context? What have you tried? Any examples or links?'
+          }
+          enableMentions
+          simplified
+          toolbarConfig={IDEAS_EDITOR_TOOLBAR}
+          minHeight={280}
+          maxLength={DESCRIPTION_MAX_LENGTH}
+          showCharCount
+        />
+      </div>
     </div>
   );
 }

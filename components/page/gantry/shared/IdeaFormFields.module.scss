@@ -15,3 +15,29 @@
     color: var(--foreground-neutral-tertiary, #8897ae);
   }
 }
+
+@mixin gantry-field-label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #475569;
+}
+
+.gantryFieldLabel {
+  @include gantry-field-label;
+}
+
+.titleFieldNeed {
+  label {
+    @include gantry-field-label;
+  }
+}
+
+// Quill renders the placeholder on .ql-editor via ::before (see RichTextEditor.module.scss).
+.descriptionField {
+  :global(.ql-editor[data-placeholder]::before) {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}

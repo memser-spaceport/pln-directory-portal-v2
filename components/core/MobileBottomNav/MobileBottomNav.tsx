@@ -11,11 +11,13 @@ import {
   DEMO_DAY_LINK,
   DEMO_DAY_ANALYTICS_LINK,
   JOBS_LINK,
+  GANTRY_LINK,
 } from '@/components/core/navbar/constants/navLinks';
 import { DealsIcon, FounderGuidesIcon, MoreIcon } from '@/components/core/navbar/components/icons';
 import { ISubItem } from '@/components/core/navbar/type';
 import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
+import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 
 import { NavigationMenu } from '@base-ui-components/react';
 
@@ -31,6 +33,7 @@ export function MobileBottomNav() {
   const scrollDirection = useScrollDirection();
   const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
+  const { canView: hasGantryAccess } = useGantryAccess();
 
   const moreItems: ISubItem[] = [
     { href: '/forum', title: 'Forum', icon: <ForumIcon /> },
@@ -38,6 +41,8 @@ export function MobileBottomNav() {
     ...(hasFounderGuidesAccess
       ? [{ href: '/founder-guides', title: 'Founder Guides', icon: <FounderGuidesIcon /> }]
       : []),
+    // TEMP: Gantry temporarily hidden. To restore: `...(hasGantryAccess ? [GANTRY_LINK] : []),`
+    ...(false && hasGantryAccess ? [GANTRY_LINK] : []),
     JOBS_LINK,
   ];
 

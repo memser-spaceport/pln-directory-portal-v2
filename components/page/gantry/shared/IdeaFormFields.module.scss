@@ -1,0 +1,17 @@
+// Align the title input's placeholder tone with the rich-text description
+// placeholder (#8897ae) so the description no longer reads as "bolder" than the
+// title on an empty form. Scoped to the gantry need/item form only.
+.titleField {
+  width: 100%;
+
+  // Match the description editor's near-black text color (the default input
+  // color is a lighter slate, which made the title read as washed-out next to
+  // the description).
+  :global(input) {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  :global(input)::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}

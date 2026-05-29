@@ -13,7 +13,7 @@ export async function getTeamNewsGroupedByFocusArea(
 
   try {
     const response = await fetch(url, {
-      next: { tags: ['team-news'], revalidate: 60 },
+      cache: 'no-store',
       headers: { 'Content-Type': 'application/json' },
     });
     if (!response.ok) {

@@ -82,6 +82,17 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
       await fetchUnreadLinks();
 
       const data = await getNotifications(authToken, { limit: 50 });
+
+      // Seed the map from the notification list itself.
+      // getUnreadLinks may omit public/broadcast notifications (e.g. NEW_FEATURE),
+      // so augmenting here ensures every unread notification with a link is auto-markable.
+      for (const n of data.notifications) {
+        const uid = n.uid ?? n.id;
+        if (!n.isRead && uid && n.link) {
+          addUnreadLinkEntry({ uid, link: n.link }, unreadLinksMapRef.current);
+        }
+      }
+
       setNotifications(
         data.notifications.map((n) =>
           sanitizeNotification({
@@ -239,6 +250,29 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
     wsMarkAsReadRef,
     onMarkedAsRead,
   });
+
+  // Direct scan: mark unread notifications as read when their link matches the current page.
+  // Covers broadcast/public notifications (e.g. NEW_FEATURE) that getUnreadLinks may omit.
+  useEffect(() => {
+    if (!authToken || !pathToCompareNotyLink) return;
+
+    const matching = notifications.filter(
+      (n) => !n.isRead && n.link && normalizeLink(n.link) === pathToCompareNotyLink,
+    );
+
+    if (matching.length === 0) return;
+
+    const uids = matching.map((n) => n.id);
+    onMarkedAsRead(uids);
+
+    uids.forEach((uid) => {
+      markNotificationAsRead(authToken, uid).catch((err) =>
+        console.error('[auto-mark] Failed to mark notification as read:', err),
+      );
+      wsMarkAsReadRef.current?.(uid);
+      removeUnreadLinkUid(uid, unreadLinksMapRef.current);
+    });
+  }, [notifications, pathToCompareNotyLink, authToken, onMarkedAsRead]);
 
   // Mark single notification as read
   const markAsRead = useCallback(

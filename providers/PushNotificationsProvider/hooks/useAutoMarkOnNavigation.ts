@@ -53,5 +53,9 @@ export function useAutoMarkOnNavigation(input: UseAutoMarkOnNavigationOptions) {
     };
 
     markAll();
-  }, [authToken, wsMarkAsReadRef, unreadMap.size, unreadLinksMapRef, onMarkedAsRead, pathToCompareNotyLink]);
+  // unreadMap is included alongside unreadMap.size:
+  // - unreadMap.size detects in-place mutations (addUnreadLinkEntry)
+  // - unreadMap detects reference replacement (fetchUnreadLinks creates a new Map)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authToken, wsMarkAsReadRef, unreadMap, unreadMap.size, onMarkedAsRead, pathToCompareNotyLink]);
 }

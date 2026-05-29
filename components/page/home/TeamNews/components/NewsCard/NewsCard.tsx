@@ -1,12 +1,17 @@
+'use client';
+
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 
 import { getTeamLogoFallback } from './utils/getTeamLogoFallback';
 
+import { StartConversationButton } from './components/StartConversationButton';
+
 import s from './NewsCard.module.scss';
 
 interface NewsCardProps {
   item: ITeamNewsItem;
+  position?: number;
   onClick?: (item: ITeamNewsItem) => void;
 }
 
@@ -19,54 +24,65 @@ const EVENT_TYPE_LABEL: Record<TeamNewsEventType, string> = {
   OTHER: 'Other',
 };
 
-const EVENT_TYPE_CLASS: Record<TeamNewsEventType, string> = {
-  FUNDING: s.chipFunding,
-  LAUNCH: s.chipLaunch,
-  PARTNERSHIP: s.chipPartnership,
-  ANNOUNCEMENT: s.chipAnnouncement,
-  MILESTONE: s.chipMilestone,
-  OTHER: s.chipOther,
+const EVENT_TYPE_DOT_CLASS: Record<TeamNewsEventType, string> = {
+  FUNDING: s.dotFunding,
+  LAUNCH: s.dotLaunch,
+  PARTNERSHIP: s.dotPartnership,
+  ANNOUNCEMENT: s.dotAnnouncement,
+  MILESTONE: s.dotMilestone,
+  OTHER: s.dotOther,
 };
 
-export const NewsCard = ({ item, onClick }: NewsCardProps) => {
-  const handleClick = () => onClick?.(item);
+export const NewsCard = ({ item, position = 0, onClick }: NewsCardProps) => {
+  const handleClick = () => {
+    onClick?.(item);
+    window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
+  };
 
   return (
-    <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className={s.card} onClick={handleClick}>
+    <div role="link" tabIndex={0} className={s.card} onClick={handleClick} onKeyDown={handleKeyDown}>
       <div className={s.head}>
         {item.teamLogoUrl ? (
           <img className={s.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
         ) : (
           <div className={s.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
         )}
-        <div className={s.companyInfo}>
-          <div className={s.titleRow}>
-            <a
-              href={`/teams/${item.teamUid}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={s.teamName}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {item.teamName}
-            </a>
-            <span className={`${s.chip} ${EVENT_TYPE_CLASS[item.eventType]}`}>{EVENT_TYPE_LABEL[item.eventType]}</span>
-          </div>
-          <div className={s.metaLine}>
-            {item.sourceDomain && (
-              <>
-                <span>{item.sourceDomain}</span>
-                <span className={s.dot} aria-hidden="true" />
-              </>
-            )}
-            <span>{formatTimeAgo(item.eventDate)}</span>
-          </div>
+        <a
+          href={`/teams/${item.teamUid}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={s.teamName}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {item.teamName}
+        </a>
+      </div>
+      <h3 className={s.headline}>{item.title}</h3>
+
+      <div className={s.metaLine}>
+        <div className={s.meta}>
+          <span className={s.eventType}>
+            <span className={`${s.eventDot} ${EVENT_TYPE_DOT_CLASS[item.eventType]}`} aria-hidden="true" />
+            <span className={s.eventLabel}>{EVENT_TYPE_LABEL[item.eventType]}</span>
+          </span>
+          {item.sourceDomain && (
+            <>
+              <span className={s.sep} aria-hidden="true" />
+              <span className={s.source}>{item.sourceDomain}</span>
+            </>
+          )}
+          <span className={s.sep} aria-hidden="true" />
+          <span className={s.time}>{formatTimeAgo(item.eventDate)}</span>
         </div>
+        <StartConversationButton item={item} position={position} />
       </div>
-      <div className={s.news}>
-        <h3 className={s.headline}>{item.title}</h3>
-        {item.summary && <p className={s.summary}>{item.summary}</p>}
-      </div>
-    </a>
+    </div>
   );
 };

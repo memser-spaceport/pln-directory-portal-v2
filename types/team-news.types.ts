@@ -6,6 +6,11 @@ export type TeamNewsEventType =
   | 'MILESTONE'
   | 'OTHER';
 
+export interface ITeamNewsDiscussion {
+  count: number;
+  latestTopicUrl: string | null;
+}
+
 export interface ITeamNewsItem {
   uid: string;
   teamUid: string;
@@ -21,6 +26,28 @@ export interface ITeamNewsItem {
   focusAreas: string[];
   subFocusAreas: string[];
   createdAt: string;
+  discussion: ITeamNewsDiscussion;
+}
+
+export interface ICreateTeamNewsDiscussionRequest {
+  forumTopicId: number;
+  forumTopicSlug: string;
+  forumTopicUrl: string;
+}
+
+export interface ITeamNewsForumLink {
+  uid: string;
+  newsItemUid: string;
+  forumTopicId: number;
+  forumTopicSlug: string;
+  forumTopicUrl: string;
+  createdByUid: string | null;
+  createdAt: string;
+}
+
+export interface ICreateTeamNewsDiscussionResponse {
+  link: ITeamNewsForumLink;
+  created: boolean;
 }
 
 export interface ITeamNewsFocusArea {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import s from './CreatePost.module.scss';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -10,7 +10,7 @@ import { FormField } from '@/components/form/FormField';
 import { FormEditor } from '@/components/form/FormEditor';
 import { useCreatePost } from '@/services/forum/hooks/useCreatePost';
 import { toast } from '@/components/core/ToastContainer';
-import { createPostSchema } from '@/components/page/forum/CreatePost/helpers';
+import { buildForumPrefillContent, createPostSchema } from '@/components/page/forum/CreatePost/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { convertMarkdownImagesToHtml, replaceImagesWithMarkdown } from '@/utils/decode';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
@@ -23,6 +23,7 @@ import { useAllMembers } from '@/services/members/hooks/useAllMembers';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
 import { useUpdateMemberPreferences } from '@/services/members/hooks/useUpdateMemberPreferences';
+import { useCreateTeamNewsDiscussionLink } from '@/services/team-news/hooks/useCreateTeamNewsDiscussionLink';
 import { clsx } from 'clsx';
 import { PostFormEditorLabel } from './components/PostFormEditorLabel';
 import { isAdminUser } from '@/utils/user/isAdminUser';
@@ -49,6 +50,20 @@ export const CreatePost = (props: Props) => {
   const params = useParams();
   const searchParams = useSearchParams();
   const fromCategory = searchParams.get('from');
+
+  // Prefill support — used when arriving from external entry points (e.g. the
+  // "Start a conversation" button on a news card). Reads `title`, `url`, `topic`
+  // query params. Body is built safely here, not passed as raw HTML.
+  const prefillTitle = !isEdit ? searchParams.get('title') ?? '' : '';
+  const prefillUrl = !isEdit ? searchParams.get('url') ?? '' : '';
+  const prefillTopicName = !isEdit ? searchParams.get('topic') ?? '' : '';
+  // When present, the topic created from this form will be linked back to
+  // the source news item so the home-page card can show "Join discussion ›".
+  const prefillNewsItemUid = !isEdit ? searchParams.get('newsItemUid') ?? '' : '';
+  const prefillContent = useMemo(
+    () => buildForumPrefillContent(prefillTitle, prefillUrl),
+    [prefillTitle, prefillUrl],
+  );
   useMobileNavVisibility(true);
   const isAdmin = isAdminUser(userInfo);
   const { data: allMembers } = useAllMembers();
@@ -82,8 +97,8 @@ export const CreatePost = (props: Props) => {
       : {
           user: userInfo ? { label: userInfo.name, value: userInfo.uid } : null,
           topic: null,
-          title: '',
-          content: '',
+          title: prefillTitle,
+          content: prefillContent,
         },
     resolver: yupResolver(createPostSchema),
   });
@@ -91,11 +106,30 @@ export const CreatePost = (props: Props) => {
   const {
     handleSubmit,
     reset,
+    setValue,
     formState: { isSubmitting, isDirty, isValid, dirtyFields },
   } = methods;
 
+  // Resolve prefill topic (e.g. "General") to its option once forum categories load.
+  // Runs only once per page entry; user edits afterward win.
+  const prefillTopicAppliedRef = useRef(false);
+  useEffect(() => {
+    if (isEdit || prefillTopicAppliedRef.current) return;
+    if (!prefillTopicName) return;
+    if (!topicsOptions.length) return;
+    const match = topicsOptions.find((opt) => opt.label.toLowerCase() === prefillTopicName.toLowerCase());
+    if (match) {
+      setValue('topic', { label: match.label, value: match.value });
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn(`[CreatePost] prefill topic "${prefillTopicName}" not found in forum categories`);
+    }
+    prefillTopicAppliedRef.current = true;
+  }, [isEdit, prefillTopicName, topicsOptions, setValue]);
+
   const { mutateAsync: createPost } = useCreatePost();
   const { mutateAsync: editPost } = useEditPost();
+  const { mutateAsync: linkNewsDiscussion } = useCreateTeamNewsDiscussionLink();
   const { data: memberPreferences } = useGetMemberPreferences(userInfo?.uid);
   const { mutate: updateMemberPreferences } = useUpdateMemberPreferences();
 
@@ -150,6 +184,31 @@ export const CreatePost = (props: Props) => {
               uid: userInfo.uid,
               payload: { showForumBanner: false },
             });
+          }
+          // If this post originated from a news card, record the link back
+          // to the news item so the card can render "Join discussion ›".
+          // Awaited (not fire-and-forget) so we don't race the navigation:
+          // without the link in the DB, the next /home render won't show the
+          // join affordance until the next cache miss.
+          if (prefillNewsItemUid) {
+            const tid: number | undefined = res?.response?.tid;
+            const slug: string | undefined = res?.response?.slug;
+            if (typeof tid === 'number') {
+              const forumTopicSlug = slug && slug.length > 0 ? slug : String(tid);
+              const forumTopicUrl = `/forum/topics/${payload.cid}/${tid}`;
+              try {
+                await linkNewsDiscussion({
+                  newsItemUid: prefillNewsItemUid,
+                  payload: { forumTopicId: tid, forumTopicSlug, forumTopicUrl },
+                });
+              } catch (linkErr) {
+                // Non-fatal: post was created; only the back-link failed.
+                // The card will show Discuss until a future Discuss flow
+                // succeeds at writing a link.
+                // eslint-disable-next-line no-console
+                console.warn('[CreatePost] failed to write news→forum link', linkErr);
+              }
+            }
           }
           setTimeout(() => {
             router.push('/forum?cid=0');

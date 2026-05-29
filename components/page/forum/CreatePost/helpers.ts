@@ -47,3 +47,29 @@ export const createPostSchema = yup.object().shape({
     })
     .required('Required'),
 });
+
+/**
+ * Builds the HTML body prefilled into the forum editor when a user arrives at
+ * /forum/posts/new with `title` + `url` query params (e.g. from the home
+ * news-feed "Discuss" affordance). Returns an empty string when no URL is
+ * present, or when the URL is not a plain http(s) URL — this drops
+ * `javascript:` and other potentially executable schemes that would run on
+ * click in the rendered editor and persist into the forum on submit.
+ *
+ * Both the URL (inside the href attribute) and the title (used as link text)
+ * are HTML-escaped to prevent attribute-breakout XSS.
+ */
+export function buildForumPrefillContent(prefillTitle: string, prefillUrl: string): string {
+  if (!prefillUrl) return '';
+  if (!/^https?:\/\//i.test(prefillUrl)) return '';
+  const escapeHtml = (s: string) =>
+    s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  const safeUrl = escapeHtml(encodeURI(prefillUrl));
+  const linkText = prefillTitle ? escapeHtml(prefillTitle) : escapeHtml(prefillUrl);
+  return `<p><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${linkText}</a></p>`;
+}

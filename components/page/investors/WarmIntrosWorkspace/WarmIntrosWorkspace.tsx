@@ -1,12 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import clsx from 'clsx';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
 import { useFindWarmIntros } from '@/services/investors/hooks/useFindWarmIntros';
 import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
+
 import {
   CHECK_SIZE_RANGES,
   INDUSTRY_SECTOR_LABEL,
@@ -15,6 +16,7 @@ import {
   STAGE_FOCUSES,
   STAGE_FOCUS_LABEL,
 } from '@/services/investors/constants';
+
 import type {
   CheckSizeRange,
   SectorTag,
@@ -29,7 +31,11 @@ import { exportInvestorsCsv } from '../utils/exportCsv';
 import { ScoringMethodologyModal } from './ScoringMethodologyModal';
 import s from './WarmIntrosWorkspace.module.scss';
 
-export function WarmIntrosWorkspace() {
+interface Props {
+  onCountChange?: (count: number) => void;
+}
+
+export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const access = useInvestorsAccess();
   const [filters, setFilters] = useQueryStates(investorsFilterParsers, {
     history: 'replace',
@@ -43,9 +49,10 @@ export function WarmIntrosWorkspace() {
 
   // Auto-fill criteria from selected team unless user has overridden them
   const effectiveStage = (filters.wi_stage || team?.raising_now || team?.pl_invested_stage) as StageFocus | '';
-  const effectiveSectors: SectorTag[] = filters.wi_sectors.length
-    ? (filters.wi_sectors as SectorTag[])
-    : (team?.sectors ?? []);
+  const effectiveSectors: SectorTag[] = useMemo(
+    () => (filters.wi_sectors.length ? (filters.wi_sectors as SectorTag[]) : (team?.sectors ?? [])),
+    [filters.wi_sectors, team?.sectors],
+  );
   const effectiveCheckSize = (filters.wi_check_size || '') as CheckSizeRange | '';
 
   const params: WarmIntrosParams = useMemo(
@@ -66,6 +73,11 @@ export function WarmIntrosWorkspace() {
   const [activeTier, setActiveTier] = useState<WarmIntroCandidate['tier']>('co_invested');
 
   const candidates = useMemo(() => data?.candidates ?? [], [data]);
+
+  useEffect(() => {
+    if (data) onCountChange?.(candidates.length);
+  }, [candidates.length, data, onCountChange]);
+
   const grouped = useMemo(() => {
     const out: Record<WarmIntroCandidate['tier'], WarmIntroCandidate[]> = {
       co_invested: [],
@@ -244,6 +256,9 @@ export function WarmIntrosWorkspace() {
               )}
             </div>
             <div className={s.resultsActions}>
+              <button type="button" className={s.howScoredLink} onClick={() => setScoringOpen(true)}>
+                How is the Fit score calculated?
+              </button>
               {access.canEdit && (
                 <button className={s.btnPrimary} onClick={exportSelectedCsv} disabled={selectedIds.size === 0}>
                   ⤓ Export CSV ({selectedIds.size})

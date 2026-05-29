@@ -16,7 +16,8 @@ import { getFeaturedData } from '@/services/featured.service';
 import { formatFeaturedData } from '@/utils/home.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
-import { TeamNews } from '@/components/page/home/TeamNews';
+import { QuickActions } from '@/components/page/home/QuickActions';
+import { NewsLoginRedirect, TeamNews, AutoMarkNewsNotification } from '@/components/page/home/TeamNews';
 import { getTeamNewsGroupedByFocusArea } from '@/services/team-news/team-news.service';
 import type { ITeamNewsGroup } from '@/types/team-news.types';
 
@@ -36,6 +37,7 @@ export default async function Home() {
               <Welcome />
             </div>
           )}
+          {isLoggedIn && <QuickActions userInfo={userInfo} />}
           <div className={styles.home__cn__teamnews}>
             <TeamNews groups={teamNewsGroups} />
           </div>
@@ -47,6 +49,8 @@ export default async function Home() {
       </div>
       <HuskyDialog isLoggedIn={isLoggedIn} />
       <HuskyDiscover isLoggedIn={isLoggedIn} />
+      <NewsLoginRedirect />
+      <AutoMarkNewsNotification />
     </>
   );
 }

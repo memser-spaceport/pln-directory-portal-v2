@@ -1,0 +1,26 @@
+@import 'styles/media.scss';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100%;
+}
+
+.body {
+  flex: 1 1 auto;
+  padding: 0;
+}
+
+.noAccess {
+  max-width: 720px;
+  margin: 48px auto;
+  text-align: center;
+  color: #374151;
+}
+
+@include mobile-only {
+  .body {
+    padding: 0;
+  }
+}

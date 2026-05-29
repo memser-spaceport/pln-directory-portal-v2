@@ -40,6 +40,7 @@ const makeItem = (uid: string, eventType: TeamNewsEventType, focusAreaTitles: st
   focusAreas: focusAreaTitles,
   subFocusAreas: [],
   createdAt: '2026-05-01T12:00:00.000Z',
+  discussion: { count: 0, latestTopicUrl: null },
 });
 
 const aiItems: ITeamNewsItem[] = [
@@ -166,11 +167,9 @@ describe('TeamNews', () => {
 
   it('reports analytics when a card is clicked', () => {
     render(<TeamNews groups={groups} />);
-    const card = screen.getByText(/Headline ai-1/).closest('a');
-    expect(card).toHaveAttribute('href', 'https://example.com/ai-1');
-    expect(card).toHaveAttribute('target', '_blank');
-    expect(card).toHaveAttribute('rel', 'noopener noreferrer');
-    fireEvent.click(within(card!).getByText(/Headline ai-1/));
+    const card = screen.getByText(/Headline ai-1/).closest('[role="link"]');
+    expect(card).toBeInTheDocument();
+    fireEvent.click(within(card! as HTMLElement).getByText(/Headline ai-1/));
     expect(mockOnCardClicked).toHaveBeenCalledTimes(1);
     const [item, position] = mockOnCardClicked.mock.calls[0];
     expect(item.uid).toBe('ai-1');

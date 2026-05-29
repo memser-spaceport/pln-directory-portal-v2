@@ -9,7 +9,8 @@ export default function Layout({ filters, content }: { filters: ReactNode; conte
 
 export const metadata: Metadata = {
   title: 'Investor DB | Protocol Labs Directory',
-  description: 'Internal Investor DB for the PL investment team — network investors, co-investors, and outreach pipeline.',
+  description:
+    'Internal Investor DB for the PL investment team — network investors, co-investors, and outreach pipeline.',
   robots: { index: false, follow: false },
   openGraph: {
     type: 'website',

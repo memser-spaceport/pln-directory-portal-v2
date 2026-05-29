@@ -4,61 +4,13 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #fafbfc;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  position: relative;
-}
-
-.toolbar_left, .toolbar_right { display: flex; align-items: center; gap: 8px; }
-
-.toolbarBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.4;
-  background: #fff;
-  color: #455468;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  cursor: pointer;
-  white-space: nowrap;
-
-  &:hover:not(:disabled) { background: #f9fafb; }
-  &:disabled { opacity: 0.45; cursor: not-allowed; }
-}
-
-.toolbarBtnIcon {
-  font-size: 16px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-}
-.selection { display: inline-flex; align-items: center; gap: 8px; color: #1b4dff; font-weight: 500; }
-.muted { color: #6b7280; }
-.linkBtn {
-  background: none; border: none; padding: 0; cursor: pointer; color: #1b4dff; font-size: 12px; text-decoration: underline;
+  //background: #fff;
 }
 
 .tableWrap {
   overflow: auto;
-  //max-height: calc(100vh - 280px);
+  border-radius: 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
 .table {
@@ -70,20 +22,24 @@
   font-size: 14px;
 }
 
+// ── Header ───────────────────────────────────────────────────────────────────
+
 .th {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: #f9fafb;
+  //background: #f8fafc;
   text-align: left;
-  padding: 8px 12px;
-  font-weight: 600;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: #6b7280;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 16px;
+  font-weight: 500;
+  font-size: 12px;
+  color: #64748b;
+  //border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
+
+  //overflow: hidden;
+  //border-radius: 10px;
+  background: var(--background-neutral-soft-surface, #F9FAFB);
 }
 
 .thSortable {
@@ -92,8 +48,8 @@
 }
 
 .thSortable:hover {
-  color: #0a0c11;
-  background: #f3f4f6;
+  color: #0f172a;
+  background: #f1f5f9;
 }
 
 .thSorted {
@@ -104,17 +60,17 @@
   display: inline-block;
   margin-left: 4px;
   font-size: 9px;
-  color: #d1d5db;
+  color: #cbd5e1;
 }
 
 .thSorted .sortIcon { color: #1b4dff; }
 
-// --- Frozen columns (checkbox + name) ---
+// ── Frozen columns ───────────────────────────────────────────────────────────
 
 .checkboxCol {
-  width: 32px;
-  padding: 8px 6px 8px 12px;
-  background: #f9fafb;
+  width: 40px;
+  padding: 8px 6px 8px 16px;
+  background: #f8fafc;
   position: sticky;
   left: 0;
   z-index: 2;
@@ -129,7 +85,7 @@ tbody .checkboxCol {
   background: #fff;
 }
 
-.row:hover .checkboxCol { background: #fafbfc; }
+.row:hover .checkboxCol { background: #f8fafc; }
 .rowSelected .checkboxCol { background: #eef2ff; }
 .rowSelected:hover .checkboxCol { background: #e0e7ff; }
 
@@ -137,49 +93,127 @@ tbody .checkboxCol {
   position: sticky;
   z-index: 2;
   background: #fff;
-  // shadow marks the frozen boundary
-  box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.07);
+  box-shadow: 2px 0 8px -2px rgba(0, 0, 0, 0.06);
 }
 
 .frozenNameNoCheckbox { left: 0; }
-.frozenNameWithCheckbox { left: 32px; }
+.frozenNameWithCheckbox { left: 40px; }
 
 thead .frozenName {
   top: 0;
   z-index: 3;
-  background: #f9fafb;
+  background: #f8fafc;
 }
 
-.row:hover .frozenName { background: #fafbfc; }
+.row:hover .frozenName { background: #f8fafc; }
 .rowSelected .frozenName { background: #eef2ff; }
 .rowSelected:hover .frozenName { background: #e0e7ff; }
+
+// ── Rows ─────────────────────────────────────────────────────────────────────
 
 .row {
   cursor: pointer;
   transition: background 0.08s;
+
+  &:hover .arrowIcon {
+    opacity: 1;
+  }
 }
-.row:hover { background: #fafbfc; }
+
+.row:hover { background: #f8fafc; }
 .rowSelected { background: #eef2ff; }
 .rowSelected:hover { background: #e0e7ff; }
 
 .td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #f3f4f6;
-  vertical-align: top;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
   white-space: nowrap;
 }
 
+// ── Name cell ────────────────────────────────────────────────────────────────
+
 .nameCell {
-  min-width: 220px;
-  max-width: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 240px;
+  max-width: 280px;
+}
+
+.nameCellContent {
+  flex: 1;
+  min-width: 0;
   white-space: normal;
 }
-.nameRow { display: flex; align-items: center; gap: 6px; }
-.nameText { font-weight: 600; color: #0a0c11; }
-.nameSub { font-size: 12px; color: #6b7280; margin-top: 1px; }
-.nameSubMuted { @include ellipse-text; font-size: 12px; color: #9ca3af; margin-top: 1px; font-style: italic; }
 
-.nameBadge { margin-top: 4px; }
+.nameRow { display: flex; align-items: center; gap: 6px; }
+.nameText {
+  font-weight: 600;
+  font-size: 14px;
+  color: #0f172a;
+  line-height: 1.4;
+}
+.nameSub {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.nameSubMuted {
+  @include ellipse-text;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.nameBadge { margin-top: 5px; }
+
+// ── Firm cell ────────────────────────────────────────────────────────────────
+
+.firmCell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 200px;
+  max-width: 280px;
+}
+
+.firmCellContent {
+  flex: 1;
+  min-width: 0;
+  white-space: normal;
+}
+
+.firmText {
+  font-weight: 500;
+  font-size: 14px;
+  color: #0f172a;
+  line-height: 1.4;
+}
+.firmSub {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+// ── Arrow icon (external link hint) ─────────────────────────────────────────
+
+.arrowIcon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: #94a3b8;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+// ── Co-investor chips ────────────────────────────────────────────────────────
 
 .coTeamsRow {
   display: inline-flex;
@@ -211,21 +245,17 @@ thead .frozenName {
   align-items: center;
   padding: 2px 6px;
   border-radius: 999px;
-  background: #f3f4f6;
-  color: #6b7280;
+  background: #f1f5f9;
+  color: #64748b;
   font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 600;
   cursor: help;
 }
 
-.firmCell {
-  min-width: 200px;
-  max-width: 200px;
-  white-space: normal;
-}
-.firmText { font-weight: 500; color: #0a0c11; }
-.firmSub { font-size: 12px; color: #6b7280; margin-top: 1px; }
+// ── Other cells ──────────────────────────────────────────────────────────────
+
+.muted { color: #94a3b8; }
 
 .thesisCell {
   display: -webkit-box;
@@ -235,20 +265,20 @@ thead .frozenName {
   white-space: normal;
   max-width: 280px;
   font-size: 13px;
-  color: #455468;
+  color: #475569;
 }
 
 .empty {
-  padding: 32px;
+  padding: 48px 32px;
   text-align: center;
-  color: #6b7280;
-  font-size: 13px;
+  color: #94a3b8;
+  font-size: 14px;
 }
 
 .sentinelLoader {
-  padding: 12px;
+  padding: 16px;
   text-align: center;
   font-family: 'Inter', sans-serif;
   font-size: 12px;
-  color: #9ca3af;
+  color: #94a3b8;
 }

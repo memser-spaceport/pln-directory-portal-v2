@@ -32,7 +32,9 @@ export const GANTRY_ROADMAP_COLUMN_STAGES = [
 ] as const;
 
 /** Gantry board defaults to every stage column except DECLINED. */
-export const DEFAULT_ROADMAP_VISIBLE_COLUMNS = GANTRY_ROADMAP_COLUMN_STAGES.filter((stage) => stage !== 'DECLINED');
+export const DEFAULT_ROADMAP_VISIBLE_COLUMNS = GANTRY_ROADMAP_COLUMN_STAGES.filter(
+  (stage) => stage !== 'DECLINED' && stage !== 'BACKLOG',
+);
 
 export const GANTRY_VISIBLE_COLUMNS_STORAGE_KEY = 'gantry.board.visibleColumns';
 

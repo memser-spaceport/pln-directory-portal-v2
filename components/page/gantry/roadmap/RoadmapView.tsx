@@ -190,7 +190,7 @@ export function RoadmapView() {
               <div className={s.titleRow}>
                 <div className={s.titleSection}>
                   <div className={s.titleInline}>
-                    <h1 className={s.title}>Dashboard</h1>
+                    <h1 className={s.title}>Gantry</h1>
                     {canCreate && (
                       <div className={s.actionsMobile}>
                         <IdeasSubmitButton

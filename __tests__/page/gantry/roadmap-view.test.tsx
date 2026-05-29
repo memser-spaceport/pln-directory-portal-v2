@@ -89,7 +89,7 @@ describe('RoadmapView', () => {
 
     render(<RoadmapView />);
 
-    expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Gantry' })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Create Item' }).length).toBeGreaterThan(0);
     expect(screen.getAllByText('Planned').length).toBeGreaterThan(0);
     expect(screen.getAllByText('In Progress').length).toBeGreaterThan(0);

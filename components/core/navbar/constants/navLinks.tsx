@@ -86,7 +86,7 @@ export const GANTRY_LINK: ISubItem = {
   icon: <GantryIcon />,
   href: '/gantry/dashboard',
   title: 'Gantry',
-  description: 'Internal ideas and roadmap board.',
+  description: 'Needs and roadmap',
 };
 
 export const DEMO_DAY_LINK: ISubItem = {

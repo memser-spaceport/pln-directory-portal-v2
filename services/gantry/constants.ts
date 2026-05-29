@@ -29,7 +29,7 @@ export const GANTRY_ROADMAP_COLUMN_STAGES = [
   'DECLINED',
 ] as const;
 
-/** Dashboard defaults to every stage column except DECLINED. */
+/** Gantry board defaults to every stage column except DECLINED. */
 export const DEFAULT_ROADMAP_VISIBLE_COLUMNS = GANTRY_ROADMAP_COLUMN_STAGES.filter((stage) => stage !== 'DECLINED');
 
 export function sortRoadmapColumnStages(

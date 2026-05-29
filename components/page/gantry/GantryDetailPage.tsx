@@ -93,7 +93,7 @@ export function GantryDetailPage({ uid }: Props) {
           <div className={s.notFound}>
             <h1>Item not found</h1>
             <Link href="/gantry/dashboard" className={s.notFoundLink}>
-              Back to Dashboard
+              Back to Gantry
             </Link>
           </div>
         </div>

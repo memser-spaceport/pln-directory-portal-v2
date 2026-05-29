@@ -7,6 +7,16 @@ import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvest
 import { useFindWarmIntros } from '@/services/investors/hooks/useFindWarmIntros';
 import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
+
+import {
+  CHECK_SIZE_RANGES,
+  INDUSTRY_SECTOR_LABEL,
+  SECTOR_TAGS,
+  SECTOR_TAG_LABEL,
+  STAGE_FOCUSES,
+  STAGE_FOCUS_LABEL,
+} from '@/services/investors/constants';
+
 import type {
   CheckSizeRange,
   SectorTag,
@@ -83,6 +93,22 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const displayTier: WarmIntroCandidate['tier'] =
     grouped[activeTier].length > 0 ? activeTier : (TIERS.find((t) => grouped[t].length > 0) ?? activeTier);
 
+  const toggleSector = (sec: SectorTag) => {
+    const cur = filters.wi_sectors;
+    const next = cur.includes(sec) ? cur.filter((x) => x !== sec) : [...cur, sec];
+    setFilters({ wi_sectors: next.length ? next : null });
+  };
+
+  const reset = () => {
+    setFilters({
+      wi_team_id: null,
+      wi_stage: null,
+      wi_sectors: null,
+      wi_check_size: null,
+    });
+    setSelectedIds(new Set());
+  };
+
   const exportSelectedCsv = () => {
     const rows = candidates.filter((c) => selectedIds.has(c.investor.investor_id)).map((c) => c.investor);
     if (rows.length === 0) return;
@@ -103,6 +129,110 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
 
   return (
     <div className={s.root}>
+      <section className={s.builder}>
+        <header className={s.builderH}>
+          <div className={s.builderTitleRow}>
+            <h2 className={s.title}>Find warm investor intros</h2>
+            <button
+              type="button"
+              className={s.howScoredLink}
+              onClick={() => setScoringOpen(true)}
+              aria-label="How are candidates ranked?"
+            >
+              How is the Fit score calculated?
+            </button>
+          </div>
+          <p className={s.desc}>
+            Use any combination of filters below to see investor intro paths sorted by Fit score.
+          </p>
+        </header>
+
+        <div className={s.builderRow}>
+          <div className={s.field}>
+            <label className={s.label}>Portfolio team</label>
+            <select
+              className={s.select}
+              value={teamId}
+              onChange={(e) => setFilters({ wi_team_id: e.target.value || null })}
+            >
+              <option value="">— or set criteria manually —</option>
+              {teams?.map((t) => (
+                <option key={t.team_id} value={t.team_id}>
+                  {t.team_name} · PL invested {STAGE_FOCUS_LABEL[t.pl_invested_stage]}
+                  {t.raising_now && t.raising_now !== t.pl_invested_stage
+                    ? ` · raising ${STAGE_FOCUS_LABEL[t.raising_now]}`
+                    : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={s.field}>
+            <label className={s.label}>Stage focus</label>
+            <select
+              className={s.select}
+              value={effectiveStage}
+              onChange={(e) => setFilters({ wi_stage: e.target.value || null })}
+            >
+              <option value="">Any</option>
+              {STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => (
+                <option key={st} value={st}>
+                  {STAGE_FOCUS_LABEL[st]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={s.field}>
+            <label className={s.label}>Check size</label>
+            <select
+              className={s.select}
+              value={effectiveCheckSize}
+              onChange={(e) => setFilters({ wi_check_size: e.target.value || null })}
+            >
+              <option value="">Any</option>
+              {CHECK_SIZE_RANGES.filter((c) => c !== 'unknown').map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={s.actions}>
+            <button className={s.btn} onClick={reset}>
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <div className={s.field} style={{ marginTop: 12 }}>
+          <label className={s.label}>{INDUSTRY_SECTOR_LABEL}</label>
+          <div className={s.sectorChips}>
+            {SECTOR_TAGS.map((sec) => (
+              <button
+                key={sec}
+                className={clsx(s.chip, effectiveSectors.includes(sec) && s.chipOn)}
+                onClick={() => toggleSector(sec)}
+              >
+                {SECTOR_TAG_LABEL[sec]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {team && (
+          <div className={s.summary}>
+            <strong>Auto-pulled from {team.team_name}:</strong>
+            <span>
+              <span className={s.auto}>stage</span> {STAGE_FOCUS_LABEL[team.raising_now ?? team.pl_invested_stage]} ·{' '}
+              <span className={s.auto}>sectors</span> {team.sectors.join(', ')} · <span className={s.auto}>geo</span>{' '}
+              {team.geo}
+            </span>
+          </div>
+        )}
+      </section>
+
       {!enabled && (
         <div className={s.placeholder}>
           <div className={s.placeholderIcon}>⚡</div>

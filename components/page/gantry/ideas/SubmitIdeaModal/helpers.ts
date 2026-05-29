@@ -29,6 +29,11 @@ export const submitIdeaSchema = yup.object().shape({
     .optional(),
 });
 
+export const editIdeaSchema = yup.object().shape({
+  title: yup.string().required('Title is required').max(100, 'Max 100 characters'),
+  description: yup.string().optional(),
+});
+
 export interface SubmitIdeaFormData {
   title: string;
   description: string;

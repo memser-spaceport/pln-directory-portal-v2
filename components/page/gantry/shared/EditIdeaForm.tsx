@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Button } from '@/components/common/Button';
 import { useUpdateGantryItem } from '@/services/gantry/hooks/useUpdateGantryItem';
 import type { GantryItem } from '@/services/gantry/types';
-import { submitIdeaSchema, hasRichTextContent, type SubmitIdeaFormData } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
+import {
+  editIdeaSchema,
+  hasRichTextContent,
+  type SubmitIdeaFormData,
+} from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { IdeaFormFields } from './IdeaFormFields';
 import s from './EditIdeaForm.module.scss';
 
@@ -20,7 +23,7 @@ export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
   const updateMutation = useUpdateGantryItem(item.uid);
 
   const methods = useForm<SubmitIdeaFormData>({
-    resolver: yupResolver(submitIdeaSchema) as any,
+    resolver: yupResolver(editIdeaSchema) as any,
     defaultValues: {
       title: item.title,
       description: item.description,
@@ -30,15 +33,9 @@ export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
 
   const {
     handleSubmit,
-    trigger,
-    formState: { isValid },
+    formState: { errors },
   } = methods;
-
-  // The form is pre-filled with valid data; run validation on mount so `isValid`
-  // (and the Save button) reflects that without requiring a field change first.
-  useEffect(() => {
-    void trigger();
-  }, [trigger]);
+  console.log(errors);
 
   const onSubmit = async (data: SubmitIdeaFormData) => {
     await updateMutation.mutateAsync({
@@ -61,9 +58,7 @@ export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
           <Button style="border" variant="neutral" onClick={onCancel} disabled={updateMutation.isPending}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} disabled={!isValid || updateMutation.isPending}>
-            {updateMutation.isPending ? 'Saving...' : 'Save changes'}
-          </Button>
+          <Button onClick={handleSubmit(onSubmit)}>{updateMutation.isPending ? 'Saving...' : 'Save changes'}</Button>
         </div>
       </div>
     </FormProvider>

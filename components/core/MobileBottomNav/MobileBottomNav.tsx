@@ -41,7 +41,8 @@ export function MobileBottomNav() {
     ...(hasFounderGuidesAccess
       ? [{ href: '/founder-guides', title: 'Founder Guides', icon: <FounderGuidesIcon /> }]
       : []),
-    ...(hasGantryAccess ? [GANTRY_LINK] : []),
+    // TEMP: Gantry temporarily hidden. To restore: `...(hasGantryAccess ? [GANTRY_LINK] : []),`
+    ...(false && hasGantryAccess ? [GANTRY_LINK] : []),
     JOBS_LINK,
   ];
 

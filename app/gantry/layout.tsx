@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { ReactNode } from 'react';
+import { redirect } from 'next/navigation';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { GantryAccessGuard } from '@/components/page/gantry/GantryAccessGuard';
 import s from '@/components/page/gantry/GantryShell.module.scss';
@@ -27,6 +28,9 @@ export const metadata: Metadata = {
 };
 
 export default function GantryLayout({ children }: { children: ReactNode }) {
+  // TEMP: Gantry temporarily hidden. To restore, delete this redirect.
+  redirect('/');
+
   return (
     <GantryAccessGuard>
       <div className={s.root}>

@@ -105,7 +105,8 @@ function Navbar(props: Readonly<INavbar>) {
   const moreLinks: ISubItem[] = [
     DEALS_LINK,
     ...(hasFounderGuidesAccess ? [FOUNDER_GUIDES_LINK] : []),
-    ...(hasGantryAccess ? [GANTRY_LINK] : []),
+    // TEMP: Gantry temporarily hidden. To restore: `...(hasGantryAccess ? [GANTRY_LINK] : []),`
+    ...(false && hasGantryAccess ? [GANTRY_LINK] : []),
     JOBS_LINK,
     ...(hasInvestorDbAccess ? [INVESTOR_DB_LINK] : []),
   ];

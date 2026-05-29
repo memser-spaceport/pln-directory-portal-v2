@@ -143,14 +143,16 @@ export function GantryDetailPage({ uid }: Props) {
                 {canEdit && !isEditMode && (
                   <div className={s.itemActions}>
                     <EditButton onClick={() => setIsEditMode(true)} />
-                    <HeaderActionBtn
-                      onClick={() => setIsArchiveModalOpen(true)}
-                      disabled={archiveMutation.isPending}
-                      className={s.archiveAction}
-                    >
-                      <ArchiveIcon />
-                      Archive
-                    </HeaderActionBtn>
+                    {access.canCurate && (
+                      <HeaderActionBtn
+                        onClick={() => setIsArchiveModalOpen(true)}
+                        disabled={archiveMutation.isPending}
+                        className={s.archiveAction}
+                      >
+                        <ArchiveIcon />
+                        Archive
+                      </HeaderActionBtn>
+                    )}
                   </div>
                 )}
               </div>

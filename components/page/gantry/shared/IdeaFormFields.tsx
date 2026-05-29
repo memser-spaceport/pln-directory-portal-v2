@@ -8,6 +8,7 @@ import type { GantryStage } from '@/services/gantry/types';
 import { DESCRIPTION_MAX_LENGTH } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { GantryStageOptionLabel } from './GantryStageOptionLabel';
 import formStyles from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
+import s from './IdeaFormFields.module.scss';
 
 function renderStageOption(stage: GantryStage) {
   return <GantryStageOptionLabel stage={stage} />;
@@ -27,17 +28,19 @@ const IDEAS_EDITOR_TOOLBAR: (string | Record<string, unknown>)[][] = [
 export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
   return (
     <div className={formStyles.form}>
-      <FormField
-        name="title"
-        label={canSetStageOnCreate ? 'Title' : 'What is your current need?'}
-        placeholder={
-          canSetStageOnCreate ? 'Give this item a short, clear title.' : 'Describe the problem you’re facing.'
-        }
-        isRequired
-        max={100}
-        maxLength={100}
-        description={canSetStageOnCreate ? 'Max. 100 characters.' : 'Max. 100 characters.'}
-      />
+      <div className={s.titleField}>
+        <FormField
+          name="title"
+          label={canSetStageOnCreate ? 'Title' : 'What is your current need?'}
+          placeholder={
+            canSetStageOnCreate ? 'Give this item a short, clear title.' : 'Describe the problem you’re facing.'
+          }
+          isRequired
+          max={100}
+          maxLength={100}
+          description={canSetStageOnCreate ? 'Max. 100 characters.' : 'Max. 100 characters.'}
+        />
+      </div>
 
       {canSetStageOnCreate && (
         <FormSelect

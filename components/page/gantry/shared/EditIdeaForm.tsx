@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Button } from '@/components/common/Button';
@@ -29,8 +30,15 @@ export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
 
   const {
     handleSubmit,
+    trigger,
     formState: { isValid },
   } = methods;
+
+  // The form is pre-filled with valid data; run validation on mount so `isValid`
+  // (and the Save button) reflects that without requiring a field change first.
+  useEffect(() => {
+    void trigger();
+  }, [trigger]);
 
   const onSubmit = async (data: SubmitIdeaFormData) => {
     await updateMutation.mutateAsync({

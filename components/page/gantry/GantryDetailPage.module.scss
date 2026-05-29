@@ -176,6 +176,10 @@
 }
 
 .richContent {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+
   h3 {
     font-size: 20px;
     font-weight: 500;
@@ -194,6 +198,14 @@
   a {
     color: #1b4dff;
     text-decoration: underline;
+  }
+
+  img,
+  video,
+  iframe {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
   }
 }
 

@@ -37,7 +37,7 @@ export default async function Home() {
               <Welcome />
             </div>
           )}
-          {isLoggedIn && <QuickActions userInfo={userInfo} />}
+          {isLoggedIn && <QuickActions />}
           <div className={styles.home__cn__teamnews}>
             <TeamNews groups={teamNewsGroups} />
           </div>

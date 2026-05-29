@@ -3,6 +3,7 @@
 import type { IUserInfo } from '@/types/shared.types';
 
 import { useOfficeHoursAccess } from '@/services/access-control/hooks/useOfficeHoursAccess';
+import { useFounderGuidesAccess } from '@/services/access-control/hooks/useFounderGuidesAccess';
 
 import {
   JobsIcon,
@@ -29,6 +30,9 @@ interface QuickActionsProps {
 export function QuickActions({ userInfo }: QuickActionsProps) {
   const group = detectUserGroup(userInfo?.rbac?.policies);
   const { canViewSupply, canSupply, canViewDemand, canRequestDemand, isLoading: ohLoading } = useOfficeHoursAccess();
+  const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
+
+  const hasDealsAccess = !!userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'deals.read');
 
   // For 'others' we defer until OH access resolves to prevent a card swap flicker
   if (group === 'others' && ohLoading) return null;
@@ -77,18 +81,22 @@ export function QuickActions({ userInfo }: QuickActionsProps) {
         {group === 'founder' && (
           <>
             {ohCard}
-            <ActionCard
-              icon={<FounderGuidesIcon />}
-              title="Founder Guides"
-              description="Resources curated for network founders"
-              href="/founder-guides"
-            />
-            <ActionCard
-              icon={<DealsIcon />}
-              title="Network Deals"
-              description="Exclusive offers for network members"
-              href="/deals"
-            />
+            {hasFounderGuidesAccess && (
+              <ActionCard
+                icon={<FounderGuidesIcon />}
+                title="Founder Guides"
+                description="Resources curated for network founders"
+                href="/founder-guides"
+              />
+            )}
+            {hasDealsAccess && (
+              <ActionCard
+                icon={<DealsIcon />}
+                title="Network Deals"
+                description="Exclusive offers for network members"
+                href="/deals"
+              />
+            )}
             <ActionCard icon={<JobsIcon />} title="Job Board" description="Find your next role" href="/jobs" />
           </>
         )}

@@ -1,14 +1,12 @@
 'use client';
 
+import { clsx } from 'clsx';
 import { FormField } from '@/components/form/FormField';
 import { FormEditor } from '@/components/form/FormEditor/FormEditor';
 import { FormSelect } from '@/components/form/FormSelect';
 import { GANTRY_CREATE_STAGE_OPTIONS } from '@/services/gantry/constants';
 import type { GantryStage } from '@/services/gantry/types';
-import {
-  DESCRIPTION_MAX_LENGTH,
-  TITLE_MAX_LENGTH,
-} from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
+import { DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { GantryStageOptionLabel } from './GantryStageOptionLabel';
 import formStyles from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
 import s from './IdeaFormFields.module.scss';
@@ -31,7 +29,7 @@ const IDEAS_EDITOR_TOOLBAR: (string | Record<string, unknown>)[][] = [
 export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
   return (
     <div className={formStyles.form}>
-      <div className={s.titleField}>
+      <div className={clsx(s.titleField, !canSetStageOnCreate && s.titleFieldNeed)}>
         <FormField
           name="title"
           label={canSetStageOnCreate ? 'Title' : 'What do you need?'}
@@ -71,7 +69,7 @@ export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
         enableMentions
         simplified
         toolbarConfig={IDEAS_EDITOR_TOOLBAR}
-        minHeight={200}
+        minHeight={280}
         maxLength={DESCRIPTION_MAX_LENGTH}
         showCharCount
       />

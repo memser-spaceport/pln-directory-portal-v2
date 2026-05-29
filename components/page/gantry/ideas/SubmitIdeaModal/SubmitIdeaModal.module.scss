@@ -1,0 +1,13 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 640px;
+  max-width: calc(100vw - 32px);
+  max-height: min(98dvh, 900px);
+  border-radius: 24px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.06);
+}

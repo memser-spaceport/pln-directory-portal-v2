@@ -19,7 +19,8 @@ import {
 } from '@/services/gantry/submitIdeaModal';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
 import { submitIdeaSchema, hasRichTextContent, type SubmitIdeaFormData } from './helpers';
-import s from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
+import dealModalStyles from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
+import s from './SubmitIdeaModal.module.scss';
 
 export function SubmitIdeaModal() {
   const router = useRouter();
@@ -77,27 +78,27 @@ export function SubmitIdeaModal() {
   return (
     <Modal isOpen={open} onClose={onClose} closeOnBackdropClick={false}>
       <div className={s.root}>
-        <div className={s.header}>
-          <div className={s.headerText}>
-            <h2 className={s.title}>{copy.title}</h2>
-            <p className={s.subtitle}>{copy.subtitle}</p>
+        <div className={dealModalStyles.header}>
+          <div className={dealModalStyles.headerText}>
+            <h2 className={dealModalStyles.title}>{copy.title}</h2>
+            <p className={dealModalStyles.subtitle}>{copy.subtitle}</p>
           </div>
-          <button type="button" className={s.closeButton} onClick={onClose} aria-label="Close">
+          <button type="button" className={dealModalStyles.closeButton} onClick={onClose} aria-label="Close">
             <CloseIcon width={20} height={20} color="#0a0c11" />
           </button>
         </div>
 
-        <div className={s.content}>
+        <div className={dealModalStyles.content}>
           <FormProvider {...methods}>
             <IdeaFormFields canSetStageOnCreate={canSetStageOnCreate} />
           </FormProvider>
         </div>
 
-        <div className={s.footer}>
+        <div className={dealModalStyles.footer}>
           {copy.footerNote ? (
             <>
-              <p className={s.footerNote}>{copy.footerNote}</p>
-              <div className={s.footerActions}>
+              <p className={dealModalStyles.footerNote}>{copy.footerNote}</p>
+              <div className={dealModalStyles.footerActions}>
                 <Button style="link" variant="secondary" onClick={onClose}>
                   Cancel
                 </Button>

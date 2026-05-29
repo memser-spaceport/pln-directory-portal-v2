@@ -1,4 +1,4 @@
-export type GantryStage = 'IDEA' | 'UNDER_REVIEW' | 'PLANNED' | 'IN_PROGRESS' | 'SHIPPED' | 'DECLINED';
+export type GantryStage = 'IDEA' | 'BACKLOG' | 'PLANNED' | 'IN_PROGRESS' | 'SHIPPED' | 'DECLINED';
 
 export interface GantryMemberSummary {
   uid: string;

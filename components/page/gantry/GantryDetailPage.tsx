@@ -15,6 +15,7 @@ import { useGantryItem } from '@/services/gantry/hooks/useGantryItem';
 import { useArchiveGantryItem } from '@/services/gantry/hooks/useArchiveGantryItem';
 import { useGantryTransition } from '@/services/gantry/hooks/useGantryTransition';
 import { useGantryUpvote } from '@/services/gantry/hooks/useGantryUpvote';
+import { isPreRoadmapStage } from '@/services/gantry/constants';
 import type { GantryStage } from '@/services/gantry/types';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
 import { EditIdeaForm } from './shared/EditIdeaForm';
@@ -29,7 +30,7 @@ interface Props {
   readonly uid: string;
 }
 
-const editableStages: GantryStage[] = ['IDEA', 'UNDER_REVIEW'];
+const editableStages: GantryStage[] = ['IDEA', 'BACKLOG'];
 
 export function GantryDetailPage({ uid }: Props) {
   const router = useRouter();
@@ -52,7 +53,7 @@ export function GantryDetailPage({ uid }: Props) {
       return;
     }
 
-    if ((item.stage === 'IDEA' || item.stage === 'UNDER_REVIEW') && nextStage === 'PLANNED') {
+    if (isPreRoadmapStage(item.stage) && nextStage === 'PLANNED') {
       await transitionMutation.mutateAsync({ uid: item.uid, payload: { type: 'promote' } });
       return;
     }

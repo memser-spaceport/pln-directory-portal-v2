@@ -4,6 +4,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Button } from '@/components/common/Button';
 import { useUpdateGantryItem } from '@/services/gantry/hooks/useUpdateGantryItem';
+import { isPreRoadmapStage } from '@/services/gantry/constants';
 import type { GantryItem } from '@/services/gantry/types';
 import {
   editIdeaSchema,
@@ -49,7 +50,7 @@ export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
     <FormProvider {...methods}>
       <div className={s.root}>
         <h2 className={s.heading}>
-          {item.stage === 'IDEA' || item.stage === 'UNDER_REVIEW' ? 'Edit need' : 'Edit item'}
+          {isPreRoadmapStage(item.stage) ? 'Edit submission' : 'Edit item'}
         </h2>
         <div className={s.fields}>
           <IdeaFormFields />

@@ -23,6 +23,8 @@ import { useGantryUpvote } from '@/services/gantry/hooks/useGantryUpvote';
 import {
   DEFAULT_ROADMAP_VISIBLE_COLUMNS,
   GANTRY_ROADMAP_COLUMN_STAGES,
+  GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
+  isPreRoadmapStage,
   sortRoadmapColumnStages,
 } from '@/services/gantry/constants';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
@@ -59,11 +61,10 @@ export function RoadmapView() {
   const { actions: submitIdeaModalActions } = useSubmitIdeaModalStore();
   const canSetStageOnCreate = canCurate || canTransition;
   const canCreate = canSetStageOnCreate || canCreateIdea;
-  const createLabel = canSetStageOnCreate ? 'Create Item' : 'Create Need';
+  const createLabel = canSetStageOnCreate ? 'Create Item' : 'Share a need';
   const createVariant = canSetStageOnCreate ? 'roadmap' : 'idea';
-  const [mine, setMine] = useLocalStorageParam<boolean>('gantry.dashboard.mine', false);
   const [visibleColumns, setVisibleColumns] = useLocalStorageParam<RoadmapColumnStage[]>(
-    'gantry.dashboard.visibleColumns',
+    GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
     [...DEFAULT_ROADMAP_VISIBLE_COLUMNS],
   );
   const [declineTargetUid, setDeclineTargetUid] = useState<string | null>(null);
@@ -77,10 +78,9 @@ export function RoadmapView() {
 
   const params = useMemo(
     () => ({
-      mine,
       stage: orderedVisibleColumns.length > 0 ? orderedVisibleColumns : undefined,
     }),
-    [mine, orderedVisibleColumns],
+    [orderedVisibleColumns],
   );
 
   const { data, isLoading, isError } = useGantryItems(params, !!currentUser && orderedVisibleColumns.length > 0);
@@ -117,7 +117,7 @@ export function RoadmapView() {
       return;
     }
 
-    if ((item.stage === 'IDEA' || item.stage === 'UNDER_REVIEW') && nextStage === 'PLANNED') {
+    if (isPreRoadmapStage(item.stage) && nextStage === 'PLANNED') {
       await transition.mutateAsync({ uid: itemUid, payload: { type: 'promote' } });
       return;
     }
@@ -176,12 +176,7 @@ export function RoadmapView() {
     <div className={s.pageLayout}>
       <DashboardPagesLayout
         filters={
-          <RoadmapFilters
-            mine={mine}
-            visibleColumns={visibleColumns}
-            onMineChange={setMine}
-            onVisibleColumnsChange={setVisibleColumns}
-          />
+          <RoadmapFilters visibleColumns={visibleColumns} onVisibleColumnsChange={setVisibleColumns} />
         }
         content={
           <div className={gantryPageStyles.contentShell}>

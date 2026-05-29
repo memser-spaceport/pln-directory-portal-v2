@@ -94,12 +94,28 @@ export function SubmitIdeaModal() {
         </div>
 
         <div className={s.footer}>
-          <Button style="border" variant="neutral" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit(onSubmit)} disabled={!isValid || isPending}>
-            {isPending ? copy.submittingLabel : copy.submitLabel}
-          </Button>
+          {copy.footerNote ? (
+            <>
+              <p className={s.footerNote}>{copy.footerNote}</p>
+              <div className={s.footerActions}>
+                <Button style="link" variant="secondary" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSubmit(onSubmit)} disabled={!isValid || isPending}>
+                  {isPending ? copy.submittingLabel : copy.submitLabel}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <Button style="border" variant="neutral" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button onClick={handleSubmit(onSubmit)} disabled={!isValid || isPending}>
+                {isPending ? copy.submittingLabel : copy.submitLabel}
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </Modal>

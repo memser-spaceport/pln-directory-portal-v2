@@ -5,7 +5,10 @@ import { FormEditor } from '@/components/form/FormEditor/FormEditor';
 import { FormSelect } from '@/components/form/FormSelect';
 import { GANTRY_CREATE_STAGE_OPTIONS } from '@/services/gantry/constants';
 import type { GantryStage } from '@/services/gantry/types';
-import { DESCRIPTION_MAX_LENGTH } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
+import {
+  DESCRIPTION_MAX_LENGTH,
+  TITLE_MAX_LENGTH,
+} from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { GantryStageOptionLabel } from './GantryStageOptionLabel';
 import formStyles from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
 import s from './IdeaFormFields.module.scss';
@@ -31,14 +34,18 @@ export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
       <div className={s.titleField}>
         <FormField
           name="title"
-          label={canSetStageOnCreate ? 'Title' : 'What is your current need?'}
+          label={canSetStageOnCreate ? 'Title' : 'What do you need?'}
           placeholder={
-            canSetStageOnCreate ? 'Give this item a short, clear title.' : 'Describe the problem you’re facing.'
+            canSetStageOnCreate
+              ? 'Give this item a short, clear title.'
+              : 'Example: I cannot easily see which investors my network has warm intros to.'
           }
           isRequired
-          max={100}
-          maxLength={100}
-          description={canSetStageOnCreate ? 'Max. 100 characters.' : 'Max. 100 characters.'}
+          max={TITLE_MAX_LENGTH}
+          maxLength={TITLE_MAX_LENGTH}
+          description={
+            canSetStageOnCreate ? `Max. ${TITLE_MAX_LENGTH} characters.` : 'Focus on the problem, not the solution.'
+          }
         />
       </div>
 
@@ -59,7 +66,7 @@ export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
         placeholder={
           canSetStageOnCreate
             ? 'Add any extra context for this item.'
-            : 'Add any extra context — links, examples, screenshots. Describe the problem, not a specific solution.'
+            : 'What is the context? What have you tried? Any examples or links?'
         }
         enableMentions
         simplified

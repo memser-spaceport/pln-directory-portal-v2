@@ -27,7 +27,7 @@ function PlusIcon() {
   );
 }
 
-export function IdeasSubmitButton({ onClick, className, label = 'Submit an Idea' }: Props) {
+export function IdeasSubmitButton({ onClick, className, label = 'Create Need' }: Props) {
   return (
     <button type="button" className={className ?? s.submitButton} onClick={onClick}>
       <PlusIcon />

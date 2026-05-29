@@ -8,20 +8,18 @@ function stripHtml(html: string): string {
     .trim();
 }
 
+export const DESCRIPTION_MAX_LENGTH = 1000;
+
 export const submitIdeaSchema = yup.object().shape({
   title: yup.string().required('Title is required').max(100, 'Max 100 characters'),
   description: yup
     .string()
-    .required('Description is required')
-    .test('not-empty-html', 'Description is required', (value) => !!value && stripHtml(value).length > 0),
-  acceptanceCriteria: yup.string().optional(),
-  focusAreaUid: yup
-    .object({
-      label: yup.string().required(),
-      value: yup.string().required(),
-    })
-    .nullable()
-    .optional(),
+    .optional()
+    .test(
+      'max-length',
+      `Description must be ${DESCRIPTION_MAX_LENGTH} characters or fewer`,
+      (value) => !value || stripHtml(value).length <= DESCRIPTION_MAX_LENGTH,
+    ),
   stage: yup
     .object({
       label: yup.string().required(),
@@ -34,11 +32,10 @@ export const submitIdeaSchema = yup.object().shape({
 export interface SubmitIdeaFormData {
   title: string;
   description: string;
-  acceptanceCriteria: string;
-  focusAreaUid: Option | null;
   stage?: Option | null;
 }
 
-export function stripHtmlContent(html: string): string {
-  return stripHtml(html);
+/** True when the rich-text value has visible content (ignores empty Quill markup). */
+export function hasRichTextContent(html: string | undefined | null): boolean {
+  return !!html && stripHtml(html).length > 0;
 }

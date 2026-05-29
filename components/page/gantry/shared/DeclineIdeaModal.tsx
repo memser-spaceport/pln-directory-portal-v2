@@ -39,7 +39,7 @@ export function DeclineIdeaModal({ isOpen, isPending, onClose, onConfirm }: Prop
         <button type="button" className={dialogStyles.closeButton} onClick={onClose} aria-label="Close">
           <Image height={20} width={20} alt="" loading="lazy" src="/icons/close.svg" />
         </button>
-        <h2>Decline idea?</h2>
+        <h2>Decline this need?</h2>
         <p className={dialogStyles.confirmationMessage}>Why is this not being taken forward?</p>
         <div className={dialogStyles.formContentWrapper}>
           <label htmlFor="gantry-decline-reason">Reason</label>
@@ -48,7 +48,7 @@ export function DeclineIdeaModal({ isOpen, isPending, onClose, onConfirm }: Prop
             className={s.reasonInput}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Share why this idea won't be pursued…"
+            placeholder="Share why this need won't be pursued…"
             rows={4}
             maxLength={2000}
             disabled={isPending}

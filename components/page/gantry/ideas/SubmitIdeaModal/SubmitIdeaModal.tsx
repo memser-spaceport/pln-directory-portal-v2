@@ -18,7 +18,7 @@ import {
   SUBMIT_IDEA_MODAL_COPY,
 } from '@/services/gantry/submitIdeaModal';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
-import { submitIdeaSchema, stripHtmlContent, type SubmitIdeaFormData } from './helpers';
+import { submitIdeaSchema, hasRichTextContent, type SubmitIdeaFormData } from './helpers';
 import s from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
 
 export function SubmitIdeaModal() {
@@ -54,15 +54,12 @@ export function SubmitIdeaModal() {
   };
 
   const onSubmit = (data: SubmitIdeaFormData) => {
-    const acceptanceCriteria = stripHtmlContent(data.acceptanceCriteria);
     const stageValue = data.stage?.value as GantryStage | undefined;
 
     mutate(
       {
         title: data.title.trim(),
-        description: data.description,
-        acceptanceCriteria: acceptanceCriteria.length > 0 ? data.acceptanceCriteria : null,
-        focusAreaUid: data.focusAreaUid?.value ?? null,
+        description: hasRichTextContent(data.description) ? data.description : '',
         externalTrackerUrl: null,
         ...(canSetStageOnCreate && stageValue ? { stage: stageValue } : {}),
       },

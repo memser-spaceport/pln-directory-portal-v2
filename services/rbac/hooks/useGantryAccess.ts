@@ -5,6 +5,7 @@ import { AccessControlQueryKeys } from '@/services/access-control/constants';
 import { fetchMyAccess } from '@/services/access-control/access-control.service';
 import { useCurrentUserStore } from '@/services/auth/store';
 
+const PERM_ADMIN = 'roadmap.admin';
 const PERM_VIEW = 'roadmap.view';
 const PERM_CREATE = 'roadmap.idea.create';
 const PERM_UPVOTE = 'roadmap.item.upvote';
@@ -34,14 +35,15 @@ export function useGantryAccess(): GantryAccess {
   });
 
   const perms = new Set(data?.effectivePermissions ?? []);
+  const isAdmin = perms.has(PERM_ADMIN);
 
   return {
-    canView: perms.has(PERM_VIEW),
-    canCreateIdea: perms.has(PERM_CREATE),
-    canUpvote: perms.has(PERM_UPVOTE),
-    canEditOwn: perms.has(PERM_EDIT_OWN),
-    canCurate: perms.has(PERM_CURATE),
-    canTransition: perms.has(PERM_TRANSITION),
+    canView: isAdmin || perms.has(PERM_VIEW),
+    canCreateIdea: isAdmin || perms.has(PERM_CREATE),
+    canUpvote: isAdmin || perms.has(PERM_UPVOTE),
+    canEditOwn: isAdmin || perms.has(PERM_EDIT_OWN),
+    canCurate: isAdmin || perms.has(PERM_CURATE),
+    canTransition: isAdmin || perms.has(PERM_TRANSITION),
     isLoading,
     isError,
   };

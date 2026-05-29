@@ -8,6 +8,7 @@ import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { EditButton } from '@/components/common/profile/EditButton';
 import { HeaderActionBtn } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { QuillContent } from '@/components/ui/QuillContent/QuillContent';
+import { hasRichTextContent } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 import { useGantryItem } from '@/services/gantry/hooks/useGantryItem';
@@ -63,7 +64,7 @@ export function GantryDetailPage({ uid }: Props) {
     return (
       <div className={s.root}>
         <div className={s.headerContainer}>
-          <BackButton to="/gantry/ideas" className={s.backButton} />
+          <BackButton to="/gantry/dashboard" className={s.backButton} />
         </div>
         <div className={s.page}>
           <div className={s.card}>
@@ -86,13 +87,13 @@ export function GantryDetailPage({ uid }: Props) {
     return (
       <div className={s.root}>
         <div className={s.headerContainer}>
-          <BackButton to="/gantry/ideas" className={s.backButton} />
+          <BackButton to="/gantry/dashboard" className={s.backButton} />
         </div>
         <div className={s.page}>
           <div className={s.notFound}>
             <h1>Item not found</h1>
-            <Link href="/gantry/ideas" className={s.notFoundLink}>
-              Back to Ideas
+            <Link href="/gantry/dashboard" className={s.notFoundLink}>
+              Back to Dashboard
             </Link>
           </div>
         </div>
@@ -111,7 +112,7 @@ export function GantryDetailPage({ uid }: Props) {
     try {
       await archiveMutation.mutateAsync('Archived from detail page');
       setIsArchiveModalOpen(false);
-      router.push('/gantry/ideas');
+      router.push('/gantry/dashboard');
     } catch {
       // Keep modal open so the user can retry or cancel.
     }
@@ -130,7 +131,7 @@ export function GantryDetailPage({ uid }: Props) {
   return (
     <div className={s.root}>
       <div className={s.headerContainer}>
-        <BackButton to="/gantry/ideas" className={s.backButton} />
+        <BackButton to="/gantry/dashboard" className={s.backButton} />
       </div>
 
       <div className={s.page}>
@@ -162,8 +163,6 @@ export function GantryDetailPage({ uid }: Props) {
                   onStageSelect={handleStageSelect}
                 />
                 <span className={s.metaDot} aria-hidden />
-                <span className={s.metaItem}>{item.focusArea?.title ?? 'No focus area'}</span>
-                <span className={s.metaDot} aria-hidden />
                 <GantryItemAuthor author={item.createdBy} backTo={`/gantry/${item.uid}`} />
                 <span className={s.metaDot} aria-hidden />
                 <UpvoteButton
@@ -189,14 +188,10 @@ export function GantryDetailPage({ uid }: Props) {
               />
             ) : (
               <div className={s.content}>
-                <section className={s.section}>
-                  <h2 className={s.sectionTitle}>Description</h2>
-                  <QuillContent html={item.description} className={s.richContent} />
-                </section>
-                {item.acceptanceCriteria && (
+                {hasRichTextContent(item.description) && (
                   <section className={s.section}>
-                    <h2 className={s.sectionTitle}>Acceptance criteria</h2>
-                    <QuillContent html={item.acceptanceCriteria} className={s.richContent} />
+                    <h2 className={s.sectionTitle}>Description</h2>
+                    <QuillContent html={item.description} className={s.richContent} />
                   </section>
                 )}
               </div>
@@ -213,8 +208,8 @@ export function GantryDetailPage({ uid }: Props) {
 
       <ConfirmDialog
         isOpen={isArchiveModalOpen}
-        title="Archive idea?"
-        desc={`Are you sure you want to archive "${item.title}"? It will be removed from the ideas list.`}
+        title="Archive item?"
+        desc={`Are you sure you want to archive "${item.title}"? It will be removed from the board.`}
         onClose={() => setIsArchiveModalOpen(false)}
         onConfirm={handleArchiveConfirm}
         confirmTitle={archiveMutation.isPending ? 'Archiving...' : 'Archive'}

@@ -13,11 +13,11 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
+import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 import type { GantryItem, GantryStage } from '@/services/gantry/types';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 import { useGantryItems } from '@/services/gantry/hooks/useGantryItems';
-import { useGantryFocusAreas } from '@/services/gantry/hooks/useGantryFocusAreas';
 import { useGantryTransition } from '@/services/gantry/hooks/useGantryTransition';
 import { useGantryUpvote } from '@/services/gantry/hooks/useGantryUpvote';
 import {
@@ -26,7 +26,6 @@ import {
   sortRoadmapColumnStages,
 } from '@/services/gantry/constants';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
-import { GantryTabs } from '@/components/page/gantry/GantryTabs';
 import { IdeasSubmitButton } from '@/components/page/gantry/ideas/IdeasSubmitButton';
 import { SubmitIdeaModal } from '@/components/page/gantry/ideas/SubmitIdeaModal/SubmitIdeaModal';
 import { DeclineIdeaModal } from '@/components/page/gantry/shared/DeclineIdeaModal';
@@ -56,11 +55,17 @@ function isRoadmapColumnStage(stage: string): stage is RoadmapColumnStage {
 export function RoadmapView() {
   const analytics = useGantryAnalytics();
   const { currentUser } = useCurrentUserStore();
-  const { canTransition, canUpvote } = useGantryAccess();
+  const { canCreateIdea, canCurate, canTransition, canUpvote } = useGantryAccess();
   const { actions: submitIdeaModalActions } = useSubmitIdeaModalStore();
-  const [mine, setMine] = useState(false);
-  const [visibleColumns, setVisibleColumns] = useState<RoadmapColumnStage[]>([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
-  const [focusAreaUids, setFocusAreaUids] = useState<string[]>([]);
+  const canSetStageOnCreate = canCurate || canTransition;
+  const canCreate = canSetStageOnCreate || canCreateIdea;
+  const createLabel = canSetStageOnCreate ? 'Create Item' : 'Create Need';
+  const createVariant = canSetStageOnCreate ? 'roadmap' : 'idea';
+  const [mine, setMine] = useLocalStorageParam<boolean>('gantry.dashboard.mine', false);
+  const [visibleColumns, setVisibleColumns] = useLocalStorageParam<RoadmapColumnStage[]>(
+    'gantry.dashboard.visibleColumns',
+    [...DEFAULT_ROADMAP_VISIBLE_COLUMNS],
+  );
   const [declineTargetUid, setDeclineTargetUid] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragWidth, setActiveDragWidth] = useState<number | null>(null);
@@ -74,12 +79,10 @@ export function RoadmapView() {
     () => ({
       mine,
       stage: orderedVisibleColumns.length > 0 ? orderedVisibleColumns : undefined,
-      focusAreaUid: focusAreaUids.length > 0 ? focusAreaUids : undefined,
     }),
-    [mine, orderedVisibleColumns, focusAreaUids],
+    [mine, orderedVisibleColumns],
   );
 
-  const { options: focusAreaOptions } = useGantryFocusAreas(!!currentUser);
   const { data, isLoading, isError } = useGantryItems(params, !!currentUser && orderedVisibleColumns.length > 0);
   const transition = useGantryTransition();
   const upvote = useGantryUpvote();
@@ -176,40 +179,33 @@ export function RoadmapView() {
           <RoadmapFilters
             mine={mine}
             visibleColumns={visibleColumns}
-            focusAreaUids={focusAreaUids}
-            focusAreaOptions={focusAreaOptions}
             onMineChange={setMine}
             onVisibleColumnsChange={setVisibleColumns}
-            onFocusAreaChange={setFocusAreaUids}
           />
         }
         content={
           <div className={gantryPageStyles.contentShell}>
-            <div className={gantryPageStyles.tabsRow}>
-              <GantryTabs />
-            </div>
-
             <div className={s.content}>
             <div className={s.pageHeader}>
               <div className={s.titleRow}>
                 <div className={s.titleSection}>
                   <div className={s.titleInline}>
-                    <h1 className={s.title}>Roadmap</h1>
-                    {canTransition && (
+                    <h1 className={s.title}>Dashboard</h1>
+                    {canCreate && (
                       <div className={s.actionsMobile}>
                         <IdeasSubmitButton
-                          label="Create Roadmap Item"
-                          onClick={() => submitIdeaModalActions.openModal('roadmap')}
+                          label={createLabel}
+                          onClick={() => submitIdeaModalActions.openModal(createVariant)}
                         />
                       </div>
                     )}
                   </div>
                 </div>
-                {canTransition && (
+                {canCreate && (
                   <div className={s.actions}>
                     <IdeasSubmitButton
-                      label="Create Roadmap Item"
-                      onClick={() => submitIdeaModalActions.openModal('roadmap')}
+                      label={createLabel}
+                      onClick={() => submitIdeaModalActions.openModal(createVariant)}
                     />
                   </div>
                 )}

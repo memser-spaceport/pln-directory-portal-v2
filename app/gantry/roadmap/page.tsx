@@ -1,5 +1,5 @@
-import { RoadmapView } from '@/components/page/gantry/roadmap/RoadmapView';
+import { redirect } from 'next/navigation';
 
 export default function GantryRoadmapPage() {
-  return <RoadmapView />;
+  redirect('/gantry/dashboard');
 }

@@ -12,7 +12,7 @@ const ROADMAP_API_URL = `${process.env.DIRECTORY_API_URL}/v1/roadmap/items`;
 
 function buildQuery(params: GantryListParams): string {
   const search = new URLSearchParams();
-  if (params.focusAreaUid?.length) search.set('focusAreaUid', params.focusAreaUid.join(','));
+  if (params.focusArea) search.set('focusArea', params.focusArea);
   if (params.mine) search.set('mine', 'true');
   if (params.includeDeclined) search.set('includeDeclined', 'true');
   if (params.includeArchived) search.set('includeArchived', 'true');

@@ -7,7 +7,7 @@ export enum GantryQueryKeys {
 export const GANTRY_STAGE_VALUES = ['IDEA', 'UNDER_REVIEW', 'PLANNED', 'IN_PROGRESS', 'SHIPPED', 'DECLINED'] as const;
 
 export const GANTRY_STAGE_LABELS: Record<(typeof GANTRY_STAGE_VALUES)[number], string> = {
-  IDEA: 'Idea',
+  IDEA: 'Need',
   UNDER_REVIEW: 'Under Review',
   PLANNED: 'Planned',
   IN_PROGRESS: 'In Progress',
@@ -27,7 +27,8 @@ export const GANTRY_ROADMAP_COLUMN_STAGES = [
   'DECLINED',
 ] as const;
 
-export const DEFAULT_ROADMAP_VISIBLE_COLUMNS = [...GANTRY_KANBAN_STAGES];
+/** Dashboard defaults to every stage column except DECLINED. */
+export const DEFAULT_ROADMAP_VISIBLE_COLUMNS = GANTRY_ROADMAP_COLUMN_STAGES.filter((stage) => stage !== 'DECLINED');
 
 export function sortRoadmapColumnStages(
   columns: readonly (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number][],
@@ -36,18 +37,13 @@ export function sortRoadmapColumnStages(
   return GANTRY_ROADMAP_COLUMN_STAGES.filter((stage) => selected.has(stage));
 }
 
-/** Mirrors backend `ALLOWED_TRANSITIONS` in roadmap-stage.util.ts */
-export const GANTRY_ALLOWED_TRANSITIONS: Record<(typeof GANTRY_STAGE_VALUES)[number], (typeof GANTRY_STAGE_VALUES)[number][]> = {
-  IDEA: ['UNDER_REVIEW', 'PLANNED', 'DECLINED'],
-  UNDER_REVIEW: ['IDEA', 'PLANNED', 'DECLINED'],
-  PLANNED: ['IN_PROGRESS', 'DECLINED'],
-  IN_PROGRESS: ['SHIPPED', 'PLANNED', 'DECLINED'],
-  SHIPPED: ['IN_PROGRESS'],
-  DECLINED: ['IDEA'],
-};
-
+/**
+ * Stage transitions are unrestricted for members with the transition permission —
+ * an item can move from any stage to any other stage. The selector simply offers
+ * every stage except the current one.
+ */
 export function getAllowedStageTransitions(stage: (typeof GANTRY_STAGE_VALUES)[number]) {
-  return GANTRY_ALLOWED_TRANSITIONS[stage] ?? [];
+  return GANTRY_STAGE_VALUES.filter((value) => value !== stage);
 }
 
 export const GANTRY_CREATE_STAGE_OPTIONS = GANTRY_STAGE_VALUES.map((value) => ({

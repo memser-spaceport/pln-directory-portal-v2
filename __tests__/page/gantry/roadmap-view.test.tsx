@@ -6,7 +6,7 @@ const mockUseGantryItems = jest.fn();
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn() }),
-  usePathname: () => '/gantry/roadmap',
+  usePathname: () => '/gantry/dashboard',
 }));
 
 jest.mock('@/services/auth/store', () => ({
@@ -36,10 +36,6 @@ jest.mock('@/components/page/gantry/ideas/SubmitIdeaModal/SubmitIdeaModal', () =
 
 jest.mock('@/services/gantry/hooks/useGantryItems', () => ({
   useGantryItems: (...args: unknown[]) => mockUseGantryItems(...args),
-}));
-
-jest.mock('@/services/gantry/hooks/useGantryFocusAreas', () => ({
-  useGantryFocusAreas: () => ({ options: [], isLoading: false }),
 }));
 
 jest.mock('@/services/gantry/hooks/useGantryTransition', () => ({
@@ -74,7 +70,6 @@ describe('RoadmapView', () => {
             description: 'desc',
             acceptanceCriteria: null,
             stage: 'PLANNED',
-            focusAreaUid: null,
             focusArea: null,
             createdByUid: 'member-1',
             createdBy: { uid: 'member-1', name: 'Alice', imageUrl: null },
@@ -94,8 +89,8 @@ describe('RoadmapView', () => {
 
     render(<RoadmapView />);
 
-    expect(screen.getByRole('heading', { name: 'Roadmap' })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Create Roadmap Item' }).length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Create Item' }).length).toBeGreaterThan(0);
     expect(screen.getAllByText('Planned').length).toBeGreaterThan(0);
     expect(screen.getAllByText('In Progress').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Shipped').length).toBeGreaterThan(0);

@@ -3,10 +3,27 @@
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import type { GantryItem } from '@/services/gantry/types';
+import { truncateText } from '@/utils/forum';
 import { GantryItemAuthor } from '../shared/GantryItemAuthor';
 import { UpvoteButton } from '../shared/UpvoteButton';
 import { useGantryCardNavigate } from '../shared/useGantryCardNavigate';
 import s from './Roadmap.module.scss';
+
+const CARD_DESCRIPTION_MAX_LENGTH = 160;
+
+/** Strip HTML tags and decode the common entities Quill emits, yielding readable plain text. */
+function toPlainText(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0?39;|&apos;/gi, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 interface CardContentProps {
   readonly item: GantryItem;
@@ -15,6 +32,8 @@ interface CardContentProps {
 }
 
 function RoadmapCardContent({ item, canUpvote, onUpvoteToggle }: CardContentProps) {
+  const descriptionPreview = truncateText(toPlainText(item.description ?? ''), CARD_DESCRIPTION_MAX_LENGTH);
+
   return (
     <>
       <div className={s.cardHead}>
@@ -26,8 +45,8 @@ function RoadmapCardContent({ item, canUpvote, onUpvoteToggle }: CardContentProp
           onToggle={(next) => onUpvoteToggle(item.uid, next)}
         />
       </div>
+      {descriptionPreview && <p className={s.cardDescription}>{descriptionPreview}</p>}
       <div className={s.meta}>
-        <span>{item.focusArea?.title ?? 'No focus area'}</span>
         <GantryItemAuthor author={item.createdBy} backTo={`/gantry/${item.uid}`} />
       </div>
     </>

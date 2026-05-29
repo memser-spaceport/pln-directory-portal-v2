@@ -84,7 +84,7 @@ export const FOUNDER_GUIDES_LINK: ISubItem = {
 
 export const GANTRY_LINK: ISubItem = {
   icon: <GantryIcon />,
-  href: '/gantry/ideas',
+  href: '/gantry/dashboard',
   title: 'Gantry',
   description: 'Internal ideas and roadmap board.',
 };

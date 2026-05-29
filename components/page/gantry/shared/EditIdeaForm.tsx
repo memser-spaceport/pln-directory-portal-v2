@@ -5,7 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Button } from '@/components/common/Button';
 import { useUpdateGantryItem } from '@/services/gantry/hooks/useUpdateGantryItem';
 import type { GantryItem } from '@/services/gantry/types';
-import { submitIdeaSchema, stripHtmlContent, type SubmitIdeaFormData } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
+import { submitIdeaSchema, hasRichTextContent, type SubmitIdeaFormData } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { IdeaFormFields } from './IdeaFormFields';
 import s from './EditIdeaForm.module.scss';
 
@@ -23,8 +23,6 @@ export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
     defaultValues: {
       title: item.title,
       description: item.description,
-      acceptanceCriteria: item.acceptanceCriteria ?? '',
-      focusAreaUid: item.focusArea ? { label: item.focusArea.title, value: item.focusArea.uid } : null,
     },
     mode: 'onChange',
   });
@@ -35,12 +33,9 @@ export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
   } = methods;
 
   const onSubmit = async (data: SubmitIdeaFormData) => {
-    const acceptanceCriteria = stripHtmlContent(data.acceptanceCriteria);
     await updateMutation.mutateAsync({
       title: data.title.trim(),
-      description: data.description,
-      acceptanceCriteria: acceptanceCriteria.length > 0 ? data.acceptanceCriteria : null,
-      focusAreaUid: data.focusAreaUid?.value ?? null,
+      description: hasRichTextContent(data.description) ? data.description : '',
     });
     onSaved();
   };
@@ -48,7 +43,9 @@ export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
   return (
     <FormProvider {...methods}>
       <div className={s.root}>
-        <h2 className={s.heading}>Edit idea</h2>
+        <h2 className={s.heading}>
+          {item.stage === 'IDEA' || item.stage === 'UNDER_REVIEW' ? 'Edit need' : 'Edit item'}
+        </h2>
         <div className={s.fields}>
           <IdeaFormFields />
         </div>

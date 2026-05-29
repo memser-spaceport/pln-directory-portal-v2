@@ -3,9 +3,9 @@
 import { FormField } from '@/components/form/FormField';
 import { FormEditor } from '@/components/form/FormEditor/FormEditor';
 import { FormSelect } from '@/components/form/FormSelect';
-import { useGantryFocusAreas } from '@/services/gantry/hooks/useGantryFocusAreas';
 import { GANTRY_CREATE_STAGE_OPTIONS } from '@/services/gantry/constants';
 import type { GantryStage } from '@/services/gantry/types';
+import { DESCRIPTION_MAX_LENGTH } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { GantryStageOptionLabel } from './GantryStageOptionLabel';
 import formStyles from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
 
@@ -25,27 +25,18 @@ const IDEAS_EDITOR_TOOLBAR: (string | Record<string, unknown>)[][] = [
 ];
 
 export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
-  const { options: focusAreaOptions, isLoading: isFocusAreasLoading } = useGantryFocusAreas();
-
   return (
     <div className={formStyles.form}>
       <FormField
         name="title"
-        label="Title"
-        placeholder="What should we build?"
+        label={canSetStageOnCreate ? 'Title' : 'What is your current need?'}
+        placeholder={
+          canSetStageOnCreate ? 'Give this item a short, clear title.' : 'Describe the problem you’re facing.'
+        }
         isRequired
         max={100}
         maxLength={100}
-        description="Max. 100 characters."
-      />
-
-      <FormSelect
-        name="focusAreaUid"
-        label="Focus area"
-        placeholder="Select a focus area (optional)"
-        options={focusAreaOptions}
-        disabled={isFocusAreasLoading}
-        isClearable
+        description={canSetStageOnCreate ? 'Max. 100 characters.' : 'Max. 100 characters.'}
       />
 
       {canSetStageOnCreate && (
@@ -61,25 +52,18 @@ export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
 
       <FormEditor
         name="description"
-        label="Description"
+        label="Description (optional)"
         placeholder={
-          'Describe the problem and proposed solution in detail.\nInclude context, goals, and any constraints.'
+          canSetStageOnCreate
+            ? 'Add any extra context for this item.'
+            : 'Add any extra context — links, examples, screenshots. Describe the problem, not a specific solution.'
         }
         enableMentions
-        isRequired
         simplified
         toolbarConfig={IDEAS_EDITOR_TOOLBAR}
         minHeight={200}
-      />
-
-      <FormEditor
-        name="acceptanceCriteria"
-        label="Acceptance criteria (optional)"
-        placeholder="How will we know this is done? List measurable outcomes if helpful."
-        enableMentions={false}
-        simplified
-        toolbarConfig={IDEAS_EDITOR_TOOLBAR}
-        minHeight={150}
+        maxLength={DESCRIPTION_MAX_LENGTH}
+        showCharCount
       />
     </div>
   );

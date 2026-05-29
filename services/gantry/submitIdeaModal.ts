@@ -9,14 +9,15 @@ export const SUBMIT_IDEA_MODAL_COPY: Record<
   { title: string; subtitle: string; submitLabel: string; submittingLabel: string }
 > = {
   idea: {
-    title: 'Submit an Idea',
-    subtitle: 'Share what we should build next. Ideas are reviewed before they move onto the roadmap.',
-    submitLabel: 'Submit Idea',
-    submittingLabel: 'Submitting...',
+    title: 'Share a need',
+    subtitle:
+      'Tell us about a problem you’re facing or something getting in your way. The product team reviews every need before it moves onto the roadmap.',
+    submitLabel: 'Create Need',
+    submittingLabel: 'Creating...',
   },
   roadmap: {
-    title: 'Create Roadmap Item',
-    subtitle: 'Add a committed item directly to the roadmap. It will start in Planned.',
+    title: 'Create item',
+    subtitle: 'Add an item to the board and choose the stage it should start in.',
     submitLabel: 'Create Item',
     submittingLabel: 'Creating...',
   },
@@ -31,8 +32,6 @@ export function getSubmitIdeaFormDefaults(variant: SubmitIdeaModalVariant): Subm
   return {
     title: '',
     description: '',
-    acceptanceCriteria: '',
-    focusAreaUid: null,
     stage,
   };
 }

@@ -6,19 +6,13 @@ export interface GantryMemberSummary {
   imageUrl: string | null;
 }
 
-export interface GantryFocusAreaSummary {
-  uid: string;
-  title: string;
-}
-
 export interface GantryItem {
   uid: string;
   title: string;
   description: string;
   acceptanceCriteria: string | null;
   stage: GantryStage;
-  focusAreaUid: string | null;
-  focusArea: GantryFocusAreaSummary | null;
+  focusArea: string | null;
   createdByUid: string;
   createdBy: GantryMemberSummary;
   promotedAt: string | null;
@@ -39,7 +33,7 @@ export interface GantryItemListResponse {
 
 export interface GantryListParams {
   stage?: GantryStage[];
-  focusAreaUid?: string[];
+  focusArea?: string;
   mine?: boolean;
   includeDeclined?: boolean;
   includeArchived?: boolean;
@@ -49,7 +43,7 @@ export interface CreateGantryItemPayload {
   title: string;
   description: string;
   acceptanceCriteria?: string | null;
-  focusAreaUid?: string | null;
+  focusArea?: string | null;
   externalTrackerUrl?: string | null;
   stage?: GantryStage;
 }
@@ -58,6 +52,6 @@ export interface UpdateGantryItemPayload {
   title?: string;
   description?: string;
   acceptanceCriteria?: string | null;
-  focusAreaUid?: string | null;
+  focusArea?: string | null;
   externalTrackerUrl?: string | null;
 }

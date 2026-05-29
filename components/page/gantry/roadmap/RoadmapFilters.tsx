@@ -10,7 +10,6 @@ import {
   GANTRY_STAGE_LABELS,
   sortRoadmapColumnStages,
 } from '@/services/gantry/constants';
-import type { Option } from '@/components/form/FormSelect/types';
 import filterStyles from '@/components/page/gantry/shared/GantryFilters.module.scss';
 
 export type RoadmapColumnStage = (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number];
@@ -18,22 +17,11 @@ export type RoadmapColumnStage = (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number];
 interface Props {
   readonly mine: boolean;
   readonly visibleColumns: RoadmapColumnStage[];
-  readonly focusAreaUids: string[];
-  readonly focusAreaOptions: Option[];
   readonly onMineChange: (value: boolean) => void;
   readonly onVisibleColumnsChange: (columns: RoadmapColumnStage[]) => void;
-  readonly onFocusAreaChange: (uids: string[]) => void;
 }
 
-export function RoadmapFilters({
-  mine,
-  visibleColumns,
-  focusAreaUids,
-  focusAreaOptions,
-  onMineChange,
-  onVisibleColumnsChange,
-  onFocusAreaChange,
-}: Props) {
+export function RoadmapFilters({ mine, visibleColumns, onMineChange, onVisibleColumnsChange }: Props) {
   const toggleColumn = (stage: RoadmapColumnStage) => {
     if (visibleColumns.includes(stage)) {
       onVisibleColumnsChange(visibleColumns.filter((s) => s !== stage));
@@ -42,20 +30,11 @@ export function RoadmapFilters({
     onVisibleColumnsChange(sortRoadmapColumnStages([...visibleColumns, stage]));
   };
 
-  const toggleFocusArea = (uid: string) => {
-    if (focusAreaUids.includes(uid)) {
-      onFocusAreaChange(focusAreaUids.filter((id) => id !== uid));
-      return;
-    }
-    onFocusAreaChange([...focusAreaUids, uid]);
-  };
-
-  const appliedFiltersCount = (mine ? 1 : 0) + visibleColumns.length + focusAreaUids.length;
+  const appliedFiltersCount = (mine ? 1 : 0) + visibleColumns.length;
 
   const clearParams = () => {
     onMineChange(false);
     onVisibleColumnsChange([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
-    onFocusAreaChange([]);
   };
 
   return (
@@ -65,9 +44,9 @@ export function RoadmapFilters({
       className={filterStyles.filterRail}
       hideFooter
     >
-      <FilterSection title="Ideas">
+      <FilterSection title="Needs">
         <div>
-          <CheckboxListItemRepresentation label="My ideas" checked={mine} onClick={() => onMineChange(!mine)} />
+          <CheckboxListItemRepresentation label="My needs" checked={mine} onClick={() => onMineChange(!mine)} />
         </div>
       </FilterSection>
 
@@ -91,21 +70,6 @@ export function RoadmapFilters({
           ))}
         </div>
       </FilterSection>
-
-      {focusAreaOptions.length > 0 && (
-        <FilterSection title="Focus area">
-          <div>
-            {focusAreaOptions.map((option) => (
-              <CheckboxListItemRepresentation
-                key={option.value}
-                label={option.label}
-                checked={focusAreaUids.includes(option.value)}
-                onClick={() => toggleFocusArea(option.value)}
-              />
-            ))}
-          </div>
-        </FilterSection>
-      )}
     </FiltersSidePanel>
   );
 }

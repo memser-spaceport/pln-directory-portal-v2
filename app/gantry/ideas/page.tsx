@@ -1,5 +1,5 @@
-import { IdeasView } from '@/components/page/gantry/ideas/IdeasView';
+import { redirect } from 'next/navigation';
 
 export default function GantryIdeasPage() {
-  return <IdeasView />;
+  redirect('/gantry/dashboard');
 }

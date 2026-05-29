@@ -25,8 +25,8 @@ export type GantryAccess = {
 };
 
 export function useGantryAccess(): GantryAccess {
-  const { currentUser } = useCurrentUserStore();
-  const { data, isLoading, isError } = useQuery({
+  const { currentUser, isHydrated } = useCurrentUserStore();
+  const { data, isPending, isFetching, isError } = useQuery({
     queryKey: [AccessControlQueryKeys.MY_ACCESS, 'gantry'],
     queryFn: fetchMyAccess,
     staleTime: 5 * 60 * 1000,
@@ -36,6 +36,7 @@ export function useGantryAccess(): GantryAccess {
 
   const perms = new Set(data?.effectivePermissions ?? []);
   const isAdmin = perms.has(PERM_ADMIN);
+  const isLoading = !isHydrated || (!!currentUser && (isPending || isFetching));
 
   return {
     canView: isAdmin || perms.has(PERM_VIEW),

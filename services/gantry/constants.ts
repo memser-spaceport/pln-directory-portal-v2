@@ -1,3 +1,5 @@
+import type { GantryItem } from './types';
+
 export enum GantryQueryKeys {
   ITEMS = 'gantry-items',
   ITEM = 'gantry-item',
@@ -35,6 +37,15 @@ export function sortRoadmapColumnStages(
 ): (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number][] {
   const selected = new Set(columns);
   return GANTRY_ROADMAP_COLUMN_STAGES.filter((stage) => selected.has(stage));
+}
+
+/** Most upvotes first; ties broken by most recently updated. */
+export function sortGantryItems(items: GantryItem[]): GantryItem[] {
+  return [...items].sort((a, b) => {
+    const countDiff = b.upvoteCount - a.upvoteCount;
+    if (countDiff !== 0) return countDiff;
+    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+  });
 }
 
 /**

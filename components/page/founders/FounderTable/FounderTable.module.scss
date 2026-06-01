@@ -1,76 +1,87 @@
-.tableWrapper {
-  overflow-x: auto;
+@import "styles/mixins";
+
+.wrap {
+  display: flex;
+  flex-direction: column;
   width: 100%;
+}
+
+.tableWrap {
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
 .table {
   width: 100%;
-  border-collapse: collapse;
+  min-width: max-content;
+  border-collapse: separate;
+  border-spacing: 0;
   font-family: 'Inter', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
 }
 
-.headerRow {
-  border-bottom: 1px solid #e5e7eb;
-}
+// ── Header ───────────────────────────────────────────────────────────────────
 
 .th {
-  padding: 10px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
   text-align: left;
+  padding: 16px;
+  font-weight: 500;
   font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+  color: #64748b;
   white-space: nowrap;
-  background: #f9fafb;
+  background: var(--background-neutral-soft-surface, #F9FAFB);
 }
+
+// ── Rows ─────────────────────────────────────────────────────────────────────
 
 .row {
-  border-bottom: 1px solid #f3f4f6;
   cursor: pointer;
   transition: background 0.08s;
-
-  &:hover {
-    background: #f9fafb;
-  }
 }
 
-.rowSelected {
-  background: #eff6ff;
-
-  &:hover {
-    background: #dbeafe;
-  }
-}
+.row:hover { background: #f8fafc; }
+.rowSelected { background: #eef2ff; }
+.rowSelected:hover { background: #e0e7ff; }
 
 .td {
-  padding: 10px 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
-  color: #111827;
+  white-space: nowrap;
 }
+
+// ── Name cell ────────────────────────────────────────────────────────────────
 
 .nameCell {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  min-width: 180px;
+  min-width: 200px;
+  max-width: 300px;
+  white-space: normal;
 }
 
 .namePrimary {
   font-weight: 600;
-  color: #111827;
+  font-size: 14px;
+  color: #0f172a;
+  line-height: 1.4;
 }
 
 .nameSecondary {
+  @include ellipse-text;
   font-size: 12px;
-  color: #6b7280;
+  color: #94a3b8;
   font-style: italic;
+  line-height: 1.4;
   max-width: 280px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
+
+// ── Other cells ──────────────────────────────────────────────────────────────
 
 .tagRow {
   display: flex;
@@ -81,7 +92,7 @@
 .fundTag {
   display: inline-flex;
   align-items: center;
-  padding: 2px 6px;
+  padding: 2px 8px;
   background: #eff6ff;
   color: #1d4ed8;
   border-radius: 4px;
@@ -93,7 +104,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 100px;
+  min-width: 110px;
 }
 
 .alignmentBar {
@@ -122,26 +133,25 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  background: #f3f4f6;
-  color: #374151;
+  background: #f1f5f9;
+  color: #475569;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 500;
 }
 
-.muted {
-  color: #9ca3af;
-}
+.muted { color: #94a3b8; }
 
-.emptyCell {
-  padding: 40px;
+.empty {
+  padding: 48px 32px;
   text-align: center;
-  color: #9ca3af;
-  font-style: italic;
+  color: #94a3b8;
+  font-size: 14px;
 }
 
 .loading {
-  padding: 40px;
+  padding: 48px 32px;
   text-align: center;
-  color: #6b7280;
+  color: #94a3b8;
+  font-size: 14px;
 }

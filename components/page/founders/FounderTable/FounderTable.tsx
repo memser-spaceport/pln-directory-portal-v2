@@ -123,11 +123,12 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
   }
 
   return (
-    <div className={s.tableWrapper}>
+    <div className={s.wrap}>
+    <div className={s.tableWrap}>
       <table className={s.table}>
         <thead>
           {table.getHeaderGroups().map((hg) => (
-            <tr key={hg.id} className={s.headerRow}>
+            <tr key={hg.id}>
               {hg.headers.map((h) => (
                 <th key={h.id} className={s.th}>
                   {flexRender(h.column.columnDef.header, h.getContext())}
@@ -155,13 +156,14 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
           ))}
           {founders.length === 0 && !isLoading && (
             <tr>
-              <td colSpan={columns.length} className={s.emptyCell}>
+              <td colSpan={columns.length} className={s.empty}>
                 No founders found.
               </td>
             </tr>
           )}
         </tbody>
       </table>
+    </div>
     </div>
   );
 }

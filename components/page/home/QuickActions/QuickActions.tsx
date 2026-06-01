@@ -48,7 +48,7 @@ export function QuickActions() {
             <ActionCard
               icon={<TeamsIcon />}
               title="Teams"
-              description="Explore active teams across the network"
+              description="Explore organizations across the network"
               href="/teams?priorities=P1%7CP2%7CP3"
             />
             {ohCard}

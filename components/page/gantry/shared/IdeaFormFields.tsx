@@ -33,11 +33,7 @@ export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
         <FormField
           name="title"
           label={canSetStageOnCreate ? 'Title' : 'What do you need?'}
-          placeholder={
-            canSetStageOnCreate
-              ? 'Give this item a short, clear title.'
-              : 'Example: I cannot easily see which investors my network has warm intros to.'
-          }
+          placeholder="Ex: find warm intro to member"
           isRequired
           max={TITLE_MAX_LENGTH}
           maxLength={TITLE_MAX_LENGTH}

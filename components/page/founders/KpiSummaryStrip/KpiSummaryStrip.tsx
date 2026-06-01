@@ -9,51 +9,70 @@ interface Props {
   isLoading: boolean;
 }
 
-// TODO: This component renders a best-effort view based on the placeholder KpiSummary type.
-// Coordinate with backend to confirm the exact GET /v1/founder-sourcing/kpis/summary?weeks=4
-// response shape and update accordingly.
 export default function KpiSummaryStrip({ data, isLoading }: Props) {
   if (!isLoading && !data) return null;
 
   if (isLoading) {
     return (
       <div className={s.strip}>
-        {[1, 2, 3, 4].map((i) => (
+        {[1, 2, 3, 4, 5].map((i) => (
           <div key={i} className={s.cardSkeleton} />
         ))}
       </div>
     );
   }
 
+  const { low, medium, high } = data!.alignmentDistribution;
+  const alignmentTotal = low + medium + high || 1;
+  const activeSources = Object.keys(data!.sourceCoverage).length;
+  const weeklyTotal = data!.weeklyNewRecords.reduce((sum, w) => sum + w.count, 0);
+  const maxWeekly = Math.max(...data!.weeklyNewRecords.map((w) => w.count), 1);
+
   return (
     <div className={s.strip}>
-      {/* By Fund */}
+      {/* Per-fund new records */}
       {FUND_VALUES.map((fund) => {
-        const stat = data?.byFund?.[fund];
+        const count = data!.newRecordsByFund[fund] ?? 0;
         return (
           <div key={fund} className={s.card}>
             <div className={s.cardLabel}>{FUND_LABEL[fund]}</div>
-            <div className={s.cardValue}>{stat?.total ?? '—'}</div>
-            {stat && (
-              <div className={s.cardSub}>
-                {stat.new} new · {stat.approved} approved
-              </div>
-            )}
+            <div className={s.cardValue}>{count}</div>
+            <div className={s.cardSub}>new leads</div>
           </div>
         );
       })}
 
-      {/* Weekly trend (if present) */}
-      {(data?.weeklyCount ?? []).length > 0 && (
+      {/* Alignment distribution */}
+      <div className={s.card}>
+        <div className={s.cardLabel}>Alignment</div>
+        <div className={s.cardValue}>{high}</div>
+        <div className={s.alignmentBar}>
+          <div className={s.alignHigh} style={{ width: `${(high / alignmentTotal) * 100}%` }} title={`High: ${high}`} />
+          <div className={s.alignMed} style={{ width: `${(medium / alignmentTotal) * 100}%` }} title={`Med: ${medium}`} />
+          <div className={s.alignLow} style={{ width: `${(low / alignmentTotal) * 100}%` }} title={`Low: ${low}`} />
+        </div>
+        <div className={s.cardSub}>high · {medium} med · {low} low</div>
+      </div>
+
+      {/* Sources */}
+      <div className={s.card}>
+        <div className={s.cardLabel}>Sources</div>
+        <div className={s.cardValue}>{activeSources}</div>
+        <div className={s.cardSub}>active ingestion feeds</div>
+      </div>
+
+      {/* Weekly trend */}
+      {data!.weeklyNewRecords.length > 0 && (
         <div className={s.card}>
-          <div className={s.cardLabel}>Last 4 weeks</div>
+          <div className={s.cardLabel}>This period</div>
+          <div className={s.cardValue}>{weeklyTotal}</div>
           <div className={s.sparkline}>
-            {data!.weeklyCount.map((w, i) => (
+            {data!.weeklyNewRecords.map((w, i) => (
               <div
                 key={i}
                 className={s.sparkBar}
-                style={{ height: `${Math.max(4, (w.count / Math.max(...data!.weeklyCount.map((x) => x.count), 1)) * 32)}px` }}
-                title={`${w.week}: ${w.count}`}
+                style={{ height: `${Math.max(4, (w.count / maxWeekly) * 28)}px` }}
+                title={`${w.weekStart.slice(0, 10)}: ${w.count}`}
               />
             ))}
           </div>

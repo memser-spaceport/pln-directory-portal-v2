@@ -1,6 +1,6 @@
 .strip {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   padding: 12px 20px;
   border-top: 1px solid #e5e7eb;
   border-bottom: 1px solid #e5e7eb;
@@ -11,17 +11,17 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   padding: 10px 14px;
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  min-width: 100px;
+  min-width: 90px;
 }
 
 .cardSkeleton {
-  height: 62px;
-  min-width: 100px;
+  height: 68px;
+  min-width: 90px;
   background: #e5e7eb;
   border-radius: 8px;
   animation: pulse 1.5s ease-in-out infinite;
@@ -36,17 +36,17 @@
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   color: #9ca3af;
   font-family: 'Inter', sans-serif;
 }
 
 .cardValue {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   color: #111827;
   font-family: 'Inter', sans-serif;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 .cardSub {
@@ -55,18 +55,45 @@
   font-family: 'Inter', sans-serif;
 }
 
+/* Alignment stacked bar */
+.alignmentBar {
+  display: flex;
+  height: 4px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #f3f4f6;
+  margin: 2px 0;
+  width: 100%;
+}
+
+.alignHigh {
+  background: #16a34a;
+  height: 100%;
+}
+
+.alignMed {
+  background: #f59e0b;
+  height: 100%;
+}
+
+.alignLow {
+  background: #e5e7eb;
+  height: 100%;
+}
+
+/* Sparkline */
 .sparkline {
   display: flex;
   align-items: flex-end;
   gap: 3px;
-  height: 32px;
-  padding-top: 4px;
+  height: 28px;
+  margin-top: 2px;
 }
 
 .sparkBar {
-  width: 12px;
+  width: 10px;
   background: #1b4dff;
   border-radius: 2px 2px 0 0;
-  opacity: 0.7;
+  opacity: 0.75;
   min-height: 4px;
 }

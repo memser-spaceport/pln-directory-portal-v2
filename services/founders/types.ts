@@ -82,12 +82,11 @@ export type ReviewFounderPayload = {
   note?: string;
 };
 
-// TODO: confirm exact shape with backend before implementing KpiSummaryStrip beyond skeleton
 export type KpiSummary = {
-  byFund: Partial<Record<FundTag, { total: number; new: number; approved: number }>>;
-  alignmentBuckets: { range: string; count: number }[];
-  bySources: Record<string, number>;
-  weeklyCount: { week: string; count: number }[];
+  newRecordsByFund: Partial<Record<FundTag, number>>;
+  alignmentDistribution: { low: number; medium: number; high: number };
+  sourceCoverage: Record<string, number>;
+  weeklyNewRecords: { weekStart: string; count: number }[];
 };
 
 export type FounderListParams = {
